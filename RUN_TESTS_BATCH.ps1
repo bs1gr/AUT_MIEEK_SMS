@@ -54,7 +54,7 @@ $env:SMS_ALLOW_DIRECT_PYTEST = "1"
 $env:SMS_TEST_RUNNER = "batch"
 
 Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║   Batch Test Runner (SMS v1.15.1)     ║" -ForegroundColor Cyan
+Write-Host "║   Batch Test Runner (SMS v1.18.0)     ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
 
 # Verify we're in the right directory or find it
@@ -219,13 +219,16 @@ if ($passedCount -gt 0) {
 if ($failedCount -gt 0) {
     Write-Error "  Failed:  $failedCount"
 }
+if ($failedFiles.Count -gt 0) {
+    Write-Error "  Failed Batches: $($failedFiles.Count)"
+}
 
 Write-Host "`nDuration: $([math]::Round($duration, 1))s" -ForegroundColor Gray
 
 Write-Host ""
 
 # Exit code
-if ($failedCount -eq 0) {
+if ($failedCount -eq 0 -and $failedFiles.Count -eq 0) {
     Write-Success "All tests passed! 🎉"
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     exit 0

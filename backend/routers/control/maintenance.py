@@ -48,6 +48,7 @@ class OperationResult(BaseModel):
 
     success: bool
     message: str
+    message_key: Optional[str] = None
     details: Optional[Dict[str, Any]] = None
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
 
@@ -65,6 +66,7 @@ class UpdateCheckResponse(BaseModel):
     installer_hash: Optional[str] = None
     docker_image_url: Optional[str] = None
     update_instructions: str
+    update_instructions_key: Optional[str] = None
     deployment_mode: Literal["docker", "native"] = Field(description="Detected deployment mode for localization")
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
 
@@ -160,6 +162,7 @@ def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
                 return OperationResult(
                     success=False,
                     message="No .env file found and no .env.example to copy from",
+                    message_key="maintenance.auth.no_env_file",
                     details={"expected_path": str(env_file)},
                 )
 
@@ -244,6 +247,7 @@ def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
         return OperationResult(
             success=True,
             message=f"Authentication settings updated in {env_file.name}. Restart required to take effect.",
+            message_key="maintenance.auth.update_success",
             details={
                 "file": str(env_file),
                 "updated_values": updated_values,
@@ -255,6 +259,7 @@ def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
         return OperationResult(
             success=False,
             message=f"Failed to update authentication settings: {str(e)}",
+            message_key="maintenance.auth.update_error",
             details={"error": str(e), "type": type(e).__name__},
         )
 
@@ -350,6 +355,7 @@ def check_for_updates(_request: Request):
                 latest_version=None,
                 update_available=False,
                 update_instructions="Could not check for updates. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases",
+                update_instructions_key="maintenance.update.check_error",
                 deployment_mode=deployment_mode,
             )
 
@@ -383,6 +389,7 @@ def check_for_updates(_request: Request):
                 "   - Restart the container\n\n"
                 "3. The application will be available again shortly."
             )
+            instructions_key = "maintenance.update.instructions_docker"
         else:
             instructions = (
                 "To update your native installation:\n\n"
@@ -394,6 +401,7 @@ def check_for_updates(_request: Request):
                 "   .\\NATIVE.ps1 -Setup\n"
                 "   .\\NATIVE.ps1 -Start"
             )
+            instructions_key = "maintenance.update.instructions_native"
 
         return UpdateCheckResponse(
             current_version=current_version,
@@ -406,6 +414,7 @@ def check_for_updates(_request: Request):
             installer_hash=installer_hash,
             docker_image_url="https://github.com/bs1gr/AUT_MIEEK_SMS/pkgs/container/sms-backend",
             update_instructions=instructions,
+            update_instructions_key=instructions_key,
             deployment_mode=deployment_mode,
         )
     except Exception as exc:
@@ -415,6 +424,7 @@ def check_for_updates(_request: Request):
             latest_version=None,
             update_available=False,
             update_instructions=f"Error checking for updates: {str(exc)}. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases",
+            update_instructions_key="maintenance.update.check_error",
             deployment_mode=deployment_mode,
         )
 

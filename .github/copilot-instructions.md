@@ -1,6 +1,6 @@
 # Copilot Instructions for Student Management System
 
-**Version**: v1.15.1 (Jan 2026) | **Status**: Phase 1 Complete, Phase 2 RBAC Backend Complete
+**Version**: v1.18.0 (Jan 2026) | **Status**: ⚠️ REMEDIATION (Fixing concealed failures in v1.18.0)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** (Single developer + AI assistant only)
 
 ## ⚡ Quick Onboarding
@@ -103,8 +103,8 @@ python -m pytest
 **✅ REQUIRED:**
 - Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
 - Check work plan BEFORE starting work, update AFTER completing tasks
-- Verify version from `VERSION` file (current: v1.15.1)
-- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.15.1)
+- Verify version from `VERSION` file (current: 1.18.0)
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.17.1)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
 
 **Why**: Multiple plans create confusion. Incorrect version format breaks all version tracking.
@@ -906,4 +906,4 @@ alembic current                           # Check version
 
 ---
 
-**Last Updated**: January 10, 2026 | **Maintained By**: Solo Developer + AI Agent
+**Last Updated**: January 14, 2026 | **Maintained By**: Solo Developer + AI Agent

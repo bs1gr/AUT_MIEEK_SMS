@@ -68,7 +68,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: 1.17.1
+Version: vvvv1.18.0
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -180,6 +180,11 @@ if (-not $inCI) {
         }
     }
 }
+
+# Set policy compliance flags for test runners invoked by this script
+$env:SMS_TEST_RUNNER = "batch"
+$env:SMS_ALLOW_DIRECT_VITEST = "1"
+$env:SMS_ALLOW_DIRECT_PYTEST = "1"
 
 $script:Results = @{
     Linting = @()
@@ -712,7 +717,7 @@ function Invoke-VersionPropagationAndDocs {
             (Join-Path $SCRIPT_DIR 'CHANGELOG.md'),
             (Join-Path $SCRIPT_DIR 'INSTALLER_BUILDER.ps1'),
             (Join-Path $SCRIPT_DIR 'COMMIT_SUMMARY.md'),
-            (Join-Path $SCRIPT_DIR 'RELEASE_SUMMARY_$11.9.7.md'),
+            (Join-Path $SCRIPT_DIR 'RELEASE_SUMMARY_1.9.7.md'),
             (Join-Path $SCRIPT_DIR 'PERFORMANCE_AUDIT_2025-12-03.md')
         )
 
@@ -1401,6 +1406,36 @@ function Invoke-TestSuite {
     }
     finally {
         Pop-Location
+    }
+
+    # Frontend: Playwright E2E
+    if ($Mode -in @('standard', 'full')) {
+        Write-Section "Frontend: Playwright E2E"
+        try {
+            Push-Location $FRONTEND_DIR
+            if (Test-Path "playwright.config.ts") {
+                Write-Info "Running Playwright tests..."
+                $npxAvailable = Test-CommandAvailable -Name "npx"
+                if ($npxAvailable) {
+                    $output = npx playwright test 2>&1
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Success "Playwright E2E tests passed"
+                        Add-Result "Tests" "Frontend E2E" $true
+                    } else {
+                        Write-Failure "Playwright E2E tests failed"
+                        Write-Host $output -ForegroundColor Gray
+                        Add-Result "Tests" "Frontend E2E" $false $output
+                        $allPassed = $false
+                    }
+                }
+            }
+            Pop-Location
+        } catch {
+            Write-Failure "Playwright execution error: $_"
+            Add-Result "Tests" "Frontend E2E" $false $_
+            $allPassed = $false
+            Pop-Location
+        }
     }
 
     return $allPassed

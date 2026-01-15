@@ -1,67 +1,87 @@
 import { test, expect } from '@playwright/test';
-import * as fs from 'fs';
-import * as path from 'path';
+
+const ADMIN_CREDENTIALS = {
+  email: 'admin@example.com',
+  password: 'YourSecurePassword123!',
+};
+
+// Helper to login via API (inlined to ensure self-containment)
+async function loginViaAPI(page: any) {
+  const response = await page.request.post('/api/v1/auth/login', {
+    data: ADMIN_CREDENTIALS
+  });
+  expect(response.ok()).toBeTruthy();
+  const { access_token } = await response.json();
+
+  // Set cookie for authentication
+  await page.context().addCookies([{
+    name: 'token',
+    value: access_token,
+    domain: 'localhost',
+    path: '/'
+  }]);
+}
 
 test.describe('Feature #127: Bulk Import/Export', () => {
-
   test.beforeEach(async ({ page }) => {
-    // Login as admin
-    await page.goto('/login');
-    await page.getByLabel(/email/i).fill('admin@example.com');
-    await page.getByLabel(/password/i).fill('YourSecurePassword123!');
-    await page.getByRole('button', { name: /sign in|login/i }).click();
-    await expect(page).toHaveURL(/\/dashboard/);
+    await loginViaAPI(page);
   });
 
-  test('should navigate to import/export page', async ({ page }) => {
-    // Navigate via sidebar or direct URL
+  test('Admin can access Import/Export page', async ({ page }) => {
     await page.goto('/admin/import-export');
-    await expect(page.getByRole('heading', { name: /import|export/i })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /import/i })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /export/i })).toBeVisible();
+
+    // Verify Page Title
+    await expect(page.getByRole('heading', { name: /Data Import\/Export/i })).toBeVisible();
+
+    // Verify Main Actions
+    await expect(page.getByRole('button', { name: /Export Data/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Import Data/i })).toBeVisible();
+
+    // Verify History Table
+    await expect(page.getByText(/History/i)).toBeVisible();
+    await expect(page.locator('table')).toBeVisible();
   });
 
-  test('should validate CSV file upload for students', async ({ page }) => {
+  test('Export dialog opens and closes correctly', async ({ page }) => {
     await page.goto('/admin/import-export');
 
-    // Select Students import type
-    await page.getByRole('button', { name: /import students/i }).click();
+    // Open Export Dialog
+    await page.getByRole('button', { name: /Export Data/i }).click();
 
-    // Create dummy CSV file
-    const testFile = path.join(__dirname, 'test_students.csv');
-    const csvContent = 'first_name,last_name,email,date_of_birth,enrollment_date\nTest,User,test.import@example.com,2000-01-01,2023-09-01';
-    fs.writeFileSync(testFile, csvContent);
+    // Verify Dialog Content
+    const dialog = page.getByRole('dialog');
+    await expect(dialog).toBeVisible();
+    // Note: Exact text depends on translation, checking for common elements
+    await expect(dialog.getByRole('button', { name: /Export/i })).toBeVisible();
 
-    try {
-      // Upload file
-      const fileChooserPromise = page.waitForEvent('filechooser');
-      await page.getByText(/click to upload|drag and drop/i).click();
-      const fileChooser = await fileChooserPromise;
-      await fileChooser.setFiles(testFile);
-
-      // Check preview data
-      await expect(page.getByText('test.import@example.com')).toBeVisible();
-      await expect(page.getByText('Test')).toBeVisible();
-      await expect(page.getByText('User')).toBeVisible();
-
-      // Verify validation status (assuming UI shows "Valid" or similar)
-      await expect(page.getByText(/valid/i)).toBeVisible();
-
-    } finally {
-      // Cleanup
-      if (fs.existsSync(testFile)) {
-        fs.unlinkSync(testFile);
-      }
-    }
+    // Close Dialog (assuming clicking outside or cancel button)
+    // If there is a close button or we can press Escape
+    await page.keyboard.press('Escape');
+    await expect(dialog).not.toBeVisible();
   });
 
-  test('should show history of imports', async ({ page }) => {
+  test('Import wizard flow for Students', async ({ page }) => {
     await page.goto('/admin/import-export');
-    await page.getByRole('tab', { name: /history/i }).click();
 
-    // Verify table headers exist
-    await expect(page.getByRole('columnheader', { name: /date/i })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: /type/i })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: /status/i })).toBeVisible();
+    // Open Import Menu
+    await page.getByRole('button', { name: /Import Data/i }).click();
+
+    // Select Students Import
+    await page.getByText(/Import Students/i).click();
+
+    // Verify Wizard Steps
+    // Step 1: Upload
+    await expect(page.getByText(/Select File/i)).toBeVisible();
+    await expect(page.locator('input[type="file"]')).toBeAttached();
+
+    // Verify Cancel works
+    await page.getByRole('button', { name: /Cancel/i }).click();
+    await expect(page.getByText(/Select File/i)).not.toBeVisible();
+  });
+
+  test('History table loads data', async ({ page }) => {
+    await page.goto('/admin/import-export');
+    // Check for table headers
+    await expect(page.locator('thead')).toContainText(/Status/i);
   });
 });

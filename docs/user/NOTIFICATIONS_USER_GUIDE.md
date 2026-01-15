@@ -1,6 +1,6 @@
 # Real-Time Notifications User Guide
 
-**Version**: 1.0 ($11.17.1)
+**Version**: 1.0 (1.17.1)
 **Last Updated**: January 12, 2026
 **Status**: Production Ready
 
@@ -272,7 +272,7 @@ If you encounter problems:
 
 ---
 
-## 🆕 What's New in $11.17.1
+## 🆕 What's New in 1.17.1
 
 **Real-Time Notifications**:
 - 🚀 WebSocket-based instant delivery
@@ -282,7 +282,7 @@ If you encounter problems:
 - ⚙️ Fully customizable preferences
 - 🎯 Real-time without page refresh
 
-**Coming Soon** ($11.17.1+):
+**Coming Soon** (1.17.1+):
 - 📱 Mobile push notifications
 - 🌐 Webhook integrations
 - 📊 Notification analytics
@@ -293,13 +293,13 @@ If you encounter problems:
 ## 📚 Related Documentation
 
 - [Admin Configuration Guide](../admin/NOTIFICATIONS_ADMIN_GUIDE.md) - For administrators
-- [Release Notes $11.17.1](../releases/RELEASE_NOTES_$11.17.1.md) - What's new
+- [Release Notes 1.17.1](../releases/RELEASE_NOTES_1.17.1.md) - What's new
 - [Settings Reference](./SETTINGS_REFERENCE.md) - All settings explained
 
 ---
 
 **Questions?** Contact your system administrator or visit the Help Center in the application.
 
-**Version**: 1.0 ($11.17.1)
+**Version**: 1.0 (1.17.1)
 **Status**: Production Ready
 **Last Updated**: January 12, 2026

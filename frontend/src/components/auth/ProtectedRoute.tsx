@@ -20,7 +20,7 @@ interface ProtectedRouteProps {
   permissions?: string[];
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles, permissions }) => {
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, roles: _roles, permissions: _permissions }) => {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {

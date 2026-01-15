@@ -349,7 +349,7 @@ student-management-system/
 ├── 📄 CHANGELOG.md              # Version history
 ├── 📄 TODO.md                   # Active task tracking
 ├── 📄 LICENSE                   # MIT License
-├── 📄 VERSION                   # Current version (1.14.3)
+├── 📄 VERSION                   # Current version (1.18.0)
 │
 ├── 🐳 DOCKER.ps1                # Production deployment script
 ├── 💻 NATIVE.ps1                # Development mode script
@@ -509,12 +509,12 @@ Legacy release archival & GHCR retirement guidance.
 
 ## 📦 Releases
 
-- Latest: [$1.14.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.14.3) – Canonical Control API base path, shared frontend helper, and restart UX improvements
-- Previous: [$1.14.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.14.3) – Repository-wide cleanup, documentation consolidation, and maintainability upgrades
-- Archive: [$1.14.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.14.3) – Release archive pipeline, GHCR retirement guidance, and automation hooks
+- Latest: [$1.18.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.18.0) – Phase 3 Features (Analytics, Notifications, Bulk Import/Export)
+- Previous: [$1.17.1](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.17.1) – RBAC System Implementation
+- Archive: [$1.15.0](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.15.0) – Phase 1 Completion
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-ℹ️ Publish the exact notes shown above via `docs/releases/$1.14.3.md` using `gh release create $1.14.3 --notes-file docs/releases/$1.14.3.md`.
+ℹ️ Publish the exact notes shown above via `docs/releases/$1.18.0.md` using `gh release create $1.18.0 --notes-file docs/releases/$1.18.0.md`.
 
 ---
 

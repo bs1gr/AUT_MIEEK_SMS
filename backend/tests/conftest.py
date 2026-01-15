@@ -44,7 +44,6 @@ if not _is_test_runner_permitted():
 import pytest
 from fastapi import Depends, Request
 from fastapi.testclient import TestClient
-from sqlalchemy.orm import declarative_base
 
 # Import shared DB setup to ensure singletons across pytest and direct imports
 from backend.tests.db_setup import TestingSessionLocal, engine
@@ -145,13 +144,9 @@ def get_error_detail(response_data: dict) -> dict | None:
 
 
 # Always use the application's Base (declared in backend.models) so metadata includes all tables.
-try:
-    from backend import models as models_mod
+from backend import models as models_mod
 
-    Base = models_mod.Base
-except Exception:  # pragma: no cover - defensive fallback to preserve test startup
-    logging.warning("Could not import Base from backend.models. Using local declarative_base.")
-    Base = declarative_base()
+Base = models_mod.Base
 
 
 # --- Security Configuration for Test Suite ---
@@ -462,3 +457,9 @@ def mock_db_engine(monkeypatch):
 
     mock_engine = MagicMock()
     return mock_engine
+
+
+@pytest.fixture(scope="function")
+def admin_headers(admin_token: str) -> dict[str, str]:
+    """Return headers with admin authentication."""
+    return {"Authorization": f"Bearer {admin_token}"}

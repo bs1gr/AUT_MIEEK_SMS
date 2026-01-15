@@ -13,12 +13,12 @@
 
 | Item | Value |
 |------|-------|
-| **Project Version** | 1.14.2 (stable) |
-| **Release Target** | 1.15.0 |
-| **Target Release Date** | January 24, 2026 |
-| **Active Phase** | Phase 1: Infrastructure Improvements (Jan 7–20) |
-| **Phase Status** | ✅ **READY FOR KICKOFF** — All prerequisites complete, GitHub issues created |
-| **Last Update** | 2026-01-05 18:30 UTC |
+| **Project Version** | 1.17.1 (stable) |
+| **Release Target** | 1.18.0 (Phase 3 Features) |
+| **Target Release Date** | January 15, 2026 |
+| **Active Phase** | Phase 3 Completion & Release |
+| **Phase Status** | 🟢 **RELEASE PREP** — All features complete, preparing $11.18.0 |
+| **Last Update** | 2026-01-14 |
 
 ---
 
@@ -46,39 +46,18 @@
 
 ## 📋 Active Work Items
 
-### PHASE1-001: Backend Test Reconciliation (Phase 0 Gap)
-- **Status**: ✅ **COMPLETED**
-- **Priority**: 🔴 **CRITICAL**
-- **Owner**: Agent-Copilot
-- **Completed**: 2026-01-05 17:40 UTC
-- **Duration**: 5 minutes
-
-**What**: ✅ RESOLVED — Backend pytest run confirms all tests passing.
-
-**Finding**:
-```
-Backend Test Run: 2026-01-05 17:40 UTC
-Result: 455 passed, 3 skipped, 3 warnings
-Duration: 29.75 seconds
-Status: ✅ ALL TESTS PASSING
-```
-
-**Root Cause of Earlier Report**:
-Earlier sessions documented 60+ failures from APIResponse format standardization (commit `a1535d074`).
-Fixes were applied in commit `6d72ca496` ("fix: adapt backend tests to APIResponse format standardization")
-and helpers added in `906173978` ("test(backend): add error response helper functions").
-These fixes are now verified working.
-
-**Impact**: Phase 0 "all tests passing" claim in RELEASE_PREPARATION_1.15.2.md is **ACCURATE ✅**
-
-**Progress**:
-```
-✓ Backend pytest run completed
-✓ Failures categorized: NONE (all passing)
-✓ Root cause verified: Fixes from 1.15.0 are working
-✓ RELEASE_PREPARATION_$11.15.2.md Phase 0 claim validated
-✓ PHASE1-001 COMPLETED
-```
+### FEATURE-127: Bulk Import/Export (Phase 3)
+- **Status**: ✅ **COMPLETE**
+- **Priority**: 🟡 **HIGH**
+- **Owner**: Agent
+- **Progress**:
+  - ✅ Backend Models & Schemas
+  - ✅ Backend Service & Logic
+  - ✅ API Endpoints (RBAC secured)
+  - ✅ Database Migrations
+  - ✅ Frontend UI (Wizard, Dialog, History)
+  - ✅ Backend Implementation (Parsers, Background Jobs)
+  - ✅ Testing & Documentation (Phase 6)
 
 ---
 
