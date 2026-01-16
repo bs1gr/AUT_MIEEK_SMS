@@ -110,9 +110,9 @@ if (-not $Version) {
     }
 }
 
-# Validate version format
-if ($Version -notmatch '^\d+\.\d+\.\d+$') {
-    Write-Error-Message "Invalid version format: $Version (expected: X.Y.Z)"
+# Validate version format (must have 'v' prefix per Policy 2)
+if ($Version -notmatch '^v\d+\.\d+\.\d+$') {
+    Write-Error-Message "Invalid version format: $Version (expected: vX.Y.Z with 'v' prefix per Policy 2)"
     exit 1
 }
 

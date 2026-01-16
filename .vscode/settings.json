@@ -12,19 +12,8 @@
   "testing.autoRun": "off",
   "testing.showInlineErrorMessages": true,
 
-  // Terminals for tasks should use PowerShell on Windows
+  // Terminals for tasks should use PowerShell on Windows (no custom profile)
   "terminal.integrated.defaultProfile.windows": "PowerShell",
-  "terminal.integrated.profiles.windows": {
-    "PowerShell": {
-      "source": "PowerShell",
-      "args": [
-        "-NoExit",
-        "-NoLogo",
-        "-File",
-        "${workspaceFolder}/.vscode/powershell-profile.ps1"
-      ]
-    }
-  },
 
   // Fix Greek character encoding issues
   "files.encoding": "utf8",
