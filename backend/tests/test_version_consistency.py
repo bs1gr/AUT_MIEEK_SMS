@@ -33,7 +33,16 @@ def version_file(project_root: Path) -> str:
     """Read the canonical version from VERSION file."""
     version_path = project_root / "VERSION"
     assert version_path.exists(), "VERSION file not found"
-    return version_path.read_text(encoding="utf-8").strip()
+    raw_version = version_path.read_text(encoding="utf-8").strip()
+    assert re.match(r"^v?\d+\.\d+\.\d+$", raw_version), f"VERSION file must contain valid semver (got: {raw_version})"
+    return normalize_version(raw_version)
+
+
+def normalize_version(version: str | None) -> str | None:
+    """Normalize versions by stripping a leading 'v'."""
+    if version is None:
+        return None
+    return version.lstrip("v").strip()
 
 
 def extract_version(content: str, pattern: str) -> str | None:
@@ -53,7 +62,7 @@ def test_version_file_exists(project_root: Path):
     assert version_file.exists(), "VERSION file must exist"
 
     content = version_file.read_text(encoding="utf-8").strip()
-    assert re.match(r"^\d+\.\d+\.\d+$", content), f"VERSION file must contain valid semver (got: {content})"
+    assert re.match(r"^v?\d+\.\d+\.\d+$", content), f"VERSION file must contain valid semver (got: {content})"
 
 
 def test_frontend_package_json_version(project_root: Path, version_file: str):
@@ -62,7 +71,7 @@ def test_frontend_package_json_version(project_root: Path, version_file: str):
     assert pkg_path.exists(), "frontend/package.json not found"
 
     pkg_data = json.loads(pkg_path.read_text(encoding="utf-8"))
-    pkg_version = pkg_data.get("version")
+    pkg_version = normalize_version(pkg_data.get("version"))
 
     assert pkg_version == version_file, f"package.json version ({pkg_version}) != VERSION ({version_file})"
 
@@ -73,10 +82,12 @@ def test_backend_main_docstring_version(project_root: Path, version_file: str):
     assert main_path.exists(), "backend/main.py not found"
 
     content = main_path.read_text(encoding="utf-8")
-    extracted_version = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
+    extracted_version = extract_version(content, r"Version:\s*v?(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in backend/main.py docstring"
-    assert extracted_version == version_file, f"main.py version ({extracted_version}) != VERSION ({version_file})"
+    assert normalize_version(extracted_version) == version_file, (
+        f"main.py version ({extracted_version}) != VERSION ({version_file})"
+    )
 
 
 # ============================================================================
@@ -91,10 +102,12 @@ def test_user_guide_version(project_root: Path, version_file: str):
         pytest.skip("USER_GUIDE_COMPLETE.md not found")
 
     content = guide_path.read_text(encoding="utf-8")
-    extracted_version = extract_version(content, r"\*\*Version:\*\*\s*(\d+\.\d+\.\d+)")
+    extracted_version = extract_version(content, r"\*\*Version:\*\*\s*v?(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in USER_GUIDE_COMPLETE.md"
-    assert extracted_version == version_file, f"User guide version ({extracted_version}) != VERSION ({version_file})"
+    assert normalize_version(extracted_version) == version_file, (
+        f"User guide version ({extracted_version}) != VERSION ({version_file})"
+    )
 
 
 def test_developer_guide_version(project_root: Path, version_file: str):
@@ -104,10 +117,10 @@ def test_developer_guide_version(project_root: Path, version_file: str):
         pytest.skip("DEVELOPER_GUIDE_COMPLETE.md not found")
 
     content = guide_path.read_text(encoding="utf-8")
-    extracted_version = extract_version(content, r"\*\*Version:\*\*\s*(\d+\.\d+\.\d+)")
+    extracted_version = extract_version(content, r"\*\*Version:\*\*\s*v?(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in DEVELOPER_GUIDE_COMPLETE.md"
-    assert extracted_version == version_file, (
+    assert normalize_version(extracted_version) == version_file, (
         f"Developer guide version ({extracted_version}) != VERSION ({version_file})"
     )
 
@@ -119,10 +132,10 @@ def test_documentation_index_version(project_root: Path, version_file: str):
         pytest.skip("docs/DOCUMENTATION_INDEX.md not found")
 
     content = index_path.read_text(encoding="utf-8")
-    extracted_version = extract_version(content, r"\*\*Version\*\*:\s*(\d+\.\d+\.\d+)")
+    extracted_version = extract_version(content, r"\*\*Version\*\*:\s*v?(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in docs/DOCUMENTATION_INDEX.md"
-    assert extracted_version == version_file, (
+    assert normalize_version(extracted_version) == version_file, (
         f"Documentation index version ({extracted_version}) != VERSION ({version_file})"
     )
 
@@ -137,16 +150,13 @@ def test_root_documentation_index_version(project_root: Path, version_file: str)
 
     # Extract only header versions (first 20 lines) - matches "**Version:** X.X.X" or "(vX.X.X)"
     header_lines = "\n".join(content.split("\n")[:20])
-    extracted_versions = re.findall(r"\*\*Version:\*\*\s*(\d+\.\d+\.\d+)|\(v(\d+\.\d+\.\d+)\)", header_lines)
-
-    # Flatten tuples from findall
-    versions_found = [v for group in extracted_versions for v in group if v]
+    versions_found = re.findall(r"v?(\d+\.\d+\.\d+)", header_lines)
 
     assert len(versions_found) > 0, "No versions found in DOCUMENTATION_INDEX.md header"
 
     # All header versions should match
     for found_version in versions_found:
-        assert found_version == version_file, (
+        assert normalize_version(found_version) == version_file, (
             f"Documentation index version ({found_version}) != VERSION ({version_file})"
         )
 
@@ -163,10 +173,10 @@ def test_installer_wizard_version(project_root: Path, version_file: str):
         pytest.skip("SMS_INSTALLER_WIZARD.ps1 not found")
 
     content = wizard_path.read_text(encoding="utf-8")
-    extracted_version = extract_version(content, r'Version\s*=\s*"(\d+\.\d+\.\d+)"')
+    extracted_version = extract_version(content, r'Version\s*=\s*"v?(\d+\.\d+\.\d+)"')
 
     assert extracted_version is not None, "Version not found in SMS_INSTALLER_WIZARD.ps1"
-    assert extracted_version == version_file, (
+    assert normalize_version(extracted_version) == version_file, (
         f"Installer wizard version ({extracted_version}) != VERSION ({version_file})"
     )
 
@@ -178,10 +188,10 @@ def test_uninstaller_wizard_version(project_root: Path, version_file: str):
         pytest.skip("SMS_UNINSTALLER_WIZARD.ps1 not found")
 
     content = wizard_path.read_text(encoding="utf-8")
-    extracted_version = extract_version(content, r'Version\s*=\s*"(\d+\.\d+\.\d+)"')
+    extracted_version = extract_version(content, r'Version\s*=\s*"v?(\d+\.\d+\.\d+)"')
 
     assert extracted_version is not None, "Version not found in SMS_UNINSTALLER_WIZARD.ps1"
-    assert extracted_version == version_file, (
+    assert normalize_version(extracted_version) == version_file, (
         f"Uninstaller wizard version ({extracted_version}) != VERSION ({version_file})"
     )
 
@@ -199,10 +209,10 @@ def test_commit_ready_script_version(project_root: Path, version_file: str):
 
     content = script_path.read_text(encoding="utf-8")
     # Look for "Version: X.X.X" in .NOTES section
-    extracted_version = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
+    extracted_version = extract_version(content, r"Version:\s*v?(\d+\.\d+\.\d+)")
 
     if extracted_version:
-        assert extracted_version == version_file, (
+        assert normalize_version(extracted_version) == version_file, (
             f"COMMIT_READY.ps1 version ({extracted_version}) != VERSION ({version_file})"
         )
 
@@ -240,7 +250,7 @@ def test_all_versions_consistent(project_root: Path, version_file: str):
     main_path = project_root / "backend" / "main.py"
     if main_path.exists():
         content = main_path.read_text(encoding="utf-8")
-        version_files["main.py"] = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
+        version_files["main.py"] = normalize_version(extract_version(content, r"Version:\s*v?(\d+\.\d+\.\d+)") or None)
 
     # Documentation versions
     for doc_key, doc_path in [
@@ -251,7 +261,9 @@ def test_all_versions_consistent(project_root: Path, version_file: str):
     ]:
         if doc_path.exists():
             content = doc_path.read_text(encoding="utf-8")
-            version_files[doc_key] = extract_version(content, r"\*\*?Version\*\*?:\s*(\d+\.\d+\.\d+)")
+            version_files[doc_key] = normalize_version(
+                extract_version(content, r"\*\*?Version\*\*?:\s*v?(\d+\.\d+\.\d+)") or None
+            )
 
     # Wizard versions
     for wizard_key, wizard_path in [
@@ -260,12 +272,14 @@ def test_all_versions_consistent(project_root: Path, version_file: str):
     ]:
         if wizard_path.exists():
             content = wizard_path.read_text(encoding="utf-8")
-            version_files[wizard_key] = extract_version(content, r'Version\s*=\s*"(\d+\.\d+\.\d+)"')
+            version_files[wizard_key] = normalize_version(
+                extract_version(content, r'Version\s*=\s*"v?(\d+\.\d+\.\d+)"') or None
+            )
 
     # Report findings
     inconsistent = []
     for file_key, found_version in version_files.items():
-        if found_version is not None and found_version != version_file:
+        if found_version is not None and normalize_version(found_version) != version_file:
             inconsistent.append(f"{file_key}: {found_version} != {version_file}")
 
     if inconsistent:

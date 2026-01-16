@@ -131,14 +131,14 @@ $versionChecks = @(
     },
     @{
         File = "backend/main.py"
-        Pattern = 'Version:\s*\d+\.\d+\.\d+'
+        Pattern = 'Version:\s*v?\d+\.\d+\.\d+'
         Replace = "Version: $Version"
         Description = "Backend main.py docstring"
         Critical = $true
     },
     @{
         File = "frontend/package.json"
-        Pattern = '"version":\s*"\d+\.\d+\.\d+"'
+        Pattern = '"version":\s*"v?\d+\.\d+\.\d+"'
         Replace = "`"version`": `"$Version`""
         Description = "Frontend package.json"
         Critical = $true
@@ -147,49 +147,49 @@ $versionChecks = @(
     # to avoid version mismatches. The actual versioned files are in GitHub Releases.
     @{
         File = "docs/user/USER_GUIDE_COMPLETE.md"
-        Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
+        Pattern = '\*\*Version:\*\*\s*v?\d+\.\d+\.\d+'
         Replace = "**Version:** $Version"
         Description = "User guide version"
         Critical = $false
     },
     @{
         File = "docs/development/DEVELOPER_GUIDE_COMPLETE.md"
-        Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
+        Pattern = '\*\*Version:\*\*\s*v?\d+\.\d+\.\d+'
         Replace = "**Version:** $Version"
         Description = "Developer guide version"
         Critical = $false
     },
     @{
         File = "docs/DOCUMENTATION_INDEX.md"
-        Pattern = '\*\*Version\*\*:\s*\d+\.\d+\.\d+'
+        Pattern = '\*\*Version\*\*:\s*v?\d+\.\d+\.\d+'
         Replace = "**Version**: $Version"
         Description = "Documentation index version"
         Critical = $false
     },
     @{
         File = "DOCUMENTATION_INDEX.md"
-        Pattern = 'v\d+\.\d+\.\d+'
-        Replace = "v$Version"
+        Pattern = 'v?v\d+\.\d+\.\d+'
+        Replace = "$Version"
         Description = "Root documentation index version footer"
         Critical = $false
     },
     @{
         File = "COMMIT_READY.ps1"
-        Pattern = 'Version:\s*\d+\.\d+\.\d+'
+        Pattern = 'Version:\s*v?\d+\.\d+\.\d+'
         Replace = "Version: $Version"
         Description = "COMMIT_READY.ps1 version"
         Critical = $false
     },
     @{
         File = "INSTALLER_BUILDER.ps1"
-        Pattern = 'Version:\s*\d+\.\d+\.\d+'
+        Pattern = 'Version:\s*v?\d+\.\d+\.\d+'
         Replace = "Version: $Version"
         Description = "INSTALLER_BUILDER.ps1 version"
         Critical = $false
     },
     @{
         File = "DOCUMENTATION_INDEX.md"
-        Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
+        Pattern = '\*\*Version:\*\*\s*v?\d+\.\d+\.\d+'
         Replace = "**Version:** $Version"
         Description = "Root DOCUMENTATION_INDEX.md version"
         Critical = $false
@@ -249,8 +249,8 @@ foreach ($check in $versionChecks) {
         if ($content -match $check.Pattern) {
             $currentMatch = $matches[0]
 
-            # Extract version number from match
-            if ($currentMatch -match '\d+\.\d+\.\d+') {
+            # Extract version number from match (including optional 'v' prefix)
+            if ($currentMatch -match 'v?\d+\.\d+\.\d+') {
                 $currentVersion = $matches[0]
 
                 if ($currentVersion -eq $Version) {

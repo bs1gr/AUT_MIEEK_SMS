@@ -45,6 +45,7 @@ async def create_role(
 @router.get("/roles", response_model=list[RoleResponse])
 @require_permission("permissions:view")
 async def list_roles(
+    request: Request,
     db: Session = Depends(get_db),
 ):
     roles = db.query(models.Role).all()
@@ -54,6 +55,7 @@ async def list_roles(
 @router.put("/roles/{role_id}", response_model=RoleResponse)
 @require_permission("permissions:manage")
 async def update_role(
+    request: Request,
     role_id: int,
     name: str = Body(None, embed=True),
     description: str = Body(None, embed=True),
@@ -61,7 +63,7 @@ async def update_role(
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", request)
     if name:
         role.name = name.strip().lower()
     if description is not None:
@@ -74,12 +76,13 @@ async def update_role(
 @router.delete("/roles/{role_id}")
 @require_permission("permissions:manage")
 async def delete_role(
+    request: Request,
     role_id: int,
     db: Session = Depends(get_db),
 ):
     role = db.query(models.Role).filter(models.Role.id == role_id).first()
     if not role:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", None)
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Role not found", request)
     db.delete(role)
     db.commit()
     return {"status": "deleted"}
@@ -111,6 +114,7 @@ async def create_permission(
 @router.get("/permissions", response_model=list[PermissionResponse])
 @require_permission("permissions:view")
 async def list_permissions(
+    request: Request,
     db: Session = Depends(get_db),
 ):
     perms = db.query(models.Permission).all()
@@ -120,6 +124,7 @@ async def list_permissions(
 @router.put("/permissions/{permission_id}", response_model=PermissionResponse)
 @require_permission("permissions:manage")
 async def update_permission(
+    request: Request,
     permission_id: int,
     key: str = Body(None, embed=True),
     resource: str = Body(None, embed=True),
@@ -129,7 +134,7 @@ async def update_permission(
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", None)
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", request)
     if key:
         perm.key = key.strip().lower()
     if resource:
@@ -146,12 +151,13 @@ async def update_permission(
 @router.delete("/permissions/{permission_id}")
 @require_permission("permissions:manage")
 async def delete_permission(
+    request: Request,
     permission_id: int,
     db: Session = Depends(get_db),
 ):
     perm = db.query(models.Permission).filter(models.Permission.id == permission_id).first()
     if not perm:
-        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", None)
+        raise http_error(status.HTTP_404_NOT_FOUND, ErrorCode.VALIDATION_FAILED, "Permission not found", request)
     db.delete(perm)
     db.commit()
     return {"status": "deleted"}
@@ -669,7 +675,7 @@ async def revoke_role(
 @require_permission("permissions:manage")
 async def revoke_permission_from_role(
     request: Request,
-    payload: "GrantPermissionToRoleRequest" = Body(...),
+    payload: GrantPermissionToRoleRequest = Body(...),
     db: Session = Depends(get_db),
 ):
     audit_logger = get_audit_logger(db)
