@@ -27,6 +27,7 @@ interface NavigationTabConfig {
 
 const NAV_TAB_CONFIG: NavigationTabConfig[] = [
   { key: 'dashboard', labelKey: 'dashboard', path: '/dashboard' },
+  { key: 'analytics', labelKey: 'analytics', path: '/analytics' },
   { key: 'attendance', labelKey: 'attendance', path: '/attendance' },
   { key: 'grading', labelKey: 'grades', path: '/grading' },
   { key: 'students', labelKey: 'students', path: '/students' },

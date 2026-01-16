@@ -53,6 +53,10 @@ export const AdminPermissionsPage = lazy(() =>
   import(/* webpackChunkName: "admin-permissions" */ './pages/AdminPermissionsPage')
 );
 
+export const AnalyticsPage = lazy(() =>
+  import(/* webpackChunkName: "analytics" */ './pages/AnalyticsPage')
+);
+
 /**
  * Preload critical routes on browser idle
  * Called after initial app load to improve subsequent navigation
@@ -85,5 +89,6 @@ export default {
   OperationsPage,
   PowerPage,
   AdminPermissionsPage,
+  AnalyticsPage,
   preloadCriticalRoutes,
 };

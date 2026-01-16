@@ -23,6 +23,7 @@ import {
   OperationsPage,
   PowerPage,
   AdminPermissionsPage,
+  AnalyticsPage,
   preloadCriticalRoutes,
 } from './routes';
 
@@ -56,6 +57,7 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/operations" element={<OperationsPage />} />
               <Route path="/power" element={<PowerPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               {/* Admin: Permissions management */}
               <Route element={<RequireAdmin />}>
                 <Route path="/admin/permissions" element={<AdminPermissionsPage />} />
