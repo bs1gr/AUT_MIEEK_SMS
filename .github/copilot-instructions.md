@@ -594,7 +594,7 @@ scripts/
 - **Git workflow & commit standards**: `docs/development/GIT_WORKFLOW.md`
 - **Localization setup**: `docs/user/LOCALIZATION.md`
 - **Docker operations**: `docs/deployment/DOCKER_OPERATIONS.md`
-- **Master index**: `docs/DOCUMENTATION_INDEX.md`
+- **Master index**: `../docs/DOCUMENTATION_INDEX.md`
 
 ---
 
