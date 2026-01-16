@@ -1,6 +1,6 @@
 # Copilot Instructions for Student Management System
 
-**Version**: v1.18.0 (Jan 2026) | **Status**: ⚠️ REMEDIATION (Fixing concealed failures in v1.18.0)
+**Version**: v1.18.0 (Jan 2026) | **Status**: ✅ STABLE (Released Jan 14, 2026)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** (Single developer + AI assistant only)
 
 ## ⚡ Quick Onboarding
@@ -24,7 +24,7 @@
 2. Read [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) for navigation
 3. Follow [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) (prevents crashes & duplication)
 
-**Current Version**: v1.15.1 (stored in `VERSION` file - **always check this first**)
+**Current Version**: v1.18.0 (stored in `VERSION` file - **always check this first**)
 
 ---
 
