@@ -969,7 +969,7 @@ function Invoke-VersionFormatValidation {
             Write-Host "  Pattern: $pattern" -ForegroundColor Red
             Write-Host "  Reason: $($forbiddenPatterns[$pattern])" -ForegroundColor Red
             Write-Host "  Current: $version" -ForegroundColor Red
-            Write-Host '  Required: v1.x.x format (e.g., $11.17.1)' -ForegroundColor Red
+            Write-Host '  Required: v1.x.x format (e.g., v1.17.1)' -ForegroundColor Red
             Write-Host ""
             Write-Host "Fix: Update VERSION file to v1.x.x format and retry" -ForegroundColor Yellow
             Add-Result "Linting" "Version Format" $false "CRITICAL: Forbidden version format"
@@ -984,7 +984,7 @@ function Invoke-VersionFormatValidation {
         return $true
     } else {
         Write-Failure "Invalid version format: $version"
-        Write-Host '  Required: v1.x.x or 1.x.x format (e.g., $11.17.1 or 1.17.1)' -ForegroundColor Red
+        Write-Host '  Required: v1.x.x or 1.x.x format (e.g., v1.17.1 or 1.17.1)' -ForegroundColor Red
         Add-Result "Linting" "Version Format" $false "Invalid format (not v1.x.x)"
         return $false
     }
@@ -1825,7 +1825,8 @@ function Invoke-DocumentationCheck {
     $keyDocs = @(
         "README.md",
         "CHANGELOG.md",
-        "docs/DOCUMENTATION_INDEX.md"
+        "docs/DOCUMENTATION_INDEX.md",
+        "DOCUMENTATION_INDEX.md"  # Root documentation index (optional, can be in docs/)
     )
 
     $allExist = $true
@@ -1834,8 +1835,13 @@ function Invoke-DocumentationCheck {
         if (Test-Path $docPath) {
             Write-Success "$doc exists"
         } else {
-            Write-Failure "$doc is missing"
-            $allExist = $false
+            # DOCUMENTATION_INDEX.md is optional - can be in docs/ or root
+            if ($doc -eq "DOCUMENTATION_INDEX.md") {
+                Write-Success "$doc found in docs/ (acceptable)"
+            } else {
+                Write-Failure "$doc is missing"
+                $allExist = $false
+            }
         }
     }
 
