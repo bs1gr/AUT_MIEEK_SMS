@@ -75,7 +75,6 @@ export const AdminPermissionsPage = lazy(() =>
 export const ImportExportPage = lazy(() =>
   import(/* webpackChunkName: "admin-import-export" */ './pages/admin/ImportExportPage')
 );
-
 export const AnalyticsPage = lazy(() =>
   import(/* webpackChunkName: "analytics" */ './pages/AnalyticsPage')
 );
@@ -118,5 +117,7 @@ export default {
   ReportBuilderPage,
   ReportListPage,
   ReportTemplateBrowserPage,
+  AnalyticsPage,
+  AnalyticsPage,
   preloadCriticalRoutes,
 };

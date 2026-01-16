@@ -172,10 +172,6 @@ from .reports import (
     BulkReportRequest as BulkReportRequest,
 )
 from .reports import (
-    CourseSummary as CourseSummary,
-)
-from .reports import (
-    GradeSummary as GradeSummary,
 )
 from .reports import (
     HighlightSummary as HighlightSummary,

@@ -29,6 +29,7 @@ import {
   ReportBuilderPage,
   ReportListPage,
   ReportTemplateBrowserPage,
+  AnalyticsPage,
   preloadCriticalRoutes,
 } from './routes';
 
@@ -68,6 +69,14 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/reports/builder" element={<ReportBuilderPage />} />
               <Route path="/reports/builder/:id" element={<ReportBuilderPage />} />
               <Route path="/reports/templates" element={<ReportTemplateBrowserPage />} />
+              {/* Operations: System utilities and custom report builder */}
+              <Route element={<OperationsPage />} path="/operations" />
+              <Route path="/operations/reports" element={<ReportListPage />} />
+              <Route path="/operations/reports/builder" element={<ReportBuilderPage />} />
+              <Route path="/operations/reports/builder/:id" element={<ReportBuilderPage />} />
+              <Route path="/operations/reports/templates" element={<ReportTemplateBrowserPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/analytics" element={<AnalyticsPage />} />
               {/* Operations: System utilities and custom report builder */}
               <Route element={<OperationsPage />} path="/operations" />
               <Route path="/operations/reports" element={<ReportListPage />} />
