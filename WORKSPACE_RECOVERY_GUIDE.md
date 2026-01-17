@@ -305,7 +305,7 @@ After recovery:
    ```powershell
    # Start development mode
    .\NATIVE.ps1 -Start
-   
+
    # Or deploy to production
    .\DOCKER.ps1 -Start
    ```
@@ -314,10 +314,10 @@ After recovery:
    ```powershell
    # Make your changes
    # ...
-   
+
    # Validate before commit
    .\COMMIT_READY.ps1 -Quick
-   
+
    # Commit
    git add .
    git commit -m "fix: description"

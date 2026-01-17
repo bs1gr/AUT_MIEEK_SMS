@@ -46,4 +46,3 @@ if (Get-Module -ListAvailable -Name PSReadLine) {
 function global:prompt { "PS > " }
 
 Write-Host "✓ UTF-8 Encoding Ready" -ForegroundColor Green
-

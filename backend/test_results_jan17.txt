@@ -1,0 +1,149 @@
+============================= test session starts =============================
+platform win32 -- Python 3.13.3, pytest-8.4.2, pluggy-1.6.0
+rootdir: D:\SMS\student-management-system\backend
+configfile: pytest.ini
+plugins: anyio-4.11.0, Faker-38.2.0, langsmith-0.4.30, locust-2.42.6, asyncio-0.23.5, cov-7.0.0, html-4.1.1, json-report-1.5.0, metadata-3.1.1
+asyncio: mode=Mode.AUTO
+collected 634 items
+
+tests\test_admin_backup_encryption.py ......                             [  0%]
+tests\test_admin_bootstrap.py .........                                  [  2%]
+tests\test_analytics_router.py .........                                 [  3%]
+tests\test_analytics_service.py ......................                   [  7%]
+tests\test_attendance_router.py ......................                   [ 10%]
+tests\test_audit.py ...................                                  [ 13%]
+tests\test_audit_router.py ..                                            [ 14%]
+tests\test_auth_flow.py ....                                             [ 14%]
+tests\test_auth_refresh.py ..                                            [ 14%]
+tests\test_auth_router.py ..............                                 [ 17%]
+tests\test_auto_import_courses.py .......                                [ 18%]
+tests\test_backup_encryption.py ....................                     [ 21%]
+tests\test_change_password.py .                                          [ 21%]
+tests\test_config_module.py ........                                     [ 22%]
+tests\test_config_settings.py ...............                            [ 25%]
+tests\test_control_endpoints.py ...............                          [ 27%]
+tests\test_control_environment.py ..                                     [ 27%]
+tests\test_control_jwt_integration.py .                                  [ 28%]
+tests\test_control_maintenance.py ......                                 [ 29%]
+tests\test_control_path_traversal.py ...                                 [ 29%]
+tests\test_control_start_branches.py ...                                 [ 29%]
+tests\test_course_rule_normalization.py ........                         [ 31%]
+tests\test_courses_router.py ............                                [ 33%]
+tests\test_csrf_flow.py ....                                             [ 33%]
+tests\test_csv_import.py ....                                            [ 34%]
+tests\test_daily_performance_router.py .........                         [ 35%]
+tests\test_database_upload.py ...                                        [ 36%]
+tests\test_db_utils.py ....                                              [ 36%]
+tests\test_edge_cases.py ................                                [ 39%]
+tests\test_enrollments_router.py ................                        [ 41%]
+tests\test_environment_detection.py ...                                  [ 42%]
+tests\test_environment_module.py .....                                   [ 43%]
+tests\test_exception_handlers.py .......                                 [ 44%]
+tests\test_export_analytics.py .                                         [ 44%]
+tests\test_grade_calculation.py .                                        [ 44%]
+tests\test_grade_calculation_fix.py ...                                  [ 45%]
+tests\test_grade_calculation_integration.py .                            [ 45%]
+tests\test_grades_router.py ........................                     [ 49%]
+tests\test_gzip_middleware.py .                                          [ 49%]
+tests\test_health.py ..                                                  [ 49%]
+tests\test_health_checks.py ....                                         [ 50%]
+tests\test_import_export.py .......                                      [ 51%]
+tests\test_import_resolver.py .....                                      [ 52%]
+tests\test_import_resolver_cov.py ..                                     [ 52%]
+tests\test_imports_integration.py ..............                         [ 54%]
+tests\test_imports_soft_delete.py ..                                     [ 54%]
+tests\test_imports_upload.py ...                                         [ 55%]
+tests\test_integration_smoke.py s                                        [ 55%]
+tests\test_jwt_smoke.py .                                                [ 55%]
+tests\test_list_routes.py .                                              [ 55%]
+tests\test_logging_config.py ..                                          [ 56%]
+tests\test_logging_config_cov.py .                                       [ 56%]
+tests\test_metrics.py .............                                      [ 58%]
+tests\test_models_relationships.py ..                                    [ 58%]
+tests\test_notifications_router.py ...................................   [ 64%]
+tests\test_password_rehash.py .....                                      [ 64%]
+tests\test_performance_monitor.py ...                                    [ 65%]
+tests\test_permissions_api.py ..............                             [ 67%]
+tests\test_rate_limit_enforcement.py .                                   [ 67%]
+tests\test_rate_limiting.py .......                                      [ 68%]
+tests\test_rbac.py ..........                                            [ 70%]
+tests\test_rbac_enforcement.py ..                                        [ 70%]
+tests\test_rbac_router.py ...                                            [ 71%]
+tests\test_rbac_templates.py sssssssssssssssssssssssssssssssssssssssssss [ 78%]
+ss                                                                       [ 78%]
+tests\test_register_role_enforcement.py ...                              [ 78%]
+tests\test_reports_router.py .......                                     [ 79%]
+tests\test_request_id.py ...                                             [ 80%]
+tests\test_request_id_middleware.py ..........                           [ 82%]
+tests\test_response_cache_middleware.py ....                             [ 82%]
+tests\test_response_schemas.py ....................                      [ 85%]
+tests\test_routers_imports.py .......                                    [ 86%]
+tests\test_run_migrations.py .....                                       [ 87%]
+tests\test_run_migrations_repo_root.py .                                 [ 87%]
+tests\test_run_migrations_unit.py ....                                   [ 88%]
+tests\test_schemas_students.py ..........                                [ 90%]
+tests\test_services_analytics.py ...                                     [ 90%]
+tests\test_sessions_router.py ..........                                 [ 92%]
+tests\test_soft_delete_filtering.py .........                            [ 93%]
+tests\test_students_import.py ..                                         [ 93%]
+tests\test_students_router.py ...........                                [ 95%]
+tests\test_version_consistency.py ......sss...                           [ 97%]
+tests\test_websocket.py ................                                 [100%]
+
+============================== warnings summary ===============================
+tests/test_websocket.py::TestConnectionManager::test_get_stale_sessions
+  D:\SMS\student-management-system\backend\tests\test_websocket.py:119: DeprecationWarning: datetime.datetime.utcnow() is deprecated and scheduled for removal in a future version. Use timezone-aware objects to represent datetimes in UTC: datetime.datetime.now(datetime.UTC).
+    connection.last_heartbeat = datetime.utcnow() - timedelta(seconds=400)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
+SKIPPED [1] tests\test_rbac_templates.py:13: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:19: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:25: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:31: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:37: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:43: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:49: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:55: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:61: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:67: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:73: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:79: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:85: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:91: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:97: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:103: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:109: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:115: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:121: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:127: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:133: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:139: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:145: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:151: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:157: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:163: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:169: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:175: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:181: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:187: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:193: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:199: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:205: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:211: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:217: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:223: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:229: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:235: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:241: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:247: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:253: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
+SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
+SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
+================= 585 passed, 49 skipped, 1 warning in 39.98s =================
