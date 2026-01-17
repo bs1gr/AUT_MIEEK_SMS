@@ -126,7 +126,7 @@ This document consolidates all scattered planning documents into a **single sour
 |--------|----------|--------|--------|----------|
 | **Phase 1 Completion** | Jan 7-20, 2026 | ✅ 100% COMPLETE | 21 hours | ✅ DONE |
 | **Post-Phase 1 Polish** | Jan 7-24, 2026 | ✅ 100% COMPLETE (8/8) | 12 hours | ✅ DONE |
-| **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | ✅ 100% COMPLETE (v1.17.1) | 4-6 weeks | ✅ DONE |
+| **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | ✅ 100% COMPLETE (v1.18.0) | 4-6 weeks | ✅ DONE |
 | **Phase 3: Features** | Jan 12-14, 2026 | ✅ 100% COMPLETE (v1.18.0) | 3 features | ✅ DONE |
 | **Phase 4: Future Work** | Q1 2026+ | 💡 Planning | TBD | 🔵 LOW |
 
@@ -182,7 +182,7 @@ This document consolidates all scattered planning documents into a **single sour
 - Jan 12, 2026: Fixed same day (added missing RBAC schema exports)
 - Jan 14, 2026: v1.18.0 successfully released after full verification
 
-### What's Next: v1.19.0 or v1.18.1
+### What's Next: v1.18.0 or v1.18.0
 
 Future enhancements will target the next version:
 - Advanced search & filtering
@@ -193,7 +193,7 @@ Future enhancements will target the next version:
 
 ---
 
-## ✅ COMPLETE: Phase 1 Completion (v1.15.0 - v1.15.1)
+## ✅ COMPLETE: Phase 1 Completion (v1.18.0 - v1.18.0)
 
 **Target Release**: January 7, 2026 ✅ RELEASED
 **Status**: ✅ **100% COMPLETE**
