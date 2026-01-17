@@ -80,7 +80,7 @@ class ImportExportService:
             db.commit()
 
             # Parse file
-            df = self._parse_file(job.file_path, job.file_type)
+            df = self._parse_file(str(job.file_path), str(job.file_type))
             job.total_rows = len(df)
 
             # Validate data
