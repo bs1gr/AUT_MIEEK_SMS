@@ -75,13 +75,37 @@ def _build_postgres_url_from_data(data: Mapping[str, Any]) -> str:
 # Select defaults based on execution mode
 _IS_DOCKER_MODE = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
 
+
+# Determine project root more reliably
+def _get_project_root() -> Path:
+    """Get the project root by finding .git directory or using explicit env var."""
+    # First, try explicit environment variable (useful for installed packages)
+    if env_root := os.environ.get("SMS_PROJECT_ROOT"):
+        return Path(env_root).resolve()
+
+    # Try to find .git directory by walking up the tree from config.py location
+    try:
+        current = Path(__file__).resolve().parent
+        for _ in range(10):  # Check up to 10 levels up
+            if (current / ".git").exists():
+                return current.parent
+            current = current.parent
+    except Exception:
+        pass
+
+    # Fallback to parent of backend directory
+    return Path(__file__).resolve().parents[1]
+
+
+_PROJECT_ROOT = _get_project_root()
+
 # Database path (container uses /data volume)
 if _IS_DOCKER_MODE:
     _DEFAULT_DB_PATH = "/data/student_management.db"
     # For absolute paths, sqlite:// already has /// so we don't add another /
     _DEFAULT_SQLITE_URL = f"sqlite://{_DEFAULT_DB_PATH}"
 else:
-    _DEFAULT_DB_PATH = (Path(__file__).resolve().parents[1] / "data" / "student_management.db").as_posix()
+    _DEFAULT_DB_PATH = (_PROJECT_ROOT / "data" / "student_management.db").as_posix()
     # For relative/Windows paths, we need the full sqlite:///
     _DEFAULT_SQLITE_URL = f"sqlite:///{_DEFAULT_DB_PATH}"
 
@@ -93,7 +117,7 @@ _DEFAULT_MONITORING_HOST = "host.docker.internal" if _IS_DOCKER_MODE else "local
 def _get_app_version() -> str:
     # Try to read from VERSION file in project root
     try:
-        version_file = Path(__file__).resolve().parents[1] / "VERSION"
+        version_file = _PROJECT_ROOT / "VERSION"
         if version_file.exists():
             return version_file.read_text().strip()
     except Exception:
