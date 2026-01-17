@@ -125,7 +125,7 @@ class SearchService:
             ]
             if description_filter is not None:
                 filters.append(description_filter)
-            
+
             courses = (
                 self.db.query(Course)
                 .filter(
