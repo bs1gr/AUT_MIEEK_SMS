@@ -109,7 +109,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   /**
    * Handle filter input change
    */
-  const handleFilterChange = (key: string, value: any) => {
+  const handleFilterChange = (key: string, value: string | number | boolean) => {
     setFilters(prev => ({
       ...prev,
       [key]: value === '' ? undefined : value

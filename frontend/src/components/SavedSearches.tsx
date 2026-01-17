@@ -70,9 +70,9 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   }, []);
 
   // Memoize to prevent dependency warning
-  const memoizedLoadSavedSearches = React.useCallback(() => {
+  const _memoizedLoadSavedSearches = React.useCallback(() => {
     loadSavedSearches();
-  }, []);
+  }, [loadSavedSearches]);
 
   /**
    * Load saved searches from storage
@@ -313,7 +313,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                       <div className="search-name">{search.name}</div>
                       <div className="search-meta">
                         {search.query && (
-                          <span className="search-query">"{search.query}"</span>
+                          <span className=\"search-query\">&quot;{search.query}&quot;</span>
                         )}
                         {search.lastUsed && (
                           <span className="search-time">

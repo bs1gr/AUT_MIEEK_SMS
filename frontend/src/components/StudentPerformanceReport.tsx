@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-// @ts-ignore - JavaScript API file
+// @ts-expect-error - JavaScript API file
 import { reportsAPI } from '../api/api';
 
 // TypeScript interfaces for report data
@@ -190,11 +190,11 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
   const getTrendIcon = (trend: string) => {
     switch (trend) {
       case 'improving':
-        return <span className="text-green-600">↗️</span>;
+        return <span className="text-green-600">&uarr;</span>;
       case 'declining':
-        return <span className="text-red-600">↘️</span>;
+        return <span className="text-red-600">&darr;</span>;
       case 'stable':
-        return <span className="text-blue-600">→</span>;
+        return <span className="text-blue-600">&rarr;</span>;
       default:
         return null;
     }
