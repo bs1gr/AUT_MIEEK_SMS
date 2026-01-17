@@ -528,6 +528,11 @@ function Start-Backend {
         if (-not $NoReload) {
             $args = @($module, "--reload", "--host", "127.0.0.1", "--port", $BACKEND_PORT)
         }
+
+        # Set PYTHONPATH and SMS environment variables for the backend process
+        $env:PYTHONPATH = $SCRIPT_DIR
+        $env:SMS_PROJECT_ROOT = $SCRIPT_DIR
+
         $processInfo = Start-Process -FilePath $uvicornScript -ArgumentList $args -WorkingDirectory $SCRIPT_DIR -WindowStyle Normal -PassThru
 
         # Save PID
