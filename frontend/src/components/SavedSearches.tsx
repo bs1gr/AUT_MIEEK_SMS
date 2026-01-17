@@ -313,7 +313,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                       <div className="search-name">{search.name}</div>
                       <div className="search-meta">
                         {search.query && (
-                          <span className=\"search-query\">&quot;{search.query}&quot;</span>
+                          <span className="search-query">&quot;{search.query}&quot;</span>
                         )}
                         {search.lastUsed && (
                           <span className="search-time">

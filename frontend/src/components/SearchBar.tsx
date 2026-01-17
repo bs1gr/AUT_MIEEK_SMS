@@ -217,7 +217,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   <span className="suggestion-type">
                     {t(`search.type.${suggestion.type}`)}
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
