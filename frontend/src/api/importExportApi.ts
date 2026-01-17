@@ -9,7 +9,7 @@ export interface ImportJob {
   total_rows: number;
   successful_rows: number;
   failed_rows: number;
-  validation_errors: Record<string, any> | null;
+  validation_errors: Record<string, string[]> | null;
   created_at: string;
   completed_at: string | null;
   imported_by?: number;
@@ -22,6 +22,12 @@ export interface ExportJob {
   status: 'pending' | 'processing' | 'completed' | 'failed';
   file_path?: string;
   created_at: string;
+}
+
+interface ImportExportResponse {
+  success: boolean;
+  data?: Record<string, unknown>;
+  error?: string;
 }
 
 export const importExportApi = {
@@ -49,7 +55,7 @@ export const importExportApi = {
   },
 
   // Export Operations
-  createExport: (data: { export_type: string; file_format: 'csv' | 'xlsx' | 'pdf'; filters?: any }) => {
+  createExport: (data: { export_type: string; file_format: 'csv' | 'xlsx' | 'pdf'; filters?: Record<string, unknown> }) => {
     return apiClient.post<ExportJob>('/api/v1/import-export/exports', data);
   },
 
