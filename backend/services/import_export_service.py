@@ -76,26 +76,26 @@ class ImportExportService:
             return
 
         try:
-            job.status = "validating"
+            job.status = "validating"  # type: ignore[assignment]
             db.commit()
 
             # Parse file
             df = self._parse_file(str(job.file_path), str(job.file_type))
-            job.total_rows = len(df)
+            job.total_rows = len(df)  # type: ignore[assignment]
 
             # Validate data
             validation_results = self._validate_data(df, str(job.import_type), db)
 
-            job.successful_rows = validation_results["valid_count"]
-            job.failed_rows = validation_results["invalid_count"]
-            job.validation_errors = validation_results["errors"]
+            job.successful_rows = validation_results["valid_count"]  # type: ignore[assignment]
+            job.failed_rows = validation_results["invalid_count"]  # type: ignore[assignment]
+            job.validation_errors = validation_results["errors"]  # type: ignore[assignment]
 
             if validation_results["invalid_count"] == 0:
-                job.status = "ready"  # Ready for commit
+                job.status = "ready"  # type: ignore[assignment]  # Ready for commit
             else:
                 # For now, we mark as ready even with errors, but UI should warn
                 # Or we could mark as 'review_required'
-                job.status = "ready"
+                job.status = "ready"  # type: ignore[assignment]
 
             db.commit()
 
@@ -105,15 +105,18 @@ class ImportExportService:
                 "import",
                 str(job.import_type),
                 "validate",
-                job.imported_by,
+                int(job.imported_by) if job.imported_by is not None else None,
                 int(job.id) if job.id else 0,
-                {"total": int(job.total_rows) if job.total_rows else 0, "valid": int(job.successful_rows) if job.successful_rows else 0},
+                {
+                    "total": int(job.total_rows) if job.total_rows else 0,
+                    "valid": int(job.successful_rows) if job.successful_rows else 0,
+                },
             )
 
         except Exception as e:
             logger.error(f"Import processing failed: {e}")
-            job.status = "failed"
-            job.validation_errors = {"system_error": str(e)}  # type: ignore
+            job.status = "failed"  # type: ignore[assignment]
+            job.validation_errors = {"system_error": str(e)}  # type: ignore[assignment]
             db.commit()
 
     def commit_import_job(self, db: Session, job_id: int):
@@ -123,7 +126,7 @@ class ImportExportService:
             return
 
         try:
-            job.status = "importing"
+            job.status = "importing"  # type: ignore[assignment]
             db.commit()
 
             # Parse file again (or retrieve from cache if we implemented caching)
@@ -136,18 +139,24 @@ class ImportExportService:
             elif str(job.import_type) == "grades":
                 self._import_grades(db, df)
 
-            job.status = "completed"
-            job.completed_at = datetime.now(UTC)
+            job.status = "completed"  # type: ignore[assignment]
+            job.completed_at = datetime.now(UTC)  # type: ignore[assignment]
             db.commit()
 
             self._log_history(
-                db, "import", str(job.import_type), "commit", job.imported_by, int(job.id) if job.id else 0, {"count": int(job.successful_rows) if job.successful_rows else 0}
+                db,
+                "import",
+                str(job.import_type),
+                "commit",
+                int(job.imported_by) if job.imported_by is not None else None,
+                int(job.id) if job.id else 0,
+                {"count": int(job.successful_rows) if job.successful_rows else 0},
             )
 
         except Exception as e:
             logger.error(f"Import commit failed: {e}")
-            job.status = "failed"
-            job.validation_errors = {"commit_error": str(e)}  # type: ignore
+            job.status = "failed"  # type: ignore[assignment]
+            job.validation_errors = {"commit_error": str(e)}  # type: ignore[assignment]
             db.commit()
 
     def _import_students(self, db: Session, df: pd.DataFrame):
@@ -222,10 +231,10 @@ class ImportExportService:
             )
 
             if grade:
-                grade.grade = grade_val
-                grade.max_grade = max_grade
-                grade.weight = weight
-                grade.category = category
+                grade.grade = grade_val  # type: ignore[assignment]
+                grade.max_grade = max_grade  # type: ignore[assignment]
+                grade.weight = weight  # type: ignore[assignment]
+                grade.category = category  # type: ignore[assignment]
             else:
                 grade = Grade(
                     student_id=student.id,
@@ -320,12 +329,12 @@ class ImportExportService:
             return
 
         try:
-            job.status = "processing"
+            job.status = "processing"  # type: ignore[assignment]
             db.commit()
 
             # Fetch data
             data = self._fetch_export_data(db, str(job.export_type), job.filters)  # type: ignore
-            job.total_records = len(data)
+            job.total_records = len(data)  # type: ignore[assignment]
 
             # Generate file
             filename = f"export_{job.export_type}_{datetime.now().strftime('%Y%m%d%H%M%S')}.{job.file_format}"
@@ -333,9 +342,9 @@ class ImportExportService:
 
             self._write_export_file(data, file_path, str(job.file_format))
 
-            job.file_path = str(file_path)
-            job.status = "completed"
-            job.completed_at = datetime.now(UTC)
+            job.file_path = str(file_path)  # type: ignore[assignment]
+            job.status = "completed"  # type: ignore[assignment]
+            job.completed_at = datetime.now(UTC)  # type: ignore[assignment]
 
             db.commit()
 
@@ -344,14 +353,14 @@ class ImportExportService:
                 "export",
                 str(job.export_type),
                 "generate",
-                job.created_by,
+                int(job.created_by) if job.created_by is not None else None,
                 int(job.id) if job.id else 0,
                 {"count": int(job.total_records) if job.total_records else 0, "format": str(job.file_format)},
             )
 
         except Exception as e:
             logger.error(f"Export processing failed: {e}")
-            job.status = "failed"
+            job.status = "failed"  # type: ignore[assignment]
             db.commit()
 
     def _fetch_export_data(self, db: Session, export_type: str, filters: Optional[Dict]) -> List[Dict]:
