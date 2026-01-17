@@ -43,7 +43,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   hasMore,
   onLoadMore,
   onResultClick,
-  pageSize = 20,
+  _pageSize = 20,
   className = ''
 }) => {
   const { t } = useTranslation();
@@ -178,7 +178,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                   </td>
 
                   <td className="result-value">
-                    {result.type === 'grade' && result.grade_value !== null && (
+                    {result.type === 'grade' && result.grade_value != null && (
                       <span className="grade-value">
                         {result.grade_value.toFixed(1)}
                       </span>

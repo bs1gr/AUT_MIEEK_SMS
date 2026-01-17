@@ -395,7 +395,7 @@ class TestDataConsistency:
         api_data = response.json()["data"]["results"]
 
         # Get from database directly
-        db_data = db.query(Student).filter(Student.first_name.ilike("%Bob%")).filter(Student.deleted_at == None).all()
+        db_data = db.query(Student).filter(Student.first_name.ilike("%Bob%")).filter(Student.deleted_at is None).all()
 
         assert len(api_data) == len(db_data)
 
@@ -415,7 +415,7 @@ class TestDataConsistency:
         api_grades = response.json()["data"]["results"]
 
         # Get from database
-        db_grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at == None).all()
+        db_grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at is None).all()
 
         assert len(api_grades) == len(db_grades)
 
@@ -437,7 +437,7 @@ class TestDataConsistency:
         api_grades = response.json()["data"]["results"]
 
         # Get filtered from database
-        db_grades = db.query(Grade).filter(Grade.grade >= min_grade, Grade.deleted_at == None).all()
+        db_grades = db.query(Grade).filter(Grade.grade >= min_grade, Grade.deleted_at is None).all()
 
         assert len(api_grades) == len(db_grades)
 

@@ -247,7 +247,7 @@ async def advanced_search(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role(f"{search_type}:view")),
+    current_user: Optional[User] = Depends(optional_require_role("*:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Perform advanced search with complex filter combinations.

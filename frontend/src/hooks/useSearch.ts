@@ -11,7 +11,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { apiClient } from '../api/api';
+import apiClient from '../api/api';
 
 /**
  * Search result types from API
