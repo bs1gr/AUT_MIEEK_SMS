@@ -107,7 +107,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
           handleSuggestionClick(suggestions[selectedIndex]);
         } else if (query.trim()) {
-          handleSubmit(e as any);
+          handleSubmit(e as React.FormEvent<HTMLFormElement>);
         }
         break;
 
@@ -199,7 +199,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <div ref={suggestionsRef} className="suggestions-dropdown">
             <div className="suggestions-list">
               {suggestions.map((suggestion, index) => (
-                <div
+                <button
                   key={`${suggestion.type}-${suggestion.id}`}
                   className={`suggestion-item ${
                     index === selectedIndex ? 'selected' : ''
@@ -208,6 +208,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                   onMouseEnter={() => setSelectedIndex(index)}
                   role="option"
                   aria-selected={index === selectedIndex}
+                  type="button"
                 >
                   <span className="suggestion-icon">
                     {suggestion.type === 'student' ? '👤' : '📚'}

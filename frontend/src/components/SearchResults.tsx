@@ -43,7 +43,6 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   hasMore,
   onLoadMore,
   onResultClick,
-  _pageSize = 20,
   className = ''
 }) => {
   const { t } = useTranslation();

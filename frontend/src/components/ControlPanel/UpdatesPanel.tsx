@@ -45,9 +45,12 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
   useEffect(() => {
     checkForUpdates();
     // Auto-check every 6 hours
-    const interval = setInterval(checkForUpdates, 6 * 60 * 60 * 1000);
+    const interval = setInterval(() => {
+      checkForUpdates();
+    }, 6 * 60 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [controlApi]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-6">

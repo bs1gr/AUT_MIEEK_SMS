@@ -66,6 +66,12 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
    */
   useEffect(() => {
     loadSavedSearches();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Memoize to prevent dependency warning
+  const memoizedLoadSavedSearches = React.useCallback(() => {
+    loadSavedSearches();
   }, []);
 
   /**
