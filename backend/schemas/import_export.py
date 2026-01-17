@@ -10,7 +10,7 @@ Defines request/response models for:
 from datetime import datetime
 from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # ========== IMPORT JOB SCHEMAS ==========
@@ -52,8 +52,7 @@ class ImportJobResponse(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ImportJobPreview(BaseModel):
@@ -109,8 +108,7 @@ class ExportJobResponse(BaseModel):
     created_at: datetime
     completed_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ExportListResponse(BaseModel):
@@ -137,8 +135,7 @@ class ImportExportHistoryEntry(BaseModel):
     details: Optional[dict[str, Any]] = None
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ImportExportHistoryResponse(BaseModel):

@@ -1,6 +1,6 @@
 import shutil
 import logging
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional, Dict, Any, List
 from pathlib import Path
 
@@ -46,7 +46,7 @@ class ImportExportService:
             status="pending",
             total_rows=total_rows,
             imported_by=user_id,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
         db.add(job)
         db.commit()
@@ -137,7 +137,7 @@ class ImportExportService:
                 self._import_grades(db, df)
 
             job.status = "completed"
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(UTC)
             db.commit()
 
             self._log_history(
@@ -163,7 +163,7 @@ class ImportExportService:
                     last_name=row.get("last_name"),
                     email=email,
                     student_id=row.get("student_id", f"S{datetime.now().timestamp()}"),
-                    enrollment_date=datetime.utcnow(),
+                    enrollment_date=datetime.now(UTC),
                 )
                 db.add(student)
         db.flush()
@@ -235,7 +235,7 @@ class ImportExportService:
                     grade=grade_val,
                     max_grade=max_grade,
                     weight=weight,
-                    date_submitted=datetime.utcnow(),
+                    date_submitted=datetime.now(UTC),
                 )
                 db.add(grade)
         db.flush()
@@ -306,7 +306,7 @@ class ImportExportService:
             status="pending",
             filters=filters,
             created_by=user_id,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
         db.add(job)
         db.commit()
@@ -335,7 +335,7 @@ class ImportExportService:
 
             job.file_path = str(file_path)
             job.status = "completed"
-            job.completed_at = datetime.utcnow()
+            job.completed_at = datetime.now(UTC)
 
             db.commit()
 
@@ -436,7 +436,7 @@ class ImportExportService:
             user_id=user_id,
             job_id=job_id,
             details=details,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
         db.add(entry)
         db.commit()

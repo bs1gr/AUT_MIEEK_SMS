@@ -13,9 +13,10 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, BackgroundTasks
 from sqlalchemy.orm import Session
 
-from backend.database import get_db
+from backend.db import get_session as get_db
 from backend.models import ImportJob, ExportJob
-from backend.rbac import optional_require_role
+from backend.rbac import require_permission
+from backend.security.current_user import get_current_user
 from backend.schemas import (
     APIResponse,
     ImportJobResponse,
@@ -28,7 +29,7 @@ from backend.services.import_export_service import ImportExportService
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/v1/import-export", tags=["Import/Export"])
+router = APIRouter(prefix="/import-export", tags=["Import/Export"])
 service = ImportExportService()
 
 
@@ -36,12 +37,13 @@ service = ImportExportService()
 
 
 @router.post("/imports/students", response_model=APIResponse[ImportJobResponse])
+@require_permission("imports:create")
 async def create_student_import(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("imports:create")),
+    current_user=Depends(get_current_user),
 ) -> APIResponse[ImportJobResponse]:
     """
     Create a new student import job.
@@ -88,23 +90,27 @@ async def create_student_import(
                 imported_by=job.imported_by,
                 created_at=job.created_at,
                 completed_at=job.completed_at,
-            )
+            ),
+            request_id=request.state.request_id,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error creating import job: {str(e)}")
-        return error_response("INTERNAL_ERROR", f"Failed to create import job: {str(e)}")
+        return error_response(
+            "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
+        )
 
 
 @router.post("/imports/courses", response_model=APIResponse[ImportJobResponse])
+@require_permission("imports:create")
 async def create_course_import(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("imports:create")),
+    current_user=Depends(get_current_user),
 ) -> APIResponse[ImportJobResponse]:
     """
     Create a new course import job.
@@ -142,23 +148,27 @@ async def create_course_import(
                 imported_by=job.imported_by,
                 created_at=job.created_at,
                 completed_at=job.completed_at,
-            )
+            ),
+            request_id=request.state.request_id,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error creating course import: {str(e)}")
-        return error_response("INTERNAL_ERROR", f"Failed to create import job: {str(e)}")
+        return error_response(
+            "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
+        )
 
 
 @router.post("/imports/grades", response_model=APIResponse[ImportJobResponse])
+@require_permission("imports:create")
 async def create_grade_import(
     request: Request,
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("imports:create")),
+    current_user=Depends(get_current_user),
 ) -> APIResponse[ImportJobResponse]:
     """
     Create a new grade import job.
@@ -196,21 +206,25 @@ async def create_grade_import(
                 imported_by=job.imported_by,
                 created_at=job.created_at,
                 completed_at=job.completed_at,
-            )
+            ),
+            request_id=request.state.request_id,
         )
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error creating grade import: {str(e)}")
-        return error_response("INTERNAL_ERROR", f"Failed to create import job: {str(e)}")
+        return error_response(
+            "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
+        )
 
 
 @router.get("/imports/{import_job_id}", response_model=APIResponse[ImportJobResponse])
+@require_permission("imports:view")
 async def get_import_job(
     import_job_id: int,
+    request: Request,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("imports:view")),
 ) -> APIResponse[ImportJobResponse]:
     """
     Retrieve import job details.
@@ -219,7 +233,7 @@ async def get_import_job(
     """
     job = db.query(ImportJob).filter(ImportJob.id == import_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", f"Import job {import_job_id} not found")
+        return error_response("NOT_FOUND", f"Import job {import_job_id} not found", request_id=request.state.request_id)
 
     return success_response(
         ImportJobResponse(
@@ -236,18 +250,20 @@ async def get_import_job(
             imported_by=job.imported_by,
             created_at=job.created_at,
             completed_at=job.completed_at,
-        )
+        ),
+        request_id=request.state.request_id,
     )
 
 
 @router.get("/imports", response_model=APIResponse[dict])
+@require_permission("imports:view")
 async def list_import_jobs(
+    request: Request,
     import_type: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("imports:view")),
 ) -> APIResponse[dict]:
     """
     List import jobs with optional filtering.
@@ -287,16 +303,18 @@ async def list_import_jobs(
             "total": total,
             "skip": skip,
             "limit": limit,
-        }
+        },
+        request_id=request.state.request_id,
     )
 
 
 @router.post("/imports/{import_job_id}/commit", response_model=APIResponse[ImportJobResponse])
+@require_permission("imports:create")
 async def commit_import_job(
     import_job_id: int,
+    request: Request,
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("imports:create")),
 ) -> APIResponse[ImportJobResponse]:
     """
     Commit a validated import job to the database.
@@ -305,10 +323,14 @@ async def commit_import_job(
     """
     job = db.query(ImportJob).filter(ImportJob.id == import_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", "Import job not found")
+        return error_response("NOT_FOUND", "Import job not found", request_id=request.state.request_id)
 
     if job.status != "ready":
-        return error_response("INVALID_STATE", f"Job is in '{job.status}' state, must be 'ready' to commit")
+        return error_response(
+            "INVALID_STATE",
+            f"Job is in '{job.status}' state, must be 'ready' to commit",
+            request_id=request.state.request_id,
+        )
 
     # Trigger background processing
     background_tasks.add_task(service.commit_import_job, db, job.id)
@@ -329,7 +351,8 @@ async def commit_import_job(
             imported_by=job.imported_by,
             created_at=job.created_at,
             completed_at=job.completed_at,
-        )
+        ),
+        request_id=request.state.request_id,
     )
 
 
@@ -337,12 +360,13 @@ async def commit_import_job(
 
 
 @router.post("/exports", response_model=APIResponse[ExportJobResponse])
+@require_permission("exports:generate")
 async def create_export(
     request: Request,
     background_tasks: BackgroundTasks,
     export_request: ExportJobCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("exports:generate")),
+    current_user=Depends(get_current_user),
 ) -> APIResponse[ExportJobResponse]:
     """
     Create a new export job.
@@ -379,19 +403,23 @@ async def create_export(
                 created_by=job.created_by,
                 created_at=job.created_at,
                 completed_at=job.completed_at,
-            )
+            ),
+            request_id=request.state.request_id,
         )
 
     except Exception as e:
         logger.error(f"Error creating export job: {str(e)}")
-        return error_response("INTERNAL_ERROR", f"Failed to create export: {str(e)}")
+        return error_response(
+            "INTERNAL_ERROR", f"Failed to create export: {str(e)}", request_id=request.state.request_id
+        )
 
 
 @router.get("/exports/{export_job_id}", response_model=APIResponse[ExportJobResponse])
+@require_permission("exports:view")
 async def get_export_job(
     export_job_id: int,
+    request: Request,
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("exports:view")),
 ) -> APIResponse[ExportJobResponse]:
     """
     Retrieve export job details.
@@ -400,7 +428,7 @@ async def get_export_job(
     """
     job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", f"Export job {export_job_id} not found")
+        return error_response("NOT_FOUND", f"Export job {export_job_id} not found", request_id=request.state.request_id)
 
     return success_response(
         ExportJobResponse(
@@ -422,13 +450,14 @@ async def get_export_job(
 
 
 @router.get("/exports", response_model=APIResponse[dict])
+@require_permission("exports:view")
 async def list_exports(
+    request: Request,
     export_type: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("exports:view")),
 ) -> APIResponse[dict]:
     """
     List export jobs with optional filtering.
@@ -468,7 +497,8 @@ async def list_exports(
             "total": total,
             "skip": skip,
             "limit": limit,
-        }
+        },
+        request_id=request.state.request_id,
     )
 
 
@@ -476,13 +506,14 @@ async def list_exports(
 
 
 @router.get("/history", response_model=APIResponse[dict])
+@require_permission("audit:view")
 async def get_import_export_history(
+    request: Request,
     operation_type: Optional[str] = Query(None),
     resource_type: Optional[str] = Query(None),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=200),
     db: Session = Depends(get_db),
-    current_user=Depends(optional_require_role("audit:view")),
 ) -> APIResponse[dict]:
     """
     Retrieve import/export history with audit trail.
@@ -513,5 +544,6 @@ async def get_import_export_history(
                 for h in history
             ],
             "total": len(history),
-        }
+        },
+        request_id=request.state.request_id,
     )

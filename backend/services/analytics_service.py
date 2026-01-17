@@ -328,7 +328,7 @@ class AnalyticsService:
         Returns:
             Dictionary with performance trends, course breakdown, and averages
         """
-        from datetime import datetime, timedelta
+        from datetime import datetime, timedelta, timezone
         from sqlalchemy import and_
 
         student = self.db.query(self.Student).filter(self.Student.id == student_id).first()
@@ -336,7 +336,7 @@ class AnalyticsService:
             get_by_id_or_404(self.db, self.Student, student_id)
         assert student is not None  # Type narrowing for MyPy
 
-        cutoff_date = datetime.utcnow() - timedelta(days=days_back)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
         # Get grades in date range
         grades = (

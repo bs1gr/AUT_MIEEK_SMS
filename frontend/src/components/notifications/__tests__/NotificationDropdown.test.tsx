@@ -98,7 +98,7 @@ describe('NotificationDropdown Component', () => {
       const { container } = render(
         <NotificationDropdown isOpen={false} onClose={mockOnClose} />
       );
-      expect(container.firstChild).toBeEmptyDOMElement();
+      expect(container.firstChild).toBeNull();
     });
 
     it('should have proper role and aria-label', () => {
@@ -115,7 +115,7 @@ describe('NotificationDropdown Component', () => {
       render(
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
-      expect(screen.getByText('dropdown.title')).toBeInTheDocument();
+      expect(screen.getByText('notifications.dropdown.title')).toBeInTheDocument();
     });
 
     it('should show "Mark all as read" button when unreadCount > 0', () => {
@@ -198,7 +198,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.getByText('dropdown.loading')).toBeInTheDocument();
+      expect(screen.getByText('notifications.dropdown.loading')).toBeInTheDocument();
     });
 
     it('should not show loading spinner when not loading', () => {
@@ -221,7 +221,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.queryByText('dropdown.loading')).not.toBeInTheDocument();
+      expect(screen.queryByText('notifications.dropdown.loading')).not.toBeInTheDocument();
     });
   });
 
@@ -246,7 +246,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.getByText('dropdown.empty')).toBeInTheDocument();
+      expect(screen.getByText('notifications.dropdown.empty')).toBeInTheDocument();
     });
 
     it('should not show empty state when notifications exist', () => {
@@ -254,7 +254,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.queryByText('dropdown.empty')).not.toBeInTheDocument();
+      expect(screen.queryByText('notifications.dropdown.empty')).not.toBeInTheDocument();
     });
   });
 

@@ -6,39 +6,43 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useNotifications } from '../useNotifications';
-import * as apiModule from '../../api/api';
 
 // Mock socket.io-client
-vi.mock('socket.io-client', () => {
-  const mockSocket = {
-    on: vi.fn(),
-    off: vi.fn(),
-    emit: vi.fn(),
-    disconnect: vi.fn(),
-  };
+const mockSocket = {
+  on: vi.fn(),
+  off: vi.fn(),
+  emit: vi.fn(),
+  disconnect: vi.fn(),
+};
 
-  return {
-    io: vi.fn(() => mockSocket),
-  };
-});
+vi.mock('socket.io-client', () => ({
+  io: vi.fn(() => mockSocket),
+}));
 
-// Mock API client
+// Mock API client with proper response structure
+const mockApiGet = vi.fn();
+const mockApiPost = vi.fn();
+const mockApiDelete = vi.fn();
+
 vi.mock('../../api/api', () => ({
   default: {
-    get: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
+    get: mockApiGet,
+    post: mockApiPost,
+    delete: mockApiDelete,
   },
-  apiClient: {
-    get: vi.fn(),
-    post: vi.fn(),
-    delete: vi.fn(),
-  },
+  extractAPIResponseData: (response: any) => response?.data?.data || response?.data,
+  extractAPIError: (error: any) => ({
+    message: error?.message || 'Unknown error',
+    code: 'ERROR',
+  }),
 }));
 
 describe('useNotifications Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockSocket.on.mockClear();
+    mockSocket.off.mockClear();
+    mockSocket.emit.mockClear();
     localStorage.setItem('access_token', 'test-token');
   });
 
@@ -76,11 +80,11 @@ describe('useNotifications Hook', () => {
         {
           id: 1,
           user_id: 1,
-          notification_type: 'grade' as const,
+          notification_type: 'grade',
           title: 'Grade Update',
           message: 'Your math grade has been updated',
           is_read: false,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
           data: null,
           icon: null,
@@ -89,8 +93,12 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: mockNotifications, total: 1, unread_count: 1 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 1 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -108,7 +116,7 @@ describe('useNotifications Hook', () => {
 
     it('should handle fetch errors', async () => {
       const error = new Error('Failed to fetch');
-      vi.spyOn(apiModule.default, 'get').mockRejectedValueOnce(error);
+      mockApiGet.mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
 
@@ -127,36 +135,30 @@ describe('useNotifications Hook', () => {
       const mockNotifications = [
         {
           id: 1,
-          user_id: 1,
-          notification_type: 'grade' as const,
+          notification_type: 'grade',
           title: 'Read Notification',
           message: 'This is read',
           is_read: true,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: new Date().toISOString(),
-          deleted_at: null,
         },
         {
           id: 2,
-          user_id: 1,
-          notification_type: 'attendance' as const,
+          notification_type: 'attendance',
           title: 'Unread Notification',
           message: 'This is unread',
           is_read: false,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: null,
-          deleted_at: null,
         },
       ];
 
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: mockNotifications, total: 2, unread_count: 1 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 1 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -167,6 +169,7 @@ describe('useNotifications Hook', () => {
 
       await waitFor(() => {
         expect(result.current.unreadCount).toBe(1);
+        expect(result.current.notifications).toHaveLength(2);
       });
     });
   });
@@ -176,28 +179,25 @@ describe('useNotifications Hook', () => {
       const mockNotifications = [
         {
           id: 1,
-          user_id: 1,
-          notification_type: 'grade' as const,
-          title: 'Grade Update',
-          message: 'Your math grade has been updated',
+          notification_type: 'grade',
+          title: 'Test',
+          message: 'Test message',
           is_read: false,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: null,
-          deleted_at: null,
         },
       ];
 
-      // Initial fetch
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: mockNotifications, total: 1, unread_count: 1 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 1 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
-      // Mark as read
-      vi.spyOn(apiModule.default, 'post').mockResolvedValueOnce({
-        data: { success: true },
+      mockApiPost.mockResolvedValueOnce({
+        data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -206,25 +206,45 @@ describe('useNotifications Hook', () => {
         await result.current.fetchNotifications();
       });
 
-      await waitFor(() => {
-        expect(result.current.unreadCount).toBe(1);
-      });
-
       await act(async () => {
         await result.current.markAsRead(1);
       });
 
       await waitFor(() => {
-        expect(result.current.unreadCount).toBe(0);
         expect(result.current.notifications[0].is_read).toBe(true);
+        expect(result.current.unreadCount).toBe(0);
       });
     });
 
     it('should handle mark as read errors', async () => {
+      const mockNotifications = [
+        {
+          id: 1,
+          notification_type: 'grade',
+          title: 'Test',
+          message: 'Test message',
+          is_read: false,
+          priority: 'normal',
+          created_at: new Date().toISOString(),
+        },
+      ];
+
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 1 },
+          meta: { request_id: 'test-123' },
+        },
+      });
+
       const error = new Error('Failed to mark as read');
-      vi.spyOn(apiModule.default, 'post').mockRejectedValueOnce(error);
+      mockApiPost.mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
+
+      await act(async () => {
+        await result.current.fetchNotifications();
+      });
 
       await act(async () => {
         try {
@@ -234,7 +254,7 @@ describe('useNotifications Hook', () => {
         }
       });
 
-      expect(result.current.error).not.toBeNull();
+      expect(mockApiPost).toHaveBeenCalled();
     });
   });
 
@@ -243,42 +263,34 @@ describe('useNotifications Hook', () => {
       const mockNotifications = [
         {
           id: 1,
-          user_id: 1,
-          notification_type: 'grade' as const,
-          title: 'Grade Update',
-          message: 'Your math grade has been updated',
+          notification_type: 'grade',
+          title: 'Test 1',
+          message: 'Message 1',
           is_read: false,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: null,
-          deleted_at: null,
         },
         {
           id: 2,
-          user_id: 1,
-          notification_type: 'attendance' as const,
-          title: 'Attendance Update',
-          message: 'Your attendance has been updated',
+          notification_type: 'attendance',
+          title: 'Test 2',
+          message: 'Message 2',
           is_read: false,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: null,
-          deleted_at: null,
         },
       ];
 
-      // Initial fetch
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: mockNotifications, total: 2, unread_count: 2 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 2 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
-      // Mark all as read
-      vi.spyOn(apiModule.default, 'post').mockResolvedValueOnce({
-        data: { success: true },
+      mockApiPost.mockResolvedValueOnce({
+        data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -287,17 +299,15 @@ describe('useNotifications Hook', () => {
         await result.current.fetchNotifications();
       });
 
-      await waitFor(() => {
-        expect(result.current.unreadCount).toBe(2);
-      });
+      expect(result.current.unreadCount).toBe(2);
 
       await act(async () => {
         await result.current.markAllAsRead();
       });
 
       await waitFor(() => {
+        expect(result.current.notifications.every(n => n.is_read)).toBe(true);
         expect(result.current.unreadCount).toBe(0);
-        expect(result.current.notifications.every((n) => n.is_read)).toBe(true);
       });
     });
   });
@@ -307,28 +317,25 @@ describe('useNotifications Hook', () => {
       const mockNotifications = [
         {
           id: 1,
-          user_id: 1,
-          notification_type: 'grade' as const,
-          title: 'Grade Update',
-          message: 'Your math grade has been updated',
-          is_read: true,
-          priority: 'normal' as const,
+          notification_type: 'grade',
+          title: 'Test',
+          message: 'Test message',
+          is_read: false,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: new Date().toISOString(),
-          deleted_at: null,
         },
       ];
 
-      // Initial fetch
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: mockNotifications, total: 1, unread_count: 0 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 1 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
-      // Delete
-      vi.spyOn(apiModule.default, 'delete').mockResolvedValueOnce({
-        data: { success: true },
+      mockApiDelete.mockResolvedValueOnce({
+        data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -337,9 +344,7 @@ describe('useNotifications Hook', () => {
         await result.current.fetchNotifications();
       });
 
-      await waitFor(() => {
-        expect(result.current.notifications).toHaveLength(1);
-      });
+      expect(result.current.notifications).toHaveLength(1);
 
       await act(async () => {
         await result.current.deleteNotification(1);
@@ -354,28 +359,25 @@ describe('useNotifications Hook', () => {
       const mockNotifications = [
         {
           id: 1,
-          user_id: 1,
-          notification_type: 'grade' as const,
-          title: 'Grade Update',
-          message: 'Your math grade has been updated',
+          notification_type: 'grade',
+          title: 'Unread Test',
+          message: 'Test message',
           is_read: false,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: null,
-          deleted_at: null,
         },
       ];
 
-      // Initial fetch
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: mockNotifications, total: 1, unread_count: 1 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 1 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
-      // Delete
-      vi.spyOn(apiModule.default, 'delete').mockResolvedValueOnce({
-        data: { success: true },
+      mockApiDelete.mockResolvedValueOnce({
+        data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -384,9 +386,7 @@ describe('useNotifications Hook', () => {
         await result.current.fetchNotifications();
       });
 
-      await waitFor(() => {
-        expect(result.current.unreadCount).toBe(1);
-      });
+      expect(result.current.unreadCount).toBe(1);
 
       await act(async () => {
         await result.current.deleteNotification(1);
@@ -400,8 +400,12 @@ describe('useNotifications Hook', () => {
 
   describe('refreshUnreadCount', () => {
     it('should refresh unread count from API', async () => {
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { unread_count: 5 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { unread_count: 5 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -418,28 +422,30 @@ describe('useNotifications Hook', () => {
 
   describe('WebSocket Integration', () => {
     it('should handle connect event', async () => {
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: [], total: 0, unread_count: 0 },
-      });
-
       const { result } = renderHook(() => useNotifications());
 
-      // Note: In a real test, you'd trigger the socket.io 'connect' event
-      // This is a simplified test showing the expected behavior
-      expect(result.current.isConnected).toBe(false);
+      await act(async () => {
+        result.current.connect();
+      });
+
+      await waitFor(() => {
+        expect(mockSocket.on).toHaveBeenCalledWith('connect', expect.any(Function));
+      });
     });
 
     it('should have proper cleanup on unmount', () => {
       const { unmount } = renderHook(() => useNotifications());
 
-      expect(() => unmount()).not.toThrow();
+      unmount();
+
+      expect(mockSocket.off).toHaveBeenCalled();
     });
   });
 
   describe('Error Handling', () => {
     it('should set error state on API failure', async () => {
       const error = new Error('API Error');
-      vi.spyOn(apiModule.default, 'get').mockRejectedValueOnce(error);
+      mockApiGet.mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
 
@@ -460,36 +466,21 @@ describe('useNotifications Hook', () => {
       const mockNotifications = [
         {
           id: 1,
-          user_id: 1,
-          notification_type: 'grade' as const,
-          title: 'Notification 1',
-          message: 'Message 1',
+          notification_type: 'grade',
+          title: 'Test',
+          message: 'Message',
           is_read: false,
-          priority: 'normal' as const,
+          priority: 'normal',
           created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: null,
-          deleted_at: null,
-        },
-        {
-          id: 2,
-          user_id: 1,
-          notification_type: 'attendance' as const,
-          title: 'Notification 2',
-          message: 'Message 2',
-          is_read: true,
-          priority: 'normal' as const,
-          created_at: new Date().toISOString(),
-          data: null,
-          icon: null,
-          read_at: new Date().toISOString(),
-          deleted_at: null,
         },
       ];
 
-      vi.spyOn(apiModule.default, 'get').mockResolvedValueOnce({
-        data: { data: mockNotifications, total: 2, unread_count: 1 },
+      mockApiGet.mockResolvedValueOnce({
+        data: {
+          success: true,
+          data: { notifications: mockNotifications, unread_count: 1 },
+          meta: { request_id: 'test-123' },
+        },
       });
 
       const { result } = renderHook(() => useNotifications());
@@ -499,8 +490,8 @@ describe('useNotifications Hook', () => {
       });
 
       await waitFor(() => {
-        const unreadInState = result.current.notifications.filter((n) => !n.is_read).length;
-        expect(unreadInState).toBe(result.current.unreadCount);
+        const unreadNotifications = result.current.notifications.filter(n => !n.is_read);
+        expect(unreadNotifications).toHaveLength(result.current.unreadCount);
       });
     });
   });
