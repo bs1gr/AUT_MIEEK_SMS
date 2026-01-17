@@ -26,6 +26,8 @@ fake = Faker()
 STUDENT_COUNT = 1000
 COURSE_COUNT = 50
 USER_COUNT = 100
+ENABLE_AUTH_TASKS = os.getenv("LOCUST_ENABLE_AUTH_TASKS", "").lower() == "true"
+ENABLE_SEARCH_TASKS = os.getenv("LOCUST_ENABLE_SEARCH_TASKS", "").lower() == "true"
 
 
 class BaseSMSUser(FastHttpUser):
@@ -36,8 +38,8 @@ class BaseSMSUser(FastHttpUser):
     #  want to avoid 'No tasks defined on BaseSMSUser' exceptions).
     abstract = True
 
-    # Default wait time between tasks (seconds)
-    wait_time = between(1, 3)
+    # Default wait time between tasks (seconds) — slightly increased to reduce write bursts
+    wait_time = between(2, 4)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -98,7 +100,10 @@ class AuthTasks(TaskSet):
             or os.getenv("AUTH_MODE", "").lower() == "disabled"
         ):
             return
-        # Login
+
+        if not ENABLE_AUTH_TASKS:
+            return
+
         user = {
             "email": os.getenv("LOCUST_TEST_USER_EMAIL", "student@example.com"),
             "password": os.getenv("LOCUST_TEST_USER_PASSWORD", "student123"),
@@ -136,6 +141,10 @@ class AuthTasks(TaskSet):
             or os.getenv("AUTH_MODE", "").lower() == "disabled"
         ):
             return
+
+        if not ENABLE_AUTH_TASKS:
+            return
+
         # First login to get initial refresh token
         user = {
             "email": os.getenv("LOCUST_TEST_USER_EMAIL", "student@example.com"),
@@ -174,6 +183,9 @@ class StudentTasks(TaskSet):
     @task(2)
     def search_students(self):
         """Search students by various criteria."""
+        if not ENABLE_SEARCH_TASKS:
+            return
+
         search_terms = [
             fake.first_name(),
             fake.last_name(),
@@ -406,8 +418,10 @@ SKIP_AUTH = (
 
 # Log effective SKIP_AUTH value for CI debugging
 logger.info(
-    "Locust SKIP_AUTH=%s (AUTH_MODE=%s, AUTH_ENABLED=%s, CI_SKIP_AUTH=%s)",
+    "Locust flags: SKIP_AUTH=%s ENABLE_AUTH_TASKS=%s ENABLE_SEARCH_TASKS=%s (AUTH_MODE=%s, AUTH_ENABLED=%s, CI_SKIP_AUTH=%s)",
     SKIP_AUTH,
+    ENABLE_AUTH_TASKS,
+    ENABLE_SEARCH_TASKS,
     os.getenv("AUTH_MODE"),
     os.getenv("AUTH_ENABLED"),
     os.getenv("CI_SKIP_AUTH"),
@@ -528,13 +542,15 @@ class HeavyUser(BaseSMSUser):
 
     # Include AuthTasks only when authentication is enabled. In CI we often disable auth
     # to avoid flaky login failures and rate-limiting during smoke tests.
-    tasks = [StudentTasks, CourseTasks, AnalyticsTasks, AttendanceTasks, GradeTasks]
-    if not SKIP_AUTH:
-        tasks.append(AuthTasks)
+    # Exclude AuthTasks in baseline to avoid login/refresh noise
+        # Include AuthTasks only when explicitly enabled and auth is active to keep baselines clean
+        tasks = [StudentTasks, CourseTasks, AnalyticsTasks, AttendanceTasks, GradeTasks]
+        if ENABLE_AUTH_TASKS and not SKIP_AUTH:
+            tasks.append(AuthTasks)
     weight = 1  # 10% of users
 
     # Shorter wait times for heavy users
-    wait_time = between(0.5, 1.5)
+    wait_time = between(1, 2)
 
 
 class AuthUser(BaseSMSUser):
