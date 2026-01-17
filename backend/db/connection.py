@@ -14,8 +14,9 @@ from sqlalchemy.orm import Session, sessionmaker, with_loader_criteria
 # Import settings and models dynamically to avoid import-time redefinition warnings
 from backend.import_resolver import import_from_possible_locations
 
-# Prefer package-qualified imports, fall back to bare module when running as a script
-config_mod = import_from_possible_locations("config")
+# Prefer explicit package-qualified import to avoid shadowing by root-level 'config' directory
+from backend import config as config_mod
+
 settings = config_mod.settings
 models = import_from_possible_locations("models")
 

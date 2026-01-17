@@ -366,9 +366,18 @@ def log_database_operation(operation: str, model: str, record_id: Optional[int] 
         logger.debug("Database operation", extra={"operation": operation, "model": model})
 
 
+from backend.db import SessionLocal, get_session
 from backend.services.notification_service import NotificationService
-from backend.db import get_session
 from fastapi import Depends
+
+
+def get_db():
+    """Yield a database session (compatibility shim)."""
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 
 def get_notification_service(db: Session = Depends(get_session)) -> NotificationService:

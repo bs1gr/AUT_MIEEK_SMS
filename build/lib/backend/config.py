@@ -88,7 +88,7 @@ def _get_project_root() -> Path:
         current = Path(__file__).resolve().parent
         for _ in range(10):  # Check up to 10 levels up
             if (current / ".git").exists():
-                return current.parent
+                return current  # Return directory containing .git (project root)
             current = current.parent
     except Exception:
         pass
@@ -354,7 +354,14 @@ class Settings(BaseSettings):
 
                 # Ensure path is within project directory (prevent path traversal)
                 project_root = Path(__file__).resolve().parents[1]
+                # Allow both the import-based project root and the computed _PROJECT_ROOT
                 allowed_roots = [project_root]
+                try:
+                    if _PROJECT_ROOT not in allowed_roots:
+                        allowed_roots.append(_PROJECT_ROOT)
+                except Exception:
+                    # Defensive: if _PROJECT_ROOT isn't available for any reason, continue
+                    pass
                 if os.environ.get("SMS_EXECUTION_MODE", "").lower() == "docker":
                     allowed_roots.append(Path("/data"))
 
