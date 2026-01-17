@@ -543,10 +543,10 @@ class HeavyUser(BaseSMSUser):
     # Include AuthTasks only when authentication is enabled. In CI we often disable auth
     # to avoid flaky login failures and rate-limiting during smoke tests.
     # Exclude AuthTasks in baseline to avoid login/refresh noise
-        # Include AuthTasks only when explicitly enabled and auth is active to keep baselines clean
-        tasks = [StudentTasks, CourseTasks, AnalyticsTasks, AttendanceTasks, GradeTasks]
-        if ENABLE_AUTH_TASKS and not SKIP_AUTH:
-            tasks.append(AuthTasks)
+    # Include AuthTasks only when explicitly enabled and auth is active to keep baselines clean
+    tasks = [StudentTasks, CourseTasks, AnalyticsTasks, AttendanceTasks, GradeTasks]
+    if ENABLE_AUTH_TASKS and not SKIP_AUTH:
+        tasks.append(AuthTasks)
     weight = 1  # 10% of users
 
     # Shorter wait times for heavy users

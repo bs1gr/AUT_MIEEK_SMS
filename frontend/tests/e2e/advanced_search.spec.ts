@@ -24,10 +24,6 @@ test.setTimeout(60000);
 const BASE_URL = process.env.VITE_API_URL || 'http://localhost:5173';
 
 test.describe('Advanced Search & Filtering - E2E', () => {
-  // Auth setup - perform once before all tests
-  let authToken: string;
-  let userId: number;
-
   test.beforeAll(async () => {
     // Note: This would be handled by loginViaAPI or similar in real tests
     // For now, we'll assume auth is handled by test fixtures
@@ -83,7 +79,7 @@ test.describe('Advanced Search & Filtering - E2E', () => {
       await expect(filterPanel).toBeVisible();
 
       // Fill email filter
-      const emailInput = page.getByPlaceholderText(/email/i);
+      const emailInput = page.getByPlaceholder(/email/i);
       await emailInput.fill('@example.com');
 
       // Click Apply
@@ -146,7 +142,7 @@ test.describe('Advanced Search & Filtering - E2E', () => {
       await page.waitForTimeout(500);
 
       // Fill save name
-      const saveInput = page.getByPlaceholderText(/save search|name/i);
+      const saveInput = page.getByPlaceholder(/save search|name/i);
       if (await saveInput.isVisible()) {
         await saveInput.fill('My Test Search');
 
@@ -179,7 +175,7 @@ test.describe('Advanced Search & Filtering - E2E', () => {
       const savedButton = page.getByRole('button', { name: /saved|history/i });
       await savedButton.click();
 
-      const saveInput = page.getByPlaceholderText(/save search|name/i);
+      const saveInput = page.getByPlaceholder(/save search|name/i);
       if (await saveInput.isVisible()) {
         await saveInput.fill('Saved Test Search');
         const saveBtn = page.getByRole('button', { name: /save/i }).first();
@@ -242,7 +238,7 @@ test.describe('Advanced Search & Filtering - E2E', () => {
       await filterButton.click();
 
       // Fill course code
-      const codeInput = page.getByPlaceholderText(/course code|code/i);
+      const codeInput = page.getByPlaceholder(/course code|code/i);
       if (await codeInput.isVisible()) {
         await codeInput.fill('MATH');
 
@@ -323,8 +319,8 @@ test.describe('Advanced Search & Filtering - E2E', () => {
       await filterButton.click();
 
       // Fill grade range
-      const minInput = page.getByPlaceholderText(/min grade|grade min/i);
-      const maxInput = page.getByPlaceholderText(/max grade|grade max/i);
+      const minInput = page.getByPlaceholder(/min grade|grade min/i);
+      const maxInput = page.getByPlaceholder(/max grade|grade max/i);
 
       if (await minInput.isVisible()) {
         await minInput.fill('80');
@@ -552,7 +548,7 @@ test.describe('Advanced Search & Filtering - E2E', () => {
       await page.waitForTimeout(2000);
 
       // Clear and retry
-      await searchInput.triple_click();
+      await searchInput.click({ clickCount: 3 });
       await searchInput.fill('test2');
       await searchInput.press('Enter');
 
@@ -591,7 +587,7 @@ test.describe('Advanced Search & Filtering - E2E', () => {
       await savedButton.click();
       await page.waitForTimeout(500);
 
-      const saveInput = page.getByPlaceholderText(/save search|name/i);
+      const saveInput = page.getByPlaceholder(/save search|name/i);
       if (await saveInput.isVisible()) {
         await saveInput.fill('Complete Workflow Test');
         const saveBtn = page.getByRole('button', { name: /save/i }).first();
