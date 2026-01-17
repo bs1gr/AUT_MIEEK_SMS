@@ -1,9 +1,8 @@
 {
 // Backend Python tests
-"python.testing.pytestEnabled": true,
-"python.testing.pytestArgs": [
-"tests"
-],
+// ⚠️ DISABLED: Running full pytest suite crashes VS Code (490+ tests)
+// Use RUN_TESTS_BATCH.ps1 instead (batch runner)
+"python.testing.pytestEnabled": false,
 "python.testing.cwd": "${workspaceFolder}/backend",
 "python.testing.autoTestDiscoverOnSaveEnabled": false,
 "python.terminal.activateEnvironment": false,
@@ -45,6 +44,9 @@
 "terminal.integrated.shellIntegration.enabled": true,
 "terminal.integrated.shellIntegration.suggestEnabled": false,
 "terminal.integrated.confirmOnExit": "always",
+"terminal.integrated.commandsToSkipShell": [],
+"terminal.integrated.scrollback": 10000,
+"terminal.integrated.fastScrollSensitivity": 5,
 "terminal.integrated.env.windows": {
 "PYTHONIOENCODING": "utf-8",
 "PYTHONUNBUFFERED": "1",

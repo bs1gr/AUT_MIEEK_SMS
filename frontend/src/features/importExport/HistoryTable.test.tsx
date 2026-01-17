@@ -6,6 +6,7 @@ describe('HistoryTable', () => {
   it('renders without crashing and shows placeholder', () => {
     render(<HistoryTable />);
     expect(screen.getByTestId('history-table-root')).toBeInTheDocument();
-    expect(screen.getByText(/history table coming soon/i)).toBeInTheDocument();
+    // When there are no jobs, it should show the "No import or export jobs found" message
+    expect(screen.getByText(/No import or export jobs found/i)).toBeInTheDocument();
   });
 });

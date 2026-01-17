@@ -119,6 +119,7 @@ $startTime = Get-Date
 $batchCount = 0
 $passedCount = 0
 $failedCount = 0
+$failedFiles = @()
 
 foreach ($batch in $batches) {
     $batchCount++

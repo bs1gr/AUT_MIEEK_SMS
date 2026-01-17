@@ -49,11 +49,16 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const displayNotifications = notifications.slice(0, maxNotifications);
   const hasNotifications = displayNotifications.length > 0;
 
+  // Return null if dropdown is not open
+  if (!isOpen) {
+    return null;
+  }
+
   return (
     <div
       className={`notification-dropdown ${isOpen ? 'open' : ''}`}
       ref={dropdownRef}
-      role="dialog"
+      role="region"
       aria-label={t('notifications.dropdown.ariaLabel')}
     >
       {/* Header */}

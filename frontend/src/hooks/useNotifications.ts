@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import apiClient from '../api/api';
+import apiClient, { extractAPIResponseData, extractAPIError } from '../api/api';
 import type {
   Notification,
   NotificationListResponse,
@@ -49,11 +49,16 @@ export function useNotifications(): UseNotificationsReturn {
         `/notifications?${queryParams.toString()}`
       );
 
-      setNotifications(response.data.notifications);
-      setUnreadCount(response.data.unread_count);
+      // Extract data from APIResponse wrapper
+      const data = extractAPIResponseData(response);
+
+      if (data && typeof data === 'object') {
+        setNotifications((data as any).notifications || []);
+        setUnreadCount((data as any).unread_count || 0);
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err : new Error('Failed to fetch notifications');
-      setError(errorMessage);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch notifications';
+      setError(new Error(errorMessage));
       console.error('Failed to fetch notifications:', err);
     } finally {
       setIsLoading(false);
@@ -66,7 +71,11 @@ export function useNotifications(): UseNotificationsReturn {
   const refreshUnreadCount = useCallback(async () => {
     try {
       const response = await apiClient.get<{ unread_count: number }>('/notifications/unread-count');
-      setUnreadCount(response.data.unread_count);
+      const data = extractAPIResponseData(response);
+
+      if (data && typeof data === 'object' && 'unread_count' in data) {
+        setUnreadCount((data as any).unread_count);
+      }
     } catch (err) {
       console.error('Failed to refresh unread count:', err);
     }
