@@ -84,7 +84,7 @@ class ImportExportService:
             job.total_rows = len(df)
 
             # Validate data
-            validation_results = self._validate_data(df, job.import_type, db)
+            validation_results = self._validate_data(df, str(job.import_type), db)
 
             job.successful_rows = validation_results["valid_count"]
             job.failed_rows = validation_results["invalid_count"]
@@ -103,17 +103,17 @@ class ImportExportService:
             self._log_history(
                 db,
                 "import",
-                job.import_type,
+                str(job.import_type),
                 "validate",
                 job.imported_by,
-                job.id,
-                {"total": job.total_rows, "valid": job.successful_rows},
+                int(job.id) if job.id else 0,
+                {"total": int(job.total_rows) if job.total_rows else 0, "valid": int(job.successful_rows) if job.successful_rows else 0},
             )
 
         except Exception as e:
             logger.error(f"Import processing failed: {e}")
             job.status = "failed"
-            job.validation_errors = {"system_error": str(e)}
+            job.validation_errors = {"system_error": str(e)}  # type: ignore
             db.commit()
 
     def commit_import_job(self, db: Session, job_id: int):
@@ -127,13 +127,13 @@ class ImportExportService:
             db.commit()
 
             # Parse file again (or retrieve from cache if we implemented caching)
-            df = self._parse_file(job.file_path, job.file_type)
+            df = self._parse_file(str(job.file_path), str(job.file_type))
 
-            if job.import_type == "students":
+            if str(job.import_type) == "students":
                 self._import_students(db, df)
-            elif job.import_type == "courses":
+            elif str(job.import_type) == "courses":
                 self._import_courses(db, df)
-            elif job.import_type == "grades":
+            elif str(job.import_type) == "grades":
                 self._import_grades(db, df)
 
             job.status = "completed"
@@ -141,13 +141,13 @@ class ImportExportService:
             db.commit()
 
             self._log_history(
-                db, "import", job.import_type, "commit", job.imported_by, job.id, {"count": job.successful_rows}
+                db, "import", str(job.import_type), "commit", job.imported_by, int(job.id) if job.id else 0, {"count": int(job.successful_rows) if job.successful_rows else 0}
             )
 
         except Exception as e:
             logger.error(f"Import commit failed: {e}")
             job.status = "failed"
-            job.validation_errors = {"commit_error": str(e)}
+            job.validation_errors = {"commit_error": str(e)}  # type: ignore
             db.commit()
 
     def _import_students(self, db: Session, df: pd.DataFrame):
@@ -324,14 +324,14 @@ class ImportExportService:
             db.commit()
 
             # Fetch data
-            data = self._fetch_export_data(db, job.export_type, job.filters)
+            data = self._fetch_export_data(db, str(job.export_type), job.filters)  # type: ignore
             job.total_records = len(data)
 
             # Generate file
             filename = f"export_{job.export_type}_{datetime.now().strftime('%Y%m%d%H%M%S')}.{job.file_format}"
             file_path = EXPORT_DIR / filename
 
-            self._write_export_file(data, file_path, job.file_format)
+            self._write_export_file(data, file_path, str(job.file_format))
 
             job.file_path = str(file_path)
             job.status = "completed"
@@ -342,11 +342,11 @@ class ImportExportService:
             self._log_history(
                 db,
                 "export",
-                job.export_type,
+                str(job.export_type),
                 "generate",
                 job.created_by,
-                job.id,
-                {"count": job.total_records, "format": job.file_format},
+                int(job.id) if job.id else 0,
+                {"count": int(job.total_records) if job.total_records else 0, "format": str(job.file_format)},
             )
 
         except Exception as e:
