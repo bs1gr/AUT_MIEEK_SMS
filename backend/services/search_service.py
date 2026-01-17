@@ -118,14 +118,18 @@ class SearchService:
             query_lower = f"%{query.lower()}%"
 
             # Build search query with multiple field matches
+            description_filter = func.lower(Course.description).ilike(query_lower) if Course.description is not None else None
+            filters = [
+                func.lower(Course.course_name).ilike(query_lower),
+                func.lower(Course.course_code).ilike(query_lower),
+            ]
+            if description_filter is not None:
+                filters.append(description_filter)
+            
             courses = (
                 self.db.query(Course)
                 .filter(
-                    or_(
-                        func.lower(Course.course_name).ilike(query_lower),
-                        func.lower(Course.course_code).ilike(query_lower),
-                        func.lower(Course.description).ilike(query_lower) if Course.description else False,
-                    ),
+                    or_(*filters),
                     Course.deleted_at.is_(None),  # Soft delete filter
                 )
                 .limit(limit)
@@ -477,7 +481,7 @@ class SearchService:
     # UTILITY METHODS
     # ============================================================================
 
-    def get_search_suggestions(self, query: str, limit: int = 5) -> List[Dict[str, str]]:
+    def get_search_suggestions(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
         """
         Get search suggestions based on partial query.
 
