@@ -36,4 +36,3 @@ def test_timing_header_present(client):
         float(response.headers["X-Process-Time"])
     except ValueError:
         pytest.fail("X-Process-Time header is not a float")
-
