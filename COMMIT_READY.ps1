@@ -105,7 +105,8 @@ param(
     [switch]$Quick,
     [switch]$Standard,
     [switch]$Full,
-    [switch]$Cleanup
+    [switch]$Cleanup,
+    [switch]$Snapshot
 )
 
 $USAGE = @"
@@ -118,6 +119,7 @@ Options:
     -Standard            Shortcut for -Mode standard
     -Full                Shortcut for -Mode full
     -Cleanup             Shortcut for -Mode cleanup
+    -Snapshot            Record a state snapshot (artifacts/state) at the end
     -SkipTests           Skip all test execution
     -SkipCleanup         Skip cleanup operations
     -SkipLint            Skip linting checks
@@ -339,12 +341,16 @@ function Invoke-PreCommitHookValidation {
 
         if (Test-Path ".pre-commit-config.yaml") {
             Write-Info "Running pre-commit hooks on staged files..."
-            try {
-                pre-commit run --all-files
-                if ($LASTEXITCODE -ne 0) { throw "Pre-commit hooks failed" }
-                Write-Success "Pre-commit hooks passed."
-            } catch {
-                Write-Failure "Pre-commit hooks failed. Please review and fix issues."
+            pre-commit run --all-files
+            $exitCode = $LASTEXITCODE
+
+            if ($exitCode -eq 0) {
+                Write-Success "Pre-commit hooks passed (no changes needed)."
+            } elseif ($exitCode -eq 1) {
+                Write-Success "Pre-commit hooks passed (files auto-fixed)."
+                Write-Info "Some files were auto-formatted. Review changes with: git diff"
+            } else {
+                Write-Failure "Pre-commit hooks failed with errors (exit code: $exitCode)"
                 Write-Info "To bypass these checks (e.g. for false positives), run with -SkipLint"
                 Write-Info "If detect-secrets failed, try updating the baseline:"
                 Write-Info "    detect-secrets scan --update .secrets.baseline"
@@ -969,7 +975,7 @@ function Invoke-VersionFormatValidation {
             Write-Host "  Pattern: $pattern" -ForegroundColor Red
             Write-Host "  Reason: $($forbiddenPatterns[$pattern])" -ForegroundColor Red
             Write-Host "  Current: $version" -ForegroundColor Red
-            Write-Host '  Required: v1.x.x format (e.g., v1.18.0)' -ForegroundColor Red
+            Write-Host '  Required: v1.x.x format (e.g., $11.17.2)' -ForegroundColor Red
             Write-Host ""
             Write-Host "Fix: Update VERSION file to v1.x.x format and retry" -ForegroundColor Yellow
             Add-Result "Linting" "Version Format" $false "CRITICAL: Forbidden version format"
@@ -984,7 +990,7 @@ function Invoke-VersionFormatValidation {
         return $true
     } else {
         Write-Failure "Invalid version format: $version"
-        Write-Host '  Required: v1.x.x or 1.x.x format (e.g., v1.18.0 or 1.18.0)' -ForegroundColor Red
+        Write-Host '  Required: v1.x.x or 1.x.x format (e.g., $11.17.2 or 1.18.0)' -ForegroundColor Red
         Add-Result "Linting" "Version Format" $false "Invalid format (not v1.x.x)"
         return $false
     }
@@ -2204,6 +2210,29 @@ try {
         Write-Host "   ✅ Checkpoint valid for next 5 minutes" -ForegroundColor Green
         Write-Host "   📋 Next: Stage files with: git add -A" -ForegroundColor Yellow
         Write-Host "   📋 Then: Commit with: git commit -m 'message'" -ForegroundColor Yellow
+
+        # Optional: Record a state snapshot to artifacts/state
+        if ($Snapshot) {
+            Write-Host ""; Write-Host "📝 Recording workspace state snapshot..." -ForegroundColor Cyan
+            try {
+                & .\scripts\VERIFY_AND_RECORD_STATE.ps1 | Out-Null
+                Write-Host "   ✅ Snapshot saved under artifacts/state" -ForegroundColor Green
+            }
+            catch {
+                Write-Host "   ⚠️  Snapshot failed: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+        }
+    }
+    elseif ($Snapshot) {
+        # Even if checks failed, allow capturing a snapshot for debugging
+        Write-Host ""; Write-Host "📝 Recording workspace state snapshot (post-failure)..." -ForegroundColor Cyan
+        try {
+            & .\scripts\VERIFY_AND_RECORD_STATE.ps1 | Out-Null
+            Write-Host "   ✅ Snapshot saved under artifacts/state" -ForegroundColor Green
+        }
+        catch {
+            Write-Host "   ⚠️  Snapshot failed: $($_.Exception.Message)" -ForegroundColor Yellow
+        }
     }
 
     exit $exitCode

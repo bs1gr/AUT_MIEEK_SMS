@@ -1,7 +1,7 @@
 # RBAC Guide (Roles & Permissions)
 
 Last Updated: 2025-12-28
-Version: vvvvv1.18.0
+Version: vvvv$11.17.2
 
 This guide explains how roles and fine‑grained permissions work in the Student Management System, how defaults are seeded, and how to manage RBAC via the admin API.
 

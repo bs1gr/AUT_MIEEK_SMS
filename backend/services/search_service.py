@@ -118,7 +118,9 @@ class SearchService:
             query_lower = f"%{query.lower()}%"
 
             # Build search query with multiple field matches
-            description_filter = func.lower(Course.description).ilike(query_lower) if Course.description is not None else None
+            description_filter = (
+                func.lower(Course.description).ilike(query_lower) if Course.description is not None else None
+            )
             filters = [
                 func.lower(Course.course_name).ilike(query_lower),
                 func.lower(Course.course_code).ilike(query_lower),
