@@ -29,3 +29,6 @@ export type FormTouched = Record<string, boolean>;
 // API response handler
 export type ApiResponseHandler<T> = (data: T, status: number) => void;
 export type ApiErrorHandler = (error: Error, status?: number) => void;
+
+// PerformanceObserver callback for performance tracking
+export type PerformanceObserverCallback = (list: PerformanceEntryList) => void;

@@ -13,7 +13,7 @@
  * Version: 1.0.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   StarIcon,
@@ -64,20 +64,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   /**
    * Load saved searches from localStorage
    */
-  useEffect(() => {
-    loadSavedSearches();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  // Memoize to prevent dependency warning
-  const _memoizedLoadSavedSearches = React.useCallback(() => {
-    loadSavedSearches();
-  }, [loadSavedSearches]);
-
-  /**
-   * Load saved searches from storage
-   */
-  const loadSavedSearches = () => {
+  const loadSavedSearches = useCallback(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
@@ -92,7 +79,21 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       console.error('Error loading saved searches:', err);
       setError(t('search.saved.loadError'));
     }
-  };
+  }, [searchType, t]);
+
+  useEffect(() => {
+    loadSavedSearches();
+  }, [loadSavedSearches]);
+
+  // Memoize to prevent dependency warning
+  const _memoizedLoadSavedSearches = React.useCallback(() => {
+    loadSavedSearches();
+  }, [loadSavedSearches]);
+
+  /**
+   * Load saved searches from storage
+   */
+  // (Moved above to useCallback)
 
   /**
    * Save current search

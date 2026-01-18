@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { usePerformanceMonitor, useApiPerformance } from './usePerformanceMonitor';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import type { PerformanceObserverCallback } from '../types/handlers';
 
 describe('usePerformanceMonitor hook', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
@@ -268,14 +269,14 @@ describe('usePerformanceMonitor hook', () => {
   });
 
   describe('useApiPerformance', () => {
-    let capturedCallback: any;
+    let capturedCallback: PerformanceObserverCallback | undefined;
 
     it('should set up performance observer if available', () => {
       const observerMock = { observe: vi.fn(), disconnect: vi.fn() };
       const observeMock = observerMock.observe;
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {}
+        constructor(callback: PerformanceObserverCallback) {}
         observe = observerMock.observe;
         disconnect = observerMock.disconnect;
       };
@@ -302,7 +303,7 @@ describe('usePerformanceMonitor hook', () => {
       const observeMock = vi.fn();
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {}
+        constructor(callback: PerformanceObserverCallback) {}
         observe = observeMock;
         disconnect = vi.fn();
       };
@@ -320,7 +321,7 @@ describe('usePerformanceMonitor hook', () => {
       const disconnectMock = vi.fn();
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {}
+        constructor(callback: PerformanceObserverCallback) {}
         observe = vi.fn();
         disconnect = disconnectMock;
       };
@@ -338,7 +339,7 @@ describe('usePerformanceMonitor hook', () => {
       capturedCallback = undefined;
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {
+        constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
         }
         observe = vi.fn();
@@ -370,7 +371,7 @@ describe('usePerformanceMonitor hook', () => {
       capturedCallback = undefined;
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {
+        constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
         }
         observe = vi.fn();
@@ -405,7 +406,7 @@ describe('usePerformanceMonitor hook', () => {
       capturedCallback = undefined;
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {
+        constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
         }
         observe = vi.fn();
@@ -436,7 +437,7 @@ describe('usePerformanceMonitor hook', () => {
       capturedCallback = undefined;
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {
+        constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
         }
         observe = vi.fn();
@@ -470,7 +471,7 @@ describe('usePerformanceMonitor hook', () => {
       (window as any).analytics = mockAnalytics;
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {
+        constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
         }
         observe = vi.fn();
@@ -508,7 +509,7 @@ describe('usePerformanceMonitor hook', () => {
       const disconnectMock = vi.fn();
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {}
+        constructor(callback: PerformanceObserverCallback) {}
         observe = observeMock;
         disconnect = disconnectMock;
       };
@@ -532,7 +533,7 @@ describe('usePerformanceMonitor hook', () => {
       capturedCallback = undefined;
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: any) {
+        constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
         }
         observe = vi.fn();
