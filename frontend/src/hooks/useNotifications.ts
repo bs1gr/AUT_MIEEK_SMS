@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
-import apiClient, { extractAPIResponseData, _extractAPIError } from '../api/api';
+import apiClient, { extractAPIResponseData } from '../api/api';
 import type {
   Notification,
   NotificationListResponse,

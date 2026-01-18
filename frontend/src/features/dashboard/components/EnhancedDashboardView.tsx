@@ -106,7 +106,7 @@ const MetricCard = ({ title, value, hint, icon: Icon, accent = 'indigo' }: Metri
     <div className={`rounded-2xl border ${styles.border} bg-white p-6 shadow-sm transition-shadow hover:shadow-md`}>
       <div className="mb-4 flex items-center justify-between">
         <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl ${styles.iconBg}`}>
-          <Icon size={22} />
+          <Icon width={22} height={22} />
         </div>
         <span className={`text-xs font-semibold ${styles.label}`}>{hint}</span>
       </div>

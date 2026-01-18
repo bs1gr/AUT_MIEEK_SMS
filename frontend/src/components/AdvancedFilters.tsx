@@ -109,7 +109,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   /**
    * Handle filter input change
    */
-  const handleFilterChange = (key: string, value: string | number | boolean) => {
+  const handleFilterChange = (key: string, value: string | number | boolean | undefined) => {
     setFilters(prev => ({
       ...prev,
       [key]: value === '' ? undefined : value
@@ -211,7 +211,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <label>{t('search.filters.firstName')}</label>
                     <input
                       type="text"
-                      value={filters.first_name || ''}
+                      value={typeof filters.first_name === 'boolean' ? String(filters.first_name) : (filters.first_name || '')}
                       onChange={(e) => handleFilterChange('first_name', e.target.value)}
                       placeholder={t('search.filters.enterValue')}
                     />
@@ -220,7 +220,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <label>{t('search.filters.lastName')}</label>
                     <input
                       type="text"
-                      value={filters.last_name || ''}
+                      value={typeof filters.last_name === 'boolean' ? String(filters.last_name) : (filters.last_name || '')}
                       onChange={(e) => handleFilterChange('last_name', e.target.value)}
                       placeholder={t('search.filters.enterValue')}
                     />
@@ -229,7 +229,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <label>{t('search.filters.email')}</label>
                     <input
                       type="email"
-                      value={filters.email || ''}
+                      value={typeof filters.email === 'boolean' ? String(filters.email) : (filters.email || '')}
                       onChange={(e) => handleFilterChange('email', e.target.value)}
                       placeholder={t('search.filters.enterValue')}
                     />
@@ -239,7 +239,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <input
                       type="number"
                       value={filters.academic_year || ''}
-                      onChange={(e) => handleFilterChange('academic_year', e.target.value ? parseInt(e.target.value) : '')}
+                      onChange={(e) => handleFilterChange('academic_year', e.target.value ? parseInt(e.target.value) : undefined)}
                       placeholder={new Date().getFullYear().toString()}
                     />
                   </div>
@@ -252,7 +252,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <label>{t('search.filters.courseName')}</label>
                     <input
                       type="text"
-                      value={filters.course_name || ''}
+                      value={typeof filters.course_name === 'boolean' ? String(filters.course_name) : (filters.course_name || '')}
                       onChange={(e) => handleFilterChange('course_name', e.target.value)}
                       placeholder={t('search.filters.enterValue')}
                     />
@@ -261,7 +261,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <label>{t('search.filters.courseCode')}</label>
                     <input
                       type="text"
-                      value={filters.course_code || ''}
+                      value={typeof filters.course_code === 'boolean' ? String(filters.course_code) : (filters.course_code || '')}
                       onChange={(e) => handleFilterChange('course_code', e.target.value)}
                       placeholder={t('search.filters.enterValue')}
                     />
@@ -271,7 +271,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <input
                       type="number"
                       value={filters.credits || ''}
-                      onChange={(e) => handleFilterChange('credits', e.target.value ? parseInt(e.target.value) : '')}
+                      onChange={(e) => handleFilterChange('credits', e.target.value ? parseInt(e.target.value) : undefined)}
                       placeholder="0-10"
                       min="0"
                       max="10"
@@ -282,7 +282,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <input
                       type="number"
                       value={filters.academic_year || ''}
-                      onChange={(e) => handleFilterChange('academic_year', e.target.value ? parseInt(e.target.value) : '')}
+                      onChange={(e) => handleFilterChange('academic_year', e.target.value ? parseInt(e.target.value) : undefined)}
                       placeholder={new Date().getFullYear().toString()}
                     />
                   </div>
@@ -318,7 +318,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <input
                       type="number"
                       value={filters.student_id || ''}
-                      onChange={(e) => handleFilterChange('student_id', e.target.value ? parseInt(e.target.value) : '')}
+                      onChange={(e) => handleFilterChange('student_id', e.target.value ? parseInt(e.target.value) : undefined)}
                       placeholder={t('search.filters.enterValue')}
                     />
                   </div>
@@ -327,7 +327,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     <input
                       type="number"
                       value={filters.course_id || ''}
-                      onChange={(e) => handleFilterChange('course_id', e.target.value ? parseInt(e.target.value) : '')}
+                      onChange={(e) => handleFilterChange('course_id', e.target.value ? parseInt(e.target.value) : undefined)}
                       placeholder={t('search.filters.enterValue')}
                     />
                   </div>

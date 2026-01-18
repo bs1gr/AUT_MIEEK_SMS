@@ -5,7 +5,6 @@
 
 import React from "react";
 import { useTranslation } from "react-i18next";
-import { useLanguage } from "@/LanguageContext";
 import {
   BarChart,
   Bar,
@@ -76,7 +75,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
               />
               <YAxis label={{ value: "Count", angle: -90, position: "insideLeft" }} />
               <Tooltip
-                formatter={(value: number) => value}
+                formatter={(value: number | undefined) => value ?? 0}
                 labelFormatter={(label) => `Range: ${label}`}
               />
               <Legend />

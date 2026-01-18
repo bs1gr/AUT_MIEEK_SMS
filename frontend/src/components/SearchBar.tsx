@@ -107,7 +107,14 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
           handleSuggestionClick(suggestions[selectedIndex]);
         } else if (query.trim()) {
-          handleSubmit(e as React.FormEvent<HTMLFormElement>);
+          // Create a proper form event for submission
+          const form = e.currentTarget.closest('form');
+          if (form) {
+            const formEvent = new Event('submit', { bubbles: true, cancelable: true }) as any;
+            Object.defineProperty(formEvent, 'currentTarget', { value: form, writable: false });
+            Object.defineProperty(formEvent, 'target', { value: form, writable: false });
+            handleSubmit(formEvent as React.FormEvent<HTMLFormElement>);
+          }
         }
         break;
 

@@ -85,11 +85,6 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
     loadSavedSearches();
   }, [loadSavedSearches]);
 
-  // Memoize to prevent dependency warning
-  const _memoizedLoadSavedSearches = React.useCallback(() => {
-    loadSavedSearches();
-  }, [loadSavedSearches]);
-
   /**
    * Load saved searches from storage
    */
