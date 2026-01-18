@@ -313,17 +313,17 @@ class TestBackupServiceEncrypted:
         backups = backup_service.list_encrypted_backups()
         assert len(backups) == 10
 
-    def test_backup_not_found(self, backup_service):
+    def test_backup_not_found(self, backup_service, tmp_path):
         """Test error handling for non-existent backup."""
         with pytest.raises(FileNotFoundError):
             backup_service.restore_encrypted_backup(
                 backup_name="nonexistent",
-                output_path=Path("/tmp/restore"),
+                output_path=tmp_path / "restore",
             )
 
-    def test_source_file_not_found(self, backup_service):
+    def test_source_file_not_found(self, backup_service, tmp_path):
         """Test error handling for non-existent source file."""
         with pytest.raises(FileNotFoundError):
             backup_service.create_encrypted_backup(
-                source_path=Path("/nonexistent/file.txt"),
+                source_path=tmp_path / "nonexistent" / "file.txt",
             )

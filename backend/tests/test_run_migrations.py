@@ -45,7 +45,7 @@ def reset_modules():
                 del os.environ[key]
 
 
-def test_run_migrations_creates_tables(monkeypatch):
+def test_run_migrations_creates_tables(monkeypatch, tmp_path):
     # Ensure test environment is properly detected before reloading modules
     monkeypatch.setenv("PYTEST_CURRENT_TEST", "test_run_migrations.py::test_run_migrations_creates_tables")
     monkeypatch.setenv("SMS_ENV", "test")
@@ -53,21 +53,21 @@ def test_run_migrations_creates_tables(monkeypatch):
     monkeypatch.setenv("AUTH_ENABLED", "0")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
-    project_root = Path(__file__).resolve().parents[2]
-    tmp_dir = project_root / "tmp_test_migrations"
-    tmp_dir.mkdir(parents=True, exist_ok=True)
-    dbfile = tmp_dir / "test_migrations.db"
-    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{dbfile}")
+    db_file = tmp_path / "test_migrations.db"
+    if db_file.exists():
+        db_file.unlink()
+        
+    monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_file}")
 
     run_migrations = _reload_modules()
 
     ok = run_migrations.run_migrations(verbose=True)
     assert ok is True
-    assert dbfile.exists()
+    assert db_file.exists()
 
     import sqlite3
 
-    con = sqlite3.connect(str(dbfile))
+    con = sqlite3.connect(str(db_file))
     cur = con.cursor()
     tables = [row[0] for row in cur.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()]
     assert "alembic_version" in tables or "courses" in tables

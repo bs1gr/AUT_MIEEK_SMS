@@ -390,9 +390,13 @@ def client(db):
         return await real_get_current_user(request=request, token=token, db=db)
 
     app.dependency_overrides[real_get_current_user] = _override_current_user
+    # ADDED: Explicitly create tables on the test engine
+    Base.metadata.create_all(bind=engine)
     with TestClient(app) as c:
         yield _ClientProxy(c)
     app.dependency_overrides.clear()
+    # ADDED: Clean up tables after test
+    Base.metadata.drop_all(bind=engine)
 
 
 @pytest.fixture(scope="function")

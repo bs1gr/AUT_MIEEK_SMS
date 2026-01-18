@@ -6,6 +6,7 @@ from fastapi.middleware.gzip import GZipMiddleware
 
 from backend.config import settings
 from backend.middleware.response_standardization import ResponseStandardizationMiddleware
+from backend.middleware.timing import TimingMiddleware
 from backend.request_id_middleware import RequestIDMiddleware
 from backend.security import install_csrf_protection
 
@@ -16,6 +17,12 @@ def register_middlewares(app):
         app.add_middleware(RequestIDMiddleware)
     except Exception as e:
         logging.warning(f"RequestIDMiddleware registration failed: {e}")
+
+    # Timing middleware to measure request processing time
+    try:
+        app.add_middleware(TimingMiddleware)
+    except Exception as e:
+        logging.warning(f"TimingMiddleware registration failed: {e}")
 
     # Standardize JSON responses into APIResponse envelope (success/data/error/meta)
     try:
