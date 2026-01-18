@@ -77,7 +77,7 @@ This project implements comprehensive security controls:
   - Linting (ESLint, Ruff, MyPy)
   - Type checking (TypeScript strict mode)
   - Secret scanning (Gitleaks)
-  
+
 - **Comprehensive Testing**: CI/CD runs
   - Backend: 370+ unit & integration tests
   - Frontend: 1,249+ component & hook tests

@@ -40,18 +40,18 @@ def validate_filename(filename: str, allowed_extensions: list[str] = None) -> bo
     # Check for path traversal patterns
     dangerous_patterns = [
         "..",  # Parent directory traversal
-        "/",   # Unix path separator
+        "/",  # Unix path separator
         "\\",  # Windows path separator
-        "\x00", # Null byte injection
-        "~",   # Home directory expansion (some systems)
-        "|",   # Pipe (command injection)
-        "&",   # Command chaining
-        ";",   # Command separator
-        "$",   # Variable expansion
-        "`",   # Command substitution
-        "!",   # History expansion
-        "*",   # Glob
-        "?",   # Glob
+        "\x00",  # Null byte injection
+        "~",  # Home directory expansion (some systems)
+        "|",  # Pipe (command injection)
+        "&",  # Command chaining
+        ";",  # Command separator
+        "$",  # Variable expansion
+        "`",  # Command substitution
+        "!",  # History expansion
+        "*",  # Glob
+        "?",  # Glob
     ]
 
     for pattern in dangerous_patterns:
@@ -60,9 +60,30 @@ def validate_filename(filename: str, allowed_extensions: list[str] = None) -> bo
 
     # Check for suspicious names (reserved on Windows)
     reserved_names = [
-        "CON", "PRN", "AUX", "NUL", "COM1", "COM2", "COM3", "COM4",
-        "COM5", "COM6", "COM7", "COM8", "COM9", "LPT1", "LPT2", "LPT3",
-        "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "CONIN$", "CONOUT$"
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4",
+        "COM5",
+        "COM6",
+        "COM7",
+        "COM8",
+        "COM9",
+        "LPT1",
+        "LPT2",
+        "LPT3",
+        "LPT4",
+        "LPT5",
+        "LPT6",
+        "LPT7",
+        "LPT8",
+        "LPT9",
+        "CONIN$",
+        "CONOUT$",
     ]
     base_name = filename.split(".")[0].upper()
     if base_name in reserved_names:
@@ -72,13 +93,12 @@ def validate_filename(filename: str, allowed_extensions: list[str] = None) -> bo
     if allowed_extensions:
         if not any(filename.endswith(ext) for ext in allowed_extensions):
             raise ValueError(
-                f"File extension not allowed. Allowed: {', '.join(allowed_extensions)}, "
-                f"got: {Path(filename).suffix}"
+                f"File extension not allowed. Allowed: {', '.join(allowed_extensions)}, got: {Path(filename).suffix}"
             )
 
     # Check for valid characters (alphanumeric, dash, underscore, dot)
     # Allow additional characters: parentheses, brackets, plus, equals
-    if not re.match(r'^[a-zA-Z0-9._\-()[\]+= ]+$', filename):
+    if not re.match(r"^[a-zA-Z0-9._\-()[\]+= ]+$", filename):
         raise ValueError(f"Filename contains invalid characters: {filename}")
 
     return True
@@ -151,9 +171,7 @@ def validate_path(base_dir: Union[str, Path], target_path: Union[str, Path]) -> 
         target.relative_to(base)
         return True
     except ValueError:
-        raise ValueError(
-            f"Path escape detected: {target} is not within {base}"
-        )
+        raise ValueError(f"Path escape detected: {target} is not within {base}")
 
 
 class PathValidator:

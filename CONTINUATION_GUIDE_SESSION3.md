@@ -199,7 +199,7 @@ grep -r ">'\w" src/features/
    - Same process
    - Expected lint reduction: ~8 warnings
 
-**Checkpoint after Phase 1**: 
+**Checkpoint after Phase 1**:
 - 33 strings fixed
 - ESLint: ~125 → ~92 warnings
 - All tests passing
@@ -250,7 +250,7 @@ git add frontend/src/
 git commit -m "fix: Replace hardcoded strings with i18n translations (Phase 2 - Batch 5)
 
 - SavedSearches.tsx: 15 strings
-- AdvancedSearch.tsx: 10 strings  
+- AdvancedSearch.tsx: 10 strings
 - SearchBar.tsx: 8 strings
 - Added translations to en.ts and el.ts files
 - All 1,249 frontend tests passing"
@@ -273,7 +273,7 @@ git commit -m "fix: Replace hardcoded strings with i18n translations (Phase 2 - 
 
 **Rule**: `@intlify/vue-i18n/no-missing-keys` + text hardcoding detection
 **Config**: `.eslintrc.cjs`
-**Why It Matters**: 
+**Why It Matters**:
 - Ensures all text is translatable
 - Supports bilingual EN/EL user base
 - Required for production deployment
@@ -357,4 +357,3 @@ locales/
 **Success Rate Expected**: 95%+ (well-defined task)
 
 **Remember**: One file at a time, commit after each file group.
-
