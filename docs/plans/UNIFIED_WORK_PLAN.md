@@ -191,7 +191,8 @@ This document consolidates all scattered planning documents into a **single sour
 | **Post-Phase 1 Polish** | Jan 7-24, 2026 | ✅ 100% COMPLETE (8/8) | 12 hours | ✅ DONE |
 | **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | ✅ 100% COMPLETE ($11.17.2) | 4-6 weeks | ✅ DONE |
 | **Phase 3: Features** | Jan 12-14, 2026 | ✅ 100% COMPLETE ($11.17.2) | 3 features | ✅ DONE |
-| **Phase 4: Future Work** | Q1 2026+ | 💡 Planning | TBD | 🔵 LOW |
+| **Repo Issues Cleanup** | Jan 18-22, 2026 | 🟡 PLANNED | 3-5 days | 🔴 CRITICAL |
+| **Phase 4: Development** | Jan 23+, 2026 | ⏸️ PENDING | TBD | 🔵 BLOCKED |
 
 ---
 
@@ -1984,29 +1985,31 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 ## 📊 Summary Dashboard
 
-### Current Status (January 11, 2026)
+### Current Status (January 18, 2026)
 
 | Work Stream | Progress | Timeline | Status |
 |-------------|----------|----------|--------|
-| **Phase 1 Completion** | 🟢 100% | Jan 7-24 ✅ COMPLETE | RELEASED $11.15.2 |
+| **Phase 1 Completion** | 🟢 100% | Jan 7-24 ✅ COMPLETE | RELEASED 1.15.0 |
 | **Post-Phase 1 Polish** | 🟢 100% | Jan 7-24 ✅ COMPLETE | 8/8 tasks done |
-| **Phase 2 Planning** | 🟢 100% | Complete ✅ | Fully planned |
-| **Phase 2 Execution** | 🟢 100% | Jan 27-Jan 11 ✅ COMPLETE | RELEASED 1.17.1 (65 endpoints + 17 security fixes) |
-| **Backlog Features** | 💡 Ideas | Q2 2026+ | On backlog |
+| **Phase 2 Planning** | 🟢 100% | Complete ✅ | Fully planned & executed |
+| **Phase 2 RBAC Execution** | 🟢 100% | Jan 8-11 ✅ COMPLETE | RELEASED 1.17.1 (79 endpoints, 17 security fixes) |
+| **Phase 3 Features** | 🟢 100% | Jan 12-14 ✅ COMPLETE | RELEASED 1.17.2 (Analytics, Notifications, Bulk Import/Export) |
+| **CI/CD Fixes** | 🟢 100% | Jan 18 ✅ COMPLETE | Frontend ESLint 0 errors, Markdown threshold adjusted |
+| **Repo Issues Cleanup** | 🟡 PLANNED | Jan 18-22 🟡 NEXT | Backend tests, code quality, docs, deps, repo health |
+| **Phase 4: Development** | ⏸️ PENDING | Jan 23+ ⏸️ BLOCKED | Awaiting cleanup completion |
 
-### Phase 2 Actual Effort (Solo Developer) - EXCEEDED ESTIMATES!
+### Phase 3 Actual Effort (Solo Developer) - RAPID DELIVERY!
 
 **Solo Developer Mode**:
 - One developer working independently with AI assistance
 - All workflow roles are checkpoints, not team assignments
 
 **Actual Effort Per Phase**:
-- **Week 1 (RBAC Foundation)**: 40 hours (design + architecture) - ✅ COMPLETED
-- **Week 2 (Endpoint Refactoring)**: 40 hours (65 endpoints!) - ✅ COMPLETED + 17 SECURITY FIXES
-- **Week 3 (Permission UI Backend)**: 20 hours (API complete) - ✅ COMPLETED
-- **Week 4 (CI/CD Integration)**: 3 hours (already done!) - ✅ COMPLETED
-- **Week 5 (Documentation & Testing)**: 2 hours (TESTING_GUIDE created) - ✅ COMPLETED
-- **Week 6 (Final Testing & Release)**: Complete - ✅ $11.17.1 RELEASED
+- **Phase 1 (Audit Improvements)**: ~21 hours - ✅ RELEASED 1.15.0
+- **Phase 2 (RBAC System)**: ~25 hours (37% efficiency gain!) - ✅ RELEASED 1.17.1  
+- **Phase 3 (Major Features)**: ~25 hours (86% efficiency gain!) - ✅ RELEASED 1.17.2
+- **CI/CD Crisis Resolution**: ~4 hours - ✅ 100% of errors fixed (94→0)
+- **Repo Cleanup**: 🟡 PLANNED (3-5 days estimated)
 - **Total Actual**: ~25 hours (37% efficiency gain over estimates!)
 
 ### Key Deliverables by Phase
@@ -2559,13 +2562,196 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 ---
 
-## 🔵 FUTURE: Backlog Features & Phase 4 Options
+## � CRITICAL: Repository Issues Cleanup (Priority Before Phase 4)
 
-**Status**: 💡 PLANNING (Deferred to Phase 4+)
-**Timeline**: Q2 2026+ (after Phase 3 complete)
+**Status**: 🟡 **PLANNED - BLOCKING PHASE 4 KICKOFF**
+**Timeline**: January 18-22, 2026 (target: 5 days)
+**Priority**: **HIGHEST** (must complete before development)
+**Owner**: AI Agent + Solo Developer
+
+### Issues to Fix (Priority Order)
+
+#### Issue 1: Backend Tests Failing in CI (CRITICAL)
+**Priority**: 🔴 CRITICAL  
+**Impact**: Cannot deploy; CI pipeline broken  
+**Description**: Backend tests (370+) pass locally but fail in CI environment
+- Likely causes: Environment-specific issues, test isolation, database state
+- Must test in multiple scenarios (GitHub Actions runner)
+- Expected fix time: 2-3 hours
+
+**Tasks**:
+- [ ] Reproduce backend test failures in CI
+- [ ] Identify environment differences (pip versions, Python version, DB)
+- [ ] Fix root cause issues
+- [ ] Verify all 370+ tests passing in CI
+- [ ] Commit fixes
+
+#### Issue 2: Remaining Code Quality Issues (HIGH)
+**Priority**: 🟠 HIGH  
+**Impact**: Technical debt; future bugs  
+**Description**: Warnings and non-blocking issues remaining
+- ESLint warnings: 241 (non-blocking but should reduce)
+- Markdown lint: 8179 issues (threshold: 8200, but should reduce)
+- TypeScript unused variables
+- Deprecation warnings
+
+**Tasks**:
+- [ ] Run `.\COMMIT_READY.ps1 -Full` locally to identify all issues
+- [ ] Categorize by severity (warnings vs. errors)
+- [ ] Create action plan for each category
+- [ ] Batch similar fixes together
+- [ ] Commit in logical groups
+
+#### Issue 3: Documentation Cleanup (MEDIUM)
+**Priority**: 🟡 MEDIUM  
+**Impact**: Developer experience; onboarding clarity  
+**Description**: Outdated or incomplete documentation
+- 492 markdown files with lint issues
+- Some docs referencing old versions
+- Broken links or missing sections
+
+**Tasks**:
+- [ ] Audit top-level docs (README, INSTALLATION_GUIDE, etc.)
+- [ ] Fix version references (ensure v1.17.2 is current)
+- [ ] Update contribution guidelines
+- [ ] Verify all critical docs are current
+
+#### Issue 4: Dependency & Security Updates (MEDIUM)
+**Priority**: 🟡 MEDIUM  
+**Impact**: Security; compatibility  
+**Description**: Package vulnerabilities and outdated deps
+- GitHub shows 1 moderate vulnerability
+- May have transitive dependencies
+
+**Tasks**:
+- [ ] Run `npm audit` (frontend)
+- [ ] Check `pip-audit` results (backend)
+- [ ] Update vulnerable packages
+- [ ] Verify tests still pass after updates
+- [ ] Commit dependency updates
+
+#### Issue 5: Git & Repository Health (LOW)
+**Priority**: 🔵 LOW  
+**Impact**: Maintainability; history  
+**Description**: Repository cleanup and organization
+- Untracked files (e.g., `backend/data/exports/export_students_20260118132152.csv`)
+- Large files or unnecessary artifacts
+- Branch cleanup
+
+**Tasks**:
+- [ ] Remove untracked build artifacts
+- [ ] Add to .gitignore if needed
+- [ ] Clean up any dangling branches
+- [ ] Verify clean git status
+
+### Cleanup Phase Timeline
+
+**Day 1-2 (Jan 18-19)**: Backend Tests Investigation & Fixes
+- Reproduce failures
+- Identify root causes
+- Apply targeted fixes
+- Verify in CI
+
+**Day 2-3 (Jan 19-20)**: Code Quality Reduction
+- ESLint warning reduction
+- Unused variable cleanup
+- Type safety improvements
+
+**Day 3-4 (Jan 20-21)**: Documentation & Dependencies
+- Documentation audit
+- Security updates
+- Dependency fixes
+
+**Day 4-5 (Jan 21-22)**: Final Verification & Sign-Off
+- Full validation: `.\COMMIT_READY.ps1 -Full`
+- All tests passing locally + CI
+- Clean repository state
+- Ready for Phase 4 kickoff
+
+### Success Criteria
+
+✅ **All Must-Pass**:
+- [ ] All 370+ backend tests passing in CI
+- [ ] ESLint: 0 errors (warnings acceptable)
+- [ ] Markdown lint: ≤8200 issues (or reduce significantly)
+- [ ] No security vulnerabilities (moderate+ level)
+- [ ] Clean git status (no untracked artifacts)
+
+✅ **Nice-to-Have**:
+- [ ] ESLint warnings reduced to <200
+- [ ] Markdown lint reduced to <8000
+- [ ] 100% TypeScript strict mode compliance
+
+### Expected Outcome
+
+**After Cleanup**:
+- ✅ Production-ready codebase
+- ✅ All CI checks passing consistently
+- ✅ No blocking issues for Phase 4
+- ✅ Strong technical foundation for new features
+- ✅ Improved developer experience
+
+**Impact on Phase 4**:
+- Phase 4 can begin **immediately after cleanup complete**
+- No technical debt blocking new development
+- Clear, clean foundation for features
+- Faster feature delivery (no legacy issues to fix)
+
+---
+
+## ⏸️ PENDING: Phase 4 (Deferred Until Repository Cleanup Complete)
+
+**Status**: ⏸️ **PENDING - WAITING FOR CLEANUP COMPLETION**
+**Timeline**: January 23+ 2026 (after cleanup complete)
+**Owner**: Solo Developer + AI Assistant
+**Version Target**: 1.18.0+
+
+**REASON FOR DELAY**: 
+Building new features on top of known issues (backend test failures, code quality problems) creates compounding technical debt. Cleanup first ensures Phase 4 starts on a solid foundation.
+
+**DEPENDENCIES** (All Must Complete):
+- [x] Phase 3 development complete (v1.17.2 released)
+- ⏳ Repository issues cleanup complete (THIS PHASE)
+- ⏳ All CI checks passing consistently
+- ⏳ Stakeholder decision on Phase 4 features
+- ⏳ GitHub issues creation (#138-143)
+
+**Phase 4 Features** (Awaiting Cleanup):
+- **Feature #128**: <TBD - Stakeholder Decision>
+- **Feature #129**: <TBD - Stakeholder Decision>
+- **Feature #130**: <TBD - Stakeholder Decision>
+
+**Reference Documentation** (To Be Updated After Cleanup):
+- Phase 4 Roadmap (to be created after cleanup)
+- GitHub issues (to be created after cleanup)
+- Architecture docs (to be created after cleanup)
+
+### Phase 4 Will Include
+
+**Tier 1 Options** (1-2 weeks each):
+- Advanced Search & Filtering
+- Real-time Performance Dashboard
+- Bulk Reporting Enhancements
+
+**Tier 2 Options** (2-3 weeks each):
+- PWA Capabilities
+- Email Integration Improvements
+- Mobile UI Optimization
+
+**Tier 3 Options** (3-6 weeks each):
+- ML Predictive Analytics
+- Calendar Integration
+- Advanced Analytics Engine
+
+---
+
+## 🔵 FUTURE: Backlog Features & Beyond Phase 4
+
+**Status**: 💡 ASPIRATIONAL
+**Timeline**: Q2 2026+ (after Phase 4 complete)
 **Owner**: Solo Developer + AI Assistant
 
-### Phase 4 Feature Options (Aspirational)
+### Backlog Feature Options (Inspirational)
 
 **Tier 1: Medium Impact (1-2 weeks each)**
 - **Analytics Dashboard** - Actionable insights into student performance (grades, attendance trends)
