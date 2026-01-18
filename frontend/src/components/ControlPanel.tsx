@@ -435,13 +435,13 @@ function formatUptime(seconds: number): string {
           <nav className="flex gap-1">
             {[
               { id: 'operations', label: t('controlPanel.operations'), icon: Terminal },
-              { id: 'updates', label: t('controlPanel.updates') || 'Updates', icon: Download },
-              { id: 'diagnostics', label: t('controlPanel.diagnostics'), icon: AlertTriangle },
-              { id: 'ports', label: t('controlPanel.ports'), icon: Server },
-              { id: 'logs', label: t('controlPanel.logs'), icon: FileText },
-              { id: 'environment', label: t('controlPanel.environment'), icon: Cpu },
-              ...(user?.role === 'admin' ? [{ id: 'rate-limits', label: t('controlPanel.rateLimitsLabel') || 'Rate Limits', icon: Activity }] : []),
-              { id: 'maintenance', label: t('controlPanel.maintenance'), icon: Shield }
+              { id: 'updates', label: t('updates') || 'Updates', icon: Download },
+              { id: 'diagnostics', label: t('diagnostics') || 'Diagnostics', icon: AlertTriangle },
+              { id: 'ports', label: t('ports') || 'Ports', icon: Server },
+              { id: 'logs', label: t('logs') || 'Logs', icon: FileText },
+              { id: 'environment', label: t('environment') || 'Environment', icon: Cpu },
+              ...(user?.role === 'admin' ? [{ id: 'rate-limits', label: t('rateLimitsLabel') || 'Rate Limits', icon: Activity }] : []),
+              { id: 'maintenance', label: t('maintenance') || 'Maintenance', icon: Shield }
             ].map((tab) => {
               const Icon = tab.icon;
               return (

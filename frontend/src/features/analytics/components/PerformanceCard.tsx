@@ -91,7 +91,7 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({ data }) => {
           </div>
           <div className="stat-item">
             <span className="stat-label">{t("analytics.period")}</span>
-            <span className="stat-value">{data.period_days} days</span>
+            <span className="stat-value">{data.period_days} {t('days')}</span>
           </div>
           {data.courses && Object.keys(data.courses).length > 0 && (
             <div className="stat-item">

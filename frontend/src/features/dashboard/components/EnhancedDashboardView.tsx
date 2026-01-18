@@ -241,7 +241,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       const response = await fetch(`${API_BASE_URL}/enrollments/?limit=500`);
       if (!response.ok) throw new Error(`Failed to fetch enrollments: ${response.status} ${response.statusText}`);
       const data = await response.json();
-      const enrollments = data.items || [];
+      const enrollments: { course_id?: number }[] = data.items || [];
 
       if (Array.isArray(enrollments) && enrollments.length > 0) {
         const enrollmentCounts = enrollments.reduce(

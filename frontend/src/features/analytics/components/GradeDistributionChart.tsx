@@ -73,10 +73,10 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
                 dataKey="range"
                 tick={{ fontSize: 12 }}
               />
-              <YAxis label={{ value: "Count", angle: -90, position: "insideLeft" }} />
+              <YAxis label={{ value: t('count'), angle: -90, position: "insideLeft" }} />
               <Tooltip
                 formatter={(value: number | undefined) => value ?? 0}
-                labelFormatter={(label) => `Range: ${label}`}
+                labelFormatter={(label) => `${t('rangeLabel')}${label}`}
               />
               <Legend />
               <Bar

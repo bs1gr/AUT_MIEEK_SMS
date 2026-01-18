@@ -49,7 +49,7 @@ export function useStudents(filters?: { search?: string; active?: boolean }) {
         }
         return filteredStudents;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch students';
+        const errorMessage = error instanceof Error ? error.message : t('failedToFetchStudents');
         setError(errorMessage);
         throw error;
       } finally {

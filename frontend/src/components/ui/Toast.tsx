@@ -15,7 +15,7 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose }) => {
     <div className={`fixed top-4 right-4 p-4 rounded shadow-lg ${bgColor}`}>
       <div className="flex justify-between items-center">
         <span>{message}</span>
-        <button onClick={onClose} className="ml-4 font-bold">×</button>
+        <button onClick={onClose} className="ml-4 font-bold">{t('close')}</button>
       </div>
     </div>
   );

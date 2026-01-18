@@ -108,9 +108,9 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({ data }) => {
       {/* Status indicator */}
       <div className="attendance-status">
         {data.overall_attendance_rate >= 75 ? (
-          <span className="status-good">✓ {t("analytics.attendance_good")}</span>
+          <span className="status-good">{t("analytics.attendance_good")}</span>
         ) : (
-          <span className="status-warning">⚠ {t("analytics.attendance_warning")}</span>
+          <span className="status-warning">{t("analytics.attendance_warning")}</span>
         )}
       </div>
     </div>
