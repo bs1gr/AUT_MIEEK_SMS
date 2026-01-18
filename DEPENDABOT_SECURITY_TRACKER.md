@@ -204,12 +204,16 @@ with PathValidator(restore_dir) as validator:
 ### Using Predefined Validators
 
 ```python
-from backend.security.path_validation import BACKUP_FILENAME_VALIDATOR
+from backend.security.path_validation import (
+    validate_backup_filename,
+    validate_export_filename,
+    validate_config_filename
+)
 
 # Validates .enc, .db, or .backup extensions
-BACKUP_FILENAME_VALIDATOR("backup_20260118.enc")  # ✅ OK
-BACKUP_FILENAME_VALIDATOR("../etc/passwd")         # ❌ ValueError
-BACKUP_FILENAME_VALIDATOR("config.json")           # ❌ ValueError
+validate_backup_filename("backup_20260118.enc")  # ✅ OK
+validate_backup_filename("../etc/passwd")         # ❌ ValueError
+validate_backup_filename("config.json")           # ❌ ValueError
 ```
 
 ---
