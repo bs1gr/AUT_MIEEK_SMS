@@ -99,7 +99,7 @@ cd backend && pytest tests/test_specific_file.py -v  # OK
 - Check work plan BEFORE starting any work
 - Update work plan AFTER completing tasks
 - Verify version from `VERSION` file (current: 1.17.1)
-- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.18.0)
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., $11.17.2)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
 
 **Why This Exists:**
@@ -257,6 +257,42 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 
 ---
 
+### Policy 8: State Snapshot - MANDATORY at Session Start and Before Claims
+
+**Purpose:** Preserve evidence and prevent data/context loss under rate limits or long sessions by recording the current workspace state and validation artifacts.
+
+**✅ REQUIRED:**
+- At the start of every session: Record a state snapshot
+- Before any success claims (e.g., "tests passing", "ready to release"): Record a state snapshot
+
+**How to Record a Snapshot:**
+```powershell
+# Option A (recommended): COMMIT_READY quick validation with snapshot
+.\u005CCOMMIT_READY.ps1 -Quick -Snapshot
+
+# Option B: VS Code Task
+Tasks: Run Task → "Record State Snapshot"
+
+# Option C: Direct script run
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.ps1
+```
+
+**What Gets Recorded (artifacts/state):**
+- Version checks (VERSION vs frontend/package.json)
+- Git branch, commit, remotes, concise change list
+- Pre-commit quick validation output (COMMIT_READY_* log)
+- Test artifacts summary (does not run long tests)
+- Backups inventory (latest file, size, timestamp)
+- Environment files presence (.env, .env.production.SECURE)
+- Latest migrations overview
+
+**Enforcement:**
+- CI/CD and pre-commit reviews require snapshot artifacts for claims
+- Missing snapshots will block "success" statements in reviews
+- Agents must reference the latest snapshot when summarizing work
+
+---
+
 ## 🔍 How to Verify Compliance
 
 ### For Agents Starting Work
@@ -312,7 +348,7 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
 | **Check version** | Read `VERSION` file (1.17.1) | Invent version numbers |
-| **Use version** | **ONLY `v1.x.x`** (v1.18.0) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
+| **Use version** | **ONLY `v1.x.x`** ($11.17.2) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |

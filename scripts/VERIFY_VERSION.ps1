@@ -167,13 +167,6 @@ $versionChecks = @(
         Critical = $false
     },
     @{
-        File = "DOCUMENTATION_INDEX.md"
-        Pattern = 'v\d+\.\d+\.\d+'
-        Replace = "v$Version"
-        Description = "Root documentation index version footer"
-        Critical = $false
-    },
-    @{
         File = "COMMIT_READY.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $Version"
@@ -185,13 +178,6 @@ $versionChecks = @(
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $Version"
         Description = "INSTALLER_BUILDER.ps1 version"
-        Critical = $false
-    },
-    @{
-        File = "DOCUMENTATION_INDEX.md"
-        Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
-        Replace = "**Version:** $Version"
-        Description = "Root DOCUMENTATION_INDEX.md version"
         Critical = $false
     }
 )

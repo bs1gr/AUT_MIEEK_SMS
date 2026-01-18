@@ -20,6 +20,7 @@
 **This is the only correct workflow. Use NATIVE for testing, use DOCKER for production.**
 
 **First Steps for AI Agents**:
+0. Record a workspace snapshot: run COMMIT_READY Quick with -Snapshot or use the VS Code task "Record State Snapshot" (artifacts/state)
 1. Check current status in [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) (single source of truth)
 2. Read [DOCUMENTATION_INDEX.md](../docs/DOCUMENTATION_INDEX.md) for navigation
 3. Follow [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) (prevents crashes & duplication)
@@ -322,6 +323,32 @@ Get-Content test-results/backend_batch_full.txt | Select-String "ForwardRef|no s
 Get-Content test-results/backend_batch_full.txt | Select-String "All tests passed|FAILED"
 # Should say "All tests passed" for success
 ```
+
+### State Snapshot Recording (Prevent Data Loss)
+
+After validations, record a workspace state snapshot to preserve evidence and prevent data loss during handoffs:
+
+```powershell
+# One-off snapshot (non-invasive; uses existing artifacts)
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.ps1
+
+# Or combine with COMMIT_READY
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\COMMIT_READY.ps1 -Quick -Snapshot
+# -Snapshot saves two files under artifacts/state:
+#   - STATE_YYYY-MM-DD_HHMMSS.md (summary of version, git, test artifacts, backups, env files, migrations)
+#   - COMMIT_READY_YYYY-MM-DD_HHMMSS.log (pre-commit quick validation output)
+```
+
+What the snapshot captures:
+- Version checks (VERSION vs frontend/package.json)
+- Git branch, commit, remotes, and concise change list
+- Pre-commit quick validation preview
+- Existing test artifacts summary (does not run long tests)
+- Backups inventory (latest file, size, timestamp)
+- Environment files presence (.env, .env.production.SECURE)
+- Latest migrations (list only; no execution)
+
+This complements the verification steps by creating a timestamped record that can be audited later, reducing the risk of data loss or unverified claims.
 
 ### Verification Checklist Before Claiming Success
 
