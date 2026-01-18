@@ -207,6 +207,16 @@ export default {
   categoryBreakdownItem: '{{category}}: {{average}}% (w {{weight}}%)',
   percentageWithLetter: '{{percentage}}% ({{letter}})',
   percentageWithGreek: '{{percentage}}% ({{greek}}/20)',
+  // Εισαγωγή/Εξαγωγή
+  'importExport.history': 'Ιστορικό Εισαγωγής/Εξαγωγής',
+  'importExport.openExportDialog': 'Άνοιγμα Διαλόγου Εξαγωγής',
+  'importExport.exportData': 'Εξαγωγή Δεδομένων',
+  'importExport.noJobsFound': 'Δεν βρέθηκαν εργασίες εισαγωγής ή εξαγωγής.',
+  'importExport.type': 'Τύπος',
+  'importExport.status': 'Κατάσταση',
+  'importExport.createdAt': 'Δημιουργήθηκε στις',
+  'importExport.import': 'Εισαγωγή',
+  'importExport.export': 'Εξαγωγή',
   // Υποσέλιδο
   footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Vasilis Samaras - v{{version}}',
 };

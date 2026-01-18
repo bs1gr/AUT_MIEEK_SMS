@@ -342,7 +342,7 @@ describe('AdvancedFilters Component', () => {
     });
 
     it('should have aria-expanded attribute', () => {
-      const { container } = renderAdvancedFilters({ isOpen: true });
+      renderAdvancedFilters({ isOpen: true });
 
       const toggleButton = screen.getByRole('button', {
         name: /filter|advanced/i
