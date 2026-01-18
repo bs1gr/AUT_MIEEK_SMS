@@ -263,6 +263,10 @@ jobs:
           if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; fi
 
       - name: Run backend tests with coverage
+        env:
+          DISABLE_STARTUP_TASKS: '1'
+          CSRF_ENABLED: '0'
+          AUTH_MODE: 'disabled'
         run: |
           cd backend
           pytest -v --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing --html=pytest-report.html --self-contained-html --json-report --json-report-file=pytest-report.json
