@@ -15,7 +15,7 @@ Date: January 17, 2026
 Version: 1.0.0
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from backend.services.search_service import SearchService
 from backend.models import Student, Course, Grade
@@ -73,7 +73,7 @@ class TestSearchStudents:
         # Get student and soft-delete it
         student = db.query(Student).filter(Student.first_name == "John").first()
         if student:
-            student.deleted_at = datetime.utcnow()
+            student.deleted_at = datetime.now(timezone.utc)
             db.commit()
 
         results = service.search_students("John", limit=20, offset=0)
@@ -153,7 +153,7 @@ class TestSearchCourses:
         course = db.query(Course).first()
         if course:
             original_id = course.id
-            course.deleted_at = datetime.utcnow()
+            course.deleted_at = datetime.now(timezone.utc)
             db.commit()
 
         results = service.search_courses("", limit=100, offset=0)

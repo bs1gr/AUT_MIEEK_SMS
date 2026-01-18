@@ -11,7 +11,7 @@ Provides:
 
 from typing import Optional
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 try:
     from socketio import AsyncServer
@@ -122,7 +122,7 @@ async def message(sid, data):
         # Handle different message types
         if msg_type == "ping":
             # Send heartbeat response
-            await sio.emit("pong", {"timestamp": datetime.utcnow().isoformat()}, to=sid)
+            await sio.emit("pong", {"timestamp": datetime.now(timezone.utc).isoformat()}, to=sid)
 
         elif msg_type == "notification_ack":
             # Acknowledge notification receipt
@@ -146,7 +146,7 @@ async def heartbeat(sid):
     """
     try:
         connection_manager.update_heartbeat(sid)
-        await sio.emit("heartbeat_ack", {"timestamp": datetime.utcnow().isoformat()}, to=sid)
+        await sio.emit("heartbeat_ack", {"timestamp": datetime.now(timezone.utc).isoformat()}, to=sid)
 
     except Exception as e:
         logger.error(f"Error in heartbeat handler: {e}", exc_info=True)
@@ -189,7 +189,7 @@ async def broadcast_notification(
             "type": notification_type,
             "icon": icon,
             "action_url": action_url,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
         # Send to each user's connections

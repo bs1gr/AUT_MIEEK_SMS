@@ -18,7 +18,7 @@ Version: 1.0.0
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Assuming these exist in the project
 from backend.app_factory import create_app
@@ -147,7 +147,7 @@ class TestStudentSearchEndpoint:
     def test_search_students_soft_delete_filter(self, client, admin_headers, db, test_data):
         """Should not return soft-deleted students"""
         # Soft delete a student
-        test_data["students"][0].deleted_at = datetime.utcnow()
+        test_data["students"][0].deleted_at = datetime.now(timezone.utc)
         db.commit()
 
         response = client.post(self.endpoint, json={"query": "John"}, headers=admin_headers)
@@ -232,7 +232,7 @@ class TestCourseSearchEndpoint:
 
     def test_search_courses_soft_delete_filter(self, client, admin_headers, db, test_data):
         """Should not return soft-deleted courses"""
-        test_data["courses"][0].deleted_at = datetime.utcnow()
+        test_data["courses"][0].deleted_at = datetime.now(timezone.utc)
         db.commit()
 
         response = client.post(self.endpoint, json={"query": ""}, headers=admin_headers)
@@ -340,7 +340,7 @@ class TestGradeSearchEndpoint:
 
     def test_search_grades_soft_delete_filter(self, client, admin_headers, db, test_data):
         """Should not return soft-deleted grades"""
-        test_data["grades"][0].deleted_at = datetime.utcnow()
+        test_data["grades"][0].deleted_at = datetime.now(timezone.utc)
         db.commit()
 
         response = client.post(self.endpoint, json={"query": ""}, headers=admin_headers)

@@ -192,6 +192,30 @@ test_*.log
 tmp_*.md
 SESSION_*.md
 README_SESSION*.md
+*_JAN*.md
+*_FEB*.md
+*_MAR*.md
+*_APR*.md
+*_MAY*.md
+*_JUN*.md
+*_JUL*.md
+*_AUG*.md
+*_SEP*.md
+*_OCT*.md
+*_NOV*.md
+*_DEC*.md
+*_jan*.txt
+*_feb*.txt
+*_mar*.txt
+*_apr*.txt
+*_may*.txt
+*_jun*.txt
+*_jul*.txt
+*_aug*.txt
+*_sep*.txt
+*_oct*.txt
+*_nov*.txt
+*_dec*.txt
 
 # Archive directories
 docs/archive/
