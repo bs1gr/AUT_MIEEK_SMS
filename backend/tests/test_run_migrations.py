@@ -56,7 +56,7 @@ def test_run_migrations_creates_tables(monkeypatch, tmp_path):
     db_file = tmp_path / "test_migrations.db"
     if db_file.exists():
         db_file.unlink()
-        
+
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_file}")
 
     run_migrations = _reload_modules()
