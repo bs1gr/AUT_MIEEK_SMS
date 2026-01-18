@@ -231,6 +231,12 @@ export default {
   'importExport.validating': 'Validating...',
   'importExport.commitImport': 'Commit Import',
   'importExport.committing': 'Committing...',
+  // Analytics
+  'analytics.gradeA': 'A (90-100%)',
+  'analytics.gradeB': 'B (80-89%)',
+  'analytics.gradeC': 'C (70-79%)',
+  'analytics.gradeD': 'D (60-69%)',
+  'analytics.gradeF': 'F (<60%)',
   // Footer
   footerCredits: 'Student Management System © {{year}} Vasilis Samaras - v{{version}}',
 };

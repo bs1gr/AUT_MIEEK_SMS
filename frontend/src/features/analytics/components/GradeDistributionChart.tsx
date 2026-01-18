@@ -5,6 +5,7 @@
 
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/LanguageContext";
 import {
   BarChart,
   Bar,
@@ -108,23 +109,23 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
           <div className="distribution-legend">
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#4CAF50" }}></span>
-              <span>A (90-100%)</span>
+              <span>{t('analytics.gradeA')}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#8BC34A" }}></span>
-              <span>B (80-89%)</span>
+              <span>{t('analytics.gradeB')}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#FFC107" }}></span>
-              <span>C (70-79%)</span>
+              <span>{t('analytics.gradeC')}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#FF9800" }}></span>
-              <span>D (60-69%)</span>
+              <span>{t('analytics.gradeD')}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#F44336" }}></span>
-              <span>F (&lt;60%)</span>
+              <span>{t('analytics.gradeF')}</span>
             </div>
           </div>
         </>

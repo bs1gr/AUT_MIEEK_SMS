@@ -230,6 +230,12 @@ export default {
   'importExport.validating': 'Γίνεται επικύρωση...',
   'importExport.commitImport': 'Ολοκλήρωση Εισαγωγής',
   'importExport.committing': 'Γίνεται ολοκλήρωση...',
+  // Ανάλυση
+  'analytics.gradeA': 'A (90-100%)',
+  'analytics.gradeB': 'B (80-89%)',
+  'analytics.gradeC': 'C (70-79%)',
+  'analytics.gradeD': 'D (60-69%)',
+  'analytics.gradeF': 'F (<60%)',
   // Υποσέλιδο
   footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Vasilis Samaras - v{{version}}',
 };
