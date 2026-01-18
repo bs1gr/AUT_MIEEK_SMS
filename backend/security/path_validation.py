@@ -191,6 +191,16 @@ class PathValidator:
 
 
 # Predefined validators for common use cases
-BACKUP_FILENAME_VALIDATOR = lambda f: validate_filename(f, [".enc", ".db", ".backup"])
-EXPORT_FILENAME_VALIDATOR = lambda f: validate_filename(f, [".csv", ".xlsx", ".json", ".pdf"])
-CONFIG_FILENAME_VALIDATOR = lambda f: validate_filename(f, [".json", ".yml", ".yaml", ".toml"])
+def validate_backup_filename(filename: str) -> bool:
+    """Validate backup filenames (.enc, .db, .backup extensions)."""
+    return validate_filename(filename, [".enc", ".db", ".backup"])
+
+
+def validate_export_filename(filename: str) -> bool:
+    """Validate export filenames (.csv, .xlsx, .json, .pdf extensions)."""
+    return validate_filename(filename, [".csv", ".xlsx", ".json", ".pdf"])
+
+
+def validate_config_filename(filename: str) -> bool:
+    """Validate config filenames (.json, .yml, .yaml, .toml extensions)."""
+    return validate_filename(filename, [".json", ".yml", ".yaml", ".toml"])
