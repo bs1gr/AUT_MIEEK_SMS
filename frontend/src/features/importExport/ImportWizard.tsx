@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 // @ts-expect-error - papaparse types missing
 import Papa from 'papaparse';
 import apiClient from '@/api/api';
+import { useLanguage } from '@/LanguageContext';
 
 // ImportWizard: Step 2 - Add stepper UI (basic, no logic)
 type ImportWizardProps = object;
@@ -9,15 +10,15 @@ type ImportWizardProps = object;
 type CsvRow = string[];
 type CsvData = CsvRow[];
 
-const steps = [
-  'Select File',
-  'Preview Data',
-  'Validate',
-  'Commit',
-];
-
 
 const ImportWizard: React.FC<ImportWizardProps> = () => {
+  const { t } = useLanguage();
+  const steps = [
+    t('importExport.selectFile'),
+    t('importExport.previewData'),
+    t('importExport.validate'),
+    t('importExport.commit'),
+  ];
   const [activeStep, setActiveStep] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
@@ -60,7 +61,7 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
 
   return (
     <div>
-      <h2>Import Wizard</h2>
+      <h2>{t('importExport.importWizard')}</h2>
       <ol style={{ display: 'flex', listStyle: 'none', padding: 0 }}>
         {steps.map((label, idx) => (
           <li
@@ -84,7 +85,7 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
         {activeStep === 0 && (
           <div>
             <label htmlFor="import-file-input">
-              <strong>Select file to import:</strong>
+              <strong>{t('importExport.selectFileToImport')}</strong>
             </label>
             <input
               id="import-file-input"
@@ -96,15 +97,15 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
             />
             {fileName && (
               <div style={{ marginTop: 8 }}>
-                <span>Selected file: <b>{fileName}</b></span>
+                <span>{t('importExport.selectedFile', { fileName })}</span>
               </div>
             )}
           </div>
         )}
         {activeStep === 1 && (
           <div>
-            <strong>Preview Data</strong>
-            {!selectedFile && <p>No file selected.</p>}
+            <strong>{t('importExport.previewData')}</strong>
+            {!selectedFile && <p>{t('importExport.noFileSelected')}</p>}
             {previewError && <p style={{ color: 'red' }}>{previewError}</p>}
             {previewData && previewData.length > 0 && (
               <table style={{ borderCollapse: 'collapse', marginTop: 12 }}>
@@ -140,14 +141,14 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
                 style={{ marginTop: 12 }}
                 data-testid="backend-preview-btn"
               >
-                Preview with Backend
+                {t('importExport.previewWithBackend')}
               </button>
             )}
           </div>
         )}
         {activeStep === 2 && (
           <div>
-            <strong>Validate Data</strong>
+            <strong>{t('importExport.validateData')}</strong>
             <button
               onClick={async () => {
                 setIsValidating(true);
@@ -165,7 +166,7 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
               style={{ marginTop: 8 }}
               data-testid="validate-btn"
             >
-              {isValidating ? 'Validating...' : 'Validate'}
+              {isValidating ? t('importExport.validating') : t('importExport.validate')}
             </button>
             {validationResult && (
               <div style={{ marginTop: 12, color: validationResult.includes('success') ? 'green' : 'red' }}>
@@ -176,7 +177,7 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
         )}
         {activeStep === 3 && (
           <div>
-            <strong>Commit Import</strong>
+            <strong>{t('importExport.commitImport')}</strong>
             <button
               onClick={async () => {
                 setIsCommitting(true);
@@ -194,7 +195,7 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
               style={{ marginTop: 8 }}
               data-testid="commit-btn"
             >
-              {isCommitting ? 'Committing...' : 'Commit'}
+              {isCommitting ? t('importExport.committing') : t('importExport.commit')}
             </button>
             {commitResult && (
               <div style={{ marginTop: 12, color: commitResult.includes('success') ? 'green' : 'red' }}>{commitResult}</div>
