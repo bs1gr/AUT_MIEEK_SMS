@@ -15,12 +15,11 @@
  * Version: 1.0.0
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n';
 import { SavedSearches } from '../SavedSearches';
-import type { SearchFilters } from '../../hooks/useSearch';
 
 const mockLocalStorage = (() => {
   let store: Record<string, string> = {};
@@ -457,7 +456,7 @@ describe('SavedSearches Component', () => {
       const user = userEvent.setup();
 
       // Save student search
-      let { unmount } = renderSavedSearches({
+      const { unmount } = renderSavedSearches({
         searchType: 'students',
         currentQuery: 'John'
       });
