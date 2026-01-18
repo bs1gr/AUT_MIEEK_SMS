@@ -50,7 +50,7 @@ export function usePerformanceMonitor(componentName: string, threshold: number =
         }
       }
     };
-  });
+  }, [componentName, threshold]);
 
   return {
     renderTime: performance.now() - startTimeRef.current,
