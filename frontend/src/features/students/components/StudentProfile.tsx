@@ -302,7 +302,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <CheckCircle size={24} />
-              <span className="text-xs opacity-75">{t('attendance').toUpperCase()}</span>
+              <span className="text-xs opacity-75">{t('attendance')}</span>
             </div>
             <p className="text-4xl font-bold">{stats.attendanceRate}%</p>
             <p className="text-sm opacity-90">{stats.totalClasses} {t('classes')}</p>
@@ -388,9 +388,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
         {/* Enrolled Courses & Actions */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">{t('enrolledCourses') || 'Enrolled Courses'}</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-4">{t('enrolledCourses')}</h3>
           {enrollments.length === 0 ? (
-            <p className="text-gray-500">{t('noEnrollments') || 'No enrollments found.'}</p>
+            <p className="text-gray-500">{t('noEnrollments')}</p>
           ) : (
             <div className="space-y-2">
               {enrollments.map(e => {
@@ -406,7 +406,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                         className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
                         onClick={() => { setBreakdownCourseId(e.course_id); setShowBreakdown(true); }}
                       >
-                        {t('viewBreakdown') || 'View Breakdown'}
+                        {t('viewBreakdown')}
                       </button>
                     </div>
                   </div>
@@ -421,7 +421,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <h3 className="text-xl font-bold text-gray-800 mb-6">{t('recentGrades')}</h3>
 
           {grades.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">{t('noGradesYet') || 'No grades recorded yet'}</p>
+            <p className="text-gray-500 text-center py-8">{t('noGradesRecorded')}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -436,7 +436,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {grades.slice(0, 10).map(grade => {
-                    const percentage = (grade.grade / grade.max_grade) * 100;
+                    const percentage = (Number(grade.grade) / Number(grade.max_grade) || 100) * 100;
                     const letter = getLetterGrade(percentage);
                     return (
                       <tr key={grade.id} className="hover:bg-gray-50">
@@ -469,14 +469,14 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
             <h3 className="text-xl font-bold text-gray-800">{t('attendanceOverview')}</h3>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600" htmlFor="attendance-course-filter">{t('filterByCourse') || 'Filter by course'}</label>
+              <label className="text-sm text-gray-600" htmlFor="attendance-course-filter">{t('filterByCourse')}</label>
               <select
                 id="attendance-course-filter"
                 className="border rounded px-3 py-2 text-sm"
                 value={attendanceCourseFilter ?? ''}
                 onChange={(e) => setAttendanceCourseFilter(e.target.value ? Number(e.target.value) : null)}
               >
-                <option value="">{t('allCourses') || 'All Courses'}</option>
+                <option value="">{t('allCourses')}</option>
                 {enrollments.map((enr) => {
                   const c = coursesById[enr.course_id];
                   const label = c ? `${c.course_code} — ${c.course_name}` : `Course #${enr.course_id}`;
