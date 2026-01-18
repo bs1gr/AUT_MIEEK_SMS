@@ -144,11 +144,11 @@ const StudentManagementApp = () => {
           }}
           onDeleteStudent={async (id: number) => {
             try {
-              if (!window.confirm('Are you sure you want to delete this student?')) return;
+              if (!window.confirm(t('confirmDeleteStudent'))) return;
               await deleteStudent.mutateAsync(id);
-              showToast('Student deleted successfully!', 'success');
+              showToast(t('studentDeleted'), 'success');
             } catch {
-              showToast('Failed to delete student. Please try again.', 'error');
+              showToast(t('failedToDeleteStudent'), 'error');
             }
           }}
           onViewProfile={studentModals.viewProfile}
@@ -159,11 +159,11 @@ const StudentManagementApp = () => {
           }}
           onDeleteCourse={async (courseId: number) => {
             try {
-              if (!window.confirm('Are you sure you want to delete this course?')) return;
+              if (!window.confirm(t('confirmDeleteCourse'))) return;
               await deleteCourse.mutateAsync(courseId);
-              showToast('Course deleted successfully!', 'success');
+              showToast(t('courseDeleted'), 'success');
             } catch {
-              showToast('Failed to delete course. Please try again.', 'error');
+              showToast(t('failedToDeleteCourse'), 'error');
             }
           }}
           renderPowerView={() => (
@@ -185,9 +185,9 @@ const StudentManagementApp = () => {
           onAdd={async (newStudent: StudentFormData) => {
             try {
               await createStudent.mutateAsync(newStudent);
-              showToast('Student added successfully!', 'success');
+              showToast(t('studentAdded'), 'success');
             } catch {
-              showToast('Failed to add student. Please check the form and try again.', 'error');
+              showToast(t('failedToAddStudent'), 'error');
             } finally {
               studentModals.addModal.close();
             }
@@ -202,9 +202,9 @@ const StudentManagementApp = () => {
           onUpdate={async (updatedStudent: Student) => {
             try {
               await updateStudent.mutateAsync({ id: updatedStudent.id, data: updatedStudent });
-              showToast('Student updated successfully!', 'success');
+              showToast(t('studentUpdated'), 'success');
             } catch {
-              showToast('Failed to update student. Please try again.', 'error');
+              showToast(t('failedToUpdateStudent'), 'error');
             } finally {
               studentModals.editModal.close();
             }
@@ -218,9 +218,9 @@ const StudentManagementApp = () => {
           onAdd={async (newCourse: CourseFormData) => {
             try {
               await createCourse.mutateAsync(newCourse);
-              showToast('Course added successfully!', 'success');
+              showToast(t('courseAdded'), 'success');
             } catch {
-              showToast('Failed to add course. Please try again.', 'error');
+              showToast(t('failedToAddCourse'), 'error');
             } finally {
               courseModals.addModal.close();
             }
@@ -235,9 +235,9 @@ const StudentManagementApp = () => {
           onUpdate={async (updatedCourse: Course) => {
             try {
               await updateCourse.mutateAsync({ id: updatedCourse.id, data: updatedCourse });
-              showToast('Course updated successfully!', 'success');
+              showToast(t('courseUpdated'), 'success');
             } catch {
-              showToast('Failed to update course. Please try again.', 'error');
+              showToast(t('failedToUpdateCourse'), 'error');
             } finally {
               courseModals.editModal.close();
             }

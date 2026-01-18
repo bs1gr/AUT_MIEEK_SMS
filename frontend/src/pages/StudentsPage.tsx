@@ -2,12 +2,14 @@ import { StudentsView, AddStudentModal, EditStudentModal } from '@/features/stud
 import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useStudentsStore } from '@/stores';
 import { useStudents, useStudentModals, useCreateStudent, useUpdateStudent, useDeleteStudent } from '@/hooks';
+import { useLanguage } from '@/LanguageContext';
 import { useState } from 'react';
 import type { Student, StudentFormData } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/components/ui/Toast';
 
 export default function StudentsPage() {
+  const { t } = useLanguage();
   const { isLoading } = useStudents();
   const students = useStudentsStore((state) => state.students);
   const selectedStudent = useStudentsStore((state) => state.selectedStudent);
@@ -37,11 +39,11 @@ export default function StudentsPage() {
 
   const handleDeleteStudent = async (id: number) => {
     try {
-      if (!window.confirm('Are you sure you want to delete this student?')) return;
+      if (!window.confirm(t('confirmDeleteStudent'))) return;
       await deleteStudent.mutateAsync(id);
-      showToast('Student deleted successfully!', 'success');
+      showToast(t('studentDeleted'), 'success');
     } catch {
-      showToast('Failed to delete student. Please try again.', 'error');
+      showToast(t('failedToDeleteStudent'), 'error');
     }
   };
 
@@ -64,9 +66,9 @@ export default function StudentsPage() {
           onAdd={async (newStudent: StudentFormData) => {
             try {
               await createStudent.mutateAsync(newStudent);
-              showToast('Student added successfully!', 'success');
+              showToast(t('studentAdded'), 'success');
             } catch {
-              showToast('Failed to add student. Please check the form and try again.', 'error');
+              showToast(t('failedToAddStudent'), 'error');
             } finally {
               studentModals.addModal.close();
             }
@@ -81,9 +83,9 @@ export default function StudentsPage() {
           onUpdate={async (updatedStudent: Student) => {
             try {
               await updateStudent.mutateAsync({ id: updatedStudent.id, data: updatedStudent });
-              showToast('Student updated successfully!', 'success');
+              showToast(t('studentUpdated'), 'success');
             } catch {
-              showToast('Failed to update student. Please try again.', 'error');
+              showToast(t('failedToUpdateStudent'), 'error');
             } finally {
               studentModals.editModal.close();
             }
