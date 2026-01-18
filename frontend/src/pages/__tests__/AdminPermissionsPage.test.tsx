@@ -12,7 +12,7 @@ vi.mock('../../api/api', () => ({
   __esModule: true,
   default: mockApiClient,
   apiClient: mockApiClient,
-  extractAPIResponseData: (response: any) => response?.data || response,
+  extractAPIResponseData: (response: Record<string, unknown> | null | undefined) => response?.data || response,
 }));
 
 function renderWithProviders(ui: React.ReactElement) {
