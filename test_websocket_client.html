@@ -173,11 +173,20 @@
             else if (type === 'error') typeLabel = 'error';
             else if (type === 'system') typeLabel = 'system';
 
-            messageDiv.innerHTML = `
-                <div>
-                    <span class="message-time">${time}</span>
-                    <span class="message-type">${typeLabel}</span>
-                </div>
+            const messageContent = document.createElement('div');
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'message-time';
+            timeSpan.textContent = time;
+            const typeSpan = document.createElement('span');
+            typeSpan.className = 'message-type';
+            typeSpan.textContent = typeLabel;
+            messageContent.appendChild(timeSpan);
+            messageContent.appendChild(typeSpan);
+            messageDiv.innerHTML = '';
+            messageDiv.appendChild(messageContent);
+            const contentDiv = document.createElement('div');
+            const messageText = document.createElement('p');
+            messageText.textContent = `
                 <div style="margin-top: 5px;">${content}</div>
             `;
 
