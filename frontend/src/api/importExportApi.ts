@@ -30,6 +30,17 @@ interface ImportExportResponse {
   error?: string;
 }
 
+export interface ImportExportHistoryEntry {
+  id: number;
+  operation_type: 'import' | 'export';
+  resource_type: string;
+  resource_id?: number;
+  status: 'pending' | 'completed' | 'failed';
+  details?: Record<string, unknown>;
+  created_at: string;
+  created_by?: number;
+}
+
 export const importExportApi = {
   // Import Operations
   uploadImportFile: (type: 'students' | 'courses' | 'grades', file: File) => {
@@ -69,6 +80,6 @@ export const importExportApi = {
 
   // History
   getHistory: (params?: { operation_type?: string; resource_type?: string; limit?: number }) => {
-    return apiClient.get<{ history: any[]; total: number }>('/api/v1/import-export/history', { params });
+    return apiClient.get<{ history: ImportExportHistoryEntry[]; total: number }>('/api/v1/import-export/history', { params });
   }
 };

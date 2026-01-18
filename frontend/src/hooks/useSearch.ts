@@ -46,7 +46,7 @@ export interface SearchSuggestion {
  * Advanced filter criteria
  */
 export interface SearchFilters {
-  [key: string]: any;
+  [key: string]: string | number | boolean | undefined;
   grade_min?: number;
   grade_max?: number;
   student_id?: number;
@@ -159,10 +159,12 @@ export const useSearch = (
           isLoading: false,
           error: null
         }));
-      } catch (error: any) {
-        const errorMessage = error?.response?.data?.error?.message ||
-          error?.message ||
-          t('search.errorSearching');
+      } catch (error: Error | unknown) {
+        const errorMessage = error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'response' in error
+            ? (error as any)?.response?.data?.error?.message || t('search.errorSearching')
+            : t('search.errorSearching');
 
         setState(prev => ({
           ...prev,
@@ -212,7 +214,7 @@ export const useSearch = (
           suggestions,
           isLoading: false
         }));
-      } catch (error: any) {
+      } catch (_error: Error | unknown) {
         setState(prev => ({
           ...prev,
           suggestions: [],
@@ -276,10 +278,12 @@ export const useSearch = (
           isLoading: false,
           error: null
         }));
-      } catch (error: any) {
-        const errorMessage = error?.response?.data?.error?.message ||
-          error?.message ||
-          t('search.errorSearching');
+      } catch (error: Error | unknown) {
+        const errorMessage = error instanceof Error
+          ? error.message
+          : typeof error === 'object' && error !== null && 'response' in error
+            ? (error as any)?.response?.data?.error?.message || t('search.errorSearching')
+            : t('search.errorSearching');
 
         setState(prev => ({
           ...prev,
@@ -320,9 +324,8 @@ export const useSearch = (
           total_courses: 0,
           total_grades: 0
         });
-      } catch (error: any) {
-        console.error('Error loading search statistics:', error);
-        // Fail silently for statistics
+      } catch (_error: Error | unknown) {
+        // Fail silently for statistics - error logging skipped
       }
     },
     []

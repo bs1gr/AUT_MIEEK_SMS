@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef, type ComponentType } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef, type ComponentType, type SVGProps } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -95,7 +95,7 @@ type MetricCardProps = {
   title: string;
   value: string | number;
   hint: string;
-  icon: ComponentType<any>;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   accent?: AccentColor;
 };
 
@@ -318,17 +318,17 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
         const attendances = attendanceData?.items || attendanceData?.attendances || [];
         const attendanceRate = attendances.length > 0
-          ? (attendances.filter((a: any) => a.status?.toLowerCase() === 'present').length / attendances.length) * 100
+          ? (attendances.filter((a: { status?: string }) => a.status?.toLowerCase() === 'present').length / attendances.length) * 100
           : 0;
 
         const grades = gradesData?.items || gradesData?.grades || [];
-        const examGrades = grades.filter((g: any) =>
+        const examGrades = grades.filter((g: { category?: string; grade?: number; max_grade?: number }) =>
           ['exam', 'midterm', 'final', 'εξέταση', 'ενδιάμεση', 'τελική'].includes(
             (g.category || '').toLowerCase()
           )
         );
         const examAverage = examGrades.length > 0
-          ? examGrades.reduce((sum: number, g: any) => sum + (g.grade / g.max_grade * 100), 0) / examGrades.length
+          ? examGrades.reduce((sum: number, g: { grade?: number; max_grade?: number }) => sum + ((g.grade ?? 0) / (g.max_grade ?? 100) * 100), 0) / examGrades.length
           : 0;
 
         const overallScore = (
