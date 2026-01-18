@@ -6,6 +6,9 @@ import apiClient from '@/api/api';
 // ImportWizard: Step 2 - Add stepper UI (basic, no logic)
 interface ImportWizardProps {}
 
+type CsvRow = string[];
+type CsvData = CsvRow[];
+
 const steps = [
   'Select File',
   'Preview Data',
@@ -18,7 +21,7 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
-  const [previewData, setPreviewData] = useState<any[][] | null>(null);
+  const [previewData, setPreviewData] = useState<CsvData | null>(null);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [validationResult, setValidationResult] = useState<string | null>(null);
   const [commitResult, setCommitResult] = useState<string | null>(null);
@@ -42,11 +45,12 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
             setPreviewError('Failed to parse file: ' + parsed.errors[0].message);
             setPreviewData(null);
           } else {
-            setPreviewData(parsed.data as any[][]);
+            setPreviewData((parsed.data as CsvData) || []);
             setPreviewError(null);
           }
-        } catch (err: any) {
-          setPreviewError('Error reading file: ' + err.message);
+        } catch (err: Error | unknown) {
+          const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+          setPreviewError('Error reading file: ' + errorMessage);
           setPreviewData(null);
         }
       };
@@ -128,8 +132,9 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
                     });
                     setImportJobId(resp.data.id || resp.data.job_id || null);
                     setPreviewData(resp.data.preview || null);
-                  } catch (err: any) {
-                    setPreviewError('Backend preview failed.');
+                } catch (err: Error | unknown) {
+                  const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                  setPreviewError('Backend preview failed: ' + errorMessage);
                   }
                 }}
                 style={{ marginTop: 12 }}
@@ -150,8 +155,9 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
                   if (!importJobId) throw new Error('No import job');
                   const resp = await apiClient.post(`/import-export/imports/${importJobId}/validate`);
                   setValidationResult(resp.data.result || 'Validation successful!');
-                } catch (err: any) {
-                  setValidationResult('Validation failed: ' + (err?.message || 'Unknown error'));
+                } catch (err: Error | unknown) {
+                  const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                  setValidationResult('Validation failed: ' + errorMessage);
                 }
                 setIsValidating(false);
               }}
@@ -178,8 +184,9 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
                   if (!importJobId) throw new Error('No import job');
                   const resp = await apiClient.post(`/import-export/imports/${importJobId}/commit`);
                   setCommitResult(resp.data.result || 'Import committed successfully!');
-                } catch (err: any) {
-                  setCommitResult('Commit failed: ' + (err?.message || 'Unknown error'));
+                } catch (err: Error | unknown) {
+                  const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                  setCommitResult('Commit failed: ' + errorMessage);
                 }
                 setIsCommitting(false);
               }}

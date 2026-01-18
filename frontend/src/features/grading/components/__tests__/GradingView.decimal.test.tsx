@@ -63,14 +63,14 @@ describe('GradingView - Decimal Input', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Stub fetch used by loadFinal
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}), text: async () => '' } as any));
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({}), text: async () => '' } as unknown as Response));
     // Mock API responses
     vi.mocked(apiModule.default.get).mockResolvedValue({
       data: { items: [] },
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as unknown as Record<string, unknown>,
     });
     vi.mocked(apiModule.enrollmentsAPI.getEnrolledStudents).mockResolvedValue(mockStudents);
     vi.mocked(apiModule.gradesAPI.create).mockResolvedValue({
@@ -184,8 +184,8 @@ describe('GradingView - Decimal Input', () => {
   it('adds a grade and shows it in grade history after refresh', async () => {
     // Sequence: initial GETs (student selection, course selection) return empty; refresh after submit returns one grade
     const getMock = vi.mocked(apiModule.default.get);
-    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any }); // after student select
-    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as any }); // after course select
+    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown> }); // after student select
+    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown> }); // after course select
     getMock.mockResolvedValueOnce({
       data: [
         {
@@ -203,7 +203,7 @@ describe('GradingView - Decimal Input', () => {
       status: 200,
       statusText: 'OK',
       headers: {},
-      config: {} as any,
+      config: {} as unknown as Record<string, unknown>,
     });
 
     render(
