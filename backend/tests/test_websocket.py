@@ -8,7 +8,7 @@ Tests:
 """
 
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 
 from backend.websocket_config import ConnectionManager
@@ -116,7 +116,7 @@ class TestConnectionManager:
 
         # Manually set a stale heartbeat
         connection = connection_manager.session_map["session_1"]
-        connection.last_heartbeat = datetime.utcnow() - timedelta(seconds=400)
+        connection.last_heartbeat = datetime.now(timezone.utc) - timedelta(seconds=400)
 
         stale = connection_manager.get_stale_sessions(timeout_seconds=300)
         assert "session_1" in stale
