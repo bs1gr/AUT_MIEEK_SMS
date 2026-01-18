@@ -226,3 +226,4 @@ commit_msg.txt
 detect-out.txt
 detect-output.txt
 pre-commit-output.txt
+ci_failure_log.txt
