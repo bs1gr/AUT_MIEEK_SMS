@@ -146,7 +146,7 @@ export function useNotifications(): UseNotificationsReturn {
       console.error('Failed to delete notification:', err);
       throw err;
     }
-  }, [notifications]);
+  }, []);
 
   /**
    * Connect to WebSocket server
@@ -286,7 +286,7 @@ export function useNotifications(): UseNotificationsReturn {
     return () => {
       disconnect();
     };
-  }, []);  // Only run on mount/unmount
+  }, [connect, fetchNotifications, disconnect]);
 
   return {
     // State
