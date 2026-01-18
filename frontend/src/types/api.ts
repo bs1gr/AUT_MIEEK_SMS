@@ -21,7 +21,10 @@ export interface ApiResponse<T = unknown> {
 
 // Pagination types
 export interface PaginatedResponse<T> extends ApiResponse<T[]> {
-  meta: {
+  meta?: {
+    request_id?: string;
+    timestamp?: string;
+    version?: string;
     total: number;
     page: number;
     page_size: number;
@@ -66,4 +69,4 @@ export interface User {
 
 // Test-specific types
 export type MockApiResponse<T> = Partial<ApiResponse<T>>;
-export type ApiMockFunction<T> = jest.Mock<Promise<ApiResponse<T>>>;
+export type ApiMockFunction = any; // Using any for test mocking compatibility
