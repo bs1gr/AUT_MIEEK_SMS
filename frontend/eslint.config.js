@@ -43,6 +43,7 @@ const commonRules = {
   "testing-library/prefer-find-by": "warn",
   "prefer-const": "warn",
   "no-empty": ["warn", { allowEmptyCatch: true }],
+  "no-useless-catch": "warn",
   "i18next/no-literal-string": [
     "warn",
     {
@@ -79,6 +80,16 @@ export default [
         window: "readonly",
         document: "readonly",
         navigator: "readonly",
+        // Node.js / Web APIs (used in some modules)
+        console: "readonly",
+        process: "readonly",
+        setTimeout: "readonly",
+        setInterval: "readonly",
+        clearTimeout: "readonly",
+        clearInterval: "readonly",
+        FormData: "readonly",
+        // Local modules
+        api: "readonly",
       },
     },
     plugins: {
