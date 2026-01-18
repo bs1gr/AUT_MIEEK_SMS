@@ -1,7 +1,9 @@
 export default {
   configuration: 'Διαμόρφωση RBAC',
   rolePermissionMappings: 'Αντιστοιχίσεις Ρόλων-Δικαιωμάτων',
+  userRoleMappings: 'Αντιστοιχίσεις Χρήστη-Ρόλου ({{count}} χρήστες)',
   noRolesAssigned: 'Δεν έχουν ανατεθεί ρόλοι RBAC',
+  legacyRole: 'Κληρονομημένος ρόλος: {{role}}',
   assignRole: 'Ανάθεση Ρόλου σε Χρήστη',
   userId: 'ID Χρήστη',
   roleName: 'Όνομα Ρόλου',

@@ -330,6 +330,7 @@ export default {
   dockerImageInfo: 'Για ενημέρωση της ανάπτυξης Docker, εκτελέστε: .\\DOCKER.ps1 -UpdateClean',
   updateInstructions: 'Οδηγίες Ενημέρωσης',
   checkingForUpdates: 'Έλεγχος ενημερώσεων...',
+  sha256: 'SHA256',
   // Rate Limiting Panel
   rateLimitsLabel: 'Όρια Ρυθμού',
   rateLimitsTitle: 'Διαμόρφωση Ορίων Ρυθμού',

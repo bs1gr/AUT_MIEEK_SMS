@@ -330,6 +330,7 @@ export default {
   dockerImageInfo: 'To update Docker deployment, run: .\\DOCKER.ps1 -UpdateClean',
   updateInstructions: 'Update Instructions',
   checkingForUpdates: 'Checking for updates...',
+  sha256: 'SHA256',
   // Rate Limiting Panel
   rateLimitsLabel: 'Rate Limits',
   rateLimitsTitle: 'Rate Limiting Configuration',
