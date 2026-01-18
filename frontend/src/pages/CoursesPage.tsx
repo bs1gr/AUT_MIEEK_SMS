@@ -2,11 +2,13 @@ import { CoursesView, AddCourseModal, EditCourseModal } from '@/features/courses
 import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useCoursesStore } from '@/stores';
 import { useCourses, useCourseModals, useCreateCourse, useUpdateCourse, useDeleteCourse } from '@/hooks';
+import { useLanguage } from '@/LanguageContext';
 import { useState } from 'react';
 import type { Course, CourseFormData } from '@/types';
 import Toast from '@/components/ui/Toast';
 
 export default function CoursesPage() {
+  const { t } = useLanguage();
   const { isLoading } = useCourses();
   const courses = useCoursesStore((state) => state.courses);
   const selectedCourse = useCoursesStore((state) => state.selectedCourse);
@@ -31,11 +33,11 @@ export default function CoursesPage() {
 
   const handleDeleteCourse = async (courseId: number) => {
     try {
-      if (!window.confirm('Are you sure you want to delete this course?')) return;
+      if (!window.confirm(t('confirmDeleteCourse'))) return;
       await deleteCourse.mutateAsync(courseId);
-      showToast('Course deleted successfully!', 'success');
+      showToast(t('courseDeleted'), 'success');
     } catch {
-      showToast('Failed to delete course. Please try again.', 'error');
+      showToast(t('failedToDeleteCourse'), 'error');
     }
   };
 
@@ -57,9 +59,9 @@ export default function CoursesPage() {
           onAdd={async (newCourse: CourseFormData) => {
             try {
               await createCourse.mutateAsync(newCourse);
-              showToast('Course added successfully!', 'success');
+              showToast(t('courseAdded'), 'success');
             } catch {
-              showToast('Failed to add course. Please try again.', 'error');
+              showToast(t('failedToAddCourse'), 'error');
             } finally {
               courseModals.addModal.close();
             }
@@ -74,9 +76,9 @@ export default function CoursesPage() {
           onUpdate={async (updatedCourse: Course) => {
             try {
               await updateCourse.mutateAsync({ id: updatedCourse.id, data: updatedCourse });
-              showToast('Course updated successfully!', 'success');
+              showToast(t('courseUpdated'), 'success');
             } catch {
-              showToast('Failed to update course. Please try again.', 'error');
+              showToast(t('failedToUpdateCourse'), 'error');
             } finally {
               courseModals.editModal.close();
             }
