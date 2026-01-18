@@ -36,6 +36,7 @@ export function VirtualList<T>({
   itemClassName = '',
   emptyMessage = 'No items to display'
 }: VirtualListProps<T>) {
+  const { t } = useLanguage();
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
@@ -48,7 +49,7 @@ export function VirtualList<T>({
   if (items.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        {emptyMessage}
+        {emptyMessage || t('noItemsToDisplay')}
       </div>
     );
   }

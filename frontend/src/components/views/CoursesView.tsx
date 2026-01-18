@@ -917,9 +917,9 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                                   {day.translated}
                                 </p>
                                 {isActive && (
-                                  <p className="text-sm text-indigo-600">
-                                    {dayData.periods} {dayData.periods === 1 ? t('period') : t('periods')} × {dayData.duration} {t('minutes')}
-                                  </p>
+                                  <span>
+                          {t('scheduleCompact', { start: sched.start_time, periods: sched.periods, duration: sched.duration })}
+                        </span>
                                 )}
                               </div>
                             </div>
@@ -1056,7 +1056,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                     <div className="bg-gray-50 rounded-lg p-4 border">
                     <h4 className="font-semibold mb-2">{t('enrolledStudents')}</h4>
                     <div className="max-h-96 overflow-auto space-y-2">
-                      {enrolledStudents.length === 0 && <div className="text-sm text-gray-500">{t('noStudentsEnrolled') || 'No students enrolled yet'}</div>}
+                      {enrolledStudents.length === 0 && <div className="text-sm text-gray-500">{t('noClasses')}</div>}
                       {enrolledStudents.map((s) => (
                         <div key={s.id} className="flex items-center justify-between bg-white rounded p-2 border">
                           <div>

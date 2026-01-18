@@ -419,7 +419,7 @@ const ServerControl: React.FC = () => {
 
         {status.backend === 'online' && currentUptime > 0 && (
           <span className="text-xs text-gray-500">
-            {t('uptime')}: {t('controlPanel.uptimeFormatShort', { h: Math.floor(currentUptime / 3600), m: Math.floor((currentUptime % 3600) / 60), s: currentUptime % 60 })}
+{t('controlPanel.uptime')}: {t('controlPanel.uptimeFormatShort', { h: Math.floor(currentUptime / 3600), m: Math.floor((currentUptime % 3600) / 60), s: currentUptime % 60 })}
           </span>
         )}
 

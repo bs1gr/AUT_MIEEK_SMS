@@ -50,7 +50,7 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
         setError(null);
         return filteredCourses;
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch courses';
+        const errorMessage = error instanceof Error ? error.message : t('failedToFetchCourses');
         setError(errorMessage);
         console.error('[useCourses] Error:', errorMessage, error);
         throw error;

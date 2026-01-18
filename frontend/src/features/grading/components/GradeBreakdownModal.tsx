@@ -77,13 +77,13 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-xl font-bold flex items-center gap-2">
             <PieChart size={20} className="text-indigo-600" />
-            {t('gradeBreakdown') || 'Grade Breakdown'}{courseName ? ` — ${courseName}` : ''}
+            {t('gradeBreakdown')} {courseName ? `— ${courseName}` : ''}
           </h4>
-          <button onClick={onClose} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
+          <button onClick={onClose} aria-label={t('close')} title={t('close')} className="p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
         </div>
 
         {loading && (
-          <div className="text-center py-8 text-gray-600">{t('loading') || 'Loading...'}</div>
+          <div className="text-center py-8 text-gray-600">{t('loading')}</div>
         )}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm flex items-center gap-2">
@@ -95,29 +95,29 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
           <div className="space-y-6">
             {/* Final Grade Summary Table */}
             <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg border-2 border-indigo-200 p-6">
-              <h5 className="text-lg font-bold text-gray-800 mb-4">{t('finalGradeSummary') || 'Final Grade Summary'}</h5>
+              <h5 className="text-lg font-bold text-gray-800 mb-4">{t('finalGradeSummary')}</h5>
               <div className="grid grid-cols-3 gap-4">
                 {/* Percentage */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="text-sm text-gray-600 mb-1">{t('percentage') || 'Percentage'}</div>
+                  <div className="text-sm text-gray-600 mb-1">{t('percentage')}</div>
                   <div className="text-3xl font-bold text-indigo-700">
                     {data.final_grade?.toFixed ? data.final_grade.toFixed(2) : data.final_grade}%
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{t('outOf100') || '0-100'}</div>
+                  <div className="text-xs text-gray-500 mt-1">{t('outOf100')}</div>
                 </div>
 
                 {/* Greek Scale */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="text-sm text-gray-600 mb-1">{t('greekScale') || 'Greek Scale'}</div>
+                  <div className="text-sm text-gray-600 mb-1">{t('greekScale')}</div>
                   <div className="text-3xl font-bold text-blue-700">
                     {data.greek_grade ? data.greek_grade.toFixed(1) : '0.0'}/20
                   </div>
-                  <div className="text-xs text-gray-500 mt-1">{data.greek_description || t('fail') || 'Status'}</div>
+                  <div className="text-xs text-gray-500 mt-1">{data.greek_description || t('fail')}</div>
                 </div>
 
                 {/* Letter Grade */}
                 <div className="bg-white rounded-lg p-4 shadow-sm">
-                  <div className="text-sm text-gray-600 mb-1">{t('letterGrade') || 'Letter Grade'}</div>
+                  <div className="text-sm text-gray-600 mb-1">{t('letterGrade')}</div>
                   <div className="text-3xl font-bold text-yellow-700">{data.letter_grade}</div>
                   <div className="text-xs text-gray-500 mt-1">{t('gpa')}: {data.gpa}</div>
                 </div>
@@ -127,16 +127,16 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
             {/* Category Breakdown Table */}
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                <h5 className="font-semibold text-gray-800">{t('categoryBreakdown') || 'Category Breakdown'}</h5>
+                <h5 className="font-semibold text-gray-800">{t('categoryBreakdown')}</h5>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t('category') || 'Category'}</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t('averageScore') || t('average') || 'Average'}</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t('weight') || 'Weight'}</th>
-                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t('contribution') || 'Contribution'}</th>
+                      <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">{t('category')}</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t('averageScore')}</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t('weight')}</th>
+                      <th className="px-4 py-3 text-right text-sm font-semibold text-gray-700">{t('contribution')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
@@ -149,7 +149,7 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
                       </tr>
                     ))}
                     <tr className="bg-indigo-50 font-bold">
-                      <td className="px-4 py-3 text-sm text-gray-800">{t('totalBeforePenalty') || 'Total (before penalty)'}</td>
+                      <td className="px-4 py-3 text-sm text-gray-800">{t('totalBeforePenalty')}</td>
                       <td className="px-4 py-3 text-sm text-right text-gray-800">-</td>
                       <td className="px-4 py-3 text-sm text-right text-gray-800">
                         {Object.values(data.category_breakdown || {}).reduce((sum, d) => sum + Number(d.weight || 0), 0)}%
@@ -166,15 +166,15 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
             {/* Absence penalty */}
             {(Number(data.unexcused_absences || 0) > 0 && Number(data.absence_penalty || 0) > 0) && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="text-sm text-gray-800 font-semibold mb-1">{t('absencePenaltyApplied') || 'Absence penalty applied'}</div>
+                <div className="text-sm text-gray-800 font-semibold mb-1">{t('absencePenaltyApplied')}</div>
                 <div className="text-sm text-red-700">
-                  {t('unexcusedAbsences') || 'Unexcused absences'}: <strong>{data.unexcused_absences}</strong> × {t('penaltyPerAbsence') || 'Penalty/absence'}: <strong>{data.absence_penalty}%</strong> = {t('totalDeduction') || 'Total deduction'}: <strong>{data.absence_deduction ? data.absence_deduction.toFixed(2) : totalDeduction().toFixed(2)}%</strong>
+                  {t('unexcusedAbsences')}: <strong>{data.unexcused_absences}</strong> × {t('penaltyPerAbsence')}: <strong>{data.absence_penalty}%</strong> = {t('totalDeduction')}: <strong>{data.absence_deduction ? data.absence_deduction.toFixed(2) : totalDeduction().toFixed(2)}%</strong>
                 </div>
               </div>
             )}
 
             <div className="flex gap-2 mt-2">
-              <button onClick={onClose} className="flex-1 border px-3 py-2 rounded">{t('close') || 'Close'}</button>
+              <button onClick={onClose} className="flex-1 border px-3 py-2 rounded">{t('close')}</button>
             </div>
           </div>
         )}

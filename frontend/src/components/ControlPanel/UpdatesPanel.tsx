@@ -191,7 +191,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
                     </a>
                     {updateInfo.installer_hash && (
                       <p className="text-xs text-gray-400 mt-2 font-mono break-all">
-                        SHA256: {updateInfo.installer_hash}
+                        {t('controlPanel.sha256')}: {updateInfo.installer_hash}
                       </p>
                     )}
                   </div>

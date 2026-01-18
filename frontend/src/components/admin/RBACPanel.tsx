@@ -210,7 +210,7 @@ export const RBACPanel: React.FC = () => {
           {activeTab === 'users' && usersData && rbacData && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">User-Role Mappings ({usersData.items.length} users)</CardTitle>
+                <CardTitle className="text-sm">{t('rbac.userRoleMappings', { count: usersData.items.length })}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -226,7 +226,7 @@ export const RBACPanel: React.FC = () => {
                           <div>
                             <div className="font-medium text-sm">{user.full_name || user.email}</div>
                             <div className="text-xs text-gray-600">{user.email}</div>
-                            <div className="text-xs text-gray-500">Legacy role: {user.role}</div>
+                            <div className="text-xs text-gray-500">{t('rbac.legacyRole', { role: user.role })}</div>
                           </div>
                           <div className="flex flex-wrap gap-1">
                             {userRoles.length > 0 ? (

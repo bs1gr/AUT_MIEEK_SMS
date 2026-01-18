@@ -468,7 +468,11 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                         <div className="mb-2">
                           <p className="text-sm text-gray-600">{t('reports.attendance')}:</p>
                           <p className={`text-sm font-medium ${getAttendanceColor(course.attendance.attendance_rate)}`}>
-                            {course.attendance.attendance_rate}% ({course.attendance.present}/{course.attendance.total_days})
+                            {t('reports.attendanceRateValue', {
+                              rate: course.attendance.attendance_rate,
+                              present: course.attendance.present,
+                              total: course.attendance.total_days,
+                            })}
                           </p>
                         </div>
                       )}
