@@ -94,12 +94,12 @@ def sample_data(db: Session):
 
     # Create courses
     courses = [
-        Course(name="Mathematics 101", code="MATH101", credits=3, deleted_at=None),
-        Course(name="Physics 201", code="PHYS201", credits=4, deleted_at=None),
-        Course(name="Chemistry 101", code="CHEM101", credits=3, deleted_at=None),
-        Course(name="English Literature", code="ENG201", credits=3, deleted_at=None),
+        Course(course_name="Mathematics 101", code="MATH101", credits=3, deleted_at=None),
+        Course(course_name="Physics 201", code="PHYS201", credits=4, deleted_at=None),
+        Course(course_name="Chemistry 101", code="CHEM101", credits=3, deleted_at=None),
+        Course(course_name="English Literature", code="ENG201", credits=3, deleted_at=None),
         Course(
-            name="Deleted Course",
+            course_name="Deleted Course",
             code="DEL001",
             credits=1,
             deleted_at=datetime.utcnow(),  # Soft-deleted

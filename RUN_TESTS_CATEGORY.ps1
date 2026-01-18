@@ -14,7 +14,7 @@
 #>
 
 param(
-    [ValidateSet("all", "routers", "services", "models", "rbac", "auth", "other")]
+    [ValidateSet("all", "routers", "services", "models", "rbac", "auth", "middleware", "other")]
     [string]$Category = "all",
     [switch]$Verbose
 )
@@ -62,6 +62,10 @@ $categories = @{
         "test_auth.py"
         "test_authentication.py"
         "test_session_management.py"
+    )
+    middleware = @(
+        "test_request_id_middleware.py",
+        "test_timing_middleware.py"
     )
     other = @(
         "test_main.py"

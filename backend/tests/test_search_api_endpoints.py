@@ -66,9 +66,9 @@ def test_data(db: Session):
     ]
 
     courses = [
-        Course(name="Mathematics 101", code="MATH101", credits=3, deleted_at=None),
-        Course(name="Physics 201", code="PHYS201", credits=4, deleted_at=None),
-        Course(name="English 101", code="ENG101", credits=3, deleted_at=None),
+        Course(course_name="Mathematics 101", code="MATH101", credits=3, deleted_at=None),
+        Course(course_name="Physics 201", code="PHYS201", credits=4, deleted_at=None),
+        Course(course_name="English 101", code="ENG101", credits=3, deleted_at=None),
     ]
 
     for student in students:
