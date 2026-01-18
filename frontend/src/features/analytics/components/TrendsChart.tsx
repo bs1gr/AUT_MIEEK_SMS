@@ -88,8 +88,7 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
               />
               <YAxis domain={[0, 100]} label={{ value: "Grade (%)", angle: -90, position: "insideLeft" }} />
               <Tooltip
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(value: any) => `${Number(value).toFixed(1)}%`}
+                formatter={(value: number) => `${Number(value).toFixed(1)}%`}
                 labelFormatter={(label) => `Date: ${label}`}
               />
               <Legend />

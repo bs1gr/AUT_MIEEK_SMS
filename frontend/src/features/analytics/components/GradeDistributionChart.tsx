@@ -76,8 +76,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
               />
               <YAxis label={{ value: "Count", angle: -90, position: "insideLeft" }} />
               <Tooltip
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                formatter={(value: any) => value}
+                formatter={(value: number) => value}
                 labelFormatter={(label) => `Range: ${label}`}
               />
               <Legend />
