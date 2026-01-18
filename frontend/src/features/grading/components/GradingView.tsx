@@ -31,18 +31,18 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
     const categoryMap: Record<string, string> = {
-      'Class Participation': t('classParticipation') || 'Class Participation',
-      'Homework/Assignments': t('homework') || 'Homework/Assignments',
-      'Homework': t('homework') || 'Homework',
-      'Lab Work': t('labWork') || 'Lab Work',
-      'Continuous Assessment': t('continuousAssessment') || 'Continuous Assessment',
-      'Quizzes': t('quizzes') || 'Quizzes',
-      'Project': t('project') || 'Project',
-      'Presentation': t('presentation') || 'Presentation',
-      'Midterm': t('midterm') || 'Midterm',
-      'Midterm Exam': t('midtermExam') || 'Midterm Exam',
-      'Final Exam': t('finalExam') || 'Final Exam',
-      'Final': t('finalExam') || 'Final',
+      'Class Participation': t('classParticipation'),
+      'Homework/Assignments': t('homework'),
+      'Homework': t('homework'),
+      'Lab Work': t('labWork'),
+      'Continuous Assessment': t('continuousAssessment'),
+      'Quizzes': t('quizzes'),
+      'Project': t('project'),
+      'Presentation': t('presentation'),
+      'Midterm': t('midterm'),
+      'Midterm Exam': t('midtermExam'),
+      'Final Exam': t('finalExam'),
+      'Final': t('final'),
     };
     return categoryMap[category] || category;
   };
@@ -512,7 +512,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('weight')}</th>
                     <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('letterGrade')}</th>
                     <th className="px-4 py-2 text-left text-sm font-semibold text-gray-700">{t('date')}</th>
-                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('actions') || 'Actions'}</th>
+                    <th className="px-4 py-2 text-center text-sm font-semibold text-gray-700">{t('actions')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">

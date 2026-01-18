@@ -87,11 +87,11 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
               name="student_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('studentId') || 'Student ID'} *</FormLabel>
+                  <FormLabel>{t('studentId')} *</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="e.g., S12345"
-                      aria-label="student id"
+                      aria-label={t('studentId')}
                       data-testid="student-id-input"
                       {...field}
                     />
@@ -111,7 +111,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                     <FormControl>
                       <Input
                         placeholder={t('firstNamePlaceholder')}
-                        aria-label="first name"
+                        aria-label={t('firstNamePlaceholder')}
                         data-testid="first-name-input"
                         {...field}
                         value={field.value || ''}
@@ -130,7 +130,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                     <FormControl>
                       <Input
                         placeholder={t('lastNamePlaceholder')}
-                        aria-label="last name"
+                        aria-label={t('lastNamePlaceholder')}
                         data-testid="last-name-input"
                         {...field}
                         value={field.value || ''}
@@ -152,7 +152,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                     <Input
                       type="email"
                       placeholder={t('emailPlaceholder')}
-                      aria-label="email"
+                      aria-label={t('emailPlaceholder')}
                       data-testid="email-input"
                       {...field}
                       value={field.value || ''}
@@ -173,7 +173,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                     <Input
                       type="tel"
                       placeholder={t('phonePlaceholder')}
-                      aria-label="phone"
+                      aria-label={t('phonePlaceholder')}
                       data-testid="phone-input"
                       {...field}
                       value={field.value || ''}
@@ -189,11 +189,11 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('addressPlaceholder') || 'Address'}</FormLabel>
+                  <FormLabel>{t('addressPlaceholder')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={t('addressPlaceholder') || 'Address'}
-                      aria-label="address"
+                      placeholder={t('addressPlaceholder')}
+                      aria-label={t('addressPlaceholder')}
                       data-testid="address-input"
                       {...field}
                       value={field.value || ''}
@@ -210,11 +210,11 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                 name="date_of_birth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('dateOfBirth') || 'Date of Birth'}</FormLabel>
+                    <FormLabel>{t('dateOfBirth')}</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
-                        aria-label="date of birth"
+                        aria-label={t('dateOfBirth')}
                         data-testid="date-of-birth-input"
                         {...field}
                         value={field.value || ''}
@@ -229,11 +229,11 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                 name="enrollment_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('enrollmentDate') || 'Enrollment Date'}</FormLabel>
+                    <FormLabel>{t('enrollmentDate')}</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
-                        aria-label="enrollment date"
+                        aria-label={t('enrollmentDate')}
                         data-testid="enrollment-date-input"
                         {...field}
                       />
@@ -253,7 +253,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                 data-testid="submit-student"
                 disabled={form.formState.isSubmitting}
               >
-                {form.formState.isSubmitting ? t('saving') || 'Saving...' : t('addStudent')}
+                {form.formState.isSubmitting ? t('saving') : t('addStudent')}
               </Button>
             </div>
           </form>

@@ -226,13 +226,13 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           onChange={(e) => setResolvedSearch(e.target.value)}
           placeholder={t('searchStudents')}
           className="border px-4 py-2 rounded w-full max-w-md"
-          aria-label="student search"
+          aria-label={t('searchStudents')}
           data-testid="student-search-input"
         />
         <button
           onClick={() => setShowAddModal(true)}
           className="ml-4 bg-indigo-600 text-white px-4 py-2 rounded"
-          aria-label="add student"
+          aria-label={t('addStudent')}
           data-testid="add-student-btn"
         >
           {t('addStudent')}

@@ -103,7 +103,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                     <FormControl>
                       <Input
                         placeholder={t('firstNamePlaceholder')}
-                        aria-label="first name"
+                        aria-label={t('firstNamePlaceholder')}
                         data-testid="first-name-input"
                         {...field}
                         value={field.value || ''}
@@ -122,7 +122,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                     <FormControl>
                       <Input
                         placeholder={t('lastNamePlaceholder')}
-                        aria-label="last name"
+                        aria-label={t('lastNamePlaceholder')}
                         data-testid="last-name-input"
                         {...field}
                         value={field.value || ''}
@@ -144,7 +144,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                     <Input
                       type="email"
                       placeholder={t('emailPlaceholder')}
-                      aria-label="email"
+                      aria-label={t('emailPlaceholder')}
                       data-testid="email-input"
                       {...field}
                       value={field.value || ''}
@@ -165,7 +165,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                     <Input
                       type="tel"
                       placeholder={t('phonePlaceholder')}
-                      aria-label="phone"
+                      aria-label={t('phonePlaceholder')}
                       data-testid="phone-input"
                       {...field}
                       value={field.value || ''}
@@ -181,11 +181,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
               name="address"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('addressPlaceholder') || 'Address'}</FormLabel>
+                  <FormLabel>{t('addressPlaceholder')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder={t('addressPlaceholder') || 'Address'}
-                      aria-label="address"
+                      placeholder={t('addressPlaceholder')}
+                      aria-label={t('addressPlaceholder')}
                       data-testid="address-input"
                       {...field}
                       value={field.value || ''}
@@ -202,11 +202,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 name="date_of_birth"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('dateOfBirth') || 'Date of Birth'}</FormLabel>
+                    <FormLabel>{t('dateOfBirth')}</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
-                        aria-label="date of birth"
+                        aria-label={t('dateOfBirth')}
                         data-testid="date-of-birth-input"
                         {...field}
                         value={field.value || ''}
@@ -221,11 +221,11 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 name="enrollment_date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('enrollmentDate') || 'Enrollment Date'}</FormLabel>
+                    <FormLabel>{t('enrollmentDate')}</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
-                        aria-label="enrollment date"
+                        aria-label={t('enrollmentDate')}
                         data-testid="enrollment-date-input"
                         {...field}
                       />
@@ -241,7 +241,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 {t('cancel')}
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? t('saving') || 'Saving...' : t('saveChanges')}
+                {form.formState.isSubmitting ? t('saving') : t('saveChanges')}
               </Button>
             </div>
           </form>
