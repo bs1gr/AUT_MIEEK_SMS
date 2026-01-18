@@ -1,7 +1,9 @@
 export default {
   configuration: 'RBAC Configuration',
   rolePermissionMappings: 'Role-Permission Mappings',
+  userRoleMappings: 'User-Role Mappings ({{count}} users)',
   noRolesAssigned: 'No RBAC roles assigned',
+  legacyRole: 'Legacy role: {{role}}',
   assignRole: 'Assign Role to User',
   userId: 'User ID',
   roleName: 'Role Name',

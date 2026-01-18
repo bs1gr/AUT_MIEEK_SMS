@@ -42,6 +42,7 @@ export default {
   late: 'Late',
   excused: 'Excused',
   unexcusedAbsences: 'Unexcused Absences',
+  attendanceRateValue: '{{rate}}% ({{present}}/{{total}} days)',
 
   // Grade metrics
   average: 'Average',

@@ -42,6 +42,7 @@ export default {
   late: 'Καθυστέρηση',
   excused: 'Δικαιολογημένος',
   unexcusedAbsences: 'Αδικαιολόγητες Απουσίες',
+  attendanceRateValue: '{{rate}}% ({{present}}/{{total}} ημέρες)',
 
   // Grade metrics
   average: 'Μέσος Όρος',
