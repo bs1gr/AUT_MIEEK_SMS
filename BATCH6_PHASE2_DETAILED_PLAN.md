@@ -92,7 +92,7 @@ Preview with Backend
 // → t('analytics.daysPeriod', { days: data.period_days })
 ```
 
-**Action**: 
+**Action**:
 1. Wrap 5 grade label strings in GradeDistributionChart
 2. Wrap period_days string in PerformanceCard
 3. Create 6 new translation keys in both locales
