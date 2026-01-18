@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Download, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '../../LanguageContext';
@@ -28,7 +28,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
   const [error, setError] = useState<string | null>(null);
   const [lastChecked, setLastChecked] = useState<string | null>(null);
 
-  const checkForUpdates = async () => {
+  const checkForUpdates = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -40,7 +40,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [controlApi]);
 
   useEffect(() => {
     checkForUpdates();
@@ -49,8 +49,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
       checkForUpdates();
     }, 6 * 60 * 60 * 1000);
     return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [checkForUpdates]);
 
   return (
     <div className="space-y-6">
