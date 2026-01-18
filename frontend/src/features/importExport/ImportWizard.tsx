@@ -4,7 +4,7 @@ import Papa from 'papaparse';
 import apiClient from '@/api/api';
 
 // ImportWizard: Step 2 - Add stepper UI (basic, no logic)
-interface ImportWizardProps {}
+type ImportWizardProps = object;
 
 type CsvRow = string[];
 type CsvData = CsvRow[];

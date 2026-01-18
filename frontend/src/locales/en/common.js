@@ -208,6 +208,16 @@ export default {
   exampleScheduleEntry: '{{day}}: {{count}} {{periodLabel}} ({{start}}, {{minutes}} {{minuteLabel}})',
   durationOption: '{{minutes}} {{minuteLabel}}',
   durationOptionDefault: '{{minutes}} {{minuteLabel}} ({{defaultLabel}})',
+  // Import/Export
+  'importExport.history': 'Import/Export History',
+  'importExport.openExportDialog': 'Open Export Dialog',
+  'importExport.exportData': 'Export Data',
+  'importExport.noJobsFound': 'No import or export jobs found.',
+  'importExport.type': 'Type',
+  'importExport.status': 'Status',
+  'importExport.createdAt': 'Created At',
+  'importExport.import': 'Import',
+  'importExport.export': 'Export',
   // Footer
   footerCredits: 'Student Management System © {{year}} Vasilis Samaras - v{{version}}',
 };

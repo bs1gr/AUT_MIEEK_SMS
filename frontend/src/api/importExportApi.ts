@@ -24,11 +24,7 @@ export interface ExportJob {
   created_at: string;
 }
 
-interface ImportExportResponse {
-  success: boolean;
-  data?: Record<string, unknown>;
-  error?: string;
-}
+// ImportExportResponse interface removed - not used (see ExportJob for export responses)
 
 export interface ImportExportHistoryEntry {
   id: number;
