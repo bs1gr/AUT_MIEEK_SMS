@@ -2,7 +2,7 @@
 
 **Timeline**: January 8-9, 2026 (45 minutes + 24 hours monitoring)
 **Owner**: DevOps Lead + QA
-**Reference**: [STAGING_DEPLOYMENT_PLAN_$11.15.2.md](STAGING_DEPLOYMENT_PLAN_$11.15.2.md)
+**Reference**: STAGING_DEPLOYMENT_PLAN_v1.17.2.md
 **Status**: Ready for execution
 
 ---
@@ -13,7 +13,7 @@
 JAN 8 (WEDNESDAY)
 09:00 - 09:30: Pre-deployment validation (30 min)
 09:30 - 10:00: Final go/no-go decision (30 min)
-10:00 - 10:45: Deploy $11.15.2 to staging (45 min)
+10:00 - 10:45: Deploy v1.17.2 to staging (45 min)
 10:45 - 12:00: Manual smoke tests (1h 15m)
 12:00 - 12:15: Escalation check (15 min)
 
@@ -54,8 +54,8 @@ Get-ChildItem "backend/backups/" -Filter "*.bak" | Select-Object -First 1
 # Should show recent backup file
 
 # Phase 4: Documentation Check
-Test-Path "docs/releases/RELEASE_NOTES_$11.15.2.md"  # Should exist
-Test-Path "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.2.md"  # Should exist
+Test-Path "docs/releases/RELEASE_NOTES_v1.17.2.md"  # Should exist
+Test-Path "docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.17.2.md"  # Should exist
 
 # Phase 5: Scripts Validation
 Test-Path "DOCKER.ps1"                  # Should exist
@@ -84,11 +84,11 @@ Proceed with deployment? YES ✓
 ```powershell
 # Current data backup (CRITICAL - DO NOT SKIP)
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-Copy-Item "data/student_management.db" "backend/backups/pre_$11.15.2_backup_$timestamp.db.bak"
-Write-Host "✅ Backup created: pre_$11.15.2_backup_$timestamp.db.bak"
+Copy-Item "data/student_management.db" "backend/backups/pre_v1.17.2_backup_$timestamp.db.bak"
+Write-Host "✅ Backup created: pre_v1.17.2_backup_$timestamp.db.bak"
 
 # Verify backup
-$backupSize = (Get-Item "backend/backups/pre_$11.15.2_backup_$timestamp.db.bak").Length / 1MB
+$backupSize = (Get-Item "backend/backups/pre_v1.17.2_backup_$timestamp.db.bak").Length / 1MB
 Write-Host "Backup size: $backupSize MB"
 if ($backupSize -gt 0.1) {
     Write-Host "✅ Backup valid (>100KB)"

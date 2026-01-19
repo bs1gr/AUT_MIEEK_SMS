@@ -16,6 +16,7 @@ Version: 1.0.0
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
 import logging
 
 from backend.dependencies import get_db
@@ -27,7 +28,7 @@ from backend.schemas.response import APIResponse, success_response, error_respon
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
-    prefix="/api/v1/search",
+    prefix="/search",
     tags=["search"],
     responses={
         400: {"description": "Invalid query parameters"},
@@ -83,6 +84,16 @@ class AdvancedFilterRequest:
     search_type: str  # "students", "courses", or "grades"
 
 
+class AdvancedSearchRequest(BaseModel):
+    """Request body for advanced search endpoint."""
+
+    entity: Optional[str] = None
+    query: Optional[str] = ""
+    filters: Dict[str, Any] = {}
+    page: Optional[int] = None
+    page_size: Optional[int] = None
+
+
 class SearchSuggestion:
     """Search suggestion result."""
 
@@ -133,7 +144,7 @@ async def search_students(
     try:
         search_service = SearchService(db)
         results = search_service.search_students(query=q, limit=limit, offset=offset)
-        return success_response(results)
+        return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching students: {str(e)}")
         return error_response(code="SEARCH_ERROR", message="Failed to search students", details=str(e))
@@ -176,7 +187,7 @@ async def search_courses(
     try:
         search_service = SearchService(db)
         results = search_service.search_courses(query=q, limit=limit, offset=offset)
-        return success_response(results)
+        return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching courses: {str(e)}")
         return error_response(code="SEARCH_ERROR", message="Failed to search courses", details=str(e))
@@ -228,7 +239,7 @@ async def search_grades(
         filters = {"grade_min": grade_min, "grade_max": grade_max, "student_id": student_id, "course_id": course_id}
         search_service = SearchService(db)
         results = search_service.search_grades(query=q, filters=filters, limit=limit, offset=offset)
-        return success_response(results)
+        return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching grades: {str(e)}")
         return error_response(code="SEARCH_ERROR", message="Failed to search grades", details=str(e))
@@ -242,8 +253,7 @@ async def search_grades(
 )
 async def advanced_search(
     request: Request,
-    filters: Dict[str, Any],
-    search_type: str = Query("students", description="Search type: students, courses, or grades"),
+    body: AdvancedSearchRequest,
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
@@ -257,20 +267,16 @@ async def advanced_search(
     - `courses`: Filter by name, code, credits, academic year
     - `grades`: Filter by grade range, student, course, pass/fail
 
-    **Query Parameters:**
-    - `search_type`: "students", "courses", or "grades" (required)
-    - `limit`: Results limit (1-100, default: 20)
-    - `offset`: Pagination offset (default: 0)
-
     **Request Body:**
-    JSON object with filter criteria. Example:
     ```json
     {
+        "entity": "students|courses|grades",
+        "query": "optional search text",
         "filters": {
-            "grade_min": 80,
-            "grade_max": 100,
-            "course_id": 5
-        }
+            "field": "value"
+        },
+        "page": optional,
+        "page_size": optional
     }
     ```
 
@@ -283,31 +289,53 @@ async def advanced_search(
 
     **Example:**
     ```
-    POST /api/v1/search/advanced?search_type=courses
+    POST /api/v1/search/advanced
     {
+        "entity": "courses",
         "filters": {
             "credits": 3,
-            "academic_year": 2024
+            "semester": "Fall 2024"
         }
     }
     ```
     """
     try:
-        # Validate search_type
-        if search_type not in ["students", "courses", "grades"]:
+        # Validate entity
+        entity = body.entity or "students"
+        if entity not in ["students", "courses", "grades"]:
             return error_response(
-                code="INVALID_SEARCH_TYPE", message="Invalid search_type. Must be 'students', 'courses', or 'grades'"
+                code="INVALID_ENTITY",
+                message="Invalid entity. Must be 'students', 'courses', or 'grades'",
+                request_id=request.state.request_id
             )
 
         search_service = SearchService(db)
-        results = search_service.advanced_filter(filters=filters, search_type=search_type, limit=limit, offset=offset)
-        return success_response(results)
+
+        # Use entity as search_type for backward compatibility
+        results = search_service.advanced_filter(
+            filters=body.filters or {},
+            search_type=entity,
+            limit=limit,
+            offset=offset
+        )
+
+        return success_response(results, request_id=request.state.request_id)
     except ValueError as ve:
         logger.warning(f"Invalid filter value: {str(ve)}")
-        return error_response(code="INVALID_FILTER", message="Invalid filter value", details=str(ve))
+        return error_response(
+            code="INVALID_FILTER",
+            message="Invalid filter value",
+            details={"error": str(ve)},
+            request_id=request.state.request_id
+        )
     except Exception as e:
         logger.error(f"Error in advanced search: {str(e)}")
-        return error_response(code="SEARCH_ERROR", message="Failed to perform advanced search", details=str(e))
+        return error_response(
+            code="SEARCH_ERROR",
+            message="Failed to perform advanced search",
+            details={"error": str(e)},
+            request_id=request.state.request_id
+        )
 
 
 @router.get(
@@ -357,7 +385,7 @@ async def get_suggestions(
     try:
         search_service = SearchService(db)
         suggestions = search_service.get_search_suggestions(query=q, limit=limit)
-        return success_response(suggestions)
+        return success_response(suggestions, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting suggestions: {str(e)}")
         return error_response(code="SUGGESTION_ERROR", message="Failed to get search suggestions", details=str(e))
@@ -405,7 +433,7 @@ async def get_statistics(
     try:
         search_service = SearchService(db)
         stats = search_service.get_search_statistics()
-        return success_response(stats)
+        return success_response(stats, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting statistics: {str(e)}")
         return error_response(code="STATS_ERROR", message="Failed to get search statistics", details=str(e))

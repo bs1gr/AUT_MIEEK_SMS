@@ -4,7 +4,6 @@
 **Session**: v1.15.2 Release Complete
 **Status**: Production Deployed, All Critical Tasks Complete
 
----
 
 ## 🎯 Current State (5-Second Summary)
 
@@ -34,7 +33,7 @@ be5094b22 - docs(release): update $11.15.2 release notes - add security fixes
 116cefe04 - security: upgrade 4 vulnerable packages
 9cf235eb1 - chore(docs): workspace cleanup
 822bfa374 - style: apply ruff-format, markdownlint, EOF fixes
-32e3e8f8a - chore: Align versions to 1.15.1 (tag: v1.15.2)
+32e3e8f8a - chore: Align versions to 1.15.1 (tag: $11.15.2)
 ```
 
 ---
@@ -106,9 +105,9 @@ cd frontend && npm run test -- --run
 - **Documentation Index**: [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
 
 ### Recent Changes
-- **Release Notes**: docs/releases/RELEASE_NOTES_v1.15.2.md
+- **Release Notes**: [docs/releases/RELEASE_NOTES_$11.15.2.md](docs/releases/RELEASE_NOTES_$11.15.2.md)
 - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
-- **GitHub Release**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.15.2
+- **GitHub Release**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.15.2
 
 ### Technical Guides
 - **Architecture**: [docs/development/ARCHITECTURE.md](docs/development/ARCHITECTURE.md)
@@ -238,7 +237,7 @@ urllib3==2.6.3          # Was 2.6.0 (1 CVE fixed)
 | **Full overview** | [README.md](README.md) | 15 min |
 | **Current work plan** | [docs/plans/UNIFIED_WORK_PLAN.md](docs/plans/UNIFIED_WORK_PLAN.md) | 10 min |
 | **Phase 2 details** | [docs/plans/PHASE2_CONSOLIDATED_PLAN.md](docs/plans/PHASE2_CONSOLIDATED_PLAN.md) | 20 min |
-| **Release notes** | [docs/releases/RELEASE_NOTES_$11.15.2.md](docs/releases/RELEASE_NOTES_$11.15.2.md) | 5 min |
+| **Release notes** | [docs/releases/RELEASE_NOTES_v1.15.2.md](docs/releases/RELEASE_NOTES_v1.15.2.md) | 5 min |
 | **Security guide** | [docs/SECURITY_GUIDE_COMPLETE.md](docs/SECURITY_GUIDE_COMPLETE.md) | 15 min |
 | **Docker ops** | [docs/deployment/DOCKER_OPERATIONS.md](docs/deployment/DOCKER_OPERATIONS.md) | 10 min |
 
@@ -273,7 +272,6 @@ urllib3==2.6.3          # Was 2.6.0 (1 CVE fixed)
 **Next Milestone**: v1.15.2 Phase 2 (Mar 7, 2026)
 
 **For Issues**:
-- GitHub Issues: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
 - Phase 2 Issues: #116-#124 (created and ready)
 
 ---

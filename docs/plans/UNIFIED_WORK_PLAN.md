@@ -370,7 +370,7 @@
 
 **Created**: January 7, 2026
 **Status**: ✅ STABLE (v1.17.2 Released Jan 14, 2026)
-**Current Version**: 1.18.0 (Released with Phase 2 RBAC + Phase 3 Features)
+**Current Version**: 1.17.2 (Released with Phase 2 RBAC + Phase 3 Features)
 **Current Branch**: `main` (All releases complete, working on future enhancements)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** - Single developer + AI assistant only. All role references below are workflow checkpoints, not actual team assignments.
 
@@ -467,7 +467,7 @@ This document consolidates all scattered planning documents into a **single sour
 - Jan 12, 2026: Fixed same day (added missing RBAC schema exports)
 - Jan 14, 2026: v1.17.2 successfully released after full verification
 
-### What's Next: v1.17.2 or v1.17.2
+### What's Next: v1.17.3 or v1.18.0
 
 Future enhancements will target the next version:
 - Advanced search & filtering
@@ -478,7 +478,7 @@ Future enhancements will target the next version:
 
 ---
 
-## ✅ COMPLETE: Phase 1 Completion (v1.17.2 - v1.17.2)
+## ✅ COMPLETE: Phase 1 Completion (v1.15.0 - v1.15.2)
 
 **Target Release**: January 7, 2026 ✅ RELEASED
 **Status**: ✅ **100% COMPLETE**
@@ -2833,7 +2833,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **Tasks**:
 - [ ] Audit top-level docs (README, INSTALLATION_GUIDE, etc.)
-- [ ] Fix version references (ensure $11.17.2 is current)
+- [x] Fix version references (ensure v1.17.2 is current)
 - [ ] Update contribution guidelines
 - [ ] Verify all critical docs are current
 
