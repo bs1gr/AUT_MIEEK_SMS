@@ -27,6 +27,8 @@ interface VirtualListProps<T> {
  * />
  * ```
  */
+import { useTranslation } from 'react-i18next';
+
 export function VirtualList<T>({
   items,
   renderItem,
@@ -36,7 +38,7 @@ export function VirtualList<T>({
   itemClassName = '',
   emptyMessage = 'No items to display'
 }: VirtualListProps<T>) {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({

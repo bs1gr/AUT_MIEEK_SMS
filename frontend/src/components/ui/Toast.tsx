@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 interface ToastProps {
   message: string;
   type?: 'success' | 'error' | 'info';
@@ -5,6 +7,7 @@ interface ToastProps {
 }
 
 const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose }) => {
+  const { t } = useTranslation();
   const bgColor = {
     success: 'bg-green-100 text-green-800',
     error: 'bg-red-100 text-red-800',
