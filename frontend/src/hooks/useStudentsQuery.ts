@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 /* eslint-disable testing-library/no-await-sync-queries */
 import { studentsAPI } from '@/api/api';
 import { useStudentsStore } from '@/stores';
@@ -16,6 +17,7 @@ export const studentKeys = {
 
 // Fetch all students
 export function useStudents(filters?: { search?: string; active?: boolean }) {
+  const { t } = useTranslation();
   const setStudents = useStudentsStore((state) => state.setStudents);
   const setLoading = useStudentsStore((state) => state.setLoading);
   const setError = useStudentsStore((state) => state.setError);

@@ -1,5 +1,6 @@
 /* eslint-disable testing-library/no-await-sync-queries */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { coursesAPI } from '@/api/api';
 import { useCoursesStore } from '@/stores';
 import type { Course, CourseFormData } from '@/types';
@@ -17,6 +18,7 @@ export const courseKeys = {
 
 // Fetch all courses
 export function useCourses(filters?: { search?: string; active?: boolean; semester?: string }) {
+  const { t } = useTranslation();
   const setCourses = useCoursesStore((state) => state.setCourses);
   const setLoading = useCoursesStore((state) => state.setLoading);
   const setError = useCoursesStore((state) => state.setError);

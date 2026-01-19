@@ -94,10 +94,10 @@ def sample_data(db: Session):
 
     # Create courses
     courses = [
-        Course(course_name="Mathematics 101", code="MATH101", credits=3, deleted_at=None),
-        Course(course_name="Physics 201", code="PHYS201", credits=4, deleted_at=None),
-        Course(course_name="Chemistry 101", code="CHEM101", credits=3, deleted_at=None),
-        Course(course_name="English Literature", code="ENG201", credits=3, deleted_at=None),
+        Course(course_name="Mathematics 101", course_code="MATH101", credits=3, deleted_at=None),
+        Course(course_name="Physics 201", course_code="PHYS201", credits=4, deleted_at=None),
+        Course(course_name="Chemistry 101", course_code="CHEM101", credits=3, deleted_at=None),
+        Course(course_name="English Literature", course_code="ENG201", credits=3, deleted_at=None),
         Course(
             course_name="Deleted Course",
             code="DEL001",

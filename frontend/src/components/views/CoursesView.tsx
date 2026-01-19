@@ -918,7 +918,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                                 </p>
                                 {isActive && (
                                   <span>
-                          {t('scheduleCompact', { start: sched.start_time, periods: sched.periods, duration: sched.duration })}
+                          {t('scheduleCompact', { start: dayData.start_time, periods: dayData.periods, duration: dayData.duration })}
                         </span>
                                 )}
                               </div>
