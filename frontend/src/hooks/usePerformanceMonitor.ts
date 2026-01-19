@@ -25,17 +25,20 @@ export function usePerformanceMonitor(componentName: string, threshold: number =
     startTimeRef.current = performance.now();
     renderCountRef.current++;
 
+    // Capture current render count for use in cleanup
+    const currentRenderCount = renderCountRef.current;
+
     return () => {
       const duration = performance.now() - startTimeRef.current;
       totalTimeRef.current += duration;
 
       if (duration > threshold) {
         console.warn(
-          `[Performance] ${componentName} render #${renderCountRef.current} took ${duration.toFixed(2)}ms`,
+          `[Performance] ${componentName} render #${currentRenderCount} took ${duration.toFixed(2)}ms`,
           {
             component: componentName,
             duration,
-            renderCount: renderCountRef.current,
+            renderCount: currentRenderCount,
             totalTime: totalTimeRef.current.toFixed(2)
           }
         );
@@ -45,7 +48,7 @@ export function usePerformanceMonitor(componentName: string, threshold: number =
           (window as unknown as any).analytics.event?.('component_render', {
             component: componentName,
             duration,
-            renderCount: renderCountRef.current
+            renderCount: currentRenderCount
           });
         }
       }
