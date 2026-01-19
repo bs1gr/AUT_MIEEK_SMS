@@ -4,7 +4,7 @@
 **Status**: ✅ **MULTI-LAYER ENFORCEMENT ACTIVE**
 **Authority**: User-mandated automated compliance system
 **Scope**: Prevents forbidden version formats (v11.x.x, $11.x.x, v2.x.x)
-**Required Format**: v1.x.x ONLY (e.g., $11.17.1)
+**Required Format**: v1.x.x ONLY (e.g., v1.17.1)
 
 ---
 

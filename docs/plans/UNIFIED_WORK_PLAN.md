@@ -335,7 +335,7 @@
 # Unified Work Plan - Student Management System
 
 **Created**: January 7, 2026
-**Status**: ✅ STABLE ($11.17.2 Released Jan 14, 2026)
+**Status**: ✅ STABLE (v1.17.2 Released Jan 14, 2026)
 **Current Version**: 1.18.0 (Released with Phase 2 RBAC + Phase 3 Features)
 **Current Branch**: `main` (All releases complete, working on future enhancements)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** - Single developer + AI assistant only. All role references below are workflow checkpoints, not actual team assignments.
@@ -351,7 +351,7 @@ This document consolidates all scattered planning documents into a **single sour
 **GitHub Issues Alignment (Jan 11, 2026)**: 30 open GitHub issues reviewed and mapped to Phase 2 sequential execution. Complete analysis in `GITHUB_ISSUES_REVIEW_JAN11.md`.
 
 **Consolidated Sources**:
-- `docs/releases/EXECUTION_TRACKER_$11.15.2.md` - Phase 1 tracker (archived)
+- `docs/releases/EXECUTION_TRACKER_v1.15.2.md` - Phase 1 tracker (archived)
 - `docs/plans/REMAINING_ISSUES_PRIORITIZED.md` - Post-Phase 1 work (consolidated here)
 - `docs/plans/PHASE2_CONSOLIDATED_PLAN.md` - Phase 2 detailed notes (reference only)
 - `docs/plans/PHASE2_PLANNING.md` - Aspirational features (backlog in Phase 3 section)
@@ -376,18 +376,18 @@ This document consolidates all scattered planning documents into a **single sour
 |--------|----------|--------|--------|----------|
 | **Phase 1 Completion** | Jan 7-20, 2026 | ✅ 100% COMPLETE | 21 hours | ✅ DONE |
 | **Post-Phase 1 Polish** | Jan 7-24, 2026 | ✅ 100% COMPLETE (8/8) | 12 hours | ✅ DONE |
-| **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | ✅ 100% COMPLETE ($11.17.2) | 4-6 weeks | ✅ DONE |
-| **Phase 3: Features** | Jan 12-14, 2026 | ✅ 100% COMPLETE ($11.17.2) | 3 features | ✅ DONE |
+| **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | ✅ 100% COMPLETE (v1.17.2) | 4-6 weeks | ✅ DONE |
+| **Phase 3: Features** | Jan 12-14, 2026 | ✅ 100% COMPLETE (v1.17.2) | 3 features | ✅ DONE |
 | **Repo Issues Cleanup** | Jan 18-22, 2026 | 🟡 PLANNED | 3-5 days | 🔴 CRITICAL |
 | **Phase 4: Development** | Jan 23+, 2026 | ⏸️ PENDING | TBD | 🔵 BLOCKED |
 
 ---
 
-## ✅ COMPLETE: $11.17.2 Remediation (Resolved Jan 12, 2026)
+## ✅ COMPLETE: v1.17.2 Remediation (Resolved Jan 12, 2026)
 
 **Status**: ✅ COMPLETE
 **Priority**: RESOLVED
-**Issue**: $11.17.2 initially contained test failures (5/16 batches failed).
+**Issue**: v1.17.2 initially contained test failures (5/16 batches failed).
 **Root Causes** (FIXED):
 1. Missing RBAC schema exports ✅ FIXED
 2. Database table creation issues ✅ FIXED
@@ -397,17 +397,17 @@ This document consolidates all scattered planning documents into a **single sour
 - [x] Run full test suite and verify all batches pass ✅
 - [x] Fix database table creation issues ✅
 - [x] Confirm all 16 batches pass with exit code 0 AND 0 failures ✅
-- [x] Release $11.17.2 successfully on Jan 14, 2026 ✅
+- [x] Release v1.17.2 successfully on Jan 14, 2026 ✅
 
-**Outcome**: $11.17.2 was successfully fixed and released. All tests passing (370/370 backend, 1,249/1,249 frontend, 19/19 E2E).
+**Outcome**: v1.17.2 was successfully fixed and released. All tests passing (370/370 backend, 1,249/1,249 frontend, 19/19 E2E).
 
 ---
 
-## � Current Release: $11.17.2 (January 14, 2026)
+## Current Release: v1.17.2 (January 14, 2026)
 
 **Status**: ✅ **STABLE & DEPLOYED**
 
-### What's Included in $11.17.2
+### What's Included in v1.17.2
 
 **Phase 2 Deliverables (RBAC System):**
 - ✅ 79 API endpoints refactored with permission-based access control
@@ -429,11 +429,11 @@ This document consolidates all scattered planning documents into a **single sour
 - ✅ Zero breaking changes (fully backward compatible)
 
 **Release History:**
-- Jan 12, 2026: $11.17.2 initially created with test failures
+- Jan 12, 2026: v1.17.2 initially created with test failures
 - Jan 12, 2026: Fixed same day (added missing RBAC schema exports)
-- Jan 14, 2026: $11.17.2 successfully released after full verification
+- Jan 14, 2026: v1.17.2 successfully released after full verification
 
-### What's Next: $11.17.2 or $11.17.2
+### What's Next: v1.17.2 or v1.17.2
 
 Future enhancements will target the next version:
 - Advanced search & filtering
@@ -444,7 +444,7 @@ Future enhancements will target the next version:
 
 ---
 
-## ✅ COMPLETE: Phase 1 Completion ($11.17.2 - $11.17.2)
+## ✅ COMPLETE: Phase 1 Completion (v1.17.2 - v1.17.2)
 
 **Target Release**: January 7, 2026 ✅ RELEASED
 **Status**: ✅ **100% COMPLETE**
@@ -497,7 +497,7 @@ Future enhancements will target the next version:
 - [x] Database migration (alembic)
 - [x] Unit tests (target 95% coverage)
 
-**Reference**: [EXECUTION_TRACKER_$11.15.2.md](../releases/EXECUTION_TRACKER_$11.15.2.md#improvement-1-audit-logging)
+**Reference**: EXECUTION_TRACKER_v1.15.2.md
 
 ---
 
@@ -591,12 +591,12 @@ Future enhancements will target the next version:
 
 **Documentation Created**:
 - [x] [PHASE1_COMPLETION_REPORT.md](../releases/PHASE1_COMPLETION_REPORT.md) - Comprehensive completion report
-- [x] [RELEASE_NOTES_$11.15.2.md](../releases/RELEASE_NOTES_$11.15.2.md) - User-facing release notes
+- [x] [RELEASE_NOTES_v1.15.2.md](../releases/RELEASE_NOTES_v1.15.2.md) - User-facing release notes
 - [x] [CHANGELOG.md](../../CHANGELOG.md) - Full changelog entry
 - [x] Updated [UNIFIED_WORK_PLAN.md](./UNIFIED_WORK_PLAN.md) - This document
 - [x] Updated [DOCUMENTATION_INDEX.md](../../DOCUMENTATION_INDEX.md) - Version references
 
-**Release Status**: ✅ **$11.15.2 COMPLETE AND DOCUMENTED**
+**Release Status**: ✅ **v1.15.2 COMPLETE AND DOCUMENTED**
 
 ---
 
@@ -609,11 +609,11 @@ Future enhancements will target the next version:
 - [x] Performance: 95% faster queries (eager loading) ✅
 - [x] Code review completed ✅
 - [x] Documentation updated ✅
-- [x] $11.15.2 released to production ✅
+- [x] v1.15.2 released to production ✅
 
 ---
 
-## 🟠 SHORT-TERM: Post-Phase 1 Polish ($11.15.2)
+## 🟠 SHORT-TERM: Post-Phase 1 Polish (v1.15.2)
 
 **Timeline**: January 7-24, 2026 (parallel with Phase 1 completion)
 **Total Effort**: ~12 hours
@@ -672,9 +672,9 @@ Future enhancements will target the next version:
   - Alert on critical failures
   - Analyze historical patterns
 
-**Baseline Established** ($11.15.2 - Jan 7, 2026):
+**Baseline Established** (v1.15.2 - Jan 7, 2026):
 - ✅ Critical Path: 19/24 tests passing (100% of critical user flows)
-- ✅ Non-Critical: 5 tests (Notifications - deferred to $11.15.2)
+- ✅ Non-Critical: 5 tests (Notifications - deferred to v1.15.2)
 - ✅ Duration: 3-5 minutes locally, 8-12 minutes in CI
 - ✅ Flakiness: 0% (consistent across runs)
 - ✅ Performance: All p95 latencies within targets
@@ -692,7 +692,7 @@ Future enhancements will target the next version:
 - Continue automated monitoring (no manual action needed)
 - Collect data from 5+ CI runs
 - Analyze for patterns and flakiness
-- Establish final baseline for $11.15.2 release
+- Establish final baseline for v1.15.2 release
 
 ---
 
@@ -703,12 +703,12 @@ Future enhancements will target the next version:
 **Owner**: AI Agent / Tech Lead
 
 **Completed Tasks**:
-- [x] Create GitHub Release for $11.15.2 ✅
-- [x] Attach release notes from [RELEASE_NOTES_$11.15.2.md](../releases/RELEASE_NOTES_$11.15.2.md) ✅
+- [x] Create GitHub Release for v1.15.2 ✅
+- [x] Attach release notes from RELEASE_NOTES_v1.15.2.md ✅
 - [x] Publish to repository ✅
 - [x] Verify release appears on GitHub ✅
 
-**Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.15.2
+**Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.15.2
 
 **Note**: GitHub Release successfully created and published on January 7, 2026.
 
@@ -747,7 +747,7 @@ Future enhancements will target the next version:
 **Completed Tasks**:
 - [x] Create GitHub issues #116-#124 (9 issues total) ✅
 - [x] Label with `phase-2`, priority labels ✅
-- [x] Assign to tasks in $11.15.2 context ✅
+- [x] Assign to tasks in v1.15.2 context ✅
 - [x] Link to PHASE2_CONSOLIDATED_PLAN.md ✅
 
 **Issues Created**:
@@ -759,7 +759,7 @@ Future enhancements will target the next version:
 - #121: RBAC: Frontend Permission UI (optional)
 - #122: E2E Test Monitoring & Stabilization
 - #123: Load Testing Integration
-- #124: Release $11.15.2 Preparation
+- #124: Release v1.15.2 Preparation
 
 **Plus existing issues**: #109-#115 (created Jan 6)
 
@@ -788,7 +788,7 @@ Future enhancements will target the next version:
 ---
 
 #### Issue #6: Load Testing Integration
-**Status**: ✅ COMPLETE (existing suite) – $11.15.2
+**Status**: ✅ COMPLETE (existing suite) – v1.15.2
 **Effort**: Already implemented (no additional work required)
 **Timeline**: Jan 20, 2026 (not needed)
 **Owner**: Backend Developer
@@ -836,8 +836,8 @@ Future enhancements will target the next version:
 
 **Completed Tasks**:
 - [x] Run automated validation tests ✅
-- [x] Detect version mismatch ($11.15.2 vs $11.15.2) ✅
-- [x] Rebuild installer to $11.15.2 ✅
+- [x] Detect version mismatch (v1.15.2 vs v1.15.2) ✅
+- [x] Rebuild installer to v1.15.2 ✅
 - [x] Verify new installer integrity ✅
 - [x] Implement store-based code signing with Limassol certificate ✅
 - [x] Add strict certificate selection (no fallback) ✅
@@ -851,14 +851,14 @@ Future enhancements will target the next version:
 **Completed Work**:
 - ✅ Automated validation executed (5 tests)
 - ✅ Version mismatch detected and fixed
-- ✅ New installer built: `SMS_Installer_1.15.1.exe` (9.39 MB)
+- ✅ New installer built: `SMS_Installer_v1.15.1.exe` (9.39 MB)
 - ✅ File integrity verified (SHA256 hash)
-- ✅ Wizard images regenerated with $11.15.2
+- ✅ Wizard images regenerated with v1.15.2
 - ✅ Greek encoding fixed (Windows-1253)
 - ✅ Store-based signing with Limassol cert (CN=AUT MIEEK, L=Limassol, C=CY)
 - ✅ Security hardening: strict cert selection, mandatory verification
 - ✅ Feature branch merged to main (142 files, 3,653 insertions)
-- ✅ Signed installer uploaded to GitHub release $11.15.2
+- ✅ Signed installer uploaded to GitHub release v1.15.2
 
 **Reference**:
 - Validation: `installer/VALIDATION_COMPLETE_JAN9.md`
@@ -875,8 +875,8 @@ Future enhancements will target the next version:
 
 **Completed Tasks**:
 - [x] Pre-deployment validation (7 phases) ✅
-  - Repository verification (clean, $11.15.2, main branch)
-  - Infrastructure check (Docker $11.15.2, 399GB disk free)
+  - Repository verification (clean, v1.15.2, main branch)
+  - Infrastructure check (Docker v1.15.2, 399GB disk free)
   - Database verification (backup present, 1.3 MB)
   - Documentation check (all deployment docs present)
   - Scripts validation (DOCKER.ps1, NATIVE.ps1)
@@ -928,7 +928,7 @@ Future enhancements will target the next version:
 
 **Reference**:
 - Full readiness report: `PRODUCTION_DEPLOYMENT_READINESS_JAN9.md`
-- Deployment plan: `docs/deployment/PRODUCTION_DEPLOYMENT_PLAN_$11.15.2.md`
+- Deployment plan: `docs/deployment/PRODUCTION_DEPLOYMENT_PLAN_v1.15.2.md`
 - Docker guide: `docs/deployment/PRODUCTION_DOCKER_GUIDE.md`
 
 **Status**: All technical prerequisites 100% complete. Production secrets ready, CI/CD pipeline configured for automated deployment on tag push. Continuous monitoring active on all commits. Ready for final validation and deployment trigger.
@@ -1199,13 +1199,13 @@ Future enhancements will target the next version:
 
 ---
 
-## 🟡 MEDIUM-TERM: Phase 2 ($11.15.2) - Daily Execution
+## 🟡 MEDIUM-TERM: Phase 2 (v1.15.2) - Daily Execution
 **Reference**: [PHASE2_DAILY_EXECUTION_PLAN.md](../plans/PHASE2_DAILY_EXECUTION_PLAN.md) ⭐ PRIMARY REFERENCE
 
 **Deliverables**:
 - ✅ `installer/VALIDATION_TEST_PLAN_JAN9.md` - Test plan with results
 - ✅ `installer/VALIDATION_COMPLETE_JAN9.md` - Completion report
-- ✅ `dist/SMS_Installer_1.15.1.exe` - New installer (69% smaller than $11.15.2)
+- ✅ `dist/SMS_Installer_v1.15.1.exe` - New installer (69% smaller than v1.15.2)
 
 **Manual Testing Status**: ⬜ Deferred (optional, non-blocking)
 - Requires clean Windows 10/11 VMs (6-10 hours setup + testing)
@@ -1251,9 +1251,9 @@ Future enhancements will target the next version:
 
 ---
 
-## � MILESTONE: Production Deployment COMPLETE (Jan 10, 2026)
+## MILESTONE: Production Deployment COMPLETE (Jan 10, 2026)
 
-**Status**: ✅ **$11.15.2 LIVE ON PRODUCTION**
+**Status**: ✅ **v1.15.2 LIVE ON PRODUCTION**
 **Effort**: 4 hours (validation + deployment + documentation)
 **Timeline**: Jan 10, 2026 ✅ COMPLETE
 **Owner**: AI Agent / Solo Developer
@@ -1261,10 +1261,10 @@ Future enhancements will target the next version:
 **Completed Tasks**:
 - [x] Comprehensive production validation (6/6 sections ✅ PASS) ✅
 - [x] Security issue detection & remediation (credentials rotated) ✅
-- [x] Tag created: $11.15.2 (comprehensive release notes) ✅
+- [x] Tag created: v1.15.2 (comprehensive release notes) ✅
 - [x] CI/CD pipeline executed (3 workflows, all ✅ PASSED) ✅
 - [x] Production deployment successful (Docker on QNAP Cyprus) ✅
-- [x] GitHub Release published ($11.15.2 release page live) ✅
+- [x] GitHub Release published (v1.15.2 release page live) ✅
 - [x] Windows Installer built & signed (SMS_Installer_1.15.1.exe) ✅
 - [x] Deployment documentation created (5 files) ✅
 - [x] 24-hour monitoring procedures documented ✅
@@ -1285,8 +1285,8 @@ Future enhancements will target the next version:
 - ✅ PRODUCTION_DEPLOYMENT_READY_JAN10.md (297 lines, approval given)
 - ✅ DEPLOYMENT_MONITORING_DASHBOARD_JAN10.md (258 lines, monitoring ACTIVE)
 - ✅ PRODUCTION_DEPLOYMENT_COMPLETE_JAN10.md (445 lines, execution COMPLETE)
-- ✅ $11.15.2 tag on GitHub with release notes
-- ✅ GitHub Release: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.15.2
+- ✅ v1.15.2 tag on GitHub with release notes
+- ✅ GitHub Release: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.15.2
 
 **Version Verified**:
 - `VERSION` file: 1.15.1 ✅
@@ -1300,7 +1300,7 @@ Future enhancements will target the next version:
 - Extended uptime: ✅ 16+ hours stable, zero incidents
 - Final validation: ✅ Production approved as stable (Jan 11 08:46 UTC)
 - Summary: PRODUCTION_MONITORING_24H_SUMMARY_JAN11.md
-- Status: $11.15.2 **PRODUCTION STABLE** 🎉
+- Status: v1.15.2 **PRODUCTION STABLE** 🎉
 
 🟢 Phase 2 preparation: Jan 13-26 (READY TO BEGIN)
 - Review Phase 2 consolidated plan
@@ -1312,7 +1312,7 @@ Future enhancements will target the next version:
 ## 📊 Sequential Execution (Progress-Based, Not Calendar-Dependent)
 
 ### Phase 2: RBAC Implementation ✅ **COMPLETE (Jan 11, 2026)**
-**Status**: ✅ **100% COMPLETE - $11.17.1 RELEASED**
+**Status**: ✅ **100% COMPLETE - v1.17.1 RELEASED**
 **Duration**: Actual: ~25 hours (Estimated: 40 hours - 37% efficiency gain!)
 **Progression**: All 6 steps completed sequentially with zero blockers
 
@@ -1426,27 +1426,27 @@ Future enhancements will target the next version:
   - Permission combinations and hierarchies
   - Special cases (scoped permissions, endpoint-specific)
   - SQL queries for permission auditing
-  - Migration guide ($11.15.2 → $11.15.2)
+  - Migration guide (v1.15.2 → v1.15.2)
 
-- [x] Created RELEASE_NOTES_$11.15.2.md ✅
+- [x] Created RELEASE_NOTES_v1.15.2.md ✅
   - Highlights: 65 endpoint refactoring + 17 security fixes
   - RBAC system enhancements documentation
   - Technical changes overview (4 refactoring phases)
   - Breaking changes: None (fully backward compatible)
   - Performance impact analysis
   - Testing coverage (362/362 backend, 1,249/1,249 frontend, 19/19 E2E)
-  - Migration guide for $11.15.2 → $11.15.2
+  - Migration guide for v1.15.2 → v1.15.2
   - What's fixed, getting started, known limitations
 
 - [x] Updated DOCUMENTATION_INDEX.md ✅
   - Added references to new admin guides
   - Reorganized Phase 2 RBAC section with links to all 6 guides
-  - Updated version from $11.15.2 to $11.15.2
+  - Updated version from v1.15.2 to v1.15.2
 
 **Deliverables**:
 - ✅ `docs/admin/RBAC_ADMIN_GUIDE.md` (1,200+ lines - complete admin reference)
 - ✅ `docs/admin/PERMISSION_REFERENCE.md` (800+ lines - comprehensive permission matrix)
-- ✅ `docs/releases/RELEASE_NOTES_$11.15.2.md` (500+ lines - release documentation)
+- ✅ `docs/releases/RELEASE_NOTES_v1.15.2.md` (500+ lines - release documentation)
 - ✅ Updated `DOCUMENTATION_INDEX.md` with new guides
 - ✅ Git commits: Ready to push
 
@@ -1460,7 +1460,7 @@ Future enhancements will target the next version:
 - **Total New Documentation**: 2,500+ lines
 - **New Admin Guides**: 2 (RBAC_ADMIN_GUIDE, PERMISSION_REFERENCE)
 - **Updated Guides**: 1 (DOCUMENTATION_INDEX)
-- **Release Notes**: 1 comprehensive $11.15.2 release notes
+- **Release Notes**: 1 comprehensive v1.15.2 release notes
 - **Code Examples**: 30+ practical examples across all guides
 - **Troubleshooting Coverage**: 6 common issues addressed
 
@@ -1468,16 +1468,16 @@ Future enhancements will target the next version:
 - Admins have complete guide for managing permissions
 - All 26 permissions documented with examples
 - Release notes explain all changes and improvements
-- Smooth migration path for users upgrading from $11.15.2
+- Smooth migration path for users upgrading from v1.15.2
 - Clear reference documentation for developers
 - Better discoverability of RBAC features
 
-**Status**: Phase 2 Step 6 COMPLETE ✅ - All documentation ready for $11.15.2 release
+**Status**: Phase 2 Step 6 COMPLETE ✅ - All documentation ready for v1.15.2 release
 
 **Next Steps**:
 1. 🟢 **COMPLETE**: Phase 2 Steps 1-6 all done
 2. ✅ **COMPLETE**: Commit all changes to main
-3. ✅ **COMPLETE**: Tag $11.17.1 for release
+3. ✅ **COMPLETE**: Tag v1.17.1 for release
 4. ✅ **COMPLETE**: Update version numbers and release
 
 ---
@@ -2179,8 +2179,8 @@ These are aspirational features with no assigned timeline or team. To be revisit
 | **Phase 1 Completion** | 🟢 100% | Jan 7-24 ✅ COMPLETE | RELEASED 1.15.0 |
 | **Post-Phase 1 Polish** | 🟢 100% | Jan 7-24 ✅ COMPLETE | 8/8 tasks done |
 | **Phase 2 Planning** | 🟢 100% | Complete ✅ | Fully planned & executed |
-| **Phase 2 RBAC Execution** | 🟢 100% | Jan 8-11 ✅ COMPLETE | RELEASED 1.17.1 (79 endpoints, 17 security fixes) |
-| **Phase 3 Features** | 🟢 100% | Jan 12-14 ✅ COMPLETE | RELEASED 1.17.2 (Analytics, Notifications, Bulk Import/Export) |
+| **Phase 2 RBAC Execution** | 🟢 100% | Jan 8-11 ✅ COMPLETE | RELEASED v1.17.1 (79 endpoints, 17 security fixes) |
+| **Phase 3 Features** | 🟢 100% | Jan 12-14 ✅ COMPLETE | RELEASED v1.17.2 (Analytics, Notifications, Bulk Import/Export) |
 | **CI/CD Fixes** | 🟢 100% | Jan 18 ✅ COMPLETE | Frontend ESLint 0 errors, Markdown threshold adjusted |
 | **Repo Issues Cleanup** | 🟡 PLANNED | Jan 18-22 🟡 NEXT | Backend tests, code quality, docs, deps, repo health |
 | **Phase 4: Development** | ⏸️ PENDING | Jan 23+ ⏸️ BLOCKED | Awaiting cleanup completion |
@@ -2193,8 +2193,8 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 **Actual Effort Per Phase**:
 - **Phase 1 (Audit Improvements)**: ~21 hours - ✅ RELEASED 1.15.0
-- **Phase 2 (RBAC System)**: ~25 hours (37% efficiency gain!) - ✅ RELEASED 1.17.1
-- **Phase 3 (Major Features)**: ~25 hours (86% efficiency gain!) - ✅ RELEASED 1.17.2
+- **Phase 2 (RBAC System)**: ~25 hours (37% efficiency gain!) - ✅ RELEASED v1.17.1
+- **Phase 3 (Major Features)**: ~25 hours (86% efficiency gain!) - ✅ RELEASED v1.17.2
 - **CI/CD Crisis Resolution**: ~4 hours - ✅ 100% of errors fixed (94→0)
 - **Repo Cleanup**: 🟡 PLANNED (3-5 days estimated)
 - **Total Actual**: ~25 hours (37% efficiency gain over estimates!)
@@ -2215,7 +2215,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 ✅ Comprehensive documentation (2,500+ lines of guides)
 ✅ 17 security vulnerabilities fixed
 ✅ All 370+ tests passing
-✅ 1.17.1 released and production-ready
+✅ v1.17.1 released and production-ready
 
 **Post-Phase 2 (Backlog / Future)**:
 🔵 Real-time notifications
@@ -2256,7 +2256,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 ### Active Plans (Use These)
 - **This Document**: Unified Work Plan (single source of truth)
-- [EXECUTION_TRACKER_$11.15.2.md](../releases/EXECUTION_TRACKER_$11.15.2.md) - Phase 1 detailed tracker
+- [EXECUTION_TRACKER_v1.15.2.md](../releases/EXECUTION_TRACKER_v1.15.2.md) - Phase 1 detailed tracker
 - [PHASE2_CONSOLIDATED_PLAN.md](../plans/PHASE2_CONSOLIDATED_PLAN.md) - Phase 2 detailed plan
 
 ### Supporting Documentation
@@ -2340,10 +2340,10 @@ These are aspirational features with no assigned timeline or team. To be revisit
 **Completed Tasks**:
 - [x] Review Phase 3 roadmap and feature selection ✅
 - [x] Create GitHub issues #125-128 for Phase 3 features ✅
-  - #134: Feature: Analytics Dashboard (1.17.1 - Phase 3)
-  - #135: Feature: Real-Time Notifications (1.17.1 - Phase 3)
-  - #137: Feature: Bulk Import/Export (1.17.1 - Phase 3)
-  - #136: Meta: Phase 3 Release 1.17.1 Tracking
+  - #134: Feature: Analytics Dashboard (v1.17.1 - Phase 3)
+  - #135: Feature: Real-Time Notifications (v1.17.1 - Phase 3)
+  - #137: Feature: Bulk Import/Export (v1.17.1 - Phase 3)
+  - #136: Meta: Phase 3 Release v1.17.1 Tracking
 - [x] Design Architecture for Feature #125 (Analytics Dashboard) ✅
 
 **Deliverables**:
@@ -2450,7 +2450,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 **Total Time**: 6.75 hours (estimated 40-50 hours - 86% EFFICIENCY GAIN!)
 **Issue**: #135
 **GitHub Issue URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/issues/135
-**GitHub Tag**: 1.17.1 (created and pushed)
+**GitHub Tag**: v1.17.1 (created and pushed)
 
 **Step 1: Backend WebSocket Setup** - ✅ **COMPLETE** (Jan 12, 4 hours)
 - [x] WebSocket server with python-socketio ✅
@@ -2503,7 +2503,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - **Status**: Production ready, all quality gates passed
 
 **Step 6: Email Integration** - ⏭️ **SKIPPED** (Option B choice)
-- Email integration deferred to 1.17.1
+- Email integration deferred to v1.17.1
 - All backend infrastructure ready
 - Can be added with minimal effort
 
@@ -2516,22 +2516,22 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - **Files**:
   - `docs/user/NOTIFICATIONS_USER_GUIDE.md` (user documentation)
   - `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md` (admin documentation)
-  - `docs/releases/RELEASE_NOTES_1.17.1.md` (release documentation)
+  - `docs/releases/RELEASE_NOTES_v1.17.1.md` (release documentation)
   - Updated `DOCUMENTATION_INDEX.md`
 
 **Step 8: Release & Deployment** - ✅ **COMPLETE** (Jan 12, 2:45 PM UTC)
-- [x] Create GitHub tag 1.17.1 ✅ (already existed, verified)
+- [x] Create GitHub tag v1.17.1 ✅ (already existed, verified)
 - [x] Build Docker image ✅ (CI/CD handled)
 - [x] Create GitHub Release with notes ✅ (metadata prepared, tag pushed)
-- [x] Update VERSION file ✅ (1.17.1 confirmed)
+- [x] Update VERSION file ✅ (v1.17.1 confirmed)
 - [x] Commit pending changes ✅ (COMMIT_READY.ps1 minor fixes)
 - [x] Final smoke tests ✅ (All systems verified)
 - [x] All components verified ✅ (Backend, frontend, docs, tests)
 
 **Smoke Test Results**:
 - ✅ Git status: Clean (all committed)
-- ✅ Version: 1.17.1 (confirmed in VERSION file)
-- ✅ Tag: 1.17.1 (created and pushed to origin)
+- ✅ Version: v1.17.1 (confirmed in VERSION file)
+- ✅ Tag: v1.17.1 (created and pushed to origin)
 - ✅ Recent commits: All pushed successfully
 - ✅ Key files: All in place
   - Backend: notification_service.py, routers_notifications.py, migrations
@@ -2682,8 +2682,8 @@ These are aspirational features with no assigned timeline or team. To be revisit
 ### When to Start Phase 3
 
 **Prerequisites**:
-- ✅ Phase 2 complete (1.17.1 released)
-- ✅ Phase 2 complete (1.17.1 released)
+- ✅ Phase 2 complete (v1.17.1 released)
+- ✅ Phase 2 complete (v1.17.1 released)
 - ✅ Production stable (24+ hour monitoring passed)
 - ✅ Phase 3 features finalized (#125-127 selected)
 - ✅ GitHub issues #125-128 created
@@ -2897,7 +2897,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 Building new features on top of known issues (backend test failures, code quality problems) creates compounding technical debt. Cleanup first ensures Phase 4 starts on a solid foundation.
 
 **DEPENDENCIES** (All Must Complete):
-- [x] Phase 3 development complete ($11.17.2 released)
+- [x] Phase 3 development complete (v1.17.2 released)
 - ⏳ Repository issues cleanup complete (THIS PHASE)
 - ⏳ All CI checks passing consistently
 - ⏳ Stakeholder decision on Phase 4 features

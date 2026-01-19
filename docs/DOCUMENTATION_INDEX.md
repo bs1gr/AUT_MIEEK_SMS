@@ -11,7 +11,7 @@
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Recent Changes (Jan 7, 2026)**: Post-Phase 1 Polish 87.5% complete - CI caching optimized, E2E testing documented, Phase 2 issues created. Tests: backend 100%, frontend 1249/1249 passing. See [plans/UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md) for current status.
+> **Recent Changes (Jan 7, 2026)**: Post-Phase 1 Polish 87.5% complete - CI caching optimized, E2E testing documented, Phase 2 issues created. Tests: backend 100%, frontend 1249/1249 passing. See plans/UNIFIED_WORK_PLAN.md for current status.
 
 ---
 
@@ -77,29 +77,29 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - 316/316 backend tests passing
   - 30+ E2E tests implemented
   - Complete feature breakdown and metrics
-- **[plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md](plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md)** - Phase 1 implementation plan
+- **[plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md](plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md)** - Phase 1 implementation plan
   - 8 major improvements (audit logging, performance, security, UX)
   - 2-week sprint breakdown (Jan 7-20, 2026)
   - Team allocation and effort estimates
   - Success metrics and acceptance criteria
   - Links to implementation patterns
-- **[releases/RELEASE_PREPARATION_$11.15.2.md](releases/RELEASE_PREPARATION_$11.15.2.md)** - 1.15.0 Release preparation & timeline
+- **[releases/RELEASE_PREPARATION_v1.15.2.md](releases/RELEASE_PREPARATION_v1.15.2.md)** - 1.15.0 Release preparation & timeline
   - Phase 0 validation (all tests passing)
   - Phase 1 infrastructure improvements roadmap
   - Release checklist and success metrics
   - Timeline: Jan 7-24, 2026 (implementation + release)
-- **[releases/RELEASE_NOTES_$11.15.2.md](releases/RELEASE_NOTES_$11.15.2.md)** - 1.15.0 Official release notes (NEW - Jan 6, 2026)
+- **[releases/RELEASE_NOTES_v1.15.2.md](releases/RELEASE_NOTES_v1.15.2.md)** - 1.15.0 Official release notes (NEW - Jan 6, 2026)
   - Complete feature list with detailed descriptions
   - Performance improvements and metrics
   - Upgrade instructions and breaking changes
   - What's next (Phase 2 preview)
-- **[releases/EXECUTION_TRACKER_$11.15.2.md](releases/EXECUTION_TRACKER_$11.15.2.md)** - 1.15.0 Phase 1 execution tracker
+- **[releases/EXECUTION_TRACKER_v1.15.2.md](releases/EXECUTION_TRACKER_v1.15.2.md)** - 1.15.0 Phase 1 execution tracker
   - Pre-implementation tasks (team kickoff, environment setup, backup)
   - Week 1 tasks: Foundation & performance improvements
   - Week 2 tasks: Testing & stability
   - Release day procedures and post-release validation
   - Progress tracking with owner assignments and effort estimates
-- **[releases/QUICK_REFERENCE_$11.15.2.md](releases/QUICK_REFERENCE_$11.15.2.md)** - 1.15.0 Quick reference card (Print & Post)
+- **[releases/QUICK_REFERENCE_v1.15.2.md](releases/QUICK_REFERENCE_v1.15.2.md)** - 1.15.0 Quick reference card (Print & Post)
   - One-page team reference with timeline and task assignments
   - Daily checklist for developers
   - Blocker resolution procedure
@@ -145,7 +145,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Week-by-week work order
   - Effort estimates and timelines
   - Success criteria for each issue
-- **[plans/INSTALLER_IMPROVEMENTS_$11.15.2+.md](plans/INSTALLER_IMPROVEMENTS_$11.15.2+.md)** - Installer improvements (mostly complete)
+- **plans/INSTALLER_IMPROVEMENTS_v1.15.2+.md** - Installer improvements (mostly complete)
 - **[development/VERSION_1_9_9_IMPROVEMENTS.md](development/VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
   - Frontend routing type safety and React Router v7 validation
   - International locale support (European decimal separators)
@@ -174,6 +174,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[installer/README.md](../installer/README.md)** - Windows installer build & distribution (Inno Setup canonical workflow)
 
 ### Admin Documentation (Phase 2 - NEW $11.15.2+)
+### Admin Documentation (Phase 2 - NEW v1.15.2+)
 
 - **[admin/PERMISSION_MANAGEMENT_GUIDE.md](admin/PERMISSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Complete permission management guide (930 lines)
   - Permission seeding workflows (full, dry-run, verify modes)
@@ -330,8 +331,8 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Validation & Smoke Tests
 
-- **[operations/SMOKE_TEST_CHECKLIST_v1.12.md](operations/SMOKE_TEST_CHECKLIST_v1.12.md)** - Current smoke test checklist for v1.12.x
-- Legacy reference: **[archive/documentation/checklists/SMOKE_TEST_CHECKLIST_$11.12.2.md](../archive/documentation/checklists/SMOKE_TEST_CHECKLIST_$11.12.2.md)**
+- **operations/SMOKE_TEST_CHECKLIST_v1.12.md** - Current smoke test checklist for v1.12.x
+- Legacy reference: **archive/documentation/checklists/SMOKE_TEST_CHECKLIST_v1.12.2.md**
 
 ### Historical Reports & Checklists (Archived)
 
@@ -488,9 +489,9 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
-- **[releases/RELEASE_NOTES_$11.12.2.md](releases/RELEASE_NOTES_$11.12.2.md)** - Latest production release notes (Dec 13, 2025)
-- **[releases/RELEASE_AUDIT_$11.12.2.md](releases/RELEASE_AUDIT_$11.12.2.md)** - QA audit and verification follow-up
-- **[releases/RELEASE_PREPARATION_$11.12.2.md](releases/RELEASE_PREPARATION_$11.12.2.md)** - Pre-release checklist and dry-run outcomes
+- **[releases/RELEASE_NOTES_v1.12.2.md](releases/RELEASE_NOTES_v1.12.2.md)** - Latest production release notes (Dec 13, 2025)
+- **[releases/RELEASE_AUDIT_v1.12.2.md](releases/RELEASE_AUDIT_v1.12.2.md)** - QA audit and verification follow-up
+- **[releases/RELEASE_PREPARATION_v1.12.2.md](releases/RELEASE_PREPARATION_v1.12.2.md)** - Pre-release checklist and dry-run outcomes
 - **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper for archiving historical tags (supports `-DryRun`; fixture: `scripts/ops/samples/releases.sample.json`)
 - **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
 - **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (remove or privatize legacy images; fixture: `scripts/ops/samples/package-versions.sample.json`)
@@ -739,7 +740,7 @@ Found incorrect, outdated, or missing documentation?
 - ✅ 316/316 backend tests passing, 30+ E2E tests ready
 
 **Archive Note**:
-- See `archive/pre-$11.15.2/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-v1.15.2/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 

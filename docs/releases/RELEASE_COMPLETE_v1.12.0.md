@@ -1,17 +1,17 @@
-# $11.12.2 Release - Complete ✅
+# v1.12.0 Release - Complete ✅
 
 **Release Status**: ✅ PUBLISHED
 **Release Date**: December 19, 2025
 **Version**: 1.12.0
-**Previous**: $11.12.2 (December 11, 2025)
-**Git Tag**: $11.12.2
+**Previous**: v1.11.2 (December 11, 2025)
+**Git Tag**: v1.12.0
 **Commit**: 9bd411e3
 
 ---
 
 ## 🎉 Release Published Successfully
 
-The $11.12.2 release has been successfully created, committed, tagged, and pushed to GitHub.
+The v1.12.0 release has been successfully created, committed, tagged, and pushed to GitHub.
 
 ### 📊 Release Summary
 
@@ -147,10 +147,10 @@ The $11.12.2 release has been successfully created, committed, tagged, and pushe
 ## 📦 Deliverables
 
 ### Documentation Files
-- ✅ CHANGELOG.md ($11.12.2 section, 500+ lines)
-- ✅ RELEASE_SUMMARY_$11.12.2.md (420+ lines)
-- ✅ RELEASE_NOTES_$11.12.2.md (439+ lines)
-- ✅ RELEASE_PREPARATION_$11.12.2.md (260+ lines)
+- ✅ CHANGELOG.md (v1.12.0 section, 500+ lines)
+- ✅ RELEASE_SUMMARY_v1.12.0.md (420+ lines)
+- ✅ RELEASE_NOTES_v1.12.0.md (439+ lines)
+- ✅ RELEASE_PREPARATION_v1.12.0.md (260+ lines)
 - ✅ DOCUMENTATION_INDEX.md (updated)
 - ✅ USER_GUIDE_COMPLETE.md (updated to 1.12.0)
 - ✅ DEVELOPER_GUIDE_COMPLETE.md (updated to 1.12.0)
@@ -172,7 +172,7 @@ The $11.12.2 release has been successfully created, committed, tagged, and pushe
 
 ### Git Details
 - **Commit Hash**: 9bd411e3
-- **Tag**: $11.12.2
+**Tag**: v1.12.0
 - **Branch**: main
 - **Remote**: https://github.com/bs1gr/AUT_MIEEK_SMS
 
@@ -185,9 +185,9 @@ The $11.12.2 release has been successfully created, committed, tagged, and pushe
 - **Published**: December 19, 2025
 
 ### Version History
-- Previous: $11.12.2 (December 11, 2025)
-- Current: $11.12.2 (December 19, 2025)
-- Next: $11.12.2 (TBD)
+Previous: v1.11.2 (December 11, 2025)
+Current: v1.12.0 (December 19, 2025)
+Next: v1.12.1 (TBD)
 
 ---
 
