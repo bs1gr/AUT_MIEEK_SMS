@@ -378,7 +378,7 @@ This document consolidates all scattered planning documents into a **single sour
 | **Post-Phase 1 Polish** | Jan 7-24, 2026 | ✅ 100% COMPLETE (8/8) | 12 hours | ✅ DONE |
 | **Phase 2: RBAC + CI/CD** | Jan 27 - Mar 7, 2026 | ✅ 100% COMPLETE (v1.17.2) | 4-6 weeks | ✅ DONE |
 | **Phase 3: Features** | Jan 12-14, 2026 | ✅ 100% COMPLETE (v1.17.2) | 3 features | ✅ DONE |
-| **Repo Issues Cleanup** | Jan 18-22, 2026 | 🟡 PLANNED | 3-5 days | 🔴 CRITICAL |
+| **Repo Issues Cleanup** | Jan 18-22, 2026 | 🔄 IN PROGRESS | 3-5 days | 🔴 CRITICAL |
 | **Phase 4: Development** | Jan 23+, 2026 | ⏸️ PENDING | TBD | 🔵 BLOCKED |
 
 ---
@@ -2182,7 +2182,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 | **Phase 2 RBAC Execution** | 🟢 100% | Jan 8-11 ✅ COMPLETE | RELEASED v1.17.1 (79 endpoints, 17 security fixes) |
 | **Phase 3 Features** | 🟢 100% | Jan 12-14 ✅ COMPLETE | RELEASED v1.17.2 (Analytics, Notifications, Bulk Import/Export) |
 | **CI/CD Fixes** | 🟢 100% | Jan 18 ✅ COMPLETE | Frontend ESLint 0 errors, Markdown threshold adjusted |
-| **Repo Issues Cleanup** | 🟡 PLANNED | Jan 18-22 🟡 NEXT | Backend tests, code quality, docs, deps, repo health |
+| **Repo Issues Cleanup** | 🔄 IN PROGRESS | Jan 18-22 🔄 ACTIVE | Backend tests, code quality, docs, deps, repo health |
 | **Phase 4: Development** | ⏸️ PENDING | Jan 23+ ⏸️ BLOCKED | Awaiting cleanup completion |
 
 ### Phase 3 Actual Effort (Solo Developer) - RAPID DELIVERY!
@@ -2196,7 +2196,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 - **Phase 2 (RBAC System)**: ~25 hours (37% efficiency gain!) - ✅ RELEASED v1.17.1
 - **Phase 3 (Major Features)**: ~25 hours (86% efficiency gain!) - ✅ RELEASED v1.17.2
 - **CI/CD Crisis Resolution**: ~4 hours - ✅ 100% of errors fixed (94→0)
-- **Repo Cleanup**: 🟡 PLANNED (3-5 days estimated)
+- **Repo Cleanup**: 🔄 IN PROGRESS (3-5 days estimated)
 - **Total Actual**: ~25 hours (37% efficiency gain over estimates!)
 
 ### Key Deliverables by Phase
@@ -2751,7 +2751,7 @@ These are aspirational features with no assigned timeline or team. To be revisit
 
 ## � CRITICAL: Repository Issues Cleanup (Priority Before Phase 4)
 
-**Status**: 🟡 **PLANNED - BLOCKING PHASE 4 KICKOFF**
+**Status**: 🔄 **IN PROGRESS - BLOCKING PHASE 4 KICKOFF**
 **Timeline**: January 18-22, 2026 (target: 5 days)
 **Priority**: **HIGHEST** (must complete before development)
 **Owner**: AI Agent + Solo Developer
