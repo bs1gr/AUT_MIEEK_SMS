@@ -147,7 +147,7 @@ export function useNotifications(): UseNotificationsReturn {
       console.error('Failed to delete notification:', err);
       throw err;
     }
-  }, []);
+  }, [notifications]);
 
   /**
    * Connect to WebSocket server
