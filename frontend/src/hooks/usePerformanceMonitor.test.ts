@@ -3,6 +3,50 @@ import { usePerformanceMonitor, useApiPerformance } from './usePerformanceMonito
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import type { PerformanceObserverCallback } from '../types/handlers';
 
+type AnalyticsMock = { event: ReturnType<typeof vi.fn> };
+type PerformanceObserverMock = {
+  observe: ReturnType<typeof vi.fn>;
+  disconnect: ReturnType<typeof vi.fn>;
+};
+type PerformanceObserverCtor = new (callback: PerformanceObserverCallback) => PerformanceObserverMock;
+type GlobalWithMocks = typeof window & {
+  analytics?: AnalyticsMock;
+  PerformanceObserver?: PerformanceObserverCtor;
+};
+
+const getMockedWindow = (): GlobalWithMocks => window as GlobalWithMocks;
+type PerformanceObserverMockOptions = {
+  observe?: ReturnType<typeof vi.fn>;
+  disconnect?: ReturnType<typeof vi.fn>;
+  onConstructor?: (callback: PerformanceObserverCallback) => void;
+};
+
+const createPerformanceObserverMock = (
+  options: PerformanceObserverMockOptions = {}
+): { ctor: PerformanceObserverCtor; observe: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> } => {
+  const observe = options.observe ?? vi.fn();
+  const disconnect = options.disconnect ?? vi.fn();
+  const ctor: PerformanceObserverCtor = class {
+    constructor(callback: PerformanceObserverCallback) {
+      if (options.onConstructor) {
+        options.onConstructor(callback);
+      }
+    }
+    observe = observe;
+    disconnect = disconnect;
+  };
+
+  return { ctor, observe, disconnect };
+};
+
+const setPerformanceObserverMock = (options: PerformanceObserverMockOptions = {}) => {
+  const globalWindow = getMockedWindow();
+  const { ctor, observe, disconnect } = createPerformanceObserverMock(options);
+  globalWindow.PerformanceObserver = ctor;
+  return { globalWindow, observe, disconnect };
+};
+type WarnCallArgs = [string, Record<string, unknown>];
+
 describe('usePerformanceMonitor hook', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
@@ -129,7 +173,7 @@ describe('usePerformanceMonitor hook', () => {
       const { unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 100));
       unmount();
 
-      const callArgs = (warnSpy as unknown as any).mock.calls[0];
+      const callArgs = warnSpy.mock.calls[0] as WarnCallArgs;
       expect(callArgs[1]).toHaveProperty('renderCount');
       expect(typeof callArgs[1].renderCount).toBe('number');
     });
@@ -148,14 +192,15 @@ describe('usePerformanceMonitor hook', () => {
       const { unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 100));
       unmount();
 
-      const callArgs = (warnSpy as unknown as any).mock.calls[0];
+      const callArgs = warnSpy.mock.calls[0] as WarnCallArgs;
       expect(callArgs[1]).toHaveProperty('duration');
       expect(typeof callArgs[1].duration).toBe('number');
     });
 
     it('should send analytics event when available', () => {
-      const mockAnalytics = { event: vi.fn() };
-      (window as any).analytics = mockAnalytics;
+      const mockAnalytics: AnalyticsMock = { event: vi.fn() };
+      const globalWindow = getMockedWindow();
+      globalWindow.analytics = mockAnalytics;
 
       const mockNow = vi.fn();
       let currentTime = 0;
@@ -177,8 +222,7 @@ describe('usePerformanceMonitor hook', () => {
         })
       );
 
-      // @ts-expect-error: Cleanup intentional mock assignment
-      delete (window as any).analytics;
+      delete globalWindow.analytics;
     });
 
     it('should not crash when analytics is not available', () => {
@@ -273,47 +317,31 @@ describe('usePerformanceMonitor hook', () => {
     let capturedCallback: PerformanceObserverCallback | undefined;
 
     it('should set up performance observer if available', () => {
-      const observerMock = { observe: vi.fn(), disconnect: vi.fn() };
-      const observeMock = observerMock.observe;
-
-      // @ts-expect-error: Intentional mock for PerformanceObserver
-      (window as any).PerformanceObserver = class {
-        constructor(_callback: PerformanceObserverCallback) {}
-        observe = observerMock.observe;
-        disconnect = observerMock.disconnect;
-      };
+      const { globalWindow, observe } = setPerformanceObserverMock();
 
       const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students'));
 
-      expect(observeMock).toHaveBeenCalled();
+      expect(observe).toHaveBeenCalled();
 
-      // @ts-expect-error: Cleanup intentional mock
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should not crash when PerformanceObserver is not available', () => {
-      // @ts-expect-error: Access to intentional mock
-      const originalPerformanceObserver = (window as any).PerformanceObserver;
-      // @ts-expect-error: Cleanup intentional mock
-      delete (window as any).PerformanceObserver;
+      const globalWindow = getMockedWindow();
+      const originalPerformanceObserver = globalWindow.PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
 
       expect(() => {
         const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students'));
       }).not.toThrow();
 
-      // @ts-expect-error: Restore intentional mock
-      (window as any).PerformanceObserver = originalPerformanceObserver;
+      globalWindow.PerformanceObserver = originalPerformanceObserver;
     });
 
     it('should observe measure and resource entry types', () => {
       const observeMock = vi.fn();
 
-      // @ts-expect-error: Intentional mock for PerformanceObserver
-      (window as any).PerformanceObserver = class {
-        constructor(_callback: PerformanceObserverCallback) {}
-        observe = observeMock;
-        disconnect = vi.fn();
-      };
+      const { globalWindow } = setPerformanceObserverMock({ observe: observeMock });
 
       const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students'));
 
@@ -321,19 +349,12 @@ describe('usePerformanceMonitor hook', () => {
         entryTypes: expect.arrayContaining(['measure', 'resource'])
       });
 
-      // @ts-expect-error: Cleanup intentional mock
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should disconnect observer on cleanup', () => {
       const disconnectMock = vi.fn();
-
-      // @ts-expect-error: Intentional mock for PerformanceObserver
-      (window as any).PerformanceObserver = class {
-        constructor(_callback: PerformanceObserverCallback) {}
-        observe = vi.fn();
-        disconnect = disconnectMock;
-      };
+      const { globalWindow } = setPerformanceObserverMock({ disconnect: disconnectMock });
 
       const { unmount } = renderHook(() => useApiPerformance('/api/students'));
 
@@ -341,21 +362,17 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(disconnectMock).toHaveBeenCalled();
 
-      // @ts-expect-error: Cleanup intentional mock
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should use default threshold of 1000ms', () => {
       capturedCallback = undefined;
 
-      // @ts-expect-error: Intentional mock for PerformanceObserver
-      (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {
+      const { globalWindow } = setPerformanceObserverMock({
+        onConstructor: (callback) => {
           capturedCallback = callback;
         }
-        observe = vi.fn();
-        disconnect = vi.fn();
-      };
+      });
 
       warnSpy.mockClear();
 
@@ -375,21 +392,17 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(warnSpy).toHaveBeenCalled();
 
-      // @ts-expect-error: Cleanup intentional mock
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should log warning for slow API requests', () => {
       capturedCallback = undefined;
 
-      // @ts-expect-error: Intentional mock for PerformanceObserver
-      (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {
+      const { globalWindow } = setPerformanceObserverMock({
+        onConstructor: (callback) => {
           capturedCallback = callback;
         }
-        observe = vi.fn();
-        disconnect = vi.fn();
-      };
+      });
 
       warnSpy.mockClear();
 
@@ -412,21 +425,17 @@ describe('usePerformanceMonitor hook', () => {
         expect.any(Object)
       );
 
-      // @ts-expect-error: Cleanup intentional mock
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should not log warning for fast API requests', () => {
       capturedCallback = undefined;
 
-      // @ts-expect-error: Intentional mock for PerformanceObserver
-      (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {
+      const { globalWindow } = setPerformanceObserverMock({
+        onConstructor: (callback) => {
           capturedCallback = callback;
         }
-        observe = vi.fn();
-        disconnect = vi.fn();
-      };
+      });
 
       warnSpy.mockClear();
 
@@ -445,20 +454,17 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(warnSpy).not.toHaveBeenCalled();
 
-      // @ts-expect-error: Cleanup intentional mock
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should filter entries by endpoint name', () => {
       capturedCallback = undefined;
 
-      (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {
+      const { globalWindow } = setPerformanceObserverMock({
+        onConstructor: (callback) => {
           capturedCallback = callback;
         }
-        observe = vi.fn();
-        disconnect = vi.fn();
-      };
+      });
 
       warnSpy.mockClear();
 
@@ -477,22 +483,21 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(warnSpy).not.toHaveBeenCalled();
 
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should send analytics event for slow API requests', () => {
       capturedCallback = undefined;
 
       const mockAnalytics = { event: vi.fn() };
-      (window as any).analytics = mockAnalytics;
+      const globalWindow = getMockedWindow();
+      globalWindow.analytics = mockAnalytics;
 
-      (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {
+      setPerformanceObserverMock({
+        onConstructor: (callback) => {
           capturedCallback = callback;
         }
-        observe = vi.fn();
-        disconnect = vi.fn();
-      };
+      });
 
       const endpoint = '/api/students';
       const { unmount: _unmount } = renderHook(() => useApiPerformance(endpoint, 500));
@@ -516,19 +521,15 @@ describe('usePerformanceMonitor hook', () => {
         })
       );
 
-      delete (window as any).analytics;
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.analytics;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should re-setup observer when endpoint changes', () => {
       const observeMock = vi.fn();
       const disconnectMock = vi.fn();
 
-      (window as any).PerformanceObserver = class {
-        constructor(_callback: PerformanceObserverCallback) {}
-        observe = observeMock;
-        disconnect = disconnectMock;
-      };
+      const { globalWindow } = setPerformanceObserverMock({ observe: observeMock, disconnect: disconnectMock });
 
       const { rerender } = renderHook(
         ({ endpoint }) => useApiPerformance(endpoint),
@@ -542,19 +543,17 @@ describe('usePerformanceMonitor hook', () => {
       expect(disconnectMock).toHaveBeenCalled();
       expect(observeMock).toHaveBeenCalledTimes(2);
 
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
 
     it('should handle multiple entries in single observation', () => {
       capturedCallback = undefined;
 
-      (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {
+      const { globalWindow } = setPerformanceObserverMock({
+        onConstructor: (callback) => {
           capturedCallback = callback;
         }
-        observe = vi.fn();
-        disconnect = vi.fn();
-      };
+      });
 
       warnSpy.mockClear();
 
@@ -581,7 +580,7 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(warnSpy).toHaveBeenCalledTimes(2); // Two slow requests
 
-      delete (window as any).PerformanceObserver;
+      delete globalWindow.PerformanceObserver;
     });
   });
 });

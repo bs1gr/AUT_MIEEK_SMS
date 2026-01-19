@@ -18,9 +18,9 @@ export interface ExportDialogProps {
   onComplete?: () => void;
 }
 
-export interface HistoryTableProps {
-  // Add props as needed
-}
+// HistoryTableProps is intentionally empty to allow flexibility
+// Using a type alias instead of empty interface
+export type HistoryTableProps = Record<string, unknown>;
 
 // Placeholder components (TODO: implement these properly)
 export const ImportWizard: React.FC<ImportWizardProps> = () => null;

@@ -69,4 +69,4 @@ export interface User {
 
 // Test-specific types
 export type MockApiResponse<T> = Partial<ApiResponse<T>>;
-export type ApiMockFunction = any; // Using any for test mocking compatibility
+export type ApiMockFunction = (...args: unknown[]) => unknown; // Using function type for test mocking compatibility

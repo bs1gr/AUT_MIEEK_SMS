@@ -44,8 +44,9 @@ export function usePerformanceMonitor(componentName: string, threshold: number =
         );
 
         // Send to analytics if available
-        if (typeof window !== 'undefined' && (window as unknown as any).analytics) {
-          (window as unknown as any).analytics.event?.('component_render', {
+        const windowWithAnalytics = window as unknown as { analytics?: { event?: (name: string, data: Record<string, unknown>) => void } };
+        if (typeof window !== 'undefined' && windowWithAnalytics.analytics) {
+          windowWithAnalytics.analytics.event?.('component_render', {
             component: componentName,
             duration,
             renderCount: currentRenderCount

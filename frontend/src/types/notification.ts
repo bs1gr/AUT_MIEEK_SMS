@@ -83,7 +83,7 @@ export interface NotificationEvent {
 
 export interface WebSocketMessage {
   type: string;
-  data: any;
+  data: Record<string, unknown>;
   timestamp?: string;
 }
 

@@ -169,9 +169,10 @@ describe('AdminPermissionsPage', () => {
     renderWithProviders(<AdminPermissionsPage />);
 
     // wait for data load
-    await waitFor(() => expect(screen.getByText(/grant permission/i)).toBeInTheDocument());
+    const grantCardText = await screen.findByText(/grant permission/i);
+    expect(grantCardText).toBeInTheDocument();
 
-    const grantCard = screen.getByText(/grant permission/i).closest('div');
+    const grantCard = grantCardText.closest('div');
     expect(grantCard).toBeTruthy();
     const [grantToSelect, grantRoleSelect, grantPermissionSelect] = within(grantCard as HTMLElement).getAllByRole('combobox');
 
@@ -202,7 +203,8 @@ describe('AdminPermissionsPage', () => {
     await user.type(screen.getByPlaceholderText(/enter user id/i), '42');
     await user.click(screen.getByRole('button', { name: /view permissions/i }));
 
-    await waitFor(() => expect(screen.getByText('user@example.com')).toBeInTheDocument());
+    const userEmail = await screen.findByText('user@example.com');
+    expect(userEmail).toBeInTheDocument();
     const directPermissionsSection = screen.getByText(/direct permissions/i).closest('div');
     expect(directPermissionsSection).toBeTruthy();
     expect(within(directPermissionsSection as HTMLElement).getByText('students:view')).toBeInTheDocument();
