@@ -123,7 +123,7 @@ describe('useNotifications Hook', () => {
       await act(async () => {
         try {
           await result.current.fetchNotifications();
-        } catch (e) {
+        } catch {
           // Error expected
         }
       });
@@ -249,7 +249,7 @@ describe('useNotifications Hook', () => {
       await act(async () => {
         try {
           await result.current.markAsRead(1);
-        } catch (e) {
+        } catch {
           // Error expected
         }
       });
@@ -452,7 +452,7 @@ describe('useNotifications Hook', () => {
       await act(async () => {
         try {
           await result.current.fetchNotifications();
-        } catch (e) {
+        } catch {
           // Error expected
         }
       });

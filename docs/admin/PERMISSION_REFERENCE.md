@@ -571,7 +571,7 @@ WHERE rp.permission_id IS NULL AND up.permission_id IS NULL;
 
 ---
 
-## Migration Guide (v1.15.2 → v1.15.2)
+## Migration Guide ($11.17.2 → $11.17.2)
 
 ### What Changed
 - New @require_permission decorator replaces manual role checking

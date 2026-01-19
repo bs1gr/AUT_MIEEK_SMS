@@ -16,25 +16,25 @@ vi.mock("../hooks/useAnalytics", () => ({
 
 // Mock child components
 vi.mock("../components/PerformanceCard", () => ({
-  PerformanceCard: ({ data }: { data: unknown }) => (
+  PerformanceCard: ({ data: _data }: { data: unknown }) => (
     <div data-testid="performance-card">Performance Card</div>
   ),
 }));
 
 vi.mock("../components/TrendsChart", () => ({
-  TrendsChart: ({ data }: { data: unknown }) => (
+  TrendsChart: ({ data: _data }: { data: unknown }) => (
     <div data-testid="trends-chart">Trends Chart</div>
   ),
 }));
 
 vi.mock("../components/AttendanceCard", () => ({
-  AttendanceCard: ({ data }: { data: unknown }) => (
+  AttendanceCard: ({ data: _data }: { data: unknown }) => (
     <div data-testid="attendance-card">Attendance Card</div>
   ),
 }));
 
 vi.mock("../components/GradeDistributionChart", () => ({
-  GradeDistributionChart: ({ data }: { data: unknown }) => (
+  GradeDistributionChart: ({ data: _data }: { data: unknown }) => (
     <div data-testid="grade-distribution">Grade Distribution</div>
   ),
 }));

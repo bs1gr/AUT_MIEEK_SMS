@@ -339,7 +339,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     } catch {
       setEvaluationCategories([]);
     }
-  }, [selectedCourse, localCourses.length, dailyTrackableCategories]);
+  }, [selectedCourse, localCourses, dailyTrackableCategories]);
 
   // Sync local courses with props (only on initial mount or when props change)
   useEffect(() => {
@@ -368,12 +368,12 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         fetchCourses();
       }
     }
-  }, [courses.length]); // Use length instead of entire array to prevent loops
+  }, [courses, localCourses]);
 
   // Determine which courses have at least one enrolled student
   // Only run when courses list changes length (not on every mutation)
   // const coursesLength = localCourses?.length || 0;
-  const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses.length]); // Use length to prevent loops
+  const courseIds = useMemo(() => localCourses?.map(c => c.id).join(',') || '', [localCourses]);
 
   useEffect(() => {
     const fetchEnrollments = async () => {
@@ -613,10 +613,10 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       setDailyPerformanceIds({});
       setPersistedAttendanceRecords({});
       setPersistedDailyPerformance({});
-      // Fetch new data - don't include refreshAttendancePrefill in deps to avoid infinite loop
+      // Fetch new data
       refreshAttendancePrefill();
     }
-  }, [selectedCourse, selectedDate]);
+  }, [selectedCourse, selectedDate, refreshAttendancePrefill]);
 
   // Fetch dates with attendance records for the current month
   useEffect(() => {

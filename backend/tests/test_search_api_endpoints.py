@@ -63,21 +63,21 @@ def test_data(db: Session):
             course_code="MATH101",
             semester="Fall 2024",  # ✅ REQUIRED: Added semester field
             credits=3,
-            deleted_at=None
+            deleted_at=None,
         ),
         Course(
             course_name="Physics 201",
             course_code="PHYS201",
             semester="Fall 2024",  # ✅ REQUIRED: Added semester field
             credits=4,
-            deleted_at=None
+            deleted_at=None,
         ),
         Course(
             course_name="English 101",
             course_code="ENG101",
             semester="Fall 2024",  # ✅ REQUIRED: Added semester field
             credits=3,
-            deleted_at=None
+            deleted_at=None,
         ),
     ]
 

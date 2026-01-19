@@ -23,7 +23,7 @@ export const useImportExport = () => {
         }
     }, []);
 
-    const createExport = useCallback(async (data: { export_type: string; file_format: 'csv' | 'xlsx' | 'pdf'; filters?: any }): Promise<ExportJob | null> => {
+    const createExport = useCallback(async (data: { export_type: string; file_format: 'csv' | 'xlsx' | 'pdf'; filters?: Record<string, unknown> }): Promise<ExportJob | null> => {
         setLoading(true);
         setError(null);
         try {

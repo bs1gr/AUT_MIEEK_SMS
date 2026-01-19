@@ -2,7 +2,7 @@
 
 **Created**: January 11, 2026
 **Status**: Ready for GitHub issue creation
-**Target**: v1.17.1 release (Q1 2026)
+**Target**: $11.17.2 release (Q1 2026)
 **Scope**: 3 major features + meta release issue
 
 ---
@@ -11,9 +11,9 @@
 
 ### Issue #125: Phase 3 Feature - Analytics Dashboard
 
-**Title**: `Feature: Analytics Dashboard (v1.17.1 - Week 1-2)`
+**Title**: `Feature: Analytics Dashboard ($11.17.2 - Week 1-2)`
 
-**Labels**: `phase-3`, `v1.17.1`, `release`, `feature`, `high-priority`
+**Labels**: `phase-3`, `$11.17.2`, `release`, `feature`, `high-priority`
 
 **Assignee**: Solo Developer
 
@@ -95,9 +95,9 @@ Implement comprehensive analytics and reporting dashboard for administrators and
 
 ### Issue #126: Phase 3 Feature - Real-Time Notifications
 
-**Title**: `Feature: Real-Time Notifications (v1.17.1 - Week 3-4)`
+**Title**: `Feature: Real-Time Notifications ($11.17.2 - Week 3-4)`
 
-**Labels**: `phase-3`, `v1.17.1`, `release`, `feature`, `high-priority`
+**Labels**: `phase-3`, `$11.17.2`, `release`, `feature`, `high-priority`
 
 **Assignee**: Solo Developer
 
@@ -185,9 +185,9 @@ Implement real-time notification system with WebSocket support for instant messa
 
 ### Issue #127: Phase 3 Feature - Bulk Import/Export
 
-**Title**: `Feature: Bulk Import/Export (v1.17.1 - Week 5-6)`
+**Title**: `Feature: Bulk Import/Export ($11.17.2 - Week 5-6)`
 
-**Labels**: `phase-3`, `v1.17.1`, `release`, `feature`, `high-priority`
+**Labels**: `phase-3`, `$11.17.2`, `release`, `feature`, `high-priority`
 
 **Assignee**: Solo Developer
 
@@ -282,11 +282,11 @@ Implement comprehensive bulk import/export functionality for students, courses, 
 
 ---
 
-### Issue #128: Meta - Phase 3 Release Tracking (v1.17.1)
+### Issue #128: Meta - Phase 3 Release Tracking ($11.17.2)
 
-**Title**: `Meta: Phase 3 Release v1.17.1 Tracking`
+**Title**: `Meta: Phase 3 Release $11.17.2 Tracking`
 
-**Labels**: `phase-3`, `v1.17.1`, `release`, `meta`, `tracking`
+**Labels**: `phase-3`, `$11.17.2`, `release`, `meta`, `tracking`
 
 **Assignee**: Solo Developer
 

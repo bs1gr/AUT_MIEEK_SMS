@@ -110,10 +110,10 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           // Create a proper form event for submission
           const form = e.currentTarget.closest('form');
           if (form) {
-            const formEvent = new Event('submit', { bubbles: true, cancelable: true }) as any;
+            const formEvent = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
             Object.defineProperty(formEvent, 'currentTarget', { value: form, writable: false });
             Object.defineProperty(formEvent, 'target', { value: form, writable: false });
-            handleSubmit(formEvent as React.FormEvent<HTMLFormElement>);
+            handleSubmit(formEvent);
           }
         }
         break;

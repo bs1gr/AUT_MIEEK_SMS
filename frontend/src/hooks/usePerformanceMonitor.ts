@@ -41,8 +41,8 @@ export function usePerformanceMonitor(componentName: string, threshold: number =
         );
 
         // Send to analytics if available
-        if (typeof window !== 'undefined' && (window as any).analytics) {
-          (window as any).analytics.event?.('component_render', {
+        if (typeof window !== 'undefined' && (window as unknown as any).analytics) {
+          (window as unknown as any).analytics.event?.('component_render', {
             component: componentName,
             duration,
             renderCount: renderCountRef.current
@@ -90,8 +90,9 @@ export function useApiPerformance(endpoint: string, threshold: number = 1000) {
                 );
 
                 // Send to analytics
-                if ((window as any).analytics) {
-                  (window as any).analytics.event?.('api_slow_request', {
+                const windowWithAnalytics = window as unknown as { analytics?: { event?: (name: string, data: Record<string, unknown>) => void } };
+                if (windowWithAnalytics.analytics) {
+                  windowWithAnalytics.analytics.event?.('api_slow_request', {
                     endpoint,
                     duration
                   });
@@ -104,7 +105,7 @@ export function useApiPerformance(endpoint: string, threshold: number = 1000) {
         observer.observe({ entryTypes: ['measure', 'resource'] });
 
         return () => observer.disconnect();
-      } catch (e) {
+      } catch {
         // Performance API not available or error, silently fail
       }
     }

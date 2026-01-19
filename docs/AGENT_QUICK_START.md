@@ -38,7 +38,7 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 
 | Item | Status | Owner | Next Action | Time |
 |------|--------|-------|------------|------|
-| **Phase 1-3** Features & RBAC | ✅ DONE | Solo Dev | *None (Released v1.17.2)* | *Completed* |
+| **Phase 1-3** Features & RBAC | ✅ DONE | Solo Dev | *None (Released $11.17.2)* | *Completed* |
 | **Repo Cleanup** CI/CD Fixes | ✅ DONE | Solo Dev | *None (All checks passing)* | *Completed* |
 | **Repo Cleanup** Code Quality | 🟦 IN PROGRESS | Solo Dev | Run `COMMIT_READY.ps1 -Full` | Jan 19-22 |
 | **Phase 4** Planning | 🟥 NOT STARTED | Solo Dev | Await Cleanup Completion | Jan 23+ |

@@ -50,7 +50,7 @@ Get-Content VERSION
   - Fix: `echo "1.15.1" | Set-Content VERSION` (if authorized)
 
 ### Step 1.3: CHANGELOG Verification
-**Checklist Item**: "CHANGELOG.md contains v1.15.2 entry"
+**Checklist Item**: "CHANGELOG.md contains $11.17.2 entry"
 
 ```powershell
 # Check for $11.15.2 in CHANGELOG
@@ -63,9 +63,9 @@ Select-String "## \[1.15.1\]" CHANGELOG.md | Select-Object -First 1
 ```
 
 **If Output Differs**:
-- ⚠️ v1.15.2 entry missing
+- ⚠️ $11.17.2 entry missing
   - Action: Verify release notes were created
-  - Decision: Proceed with caution, document issue for v1.15.2
+  - Decision: Proceed with caution, document issue for $11.17.2
 
 ### Step 1.4: Key Files Presence Check
 **Checklist Item**: "Release files present and readable"
@@ -73,8 +73,8 @@ Select-String "## \[1.15.1\]" CHANGELOG.md | Select-Object -First 1
 ```powershell
 # Check release documentation exists
 $requiredFiles = @(
-  "docs/releases/RELEASE_NOTES_v1.15.2.md",
-  "docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.2.md",
+  "docs/releases/RELEASE_NOTES_$11.17.2.md",
+  "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.17.2.md",
   "docs/deployment/PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md"
 )
 

@@ -40,7 +40,7 @@
 | ID | Blocker | Impact | Status | Resolution |
 |----|---------|---------|-----------|----|
 | ~~**BLOCK-001**~~ | ~~Backend test count mismatch~~ | ~~Phase 0 completeness claim~~ | **RESOLVED ✅** | Backend pytest run Jan 5 17:40 UTC shows 455 passed, 3 skipped. Phase 0 claim accurate. |
-| **BLOCK-002** | Feature branch not created | Cannot start Phase 1 work | **RESOLVED ✅** | Feature branch `feature/v1.15.2-phase1` created and pushed. Phase 1 infrastructure ready. |
+| **BLOCK-002** | Feature branch not created | Cannot start Phase 1 work | **RESOLVED ✅** | Feature branch `feature/$11.17.2-phase1` created and pushed. Phase 1 infrastructure ready. |
 
 ---
 
