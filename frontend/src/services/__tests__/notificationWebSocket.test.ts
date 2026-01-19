@@ -45,7 +45,7 @@ describe('NotificationWebSocketClient', () => {
 
   beforeEach(() => {
     // Replace global WebSocket with our mock
-    global.WebSocket = MinimalMockWebSocket as any;
+    global.WebSocket = MinimalMockWebSocket as unknown as typeof WebSocket;
   });
 
   afterEach(() => {

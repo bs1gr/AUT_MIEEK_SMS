@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import GradingView from '../GradingView';
 import * as apiModule from '../../../../api/api';
@@ -226,9 +226,7 @@ describe('GradingView - Decimal Input', () => {
     expect(apiModule.gradesAPI.create).toHaveBeenCalledWith(expect.objectContaining({ assignment_name: 'Quiz 1', grade: 95 }));
 
     // Grade history should eventually show the new assignment name
-    await waitFor(async () => {
-      const item = await screen.findByText('Quiz 1');
-      expect(item).toBeInTheDocument();
-    });
+    const item = await screen.findByText('Quiz 1');
+    expect(item).toBeInTheDocument();
   });
 });

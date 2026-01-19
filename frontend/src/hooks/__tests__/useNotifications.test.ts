@@ -30,8 +30,8 @@ vi.mock('../../api/api', () => ({
     post: mockApiPost,
     delete: mockApiDelete,
   },
-  extractAPIResponseData: (response: any) => response?.data?.data || response?.data,
-  extractAPIError: (error: any) => ({
+  extractAPIResponseData: (response: Record<string, unknown>) => (response?.data as Record<string, unknown>)?.data || response?.data,
+  extractAPIError: (error: { message?: string }) => ({
     message: error?.message || 'Unknown error',
     code: 'ERROR',
   }),

@@ -66,6 +66,13 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
         {steps.map((label, idx) => (
           <li
             key={label}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                setActiveStep(idx);
+              }
+            }}
             style={{
               marginRight: idx < steps.length - 1 ? 16 : 0,
               fontWeight: activeStep === idx ? 'bold' : 'normal',

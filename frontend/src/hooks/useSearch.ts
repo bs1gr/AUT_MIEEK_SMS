@@ -355,7 +355,10 @@ export const useSearch = (
    * Load statistics on mount
    */
   useEffect(() => {
-    loadStatistics();
+    const initStats = async () => {
+      await loadStatistics();
+    };
+    initStats();
   }, [loadStatistics]);
 
   /**

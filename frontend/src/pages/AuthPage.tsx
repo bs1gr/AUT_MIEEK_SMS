@@ -40,7 +40,7 @@ const AuthPage = () => {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 py-10">
       {/* Add page-ready indicator for E2E tests */}
-      <div data-testid="auth-page-loaded" className="hidden">Loaded</div>
+      <div data-testid="auth-page-loaded" className="hidden">{t('common.loaded')}</div>
 
       <Card className="shadow-lg">
         <CardHeader>
