@@ -1,4 +1,4 @@
-# Release Notes - $11.17.1: Analytics Dashboard
+# Release Notes - v1.17.1: Analytics Dashboard
 
 **Release Date**: January 12, 2026
 **Version**: 1.16.0
@@ -7,7 +7,7 @@
 
 ---
 
-## 🎉 What's New in $11.17.1
+## 🎉 What's New in v1.17.1
 
 ### Feature #125: Analytics Dashboard
 
@@ -135,12 +135,12 @@ All endpoints include:
 
 ---
 
-## 📋 Migration Guide (from $11.17.1)
+## 📋 Migration Guide (from v1.17.1)
 
 No database migrations required. Feature #125 is fully backward compatible.
 
 ### For Administrators
-1. Update to $11.17.1
+1. Update to v1.17.1
 2. No configuration changes needed
 3. Analytics dashboard automatically available
 4. No downtime required
@@ -155,7 +155,7 @@ No database migrations required. Feature #125 is fully backward compatible.
 
 ## 🐛 Bug Fixes & Improvements
 
-### New in $11.17.1
+### New in v1.17.1
 - ✅ Added comprehensive analytics dashboard
 - ✅ Implemented 5 interactive React components
 - ✅ Created 12 secure API endpoints
@@ -203,9 +203,9 @@ No database migrations required. Feature #125 is fully backward compatible.
 
 ### Installation
 ```bash
-# Update to $11.17.1
+# Update to v1.17.1
 git pull origin main
-git checkout $11.17.1
+git checkout v1.17.1
 
 # Backend dependencies already installed
 # No new migrations required
@@ -216,7 +216,7 @@ npm --prefix frontend run build
 
 ### Docker Deployment
 ```bash
-docker pull bs1gr/sms:$11.17.1
+docker pull bs1gr/sms:v1.17.1
 docker-compose up -d
 ```
 

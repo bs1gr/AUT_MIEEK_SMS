@@ -652,7 +652,7 @@ To all contributors who participated in Phase 1 development and testing.
 
 ### ⚠️ BREAKING CHANGES
 
-**Removed Deprecated Backend Modules:**
+### Removed Deprecated Backend Modules:
 
 The following deprecated modules have been removed. Update your imports:
 
@@ -2336,17 +2336,17 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| $11.9.7 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
-| $11.9.7.4 | 2025-11-22 | Windows GUI Installer Wizard |
-| $11.9.7 | 2025-11-19 | QNAP deployment, On-demand monitoring |
-| $11.9.7 | 2025-11-13 | Refresh token authentication |
-| $11.9.7 | 2025-11-06 | CSV import, codebase cleanup |
-| $11.9.7 | 2025-10-30 | JWT authentication, RBAC |
+| v1.9.7 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
+| v1.9.7.4 | 2025-11-22 | Windows GUI Installer Wizard |
+| v1.9.7 | 2025-11-19 | QNAP deployment, On-demand monitoring |
+| v1.9.7 | 2025-11-13 | Refresh token authentication |
+| v1.9.7 | 2025-11-06 | CSV import, codebase cleanup |
+| v1.9.7 | 2025-10-30 | JWT authentication, RBAC |
 
 ---
 
-[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
-[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
-[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
-[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.9.7...$11.9.7
-[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.9.7
+[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
+[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
+[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
+[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
+[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.9.7

@@ -1,4 +1,4 @@
-# SMS $11.12.2 Release Notes
+# SMS v1.12.2 Release Notes
 
 **Release Date**: December 11, 2025
 **Status**: Production Ready ✅
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-$11.12.2 is a maintenance and optimization release focused on CI/CD performance improvements and code quality assurance. All systems validated through comprehensive testing, linting, and deployment health checks.
+v1.12.2 is a maintenance and optimization release focused on CI/CD performance improvements and code quality assurance. All systems validated through comprehensive testing, linting, and deployment health checks.
 
 **Highlights**:
 - ✅ Dynamic Playwright cache keys for improved CI reliability
@@ -57,7 +57,7 @@ $11.12.2 is a maintenance and optimization release focused on CI/CD performance 
 
 ### Documentation & Transparency
 
-#### CI Cache Optimization Guide ($11.12.2 Update)
+#### CI Cache Optimization Guide (v1.12.2 Update)
 - **Location**: `docs/operations/CI_CACHE_OPTIMIZATION.md`
 - **Content**:
   - Documented dynamic Playwright version-based strategy with code examples
@@ -140,7 +140,7 @@ Cleanup & Documentation:
 
 ## Breaking Changes
 
-**None.** $11.12.2 is fully backward compatible with $11.12.2.
+**None.** v1.12.2 is fully backward compatible with v1.12.2.
 
 ---
 
@@ -164,10 +164,10 @@ Cleanup & Documentation:
 
 ### For Operators
 
-**No migration steps required.** Upgrade from $11.12.2 → $11.12.2 is a drop-in replacement.
+**No migration steps required.** Upgrade from v1.12.2 → v1.12.2 is a drop-in replacement.
 
 **Recommended**:
-- Update to $11.12.2 via `DOCKER.ps1 -Update` or `NATIVE.ps1 -Setup`
+- Update to v1.12.2 via `DOCKER.ps1 -Update` or `NATIVE.ps1 -Setup`
 - Monitor cache performance via weekly monitoring workflow artifacts
 - Review CI optimization guide if optimizing your own GitHub Actions workflows
 
@@ -201,16 +201,16 @@ Cleanup & Documentation:
 
 ---
 
-## Commits in $11.12.2
+## Commits in v1.12.2
 
-1. **b9ee6737** - ci: Use dynamic Playwright version for cache key ($11.12.2)
+1. **b9ee6737** - ci: Use dynamic Playwright version for cache key (v1.12.2)
 2. **3cc41cab** - ci: Fix e2e workflow syntax
-3. **3f03e090** - docs: Update CI cache optimization guide ($11.12.2)
+3. **3f03e090** - docs: Update CI cache optimization guide (v1.12.2)
 4. **3054efdf** - ci: Automate cache monitoring and add run summaries
-5. **6c7be540** - docs: Record initial post-change cache metrics ($11.12.2)
+5. **6c7be540** - docs: Record initial post-change cache metrics (v1.12.2)
 6. **8ad908a8** - fix(frontend): TypeScript type-check pass for commit-ready
 7. **11f4a568** - chore(tsconfig): Exclude spec and e2e test files from tsc pre-commit type check
-8. **34687641** - chore: pre-commit validation complete ($11.12.2)
+8. **34687641** - chore: pre-commit validation complete (v1.12.2)
 
 ---
 
