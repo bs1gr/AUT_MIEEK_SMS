@@ -55,7 +55,7 @@ if (-not (Invoke-VersionFormatValidation)) {
 ```
 ❌ CRITICAL VERSION VIOLATION DETECTED
 Version format $11.17.1 breaks version tracking (CRITICAL)
-Required format: v1.x.x (e.g., $11.17.1)
+Required format: v1.x.x (e.g., v1.17.1)
 Edit VERSION file to use correct format and retry COMMIT_READY.ps1
 ```
 
@@ -176,18 +176,18 @@ exec pwsh -NoProfile -ExecutionPolicy Bypass -File "./COMMIT_READY.ps1" -Mode qu
 
 | Pattern | Reason | Example |
 |---------|--------|---------|
-| `v11.x.x` | Breaks version tracking - CRITICAL | $11.17.1 ❌ |
+| `v11.x.x` | Breaks version tracking - CRITICAL | v11.17.1 ❌ |
 | `$11.x.x` | Breaks version tracking - CRITICAL | $11.17.1 ❌ |
-| `v2.x.x` | Wrong major version | $11.17.1 ❌ |
+| `v2.x.x` | Wrong major version | v2.0.0 ❌ |
 | Other formats | Invalid format | v1 ❌, 1.17.1 ❌, v1.17 ❌ |
 
 ### ✅ REQUIRED (Only Accepted Format)
 
 | Pattern | Example | Status |
 |---------|---------|--------|
-| `v1.x.x` | $11.17.1 | ✅ Valid |
-| `v1.x.x` | $11.17.1 | ✅ Valid |
-| `v1.x.x` | $11.17.1 | ✅ Valid |
+| `v1.x.x` | v1.17.1 | ✅ Valid |
+| `v1.x.x` | v1.17.2 | ✅ Valid |
+| `v1.x.x` | v1.18.0 | ✅ Valid |
 
 ---
 
@@ -285,10 +285,10 @@ git push origin main        # Now succeeds ✅
 
 | Violation | Layer 1 | Layer 2 | Layer 3 | Result |
 |-----------|---------|---------|---------|--------|
+| v11.17.1 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
 | $11.17.1 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
-| $11.17.1 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
-| $11.17.1 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
-| $11.17.1 | ✅ PASS | ✅ PASS | ✅ PASS | Releases normally |
+| v2.0.0 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
+| v1.17.1 | ✅ PASS | ✅ PASS | ✅ PASS | Releases normally |
 
 ### Failure Rate Expected
 

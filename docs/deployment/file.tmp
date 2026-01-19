@@ -394,7 +394,7 @@ cd ..
 
 ```powershell
 # Check release notes length and content
-$notes = Get-Content "docs/releases/RELEASE_NOTES_$11.15.2.md"
+$notes = Get-Content "docs/releases/RELEASE_NOTES_v1.15.2.md"
 $lineCount = @($notes).Count
 Write-Host "Release notes: $lineCount lines"
 
@@ -423,7 +423,7 @@ Release notes: 650 lines
 
 ```powershell
 # Verify deployment plan structure
-$plan = Get-Content "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.2.md"
+$plan = Get-Content "docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.2.md"
 Write-Host "Deployment plan: $(@($plan).Count) lines"
 
 # Check phases
@@ -441,7 +441,7 @@ Deployment plan: 400 lines
 ```
 
 ### Step 4.3: API Documentation Current
-**Checklist Item**: "API documentation updated for $11.15.2"
+**Checklist Item**: "API documentation updated for v1.15.2"
 
 ```powershell
 # Check if CONTROL_API.md mentions $11.15.2 or recent changes
@@ -652,7 +652,7 @@ if (Test-Path "frontend/package-lock.json") {
 |----------|------|--------|---------|
 | **Repository** | Git clean | ✅ PASS | No uncommitted changes |
 | | Version 1.15.1 | ✅ PASS | Correct version |
-| | CHANGELOG entry | ✅ PASS | $11.15.2 documented |
+| | CHANGELOG entry | ✅ PASS | v1.15.2 documented |
 | **Infrastructure** | Docker installed | ✅ PASS | Running |
 | | Ports available | ✅ PASS | 8080, 5432 free |
 | | Disk space | ✅ PASS | 250GB free |
@@ -692,7 +692,7 @@ if (Test-Path "frontend/package-lock.json") {
 
 **Next Steps**:
 1. Confirm GO decision with stakeholders
-2. Proceed to Phase 1 of [STAGING_DEPLOYMENT_PLAN_$11.15.2.md](STAGING_DEPLOYMENT_PLAN_$11.15.2.md)
+2. Proceed to Phase 1 of STAGING_DEPLOYMENT_PLAN_v1.15.2.md
 3. Execute `DOCKER.ps1 -Stop` (if containers running)
 4. Execute `DOCKER.ps1 -Start` to begin deployment
 5. Monitor health checks (expected: 5-10 minutes)

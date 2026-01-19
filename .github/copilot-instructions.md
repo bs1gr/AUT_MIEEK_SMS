@@ -1,6 +1,6 @@
 # Copilot Instructions for Student Management System
 
-**Version**: v1.18.0 (Jan 2026) | **Status**: ✅ STABLE (Released Jan 14, 2026)
+**Version**: v1.17.2 (Jan 2026) | **Status**: ✅ STABLE (Released Jan 14, 2026)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** (Single developer + AI assistant only)
 
 ## ⚡ Quick Onboarding
@@ -25,7 +25,7 @@
 2. Read [DOCUMENTATION_INDEX.md](../docs/DOCUMENTATION_INDEX.md) for navigation
 3. Follow [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) (prevents crashes & duplication)
 
-**Current Version**: v1.18.0 (stored in `VERSION` file - **always check this first**)
+**Current Version**: v1.17.2 (stored in `VERSION` file - **always check this first**)
 
 ---
 
@@ -104,7 +104,7 @@ python -m pytest
 **✅ REQUIRED:**
 - Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
 - Check work plan BEFORE starting work, update AFTER completing tasks
-- Verify version from `VERSION` file (current: 1.18.0)
+- Verify version from `VERSION` file (current: 1.17.2)
 - **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.17.1)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
 

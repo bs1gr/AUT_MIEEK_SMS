@@ -337,6 +337,7 @@ def client(db):
 
     from backend.config import settings as cfg
     from backend.db import get_session
+    from backend.dependencies import get_db
     from backend.main import app
     from backend.security.current_user import get_current_user as real_get_current_user
 
@@ -345,6 +346,7 @@ def client(db):
         yield db
 
     app.dependency_overrides[get_session] = _override_session
+    app.dependency_overrides[get_db] = _override_session  # Also override get_db for routers using it
 
     async def _override_current_user(request: Request, token: str | None = None, db=Depends(get_session)):
         from backend.errors import ErrorCode, http_error

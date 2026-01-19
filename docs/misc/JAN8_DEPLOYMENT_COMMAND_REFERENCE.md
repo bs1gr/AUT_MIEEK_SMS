@@ -39,7 +39,7 @@ git log --oneline -3
 ```powershell
 # Backup existing database
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-$backupPath = "d:\SMS\student-management-system\backups\pre_$11.15.2_$timestamp.db"
+$backupPath = "d:\SMS\student-management-system\backups\pre_v1.17.2_$timestamp.db"
 Copy-Item -Path "d:\SMS\student-management-system\data\student_management.db" -Destination $backupPath -Force -ErrorAction SilentlyContinue
 Write-Host "Database backed up to: $backupPath"
 
@@ -102,7 +102,7 @@ Get-Content frontend/.env | head -3
 ```powershell
 # Verify deployment documentation is in place
 Test-Path docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md
-Test-Path docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.2.md
+Test-Path docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.17.2.md
 # Expected: Both return True
 ```
 

@@ -58,9 +58,27 @@ def test_data(db: Session):
     ]
 
     courses = [
-        Course(course_name="Mathematics 101", course_code="MATH101", semester="Fall 2024", credits=3, deleted_at=None),
-        Course(course_name="Physics 201", course_code="PHYS201", semester="Fall 2024", credits=4, deleted_at=None),
-        Course(course_name="English 101", course_code="ENG101", semester="Fall 2024", credits=3, deleted_at=None),
+        Course(
+            course_name="Mathematics 101",
+            course_code="MATH101",
+            semester="Fall 2024",  # ✅ REQUIRED: Added semester field
+            credits=3,
+            deleted_at=None
+        ),
+        Course(
+            course_name="Physics 201",
+            course_code="PHYS201",
+            semester="Fall 2024",  # ✅ REQUIRED: Added semester field
+            credits=4,
+            deleted_at=None
+        ),
+        Course(
+            course_name="English 101",
+            course_code="ENG101",
+            semester="Fall 2024",  # ✅ REQUIRED: Added semester field
+            credits=3,
+            deleted_at=None
+        ),
     ]
 
     for student in students:
@@ -75,21 +93,30 @@ def test_data(db: Session):
             student_id=students[0].id,
             course_id=courses[0].id,
             assignment_name="Midterm Exam",
+            category="Exam",  # ✅ Added category field
             grade=95.5,
+            max_grade=100.0,
+            weight=1.0,
             deleted_at=None,
         ),
         Grade(
             student_id=students[1].id,
             course_id=courses[0].id,
             assignment_name="Midterm Exam",
+            category="Exam",  # ✅ Added category field
             grade=87.0,
+            max_grade=100.0,
+            weight=1.0,
             deleted_at=None,
         ),
         Grade(
             student_id=students[0].id,
             course_id=courses[1].id,
             assignment_name="Final Project",
+            category="Project",  # ✅ Added category field
             grade=92.0,
+            max_grade=100.0,
+            weight=1.0,
             deleted_at=None,
         ),
     ]
@@ -247,7 +274,7 @@ class TestCourseSearchEndpoint:
 
     def test_search_courses_by_code(self, client, admin_headers, test_data):
         """Should search courses by code"""
-        response = client.get(self.endpoint, params={"q": "CS"}, headers=admin_headers)
+        response = client.get(self.endpoint, params={"q": "MATH"}, headers=admin_headers)
 
         assert response.status_code == 200
         data = response.json()

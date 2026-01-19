@@ -98,7 +98,7 @@ cd backend && pytest tests/test_specific_file.py -v  # OK
 - Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
 - Check work plan BEFORE starting any work
 - Update work plan AFTER completing tasks
-- Verify version from `VERSION` file (current: 1.17.1)
+- Verify version from `VERSION` file (current: 1.17.2)
 - **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.17.2)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
 
@@ -347,8 +347,8 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 |------|----------------|-----------|
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
-| **Check version** | Read `VERSION` file (1.17.1) | Invent version numbers |
-| **Use version** | **ONLY `v1.x.x`** (v1.17.2) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
+| **Check version** | Read `VERSION` file (1.17.2) | Invent version numbers |
+| **Use version** | **ONLY `v1.x.x`** (v1.17.3) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |

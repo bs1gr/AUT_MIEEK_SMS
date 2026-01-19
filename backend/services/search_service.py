@@ -48,7 +48,7 @@ class SearchService:
             offset: Pagination offset (default: 0)
 
         Returns:
-            List of student dictionaries with id, first_name, last_name, email, enrollment_number
+            List of student dictionaries with id, first_name, last_name, email, student_id
 
         Example:
             >>> results = search_service.search_students("John")
@@ -66,7 +66,7 @@ class SearchService:
                         func.lower(Student.first_name).ilike(query_lower),
                         func.lower(Student.last_name).ilike(query_lower),
                         func.lower(Student.email).ilike(query_lower),
-                        func.lower(Student.enrollment_number).ilike(query_lower),
+                        func.lower(Student.student_id).ilike(query_lower),
                     ),
                     Student.deleted_at.is_(None),  # Soft delete filter
                 )
@@ -82,7 +82,7 @@ class SearchService:
                     "first_name": s.first_name,
                     "last_name": s.last_name,
                     "email": s.email,
-                    "enrollment_number": s.enrollment_number,
+                    "student_id": s.student_id,
                     "type": "student",
                 }
                 for s in students
@@ -107,7 +107,7 @@ class SearchService:
             offset: Pagination offset (default: 0)
 
         Returns:
-            List of course dictionaries with id, course_name, course_code, credits, academic_year
+            List of course dictionaries with id, course_name, course_code, credits, semester
 
         Example:
             >>> results = search_service.search_courses("Mathematics")
@@ -146,7 +146,7 @@ class SearchService:
                     "course_name": c.course_name,
                     "course_code": c.course_code,
                     "credits": c.credits,
-                    "academic_year": c.academic_year,
+                    "semester": c.semester,
                     "type": "course",
                 }
                 for c in courses
@@ -255,14 +255,14 @@ class SearchService:
         Supports complex filter combinations for precise result targeting.
 
         For students, supported filters:
-        - first_name, last_name, email, enrollment_number (exact or partial match)
+        - first_name, last_name, email, student_id (exact or partial match)
         - status (active/inactive)
-        - academic_year (filter by year)
+        - study_year (filter by year)
 
         For courses, supported filters:
         - course_name, course_code (exact or partial match)
         - credits (exact or range)
-        - academic_year
+        - semester
 
         For grades, supported filters:
         - grade_min, grade_max (grade range)
@@ -280,7 +280,7 @@ class SearchService:
 
         Example:
             >>> results = search_service.advanced_filter(
-            ...     filters={"credits": 3, "academic_year": 2024},
+            ...     filters={"credits": 3, "semester": "Fall 2024"},
             ...     search_type="courses"
             ... )
         """
@@ -303,7 +303,7 @@ class SearchService:
         query = self.db.query(Student).filter(Student.deleted_at.is_(None))
 
         # Apply text filters
-        for field in ["first_name", "last_name", "email", "enrollment_number"]:
+        for field in ["first_name", "last_name", "email", "student_id"]:
             if field in filters and filters[field]:
                 value = f"%{filters[field].lower()}%"
                 query = query.filter(getattr(Student, field).ilike(value))
@@ -313,9 +313,9 @@ class SearchService:
             status_value = filters["status"].lower() == "active"
             query = query.filter(Student.is_active == status_value)
 
-        # Apply academic year filter
-        if "academic_year" in filters and filters["academic_year"]:
-            query = query.filter(Student.academic_year == filters["academic_year"])
+        # Apply study year filter
+        if "study_year" in filters and filters["study_year"]:
+            query = query.filter(Student.study_year == filters["study_year"])
 
         students = query.limit(limit).offset(offset).all()
 
@@ -325,8 +325,8 @@ class SearchService:
                 "first_name": s.first_name,
                 "last_name": s.last_name,
                 "email": s.email,
-                "enrollment_number": s.enrollment_number,
-                "academic_year": s.academic_year,
+                "student_id": s.student_id,
+                "study_year": s.study_year,
                 "type": "student",
             }
             for s in students
@@ -352,9 +352,9 @@ class SearchService:
         if "credits_max" in filters and filters["credits_max"]:
             query = query.filter(Course.credits <= filters["credits_max"])
 
-        # Apply academic year filter
-        if "academic_year" in filters and filters["academic_year"]:
-            query = query.filter(Course.academic_year == filters["academic_year"])
+        # Apply semester filter
+        if "semester" in filters and filters["semester"]:
+            query = query.filter(Course.semester == filters["semester"])
 
         courses = query.limit(limit).offset(offset).all()
 
@@ -364,7 +364,7 @@ class SearchService:
                 "course_name": c.course_name,
                 "course_code": c.course_code,
                 "credits": c.credits,
-                "academic_year": c.academic_year,
+                "semester": c.semester,
                 "type": "course",
             }
             for c in courses

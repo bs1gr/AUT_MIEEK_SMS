@@ -54,7 +54,7 @@ $env:SMS_ALLOW_DIRECT_PYTEST = "1"
 $env:SMS_TEST_RUNNER = "batch"
 
 Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║   Batch Test Runner (SMS v1.18.0)     ║" -ForegroundColor Cyan
+Write-Host "║   Batch Test Runner (SMS v1.17.2)     ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
 
 # Verify we're in the right directory or find it

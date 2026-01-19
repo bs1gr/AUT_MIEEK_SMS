@@ -1,7 +1,7 @@
-# Pre-Deployment Validation Checklist - $11.15.2
+# Pre-Deployment Validation Checklist - v1.17.2
 
 **Date**: January 7, 2026
-**Version**: 1.15.1
+**Version**: 1.17.2
 **Environment**: Staging (Pre-Deployment)
 **Status**: Ready for Execution
 
@@ -13,26 +13,26 @@
 - [ ] Main branch has latest code
 - [ ] Git status clean (no uncommitted changes)
 - [ ] Latest commit: `3b9d44fd5`
-- [ ] Commit message mentions "$11.15.2"
+- [ ] Commit message mentions "v1.17.2"
 
 ```bash
 # Verification commands:
 git status  # Should show "nothing to commit"
 git log --oneline -1  # Should show 3b9d44fd5
-cat VERSION  # Should show 1.15.1
+cat VERSION  # Should show 1.17.2
 ```
 
 ### File Integrity
 - [ ] VERSION file: 1.15.1
-- [ ] CHANGELOG.md: $11.15.2 entry present
-- [ ] RELEASE_NOTES_$11.15.2.md: Complete (650+ lines)
+- [ ] CHANGELOG.md: v1.15.2 entry present
+- [ ] RELEASE_NOTES_v1.15.2.md: Complete (650+ lines)
 - [ ] docker-compose.yml: Present and valid
 - [ ] .env.example: Present and correct
 - [ ] All required scripts executable
 
 ```bash
 # Verification:
-ls -la VERSION CHANGELOG.md RELEASE_NOTES_$11.15.2.md
+ls -la VERSION CHANGELOG.md RELEASE_NOTES_v1.15.2.md
 grep "## \[1.15.1\]" CHANGELOG.md  # Should find entry
 ```
 
