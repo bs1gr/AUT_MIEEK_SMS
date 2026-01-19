@@ -17,7 +17,7 @@
 | **Release Target** | 1.18.0 (Phase 3 Features) |
 | **Target Release Date** | January 15, 2026 |
 | **Active Phase** | Phase 3 Completion & Release |
-| **Phase Status** | 🟢 **RELEASE PREP** — All features complete, preparing v1.17.2 |
+| **Phase Status** |  **REPO CLEANUP** — Code quality and CI fixes |
 | **Last Update** | 2026-01-14 |
 
 ---

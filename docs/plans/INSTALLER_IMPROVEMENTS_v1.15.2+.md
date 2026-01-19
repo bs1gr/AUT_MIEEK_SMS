@@ -198,5 +198,4 @@ powershell -ExecutionPolicy Bypass -NoProfile -File "DOCKER.ps1" -Install -Silen
 
 **Future Migration Path:** When upgrading to Inno Setup 7+, replace workaround with native directive for cleaner implementation.
 
-**Validation:** Build pipeline tested successfully, installer creates properly named components.</content>
-<parameter name="filePath">d:\SMS\student-management-system\INSTALLER_IMPROVEMENTS_$11.14.0+.md
+**Validation:** Build pipeline tested successfully, installer creates properly named components.
