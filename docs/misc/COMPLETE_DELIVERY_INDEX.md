@@ -43,7 +43,7 @@
 |----------|----------|---------|-----------|-------|
 | **STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md** | `docs/deployment/` | Main deployment runbook with all commands | 20 min | DevOps Lead |
 | **PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md** | `docs/deployment/` | 7-phase validation checklist (30 items) | 15 min | Tech Lead |
-| **STAGING_DEPLOYMENT_PLAN_v1.15.2.md** | `docs/deployment/` | Governance & official timeline | 10 min | PM |
+| **STAGING_DEPLOYMENT_PLAN_$11.17.2.md** | `docs/deployment/` | Governance & official timeline | 10 min | PM |
 | **PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md** | `docs/deployment/` | Quick validation checklist (2 page) | 5 min | DevOps |
 
 #### Planning & Risk Management
@@ -95,7 +95,7 @@ docs/deployment/ (Phase 2 Core):
 ├── QUICK_REFERENCE_PHASE2.md                      ← Navigation (2 min)
 ├── PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md        ← Validation
 ├── STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md       ← Main runbook
-├── STAGING_DEPLOYMENT_PLAN_v1.15.2.md             ← Governance
+├── STAGING_DEPLOYMENT_PLAN_$11.17.2.md             ← Governance
 ├── PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md         ← Quick check
 ├── PHASE2_KICKOFF_TRANSITION_DOCUMENT.md          ← Team prep
 ├── PHASE2_RISK_REGISTER.md                        ← Risk mgmt
@@ -245,7 +245,7 @@ FINAL_READINESS_REPORT_JAN8.md
     ├── Points to: PHASE2_RISK_REGISTER.md
     └── Points to: PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md
          ├── Detailed by: STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md
-         └── Referenced by: STAGING_DEPLOYMENT_PLAN_v1.15.2.md
+         └── Referenced by: STAGING_DEPLOYMENT_PLAN_$11.17.2.md
 
 QUICK_REFERENCE_PHASE2.md
     ├── Links to: EXECUTIVE_SUMMARY_PHASE2_READY.md

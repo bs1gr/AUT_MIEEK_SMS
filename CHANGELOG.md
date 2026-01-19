@@ -2336,17 +2336,17 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| v1.9.7 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
-| v1.9.7.4 | 2025-11-22 | Windows GUI Installer Wizard |
-| v1.9.7 | 2025-11-19 | QNAP deployment, On-demand monitoring |
-| v1.9.7 | 2025-11-13 | Refresh token authentication |
-| v1.9.7 | 2025-11-06 | CSV import, codebase cleanup |
-| v1.9.7 | 2025-10-30 | JWT authentication, RBAC |
+| $11.17.2 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
+| $11.17.2.4 | 2025-11-22 | Windows GUI Installer Wizard |
+| $11.17.2 | 2025-11-19 | QNAP deployment, On-demand monitoring |
+| $11.17.2 | 2025-11-13 | Refresh token authentication |
+| $11.17.2 | 2025-11-06 | CSV import, codebase cleanup |
+| $11.17.2 | 2025-10-30 | JWT authentication, RBAC |
 
 ---
 
-[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
-[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
-[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
-[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.9.7...v1.9.7
-[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.9.7
+[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
+[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
+[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
+[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
+[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2

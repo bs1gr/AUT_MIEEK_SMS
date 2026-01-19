@@ -9,7 +9,7 @@ describe('useFormValidation hook', () => {
     age: z.number().min(0).max(150, 'Invalid age'),
   });
 
-  type TestData = z.infer<typeof testSchema>;
+  // type TestData = z.infer<typeof testSchema>; // Unused type
 
   describe('validate', () => {
     it('should return true for valid data', async () => {

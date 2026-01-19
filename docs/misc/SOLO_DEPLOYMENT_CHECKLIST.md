@@ -159,7 +159,7 @@ docker stop sms-fullstack
 docker rm sms-fullstack
 
 # Step 3: Restore database backup
-Copy-Item "backups/pre_v1.17.2_*.db" `
+Copy-Item "backups/pre_$11.17.2_*.db" `
   -Destination "data/student_management.db" -Force
 
 # You're back to pre-deployment state ✅

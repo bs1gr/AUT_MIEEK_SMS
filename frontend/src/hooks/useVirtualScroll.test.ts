@@ -163,7 +163,7 @@ describe('useVirtualScroll hook', () => {
         { initialProps: { itemCount: 100 } }
       );
 
-      const firstVirtualizer = result.current.virtualizer;
+      // const firstVirtualizer = result.current.virtualizer; // Unused
 
       rerender({ itemCount: 200 });
 

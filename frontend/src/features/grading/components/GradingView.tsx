@@ -104,7 +104,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   }, [courseId, studentsString, studentId, students]); // Use studentsString to avoid infinite loop and include studentId
 
   // When student is chosen, restrict courses to those the student is enrolled in
-  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses?.length]); // Use length to prevent loops
+  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses]);
 
   useEffect(() => {
     const run = async () => {
@@ -219,7 +219,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     const rules = evaluationRules.map(r => r.category).filter(Boolean);
     const customRules = rules.filter(r => !base.some(b => b.value === r)).map(r => ({ value: r, label: r }));
     return [...base, ...customRules];
-  }, [evaluationRules, t, language]);
+  }, [evaluationRules, t]);
 
   // Force Midterm/Final Exam to weight=1
   useEffect(() => {

@@ -8,7 +8,7 @@
 
 ## Version Releases
 
-### v1.15.2 - Phase 1 Complete + Post-Phase 1 Polish ✅
+### $11.17.2 - Phase 1 Complete + Post-Phase 1 Polish ✅
 **Release Date**: January 7, 2026
 **Status**: ✅ Released to Production
 **Type**: Minor Release (feature + polish)
@@ -24,7 +24,7 @@
 8. E2E Test Suite - 19/24 tests passing (100% critical path)
 
 **Documentation**:
-- [RELEASE_NOTES_v1.15.2.md](../releases/RELEASE_NOTES_v1.15.2.md)
+- [RELEASE_NOTES_$11.17.2.md](../releases/RELEASE_NOTES_$11.17.2.md)
 - [PHASE1_COMPLETION_REPORT.md](../releases/PHASE1_COMPLETION_REPORT.md)
 - [CHANGELOG.md](../../CHANGELOG.md)
 
@@ -35,9 +35,9 @@
 
 ---
 
-### v1.15.1 - Phase 1 Initial Release
+### $11.17.2 - Phase 1 Initial Release
 **Release Date**: January 5, 2026
-**Status**: ✅ Superseded by v1.15.2
+**Status**: ✅ Superseded by $11.17.2
 **Type**: Major Release (Phase 1)
 
 **Key Improvements**:
@@ -47,14 +47,14 @@
 - Documentation comprehensively updated
 
 **Documentation**:
-- [MID_PHASE_SUMMARY_v1.15.2.md](../archive/release-workflow-v1.12-1.13/MID_PHASE_SUMMARY_v1.15.2.md) (archived)
+- [MID_PHASE_SUMMARY_$11.17.2.md](../archive/release-workflow-v1.12-1.13/MID_PHASE_SUMMARY_$11.17.2.md) (archived)
 - [CHANGELOG.md](../../CHANGELOG.md)
 
 ---
 
-### v1.14.3 - Base Version (Before Phase 1)
+### $11.17.2 - Base Version (Before Phase 1)
 **Release Date**: January 3, 2026
-**Status**: ✅ Superseded by v1.15.2
+**Status**: ✅ Superseded by $11.17.2
 **Type**: Maintenance Release
 
 **Key Features**:
@@ -71,7 +71,7 @@
 
 ---
 
-### v1.13.0 - Pre-Phase 1 Foundation
+### $11.17.2 - Pre-Phase 1 Foundation
 **Release Date**: December 24, 2025
 **Status**: ⚠️ Archived (historical reference only)
 **Type**: Major Release

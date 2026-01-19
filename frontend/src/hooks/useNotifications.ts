@@ -53,8 +53,9 @@ export function useNotifications(): UseNotificationsReturn {
       const data = extractAPIResponseData(response);
 
       if (data && typeof data === 'object') {
-        setNotifications((data as any).notifications || []);
-        setUnreadCount((data as any).unread_count || 0);
+        const typedData = data as unknown as { notifications?: unknown[]; unread_count?: number };
+        setNotifications((typedData.notifications as Notification[]) || []);
+        setUnreadCount(typedData.unread_count || 0);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch notifications';
@@ -74,7 +75,7 @@ export function useNotifications(): UseNotificationsReturn {
       const data = extractAPIResponseData(response);
 
       if (data && typeof data === 'object' && 'unread_count' in data) {
-        setUnreadCount((data as any).unread_count);
+        setUnreadCount((data as unknown as { unread_count: number }).unread_count);
       }
     } catch (err) {
       console.error('Failed to refresh unread count:', err);
@@ -153,7 +154,7 @@ export function useNotifications(): UseNotificationsReturn {
    */
   const connect = useCallback(() => {
     if (socketRef.current?.connected) {
-      console.log('WebSocket already connected');
+      // Already connected, skip reconnection
       return;
     }
 
@@ -175,7 +176,6 @@ export function useNotifications(): UseNotificationsReturn {
 
       // Connection events
       socket.on('connect', () => {
-        console.log('WebSocket connected:', socket.id);
         setIsConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
@@ -185,8 +185,7 @@ export function useNotifications(): UseNotificationsReturn {
         refreshUnreadCount();
       });
 
-      socket.on('disconnect', (reason: string) => {
-        console.log('WebSocket disconnected:', reason);
+      socket.on('disconnect', (_reason: string) => {
         setIsConnected(false);
       });
 
@@ -203,7 +202,7 @@ export function useNotifications(): UseNotificationsReturn {
 
       // Notification events
       socket.on('notification', (data: WebSocketMessage) => {
-        console.log('New notification received:', data);
+        // New notification received
 
         if (data.type === 'notification' && data.data) {
           const newNotification = data.data as Notification;
@@ -247,8 +246,8 @@ export function useNotifications(): UseNotificationsReturn {
         }
       });
 
-      socket.on('message', (data: WebSocketMessage) => {
-        console.log('WebSocket message:', data);
+      socket.on('message', (_data: WebSocketMessage) => {
+        // WebSocket message received
       });
 
       socket.on('error', (err: Error) => {

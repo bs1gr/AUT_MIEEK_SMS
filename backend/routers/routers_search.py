@@ -306,17 +306,14 @@ async def advanced_search(
             return error_response(
                 code="INVALID_ENTITY",
                 message="Invalid entity. Must be 'students', 'courses', or 'grades'",
-                request_id=request.state.request_id
+                request_id=request.state.request_id,
             )
 
         search_service = SearchService(db)
 
         # Use entity as search_type for backward compatibility
         results = search_service.advanced_filter(
-            filters=body.filters or {},
-            search_type=entity,
-            limit=limit,
-            offset=offset
+            filters=body.filters or {}, search_type=entity, limit=limit, offset=offset
         )
 
         return success_response(results, request_id=request.state.request_id)
@@ -326,7 +323,7 @@ async def advanced_search(
             code="INVALID_FILTER",
             message="Invalid filter value",
             details={"error": str(ve)},
-            request_id=request.state.request_id
+            request_id=request.state.request_id,
         )
     except Exception as e:
         logger.error(f"Error in advanced search: {str(e)}")
@@ -334,7 +331,7 @@ async def advanced_search(
             code="SEARCH_ERROR",
             message="Failed to perform advanced search",
             details={"error": str(e)},
-            request_id=request.state.request_id
+            request_id=request.state.request_id,
         )
 
 

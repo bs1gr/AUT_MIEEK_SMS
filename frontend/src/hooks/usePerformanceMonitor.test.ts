@@ -63,7 +63,7 @@ describe('usePerformanceMonitor hook', () => {
     it('should not log when render time is below threshold', () => {
       const warnSpy = console.warn as unknown as ReturnType<typeof vi.spyOn>;
 
-      const { unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 10000));
+      const { unmount: _unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 10000));
 
       // Warning should not be logged if threshold is very high
       expect(warnSpy).not.toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe('usePerformanceMonitor hook', () => {
       const { unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 100));
       unmount();
 
-      const callArgs = (warnSpy as any).mock.calls[0];
+      const callArgs = (warnSpy as unknown as any).mock.calls[0];
       expect(callArgs[1]).toHaveProperty('renderCount');
       expect(typeof callArgs[1].renderCount).toBe('number');
     });
@@ -148,7 +148,7 @@ describe('usePerformanceMonitor hook', () => {
       const { unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 100));
       unmount();
 
-      const callArgs = (warnSpy as any).mock.calls[0];
+      const callArgs = (warnSpy as unknown as any).mock.calls[0];
       expect(callArgs[1]).toHaveProperty('duration');
       expect(typeof callArgs[1].duration).toBe('number');
     });
@@ -177,6 +177,7 @@ describe('usePerformanceMonitor hook', () => {
         })
       );
 
+      // @ts-expect-error: Cleanup intentional mock assignment
       delete (window as any).analytics;
     });
 
@@ -275,53 +276,61 @@ describe('usePerformanceMonitor hook', () => {
       const observerMock = { observe: vi.fn(), disconnect: vi.fn() };
       const observeMock = observerMock.observe;
 
+      // @ts-expect-error: Intentional mock for PerformanceObserver
       (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {}
+        constructor(_callback: PerformanceObserverCallback) {}
         observe = observerMock.observe;
         disconnect = observerMock.disconnect;
       };
 
-      const { unmount } = renderHook(() => useApiPerformance('/api/students'));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students'));
 
       expect(observeMock).toHaveBeenCalled();
 
+      // @ts-expect-error: Cleanup intentional mock
       delete (window as any).PerformanceObserver;
     });
 
     it('should not crash when PerformanceObserver is not available', () => {
+      // @ts-expect-error: Access to intentional mock
       const originalPerformanceObserver = (window as any).PerformanceObserver;
+      // @ts-expect-error: Cleanup intentional mock
       delete (window as any).PerformanceObserver;
 
       expect(() => {
-        const { unmount } = renderHook(() => useApiPerformance('/api/students'));
+        const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students'));
       }).not.toThrow();
 
+      // @ts-expect-error: Restore intentional mock
       (window as any).PerformanceObserver = originalPerformanceObserver;
     });
 
     it('should observe measure and resource entry types', () => {
       const observeMock = vi.fn();
 
+      // @ts-expect-error: Intentional mock for PerformanceObserver
       (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {}
+        constructor(_callback: PerformanceObserverCallback) {}
         observe = observeMock;
         disconnect = vi.fn();
       };
 
-      const { unmount } = renderHook(() => useApiPerformance('/api/students'));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students'));
 
       expect(observeMock).toHaveBeenCalledWith({
         entryTypes: expect.arrayContaining(['measure', 'resource'])
       });
 
+      // @ts-expect-error: Cleanup intentional mock
       delete (window as any).PerformanceObserver;
     });
 
     it('should disconnect observer on cleanup', () => {
       const disconnectMock = vi.fn();
 
+      // @ts-expect-error: Intentional mock for PerformanceObserver
       (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {}
+        constructor(_callback: PerformanceObserverCallback) {}
         observe = vi.fn();
         disconnect = disconnectMock;
       };
@@ -332,12 +341,14 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(disconnectMock).toHaveBeenCalled();
 
+      // @ts-expect-error: Cleanup intentional mock
       delete (window as any).PerformanceObserver;
     });
 
     it('should use default threshold of 1000ms', () => {
       capturedCallback = undefined;
 
+      // @ts-expect-error: Intentional mock for PerformanceObserver
       (window as any).PerformanceObserver = class {
         constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
@@ -348,7 +359,7 @@ describe('usePerformanceMonitor hook', () => {
 
       warnSpy.mockClear();
 
-      const { unmount } = renderHook(() => useApiPerformance('/api/students'));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students'));
 
       // Simulate performance entry that exceeds default threshold
       if (capturedCallback) {
@@ -364,12 +375,14 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(warnSpy).toHaveBeenCalled();
 
+      // @ts-expect-error: Cleanup intentional mock
       delete (window as any).PerformanceObserver;
     });
 
     it('should log warning for slow API requests', () => {
       capturedCallback = undefined;
 
+      // @ts-expect-error: Intentional mock for PerformanceObserver
       (window as any).PerformanceObserver = class {
         constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
@@ -381,7 +394,7 @@ describe('usePerformanceMonitor hook', () => {
       warnSpy.mockClear();
 
       const endpoint = '/api/students';
-      const { unmount } = renderHook(() => useApiPerformance(endpoint, 500));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance(endpoint, 500));
 
       if (capturedCallback) {
         capturedCallback({
@@ -399,12 +412,14 @@ describe('usePerformanceMonitor hook', () => {
         expect.any(Object)
       );
 
+      // @ts-expect-error: Cleanup intentional mock
       delete (window as any).PerformanceObserver;
     });
 
     it('should not log warning for fast API requests', () => {
       capturedCallback = undefined;
 
+      // @ts-expect-error: Intentional mock for PerformanceObserver
       (window as any).PerformanceObserver = class {
         constructor(callback: PerformanceObserverCallback) {
           capturedCallback = callback;
@@ -415,7 +430,7 @@ describe('usePerformanceMonitor hook', () => {
 
       warnSpy.mockClear();
 
-      const { unmount } = renderHook(() => useApiPerformance('/api/students', 500));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students', 500));
 
       if (capturedCallback) {
         capturedCallback({
@@ -430,6 +445,7 @@ describe('usePerformanceMonitor hook', () => {
 
       expect(warnSpy).not.toHaveBeenCalled();
 
+      // @ts-expect-error: Cleanup intentional mock
       delete (window as any).PerformanceObserver;
     });
 
@@ -446,7 +462,7 @@ describe('usePerformanceMonitor hook', () => {
 
       warnSpy.mockClear();
 
-      const { unmount } = renderHook(() => useApiPerformance('/api/students', 500));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students', 500));
 
       if (capturedCallback) {
         capturedCallback({
@@ -479,7 +495,7 @@ describe('usePerformanceMonitor hook', () => {
       };
 
       const endpoint = '/api/students';
-      const { unmount } = renderHook(() => useApiPerformance(endpoint, 500));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance(endpoint, 500));
 
       if (capturedCallback) {
         capturedCallback({
@@ -509,7 +525,7 @@ describe('usePerformanceMonitor hook', () => {
       const disconnectMock = vi.fn();
 
       (window as any).PerformanceObserver = class {
-        constructor(callback: PerformanceObserverCallback) {}
+        constructor(_callback: PerformanceObserverCallback) {}
         observe = observeMock;
         disconnect = disconnectMock;
       };
@@ -542,7 +558,7 @@ describe('usePerformanceMonitor hook', () => {
 
       warnSpy.mockClear();
 
-      const { unmount } = renderHook(() => useApiPerformance('/api/students', 500));
+      const { unmount: _unmount } = renderHook(() => useApiPerformance('/api/students', 500));
 
       if (capturedCallback) {
         capturedCallback({

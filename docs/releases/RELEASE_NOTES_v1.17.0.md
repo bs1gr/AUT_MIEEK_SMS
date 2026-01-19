@@ -1,4 +1,4 @@
-# Release Notes - v1.17.0
+# Release Notes - $11.17.2
 
 **Release Date**: January 12, 2026
 **Version**: 1.17.0
@@ -119,7 +119,7 @@ The Student Management System now features a fully-functional real-time notifica
 
 ## Breaking Changes
 
-**None**. Version 1.17.0 is fully backward compatible with v1.16.0.
+**None**. Version 1.17.0 is fully backward compatible with $11.17.2.
 
 All existing functionality continues to work unchanged:
 - ✅ API endpoints (all working)
@@ -130,7 +130,7 @@ All existing functionality continues to work unchanged:
 
 ---
 
-## Migration Guide (v1.16.0 → v1.17.0)
+## Migration Guide ($11.17.2 → $11.17.2)
 
 ### For Users
 **No action required**. Notifications are opt-in:
@@ -187,7 +187,7 @@ To enable:
 ### Docker Deployment (Recommended)
 ```bash
 # Pull latest image
-docker pull bs1gr/sms:v1.17.0
+docker pull bs1gr/sms:$11.17.2
 
 # Or build locally
 cd /path/to/sms
@@ -204,8 +204,8 @@ cd /path/to/sms
 ```
 
 ### Windows Installer
-Download: `SMS_Installer_v1.17.0.exe` from releases
-- Installs v1.17.0
+Download: `SMS_Installer_$11.17.2.exe` from releases
+- Installs $11.17.2
 - Includes all dependencies
 - One-click setup
 
@@ -289,7 +289,7 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 
 ## Upgrade Path
 
-From v1.16.0:
+From $11.17.2:
 ```
 1. Download $11.17.1
 2. Run database migration (automatic on startup)

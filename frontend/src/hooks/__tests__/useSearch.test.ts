@@ -120,7 +120,7 @@ describe('useSearch Hook', () => {
       await act(async () => {
         try {
           await result.current.search('test');
-        } catch (e) {
+        } catch {
           // Error is handled
         }
       });
@@ -214,7 +214,7 @@ describe('useSearch Hook', () => {
       await act(async () => {
         try {
           await result.current.getSuggestions('test');
-        } catch (e) {
+        } catch {
           // Error is handled
         }
       });
@@ -264,7 +264,7 @@ describe('useSearch Hook', () => {
       await act(async () => {
         try {
           await result.current.advancedFilter({ first_name: 'test' });
-        } catch (e) {
+        } catch {
           // Error is handled
         }
       });

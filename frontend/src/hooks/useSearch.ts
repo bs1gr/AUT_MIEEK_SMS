@@ -160,11 +160,13 @@ export const useSearch = (
           error: null
         }));
       } catch (error: Error | unknown) {
-        const errorMessage = error instanceof Error
-          ? error.message
-          : typeof error === 'object' && error !== null && 'response' in error
-            ? (error as any)?.response?.data?.error?.message || t('search.errorSearching')
-            : t('search.errorSearching');
+        let errorMessage = t('search.errorSearching');
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'object' && error !== null && 'response' in error) {
+          const apiError = error as unknown as { response?: { data?: { error?: { message?: string } } } };
+          errorMessage = apiError?.response?.data?.error?.message || t('search.errorSearching');
+        }
 
         setState(prev => ({
           ...prev,
@@ -214,7 +216,7 @@ export const useSearch = (
           suggestions,
           isLoading: false
         }));
-      } catch (_error: Error | unknown) {
+      } catch {
         setState(prev => ({
           ...prev,
           suggestions: [],
@@ -279,11 +281,13 @@ export const useSearch = (
           error: null
         }));
       } catch (error: Error | unknown) {
-        const errorMessage = error instanceof Error
-          ? error.message
-          : typeof error === 'object' && error !== null && 'response' in error
-            ? (error as any)?.response?.data?.error?.message || t('search.errorSearching')
-            : t('search.errorSearching');
+        let errorMessage = t('search.errorSearching');
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'object' && error !== null && 'response' in error) {
+          const apiError = error as unknown as { response?: { data?: { error?: { message?: string } } } };
+          errorMessage = apiError?.response?.data?.error?.message || t('search.errorSearching');
+        }
 
         setState(prev => ({
           ...prev,
@@ -324,7 +328,7 @@ export const useSearch = (
           total_courses: 0,
           total_grades: 0
         });
-      } catch (_error: Error | unknown) {
+      } catch {
         // Fail silently for statistics - error logging skipped
       }
     },
