@@ -26,7 +26,7 @@ interface GradingViewProps {
 }
 
 const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
-  const { t, language } = useLanguage();
+  const { t, language: _language } = useLanguage();
 
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
