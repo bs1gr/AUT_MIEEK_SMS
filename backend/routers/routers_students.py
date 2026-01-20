@@ -36,7 +36,7 @@ router = APIRouter(prefix="/students", tags=["Students"], responses={404: {"desc
 @router.post("/", response_model=StudentResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:create")
-async def create_student(
+def create_student(
     request: Request,
     student: StudentCreate,
     db: Session = Depends(get_db),
@@ -54,7 +54,7 @@ async def create_student(
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view")
 @cached(ttl=CacheConfig.STUDENTS_LIST)
-async def get_all_students(
+def get_all_students(
     request: Request,
     skip: int = 0,
     limit: int = 100,
@@ -77,7 +77,7 @@ async def get_all_students(
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view", allow_self_access=True)
 @cached(ttl=CacheConfig.STUDENT_DETAIL)
-async def get_student(
+def get_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
@@ -91,7 +91,7 @@ async def get_student(
 @router.put("/{student_id}", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:edit")
-async def update_student(
+def update_student(
     request: Request,
     student_id: int,
     student_data: StudentUpdate,
@@ -110,7 +110,7 @@ async def update_student(
 @router.delete("/{student_id}", status_code=204)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:delete")
-async def delete_student(
+def delete_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
@@ -128,7 +128,7 @@ async def delete_student(
 @router.post("/{student_id}/activate")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:edit")
-async def activate_student(
+def activate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
@@ -142,7 +142,7 @@ async def activate_student(
 @router.post("/{student_id}/deactivate")
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("students:edit")
-async def deactivate_student(
+def deactivate_student(
     request: Request,
     student_id: int,
     db: Session = Depends(get_db),
