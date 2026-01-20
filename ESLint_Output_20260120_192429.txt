@@ -1,18 +1,16 @@
 
-  
+
   D:\SMS\student-management-system\frontend\src\components\__tests__\SearchResults.test.tsx
 >   28:7  warning  'renderWithProviders' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
-  
+
   D:\SMS\student-management-system\frontend\src\components\import-export\ImportExportPage.tsx
 >   21:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
 >   33:7  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console
-  
+
   D:\SMS\student-management-system\frontend\src\features\importExport\ExportDialog.test.tsx
 >   2:37  warning  'RenderOptions' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
-  
+
   D:\SMS\student-management-system\frontend\src\features\importExport\HistoryTable.test.tsx
 >   2:26  warning  'RenderOptions' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
-  
-> ✖ 5 problems (0 errors, 5 warnings)
-  
 
+> ✖ 5 problems (0 errors, 5 warnings)
