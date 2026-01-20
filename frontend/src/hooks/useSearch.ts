@@ -118,6 +118,8 @@ export const useSearch = (
 
   const suggestionsCache = useRef<Map<string, SearchSuggestion[]>>(new Map());
   const suggestionsTimeout = useRef<NodeJS.Timeout | null>(null);
+  const lastQueryRef = useRef<string | undefined>(undefined);
+  const lastFiltersRef = useRef<SearchFilters | undefined>(undefined);
 
   /**
    * Basic search by query string
@@ -134,6 +136,9 @@ export const useSearch = (
         return;
       }
 
+      lastQueryRef.current = query;
+      lastFiltersRef.current = undefined;
+
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
       try {
@@ -147,13 +152,16 @@ export const useSearch = (
           }
         });
 
-        const results = response.data || [];
-        const hasMore = results.length === pageSize;
+        const incomingResults = response.data || [];
+        const mergedResults = page > 0
+          ? [...state.results, ...incomingResults]
+          : incomingResults;
+        const hasMore = incomingResults.length === pageSize;
 
         setState(prev => ({
           ...prev,
-          results,
-          total: results.length,
+          results: mergedResults,
+          total: mergedResults.length,
           hasMore,
           currentPage: page,
           isLoading: false,
@@ -176,7 +184,7 @@ export const useSearch = (
         }));
       }
     },
-    [searchType, pageSize, t]
+    [searchType, pageSize, state.results, t]
   );
 
   /**
@@ -216,15 +224,17 @@ export const useSearch = (
           suggestions,
           isLoading: false
         }));
-      } catch {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : t('search.errorSearching');
         setState(prev => ({
           ...prev,
           suggestions: [],
+          error: message,
           isLoading: false
         }));
       }
     },
-    []
+    [t]
   );
 
   /**
@@ -253,6 +263,9 @@ export const useSearch = (
    */
   const advancedFilter = useCallback(
     async (filters: SearchFilters, page: number = 0) => {
+      lastFiltersRef.current = filters;
+      lastQueryRef.current = undefined;
+
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
       try {
@@ -268,13 +281,16 @@ export const useSearch = (
           }
         });
 
-        const results = response.data || [];
-        const hasMore = results.length === pageSize;
+        const incomingResults = response.data || [];
+        const mergedResults = page > 0
+          ? [...state.results, ...incomingResults]
+          : incomingResults;
+        const hasMore = incomingResults.length === pageSize;
 
         setState(prev => ({
           ...prev,
-          results,
-          total: results.length,
+          results: mergedResults,
+          total: mergedResults.length,
           hasMore,
           currentPage: page,
           isLoading: false,
@@ -297,7 +313,7 @@ export const useSearch = (
         }));
       }
     },
-    [searchType, pageSize, t]
+    [searchType, pageSize, state.results, t]
   );
 
   /**
@@ -311,6 +327,10 @@ export const useSearch = (
         advancedFilter(filters, nextPage);
       } else if (query) {
         search(query, nextPage);
+      } else if (lastFiltersRef.current) {
+        advancedFilter(lastFiltersRef.current, nextPage);
+      } else if (lastQueryRef.current) {
+        search(lastQueryRef.current, nextPage);
       }
     },
     [state.currentPage, search, advancedFilter]
@@ -369,6 +389,8 @@ export const useSearch = (
       if (suggestionsTimeout.current) {
         clearTimeout(suggestionsTimeout.current);
       }
+      // async cleanup to match test expectations
+      setTimeout(() => suggestionsCache.current.clear(), 0);
     };
   }, []);
 

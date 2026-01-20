@@ -277,12 +277,20 @@ export function useNotifications(): UseNotificationsReturn {
     }
   }, []);
 
-  // Auto-connect on mount, disconnect on unmount
+  // Auto-connect on mount (deferred) and disconnect on unmount
   useEffect(() => {
-    connect();
-    fetchNotifications({ limit: 20 });
+    const timeout = setTimeout(() => {
+      connect();
+      fetchNotifications({ limit: 20 });
+    }, 0);
 
     return () => {
+      clearTimeout(timeout);
+
+      if (socketRef.current) {
+        socketRef.current.off?.();
+      }
+
       disconnect();
     };
   }, [connect, fetchNotifications, disconnect]);

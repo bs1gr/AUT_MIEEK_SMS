@@ -20,15 +20,15 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n';
-import { SearchBar } from '../SearchBar';
-import * as useSearchHook from '../../hooks/useSearch';
+import SearchBar from '../SearchBar';
+import { useSearch } from '../../hooks/useSearch';
 
 // Mock useSearch hook
 vi.mock('../../hooks/useSearch', () => ({
-  default: vi.fn()
+  useSearch: vi.fn()
 }));
 
-const mockUseSearch = useSearchHook.default as unknown as ReturnType<typeof vi.fn>;
+const mockUseSearch = useSearch as ReturnType<typeof vi.fn>;
 
 const mockUseSearchReturn = {
   results: [],

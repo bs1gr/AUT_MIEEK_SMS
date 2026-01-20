@@ -52,16 +52,18 @@ describe('AdvancedFilters Component', () => {
       const { container } = renderAdvancedFilters({ isOpen: false });
 
       const panel = container.querySelector('[data-open="false"]');
-      expect(panel || !screen.getByRole('region')).toBeTruthy();
+      expect(panel).toBeInTheDocument();
+      expect(screen.queryByRole('region')).not.toBeInTheDocument();
     });
 
     it('should render toggle button', () => {
       renderAdvancedFilters();
 
       const toggleButton = screen.getByRole('button', {
-        name: /filter|advanced/i
+        name: /advanced filters/i
       });
       expect(toggleButton).toBeInTheDocument();
+      expect(toggleButton).toHaveAttribute('aria-expanded');
     });
 
     it('should apply custom className', () => {
@@ -256,7 +258,7 @@ describe('AdvancedFilters Component', () => {
       renderAdvancedFilters();
 
       expect(
-        screen.getByRole('button', { name: /apply|search/i })
+        screen.getByRole('button', { name: /apply filters/i })
       ).toBeInTheDocument();
     });
 
@@ -264,7 +266,7 @@ describe('AdvancedFilters Component', () => {
       renderAdvancedFilters();
 
       expect(
-        screen.getByRole('button', { name: /reset|clear/i })
+        screen.getByRole('button', { name: /reset filters/i })
       ).toBeInTheDocument();
     });
 
@@ -278,7 +280,7 @@ describe('AdvancedFilters Component', () => {
       });
 
       const applyButton = screen.getByRole('button', {
-        name: /apply|search/i
+        name: /apply filters/i
       });
       await user.click(applyButton);
 
@@ -295,7 +297,7 @@ describe('AdvancedFilters Component', () => {
       });
 
       const resetButton = screen.getByRole('button', {
-        name: /reset|clear/i
+        name: /reset filters/i
       });
       await user.click(resetButton);
 
@@ -312,7 +314,7 @@ describe('AdvancedFilters Component', () => {
       expect(firstNameInput.value).toBe('John');
 
       const resetButton = screen.getByRole('button', {
-        name: /reset|clear/i
+        name: /reset filters/i
       });
       await user.click(resetButton);
 
@@ -328,7 +330,7 @@ describe('AdvancedFilters Component', () => {
       renderAdvancedFilters({ onToggle });
 
       const toggleButton = screen.getByRole('button', {
-        name: /filter|advanced/i
+        name: /advanced filters/i
       });
       await user.click(toggleButton);
 
@@ -346,7 +348,7 @@ describe('AdvancedFilters Component', () => {
       renderAdvancedFilters({ isOpen: true });
 
       const toggleButton = screen.getByRole('button', {
-        name: /filter|advanced/i
+        name: /advanced filters/i
       });
       expect(toggleButton).toHaveAttribute('aria-expanded', 'true');
     });

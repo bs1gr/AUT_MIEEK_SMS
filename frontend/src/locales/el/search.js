@@ -3,6 +3,24 @@
  */
 
 export default {
+  placeholder: {
+    students: 'Αναζητήστε φοιτητές...',
+    courses: 'Αναζητήστε μαθήματα...',
+    grades: 'Αναζητήστε βαθμούς...'
+  },
+  ariaLabel: 'Αναζήτηση',
+  search: 'Αναζήτηση',
+  noSuggestions: 'Δεν βρέθηκαν προτάσεις',
+  type: {
+    student: 'Φοιτητής',
+    course: 'Μάθημα',
+    grade: 'Βαθμός'
+  },
+  stats: {
+    students: 'Φοιτητές',
+    courses: 'Μαθήματα',
+    grades: 'Βαθμοί'
+  },
   presets: {
     title: 'Προκαθορισμένα Φίλτρα',
     activeStudents: 'Ενεργοί Φοιτητές',
