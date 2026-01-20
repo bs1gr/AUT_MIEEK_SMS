@@ -18,7 +18,7 @@ export const ImportExportPage: React.FC = () => {
     setIsImporting(true);
     try {
       // Import logic will be implemented
-      console.log('Importing file:', file.name);
+      console.warn('Importing file:', file.name);
     } catch (error) {
       console.error('Import failed:', error);
     } finally {
@@ -30,7 +30,7 @@ export const ImportExportPage: React.FC = () => {
     setIsExporting(true);
     try {
       // Export logic will be implemented
-      console.log('Exporting to:', format);
+      console.warn('Exporting to:', format);
     } catch (error) {
       console.error('Export failed:', error);
     } finally {

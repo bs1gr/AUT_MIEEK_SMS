@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, RenderOptions } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { ReactElement } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n';
