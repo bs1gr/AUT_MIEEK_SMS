@@ -205,7 +205,7 @@ export function useNotifications(): UseNotificationsReturn {
         // New notification received
 
         if (data.type === 'notification' && data.data) {
-          const newNotification = data.data as Notification;
+          const newNotification = data.data as unknown as Notification;
 
           // Add to notifications list
           setNotifications(prev => [newNotification, ...prev]);

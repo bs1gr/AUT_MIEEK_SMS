@@ -88,8 +88,7 @@ export const translations: Translations = {
     ...helpEn,
     ...reportsEn,
     ...feedbackEn,
-    ...errorsEn,
-    ...searchEn
+    ...errorsEn
   },
 
   el: {
@@ -128,7 +127,6 @@ export const translations: Translations = {
     ...helpEl,
     ...reportsEl,
     ...feedbackEl,
-    ...errorsEl,
-    ...searchEl
+    ...errorsEl
   }
 };
