@@ -1,3 +1,0 @@
-markdownlint-cli2 v0.20.0 (markdownlint v0.40.0)
-Finding: **/*.md
-Linting: 2231 file(s)
