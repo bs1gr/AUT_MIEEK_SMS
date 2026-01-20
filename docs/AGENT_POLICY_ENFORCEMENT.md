@@ -183,6 +183,11 @@ function MyComponent() {
 .\COMMIT_READY.ps1 -Full          # Full validation (15-20 min)
 ```
 
+**⏳ Patience Required (Do Not Interrupt):**
+- **Never** run git status/log or any git commands while COMMIT_READY.ps1 is running; let it finish naturally.
+- Wait reasonable minimums before checking status: **Quick: 5-10 minutes**, **Standard: 10-15 minutes**, **Full: 20-30 minutes**.
+- Only if there is **no output for 20+ minutes beyond expected** should you consider investigating; otherwise, assume it is still working.
+
 **Why This Exists:**
 - Prevents broken code from entering codebase
 - Auto-fixes formatting issues
