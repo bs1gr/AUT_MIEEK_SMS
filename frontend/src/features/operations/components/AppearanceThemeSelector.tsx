@@ -131,7 +131,9 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
   const [isOpen, setIsOpen] = useState(false);
 
   const themeButtonLabel = t('controlPanel.themeButton') || 'Theme';
-  const appearanceTitle = t('controlPanel.appearanceThemes') || 'Appearance Themes';
+  const appearanceTitle = t('controlPanel.appearanceThemes', {
+    defaultValue: 'Appearance Themes',
+  });
   const appearanceDescription = t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.';
 
   const withFallback = useCallback((key: string, fallback: string) => {
@@ -259,7 +261,7 @@ const AppearanceThemeSelector = () => {
       <div className="space-y-1">
         <h3 className={`text-lg font-semibold flex items-center gap-2 ${theme.text}`}>
           <Palette size={20} className="text-indigo-600" />
-          {t('controlPanel.appearanceThemes') || 'Appearance Themes'}
+          {t('controlPanel.appearanceThemes', { defaultValue: 'Appearance Themes' })}
         </h3>
         <p className={`text-sm ${theme.mutedText}`}>
           {t('controlPanel.appearanceThemesDesc') ||

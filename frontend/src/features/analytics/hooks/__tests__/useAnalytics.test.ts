@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
-import { useAnalytics } from "../hooks/useAnalytics";
+import { useAnalytics } from '../useAnalytics';
 
 // Mock apiClient
 vi.mock("../../../api/api", () => ({

@@ -74,6 +74,13 @@ from .import_export import (
 from .grades import GradeCreate as GradeCreate
 from .grades import GradeResponse as GradeResponse
 from .grades import GradeUpdate as GradeUpdate
+from .highlights import (
+    HighlightBase as HighlightBase,
+    HighlightCreate as HighlightCreate,
+    HighlightListResponse as HighlightListResponse,
+    HighlightResponse as HighlightResponse,
+    HighlightUpdate as HighlightUpdate,
+)
 from .jobs import (
     ImportPreviewItem as ImportPreviewItem,
 )
@@ -122,6 +129,20 @@ from .performance import (
 )
 from .performance import (
     DailyPerformanceResponse as DailyPerformanceResponse,
+)
+from .permissions import (
+    PermissionBase as PermissionBase,
+    PermissionCreate as PermissionCreate,
+    PermissionDetail as PermissionDetail,
+    PermissionListItem as PermissionListItem,
+    PermissionStatsResponse as PermissionStatsResponse,
+    PermissionUpdate as PermissionUpdate,
+    PermissionsByResourceResponse as PermissionsByResourceResponse,
+    RolePermissionGrant as RolePermissionGrant,
+    RolePermissionRevoke as RolePermissionRevoke,
+    UserPermissionGrant as UserPermissionGrant,
+    UserPermissionRevoke as UserPermissionRevoke,
+    UserPermissionsResponse as UserPermissionsResponse,
 )
 from .rbac import (
     AssignRoleRequest as AssignRoleRequest,

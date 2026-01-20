@@ -43,6 +43,8 @@ import feedbackEn from './locales/en/feedback.js';
 import feedbackEl from './locales/el/feedback.js';
 import errorsEn from './locales/en/errors.js';
 import errorsEl from './locales/el/errors.js';
+import searchEn from './locales/en/search.js';
+import searchEl from './locales/el/search.js';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -70,6 +72,7 @@ export const translations: Translations = {
     reports: reportsEn,
     feedback: feedbackEn,
     errors: errorsEn,
+    search: searchEn,
     // Flattened access (t('key'))
     ...controlPanelEn,
     ...authEn,
@@ -85,7 +88,8 @@ export const translations: Translations = {
     ...helpEn,
     ...reportsEn,
     ...feedbackEn,
-    ...errorsEn
+    ...errorsEn,
+    ...searchEn
   },
 
   el: {
@@ -108,6 +112,7 @@ export const translations: Translations = {
     reports: reportsEl,
     feedback: feedbackEl,
     errors: errorsEl,
+    search: searchEl,
     // Flattened access (t('key'))
     ...controlPanelEl,
     ...authEl,
@@ -123,6 +128,7 @@ export const translations: Translations = {
     ...helpEl,
     ...reportsEl,
     ...feedbackEl,
-    ...errorsEl
+    ...errorsEl,
+    ...searchEl
   }
 };

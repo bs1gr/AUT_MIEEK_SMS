@@ -32,7 +32,7 @@ export function usePerformanceMonitor(componentName: string, threshold: number =
       const duration = performance.now() - startTimeRef.current;
       totalTimeRef.current += duration;
 
-      if (duration > threshold) {
+      if (duration >= threshold) {
         console.warn(
           `[Performance] ${componentName} render #${currentRenderCount} took ${duration.toFixed(2)}ms`,
           {

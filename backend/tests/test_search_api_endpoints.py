@@ -61,21 +61,21 @@ def test_data(db: Session):
         Course(
             course_name="Mathematics 101",
             course_code="MATH101",
-            semester="Fall 2024",  # ✅ REQUIRED: Added semester field
+            semester="Fall 2024",  # Required field
             credits=3,
             deleted_at=None,
         ),
         Course(
             course_name="Physics 201",
             course_code="PHYS201",
-            semester="Fall 2024",  # ✅ REQUIRED: Added semester field
+            semester="Fall 2024",  # Required field
             credits=4,
             deleted_at=None,
         ),
         Course(
             course_name="English 101",
             course_code="ENG101",
-            semester="Fall 2024",  # ✅ REQUIRED: Added semester field
+            semester="Fall 2024",  # Required field
             credits=3,
             deleted_at=None,
         ),
@@ -93,7 +93,7 @@ def test_data(db: Session):
             student_id=students[0].id,
             course_id=courses[0].id,
             assignment_name="Midterm Exam",
-            category="Exam",  # ✅ Added category field
+            category="Exam",
             grade=95.5,
             max_grade=100.0,
             weight=1.0,
@@ -103,7 +103,7 @@ def test_data(db: Session):
             student_id=students[1].id,
             course_id=courses[0].id,
             assignment_name="Midterm Exam",
-            category="Exam",  # ✅ Added category field
+            category="Exam",
             grade=87.0,
             max_grade=100.0,
             weight=1.0,
@@ -113,7 +113,7 @@ def test_data(db: Session):
             student_id=students[0].id,
             course_id=courses[1].id,
             assignment_name="Final Project",
-            category="Project",  # ✅ Added category field
+            category="Project",
             grade=92.0,
             max_grade=100.0,
             weight=1.0,
@@ -408,7 +408,7 @@ class TestAdvancedSearchEndpoint:
 
     def test_advanced_search_students(self, client, admin_headers, test_data):
         """Should search students via advanced endpoint"""
-        response = client.post(self.endpoint, json={"entity": "student", "query": "john"}, headers=admin_headers)
+        response = client.post(self.endpoint, json={"entity": "students", "query": "john"}, headers=admin_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -416,7 +416,7 @@ class TestAdvancedSearchEndpoint:
 
     def test_advanced_search_courses(self, client, admin_headers, test_data):
         """Should search courses via advanced endpoint"""
-        response = client.post(self.endpoint, json={"entity": "course", "query": "math"}, headers=admin_headers)
+        response = client.post(self.endpoint, json={"entity": "courses", "query": "math"}, headers=admin_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -424,7 +424,7 @@ class TestAdvancedSearchEndpoint:
 
     def test_advanced_search_grades(self, client, admin_headers, test_data):
         """Should search grades via advanced endpoint"""
-        response = client.post(self.endpoint, json={"entity": "grade", "query": "95"}, headers=admin_headers)
+        response = client.post(self.endpoint, json={"entity": "grades", "query": "95"}, headers=admin_headers)
 
         assert response.status_code == 200
         data = response.json()
@@ -440,7 +440,7 @@ class TestAdvancedSearchEndpoint:
     def test_advanced_search_with_filters(self, client, admin_headers, test_data):
         """Should apply filters correctly"""
         response = client.post(
-            self.endpoint, json={"entity": "grade", "query": "", "filters": {"min_grade": 85}}, headers=admin_headers
+            self.endpoint, json={"entity": "grades", "query": "", "filters": {"min_grade": 85}}, headers=admin_headers
         )
 
         assert response.status_code == 200
@@ -453,7 +453,7 @@ class TestAdvancedSearchEndpoint:
     def test_advanced_search_pagination(self, client, admin_headers, test_data):
         """Should support pagination"""
         response = client.post(
-            self.endpoint, json={"entity": "student", "query": "", "page": 1, "page_size": 1}, headers=admin_headers
+            self.endpoint, json={"entity": "students", "query": "", "page": 1, "page_size": 1}, headers=admin_headers
         )
 
         assert response.status_code == 200

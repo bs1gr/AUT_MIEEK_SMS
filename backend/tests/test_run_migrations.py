@@ -53,7 +53,14 @@ def test_run_migrations_creates_tables(monkeypatch, tmp_path):
     monkeypatch.setenv("AUTH_ENABLED", "0")
     monkeypatch.setenv("SECRET_KEY_STRICT_ENFORCEMENT", "0")
 
-    db_file = tmp_path / "test_migrations.db"
+    # Use a local path inside the project to satisfy Settings validation
+    # tmp_path is in system temp which is blocked by config.py validation
+    from pathlib import Path
+
+    local_tmp = Path("tmp_test_migrations")
+    local_tmp.mkdir(exist_ok=True)
+    db_file = (local_tmp / "test_migrations.db").resolve()
+
     if db_file.exists():
         db_file.unlink()
 

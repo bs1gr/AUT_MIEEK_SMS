@@ -119,7 +119,8 @@ describe('NotificationItem', () => {
   it('should display notification timestamp', () => {
     render(<NotificationItem notification={mockNotification} />);
 
-    const timestamp = screen.getByText(/1\/15\/2026/);
+    // Date may be formatted as 1/15/2026 (US) or 15/1/2026 (Greek locale)
+    const timestamp = screen.getByText(/(1\/15\/2026|15\/1\/2026)/);
     expect(timestamp).toBeInTheDocument();
   });
 

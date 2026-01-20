@@ -105,8 +105,6 @@ describe('usePerformanceMonitor hook', () => {
     });
 
     it('should not log when render time is below threshold', () => {
-      const warnSpy = console.warn as unknown as ReturnType<typeof vi.spyOn>;
-
       const { unmount: _unmount } = renderHook(() => usePerformanceMonitor('TestComponent', 10000));
 
       // Warning should not be logged if threshold is very high
@@ -114,8 +112,6 @@ describe('usePerformanceMonitor hook', () => {
     });
 
     it('should log warning when render time exceeds threshold', () => {
-      const warnSpy = console.warn as unknown as ReturnType<typeof vi.spyOn>;
-
       const mockNow = vi.fn();
       let currentTime = 0;
 
@@ -135,7 +131,6 @@ describe('usePerformanceMonitor hook', () => {
     });
 
     it('should include component name in warning message', () => {
-      const warnSpy = console.warn as unknown as ReturnType<typeof vi.spyOn>;
       const componentName = 'MyTestComponent';
 
       const mockNow = vi.fn();
@@ -262,7 +257,9 @@ describe('usePerformanceMonitor hook', () => {
     });
 
     it('should handle multiple renders with different durations', () => {
-      const warnSpy = console.warn as unknown as ReturnType<typeof vi.spyOn>;
+      // Clear previous implementation
+      vi.restoreAllMocks();
+      warnSpy = vi.spyOn(console, 'warn');
 
       let renderCount = 0;
       const mockNow = vi.fn();

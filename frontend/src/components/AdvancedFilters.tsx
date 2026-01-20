@@ -62,23 +62,23 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             filters: { status: 'active' }
           },
           {
-            name: 'current_year',
-            label: t('search.presets.currentYear'),
-            filters: { academic_year: new Date().getFullYear() }
+            name: 'recent_enrollments',
+            label: t('search.presets.recentEnrollments'),
+            filters: { recent: true }
           }
         ];
 
       case 'courses':
         return [
           {
-            name: 'three_credits',
-            label: t('search.presets.threeCredits'),
-            filters: { credits: 3 }
+            name: 'high_credit',
+            label: t('search.presets.highCredit'),
+            filters: { credits_min: 5 }
           },
           {
-            name: 'current_year',
-            label: t('search.presets.currentYear'),
-            filters: { academic_year: new Date().getFullYear() }
+            name: 'core_courses',
+            label: t('search.presets.coreCourses'),
+            filters: { category: 'core' }
           }
         ];
 
@@ -163,23 +163,23 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         className={`filter-toggle ${open ? 'open' : ''}`}
         onClick={handleToggle}
         aria-expanded={open}
-        aria-label={t('search.advancedFilters')}
+        aria-label={t('search.advanced.title')}
       >
-        <FunnelIcon className="toggle-icon" />
-        {t('search.advancedFilters')}
+        <FunnelIcon className="toggle-icon" role="img" />
+        {t('search.advanced.title')}
       </button>
 
       {/* Filter panel */}
       {open && (
-        <div className="filter-panel">
+        <div className="filter-panel" role="region" aria-label={t('search.advanced.title')} data-open={open ? 'true' : 'false'}>
           <div className="filter-header">
-            <h3>{t('search.filters')}</h3>
+            <h3>{t('search.filters.title')}</h3>
             <button
               className="close-button"
               onClick={handleToggle}
               aria-label={t('common.close')}
             >
-              <XMarkIcon className="close-icon" />
+              <XMarkIcon className="close-icon" role="img" />
             </button>
           </div>
 
@@ -187,7 +187,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
           {presets.length > 0 && (
             <div className="filter-section">
               <h4>{t('search.presets.title')}</h4>
-              <div className="presets-list">
+              <div className="presets-list" data-presets>
                 {presets.map(preset => (
                   <button
                     key={preset.name}
@@ -203,39 +203,39 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
 
           {/* Dynamic filters */}
           <div className="filter-section">
-            <h4>{t('search.customFilters')}</h4>
+            <h4>{t('search.filters.custom')}</h4>
             <div className="filters-grid">
               {searchType === 'students' && (
                 <>
                   <div className="filter-group">
-                    <label>{t('search.filters.firstName')}</label>
+                    <label>{t('search.fields.firstName')}</label>
                     <input
                       type="text"
                       value={typeof filters.first_name === 'boolean' ? String(filters.first_name) : (filters.first_name || '')}
                       onChange={(e) => handleFilterChange('first_name', e.target.value)}
-                      placeholder={t('search.filters.enterValue')}
+                      placeholder={t('search.fields.firstName')}
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.lastName')}</label>
+                    <label>{t('search.fields.lastName')}</label>
                     <input
                       type="text"
                       value={typeof filters.last_name === 'boolean' ? String(filters.last_name) : (filters.last_name || '')}
                       onChange={(e) => handleFilterChange('last_name', e.target.value)}
-                      placeholder={t('search.filters.enterValue')}
+                      placeholder={t('search.fields.lastName')}
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.email')}</label>
+                    <label>{t('search.fields.email')}</label>
                     <input
                       type="email"
                       value={typeof filters.email === 'boolean' ? String(filters.email) : (filters.email || '')}
                       onChange={(e) => handleFilterChange('email', e.target.value)}
-                      placeholder={t('search.filters.enterValue')}
+                      placeholder={t('search.fields.email')}
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.academicYear')}</label>
+                    <label>{t('search.fields.academicYear')}</label>
                     <input
                       type="number"
                       value={filters.academic_year || ''}
@@ -249,25 +249,25 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               {searchType === 'courses' && (
                 <>
                   <div className="filter-group">
-                    <label>{t('search.filters.courseName')}</label>
+                    <label>{t('search.fields.courseName')}</label>
                     <input
                       type="text"
                       value={typeof filters.course_name === 'boolean' ? String(filters.course_name) : (filters.course_name || '')}
                       onChange={(e) => handleFilterChange('course_name', e.target.value)}
-                      placeholder={t('search.filters.enterValue')}
+                      placeholder={t('search.fields.courseName')}
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.courseCode')}</label>
+                    <label>{t('search.fields.courseCode')}</label>
                     <input
                       type="text"
                       value={typeof filters.course_code === 'boolean' ? String(filters.course_code) : (filters.course_code || '')}
                       onChange={(e) => handleFilterChange('course_code', e.target.value)}
-                      placeholder={t('search.filters.enterValue')}
+                      placeholder={t('search.fields.courseCode')}
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.credits')}</label>
+                    <label>{t('search.fields.credits')}</label>
                     <input
                       type="number"
                       value={filters.credits || ''}
@@ -278,7 +278,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.academicYear')}</label>
+                    <label>{t('search.fields.academicYear')}</label>
                     <input
                       type="number"
                       value={filters.academic_year || ''}
@@ -292,43 +292,43 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               {searchType === 'grades' && (
                 <>
                   <div className="filter-group">
-                    <label>{t('search.filters.gradeMin')}</label>
+                    <label>{t('search.fields.gradeMin')}</label>
                     <input
                       type="number"
                       value={filters.grade_min || ''}
                       onChange={(e) => handleFilterChange('grade_min', e.target.value ? parseFloat(e.target.value) : '')}
-                      placeholder="0"
+                      placeholder={t('search.fields.gradeMin')}
                       min="0"
                       max="100"
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.gradeMax')}</label>
+                    <label>{t('search.fields.gradeMax')}</label>
                     <input
                       type="number"
                       value={filters.grade_max || ''}
                       onChange={(e) => handleFilterChange('grade_max', e.target.value ? parseFloat(e.target.value) : '')}
-                      placeholder="100"
+                      placeholder={t('search.fields.gradeMax')}
                       min="0"
                       max="100"
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.studentId')}</label>
+                    <label>{t('search.fields.studentId')}</label>
                     <input
                       type="number"
                       value={filters.student_id || ''}
                       onChange={(e) => handleFilterChange('student_id', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('search.filters.enterValue')}
+                      placeholder={t('search.fields.studentId')}
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.filters.courseId')}</label>
+                    <label>{t('search.fields.courseId')}</label>
                     <input
                       type="number"
                       value={filters.course_id || ''}
                       onChange={(e) => handleFilterChange('course_id', e.target.value ? parseInt(e.target.value) : undefined)}
-                      placeholder={t('search.filters.enterValue')}
+                      placeholder={t('search.fields.courseId')}
                     />
                   </div>
                 </>
@@ -343,14 +343,14 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               onClick={handleApply}
               disabled={Object.keys(filters).length === 0}
             >
-              {t('search.apply')}
+              {t('search.advanced.apply')}
             </button>
             <button
               className="reset-button"
               onClick={handleReset}
             >
-              <ArrowPathIcon className="reset-icon" />
-              {t('common.reset')}
+              <ArrowPathIcon className="reset-icon" role="img" />
+              {t('search.advanced.reset')}
             </button>
           </div>
         </div>

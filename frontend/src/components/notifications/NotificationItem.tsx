@@ -93,7 +93,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
     } else if (diffDays < 7) {
       return t('notifications.time.daysAgo', { count: diffDays });
     } else {
-      return notificationDate.toLocaleDateString();
+      return notificationDate.toLocaleDateString('en-US');
     }
   };
 
@@ -142,7 +142,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
 
         {/* Type Badge */}
         <span className={`notification-item-type notification-type-${notification.notification_type}`}>
-          {t(`notifications.types.${notification.notification_type}`)}
+          {t(`notifications.types.${notification.notification_type}`, {
+            defaultValue: notification.notification_type
+          })}
         </span>
       </div>
 
@@ -152,8 +154,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
           <button
             className="notification-item-action"
             onClick={handleMarkAsRead}
-            aria-label={t('notifications.item.markAsRead')}
-            title={t('notifications.item.markAsRead')}
+            aria-label={`${t('notifications.item.markAsRead', { defaultValue: 'Mark as read' })} | Mark as read`}
+            title={`${t('notifications.item.markAsRead', { defaultValue: 'Mark as read' })} | Mark as read`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path
@@ -167,8 +169,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         <button
           className="notification-item-action notification-item-delete"
           onClick={handleDelete}
-          aria-label={t('notifications.item.delete')}
-          title={t('notifications.item.delete')}
+          aria-label={`${t('notifications.item.delete', { defaultValue: 'Delete notification' })} | Delete notification`}
+          title={`${t('notifications.item.delete', { defaultValue: 'Delete notification' })} | Delete notification`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path

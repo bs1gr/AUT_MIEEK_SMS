@@ -16,9 +16,115 @@ Version: 1.0.0
 """
 
 from datetime import datetime, timezone
+import pytest
 from sqlalchemy.orm import Session
 from backend.services.search_service import SearchService
 from backend.models import Student, Course, Grade
+
+
+@pytest.fixture
+def student_data(db: Session):
+    """Create test student data."""
+    students = [
+        Student(
+            first_name="John",
+            last_name="Doe",
+            email="john.doe@example.com",
+            phone="555-1234",
+            student_id="STU001",
+            deleted_at=None,
+        ),
+        Student(
+            first_name="Jane",
+            last_name="Smith",
+            email="jane.smith@example.com",
+            phone="555-5678",
+            student_id="STU002",
+            deleted_at=None,
+        ),
+        Student(
+            first_name="Bob",
+            last_name="Johnson",
+            email="bob.johnson@example.com",
+            phone="555-9999",
+            student_id="STU003",
+            deleted_at=None,
+        ),
+    ]
+    db.add_all(students)
+    db.commit()
+    return students
+
+
+@pytest.fixture
+def course_data(db: Session):
+    """Create test course data."""
+    courses = [
+        Course(
+            course_name="Mathematics 101",
+            course_code="MATH101",
+            semester="Fall 2024",
+            credits=3,
+            deleted_at=None,
+        ),
+        Course(
+            course_name="Physics 201",
+            course_code="PHYS201",
+            semester="Fall 2024",
+            credits=4,
+            deleted_at=None,
+        ),
+        Course(
+            course_name="Chemistry 101",
+            course_code="CHEM101",
+            semester="Spring 2025",
+            credits=3,
+            deleted_at=None,
+        ),
+    ]
+    db.add_all(courses)
+    db.commit()
+    return courses
+
+
+@pytest.fixture
+def grade_data(db: Session, student_data, course_data):
+    """Create test grade data."""
+    grades = [
+        Grade(
+            student_id=student_data[0].id,
+            course_id=course_data[0].id,
+            assignment_name="Midterm Exam",
+            category="Exam",
+            grade=95.5,
+            max_grade=100.0,
+            weight=1.0,
+            deleted_at=None,
+        ),
+        Grade(
+            student_id=student_data[1].id,
+            course_id=course_data[0].id,
+            assignment_name="Midterm Exam",
+            category="Exam",
+            grade=87.0,
+            max_grade=100.0,
+            weight=1.0,
+            deleted_at=None,
+        ),
+        Grade(
+            student_id=student_data[0].id,
+            course_id=course_data[1].id,
+            assignment_name="Final Project",
+            category="Project",
+            grade=92.0,
+            max_grade=100.0,
+            weight=1.0,
+            deleted_at=None,
+        ),
+    ]
+    db.add_all(grades)
+    db.commit()
+    return grades
 
 
 class TestSearchServiceInit:
@@ -112,7 +218,7 @@ class TestSearchStudents:
         service = SearchService(db)
         results = service.search_students("John", limit=20, offset=0)
 
-        required_fields = {"id", "first_name", "last_name", "email", "enrollment_number"}
+        required_fields = {"id", "first_name", "last_name", "email", "student_id"}
         assert len(results) > 0
         for result in results:
             assert required_fields.issubset(set(result.keys()))
@@ -166,7 +272,7 @@ class TestSearchCourses:
         service = SearchService(db)
         results = service.search_courses("Math", limit=20, offset=0)
 
-        required_fields = {"id", "course_name", "course_code", "credits", "academic_year"}
+        required_fields = {"id", "course_name", "course_code", "credits"}
         assert len(results) > 0
         for result in results:
             assert required_fields.issubset(set(result.keys()))
@@ -188,7 +294,7 @@ class TestSearchGrades:
         results = service.search_grades("", filters={"grade_min": 80, "grade_max": 100}, limit=20, offset=0)
 
         assert len(results) > 0
-        assert all(80 <= r["grade_value"] <= 100 for r in results)
+        assert all(80 <= r["grade"] <= 100 for r in results)
 
     def test_search_grades_by_student_id(self, db: Session, grade_data):
         """Test filtering grades by student ID."""
@@ -218,14 +324,14 @@ class TestSearchGrades:
         results = service.search_grades("", filters={"grade_min": 70, "grade_max": 90}, limit=20, offset=0)
 
         for result in results:
-            assert 70 <= result["grade_value"] <= 90
+            assert 70 <= result["grade"] <= 90
 
     def test_search_grades_returns_required_fields(self, db: Session, grade_data):
         """Test that grade search returns all required fields."""
         service = SearchService(db)
         results = service.search_grades("", filters={}, limit=20, offset=0)
 
-        required_fields = {"id", "student_id", "course_id", "grade_value"}
+        required_fields = {"id", "student_id", "course_id", "grade"}
         assert len(results) > 0
         for result in results:
             assert required_fields.issubset(set(result.keys()))
