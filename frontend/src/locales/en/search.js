@@ -3,6 +3,24 @@
  */
 
 export default {
+  placeholder: {
+    students: 'Search students...',
+    courses: 'Search courses...',
+    grades: 'Search grades...'
+  },
+  ariaLabel: 'Search',
+  search: 'Search',
+  noSuggestions: 'No suggestions found',
+  type: {
+    student: 'Student',
+    course: 'Course',
+    grade: 'Grade'
+  },
+  stats: {
+    students: 'Students',
+    courses: 'Courses',
+    grades: 'Grades'
+  },
   presets: {
     title: 'Filter Presets',
     activeStudents: 'Active Students',

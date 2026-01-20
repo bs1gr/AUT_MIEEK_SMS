@@ -24,6 +24,7 @@ i18n.init({
         "analytics.attendance_title": "Attendance",
         "analytics.trends_title": "Trends",
         "analytics.grade_distribution_title": "Grade Distribution",
+        "analytics.error_title": "Error Loading Analytics",
         "common.loading": "Loading",
         "common.error": "Error",
         "common.refresh": "Refresh",
@@ -149,7 +150,7 @@ describe("AnalyticsDashboard", () => {
       </QueryClientProvider>
     );
 
-    expect(screen.getByText("Error")).toBeInTheDocument();
+    expect(screen.getByText("Error Loading Analytics")).toBeInTheDocument();
     expect(screen.getByText(error.message)).toBeInTheDocument();
   });
 
@@ -206,7 +207,7 @@ describe("AnalyticsDashboard", () => {
     );
 
     const refreshButton = screen.getByRole("button", {
-      name: "common.refresh",
+      name: "Refresh",
     });
     await user.click(refreshButton);
 
@@ -230,7 +231,7 @@ describe("AnalyticsDashboard", () => {
     );
 
     const refreshButton = screen.getByRole("button", {
-      name: /common.loading/,
+      name: "Loading",
     });
     expect(refreshButton).toBeDisabled();
   });

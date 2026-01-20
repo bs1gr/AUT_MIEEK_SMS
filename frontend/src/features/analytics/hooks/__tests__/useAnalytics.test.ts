@@ -7,13 +7,13 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { useAnalytics } from '../useAnalytics';
 
 // Mock apiClient
-vi.mock("../../../api/api", () => ({
-  apiClient: {
+vi.mock("../../../../api/api", () => ({
+  default: {
     get: vi.fn(),
   },
 }));
 
-import { apiClient } from "../../../api/api";
+import apiClient from "../../../../api/api";
 
 describe("useAnalytics Hook", () => {
   let mockGet: ReturnType<typeof vi.fn>;

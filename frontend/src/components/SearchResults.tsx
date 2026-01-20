@@ -51,31 +51,45 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
    * Get display name for a result
    */
   const getResultName = (result: SearchResult): string => {
+    if (result.display_name) {
+      return result.display_name;
+    }
+
     if (result.type === 'student' && result.first_name && result.last_name) {
       return `${result.first_name} ${result.last_name}`;
     }
+
     if (result.type === 'course') {
-      return result.course_name || 'Unknown Course';
+      return result.course_name || t('search.unknownCourse', 'Unknown Course');
     }
+
     if (result.type === 'grade') {
-      return result.student_name || 'Unknown Student';
+      return result.student_name || t('search.unknownStudent', 'Unknown Student');
     }
-    return 'Unknown';
+
+    return t('search.unknown', 'Unknown');
   };
 
   /**
    * Get secondary info for a result
    */
   const getResultSecondary = (result: SearchResult): string => {
+    if (result.secondary_info) {
+      return result.secondary_info;
+    }
+
     if (result.type === 'student') {
       return result.email || result.enrollment_number || '';
     }
+
     if (result.type === 'course') {
       return result.course_code || '';
     }
+
     if (result.type === 'grade') {
       return result.course_name || '';
     }
+
     return '';
   };
 
@@ -102,8 +116,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     return (
       <div className={`search-results ${className}`}>
         <div className="loading-state">
-          <div className="spinner"></div>
-          <p>{t('search.loading')}</p>
+          <div className="spinner" role="status" aria-live="polite"></div>
+          <p>{t('search.loading', 'Loading...')}</p>
         </div>
       </div>
     );
@@ -115,9 +129,13 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
   if (error) {
     return (
       <div className={`search-results ${className}`}>
-        <div className="error-state">
-          <ExclamationTriangleIcon className="error-icon" />
-          <h3>{t('search.errorTitle')}</h3>
+        <div className="error-state" role="alert" aria-live="assertive">
+          <ExclamationTriangleIcon
+            className="error-icon"
+            role="img"
+            aria-label={t('search.errorIcon', 'Error')}
+          />
+          <h3>{t('search.errorTitle', 'Error')}</h3>
           <p>{error}</p>
         </div>
       </div>
@@ -131,7 +149,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
     return (
       <div className={`search-results ${className}`}>
         <div className="empty-state">
-          <p>{t('search.noResults')}</p>
+          <p>{t('search.noResults', 'No results found')}</p>
         </div>
       </div>
     );
@@ -145,13 +163,24 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
       <div className="results-container">
         <div className="results-header">
           <h3>
-            {t('search.results')}
+            {t('search.results', 'Results')}
             <span className="result-count">({results.length})</span>
           </h3>
         </div>
 
         <div className="results-table-wrapper">
-          <table className="results-table">
+          <table
+            className="results-table"
+            style={{ display: isLoading ? 'none' : undefined }}
+          >
+            <thead>
+              <tr>
+                <th scope="col" aria-label={t('search.column.icon', 'Icon')}></th>
+                <th scope="col">{t('search.column.name', 'Name')}</th>
+                <th scope="col">{t('search.column.type', 'Type')}</th>
+                <th scope="col">{t('search.column.value', 'Value')}</th>
+              </tr>
+            </thead>
             <tbody>
               {results.map((result, index) => (
                 <tr
@@ -160,7 +189,13 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                   onClick={() => onResultClick?.(result)}
                 >
                   <td className="result-icon">
-                    <span className="icon">{getResultIcon(result.type)}</span>
+                    <span
+                      className="icon"
+                      role="img"
+                      aria-label={t(`search.type.${result.type}`)}
+                    >
+                      {getResultIcon(result.type)}
+                    </span>
                   </td>
 
                   <td className="result-main">
@@ -184,7 +219,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
                     )}
                     {result.type === 'course' && result.credits !== undefined && (
                       <span className="credits-value">
-                        {result.credits} {t('search.credits')}
+                        {result.credits} {t('search.credits', 'credits')}
                       </span>
                     )}
                   </td>
@@ -210,7 +245,7 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
             )}
 
             <span className="page-info">
-              {t('search.page')} {currentPage + 1}
+              {t('search.page', 'Page')} {currentPage + 1}
             </span>
 
             <button
@@ -227,8 +262,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 
         {isLoading && results.length > 0 && (
           <div className="loading-more">
-            <span className="spinner-small"></span>
-            {t('search.loadingMore')}
+            <span className="spinner-small" role="status" aria-live="polite"></span>
+            {t('search.loadingMore', 'Loading...')}
           </div>
         )}
       </div>

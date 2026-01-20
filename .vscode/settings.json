@@ -43,6 +43,7 @@
 "terminal.integrated.enablePersistentSessions": true,
 "terminal.integrated.shellIntegration.enabled": true,
 "terminal.integrated.shellIntegration.suggestEnabled": false,
+"terminal.integrated.shellIntegration.showWelcome": false,
 "terminal.integrated.confirmOnExit": "always",
 "terminal.integrated.commandsToSkipShell": [],
 "terminal.integrated.scrollback": 10000,
