@@ -2,19 +2,55 @@
  * Tests for Analytics component cards (Performance, Attendance, Trends, Grades)
  */
 
-import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, RenderOptions } from "@testing-library/react";
+import React, { ReactElement } from "react";
+import i18n from "i18next";
+import { I18nextProvider } from "react-i18next";
 import { PerformanceCard } from "../PerformanceCard";
 import { AttendanceCard } from "../AttendanceCard";
 import { TrendsChart } from "../TrendsChart";
 import { GradeDistributionChart } from "../GradeDistributionChart";
 
-// Mock useTranslation
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
-}));
+// Initialize i18n for tests
+i18n.init({
+  lng: "en",
+  fallbackLng: "en",
+  resources: {
+    en: {
+      translation: {
+        "analytics.performance_title": "Performance",
+        "analytics.attendance_title": "Attendance",
+        "analytics.trends_title": "Trends",
+        "analytics.grade_distribution_title": "Grade Distribution",
+        "analytics.attendance_good": "Good",
+        "analytics.attendance_warning": "Warning",
+        "analytics.trend_improving": "Improving",
+        "analytics.trend_declining": "Declining",
+        "analytics.no_distribution_data": "No distribution data",
+        "analytics.gradeA": "A (90-100%)",
+        "analytics.gradeB": "B (80-89%)",
+        "analytics.gradeC": "C (70-79%)",
+        "analytics.gradeD": "D (60-69%)",
+        "analytics.gradeF": "F (<60%)",
+        "analytics.overall_average": "Overall Average",
+        "analytics.period": "Period",
+        "days": "days",
+      },
+    },
+  },
+});
+
+// Custom render function that includes providers
+const renderWithProviders = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, "wrapper">
+) => {
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+  );
+  return render(ui, { wrapper: Wrapper, ...options });
+};
 
 // Mock Recharts
 vi.mock("recharts", () => ({
@@ -51,37 +87,37 @@ describe("Analytics Component Cards", () => {
     };
 
     it("renders performance card with title", () => {
-      render(<PerformanceCard data={mockPerformanceData} />);
-      expect(screen.getByText("analytics.performance_title")).toBeInTheDocument();
+      renderWithProviders(<PerformanceCard data={mockPerformanceData} />);
+      expect(screen.getByText("Performance")).toBeInTheDocument();
     });
 
     it("displays overall average percentage", () => {
-      const { container } = render(<PerformanceCard data={mockPerformanceData} />);
+      const { container } = renderWithProviders(<PerformanceCard data={mockPerformanceData} />);
       const percentage = container.textContent;
       expect(percentage).toContain("85.5");
       expect(percentage).toContain("%");
     });
 
     it("displays grade letter B for 85% average", () => {
-      render(<PerformanceCard data={mockPerformanceData} />);
+      renderWithProviders(<PerformanceCard data={mockPerformanceData} />);
       expect(screen.getByText("B")).toBeInTheDocument();
     });
 
     it("displays course breakdown", () => {
-      render(<PerformanceCard data={mockPerformanceData} />);
+      renderWithProviders(<PerformanceCard data={mockPerformanceData} />);
       expect(screen.getByText("Mathematics")).toBeInTheDocument();
       expect(screen.getByText("English")).toBeInTheDocument();
     });
 
     it("displays correct grade for A (90+)", () => {
       const data = { ...mockPerformanceData, overall_average: 95 };
-      render(<PerformanceCard data={data} />);
+      renderWithProviders(<PerformanceCard data={data} />);
       expect(screen.getByText("A")).toBeInTheDocument();
     });
 
     it("displays correct grade for F (<60)", () => {
       const data = { ...mockPerformanceData, overall_average: 45 };
-      render(<PerformanceCard data={data} />);
+      renderWithProviders(<PerformanceCard data={data} />);
       expect(screen.getByText("F")).toBeInTheDocument();
     });
   });
@@ -110,32 +146,32 @@ describe("Analytics Component Cards", () => {
     };
 
     it("renders attendance card with title", () => {
-      render(<AttendanceCard data={mockAttendanceData} />);
-      expect(screen.getByText("analytics.attendance_title")).toBeInTheDocument();
+      renderWithProviders(<AttendanceCard data={mockAttendanceData} />);
+      expect(screen.getByText("Attendance")).toBeInTheDocument();
     });
 
     it("displays overall attendance percentage", () => {
-      const { container } = render(<AttendanceCard data={mockAttendanceData} />);
+      const { container } = renderWithProviders(<AttendanceCard data={mockAttendanceData} />);
       const attendance = container.textContent;
       expect(attendance).toContain("85");
       expect(attendance).toContain("%");
     });
 
     it("displays course attendance breakdown", () => {
-      render(<AttendanceCard data={mockAttendanceData} />);
+      renderWithProviders(<AttendanceCard data={mockAttendanceData} />);
       expect(screen.getByText("Mathematics")).toBeInTheDocument();
       expect(screen.getByText("English")).toBeInTheDocument();
     });
 
     it("shows good status for high attendance", () => {
-      render(<AttendanceCard data={mockAttendanceData} />);
-      expect(screen.getByText(/analytics.attendance_good/)).toBeInTheDocument();
+      renderWithProviders(<AttendanceCard data={mockAttendanceData} />);
+      expect(screen.getByText(/Good/i)).toBeInTheDocument();
     });
 
     it("shows warning status for low attendance", () => {
       const data = { ...mockAttendanceData, overall_attendance_rate: 50.0 };
-      render(<AttendanceCard data={data} />);
-      expect(screen.getByText(/analytics.attendance_warning/)).toBeInTheDocument();
+      renderWithProviders(<AttendanceCard data={data} />);
+      expect(screen.getByText(/Warning/i)).toBeInTheDocument();
     });
   });
 
@@ -153,30 +189,30 @@ describe("Analytics Component Cards", () => {
     };
 
     it("renders trends chart with title", () => {
-      render(<TrendsChart data={mockTrendsData} />);
-      expect(screen.getByText("analytics.trends_title")).toBeInTheDocument();
+      renderWithProviders(<TrendsChart data={mockTrendsData} />);
+      expect(screen.getByText("Trends")).toBeInTheDocument();
     });
 
     it("displays trend direction badge for improving", () => {
-      render(<TrendsChart data={mockTrendsData} />);
-      expect(screen.getByText(/analytics.trend_improving/)).toBeInTheDocument();
+      renderWithProviders(<TrendsChart data={mockTrendsData} />);
+      expect(screen.getByText(/Improving/i)).toBeInTheDocument();
     });
 
     it("displays trend direction badge for declining", () => {
       const data = { ...mockTrendsData, overall_trend: "declining" as const };
-      render(<TrendsChart data={data} />);
-      expect(screen.getByText(/analytics.trend_declining/)).toBeInTheDocument();
+      renderWithProviders(<TrendsChart data={data} />);
+      expect(screen.getByText(/Declining/i)).toBeInTheDocument();
     });
 
     it("displays moving average value", () => {
-      const { container } = render(<TrendsChart data={mockTrendsData} />);
+      const { container } = renderWithProviders(<TrendsChart data={mockTrendsData} />);
       const trendContent = container.textContent;
       expect(trendContent).toContain("80");
       expect(trendContent).toContain("%");
     });
 
     it("displays correct data point count", () => {
-      render(<TrendsChart data={mockTrendsData} />);
+      renderWithProviders(<TrendsChart data={mockTrendsData} />);
       expect(screen.getByText("4")).toBeInTheDocument();
     });
   });
@@ -196,24 +232,24 @@ describe("Analytics Component Cards", () => {
     };
 
     it("renders grade distribution chart with title", () => {
-      render(<GradeDistributionChart data={mockDistributionData} />);
+      renderWithProviders(<GradeDistributionChart data={mockDistributionData} />);
       expect(
-        screen.getByText("analytics.grade_distribution_title")
+        screen.getByText("Grade Distribution")
       ).toBeInTheDocument();
     });
 
     it("displays total grades count", () => {
-      render(<GradeDistributionChart data={mockDistributionData} />);
+      renderWithProviders(<GradeDistributionChart data={mockDistributionData} />);
       expect(screen.getByText("22")).toBeInTheDocument();
     });
 
     it("displays class average", () => {
-      render(<GradeDistributionChart data={mockDistributionData} />);
+      renderWithProviders(<GradeDistributionChart data={mockDistributionData} />);
       expect(screen.getByText("81.5%")).toBeInTheDocument();
     });
 
     it("displays grade range legend", () => {
-      render(<GradeDistributionChart data={mockDistributionData} />);
+      renderWithProviders(<GradeDistributionChart data={mockDistributionData} />);
       expect(screen.getByText("A (90-100%)")).toBeInTheDocument();
       expect(screen.getByText("B (80-89%)")).toBeInTheDocument();
       expect(screen.getByText("C (70-79%)")).toBeInTheDocument();
@@ -227,9 +263,9 @@ describe("Analytics Component Cards", () => {
         distribution: {},
         total_grades: 0,
       };
-      render(<GradeDistributionChart data={data} />);
+      renderWithProviders(<GradeDistributionChart data={data} />);
       expect(
-        screen.getByText("analytics.no_distribution_data")
+        screen.getByText("No distribution data")
       ).toBeInTheDocument();
     });
   });

@@ -3,47 +3,74 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, RenderOptions } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import AnalyticsDashboard from "../components/AnalyticsDashboard";
-import { useAnalytics } from "../hooks/useAnalytics";
+import React, { ReactElement } from "react";
+import i18n from "i18next";
+import { I18nextProvider } from "react-i18next";
+import AnalyticsDashboard from "../AnalyticsDashboard";
+import { useAnalytics } from "../../hooks/useAnalytics";
+
+// Initialize i18n for tests
+i18n.init({
+  lng: "en",
+  fallbackLng: "en",
+  resources: {
+    en: {
+      translation: {
+        "analytics.title": "Analytics Dashboard",
+        "analytics.performance_title": "Performance",
+        "analytics.attendance_title": "Attendance",
+        "analytics.trends_title": "Trends",
+        "analytics.grade_distribution_title": "Grade Distribution",
+        "common.loading": "Loading",
+        "common.error": "Error",
+        "common.refresh": "Refresh",
+      },
+    },
+  },
+});
+
+// Custom render function that includes i18n provider
+const renderWithProviders = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, "wrapper">
+) => {
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+  );
+  return render(ui, { wrapper: Wrapper, ...options });
+};
 
 // Mock the analytics hook
-vi.mock("../hooks/useAnalytics", () => ({
+vi.mock("../../hooks/useAnalytics", () => ({
   useAnalytics: vi.fn(),
 }));
 
 // Mock child components
-vi.mock("../components/PerformanceCard", () => ({
+vi.mock("../PerformanceCard", () => ({
   PerformanceCard: ({ data: _data }: { data: unknown }) => (
     <div data-testid="performance-card">Performance Card</div>
   ),
 }));
 
-vi.mock("../components/TrendsChart", () => ({
+vi.mock("../TrendsChart", () => ({
   TrendsChart: ({ data: _data }: { data: unknown }) => (
     <div data-testid="trends-chart">Trends Chart</div>
   ),
 }));
 
-vi.mock("../components/AttendanceCard", () => ({
+vi.mock("../AttendanceCard", () => ({
   AttendanceCard: ({ data: _data }: { data: unknown }) => (
     <div data-testid="attendance-card">Attendance Card</div>
   ),
 }));
 
-vi.mock("../components/GradeDistributionChart", () => ({
+vi.mock("../GradeDistributionChart", () => ({
   GradeDistributionChart: ({ data: _data }: { data: unknown }) => (
     <div data-testid="grade-distribution">Grade Distribution</div>
   ),
-}));
-
-// Mock useTranslation
-vi.mock("react-i18next", () => ({
-  useTranslation: () => ({
-    t: (key: string) => key,
-  }),
 }));
 
 describe("AnalyticsDashboard", () => {
@@ -71,13 +98,13 @@ describe("AnalyticsDashboard", () => {
       error: null,
     });
 
-    render(
+    renderWithProviders(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard studentId={1} />
       </QueryClientProvider>
     );
 
-    expect(screen.getByText("analytics.title")).toBeInTheDocument();
+    expect(screen.getByText("Analytics Dashboard")).toBeInTheDocument();
   });
 
   it("renders loading state", () => {
@@ -90,13 +117,15 @@ describe("AnalyticsDashboard", () => {
       error: null,
     });
 
-    render(
+    renderWithProviders(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard studentId={1} />
       </QueryClientProvider>
     );
 
-    expect(screen.getByText(/common.loading/)).toBeInTheDocument();
+    // Look for the loading spinner (not the refresh button which also has the text)
+    const loadingSpinner = screen.getByText(/Loading/i).closest('.loading-spinner');
+    expect(loadingSpinner).toBeInTheDocument();
   });
 
   it("renders error state", () => {
@@ -114,13 +143,13 @@ describe("AnalyticsDashboard", () => {
       error,
     });
 
-    render(
+    renderWithProviders(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard studentId={1} />
       </QueryClientProvider>
     );
 
-    expect(screen.getByText("analytics.error_title")).toBeInTheDocument();
+    expect(screen.getByText("Error")).toBeInTheDocument();
     expect(screen.getByText(error.message)).toBeInTheDocument();
   });
 
@@ -141,7 +170,7 @@ describe("AnalyticsDashboard", () => {
       error: null,
     });
 
-    render(
+    renderWithProviders(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard studentId={1} />
       </QueryClientProvider>
@@ -170,7 +199,7 @@ describe("AnalyticsDashboard", () => {
 
     const user = userEvent.setup();
 
-    render(
+    renderWithProviders(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard studentId={1} />
       </QueryClientProvider>
@@ -194,7 +223,7 @@ describe("AnalyticsDashboard", () => {
       error: null,
     });
 
-    render(
+    renderWithProviders(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard studentId={1} />
       </QueryClientProvider>
@@ -216,7 +245,7 @@ describe("AnalyticsDashboard", () => {
       error: null,
     });
 
-    render(
+    renderWithProviders(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard studentId={1} />
       </QueryClientProvider>
