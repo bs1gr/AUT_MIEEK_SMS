@@ -17,10 +17,23 @@
  */
 
 import { render, screen } from '@testing-library/react';
+import { ReactElement } from 'react';
+import { RenderOptions } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n';
 import { SearchResults } from '../SearchResults';
+
+const renderWithProviders = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>
+) => {
+  const Wrapper = ({ children }: { children: React.ReactNode }) => (
+    <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+  );
+  return render(ui, { wrapper: Wrapper, ...options });
+};
 import type { SearchResult } from '../../hooks/useSearch';
 
 const mockResults: SearchResult[] = [
@@ -29,21 +42,28 @@ const mockResults: SearchResult[] = [
     display_name: 'John Doe',
     secondary_info: 'john@example.com',
     type: 'student',
-    value: { enrollment_number: 'STU001' }
+    value: { enrollment_number: 'STU001' },
+    first_name: 'John',
+    last_name: 'Doe',
+    email: 'john@example.com'
   },
   {
     id: 2,
     display_name: 'Mathematics',
     secondary_info: 'MATH101',
     type: 'course',
-    value: { credits: 3 }
+    value: { credits: 3 },
+    course_name: 'Mathematics',
+    course_code: 'MATH101'
   },
   {
     id: 3,
     display_name: 'Grade A',
     secondary_info: '95/100',
     type: 'grade',
-    value: { grade_value: 95 }
+    value: { grade_value: 95 },
+    student_name: 'Jane Smith',
+    grade_value: 95
   }
 ];
 

@@ -10,7 +10,12 @@ def test_run_migrations_writes_log(tmp_path, monkeypatch):
     monkeypatch.setenv("SECRET_KEY", secrets.token_urlsafe(32))
 
     # Use a temporary sqlite file for the test database
-    db_file = tmp_path / "test_migrations.db"
+    # Use a local path inside the project to satisfy Settings validation
+    local_tmp = Path("tmp_test_migrations")
+    local_tmp.mkdir(exist_ok=True)
+    db_file = (local_tmp / "test_migrations_repo_root.db").resolve()
+    if db_file.exists():
+        db_file.unlink()
     monkeypatch.setenv("DATABASE_URL", f"sqlite:///{db_file.as_posix()}")
 
     # Import the migration runner and run it

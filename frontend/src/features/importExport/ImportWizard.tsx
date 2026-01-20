@@ -111,7 +111,11 @@ const ImportWizard: React.FC<ImportWizardProps> = () => {
         )}
         {activeStep === 1 && (
           <div>
-            <strong>{t('importExport.previewData')}</strong>
+            <strong>
+              {t('importExport.previewDataHeading', {
+                defaultValue: `${t('importExport.previewData')} - ${t('common.details', { defaultValue: 'Details' })}`,
+              })}
+            </strong>
             {!selectedFile && <p>{t('importExport.noFileSelected')}</p>}
             {previewError && <p style={{ color: 'red' }}>{previewError}</p>}
             {previewData && previewData.length > 0 && (

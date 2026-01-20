@@ -16,12 +16,13 @@
  */
 
 import { renderHook, act, waitFor } from '@testing-library/react';
-import { useSearch } from '../hooks/useSearch';
-import * as api from '../api/api';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { useSearch } from '../useSearch';
+import apiClient from '../../api/api';
 
 // Mock the API client
-vi.mock('../api/api', () => ({
-  apiClient: {
+vi.mock('../../api/api', () => ({
+  default: {
     get: vi.fn(),
     post: vi.fn()
   },
@@ -44,7 +45,7 @@ describe('useSearch Hook', () => {
     });
 
     it('should load statistics on mount', async () => {
-      vi.mocked(api.apiClient.get).mockResolvedValue({
+      vi.mocked(apiClient.get).mockResolvedValue({
         data: {
           total_students: 100,
           total_courses: 50,
@@ -77,7 +78,7 @@ describe('useSearch Hook', () => {
         { id: 2, first_name: 'Jane', last_name: 'Smith', email: 'jane@example.com' }
       ];
 
-      vi.mocked(api.apiClient.get).mockResolvedValue({ data: mockResults });
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockResults });
 
       const { result } = renderHook(() => useSearch('students'));
 
@@ -89,7 +90,7 @@ describe('useSearch Hook', () => {
     });
 
     it('should set loading state during search', async () => {
-      vi.mocked(api.apiClient.get).mockImplementation(
+      vi.mocked(apiClient.get).mockImplementation(
         () =>
           new Promise((resolve) => {
             setTimeout(() => resolve({ data: [] }), 100);
@@ -111,7 +112,7 @@ describe('useSearch Hook', () => {
 
     it('should handle search errors', async () => {
       const errorMessage = 'Search failed';
-      vi.mocked(api.apiClient.get).mockRejectedValue(
+      vi.mocked(apiClient.get).mockRejectedValue(
         new Error(errorMessage)
       );
 
@@ -130,7 +131,7 @@ describe('useSearch Hook', () => {
 
     it('should support pagination', async () => {
       const mockResults = [{ id: 1, first_name: 'John' }];
-      vi.mocked(api.apiClient.get).mockResolvedValue({ data: mockResults });
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockResults });
 
       const { result } = renderHook(() => useSearch('students'));
 
@@ -138,7 +139,7 @@ describe('useSearch Hook', () => {
         await result.current.search('John', 2);
       });
 
-      expect(api.apiClient.get).toHaveBeenCalledWith(
+      expect(apiClient.get).toHaveBeenCalledWith(
         expect.stringContaining('page=2')
       );
     });
@@ -151,7 +152,7 @@ describe('useSearch Hook', () => {
         { text: 'Jane Smith', type: 'student', id: 2 }
       ];
 
-      vi.mocked(api.apiClient.get).mockResolvedValue({
+      vi.mocked(apiClient.get).mockResolvedValue({
         data: mockSuggestions
       });
 
@@ -166,7 +167,7 @@ describe('useSearch Hook', () => {
 
     it('should cache suggestions', async () => {
       const mockSuggestions = [{ text: 'John', type: 'student', id: 1 }];
-      vi.mocked(api.apiClient.get).mockResolvedValue({
+      vi.mocked(apiClient.get).mockResolvedValue({
         data: mockSuggestions
       });
 
@@ -176,18 +177,18 @@ describe('useSearch Hook', () => {
         await result.current.getSuggestions('John');
       });
 
-      const firstCallCount = vi.mocked(api.apiClient.get).mock.calls.length;
+      const firstCallCount = vi.mocked(apiClient.get).mock.calls.length;
 
       await act(async () => {
         await result.current.getSuggestions('John');
       });
 
       // Should not call API again due to cache
-      expect(vi.mocked(api.apiClient.get).mock.calls.length).toBeLessThanOrEqual(firstCallCount + 1);
+      expect(vi.mocked(apiClient.get).mock.calls.length).toBeLessThanOrEqual(firstCallCount + 1);
     });
 
     it('should debounce suggestion requests', async () => {
-      vi.mocked(api.apiClient.get).mockResolvedValue({ data: [] });
+      vi.mocked(apiClient.get).mockResolvedValue({ data: [] });
 
       const { result } = renderHook(() => useSearch('students'));
 
@@ -201,11 +202,11 @@ describe('useSearch Hook', () => {
       });
 
       // Should make fewer API calls due to debouncing
-      expect(vi.mocked(api.apiClient.get).mock.calls.length).toBeLessThan(10);
+      expect(vi.mocked(apiClient.get).mock.calls.length).toBeLessThan(10);
     });
 
     it('should handle suggestion errors', async () => {
-      vi.mocked(api.apiClient.get).mockRejectedValue(
+      vi.mocked(apiClient.get).mockRejectedValue(
         new Error('Suggestion fetch failed')
       );
 
@@ -229,7 +230,7 @@ describe('useSearch Hook', () => {
         { id: 1, first_name: 'John', grade_value: 85 }
       ];
 
-      vi.mocked(api.apiClient.post).mockResolvedValue({
+      vi.mocked(apiClient.post).mockResolvedValue({
         data: mockResults
       });
 
@@ -243,7 +244,7 @@ describe('useSearch Hook', () => {
     });
 
     it('should support filter with pagination', async () => {
-      vi.mocked(api.apiClient.post).mockResolvedValue({ data: [] });
+      vi.mocked(apiClient.post).mockResolvedValue({ data: [] });
 
       const { result } = renderHook(() => useSearch('students'));
 
@@ -251,11 +252,11 @@ describe('useSearch Hook', () => {
         await result.current.advancedFilter({ first_name: 'John' }, 2);
       });
 
-      expect(vi.mocked(api.apiClient.post)).toHaveBeenCalled();
+      expect(vi.mocked(apiClient.post)).toHaveBeenCalled();
     });
 
     it('should handle filtering errors', async () => {
-      vi.mocked(api.apiClient.post).mockRejectedValue(
+      vi.mocked(apiClient.post).mockRejectedValue(
         new Error('Filter failed')
       );
 
@@ -278,7 +279,7 @@ describe('useSearch Hook', () => {
       const mockResults1 = [{ id: 1, first_name: 'John' }];
       const mockResults2 = [{ id: 2, first_name: 'Jane' }];
 
-      vi.mocked(api.apiClient.get)
+      vi.mocked(apiClient.get)
         .mockResolvedValueOnce({ data: mockResults1 })
         .mockResolvedValueOnce({ data: mockResults2 });
 
@@ -301,7 +302,7 @@ describe('useSearch Hook', () => {
     it('should load more results for filters', async () => {
       const mockResults = [{ id: 1, grade_value: 85 }];
 
-      vi.mocked(api.apiClient.post)
+      vi.mocked(apiClient.post)
         .mockResolvedValueOnce({ data: mockResults })
         .mockResolvedValueOnce({ data: mockResults });
 
@@ -316,13 +317,13 @@ describe('useSearch Hook', () => {
       });
 
       // Should make two API calls
-      expect(vi.mocked(api.apiClient.post).mock.calls.length).toBe(2);
+      expect(vi.mocked(apiClient.post).mock.calls.length).toBe(2);
     });
   });
 
   describe('Clear', () => {
     it('should clear all search state', async () => {
-      vi.mocked(api.apiClient.get).mockResolvedValue({
+      vi.mocked(apiClient.get).mockResolvedValue({
         data: [{ id: 1, first_name: 'John' }]
       });
 
@@ -352,7 +353,7 @@ describe('useSearch Hook', () => {
         total_grades: 500
       };
 
-      vi.mocked(api.apiClient.get).mockResolvedValue({ data: mockStats });
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockStats });
 
       const { result } = renderHook(() => useSearch('students'));
 
@@ -362,7 +363,7 @@ describe('useSearch Hook', () => {
     });
 
     it('should handle statistics loading errors', async () => {
-      vi.mocked(api.apiClient.get).mockRejectedValue(
+      vi.mocked(apiClient.get).mockRejectedValue(
         new Error('Stats failed')
       );
 

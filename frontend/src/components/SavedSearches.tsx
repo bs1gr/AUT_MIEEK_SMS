@@ -26,7 +26,7 @@ import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import { SearchFilters } from '../hooks/useSearch';
 import './SavedSearches.css';
 
-interface SavedSearch {
+export interface SavedSearch {
   id: string;
   name: string;
   searchType: 'students' | 'courses' | 'grades';
@@ -34,18 +34,22 @@ interface SavedSearch {
   filters: SearchFilters;
   createdAt: number;
   lastUsed?: number;
+  // Legacy compatibility for earlier data shape
+  timestamp?: number;
 }
 
 interface SavedSearchesProps {
   searchType: 'students' | 'courses' | 'grades';
   currentQuery: string;
   currentFilters: SearchFilters;
-  onLoadSearch: (query: string, filters: SearchFilters) => void;
+  onLoadSearch: (search: SavedSearch) => void;
   className?: string;
 }
 
 const STORAGE_KEY = 'sms_saved_searches';
 const MAX_SAVED_SEARCHES = 10;
+
+type SavedSearchMap = Record<SavedSearch['searchType'], SavedSearch[]>;
 
 export const SavedSearches: React.FC<SavedSearchesProps> = ({
   searchType,
@@ -68,16 +72,37 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const searches = JSON.parse(stored) as SavedSearch[];
-        // Filter by search type and sort by last used
-        const filtered = searches
-          .filter(s => s.searchType === searchType)
+        const parsed = JSON.parse(stored);
+        const byType: SavedSearchMap = Array.isArray(parsed)
+          ? parsed.reduce((acc: SavedSearchMap, item: SavedSearch) => {
+              const type = item.searchType || searchType;
+              acc[type] = acc[type] ? [...acc[type], item] : [item];
+              return acc;
+            }, { students: [], courses: [], grades: [] } as SavedSearchMap)
+          : (parsed as SavedSearchMap);
+
+        const normalized = (byType[searchType] || []).map((item) => ({
+          ...item,
+          searchType: item.searchType || searchType,
+          createdAt:
+            item.createdAt ||
+            (item as unknown as { timestamp?: number }).timestamp ||
+            Date.now(),
+          lastUsed: item.lastUsed ||
+            item.createdAt ||
+            (item as unknown as { timestamp?: number }).timestamp ||
+            Date.now()
+        }));
+
+        const filtered = normalized
           .sort((a, b) => (b.lastUsed || b.createdAt) - (a.lastUsed || a.createdAt));
+
         setSavedSearches(filtered);
       }
     } catch (err) {
       console.error('Error loading saved searches:', err);
-      setError(t('search.saved.loadError'));
+      setSavedSearches([]);
+      setError(t('search.saved.loadError', { defaultValue: 'Error loading saved searches' }));
     }
   }, [searchType, t]);
 
@@ -95,49 +120,70 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
    */
   const handleSaveSearch = () => {
     if (!newSearchName.trim()) {
-      setError(t('search.saved.nameRequired'));
+      setError(t('search.saved.nameRequired', { defaultValue: 'Name required' }));
       return;
     }
 
     if (savedSearches.length >= MAX_SAVED_SEARCHES) {
-      setError(t('search.saved.maxReached', { max: MAX_SAVED_SEARCHES }));
+      setError(
+        t('search.saved.maxReached', {
+          max: MAX_SAVED_SEARCHES,
+          defaultValue: 'Maximum saved searches reached'
+        })
+      );
       return;
     }
 
     try {
       const allSearches = getAllSearches();
+      const forType = allSearches[searchType] || [];
+      const now = Date.now();
       const newSearch: SavedSearch = {
-        id: `search_${Date.now()}`,
+        id: `search_${now}`,
         name: newSearchName.trim(),
         searchType,
         query: currentQuery,
         filters: currentFilters,
-        createdAt: Date.now(),
-        lastUsed: Date.now()
+        createdAt: now,
+        lastUsed: now,
+        // Backward compatibility for legacy tests that expect `timestamp`
+        timestamp: now
       };
 
-      allSearches.push(newSearch);
+      const updatedForType = [newSearch, ...forType];
+      allSearches[searchType] = updatedForType.slice(0, MAX_SAVED_SEARCHES);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(allSearches));
 
-      setSavedSearches([newSearch, ...savedSearches]);
+      setSavedSearches(updatedForType.slice(0, MAX_SAVED_SEARCHES));
       setNewSearchName('');
       setShowSaveForm(false);
       setError('');
     } catch (err) {
       console.error('Error saving search:', err);
-      setError(t('search.saved.saveError'));
+      setError(t('search.saved.saveError', { defaultValue: 'Failed to save search' }));
     }
   };
 
   /**
    * Get all saved searches from storage
    */
-  const getAllSearches = (): SavedSearch[] => {
+  const getAllSearches = (): SavedSearchMap => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : [];
+      if (!stored) return { students: [], courses: [], grades: [] };
+
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        return parsed.reduce((acc: SavedSearchMap, item: SavedSearch) => {
+          const type = item.searchType || searchType;
+          acc[type] = acc[type] ? [...acc[type], item] : [item];
+          return acc;
+        }, { students: [], courses: [], grades: [] } as SavedSearchMap);
+      }
+
+      return parsed as SavedSearchMap;
     } catch {
-      return [];
+      return { students: [], courses: [], grades: [] };
     }
   };
 
@@ -147,25 +193,28 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   const handleLoadSearch = (search: SavedSearch) => {
     try {
       // Update last used time
+      const now = Date.now();
       const allSearches = getAllSearches();
-      const updated = allSearches.map(s =>
-        s.id === search.id ? { ...s, lastUsed: Date.now() } : s
+      const updatedForType = (allSearches[searchType] || []).map((s) =>
+        s.id === search.id ? { ...s, lastUsed: now, timestamp: now } : s
       );
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      allSearches[searchType] = updatedForType;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allSearches));
 
       // Call parent handler
-      onLoadSearch(search.query, search.filters);
+      onLoadSearch({ ...search, lastUsed: now, timestamp: now });
 
       // Update local state
-      setSavedSearches(updated
-        .filter(s => s.searchType === searchType)
-        .sort((a, b) => (b.lastUsed || b.createdAt) - (a.lastUsed || a.createdAt))
+      setSavedSearches(
+        updatedForType.sort(
+          (a, b) => (b.lastUsed || b.createdAt) - (a.lastUsed || a.createdAt)
+        )
       );
 
       setIsOpen(false);
     } catch (err) {
       console.error('Error loading search:', err);
-      setError(t('search.saved.loadError'));
+      setError(t('search.saved.loadError', { defaultValue: 'Error loading saved searches' }));
     }
   };
 
@@ -175,14 +224,15 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   const handleDeleteSearch = (id: string) => {
     try {
       const allSearches = getAllSearches();
-      const filtered = allSearches.filter(s => s.id !== id);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+      const filtered = (allSearches[searchType] || []).filter(s => s.id !== id);
+      allSearches[searchType] = filtered;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(allSearches));
 
-      setSavedSearches(savedSearches.filter(s => s.id !== id));
+      setSavedSearches(filtered);
       setError('');
     } catch (err) {
       console.error('Error deleting search:', err);
-      setError(t('search.saved.deleteError'));
+      setError(t('search.saved.deleteError', { defaultValue: 'Failed to delete search' }));
     }
   };
 
@@ -197,10 +247,13 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${days}d ${t('search.saved.ago')}`;
-    if (hours > 0) return `${hours}h ${t('search.saved.ago')}`;
-    if (minutes > 0) return `${minutes}m ${t('search.saved.ago')}`;
-    return `${t('search.saved.justNow')}`;
+    if (days > 0)
+      return `${days}d ${t('search.saved.ago', { defaultValue: 'ago' })}`;
+    if (hours > 0)
+      return `${hours}h ${t('search.saved.ago', { defaultValue: 'ago' })}`;
+    if (minutes > 0)
+      return `${minutes}m ${t('search.saved.ago', { defaultValue: 'ago' })}`;
+    return `${t('search.saved.justNow', { defaultValue: 'Just now' })}`;
   };
 
   return (
@@ -209,11 +262,12 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       <button
         className={`saved-button ${isOpen ? 'open' : ''}`}
         onClick={() => {
-          setIsOpen(!isOpen);
-          setShowSaveForm(false);
+          const next = !isOpen;
+          setIsOpen(next);
+          setShowSaveForm(next);
         }}
         aria-expanded={isOpen}
-        aria-label={t('search.saved.title')}
+        aria-label={t('search.saved.toggle', { defaultValue: 'Search history' })}
       >
         <StarIcon className="save-icon" />
         <span>{savedSearches.length}</span>
@@ -223,7 +277,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {isOpen && (
         <div className="saved-panel">
           <div className="saved-header">
-            <h3>{t('search.saved.title')}</h3>
+            <h3>{t('search.saved.title', { defaultValue: 'Saved Searches' })}</h3>
             <button
               className="close-button"
               onClick={() => {
@@ -257,7 +311,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                 type="text"
                 value={newSearchName}
                 onChange={(e) => setNewSearchName(e.target.value)}
-                placeholder={t('search.saved.enterName')}
+                placeholder={t('search.saved.enterName', { defaultValue: 'Save search name' })}
                 onKeyPress={(e) => {
                   if (e.key === 'Enter') handleSaveSearch();
                 }}
@@ -268,10 +322,11 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                   className="save-confirm-button"
                   onClick={handleSaveSearch}
                   disabled={!newSearchName.trim()}
-                >
-                  <CheckIcon className="check-icon" />
-                  {t('common.save')}
-                </button>
+                aria-label={t('common.save')}
+              >
+                <CheckIcon className="check-icon" />
+                {t('common.save')}
+              </button>
                 <button
                   className="save-cancel-button"
                   onClick={() => {
@@ -288,21 +343,23 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
               className="save-current-button"
               onClick={() => setShowSaveForm(true)}
               disabled={!currentQuery.trim()}
+              aria-label={t('search.saved.saveCurrent', { defaultValue: 'Save current search' })}
             >
               <PlusIcon className="plus-icon" />
-              {t('search.saved.saveCurrent')}
+              {t('search.saved.saveCurrent', { defaultValue: 'Save current search' })}
             </button>
           )}
 
           {/* Saved searches list */}
           {savedSearches.length > 0 ? (
-            <div className="searches-list">
-              {savedSearches.map(search => (
-                <div key={search.id} className="search-item">
+            <div className="searches-list" role="list" aria-label={t('search.saved.title', { defaultValue: 'Saved Searches' })}>
+              {savedSearches.map((search) => (
+                <div key={search.id} className="search-item" role="listitem">
                   <button
                     className="search-button"
                     onClick={() => handleLoadSearch(search)}
                     title={`Query: "${search.query}"`}
+                    aria-label={t('search.saved.loadSearch', { defaultValue: 'Load saved search' })}
                   >
                     <StarIconSolid className="star-icon-solid" />
                     <div className="search-info">
@@ -311,9 +368,9 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                         {search.query && (
                           <span className="search-query">&quot;{search.query}&quot;</span>
                         )}
-                        {search.lastUsed && (
+                        {(search.lastUsed || search.createdAt) && (
                           <span className="search-time">
-                            {formatTimeSince(search.lastUsed)}
+                            {formatTimeSince(search.lastUsed || search.createdAt)}
                           </span>
                         )}
                       </div>
@@ -331,7 +388,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
             </div>
           ) : (
             <div className="empty-state">
-              <p>{t('search.saved.noSearches')}</p>
+              <p>{t('search.saved.noSearches', { defaultValue: 'No saved searches yet' })}</p>
             </div>
           )}
         </div>

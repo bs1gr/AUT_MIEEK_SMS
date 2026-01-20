@@ -1,0 +1,55 @@
+/**
+ * Greek translations for Search and Filters
+ */
+
+export default {
+  presets: {
+    title: 'Προκαθορισμένα Φίλτρα',
+    activeStudents: 'Ενεργοί Φοιτητές',
+    currentYear: 'Τρέχον Έτος',
+    recentEnrollments: 'Πρόσφατες Εγγραφές',
+    highCredit: 'Υψηλές Μονάδες',
+    coreCourses: 'Βασικά Μαθήματα',
+    threeCredits: 'Μαθήματα 3 Μονάδων',
+    highGrades: 'Υψηλοί Βαθμοί (80+)',
+    passingOnly: 'Μόνο Επιτυχόντες',
+    failing: 'Αποτυχόντες Βαθμοί',
+  },
+  saved: {
+    title: 'Αποθηκευμένες Αναζητήσεις',
+    save: 'Αποθήκευση Αναζήτησης',
+    load: 'Φόρτωση',
+    delete: 'Διαγραφή',
+    enterName: 'Εισάγετε όνομα αναζήτησης',
+    nameRequired: 'Απαιτείται όνομα αναζήτησης',
+    success: 'Η αναζήτηση αποθηκεύτηκε επιτυχώς',
+    limit: 'Μέγιστο 10 αποθηκευμένες αναζητήσεις ανά τύπο',
+  },
+  advanced: {
+    title: 'Προχωρημένα Φίλτρα',
+    apply: 'Εφαρμογή Φίλτρων',
+    reset: 'Επαναφορά Φίλτρων',
+    collapse: 'Σύμπτυξη Φίλτρων',
+    expand: 'Ανάπτυξη Φίλτρων',
+  },
+  fields: {
+    firstName: 'Όνομα',
+    lastName: 'Επώνυμο',
+    email: 'Email',
+    status: 'Κατάσταση',
+    academicYear: 'Ακαδημαϊκό Έτος',
+    courseName: 'Όνομα Μαθήματος',
+    courseCode: 'Κωδικός Μαθήματος',
+    credits: 'Μονάδες',
+    gradeMin: 'Ελάχιστος Βαθμός',
+    gradeMax: 'Μέγιστος Βαθμός',
+    passed: 'Επιτυχών',
+    studentId: 'ID Φοιτητή',
+    courseId: 'ID Μαθήματος',
+    enterValue: 'Εισάγετε τιμή'
+  },
+  filters: {
+    title: 'Φίλτρα',
+    custom: 'Προσαρμοσμένα Φίλτρα'
+  }
+};

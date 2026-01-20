@@ -20,22 +20,27 @@ vi.mock('socket.io-client', () => ({
 }));
 
 // Mock API client with proper response structure
-const mockApiGet = vi.fn();
-const mockApiPost = vi.fn();
-const mockApiDelete = vi.fn();
+vi.mock('../../api/api', () => {
+  const mockGet = vi.fn();
+  const mockPost = vi.fn();
+  const mockDelete = vi.fn();
 
-vi.mock('../../api/api', () => ({
-  default: {
-    get: mockApiGet,
-    post: mockApiPost,
-    delete: mockApiDelete,
-  },
-  extractAPIResponseData: (response: Record<string, unknown>) => (response?.data as Record<string, unknown>)?.data || response?.data,
-  extractAPIError: (error: { message?: string }) => ({
-    message: error?.message || 'Unknown error',
-    code: 'ERROR',
-  }),
-}));
+  return {
+    default: {
+      get: mockGet,
+      post: mockPost,
+      delete: mockDelete,
+    },
+    extractAPIResponseData: (response: Record<string, unknown>) => (response?.data as Record<string, unknown>)?.data || response?.data,
+    extractAPIError: (error: { message?: string }) => ({
+      message: error?.message || 'Unknown error',
+      code: 'ERROR',
+    }),
+  };
+});
+
+// Import after mocking
+import api from '../../api/api';
 
 describe('useNotifications Hook', () => {
   beforeEach(() => {
@@ -93,7 +98,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -116,7 +121,7 @@ describe('useNotifications Hook', () => {
 
     it('should handle fetch errors', async () => {
       const error = new Error('Failed to fetch');
-      mockApiGet.mockRejectedValueOnce(error);
+      vi.mocked(api.get).mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
 
@@ -153,7 +158,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -188,7 +193,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -196,7 +201,7 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      mockApiPost.mockResolvedValueOnce({
+      vi.mocked(api.post).mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
@@ -229,7 +234,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -238,7 +243,7 @@ describe('useNotifications Hook', () => {
       });
 
       const error = new Error('Failed to mark as read');
-      mockApiPost.mockRejectedValueOnce(error);
+      vi.mocked(api.post).mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
 
@@ -254,7 +259,7 @@ describe('useNotifications Hook', () => {
         }
       });
 
-      expect(mockApiPost).toHaveBeenCalled();
+      expect(vi.mocked(api.post)).toHaveBeenCalled();
     });
   });
 
@@ -281,7 +286,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 2 },
@@ -289,7 +294,7 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      mockApiPost.mockResolvedValueOnce({
+      vi.mocked(api.post).mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
@@ -326,7 +331,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -334,7 +339,7 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      mockApiDelete.mockResolvedValueOnce({
+      vi.mocked(api.delete).mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
@@ -368,7 +373,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -376,7 +381,7 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      mockApiDelete.mockResolvedValueOnce({
+      vi.mocked(api.delete).mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
@@ -400,7 +405,7 @@ describe('useNotifications Hook', () => {
 
   describe('refreshUnreadCount', () => {
     it('should refresh unread count from API', async () => {
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { unread_count: 5 },
@@ -445,7 +450,7 @@ describe('useNotifications Hook', () => {
   describe('Error Handling', () => {
     it('should set error state on API failure', async () => {
       const error = new Error('API Error');
-      mockApiGet.mockRejectedValueOnce(error);
+      vi.mocked(api.get).mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
 
@@ -475,7 +480,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      mockApiGet.mockResolvedValueOnce({
+      vi.mocked(api.get).mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },

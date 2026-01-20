@@ -178,7 +178,7 @@ class SearchService:
             offset: Pagination offset (default: 0)
 
         Returns:
-            List of grade dictionaries with id, student_name, course_name, grade_value
+            List of grade dictionaries with id, student_name, course_name, grade
 
         Example:
             >>> results = search_service.search_grades(
@@ -211,10 +211,10 @@ class SearchService:
 
             # Apply filters
             if "grade_min" in filters and filters["grade_min"] is not None:
-                grade_query = grade_query.filter(Grade.grade_value >= filters["grade_min"])
+                grade_query = grade_query.filter(Grade.grade >= filters["grade_min"])
 
             if "grade_max" in filters and filters["grade_max"] is not None:
-                grade_query = grade_query.filter(Grade.grade_value <= filters["grade_max"])
+                grade_query = grade_query.filter(Grade.grade <= filters["grade_max"])
 
             if "student_id" in filters and filters["student_id"] is not None:
                 grade_query = grade_query.filter(Grade.student_id == filters["student_id"])
@@ -233,7 +233,7 @@ class SearchService:
                     "student_name": f"{g.student.first_name} {g.student.last_name}",
                     "course_id": g.course_id,
                     "course_name": g.course.course_name,
-                    "grade_value": float(g.grade_value) if g.grade_value else None,
+                    "grade": float(g.grade) if g.grade else None,
                     "type": "grade",
                 }
                 for g in grades
@@ -381,10 +381,10 @@ class SearchService:
 
         # Apply grade range filters
         if "grade_min" in filters and filters["grade_min"] is not None:
-            query = query.filter(Grade.grade_value >= filters["grade_min"])
+            query = query.filter(Grade.grade >= filters["grade_min"])
 
         if "grade_max" in filters and filters["grade_max"] is not None:
-            query = query.filter(Grade.grade_value <= filters["grade_max"])
+            query = query.filter(Grade.grade <= filters["grade_max"])
 
         # Apply entity filters
         if "student_id" in filters and filters["student_id"] is not None:
@@ -397,9 +397,9 @@ class SearchService:
         if "passed" in filters and filters["passed"] is not None:
             passing_threshold = 50
             if filters["passed"]:
-                query = query.filter(Grade.grade_value >= passing_threshold)
+                query = query.filter(Grade.grade >= passing_threshold)
             else:
-                query = query.filter(Grade.grade_value < passing_threshold)
+                query = query.filter(Grade.grade < passing_threshold)
 
         grades = query.limit(limit).offset(offset).all()
 
@@ -410,8 +410,8 @@ class SearchService:
                 "student_name": f"{g.student.first_name} {g.student.last_name}",
                 "course_id": g.course_id,
                 "course_name": g.course.course_name,
-                "grade_value": float(g.grade_value) if g.grade_value else None,
-                "passed": g.grade_value >= 50 if g.grade_value else False,
+                "grade": float(g.grade) if g.grade else None,
+                "passed": g.grade >= 50 if g.grade else False,
                 "type": "grade",
             }
             for g in grades
@@ -470,8 +470,8 @@ class SearchService:
                         score += 25
 
             # Bonus: Grade results ranked by grade value (higher is better)
-            if "grade_value" in result and result["grade_value"]:
-                score += result["grade_value"]
+            if "grade" in result and result["grade"]:
+                score += result["grade"]
 
             return score
 

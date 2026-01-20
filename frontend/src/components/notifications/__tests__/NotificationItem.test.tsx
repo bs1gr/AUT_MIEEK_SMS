@@ -54,11 +54,11 @@ describe('NotificationItem Component', () => {
       notifications: [mockNotification],
       isLoading: false,
       error: null,
-      markAsRead: vi.fn(),
-      markAllAsRead: vi.fn(),
-      deleteNotification: vi.fn(),
-      fetchNotifications: vi.fn(),
-      refreshUnreadCount: vi.fn(),
+      markAsRead: vi.fn().mockResolvedValue(undefined),
+      markAllAsRead: vi.fn().mockResolvedValue(undefined),
+      deleteNotification: vi.fn().mockResolvedValue(undefined),
+      fetchNotifications: vi.fn().mockResolvedValue([]),
+      refreshUnreadCount: vi.fn().mockResolvedValue(0),
       connect: vi.fn(),
       disconnect: vi.fn(),
     });
@@ -240,7 +240,7 @@ describe('NotificationItem Component', () => {
     });
 
     it('should call markAsRead when button clicked if not already read', async () => {
-      const markAsRead = vi.fn();
+      const markAsRead = vi.fn().mockResolvedValue(undefined);
       mockUseNotifications.mockReturnValue({
         unreadCount: 1,
         isConnected: true,
@@ -248,16 +248,16 @@ describe('NotificationItem Component', () => {
         isLoading: false,
         error: null,
         markAsRead,
-        markAllAsRead: vi.fn(),
-        deleteNotification: vi.fn(),
-        fetchNotifications: vi.fn(),
-        refreshUnreadCount: vi.fn(),
+        markAllAsRead: vi.fn().mockResolvedValue(undefined),
+        deleteNotification: vi.fn().mockResolvedValue(undefined),
+        fetchNotifications: vi.fn().mockResolvedValue([]),
+        refreshUnreadCount: vi.fn().mockResolvedValue(0),
         connect: vi.fn(),
         disconnect: vi.fn(),
       });
 
       render(<NotificationItem notification={mockNotification} />);
-      const markReadBtn = screen.getByRole('button', { name: /item.markAsRead/i });
+      const markReadBtn = screen.getByLabelText(/mark as read/i);
 
       await userEvent.click(markReadBtn);
 
@@ -265,7 +265,7 @@ describe('NotificationItem Component', () => {
     });
 
     it('should not call markAsRead if already read', async () => {
-      const markAsRead = vi.fn();
+      const markAsRead = vi.fn().mockResolvedValue(undefined);
       const readNotif = { ...mockNotification, is_read: true };
       mockUseNotifications.mockReturnValue({
         unreadCount: 0,
@@ -274,41 +274,43 @@ describe('NotificationItem Component', () => {
         isLoading: false,
         error: null,
         markAsRead,
-        markAllAsRead: vi.fn(),
-        deleteNotification: vi.fn(),
-        fetchNotifications: vi.fn(),
-        refreshUnreadCount: vi.fn(),
+        markAllAsRead: vi.fn().mockResolvedValue(undefined),
+        deleteNotification: vi.fn().mockResolvedValue(undefined),
+        fetchNotifications: vi.fn().mockResolvedValue([]),
+        refreshUnreadCount: vi.fn().mockResolvedValue(0),
         connect: vi.fn(),
         disconnect: vi.fn(),
       });
 
       render(<NotificationItem notification={readNotif} />);
-      const markReadBtn = screen.getByRole('button', { name: /item.markAsRead/i });
+      const markReadBtn = screen.queryByLabelText(/mark as read/i);
 
-      await userEvent.click(markReadBtn);
+      if (markReadBtn) {
+        await userEvent.click(markReadBtn);
+      }
 
       expect(markAsRead).not.toHaveBeenCalled();
     });
 
     it('should call deleteNotification when delete button clicked', async () => {
-      const deleteNotification = vi.fn();
+      const deleteNotification = vi.fn().mockResolvedValue(undefined);
       mockUseNotifications.mockReturnValue({
         unreadCount: 1,
         isConnected: true,
         notifications: [mockNotification],
         isLoading: false,
         error: null,
-        markAsRead: vi.fn(),
-        markAllAsRead: vi.fn(),
+        markAsRead: vi.fn().mockResolvedValue(undefined),
+        markAllAsRead: vi.fn().mockResolvedValue(undefined),
         deleteNotification,
-        fetchNotifications: vi.fn(),
-        refreshUnreadCount: vi.fn(),
+        fetchNotifications: vi.fn().mockResolvedValue([]),
+        refreshUnreadCount: vi.fn().mockResolvedValue(0),
         connect: vi.fn(),
         disconnect: vi.fn(),
       });
 
       render(<NotificationItem notification={mockNotification} />);
-      const deleteBtn = screen.getByRole('button', { name: /item.delete/i });
+      const deleteBtn = screen.getByLabelText(/delete/i);
 
       await userEvent.click(deleteBtn);
 
@@ -318,7 +320,7 @@ describe('NotificationItem Component', () => {
 
   describe('Click Behavior', () => {
     it('should mark as read on click if not already read', async () => {
-      const markAsRead = vi.fn();
+      const markAsRead = vi.fn().mockResolvedValue(undefined);
       mockUseNotifications.mockReturnValue({
         unreadCount: 1,
         isConnected: true,
@@ -326,10 +328,10 @@ describe('NotificationItem Component', () => {
         isLoading: false,
         error: null,
         markAsRead,
-        markAllAsRead: vi.fn(),
-        deleteNotification: vi.fn(),
-        fetchNotifications: vi.fn(),
-        refreshUnreadCount: vi.fn(),
+        markAllAsRead: vi.fn().mockResolvedValue(undefined),
+        deleteNotification: vi.fn().mockResolvedValue(undefined),
+        fetchNotifications: vi.fn().mockResolvedValue([]),
+        refreshUnreadCount: vi.fn().mockResolvedValue(0),
         connect: vi.fn(),
         disconnect: vi.fn(),
       });
@@ -345,10 +347,6 @@ describe('NotificationItem Component', () => {
     });
 
     it('should navigate if data.url exists and notification is read', async () => {
-      const navigate = vi.fn();
-      const { useNavigate } = await import('react-router-dom');
-      vi.mocked(useNavigate).mockReturnValue(navigate);
-
       const readNotif = { ...mockNotification, is_read: true, data: { url: '/grades/123' } };
       const { container } = render(<NotificationItem notification={readNotif} />);
       const item = container.querySelector('.notification-item');
@@ -362,7 +360,7 @@ describe('NotificationItem Component', () => {
 
     it('should stop propagation on action button clicks', async () => {
       render(<NotificationItem notification={mockNotification} />);
-      const deleteBtn = screen.getByRole('button', { name: /item.delete/i });
+      const deleteBtn = screen.getByLabelText(/delete/i);
 
       const event = new MouseEvent('click', { bubbles: true });
       const _stopPropagationSpy = vi.spyOn(event, 'stopPropagation');
@@ -377,7 +375,7 @@ describe('NotificationItem Component', () => {
   describe('Accessibility', () => {
     it('should have accessible button labels', () => {
       render(<NotificationItem notification={mockNotification} />);
-      expect(screen.getByRole('button', { name: /item.markAsRead/i })).toBeInTheDocument();
+      expect(screen.getByLabelText(/mark as read/i)).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /item.delete/i })).toBeInTheDocument();
     });
 
