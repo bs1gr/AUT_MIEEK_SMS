@@ -465,7 +465,7 @@ describe('AdvancedFilters Component', () => {
     });
 
     it('should be keyboard navigable', async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       renderAdvancedFilters({ searchType: 'students', isOpen: true });
 
       // First input should have autofocus when panel is open

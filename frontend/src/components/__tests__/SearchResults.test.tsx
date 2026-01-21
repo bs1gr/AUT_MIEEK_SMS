@@ -24,7 +24,7 @@ import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n';
 import { SearchResults } from '../SearchResults';
 
-const renderWithProviders = (
+const _renderWithProviders = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ) => {

@@ -8,11 +8,9 @@ i18n.changeLanguage('en').catch(() => {
 
 // Log translation keys for debugging (will be visible in test output)
 if (typeof process !== 'undefined' && (process.env.DEBUG_I18N || process.env.NODE_ENV === 'test')) {
-  console.log('[i18n] Initialized with English');
+  // Translation debugging - using warn to comply with ESLint console rules
   const searchKeys = i18n.getResourceBundle('en', 'translation')?.search;
-  if (searchKeys) {
-    console.log('[i18n] Found search translation keys:', Object.keys(searchKeys || {}));
-  } else {
+  if (!searchKeys) {
     console.warn('[i18n] No search translation keys found in English bundle');
   }
 }
