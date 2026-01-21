@@ -72,7 +72,7 @@ export const translations: Translations = {
     reports: reportsEn,
     feedback: feedbackEn,
     errors: errorsEn,
-    search: searchEn?.search || searchEn,
+    search: searchEn,
     // Flattened access (t('key'))
     ...controlPanelEn,
     ...authEn,
@@ -89,7 +89,7 @@ export const translations: Translations = {
     ...reportsEn,
     ...feedbackEn,
     ...errorsEn,
-    ...(searchEn?.search || searchEn)
+    ...searchEn
   },
 
   el: {
@@ -112,7 +112,7 @@ export const translations: Translations = {
     reports: reportsEl,
     feedback: feedbackEl,
     errors: errorsEl,
-    search: searchEl?.search || searchEl,
+    search: searchEl,
     // Flattened access (t('key'))
     ...controlPanelEl,
     ...authEl,
@@ -129,6 +129,6 @@ export const translations: Translations = {
     ...reportsEl,
     ...feedbackEl,
     ...errorsEl,
-    ...(searchEl?.search || searchEl)
+    ...searchEl
   }
 };

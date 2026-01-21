@@ -230,19 +230,18 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
         </div>
 
         {/* Pagination */}
-        {hasMore && (
+        {(hasMore || currentPage > 0) && (
           <div className="pagination">
-            {currentPage > 0 && (
-              <button
-                className="pagination-button"
-                onClick={() => onLoadMore()}
-                aria-label={t('common.previous')}
-                disabled={isLoading}
-              >
-                <ChevronLeftIcon className="pagination-icon" />
-                {t('common.previous')}
-              </button>
-            )}
+            <button
+              className="pagination-button"
+              onClick={() => onLoadMore()}
+              aria-label={t('common.previous')}
+              disabled={isLoading || currentPage <= 1}
+              aria-disabled={isLoading || currentPage <= 1}
+            >
+              <ChevronLeftIcon className="pagination-icon" />
+              {t('common.previous')}
+            </button>
 
             <span className="page-info">
               {t('search.page', 'Page')} {currentPage + 1}
@@ -252,7 +251,8 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
               className="pagination-button"
               onClick={onLoadMore}
               aria-label={t('common.next')}
-              disabled={isLoading}
+              disabled={isLoading || !hasMore}
+              aria-disabled={isLoading || !hasMore}
             >
               {t('common.next')}
               <ChevronRightIcon className="pagination-icon" />

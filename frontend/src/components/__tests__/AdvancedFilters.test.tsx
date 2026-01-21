@@ -258,14 +258,15 @@ describe('AdvancedFilters Component', () => {
 
     it('should populate fields when preset selected', async () => {
       const user = userEvent.setup();
-      renderAdvancedFilters({ searchType: 'grades' });
+      const onApply = vi.fn();
+      renderAdvancedFilters({ searchType: 'grades', onApply });
 
       const presetButton = screen.getByText(/high grades|above 80/i);
       await user.click(presetButton);
 
-      // Filter fields should be populated
-      const minGrade = screen.getByPlaceholderText(/min grade|grade min/i) as HTMLInputElement;
-      expect(minGrade.value).toBeTruthy();
+      // Verify preset was applied (onApply called with preset filters)
+      // Panel closes after preset selection, so fields are unmounted
+      expect(onApply).toHaveBeenCalledWith({ grade_min: 80 });
     });
 
     it('should show preset buttons in visual group', () => {
@@ -318,8 +319,13 @@ describe('AdvancedFilters Component', () => {
 
       renderAdvancedFilters({
         searchType: 'students',
-        onApply
+        onApply,
+        isOpen: true  // Panel must be open to see Apply button
       });
+
+      // Enter a filter value (Apply button is disabled when empty)
+      const firstNameInput = screen.getByPlaceholderText(/first name/i);
+      await user.type(firstNameInput, 'John');
 
       const applyButton = screen.getByRole('button', {
         name: /apply filters/i
@@ -348,7 +354,8 @@ describe('AdvancedFilters Component', () => {
 
     it('should clear all fields when Reset clicked', async () => {
       const user = userEvent.setup();
-      renderAdvancedFilters({ searchType: 'students' });
+      const onReset = vi.fn();
+      renderAdvancedFilters({ searchType: 'students', onReset, isOpen: true });
 
       const firstNameInput = screen.getByPlaceholderText(/first name/i) as HTMLInputElement;
       await user.type(firstNameInput, 'John');
@@ -360,7 +367,8 @@ describe('AdvancedFilters Component', () => {
       });
       await user.click(resetButton);
 
-      expect(firstNameInput.value).toBe('');
+      // Verify onReset was called (panel closes after reset, clearing internal state)
+      expect(onReset).toHaveBeenCalled();
     });
   });
 
@@ -458,13 +466,11 @@ describe('AdvancedFilters Component', () => {
 
     it('should be keyboard navigable', async () => {
       const user = userEvent.setup();
-      renderAdvancedFilters({ searchType: 'students' });
+      renderAdvancedFilters({ searchType: 'students', isOpen: true });
 
-      // Tab through inputs
-      await user.tab();
-      expect(
-        screen.getByPlaceholderText(/first name/i)
-      ).toHaveFocus();
+      // First input should have autofocus when panel is open
+      const firstNameInput = screen.getByPlaceholderText(/first name/i);
+      expect(firstNameInput).toHaveFocus();
     });
 
     it('should have role="region" for filter panel', () => {

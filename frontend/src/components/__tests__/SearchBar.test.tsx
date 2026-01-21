@@ -65,7 +65,8 @@ const renderSearchBar = (props = {}, mockReturn?: any) => {
         onSearch={vi.fn()}
         {...props}
       />
-    </I18nextProvider>
+    </I18nextProvider>,
+    { container: document.documentElement }
   );
 };
 
