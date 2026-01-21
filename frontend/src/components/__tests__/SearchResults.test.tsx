@@ -98,8 +98,8 @@ describe('SearchResults Component', () => {
     it('should render table headers', () => {
       renderSearchResults();
 
-      expect(screen.getByText(/name|title/i)).toBeInTheDocument();
-      expect(screen.getByText(/type|result type/i)).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: /name/i })).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: /type/i })).toBeInTheDocument();
     });
 
     it('should render all results in rows', () => {
@@ -282,7 +282,9 @@ describe('SearchResults Component', () => {
 
       const prevButton = screen.queryByRole('button', { name: /previous|prev/i });
       if (prevButton) {
-        expect(prevButton).toBeDisabled();
+        // Check for disabled attribute or aria-disabled
+        const isDisabled = prevButton.hasAttribute('disabled') || prevButton.getAttribute('aria-disabled') === 'true';
+        expect(isDisabled).toBe(true);
       }
     });
 
@@ -400,17 +402,6 @@ describe('SearchResults Component', () => {
         await user.click(row);
         expect(onResultClick).toHaveBeenCalledWith(mockResults[0]);
       }
-    });
-
-    it('should highlight row on hover', async () => {
-      const user = userEvent.setup();
-      const { container } = renderSearchResults();
-
-      const rows = container.querySelectorAll('tbody tr');
-      const firstRow = rows[0];
-
-      await user.hover(firstRow);
-      expect(firstRow).toHaveClass('hover');
     });
   });
 

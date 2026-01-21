@@ -125,7 +125,8 @@ describe("AnalyticsDashboard", () => {
     );
 
     // Look for the loading spinner (not the refresh button which also has the text)
-    const loadingSpinner = screen.getByText(/Loading/i).closest('.loading-spinner');
+    // The spinner usually has a specific class or role, but here we filter by class
+    const loadingSpinner = document.querySelector('.loading-spinner');
     expect(loadingSpinner).toBeInTheDocument();
   });
 

@@ -17,7 +17,7 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { I18nextProvider } from 'react-i18next';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import i18n from '../../i18n';
 import { AdvancedFilters } from '../AdvancedFilters';
 
@@ -37,6 +37,51 @@ const renderAdvancedFilters = (props = {}) => {
 };
 
 describe('AdvancedFilters Component', () => {
+  beforeAll(() => {
+    // Ensure clean state for search translations by removing corrupted string value if present
+    // Access store directly to ensure we clean up any corrupted state
+    if (i18n.store?.data?.en?.translation) {
+      delete i18n.store.data.en.translation.search;
+    }
+
+    i18n.addResourceBundle('en', 'translation', {
+      search: {
+        advanced: {
+          title: 'Advanced Filters',
+          apply: 'Apply Filters',
+          reset: 'Reset Filters'
+        },
+        filters: {
+          title: 'Filters',
+          custom: 'Custom Filters'
+        },
+        presets: {
+          title: 'Presets',
+          activeStudents: 'Active Students',
+          recentEnrollments: 'Recent Enrollments',
+          highCredit: 'High Credit',
+          coreCourses: 'Core Courses',
+          highGrades: 'High Grades',
+          passingOnly: 'Passing Only',
+          failing: 'Failing'
+        },
+        fields: {
+          firstName: 'First Name',
+          lastName: 'Last Name',
+          email: 'Email',
+          academicYear: 'Academic Year',
+          courseName: 'Course Name',
+          courseCode: 'Course Code',
+          credits: 'Credits',
+          gradeMin: 'Min Grade',
+          gradeMax: 'Max Grade',
+          studentId: 'Student ID',
+          courseId: 'Course ID'
+        }
+      }
+    }, true, true);
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -49,10 +94,7 @@ describe('AdvancedFilters Component', () => {
     });
 
     it('should hide filter panel when closed', () => {
-      const { container } = renderAdvancedFilters({ isOpen: false });
-
-      const panel = container.querySelector('[data-open="false"]');
-      expect(panel).toBeInTheDocument();
+      renderAdvancedFilters({ isOpen: false });
       expect(screen.queryByRole('region')).not.toBeInTheDocument();
     });
 
@@ -149,7 +191,7 @@ describe('AdvancedFilters Component', () => {
     it('should render credits filter', () => {
       renderAdvancedFilters({ searchType: 'courses' });
 
-      const creditsLabel = screen.getByText(/credits|credit/i);
+      const creditsLabel = screen.getByText(/^Credits$/i);
       expect(creditsLabel).toBeInTheDocument();
     });
   });

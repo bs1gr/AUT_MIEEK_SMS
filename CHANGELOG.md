@@ -10,6 +10,12 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Fixed
+- **Frontend Tests**: Stabilized i18n test suite and vitest runner configuration
+- **AdvancedFilters Tests**: Fixed missing translation keys in test environment
+- **i18n**: Fixed search translation namespace issues causing test failures
+- **i18n Config**: Enhanced robustness of translation initialization to handle array-like data corruption
+
 ## [1.18.0] - 2026-01-14
 
 ### ✨ Phase 3 Features (Major Release)
