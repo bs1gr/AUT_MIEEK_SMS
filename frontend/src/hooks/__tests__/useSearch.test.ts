@@ -293,6 +293,8 @@ describe('useSearch Hook', () => {
 
       await act(async () => {
         await result.current.loadMore('John');
+        // Wait for state updates to complete
+        await new Promise(resolve => setTimeout(resolve, 0));
       });
 
       // Should append new results
