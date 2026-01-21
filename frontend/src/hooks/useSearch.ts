@@ -19,6 +19,8 @@ import apiClient from '../api/api';
 export interface SearchResult {
   id: number;
   type: 'student' | 'course' | 'grade';
+  display_name?: string;
+  secondary_info?: string;
   first_name?: string;
   last_name?: string;
   email?: string;
