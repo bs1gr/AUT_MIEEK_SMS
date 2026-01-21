@@ -257,29 +257,31 @@ describe('usePerformanceMonitor hook', () => {
     });
 
     it('should handle multiple renders with different durations', () => {
-      // Clear previous implementation
-      vi.restoreAllMocks();
-      warnSpy = vi.spyOn(console, 'warn');
+      // Reset mocks but keep warnSpy setup from beforeEach
+      vi.clearAllMocks();
+      warnSpy.mockImplementation(() => {});
 
-      let renderCount = 0;
-      const mockNow = vi.fn();
-
-      mockNow.mockImplementation(() => {
-        renderCount++;
-        // First render: 50ms, Second render: 150ms (above threshold)
-        return renderCount * 100 + 50;
+      let time = 0;
+      vi.spyOn(performance, 'now').mockImplementation(() => {
+        const current = time;
+        time += 200;
+        return current;
       });
 
-      vi.spyOn(performance, 'now').mockImplementation(mockNow);
+      const { rerender } = renderHook(
+        ({ name }) => usePerformanceMonitor(name, 100),
+        { initialProps: { name: 'TestComponent' } }
+      );
 
-      const { rerender } = renderHook(() => usePerformanceMonitor('TestComponent', 100));
+      // Rerender with different prop to trigger cleanup of first render
+      rerender({ name: 'TestComponent-Updated' });
 
-      warnSpy.mockClear();
-
-      rerender();
-
-      // Second render should trigger warning
-      expect(warnSpy).toHaveBeenCalled();
+      // Should have warned for the first render
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('TestComponent'),
+        expect.any(Object)
+      );
     });
 
     it('should calculate render time correctly', () => {

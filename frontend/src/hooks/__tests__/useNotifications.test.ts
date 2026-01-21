@@ -121,7 +121,13 @@ describe('useNotifications Hook', () => {
 
     it('should handle fetch errors', async () => {
       const error = new Error('Failed to fetch');
-      vi.mocked(api.get).mockRejectedValueOnce(error);
+      // Mock first call (mount) as success to stabilize state
+      vi.mocked(api.get).mockResolvedValueOnce({
+        data: { data: { notifications: [], unread_count: 0 } }
+      });
+      // Mock second call (manual) as failure
+      vi.mocked(api.get)
+        .mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
 
@@ -133,7 +139,9 @@ describe('useNotifications Hook', () => {
         }
       });
 
-      expect(result.current.error).not.toBeNull();
+      await waitFor(() => {
+        expect(result.current.error).not.toBeNull();
+      });
     });
 
     it('should update unreadCount based on is_read status', async () => {
@@ -438,8 +446,12 @@ describe('useNotifications Hook', () => {
       });
     });
 
-    it('should have proper cleanup on unmount', () => {
-      const { unmount } = renderHook(() => useNotifications());
+    it('should have proper cleanup on unmount', async () => {
+      const { result, unmount } = renderHook(() => useNotifications());
+
+      await act(async () => {
+        result.current.connect();
+      });
 
       unmount();
 
@@ -450,7 +462,13 @@ describe('useNotifications Hook', () => {
   describe('Error Handling', () => {
     it('should set error state on API failure', async () => {
       const error = new Error('API Error');
-      vi.mocked(api.get).mockRejectedValueOnce(error);
+      // Mock first call (mount) as success
+      vi.mocked(api.get).mockResolvedValueOnce({
+        data: { data: { notifications: [], unread_count: 0 } }
+      });
+      // Mock second call (manual) as failure
+      vi.mocked(api.get)
+        .mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
 
@@ -462,7 +480,9 @@ describe('useNotifications Hook', () => {
         }
       });
 
-      expect(result.current.error).not.toBeNull();
+      await waitFor(() => {
+        expect(result.current.error).not.toBeNull();
+      });
     });
   });
 

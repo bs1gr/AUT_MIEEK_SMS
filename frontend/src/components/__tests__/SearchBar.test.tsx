@@ -21,14 +21,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { I18nextProvider } from 'react-i18next';
 import i18n from '../../i18n';
 import SearchBar from '../SearchBar';
-import { useSearch } from '../../hooks/useSearch';
+
+// Hoist the mock function so it can be used in the factory
+const { mockUseSearch } = vi.hoisted(() => ({
+  mockUseSearch: vi.fn()
+}));
 
 // Mock useSearch hook
 vi.mock('../../hooks/useSearch', () => ({
-  useSearch: vi.fn()
+  __esModule: true,
+  default: mockUseSearch,
+  useSearch: mockUseSearch
 }));
-
-const mockUseSearch = useSearch as ReturnType<typeof vi.fn>;
 
 const mockUseSearchReturn = {
   results: [],
@@ -46,8 +50,13 @@ const mockUseSearchReturn = {
   statistics: { total_students: 100, total_courses: 50, total_grades: 500 }
 };
 
-const renderSearchBar = (props = {}) => {
-  mockUseSearch.mockReturnValue(mockUseSearchReturn);
+const renderSearchBar = (props = {}, mockReturn?: any) => {
+  // Only set default mock if not already configured by test
+  if (mockReturn) {
+    mockUseSearch.mockReturnValue(mockReturn);
+  } else {
+    mockUseSearch.mockReturnValue(mockUseSearchReturn);
+  }
 
   return render(
     <I18nextProvider i18n={i18n}>
@@ -123,7 +132,7 @@ describe('SearchBar Component', () => {
     it('should apply custom className', () => {
       const { container } = renderSearchBar({ className: 'custom-class' });
 
-      const searchContainer = container.querySelector('.search-bar');
+      const searchContainer = container.querySelector('.search-bar-container');
       expect(searchContainer).toHaveClass('custom-class');
     });
   });
@@ -179,12 +188,12 @@ describe('SearchBar Component', () => {
         { id: 2, text: 'Jane Smith', type: 'student' }
       ];
 
-      mockUseSearch.mockReturnValue({
+      const mockReturn = {
         ...mockUseSearchReturn,
         suggestions
-      });
+      };
 
-      renderSearchBar();
+      renderSearchBar({}, mockReturn);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'Jo');
@@ -221,12 +230,12 @@ describe('SearchBar Component', () => {
         { id: 2, text: 'Jane', type: 'student' }
       ];
 
-      mockUseSearch.mockReturnValue({
+      const mockReturn = {
         ...mockUseSearchReturn,
         suggestions
-      });
+      };
 
-      renderSearchBar();
+      renderSearchBar({}, mockReturn);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'J');
@@ -235,8 +244,8 @@ describe('SearchBar Component', () => {
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
       await waitFor(() => {
-        const johnSuggestion = screen.getByText('John');
-        expect(johnSuggestion.parentElement).toHaveClass('selected');
+        const options = screen.getAllByRole('option');
+        expect(options[0]).toHaveClass('selected');
       });
     });
   });
@@ -249,12 +258,12 @@ describe('SearchBar Component', () => {
         { id: 2, text: 'Jane', type: 'student' }
       ];
 
-      mockUseSearch.mockReturnValue({
+      const mockReturn = {
         ...mockUseSearchReturn,
         suggestions
-      });
+      };
 
-      renderSearchBar();
+      renderSearchBar({}, mockReturn);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'J');
@@ -263,8 +272,8 @@ describe('SearchBar Component', () => {
       fireEvent.keyDown(input, { key: 'ArrowDown' });
 
       await waitFor(() => {
-        const janeSuggestion = screen.getByText('Jane');
-        expect(janeSuggestion.parentElement).toHaveClass('selected');
+        const options = screen.getAllByRole('option');
+        expect(options[1]).toHaveClass('selected');
       });
     });
 
@@ -275,12 +284,12 @@ describe('SearchBar Component', () => {
         { id: 2, text: 'Jane', type: 'student' }
       ];
 
-      mockUseSearch.mockReturnValue({
+      const mockReturn = {
         ...mockUseSearchReturn,
         suggestions
-      });
+      };
 
-      renderSearchBar();
+      renderSearchBar({}, mockReturn);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'J');
@@ -291,8 +300,8 @@ describe('SearchBar Component', () => {
       fireEvent.keyDown(input, { key: 'ArrowUp' });
 
       await waitFor(() => {
-        const johnSuggestion = screen.getByText('John');
-        expect(johnSuggestion.parentElement).toHaveClass('selected');
+        const options = screen.getAllByRole('option');
+        expect(options[0]).toHaveClass('selected');
       });
     });
 
@@ -303,12 +312,12 @@ describe('SearchBar Component', () => {
         { id: 1, text: 'John Doe', type: 'student' }
       ];
 
-      mockUseSearch.mockReturnValue({
+      const mockReturn = {
         ...mockUseSearchReturn,
         suggestions
-      });
+      };
 
-      renderSearchBar({ onSuggestionSelect });
+      renderSearchBar({ onSuggestionSelect }, mockReturn);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'J');
@@ -409,25 +418,27 @@ describe('SearchBar Component', () => {
       const user = userEvent.setup();
       const suggestions = [{ id: 1, text: 'John', type: 'student' }];
 
-      mockUseSearch.mockReturnValue({
+      const mockReturn = {
         ...mockUseSearchReturn,
         suggestions
-      });
+      };
 
-      const { container } = renderSearchBar();
+      const { container } = renderSearchBar({}, mockReturn);
 
       const input = screen.getByRole('textbox');
       await user.type(input, 'J');
+
+      // Wait for suggestions to appear
+      await waitFor(() => {
+        expect(screen.getByText('John')).toBeInTheDocument();
+      });
 
       // Click outside
       fireEvent.mouseDown(container.querySelector('body')!);
 
       await waitFor(() => {
-        const suggestionsContainer = screen.queryByRole('listbox');
-        expect(
-          suggestionsContainer === null ||
-            !suggestionsContainer.hasAttribute('data-open')
-        ).toBe(true);
+        const options = screen.queryAllByRole('option');
+        expect(options.length).toBe(0);
       });
     });
   });
