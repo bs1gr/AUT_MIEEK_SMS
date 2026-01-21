@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../hooks/useNotifications';
 import type { Notification } from '../../types/notification';
 import './NotificationItem.css';
+import { safeNavigate } from '../../utils/navigation';
 
 export interface NotificationItemProps {
   notification: Notification;
@@ -47,7 +48,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
 
     // Navigate if URL provided
     if (notification.data?.url) {
-      window.location.href = notification.data.url as string;
+      safeNavigate(notification.data.url as string);
     }
   };
 

@@ -1,5 +1,6 @@
 import React, { Component, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { safeNavigate } from './utils/navigation';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -60,7 +61,7 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
 
   handleGoHome = (): void => {
     // Navigate to home page
-    window.location.href = '/';
+    safeNavigate('/');
   };
 
   toggleDetails = (): void => {
