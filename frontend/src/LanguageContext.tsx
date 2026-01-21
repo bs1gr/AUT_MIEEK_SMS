@@ -15,19 +15,29 @@ interface LanguageProviderProps {
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const { t: i18nT, i18n } = useTranslation();
-  const [language, setLanguageState] = useState(i18n.language || 'el');
+  const [language, setLanguageState] = useState(() => {
+    const stored = localStorage.getItem('i18nextLng');
+    return stored || i18n.language || 'el';
+  });
 
-  // Sync with i18next when language changes
+  // Sync with i18next when language changes (including persisted value)
   useEffect(() => {
-    // Set language state asynchronously to avoid calling setState synchronously inside effect
-    // which can cause cascading renders in some environments.
-    const id = setTimeout(() => setLanguageState(i18n.language), 0);
+    const stored = localStorage.getItem('i18nextLng');
+    const effectiveLang = stored || i18n.language || 'el';
+
+    // Ensure i18n and state reflect persisted language
+    if (effectiveLang && i18n.language !== effectiveLang) {
+      i18n.changeLanguage(effectiveLang);
+    }
+
+    const id = setTimeout(() => setLanguageState(effectiveLang), 0);
     return () => clearTimeout(id);
-  }, [i18n.language]);
+  }, [i18n]);
 
   // Update i18next when language is changed via setLanguage
   const setLanguage = (lang: string) => {
     i18n.changeLanguage(lang);
+    localStorage.setItem('i18nextLng', lang);
     setLanguageState(lang);
   };
 
@@ -44,6 +54,12 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     return translation;
   };
+
+  useEffect(() => {
+    if (language) {
+      localStorage.setItem('i18nextLng', language);
+    }
+  }, [language]);
 
   return (
     <LanguageContext.Provider value={{ t, language, setLanguage }}>

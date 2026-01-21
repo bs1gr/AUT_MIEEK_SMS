@@ -5,6 +5,13 @@
  * - Dynamic filter controls based on search type
  * - Filter presets (e.g., "High grades", "Active students")
  * - Apply/reset controls
+/**
+ * AdvancedFilters - Component for advanced search filtering.
+ *
+ * Features:
+ * - Dynamic filter controls based on search type
+ * - Filter presets (e.g., "High grades", "Active students")
+ * - Apply/reset controls
  * - Responsive filter layout
  *
  * Author: AI Agent
@@ -49,66 +56,29 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const [open, setOpen] = useState(isOpen);
   const [filters, setFilters] = useState<SearchFilters>({});
 
-  /**
-   * Get filter presets for current search type
-   */
   const getFilterPresets = (): FilterPreset[] => {
     switch (searchType) {
       case 'students':
         return [
-          {
-            name: 'active',
-            label: t('search.presets.activeStudents'),
-            filters: { status: 'active' }
-          },
-          {
-            name: 'recent_enrollments',
-            label: t('search.presets.recentEnrollments'),
-            filters: { recent: true }
-          }
+          { name: 'active', label: t('search.presets.activeStudents'), filters: { status: 'active' } },
+          { name: 'recent_enrollments', label: t('search.presets.recentEnrollments'), filters: { recent: true } }
         ];
-
       case 'courses':
         return [
-          {
-            name: 'high_credit',
-            label: t('search.presets.highCredit'),
-            filters: { credits_min: 5 }
-          },
-          {
-            name: 'core_courses',
-            label: t('search.presets.coreCourses'),
-            filters: { category: 'core' }
-          }
+          { name: 'high_credit', label: t('search.presets.highCredit'), filters: { credits_min: 5 } },
+          { name: 'core_courses', label: t('search.presets.coreCourses'), filters: { category: 'core' } }
         ];
-
       case 'grades':
         return [
-          {
-            name: 'high_grades',
-            label: t('search.presets.highGrades'),
-            filters: { grade_min: 80 }
-          },
-          {
-            name: 'passing_only',
-            label: t('search.presets.passingOnly'),
-            filters: { passed: true }
-          },
-          {
-            name: 'failing',
-            label: t('search.presets.failing'),
-            filters: { passed: false }
-          }
+          { name: 'high_grades', label: t('search.presets.highGrades'), filters: { grade_min: 80 } },
+          { name: 'passing_only', label: t('search.presets.passingOnly'), filters: { passed: true } },
+          { name: 'failing', label: t('search.presets.failing'), filters: { passed: false } }
         ];
-
       default:
         return [];
     }
   };
 
-  /**
-   * Handle filter input change
-   */
   const handleFilterChange = (key: string, value: string | number | boolean | undefined) => {
     setFilters(prev => ({
       ...prev,
@@ -116,18 +86,12 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     }));
   };
 
-  /**
-   * Handle preset selection
-   */
   const handlePresetSelect = (preset: FilterPreset) => {
     setFilters(preset.filters);
     onApply(preset.filters);
     handleToggle();
   };
 
-  /**
-   * Handle apply filters
-   */
   const handleApply = () => {
     const activeFilters = Object.fromEntries(
       Object.entries(filters).filter(([_, v]) => v !== undefined && v !== '')
@@ -136,18 +100,12 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     handleToggle();
   };
 
-  /**
-   * Handle reset filters
-   */
   const handleReset = () => {
     setFilters({});
     onReset?.();
     handleToggle();
   };
 
-  /**
-   * Toggle filter panel
-   */
   const handleToggle = () => {
     const newState = !open;
     setOpen(newState);
@@ -155,10 +113,10 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   };
 
   const presets = getFilterPresets();
+  const idFor = (name: string) => `advanced-filter-${searchType}-${name}`;
 
   return (
     <div className={`advanced-filters ${className}`}>
-      {/* Toggle button */}
       <button
         className={`filter-toggle ${open ? 'open' : ''}`}
         onClick={handleToggle}
@@ -169,21 +127,15 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
         {t('search.advanced.title')}
       </button>
 
-      {/* Filter panel */}
       {open && (
         <div className="filter-panel" role="region" aria-label={t('search.advanced.title')} data-open={open ? 'true' : 'false'}>
           <div className="filter-header">
             <h3>{t('search.filters.title')}</h3>
-            <button
-              className="close-button"
-              onClick={handleToggle}
-              aria-label={t('common.close')}
-            >
+            <button className="close-button" onClick={handleToggle} aria-label={t('common.close')}>
               <XMarkIcon className="close-icon" role="img" />
             </button>
           </div>
 
-          {/* Presets */}
           {presets.length > 0 && (
             <div className="filter-section">
               <h4>{t('search.presets.title')}</h4>
@@ -201,24 +153,27 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             </div>
           )}
 
-          {/* Dynamic filters */}
           <div className="filter-section">
-            <h4>{t('search.filters.custom')}</h4>
+            <h4>{t('search.filters.custom')}
+            </h4>
             <div className="filters-grid">
               {searchType === 'students' && (
                 <>
                   <div className="filter-group">
-                    <label>{t('search.fields.firstName')}</label>
+                    <label htmlFor={idFor('first_name')}>{t('search.fields.firstName')}</label>
                     <input
+                      id={idFor('first_name')}
                       type="text"
                       value={typeof filters.first_name === 'boolean' ? String(filters.first_name) : (filters.first_name || '')}
                       onChange={(e) => handleFilterChange('first_name', e.target.value)}
                       placeholder={t('search.fields.firstName')}
+                      autoFocus
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.lastName')}</label>
+                    <label htmlFor={idFor('last_name')}>{t('search.fields.lastName')}</label>
                     <input
+                      id={idFor('last_name')}
                       type="text"
                       value={typeof filters.last_name === 'boolean' ? String(filters.last_name) : (filters.last_name || '')}
                       onChange={(e) => handleFilterChange('last_name', e.target.value)}
@@ -226,8 +181,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.email')}</label>
+                    <label htmlFor={idFor('email')}>{t('search.fields.email')}</label>
                     <input
+                      id={idFor('email')}
                       type="email"
                       value={typeof filters.email === 'boolean' ? String(filters.email) : (filters.email || '')}
                       onChange={(e) => handleFilterChange('email', e.target.value)}
@@ -235,8 +191,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.academicYear')}</label>
+                    <label htmlFor={idFor('academic_year')}>{t('search.fields.academicYear')}</label>
                     <input
+                      id={idFor('academic_year')}
                       type="number"
                       value={filters.academic_year || ''}
                       onChange={(e) => handleFilterChange('academic_year', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -249,8 +206,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               {searchType === 'courses' && (
                 <>
                   <div className="filter-group">
-                    <label>{t('search.fields.courseName')}</label>
+                    <label htmlFor={idFor('course_name')}>{t('search.fields.courseName')}</label>
                     <input
+                      id={idFor('course_name')}
                       type="text"
                       value={typeof filters.course_name === 'boolean' ? String(filters.course_name) : (filters.course_name || '')}
                       onChange={(e) => handleFilterChange('course_name', e.target.value)}
@@ -258,8 +216,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.courseCode')}</label>
+                    <label htmlFor={idFor('course_code')}>{t('search.fields.courseCode')}</label>
                     <input
+                      id={idFor('course_code')}
                       type="text"
                       value={typeof filters.course_code === 'boolean' ? String(filters.course_code) : (filters.course_code || '')}
                       onChange={(e) => handleFilterChange('course_code', e.target.value)}
@@ -267,8 +226,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.credits')}</label>
+                    <label htmlFor={idFor('credits')}>{t('search.fields.credits')}</label>
                     <input
+                      id={idFor('credits')}
                       type="number"
                       value={filters.credits || ''}
                       onChange={(e) => handleFilterChange('credits', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -278,8 +238,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.academicYear')}</label>
+                    <label htmlFor={idFor('academic_year_course')}>{t('search.fields.academicYear')}</label>
                     <input
+                      id={idFor('academic_year_course')}
                       type="number"
                       value={filters.academic_year || ''}
                       onChange={(e) => handleFilterChange('academic_year', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -292,8 +253,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
               {searchType === 'grades' && (
                 <>
                   <div className="filter-group">
-                    <label>{t('search.fields.gradeMin')}</label>
+                    <label htmlFor={idFor('grade_min')}>{t('search.fields.gradeMin')}</label>
                     <input
+                      id={idFor('grade_min')}
                       type="number"
                       value={filters.grade_min || ''}
                       onChange={(e) => handleFilterChange('grade_min', e.target.value ? parseFloat(e.target.value) : '')}
@@ -303,8 +265,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.gradeMax')}</label>
+                    <label htmlFor={idFor('grade_max')}>{t('search.fields.gradeMax')}</label>
                     <input
+                      id={idFor('grade_max')}
                       type="number"
                       value={filters.grade_max || ''}
                       onChange={(e) => handleFilterChange('grade_max', e.target.value ? parseFloat(e.target.value) : '')}
@@ -314,8 +277,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.studentId')}</label>
+                    <label htmlFor={idFor('student_id')}>{t('search.fields.studentId')}</label>
                     <input
+                      id={idFor('student_id')}
                       type="number"
                       value={filters.student_id || ''}
                       onChange={(e) => handleFilterChange('student_id', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -323,8 +287,9 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                     />
                   </div>
                   <div className="filter-group">
-                    <label>{t('search.fields.courseId')}</label>
+                    <label htmlFor={idFor('course_id')}>{t('search.fields.courseId')}</label>
                     <input
+                      id={idFor('course_id')}
                       type="number"
                       value={filters.course_id || ''}
                       onChange={(e) => handleFilterChange('course_id', e.target.value ? parseInt(e.target.value) : undefined)}
@@ -336,21 +301,15 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
             </div>
           </div>
 
-          {/* Action buttons */}
           <div className="filter-actions">
-            <button
-              className="apply-button"
-              onClick={handleApply}
-              disabled={Object.keys(filters).length === 0}
-            >
-              {t('search.advanced.apply')}
+            <button className="apply-button" onClick={handleApply} disabled={Object.keys(filters).length === 0}>
+              <ArrowPathIcon className="button-icon" role="img" />
+              {t('search.advanced.apply', 'Apply Filters')}
             </button>
-            <button
-              className="reset-button"
-              onClick={handleReset}
-            >
-              <ArrowPathIcon className="reset-icon" role="img" />
-              {t('search.advanced.reset')}
+
+            <button className="reset-button" onClick={handleReset}>
+              <XMarkIcon className="button-icon" role="img" />
+              {t('search.advanced.reset', 'Reset Filters')}
             </button>
           </div>
         </div>

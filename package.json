@@ -4,6 +4,7 @@
   "description": "Meta package file. Frontend dependencies live under frontend/package.json.",
   "devDependencies": {
     "@playwright/test": "^1.57.0",
+    "jsdom": "^27.4.0",
     "markdownlint-cli": "^0.46.0"
   }
 }

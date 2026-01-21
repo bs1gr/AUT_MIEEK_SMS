@@ -33,12 +33,14 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     gradeDistribution,
     isLoading,
     error,
+    refetch,
   } = useAnalytics(studentId, courseId);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Handle refresh
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshKey((prev) => prev + 1);
+    await refetch?.();
   };
 
   if (error) {

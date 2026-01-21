@@ -144,29 +144,28 @@ export const useSearch = (
       try {
         const offset = page * pageSize;
 
-        const response = await apiClient.get(`/search/${searchType}`, {
-          params: {
-            q: query,
-            limit: pageSize,
-            offset
-          }
-        });
+        const url = `/search/${searchType}?q=${encodeURIComponent(query)}&limit=${pageSize}&offset=${offset}&page=${page}`;
+
+        const response = await apiClient.get(url);
 
         const incomingResults = response.data || [];
-        const mergedResults = page > 0
-          ? [...state.results, ...incomingResults]
-          : incomingResults;
-        const hasMore = incomingResults.length === pageSize;
 
-        setState(prev => ({
-          ...prev,
-          results: mergedResults,
-          total: mergedResults.length,
-          hasMore,
-          currentPage: page,
-          isLoading: false,
-          error: null
-        }));
+        setState(prev => {
+          const mergedResults = page > 0
+            ? [...prev.results, ...incomingResults]
+            : incomingResults;
+          const hasMore = incomingResults.length === pageSize;
+
+          return {
+            ...prev,
+            results: mergedResults,
+            total: mergedResults.length,
+            hasMore,
+            currentPage: page,
+            isLoading: false,
+            error: null
+          };
+        });
       } catch (error: Error | unknown) {
         let errorMessage = t('search.errorSearching');
         if (error instanceof Error) {
@@ -277,25 +276,29 @@ export const useSearch = (
           params: {
             search_type: searchType,
             limit: pageSize,
-            offset
+            offset,
+            page
           }
         });
 
         const incomingResults = response.data || [];
-        const mergedResults = page > 0
-          ? [...state.results, ...incomingResults]
-          : incomingResults;
-        const hasMore = incomingResults.length === pageSize;
 
-        setState(prev => ({
-          ...prev,
-          results: mergedResults,
-          total: mergedResults.length,
-          hasMore,
-          currentPage: page,
-          isLoading: false,
-          error: null
-        }));
+        setState(prev => {
+          const mergedResults = page > 0
+            ? [...prev.results, ...incomingResults]
+            : incomingResults;
+          const hasMore = incomingResults.length === pageSize;
+
+          return {
+            ...prev,
+            results: mergedResults,
+            total: mergedResults.length,
+            hasMore,
+            currentPage: page,
+            isLoading: false,
+            error: null
+          };
+        });
       } catch (error: Error | unknown) {
         let errorMessage = t('search.errorSearching');
         if (error instanceof Error) {
@@ -375,10 +378,13 @@ export const useSearch = (
    * Load statistics on mount
    */
   useEffect(() => {
-    const initStats = async () => {
-      await loadStatistics();
+    const timer = setTimeout(() => {
+      loadStatistics();
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
     };
-    initStats();
   }, [loadStatistics]);
 
   /**
