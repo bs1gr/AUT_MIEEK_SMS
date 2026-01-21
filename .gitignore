@@ -162,6 +162,14 @@ templates/students/*.csv
 *enrollment*.csv
 *personal*.csv
 
+# Import/Export generated files (temporary user uploads)
+backend/data/imports/*.csv
+backend/data/imports/*.xlsx
+backend/data/imports/*.xls
+backend/data/exports/*.csv
+backend/data/exports/*.xlsx
+backend/data/exports/*.pdf
+
 # Temporary export/backup directories
 temp_export_*/
 SMS-Docker-Image-*.tar
