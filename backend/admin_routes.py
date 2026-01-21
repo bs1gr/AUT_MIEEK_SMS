@@ -268,11 +268,17 @@ async def restore_encrypted_backup(
         backup_root = pathlib.Path("backups")
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
+        # Validate output_filename before path construction to prevent path traversal
+        if ".." in output_filename or "\\" in output_filename or "/" in output_filename:
+            raise HTTPException(
+                status_code=400, detail="Invalid output filename: path traversal characters not allowed"
+            )
+
         # Create temporary output directory
         restore_dir = backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         restore_dir.mkdir(parents=True, exist_ok=True)
         output_path = restore_dir / output_filename
-        
+
         # Additional safety: Ensure resolved paths are within allowed directories
         try:
             output_path.resolve().relative_to(restore_dir.resolve())
