@@ -38,10 +38,10 @@ export const useAnalytics = (
   studentId?: number,
   courseId?: number
 ): AnalyticsData => {
-  const [performance, setPerformance] = useState(null);
-  const [trends, setTrends] = useState(null);
-  const [attendance, setAttendance] = useState(null);
-  const [gradeDistribution, setGradeDistribution] = useState(null);
+  const [performance, setPerformance] = useState<unknown | null>(null);
+  const [trends, setTrends] = useState<unknown | null>(null);
+  const [attendance, setAttendance] = useState<unknown | null>(null);
+  const [gradeDistribution, setGradeDistribution] = useState<unknown | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<AnalyticsError | null>(null);
 
