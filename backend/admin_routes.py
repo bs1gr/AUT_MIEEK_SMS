@@ -272,6 +272,12 @@ async def restore_encrypted_backup(
         restore_dir = backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         restore_dir.mkdir(parents=True, exist_ok=True)
         output_path = restore_dir / output_filename
+        
+        # Additional safety: Ensure resolved paths are within allowed directories
+        try:
+            output_path.resolve().relative_to(restore_dir.resolve())
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Output path outside allowed directory")
 
         # Decrypt and restore backup
         restore_info = backup_service.restore_encrypted_backup(backup_name=backup_name, output_path=output_path)
