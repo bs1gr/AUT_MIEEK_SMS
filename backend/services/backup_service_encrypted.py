@@ -124,7 +124,12 @@ class BackupServiceEncrypted:
         if ".." in backup_name or "/" in backup_name or "\\" in backup_name:
             raise ValueError(f"Invalid backup name: {backup_name}")
 
+        # Additional safety: Ensure resolved path is within backup_dir
         backup_path = self.backup_dir / f"{backup_name}.enc"
+        try:
+            backup_path.resolve().relative_to(self.backup_dir.resolve())
+        except ValueError:
+            raise ValueError(f"Backup path outside allowed directory: {backup_name}")
 
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")

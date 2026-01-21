@@ -673,8 +673,8 @@ async def rollback_import(request: Request, backup_filename: str):
 
         from backend.config import settings
 
-        # Validate backup filename (security check)
-        if not backup_filename.endswith(".db") or "/" in backup_filename or "\\" in backup_filename:
+        # Validate backup filename (security check - prevent path traversal)
+        if not backup_filename.endswith(".db") or ".." in backup_filename or "/" in backup_filename or "\\" in backup_filename:
             raise http_error(
                 400,
                 ErrorCode.IMPORT_INVALID_REQUEST,
@@ -685,6 +685,18 @@ async def rollback_import(request: Request, backup_filename: str):
 
         backup_dir = Path("backups")
         backup_path = backup_dir / backup_filename
+        
+        # Additional safety: Ensure resolved path is within backup_dir
+        try:
+            backup_path.resolve().relative_to(backup_dir.resolve())
+        except ValueError:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "Backup path outside allowed directory",
+                request,
+                context={"filename": backup_filename},
+            )
 
         if not backup_path.exists():
             available_backups = [f.name for f in backup_dir.glob("*.db")] if backup_dir.exists() else []
