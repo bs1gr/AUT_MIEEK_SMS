@@ -688,6 +688,16 @@ async def rollback_import(request: Request, backup_filename: str):
                 context={"filename": backup_filename},
             )
 
+        # Validate backup_filename before path construction to prevent path traversal
+        if ".." in backup_filename or "\\" in backup_filename or "/" in backup_filename:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "Invalid backup filename: path traversal characters not allowed",
+                request,
+                context={"filename": backup_filename},
+            )
+
         backup_dir = Path("backups")
         backup_path = backup_dir / backup_filename
 
