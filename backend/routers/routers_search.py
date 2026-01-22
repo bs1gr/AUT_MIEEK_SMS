@@ -434,3 +434,388 @@ async def get_statistics(
     except Exception as e:
         logger.error(f"Error getting statistics: {str(e)}")
         return error_response(code="STATS_ERROR", message="Failed to get search statistics", details=str(e))
+
+
+# ============================================================================
+# SAVED SEARCHES ENDPOINTS
+# ============================================================================
+
+
+@router.post(
+    "/saved",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Create saved search",
+    description="Save a search query for later reuse",
+)
+async def create_saved_search(
+    request: Request,
+    body: Dict[str, Any],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(optional_require_role(None)),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Create a new saved search.
+
+    **Request Body:**
+    ```json
+    {
+        "name": "High performers",
+        "description": "Students with grades >= 90",
+        "search_type": "students",
+        "query": "Optional full-text query",
+        "filters": {
+            "grade_min": 90
+        },
+        "is_favorite": false
+    }
+    ```
+
+    **Permissions:**
+    - Requires authentication
+    """
+    if not current_user:
+        return error_response(
+            code="UNAUTHORIZED",
+            message="Authentication required to save searches",
+            request_id=request.state.request_id,
+        )
+
+    try:
+        from backend.services.saved_search_service import SavedSearchService
+        from backend.schemas.search import SavedSearchCreateSchema
+
+        create_data = SavedSearchCreateSchema(**body)
+        service = SavedSearchService(db)
+        saved_search = service.create_saved_search(current_user.id, create_data)
+
+        if not saved_search:
+            return error_response(
+                code="CREATE_ERROR",
+                message="Failed to create saved search",
+                request_id=request.state.request_id,
+            )
+
+        result = {
+            "id": saved_search.id,
+            "name": saved_search.name,
+            "search_type": saved_search.search_type,
+            "created_at": saved_search.created_at.isoformat() if saved_search.created_at else None,
+        }
+        return success_response(result, request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error creating saved search: {str(e)}")
+        return error_response(
+            code="CREATE_ERROR",
+            message="Failed to create saved search",
+            details=str(e),
+            request_id=request.state.request_id,
+        )
+
+
+@router.get(
+    "/saved",
+    response_model=APIResponse[List[Dict[str, Any]]],
+    summary="List saved searches",
+    description="Get all saved searches for current user",
+)
+async def list_saved_searches(
+    request: Request,
+    search_type: Optional[str] = Query(None, description="Filter by search type"),
+    is_favorite: Optional[bool] = Query(None, description="Filter by favorite status"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(optional_require_role(None)),
+) -> APIResponse[List[Dict[str, Any]]]:
+    """
+    Get all saved searches for the current user.
+
+    **Query Parameters:**
+    - `search_type`: Optional filter ('students', 'courses', 'grades')
+    - `is_favorite`: Optional filter for favorite searches
+
+    **Permissions:**
+    - Requires authentication
+    """
+    if not current_user:
+        return error_response(
+            code="UNAUTHORIZED",
+            message="Authentication required",
+            request_id=request.state.request_id,
+        )
+
+    try:
+        from backend.services.saved_search_service import SavedSearchService
+
+        service = SavedSearchService(db)
+        searches = service.get_user_saved_searches(current_user.id, search_type=search_type, is_favorite=is_favorite)
+
+        result = [
+            {
+                "id": s.id,
+                "name": s.name,
+                "description": s.description,
+                "search_type": s.search_type,
+                "is_favorite": s.is_favorite,
+                "created_at": s.created_at.isoformat() if s.created_at else None,
+                "updated_at": s.updated_at.isoformat() if s.updated_at else None,
+            }
+            for s in searches
+        ]
+        return success_response(result, request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error listing saved searches: {str(e)}")
+        return error_response(
+            code="LIST_ERROR",
+            message="Failed to list saved searches",
+            details=str(e),
+            request_id=request.state.request_id,
+        )
+
+
+@router.get(
+    "/saved/{search_id}",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Get saved search",
+    description="Get details of a specific saved search",
+)
+async def get_saved_search(
+    request: Request,
+    search_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(optional_require_role(None)),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Get details of a specific saved search.
+
+    **Path Parameters:**
+    - `search_id`: Saved search ID
+
+    **Permissions:**
+    - Requires authentication
+    - User can only access their own saved searches
+    """
+    if not current_user:
+        return error_response(
+            code="UNAUTHORIZED",
+            message="Authentication required",
+            request_id=request.state.request_id,
+        )
+
+    try:
+        from backend.services.saved_search_service import SavedSearchService
+
+        service = SavedSearchService(db)
+        saved_search = service.get_saved_search(search_id, current_user.id)
+
+        if not saved_search:
+            return error_response(
+                code="NOT_FOUND",
+                message="Saved search not found",
+                request_id=request.state.request_id,
+            )
+
+        result = {
+            "id": saved_search.id,
+            "name": saved_search.name,
+            "description": saved_search.description,
+            "search_type": saved_search.search_type,
+            "query": saved_search.query,
+            "filters": saved_search.filters,
+            "is_favorite": saved_search.is_favorite,
+            "created_at": saved_search.created_at.isoformat() if saved_search.created_at else None,
+            "updated_at": saved_search.updated_at.isoformat() if saved_search.updated_at else None,
+        }
+        return success_response(result, request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error getting saved search {search_id}: {str(e)}")
+        return error_response(
+            code="GET_ERROR",
+            message="Failed to get saved search",
+            details=str(e),
+            request_id=request.state.request_id,
+        )
+
+
+@router.put(
+    "/saved/{search_id}",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Update saved search",
+    description="Update a saved search",
+)
+async def update_saved_search(
+    request: Request,
+    search_id: int,
+    body: Dict[str, Any],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(optional_require_role(None)),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Update a saved search.
+
+    **Path Parameters:**
+    - `search_id`: Saved search ID
+
+    **Request Body:**
+    All fields are optional:
+    ```json
+    {
+        "name": "New name",
+        "description": "New description",
+        "query": "Updated query",
+        "filters": {},
+        "is_favorite": true
+    }
+    ```
+
+    **Permissions:**
+    - Requires authentication
+    - User can only update their own searches
+    """
+    if not current_user:
+        return error_response(
+            code="UNAUTHORIZED",
+            message="Authentication required",
+            request_id=request.state.request_id,
+        )
+
+    try:
+        from backend.services.saved_search_service import SavedSearchService
+        from backend.schemas.search import SavedSearchUpdateSchema
+
+        update_data = SavedSearchUpdateSchema(**body)
+        service = SavedSearchService(db)
+        saved_search = service.update_saved_search(search_id, current_user.id, update_data)
+
+        if not saved_search:
+            return error_response(
+                code="NOT_FOUND",
+                message="Saved search not found",
+                request_id=request.state.request_id,
+            )
+
+        result = {
+            "id": saved_search.id,
+            "name": saved_search.name,
+            "description": saved_search.description,
+            "search_type": saved_search.search_type,
+            "updated_at": saved_search.updated_at.isoformat() if saved_search.updated_at else None,
+        }
+        return success_response(result, request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error updating saved search {search_id}: {str(e)}")
+        return error_response(
+            code="UPDATE_ERROR",
+            message="Failed to update saved search",
+            details=str(e),
+            request_id=request.state.request_id,
+        )
+
+
+@router.delete(
+    "/saved/{search_id}",
+    response_model=APIResponse[Dict[str, str]],
+    summary="Delete saved search",
+    description="Delete a saved search",
+)
+async def delete_saved_search(
+    request: Request,
+    search_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(optional_require_role(None)),
+) -> APIResponse[Dict[str, str]]:
+    """
+    Delete a saved search.
+
+    **Path Parameters:**
+    - `search_id`: Saved search ID
+
+    **Permissions:**
+    - Requires authentication
+    - User can only delete their own searches
+    """
+    if not current_user:
+        return error_response(
+            code="UNAUTHORIZED",
+            message="Authentication required",
+            request_id=request.state.request_id,
+        )
+
+    try:
+        from backend.services.saved_search_service import SavedSearchService
+
+        service = SavedSearchService(db)
+        success = service.delete_saved_search(search_id, current_user.id)
+
+        if not success:
+            return error_response(
+                code="NOT_FOUND",
+                message="Saved search not found",
+                request_id=request.state.request_id,
+            )
+
+        return success_response({"message": "Saved search deleted successfully"}, request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error deleting saved search {search_id}: {str(e)}")
+        return error_response(
+            code="DELETE_ERROR",
+            message="Failed to delete saved search",
+            details=str(e),
+            request_id=request.state.request_id,
+        )
+
+
+@router.post(
+    "/saved/{search_id}/favorite",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Toggle saved search favorite",
+    description="Toggle favorite status of a saved search",
+)
+async def toggle_saved_search_favorite(
+    request: Request,
+    search_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(optional_require_role(None)),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Toggle favorite status of a saved search.
+
+    **Path Parameters:**
+    - `search_id`: Saved search ID
+
+    **Permissions:**
+    - Requires authentication
+    - User can only modify their own searches
+    """
+    if not current_user:
+        return error_response(
+            code="UNAUTHORIZED",
+            message="Authentication required",
+            request_id=request.state.request_id,
+        )
+
+    try:
+        from backend.services.saved_search_service import SavedSearchService
+
+        service = SavedSearchService(db)
+        saved_search = service.toggle_favorite(search_id, current_user.id)
+
+        if not saved_search:
+            return error_response(
+                code="NOT_FOUND",
+                message="Saved search not found",
+                request_id=request.state.request_id,
+            )
+
+        result = {
+            "id": saved_search.id,
+            "is_favorite": saved_search.is_favorite,
+            "message": f"Marked as {'favorite' if saved_search.is_favorite else 'not favorite'}",
+        }
+        return success_response(result, request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error toggling favorite for search {search_id}: {str(e)}")
+        return error_response(
+            code="UPDATE_ERROR",
+            message="Failed to toggle favorite",
+            details=str(e),
+            request_id=request.state.request_id,
+        )
