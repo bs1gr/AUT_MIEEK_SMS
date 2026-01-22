@@ -1,0 +1,25 @@
+/* Mobile PWA Optimizations */
+
+html {
+  /* Prevent pull-to-refresh behavior in standalone mode for app-like feel */
+  overscroll-behavior-y: none;
+  /* Remove tap highlight color on iOS */
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  /* Use full viewport height, including mobile browser bars fix */
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+
+  /* Safe area insets for notched devices (iPhone X+) */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Disable double-tap to zoom on interactive elements */
+a, button, input, select, textarea, [role="button"] {
+  touch-action: manipulation;
+}

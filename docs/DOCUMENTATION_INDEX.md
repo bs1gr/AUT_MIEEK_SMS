@@ -1,8 +1,8 @@
 # Documentation Index
 
 **Last Updated**: 2026-01-21
-**Project Version (documented)**: 1.17.3
-**Version**: 1.17.3
+**Project Version (documented)**: 1.18.0
+**Version**: 1.18.0
 **Current Branch**: `main`
 **Status**: ✅ **PHASE 4 READINESS COMPLETE**
 

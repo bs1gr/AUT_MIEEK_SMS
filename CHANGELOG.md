@@ -178,6 +178,21 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 ## [Unreleased]
 
+## [1.18.0] - 2026-01-22
+
+### 🚀 PWA & Mobile Experience
+
+**PWA Capabilities**
+- **Installable App**: Full PWA manifest and service worker support.
+- **Offline Support**: Caching strategies for assets and API responses.
+- **Data Persistence**: `persistQueryClient` integration for offline data access.
+- **Mobile Optimizations**: Enhanced viewport handling and touch interactions.
+
+**User Experience**
+- **Update Notification**: Smart prompts for app updates.
+- **Install Prompt**: Custom UI for installation on supported devices.
+- **Mobile Layout**: Optimized CSS for notched devices and touch targets.
+
 ## [1.17.3] - 2026-01-22
 
 ### 🚀 Performance & Security Patch

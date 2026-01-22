@@ -14,6 +14,7 @@ export function usePerformanceMonitor(componentName: string) {
 
     // Log if render takes > 16ms (1 frame) in development
     if (process.env.NODE_ENV === 'development' && duration > 16) {
+        // eslint-disable-next-line no-console
         console.debug(`[Performance] ${componentName} render #${renderCountRef.current} took ${duration.toFixed(2)}ms`);
     }
 

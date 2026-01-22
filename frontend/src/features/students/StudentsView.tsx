@@ -9,13 +9,14 @@ import SkeletonLoader from '../../components/common/SkeletonLoader';
 import { AdvancedFilters } from '../search/AdvancedFilters';
 import { useErrorRecovery } from '../../hooks/useErrorRecovery';
 import ErrorRetry from '../../components/common/ErrorRetry';
+import { Student } from '@/types/student';
 
 const StudentsView: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { students, isLoading, error: apiError, deleteStudent, updateStudent, createStudent, refetch } = useStudents();
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
   // Integrate Smart Error Recovery
   const { error, handleError, isRetrying, reset } = useErrorRecovery({
@@ -35,7 +36,7 @@ const StudentsView: React.FC = () => {
     }
   }, [apiError, handleError, reset]);
 
-  const handleEdit = (student: any) => {
+  const handleEdit = (student: Student) => {
     setEditingStudent(student);
     setIsFormOpen(true);
   };
