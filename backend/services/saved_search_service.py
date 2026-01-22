@@ -303,7 +303,7 @@ class SavedSearchService:
             searches = self.get_user_saved_searches(user_id, limit=1000)
 
             for search in searches:
-                self.delete_saved_search(search.id, user_id, hard_delete=hard_delete)
+                self.delete_saved_search(int(search.id), user_id, hard_delete=hard_delete)
 
             logger.info(f"Deleted {len(searches)} saved searches for user {user_id}")
             return len(searches)
@@ -346,7 +346,7 @@ class SavedSearchService:
                 .count()
             )
 
-            by_type = {}
+            by_type: Dict[str, int] = {}
             for search_type in ["students", "courses", "grades"]:
                 count = (
                     self.db.query(SavedSearch)
@@ -393,10 +393,10 @@ class SavedSearchService:
             copy_name = new_name or f"Copy of {original.name}"
             create_data = SavedSearchCreateSchema(
                 name=copy_name,
-                description=original.description,
-                search_type=original.search_type,
-                query=original.query,
-                filters=original.filters,
+                description=str(original.description) if original.description else None,
+                search_type=str(original.search_type),
+                query=str(original.query) if original.query else None,
+                filters=dict(original.filters) if original.filters else None,
                 is_favorite=False,
             )
 

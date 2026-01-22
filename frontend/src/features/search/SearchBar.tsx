@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Search, X, Clock, Heart } from 'lucide-react';
-import { useSearch, type SearchResult, type SavedSearch } from './useSearch';
+import { useSearch, type SearchResult } from './useSearch';
 
 interface SearchBarProps {
   onSelectResult?: (result: SearchResult) => void;

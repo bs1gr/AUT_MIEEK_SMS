@@ -23,7 +23,7 @@ describe('useSearch Hook', () => {
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
   it('should initialize with default values', () => {
