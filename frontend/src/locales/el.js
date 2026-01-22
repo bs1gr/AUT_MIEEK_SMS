@@ -80,7 +80,45 @@ export const el = {
   greekGrade: 'Ελληνικός Βαθμός (0-20)',
 
   // Tabs
-  powerTab: 'Power'
+  powerTab: 'Power',
+
+  // Search & Filtering (Phase 4)
+  searchPlaceholder: 'Αναζήτηση...',
+  searchType: 'Τύπος Αναζήτησης',
+  noResults: 'Δεν βρέθηκαν αποτελέσματα',
+  results: 'Αποτελέσματα',
+  clear: 'Εκκαθάριση',
+  
+  // Saved Searches
+  favoriteSearches: 'Αγαπημένες Αναζητήσεις',
+  viewAllSavedSearches: 'Προβολή Όλων των Αποθηκευμένων Αναζητήσεων',
+  noSavedSearches: 'Δεν υπάρχουν αποθηκευμένες αναζητήσεις',
+  saveSearch: 'Αποθήκευση Αυτής της Αναζήτησης',
+  saveSearchAs: 'Αποθήκευση αναζήτησης ως...',
+  savedSearchName: 'Όνομα Αναζήτησης',
+  savedSearchDescription: 'Περιγραφή (προαιρετικό)',
+  searchSaved: 'Η αναζήτηση αποθηκεύτηκε με επιτυχία',
+  failedToSaveSearch: 'Αποτυχία αποθήκευσης αναζήτησης',
+  failedToDeleteSearch: 'Αποτυχία διαγραφής αναζήτησης',
+  failedToToggleFavorite: 'Αποτυχία αλλαγής αγαπημένου',
+  searchDeleted: 'Η αναζήτηση διαγράφηκε με επιτυχία',
+  
+  // Advanced Filters
+  advancedFilters: 'Προηγμένα Φίλτρα',
+  addFilter: 'Προσθήκη Φίλτρου',
+  removeFilter: 'Κατάργηση Φίλτρου',
+  filterField: 'Πεδίο',
+  filterOperator: 'Τελεστής',
+  filterValue: 'Τιμή',
+  equals: 'Ίσο με',
+  contains: 'Περιέχει',
+  startsWith: 'Ξεκινά με',
+  greaterThan: 'Μεγαλύτερο από',
+  lessThan: 'Μικρότερο από',
+  between: 'Μεταξύ',
+  applyFilters: 'Εφαρμογή Φίλτρων',
+  resetFilters: 'Επαναφορά Φίλτρων',
+  noFiltersApplied: 'Δεν εφαρμόζονται φίλτρα'
 };
 
 export default el;
