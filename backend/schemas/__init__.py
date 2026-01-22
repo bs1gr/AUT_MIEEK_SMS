@@ -205,6 +205,39 @@ from .response import ResponseMeta as ResponseMeta
 from .response import error_response as error_response
 from .response import paginated_response as paginated_response
 from .response import success_response as success_response
+from .search import (
+    AdvancedFilterRequestSchema as AdvancedFilterRequestSchema,
+)
+from .search import (
+    CourseSearchResultSchema as CourseSearchResultSchema,
+)
+from .search import (
+    GradeSearchResultSchema as GradeSearchResultSchema,
+)
+from .search import (
+    SavedSearchCreateSchema as SavedSearchCreateSchema,
+)
+from .search import (
+    SavedSearchListResponseSchema as SavedSearchListResponseSchema,
+)
+from .search import (
+    SavedSearchResponseSchema as SavedSearchResponseSchema,
+)
+from .search import (
+    SavedSearchUpdateSchema as SavedSearchUpdateSchema,
+)
+from .search import (
+    SearchSuggestionSchema as SearchSuggestionSchema,
+)
+from .search import (
+    StudentSearchResultSchema as StudentSearchResultSchema,
+)
+from .search import (
+    UnifiedSearchRequestSchema as UnifiedSearchRequestSchema,
+)
+from .search import (
+    UnifiedSearchResultSchema as UnifiedSearchResultSchema,
+)
 from .students import StudentCreate as StudentCreate
 from .students import StudentResponse as StudentResponse
 from .students import StudentUpdate as StudentUpdate
