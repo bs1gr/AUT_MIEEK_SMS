@@ -699,7 +699,17 @@ async def rollback_import(request: Request, backup_filename: str):
             )
 
         backup_dir = Path("backups")
-        backup_path = backup_dir / backup_filename
+        # Extract only the filename to prevent any path traversal
+        safe_filename = Path(backup_filename).name
+        if safe_filename != backup_filename:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "Invalid backup filename: contains path components",
+                request,
+                context={"filename": backup_filename},
+            )
+        backup_path = backup_dir / safe_filename
 
         # Additional safety: Ensure resolved path is within backup_dir
         try:
@@ -742,6 +752,15 @@ async def rollback_import(request: Request, backup_filename: str):
             logger.info("Created pre-rollback backup", extra={"backup_file": pre_rollback_backup.name})
 
         # Perform rollback: Replace current DB with backup
+        # Verify backup_path exists and is within backup_dir before copying
+        if not backup_path.exists():
+            raise http_error(
+                404,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "Backup file not found",
+                request,
+                context={"filename": safe_filename},
+            )
         shutil.copy2(backup_path, db_path)
 
         logger.warning(f"DATABASE ROLLBACK performed by system: Restored from {backup_filename}")
