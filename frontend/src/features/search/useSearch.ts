@@ -52,7 +52,6 @@ export interface AdvancedSearchRequest {
  * Custom hook for managing search functionality
  */
 export const useSearch = () => {
-  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'students' | 'courses' | 'grades'>('students');
   const [filters, setFilters] = useState<FilterCriteria[]>([]);

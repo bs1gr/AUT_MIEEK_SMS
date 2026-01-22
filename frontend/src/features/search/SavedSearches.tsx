@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Heart, Trash2, Search, Edit, Clock } from 'lucide-react';
+import { Heart, Trash2, Search, Clock } from 'lucide-react';
 import { useSearch, type SavedSearch } from './useSearch';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
@@ -116,7 +116,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
         {/* Type Filter */}
         <select
           value={filterType}
-          onChange={(e) => setFilterType(e.target.value as any)}
+          onChange={(e) => setFilterType(e.target.value as 'all' | 'students' | 'courses' | 'grades')}
           className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
           aria-label={t('search.filterByType')}
         >
@@ -190,7 +190,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
 
                   {search.query && (
                     <p className="text-sm text-gray-500 italic mb-2">
-                      "{search.query}"
+                      &quot;{search.query}&quot;
                     </p>
                   )}
 

@@ -238,10 +238,8 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
       )}
     </div>
   );
-}, (prev, next) => {
-  // Only re-render if searchType or className changes
-  // We assume onApply/onReset are stable or we want to ignore them to prevent render loops
-  return prev.searchType === next.searchType && prev.className === next.className;
 });
+
+AdvancedFilters.displayName = 'AdvancedFilters';
 
 export default AdvancedFilters;

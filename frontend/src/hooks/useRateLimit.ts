@@ -9,7 +9,7 @@ export function useRateLimit(delayMs: number = 500) {
 
     setIsRateLimited(true);
     try {
-      const result = fn();
+      fn();
       // If it's a promise, we could optionally wait for it,
       // but usually rate limiting is about action frequency.
     } finally {
