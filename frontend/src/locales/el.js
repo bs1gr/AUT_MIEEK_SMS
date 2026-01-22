@@ -88,7 +88,7 @@ export const el = {
   noResults: 'Δεν βρέθηκαν αποτελέσματα',
   results: 'Αποτελέσματα',
   clear: 'Εκκαθάριση',
-  
+
   // Saved Searches
   favoriteSearches: 'Αγαπημένες Αναζητήσεις',
   viewAllSavedSearches: 'Προβολή Όλων των Αποθηκευμένων Αναζητήσεων',
@@ -102,7 +102,7 @@ export const el = {
   failedToDeleteSearch: 'Αποτυχία διαγραφής αναζήτησης',
   failedToToggleFavorite: 'Αποτυχία αλλαγής αγαπημένου',
   searchDeleted: 'Η αναζήτηση διαγράφηκε με επιτυχία',
-  
+
   // Advanced Filters
   advancedFilters: 'Προηγμένα Φίλτρα',
   addFilter: 'Προσθήκη Φίλτρου',
@@ -118,7 +118,21 @@ export const el = {
   between: 'Μεταξύ',
   applyFilters: 'Εφαρμογή Φίλτρων',
   resetFilters: 'Επαναφορά Φίλτρων',
-  noFiltersApplied: 'Δεν εφαρμόζονται φίλτρα'
+  noFiltersApplied: 'Δεν εφαρμόζονται φίλτρα',
+
+  // Saved Searches Management
+  savedSearches: 'Αποθηκευμένες Αναζητήσεις',
+  savedSearchesDescription: 'Διαχείριση και οργάνωση των αποθηκευμένων αναζητήσεών σας',
+  filterByType: 'Φιλτράρισμα κατά Τύπο',
+  favoritesOnly: 'Μόνο Αγαπημένα',
+  noFavoriteSearches: 'Δεν βρέθηκαν αγαπημένες αναζητήσεις',
+  createFirstSearch: 'Δημιουργήστε την πρώτη σας αναζήτηση για να ξεκινήσετε',
+  toggleFavorite: 'Εναλλαγή Αγαπημένου',
+  loadSearch: 'Φόρτωση Αναζήτησης',
+  confirmDeleteSearch: 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτήν την αναζήτηση;',
+  showingSearches: 'Εμφάνιση {{count}} από {{total}} αναζητήσεις',
+  filters: 'φίλτρα',
+  all: 'Όλα'
 };
 
 export default el;

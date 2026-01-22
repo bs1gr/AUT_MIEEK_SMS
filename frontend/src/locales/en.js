@@ -85,7 +85,7 @@ export const en = {
   noResults: 'No results found',
   results: 'Results',
   clear: 'Clear',
-  
+
   // Saved Searches
   favoriteSearches: 'Favorite Searches',
   viewAllSavedSearches: 'View All Saved Searches',
@@ -99,7 +99,7 @@ export const en = {
   failedToDeleteSearch: 'Failed to delete search',
   failedToToggleFavorite: 'Failed to toggle favorite',
   searchDeleted: 'Search deleted successfully',
-  
+
   // Advanced Filters
   advancedFilters: 'Advanced Filters',
   addFilter: 'Add Filter',
@@ -116,6 +116,20 @@ export const en = {
   applyFilters: 'Apply Filters',
   resetFilters: 'Reset Filters',
   noFiltersApplied: 'No filters applied',
+
+  // Saved Searches Management
+  savedSearches: 'Saved Searches',
+  savedSearchesDescription: 'Manage and organize your saved searches',
+  filterByType: 'Filter by Type',
+  favoritesOnly: 'Favorites Only',
+  noFavoriteSearches: 'No favorite searches found',
+  createFirstSearch: 'Create your first search to get started',
+  toggleFavorite: 'Toggle Favorite',
+  loadSearch: 'Load Search',
+  confirmDeleteSearch: 'Are you sure you want to delete this search?',
+  showingSearches: 'Showing {{count}} of {{total}} searches',
+  filters: 'filters',
+  all: 'All',
 
   // Continue with rest of translations...
   // (This is just the structure - would include all translations)
