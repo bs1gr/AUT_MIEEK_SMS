@@ -1,53 +1,36 @@
-/**
- * Virtual Scrolling Hook
- * Optimizes rendering of large lists (1000+ items) using @tanstack/react-virtual
- *
- * Usage:
- * ```tsx
- * const { virtualizer, parentRef } = useVirtualScroll(items.length);
- * const virtualItems = virtualizer.getVirtualItems();
- *
- * <div ref={parentRef} style={{ height: '600px', overflow: 'auto' }}>
- *   <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
- *     {virtualItems.map(virtualRow => (
- *       <ItemRow key={items[virtualRow.index].id} item={items[virtualRow.index]} />
- *     ))}
- *   </div>
- * </div>
- * ```
- */
+import { useState } from 'react';
 
-import { useRef, useMemo } from 'react';
-import { useVirtualizer } from '@tanstack/react-virtual';
-
-interface UseVirtualScrollOptions {
-  itemCount: number;
-  itemHeight?: number;
+interface UseVirtualScrollProps {
+  itemHeight: number;
+  containerHeight: number;
+  itemsCount: number;
   overscan?: number;
 }
 
-export function useVirtualScroll({
-  itemCount,
-  itemHeight = 50,
-  overscan = 10,
-}: UseVirtualScrollOptions) {
-  const parentRef = useRef<HTMLDivElement>(null);
+export const useVirtualScroll = ({
+  itemHeight,
+  containerHeight,
+  itemsCount,
+  overscan = 3,
+}: UseVirtualScrollProps) => {
+  const [scrollTop, setScrollTop] = useState(0);
 
-  const virtualizerOptions = useMemo(
-    () => ({
-      count: itemCount,
-      getScrollElement: () => parentRef.current,
-      estimateSize: () => itemHeight,
-      overscan,
-      measureElement:
-        typeof window !== 'undefined' && navigator.userAgent.indexOf('Firefox') === -1
-          ? (element: Element) => element?.getBoundingClientRect().height
-          : undefined,
-    }),
-    [itemCount, itemHeight, overscan]
+  const visibleItemsCount = Math.ceil(containerHeight / itemHeight);
+
+  const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+  const endIndex = Math.min(
+    itemsCount,
+    Math.floor(scrollTop / itemHeight) + visibleItemsCount + overscan
   );
 
-  const virtualizer = useVirtualizer(virtualizerOptions);
+  const offsetY = startIndex * itemHeight;
+  const totalHeight = itemsCount * itemHeight;
 
-  return { virtualizer, parentRef };
-}
+  return {
+    startIndex,
+    endIndex,
+    offsetY,
+    totalHeight,
+    onScroll: (e: React.UIEvent<HTMLElement>) => setScrollTop(e.currentTarget.scrollTop),
+  };
+};
