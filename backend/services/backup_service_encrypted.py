@@ -140,10 +140,14 @@ class BackupServiceEncrypted:
             output_path=output_path,
         )
 
+        # Verify output_path exists before returning
+        if not output_path.exists():
+            raise ValueError(f"Restored file not found at {output_path}")
+        
         return {
             "success": True,
             "backup_name": backup_name,
-            "restored_to": str(output_path),
+            "restored_to": str(output_path.resolve()),
             "restored_size": output_path.stat().st_size,
             "encryption": "AES-256-GCM",
             "metadata": metadata,

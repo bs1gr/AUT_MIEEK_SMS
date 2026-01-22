@@ -259,9 +259,7 @@ async def restore_encrypted_backup(
         Decrypted database file
     """
     try:
-        # Validate inputs to prevent path traversal
-        if ".." in backup_name or "/" in backup_name or "\\" in backup_name:
-            raise HTTPException(status_code=400, detail="Invalid backup name")
+        # Validate output_filename before path construction to prevent path traversal
         if ".." in output_filename or "/" in output_filename or "\\" in output_filename:
             raise HTTPException(status_code=400, detail="Invalid output filename")
 
@@ -277,7 +275,13 @@ async def restore_encrypted_backup(
         # Create temporary output directory
         restore_dir = backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         restore_dir.mkdir(parents=True, exist_ok=True)
-        output_path = restore_dir / output_filename
+        # Extract only the filename to prevent path traversal
+        safe_output_filename = pathlib.Path(output_filename).name
+        if safe_output_filename != output_filename:
+            raise HTTPException(
+                status_code=400, detail="Invalid output filename: contains path components"
+            )
+        output_path = restore_dir / safe_output_filename
 
         # Additional safety: Ensure resolved paths are within allowed directories
         try:
@@ -289,10 +293,11 @@ async def restore_encrypted_backup(
         restore_info = backup_service.restore_encrypted_backup(backup_name=backup_name, output_path=output_path)
 
         # Return restored file
+        # Use safe filename to prevent any issues
         return FileResponse(
             str(output_path),
             media_type="application/x-sqlite3",
-            filename=output_filename,
+            filename=safe_output_filename,
             headers={
                 "X-Backup-Decrypted": "true",
                 "X-Original-Backup": backup_name,
