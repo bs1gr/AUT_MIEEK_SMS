@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Filter } from 'lucide-react';
 import { useSearch, type FilterCriteria } from './useSearch';
@@ -17,7 +17,7 @@ interface AdvancedFiltersProps {
  * - Operator selection (equals, contains, starts_with, etc.)
  * - Value input
  */
-export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
+export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
   onApply,
   onReset,
   className = '',
@@ -28,7 +28,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
   const { filters, addFilter, removeFilter, updateFilter, clearSearch } = useSearch();
 
   // Define available fields for each search type
-  const getAvailableFields = () => {
+  const availableFields = useMemo(() => {
     switch (searchType) {
       case 'students':
         return [
@@ -54,20 +54,20 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       default:
         return [];
     }
-  };
+  }, [searchType, t]);
 
   // Define operators
-  const operators = [
+  const operators = useMemo(() => [
     { value: 'equals', label: t('search.equals') },
     { value: 'contains', label: t('search.contains') },
     { value: 'starts_with', label: t('search.startsWith') },
     { value: 'greater_than', label: t('search.greaterThan') },
     { value: 'less_than', label: t('search.lessThan') },
     { value: 'between', label: t('search.between') },
-  ];
+  ], [t]);
 
   const handleAddFilter = () => {
-    const defaultField = getAvailableFields()[0]?.value || '';
+    const defaultField = availableFields[0]?.value || '';
     addFilter({
       field: defaultField,
       operator: 'equals',
@@ -101,8 +101,6 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
     onReset?.();
     setIsExpanded(false);
   };
-
-  const availableFields = getAvailableFields();
 
   return (
     <div className={`w-full ${className}`}>
@@ -240,6 +238,10 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
       )}
     </div>
   );
-};
+}, (prev, next) => {
+  // Only re-render if searchType or className changes
+  // We assume onApply/onReset are stable or we want to ignore them to prevent render loops
+  return prev.searchType === next.searchType && prev.className === next.className;
+});
 
 export default AdvancedFilters;

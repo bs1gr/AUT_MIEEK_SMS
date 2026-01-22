@@ -65,7 +65,7 @@ received value must be an HTMLElement or an SVGElement.
 Received has type:  Null
 Received has value: null
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:55:21
-     53| 
+     53|
      54|       const panel = container.querySelector('[data-open="false"]');
      55|       expect(panel).toBeInTheDocument();
        |                     ^
@@ -362,7 +362,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:62:35
      60|       renderAdvancedFilters();
-     61| 
+     61|
      62|       const toggleButton = screen.getByRole('button', {
        |                                   ^
      63|         name: /advanced filters/i
@@ -560,7 +560,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:84:16
-     82| 
+     82|
      83|       expect(
      84|         screen.getByPlaceholderText(/first name|first_name/i)
        |                ^
@@ -759,7 +759,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:98:16
-     96| 
+     96|
      97|       expect(
      98|         screen.getByText(/active students/i)
        |                ^
@@ -959,11 +959,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:109:28
     107|       renderAdvancedFilters({ searchType: 'students' });
-    108| 
+    108|
     109|       const input = screen.getByPlaceholderText(/first name|first_name…
        |                            ^
     110|       await user.type(input, 'John');
-    111| 
+    111|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/31]⎯
 
@@ -1159,7 +1159,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:131:16
-    129| 
+    129|
     130|       expect(
     131|         screen.getByPlaceholderText(/course name|course_name/i)
        |                ^
@@ -1360,7 +1360,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:142:16
-    140| 
+    140|
     141|       expect(
     142|         screen.getByText(/high credit/i)
        |                ^
@@ -1579,7 +1579,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:152:35
     150|       renderAdvancedFilters({ searchType: 'courses' });
-    151| 
+    151|
     152|       const creditsLabel = screen.getByText(/credits|credit/i);
        |                                   ^
     153|       expect(creditsLabel).toBeInTheDocument();
@@ -1786,7 +1786,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:162:16
-    160| 
+    160|
     161|       expect(
     162|         screen.getByPlaceholderText(/min grade|grade min/i)
        |                ^
@@ -1994,7 +1994,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:173:16
-    171| 
+    171|
     172|       expect(
     173|         screen.getByText(/high grades|above 80/i)
        |                ^
@@ -2203,11 +2203,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:184:28
     182|       renderAdvancedFilters({ searchType: 'grades' });
-    183| 
+    183|
     184|       const input = screen.getByPlaceholderText(/min grade|grade min/i…
        |                            ^
     185|       await user.type(input, '80');
-    186| 
+    186|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/31]⎯
 
@@ -2411,11 +2411,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:194:28
     192|       renderAdvancedFilters({ searchType: 'grades' });
-    193| 
+    193|
     194|       const input = screen.getByPlaceholderText(/max grade|grade max/i…
        |                            ^
     195|       await user.type(input, '100');
-    196| 
+    196|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/31]⎯
 
@@ -2610,11 +2610,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:211:35
     209|       });
-    210| 
+    210|
     211|       const presetButton = screen.getByText(/active students/i);
        |                                   ^
     212|       await user.click(presetButton);
-    213| 
+    213|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/31]⎯
 
@@ -2818,11 +2818,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:221:35
     219|       renderAdvancedFilters({ searchType: 'grades' });
-    220| 
+    220|
     221|       const presetButton = screen.getByText(/high grades|above 80/i);
        |                                   ^
     222|       await user.click(presetButton);
-    223| 
+    223|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/31]⎯
 
@@ -3113,7 +3113,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:261:16
-    259| 
+    259|
     260|       expect(
     261|         screen.getByRole('button', { name: /apply filters/i })
        |                ^
@@ -3409,7 +3409,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:269:16
-    267| 
+    267|
     268|       expect(
     269|         screen.getByRole('button', { name: /reset filters/i })
        |                ^
@@ -3706,7 +3706,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:282:34
     280|       });
-    281| 
+    281|
     282|       const applyButton = screen.getByRole('button', {
        |                                  ^
     283|         name: /apply filters/i
@@ -4002,7 +4002,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:299:34
     297|       });
-    298| 
+    298|
     299|       const resetButton = screen.getByRole('button', {
        |                                  ^
     300|         name: /reset filters/i
@@ -4201,11 +4201,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:311:37
     309|       renderAdvancedFilters({ searchType: 'students' });
-    310| 
+    310|
     311|       const firstNameInput = screen.getByPlaceholderText(/first name/i…
        |                                     ^
     312|       await user.type(firstNameInput, 'John');
-    313| 
+    313|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/31]⎯
 
@@ -4497,7 +4497,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:332:35
     330|       renderAdvancedFilters({ onToggle });
-    331| 
+    331|
     332|       const toggleButton = screen.getByRole('button', {
        |                                   ^
     333|         name: /advanced filters/i
@@ -4793,7 +4793,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:350:35
     348|       renderAdvancedFilters({ isOpen: true });
-    349| 
+    349|
     350|       const toggleButton = screen.getByRole('button', {
        |                                   ^
     351|         name: /advanced filters/i
@@ -4992,11 +4992,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:362:37
     360|       renderAdvancedFilters({ searchType: 'students' });
-    361| 
+    361|
     362|       const firstNameInput = screen.getByPlaceholderText(/first name/i…
        |                                     ^
     363|       await user.type(firstNameInput, 'John');
-    364| 
+    364|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/31]⎯
 
@@ -5191,11 +5191,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:372:37
     370|       renderAdvancedFilters({ searchType: 'students' });
-    371| 
+    371|
     372|       const firstNameInput = screen.getByPlaceholderText(/first name/i…
        |                                     ^
     373|       const emailInput = screen.getByPlaceholderText(/email/i) as HTML…
-    374| 
+    374|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/31]⎯
 
@@ -5399,11 +5399,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:386:36
     384|       renderAdvancedFilters({ searchType: 'grades' });
-    385| 
+    385|
     386|       const minGradeInput = screen.getByPlaceholderText(/min grade/i);
        |                                    ^
     387|       await user.type(minGradeInput, 'abc');
-    388| 
+    388|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/31]⎯
 
@@ -5607,11 +5607,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:397:36
     395|       renderAdvancedFilters({ searchType: 'grades' });
-    396| 
+    396|
     397|       const minGradeInput = screen.getByPlaceholderText(/min grade/i);
        |                                    ^
     398|       const maxGradeInput = screen.getByPlaceholderText(/max grade/i);
-    399| 
+    399|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/31]⎯
 
@@ -5806,7 +5806,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:413:37
     411|       renderAdvancedFilters({ searchType: 'students' });
-    412| 
+    412|
     413|       const firstNameLabel = screen.getByLabelText(/first name|first_n…
        |                                     ^
     414|       expect(firstNameLabel).toBeInTheDocument();
@@ -6204,7 +6204,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:467:21
     465|       renderAdvancedFilters({ searchType: 'students' });
-    466| 
+    466|
     467|       expect(screen.getByPlaceholderText(/first name/i)).toBeInTheDocu…
        |                     ^
     468|       expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument(…
@@ -6404,7 +6404,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:475:16
-    473| 
+    473|
     474|       expect(
     475|         screen.getByPlaceholderText(/course name/i)
        |                ^
@@ -6612,7 +6612,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:486:16
-    484| 
+    484|
     485|       expect(
     486|         screen.getByPlaceholderText(/min grade/i)
        |                ^
@@ -6812,10 +6812,10 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:498:21
     496|       });
-    497| 
+    497|
     498|       expect(screen.getByPlaceholderText(/first name/i)).toBeInTheDocu…
        |                     ^
-    499| 
+    499|
     500|       unmount();
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/31]⎯
@@ -7469,10 +7469,10 @@ Check the render method of `SavedSearches`. See https://react.dev/link/warning-k
  FAIL  src/LanguageContext.test.tsx > LanguageContext > setLanguage > persists language to localStorage via i18next
 AssertionError: expected null to be 'el' // Object.is equality
 
-- Expected: 
+- Expected:
 "el"
 
-+ Received: 
++ Received:
 null
 
  ❯ src/LanguageContext.test.tsx:69:22
@@ -7481,17 +7481,17 @@ null
      69|       expect(stored).toBe('el');
        |                      ^
      70|     });
-     71| 
+     71|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/52]⎯
 
  FAIL  src/LanguageContext.test.tsx > LanguageContext > language persistence > persists latest language to localStorage across switches
 AssertionError: expected null to be 'el' // Object.is equality
 
-- Expected: 
+- Expected:
 "el"
 
-+ Received: 
++ Received:
 null
 
  ❯ src/LanguageContext.test.tsx:151:50
@@ -7499,7 +7499,7 @@ null
     150|       });
     151|       expect(localStorage.getItem('i18nextLng')).toBe('el');
        |                                                  ^
-    152| 
+    152|
     153|       await act(async () => {
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/52]⎯
@@ -7507,12 +7507,12 @@ null
  FAIL  src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should handle multiple renders with different durations
 AssertionError: expected "warn" to be called at least once
  ❯ src/hooks/usePerformanceMonitor.test.ts:281:23
-    279| 
+    279|
     280|       // Second render should trigger warning
     281|       expect(warnSpy).toHaveBeenCalled();
        |                       ^
     282|     });
-    283| 
+    283|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/52]⎯
 
@@ -7523,7 +7523,7 @@ received value must be an HTMLElement or an SVGElement.
 Received has type:  Null
 Received has value: null
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:55:21
-     53| 
+     53|
      54|       const panel = container.querySelector('[data-open="false"]');
      55|       expect(panel).toBeInTheDocument();
        |                     ^
@@ -7820,7 +7820,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:62:35
      60|       renderAdvancedFilters();
-     61| 
+     61|
      62|       const toggleButton = screen.getByRole('button', {
        |                                   ^
      63|         name: /advanced filters/i
@@ -8018,7 +8018,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:84:16
-     82| 
+     82|
      83|       expect(
      84|         screen.getByPlaceholderText(/first name|first_name/i)
        |                ^
@@ -8217,7 +8217,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:98:16
-     96| 
+     96|
      97|       expect(
      98|         screen.getByText(/active students/i)
        |                ^
@@ -8417,11 +8417,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:109:28
     107|       renderAdvancedFilters({ searchType: 'students' });
-    108| 
+    108|
     109|       const input = screen.getByPlaceholderText(/first name|first_name…
        |                            ^
     110|       await user.type(input, 'John');
-    111| 
+    111|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/52]⎯
 
@@ -8617,7 +8617,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:131:16
-    129| 
+    129|
     130|       expect(
     131|         screen.getByPlaceholderText(/course name|course_name/i)
        |                ^
@@ -8818,7 +8818,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:142:16
-    140| 
+    140|
     141|       expect(
     142|         screen.getByText(/high credit/i)
        |                ^
@@ -9037,7 +9037,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:152:35
     150|       renderAdvancedFilters({ searchType: 'courses' });
-    151| 
+    151|
     152|       const creditsLabel = screen.getByText(/credits|credit/i);
        |                                   ^
     153|       expect(creditsLabel).toBeInTheDocument();
@@ -9244,7 +9244,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:162:16
-    160| 
+    160|
     161|       expect(
     162|         screen.getByPlaceholderText(/min grade|grade min/i)
        |                ^
@@ -9452,7 +9452,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:173:16
-    171| 
+    171|
     172|       expect(
     173|         screen.getByText(/high grades|above 80/i)
        |                ^
@@ -9661,11 +9661,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:184:28
     182|       renderAdvancedFilters({ searchType: 'grades' });
-    183| 
+    183|
     184|       const input = screen.getByPlaceholderText(/min grade|grade min/i…
        |                            ^
     185|       await user.type(input, '80');
-    186| 
+    186|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/52]⎯
 
@@ -9869,11 +9869,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:194:28
     192|       renderAdvancedFilters({ searchType: 'grades' });
-    193| 
+    193|
     194|       const input = screen.getByPlaceholderText(/max grade|grade max/i…
        |                            ^
     195|       await user.type(input, '100');
-    196| 
+    196|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/52]⎯
 
@@ -10068,11 +10068,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:211:35
     209|       });
-    210| 
+    210|
     211|       const presetButton = screen.getByText(/active students/i);
        |                                   ^
     212|       await user.click(presetButton);
-    213| 
+    213|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/52]⎯
 
@@ -10276,11 +10276,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:221:35
     219|       renderAdvancedFilters({ searchType: 'grades' });
-    220| 
+    220|
     221|       const presetButton = screen.getByText(/high grades|above 80/i);
        |                                   ^
     222|       await user.click(presetButton);
-    223| 
+    223|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/52]⎯
 
@@ -10571,7 +10571,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:261:16
-    259| 
+    259|
     260|       expect(
     261|         screen.getByRole('button', { name: /apply filters/i })
        |                ^
@@ -10867,7 +10867,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:269:16
-    267| 
+    267|
     268|       expect(
     269|         screen.getByRole('button', { name: /reset filters/i })
        |                ^
@@ -11164,7 +11164,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:282:34
     280|       });
-    281| 
+    281|
     282|       const applyButton = screen.getByRole('button', {
        |                                  ^
     283|         name: /apply filters/i
@@ -11460,7 +11460,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:299:34
     297|       });
-    298| 
+    298|
     299|       const resetButton = screen.getByRole('button', {
        |                                  ^
     300|         name: /reset filters/i
@@ -11659,11 +11659,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:311:37
     309|       renderAdvancedFilters({ searchType: 'students' });
-    310| 
+    310|
     311|       const firstNameInput = screen.getByPlaceholderText(/first name/i…
        |                                     ^
     312|       await user.type(firstNameInput, 'John');
-    313| 
+    313|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/52]⎯
 
@@ -11955,7 +11955,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:332:35
     330|       renderAdvancedFilters({ onToggle });
-    331| 
+    331|
     332|       const toggleButton = screen.getByRole('button', {
        |                                   ^
     333|         name: /advanced filters/i
@@ -12251,7 +12251,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:350:35
     348|       renderAdvancedFilters({ isOpen: true });
-    349| 
+    349|
     350|       const toggleButton = screen.getByRole('button', {
        |                                   ^
     351|         name: /advanced filters/i
@@ -12450,11 +12450,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:362:37
     360|       renderAdvancedFilters({ searchType: 'students' });
-    361| 
+    361|
     362|       const firstNameInput = screen.getByPlaceholderText(/first name/i…
        |                                     ^
     363|       await user.type(firstNameInput, 'John');
-    364| 
+    364|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/52]⎯
 
@@ -12649,11 +12649,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:372:37
     370|       renderAdvancedFilters({ searchType: 'students' });
-    371| 
+    371|
     372|       const firstNameInput = screen.getByPlaceholderText(/first name/i…
        |                                     ^
     373|       const emailInput = screen.getByPlaceholderText(/email/i) as HTML…
-    374| 
+    374|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/52]⎯
 
@@ -12857,11 +12857,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:386:36
     384|       renderAdvancedFilters({ searchType: 'grades' });
-    385| 
+    385|
     386|       const minGradeInput = screen.getByPlaceholderText(/min grade/i);
        |                                    ^
     387|       await user.type(minGradeInput, 'abc');
-    388| 
+    388|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/52]⎯
 
@@ -13065,11 +13065,11 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:397:36
     395|       renderAdvancedFilters({ searchType: 'grades' });
-    396| 
+    396|
     397|       const minGradeInput = screen.getByPlaceholderText(/min grade/i);
        |                                    ^
     398|       const maxGradeInput = screen.getByPlaceholderText(/max grade/i);
-    399| 
+    399|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/52]⎯
 
@@ -13264,7 +13264,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:413:37
     411|       renderAdvancedFilters({ searchType: 'students' });
-    412| 
+    412|
     413|       const firstNameLabel = screen.getByLabelText(/first name|first_n…
        |                                     ^
     414|       expect(firstNameLabel).toBeInTheDocument();
@@ -13662,7 +13662,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:467:21
     465|       renderAdvancedFilters({ searchType: 'students' });
-    466| 
+    466|
     467|       expect(screen.getByPlaceholderText(/first name/i)).toBeInTheDocu…
        |                     ^
     468|       expect(screen.getByPlaceholderText(/email/i)).toBeInTheDocument(…
@@ -13862,7 +13862,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:475:16
-    473| 
+    473|
     474|       expect(
     475|         screen.getByPlaceholderText(/course name/i)
        |                ^
@@ -14070,7 +14070,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:486:16
-    484| 
+    484|
     485|       expect(
     486|         screen.getByPlaceholderText(/min grade/i)
        |                ^
@@ -14270,10 +14270,10 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:498:21
     496|       });
-    497| 
+    497|
     498|       expect(screen.getByPlaceholderText(/first name/i)).toBeInTheDocu…
        |                     ^
-    499| 
+    499|
     500|       unmount();
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/52]⎯
@@ -14285,11 +14285,11 @@ Error: Unable to fire a "mousedown" event - please provide a DOM element.
  ❯ Function.fireEvent.<computed> [as mouseDown] node_modules/@testing-library/dom/dist/events.js:110:68
  ❯ Function.fireEvent.<computed> [as mouseDown] node_modules/@testing-library/react/dist/fire-event.js:15:52
  ❯ src/components/__tests__/SearchBar.test.tsx:431:17
-    429| 
+    429|
     430|       // Click outside
     431|       fireEvent.mouseDown(container.querySelector('body')!);
        |                 ^
-    432| 
+    432|
     433|       await waitFor(() => {
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/52]⎯
@@ -14524,12 +14524,12 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/SearchResults.test.tsx:102:21
-    100| 
+    100|
     101|       expect(screen.getByText(/name|title/i)).toBeInTheDocument();
     102|       expect(screen.getByText(/type|result type/i)).toBeInTheDocument(…
        |                     ^
     103|     });
-    104| 
+    104|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/52]⎯
 
@@ -14559,7 +14559,7 @@ Expected the element to have class:
 Received:
   result-row
  ❯ src/components/__tests__/SearchResults.test.tsx:413:24
-    411| 
+    411|
     412|       await user.hover(firstRow);
     413|       expect(firstRow).toHaveClass('hover');
        |                        ^
@@ -14572,11 +14572,11 @@ Received:
 AssertionError: expected null not to be null
  ❯ src/hooks/__tests__/useNotifications.test.ts:136:40
     134|       });
-    135| 
+    135|
     136|       expect(result.current.error).not.toBeNull();
        |                                        ^
     137|     });
-    138| 
+    138|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/52]⎯
 
@@ -14584,7 +14584,7 @@ AssertionError: expected null not to be null
 AssertionError: expected "vi.fn()" to be called at least once
  ❯ src/hooks/__tests__/useNotifications.test.ts:446:30
     444|       unmount();
-    445| 
+    445|
     446|       expect(mockSocket.off).toHaveBeenCalled();
        |                              ^
     447|     });
@@ -14595,7 +14595,7 @@ AssertionError: expected "vi.fn()" to be called at least once
  FAIL  src/hooks/__tests__/useSearch.test.ts > useSearch Hook > Search Method > should support pagination
 AssertionError: expected "vi.fn()" to be called with arguments: [ StringContaining "page=2" ]
 
-Received: 
+Received:
 
   1st vi.fn() call:
 
@@ -14623,7 +14623,7 @@ Number of calls: 2
 
  ❯ src/hooks/__tests__/useSearch.test.ts:142:29
     140|       });
-    141| 
+    141|
     142|       expect(apiClient.get).toHaveBeenCalledWith(
        |                             ^
     143|         expect.stringContaining('page=2')
@@ -14648,10 +14648,10 @@ AssertionError: expected [ { id: 2, first_name: 'Jane' } ] to deeply equal [ { i
 
  ❯ src/hooks/__tests__/useSearch.test.ts:292:38
     290|       });
-    291| 
+    291|
     292|       expect(result.current.results).toEqual(mockResults1);
        |                                      ^
-    293| 
+    293|
     294|       await act(async () => {
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/52]⎯
@@ -14679,11 +14679,11 @@ AssertionError: expected [ '0', '1', '2', '3', '4', …(1382) ] to deeply equal 
 
  ❯ src/i18n/__tests__/translations.test.ts:20:22
      18|       const elKeys = Object.keys(translations.el).sort();
-     19| 
+     19|
      20|       expect(enKeys).toEqual(elKeys);
        |                      ^
      21|     });
-     22| 
+     22|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/52]⎯
 
@@ -14701,7 +14701,7 @@ AssertionError: Keys in EL but missing in EN: 6, 7, 8: expected [ '6', '7', '8' 
 + ]
 
  ❯ src/i18n/__tests__/translations.test.ts:90:86
-     88| 
+     88|
      89|       expect(missingInEl, `Keys in EN but missing in EL: ${missingInEl…
      90|       expect(missingInEn, `Keys in EL but missing in EN: ${missingInEn…
        |                                                                                      ^
@@ -14713,19 +14713,19 @@ AssertionError: Keys in EL but missing in EN: 6, 7, 8: expected [ '6', '7', '8' 
  FAIL  src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > fetches student analytics data
 AssertionError: expected undefined to deeply equal { overall_average: 85, …(2) }
 
-- Expected: 
+- Expected:
 {
   "courses": {},
   "overall_average": 85,
   "period_days": 30,
 }
 
-+ Received: 
++ Received:
 undefined
 
  ❯ src/features/analytics/hooks/__tests__/useAnalytics.test.ts:55:40
      53|     });
-     54| 
+     54|
      55|     expect(result.current.performance).toEqual(performanceData);
        |                                        ^
      56|     expect(result.current.trends).toEqual(trendsData);
@@ -14736,7 +14736,7 @@ undefined
  FAIL  src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > fetches course analytics data
 AssertionError: expected undefined to deeply equal { …(3) }
 
-- Expected: 
+- Expected:
 {
   "average_percentage": 85,
   "distribution": {
@@ -14745,16 +14745,16 @@ AssertionError: expected undefined to deeply equal { …(3) }
   "total_grades": 20,
 }
 
-+ Received: 
++ Received:
 undefined
 
  ❯ src/features/analytics/hooks/__tests__/useAnalytics.test.ts:76:46
      74|     });
-     75| 
+     75|
      76|     expect(result.current.gradeDistribution).toEqual(distributionData);
        |                                              ^
      77|   });
-     78| 
+     78|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/52]⎯
 
@@ -14762,7 +14762,7 @@ undefined
 AssertionError: expected null not to be null // Object.is equality
  ❯ src/features/analytics/hooks/__tests__/useAnalytics.test.ts:89:38
      87|     });
-     88| 
+     88|
      89|     expect(result.current.error).not.toBe(null);
        |                                      ^
      90|     expect(result.current.error?.code).toBe("FETCH_ERROR");
@@ -14773,31 +14773,31 @@ AssertionError: expected null not to be null // Object.is equality
  FAIL  src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > provides refetch function
 AssertionError: expected "vi.fn()" to be called 4 times, but got 6 times
  ❯ src/features/analytics/hooks/__tests__/useAnalytics.test.ts:119:21
-    117| 
+    117|
     118|     // Should call the API again
     119|     expect(mockGet).toHaveBeenCalledTimes(4); // 3 initial + 1 refetch
        |                     ^
     120|   });
-    121| 
+    121|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/52]⎯
 
  FAIL  src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > combines student and course analytics when both IDs provided
 AssertionError: expected undefined to deeply equal { overall_average: 85, …(2) }
 
-- Expected: 
+- Expected:
 {
   "courses": {},
   "overall_average": 85,
   "period_days": 30,
 }
 
-+ Received: 
++ Received:
 undefined
 
  ❯ src/features/analytics/hooks/__tests__/useAnalytics.test.ts:140:40
     138|     });
-    139| 
+    139|
     140|     expect(result.current.performance).toEqual(perfData);
        |                                        ^
     141|     expect(result.current.trends).toEqual(trendsData);
@@ -14808,19 +14808,19 @@ undefined
  FAIL  src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > handles partial data loading
 AssertionError: expected undefined to deeply equal { overall_average: 85, …(2) }
 
-- Expected: 
+- Expected:
 {
   "courses": {},
   "overall_average": 85,
   "period_days": 30,
 }
 
-+ Received: 
++ Received:
 undefined
 
  ❯ src/features/analytics/hooks/__tests__/useAnalytics.test.ts:160:40
     158|     });
-    159| 
+    159|
     160|     expect(result.current.performance).toEqual(perfData);
        |                                        ^
     161|     expect(result.current.trends).toBe(null);
@@ -14885,7 +14885,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:55:13
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/features/analytics/components/__tests__/AnalyticsDashboard.test.tsx:128:35
-    126| 
+    126|
     127|     // Look for the loading spinner (not the refresh button which also…
     128|     const loadingSpinner = screen.getByText(/Loading/i).closest('.load…
        |                                   ^
@@ -14898,11 +14898,11 @@ Ignored nodes: comments, script, style
 AssertionError: expected "vi.fn()" to be called at least once
  ❯ src/features/analytics/components/__tests__/AnalyticsDashboard.test.tsx:214:25
     212|     await user.click(refreshButton);
-    213| 
+    213|
     214|     expect(mockRefetch).toHaveBeenCalled();
        |                         ^
     215|   });
-    216| 
+    216|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/52]⎯
 

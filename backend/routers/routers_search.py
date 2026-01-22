@@ -147,7 +147,7 @@ async def search_students(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching students: {str(e)}")
-        return error_response(code="SEARCH_ERROR", message="Failed to search students", details=str(e))
+        return error_response(code="SEARCH_ERROR", message="Failed to search students", details={"error": str(e)})
 
 
 @router.get(
@@ -190,7 +190,7 @@ async def search_courses(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching courses: {str(e)}")
-        return error_response(code="SEARCH_ERROR", message="Failed to search courses", details=str(e))
+        return error_response(code="SEARCH_ERROR", message="Failed to search courses", details={"error": str(e)})
 
 
 @router.get(
@@ -242,7 +242,7 @@ async def search_grades(
         return success_response(results, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error searching grades: {str(e)}")
-        return error_response(code="SEARCH_ERROR", message="Failed to search grades", details=str(e))
+        return error_response(code="SEARCH_ERROR", message="Failed to search grades", details={"error": str(e)})
 
 
 @router.post(
@@ -385,7 +385,9 @@ async def get_suggestions(
         return success_response(suggestions, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting suggestions: {str(e)}")
-        return error_response(code="SUGGESTION_ERROR", message="Failed to get search suggestions", details=str(e))
+        return error_response(
+            code="SUGGESTION_ERROR", message="Failed to get search suggestions", details={"error": str(e)}
+        )
 
 
 # ============================================================================
@@ -433,7 +435,7 @@ async def get_statistics(
         return success_response(stats, request_id=request.state.request_id)
     except Exception as e:
         logger.error(f"Error getting statistics: {str(e)}")
-        return error_response(code="STATS_ERROR", message="Failed to get search statistics", details=str(e))
+        return error_response(code="STATS_ERROR", message="Failed to get search statistics", details={"error": str(e)})
 
 
 # ============================================================================
@@ -507,7 +509,7 @@ async def create_saved_search(
         return error_response(
             code="CREATE_ERROR",
             message="Failed to create saved search",
-            details=str(e),
+            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -566,7 +568,7 @@ async def list_saved_searches(
         return error_response(
             code="LIST_ERROR",
             message="Failed to list saved searches",
-            details=str(e),
+            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -630,7 +632,7 @@ async def get_saved_search(
         return error_response(
             code="GET_ERROR",
             message="Failed to get saved search",
-            details=str(e),
+            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -705,7 +707,7 @@ async def update_saved_search(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to update saved search",
-            details=str(e),
+            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -758,7 +760,7 @@ async def delete_saved_search(
         return error_response(
             code="DELETE_ERROR",
             message="Failed to delete saved search",
-            details=str(e),
+            details={"error": str(e)},
             request_id=request.state.request_id,
         )
 
@@ -816,6 +818,6 @@ async def toggle_saved_search_favorite(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to toggle favorite",
-            details=str(e),
+            details={"error": str(e)},
             request_id=request.state.request_id,
         )

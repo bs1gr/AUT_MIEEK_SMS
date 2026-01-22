@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Heart, Trash2, Search, Edit, Clock } from 'lucide-react';
 import { useSearch, type SavedSearch } from './useSearch';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import SkeletonLoader from '../../components/common/SkeletonLoader';
+import { useRateLimit } from '../../hooks/useRateLimit';
 
 interface SavedSearchesProps {
   onLoadSearch?: (search: SavedSearch) => void;
@@ -27,6 +29,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   const queryClient = useQueryClient();
   const [filterType, setFilterType] = useState<'all' | 'students' | 'courses' | 'grades'>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const { isRateLimited, call } = useRateLimit(1000); // 1 second cooldown
 
   const {
     savedSearches,
@@ -58,21 +61,21 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   };
 
   const handleToggleFavorite = (id: number) => {
-    toggleFavoriteMutation.mutate(id);
+    call(() => toggleFavoriteMutation.mutate(id));
   };
 
   const handleDelete = (id: number) => {
     if (window.confirm(t('search.confirmDeleteSearch'))) {
-      deleteMutation.mutate(id);
+      call(() => deleteMutation.mutate(id));
     }
   };
 
   // Filter searches
-  const filteredSearches = savedSearches.filter((search) => {
+  const filteredSearches = useMemo(() => savedSearches.filter((search) => {
     if (showFavoritesOnly && !search.is_favorite) return false;
     if (filterType !== 'all' && search.search_type !== filterType) return false;
     return true;
-  });
+  }), [savedSearches, showFavoritesOnly, filterType]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -139,11 +142,8 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
 
       {/* Loading State */}
       {loadingSavedSearches && (
-        <div className="text-center py-8">
-          <div className="inline-block animate-spin">
-            <Search size={32} className="text-blue-500" />
-          </div>
-          <p className="mt-2 text-sm text-gray-600">{t('common.loading')}</p>
+        <div className="py-4">
+          <SkeletonLoader rows={3} />
         </div>
       )}
 
@@ -212,7 +212,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                   {/* Favorite Toggle */}
                   <button
                     onClick={() => handleToggleFavorite(search.id)}
-                    disabled={toggleFavoriteMutation.isPending}
+                    disabled={toggleFavoriteMutation.isPending || isRateLimited}
                     className={`p-2 rounded-lg transition-colors ${
                       search.is_favorite
                         ? 'text-red-500 bg-red-50 hover:bg-red-100'
@@ -238,7 +238,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                   {/* Delete */}
                   <button
                     onClick={() => handleDelete(search.id)}
-                    disabled={deleteMutation.isPending}
+                    disabled={deleteMutation.isPending || isRateLimited}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                     aria-label={t('common.delete')}
                   >
