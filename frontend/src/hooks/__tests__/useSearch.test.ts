@@ -283,18 +283,22 @@ describe('useSearch Hook', () => {
         .mockResolvedValueOnce({ data: mockResults1 })
         .mockResolvedValueOnce({ data: mockResults2 });
 
-      const { result } = renderHook(() => useSearch('students'));
+      const { result, rerender } = renderHook(() => useSearch('students'));
 
+      // Initial search
       await act(async () => {
         await result.current.search('John');
       });
 
       expect(result.current.results).toEqual(mockResults1);
 
+      // Load more (loadMore is not async, but search is)
       await act(async () => {
-        await result.current.loadMore('John');
-        // Wait for state updates to complete
-        await new Promise(resolve => setTimeout(resolve, 0));
+        result.current.loadMore('John');
+        // Wait for the async search to complete
+        await waitFor(() => {
+          expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThan(1);
+        });
       });
 
       // Should append new results
@@ -310,12 +314,18 @@ describe('useSearch Hook', () => {
 
       const { result } = renderHook(() => useSearch('grades'));
 
+      // Initial filter
       await act(async () => {
         await result.current.advancedFilter({ grade_min: 80 });
       });
 
+      // Load more results
       await act(async () => {
-        await result.current.loadMore();
+        result.current.loadMore();
+        // Wait for the async advancedFilter to complete
+        await waitFor(() => {
+          expect(vi.mocked(apiClient.post).mock.calls.length).toBeGreaterThan(1);
+        });
       });
 
       // Should make two API calls

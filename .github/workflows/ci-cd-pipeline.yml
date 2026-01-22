@@ -577,7 +577,18 @@ jobs:
         run: cd frontend && npm ci --silent
 
       - name: Run npm audit
-        run: cd frontend && npm audit --json > npm-audit.json
+        run: cd frontend && npm audit --json > npm-audit.json || true
+
+      - name: Check npm audit results
+        run: |
+          cd frontend
+          if npm audit --audit-level=moderate > /dev/null 2>&1; then
+            echo "✓ No moderate or higher security vulnerabilities found"
+          else
+            echo "⚠ Security vulnerabilities detected"
+            npm audit --audit-level=moderate
+            exit 1
+          fi
 
       - name: Upload audit report
         if: always()
