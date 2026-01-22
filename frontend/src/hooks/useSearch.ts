@@ -185,7 +185,7 @@ export const useSearch = (
         }));
       }
     },
-    [searchType, pageSize, state.results, t]
+    [searchType, pageSize, t]
   );
 
   /**
@@ -318,7 +318,7 @@ export const useSearch = (
         }));
       }
     },
-    [searchType, pageSize, state.results, t]
+    [searchType, pageSize, t]
   );
 
   /**
@@ -393,12 +393,13 @@ export const useSearch = (
    * Cleanup timeout on unmount
    */
   useEffect(() => {
+    const cache = suggestionsCache.current;
     return () => {
       if (suggestionsTimeout.current) {
         clearTimeout(suggestionsTimeout.current);
       }
       // async cleanup to match test expectations
-      setTimeout(() => suggestionsCache.current.clear(), 0);
+      setTimeout(() => cache.clear(), 0);
     };
   }, []);
 

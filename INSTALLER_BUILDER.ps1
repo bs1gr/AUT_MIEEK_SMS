@@ -79,7 +79,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.17.2
+Version: 1.18.0
     Created: 2025-12-04
     Updated: 2025-12-30
 
@@ -361,9 +361,25 @@ function Invoke-InstallerCompilation {
         Write-Result Info "Compiling SMS_Installer_$CurrentVersion.exe..."
         $startTime = Get-Date
 
+        # Ensure DOCUMENTATION_INDEX.md exists in root for Inno Setup (it may be in docs/)
+        $docIndexRoot = Join-Path $ProjectRoot "DOCUMENTATION_INDEX.md"
+        $docIndexDocs = Join-Path $ProjectRoot "docs\DOCUMENTATION_INDEX.md"
+        $cleanupDocIndex = $false
+
+        if (-not (Test-Path $docIndexRoot) -and (Test-Path $docIndexDocs)) {
+            Write-Result Info "Staging DOCUMENTATION_INDEX.md to root for compilation..."
+            Copy-Item -Path $docIndexDocs -Destination $docIndexRoot
+            $cleanupDocIndex = $true
+        }
+
         Push-Location $InstallerDir
         & $iscc "SMS_Installer.iss" | Out-String | Tee-Object -Variable output
         Pop-Location
+
+        # Cleanup staged file
+        if ($cleanupDocIndex -and (Test-Path $docIndexRoot)) {
+            Remove-Item $docIndexRoot -Force
+        }
 
         $elapsed = (Get-Date) - $startTime
 

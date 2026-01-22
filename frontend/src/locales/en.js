@@ -79,6 +79,58 @@ export const en = {
   letterGrade: 'Letter Grade',
   greekGrade: 'Greek Grade (0-20)',
 
+  // Search & Filtering (Phase 4)
+  searchPlaceholder: 'Search...',
+  searchType: 'Search Type',
+  noResults: 'No results found',
+  results: 'Results',
+  clear: 'Clear',
+
+  // Saved Searches
+  favoriteSearches: 'Favorite Searches',
+  viewAllSavedSearches: 'View All Saved Searches',
+  noSavedSearches: 'No saved searches',
+  saveSearch: 'Save This Search',
+  saveSearchAs: 'Save search as...',
+  savedSearchName: 'Search Name',
+  savedSearchDescription: 'Description (optional)',
+  searchSaved: 'Search saved successfully',
+  failedToSaveSearch: 'Failed to save search',
+  failedToDeleteSearch: 'Failed to delete search',
+  failedToToggleFavorite: 'Failed to toggle favorite',
+  searchDeleted: 'Search deleted successfully',
+
+  // Advanced Filters
+  advancedFilters: 'Advanced Filters',
+  addFilter: 'Add Filter',
+  removeFilter: 'Remove Filter',
+  filterField: 'Field',
+  filterOperator: 'Operator',
+  filterValue: 'Value',
+  equals: 'Equals',
+  contains: 'Contains',
+  startsWith: 'Starts with',
+  greaterThan: 'Greater than',
+  lessThan: 'Less than',
+  between: 'Between',
+  applyFilters: 'Apply Filters',
+  resetFilters: 'Reset Filters',
+  noFiltersApplied: 'No filters applied',
+
+  // Saved Searches Management
+  savedSearches: 'Saved Searches',
+  savedSearchesDescription: 'Manage and organize your saved searches',
+  filterByType: 'Filter by Type',
+  favoritesOnly: 'Favorites Only',
+  noFavoriteSearches: 'No favorite searches found',
+  createFirstSearch: 'Create your first search to get started',
+  toggleFavorite: 'Toggle Favorite',
+  loadSearch: 'Load Search',
+  confirmDeleteSearch: 'Are you sure you want to delete this search?',
+  showingSearches: 'Showing {{count}} of {{total}} searches',
+  filters: 'filters',
+  all: 'All',
+
   // Continue with rest of translations...
   // (This is just the structure - would include all translations)
 };

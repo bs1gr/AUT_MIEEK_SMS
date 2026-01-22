@@ -1110,7 +1110,7 @@ Ignored nodes: comments, script, style
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
  ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:267:31
-    265| 
+    265|
     266|       // Filter fields should be populated
     267|       const minGrade = screen.getByPlaceholderText(/min grade|grade mi…
        |                               ^
@@ -1123,11 +1123,11 @@ Ignored nodes: comments, script, style
 AssertionError: expected "vi.fn()" to be called at least once
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:329:23
     327|       await user.click(applyButton);
-    328| 
+    328|
     329|       expect(onApply).toHaveBeenCalled();
        |                       ^
     330|     });
-    331| 
+    331|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
 
@@ -1141,7 +1141,7 @@ AssertionError: expected 'John' to be '' // Object.is equality
 
  ❯ src/components/__tests__/AdvancedFilters.test.tsx:363:36
     361|       await user.click(resetButton);
-    362| 
+    362|
     363|       expect(firstNameInput.value).toBe('');
        |                                    ^
     364|     });
@@ -1172,7 +1172,7 @@ Received element with focus:
     467|       ).toHaveFocus();
        |         ^
     468|     });
-    469| 
+    469|
 
 ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
 

@@ -1,7 +1,7 @@
 {
   "name": "student-management-frontend",
   "private": true,
-  "version": "1.17.2",
+  "version": "1.18.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -27,6 +27,8 @@
     "@radix-ui/react-slot": "^1.2.4",
     "@tanstack/react-query": "^5.90.12",
     "@tanstack/react-query-devtools": "^5.91.1",
+    "@tanstack/react-query-persist-client": "^5.90.12",
+    "@tanstack/query-sync-storage-persister": "^5.90.12",
     "@tanstack/react-virtual": "^3.13.13",
     "@types/papaparse": "^5.5.2",
     "@vitest/coverage-v8": "^4.0.16",

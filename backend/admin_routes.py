@@ -278,9 +278,7 @@ async def restore_encrypted_backup(
         # Extract only the filename to prevent path traversal
         safe_output_filename = pathlib.Path(output_filename).name
         if safe_output_filename != output_filename:
-            raise HTTPException(
-                status_code=400, detail="Invalid output filename: contains path components"
-            )
+            raise HTTPException(status_code=400, detail="Invalid output filename: contains path components")
         output_path = restore_dir / safe_output_filename
 
         # Additional safety: Ensure resolved paths are within allowed directories

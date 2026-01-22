@@ -376,16 +376,23 @@ def optional_require_role(*roles: str):
 
         # Auth is enabled — enforce role checks
         if roles:
-            role = getattr(user, "role", None)
-            if role not in roles:
-                roles_str = " or ".join(roles)
-                raise http_error(
-                    status.HTTP_403_FORBIDDEN,
-                    ErrorCode.FORBIDDEN,
-                    f"Access denied. Required role: {roles_str}. Your role: {role}",
-                    request,
-                    context={"required_roles": list(roles), "current_role": role},
-                )
+            # Guard against `roles` containing None (e.g., optional_require_role(None)) to
+            # avoid TypeError when joining for error messages.
+            normalized_roles = tuple(r for r in roles if r is not None)
+
+            # If all roles were None, treat as no role restriction (transparent behavior for
+            # optional_require_role(None) when auth is enabled).
+            if normalized_roles:
+                role = getattr(user, "role", None)
+                if role not in normalized_roles:
+                    roles_str = " or ".join(str(r) for r in normalized_roles)
+                    raise http_error(
+                        status.HTTP_403_FORBIDDEN,
+                        ErrorCode.FORBIDDEN,
+                        f"Access denied. Required role: {roles_str}. Your role: {role}",
+                        request,
+                        context={"required_roles": list(normalized_roles), "current_role": role},
+                    )
         return user
 
     return _dep

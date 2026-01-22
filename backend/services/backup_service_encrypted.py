@@ -143,7 +143,7 @@ class BackupServiceEncrypted:
         # Verify output_path exists before returning
         if not output_path.exists():
             raise ValueError(f"Restored file not found at {output_path}")
-        
+
         return {
             "success": True,
             "backup_name": backup_name,

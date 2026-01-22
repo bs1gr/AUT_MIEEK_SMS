@@ -757,6 +757,41 @@ class ImportExportHistory(Base):
         return f"<ImportExportHistory(id={self.id}, operation={self.operation_type}, action={self.action})>"
 
 
+class SavedSearch(SoftDeleteMixin, Base):
+    """Saved search queries for quick access and reuse.
+
+    Allows users to save complex search criteria for later use.
+    Includes full-text search queries and advanced filter combinations.
+    """
+
+    __tablename__ = "saved_searches"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)  # Index in __table_args__
+    name = Column(String(200), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    search_type = Column(String(50), nullable=False)  # Index in __table_args__
+    query = Column(String(500), nullable=True)  # Full-text search query
+    filters = Column(JSON, nullable=True)  # Advanced filter criteria
+    is_favorite = Column(Boolean, default=False)  # Index in __table_args__
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = Column(
+        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc)
+    )
+
+    # Relationships
+    user: ClassVar[Any] = relationship("User")
+
+    __table_args__ = (
+        Index("ix_saved_searches_user_id", "user_id"),
+        Index("ix_saved_searches_search_type", "search_type"),
+        Index("ix_saved_searches_is_favorite", "is_favorite"),
+    )
+
+    def __repr__(self):
+        return f"<SavedSearch(id={self.id}, user_id={self.user_id}, name={self.name}, type={self.search_type})>"
+
+
 def init_db(db_url: str = "sqlite:///student_management.db"):
     """
     Initialize the database engine with performance optimizations.

@@ -8,15 +8,211 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.17.3] - 2026-01-22
+
+### ⚠️ BREAKING CHANGES
+- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning
+
+### Features
+- BATCH 6 - Frontend SavedSearches Component
+- BATCH 5 - Frontend AdvancedFilters Component
+- BATCH 4 - Frontend SearchBar Component
+- BATCH 2 - Add SavedSearches API endpoints
+- BATCH 1 - Add SavedSearch model and search services
+- **phase-3**: Complete Phase 3 implementation - Features 125, 126, 127
+- Add timing middleware and enhance test isolation
+- Add state snapshot system and fix pre-commit exit code handling
+- implement Feature #127 backend and version enforcement
+- implement Feature #127 backend and version enforcement
+- **import-export**: Add Feature #127 Phase 3 - API endpoints and backend implementation
+- Implement 4-layer version format enforcement system
+
+### Bug Fixes
+- resolve npm audit lodash vulnerability and fix COMMIT_READY Windows workflow
+- Align SearchResult and analytics types with usage
+- Resolve ESLint warnings in frontend tests
+- Remove duplicate validation in rollback_import endpoint
+- **frontend**: Add search translation spreads to resolve i18n test failures
+- resolve TypeScript errors and increase markdown threshold
+- resolve 4 CI/CD failures - console.log to warn, remove unused imports
+- **frontend**: wrap analytics tests with i18n providers
+- **frontend**: Fix all SavedSearches test failures (25/25 passing)
+- **frontend**: Batch 11 lint cleanup - 0 warnings
+- **frontend**: Remove unused language variable in GradingView (44→43 warnings)
+- **frontend**: Batch 10 - React Hook dependency and ref cleanup (useNotifications + usePerformanceMonitor, 2 fixes, 46→44 warnings)
+- **frontend,backend**: Resolve CI TypeScript compilation and test fixture errors
+- Resolve TypeScript compilation errors for CI
+- Batch 6 Phase 3 - Replace any types with explicit types (3 warnings fixed)
+- Batch 6 Phase 2b - Wrap analytics grade labels with i18n (6 warnings fixed)
+- Batch 6 Phase 2a - Wrap ImportWizard 20+ hardcoded strings with i18n (20 warnings fixed)
+- Batch 6 Phase 1 - Remove unused vars, fix empty interfaces, wrap i18n literals (14 warnings fixed)
+- Batch 5 - Wrap i18n hardcoded strings with t() function (24 toast messages)
+- Complete Batch 3-4 ESLint cleanup - Type safety and React Hook dependencies
+- Resolve CI/CD failures - fix linting issues and dependency conflict
+- Add missing useEffect dependencies in custom hooks (Phase 2 - Batch 4)
+- Replace any types with proper types and add type definitions (Phase 2 - Batch 3)
+- Remove 10 unused imports across test files (Phase 2 - Batch 2)
+- **ci**: Add test environment variables to CI backend pytest - Fixes backend test failures
+- Add 'api' global to ESLint config - resolves final 4 blocking errors
+- Remove duplicate keys in translation files
+- silence MyPy Column assignment noise in import/export service
+- Comprehensive MyPy type error resolution in import_export_service
+- Resolve MyPy type errors in search and import/export services
+- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.2)
+- Update documentation versions to 1.17.2 (CI version consistency check)
+- Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
+- Resolve remaining ESLint violations (unused vars, types, quote escaping)
+- ESLint - Remove unused params and fix accessibility
+- Resolve 13 TypeScript errors and multiple linting issues
+- correct notification item translation keys and test expectations
+- trim trailing whitespace in scripts and docs
+- trim trailing whitespace in docs and scripts
+- resolve CI linting errors (explicit any, ts-expect-error)
+- resolve frontend TypeScript errors and git hook execution on Windows
+- resolve frontend TypeScript errors and git hook execution on Windows
+- resolve frontend TypeScript errors and type mismatches
+- Correct SocketIO async_mode from 'aiohttp' to 'asgi' for FastAPI compatibility
+- Add terminal encoding fix for Greek character artifacts
+- Correct version format validator path and PowerShell substitution bugs
+- Resolve all MyPy type errors (28 errors fixed)
+- Resolve linting errors (5 errors total)
+- Update all version references to v1.17.1 (9 files + package-lock.json)
+- Add missing RBAC schema exports; test audit documentation
+
+### Security
+- fix CodeQL path traversal warnings
+- Fix 2 path traversal vulnerabilities (CodeQL #1594, #1593)
+- Fix path traversal vulnerabilities (CodeQL High severity)
+- Fix critical vulnerabilities and add path validation utility
+
+### Refactoring
+- remove async from all student router endpoints
+- Update grading and student components with translations
+- Update frontend components and hooks
+
+### Documentation
+- Update UNIFIED_WORK_PLAN with BATCH 4-6 completion
+- update work plan with Jan 22 CI verification
+- Fix markdown lint errors and streamline work plan >> >> - Fix README.md line length (reference-style link) >> - Fix frontend/README.md line length (split description) >> - Streamline UNIFIED_WORK_PLAN.md (3309 → 153 lines, 95% reduction) >> - Archive historical records to UNIFIED_WORK_PLAN_ARCHIVE_JAN21.md >> - All markdown files pass markdownlint-cli2
+- clarify COMMIT_READY patience requirements
+- CI/CD fix executive summary and final status (all 4 issues resolved)
+- Add CI/CD failure analysis and fixes summary (force)
+- Add Phase 3 final completion report and action plan
+- Update work plan with test fixture verification
+- Update work plans, release notes, and CI artifacts from recent debugging sessions
+- Fix version format violations - change $11.x.x to v1.x.x
+- Begin CI monitoring for 7 queued commits
+- Update work plan - mark pending changes as committed
+- Update Phase 4 roadmap and repository cleanup status
+- Mark CI TypeScript fixes as complete in work plan
+- Update Batch 6 reports with final validation status
+- Add Batch 6 completion to unified work plan
+- Batch 6 Phase 1-3 Completion Report (43+ warnings fixed)
+- Add repository cleanup phase status report (Jan 18)
+- Update Phase 2 execution documentation and security guide (Jan 18)
+- Add comprehensive security policy with responsible disclosure guidelines
+- Add Phase 2 session summaries and continuatin guide for Batch 5
+- Add Repository Issues Cleanup phase before Phase 4 development
+- Add Phase 4 execution kickoff guide - ready for stakeholder review
+- Update work plan with frontend lint parsing error fixes (Jan 18)
+- Add Phase 6 final status report with completion verification
+- Add Phase 6 completion summary with infrastructure fixes and performance baseline
+- Fix version confusion - v1.18.0 is STABLE (not REMEDIATION)
+- add user guide and mark feature #127 complete
+- Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
+- Add production validation documentation and test utilities
+- Terminal encoding fix - cleared corrupted PSReadLine history
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.1 released
+- Update Phase 3 planning and release documentation
+- Add audit session summary with key findings and status
+- Document lesson learned implementation - verification before claims
+- Add critical lesson - verify test results before claiming success (Jan 12 incident)
+- Add comprehensive audit report and root cause analysis
+- Add action summary for CI fix and release complete
+- Add complete summary - CI fix and v1.18.0 release
+
+### Tests
+- fix useSearch loadMore async test flakiness
+- silence jsdom navigation errors
+- **frontend**: Achieve 100% pass rate (1550/1550 tests passing)
+- Fix all search endpoint tests - 49/49 passing
+
+### CI/CD
+- fix npm audit security scan and E2E test timeouts
+- Increase markdown lint threshold to 8210 to accommodate recent doc updates
+
+### Chores
+- BATCH 3 - Database migration for SavedSearch table
+- improve .gitignore with import/export artifact patterns
+- **frontend**: stabilize i18n tests and vitest runner
+- organize documentation into docs/
+- finalize vitest fixes and search improvements
+- clean lint artifacts and update CI docs
+- **deps**: Add papaparse for bulk import feature (Phase #127)
+- update socketio/engineio deps and refresh plan status
+- Archive session documentation files
+- Clean staging area - accumulated changes
+- pre-commit validation complete
+- Remove test artifact file.tmp
+- Update gitignore to exclude ci_failure_log.txt artifact
+- Complete Phase 1 Cleanup & Prepare Phase 2 Execution
+- Raise markdown lint threshold from 8100 to 8200 (Phase 4 prep)
+- Fix datetime.utcnow() deprecation warnings and improve gitignore
+- remove build artifacts from version control
+- post-COMMIT_READY verification complete
+- cleanup workspace, organize feature #127 files, and apply code quality fixes
+- finalize version enforcement infrastructure and advance Feature #127 to Phase 4
+- minor documentation and escaping fixes in COMMIT_READY.ps1
+
+## [1.17.3] - 2026-01-22
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [Unreleased]
 
-### Fixed
-- **Frontend Tests**: Stabilized i18n test suite and vitest runner configuration
-- **AdvancedFilters Tests**: Fixed missing translation keys in test environment
-- **i18n**: Fixed search translation namespace issues causing test failures
-- **i18n Config**: Enhanced robustness of translation initialization to handle array-like data corruption
+## [1.18.0] - 2026-01-22
 
-## [1.18.0] - 2026-01-14
+### 🚀 PWA & Mobile Experience
+
+**PWA Capabilities**
+- **Installable App**: Full PWA manifest and service worker support.
+- **Offline Support**: Caching strategies for assets and API responses.
+- **Data Persistence**: `persistQueryClient` integration for offline data access.
+- **Mobile Optimizations**: Enhanced viewport handling and touch interactions.
+
+**User Experience**
+- **Update Notification**: Smart prompts for app updates.
+- **Install Prompt**: Custom UI for installation on supported devices.
+- **Mobile Layout**: Optimized CSS for notched devices and touch targets.
+
+## [1.17.3] - 2026-01-22
+
+### 🚀 Performance & Security Patch
+
+**Performance Optimizations**
+- **Virtual Scrolling**: Implemented `useVirtualScroll` hook for Student List (1000+ items support).
+- **Memoization**: Applied `React.memo` to `StudentRow` and `AdvancedFilters`.
+- **Skeleton Loading**: Added `SkeletonLoader` for better UX.
+- **Code Splitting**: Implemented `LazyLoad` infrastructure.
+
+**Security Hardening**
+- **CSRF Protection**: Added Axios interceptor for `X-CSRF-TOKEN`.
+- **Rate Limiting**: Added `useRateLimit` hook for form submissions.
+- **Authorization**: Validated backend ownership checks for Saved Searches.
+
+**Resilience**
+- **Smart Error Recovery**: Added `useErrorRecovery` hook with exponential backoff.
+- **Error Retry UI**: Added `ErrorRetry` component.
+
+## [1.17.2] - 2026-01-14
 
 ### ✨ Phase 3 Features (Major Release)
 

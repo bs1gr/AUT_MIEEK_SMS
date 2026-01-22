@@ -241,30 +241,45 @@ def patch_settings_for_tests(request, monkeypatch):
     logging.info("Successfully patched settings for test execution")
 
 
-@pytest.fixture(scope="function", autouse=True)
-def setup_db():
-    """Ensure a clean database schema for each test function.
+@pytest.fixture(scope="session", autouse=True)
+def setup_db_schema():
+    """Create database schema once at the start of the test session.
 
-
-
-
-
-    Drop and recreate all tables before every test to isolate data across tests,
-
-
-    including those that open their own sessions outside the shared db fixture.
-
-
+    For in-memory SQLite with StaticPool, we create the schema once
+    and rely on transaction rollback in the db fixture for cleanup.
     """
-
+    # Create all tables once at session start
+    Base.metadata.create_all(bind=engine)
+    yield
+    # Drop all at session end
     Base.metadata.drop_all(bind=engine)
 
-    Base.metadata.create_all(bind=engine)
 
+@pytest.fixture(scope="function", autouse=True)
+def setup_db():
+    """Ensure database is clean before each test.
+
+    Since we use session-scoped schema creation and transaction rollback
+    in the db fixture, we just need to clean any data that might leak
+    between tests (though transaction rollback should handle this).
+    """
     yield
+    # Cleanup after test - truncate all tables to ensure clean state
+    # This is a safety measure in case any test commits outside the transaction
+    with engine.begin() as connection:
+        from sqlalchemy import inspect
 
-    # next test will recreate schema
-    # next test will recreate schema
+        inspector = inspect(engine)
+        existing_tables = set(inspector.get_table_names())
+
+        for table in reversed(Base.metadata.sorted_tables):
+            # Only delete from tables that actually exist
+            if table.name in existing_tables:
+                try:
+                    connection.execute(table.delete())
+                except Exception:
+                    # Ignore errors for tables that don't exist or can't be truncated
+                    pass
 
 
 @pytest.fixture(scope="function")

@@ -1,42 +1,26 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-export type ErrorRetryStrategy = 'none' | 'immediate' | 'backoff' | 'prompt';
+type ErrorRetryStrategy = 'none' | 'immediate' | 'backoff';
 
-export interface UseErrorRecoveryOptions {
+interface UseErrorRecoveryOptions {
   maxRetries?: number;
   backoffMs?: number;
   strategy?: ErrorRetryStrategy;
-  onError?: (error: Error, retry: () => void) => void;
+  onRetry?: () => void | Promise<void>;
 }
 
-/**
- * Smart error recovery hook with exponential backoff
- * Automatically retries failed operations with configurable strategies
- *
- * @example
- * const { error, retryCount, retry, reset, handleError } = useErrorRecovery({
- *   strategy: 'backoff',
- *   maxRetries: 3,
- *   onError: (err, retry) => console.error('Failed:', err.message)
- * });
- */
 export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
   const {
     maxRetries = 3,
     backoffMs = 1000,
     strategy = 'backoff',
-    onError
+    onRetry
   } = options;
 
   const [error, setError] = useState<Error | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  // Calculate exponential backoff: 1s, 2s, 4s, 8s, etc.
-  const getBackoffDelay = useCallback((attempt: number): number => {
-    return backoffMs * Math.pow(2, Math.min(attempt, 4)); // Cap at 16x to avoid huge delays
-  }, [backoffMs]);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const reset = useCallback(() => {
     setError(null);
@@ -47,48 +31,26 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
 
   const handleError = useCallback((err: Error) => {
     setError(err);
-    setIsRetrying(false);
 
-    if (strategy === 'backoff' && retryCount < maxRetries) {
-      const delay = getBackoffDelay(retryCount);
-      console.warn(`[ErrorRecovery] Scheduling retry ${retryCount + 1}/${maxRetries} in ${delay}ms`);
+    if (strategy === 'none') return;
 
-      timeoutRef.current = setTimeout(() => {
-        setRetryCount((prev) => prev + 1);
+    if (retryCount < maxRetries) {
+      const delay = strategy === 'backoff' ? backoffMs * Math.pow(2, retryCount) : 0;
+
+      timeoutRef.current = setTimeout(async () => {
+        setIsRetrying(true);
+        try {
+          setRetryCount(prev => prev + 1);
+          await onRetry?.();
+          // Note: We don't auto-reset here; we assume the component will clear error on success
+        } finally {
+          setIsRetrying(false);
+        }
       }, delay);
     }
+  }, [retryCount, maxRetries, backoffMs, strategy, onRetry]);
 
-    onError?.(err, () => {
-      reset();
-      // Caller will typically use this to trigger a retry of their operation
-    });
-  }, [retryCount, maxRetries, strategy, getBackoffDelay, onError, reset]);
+  useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 
-  const retry = useCallback(() => {
-    console.warn(`[ErrorRecovery] Manual retry triggered`);
-    setError(null);
-    setRetryCount(0);
-    setIsRetrying(false);
-  }, []);
-
-  const shouldRetry = useCallback((): boolean => {
-    return strategy !== 'none' && retryCount < maxRetries && error !== null;
-  }, [strategy, retryCount, maxRetries, error]);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  return {
-    error,
-    retryCount,
-    maxRetries,
-    isRetrying,
-    retry,
-    reset,
-    handleError,
-    shouldRetry
-  };
+  return { error, retryCount, isRetrying, handleError, reset };
 }
