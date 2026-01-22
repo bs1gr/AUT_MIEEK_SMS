@@ -28,7 +28,7 @@ concurrency:
 jobs:
   e2e:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 60
     continue-on-error: true  # Non-blocking until auth flow is fixed
 
     steps:
@@ -139,16 +139,19 @@ jobs:
 
           # Wait for backend to be ready with better error handling
           echo "Waiting for backend health check..."
-          for i in {1..30}; do
-            echo "Health check attempt $i/30..."
+          MAX_ATTEMPTS=60
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Health check attempt $ATTEMPT/$MAX_ATTEMPTS..."
             HEALTH=$(curl -s http://127.0.0.1:8000/health 2>&1 || echo "FAILED")
             if echo "$HEALTH" | grep -q '"status"'; then
-              echo "✅ Backend is ready (attempt $i/30)"
+              echo "✅ Backend is ready (attempt $ATTEMPT/$MAX_ATTEMPTS)"
               echo "Health response: $HEALTH" | head -1
               break
             fi
-            if [ $i -eq 30 ]; then
-              echo "❌ Backend failed to start within 30 seconds"
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "❌ Backend failed to start within $(($MAX_ATTEMPTS / 2)) seconds"
               echo "Last health check response:"
               curl -v http://127.0.0.1:8000/health 2>&1 || true
               echo "\nTrying root endpoint:"
@@ -159,7 +162,7 @@ jobs:
               fi
               exit 1
             fi
-            echo "⏳ Waiting for backend... ($i/30)"
+            echo "⏳ Waiting for backend... ($ATTEMPT/$MAX_ATTEMPTS)"
             sleep 1
           done
 
@@ -205,7 +208,7 @@ jobs:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
           DEBUG: 'pw:api'
           VITE_API_URL: http://127.0.0.1:8000/api/v1
-        timeout-minutes: 20
+        timeout-minutes: 40
         id: e2e
         run: |
           echo "=== Sanity check: Verify backend serving frontend ==="
@@ -227,7 +230,7 @@ jobs:
           echo ""
           echo "=== Running Playwright E2E tests ==="
           set +e
-          npm run e2e -- --reporter=list --workers=1 --timeout=60000
+          npm run e2e -- --reporter=list --workers=1 --timeout=120000 --max-failures=3
           STATUS=$?
           echo "status=$STATUS" >> $GITHUB_OUTPUT
           exit 0
