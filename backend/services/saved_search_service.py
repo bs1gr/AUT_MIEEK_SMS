@@ -9,7 +9,7 @@ Date: January 22, 2026
 Version: 1.0.0
 """
 
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 import logging
@@ -316,7 +316,7 @@ class SavedSearchService:
     # UTILITY METHODS
     # ============================================================================
 
-    def get_search_stats(self, user_id: int) -> Dict[str, int]:
+    def get_search_stats(self, user_id: int) -> Dict[str, Any]:
         """
         Get saved search statistics for a user.
 
@@ -359,11 +359,12 @@ class SavedSearchService:
                 )
                 by_type[search_type] = count
 
-            return {
+            stats: Dict[str, Any] = {
                 "total": total,
                 "favorites": favorites,
                 "by_type": by_type,
             }
+            return stats
         except Exception as e:
             logger.error(f"Error getting search stats for user {user_id}: {str(e)}")
             return {"total": 0, "favorites": 0, "by_type": {}}
@@ -401,7 +402,8 @@ class SavedSearchService:
             )
 
             new_search = self.create_saved_search(user_id, create_data)
-            logger.info(f"Duplicated saved search {search_id} to {new_search.id}")
+            if new_search:
+                logger.info(f"Duplicated saved search {search_id} to {new_search.id}")
             return new_search
         except Exception as e:
             logger.error(f"Error duplicating saved search {search_id}: {str(e)}")
