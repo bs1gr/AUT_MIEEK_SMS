@@ -256,30 +256,43 @@ def setup_db_schema():
 
 
 @pytest.fixture(scope="function", autouse=True)
-def setup_db():
+def setup_db(setup_db_schema):
     """Ensure database is clean before each test.
 
     Since we use session-scoped schema creation and transaction rollback
     in the db fixture, we just need to clean any data that might leak
     between tests (though transaction rollback should handle this).
+    
+    Note: Depends on setup_db_schema to ensure schema is created at session start.
     """
     yield
     # Cleanup after test - truncate all tables to ensure clean state
     # This is a safety measure in case any test commits outside the transaction
     with engine.begin() as connection:
-        from sqlalchemy import inspect
+        # Be resilient to tests that monkeypatch sqlalchemy.inspect (e.g., FakeInspector
+        # without get_table_names). Prefer best-effort cleanup over strict reflection.
+        existing_tables: set[str] | None = None
+        try:
+            from sqlalchemy import inspect
 
-        inspector = inspect(engine)
-        existing_tables = set(inspector.get_table_names())
+            inspector = inspect(engine)
+            # Some tests monkeypatch sqlalchemy.inspect with a fake that may not
+            # implement get_table_names. Guard accordingly.
+            get_names = getattr(inspector, "get_table_names", None)
+            if callable(get_names):
+                existing_tables = set(get_names())
+        except Exception:
+            existing_tables = None
 
         for table in reversed(Base.metadata.sorted_tables):
-            # Only delete from tables that actually exist
-            if table.name in existing_tables:
-                try:
+            try:
+                # If we couldn't determine existing tables safely, attempt delete anyway
+                # and ignore errors; otherwise only delete known-existing tables.
+                if existing_tables is None or table.name in existing_tables:
                     connection.execute(table.delete())
-                except Exception:
-                    # Ignore errors for tables that don't exist or can't be truncated
-                    pass
+            except Exception:
+                # Ignore errors for tables that don't exist or can't be truncated
+                pass
 
 
 @pytest.fixture(scope="function")
@@ -407,13 +420,10 @@ def client(db):
         return await real_get_current_user(request=request, token=token, db=db)
 
     app.dependency_overrides[real_get_current_user] = _override_current_user
-    # ADDED: Explicitly create tables on the test engine
-    Base.metadata.create_all(bind=engine)
     with TestClient(app) as c:
         yield _ClientProxy(c)
     app.dependency_overrides.clear()
-    # ADDED: Clean up tables after test
-    Base.metadata.drop_all(bind=engine)
+    # Note: Do not drop tables here; session-scoped setup/teardown manages schema.
 
 
 @pytest.fixture(scope="function")
