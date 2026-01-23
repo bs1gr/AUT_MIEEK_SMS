@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import { useStudents } from './useStudents';
-import StudentList from './StudentList';
+import { useStudents } from '@/hooks/useStudentsQuery';
+import StudentList from '../../../VirtualStudentList';
 import StudentForm from './StudentForm';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
 import { AdvancedFilters } from '../search/AdvancedFilters';
@@ -82,7 +82,7 @@ const StudentsView: React.FC = () => {
           students={students || []}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onView={(id) => navigate(`/students/${id}`)}
+          onView={(id: any) => navigate(`/students/${id}`)}
           height={600}
         />
       )}

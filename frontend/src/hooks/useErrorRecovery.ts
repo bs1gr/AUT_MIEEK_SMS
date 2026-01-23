@@ -20,7 +20,7 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
   const [error, setError] = useState<Error | null>(null);
   const [retryCount, setRetryCount] = useState(0);
   const [isRetrying, setIsRetrying] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const reset = useCallback(() => {
     setError(null);

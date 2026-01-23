@@ -103,7 +103,7 @@ export const useSearch = () => {
     queryFn: async () => {
       try {
         const response = await apiClient.get<SavedSearch[]>('/search/saved');
-        return response || [];
+        return response.data || [];
       } catch (err) {
         console.error('Failed to fetch saved searches:', err);
         return [];
@@ -126,7 +126,7 @@ export const useSearch = () => {
           filters: filters.length > 0 ? filters : undefined,
         });
 
-        return response;
+        return response.data;
       } catch (err) {
         console.error('Failed to save search:', err);
         throw err;
