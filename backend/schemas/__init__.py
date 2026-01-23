@@ -209,7 +209,19 @@ from .search import (
     AdvancedFilterRequestSchema as AdvancedFilterRequestSchema,
 )
 from .search import (
+    ApplyFilterRequestSchema as ApplyFilterRequestSchema,
+)
+from .search import (
+    CourseSearchRequestSchema as CourseSearchRequestSchema,
+)
+from .search import (
     CourseSearchResultSchema as CourseSearchResultSchema,
+)
+from .search import (
+    FilterCriteriaSchema as FilterCriteriaSchema,
+)
+from .search import (
+    GradeSearchRequestSchema as GradeSearchRequestSchema,
 )
 from .search import (
     GradeSearchResultSchema as GradeSearchResultSchema,
@@ -228,6 +240,12 @@ from .search import (
 )
 from .search import (
     SearchSuggestionSchema as SearchSuggestionSchema,
+)
+from .search import (
+    SearchSuggestionsResponseSchema as SearchSuggestionsResponseSchema,
+)
+from .search import (
+    StudentSearchRequestSchema as StudentSearchRequestSchema,
 )
 from .search import (
     StudentSearchResultSchema as StudentSearchResultSchema,
