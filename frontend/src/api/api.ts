@@ -134,7 +134,9 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
   try {
     // Skip auth header for login/refresh endpoints (they don't need it)
     const url = config.url || '';
-    if (url.includes('/api/v1/auth/login') || url.includes('/api/v1/auth/refresh')) {
+    // Check both with and without /api/v1 prefix since it might not be included in config.url
+    if (url.includes('/auth/login') || url.includes('/auth/refresh') ||
+        url.includes('/api/v1/auth/login') || url.includes('/api/v1/auth/refresh')) {
       console.warn('[API] Skipping auth header for:', url);
       return config;
     }
