@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session, joinedload
 
-from backend.db_utils import get_by_id_or_404
+from backend.db.utils import get_by_id_or_404
 from backend.import_resolver import import_names
 from backend.services.cache_service import get_cache_manager
 
