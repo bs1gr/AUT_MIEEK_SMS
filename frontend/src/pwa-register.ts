@@ -1,6 +1,9 @@
 /**
  * PWA Service Worker Registration and Lifecycle Handler
  * Manages offline capabilities, caching strategies, and app updates
+ *
+ * NOTE: Only runs in production builds. Development mode (localhost) skips service worker
+ * to avoid MIME type errors and caching issues during development.
  */
 
 interface AppUpdateEvent extends Event {
@@ -9,7 +12,10 @@ interface AppUpdateEvent extends Event {
   };
 }
 
-if ('serviceWorker' in navigator) {
+// Only register service worker in production (not on localhost/development)
+const isProduction = import.meta.env.PROD && !window.location.hostname.includes('localhost');
+
+if ('serviceWorker' in navigator && isProduction) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
       .register('/sw.js', { scope: '/' })

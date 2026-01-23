@@ -46,18 +46,18 @@ export default function PowerPage() {
     <div className="space-y-6">
       {showPasswordChangedBanner && (
         <div className="rounded-md bg-emerald-50 border border-emerald-100 p-4">
-          <p className="text-sm font-medium text-emerald-800">{t('controlPanel.passwordChangedConfirmation') || 'Password changed successfully'}</p>
+          <p className="text-sm font-medium text-emerald-800">{t('passwordChangedConfirmation') || 'Password changed successfully'}</p>
         </div>
       )}
       <div className="bg-white border rounded-xl overflow-hidden">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('controlPanel.systemHealth')}</h2>
+          <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('systemHealth')}</h2>
           <button
             type="button"
             onClick={() => setShowSystemHealth((prev) => !prev)}
             className="text-sm font-medium text-indigo-700 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white rounded-lg px-3 py-1.5"
           >
-            {showSystemHealth ? t('controlPanel.hideSystemHealth') : t('controlPanel.showSystemHealth')}
+            {showSystemHealth ? t('hideSystemHealth') : t('showSystemHealth')}
           </button>
         </div>
         {showSystemHealth && (
@@ -69,13 +69,13 @@ export default function PowerPage() {
 
       <div className="border rounded-xl overflow-hidden bg-white">
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('controlPanel.title')}</h2>
+          <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('title')}</h2>
           <button
             type="button"
             onClick={() => setShowControlPanel((prev) => !prev)}
             className="text-sm font-medium text-indigo-700 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white rounded-lg px-3 py-1.5"
           >
-            {showControlPanel ? t('controlPanel.hideControlPanel') : t('controlPanel.showControlPanel')}
+            {showControlPanel ? t('hideControlPanel') : t('showControlPanel')}
           </button>
         </div>
         {showControlPanel && (

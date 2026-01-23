@@ -3,6 +3,7 @@ export default {
   frontendStartFailed: 'Failed to start frontend',
   frontendStopped: 'Frontend stopped successfully',
   frontendStopFailed: 'Failed to stop frontend',
+  passwordChangedConfirmation: 'Password changed successfully',
   // 'Stop All' / system shutdown keys removed — this UI widget was deleted
   title: 'Advanced Settings',
   subtitle: 'Manage and monitor your system',

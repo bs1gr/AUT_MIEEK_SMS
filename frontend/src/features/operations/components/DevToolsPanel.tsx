@@ -570,10 +570,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
   };
 
-  const statusLabel = health?.status ?? t('controlPanel.unknown');
+  const statusLabel = health?.status ?? t('unknown');
   const studentCount = health?.statistics?.students ?? health?.students_count;
   const courseCount = health?.statistics?.courses ?? health?.courses_count;
-  const databaseName = health?.database ?? health?.db ?? t('controlPanel.unknown');
+  const databaseName = health?.database ?? health?.db ?? t('unknown');
   const fallbackUptime = Number.isFinite(Number(health?.uptime)) ? Number(health?.uptime) : null;
   const displayUptimeSeconds = Number.isFinite(uptimeSeconds ?? NaN) ? uptimeSeconds : fallbackUptime;
   const uptimeDisplayValue = typeof displayUptimeSeconds === 'number' && Number.isFinite(displayUptimeSeconds)
@@ -593,14 +593,14 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
               <div className="flex flex-wrap items-center gap-3 text-xs">
                 {identityLabel && (
                   <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1 text-white/90">
-                    <span>{t('controlPanel.signedInAs')}</span>
+                    <span>{t('signedInAs')}</span>
                     <span className="font-semibold text-white">{identityLabel}</span>
                   </span>
                 )}
                 <div className="flex items-center gap-2 text-white/85">
                   {health?.version ? <span>{t('controlPanel.versionShort', { version: health.version })}</span> : null}
                   {health?.timestamp ? <span>{new Date(health.timestamp).toLocaleString()}</span> : null}
-                  {lastChecked ? <span>({t('controlPanel.checkedAt')} {lastChecked})</span> : null}
+                  {lastChecked ? <span>({t('checkedAt')} {lastChecked})</span> : null}
                 </div>
               </div>
             </div>
@@ -633,15 +633,15 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
                     type="checkbox"
                     checked={autoRefresh}
                     onChange={(event) => setAutoRefresh(event.target.checked)}
-                    aria-label={t('controlPanel.toggleAutoRefresh')}
+                    aria-label={t('toggleAutoRefresh')}
                   />
-                  {t('controlPanel.autoRefresh')}
+                  {t('autoRefresh')}
                 </label>
                 <select
                   value={String(intervalMs)}
                   onChange={(event) => setIntervalMs(Number(event.target.value))}
                   className="rounded bg-white/20 px-2 py-1 text-xs text-white disabled:opacity-60"
-                  aria-label={t('controlPanel.autoRefreshInterval')}
+                  aria-label={t('autoRefreshInterval')}
                   disabled={!autoRefresh}
                 >
                   <option className="text-black" value="3000">{t('controlPanel.timeoutSeconds', { s: 3 })}</option>
@@ -656,7 +656,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
         <div className="grid grid-cols-1 gap-4 bg-white dark:bg-gray-800 p-4 sm:p-6 md:grid-cols-3">
           <div className={subtleCardClass}>
-            <div className="text-xs text-slate-500 dark:text-gray-400">{t('controlPanel.database')}</div>
+            <div className="text-xs text-slate-500 dark:text-gray-400">{t('database')}</div>
             <div className="text-sm font-semibold text-slate-800 dark:text-gray-100">{databaseName}</div>
           </div>
           <div className={subtleCardClass}>
@@ -669,15 +669,15 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
           </div>
           {typeof uptimeDisplayValue === 'number' && (
             <div className={`${subtleCardClass} md:col-span-3`}>
-              <div className="text-xs text-slate-500 dark:text-gray-400">{t('controlPanel.uptime')}</div>
+              <div className="text-xs text-slate-500 dark:text-gray-400">{t('uptime')}</div>
               <div className="text-sm font-semibold text-slate-800 dark:text-gray-100">{t('controlPanel.timeoutSeconds', { s: uptimeDisplayValue })}</div>
             </div>
           )}
           <div className={`${subtleCardClass} md:col-span-3`}>
-            <div className="text-sm font-semibold text-slate-800 dark:text-gray-100">{t('controlPanel.availableEndpoints')}</div>
+            <div className="text-sm font-semibold text-slate-800 dark:text-gray-100">{t('availableEndpoints')}</div>
             <div className="text-xs text-slate-500 dark:text-gray-400">{t('utils.quickLinks')}</div>
             {ipList.length === 0 ? (
-              <div className="mt-2 text-xs text-slate-500 dark:text-gray-400">{t('controlPanel.noIpsAvailable')}</div>
+              <div className="mt-2 text-xs text-slate-500 dark:text-gray-400">{t('noIpsAvailable')}</div>
             ) : (
               <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
                 {ipList.map((ip) => {
