@@ -84,7 +84,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           return; // Don't show toast for auth errors
         }
       }
-      onToast({ message: t('controlPanel.userLoadFailed'), type: 'error' });
+      onToast({ message: t('userLoadFailed'), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -106,11 +106,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
   const handleCreate = async (event: FormEvent) => {
     event.preventDefault();
     if (!createForm.email || !createForm.password) {
-      onToast({ message: t('controlPanel.createUserValidation'), type: 'error' });
+      onToast({ message: t('createUserValidation'), type: 'error' });
       return;
     }
     if (!user || user.role !== 'admin') {
-      onToast({ message: t('controlPanel.adminAccessRequired'), type: 'error' });
+      onToast({ message: t('adminAccessRequired'), type: 'error' });
       return;
     }
     setCreateSubmitting(true);
@@ -122,10 +122,10 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       const newUser = await adminUsersAPI.create(payload);
       setUsers((prev: UserAccount[]) => [...prev, newUser]);
       setCreateForm(initialCreateForm);
-      onToast({ message: t('controlPanel.createUserSuccess'), type: 'success' });
+      onToast({ message: t('createUserSuccess'), type: 'success' });
     } catch (error: unknown) {
       console.error('Create user failed', error);
-      onToast({ message: t('controlPanel.createUserFailed'), type: 'error' });
+      onToast({ message: t('createUserFailed'), type: 'error' });
     } finally {
       setCreateSubmitting(false);
     }
@@ -146,15 +146,15 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
   const handleChangeOwnPassword = async (e: FormEvent) => {
     e.preventDefault();
     if (!currentPassword || !newPassword) {
-      onToast({ message: t('controlPanel.changeOwnPasswordValidation'), type: 'error' });
+      onToast({ message: t('changeOwnPasswordValidation'), type: 'error' });
       return;
     }
     if (newPassword !== confirmPassword) {
-      onToast({ message: t('controlPanel.changeOwnPasswordMismatch'), type: 'error' });
+      onToast({ message: t('changeOwnPasswordMismatch'), type: 'error' });
       return;
     }
     if (passwordStrength < 4) {
-      onToast({ message: t('controlPanel.changeOwnPasswordWeak'), type: 'error' });
+      onToast({ message: t('changeOwnPasswordWeak'), type: 'error' });
       return;
     }
     setChangingOwnPassword(true);
@@ -179,7 +179,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
         console.warn('[Password Change] Failed to refresh user profile:', err);
       }
 
-      onToast({ message: t('controlPanel.changeOwnPasswordSuccess'), type: 'success' });
+      onToast({ message: t('changeOwnPasswordSuccess'), type: 'success' });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -192,7 +192,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       }
     } catch (err: unknown) {
       console.error('Failed to change own password', err);
-      let errorMessage = t('controlPanel.changeOwnPasswordFailed');
+      let errorMessage = t('changeOwnPasswordFailed');
 
       // Extract detailed error message
       if (err && typeof err === 'object' && err !== null) {
@@ -237,28 +237,28 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       };
       const updated = await adminUsersAPI.update(editingId, payload);
       setUsers((prev: UserAccount[]) => prev.map((u: UserAccount) => (u.id === updated.id ? updated : u)));
-      onToast({ message: t('controlPanel.updateUserSuccess'), type: 'success' });
+      onToast({ message: t('updateUserSuccess'), type: 'success' });
       cancelEditing();
     } catch (error: unknown) {
       console.error('Update user failed', error);
-      onToast({ message: t('controlPanel.updateUserFailed'), type: 'error' });
+      onToast({ message: t('updateUserFailed'), type: 'error' });
     } finally {
       setUpdatingId(null);
     }
   };
 
   const handleDelete = async (user: UserAccount) => {
-    if (!window.confirm(t('controlPanel.confirmDeleteUser'))) {
+    if (!window.confirm(t('confirmDeleteUser'))) {
       return;
     }
     setDeletingId(user.id);
     try {
       await adminUsersAPI.delete(user.id);
       setUsers((prev: UserAccount[]) => prev.filter((item: UserAccount) => item.id !== user.id));
-      onToast({ message: t('controlPanel.deleteUserSuccess'), type: 'success' });
+      onToast({ message: t('deleteUserSuccess'), type: 'success' });
     } catch (error: unknown) {
       console.error('Delete user failed', error);
-      onToast({ message: t('controlPanel.deleteUserFailed'), type: 'error' });
+      onToast({ message: t('deleteUserFailed'), type: 'error' });
     } finally {
       setDeletingId(null);
     }
@@ -266,18 +266,18 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
 
   const handleResetPassword = async () => {
     if (!resetId || !resetPassword) {
-      onToast({ message: t('controlPanel.resetPasswordValidation'), type: 'error' });
+      onToast({ message: t('resetPasswordValidation'), type: 'error' });
       return;
     }
     setResetSubmitting(true);
     try {
       await adminUsersAPI.resetPassword(resetId, resetPassword);
-      onToast({ message: t('controlPanel.resetPasswordSuccess'), type: 'success' });
+      onToast({ message: t('resetPasswordSuccess'), type: 'success' });
       setResetPassword('');
       setResetId(null);
     } catch (error: unknown) {
       console.error('Reset password failed', error);
-      onToast({ message: t('controlPanel.resetPasswordFailed'), type: 'error' });
+      onToast({ message: t('resetPasswordFailed'), type: 'error' });
     } finally {
       setResetSubmitting(false);
     }
@@ -291,7 +291,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
         isActive ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-600'
       }`}
     >
-      {isActive ? t('controlPanel.active') : t('controlPanel.inactive')}
+      {isActive ? t('active') : t('inactive')}
     </span>
   );
 
@@ -303,10 +303,10 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-              {t('controlPanel.accessDeniedTitle')}
+              {t('accessDeniedTitle')}
             </h3>
             <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
-              {t('controlPanel.accessDeniedMessage')}
+              {t('accessDeniedMessage')}
             </p>
           </div>
         </div>
@@ -321,13 +321,13 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
         <header className="flex items-center gap-3 border-b border-teal-100 dark:border-teal-800 px-4 py-3">
           <LockKeyhole className="text-teal-600 dark:text-teal-300" size={18} />
           <div>
-            <p className="text-sm font-semibold text-teal-800 dark:text-teal-100">{t('controlPanel.changeOwnPasswordTitle')}</p>
-            <p className="text-xs text-teal-600 dark:text-teal-300">{t('controlPanel.changeOwnPasswordSubtitle')}</p>
+            <p className="text-sm font-semibold text-teal-800 dark:text-teal-100">{t('changeOwnPasswordTitle')}</p>
+            <p className="text-xs text-teal-600 dark:text-teal-300">{t('changeOwnPasswordSubtitle')}</p>
           </div>
         </header>
         <form onSubmit={handleChangeOwnPassword} className="grid gap-4 p-4 md:grid-cols-3">
           <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
-            {t('controlPanel.currentPassword')}
+            {t('currentPassword')}
             <input
               type="password"
               value={currentPassword}
@@ -337,7 +337,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
             />
           </label>
           <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
-            {t('controlPanel.newPassword')}
+            {t('newPassword')}
             <input
               type="password"
               value={newPassword}
@@ -357,12 +357,12 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                 />
               </div>
               <span className="text-[10px] font-medium text-teal-700 dark:text-teal-300">
-                {t('controlPanel.passwordStrengthLabel')}: {passwordStrength}/6
+                {t('passwordStrengthLabel')}: {passwordStrength}/6
               </span>
             </div>
           </label>
           <label className="text-xs font-medium text-teal-900 dark:text-teal-100">
-            {t('controlPanel.confirmPassword')}
+            {t('confirmPassword')}
             <input
               type="password"
               value={confirmPassword}
@@ -377,24 +377,24 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
               disabled={changingOwnPassword || !currentPassword || !newPassword || passwordStrength < 4 || newPassword !== confirmPassword}
               className="inline-flex items-center gap-1 rounded-md bg-teal-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-teal-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save size={14} /> {t('controlPanel.changeOwnPasswordButton')}
+              <Save size={14} /> {t('changeOwnPasswordButton')}
             </button>
             <button
               type="button"
               onClick={() => { setCurrentPassword(''); setNewPassword(''); setConfirmPassword(''); }}
               className="inline-flex items-center gap-1 rounded-md border border-teal-300 px-3 py-1.5 text-xs font-semibold text-teal-700 hover:bg-teal-100 dark:text-teal-200 dark:border-teal-600"
             >
-              <XCircle size={14} /> {t('controlPanel.cancel')}
+              <XCircle size={14} /> {t('cancel')}
             </button>
           </div>
 
           {/* Validation feedback */}
           <div className="md:col-span-3 text-xs text-teal-700 dark:text-teal-300 space-y-1">
-            {!currentPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('controlPanel.currentPassword') })}</p>}
-            {!newPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('controlPanel.newPassword') })}</p>}
-            {newPassword && passwordStrength < 4 && <p>{t('bullet')} {t('controlPanel.changeOwnPasswordHint')}</p>}
-            {newPassword && confirmPassword && newPassword !== confirmPassword && <p>{t('bullet')} {t('controlPanel.changeOwnPasswordMismatch')}</p>}
-            <p className="text-[11px] text-teal-600 dark:text-teal-400">{t('controlPanel.changeOwnPasswordHint')}</p>
+            {!currentPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('currentPassword') })}</p>}
+            {!newPassword && <p>{t('bullet')} {t('fieldIsRequired', { field: t('newPassword') })}</p>}
+            {newPassword && passwordStrength < 4 && <p>{t('bullet')} {t('changeOwnPasswordHint')}</p>}
+            {newPassword && confirmPassword && newPassword !== confirmPassword && <p>{t('bullet')} {t('changeOwnPasswordMismatch')}</p>}
+            <p className="text-[11px] text-teal-600 dark:text-teal-400">{t('changeOwnPasswordHint')}</p>
           </div>
         </form>
       </section>
@@ -403,8 +403,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <div className="flex items-center gap-2 text-gray-800 dark:text-gray-100">
             <ShieldIcon size={18} />
             <div>
-              <p className="text-sm font-semibold">{t('controlPanel.administratorUsersHeading')}</p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">{t('controlPanel.administratorUsersDescription')}</p>
+              <p className="text-sm font-semibold">{t('administratorUsersHeading')}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{t('administratorUsersDescription')}</p>
             </div>
           </div>
           <button
@@ -414,7 +414,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
             disabled={loading}
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-            {loading ? t('loading') : t('controlPanel.refreshUsers')}
+            {loading ? t('loading') : t('refreshUsers')}
           </button>
         </header>
 
@@ -422,18 +422,18 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('controlPanel.userName')}</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('controlPanel.userEmail')}</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('controlPanel.userRole')}</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('controlPanel.userStatus')}</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-300">{t('controlPanel.userActions')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userName')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userEmail')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userRole')}</th>
+                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userStatus')}</th>
+                <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-300">{t('userActions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
               {sortedUsers.length === 0 && !loading && (
                 <tr>
                   <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-                    {t('controlPanel.noUsersFound')}
+                    {t('noUsersFound')}
                   </td>
                 </tr>
               )}
@@ -446,11 +446,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                         className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm dark:bg-gray-800"
                         value={editDraft.full_name ?? ''}
                         onChange={(event: ChangeEvent<HTMLInputElement>) => setEditDraft((draft: UpdateUserPayload) => ({ ...draft, full_name: event.target.value }))}
-                        placeholder={t('controlPanel.fullNamePlaceholder')}
+                        placeholder={t('fullNamePlaceholder')}
                       />
                     ) : (
                       <div>
-                        <p className="font-semibold text-gray-900 dark:text-gray-100">{user.full_name || t('controlPanel.nameNotProvided')}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{user.full_name || t('nameNotProvided')}</p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">{t('idLabel', { id: user.id })}</p>
                       </div>
                     )}
@@ -463,7 +463,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                       <select
                         className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm dark:bg-gray-800"
                         value={editDraft.role ?? 'teacher'}
-                        aria-label={t('controlPanel.userRole')}
+                        aria-label={t('userRole')}
                         onChange={(event: ChangeEvent<HTMLSelectElement>) =>
                           setEditDraft((draft: UpdateUserPayload) => ({ ...draft, role: event.target.value as UserRole }))
                         }
@@ -490,7 +490,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                             setEditDraft((draft: UpdateUserPayload) => ({ ...draft, is_active: event.target.checked }))
                           }
                         />
-                        {t('controlPanel.isActiveLabel')}
+                        {t('isActiveLabel')}
                       </label>
                     ) : (
                       statusBadge(user.is_active)
@@ -505,14 +505,14 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                           className="inline-flex items-center gap-1 rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 disabled:opacity-60"
                           disabled={updatingId === user.id}
                         >
-                          <Save size={14} /> {t('controlPanel.save')}
+                          <Save size={14} /> {t('save')}
                         </button>
                         <button
                           type="button"
                           onClick={cancelEditing}
                           className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
                         >
-                          <XCircle size={14} /> {t('controlPanel.cancel')}
+                          <XCircle size={14} /> {t('cancel')}
                         </button>
                       </div>
                     ) : (
@@ -522,7 +522,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                           onClick={() => startEditing(user)}
                           className="inline-flex items-center gap-1 rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-600 hover:bg-indigo-50"
                         >
-                          <Edit3 size={14} /> {t('controlPanel.edit')}
+                          <Edit3 size={14} /> {t('edit')}
                         </button>
                         <button
                           type="button"
@@ -532,7 +532,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                           }}
                           className="inline-flex items-center gap-1 rounded-md border border-amber-200 px-3 py-1.5 text-xs font-semibold text-amber-600 hover:bg-amber-50"
                         >
-                          <LockKeyhole size={14} /> {t('controlPanel.resetPassword')}
+                          <LockKeyhole size={14} /> {t('resetPassword')}
                         </button>
                         <button
                           type="button"
@@ -540,7 +540,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                           className="inline-flex items-center gap-1 rounded-md border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-60"
                           disabled={deletingId === user.id}
                         >
-                          <Trash2 size={14} /> {t('controlPanel.delete')}
+                          <Trash2 size={14} /> {t('delete')}
                         </button>
                       </div>
                     )}
@@ -559,13 +559,13 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                 <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">
                   {t('controlPanel.resetPasswordFor', { name: currentResetUser.full_name || currentResetUser.email })}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">{t('controlPanel.resetPasswordHint')}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">{t('resetPasswordHint')}</p>
               </div>
               <input
                 type="password"
                 value={resetPassword}
                 onChange={(event) => setResetPassword(event.target.value)}
-                placeholder={t('controlPanel.newPasswordPlaceholder') as string}
+                placeholder={t('newPasswordPlaceholder') as string}
                 className="flex-1 rounded-md border border-gray-300 px-3 py-1.5 text-sm dark:bg-gray-800"
               />
               <button
@@ -574,7 +574,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                 className="inline-flex items-center gap-1 rounded-md bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 disabled:opacity-60"
                 disabled={resetSubmitting}
               >
-                <Save size={14} /> {t('controlPanel.applyReset')}
+                <Save size={14} /> {t('applyReset')}
               </button>
               <button
                 type="button"
@@ -584,7 +584,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                 }}
                 className="inline-flex items-center gap-1 rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 hover:bg-gray-100"
               >
-                <XCircle size={14} /> {t('controlPanel.cancel')}
+                <XCircle size={14} /> {t('cancel')}
               </button>
             </div>
           </div>
@@ -595,14 +595,14 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
         <header className="mb-4 flex items-center gap-3 text-indigo-900 dark:text-indigo-100">
           <UserPlus />
           <div>
-            <p className="text-sm font-semibold">{t('controlPanel.createUserTitle')}</p>
-            <p className="text-xs text-indigo-600 dark:text-indigo-200">{t('controlPanel.createUserSubtitle')}</p>
+            <p className="text-sm font-semibold">{t('createUserTitle')}</p>
+            <p className="text-xs text-indigo-600 dark:text-indigo-200">{t('createUserSubtitle')}</p>
           </div>
         </header>
 
         <form onSubmit={handleCreate} className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <label className="text-sm text-gray-700 dark:text-gray-200">
-            {t('controlPanel.userEmail')}
+            {t('userEmail')}
             <input
               type="email"
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:bg-white"
@@ -613,7 +613,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           </label>
 
           <label className="text-sm text-gray-700 dark:text-gray-200">
-            {t('controlPanel.password')}
+            {t('password')}
             <input
               type="password"
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -624,7 +624,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           </label>
 
           <label className="text-sm text-gray-700 dark:text-gray-200">
-            {t('controlPanel.userName')}
+            {t('userName')}
             <input
               type="text"
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -634,7 +634,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           </label>
 
           <label className="text-sm text-gray-700 dark:text-gray-200">
-            {t('controlPanel.userRole')}
+            {t('userRole')}
             <select
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
               value={createForm.role}
@@ -657,7 +657,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
               disabled={createSubmitting}
             >
               <Users size={16} />
-              {createSubmitting ? t('loading') : t('controlPanel.createUserButton')}
+              {createSubmitting ? t('loading') : t('createUserButton')}
             </button>
           </div>
         </form>

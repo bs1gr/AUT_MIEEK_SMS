@@ -130,11 +130,11 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
   }
 
   const limitTypes = [
-    { key: 'read' as const, label: t('controlPanel.rateLimits.read') || 'Read (queries/min)', desc: 'GET requests' },
-    { key: 'write' as const, label: t('controlPanel.rateLimits.write') || 'Write (updates/min)', desc: 'POST/PUT requests' },
-    { key: 'heavy' as const, label: t('controlPanel.rateLimits.heavy') || 'Heavy (reports/min)', desc: 'Heavy operations' },
-    { key: 'auth' as const, label: t('controlPanel.rateLimits.auth') || 'Auth (logins/min)', desc: 'Login attempts' },
-    { key: 'teacher_import' as const, label: t('controlPanel.rateLimits.teacherImport') || 'Import (bulk/min)', desc: 'Bulk imports' },
+    { key: 'read' as const, label: t('rateLimits.read') || 'Read (queries/min)', desc: 'GET requests' },
+    { key: 'write' as const, label: t('rateLimits.write') || 'Write (updates/min)', desc: 'POST/PUT requests' },
+    { key: 'heavy' as const, label: t('rateLimits.heavy') || 'Heavy (reports/min)', desc: 'Heavy operations' },
+    { key: 'auth' as const, label: t('rateLimits.auth') || 'Auth (logins/min)', desc: 'Login attempts' },
+    { key: 'teacher_import' as const, label: t('rateLimits.teacherImport') || 'Import (bulk/min)', desc: 'Bulk imports' },
   ];
 
   return (
@@ -150,8 +150,8 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
       <div className="bg-blue-50 border border-blue-200 rounded p-4 flex gap-3">
         <AlertTriangle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <div className="text-sm text-blue-700">
-          <p className="font-semibold">{t('controlPanel.rateLimits.info') || 'Rate Limit Configuration'}</p>
-          <p className="text-xs mt-1">{t('controlPanel.rateLimits.adjustInfo') || 'Adjust these limits if users experience 429 (Too Many Requests) errors.'}</p>
+          <p className="font-semibold">{t('rateLimits.info') || 'Rate Limit Configuration'}</p>
+          <p className="text-xs mt-1">{t('rateLimits.adjustInfo') || 'Adjust these limits if users experience 429 (Too Many Requests) errors.'}</p>
         </div>
       </div>
 
@@ -202,10 +202,10 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
                 {/* Info row */}
                 <div className="flex justify-between items-center">
-                  <span className="text-xs text-gray-600">{t('controlPanel.rateLimits.requestsPerMin') || 'req/min'}</span>
+                  <span className="text-xs text-gray-600">{t('rateLimits.requestsPerMin') || 'req/min'}</span>
                   <div className="flex gap-2 items-center">
                     <span className="text-xs text-gray-500">
-                      {t('controlPanel.rateLimits.default') || 'Default'}: <span className="font-semibold">{defaults[key]}</span>
+                      {t('rateLimits.default') || 'Default'}: <span className="font-semibold">{defaults[key]}</span>
                     </span>
                     {isAboveDefault && (
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">

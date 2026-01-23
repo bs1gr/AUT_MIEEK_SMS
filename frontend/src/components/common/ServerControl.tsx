@@ -209,7 +209,7 @@ const ServerControl: React.FC = () => {
     if (healthData?.environment === 'docker') {
       setStatus(prev => ({
         ...prev,
-        error: t('controlPanel.restartUnsupported') || 'Restart is only available in native mode. Use host scripts (DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Restart) inside Docker.',
+        error: t('restartUnsupported') || 'Restart is only available in native mode. Use host scripts (DOCKER.ps1 or NATIVE.ps1 (depending on mode) -Restart) inside Docker.',
       }));
       return;
     }
@@ -238,14 +238,14 @@ const ServerControl: React.FC = () => {
           (payload?.message as string) ||
           detailMessage ||
           restartResponse.statusText ||
-          (t('controlPanel.restartFailed') || 'Restart failed');
+          (t('restartFailed') || 'Restart failed');
 
         if (restartResponse.status === 404) {
-          message = detailMessage || detailHint || (t('controlPanel.restartEndpointDisabled') || 'Control API is disabled. Set ENABLE_CONTROL_API=1 in backend/.env and restart backend.');
+          message = detailMessage || detailHint || (t('restartEndpointDisabled') || 'Control API is disabled. Set ENABLE_CONTROL_API=1 in backend/.env and restart backend.');
         } else if (restartResponse.status === 403) {
-          message = detailMessage || (t('controlPanel.restartTokenRequired') || 'Restart denied. Provide ADMIN_SHUTDOWN_TOKEN or connect via localhost.');
+          message = detailMessage || (t('restartTokenRequired') || 'Restart denied. Provide ADMIN_SHUTDOWN_TOKEN or connect via localhost.');
         } else if (restartResponse.status === 400) {
-          message = detailMessage || (t('controlPanel.restartUnsupported') || message);
+          message = detailMessage || (t('restartUnsupported') || message);
         }
 
         if (restartResponse.status === 404 && !detailMessage) {
@@ -288,7 +288,7 @@ const ServerControl: React.FC = () => {
       setStatus(prev => ({
         ...prev,
         backend: 'checking',
-        error: error instanceof Error ? error.message : (t('controlPanel.restartFailed') || 'Restart failed'),
+        error: error instanceof Error ? error.message : (t('restartFailed') || 'Restart failed'),
       }));
       setTimeout(() => {
         checkStatus();
@@ -319,9 +319,9 @@ const ServerControl: React.FC = () => {
   };
 
   const getOverallStatus = () => {
-    if (status.backend === 'online' && status.frontend === 'online') return t('controlPanel.systemOnline') || 'System Online';
-    if (status.backend === 'offline' || status.frontend === 'offline') return t('controlPanel.systemOffline') || 'System Offline';
-    return t('controlPanel.checking') || 'Checking...';
+    if (status.backend === 'online' && status.frontend === 'online') return t('systemOnline') || 'System Online';
+    if (status.backend === 'offline' || status.frontend === 'offline') return t('systemOffline') || 'System Offline';
+    return t('checking') || 'Checking...';
   };
 
   // Show splash/loading screen while checking status
@@ -329,8 +329,8 @@ const ServerControl: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <Activity size={48} className="animate-spin text-indigo-500 mb-4" />
-        <h2 className="text-lg font-semibold text-gray-700 mb-2">{t('controlPanel.loadingSystem')}</h2>
-        <p className="text-gray-500">{t('controlPanel.checking')}</p>
+        <h2 className="text-lg font-semibold text-gray-700 mb-2">{t('loadingSystem')}</h2>
+        <p className="text-gray-500">{t('checking')}</p>
       </div>
     );
   }
@@ -341,7 +341,7 @@ const ServerControl: React.FC = () => {
         <div className="animate-spin">
           <RotateCw size={16} />
         </div>
-        <span className="text-sm font-medium text-blue-800">{t('controlPanel.restart')}...</span>
+        <span className="text-sm font-medium text-blue-800">{t('restart')}...</span>
       </div>
     );
   }
@@ -351,8 +351,8 @@ const ServerControl: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <AlertCircle size={48} className="text-red-400 mb-4" />
-        <h2 className="text-lg font-semibold text-red-700 mb-2">{t('controlPanel.systemOffline')}</h2>
-        <p className="text-gray-500">{t('controlPanel.checking')}</p>
+        <h2 className="text-lg font-semibold text-red-700 mb-2">{t('systemOffline')}</h2>
+        <p className="text-gray-500">{t('checking')}</p>
       </div>
     );
   }
@@ -383,18 +383,18 @@ const ServerControl: React.FC = () => {
           <div className={healthData?.docker === 'online' ? 'text-green-500' : healthData?.docker === 'offline' ? 'text-red-500' : 'text-gray-500'}>
             {healthData?.docker === 'online' ? <CheckCircle size={14} /> : healthData?.docker === 'offline' ? <AlertCircle size={14} /> : <Activity size={14} />}
           </div>
-          <span className="text-xs font-medium text-gray-700">{t('controlPanel.docker')}</span>
+          <span className="text-xs font-medium text-gray-700">{t('docker')}</span>
           <span className="text-xs font-mono text-gray-500 ml-2">
-            {healthData?.docker === 'online' ? t('controlPanel.ready') : healthData?.docker === 'offline' ? t('controlPanel.notRunning') : t('controlPanel.unknown')}
+            {healthData?.docker === 'online' ? t('ready') : healthData?.docker === 'offline' ? t('notRunning') : t('unknown')}
           </span>
         </div>
 
         {/* Environment Info */}
         {healthData?.environment && (
           <div className="flex items-center space-x-2 px-2 py-1 bg-indigo-50 rounded">
-            <span className="text-xs font-medium text-indigo-700">{t('controlPanel.runningIn')}:</span>
+            <span className="text-xs font-medium text-indigo-700">{t('runningIn')}:</span>
             <span className="text-xs font-semibold text-indigo-900">
-              {healthData.environment === 'docker' ? t('controlPanel.dockerContainer') : t('controlPanel.nativeMode')}
+              {healthData.environment === 'docker' ? t('dockerContainer') : t('nativeMode')}
             </span>
           </div>
         )}
@@ -409,17 +409,17 @@ const ServerControl: React.FC = () => {
               onClick={(event) => { event.stopPropagation(); handleRestart(); }}
               disabled={isRestarting || !restartSupported}
               className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              title={t('controlPanel.restart')}
+              title={t('restart')}
             >
               <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
-              <span>{t('controlPanel.restart')}</span>
+              <span>{t('restart')}</span>
             </button>
           )}
         </div>
 
         {status.backend === 'online' && currentUptime > 0 && (
           <span className="text-xs text-gray-500">
-{t('controlPanel.uptime')}: {t('controlPanel.uptimeFormatShort', { h: Math.floor(currentUptime / 3600), m: Math.floor((currentUptime % 3600) / 60), s: currentUptime % 60 })}
+{t('uptime')}: {t('controlPanel.uptimeFormatShort', { h: Math.floor(currentUptime / 3600), m: Math.floor((currentUptime % 3600) / 60), s: currentUptime % 60 })}
           </span>
         )}
 
@@ -449,7 +449,7 @@ const ServerControl: React.FC = () => {
               if (!healthData) checkStatus();
             }
           }}
-          title={t('controlPanel.toggleDetailsRefresh')}
+          title={t('toggleDetailsRefresh')}
         >
           {serverButtonInner}
         </div>
@@ -467,7 +467,7 @@ const ServerControl: React.FC = () => {
               if (!healthData) checkStatus();
             }
           }}
-          title={t('controlPanel.toggleDetailsRefresh')}
+          title={t('toggleDetailsRefresh')}
         >
           {serverButtonInner}
         </div>
@@ -479,18 +479,18 @@ const ServerControl: React.FC = () => {
           <div className="px-4 py-3 text-white bg-slate-700">
             <div className="flex flex-col gap-2">
               <div className="flex flex-wrap items-center gap-3 justify-between">
-                <div className="font-semibold">{t('controlPanel.systemHealth')}</div>
+                <div className="font-semibold">{t('systemHealth')}</div>
                 <div className="flex flex-wrap items-center gap-3 text-xs">
                   {identityLabel && (
                     <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1 text-white/90" data-testid="server-control-identity">
-                      <span>{t('controlPanel.signedInAs')}</span>
+                      <span>{t('signedInAs')}</span>
                       <span className="font-semibold text-white">{identityLabel}</span>
                     </span>
                   )}
                   <div className="flex items-center gap-2 text-white/90">
                     {healthData?.version ? <span>{t('controlPanel.versionShort', { version: healthData.version })}</span> : null}
                     {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
-                    {lastCheckedAt ? <span>({t('controlPanel.checkedAt')} {lastCheckedAt})</span> : null}
+                    {lastCheckedAt ? <span>({t('checkedAt')} {lastCheckedAt})</span> : null}
                   </div>
                 </div>
               </div>
@@ -517,7 +517,7 @@ const ServerControl: React.FC = () => {
                 {healthData?.environment && (
                   <div className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded">
                     <span className="text-white/90 text-xs font-semibold">
-                      {healthData.environment === 'docker' ? t('controlPanel.environmentDocker') : t('controlPanel.environmentNative')}
+                      {healthData.environment === 'docker' ? t('environmentDocker') : t('environmentNative')}
                     </span>
                   </div>
                 )}
@@ -528,15 +528,15 @@ const ServerControl: React.FC = () => {
                       type="checkbox"
                       checked={autoRefresh}
                       onChange={(e) => setAutoRefresh(e.target.checked)}
-                      aria-label={t('controlPanel.toggleAutoRefresh')}
+                      aria-label={t('toggleAutoRefresh')}
                     />
-                    {t('controlPanel.autoRefresh')}
+                    {t('autoRefresh')}
                   </label>
                   <select
                     value={String(intervalMs)}
                     onChange={(e) => setIntervalMs(parseInt(e.target.value, 10))}
                     className="bg-white/20 text-white rounded px-2 py-1 text-xs"
-                    aria-label={t('controlPanel.autoRefreshInterval')}
+                    aria-label={t('autoRefreshInterval')}
                     disabled={!autoRefresh}
                   >
                     <option className="text-black" value="3000">{t('controlPanel.timeoutSeconds', { s: 3 })}</option>
@@ -554,7 +554,7 @@ const ServerControl: React.FC = () => {
               <div className="rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 md:col-span-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-semibold text-indigo-900 mb-2">{t('controlPanel.uptime')}</div>
+                    <div className="text-sm font-semibold text-indigo-900 mb-2">{t('uptime')}</div>
                     <div className="text-4xl font-bold text-indigo-600">
                       {t('controlPanel.uptimeFormatShort', {
                         h: Math.floor(currentUptime / 3600),
@@ -563,14 +563,14 @@ const ServerControl: React.FC = () => {
                       })}
                     </div>
                   </div>
-                  <div className="text-6xl opacity-20">{t('controlPanel.timerEmoji')}</div>
+                  <div className="text-6xl opacity-20">{t('timerEmoji')}</div>
                 </div>
               </div>
             )}
 
             <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{t('controlPanel.database')}</div>
-              <div className="text-sm font-semibold">{healthData?.database || healthData?.db || t('controlPanel.unknown')}</div>
+              <div className="text-xs text-gray-500">{t('database')}</div>
+              <div className="text-sm font-semibold">{healthData?.database || healthData?.db || t('unknown')}</div>
             </div>
             <div className="rounded-lg border p-3">
               <div className="text-xs text-gray-500">{t('students')}</div>
@@ -587,7 +587,7 @@ const ServerControl: React.FC = () => {
 
             {/* Available Endpoints - Only Active IPs */}
             <div className="rounded-lg border p-3 md:col-span-3">
-              <div className="text-sm font-semibold mb-2">{t('controlPanel.availableEndpoints')}</div>
+              <div className="text-sm font-semibold mb-2">{t('availableEndpoints')}</div>
               {(() => {
                 const frontendPort = FRONTEND_PORT;
                 const rawIps: string[] = Array.isArray(healthData?.network?.ips) ? healthData.network.ips : [];
@@ -612,7 +612,7 @@ const ServerControl: React.FC = () => {
                 }
 
                 const ips = Array.from(set);
-                if (!ips.length) return <div className="text-xs text-gray-600">{t('controlPanel.noActiveIps')}</div>;
+                if (!ips.length) return <div className="text-xs text-gray-600">{t('noActiveIps')}</div>;
 
                 return (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -648,13 +648,13 @@ const ServerControl: React.FC = () => {
             <div className="rounded-lg border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 md:col-span-3">
               <div className="text-center space-y-1">
                 <div className="text-sm font-semibold text-indigo-900">
-                  {t('controlPanel.footerTitle')}
+                  {t('footerTitle')}
                 </div>
                 <div className="text-xs text-indigo-700">
-                  {t('controlPanel.footerDeveloper')}
+                  {t('footerDeveloper')}
                 </div>
                 <div className="text-xs text-indigo-600">
-                  {t('controlPanel.footerCopyright')}
+                  {t('footerCopyright')}
                 </div>
               </div>
             </div>

@@ -130,11 +130,11 @@ export const AppearanceThemeSelectorWidget = ({ currentTheme, onThemeChange }: T
   const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
 
-  const themeButtonLabel = t('controlPanel.themeButton') || 'Theme';
+  const themeButtonLabel = t('themeButton') || 'Theme';
   const appearanceTitle = t('controlPanel.appearanceThemes', {
     defaultValue: 'Appearance Themes',
   });
-  const appearanceDescription = t('controlPanel.appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.';
+  const appearanceDescription = t('appearanceThemesDesc') || 'Choose from modern UI themes inspired by 2025 design trends.';
 
   const withFallback = useCallback((key: string, fallback: string) => {
     const value = t(key);
@@ -229,11 +229,11 @@ const AppearanceThemeSelector = () => {
   const { appearanceTheme: selectedTheme, setAppearanceTheme } = useAppearanceTheme();
 
   const theme = themeStyles[selectedTheme];
-  const previewTitle = t('controlPanel.appearancePreview') || 'Live preview';
+  const previewTitle = t('appearancePreview') || 'Live preview';
   const previewDesc =
-    t('controlPanel.appearancePreviewDesc') ||
+    t('appearancePreviewDesc') ||
     'See how analytics cards, buttons, and inputs adapt to the selected appearance theme.';
-  const previewMetricsLabel = t('controlPanel.appearancePreviewMetrics') || 'Sample analytics metrics';
+  const previewMetricsLabel = t('appearancePreviewMetrics') || 'Sample analytics metrics';
   const translateThemeName = () => {
     const meta = THEME_COPY[selectedTheme];
     const value = t(meta.nameKey);
@@ -264,7 +264,7 @@ const AppearanceThemeSelector = () => {
           {t('controlPanel.appearanceThemes', { defaultValue: 'Appearance Themes' })}
         </h3>
         <p className={`text-sm ${theme.mutedText}`}>
-          {t('controlPanel.appearanceThemesDesc') ||
+          {t('appearanceThemesDesc') ||
             'Choose from modern UI themes inspired by 2025 design trends.'}
         </p>
       </div>
@@ -294,7 +294,7 @@ const AppearanceThemeSelector = () => {
         <div className="flex flex-wrap gap-2">
           <div className={`${theme.button} inline-flex items-center gap-2 text-xs`}>
             <span className="font-semibold">{t('opsShort')}</span>
-            <span>{t('controlPanel.quickActions')}</span>
+            <span>{t('quickActions')}</span>
           </div>
           <div className={`${theme.secondaryButton} inline-flex items-center gap-2 text-xs`}>
             <span>{t('utils.operationsMonitor')}</span>
@@ -305,10 +305,10 @@ const AppearanceThemeSelector = () => {
 
       <div className={`${theme.subtleCard} text-xs space-y-1`}>
         <p className={theme.text}>
-          <strong>{t('controlPanel.currentTheme') || 'Current Theme'}:</strong> {friendlyThemeName}
+          <strong>{t('currentTheme') || 'Current Theme'}:</strong> {friendlyThemeName}
         </p>
         <p className={theme.mutedText}>
-          {t('controlPanel.themeAppliesTo') ||
+          {t('themeAppliesTo') ||
             'This theme applies to Control Panel Operations and other components that support appearance customization.'}
         </p>
       </div>

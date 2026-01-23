@@ -3,6 +3,7 @@ export default {
   frontendStartFailed: 'Αποτυχία εκκίνησης frontend',
   frontendStopped: 'Το frontend σταμάτησε επιτυχώς',
   frontendStopFailed: 'Αποτυχία διακοπής frontend',
+  passwordChangedConfirmation: 'Ο κωδικός άλλαξε επιτυχώς',
   // 'Stop All' / system shutdown keys removed — this UI widget was deleted
   title: 'Προχωρημένες Ρυθμίσεις',
   subtitle: 'Διαχείριση και παρακολούθηση συστήματος',

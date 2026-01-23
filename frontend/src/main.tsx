@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
-import './pwa-register'; // Initialize PWA service worker
+// import './pwa-register'; // DISABLED for development - causes MIME type errors
 import { AuthProvider } from '@/contexts/AuthContext';
 import RequireAuth from '@/components/auth/RequireAuth';
 import RequireAdmin from '@/components/auth/RequireAdmin';

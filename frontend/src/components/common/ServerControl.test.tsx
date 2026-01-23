@@ -21,6 +21,6 @@ describe('ServerControl', () => {
     render(<ServerControl />);
 
     // The restart button label uses the translation key 'controlPanel.restart'
-    expect(await screen.findByText('controlPanel.restart')).toBeDefined();
+    expect(await screen.findByText('restart')).toBeDefined();
   });
 });
