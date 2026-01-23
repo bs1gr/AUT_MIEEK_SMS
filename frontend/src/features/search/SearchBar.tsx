@@ -94,7 +94,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const getFavoriteSavedSearches = () => {
-    return savedSearches.filter((s: SavedSearch) => s.is_favorite);
+    return (savedSearches || []).filter((s: SavedSearch) => s.is_favorite);
   };
 
   return (
@@ -210,7 +210,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {!searchQuery && showRecent && getFavoriteSavedSearches().length > 0 && (
             <div>
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b flex items-center gap-1">
-                <Heart size={12} className="text-red-500" />
+                <HeartIcon size={12} className="text-red-500" />
                 {t('search.favoriteSearches')}
               </div>
               <ul className="py-1">
@@ -224,7 +224,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                       }}
                       className="w-full px-3 py-2 text-sm text-left text-gray-900 hover:bg-pink-50 transition-colors flex items-center gap-2"
                     >
-                      <Heart size={14} className="text-red-500 flex-shrink-0" />
+                      <HeartIcon size={14} className="text-red-500 flex-shrink-0" />
                       <span className="flex-1 truncate">{saved.name}</span>
                     </button>
                   </li>

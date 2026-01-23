@@ -2,7 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 
 export function useRateLimit(delayMs: number = 500) {
   const [isRateLimited, setIsRateLimited] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const call = useCallback((fn: () => void | Promise<void>) => {
     if (isRateLimited) return;

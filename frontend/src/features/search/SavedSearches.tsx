@@ -71,7 +71,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   };
 
   // Filter searches
-  const filteredSearches = useMemo(() => savedSearches.filter((search: SavedSearch) => {
+  const filteredSearches = useMemo(() => (savedSearches || []).filter((search: SavedSearch) => {
     if (showFavoritesOnly && !search.is_favorite) return false;
     if (filterType !== 'all' && search.search_type !== filterType) return false;
     return true;
