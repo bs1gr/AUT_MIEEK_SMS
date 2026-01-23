@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useTranslation } from 'react-i18next';
-import { apiClient } from '@/api/api';
+import apiClient from '@/api/api';
 
 /**
  * Search result interface - unified across students, courses, and grades
@@ -167,7 +166,7 @@ export const useSearch = () => {
   const loadSavedSearch = useCallback((savedSearch: SavedSearch) => {
     setSearchType(savedSearch.search_type);
     setSearchQuery(savedSearch.query || '');
-    setFilters(savedSearch.filters as FilterCriteria[] || []);
+    setFilters((savedSearch.filters as unknown as FilterCriteria[]) || []);
   }, []);
 
   /**

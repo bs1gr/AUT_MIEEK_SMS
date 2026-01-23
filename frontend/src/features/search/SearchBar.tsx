@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, X, Clock, Heart } from 'lucide-react';
-import { useSearch, type SearchResult } from './useSearch';
+import { Search, X, Clock, Heart as HeartIcon } from 'lucide-react';
+import { useSearch, type SearchResult, type SavedSearch } from './useSearch';
 
 interface SearchBarProps {
   onSelectResult?: (result: SearchResult) => void;
@@ -94,7 +94,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const getFavoriteSavedSearches = () => {
-    return savedSearches.filter((s) => s.is_favorite);
+    return savedSearches.filter((s: SavedSearch) => s.is_favorite);
   };
 
   return (
@@ -175,7 +175,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 {t('common.results')} ({searchResults.length})
               </div>
               <ul className="py-1">
-                {searchResults.map((result) => (
+                {searchResults.map((result: SearchResult) => (
                   <li key={`${result.type}-${result.id}`}>
                     <button
                       onClick={() => handleResultClick(result)}
@@ -214,7 +214,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 {t('search.favoriteSearches')}
               </div>
               <ul className="py-1">
-                {getFavoriteSavedSearches().slice(0, 5).map((saved) => (
+                {getFavoriteSavedSearches().slice(0, 5).map((saved: SavedSearch) => (
                   <li key={saved.id}>
                     <button
                       onClick={() => {
