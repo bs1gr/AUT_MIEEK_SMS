@@ -227,7 +227,9 @@ class SavedSearchService:
             if not saved_search:
                 return None
 
-            saved_search.is_favorite = not saved_search.is_favorite
+            # Type-safe boolean toggle for SQLAlchemy Column
+            current_favorite = bool(saved_search.is_favorite)
+            saved_search.is_favorite = not current_favorite  # type: ignore[assignment]
             self.db.commit()
             self.db.refresh(saved_search)
             logger.info(f"Toggled favorite for saved search {search_id}: {saved_search.is_favorite}")
