@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 
-type ErrorRetryStrategy = 'none' | 'immediate' | 'backoff';
+export type ErrorRetryStrategy = 'none' | 'immediate' | 'backoff';
 
 interface UseErrorRecoveryOptions {
   maxRetries?: number;
@@ -52,5 +52,9 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
 
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 
-  return { error, retryCount, isRetrying, handleError, reset };
+  const retry = useCallback(() => {
+    handleError(error || new Error('Retry requested'));
+  }, [error, handleError]);
+
+  return { error, retryCount, isRetrying, handleError, reset, retry };
 }

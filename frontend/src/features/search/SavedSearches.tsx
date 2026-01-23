@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Heart, Trash2, Search, Clock } from 'lucide-react';
+import { Heart as HeartIcon, Trash2, Search, Clock } from 'lucide-react';
 import { useSearch, type SavedSearch } from './useSearch';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
@@ -71,7 +71,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   };
 
   // Filter searches
-  const filteredSearches = useMemo(() => savedSearches.filter((search) => {
+  const filteredSearches = useMemo(() => savedSearches.filter((search: SavedSearch) => {
     if (showFavoritesOnly && !search.is_favorite) return false;
     if (filterType !== 'all' && search.search_type !== filterType) return false;
     return true;
@@ -165,7 +165,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {/* Saved Searches List */}
       {!loadingSavedSearches && filteredSearches.length > 0 && (
         <div className="space-y-3">
-          {filteredSearches.map((search) => (
+          {filteredSearches.map((search: SavedSearch) => (
             <div
               key={search.id}
               className="p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow"
