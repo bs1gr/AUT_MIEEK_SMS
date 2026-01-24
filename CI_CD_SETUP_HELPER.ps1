@@ -6,7 +6,7 @@ param(
     [Parameter(Mandatory=$true)]
     [ValidateSet('generate_ssh', 'verify_setup', 'test_connections', 'validate_workflow')]
     [string]$Action,
-    
+
     [string]$StagingHost = "staging.example.com",
     [string]$ProductionHost = "prod.example.com",
     [string]$DeployUser = "deploy",
@@ -43,7 +43,7 @@ function Write-Info {
 
 function Generate-SSHKey {
     Write-Info "Generating SSH key pair for deployment..."
-    
+
     # Check if key already exists
     if (Test-Path $KeyPath) {
         Write-Error-Custom "Key file already exists: $KeyPath"
@@ -52,7 +52,7 @@ function Generate-SSHKey {
         Write-Host "  Remove-Item $KeyPath.pub"
         return $false
     }
-    
+
     # Check if ssh-keygen is available
     if (-not (Get-Command ssh-keygen -ErrorAction SilentlyContinue)) {
         Write-Error-Custom "ssh-keygen not found. Install OpenSSH:"
@@ -60,12 +60,12 @@ function Generate-SSHKey {
         Write-Host "  Or use WSL/Git Bash"
         return $false
     }
-    
+
     Write-Info "Generating ED25519 key (modern, secure)..."
-    
+
     # Generate key with no passphrase
     & ssh-keygen -t ed25519 -f $KeyPath -N ""
-    
+
     if ($LASTEXITCODE -eq 0) {
         Write-Success "SSH key pair generated successfully"
         Write-Info "Private key: $KeyPath"
@@ -83,7 +83,7 @@ function Generate-SSHKey {
         Write-Host "   " ((Get-Content "$KeyPath.pub") | Out-String).Trim()
         Write-Host ""
         Write-Info "3. On each server, add to ~/.ssh/authorized_keys"
-        
+
         return $true
     } else {
         Write-Error-Custom "Failed to generate SSH key"
@@ -98,9 +98,9 @@ function Generate-SSHKey {
 function Verify-Setup {
     Write-Info "Verifying CI/CD setup..."
     Write-Info ""
-    
+
     $issues = @()
-    
+
     # Check 1: GitHub Secrets
     Write-Info "Checking GitHub secrets..."
     Write-Warning-Custom "GitHub secrets must be verified manually:"
@@ -110,12 +110,12 @@ function Verify-Setup {
     Write-Host "     - DEPLOY_KEY"
     Write-Host "     - TEAMS_WEBHOOK_URL (optional)"
     Write-Host ""
-    
+
     # Check 2: SSH Key File
     Write-Info "Checking SSH key file..."
     if (Test-Path $KeyPath) {
         Write-Success "Private key found: $KeyPath"
-        
+
         # Check permissions (Windows)
         $acl = Get-Acl $KeyPath
         if ($acl.Access.Count -le 2) {  # Owner + System typically
@@ -128,22 +128,22 @@ function Verify-Setup {
         Write-Error-Custom "Private key not found: $KeyPath"
         $issues += "Generate SSH key using: .\CI_CD_SETUP_HELPER.ps1 -Action generate_ssh"
     }
-    
+
     if (Test-Path "$KeyPath.pub") {
         Write-Success "Public key found: $KeyPath.pub"
     } else {
         Write-Error-Custom "Public key not found: $KeyPath.pub"
     }
-    
+
     Write-Host ""
-    
+
     # Check 3: Workflow Files
     Write-Info "Checking workflow files..."
-    
+
     $pipelineFile = ".\.github\workflows\ci-cd-pipeline.yml"
     if (Test-Path $pipelineFile) {
         Write-Success "Pipeline workflow found"
-        
+
         # Check for placeholder hosts
         $content = Get-Content $pipelineFile -Raw
         if ($content -match "staging\.example\.com") {
@@ -158,9 +158,9 @@ function Verify-Setup {
         Write-Error-Custom "Pipeline workflow not found"
         $issues += "Workflow file missing: $pipelineFile"
     }
-    
+
     Write-Host ""
-    
+
     # Summary
     if ($issues.Count -eq 0) {
         Write-Success "All setup checks passed! Ready for testing."
@@ -168,7 +168,7 @@ function Verify-Setup {
         Write-Warning-Custom "Setup has $($issues.Count) issues to resolve:"
         $issues | ForEach-Object { Write-Host "  - $_" }
     }
-    
+
     return $issues.Count -eq 0
 }
 
@@ -179,18 +179,18 @@ function Verify-Setup {
 function Test-Connections {
     Write-Info "Testing SSH connections..."
     Write-Info ""
-    
+
     if (-not (Test-Path $KeyPath)) {
         Write-Error-Custom "SSH key not found: $KeyPath"
         Write-Info "Generate key first: .\CI_CD_SETUP_HELPER.ps1 -Action generate_ssh"
         return $false
     }
-    
+
     $allPassed = $true
-    
+
     # Test Staging
     Write-Info "Testing connection to staging: $StagingHost"
-    
+
     try {
         $result = ssh -i $KeyPath "${DeployUser}@${StagingHost}" "whoami && pwd" 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -205,12 +205,12 @@ function Test-Connections {
         Write-Error-Custom "Staging connection failed: $_"
         $allPassed = $false
     }
-    
+
     Write-Host ""
-    
+
     # Test Production
     Write-Info "Testing connection to production: $ProductionHost"
-    
+
     try {
         $result = ssh -i $KeyPath "${DeployUser}@${ProductionHost}" "whoami && pwd" 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -225,12 +225,12 @@ function Test-Connections {
         Write-Error-Custom "Production connection failed: $_"
         $allPassed = $false
     }
-    
+
     Write-Host ""
-    
+
     # Test Docker on both
     Write-Info "Testing Docker access..."
-    
+
     try {
         $result = ssh -i $KeyPath "${DeployUser}@${StagingHost}" "docker --version" 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -242,7 +242,7 @@ function Test-Connections {
     } catch {
         Write-Warning-Custom "Docker check failed on staging"
     }
-    
+
     return $allPassed
 }
 
@@ -252,43 +252,43 @@ function Test-Connections {
 
 function Validate-Workflow {
     Write-Info "Validating workflow YAML..."
-    
+
     $workflowFile = ".\.github\workflows\ci-cd-pipeline.yml"
-    
+
     if (-not (Test-Path $workflowFile)) {
         Write-Error-Custom "Workflow file not found: $workflowFile"
         return $false
     }
-    
+
     # Simple YAML validation (checks for syntax errors)
     Write-Info "Checking YAML syntax..."
-    
+
     try {
         $content = Get-Content $workflowFile -Raw
-        
+
         # Check for basic YAML structure
         $hasJobs = $content -match "^jobs:"
         $hasSteps = $content -match "^\s+steps:"
         $hasRuns = $content -match "^\s+run:"
-        
+
         if ($hasJobs -and $hasSteps -and $hasRuns) {
             Write-Success "Workflow YAML structure looks valid"
         } else {
             Write-Error-Custom "Workflow YAML may have issues"
         }
-        
+
         # Check for required secrets
         Write-Info "Checking for required secrets..."
         $requiresSlack = $content -match "SLACK_WEBHOOK_URL"
         $requiresDeploy = $content -match "DEPLOY_KEY"
-        
+
         if ($requiresSlack) {
             Write-Info "Workflow requires: SLACK_WEBHOOK_URL"
         }
         if ($requiresDeploy) {
             Write-Info "Workflow requires: DEPLOY_KEY"
         }
-        
+
         Write-Host ""
         Write-Info "To validate YAML syntax online:"
         Write-Host "  https://www.yamllint.com/"
@@ -296,7 +296,7 @@ function Validate-Workflow {
         Write-Info "Or install yamllint:"
         Write-Host "  pip install yamllint"
         Write-Host "  yamllint .github/workflows/ci-cd-pipeline.yml"
-        
+
         return $true
     } catch {
         Write-Error-Custom "Error validating workflow: $_"
