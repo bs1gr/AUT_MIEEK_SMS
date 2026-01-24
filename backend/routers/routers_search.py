@@ -453,7 +453,7 @@ async def create_saved_search(
     request: Request,
     body: Dict[str, Any],
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role(None)),
+    current_user: User = Depends(optional_require_role("*")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Create a new saved search.
@@ -473,8 +473,9 @@ async def create_saved_search(
     ```
 
     **Permissions:**
-    - Requires authentication
+    - Requires authentication (any authenticated user)
     """
+    # current_user is guaranteed non-None by optional_require_role("*") dependency
     if not current_user:
         return error_response(
             code="UNAUTHORIZED",
@@ -525,7 +526,7 @@ async def list_saved_searches(
     search_type: Optional[str] = Query(None, description="Filter by search type"),
     is_favorite: Optional[bool] = Query(None, description="Filter by favorite status"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role(None)),
+    current_user: User = Depends(optional_require_role("*")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Get all saved searches for the current user.
@@ -535,15 +536,9 @@ async def list_saved_searches(
     - `is_favorite`: Optional filter for favorite searches
 
     **Permissions:**
-    - Requires authentication
+    - Requires authentication (any authenticated user)
     """
-    if not current_user:
-        return error_response(
-            code="UNAUTHORIZED",
-            message="Authentication required",
-            request_id=request.state.request_id,
-        )
-
+    # current_user is guaranteed non-None by optional_require_role("*") dependency
     try:
         from backend.services.saved_search_service import SavedSearchService
 
@@ -583,7 +578,7 @@ async def get_saved_search(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role(None)),
+    current_user: User = Depends(optional_require_role("*")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Get details of a specific saved search.
@@ -592,15 +587,10 @@ async def get_saved_search(
     - `search_id`: Saved search ID
 
     **Permissions:**
-    - Requires authentication
+    - Requires authentication (any authenticated user)
     - User can only access their own saved searches
     """
-    if not current_user:
-        return error_response(
-            code="UNAUTHORIZED",
-            message="Authentication required",
-            request_id=request.state.request_id,
-        )
+    # current_user is guaranteed non-None by optional_require_role("*") dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService
@@ -648,7 +638,7 @@ async def update_saved_search(
     search_id: int,
     body: Dict[str, Any],
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role(None)),
+    current_user: User = Depends(optional_require_role("*")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Update a saved search.
@@ -669,15 +659,10 @@ async def update_saved_search(
     ```
 
     **Permissions:**
-    - Requires authentication
+    - Requires authentication (any authenticated user)
     - User can only update their own searches
     """
-    if not current_user:
-        return error_response(
-            code="UNAUTHORIZED",
-            message="Authentication required",
-            request_id=request.state.request_id,
-        )
+    # current_user is guaranteed non-None by optional_require_role("*") dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService
@@ -722,7 +707,7 @@ async def delete_saved_search(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role(None)),
+    current_user: User = Depends(optional_require_role("*")),
 ) -> APIResponse[Dict[str, str]]:
     """
     Delete a saved search.
@@ -731,15 +716,10 @@ async def delete_saved_search(
     - `search_id`: Saved search ID
 
     **Permissions:**
-    - Requires authentication
+    - Requires authentication (any authenticated user)
     - User can only delete their own searches
     """
-    if not current_user:
-        return error_response(
-            code="UNAUTHORIZED",
-            message="Authentication required",
-            request_id=request.state.request_id,
-        )
+    # current_user is guaranteed non-None by optional_require_role("*") dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService
@@ -775,7 +755,7 @@ async def toggle_saved_search_favorite(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role(None)),
+    current_user: User = Depends(optional_require_role("*")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Toggle favorite status of a saved search.
@@ -784,15 +764,10 @@ async def toggle_saved_search_favorite(
     - `search_id`: Saved search ID
 
     **Permissions:**
-    - Requires authentication
+    - Requires authentication (any authenticated user)
     - User can only modify their own searches
     """
-    if not current_user:
-        return error_response(
-            code="UNAUTHORIZED",
-            message="Authentication required",
-            request_id=request.state.request_id,
-        )
+    # current_user is guaranteed non-None by optional_require_role("*") dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService
