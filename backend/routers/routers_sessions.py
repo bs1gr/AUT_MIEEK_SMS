@@ -714,7 +714,7 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": backup_filename},
             )
-        
+
         # CodeQL [python/path-injection] - backup_path is sanitized via regex validation and directory constraint
         sanitized_backup_path = backup_path
 
@@ -756,7 +756,7 @@ async def rollback_import(request: Request, backup_filename: str):
                 "Database path resolution failed",
                 request,
             )
-        
+
         # CodeQL [python/path-injection] - db_path comes from trusted config, not user input
         sanitized_db_path = db_path
 
