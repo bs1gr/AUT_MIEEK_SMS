@@ -25,7 +25,7 @@ from backend.models import User
 @pytest.fixture(autouse=True)
 def enable_auth_for_saved_search_tests(patch_settings_for_tests):
     """Enable authentication for SavedSearch authorization tests.
-    
+
     Depends on patch_settings_for_tests to ensure it runs first, then overrides AUTH settings.
     """
     from backend.config import settings
@@ -38,11 +38,6 @@ def enable_auth_for_saved_search_tests(patch_settings_for_tests):
     yield
 
     # No need to restore - patch_settings_for_tests will clean up
-
-
-# Using admin_headers fixture from conftest.py
-# No need to redefine it here
-
 
 @pytest.fixture
 def test_user(db: Session, client: TestClient) -> User:
@@ -132,7 +127,7 @@ class TestSavedSearchCRUD:
         # Should return unauthorized (401) or error in APIResponse
         data = response.json()
         if "success" in data:
-            assert data["success"] is False
+            assert data["success"] is False, f"Expected success=False but got success={data['success']}"
             assert "error" in data
         else:
             assert response.status_code in [401, 403]
