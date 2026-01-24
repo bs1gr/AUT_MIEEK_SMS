@@ -1,4 +1,4 @@
-# Performance Benchmark Results - $11.18.0
+# Performance Benchmark Results - v1.18.0
 
 **Date:** January 22, 2026
 **Environment:** Staging / CI
@@ -12,18 +12,18 @@ Version 1.18.0 successfully addresses the rendering bottlenecks identified in th
 
 ### 1. Student List Rendering (1000 items)
 
-| Metric | $11.18.0 (Baseline) | $11.18.0 (Current) | Improvement |
+| Metric | v1.18.0 (Baseline) | v1.18.0 (Current) | Improvement |
 |--------|-------------------|-------------------|-------------|
 | **Initial Render** | ~1200ms | ~80ms | **15x Faster** |
 | **DOM Nodes** | ~12,000 nodes | ~150 nodes | **98% Reduction** |
 | **Scroll FPS** | 25-30 FPS | 60 FPS | **2x Smoother** |
 | **Memory Usage** | High | Low (Constant) | **Significant** |
 
-*Note: $11.18.0 uses `useVirtualScroll` to render only visible items + overscan buffer.*
+*Note: v1.18.0 uses `useVirtualScroll` to render only visible items + overscan buffer.*
 
 ### 2. Interaction Latency
 
-| Interaction | $11.18.0 | $11.18.0 | Notes |
+| Interaction | v1.18.0 | v1.18.0 | Notes |
 |-------------|---------|---------|-------|
 | **Open Edit Modal** | ~150ms | ~50ms | Improved via `React.memo` on rows |
 | **Toggle Favorite** | ~300ms | ~50ms | Optimistic UI + Rate Limiting |
@@ -57,4 +57,4 @@ expect(renderTime).toBeLessThan(1500); // Budget
 
 ## ✅ Conclusion
 
-The performance goals for $11.18.0 have been met and exceeded. The application is now capable of handling datasets an order of magnitude larger than before without UI degradation.
+The performance goals for v1.18.0 have been met and exceeded. The application is now capable of handling datasets an order of magnitude larger than before without UI degradation.

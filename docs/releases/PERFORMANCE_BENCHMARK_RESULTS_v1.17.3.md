@@ -1,4 +1,4 @@
-# Performance Benchmark Results - $11.18.0
+# Performance Benchmark Results - v1.18.0
 
 **Date:** January 22, 2026
 **Environment:** Staging / CI

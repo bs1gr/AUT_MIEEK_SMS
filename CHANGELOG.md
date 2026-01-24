@@ -12,7 +12,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.3] - 2026-01-22
 
 ### ⚠️ BREAKING CHANGES
-- release($11.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release(v1.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 ### Features
 - BATCH 6 - Frontend SavedSearches Component
