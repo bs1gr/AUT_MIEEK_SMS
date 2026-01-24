@@ -14,9 +14,6 @@ const StudentRow = memo(({ student, onEdit, onDelete, onView }: StudentRowProps)
 
   return (
     <tr className="hover:bg-gray-50 transition-colors">
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-        {student.enrollment_number}
-      </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
         {student.first_name} {student.last_name}
       </td>

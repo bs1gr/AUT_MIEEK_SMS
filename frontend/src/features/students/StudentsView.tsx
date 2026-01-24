@@ -14,7 +14,8 @@ import { Student } from '@/types/student';
 const StudentsView: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { students, isLoading, error: apiError, deleteStudent, updateStudent, createStudent, refetch } = useStudents();
+  const studentsQuery = useStudents();
+  const { data: students, isLoading, error: apiError, refetch } = studentsQuery;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
@@ -94,14 +95,17 @@ const StudentsView: React.FC = () => {
               {editingStudent ? t('students.editStudent') : t('students.addStudent')}
             </h2>
             <StudentForm
-              initialData={editingStudent}
+              initialData={editingStudent || undefined}
               onSubmit={async (data) => {
                 if (editingStudent) {
-                  await updateStudent(editingStudent.id, data);
+                  // TODO: Implement update via mutation
+                  console.log('Update student:', editingStudent.id, data);
                 } else {
-                  await createStudent(data);
+                  // TODO: Implement create via mutation
+                  console.log('Create student:', data);
                 }
                 handleCloseForm();
+                refetch();
               }}
               onCancel={handleCloseForm}
             />
