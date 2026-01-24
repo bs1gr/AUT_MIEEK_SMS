@@ -26,6 +26,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const { filters, addFilter, removeFilter, updateFilter, clearSearch } = useSearch();
+  const [localFilters, setLocalFilters] = useState<FilterCriteria[]>([]);
 
   // Define available fields for each search type
   const availableFields = useMemo(() => {
@@ -68,39 +69,49 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
 
   const handleAddFilter = () => {
     const defaultField = availableFields[0]?.value || '';
-    addFilter({
+    const newFilter = {
       field: defaultField,
-      operator: 'equals',
+      operator: 'equals' as FilterCriteria['operator'],
       value: '',
-    });
+    };
+    addFilter(newFilter);
+    setLocalFilters((prev) => [...prev, newFilter]);
   };
 
   const handleRemoveFilter = (index: number) => {
     removeFilter(index);
+    setLocalFilters((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleFieldChange = (index: number, field: string) => {
     updateFilter(index, { field });
+    setLocalFilters((prev) => prev.map((item, i) => (i === index ? { ...item, field } : item)));
   };
 
   const handleOperatorChange = (index: number, operator: string) => {
     updateFilter(index, { operator: operator as FilterCriteria['operator'] });
+    setLocalFilters((prev) => prev.map((item, i) => (i === index ? { ...item, operator: operator as FilterCriteria['operator'] } : item)));
   };
 
   const handleValueChange = (index: number, value: unknown) => {
     updateFilter(index, { value });
+    setLocalFilters((prev) => prev.map((item, i) => (i === index ? { ...item, value } : item)));
   };
 
   const handleApply = () => {
-    onApply?.(filters);
+    const effectiveFilters = filters.length > 0 ? filters : localFilters;
+    onApply?.(effectiveFilters);
     setIsExpanded(false);
   };
 
   const handleReset = () => {
     clearSearch();
+    setLocalFilters([]);
     onReset?.();
     setIsExpanded(false);
   };
+
+  const effectiveFilters = filters.length > 0 ? filters : localFilters;
 
   return (
     <div className={`w-full ${className}`}>
@@ -121,12 +132,21 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
       {/* Expanded Filter Panel */}
       {isExpanded && (
         <div className="mt-3 p-4 border border-gray-300 rounded-lg bg-white shadow-sm">
+          {/* Add Filter Button */}
+          <button
+            onClick={handleAddFilter}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 mb-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
+          >
+            <Plus size={18} />
+            <span className="text-sm font-medium">{t('search.addFilter')}</span>
+          </button>
+
           {/* Filters List */}
           <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
-            {filters.length === 0 ? (
+            {effectiveFilters.length === 0 ? (
               <p className="text-sm text-gray-500 italic">{t('search.noFiltersApplied')}</p>
             ) : (
-              filters.map((filter, index) => (
+              effectiveFilters.map((filter, index) => (
                 <div
                   key={index}
                   className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200"
@@ -209,15 +229,6 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
               ))
             )}
           </div>
-
-          {/* Add Filter Button */}
-          <button
-            onClick={handleAddFilter}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 mb-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
-          >
-            <Plus size={18} />
-            <span className="text-sm font-medium">{t('search.addFilter')}</span>
-          </button>
 
           {/* Action Buttons */}
           <div className="flex gap-3 justify-end">

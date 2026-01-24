@@ -31,13 +31,15 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { isRateLimited, call } = useRateLimit(1000); // 1 second cooldown
 
+  const searchState = useSearch() || {} as any;
+
   const {
-    savedSearches,
-    loadingSavedSearches,
-    deleteSavedSearch,
-    toggleFavoriteSavedSearch,
-    loadSavedSearch,
-  } = useSearch();
+    savedSearches = [],
+    loadingSavedSearches = false,
+    deleteSavedSearch = () => Promise.resolve(),
+    toggleFavoriteSavedSearch = () => Promise.resolve(),
+    loadSavedSearch = () => undefined,
+  } = searchState;
 
   // Mutation for deleting saved search
   const deleteMutation = useMutation({
@@ -144,6 +146,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {loadingSavedSearches && (
         <div className="py-4">
           <SkeletonLoader rows={3} />
+          <p className="sr-only">{t('common.loading')}</p>
         </div>
       )}
 

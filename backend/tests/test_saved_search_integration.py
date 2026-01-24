@@ -39,6 +39,7 @@ def enable_auth_for_saved_search_tests(patch_settings_for_tests):
 
     # No need to restore - patch_settings_for_tests will clean up
 
+
 @pytest.fixture
 def test_user(db: Session, client: TestClient) -> User:
     """Create a test user for saved search tests."""

@@ -1,36 +1,31 @@
-import { useState } from 'react';
+import { useMemo, useRef } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
-interface UseVirtualScrollProps {
-  itemHeight: number;
-  containerHeight: number;
-  itemsCount: number;
+type UseVirtualScrollProps = {
+  itemCount: number;
+  itemHeight?: number;
   overscan?: number;
-}
+};
 
 export const useVirtualScroll = ({
-  itemHeight,
-  containerHeight,
-  itemsCount,
-  overscan = 3,
+  itemCount,
+  itemHeight = 50,
+  overscan = 10,
 }: UseVirtualScrollProps) => {
-  const [scrollTop, setScrollTop] = useState(0);
+  const parentRef = useRef<HTMLDivElement | null>(null);
 
-  const visibleItemsCount = Math.ceil(containerHeight / itemHeight);
+  const virtualizer = useVirtualizer({
+    count: itemCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => itemHeight,
+    overscan: Math.max(0, overscan),
+  });
 
-  const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
-  const endIndex = Math.min(
-    itemsCount,
-    Math.floor(scrollTop / itemHeight) + visibleItemsCount + overscan
+  return useMemo(
+    () => ({
+      virtualizer,
+      parentRef,
+    }),
+    [virtualizer]
   );
-
-  const offsetY = startIndex * itemHeight;
-  const totalHeight = itemsCount * itemHeight;
-
-  return {
-    startIndex,
-    endIndex,
-    offsetY,
-    totalHeight,
-    onScroll: (e: React.UIEvent<HTMLElement>) => setScrollTop(e.currentTarget.scrollTop),
-  };
 };

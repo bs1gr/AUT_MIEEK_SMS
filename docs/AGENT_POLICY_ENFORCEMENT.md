@@ -188,6 +188,14 @@ function MyComponent() {
 - Wait reasonable minimums before checking status: **Quick: 5-10 minutes**, **Standard: 10-15 minutes**, **Full: 20-30 minutes**.
 - Only if there is **no output for 20+ minutes beyond expected** should you consider investigating; otherwise, assume it is still working.
 
+**🚦 Exception protocol (chicken-and-egg / known red pipeline):**
+- Use **ONLY** when the pipeline is already red due to a known failing suite **outside your change scope** and COMMIT_READY would fail for the same root cause.
+- Steps you **must** take before bypassing:
+   1) Record a snapshot: `COMMIT_READY.ps1 -Quick -Snapshot` **or** `scripts/VERIFY_AND_RECORD_STATE.ps1`.
+   2) Run the **smallest targeted checks** relevant to your change (e.g., `npx tsc --noEmit` for TS-only edits, or `ruff` for backend lint) and confirm they pass locally.
+   3) Document the reason in your summary/commit message (e.g., "Bypass guard: backend tests already failing in main (unrelated)").
+- If you must proceed, you may commit with `--no-verify` **once**, then immediately open/track a work item to fix the upstream failure. Re-run COMMIT_READY as soon as the blocking suite is repaired.
+
 **Why This Exists:**
 - Prevents broken code from entering codebase
 - Auto-fixes formatting issues
