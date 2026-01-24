@@ -159,7 +159,7 @@ class BackupServiceEncrypted:
             resolved_backup.relative_to(resolved_backup_dir)
         except (ValueError, OSError):
             raise ValueError(f"Backup path outside allowed directory: {backup_name}")
-        
+
         # CodeQL [python/path-injection] - backup_path is sanitized via _validate_backup_name and directory constraint
         backup_path = resolved_backup
 
