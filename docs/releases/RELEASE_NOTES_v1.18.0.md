@@ -1,7 +1,7 @@
-# Release Notes v1.18.0 - PWA & Mobile Experience
+# Release Notes $11.18.0 - PWA & Mobile Experience
 
 **Date:** January 22, 2026
-**Version:** v1.18.0
+**Version:** $11.18.0
 **Focus:** Progressive Web App (PWA), Offline Support, Mobile UX
 
 ## 🚀 Key Highlights

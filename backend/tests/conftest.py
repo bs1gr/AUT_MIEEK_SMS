@@ -48,6 +48,9 @@ from fastapi.testclient import TestClient
 # Import shared DB setup to ensure singletons across pytest and direct imports
 from backend.tests.db_setup import TestingSessionLocal, engine
 
+# Import ORM Base for schema creation
+from backend.models import Base
+
 # ============================================================================
 # Error Response Helper Functions (v1.15.0 - API Standardization)
 # ============================================================================
@@ -141,12 +144,6 @@ def get_error_detail(response_data: dict) -> dict | None:
         if "detail" in response_data and isinstance(response_data["detail"], dict):
             return response_data["detail"]
     return None
-
-
-# Always use the application's Base (declared in backend.models) so metadata includes all tables.
-from backend import models as models_mod
-
-Base = models_mod.Base
 
 
 # --- Security Configuration for Test Suite ---
@@ -262,7 +259,7 @@ def setup_db(setup_db_schema):
     Since we use session-scoped schema creation and transaction rollback
     in the db fixture, we just need to clean any data that might leak
     between tests (though transaction rollback should handle this).
-    
+
     Note: Depends on setup_db_schema to ensure schema is created at session start.
     """
     yield
