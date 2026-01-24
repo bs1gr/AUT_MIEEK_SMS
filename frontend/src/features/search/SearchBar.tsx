@@ -182,7 +182,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                       className="w-full px-3 py-2 text-sm text-left text-gray-900 hover:bg-blue-50 transition-colors flex items-center justify-between"
                     >
                       <span className="flex-1 truncate">
-                        {String(result.name || '')}
+                        {String(result.name as string || '')}
                         {result.metadata?.email && (
                           <span className="ml-2 text-xs text-gray-500">
                             ({result.metadata.email})
@@ -190,7 +190,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                         )}
                       </span>
                       <span className="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {String(result.type || '')}
+                        {String(result.type as string || '')}
                       </span>
                     </button>
                   </li>
