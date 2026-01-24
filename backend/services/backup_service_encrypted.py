@@ -12,6 +12,7 @@ Features:
 """
 
 import json
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -37,6 +38,28 @@ class BackupServiceEncrypted:
         self.metadata_dir = self.backup_dir / ".metadata"
         self.metadata_dir.mkdir(parents=True, exist_ok=True)
 
+    @staticmethod
+    def _validate_backup_name(name: str) -> str:
+        """Validate user-provided backup names to prevent path traversal and unsafe characters."""
+        if not name:
+            raise ValueError("Backup name is required")
+
+        # Disallow absolute paths and traversal segments
+        if Path(name).is_absolute():
+            raise ValueError("Backup name cannot be an absolute path")
+        if ".." in name or "/" in name or "\\" in name:
+            raise ValueError("Backup name contains invalid path characters")
+
+        # Ensure the value is a bare filename (no directories)
+        if Path(name).name != name:
+            raise ValueError("Backup name cannot contain path separators")
+
+        # Allow only a conservative set of characters
+        if not re.fullmatch(r"[A-Za-z0-9._-]+", name):
+            raise ValueError("Backup name contains invalid characters")
+
+        return name
+
     def create_encrypted_backup(
         self,
         source_path: Path,
@@ -61,6 +84,8 @@ class BackupServiceEncrypted:
         if backup_name is None:
             timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
             backup_name = f"backup_{timestamp}"
+        else:
+            backup_name = self._validate_backup_name(backup_name)
 
         # Create encrypted backup
         backup_path = self.backup_dir / f"{backup_name}.enc"
@@ -121,11 +146,7 @@ class BackupServiceEncrypted:
             Dictionary with restoration information
         """
         # Validate backup_name to prevent path traversal (user input from API)
-        # Check for path traversal attempts: .. or path separators
-        if ".." in backup_name or "/" in backup_name or "\\" in backup_name:
-            raise ValueError(f"Invalid backup name: {backup_name}")
-        if not backup_name or backup_name.startswith("/"):
-            raise ValueError(f"Invalid backup name: {backup_name}")
+        backup_name = self._validate_backup_name(backup_name)
 
         # Build path using validated name only
         safe_backup_filename = f"{backup_name}.enc"
@@ -142,27 +163,33 @@ class BackupServiceEncrypted:
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")
 
-        # Validate output_path to ensure it can be safely written
+        # Validate output_path to ensure it can be safely written and stays within backup_dir
         try:
-            output_path.resolve()
+            resolved_output = output_path.resolve()
         except (ValueError, OSError) as e:
             raise ValueError(f"Invalid output path: {e}")
+
+        # Enforce restore writes only inside backup_dir (restore dirs created under backup_dir)
+        try:
+            resolved_output.relative_to(self.backup_dir.resolve())
+        except ValueError:
+            raise ValueError("Output path must be inside the backups directory")
 
         # Decrypt and restore using validated paths
         metadata = self.encryption_service.decrypt_file(
             input_path=backup_path,
-            output_path=output_path,
+            output_path=resolved_output,
         )
 
         # Verify output_path exists before returning
-        if not output_path.exists():
-            raise ValueError(f"Restored file not found at {output_path}")
+        if not resolved_output.exists():
+            raise ValueError(f"Restored file not found at {resolved_output}")
 
         return {
             "success": True,
             "backup_name": backup_name,
-            "restored_to": str(output_path.resolve()),
-            "restored_size": output_path.stat().st_size,
+            "restored_to": str(resolved_output),
+            "restored_size": resolved_output.stat().st_size,
             "encryption": "AES-256-GCM",
             "metadata": metadata,
         }
@@ -218,6 +245,7 @@ class BackupServiceEncrypted:
         Returns:
             Dictionary with deletion information
         """
+        backup_name = self._validate_backup_name(backup_name)
         backup_path = self.backup_dir / f"{backup_name}.enc"
         metadata_path = self.metadata_dir / f"{backup_name}.json"
 
@@ -247,6 +275,7 @@ class BackupServiceEncrypted:
         Returns:
             Dictionary with verification results
         """
+        backup_name = self._validate_backup_name(backup_name)
         backup_path = self.backup_dir / f"{backup_name}.enc"
 
         if not backup_path.exists():

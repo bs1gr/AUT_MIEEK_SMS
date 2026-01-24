@@ -263,7 +263,7 @@ async def restore_encrypted_backup(
         if ".." in output_filename or "/" in output_filename or "\\" in output_filename:
             raise HTTPException(status_code=400, detail="Invalid output filename")
 
-        backup_root = pathlib.Path("backups")
+        backup_root = pathlib.Path("backups").resolve()
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
         # Validate output_filename before path construction to prevent path traversal
@@ -273,7 +273,7 @@ async def restore_encrypted_backup(
             )
 
         # Create temporary output directory
-        restore_dir = backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        restore_dir = (backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}").resolve()
         restore_dir.mkdir(parents=True, exist_ok=True)
         # Extract only the filename to prevent path traversal
         safe_output_filename = pathlib.Path(output_filename).name
@@ -282,13 +282,11 @@ async def restore_encrypted_backup(
         # Validate clean filename one more time before path operation
         if ".." in safe_output_filename or safe_output_filename.startswith("/"):
             raise HTTPException(status_code=400, detail="Invalid output filename: path traversal detected")
-        output_path = restore_dir / safe_output_filename
+        output_path = (restore_dir / safe_output_filename).resolve()
 
         # Additional safety: Ensure resolved paths are within allowed directories
         try:
-            resolved_output = output_path.resolve()
-            resolved_restore_dir = restore_dir.resolve()
-            resolved_output.relative_to(resolved_restore_dir)
+            output_path.relative_to(restore_dir)
         except (ValueError, OSError):
             raise HTTPException(status_code=400, detail="Output path outside allowed directory")
 

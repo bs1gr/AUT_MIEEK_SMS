@@ -5,6 +5,7 @@ Provides endpoints to export/import complete semester/session data packages.
 
 import json
 import logging
+import re
 from datetime import datetime
 from io import BytesIO
 from typing import Any, Dict, List, Optional
@@ -679,6 +680,7 @@ async def rollback_import(request: Request, backup_filename: str):
             or ".." in backup_filename
             or "/" in backup_filename
             or "\\" in backup_filename
+            or not re.fullmatch(r"[A-Za-z0-9._-]+\.db", backup_filename)
         ):
             raise http_error(
                 400,
@@ -688,7 +690,7 @@ async def rollback_import(request: Request, backup_filename: str):
                 context={"filename": backup_filename},
             )
 
-        backup_dir = Path("backups")
+        backup_dir = Path("backups").resolve()
         # Extract only the filename to prevent any path traversal
         safe_filename = Path(backup_filename).name
         if safe_filename != backup_filename:
@@ -699,11 +701,11 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": backup_filename},
             )
-        backup_path = backup_dir / safe_filename
+        backup_path = (backup_dir / safe_filename).resolve()
 
         # Additional safety: Ensure resolved path is within backup_dir
         try:
-            backup_path.resolve().relative_to(backup_dir.resolve())
+            backup_path.relative_to(backup_dir)
         except ValueError:
             raise http_error(
                 400,
@@ -740,10 +742,10 @@ async def rollback_import(request: Request, backup_filename: str):
                 "Invalid database path in configuration",
                 request,
             )
-        db_path = Path(db_file)
+        db_path = Path(db_file).resolve()
         # Validate resolved path
         try:
-            db_path.resolve()
+            db_path.relative_to(db_path.parent)
         except (ValueError, OSError):
             raise http_error(
                 400,
@@ -759,7 +761,7 @@ async def rollback_import(request: Request, backup_filename: str):
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             # Safe filename: only contains safe characters, no user input
             safe_backup_name = f"pre_rollback_backup_{timestamp}.db"
-            pre_rollback_backup = backup_dir / safe_backup_name
+            pre_rollback_backup = (backup_dir / safe_backup_name).resolve()
             shutil.copy2(db_path, pre_rollback_backup)
             logger.info("Created pre-rollback backup", extra={"backup_file": pre_rollback_backup.name})
 
