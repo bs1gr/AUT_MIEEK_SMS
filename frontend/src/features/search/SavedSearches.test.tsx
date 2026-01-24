@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
-import { SavedSearches } from '../SavedSearches';
-import * as useSearchModule from '../useSearch';
+import { SavedSearches } from './SavedSearches';
+import * as useSearchModule from './useSearch';
 
 // Mock translations
 vi.mock('react-i18next', () => ({
@@ -18,7 +18,7 @@ vi.mock('react-i18next', () => ({
 }));
 
 // Mock the useSearch hook
-vi.mock('../useSearch', () => ({
+vi.mock('./useSearch', () => ({
   useSearch: vi.fn(() => ({
     savedSearches: [],
     loadingSavedSearches: false,

@@ -11,7 +11,7 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import apiClient from '../api/api';
+import apiClient, { extractAPIResponseData } from '../api/api';
 
 /**
  * Search result types from API
@@ -149,8 +149,7 @@ export const useSearch = (
         const url = `/search/${searchType}?q=${encodeURIComponent(query)}&limit=${pageSize}&offset=${offset}&page=${page}`;
 
         const response = await apiClient.get(url);
-
-        const incomingResults = response.data || [];
+        const incomingResults = (extractAPIResponseData(response) as SearchResult[] | undefined) || [];
 
         setState(prev => {
           const mergedResults = page > 0
@@ -215,7 +214,7 @@ export const useSearch = (
           }
         });
 
-        const suggestions = response.data || [];
+        const suggestions = (extractAPIResponseData(response) as SearchSuggestion[] | undefined) || [];
 
         // Cache results
         suggestionsCache.current.set(query, suggestions);
@@ -283,7 +282,7 @@ export const useSearch = (
           }
         });
 
-        const incomingResults = response.data || [];
+        const incomingResults = (extractAPIResponseData(response) as SearchResult[] | undefined) || [];
 
         setState(prev => {
           const mergedResults = page > 0
@@ -348,11 +347,12 @@ export const useSearch = (
     async () => {
       try {
         const response = await apiClient.get('/search/statistics');
-        setStatistics(response.data || {
+        const stats = (extractAPIResponseData(response) as SearchStatistics | undefined) || {
           total_students: 0,
           total_courses: 0,
           total_grades: 0
-        });
+        };
+        setStatistics(stats);
       } catch {
         // Fail silently for statistics - error logging skipped
       }

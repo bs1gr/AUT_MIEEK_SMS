@@ -1,5 +1,5 @@
 Write-Host "╔════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║  Running Full Frontend Regression Suite (v1.18.0)      ║" -ForegroundColor Cyan
+Write-Host "║  Running Full Frontend Regression Suite (v1.17.4)      ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 
 # Ensure we are in the frontend directory

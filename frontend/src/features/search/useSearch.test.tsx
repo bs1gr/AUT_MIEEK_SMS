@@ -2,17 +2,24 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { ReactNode } from 'react';
-import { useSearch } from '../useSearch';
+import { useSearch } from './useSearch';
 import * as apiModule from '@/api/api';
 
 // Mock the API
-vi.mock('@/api/api', () => ({
-  apiClient: {
+vi.mock('@/api/api', () => {
+  const api = {
     post: vi.fn(),
     get: vi.fn(),
     delete: vi.fn(),
-  },
-}));
+  };
+
+  return {
+    __esModule: true,
+    default: api,
+    apiClient: api,
+    extractAPIResponseData: (data: any, fallback?: any) => data ?? fallback,
+  };
+});
 
 describe('useSearch Hook', () => {
   let queryClient: QueryClient;

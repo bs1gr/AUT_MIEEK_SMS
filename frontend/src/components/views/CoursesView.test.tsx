@@ -5,7 +5,8 @@ import CourseManagement from './CoursesView';
 import { LanguageProvider } from '../../LanguageContext';
 
 // Mock fetch globally
-beforeEach(() => {
+describe('CourseManagement (global mocks)', () => {
+  beforeEach(() => {
   global.fetch = vi.fn((url, _options) => {
     // Simulate API endpoints
     if (url.includes('/enrollments/course/1/students')) {
@@ -29,11 +30,11 @@ beforeEach(() => {
   });
 });
 
-afterEach(() => {
-  vi.resetAllMocks();
-});
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
 
-describe('CourseManagement enrollment', () => {
+  describe('CourseManagement enrollment', () => {
   it('enrolls students and updates enrolled list', async () => {
     render(
       <LanguageProvider>
@@ -61,5 +62,6 @@ describe('CourseManagement enrollment', () => {
     fireEvent.change(screen.getByLabelText(/select course/i), { target: { value: '' } });
     fireEvent.change(screen.getByLabelText(/select course/i), { target: { value: '1' } });
     await screen.findByText(/Alice Smith/);
+  });
   });
 });

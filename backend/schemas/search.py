@@ -12,7 +12,7 @@ Version: 1.0.0
 """
 
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from datetime import datetime
 
 
@@ -33,8 +33,7 @@ class StudentSearchResultSchema(BaseModel):
     is_active: bool = Field(True, description="Is student active")
     type: str = Field("student", description="Result type")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class CourseSearchResultSchema(BaseModel):
@@ -48,8 +47,7 @@ class CourseSearchResultSchema(BaseModel):
     semester: int = Field(..., description="Semester")
     type: str = Field("course", description="Result type")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class GradeSearchResultSchema(BaseModel):
@@ -65,8 +63,7 @@ class GradeSearchResultSchema(BaseModel):
     date_graded: Optional[str] = Field(None, description="Date graded")
     type: str = Field("grade", description="Result type")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============================================================================
@@ -170,8 +167,7 @@ class SavedSearchResponseSchema(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SavedSearchListResponseSchema(BaseModel):
@@ -185,8 +181,7 @@ class SavedSearchListResponseSchema(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ============================================================================

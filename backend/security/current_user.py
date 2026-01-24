@@ -101,3 +101,32 @@ async def get_current_user(
     if user is None or not bool(getattr(user, "is_active", False)):
         raise credentials_exception
     return user
+
+
+async def require_auth_even_if_disabled(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> Any:
+    """Strict auth dependency that requires a bearer token regardless of AUTH flags.
+
+    This enforces authentication even when AUTH is disabled globally. It extracts the
+    bearer token from the Authorization header and then delegates to get_current_user
+    with the token so that the usual decoding and user lookup logic is applied.
+    """
+    try:
+        auth_header = str(request.headers.get("Authorization", "")).strip()
+    except (KeyError, AttributeError):
+        auth_header = ""
+
+    if not auth_header.startswith("Bearer "):
+        raise http_error(
+            status.HTTP_401_UNAUTHORIZED,
+            ErrorCode.UNAUTHORIZED,
+            "Missing bearer token",
+            request,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    token = auth_header.split(" ", 1)[1].strip()
+    # Pass the token explicitly to bypass the relaxed path in get_current_user
+    return await get_current_user(request=request, token=token, db=db)

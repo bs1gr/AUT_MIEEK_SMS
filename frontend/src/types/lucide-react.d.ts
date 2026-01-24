@@ -61,6 +61,7 @@ declare module 'lucide-react' {
     LucideActivity as Activity,
     LucideRotateCw as RotateCw,
     LucideHome as Home,
+    LucideHeart as Heart,
     LucideGraduationCap as GraduationCap,
     LucideBookOpen as BookOpen,
     LucideClipboard as Clipboard,

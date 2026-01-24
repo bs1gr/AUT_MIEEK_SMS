@@ -6,6 +6,7 @@ interface UseErrorRecoveryOptions {
   maxRetries?: number;
   backoffMs?: number;
   strategy?: ErrorRetryStrategy;
+  onError?: (error: Error, retry: () => void) => void;
   onRetry?: () => void | Promise<void>;
 }
 
@@ -14,6 +15,7 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
     maxRetries = 3,
     backoffMs = 1000,
     strategy = 'backoff',
+    onError,
     onRetry
   } = options;
 
@@ -29,32 +31,53 @@ export function useErrorRecovery(options: UseErrorRecoveryOptions = {}) {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
 
-  const handleError = useCallback((err: Error) => {
-    setError(err);
+  const shouldRetry = useCallback(
+    () => strategy !== 'none' && retryCount < maxRetries,
+    [strategy, retryCount, maxRetries]
+  );
 
-    if (strategy === 'none') return;
+  const clearTimer = useCallback(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = undefined;
+    }
+  }, []);
 
-    if (retryCount < maxRetries) {
-      const delay = strategy === 'backoff' ? backoffMs * Math.pow(2, retryCount) : 0;
+  const retry = useCallback(() => {
+    clearTimer();
+    setError(null);
+    setRetryCount(0);
+    setIsRetrying(false);
+    onRetry?.();
+  }, [clearTimer, onRetry]);
+
+  const handleError = useCallback(
+    (err: Error) => {
+      const normalizedError = err instanceof Error ? err : new Error(String(err));
+      setError(normalizedError);
+      clearTimer();
+
+      onError?.(normalizedError, retry);
+
+      if (!shouldRetry()) return;
+
+      const delayBase = strategy === 'backoff' ? backoffMs : 0;
+      const delay = delayBase * Math.pow(2, Math.min(retryCount, 4));
 
       timeoutRef.current = setTimeout(async () => {
         setIsRetrying(true);
         try {
-          setRetryCount(prev => prev + 1);
+          setRetryCount((prev) => Math.min(prev + 1, maxRetries));
           await onRetry?.();
-          // Note: We don't auto-reset here; we assume the component will clear error on success
         } finally {
           setIsRetrying(false);
         }
       }, delay);
-    }
-  }, [retryCount, maxRetries, backoffMs, strategy, onRetry]);
+    },
+    [backoffMs, clearTimer, maxRetries, onError, onRetry, retry, retryCount, shouldRetry, strategy]
+  );
 
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
 
-  const retry = useCallback(() => {
-    handleError(error || new Error('Retry requested'));
-  }, [error, handleError]);
-
-  return { error, retryCount, isRetrying, handleError, reset, retry };
+  return { error, retryCount, isRetrying, handleError, reset, retry, shouldRetry };
 }

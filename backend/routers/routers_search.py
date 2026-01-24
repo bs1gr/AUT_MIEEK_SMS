@@ -21,7 +21,7 @@ import logging
 
 from backend.dependencies import get_db
 from backend.rbac import optional_require_role
-from backend.security.current_user import get_current_user
+from backend.security.current_user import get_current_user, require_auth_even_if_disabled
 from backend.models import User
 from backend.services.search_service import SearchService
 from backend.schemas.response import APIResponse, success_response, error_response
@@ -454,7 +454,7 @@ async def create_saved_search(
     request: Request,
     body: Dict[str, Any],
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_auth_even_if_disabled),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Create a new saved search.
@@ -476,13 +476,6 @@ async def create_saved_search(
     **Permissions:**
     - Requires authentication (any authenticated user)
     """
-    # current_user is guaranteed non-None by optional_require_role("*") dependency
-    if not current_user:
-        return error_response(
-            code="UNAUTHORIZED",
-            message="Authentication required to save searches",
-            request_id=request.state.request_id,
-        )
 
     try:
         from backend.services.saved_search_service import SavedSearchService
@@ -539,7 +532,7 @@ async def list_saved_searches(
     **Permissions:**
     - Requires authentication (any authenticated user)
     """
-    # current_user is guaranteed non-None by optional_require_role("*") dependency
+    # current_user is provided by get_current_user dependency
     try:
         from backend.services.saved_search_service import SavedSearchService
 
@@ -591,7 +584,7 @@ async def get_saved_search(
     - Requires authentication (any authenticated user)
     - User can only access their own saved searches
     """
-    # current_user is guaranteed non-None by optional_require_role("*") dependency
+    # current_user is provided by get_current_user dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService
@@ -664,7 +657,7 @@ async def update_saved_search(
     - Requires authentication (any authenticated user)
     - User can only update their own searches
     """
-    # current_user is guaranteed non-None by optional_require_role("*") dependency
+    # current_user is provided by get_current_user dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService
@@ -722,7 +715,7 @@ async def delete_saved_search(
     - Requires authentication (any authenticated user)
     - User can only delete their own searches
     """
-    # current_user is guaranteed non-None by optional_require_role("*") dependency
+    # current_user is provided by get_current_user dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService

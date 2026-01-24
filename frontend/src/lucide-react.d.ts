@@ -21,6 +21,7 @@ declare module 'lucide-react' {
   export const Search: ComponentType<IconProps>;
   export const Settings: ComponentType<IconProps>;
   export const Sun: ComponentType<IconProps>;
+  export const Heart: ComponentType<IconProps>;
   export const Trash: ComponentType<IconProps>;
   export const X: ComponentType<IconProps>;
 }
