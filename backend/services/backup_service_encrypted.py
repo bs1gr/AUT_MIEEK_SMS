@@ -120,21 +120,35 @@ class BackupServiceEncrypted:
         Returns:
             Dictionary with restoration information
         """
-        # Validate backup_name to prevent path traversal
+        # Validate backup_name to prevent path traversal (user input from API)
+        # Check for path traversal attempts: .. or path separators
         if ".." in backup_name or "/" in backup_name or "\\" in backup_name:
             raise ValueError(f"Invalid backup name: {backup_name}")
+        if not backup_name or backup_name.startswith("/"):
+            raise ValueError(f"Invalid backup name: {backup_name}")
+
+        # Build path using validated name only
+        safe_backup_filename = f"{backup_name}.enc"
+        backup_path = self.backup_dir / safe_backup_filename
 
         # Additional safety: Ensure resolved path is within backup_dir
-        backup_path = self.backup_dir / f"{backup_name}.enc"
         try:
-            backup_path.resolve().relative_to(self.backup_dir.resolve())
-        except ValueError:
+            resolved_backup = backup_path.resolve()
+            resolved_backup_dir = self.backup_dir.resolve()
+            resolved_backup.relative_to(resolved_backup_dir)
+        except (ValueError, OSError):
             raise ValueError(f"Backup path outside allowed directory: {backup_name}")
 
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")
 
-        # Decrypt and restore
+        # Validate output_path to ensure it can be safely written
+        try:
+            output_path.resolve()
+        except (ValueError, OSError) as e:
+            raise ValueError(f"Invalid output path: {e}")
+
+        # Decrypt and restore using validated paths
         metadata = self.encryption_service.decrypt_file(
             input_path=backup_path,
             output_path=output_path,

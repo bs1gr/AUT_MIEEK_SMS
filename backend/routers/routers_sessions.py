@@ -733,21 +733,43 @@ async def rollback_import(request: Request, backup_filename: str):
                 context={"filename": backup_filename, "available_backups": available_backups[:10]},
             )
 
-        # Extract current database path
+        # Extract current database path from trusted configuration source
         db_url = settings.DATABASE_URL
         if not db_url.startswith("sqlite:///"):
             raise http_error(
                 400, ErrorCode.IMPORT_INVALID_REQUEST, "Rollback only supported for SQLite databases", request
             )
 
+        # Extract DB file from URL with validation
         db_file = db_url.replace("sqlite:///", "")
+        # Prevent path traversal attacks on config-sourced database path
+        if ".." in db_file or not db_file:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "Invalid database path in configuration",
+                request,
+            )
         db_path = Path(db_file)
+        # Validate resolved path
+        try:
+            db_path.resolve()
+        except (ValueError, OSError):
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "Database path resolution failed",
+                request,
+            )
 
         # Create backup of current state before rollback (safety)
+        # Use only system-generated timestamp (no user input) for backup filename
         pre_rollback_backup = None
         if db_path.exists():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            pre_rollback_backup = backup_dir / f"pre_rollback_backup_{timestamp}.db"
+            # Safe filename: only contains safe characters, no user input
+            safe_backup_name = f"pre_rollback_backup_{timestamp}.db"
+            pre_rollback_backup = backup_dir / safe_backup_name
             shutil.copy2(db_path, pre_rollback_backup)
             logger.info("Created pre-rollback backup", extra={"backup_file": pre_rollback_backup.name})
 
