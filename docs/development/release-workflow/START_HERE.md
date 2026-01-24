@@ -8,25 +8,30 @@ Welcome to the Student Management System! This guide will help you get started.
 
 ```powershell
 # Start the application
+
 .\DOCKER.ps1 -Start
 
 # Access the application
-Start-Process "http://localhost:8080"
-```
 
+Start-Process "http://localhost:8080"
+
+```text
 ### For Development Users
 
 ```powershell
 # Install dependencies (first time only)
+
 .\NATIVE.ps1 -Setup
 
 # Start both backend and frontend
+
 .\NATIVE.ps1 -Start
 
 # Access the application
-Start-Process "http://localhost:5173"
-```
 
+Start-Process "http://localhost:5173"
+
+```text
 ## Configuration
 
 1. **Backend Configuration**: Edit `backend/.env` for database and API settings
@@ -52,3 +57,4 @@ For issues and questions, please refer to the documentation or create an issue o
 
 **Version**: 1.14.0
 **Last Updated**: December 29, 2025
+

@@ -58,10 +58,10 @@ The Student Management System provides a RESTful API for managing students, cour
 
 The API follows semantic versioning:
 
-```
+```text
 /api/v{MAJOR}
-```
 
+```text
 - **MAJOR**: Incremented when breaking changes are introduced
 - **MINOR**: Incremented when backward-compatible features are added (not in URL)
 - **PATCH**: Incremented for bug fixes and non-API changes (not in URL)
@@ -70,7 +70,7 @@ The API follows semantic versioning:
 
 Each major version follows a standard lifecycle:
 
-```
+```text
 v1 Lifecycle (Expected):
 ├── Release: 2025-01-01
 ├── Bug Fixes & Small Features: 2025-01-01 → 2025-12-31
@@ -78,8 +78,8 @@ v1 Lifecycle (Expected):
 ├── Deprecation Period: 2025-12-01 → 2026-06-01 (6 months)
 ├── Support Ends: 2026-06-01
 └── Sunset: 2026-06-01
-```
 
+```text
 ### Support Matrix
 
 | Version | Released | Support Ends | Status |
@@ -94,11 +94,11 @@ v1 Lifecycle (Expected):
 
 ### Base URLs
 
-```
+```text
 Development:  http://localhost:8000/api/v1
 Production:   https://sms.example.com/api/v1
-```
 
+```text
 ### Authentication
 
 All API endpoints require authentication via JWT bearer token:
@@ -106,11 +106,11 @@ All API endpoints require authentication via JWT bearer token:
 ```bash
 curl -H "Authorization: Bearer <access_token>" \
      https://api.example.com/api/v1/students
-```
 
+```text
 ### Token Acquisition
 
-```
+```text
 POST /api/v1/auth/login
 Content-Type: application/json
 
@@ -126,13 +126,13 @@ Response:
   "token_type": "bearer",
   "expires_in": 3600
 }
-```
 
+```text
 ### Rate Limiting
 
 API endpoints are rate-limited to prevent abuse:
 
-```
+```text
 Default Limits:
 - Read operations:  100 requests/minute per user
 - Write operations: 10 requests/minute per user
@@ -142,8 +142,8 @@ Headers:
 X-RateLimit-Limit:     100
 X-RateLimit-Remaining: 95
 X-RateLimit-Reset:     1702476960
-```
 
+```text
 ---
 
 ## Response Format
@@ -164,8 +164,8 @@ X-RateLimit-Reset:     1702476960
     "version": "1.0"
   }
 }
-```
 
+```text
 ### List Response (200)
 
 ```json
@@ -186,8 +186,8 @@ X-RateLimit-Reset:     1702476960
     "timestamp": "2025-12-12T10:30:00Z"
   }
 }
-```
 
+```text
 ### Error Response (4xx, 5xx)
 
 ```json
@@ -206,8 +206,8 @@ X-RateLimit-Reset:     1702476960
     "timestamp": "2025-12-12T10:30:00Z"
   }
 }
-```
 
+```text
 ---
 
 ## Error Codes
@@ -250,7 +250,8 @@ X-RateLimit-Reset:     1702476960
 ### 1. Authentication Endpoints
 
 #### Login
-```
+
+```text
 POST /auth/login
 Content-Type: application/json
 
@@ -270,10 +271,11 @@ Response: 200 OK
     "expires_in": 3600
   }
 }
-```
 
+```text
 #### Refresh Token
-```
+
+```text
 POST /auth/refresh
 Authorization: Bearer <refresh_token>
 
@@ -286,12 +288,13 @@ Response: 200 OK
     "expires_in": 3600
   }
 }
-```
 
+```text
 ### 2. Student Endpoints
 
 #### List Students
-```
+
+```text
 GET /students?page=1&per_page=20&active=true
 Authorization: Bearer <token>
 
@@ -311,10 +314,11 @@ Response: 200 OK
   ],
   "pagination": { "page": 1, "per_page": 20, "total": 150 }
 }
-```
 
+```text
 #### Get Student
-```
+
+```text
 GET /students/{id}
 Authorization: Bearer <token>
 
@@ -333,10 +337,11 @@ Response: 200 OK
     "enrollment_date": "2025-09-01"
   }
 }
-```
 
+```text
 #### Create Student
-```
+
+```text
 POST /students
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -362,10 +367,11 @@ Response: 201 Created
     "created_at": "2025-12-12T10:30:00Z"
   }
 }
-```
 
+```text
 #### Update Student
-```
+
+```text
 PUT /students/{id}
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -388,20 +394,22 @@ Response: 200 OK
     "updated_at": "2025-12-12T10:31:00Z"
   }
 }
-```
 
+```text
 #### Delete Student
-```
+
+```text
 DELETE /students/{id}
 Authorization: Bearer <token>
 
 Response: 204 No Content
-```
 
+```text
 ### 3. Course Endpoints
 
 #### List Courses
-```
+
+```text
 GET /courses?semester=Fall2025&page=1
 Authorization: Bearer <token>
 
@@ -421,10 +429,11 @@ Response: 200 OK
   ],
   "pagination": { "page": 1, "per_page": 20, "total": 45 }
 }
-```
 
+```text
 #### Get Course
-```
+
+```text
 GET /courses/{id}
 Authorization: Bearer <token>
 
@@ -447,12 +456,13 @@ Response: 200 OK
     }
   }
 }
-```
 
+```text
 ### 4. Grade Endpoints
 
 #### List Grades
-```
+
+```text
 GET /grades?student_id=1&course_id=1&page=1
 Authorization: Bearer <token>
 
@@ -473,10 +483,11 @@ Response: 200 OK
     }
   ]
 }
-```
 
+```text
 #### Create Grade
-```
+
+```text
 POST /grades
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -505,12 +516,13 @@ Response: 201 Created
     "created_at": "2025-12-12T10:30:00Z"
   }
 }
-```
 
+```text
 ### 5. Attendance Endpoints
 
 #### List Attendance
-```
+
+```text
 GET /attendances?student_id=1&course_id=1&start_date=2025-12-01&end_date=2025-12-15
 Authorization: Bearer <token>
 
@@ -528,10 +540,11 @@ Response: 200 OK
     }
   ]
 }
-```
 
+```text
 #### Record Attendance
-```
+
+```text
 POST /attendances
 Authorization: Bearer <token>
 Content-Type: application/json
@@ -556,8 +569,8 @@ Response: 201 Created
     "status": "Present"
   }
 }
-```
 
+```text
 ---
 
 ## Breaking Change Policy
@@ -603,7 +616,7 @@ Breaking changes require:
 
 ### Phase 1: Announcement (Month 1)
 
-```
+```text
 Email: "API Endpoint Deprecation Notice"
 
 Subject: Important - /students endpoint will be deprecated
@@ -623,28 +636,29 @@ Timeline:
 - v1 deprecation announced: Dec 2025
 - v1 endpoints still fully supported: Dec 2025 - June 2026
 - v1 support ends: June 2026
-```
 
+```text
 ### Phase 2: Dual Support (Months 2-6)
 
 Both v1 and v2 endpoints work:
 
-```
+```text
 v1 (deprecated):  GET /api/v1/students
 v2 (preferred):   GET /api/v2/students
 
 Both return same data, headers indicate deprecation.
-```
 
+```text
 ### Phase 3: Sunset (Month 7+)
 
-```
+```text
 v1 endpoints: Returns 410 Gone
 v2 endpoints: Only option
-```
 
+```text
 Example sunset response:
-```
+
+```text
 HTTP/1.1 410 Gone
 
 {
@@ -659,8 +673,8 @@ HTTP/1.1 410 Gone
     }
   }
 }
-```
 
+```text
 ---
 
 ## Migration Guide
@@ -678,6 +692,7 @@ HTTP/1.1 410 Gone
 #### Response Changes
 
 **v1 Response:**
+
 ```json
 {
   "id": 1,
@@ -685,9 +700,10 @@ HTTP/1.1 410 Gone
   "email": "john@example.com",
   "phone": "+30 6XXXXXXXX"
 }
-```
 
+```text
 **v2 Response:**
+
 ```json
 {
   "id": 1,
@@ -698,8 +714,8 @@ HTTP/1.1 410 Gone
     "phone": "+30 6XXXXXXXX"
   }
 }
-```
 
+```text
 #### Migration Steps
 
 1. Identify v1 endpoints in use
@@ -725,7 +741,7 @@ HTTP/1.1 410 Gone
 
 ### Support Timeline
 
-```
+```text
 v1.x.x:  2025-01-01 -------- 2026-06-01 (18 months)
   Active    [========]    Deprecated
               Dec'25        Jun'26
@@ -733,8 +749,8 @@ v1.x.x:  2025-01-01 -------- 2026-06-01 (18 months)
 v2.x.x:          2026-01-01 -------- 2026-12-01 (planned)
   Alpha/Beta      [=======]  Release
                    Dec'25      Dec'26
-```
 
+```text
 ---
 
 ## API Stability Commitment
@@ -778,3 +794,4 @@ See `RBAC_API_MATRIX.md` for a full list of RBAC endpoints and required permissi
 - See also: `docs/api/RBAC_API_MATRIX.md` for a permission matrix table.
 
 ---
+

@@ -2,7 +2,7 @@
 
 **How all 4 docs work together to prevent duplication**
 
-```
+```text
 ┌──────────────────────────────────────────────────────────────────────┐
 │                         EVERY AGENT STARTS HERE                      │
 │                                                                      │
@@ -79,15 +79,15 @@
 │  📚 DOCUMENTATION_INDEX.md (Updated)                                 │
 │     ↓ Points agents to these coordination docs                      │
 └──────────────────────────────────────────────────────────────────────┘
-```
 
+```text
 ---
 
 ## 📍 How to Navigate by Your Role
 
 ### 🤖 "I'm an AI Agent and I Don't Know What I'm Supposed to Do"
 
-```
+```text
 1. Open: docs/AGENT_QUICK_START.md
 2. Read: "Here's what to do in 5 minutes"
 3. Open: docs/ACTIVE_WORK_STATUS.md
@@ -95,22 +95,22 @@
 5. Read: The "Next Action" section
 6. Do: That action
 7. Update: ACTIVE_WORK_STATUS with your progress
-```
 
+```text
 **Total time**: 10 minutes (5 min read + 5 min work)
 
 ---
 
 ### 👨‍💼 "I'm a Team Lead and Need to Understand the System"
 
-```
+```text
 1. Open: AGENT_COORDINATION_README.md (this file's parent)
 2. Read: Executive summary (2 minutes)
 3. Open: docs/AGENT_COORDINATION_SYSTEM.md
 4. Read: Full overview with examples (15 minutes)
 5. Check: docs/ACTIVE_WORK_STATUS.md current state (3 minutes)
-```
 
+```text
 **Total time**: 20 minutes
 **Outcome**: Understand how agents coordinate, can onboard new people, can improve the system
 
@@ -118,15 +118,15 @@
 
 ### 🏫 "I'm Onboarding a New Developer and Need to Explain This"
 
-```
+```text
 1. Show them: AGENT_COORDINATION_README.md (2 minutes)
 2. Have them read: docs/AGENT_QUICK_START.md (5 minutes)
 3. Have them open: docs/ACTIVE_WORK_STATUS.md
 4. Point to: A task in 🟦 IN PROGRESS state
 5. Say: "Your job is to finish this task using the Next Action"
 6. They will know exactly what to do
-```
 
+```text
 **Total time**: 15 minutes
 **Outcome**: New dev is productive immediately, no confusion about "what should I work on?"
 
@@ -134,20 +134,22 @@
 
 ### 🔧 "I Found a Bug in the System or Need to Change Something"
 
-```
+```text
 1. Current system is defined in:
    - docs/development/AGENT_CONTINUATION_PROTOCOL.md (format)
    - docs/ACTIVE_WORK_STATUS.md (template)
+
 2. Before changing:
    - Propose change in GitHub issue
    - Get approval from tech lead
    - Update docs/development/AGENT_CONTINUATION_PROTOCOL.md
    - Update all existing ACTIVE_WORK_STATUS.md sections
+
 3. After change:
    - Add a note at top of ACTIVE_WORK_STATUS explaining the change
    - Notify all active agents
-```
 
+```text
 ---
 
 ## 🎯 The Critical Path (If You Only Read 2 Files)
@@ -237,3 +239,4 @@
 **Every agent reads docs/AGENT_QUICK_START.md first.** Everything else follows naturally.
 
 🎯 **Next agent, go read [docs/AGENT_QUICK_START.md](docs/AGENT_QUICK_START.md) now.**
+

@@ -49,6 +49,7 @@ These are temporary failures that may succeed if retried:
 | **Temporary Service Outage** | Service briefly unavailable | Retry with exponential backoff | `Service Unavailable (503)` |
 
 **Recovery Pattern:**
+
 ```python
 import asyncio
 from functools import wraps
@@ -71,8 +72,8 @@ def retry_on_transient(max_retries: int = 3, backoff: float = 1.0):
             raise last_error
         return wrapper
     return decorator
-```
 
+```text
 ### Category 2: Client Errors (Non-Retry-able)
 
 These are permanent client errors that shouldn't be retried:
@@ -86,6 +87,7 @@ These are permanent client errors that shouldn't be retried:
 | **Conflict** | Resource state conflict | Resolve and retry | `409 Conflict` |
 
 **Recovery Pattern:**
+
 ```python
 from fastapi import HTTPException
 
@@ -101,8 +103,8 @@ def validate_and_handle(data: dict):
                 "suggestion": "Provide a valid email address"
             }
         )
-```
 
+```text
 ### Category 3: Server Errors (Investigate)
 
 These indicate server-side issues requiring investigation:
@@ -115,6 +117,7 @@ These indicate server-side issues requiring investigation:
 | **Unhandled Exception** | Code bug | Debug and fix | `AttributeError: NoneType...` |
 
 **Recovery Pattern:**
+
 ```python
 import logging
 import traceback
@@ -136,8 +139,8 @@ async def handle_server_error(error: Exception, request_id: str):
     # Alert ops team for critical errors
     if isinstance(error, DatabaseError):
         send_alert("Database error detected", severity="critical")
-```
 
+```text
 ---
 
 ## Recovery Patterns
@@ -186,8 +189,8 @@ async def retry_with_backoff(
             await asyncio.sleep(actual_wait)
 
     raise last_error
-```
 
+```text
 ### Pattern 2: Timeout with Fallback
 
 For operations that might hang, use timeout + fallback:
@@ -212,8 +215,8 @@ async def get_with_timeout_and_fallback(
     except Exception as e:
         logger.warning(f"Primary operation failed: {e}, using fallback")
         return await fallback_func()
-```
 
+```text
 ### Pattern 3: Circuit Breaker
 
 Prevent cascading failures by stopping requests to failing services:
@@ -297,8 +300,8 @@ class CircuitBreaker:
             datetime.now() - self.last_failure_time
         ).total_seconds()
         return elapsed >= self.recovery_timeout
-```
 
+```text
 ---
 
 ## Resilience Strategies
@@ -322,8 +325,8 @@ def create_resilient_engine(database_url: str):
         pool_pre_ping=True,        # Ping connections before use
         echo_pool=False,           # Set True to debug pool issues
     )
-```
 
+```text
 **Best Practices:**
 - Set `pool_pre_ping=True` to detect stale connections
 - Use `pool_recycle` to prevent timeout issues
@@ -358,8 +361,8 @@ async def add_request_id(request: Request, call_next):
     )
 
     return response
-```
 
+```text
 ### Strategy 3: Graceful Degradation
 
 Reduce functionality rather than fail completely:
@@ -392,8 +395,8 @@ async def get_dashboard(db: Session = Depends(get_db)):
         "status": "partial" if None in dashboard.values() else "ok",
         "data": dashboard
     }
-```
 
+```text
 ### Strategy 4: Bulkhead Pattern
 
 Isolate failures to prevent cascading:
@@ -427,6 +430,7 @@ class BulkheadExecutor:
             raise
 
 # Usage
+
 report_executor = BulkheadExecutor("reports", max_workers=3)
 
 @app.post("/reports/generate")
@@ -444,8 +448,8 @@ async def generate_report(report_type: str):
             "message": "Report generation failed",
             "error": str(e)
         }, 500
-```
 
+```text
 ---
 
 ## Circuit Breaker Pattern
@@ -462,6 +466,7 @@ Use circuit breakers for:
 
 ```python
 # Create circuit breaker for external API
+
 external_api_breaker = CircuitBreaker(
     failure_threshold=5,
     recovery_timeout=60,
@@ -490,8 +495,8 @@ async def get_weather(location: str):
             "status": "error",
             "message": "Weather service unavailable, no cached data"
         }, 503
-```
 
+```text
 ---
 
 ## Fallback Mechanisms
@@ -534,6 +539,7 @@ class CachedDataStore:
             raise
 
 # Usage
+
 cache_store = CachedDataStore()
 
 @app.get("/student/{student_id}")
@@ -552,8 +558,8 @@ async def get_student(student_id: int, db: Session = Depends(get_db)):
             "id": student_id,
             "message": "Using fallback data"
         }
-```
 
+```text
 ### Fallback 2: Default Values
 
 Return sensible defaults when data unavailable:
@@ -584,8 +590,8 @@ async def get_student_analytics(student_id: int, db: Session = Depends(get_db)):
         "grade_average": grade_average,
         "note": "Some metrics unavailable" if any([x is None for x in [attendance_rate, grade_average]]) else None
     }
-```
 
+```text
 ### Fallback 3: Async Alternative Processing
 
 Process data asynchronously instead of blocking:
@@ -615,8 +621,8 @@ async def generate_report_async(report_type: str):
             "message": "Report is being generated in the background",
             "check_url": f"/reports/{task_id}"
         }, 202  # Accepted
-```
 
+```text
 ---
 
 ## Error Logging & Monitoring
@@ -646,6 +652,7 @@ class StructuredLogger:
         self.logger.error(json.dumps(log_data))
 
 # Usage
+
 struct_logger = StructuredLogger(__name__)
 
 try:
@@ -656,8 +663,8 @@ except DatabaseError as e:
         e,
         {"operation": "create_student", "student_id": 123}
     )
-```
 
+```text
 ### Error Metrics
 
 Track error rates and types for alerting:
@@ -666,6 +673,7 @@ Track error rates and types for alerting:
 from prometheus_client import Counter, Histogram
 
 # Error counters
+
 error_counter = Counter(
     'app_errors_total',
     'Total errors by type',
@@ -673,6 +681,7 @@ error_counter = Counter(
 )
 
 # Error duration
+
 error_duration = Histogram(
     'app_error_recovery_seconds',
     'Time to recover from error',
@@ -680,6 +689,7 @@ error_duration = Histogram(
 )
 
 # Track errors
+
 @app.middleware("http")
 async def error_tracking_middleware(request, call_next):
     start_time = time.time()
@@ -695,8 +705,8 @@ async def error_tracking_middleware(request, call_next):
         error_duration.labels(error_type=type(e).__name__).observe(duration)
 
         raise
-```
 
+```text
 ---
 
 ## Troubleshooting Guide
@@ -711,13 +721,16 @@ async def error_tracking_middleware(request, call_next):
 3. Too many concurrent requests
 
 **Solutions:**
+
 ```python
 # 1. Check for connection leaks
+
 async with db() as session:
     # Ensure connection is released
     pass
 
 # 2. Add query timeout
+
 from sqlalchemy import event
 
 @event.listens_for(Engine, "connect")
@@ -726,14 +739,15 @@ def receive_connect(dbapi_conn, connection_record):
     dbapi_conn.timeout = 10  # 10 second query timeout
 
 # 3. Adjust pool size
+
 engine = create_engine(
     database_url,
     pool_size=10,
     max_overflow=20,
     pool_recycle=3600
 )
-```
 
+```text
 ### Symptom: Intermittent Database Errors
 
 **Error Message:** `Database connection error` (happens randomly)
@@ -744,8 +758,10 @@ engine = create_engine(
 3. Database restarts
 
 **Solutions:**
+
 ```python
 # Enable connection pinging
+
 engine = create_engine(
     database_url,
     pool_pre_ping=True,  # Ping before use
@@ -753,11 +769,12 @@ engine = create_engine(
 )
 
 # Add retry logic
+
 @retry_on_transient(max_retries=3)
 async def get_student(db, student_id):
     return db.query(Student).filter(Student.id == student_id).first()
-```
 
+```text
 ### Symptom: Slow API Responses
 
 **Error Message:** `Request took >5 seconds`
@@ -768,8 +785,10 @@ async def get_student(db, student_id):
 3. External API timeouts
 
 **Solutions:**
+
 ```python
 # 1. Add request timeout monitoring
+
 @app.middleware("http")
 async def timeout_middleware(request, call_next):
     try:
@@ -785,12 +804,14 @@ async def timeout_middleware(request, call_next):
         )
 
 # 2. Check query profiler
+
 curl http://localhost:8000/api/v1/diagnostics/queries/slow
 
 # 3. Add indexes
-# See QUERY_OPTIMIZATION.md for indexing strategy
-```
 
+# See QUERY_OPTIMIZATION.md for indexing strategy
+
+```text
 ---
 
 ## Reference Implementation
@@ -902,8 +923,8 @@ async def error_handler_middleware(request: Request, call_next):
                 "support": "Contact support with request ID"
             }
         )
-```
 
+```text
 ---
 
 ## Checklist for $11.11.2 Implementation
@@ -927,3 +948,4 @@ async def error_handler_middleware(request: Request, call_next):
 - [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)
 - [Graceful Degradation](https://www.w3.org/wiki/Graceful_degradation_versus_progressive_enhancement)
 - [Resilience4j Documentation](https://resilience4j.readme.io/)
+

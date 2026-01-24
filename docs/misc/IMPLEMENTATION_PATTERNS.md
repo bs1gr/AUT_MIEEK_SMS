@@ -1,4 +1,5 @@
 # Implementation Patterns & Code Examples
+
 ## Student Management System - Improvement Guide
 
 This document provides practical code examples for implementing the recommended improvements from the Codebase Audit Report.
@@ -8,12 +9,14 @@ This document provides practical code examples for implementing the recommended 
 ## 1. IMPLEMENTING AUDIT LOGGING (Priority 1)
 
 ### Problem
+
 Grade changes, admin actions, and user modifications leave no audit trail.
 
 ### Solution: Complete Audit System
 
 ```python
 # backend/models.py - Add to existing models
+
 from enum import Enum
 
 class AuditAction(str, Enum):
@@ -51,10 +54,11 @@ class AuditLog(Base):
         Index("idx_audit_user_action", "user_id", "action"),
         Index("idx_audit_timestamp", "timestamp"),
     )
-```
 
+```text
 ```python
 # backend/services/audit_service.py - New service
+
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from backend.models import AuditLog, AuditAction
@@ -105,10 +109,11 @@ class AuditService:
             AuditLog.resource_type == resource_type,
             AuditLog.resource_id == resource_id
         ).order_by(AuditLog.timestamp.desc()).limit(limit).all()
-```
 
+```text
 ```python
 # backend/routers/routers_grades.py - Integration example
+
 from backend.services.audit_service import AuditService
 from backend.models import AuditAction
 
@@ -159,10 +164,11 @@ async def update_grade(
     )
 
     return GradeResponse.from_orm(grade)
-```
 
+```text
 ```python
 # backend/schemas/grades.py - Update schema to require reason
+
 class GradeUpdate(BaseModel):
     grade: float = Field(ge=0)
     max_grade: float = Field(gt=0)
@@ -173,19 +179,21 @@ class GradeUpdate(BaseModel):
         max_length=500,
         description="Why is this grade being changed? (required for audit)"
     )
-```
 
+```text
 ---
 
 ## 2. DATABASE QUERY OPTIMIZATION (Priority 1)
 
 ### Problem
+
 N+1 queries cause 10-50x slowdown on list operations.
 
 ### Solution Pattern
 
 ```python
 # ❌ WRONG - Causes N+1 problem
+
 @router.get("/students/")
 async def list_students(db: Session = Depends(get_db)):
     students = db.query(Student).all()
@@ -193,6 +201,7 @@ async def list_students(db: Session = Depends(get_db)):
     # If frontend accesses student.grades for each student, this triggers N additional queries
 
 # ✅ CORRECT - Eager loading
+
 from sqlalchemy.orm import joinedload, selectinload
 
 @router.get("/students/")
@@ -204,10 +213,11 @@ async def list_students(db: Session = Depends(get_db)):
     ).filter(Student.is_active == True).all()
     return students
     # All data loaded in 3-4 queries total (not N queries)
-```
 
+```text
 ```python
 # backend/services/base_service.py - Generic optimization pattern
+
 from sqlalchemy.orm import joinedload, selectinload
 
 class BaseService:
@@ -238,10 +248,11 @@ class BaseService:
             query = query.options(path)
 
         return query
-```
 
+```text
 ```python
 # Usage example
+
 @router.get("/students/")
 async def list_students(
     include_relations: Optional[str] = Query(None),
@@ -255,12 +266,13 @@ async def list_students(
     query = db.query(Student)
     query = BaseService.apply_eager_loading(query, include_relations)
     return query.filter(Student.is_active == True).all()
-```
 
+```text
 ### Adding Missing Indexes
 
 ```python
 # backend/migrations/versions/add_query_indexes.py
+
 from alembic import op
 import sqlalchemy as sa
 
@@ -302,19 +314,21 @@ def downgrade():
     op.drop_index('idx_attendance_by_period')
     op.drop_index('idx_enrollment_by_semester')
     op.drop_index('idx_student_by_name_active')
-```
 
+```text
 ---
 
 ## 3. IMPLEMENTING MFA (Multi-Factor Authentication)
 
 ### Problem
+
 Sensitive educational data accessible with single password.
 
 ### Solution: TOTP-Based 2FA
 
 ```python
 # backend/models.py - Add MFA fields
+
 class User(Base):
     __tablename__ = "users"
 
@@ -326,10 +340,11 @@ class User(Base):
     mfa_backup_codes = Column(JSON, default=list)  # Encrypted backup codes
     mfa_verified = Column(Boolean, default=False)  # Confirmed with TOTP test
     mfa_created_at = Column(DateTime(timezone=True), nullable=True)
-```
 
+```text
 ```python
 # backend/security/mfa.py - New MFA service
+
 import pyotp
 import secrets
 from cryptography.fernet import Fernet
@@ -374,10 +389,11 @@ class MFAService:
             codes.remove(code)
             return True
         return False
-```
 
+```text
 ```python
 # backend/routers/routers_auth.py - MFA endpoints
+
 from backend.security.mfa import MFAService
 
 @router.post("/auth/mfa/setup/")
@@ -449,8 +465,8 @@ async def verify_mfa_login(
         return {"verified": True, "warning": "Backup code used - regenerate codes"}
 
     raise HTTPException(status_code=401, detail="Invalid token or code")
-```
 
+```text
 ```typescript
 // frontend/src/pages/MFASetupPage.tsx - QR code setup
 import { useState } from 'react';
@@ -508,19 +524,21 @@ export function MFASetupPage() {
     </div>
   );
 }
-```
 
+```text
 ---
 
 ## 4. SOFT DELETE FILTERING MIXIN
 
 ### Problem
+
 Soft-deleted records appear in queries without explicit filtering.
 
 ### Solution: Query Mixin Pattern
 
 ```python
 # backend/db/soft_delete.py - Automatic filtering
+
 from sqlalchemy import event
 from sqlalchemy.orm import Query
 from sqlalchemy.sql import and_
@@ -565,9 +583,11 @@ class SoftDeleteQuery(Query):
         return super().count()
 
 # Integration
+
 from backend.db import SessionLocal
 
 # Monkey-patch or configure explicitly
+
 def get_db():
     db = SessionLocal()
     db.query = lambda *args, **kwargs: SoftDeleteQuery(*args, session=db, **kwargs)
@@ -575,12 +595,13 @@ def get_db():
         yield db
     finally:
         db.close()
-```
 
+```text
 ### Alternative: Explicit Filtering Pattern
 
 ```python
 # Simpler approach - explicit but consistent
+
 class BaseModel(Base):
     """Base for all models with soft delete"""
     __abstract__ = True
@@ -596,24 +617,27 @@ class BaseModel(Base):
         self.deleted_at = datetime.now(timezone.utc)
 
 # Usage - Simple and explicit
+
 @router.get("/students/")
 async def list_students(db: Session = Depends(get_db)):
     # Explicit filter - clear intent
     students = db.query(Student).filter(Student.active()).all()
     return students
-```
 
+```text
 ---
 
 ## 5. RESPONSE STANDARDIZATION
 
 ### Problem
+
 Inconsistent API response formats across endpoints.
 
 ### Solution: Standard Response Schema
 
 ```python
 # backend/schemas/response.py
+
 from typing import Generic, Optional, TypeVar, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
@@ -654,6 +678,7 @@ class PaginatedData(BaseModel, Generic[T]):
     has_previous: bool
 
 # Usage
+
 @router.get("/students/", response_model=APIResponse[PaginatedData[StudentResponse]])
 async def list_students(
     skip: int = 0,
@@ -681,23 +706,26 @@ async def list_students(
             version=app.state.version
         )
     )
-```
 
+```text
 ---
 
 ## 6. BUSINESS METRICS COLLECTION
 
 ### Problem
+
 No visibility into business-level metrics (grades submitted, imports processed, etc.)
 
 ### Solution: Custom Metrics
 
 ```python
 # backend/middleware/business_metrics.py
+
 from prometheus_client import Counter, Histogram, Gauge
 from datetime import datetime
 
 # Counters
+
 grades_submitted_total = Counter(
     'grades_submitted_total',
     'Total grades submitted',
@@ -723,6 +751,7 @@ imports_completed_total = Counter(
 )
 
 # Histograms
+
 import_duration_seconds = Histogram(
     'import_duration_seconds',
     'Import job duration',
@@ -737,6 +766,7 @@ grade_calculation_duration = Histogram(
 )
 
 # Gauges
+
 active_users_count = Gauge(
     'active_users_count',
     'Current active users',
@@ -749,6 +779,7 @@ pending_imports_count = Gauge(
 )
 
 # Usage in routers
+
 @router.post("/grades/")
 async def submit_grade(grade: GradeCreate, db: Session = Depends(get_db)):
     # ... business logic ...
@@ -769,10 +800,11 @@ async def import_students(import_data, db: Session = Depends(get_db)):
     except Exception as e:
         imports_completed_total.labels(import_type='students', status='failed').inc()
         raise
-```
 
+```text
 ```yaml
 # monitoring/prometheus/dashboards/business.json
+
 # Grafana dashboard config
 {
   "panels": [
@@ -802,13 +834,14 @@ async def import_students(import_data, db: Session = Depends(get_db)):
     }
   ]
 }
-```
 
+```text
 ---
 
 ## 7. FRONTEND ERROR FORMATTING
 
 ### Problem
+
 Technical error messages confuse users.
 
 ### Solution: User-Friendly Error Formatting
@@ -898,8 +931,8 @@ export function useErrorFormatter() {
   const { t } = useTranslation();
   return (error: any) => formatError(error, t);
 }
-```
 
+```text
 ```typescript
 // frontend/src/components/ui/ErrorDisplay.tsx
 import { FormattedError } from '@/utils/errorFormatter';
@@ -932,13 +965,14 @@ export function ErrorDisplay({ error, onRetry }: ErrorDisplayProps) {
     </div>
   );
 }
-```
 
+```text
 ---
 
 ## 8. VIRTUAL SCROLLING FOR LARGE LISTS
 
 ### Problem
+
 Rendering 1000+ items in DOM causes performance degradation.
 
 ### Solution: react-window Integration
@@ -991,8 +1025,8 @@ export function VirtualizedStudentList({ courseId }: StudentListProps) {
     </AutoSizer>
   );
 }
-```
 
+```text
 ---
 
 ## 9. END-TO-END TEST EXAMPLE
@@ -1041,8 +1075,8 @@ test.describe('Complete Student Grading Workflow', () => {
     await expect(page.locator('text=85')).toBeVisible();
   });
 });
-```
 
+```text
 ---
 
 ## Summary
@@ -1055,3 +1089,4 @@ These implementation patterns provide concrete, production-ready solutions for t
 - ✅ Usage patterns
 
 Implement these changes incrementally, prioritizing based on business impact and team capacity.
+

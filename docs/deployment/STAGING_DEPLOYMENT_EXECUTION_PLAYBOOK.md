@@ -9,7 +9,7 @@
 
 ## 🚀 Quick Reference Timeline
 
-```
+```text
 JAN 8 (WEDNESDAY)
 09:00 - 09:30: Pre-deployment validation (30 min)
 09:30 - 10:00: Final go/no-go decision (30 min)
@@ -28,8 +28,8 @@ Monitor logs, health checks, error rates (24 hours)
 JAN 9 (THURSDAY MORNING)
 09:00 - 10:00: Final validation (1 hour)
 10:00 - 10:30: Documentation & sign-off (30 min)
-```
 
+```text
 ---
 
 ## 📋 PRE-DEPLOYMENT VALIDATION (30 minutes)
@@ -37,31 +37,37 @@ JAN 9 (THURSDAY MORNING)
 **Execute First**: `docs/deployment/PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md` (7 phases, 30 min)
 
 **Quick Checklist**:
+
 ```powershell
 # Phase 1: Repository Verification
+
 git status                              # Should be clean
 Get-Content VERSION                     # Should show 1.15.1
 git log --oneline -1                    # Should show recent release commit
 
 # Phase 2: Infrastructure Check
+
 docker --version                        # Should show v27+
 docker ps                               # No containers running (OK if empty)
 netstat -ano | findstr ":8080"         # Port should be FREE
 Get-Volume D | Select-Object SizeRemaining  # Should show ≥5GB
 
 # Phase 3: Database Verification
+
 Get-ChildItem "backend/backups/" -Filter "*.bak" | Select-Object -First 1
 # Should show recent backup file
 
 # Phase 4: Documentation Check
+
 Test-Path "docs/releases/RELEASE_NOTES_$11.17.2.md"  # Should exist
 Test-Path "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.17.2.md"  # Should exist
 
 # Phase 5: Scripts Validation
+
 Test-Path "DOCKER.ps1"                  # Should exist
 Test-Path "NATIVE.ps1"                  # Should exist
-```
 
+```text
 **Decision Point**:
 - ✅ All checks pass → **PROCEED to deployment**
 - ❌ Any check fails → **STOP and fix issue** (create issue for tracker)
@@ -71,23 +77,27 @@ Test-Path "NATIVE.ps1"                  # Should exist
 ## 🎯 PHASE 1: DEPLOYMENT (45 minutes)
 
 ### Step 1.1: Confirm GO Decision
-```
+
+```text
 ✓ Checklist complete
 ✓ No blockers identified
 ✓ Tech lead approval obtained
 ✓ Stakeholders notified
 
 Proceed with deployment? YES ✓
-```
 
+```text
 ### Step 1.2: Database Backup (5 minutes)
+
 ```powershell
 # Current data backup (CRITICAL - DO NOT SKIP)
+
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 Copy-Item "data/student_management.db" "backend/backups/pre_$11.17.2_backup_$timestamp.db.bak"
 Write-Host "✅ Backup created: pre_$11.17.2_backup_$timestamp.db.bak"
 
 # Verify backup
+
 $backupSize = (Get-Item "backend/backups/pre_$11.17.2_backup_$timestamp.db.bak").Length / 1MB
 Write-Host "Backup size: $backupSize MB"
 if ($backupSize -gt 0.1) {
@@ -96,14 +106,17 @@ if ($backupSize -gt 0.1) {
     Write-Host "❌ STOP - Backup too small, do not proceed"
     exit 1
 }
-```
 
+```text
 ### Step 1.3: Stop Current Containers (2 minutes)
+
 ```powershell
 # Stop any running containers
+
 .\DOCKER.ps1 -Stop
 
 # Verify stopped
+
 Start-Sleep -Seconds 3
 $running = docker ps -q
 if ($running) {
@@ -113,27 +126,33 @@ if ($running) {
 } else {
     Write-Host "✅ All containers stopped"
 }
-```
 
+```text
 ### Step 1.4: Deploy $11.15.2 (5 minutes)
+
 ```powershell
 # Start $11.15.2 (will build if needed)
+
 Write-Host "Starting deployment..."
 .\DOCKER.ps1 -Start
 
 # Watch for startup messages
+
 Start-Sleep -Seconds 10
 docker logs sms-fullstack --tail 20
-```
 
+```text
 ### Step 1.5: Verify Deployment (5 minutes)
+
 ```powershell
 # Check containers running
+
 $containers = docker ps
 Write-Host $containers
 Write-Host "Container should be named 'sms-fullstack' with 'Up' status"
 
 # Health check endpoint
+
 $healthUrl = "http://localhost:8080/health"
 $maxRetries = 30
 $retryCount = 0
@@ -161,11 +180,13 @@ if ($retryCount -eq $maxRetries) {
     docker logs sms-fullstack --tail 50
     exit 1
 }
-```
 
+```text
 ### Step 1.6: Verify Frontend (3 minutes)
+
 ```powershell
 # Check frontend is accessible
+
 try {
     $response = Invoke-WebRequest -Uri "http://localhost:8080/" -TimeoutSec 5
     if ($response.StatusCode -eq 200) {
@@ -175,11 +196,13 @@ try {
     Write-Host "❌ Frontend not accessible"
     exit 1
 }
-```
 
+```text
 ### Step 1.7: Log Verification (5 minutes)
+
 ```powershell
 # Check for errors in logs
+
 docker logs sms-fullstack --since 5m | Select-String -Pattern "ERROR|CRITICAL|FATAL"
 
 if ($?) {
@@ -187,8 +210,8 @@ if ($?) {
 } else {
     Write-Host "✅ No critical errors in recent logs"
 }
-```
 
+```text
 **Deployment Phase Complete**: ✅ $11.15.2 running and healthy
 
 ---
@@ -198,6 +221,7 @@ if ($?) {
 Execute 8 critical manual tests. Each test takes 5-10 minutes.
 
 ### Test 2.1: Admin Login
+
 **Steps**:
 1. Open http://localhost:8080 in browser
 2. Click "Login" button
@@ -211,6 +235,7 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Test 2.2: Student List View
+
 **Steps**:
 1. From dashboard, click "Students" in sidebar
 2. Verify list loads (should show 50+ students from seed data)
@@ -223,6 +248,7 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Test 2.3: Student Create
+
 **Steps**:
 1. Click "+ Add Student" button
 2. Fill form: Name, Email, ID, etc.
@@ -234,6 +260,7 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Test 2.4: Student Edit
+
 **Steps**:
 1. Click on a student in list
 2. Click "Edit" button
@@ -246,6 +273,7 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Test 2.5: Course Management
+
 **Steps**:
 1. Click "Courses" in sidebar
 2. Verify list shows (should have test courses)
@@ -259,6 +287,7 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Test 2.6: Grade Entry
+
 **Steps**:
 1. Click "Grades" in sidebar
 2. Select a course
@@ -272,6 +301,7 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Test 2.7: Attendance Logging
+
 **Steps**:
 1. Click "Attendance" in sidebar
 2. Select a course
@@ -284,6 +314,7 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Test 2.8: Analytics Dashboard
+
 **Steps**:
 1. Click "Analytics" in sidebar
 2. Verify dashboard loads
@@ -296,7 +327,8 @@ Execute 8 critical manual tests. Each test takes 5-10 minutes.
 **Result**: ✅ PASS / ❌ FAIL
 
 ### Smoke Test Summary
-```
+
+```text
 Total Tests: 8
 Passed: __/8
 Failed: __/8
@@ -307,20 +339,22 @@ If any failed:
 - Check backend logs for related errors
 - Create issue in tracker with screenshot
 - Decision: Continue or rollback
-```
 
+```text
 ---
 
 ## 🤖 PHASE 3: E2E AUTOMATED TESTS (1 hour)
 
 ### Step 3.1: Prepare Test Environment
+
 ```powershell
 cd frontend
 npx playwright test --config=playwright.config.ts
-```
 
+```text
 ### Step 3.2: Monitor Test Execution
-```
+
+```text
 Expected duration: 5-10 minutes
 Tests should complete without timeouts
 
@@ -330,10 +364,11 @@ Real-time output:
 ✅ Test 3: should load dashboard
 ✅ Test 4: should list students
 ... (19 total tests)
-```
 
+```text
 ### Step 3.3: Review Results
-```
+
+```text
 PASS: Test Results Summary
 ============================
 Total: 19 tests
@@ -345,10 +380,11 @@ Duration: 8m 30s
 Critical Path: 100% PASS
 
 Result: ✅ All tests passing
-```
 
+```text
 **If Tests Fail**:
-```
+
+```text
 Failed Test: "should create a new student successfully"
 Error: Timeout after 60000ms
 
@@ -357,13 +393,14 @@ Action:
 2. Check backend logs: docker logs sms-fullstack
 3. If endpoint slow: Investigate database performance
 4. If consistent: Increase timeout and re-run
-```
 
+```text
 ---
 
 ## 📊 PHASE 4: PERFORMANCE VALIDATION (30 minutes)
 
 ### Step 4.1: API Response Times
+
 ```powershell
 # Test 5 critical endpoints for response time
 
@@ -385,8 +422,8 @@ foreach ($endpoint in $endpoints) {
         Write-Host "$endpoint : ERROR - ❌"
     }
 }
-```
 
+```text
 **Expected Response Times**:
 - Student list: <200ms
 - Course list: <200ms
@@ -400,22 +437,27 @@ foreach ($endpoint in $endpoints) {
 - Investigate N+1 queries
 
 ### Step 4.2: Error Rate Check
+
 ```powershell
 # Check for errors in logs from last hour
+
 docker logs sms-fullstack --since 1h | Select-String -Pattern "500|ERROR|CRITICAL" | Measure-Object
 
 # Should show: 0 critical errors
-# If >5 errors: Investigate before proceeding
-```
 
+# If >5 errors: Investigate before proceeding
+
+```text
 ### Step 4.3: Database Performance
+
 ```powershell
 # Check database file size (shouldn't grow unexpectedly)
+
 (Get-Item "data/student_management.db").Length / 1MB
 
 # Should be ~2-3 MB (baseline from backup)
-```
 
+```text
 ---
 
 ## ✅ MONITORING (24 hours)
@@ -426,17 +468,21 @@ docker logs sms-fullstack --since 1h | Select-String -Pattern "500|ERROR|CRITICA
 - Metrics collected (CPU, memory, requests/sec)
 
 **Manual Checks** (every 2-4 hours):
+
 ```powershell
 # Check container still running
+
 docker ps | findstr sms-fullstack
 
 # Check recent errors
+
 docker logs sms-fullstack --since 2h | Select-String "ERROR"
 
 # Check health endpoint
-Invoke-WebRequest -Uri "http://localhost:8080/health" | Select-Object StatusCode, StatusDescription
-```
 
+Invoke-WebRequest -Uri "http://localhost:8080/health" | Select-Object StatusCode, StatusDescription
+
+```text
 **24-hour Validation**:
 - ✅ Zero critical errors
 - ✅ Response times stable
@@ -447,7 +493,7 @@ Invoke-WebRequest -Uri "http://localhost:8080/health" | Select-Object StatusCode
 
 ## 📝 SIGN-OFF CHECKLIST (Jan 9 Morning, 30 min)
 
-```
+```text
 ✓ Pre-deployment validation passed (all 30 points)
 ✓ Deployment completed successfully
 ✓ Health checks passing
@@ -462,8 +508,8 @@ Invoke-WebRequest -Uri "http://localhost:8080/health" | Select-Object StatusCode
 Approved By: _________________ (Tech Lead)
 Date/Time: _________________
 Status: ✅ APPROVED FOR PRODUCTION
-```
 
+```text
 ---
 
 ## 🔄 ROLLBACK PROCEDURE (If Issues Found)
@@ -471,40 +517,50 @@ Status: ✅ APPROVED FOR PRODUCTION
 **Trigger**: Any critical failure (data corruption, security issue, system down)
 
 ### Step 1: Stop Current Deployment (2 min)
+
 ```powershell
 .\DOCKER.ps1 -Stop
-```
 
+```text
 ### Step 2: Restore Database from Backup (3 min)
+
 ```powershell
 # Use backup from earlier today
+
 Copy-Item "backend/backups/pre_$11.15.2_backup_20260108_100000.db.bak" "data/student_management.db" -Force
 Write-Host "✅ Database restored from backup"
-```
 
+```text
 ### Step 3: Redeploy $11.15.2 (5 min)
+
 ```powershell
 # Change VERSION file back to 1.15.0
+
 echo "1.15.0" | Set-Content VERSION
 
 # Restart with old version
+
 .\DOCKER.ps1 -Start
 
 # Verify health
-Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 30
-```
 
+Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 30
+
+```text
 ### Step 4: Validate Rollback
+
 ```powershell
 # Run manual smoke tests again (5 min)
+
 # Verify all 8 tests still pass
 # Document issue for investigation
 
 Write-Host "Rollback complete - $11.15.2 restored"
-```
 
+```text
 ---
 
 **Playbook Status**: ✅ Ready for execution
 **Created**: January 7, 2026
 **Execution Date**: January 8-9, 2026
+

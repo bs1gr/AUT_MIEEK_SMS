@@ -11,11 +11,13 @@
 Phase 6 Performance Validation has identified **two critical issues** preventing accurate testing:
 
 ### Issue 1: 4000ms Latency on All Requests ✅ ROOT CAUSE FOUND
+
 - **Cause**: Alembic migrations + database initialization overhead
 - **Impact**: Every request takes 4+ seconds regardless of user count
 - **Status**: Identified but requires database warm-up to verify fix
 
 ### Issue 2: SQLite Path Resolution ⚠️ BLOCKING ALEMBIC
+
 - **Cause**: Windows SQLite path handling issue in Alembic env.py
 - **Impact**: Cannot run `alembic current` or verify migrations
 - **Status**: Requires env.py path fix or PostgreSQL migration
@@ -64,15 +66,16 @@ Phase 6 Performance Validation has identified **two critical issues** preventing
 **Root Cause**: **Alembic migrations running on startup**
 
 **Sequence:**
-```
+
+```text
 1. Request arrives → Backend
 2. FastAPI startup hook → run_migrations_online() in env.py
 3. Alembic checks DB version → 500ms
 4. Alembic runs pending migrations → 3000-4000ms
 5. Query executes → 100ms
 6. Response sent → ~4600ms total
-```
 
+```text
 **Why**: FastAPI lifespan in `backend/lifespan.py` runs migrations automatically on startup
 
 ---
@@ -82,10 +85,11 @@ Phase 6 Performance Validation has identified **two critical issues** preventing
 ### Blocker 1: Alembic SQLite Path Issue
 
 **Error**:
-```
-sqlite3.OperationalError: unable to open database file
-```
 
+```text
+sqlite3.OperationalError: unable to open database file
+
+```text
 **Root Cause**: Windows SQLite path handling in `backend/migrations/env.py`
 - Line 78: `with connectable.connect() as connection:`
 - SQLite can't resolve `sqlite:///D:/SMS/...` path format on Windows
@@ -127,6 +131,7 @@ Until database is properly initialized:
 1. Fix SQLite path in `backend/migrations/env.py`
    - Change: `with connectable.connect() as connection:`
    - To: Use proper Windows path handling
+
 2. Pre-warm database by making single request
 3. Re-run single-user test (should show <100ms latency)
 4. Re-run 100-user test (should show <500ms p95)
@@ -196,3 +201,4 @@ Once these blockers are cleared, Phase 6 can proceed to optimization and load te
 **Test Framework**: Locust 2.42.6
 **Environment**: NATIVE (Backend 8000, Frontend 5173)
 **Status**: Ready for mitigation and re-testing
+

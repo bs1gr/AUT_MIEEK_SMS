@@ -12,26 +12,26 @@
 
 ```powershell
 .\scripts\VERIFY_VERSION.ps1
-```
 
+```text
 ### Update everything to VERSION file value
 
 ```powershell
 .\scripts\VERIFY_VERSION.ps1 -Update
-```
 
+```text
 ### Check/update specific version + report
 
 ```powershell
 .\scripts\VERIFY_VERSION.ps1 -Version "1.17.1" -Update -Report
-```
 
+```text
 ### Generate report only
 
 ```powershell
 .\scripts\VERIFY_VERSION.ps1 -Report
-```
 
+```text
 Exit codes: `0` = all consistent, `1` = critical failure, `2` = inconsistent (needs review).
 
 ---
@@ -92,10 +92,11 @@ Use in GitHub Actions (example):
 
 ```yaml
 - name: Verify version consistency
+
   run: .\scripts\VERIFY_VERSION.ps1 -CheckOnly
   shell: pwsh
-```
 
+```text
 Handling exit codes:
 
 - `0` → proceed
@@ -114,14 +115,14 @@ Write-Host "Running version verification..." -ForegroundColor Cyan
 if ($LASTEXITCODE -eq 1) { exit 1 }
 if ($LASTEXITCODE -eq 2) { exit 1 }
 Write-Host "✅ Version verification passed" -ForegroundColor Green
-```
 
+```text
 Make executable:
 
 ```powershell
 git update-index --chmod=+x .git/hooks/pre-commit
-```
 
+```text
 ---
 
 ## 🧰 Pip Version Note (Backend)
@@ -131,9 +132,10 @@ git update-index --chmod=+x .git/hooks/pre-commit
 ```powershell
 .\scripts\dev\upgrade-pip.ps1
 # or
-.\.venv\Scripts\python.exe -m pip install --upgrade pip==25.3
-```
 
+.\.venv\Scripts\python.exe -m pip install --upgrade pip==25.3
+
+```text
 ---
 
 ## 🗃️ Archived Docs
@@ -146,3 +148,4 @@ The following were consolidated here and moved to `archive/version-management-20
 - `PIP_VERSION.md`
 
 Use this guide as the canonical reference going forward.
+

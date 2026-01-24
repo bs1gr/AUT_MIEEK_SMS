@@ -227,6 +227,7 @@ Based on [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md), we have these permissio
 ## 🎯 Refactoring Strategy
 
 ### Phase 1: Core CRUD Endpoints (Week 2)
+
 - ✅ Students (7 endpoints)
 - ✅ Courses (7 endpoints)
 - ✅ Grades (8 endpoints)
@@ -234,11 +235,13 @@ Based on [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md), we have these permissio
 - **Total**: 32 endpoints
 
 ### Phase 2: Secondary Endpoints (Week 3)
+
 - ✅ Enrollments (5 endpoints)
 - ✅ Analytics/Reports (7 endpoints)
 - **Total**: 12 endpoints
 
 ### Phase 3: Verification (Week 3-4)
+
 - ✅ Verify admin endpoints use consistent decorators
 - ✅ Verify RBAC endpoints use proper permissions
 - ✅ Integration testing
@@ -250,6 +253,7 @@ Based on [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md), we have these permissio
 ### Step 1: Add RBAC Decorators
 
 **Before**:
+
 ```python
 @router.post("/students/", response_model=StudentResponse)
 async def create_student(
@@ -258,9 +262,10 @@ async def create_student(
     db: Session = Depends(get_db)
 ):
     # Implementation
-```
 
+```text
 **After**:
+
 ```python
 @router.post("/students/", response_model=StudentResponse)
 @require_permission("students:create")
@@ -270,8 +275,8 @@ async def create_student(
     db: Session = Depends(get_db)
 ):
     # Implementation
-```
 
+```text
 ### Step 2: Update Tests
 
 Add permission-based tests for each refactored endpoint:
@@ -280,8 +285,8 @@ Add permission-based tests for each refactored endpoint:
 def test_create_student_requires_permission(client):
     # Test without permission -> 403
     # Test with permission -> 201
-```
 
+```text
 ### Step 3: Document Changes
 
 Update API documentation with permission requirements for each endpoint.
@@ -329,8 +334,8 @@ Update API documentation with permission requirements for each endpoint.
 - 14/14 permission API tests ✅
 - 370/370 all tests ✅
 - No regressions ✅
-```
 
+```text
 ### Files Modified
 
 - `backend/rbac.py` - Enhanced decorator with conditional db injection
@@ -366,3 +371,4 @@ Previous task list moved to completion status above. All tasks from Week 2 are c
 **Total Endpoints Identified**: ~67
 **Endpoints Refactored**: 67/67 (100%)
 **All Tests Passing**: ✅ 370/370 backend tests passing
+

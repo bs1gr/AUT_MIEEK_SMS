@@ -30,39 +30,46 @@ Before deploying Feature #128, verify:
 
 ```powershell
 # Navigate to project root
+
 cd d:\SMS\student-management-system
 
 # Create backup of current database
+
 .\scripts\backup-database.ps1 -OutputPath "backups\pre-search-feature-backup.sql"
 
 # Verify connection to target database
-python -m backend.db_utils check-connection
-```
 
+python -m backend.db_utils check-connection
+
+```text
 ### Step 2: Apply Alembic Migration
 
 ```bash
 # Navigate to backend
+
 cd backend
 
 # Check migration status (show pending migrations)
+
 alembic current              # Shows current version
 alembic history              # Shows all applied migrations
 alembic heads                # Shows latest available migration
 
 # Apply the search feature migration
-alembic upgrade head
-```
 
+alembic upgrade head
+
+```text
 **Expected Output**:
-```
+
+```text
 INFO [alembic.runtime.migration] Context impl PostgreSQLImpl.
 INFO [alembic.runtime.migration] Will assume transactional DDL.
 INFO [alembic.runtime.migration] Running upgrade xxx -> feature128_add_search_indexes ...
 INFO [alembic.runtime.migration] Adding indexes on students(name), students(email), courses(name), ...
 INFO [alembic.runtime.migration] Done.
-```
 
+```text
 ### Step 3: Verify Migration
 
 ```sql
@@ -78,8 +85,8 @@ SELECT * FROM pg_indexes WHERE tablename = 'courses';
 SELECT * FROM pg_indexes WHERE tablename = 'grades';
 
 -- Expected: 14 new indexes for search optimization
-```
 
+```text
 ### Step 4: Rollback if Needed
 
 If issues occur, rollback the migration:
@@ -88,12 +95,14 @@ If issues occur, rollback the migration:
 cd backend
 
 # Rollback 1 migration
+
 alembic downgrade -1
 
 # Or rollback to specific revision
-alembic downgrade abc123def456
-```
 
+alembic downgrade abc123def456
+
+```text
 ---
 
 ## Part 2: Backend Configuration
@@ -104,28 +113,33 @@ Add these variables to `.env.production` (or equivalent):
 
 ```env
 # Search API Configuration
+
 SEARCH_MAX_RESULTS=1000              # Maximum results per page
 SEARCH_MIN_QUERY_LENGTH=2            # Minimum query length (characters)
 SEARCH_TIMEOUT_SECONDS=5             # Search request timeout
 
 # Suggestion Configuration
+
 SEARCH_SUGGESTION_LIMIT=50           # Max autocomplete suggestions
 SEARCH_SUGGESTION_CACHE_TTL=3600     # Cache duration (seconds)
 
 # Rate Limiting (Feature #128 endpoints)
+
 RATE_LIMIT_SEARCH_READ=60            # Requests per minute for searches
 RATE_LIMIT_SEARCH_SUGGEST=30         # Requests per minute for suggestions
 RATE_LIMIT_SEARCH_STATS=10           # Requests per minute for statistics
 
 # Performance
+
 SEARCH_INDEX_BATCH_SIZE=5000         # Batch size for indexing
 SEARCH_ENABLE_CACHING=true           # Enable result caching
-```
 
+```text
 ### Backend Startup Verification
 
 ```python
 # backend/verify_search_deployment.py
+
 """Verify search feature deployment"""
 
 from backend.services.search_service import SearchService
@@ -189,15 +203,15 @@ def verify_deployment():
 if __name__ == '__main__':
     success = verify_deployment()
     exit(0 if success else 1)
-```
 
+```text
 Run verification:
 
 ```bash
 cd backend
 python verify_search_deployment.py
-```
 
+```text
 ---
 
 ## Part 3: Frontend Configuration
@@ -206,45 +220,53 @@ python verify_search_deployment.py
 
 ```bash
 # Navigate to frontend
+
 cd frontend
 
 # Install dependencies (if not already done)
+
 npm install
 
 # Build optimized bundle
+
 npm run build
 
 # Output: dist/ directory with optimized files
-```
 
+```text
 ### Environment Variables
 
 Add to frontend `.env.production`:
 
 ```env
 # API Configuration
+
 VITE_API_URL=https://api.example.com/api/v1  # Backend API URL
 VITE_API_TIMEOUT=5000                         # Request timeout (ms)
 
 # Search Configuration
+
 VITE_SEARCH_DEBOUNCE=300                      # Debounce delay (ms)
 VITE_SEARCH_PAGE_SIZE=20                      # Results per page
 VITE_SEARCH_MAX_SAVED=10                      # Max saved searches
-```
 
+```text
 ### Frontend Verification
 
 ```bash
 # Verify TypeScript compilation
+
 npx tsc --noEmit
 
 # Verify bundle size
+
 npm run build
 
 # Check for performance warnings
-ls -lh dist/assets/
-```
 
+ls -lh dist/assets/
+
+```text
 ---
 
 ## Part 4: Docker Deployment
@@ -255,6 +277,7 @@ If deploying in Docker, update compose file:
 
 ```yaml
 # docker-compose.prod.yml
+
 services:
   backend:
     environment:
@@ -263,8 +286,10 @@ services:
       - RATE_LIMIT_SEARCH_READ=60
       - RATE_LIMIT_SEARCH_SUGGEST=30
       - RATE_LIMIT_SEARCH_STATS=10
+
     ports:
       - "8000:8000"
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -276,27 +301,32 @@ services:
       - VITE_API_URL=http://backend:8000/api/v1
       - VITE_SEARCH_DEBOUNCE=300
       - VITE_SEARCH_PAGE_SIZE=20
+
     ports:
       - "3000:5173"
-```
 
+```text
 ### Build and Deploy
 
 ```bash
 # Build Docker images
+
 docker-compose -f docker-compose.prod.yml build
 
 # Start services
+
 docker-compose -f docker-compose.prod.yml up -d
 
 # Verify services running
+
 docker-compose -f docker-compose.prod.yml ps
 
 # Check logs
+
 docker-compose -f docker-compose.prod.yml logs -f backend
 docker-compose -f docker-compose.prod.yml logs -f frontend
-```
 
+```text
 ---
 
 ## Part 5: Performance Tuning
@@ -312,8 +342,8 @@ WHERE deleted_at IS NULL
 
 -- Expected: Sequential scan with 14 indexes available
 -- Actual: Index scan using idx_students_name or idx_students_email
-```
 
+```text
 ### Index Maintenance
 
 ```sql
@@ -337,8 +367,8 @@ SELECT
     idx_tup_fetch
 FROM pg_stat_user_indexes
 ORDER BY idx_scan DESC;
-```
 
+```text
 ### Frontend Optimization
 
 ```typescript
@@ -352,8 +382,8 @@ const SavedSearches = lazy(() => import('@/components/SavedSearches'));
 <Suspense fallback={<div>Loading...</div>}>
   <SearchBar />
 </Suspense>
-```
 
+```text
 ---
 
 ## Part 6: Monitoring & Observability
@@ -362,33 +392,39 @@ const SavedSearches = lazy(() => import('@/components/SavedSearches'));
 
 ```bash
 # Test search endpoint directly
+
 curl -X POST http://localhost:8000/api/v1/search/students \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"query": "Alice", "page": 1, "page_size": 10}'
 
 # Test suggestions endpoint
+
 curl http://localhost:8000/api/v1/search/suggestions \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"entity": "student", "query": "Ali"}'
 
 # Test statistics endpoint
+
 curl http://localhost:8000/api/v1/search/statistics \
   -H "Authorization: Bearer $TOKEN"
-```
 
+```text
 ### Monitoring Setup
 
 ```yaml
 # prometheus.yml (add search metrics)
+
 scrape_configs:
   - job_name: 'sms-search'
+
     static_configs:
       - targets: ['localhost:8000']
-    metrics_path: '/metrics'
-```
 
+    metrics_path: '/metrics'
+
+```text
 ### Key Metrics to Monitor
 
 | Metric | Target | Alert Threshold |
@@ -408,19 +444,23 @@ scrape_configs:
 
 ```bash
 # Stop services
+
 docker-compose -f docker-compose.prod.yml down
 
 # Rollback database migration
+
 cd backend
 alembic downgrade -1
 
 # Restore from backup
+
 psql -U postgres -d sms < backups/pre-search-feature-backup.sql
 
 # Redeploy previous version
-docker-compose -f docker-compose.prod.yml up -d
-```
 
+docker-compose -f docker-compose.prod.yml up -d
+
+```text
 ### Data Recovery
 
 ```sql
@@ -432,8 +472,8 @@ UPDATE students SET deleted_at = NULL WHERE id IN (SELECT id FROM students_backu
 SELECT COUNT(*) as student_count FROM students WHERE deleted_at IS NULL;
 SELECT COUNT(*) as course_count FROM courses WHERE deleted_at IS NULL;
 SELECT COUNT(*) as grade_count FROM grades WHERE deleted_at IS NULL;
-```
 
+```text
 ---
 
 ## Part 8: Post-Deployment Verification
@@ -444,20 +484,24 @@ Run comprehensive test suite:
 
 ```bash
 # Backend tests
+
 cd backend
 pytest tests/test_search_*.py -v
 
 # Frontend tests
+
 cd frontend
 npm run test -- --run
 
 # E2E tests
+
 npm run e2e
 
 # Load test
-k6 run load-testing/search.js
-```
 
+k6 run load-testing/search.js
+
+```text
 ### Verify User Experience
 
 1. **Students Search**: Can regular users search and filter students?
@@ -473,15 +517,18 @@ k6 run load-testing/search.js
 
 ```bash
 # Check backend logs
+
 docker logs <container-id> | grep -i error
 
 # Check frontend errors
+
 # Open browser dev tools and check console for errors
 
 # Check application logs
-tail -f logs/application.log | grep -i search
-```
 
+tail -f logs/application.log | grep -i search
+
+```text
 ---
 
 ## Deployment Checklist
@@ -545,13 +592,15 @@ tail -f logs/application.log | grep -i search
 **Symptoms**: Search queries fail with index errors
 
 **Solution**:
+
 ```bash
 cd backend
 alembic upgrade head
 # Verify indexes
-python -c "from backend.models import db; inspect(db.engine).get_indexes('students')"
-```
 
+python -c "from backend.models import db; inspect(db.engine).get_indexes('students')"
+
+```text
 ### Issue: Search Timeout
 
 **Symptoms**: Search requests timeout after 5 seconds
@@ -566,32 +615,39 @@ python -c "from backend.models import db; inspect(db.engine).get_indexes('studen
 **Symptoms**: Memory usage increases over time
 
 **Solution**:
+
 ```python
 # Clear cache periodically
+
 cache = {}  # Reset cache
 
 # Or add cache expiration
+
 from datetime import datetime, timedelta
 if datetime.now() - cache_time > timedelta(hours=1):
     cache = {}
-```
 
+```text
 ### Issue: Database Locks During Migration
 
 **Symptoms**: Migration hangs or database is locked
 
 **Solution**:
+
 ```bash
 # Check active queries
+
 SELECT * FROM pg_stat_activity;
 
 # Kill long-running queries
+
 SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE duration > '5 min';
 
 # Retry migration
-alembic upgrade head
-```
 
+alembic upgrade head
+
+```text
 ---
 
 ## Performance Baselines
@@ -633,6 +689,7 @@ After deployment, verify these baseline metrics:
 ## Changelog
 
 ### Version 1.0.0 (January 17, 2026)
+
 - Initial production deployment guide
 - Database migration procedures
 - Configuration management
@@ -640,3 +697,4 @@ After deployment, verify these baseline metrics:
 - Monitoring setup
 - Rollback procedures
 - Troubleshooting guide
+

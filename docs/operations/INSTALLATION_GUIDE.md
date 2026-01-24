@@ -72,8 +72,8 @@ This guide will help you install and run the Student Management System on your c
 ```powershell
 git clone https://github.com/bs1gr/AUT_MIEEK_SMS.git
 cd AUT_MIEEK_SMS
-```
 
+```text
 ### Step 3: Run SMS
 
 1. **Open PowerShell**
@@ -144,8 +144,8 @@ The application is now running. Here's what you can do:
 .\DOCKER.ps1 -UpdateClean        # Clean update (rebuild from scratch)
 .\DOCKER.ps1 -Backup             # Create manual database backup
 .\DOCKER.ps1 -WithMonitoring     # Start with Grafana/Prometheus monitoring
-```
 
+```text
 **Native Development (Hot Reload)**:
 
 ```powershell
@@ -154,16 +154,16 @@ The application is now running. Here's what you can do:
 .\NATIVE.ps1 -Frontend           # Frontend only (Vite HMR)
 .\NATIVE.ps1 -Stop               # Stop all processes
 .\NATIVE.ps1 -Status             # Check status
-```
 
+```text
 **Pre-Commit Quality Checks**:
 
 ```powershell
 .\COMMIT_READY.ps1 -Quick        # Quick validation (2-3 min)
 .\COMMIT_READY.ps1 -Standard     # Standard checks (5-8 min)
 .\COMMIT_READY.ps1 -Full         # Full validation (15-20 min)
-```
 
+```text
 ---
 
 ## 🔄 Updating SMS
@@ -172,8 +172,8 @@ The application is now running. Here's what you can do:
 
 ```powershell
 .\DOCKER.ps1 -Update
-```
 
+```text
 This will:
 
 1. ✅ Create automatic backup of your database
@@ -185,8 +185,8 @@ This will:
 
 ```powershell
 .\DOCKER.ps1 -UpdateClean
-```
 
+```text
 Use this if you encounter build issues:
 
 1. ✅ Creates backup
@@ -213,8 +213,8 @@ To stop the application:
 
 ```powershell
 .\DOCKER.ps1 -Stop
-```
 
+```text
 Or simply press `Ctrl+C` in the terminal where SMS is running (it will stop gracefully).
 
 ---
@@ -236,12 +236,14 @@ Or simply press `Ctrl+C` in the terminal where SMS is running (it will stop grac
 
 ```powershell
 # Find what's using port 8080
+
 netstat -ano | findstr ":8080"
 
 # Stop SMS if it's running
-.\DOCKER.ps1 -Stop
-```
 
+.\DOCKER.ps1 -Stop
+
+```text
 **Solution 2**: Change SMS to use a different port by editing the docker-compose configuration.
 
 ### Problem: "Build failed" or "Failed to start container"
@@ -255,8 +257,8 @@ netstat -ano | findstr ":8080"
 ```powershell
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -UpdateClean
-```
 
+```text
 4. If still failing, restart Docker Desktop:
    - Right-click Docker whale icon
    - Select "Restart"
@@ -310,8 +312,8 @@ To stop it:
 
 ```powershell
 .\DOCKER.ps1 -Stop
-```
 
+```text
 ---
 
 ## 📁 File Structure
@@ -330,8 +332,8 @@ student-management-system/
 ├── backups/                   ← Database backups (auto-created)
 ├── data/                      ← Application data (inside Docker)
 └── docs/                      ← Documentation
-```
 
+```text
 ---
 
 ## 💾 Backup and Data
@@ -351,8 +353,8 @@ Create a backup anytime:
 
 ```powershell
 .\DOCKER.ps1 -Backup
-```
 
+```text
 ### Restore from Backup
 
 1. Stop SMS:
@@ -385,15 +387,18 @@ To verify everything is working correctly after installation:
 
 ```powershell
 # Run comprehensive smoke tests
+
 .\COMMIT_READY.ps1 -Quick
 
 # Check system health
+
 .\DOCKER.ps1 -Logs
 
 # Verify rate limiting is working
-# (API should respond with 1000 read requests/min, 600 writes/min limits)
-```
 
+# (API should respond with 1000 read requests/min, 600 writes/min limits)
+
+```text
 ---
 
 ## 📊 Performance Expectations
@@ -426,8 +431,8 @@ If you're upgrading from an older version, run:
 
 ```powershell
 .\DOCKER.ps1 -UpdateClean
-```
 
+```text
 ---
 
 To access SMS from other computers on your network:
@@ -475,9 +480,11 @@ To run SMS on a QNAP NAS:
        container_name: sms-app
        ports:
          - "8080:8000"
+
        volumes:
          - sms_data:/app/data
          - /share/sms/templates:/app/templates:ro
+
        restart: unless-stopped
 
    volumes:
@@ -514,12 +521,14 @@ Same as Windows, but use Terminal instead of PowerShell:
 
 ```bash
 # Start SMS (Docker)
+
 pwsh ./DOCKER.ps1 -Start
 
 # Or use docker compose directly
-docker compose up -d --build
-```
 
+docker compose up -d --build
+
+```text
 > **Note:** Only `DOCKER.ps1` (Docker) and `NATIVE.ps1` (native development) are supported entry points in $11.9.7+. All legacy scripts were consolidated.
 
 ---
@@ -539,8 +548,8 @@ If you need to report an issue, include logs:
 
 ```powershell
 .\DOCKER.ps1 -Logs > logs.txt
-```
 
+```text
 This saves logs to `logs.txt` which you can share.
 
 ### Health Check
@@ -596,3 +605,4 @@ After installation:
 **Version**: 1.9.3
 **Last Updated**: January 2025
 **License**: MIT
+

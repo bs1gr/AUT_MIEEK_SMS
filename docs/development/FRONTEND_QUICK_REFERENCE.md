@@ -2,7 +2,7 @@
 
 ## 🏗️ ARCHITECTURE AT A GLANCE
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │                   App (Root)                         │
 │   ErrorBoundary + AuthContext + i18n + Theme        │
@@ -32,8 +32,8 @@
               ├─ useCreateStudent (mutate)
               ├─ useUpdateStudent (mutate)
               └─ useDeleteStudent (mutate)
-```
 
+```text
 ---
 
 ## 📝 CRITICAL RULES (MANDATORY)
@@ -47,8 +47,8 @@ return <h1>{t('students.title')}</h1>;
 
 // ❌ NEVER do this
 return <h1>Students</h1>;
-```
 
+```text
 ### Rule 2: Auth Respects AUTH_MODE
 
 ```tsx
@@ -61,8 +61,8 @@ async def list_users(current_admin: Any = Depends(optional_require_role("admin")
 @router.get("/admin/users")
 async def list_users(current_admin: Any = Depends(require_role("admin"))):
     pass
-```
 
+```text
 ### Rule 3: Validation on Both Sides
 
 ```tsx
@@ -72,8 +72,8 @@ validateForm();  // Show errors immediately
 
 // Backend: Security check
 Pydantic validators always run
-```
 
+```text
 ### Rule 4: React Query Cache Invalidation
 
 ```tsx
@@ -86,8 +86,8 @@ onSuccess: () => {
 
 // ❌ Never forget cache invalidation
 // Old data will display until refresh
-```
 
+```text
 ### Rule 5: Error Boundaries Everywhere
 
 ```tsx
@@ -97,8 +97,8 @@ onSuccess: () => {
 </SectionErrorBoundary>
 
 // ❌ Don't skip error boundaries
-```
 
+```text
 ---
 
 ## 🎯 PATTERNS & EXAMPLES
@@ -116,8 +116,8 @@ const mutation = useMutation({
     queryClient.invalidateQueries({ queryKey: ['students'] });
   }
 });
-```
 
+```text
 ### Pattern 2: Client State (Zustand)
 
 ```typescript
@@ -127,8 +127,8 @@ const selectStudent = useStudentsStore((state) => state.selectStudent);
 
 // Update store
 selectStudent(student);  // Triggers re-render
-```
 
+```text
 ### Pattern 3: Modal Management
 
 ```typescript
@@ -138,8 +138,8 @@ const addModal = useModal();
 // Close: addModal.close()
 // Check: addModal.isOpen
 // Render: {addModal.isOpen && <Modal onClose={addModal.close}>...</Modal>}
-```
 
+```text
 ### Pattern 4: Form Validation
 
 ```typescript
@@ -151,8 +151,8 @@ const validate = () => {
   setErrors(newErrors);
   return Object.keys(newErrors).length === 0;
 };
-```
 
+```text
 ### Pattern 5: Toast Notifications
 
 ```typescript
@@ -161,15 +161,15 @@ const { toast, show } = useToast();
 show('Saved!', 'success');
 show('Error occurred', 'error');
 show('Info message', 'info');
-```
 
+```text
 ---
 
 ## 📊 COMPONENT CHECKLIST
 
 When creating a new component:
 
-```
+```text
 ┌─ Structure
 │  ├─ Functional component (not class)
 │  ├─ TypeScript interfaces for props
@@ -194,8 +194,8 @@ When creating a new component:
    ├─ JSDoc comments
    ├─ Props documentation
    └─ Usage examples
-```
 
+```text
 ---
 
 ## 🚀 TOP 5 QUICK WINS
@@ -297,8 +297,8 @@ When creating a new component:
 
 // Animation
 <div className="animate-pulse animate-spin">
-```
 
+```text
 ---
 
 ## 🧪 TESTING TEMPLATE
@@ -326,8 +326,8 @@ describe('StudentForm', () => {
     });
   });
 });
-```
 
+```text
 ---
 
 ## 🔐 SECURITY CHECKLIST
@@ -373,15 +373,15 @@ describe('StudentForm', () => {
 ✅ CSS Grid & Flexbox
 ✅ LocalStorage API
 ✅ Fetch API with AbortController
-```
 
+```text
 ---
 
 ## 🚀 DEPLOYMENT CHECKLIST
 
 Before deploying to production:
 
-```
+```text
 Code Quality
 ☐ npm run lint - No errors
 ☐ npm run type-check - Type safe
@@ -409,14 +409,15 @@ Environment
 ☐ VITE_APP_VERSION updated
 ☐ .env.production exists
 ☐ No hardcoded secrets
-```
 
+```text
 ---
 
 ## 📞 COMMON COMMANDS
 
 ```bash
 # Development
+
 npm run dev              # Start Vite dev server
 npm run lint             # Check code quality
 npm run type-check       # TypeScript check
@@ -424,16 +425,18 @@ npm run test             # Run tests
 npm run test:ui          # Vitest UI
 
 # Production
+
 npm run build            # Build for production
 npm run build --visualizer # Analyze bundle
 npm run preview          # Preview build locally
 
 # Maintenance
+
 npm outdated             # Check outdated packages
 npm audit                # Security audit
 npm update --save        # Update packages
-```
 
+```text
 ---
 
 ## 💡 TIPS & TRICKS
@@ -442,10 +445,11 @@ npm update --save        # Update packages
 
 ```bash
 # Test API locally
+
 curl http://localhost:8000/api/v1/students/ \
   -H "Authorization: Bearer <token>"
-```
 
+```text
 ### Tip 2: Redux DevTools Chrome Extension
 
 - Inspect React Query cache
@@ -460,8 +464,8 @@ import { Profiler } from 'react';
 <Profiler id="StudentsView" onRender={onRenderCallback}>
   <StudentsView />
 </Profiler>
-```
 
+```text
 ### Tip 4: Network Tab Inspection
 
 - Sort by size (find bloat)
@@ -473,10 +477,11 @@ import { Profiler } from 'react';
 
 ```bash
 # In Chrome DevTools
+
 Ctrl+Shift+J → Lighthouse Tab
 Run audit for Performance, Accessibility, Best Practices
-```
 
+```text
 ---
 
 ## 🎯 NEXT STEPS
@@ -495,3 +500,4 @@ Print or bookmark this reference for quick lookup during development.
 
 *Last Updated: December 4, 2025*
 *Frontend $11.9.7 - Modern React Architecture*
+

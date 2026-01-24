@@ -31,8 +31,8 @@ docs/
 │
 └── archive/                       # Historical documents
     └── ...                        # Deprecated docs
-```
 
+```text
 ## 📚 Core Documentation (Root Level)
 
 These stay at project root for discoverability:
@@ -128,6 +128,7 @@ GitHub Action `.github/workflows/doc-audit.yml` runs weekly to:
    - User → `docs/user/`
    - Developer → `docs/development/`
    - Operator → `docs/deployment/`
+
 4. **Search by topic** - Use this index or GitHub search
 
 ## 📝 Contributing to Documentation
@@ -139,3 +140,4 @@ When adding new documentation:
 3. Add entry to this structure document
 4. Include status tag: `Status: Active`, `Status: Draft`, etc.
 5. Add last-updated date in frontmatter
+

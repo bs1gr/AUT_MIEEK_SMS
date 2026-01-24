@@ -27,15 +27,18 @@ Fixed 3 critical CI/CD pipeline issues blocking the build:
 **Root Cause**: SQLAlchemy's `Permission.key` attribute has type `Column[str]` at static analysis time but resolves to `str` at runtime. MyPy couldn't reconcile this.
 
 **Fix**: Added explicit `str()` cast:
+
 ```python
 # Before
+
 permission_keys.update(_normalize_permission_key(p.key) for p in direct_perms)
 
 # After (with comment)
+
 # Cast p.key to str to satisfy mypy (p.key is Column[str] at static analysis but str at runtime)
 permission_keys.update(_normalize_permission_key(str(p.key)) for p in direct_perms)
-```
 
+```text
 **Verification**: `mypy --config-file=config/mypy.ini backend/rbac.py` - 0 errors ✅
 
 ---
@@ -62,6 +65,7 @@ permission_keys.update(_normalize_permission_key(str(p.key)) for p in direct_per
 **Root Cause**: ARIA attributes `aria-valuemin` and `aria-valuemax` used JSX expressions `{0}` and `{100}` instead of string literals.
 
 **Fix**: Changed to string literals and computed `progressValue` outside JSX:
+
 ```tsx
 // Before
 <div
@@ -83,8 +87,8 @@ permission_keys.update(_normalize_permission_key(str(p.key)) for p in direct_per
     >
   );
 })()}
-```
 
+```text
 **Verification**: TypeScript compiler accepts the change ✅
 
 ---
@@ -94,17 +98,20 @@ permission_keys.update(_normalize_permission_key(str(p.key)) for p in direct_per
 Fixed minor linting issues found during review:
 
 ### TypeScript Strictness
+
 - **api.d.ts**: Changed `any` to `unknown` for `extractAPIError` and `extractAPIResponseData` parameters (2 files)
 - **NotificationBell.test.tsx**: Renamed unused `queryClient` to `_queryClient` (5 instances)
 - **NotificationCenter.test.tsx**: Changed `Record<string, any>` to `Record<string, unknown>`
 
 ### Console Statements
+
 - **NotificationBell.tsx**: Removed debug `console.log` (1 instance)
 - **pwa-register.ts**: Changed `console.log` to `console.warn` for production visibility (4 instances)
 - **notificationWebSocket.ts**: Changed `console.log` to `console.warn` (6 instances)
 - **useErrorRecovery.ts**: Changed `console.debug` to `console.warn` (2 instances)
 
 ### React Best Practices
+
 - **NotificationCenter.tsx**: Added keyboard support (`onKeyDown`) to clickable notification items
 - **CourseEvaluationRules.tsx**: Wrapped async `useEffect` callbacks in IIFE to avoid floating promises
 - **useVirtualScroll.ts**: Fixed hook composition by extracting options into `useMemo`
@@ -187,3 +194,4 @@ Fixed minor linting issues found during review:
 ---
 
 **Status**: Ready for next CI run ✅
+

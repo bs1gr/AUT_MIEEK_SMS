@@ -9,7 +9,7 @@
 
 Advanced Search & Filtering is built with a layered architecture that separates concerns and enables scalability.
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Frontend Layer                           │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
@@ -95,15 +95,15 @@ Advanced Search & Filtering is built with a layered architecture that separates 
        │ - Query optimization                          │
        │ - Transaction support                         │
        └────────────────────────────────────────────────┘
-```
 
+```text
 ---
 
 ## Data Flow Diagram
 
 ### Search Request Flow
 
-```
+```text
 1. User Input
    └─> "Alice" typed in SearchBar
    └─> onChange handler
@@ -168,8 +168,8 @@ Advanced Search & Filtering is built with a layered architecture that separates 
     └─> Pagination controls shown
     └─> Can apply AdvancedFilters
     └─> Can save search via SavedSearches
-```
 
+```text
 ---
 
 ## Database Schema & Indexes
@@ -197,8 +197,8 @@ CREATE INDEX idx_students_created_at ON students(created_at) WHERE deleted_at IS
 
 -- Composite Index for filters
 CREATE INDEX idx_students_status_gpa ON students(status, gpa) WHERE deleted_at IS NULL;
-```
 
+```text
 ### Courses Table
 
 ```sql
@@ -219,8 +219,8 @@ CREATE INDEX idx_courses_code ON courses(code) WHERE deleted_at IS NULL;
 
 -- Composite Index for filters
 CREATE INDEX idx_courses_credits ON courses(credits) WHERE deleted_at IS NULL;
-```
 
+```text
 ### Grades Table
 
 ```sql
@@ -242,8 +242,8 @@ CREATE INDEX idx_grades_date ON grades(grade_date) WHERE deleted_at IS NULL;
 
 -- Composite Index for range searches
 CREATE INDEX idx_grades_value_date ON grades(grade, grade_date) WHERE deleted_at IS NULL;
-```
 
+```text
 ### Index Performance Analysis
 
 ```sql
@@ -265,8 +265,8 @@ ORDER BY idx_scan DESC;
 -- idx_courses_name:          600+ scans
 -- idx_courses_code:          400+ scans
 -- idx_grades_value:          900+ scans
-```
 
+```text
 ---
 
 ## API Layer Architecture
@@ -294,8 +294,8 @@ class SearchRouter:
     GET /search/statistics        # Entity count statistics
 
     # Total: 6 endpoints
-```
 
+```text
 ### RBAC Implementation
 
 ```python
@@ -320,8 +320,8 @@ async def search_students(
     )
 
     return success_response(results)
-```
 
+```text
 ### Input Validation Pipeline
 
 ```python
@@ -343,12 +343,13 @@ class SearchRequest(BaseModel):
             raise ValueError('Query too long')
 
         return v.strip()
-```
 
+```text
 ### Rate Limiting Strategy
 
 ```python
 # Rate limits per endpoint type
+
 RATE_LIMITS = {
     'search': {
         'limit': 60,           # 60 requests
@@ -371,8 +372,8 @@ RATE_LIMITS = {
 @limiter.limit(f"{RATE_LIMITS['search']['limit']}/minute")
 async def search_students(...):
     pass
-```
 
+```text
 ---
 
 ## Service Layer Architecture
@@ -403,8 +404,8 @@ class SearchService:
     def _apply_soft_delete_filter(query)
     def _paginate_results(query, page, page_size)
     def _handle_search_errors(exception)
-```
 
+```text
 ### Query Building Strategy
 
 ```python
@@ -448,8 +449,8 @@ def search_students(self, query, filters=None, options=None):
         total=total,
         has_next=page * page_size < total
     )
-```
 
+```text
 ### Result Ranking Algorithm
 
 ```python
@@ -483,15 +484,15 @@ def rank_results(self, results: List[Student], query: str) -> List[Student]:
     # Sort by relevance score
     scored = [(student, calculate_score(student, query)) for student in results]
     return [student for student, score in sorted(scored, key=lambda x: x[1], reverse=True)]
-```
 
+```text
 ---
 
 ## Frontend Component Architecture
 
 ### Component Hierarchy
 
-```
+```text
 App
 ├── SearchPage
 │   ├── SearchBar
@@ -518,11 +519,11 @@ State Management
     ├── advancedFilter() method
     ├── loadMore() method
     └── clear() method
-```
 
+```text
 ### Component Data Flow
 
-```
+```text
 SearchBar
   onChange -> handleQueryInput()
   -> getSuggestionsDebounced()
@@ -546,8 +547,8 @@ User clicks "Save Search"
   -> SavedSearches onChange
   -> localStorage.setItem()
   -> Persist to localStorage
-```
 
+```text
 ### Hook State Management
 
 ```typescript
@@ -576,8 +577,8 @@ interface UseSearchState {
 // 2. useRef() for cache and timers
 // 3. useCallback() for memoized functions
 // 4. useEffect() for cleanup
-```
 
+```text
 ---
 
 ## Performance Considerations
@@ -595,8 +596,8 @@ SELECT * FROM students
 WHERE first_name ILIKE 'Alice%'
   AND deleted_at IS NULL;
 -- Cost: 15ms, index scan
-```
 
+```text
 ### Frontend Caching Strategy
 
 ```typescript
@@ -625,8 +626,8 @@ if (cached) {
 const results = await api.getSuggestions('student', query);
 cacheSet(`student:${query}`, results);
 return results;
-```
 
+```text
 ### Pagination Strategy
 
 ```typescript
@@ -650,27 +651,28 @@ async function loadMore(nextPage: number) {
 // - User can interact while loading more
 // - Infinite scroll pattern possible
 // - Memory efficient
-```
 
+```text
 ---
 
 ## Scalability Architecture
 
 ### Horizontal Scaling (Multiple Servers)
 
-```
+```text
 Load Balancer
 ├── API Server 1 (Port 8000)
 ├── API Server 2 (Port 8001)
 ├── API Server 3 (Port 8002)
 └── Database (PostgreSQL)
     └── Read Replicas for search
-```
 
+```text
 ### Caching Layer (Redis)
 
 ```python
 # Add Redis for distributed caching
+
 import redis
 
 cache = redis.Redis(host='localhost', port=6379)
@@ -690,8 +692,8 @@ def get_suggestions_cached(entity, query):
     cache.setex(key, 300, json.dumps(results))
 
     return results
-```
 
+```text
 ### Database Optimization
 
 ```sql
@@ -703,8 +705,8 @@ WHERE deleted_at IS NULL AND first_name ILIKE 'Alice%';
 -- - Offload read queries from primary
 -- - Faster searches
 -- - No locking on searches
-```
 
+```text
 ---
 
 ## Security Architecture
@@ -719,15 +721,18 @@ def search_students(...):
     pass
 
 # Roles and default permissions:
+
 # Admin:   students:*, courses:*, grades:*
 # Teacher: students:view, courses:view, grades:*
-# Student: students:self (read only own data)
-```
 
+# Student: students:self (read only own data)
+
+```text
 ### Input Sanitization
 
 ```python
 # Prevent SQL injection
+
 def sanitize_query(query: str) -> str:
     # Remove SQL keywords
     forbidden = ['DROP', 'DELETE', 'INSERT', 'UPDATE', ';', '--']
@@ -739,11 +744,12 @@ def sanitize_query(query: str) -> str:
     return query.replace("'", "''").replace('"', '""')
 
 # Use parameterized queries (SQLAlchemy ORM handles this)
+
 q = db.query(Student).filter(
     Student.name.ilike(f'%{sanitized_query}%')
 )  # Automatic escaping by ORM
-```
 
+```text
 ---
 
 ## Monitoring & Observability
@@ -752,13 +758,14 @@ q = db.query(Student).filter(
 
 ```python
 # Track in Prometheus/Grafana
+
 search_requests_total          # Total search requests
 search_latency_seconds         # Search response time
 suggestion_cache_hit_ratio     # Cache effectiveness
 database_index_scan_ratio      # Index usage percentage
 api_error_rate                 # Error rate
-```
 
+```text
 ### Logging Strategy
 
 ```python
@@ -776,8 +783,8 @@ def search_students(query, filters):
     except Exception as e:
         logger.error(f"Search failed: {e}", exc_info=True)
         raise
-```
 
+```text
 ---
 
 ## Deployment Architecture
@@ -786,21 +793,23 @@ def search_students(query, filters):
 
 ```dockerfile
 # Backend
+
 FROM python:3.11-slim
 RUN pip install -r requirements.txt
 EXPOSE 8000
 CMD ["uvicorn", "backend.main:app"]
 
 # Frontend
+
 FROM node:20-alpine
 RUN npm run build
 EXPOSE 5173
 CMD ["npm", "run", "serve"]
-```
 
+```text
 ### CI/CD Pipeline
 
-```
+```text
 Code Push
   ↓
 Run Tests (Backend + Frontend)
@@ -818,13 +827,14 @@ Approve for Production
 Deploy to Production
   ↓
 Monitor (24 hours)
-```
 
+```text
 ---
 
 ## Changelog
 
 ### Version 1.0.0 (January 17, 2026)
+
 - Complete system architecture documentation
 - Data flow diagrams
 - Database schema and indexes
@@ -836,3 +846,4 @@ Monitor (24 hours)
 - Scalability architecture
 - Monitoring and observability
 - Deployment architecture
+

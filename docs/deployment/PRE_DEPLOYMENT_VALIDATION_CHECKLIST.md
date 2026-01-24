@@ -10,6 +10,7 @@
 ## ✅ Code & Version Verification
 
 ### Repository Status
+
 - [ ] Main branch has latest code
 - [ ] Git status clean (no uncommitted changes)
 - [ ] Latest commit: `3b9d44fd5`
@@ -17,12 +18,14 @@
 
 ```bash
 # Verification commands:
+
 git status  # Should show "nothing to commit"
 git log --oneline -1  # Should show 3b9d44fd5
 cat VERSION  # Should show 1.17.2
-```
 
+```text
 ### File Integrity
+
 - [ ] VERSION file: 1.15.1
 - [ ] CHANGELOG.md: $11.17.2 entry present
 - [ ] RELEASE_NOTES_$11.17.2.md: Complete (650+ lines)
@@ -32,15 +35,17 @@ cat VERSION  # Should show 1.17.2
 
 ```bash
 # Verification:
+
 ls -la VERSION CHANGELOG.md RELEASE_NOTES_$11.17.2.md
 grep "## \[1.15.1\]" CHANGELOG.md  # Should find entry
-```
 
+```text
 ---
 
 ## 🏗️ Infrastructure Verification
 
 ### Staging Environment
+
 - [ ] Server/VM accessible (SSH/RDP works)
 - [ ] Docker installed: `docker version` succeeds
 - [ ] Docker Compose installed: `docker-compose --version` succeeds
@@ -50,14 +55,16 @@ grep "## \[1.15.1\]" CHANGELOG.md  # Should find entry
 
 ```bash
 # Verification commands:
+
 docker version
 docker-compose --version
 df -h | grep -E "^/dev"
 free -h
 ping 8.8.8.8
-```
 
+```text
 ### Port Availability
+
 - [ ] Port 8080 available (frontend)
 - [ ] Port 8000 available (backend)
 - [ ] Port 5432 available (if using PostgreSQL)
@@ -65,11 +72,13 @@ ping 8.8.8.8
 
 ```bash
 # Verification:
+
 netstat -tuln | grep -E ":(8000|8080|5432)"  # Should show nothing
 docker ps  # Should show no other sms containers
-```
 
+```text
 ### Volume Status
+
 - [ ] `/data` directory writable (for SQLite)
 - [ ] `/var/lib/docker/volumes` accessible
 - [ ] Backups directory exists: `/backups/`
@@ -77,15 +86,17 @@ docker ps  # Should show no other sms containers
 
 ```bash
 # Verification:
+
 ls -la /data
 mkdir -p /backups && touch /backups/test.txt && rm /backups/test.txt
-```
 
+```text
 ---
 
 ## 📦 Database & Data
 
 ### Current Database
+
 - [ ] $11.15.2 database backed up
 - [ ] Backup file size >100KB
 - [ ] Backup file verified (not corrupted)
@@ -93,12 +104,14 @@ mkdir -p /backups && touch /backups/test.txt && rm /backups/test.txt
 
 ```bash
 # Backup procedures:
+
 docker exec sms-fullstack sqlite3 /data/student_management.db \
   ".backup '/backups/pre-1.15.1/student_management_$11.15.2.db'"
 ls -lh /backups/pre-1.15.1/student_management_$11.15.2.db
-```
 
+```text
 ### Data Expectations
+
 - [ ] Test data exists (at least 10 students, 5 courses)
 - [ ] Sample users created (test@example.com)
 - [ ] Audit log sample data present (from $11.15.2)
@@ -106,16 +119,18 @@ ls -lh /backups/pre-1.15.1/student_management_$11.15.2.db
 
 ```bash
 # Verification:
+
 sqlite3 /data/student_management.db "SELECT COUNT(*) FROM students;"
 sqlite3 /data/student_management.db "SELECT COUNT(*) FROM courses;"
 sqlite3 /data/student_management.db "SELECT COUNT(*) FROM audit_logs;"
-```
 
+```text
 ---
 
 ## 📋 Documentation Verification
 
 ### Release Documentation
+
 - [ ] RELEASE_NOTES_$11.15.2.md: Complete and accurate
 - [ ] CHANGELOG.md: Updated with $11.15.2
 - [ ] Migration guide: Included and clear
@@ -124,11 +139,13 @@ sqlite3 /data/student_management.db "SELECT COUNT(*) FROM audit_logs;"
 
 ```bash
 # Verification:
+
 wc -l RELEASE_NOTES_$11.15.2.md  # Should be 600+
 grep -A 5 "## Known Issues" RELEASE_NOTES_$11.15.2.md
-```
 
+```text
 ### Monitoring Documentation
+
 - [ ] E2E_CI_MONITORING.md: Present
 - [ ] E2E_MONITORING_PROCEDURES.md: Present
 - [ ] e2e_metrics_collector.py: Present and executable
@@ -136,16 +153,18 @@ grep -A 5 "## Known Issues" RELEASE_NOTES_$11.15.2.md
 
 ```bash
 # Verification:
+
 ls -la docs/operations/E2E_*.md
 ls -la scripts/e2e_*.py
 file scripts/e2e_metrics_collector.py  # Should show Python script
-```
 
+```text
 ---
 
 ## 🔧 Deployment Scripts
 
 ### PowerShell Scripts (Windows) or Bash (Linux)
+
 - [ ] DOCKER.ps1 exists and is executable
 - [ ] NATIVE.ps1 exists and is executable
 - [ ] docker-compose.yml valid YAML
@@ -153,13 +172,16 @@ file scripts/e2e_metrics_collector.py  # Should show Python script
 
 ```bash
 # Verification (Windows):
+
 .\DOCKER.ps1 -Help | head  # Should show commands
 
 # Verification (Linux):
-./DOCKER.ps1 -Help 2>/dev/null || echo "Run on Windows or WSL2"
-```
 
+./DOCKER.ps1 -Help 2>/dev/null || echo "Run on Windows or WSL2"
+
+```text
 ### Configuration Files
+
 - [ ] docker/.env created from .env.example
 - [ ] POSTGRES_PASSWORD set (if using PostgreSQL)
 - [ ] DATABASE_URL configured correctly
@@ -167,46 +189,53 @@ file scripts/e2e_metrics_collector.py  # Should show Python script
 
 ```bash
 # Verification:
+
 ls -la docker/.env
 grep -E "^[A-Z_]+=.+$" docker/.env | head -10
-```
 
+```text
 ---
 
 ## 🧪 Pre-Deployment Tests
 
 ### Code Quality Checks
+
 - [ ] No Python syntax errors: `python -m py_compile backend/*.py`
 - [ ] No JavaScript syntax errors: `npm run lint` (frontend)
 - [ ] No missing dependencies: `pip check`, `npm audit`
 
 ```bash
 # Verification:
+
 cd backend && python -m py_compile *.py routers/*.py services/*.py
 cd ../frontend && npm audit --audit-level=moderate
-```
 
+```text
 ### Unit Tests (Optional but Recommended)
+
 - [ ] Backend tests: `pytest backend/tests/ -q`
 - [ ] Frontend tests: `npm run test -- --run` (if quick enough)
 
 ```bash
 # Run tests:
+
 cd backend && pytest tests/test_smoke_*.py -v  # Just smoke tests
 cd ../frontend && npm run test -- --run --reporter=verbose --bail
-```
 
+```text
 ---
 
 ## 📞 Communication Checklist
 
 ### Notification
+
 - [ ] Staging team notified of deployment window
 - [ ] No critical staging tests scheduled during deployment
 - [ ] Backup contact information exchanged
 - [ ] Escalation path documented
 
 ### Documentation
+
 - [ ] Deployment plan shared with team
 - [ ] Rollback procedure documented and accessible
 - [ ] Contact list updated with emergency contacts
@@ -217,6 +246,7 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 ## 🚀 Go/No-Go Decision
 
 ### Go Criteria (All Must Be Met)
+
 - ✅ Code version verified (1.15.1)
 - ✅ Infrastructure ready (Docker, ports, space)
 - ✅ Database backed up
@@ -226,6 +256,7 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 - ✅ Rollback plan ready
 
 ### No-Go Conditions
+
 - ❌ Code version mismatch
 - ❌ Infrastructure issues (Docker not running, ports occupied)
 - ❌ Database backup failed
@@ -254,12 +285,14 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 ## 📝 Sign-Off
 
 ### Pre-Deployment Verification Lead
+
 - **Name**: ___________________
 - **Date**: ___________________
 - **Time**: ___________________
 - **Signature**: ___________________
 
 ### Approval Authority
+
 - **Name**: ___________________
 - **Date**: ___________________
 - **Approval**: ☐ GO | ☐ NO-GO
@@ -269,16 +302,19 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 ## 🔄 Execution Path
 
 ### If All Items Checked ✅
+
 → Proceed to STAGING_DEPLOYMENT_PLAN_$11.15.2.md
 → Execute deployment steps
 → Run validation tests
 
 ### If Any Items Unchecked ⚠️
+
 → Review and fix issues
 → Update this checklist
 → Escalate to Tech Lead if needed
 
 ### If No-Go Conditions Found ❌
+
 → Do NOT proceed with deployment
 → Document issues
 → Escalate to DevOps Lead
@@ -290,3 +326,4 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 **Created**: January 7, 2026
 **Last Updated**: January 7, 2026
 **Next Review**: Before staging deployment (Jan 8)
+

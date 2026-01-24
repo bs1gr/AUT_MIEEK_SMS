@@ -243,7 +243,7 @@
 
 ### Critical Path
 
-```
+```text
 #116 (Permission Matrix)
   ↓
 #117 (DB Schema)
@@ -255,8 +255,8 @@
 #121 (Frontend UI - optional)
   ↓
 Final Testing & Release
-```
 
+```text
 ### No Known Blockers
 
 All Phase 2 issues are ready to start. No external dependencies.
@@ -289,3 +289,4 @@ For consistency, Phase 2 issues use:
 **Updated**: Upon each phase completion
 **Owner**: Tech Lead / Project Manager
 **Reference**: UNIFIED_WORK_PLAN.md (single source of truth)
+

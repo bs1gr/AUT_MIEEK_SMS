@@ -8,6 +8,7 @@
 ## 📋 Root-Level Documentation Inventory
 
 ### Core Documentation (KEEP in root)
+
 | File | Purpose | Size | Status |
 |------|---------|------|--------|
 | `README.md` | Main project documentation, quick start | 55 KB | ✅ PRIMARY |
@@ -18,6 +19,7 @@
 | `DOCUMENTATION_INDEX.md` | Master documentation index | 12 KB | ✅ KEEP |
 
 ### Operational Scripts (KEEP in root)
+
 | File | Purpose | Status |
 |------|---------|--------|
 | `DOCKER.ps1` | Docker deployment (main mode) | ✅ ACTIVE |
@@ -26,6 +28,7 @@
 | `WORKSPACE_CLEANUP.ps1` | Workspace cleanup utility | ✅ ACTIVE |
 
 ### Version/Release Files (KEEP in root)
+
 | File | Purpose | Status |
 |------|---------|--------|
 | `VERSION` | Current version number | ✅ ACTIVE |
@@ -72,7 +75,8 @@
 ## 🎯 Consolidation Strategy
 
 ### Phase 1: Organize Session Records
-```
+
+```text
 Root level:
 - VALIDATION_REPORT.md
 - FINAL_VALIDATION_STATUS.md
@@ -85,19 +89,22 @@ Root level:
 docs/development/sessions/
 - VALIDATION_REPORT_2025-01-05.md
 - E2E_AUTHENTICATION_SESSION_2025-01-05.md
-```
 
+```text
 ### Phase 2: Verify Active Scripts
+
 - Check if `RELEASE_*.ps1` scripts are used in CI/CD
 - Check if `GENERATE_RELEASE_DOCS.ps1` is in .github/workflows/
 - Determine if they should move to scripts/ or stay in root
 
 ### Phase 3: Consolidate Security Docs
+
 - Review `SECURITY_AUDIT_SUMMARY.md` vs existing guide
 - Merge findings into `docs/SECURITY_GUIDE_COMPLETE.md`
 - Archive if already consolidated
 
 ### Phase 4: Update References
+
 - Search for links to moved files
 - Update docs/DOCUMENTATION_INDEX.md
 - Update any .md files with hardcoded paths
@@ -107,16 +114,19 @@ docs/development/sessions/
 ## 🔍 Files to Review More Carefully
 
 ### `QUICK_RELEASE_GUIDE.md`
+
 - Check if actively maintained
 - May be redundant with other release docs
 - Consider moving to docs/releases/
 
 ### Release Scripts (`RELEASE_*.ps1`)
+
 - Check GitHub Actions workflows for usage
 - If not used, consider archiving
 - If used, document in root README or docs/
 
 ### `INSTALLER_BUILDER.ps1`
+
 - Currently at root level
 - Should this be in installer/ folder?
 
@@ -141,21 +151,23 @@ docs/development/sessions/
 ## ✅ Action Plan
 
 ### Files to Move (Session Records)
+
 ✅ These are safe to move - they're internal session documentation
 
-```
+```text
 Root → docs/development/sessions/
 ├── E2E_FIX_QUICK_REFERENCE.md → E2E_FIX_QUICK_REFERENCE_2025-01-05.md
 ├── FINAL_VALIDATION_STATUS.md → VALIDATION_SESSION_2025-01-05.md
 ├── RETEST_VALIDATION_COMPLETE.md → RETEST_SESSION_2025-01-05.md
 ├── VALIDATION_REPORT.md → E2E_VALIDATION_REPORT_2025-01-05.md
 └── SESSION_SUMMARY_DOCUMENTATION_PHASE.md → Already in docs/
-```
 
+```text
 ### Files to Keep in Root (Primary Docs)
+
 ✅ These are user-facing and/or referenced in README
 
-```
+```text
 Root (KEEP)
 ├── README.md - Main documentation
 ├── CHANGELOG.md - Release history
@@ -169,19 +181,20 @@ Root (KEEP)
     ├── NATIVE.ps1 - Development
     ├── COMMIT_READY.ps1 - Quality gate
     └── WORKSPACE_CLEANUP.ps1 - Utilities
-```
 
+```text
 ### Files to Review
+
 ⚠️  These may be redundant or unused
 
-```
+```text
 ├── RELEASE_*.ps1 scripts - Check if actively used
 ├── GENERATE_RELEASE_DOCS.ps1 - Check if in workflows
 ├── INSTALLER_BUILDER.ps1 - Should be in installer/ folder?
 ├── SECURITY_AUDIT_SUMMARY.md - Consolidate into security guide?
 └── QUICK_RELEASE_GUIDE.md - Move to docs/releases/
-```
 
+```text
 ## Next Steps
 
 1. Create docs/development/sessions/ folder
@@ -190,3 +203,4 @@ Root (KEEP)
 4. Search for broken references and fix them
 5. Verify all links work
 6. Commit consolidation changes
+

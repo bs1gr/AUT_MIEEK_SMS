@@ -1,6 +1,7 @@
 # RBAC API and Permission Matrix
 
 ## Overview
+
 This document describes the available RBAC (Role-Based Access Control) API endpoints and the permission matrix for the Student Management System.
 
 ---
@@ -8,18 +9,21 @@ This document describes the available RBAC (Role-Based Access Control) API endpo
 ## RBAC CRUD Endpoints
 
 ### Roles
+
 - `POST   /admin/rbac/roles`           — Create a new role (permission: `rbac.roles.create`)
 - `GET    /admin/rbac/roles`            — List all roles (permission: `rbac.roles.read`)
 - `PUT    /admin/rbac/roles/{role_id}`  — Update a role (permission: `rbac.roles.update`)
 - `DELETE /admin/rbac/roles/{role_id}`  — Delete a role (permission: `rbac.roles.delete`)
 
 ### Permissions
+
 - `POST   /admin/rbac/permissions`                — Create a new permission (permission: `rbac.permissions.create`)
 - `GET    /admin/rbac/permissions`                — List all permissions (permission: `rbac.permissions.read`)
 - `PUT    /admin/rbac/permissions/{permission_id}`— Update a permission (permission: `rbac.permissions.update`)
 - `DELETE /admin/rbac/permissions/{permission_id}`— Delete a permission (permission: `rbac.permissions.delete`)
 
 ### Role/Permission Assignment
+
 - `POST   /admin/rbac/assign-role`                — Assign a role to a user (permission: `*`)
 - `POST   /admin/rbac/revoke-role`                — Revoke a role from a user (permission: `*`)
 - `POST   /admin/rbac/bulk-assign-role`           — Bulk assign a role to users (permission: `*`)
@@ -27,6 +31,7 @@ This document describes the available RBAC (Role-Based Access Control) API endpo
 - `POST   /admin/rbac/revoke-permission`          — Revoke a permission from a role (permission: `*`)
 
 ### RBAC Utilities
+
 - `POST   /admin/rbac/ensure-defaults`            — Ensure default roles/permissions (permission: `admin` only)
 - `GET    /admin/rbac/summary`                    — Get RBAC summary (permission: `admin` only)
 - `GET    /admin/rbac/change-history`             — Get RBAC change history (permission: `admin` only)
@@ -57,6 +62,7 @@ This document describes the available RBAC (Role-Based Access Control) API endpo
 ---
 
 ## Notes
+
 - `*` (wildcard) permission is required for most assignment/grant/revoke endpoints (typically only admins have this).
 - "admin only" endpoints require the user to have the `admin` role (legacy compatibility).
 - All endpoints are protected by rate limiting and audit logging.
@@ -64,3 +70,4 @@ This document describes the available RBAC (Role-Based Access Control) API endpo
 ---
 
 _Last updated: 2025-12-18_
+

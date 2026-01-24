@@ -34,11 +34,11 @@ Complete deployment guides for Student Management System on QNAP NAS devices.
 
 **Models:** TS-453D, TS-253E, TS-x53D/E series, TS-x73A series
 
-```
+```text
 1. Quick Start → README.md
 2. Production → 01-VIRTUAL-HOST-SETUP.md
-```
 
+```text
 **No ARM builds needed** - use standard `docker-compose.qnap.yml`
 
 ---
@@ -47,19 +47,19 @@ Complete deployment guides for Student Management System on QNAP NAS devices.
 
 **Models:** TS-431P3, TS-231P3, TS-x31P series, TS-x28A series
 
-```
+```text
 1. Check Compatibility → ARM-TS431P3-COMPATIBILITY.md
 2. Build ARM Images → ARM-TS431P3-BUILD-GUIDE.md
 3. (Optional) Virtual Host → 01-VIRTUAL-HOST-SETUP.md
-```
 
+```text
 **ARM builds required** - use `docker-compose.qnap.arm32v7.yml`
 
 ---
 
 ## 🔍 Quick Decision Tree
 
-```
+```text
 Do you have a QNAP NAS?
 ├─ YES → What architecture?
 │  ├─ Intel/AMD (x86_64)
@@ -73,13 +73,13 @@ Do you have a QNAP NAS?
 │     └─ 8GB RAM? → ✅ ARM-TS431P3-BUILD-GUIDE.md
 │
 └─ NO → See main deployment docs
-```
 
+```text
 ---
 
 ## 📋 File Organization
 
-```
+```text
 docs/deployment/qnap/
 ├── INDEX.md                          # This file - navigation guide
 ├── README.md                         # Quick start (x86_64, port 8080)
@@ -87,11 +87,11 @@ docs/deployment/qnap/
 ├── 01-VIRTUAL-HOST-SETUP.md          # Production virtual hosting
 ├── ARM-TS431P3-COMPATIBILITY.md      # ARM compatibility check
 └── ARM-TS431P3-BUILD-GUIDE.md        # ARM build instructions
-```
 
+```text
 **Related Files:**
 
-```
+```text
 docker/
 ├── Dockerfile.backend.qnap           # x86_64 backend (standard)
 ├── Dockerfile.frontend.qnap          # x86_64 frontend (standard)
@@ -101,8 +101,8 @@ docker/
 ├── Dockerfile.frontend.arm32v7       # ARM32v7 frontend (TS-431P3)
 ├── docker-compose.qnap.arm32v7.yml   # ARM deployment
 └── README.ARM.md                     # ARM vs x86_64 guide
-```
 
+```text
 ---
 
 ## 🎯 Deployment Paths
@@ -115,9 +115,10 @@ docker/
 
 ```bash
 # One command deployment
-docker compose -f docker/docker-compose.qnap.yml up -d
-```
 
+docker compose -f docker/docker-compose.qnap.yml up -d
+
+```text
 ---
 
 ### Path 2: Virtual Host Deployment (x86_64)
@@ -128,9 +129,10 @@ docker compose -f docker/docker-compose.qnap.yml up -d
 
 ```bash
 # Requires domain + QNAP Web Server setup
-# Professional URLs with SSL
-```
 
+# Professional URLs with SSL
+
+```text
 ---
 
 ### Path 3: ARM Container Deployment (TS-431P3)
@@ -144,13 +146,15 @@ docker compose -f docker/docker-compose.qnap.yml up -d
 
 ```bash
 # Build ARM images (60-90 min)
+
 docker build -f docker/Dockerfile.backend.arm32v7 -t sms-backend-arm32v7:latest .
 docker build -f docker/Dockerfile.frontend.arm32v7 -t sms-frontend-arm32v7:latest .
 
 # Deploy
-docker compose -f docker/docker-compose.qnap.arm32v7.yml up -d
-```
 
+docker compose -f docker/docker-compose.qnap.arm32v7.yml up -d
+
+```text
 ---
 
 ### Path 4: ARM Virtual Host (TS-431P3 + Custom Domain)
@@ -164,9 +168,10 @@ docker compose -f docker/docker-compose.qnap.arm32v7.yml up -d
 
 ```bash
 # Combine ARM builds + virtual hosting
-# Most professional setup for ARM QNAP
-```
 
+# Most professional setup for ARM QNAP
+
+```text
 ---
 
 ## ⚙️ Architecture Detection
@@ -180,11 +185,13 @@ ssh admin@YOUR_QNAP_IP
 uname -m
 
 # Output:
+
 # x86_64  → Use standard files (README.md)
 # armv7l  → Use ARM files (ARM-TS431P3-*.md)
-# aarch64 → Contact support (ARM64, not covered)
-```
 
+# aarch64 → Contact support (ARM64, not covered)
+
+```text
 **Model Number Method:**
 
 | Model Pattern | Architecture | Use |
@@ -265,3 +272,4 @@ Database and data are portable. Rebuild images for x86_64, migrate data volumes.
 **Last Updated:** 2025-11-28
 **Maintainer:** Student Management System Team
 **License:** Same as main project
+

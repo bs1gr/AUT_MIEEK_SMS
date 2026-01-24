@@ -10,6 +10,7 @@
 ## 🎯 Implementation Strategy
 
 ### Phase 1: Quick Wins (Do First - 1 hour)
+
 These fixes address 80% of issues with minimal risk:
 
 1. ✅ **Fix E2E Tests** - Add system dependencies
@@ -17,6 +18,7 @@ These fixes address 80% of issues with minimal risk:
 3. ✅ **Delete Duplicate Workflow** - Remove quickstart-validation.yml
 
 ### Phase 2: Structural (Next - 2 hours)
+
 More complex changes requiring testing:
 
 4. Refactor CI/CD Pipeline
@@ -24,6 +26,7 @@ More complex changes requiring testing:
 6. Consolidate similar workflows
 
 ### Phase 3: Optimization (Later - 1 hour)
+
 Performance and reliability improvements:
 
 7. Add caching strategies
@@ -53,12 +56,14 @@ Before making changes:
 1. **Add system package update**
    ```yaml
    - name: Update system packages
+
      run: sudo apt-get update || echo "Warning: apt update failed"
    ```
 
 2. **Add explicit database initialization**
    ```yaml
    - name: Initialize database
+
      working-directory: ./backend
      run: |
        python -c "from backend.run_migrations import run_migrations; run_migrations()"
@@ -84,21 +89,26 @@ Before making changes:
 
 ```bash
 # 1. Backup original
+
 cp .github/workflows/e2e-tests.yml .github/workflows/e2e-tests.yml.backup
 
 # 2. Apply fix
+
 cp WORKFLOW_FIXES/fix-2-e2e-tests.yml .github/workflows/e2e-tests.yml
 
 # 3. Validate syntax
+
 yamllint .github/workflows/e2e-tests.yml
 
 # 4. Commit and test
+
 git add .github/workflows/e2e-tests.yml
 git commit -m "fix(ci): improve E2E test environment setup and health checks"
 git push origin fix/github-actions-workflows
-```
 
+```text
 ### Testing:
+
 - Watch workflow run on GitHub Actions
 - Check that Playwright installs successfully
 - Verify backend starts and health check passes
@@ -155,21 +165,26 @@ git push origin fix/github-actions-workflows
 
 ```bash
 # 1. Backup original
+
 cp .github/workflows/commit-ready-smoke.yml .github/workflows/commit-ready-smoke.yml.backup
 
 # 2. Apply fix
+
 cp WORKFLOW_FIXES/fix-1-commit-ready-smoke.yml .github/workflows/commit-ready-smoke.yml
 
 # 3. Validate
+
 yamllint .github/workflows/commit-ready-smoke.yml
 
 # 4. Commit
+
 git add .github/workflows/commit-ready-smoke.yml
 git commit -m "fix(ci): split COMMIT_READY smoke test matrix for better isolation"
 git push
-```
 
+```text
 ### Testing:
+
 - Both Ubuntu and Windows jobs should run independently
 - Each should pass all validation checks
 - Artifacts should upload separately for each OS
@@ -188,16 +203,19 @@ git push
 
 ```bash
 # 1. Verify it's truly duplicate
+
 diff .github/workflows/quickstart-validation.yml .github/workflows/commit-ready-smoke.yml
 
 # 2. Delete it
+
 git rm .github/workflows/quickstart-validation.yml
 
 # 3. Commit
+
 git commit -m "chore(ci): remove duplicate quickstart-validation workflow"
 git push
-```
 
+```text
 **Expected Result:** One less failing workflow, reduced CI time
 
 ---
@@ -216,6 +234,7 @@ git push
      runs-on: ubuntu-latest  # Use Ubuntu for consistency
      steps:
        - name: Verify version
+
          run: bash scripts/verify_version.sh  # Convert PowerShell to bash
    ```
 
@@ -261,10 +280,11 @@ git push
 
 ```bash
 # Just fix the version-verification step
+
 # Change runs-on from windows-latest to ubuntu-latest
 # Convert PowerShell script to bash
-```
 
+```text
 ---
 
 ## 🔧 Fix 5: Docker Publish Workflow
@@ -291,6 +311,7 @@ git push
        runs-on: ubuntu-latest
        steps:
          - name: Run quick tests
+
            run: python -m pytest tests/ -q
 
      build-docker:
@@ -310,12 +331,15 @@ git push
 1. **Add Docker Compose for isolated environment**
    ```yaml
    - name: Start services
+
      run: docker-compose -f docker/docker-compose.yml up -d
 
    - name: Wait for services
+
      run: ./scripts/wait-for-services.sh
 
    - name: Run load tests
+
      run: locust -f load_tests/locustfile.py --headless
    ```
 
@@ -324,21 +348,27 @@ git push
 ## 📊 Testing Strategy
 
 ### Local Testing (Before Push):
+
 ```bash
 # 1. Test COMMIT_READY locally
+
 .\COMMIT_READY.ps1 -Quick
 
 # 2. Test backend standalone
+
 cd backend && python -m pytest -q
 
 # 3. Test frontend standalone
+
 cd frontend && npm run test
 
 # 4. Test E2E locally (if Docker available)
-.\e2e-local.ps1
-```
 
+.\e2e-local.ps1
+
+```text
 ### GitHub Actions Testing:
+
 1. Push to feature branch first
 2. Watch workflow runs in Actions tab
 3. Check logs for errors
@@ -353,21 +383,25 @@ If fixes cause issues:
 
 ```bash
 # Restore from backup
+
 cp .github/workflows.backup/* .github/workflows/
 
 # Or revert specific file
+
 git checkout HEAD~1 -- .github/workflows/e2e-tests.yml
 
 # Push rollback
+
 git commit -m "revert(ci): rollback workflow changes"
 git push
-```
 
+```text
 ---
 
 ## ✅ Validation Criteria
 
 ### Fix 1: E2E Tests
+
 - [ ] Playwright installs without errors
 - [ ] Backend starts successfully
 - [ ] Health check passes within 30 seconds
@@ -375,16 +409,19 @@ git push
 - [ ] Artifacts upload correctly
 
 ### Fix 2: COMMIT_READY Smoke
+
 - [ ] Ubuntu job passes independently
 - [ ] Windows job passes independently
 - [ ] Both upload separate artifacts
 - [ ] Total runtime under 30 minutes
 
 ### Fix 3: Delete Duplicate
+
 - [ ] Workflow no longer appears in Actions
 - [ ] No references in other workflows
 
 ### Overall:
+
 - [ ] All 7 previously failing workflows now pass
 - [ ] No new failures introduced
 - [ ] CI time reduced by removing duplicates
@@ -431,32 +468,40 @@ After all fixes applied:
 ## 🆘 Troubleshooting
 
 ### E2E Tests Still Failing?
+
 ```bash
 # Check Playwright version compatibility
+
 cd frontend
 npm list @playwright/test
 
 # Manual Playwright install test
-npx playwright install chromium --with-deps --dry-run
-```
 
+npx playwright install chromium --with-deps --dry-run
+
+```text
 ### COMMIT_READY Still Failing?
+
 ```bash
 # Test locally with exact CI environment
+
 $env:AUTH_MODE='strict'
 $env:DATABASE_URL='sqlite:///:memory:'
 .\COMMIT_READY.ps1 -Quick
-```
 
+```text
 ### Backend Won't Start?
+
 ```bash
 # Check database initialization
+
 python -c "from backend.run_migrations import run_migrations; run_migrations()"
 
 # Test uvicorn startup
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
-```
 
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
+```text
 ---
 
 ## 📞 Support
@@ -477,3 +522,4 @@ If issues persist:
 5. ✅ Monitor and adjust
 
 **Ready to implement? Start with Fix 1!** 🚀
+

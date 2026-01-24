@@ -27,6 +27,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ### Tier 1: High-Impact, Medium Effort (1-2 weeks each)
 
 #### Feature: Advanced Search & Filtering
+
 **Business Value**: ⭐⭐⭐⭐ (High - User pain point)
 **Technical Complexity**: ⭐⭐⭐ (Medium)
 **Estimated Effort**: 40-50 hours
@@ -45,6 +46,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 #### Feature: Progressive Web App (PWA)
+
 **Business Value**: ⭐⭐⭐⭐ (High - Mobile access)
 **Technical Complexity**: ⭐⭐⭐ (Medium)
 **Estimated Effort**: 50-60 hours
@@ -66,6 +68,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ### Tier 2: Medium-Impact, Medium-High Effort (2-3 weeks each)
 
 #### Feature: ML Predictive Analytics
+
 **Business Value**: ⭐⭐⭐ (Medium - Nice to have)
 **Technical Complexity**: ⭐⭐⭐⭐⭐ (Very High - Research intensive)
 **Estimated Effort**: 80-120 hours
@@ -84,6 +87,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 #### Feature: Calendar Integration
+
 **Business Value**: ⭐⭐⭐ (Medium - Convenience)
 **Technical Complexity**: ⭐⭐⭐ (Medium)
 **Estimated Effort**: 40-60 hours
@@ -104,6 +108,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ### Tier 3: Low-Impact or Research (Deferred)
 
 #### Feature: Advanced Reporting
+
 - Custom report builder
 - Scheduled report generation
 - Report templates (performance, attendance, grades)
@@ -115,6 +120,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 #### Feature: Teaching Aids
+
 - Lesson planning tools
 - Grade curve calculator
 - Assignment rubric templates
@@ -128,6 +134,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ## Deployment Options
 
 ### Option A: Quick Wins (4-5 weeks)
+
 **Scope**: Advanced Search + Select PWA features
 **Effort**: ~80 hours
 **Release Target**: February 2026
@@ -141,6 +148,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 ### Option B: Deep Dive (8-10 weeks)
+
 **Scope**: Advanced Search + Full PWA + ML Research
 **Effort**: ~150-180 hours
 **Release Target**: March 2026
@@ -155,6 +163,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 ### Option C: Balanced (6-7 weeks) ⭐ RECOMMENDED
+
 **Scope**: Advanced Search + Full PWA + Calendar Integration
 **Effort**: ~130-150 hours
 **Release Target**: February/March 2026
@@ -171,6 +180,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ## Recommended Approach: Option C (Balanced)
 
 ### Rationale
+
 1. **Option C delivers maximum user value** with predictable delivery
 2. **Avoids ML research risk** (can be Phase 5 if justified)
 3. **Combines user-facing features** (search + mobile + calendaring)
@@ -178,6 +188,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 5. **Maintains code quality** without overextension
 
 ### Success Criteria for Option C
+
 - ✅ Advanced Search: 95%+ relevant results, <2s query time
 - ✅ PWA: Offline functionality, 50%+ cache hit rate
 - ✅ Calendar: Sync with Google/Outlook, 0 sync errors
@@ -268,6 +279,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ## Implementation Roadmap (Option C Recommended)
 
 ### Phase 4.1: Advanced Search (Weeks 1-2)
+
 **Owner**: Solo Developer
 **Effort**: 40-50 hours
 **Deliverables**:
@@ -284,6 +296,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 ### Phase 4.2: PWA Implementation (Weeks 2-4)
+
 **Owner**: Solo Developer
 **Effort**: 50-60 hours
 **Deliverables**:
@@ -301,6 +314,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 ### Phase 4.3: Calendar Integration (Weeks 4-5)
+
 **Owner**: Solo Developer
 **Effort**: 40-60 hours
 **Deliverables**:
@@ -318,6 +332,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ---
 
 ### Phase 4.4: Testing & Stabilization (Weeks 5-6)
+
 **Owner**: Solo Developer + QA
 **Effort**: 15-20 hours
 **Deliverables**:
@@ -334,21 +349,25 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 ## Go/No-Go Decision Points
 
 ### Before Week 1
+
 - ✅ Stakeholder approval on Option C (or alternative)
 - ✅ GitHub issues #138-#140 created (Search, PWA, Calendar)
 - ✅ Dev environment verified stable
 
 ### Before Week 3
+
 - ✅ Advanced Search MVP complete
 - ✅ Search tests passing (95%+ coverage)
 - ✅ No major blockers in PWA prototype
 
 ### Before Week 5
+
 - ✅ PWA offline functionality working
 - ✅ Calendar OAuth setup successful
 - ✅ All features integrated with RBAC + Notifications
 
 ### Before Release
+
 - ✅ All 1,638+ tests passing
 - ✅ No performance regressions
 - ✅ Security audit clean
@@ -431,3 +450,4 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 **Document Status**: 📋 READY FOR STAKEHOLDER REVIEW
 **Next Update**: After stakeholder feedback collected
 **Maintainer**: Solo Developer + AI Assistant
+

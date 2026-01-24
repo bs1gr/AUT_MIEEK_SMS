@@ -131,8 +131,8 @@ Added a mandatory password change prompt on first login for the default admin ac
 13. Modal closes automatically
     ↓
 14. User can now use application normally
-```
 
+```text
 ## 🔐 Security Measures
 
 1. **Modal Non-Dismissible**: Users cannot close modal by clicking outside or pressing Escape
@@ -217,3 +217,4 @@ Added a mandatory password change prompt on first login for the default admin ac
 - After password change, immediate feedback with success toast
 - Modal automatically closes when condition is met
 - Responsive design works on mobile and desktop
+

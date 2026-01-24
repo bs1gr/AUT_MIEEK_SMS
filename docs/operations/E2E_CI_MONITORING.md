@@ -107,25 +107,25 @@ Use this table to record results from each E2E test run in CI:
 
 ### Step 1: Check Latest Run
 
-```
+```text
 1. Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/e2e-tests.yml
 2. Find latest run for your branch
 3. Note run status: ✅ (passed) or ❌ (failed)
-```
 
+```text
 ### Step 2: Review Test Results
 
-```
+```text
 1. Click on the run to view details
 2. Find job: "e2e" (Ubuntu latest)
 3. Expand "Run E2E tests" step
 4. Look for line: "Running Playwright E2E tests"
 5. Count: ✅ XX passed, ❌ X failed, ⏭️ X skipped
-```
 
+```text
 ### Step 3: Check for Flakiness (if failures)
 
-```
+```text
 1. If failures detected, re-run the workflow
 2. Go to top of workflow page, click "Re-run all jobs"
 3. Wait for completion
@@ -133,11 +133,11 @@ Use this table to record results from each E2E test run in CI:
    - Same failures? = Consistent issue (investigate)
    - Different failures? = Flaky test (document pattern)
    - No failures? = Transient issue (no action, monitor)
-```
 
+```text
 ### Step 4: Review Artifacts
 
-```
+```text
 1. On workflow run page, scroll to "Artifacts" section
 2. Download: e2e-test-results (test report, screenshots, videos)
 3. Extract and open: playwright-report/index.html in browser
@@ -145,8 +145,8 @@ Use this table to record results from each E2E test run in CI:
    - Screenshot of failure
    - Video recording
    - Trace file (for debugging)
-```
 
+```text
 ### Step 5: Document in GitHub Issue
 
 If failures are concerning or flaky:
@@ -160,13 +160,14 @@ If failures are concerning or flaky:
 **Status**: [Consistent/Flaky]
 
 ### Failure Details
+
 - **Screenshot**: [See artifacts]
 - **Video**: [See artifacts]
 - **Error Message**: [From test output]
 
 ### Reproduction
-```
 
+```text
 ---
 
 ## 🐛 Debugging Failed Tests Locally
@@ -175,36 +176,42 @@ If failures are concerning or flaky:
 
 ```bash
 # Terminal 1: Backend
+
 cd backend
 python -m uvicorn backend.main:app --reload
 
 # Terminal 2: Frontend + E2E
+
 cd frontend
 npm run dev
 
 # Terminal 3: Run specific test
+
 cd frontend
 npm run e2e -- --grep "test-name"  # Run single test
-```
 
+```text
 ### Debug with Playwright Inspector
 
 ```bash
 # Run with Playwright debugger open
+
 cd frontend
 PWDEBUG=1 npm run e2e
 
 # Or use headed mode to see browser
-npm run e2e -- --headed --workers=1 --timeout=60000
-```
 
+npm run e2e -- --headed --workers=1 --timeout=60000
+
+```text
 ### Check Trace Files
 
 ```bash
 # View recorded trace (captures network, console, etc)
-npx playwright show-trace frontend/test-results/[test-name]-trace.zip
-```
 
+npx playwright show-trace frontend/test-results/[test-name]-trace.zip
+
+```text
 ---
 
 ## 📋 Failure Pattern Tracking
@@ -212,12 +219,14 @@ npx playwright show-trace frontend/test-results/[test-name]-trace.zip
 ### Common Issues & Solutions
 
 #### Pattern 1: Timeout in Test Creation
+
 - **Tests**: "should create a new student successfully"
 - **Error**: `Timeout waiting for element`
 - **Solution**: Increase timeout to 90s (already done in $11.15.2)
 - **Status**: ✅ RESOLVED (confirmed Jan 7, 2026)
 
 #### Pattern 2: Auth Flow Failures
+
 - **Tests**: Login, permission checks
 - **Error**: 403 Forbidden, not authenticated
 - **Cause**: Session not persisting between requests
@@ -225,6 +234,7 @@ npx playwright show-trace frontend/test-results/[test-name]-trace.zip
 - **Status**: ✅ Working (verified in baseline)
 
 #### Pattern 3: Notification Endpoint 403
+
 - **Tests**: Notification broadcast tests (5 tests)
 - **Error**: 403 Forbidden on POST /api/v1/notifications/test/broadcast
 - **Cause**: Permission check on test endpoint
@@ -232,6 +242,7 @@ npx playwright show-trace frontend/test-results/[test-name]-trace.zip
 - **Status**: ⚠️ Known limitation
 
 #### Pattern 4: Flaky Navigation
+
 - **Tests**: Multi-page navigation
 - **Error**: "Element not found" on second navigation
 - **Solution**: Add explicit waits between page changes
@@ -243,6 +254,7 @@ When a new failure pattern emerges:
 
 ```markdown
 #### Pattern N: [Symptom]
+
 - **Tests**: [Which tests fail]
 - **Error**: [Error message]
 - **Cause**: [Root cause if known]
@@ -250,8 +262,8 @@ When a new failure pattern emerges:
 - **Status**: [Status]
 - **First Seen**: [Date]
 - **Last Seen**: [Date]
-```
 
+```text
 ---
 
 ## 📊 Metrics & Analysis
@@ -286,24 +298,28 @@ When a new failure pattern emerges:
 ## E2E Testing Health Report - [Month Year]
 
 ### Summary
+
 - Run count: X
 - Critical pass rate: Y%
 - Overall pass rate: Z%
 - Flakiness incidents: N
 
 ### Trends
+
 - Pass rate: [↑ improving | → stable | ↓ degrading]
 - Duration: [↑ slow | → stable | ↓ faster]
 - Flakiness: [↑ increasing | → stable | ↓ decreasing]
 
 ### Actions Taken
+
 - [Issue #XXX](link): [resolution]
 - [Pattern Y](pattern): [fix applied]
 
 ### Recommendations
-- [Next priority]
-```
 
+- [Next priority]
+
+```text
 ---
 
 ## 🔧 Maintenance & Updates
@@ -370,3 +386,4 @@ End of Q1 (March), Q2 (June), etc:
 **Status**: 🟢 Monitoring Active
 **Last Updated**: January 7, 2026
 **Next Review**: January 14, 2026 (weekly)
+

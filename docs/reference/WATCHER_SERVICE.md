@@ -43,8 +43,8 @@ The Monitoring Watcher Service is a Windows PowerShell background job that enabl
 │  - Prometheus (port 9090)                                   │
 │  - Loki, Alertmanager, cAdvisor, etc.                       │
 └────────────────────────────────────────────────────────────┘
-```
 
+```text
 ## Why This Solution?
 
 ### The Problem
@@ -81,8 +81,8 @@ Initial implementation created trigger files but required manual command executi
 .\scripts\monitoring-watcher.ps1 -Start     # Start watcher
 .\scripts\monitoring-watcher.ps1 -Stop      # Stop watcher
 .\scripts\monitoring-watcher.ps1 -Status    # Check status
-```
 
+```text
 **Auto-Start:**
 Watcher is automatically started by `RUN.ps1` when the application launches.
 
@@ -143,8 +143,8 @@ Earlier versions surfaced a "Start Monitoring Stack" button that called the trig
 -v sms_data:/app/data                          # Main data volume
 -v "${triggersDir}:/app/data/.triggers"        # Trigger directory (bind mount)
 -v "${SCRIPT_DIR}/templates:/app/templates:ro" # Templates (read-only)
-```
 
+```text
 **Note:** The trigger directory is a **bind mount** (not volume) so the host can directly access files created by the container.
 
 ## Troubleshooting
@@ -154,9 +154,10 @@ Earlier versions surfaced a "Start Monitoring Stack" button that called the trig
 ```powershell
 .\scripts\monitoring-watcher.ps1 -Status
 # If not running:
-.\scripts\monitoring-watcher.ps1 -Start
-```
 
+.\scripts\monitoring-watcher.ps1 -Start
+
+```text
 ### Trigger File Not Created
 
 - **Check**: `Test-Path data\.triggers\start_monitoring.ps1`
@@ -220,29 +221,36 @@ Potential improvements:
 
 ```powershell
 # 1. Stop monitoring and watcher
+
 docker compose -f docker-compose.monitoring.yml down
 .\scripts\monitoring-watcher.ps1 -Stop
 
 # 2. Start watcher
+
 .\scripts\monitoring-watcher.ps1 -Start
 
 # 3. Trigger via API
+
 curl.exe -X POST http://localhost:8080/control/api/monitoring/trigger
 
 # 4. Wait and verify
+
 Start-Sleep 5
 docker ps --filter "name=sms-grafana"
 docker ps --filter "name=sms-prometheus"
 
 # 5. Check logs
+
 Get-Content logs\monitoring-watcher.log -Tail 10
 
 # 6. Verify cleanup
-Test-Path data\.triggers\start_monitoring.ps1  # Should be False
-```
 
+Test-Path data\.triggers\start_monitoring.ps1  # Should be False
+
+```text
 ## Conclusion
 
 The Watcher Service provides a robust, Windows-compatible solution for true one-click monitoring auto-start from containerized applications. By leveraging PowerShell background jobs and bind mounts, it bridges the container/host boundary without requiring Docker socket mounting or manual command execution.
 
 **Key Achievement**: Button click → 2-5 seconds → monitoring running automatically. No manual intervention required.
+

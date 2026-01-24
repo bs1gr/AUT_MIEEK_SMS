@@ -37,7 +37,7 @@ This summary consolidates everything you need for Jan 8 deployment into one dige
 
 ## Your Quick Timeline (Jan 8)
 
-```
+```text
 08:00-08:20  Phase 1: Validation checks
 08:20-08:50  Phase 2: Deploy container
 08:50-09:00  Phase 3: Health checks
@@ -46,8 +46,8 @@ This summary consolidates everything you need for Jan 8 deployment into one dige
 10:15-11:00  Phase 6: Review & verify
 ───────────────────────────────────
 11:00        ✅ DONE
-```
 
+```text
 **Total**: ~2 hours from start to finish.
 
 ---
@@ -101,14 +101,16 @@ This summary consolidates everything you need for Jan 8 deployment into one dige
 ## If Something Goes Wrong
 
 **Emergency Rollback** (5 minutes):
+
 ```powershell
 docker stop sms-fullstack
 docker rm sms-fullstack
 # Restore database from backup
+
 Copy-Item "backups/pre_$11.15.2_*.db" `
   -Destination "data/student_management.db" -Force
-```
 
+```text
 Then: Take a break, review what happened, try again later.
 
 ---
@@ -187,3 +189,4 @@ Then: Take a break, review what happened, try again later.
 **Status**: Solo project, Jan 8 deployment, ready to execute
 **Confidence**: Very High (95%+)
 **You**: Ready ✅
+

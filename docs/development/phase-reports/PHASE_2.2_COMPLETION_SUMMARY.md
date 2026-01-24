@@ -28,20 +28,23 @@ Phase 2.2 enhances the bulk operations feature (Phase 2.1) by adding:
 - **Limits:** 1000 jobs global, 100 per user (configurable)
 
 **API Endpoints:**
-```
+
+```text
 POST   /api/v1/jobs          - Create new job
 GET    /api/v1/jobs/{id}     - Get job status and progress
 GET    /api/v1/jobs          - List jobs (supports filtering by user/status/type)
 POST   /api/v1/jobs/{id}/cancel - Cancel running job
 DELETE /api/v1/jobs/{id}     - Delete job (admin only)
-```
 
+```text
 **Usage Example:**
+
 ```python
 from backend.services.job_manager import job_manager
 from backend.schemas.jobs import JobType
 
 # Create job
+
 job = await job_manager.create_job(
     job_type=JobType.BULK_IMPORT,
     user_id=user.id,
@@ -50,12 +53,14 @@ job = await job_manager.create_job(
 )
 
 # Update progress
+
 await job_manager.update_progress(job.id, current=50, message="Processing row 50")
 
 # Mark complete
-await job_manager.set_result(job.id, success=True, data={"imported": 95})
-```
 
+await job_manager.set_result(job.id, success=True, data={"imported": 95})
+
+```text
 ### 2. Audit Logging System
 
 **Files Created:**
@@ -66,6 +71,7 @@ await job_manager.set_result(job.id, success=True, data={"imported": 95})
 - `backend/migrations/versions/36c455e672ec_add_auditlog_model_for_audit_logging.py` - Database migration
 
 **Database Model:**
+
 ```python
 class AuditLog:
     id: int
@@ -85,8 +91,8 @@ class AuditLog:
     idx_audit_user_action
     idx_audit_resource_action
     idx_audit_timestamp_action
-```
 
+```text
 **Supported Actions:** (18 total)
 - CREATE, UPDATE, DELETE, BULK_CREATE, BULK_UPDATE, BULK_DELETE
 - IMPORT, EXPORT, LOGIN, LOGOUT, PASSWORD_CHANGE
@@ -98,13 +104,15 @@ class AuditLog:
 - ENROLLMENT, HIGHLIGHT, SESSION, USER, SYSTEM, OTHER
 
 **API Endpoints:**
-```
+
+```text
 GET /api/v1/audit/logs                    - List logs (admin only, supports filtering)
 GET /api/v1/audit/logs/{id}               - Get specific log entry
 GET /api/v1/audit/logs/user/{user_id}     - Get logs for specific user
-```
 
+```text
 **Usage Example:**
+
 ```python
 from backend.services.audit_service import AuditLogger
 from backend.schemas.audit import AuditAction, AuditResource
@@ -112,6 +120,7 @@ from backend.schemas.audit import AuditAction, AuditResource
 audit = AuditLogger(db)
 
 # Log from request context (auto-extracts user/IP/agent)
+
 await audit.log_from_request(
     request=request,
     action=AuditAction.BULK_CREATE,
@@ -121,6 +130,7 @@ await audit.log_from_request(
 )
 
 # Manual logging
+
 await audit.log_action(
     action=AuditAction.CREATE,
     resource=AuditResource.GRADE,
@@ -128,8 +138,8 @@ await audit.log_action(
     user_id=user.id,
     details={"grade": 85, "max_grade": 100}
 )
-```
 
+```text
 ### 3. Infrastructure Updates
 
 **Router Registration:**
@@ -146,6 +156,7 @@ await audit.log_action(
 ## Architecture Decisions
 
 ### 1. Redis-Based Job Queue
+
 **Rationale:** Leverage existing Redis cache infrastructure (from Phase 2.1) instead of adding Celery/RabbitMQ complexity.
 
 **Tradeoffs:**
@@ -156,6 +167,7 @@ await audit.log_action(
 **Implementation:** Jobs stored as JSON strings with `job:{id}` keys, 24-hour TTL. Job lists stored as JSON arrays.
 
 ### 2. Audit Log Database vs. Files
+
 **Rationale:** Database storage for queryability, filtering, and analytics.
 
 **Tradeoffs:**
@@ -165,6 +177,7 @@ await audit.log_action(
 - ❌ Scale: May need partitioning for high-volume (defer to v1.13+)
 
 ### 3. Composite Indexes
+
 Created 3 composite indexes on AuditLog:
 - `idx_audit_user_action` - User activity by action type
 - `idx_audit_resource_action` - Resource access patterns
@@ -187,12 +200,14 @@ Created 3 composite indexes on AuditLog:
 ## What's NOT Done (Out of Scope for $11.12.2 Core)
 
 ### Frontend Components (Phase 2.3 - UI Enhancement)
+
 - [ ] JobProgressMonitor component
 - [ ] ImportPreview component with validation
 - [ ] Job list view in admin panel
 - [ ] Audit log viewer in admin panel
 
 ### Advanced Features ($11.12.2+)
+
 - [ ] WebSocket for real-time progress updates
 - [ ] Audit log export (CSV/JSON)
 - [ ] Audit log retention policies
@@ -201,6 +216,7 @@ Created 3 composite indexes on AuditLog:
 - [ ] Distributed job execution (Celery migration)
 
 ### Integration Work (Next Phase)
+
 - [ ] Integrate audit logging into existing bulk operations:
   - `routers_imports.py` - Bulk student/grade/attendance imports
   - `routers_exports.py` - Large exports
@@ -217,6 +233,7 @@ Created 3 composite indexes on AuditLog:
 ### For Developers
 
 **1. Use Job Manager for Long-Running Operations:**
+
 ```python
 from backend.services.job_manager import job_manager
 from backend.schemas.jobs import JobType
@@ -246,9 +263,10 @@ async def bulk_import_students(file, current_user):
     await job_manager.set_result(job.id, success=True, data={"count": len(students)})
 
     return job
-```
 
+```text
 **2. Add Audit Logging to Operations:**
+
 ```python
 from backend.services.audit_service import get_audit_logger
 from backend.schemas.audit import AuditAction, AuditResource
@@ -286,49 +304,58 @@ async def create_student(
             error_message=str(e)
         )
         raise
-```
 
+```text
 ### For System Administrators
 
 **Check Migration Status:**
+
 ```bash
 cd backend
 alembic current
 # Should show: 36c455e672ec (head)
-```
 
+```text
 **Query Audit Logs:**
+
 ```python
 # Via API (admin only)
+
 GET /api/v1/audit/logs?user_id=1&action=BULK_CREATE&start_date=2025-12-01
 
 # Via Database
+
 SELECT * FROM audit_logs
 WHERE user_id = 1
   AND action = 'BULK_CREATE'
   AND timestamp >= '2025-12-01'
 ORDER BY timestamp DESC
 LIMIT 100;
-```
 
+```text
 **Monitor Jobs:**
+
 ```python
 # Via API
+
 GET /api/v1/jobs?user_id=1&status=PROCESSING
 
 # Via Redis (direct)
+
 redis-cli keys "job:*"
 redis-cli get "job:abc123"
-```
 
+```text
 ## Performance Considerations
 
 ### Job Storage
+
 - **Limit:** 1000 jobs max (configurable via `MAX_JOBS`)
 - **TTL:** 24 hours (auto-cleanup)
 - **Overhead:** ~1KB per job in Redis
 
 ### Audit Logs
+
 - **Indexes:** 3 composite + 6 single-column indexes
 - **Write Overhead:** ~2-3ms per log entry (indexed writes)
 - **Storage:** ~500 bytes per log entry
@@ -390,3 +417,4 @@ None. All tests passing, migration clean.
 **Phase 2.2 Status:** ✅ Core Foundation Complete
 **Next Milestone:** Phase 2.3 - Integration & UI
 **Target Date:** $11.12.2 release (TBD)
+

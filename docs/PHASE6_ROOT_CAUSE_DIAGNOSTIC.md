@@ -31,14 +31,15 @@ The ~4000ms latency on every request suggests:
 ### Most Likely: Database Connection + Alembic Migrations
 
 **Scenario 1: Migrations Running on Startup**
-```
+
+```text
 1. Request arrives → 0ms
 2. FastAPI checks lifespan hooks → 500ms
 3. Alembic runs auto-migrations → 3500ms ⬅️ 3500ms overhead!
 4. Database query executes → 100ms
 5. Response sent → 4100ms total
-```
 
+```text
 **Evidence**:
 - Database file wasn't pre-initialized before tests
 - Alembic is configured to run on startup in `backend/lifespan.py`
@@ -47,6 +48,7 @@ The ~4000ms latency on every request suggests:
 ### Evidence from Code
 
 **backend/lifespan.py** (likely running migrations):
+
 ```python
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,8 +60,8 @@ async def lifespan(app: FastAPI):
 
     # Shutdown
     logger.info("Shutting down...")
-```
 
+```text
 **Solution**: Pre-initialize database before running load tests
 
 ---
@@ -70,20 +72,24 @@ Before running ANY load tests, the database needs to be initialized:
 
 ```powershell
 # Step 1: Ensure migrations are applied
+
 cd backend
 alembic upgrade head
 
 # Step 2: Verify database is initialized
+
 alembic current
 
 # Step 3: Warm up the system with a single request
+
 curl http://localhost:8000/health
 
 # Step 4: THEN run load tests
+
 cd ..\load-testing\locust
 locust -f locustfile.py --headless -u 100 -r 10 --run-time 60s --host http://localhost:8000
-```
 
+```text
 ---
 
 ## Expected Performance After Fix
@@ -101,32 +107,37 @@ locust -f locustfile.py --headless -u 100 -r 10 --run-time 60s --host http://loc
 
 ```powershell
 # Navigate to backend
+
 cd d:\SMS\student-management-system\backend
 
 # Apply all pending migrations
+
 alembic upgrade head
 
 # Verify current version
-alembic current
-```
 
+alembic current
+
+```text
 ### Step 2: Make Warm-Up Request
 
 ```powershell
 # Make a single request to initialize connections
+
 curl http://localhost:8000/health
 
 # Should now return quickly (not 4000ms)
-```
 
+```text
 ### Step 3: Re-Run Load Tests
 
 ```powershell
 # Run 100-user test again
+
 cd ..\load-testing\locust
 locust -f locustfile.py --headless -u 100 -r 10 --run-time 60s --host http://localhost:8000
-```
 
+```text
 **Expected**: Response times should drop to <500ms
 
 ---
@@ -205,3 +216,4 @@ The 4000ms overhead is preventing accurate performance measurement. Once the mig
 ---
 
 **Status**: Phase 6 diagnosis COMPLETE - ready for remediation
+

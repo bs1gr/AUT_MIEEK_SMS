@@ -28,12 +28,13 @@ This runbook provides a concise, operational sequence for deploying, verifying, 
 
 ```powershell
 ./DOCKER.ps1 -Update
-```
 
+```text
 4. Wait for success message and access URL.
 5. Confirm health:
    - `GET /health` returns status OK
    - `GET /health/ready` returns ready
+
 6. Open application: <http://localhost:8080>
 7. Validate critical flows (login, list students, grades view).
 
@@ -171,6 +172,7 @@ Run these checks after any rollback to ensure consistency:
 
 ```bash
 # Count core entities
+
 docker exec sms-fullstack sqlite3 /data/student_management.db "
   SELECT
     (SELECT COUNT(*) FROM students WHERE is_active=1) AS active_students,
@@ -178,8 +180,8 @@ docker exec sms-fullstack sqlite3 /data/student_management.db "
     (SELECT COUNT(*) FROM grades) AS total_grades,
     (SELECT COUNT(*) FROM attendance) AS total_attendance;
 "
-```
 
+```text
 Compare against pre-incident baseline. If counts are unexpectedly low:
 - Log the issue for investigation
 - Consider restoring from earlier backup
@@ -230,15 +232,18 @@ Compare against pre-incident baseline. If counts are unexpectedly low:
 
 **Minute 5-15: Root Cause Analysis**
 - Collect logs and metrics:
+
   ```bash
   docker logs sms-fullstack > incident-logs-$(date +%s).log
   docker exec sms-fullstack sqlite3 /data/student_management.db ".dump" > db-dump.sql
   ```
 - Check recent code changes:
+
   ```bash
   git log --oneline -10 --all
   ```
 - Review deployment parameters:
+
   ```bash
   docker inspect sms-fullstack | grep -i env
   ```
@@ -271,11 +276,12 @@ Compare against pre-incident baseline. If counts are unexpectedly low:
 **Symptom**: `docker ps` shows container restarting every 5-10s
 
 **Diagnosis**:
+
 ```bash
 docker logs sms-fullstack | tail -100
 # Look for: OOMKilled, Segmentation fault, import errors, missing dependencies
-```
 
+```text
 **Response**:
 - If **out of memory**: Increase Docker memory allocation (4GB → 8GB)
 - If **import error**: Check dependencies in `requirements.txt` (version mismatch)
@@ -289,18 +295,21 @@ docker logs sms-fullstack | tail -100
 **Symptom**: `GET /health` returns 500; frontend blank or error page
 
 **Diagnosis**:
+
 ```bash
 docker logs sms-fullstack | grep -i "error\|exception" | tail -20
 docker exec sms-fullstack alembic current  # Check if migrations are stuck
-```
 
+```text
 **Response**:
 - If **migration error**:
+
   ```bash
   docker exec sms-fullstack alembic upgrade head --sql  # dry-run
   docker exec sms-fullstack alembic upgrade head  # execute
   ```
 - If **dependency error**: Rebuild image without cache:
+
   ```powershell
   ./DOCKER.ps1 -UpdateClean
   ```
@@ -314,19 +323,22 @@ docker exec sms-fullstack alembic current  # Check if migrations are stuck
 **Symptom**: Requests hang (timeout after 30s); "database is locked" in logs
 
 **Diagnosis**:
+
 ```bash
 docker exec sms-fullstack sqlite3 /data/student_management.db "PRAGMA integrity_check;"
 # Expected: "ok" or specific error
-```
 
+```text
 **Response**:
 - If **SQLite lock**: Restart container (will clear connections)
+
   ```powershell
   ./DOCKER.ps1 -Stop
   ./DOCKER.ps1 -Start
   ```
 - If **integrity error**: Restore from backup (section 4.2 Option B)
 - If **PostgreSQL**: Check connection pool (if migrated)
+
   ```bash
   SELECT count(*) FROM pg_stat_activity;
   ```
@@ -339,6 +351,7 @@ docker exec sms-fullstack sqlite3 /data/student_management.db "PRAGMA integrity_
 
 **Diagnosis**:
 - Confirm SECRET_KEY in `.env`:
+
   ```powershell
   cat .env | findstr SECRET_KEY
   ```
@@ -350,6 +363,7 @@ docker exec sms-fullstack sqlite3 /data/student_management.db "PRAGMA integrity_
   - Restart: `./DOCKER.ps1 -Stop && ./DOCKER.ps1 -Start`
   - Users may need to re-login (clear localStorage)
 - If **clock skew**: Sync server time:
+
   ```bash
   # Inside container
   date  # check current time
@@ -362,17 +376,20 @@ docker exec sms-fullstack sqlite3 /data/student_management.db "PRAGMA integrity_
 **Symptom**: Browser shows blank page or fails to load CSS/JS
 
 **Diagnosis**:
+
 ```bash
 docker exec sms-fullstack ls -la /dist/  # Check if build artifacts exist
 docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
-```
 
+```text
 **Response**:
 - If **missing build artifacts**: Rebuild:
+
   ```powershell
   ./DOCKER.ps1 -UpdateClean  # Clean rebuild including frontend
   ```
 - If **wrong API endpoint**: Check VITE_API_URL in .env
+
   ```powershell
   docker inspect sms-fullstack | grep VITE_API_URL
   ```
@@ -409,6 +426,7 @@ docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
 ### 6.2 RTO Breakdown by Scenario
 
 #### Code-Only Rollback
+
 - Detection: 1-2 min
 - Preparation: 1 min (git checkout)
 - Execution: 2-3 min (Docker stop/start)
@@ -417,6 +435,7 @@ docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
 - **Status**: GREEN ✅ (within 20 min target)
 
 #### Database Schema Rollback (downgrade)
+
 - Detection: 1-2 min
 - Alembic downgrade: 1-3 min
 - Docker restart: 2-3 min
@@ -425,6 +444,7 @@ docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
 - **Status**: GREEN ✅ (within 20 min target)
 
 #### Full Backup Restore
+
 - Detection: 1-2 min
 - Locate backup: 1 min
 - Restore DB: 3-5 min (depends on size)
@@ -434,6 +454,7 @@ docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
 - **Status**: GREEN ✅ (within 20 min target)
 
 #### Major Incident (Unknown Root Cause)
+
 - Detection: 1-2 min
 - Diagnosis: 5-10 min
 - Initial mitigation: 5-15 min (rollback or hotfix)
@@ -456,11 +477,12 @@ docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
 **Current RPO**: ~15 minutes (data loss limited to last backup interval)
 
 **How to Verify**:
+
 ```bash
 ls -lt backups/ | head -10  # Confirm recent backups exist
 stat backups/student_management.db | grep Modify  # Check timestamp
-```
 
+```text
 ---
 
 ### 6.4 Data Loss Scenarios & Mitigation
@@ -491,18 +513,22 @@ To achieve < 15 minute RPO (current best):
 
 ```bash
 # 1. List recent backups
+
 ls -lt backups/student_management.db.* | head -3
 
 # 2. Restore to test DB
+
 cp backups/student_management.db.2025-12-10-17-30-00.bak /tmp/test.db
 
 # 3. Run integrity check
+
 sqlite3 /tmp/test.db "PRAGMA integrity_check; SELECT COUNT(*) FROM students;"
 
 # 4. Log results
-echo "Restore test passed: $(date)" >> docs/deployment/BACKUP_TEST_LOG.md
-```
 
+echo "Restore test passed: $(date)" >> docs/deployment/BACKUP_TEST_LOG.md
+
+```text
 ---
 
 
@@ -531,8 +557,8 @@ When enabling strict SECRET_KEY enforcement:
 
 ```powershell
 python -c "import secrets; print(secrets.token_urlsafe(48))"
-```
 
+```text
 2. Update `.env` or Docker secret store.
 3. Restart container.
 4. Invalidate existing auth tokens (communicate to users).
@@ -572,3 +598,4 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 ---
 
 **Maintain this file:** Update "Last Updated" and verification steps whenever deployment tooling changes. Add new incidents to section 5.3 for organizational learning.
+

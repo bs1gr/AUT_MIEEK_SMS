@@ -68,8 +68,8 @@ async def get_current_user(
 
     # Validate token and return user from database
     # ...
-```
 
+```text
 ### Key Behaviors
 
 1. **Non-Auth Endpoints with AUTH Disabled**
@@ -124,8 +124,8 @@ def patch_settings_for_tests(request, monkeypatch):
     # 5. Reset login throttle state
     from backend.security.login_throttle import login_throttle
     login_throttle.clear()
-```
 
+```text
 ### Database Setup
 
 Each test function gets a clean database:
@@ -137,8 +137,8 @@ def setup_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     yield
-```
 
+```text
 ### Test Client
 
 The `client` fixture provides a TestClient with dependency overrides:
@@ -157,8 +157,8 @@ def client(db):
     with TestClient(app) as c:
         yield _ClientProxy(c)
     app.dependency_overrides.clear()
-```
 
+```text
 ---
 
 ## SECRET_KEY Validation
@@ -201,8 +201,8 @@ def check_secret_key(self) -> "Settings":
         # Warning mode: log but allow
         logger.warning(f"SECRET_KEY SECURITY ISSUE: {security_issue}")
         return self
-```
 
+```text
 ### Testing SECRET_KEY Validation
 
 Tests can explicitly control SECRET_KEY behavior:
@@ -235,8 +235,8 @@ def test_secret_key_placeholder_allowed_when_not_enforced(monkeypatch):
 
     # Should keep provided value
     assert settings.SECRET_KEY == "dev-placeholder-secret"
-```
 
+```text
 ### Key Points
 
 1. **Default Behavior**: Warns but allows weak keys (backward compatible)
@@ -257,13 +257,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.pool import NullPool
 
 # In-memory SQLite with thread-safe configuration
+
 engine = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},  # Allow cross-thread access
     poolclass=NullPool,  # No connection pooling
 )
-```
 
+```text
 ### Why `check_same_thread=False`?
 
 - **Problem**: SQLite default behavior raises errors when accessed from different threads
@@ -284,8 +285,8 @@ def db(setup_db):
     session.close()
     transaction.rollback()
     connection.close()
-```
 
+```text
 ---
 
 ## Common Testing Patterns
@@ -307,8 +308,8 @@ def test_create_student_success(client):
     # No auth header needed - conftest disables AUTH
     response = client.post("/api/v1/students/", json=payload)
     assert response.status_code == 201
-```
 
+```text
 ### Pattern 2: Testing With Authentication
 
 For auth-specific tests, use helper to get tokens:
@@ -340,8 +341,8 @@ def test_sessions_export_requires_auth():
                          params={"semester": "2025-Fall"},
                          headers=headers)
     assert response.status_code == 200
-```
 
+```text
 ### Pattern 3: Testing Configuration
 
 Config tests control settings explicitly:
@@ -360,8 +361,8 @@ def test_auth_disabled_allows_placeholder_secret_key(monkeypatch):
 
     # Should keep the weak key (no enforcement)
     assert settings.SECRET_KEY == "change-me"
-```
 
+```text
 ### Pattern 4: Testing Admin Bootstrap
 
 Admin bootstrap tests mock environment appropriately:
@@ -383,8 +384,8 @@ def test_admin_bootstrap_creates_user(db, monkeypatch):
     user = db.query(User).filter_by(email="admin@test.com").first()
     assert user is not None
     assert user.role == "admin"
-```
 
+```text
 ---
 
 ## Troubleshooting
@@ -399,16 +400,19 @@ def test_admin_bootstrap_creates_user(db, monkeypatch):
 3. Settings cached before conftest runs
 
 **Solutions**:
+
 ```python
 # Check conftest is patching AUTH_ENABLED
+
 def patch_settings_for_tests(request, monkeypatch):
     safe_patch(settings, "AUTH_ENABLED", False)  # Must be False
 
 # Or use auth helper for tests that need tokens
+
 headers = get_auth_headers(client)
 response = client.get("/api/v1/endpoint", headers=headers)
-```
 
+```text
 ### Issue: SECRET_KEY Validation Errors
 
 **Symptom**: `ValidationError: SECRET_KEY SECURITY ISSUE`
@@ -418,17 +422,20 @@ response = client.get("/api/v1/endpoint", headers=headers)
 2. Production environment without secure key
 
 **Solutions**:
+
 ```python
 # For tests: Use non-default key to bypass auto-generation
+
 settings = Settings(
     SECRET_KEY="test-key-with-exactly-32-chars!",  # Explicit, non-default
     AUTH_ENABLED=False
 )
 
 # For production: Set strong key in .env
-SECRET_KEY=<output of: python -c "import secrets; print(secrets.token_urlsafe(48))">
-```
 
+SECRET_KEY=<output of: python -c "import secrets; print(secrets.token_urlsafe(48))">
+
+```text
 ### Issue: SQLite Thread Errors
 
 **Symptom**: "SQLite objects created in a thread can only be used in that same thread"
@@ -436,15 +443,17 @@ SECRET_KEY=<output of: python -c "import secrets; print(secrets.token_urlsafe(48
 **Cause**: Missing `check_same_thread=False` in engine configuration
 
 **Solution**:
+
 ```python
 # In db_setup.py or models.py for tests
+
 engine = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},  # Required for tests
     poolclass=NullPool
 )
-```
 
+```text
 ### Issue: Auth Endpoints Not Generating Tokens
 
 **Symptom**: `KeyError: 'access_token'` in test helpers
@@ -452,14 +461,16 @@ engine = create_engine(
 **Cause**: Auth endpoints broken by overly aggressive auth bypass
 
 **Solution**: Current implementation correctly handles auth endpoints:
+
 ```python
 # Auth endpoints always work, even with AUTH_ENABLED=False
+
 is_auth_endpoint = "/auth/" in path
 if is_auth_endpoint or auth_enabled:
     # Require token for auth endpoints
     ...
-```
 
+```text
 ### Issue: Config Tests Failing
 
 **Symptom**: Tests expecting specific validation behavior get auto-generated keys
@@ -467,18 +478,21 @@ if is_auth_endpoint or auth_enabled:
 **Cause**: Early CI/pytest return bypassing test logic
 
 **Solution**: Remove early return, let tests control behavior:
+
 ```python
 # Don't do this (breaks tests):
+
 if is_ci or is_pytest:
     return auto_generated_key  # Bypasses test control
 
 # Do this (allows test control):
+
 if enforcement_active:
     if (is_ci or is_pytest) and not is_production:
         return auto_generated_key  # Only when enforcement active
     raise ValueError("Weak key")
-```
 
+```text
 ---
 
 ## Best Practices
@@ -521,3 +535,4 @@ if enforcement_active:
 **Document Version**: 1.0
 **Last Review**: December 27, 2025
 **Next Review**: January 27, 2026
+

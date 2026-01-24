@@ -28,7 +28,7 @@ Feature #127 provides comprehensive bulk import/export functionality for Student
 
 ### High-Level Design
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                     User Interface                       │
 │  ┌────────────────────────────────────────────────────┐ │
@@ -73,8 +73,8 @@ Feature #127 provides comprehensive bulk import/export functionality for Student
 │  │ - /exports/*.xlsx|.csv|.pdf (downloads)          │  │
 │  └──────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────┘
-```
 
+```text
 ### Backend Architecture
 
 #### 1. **Service Layer** (`backend/services/import_export_service.py`)
@@ -95,9 +95,10 @@ class ImportExportService:
     - generate_students_export(filters: Dict) -> BytesIO
     - generate_grades_export(filters: Dict) -> BytesIO
     - generate_attendance_export(filters: Dict) -> BytesIO
-    """
-```
 
+    """
+
+```text
 **Key Features**:
 - CSV parsing via `pandas` library
 - Excel parsing via `openpyxl` library
@@ -167,13 +168,13 @@ class ImportExportHistory(Base):
     action: str  # started, completed, failed, rolled_back
     details: JSON
     timestamp: datetime
-```
 
+```text
 #### 3. **Router** (`backend/routers/routers_import_export.py`)
 
 **Endpoints**:
 
-```
+```text
 POST /api/v1/imports/students
   - Upload CSV/Excel file for student import
   - Validation occurs immediately
@@ -221,8 +222,8 @@ GET /api/v1/imports-exports/history
   - Audit trail of all operations
   - Filter by user, type, date
   - Permission: audit:view
-```
 
+```text
 ---
 
 ### Frontend Architecture
@@ -308,8 +309,8 @@ interface UseImportExportReturn {
   generateExport: (options: ExportOptions) => Promise<ExportJob>;
   getHistory: () => Promise<HistoryEntry[]>;
 }
-```
 
+```text
 ---
 
 ## Implementation Phases
@@ -450,12 +451,14 @@ interface UseImportExportReturn {
 ## Export Formats
 
 ### CSV Export
+
 - Tab-separated or comma-separated (user choice)
 - UTF-8 encoding
 - Headers in first row
 - No file size limit
 
 ### Excel Export
+
 - XLSX format (Excel 2007+)
 - Formatted headers (bold, background color)
 - Frozen header row
@@ -463,6 +466,7 @@ interface UseImportExportReturn {
 - Sheet name: "Students", "Courses", "Grades", etc.
 
 ### PDF Export
+
 - A4 page size
 - Header with export date/user
 - Table with all columns
@@ -497,6 +501,7 @@ interface UseImportExportReturn {
 
 ```python
 # Migration: Add import/export tables
+
 def upgrade():
     op.create_table('import_jobs',
         sa.Column('id', sa.Integer, primary_key=True),
@@ -513,8 +518,8 @@ def upgrade():
         sa.Column('imported_by', sa.Integer),
     )
     # Create indexes...
-```
 
+```text
 ---
 
 ## Success Criteria
@@ -585,3 +590,4 @@ def upgrade():
 **Document Author**: AI Agent
 **Last Updated**: January 13, 2026
 **Status**: Architecture Design Complete - Ready for Implementation
+

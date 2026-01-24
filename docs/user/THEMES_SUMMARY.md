@@ -29,8 +29,8 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ │ [ Backup Database ]             │ │
 │ └─────────────────────────────────┘ │
 └─────────────────────────────────────┘
-```
 
+```text
 **Colors:** Gray scale with Indigo accents
 
 ---
@@ -47,8 +47,8 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ ║ [ ◢◣ Gradient Button ◥◤ ]      ║ │
 │ ╚═════════════════════════════════╝ │
 └─────────────────────────────────────┘
-```
 
+```text
 **Effect:** `backdrop-blur-xl` + transparency
 **Inspiration:** macOS Big Sur, iOS interfaces
 
@@ -68,8 +68,8 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ │▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁│ │
 │ ╰─────────────────────────────────╯ │
 └─────────────────────────────────────┘
-```
 
+```text
 **Effect:** Dual-direction shadows
 **Inspiration:** Dribbble Soft UI designs
 
@@ -89,8 +89,8 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ ║ └───────────────────────────┘   ║ │
 │ ╚═════════════════════════════════╝ │
 └─────────────────────────────────────┘
-```
 
+```text
 **Gradients:** Indigo → Purple → Pink
 **Inspiration:** Linear app, Stripe
 
@@ -110,8 +110,8 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ ║ █████████████████████████████   ║ │
 │ ╚═════════════════════════════════╝ │
 └─────────────────────────────────────┘
-```
 
+```text
 **Colors:** Gray-900 with shadow glow
 **Inspiration:** GitHub Dark, VS Code
 
@@ -129,8 +129,8 @@ The Control Panel Operations tab now features **6 professional appearance themes
 │ │ [ Backup Database ]             │ │
 │ └─────────────────────────────────┘ │
 └─────────────────────────────────────┘
-```
 
+```text
 **Style:** Flat design, sharp borders
 **Inspiration:** Material Design, Bootstrap
 
@@ -179,23 +179,23 @@ export const themeStyles = {
   },
   // ... 5 more themes
 };
-```
 
+```text
 **Dynamic Styling:**
 
 ```tsx
 const theme = themeStyles[selectedTheme];
 <button className={theme.button}>Click Me</button>
-```
 
+```text
 **Persistence:**
 
 ```tsx
 useEffect(() => {
   localStorage.setItem('sms.operations.theme', selectedTheme);
 }, [selectedTheme]);
-```
 
+```text
 ## Browser Support
 
 | Theme | Chrome | Firefox | Safari | Edge |
@@ -228,8 +228,8 @@ frontend/src/features/operations/components/
 
 docs/
 └── THEME_GUIDE.md             (NEW - comprehensive guide)
-```
 
+```text
 ## Performance
 
 - **Zero JavaScript animations** - All CSS transitions
@@ -270,3 +270,4 @@ Potential additions:
 **Inspired by:** shadcn/ui, daisyUI, Tailwind UI, Linear, Stripe, GitHub
 **Version:** 1.6.0+
 **Date:** November 13, 2025
+

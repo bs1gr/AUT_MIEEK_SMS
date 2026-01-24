@@ -48,9 +48,10 @@ DEFAULT_ADMIN_EMAIL=admin@school.edu
 DEFAULT_ADMIN_PASSWORD=ChangeMeNow123!
 DEFAULT_ADMIN_FULL_NAME=Operations Administrator
 # Optional: force the password to be reset on every boot
-# DEFAULT_ADMIN_FORCE_RESET=True
-```
 
+# DEFAULT_ADMIN_FORCE_RESET=True
+
+```text
 Use this method when you want a deterministic admin account across deployments or when automating infrastructure provisioning.
 
 #### Method 1: Via API (Recommended for first user)
@@ -64,8 +65,8 @@ curl -X POST http://localhost:8000/api/v1/auth/register \
     "full_name": "System Administrator",
     "role": "admin"
   }'
-```
 
+```text
 #### Method 2: Via Python Script
 
 Create `backend/create_admin.py`:
@@ -99,15 +100,15 @@ def create_admin():
 
 if __name__ == "__main__":
     create_admin()
-```
 
+```text
 Run:
 
 ```bash
 cd backend
 python create_admin.py
-```
 
+```text
 ## User Roles
 
 ### Admin
@@ -160,8 +161,8 @@ Content-Type: application/json
   "full_name": "Jane Smith",
   "role": "teacher"
 }
-```
 
+```text
 **Response:**
 
 ```json
@@ -173,8 +174,8 @@ Content-Type: application/json
   "is_active": true,
   "created_at": "2025-10-30T12:00:00Z"
 }
-```
 
+```text
 ### Login
 
 ```http
@@ -185,8 +186,8 @@ Content-Type: application/json
   "email": "teacher@school.edu",
   "password": "SecurePassword123!"
 }
-```
 
+```text
 **Response:**
 
 ```json
@@ -194,15 +195,15 @@ Content-Type: application/json
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer"
 }
-```
 
+```text
 ### Get Current User
 
 ```http
 GET /api/v1/auth/me
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
 
+```text
 **Response:**
 
 ```json
@@ -213,8 +214,8 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
   "role": "teacher",
   "is_active": true
 }
-```
 
+```text
 ## Protected Endpoints
 
 When `AUTH_ENABLED=True`, the following endpoints require authentication:
@@ -279,24 +280,28 @@ Edit `backend/.env`:
 
 ```bash
 # Secret key for JWT token signing (REQUIRED - change in production!)
+
 SECRET_KEY=your-secure-random-key-here-change-this-in-production
 
 # JWT algorithm (HS256 recommended)
+
 ALGORITHM=HS256
 
 # Token expiration time in minutes (default: 30)
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
 
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+```text
 ### CORS Settings
 
 If accessing API from a different origin:
 
 ```bash
 # In backend/.env
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000,https://yourdomain.com
-```
 
+CORS_ORIGINS=http://localhost:5173,http://localhost:3000,https://yourdomain.com
+
+```text
 ## Frontend Integration
 
 ### Store Token
@@ -313,8 +318,8 @@ const response = await fetch('/api/v1/auth/login', {
 
 const data = await response.json();
 localStorage.setItem('access_token', data.access_token);
-```
 
+```text
 ### Include Token in Requests
 
 ```javascript
@@ -328,8 +333,8 @@ const response = await fetch('/api/v1/students/', {
   },
   body: JSON.stringify(studentData)
 });
-```
 
+```text
 ### Handle Token Expiration
 
 ```javascript
@@ -338,8 +343,8 @@ if (response.status === 401) {
   localStorage.removeItem('access_token');
   window.location.href = '/login';
 }
-```
 
+```text
 ## Backward Compatibility
 
 ### Default Behavior (AUTH_ENABLED=False)
@@ -415,16 +420,17 @@ if (response.status === 401) {
 cd backend
 pytest tests/test_auth_router.py -v
 pytest tests/test_rbac_enforcement.py -v
-```
 
+```text
 ### Test with AUTH_ENABLED=True
 
 ```bash
 # Temporarily enable auth for testing
+
 $env:AUTH_ENABLED="True"
 pytest tests/test_rbac_enforcement.py -v
-```
 
+```text
 ## Rate Limiting
 
 All authenticated endpoints are rate-limited:
@@ -508,3 +514,4 @@ For issues or questions:
 **Version:** 1.2.0
 **Last Updated:** October 30, 2025
 **Maintainer:** Student Management System Team
+

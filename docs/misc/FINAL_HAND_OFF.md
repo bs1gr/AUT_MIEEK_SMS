@@ -70,17 +70,19 @@
 ## ⏱️ YOUR COMPLETE TIMELINE
 
 ### Tonight (Jan 7)
-```
+
+```text
 20:00  Read SOLO_QUICK_START.md .......................... [15 min]
 20:15  Read SOLO_DEPLOYMENT_CHECKLIST.md ............... [15 min]
 20:30  System checks (git, docker) ...................... [5 min]
 20:35  Prepare alarm, clear calendar .................... [5 min]
 20:40  Get ready for sleep ............................... [20 min]
 21:00  SLEEP (8+ hours) - You need this! ✅
-```
 
+```text
 ### Tomorrow (Jan 8)
-```
+
+```text
 07:45  Wake up, coffee, review ........................... [15 min]
 08:00  Phase 1: Validation checks ....................... [20 min]
 08:20  Phase 2: Deploy container ........................ [30 min]
@@ -89,8 +91,8 @@
 10:00  Phase 5: E2E tests (automated) .................. [15 min]
 10:15  Phase 6: Review & verify ........................ [45 min]
 11:00  ✅ DEPLOYMENT COMPLETE! Celebrate! 🎉
-```
 
+```text
 ---
 
 ## 🚀 SUCCESS IS GUARANTEED
@@ -136,12 +138,13 @@ When deployment finishes, ALL 10 must be true:
 ### If Something Goes Wrong
 
 **Emergency Rollback (5 Minutes)**:
+
 ```powershell
 docker stop sms-fullstack
 docker rm sms-fullstack
 Copy-Item "backups/pre_$11.15.2_*.db" -Destination "data/student_management.db" -Force
-```
 
+```text
 **Then**: Take a break, review what happened, try again tomorrow.
 
 **Worst Case**: You can try again tomorrow. Nothing breaks permanently.
@@ -220,7 +223,7 @@ Just clear procedures, clear timeline, clear success criteria.
 
 ## 🚀 THE BOTTOM LINE
 
-```
+```text
 ✅ EVERYTHING IS READY
 ✅ YOU ARE PREPARED
 ✅ SUCCESS IS PROBABLE (95%+)
@@ -229,8 +232,8 @@ Just clear procedures, clear timeline, clear success criteria.
 TONIGHT:   Read docs (30 min) + Sleep (8+ hours)
 TOMORROW:  Execute deployment (2 hours)
 RESULT:    Success! 🎉
-```
 
+```text
 ---
 
 ## 🎉 YOU'VE GOT THIS!
@@ -248,3 +251,4 @@ RESULT:    Success! 🎉
 **Timeline**: Deploy Jan 8, 08:00-11:00 UTC
 
 **Go get 'em! See you on the other side!** 🚀
+

@@ -11,7 +11,7 @@ The Advanced Search & Filtering system provides 4 reusable React components for 
 
 ## Component Architecture
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  SearchPage (Page-level container)      │
 ├─────────────────────────────────────────┤
@@ -28,8 +28,8 @@ The Advanced Search & Filtering system provides 4 reusable React components for 
 │  │  SavedSearches (History sidebar) │   │
 │  └──────────────────────────────────┘   │
 └─────────────────────────────────────────┘
-```
 
+```text
 ---
 
 ## 1. SearchBar Component
@@ -38,11 +38,11 @@ Real-time search input with autocomplete suggestions and keyboard navigation.
 
 ### Location
 
-```
+```text
 frontend/src/components/SearchBar.tsx
 frontend/src/components/SearchBar.module.css
-```
 
+```text
 ### Props
 
 ```typescript
@@ -54,8 +54,8 @@ interface SearchBarProps {
   debounceDelay?: number;                   // Default: 300ms
   disabled?: boolean;                       // Disable input
 }
-```
 
+```text
 ### Basic Usage
 
 ```tsx
@@ -75,8 +75,8 @@ export function MySearchPage() {
     />
   );
 }
-```
 
+```text
 ### With Suggestions
 
 ```tsx
@@ -106,8 +106,8 @@ export function SearchWithSuggestions() {
     />
   );
 }
-```
 
+```text
 ### Features
 
 - ✅ Real-time debounced suggestions (300ms)
@@ -135,8 +135,8 @@ Override default styles:
 <div style={{ '--search-bg': '#f5f5f5' }}>
   <SearchBar onSearch={handleSearch} />
 </div>
-```
 
+```text
 CSS variables:
 - `--search-bg`: Background color
 - `--search-border`: Border color
@@ -151,10 +151,10 @@ Displays paginated search results in a sortable table with filtering.
 
 ### Location
 
-```
+```text
 frontend/src/components/SearchResults.tsx
-```
 
+```text
 ### Props
 
 ```typescript
@@ -170,8 +170,8 @@ interface SearchResultsProps {
   onRowClick?: (item: any) => void;        // Handle row click
   allowSelect?: boolean;                   // Show checkboxes
 }
-```
 
+```text
 ### Basic Usage
 
 ```tsx
@@ -207,8 +207,8 @@ export function MySearchResults() {
     </>
   );
 }
-```
 
+```text
 ### With Loading State
 
 ```tsx
@@ -239,8 +239,8 @@ return (
     isLoading={isLoading}
   />
 );
-```
 
+```text
 ### With Error Handling
 
 ```tsx
@@ -256,8 +256,8 @@ return (
     isLoading={isLoading}
   />
 );
-```
 
+```text
 ### Features
 
 - ✅ Sortable columns
@@ -284,11 +284,11 @@ Collapsible filter panel with type-specific filters and presets.
 
 ### Location
 
-```
+```text
 frontend/src/components/AdvancedFilters.tsx
 frontend/src/components/AdvancedFilters.css
-```
 
+```text
 ### Props
 
 ```typescript
@@ -299,8 +299,8 @@ interface AdvancedFiltersProps {
   onApply: () => void;                      // Called when Apply clicked
   onReset: () => void;                      // Called when Reset clicked
 }
-```
 
+```text
 ### Basic Usage
 
 ```tsx
@@ -330,8 +330,8 @@ export function MyFilteredSearch() {
     </>
   );
 }
-```
 
+```text
 ### With Presets
 
 ```tsx
@@ -350,8 +350,8 @@ return (
     onReset={() => setFilters({})}
   />
 );
-```
 
+```text
 ### Filter Types
 
 **Student Filters**:
@@ -394,8 +394,8 @@ return (
     onReset={handleReset}
   />
 </div>
-```
 
+```text
 ---
 
 ## 4. SavedSearches Component
@@ -404,11 +404,11 @@ Sidebar showing saved searches with load, delete, and rename functionality.
 
 ### Location
 
-```
+```text
 frontend/src/components/SavedSearches.tsx
 frontend/src/components/SavedSearches.css
-```
 
+```text
 ### Props
 
 ```typescript
@@ -428,8 +428,8 @@ interface SavedSearch {
   createdAt: Date;
   lastUsed: Date;
 }
-```
 
+```text
 ### Basic Usage
 
 ```tsx
@@ -476,8 +476,8 @@ export function SearchPageWithHistory() {
     </div>
   );
 }
-```
 
+```text
 ### With API Integration
 
 ```tsx
@@ -497,8 +497,8 @@ const handleDeleteSearch = async (searchId: string) => {
     savedSearches.filter(s => s.id !== searchId)
   );
 };
-```
 
+```text
 ### Features
 
 - ✅ localStorage persistence
@@ -515,6 +515,7 @@ const handleDeleteSearch = async (searchId: string) => {
 ### localStorage Format
 
 Saved searches stored as:
+
 ```json
 {
   "search_<type>_<id>": {
@@ -525,8 +526,8 @@ Saved searches stored as:
     "lastUsed": "2026-01-17T15:00:00Z"
   }
 }
-```
 
+```text
 ---
 
 ## Integration Example
@@ -614,8 +615,8 @@ export function AdvancedSearchPage() {
     </div>
   );
 }
-```
 
+```text
 ---
 
 ## Styling & Customization
@@ -625,35 +626,39 @@ All components use CSS modules and CSS variables for easy customization.
 ### Component-Specific Variables
 
 **SearchBar**:
+
 ```css
 --search-bg: #fff;
 --search-border: #ddd;
 --search-focus: #4a90e2;
 --search-text: #333;
-```
 
+```text
 **AdvancedFilters**:
+
 ```css
 --filter-bg: #f9f9f9;
 --filter-border: #e0e0e0;
 --filter-button-bg: #4a90e2;
 --filter-button-text: #fff;
-```
 
+```text
 **SearchResults**:
+
 ```css
 --results-border: #e0e0e0;
 --results-header-bg: #f5f5f5;
 --results-hover: #f9f9f9;
-```
 
+```text
 **SavedSearches**:
+
 ```css
 --sidebar-bg: #f5f5f5;
 --sidebar-border: #e0e0e0;
 --sidebar-text: #333;
-```
 
+```text
 ---
 
 ## Accessibility
@@ -690,16 +695,18 @@ test('SearchBar calls onSearch with query', async () => {
 
   expect(handleSearch).toHaveBeenCalledWith('test');
 });
-```
 
+```text
 ---
 
 ## Changelog
 
 ### Version 1.0.0 (January 17, 2026)
+
 - Initial release
 - 4 core components
 - Full TypeScript support
 - i18n support (EN/EL)
 - Accessibility compliance
 - Responsive design
+

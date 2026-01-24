@@ -65,17 +65,20 @@
 **Target Jobs**: `test-backend`, `security-scan-backend`, `lint-backend`
 
 **Changes**:
+
 ```yaml
 # Consolidate cache-dependency-path format
+
 - uses: actions/setup-python@v5
+
   with:
     python-version: ${{ env.PYTHON_VERSION }}
     cache: 'pip'
     cache-dependency-path: |
       backend/requirements.txt
       backend/requirements-dev.txt
-```
 
+```text
 **Expected Impact**:
 - Cache hits improved from ~70% to ~95%
 - Backend job time: 60s → 45s (25% improvement)
@@ -130,6 +133,7 @@
 ## 📈 Expected Results
 
 ### Before Optimization
+
 - **Typical CI Run**: 12-15 minutes
   - Lint: 2-3 min
   - Test: 6-8 min
@@ -137,6 +141,7 @@
   - Security: 1-2 min
 
 ### After Optimization (Target)
+
 - **Typical CI Run**: 8-10 minutes (30% improvement)
   - Lint: 1.5-2 min (cache hits)
   - Test: 4-5 min (cache hits)
@@ -144,6 +149,7 @@
   - Security: 1-1.5 min (cache hits)
 
 ### Best Case (All Cache Hits)
+
 - **Re-run same commit**: 5-6 minutes (60% improvement)
 - Useful for debugging CI without code changes
 
@@ -152,22 +158,26 @@
 ## 🔧 Implementation Strategy
 
 ### Step 1: Analyze Current Performance (This Session)
+
 - [ ] Document baseline CI times
 - [ ] Identify slowest jobs
 - [ ] Verify current cache hit rates
 
 ### Step 2: Implement Pip Caching Enhancements
+
 - [ ] Update all Python jobs to use consistent cache-dependency-path
 - [ ] Test with one push
 - [ ] Measure improvement
 
 ### Step 3: Implement NPM Caching Enhancements
+
 - [ ] Update test-frontend to use actions/setup-node with cache
 - [ ] Verify Playwright cache consistency
 - [ ] Test with one push
 - [ ] Measure improvement
 
 ### Step 4: Implement Docker Caching Enhancements
+
 - [ ] Review Dockerfile.fullstack for optimization opportunities
 - [ ] Create/update .dockerignore
 - [ ] Verify cache-to settings
@@ -175,11 +185,13 @@
 - [ ] Measure improvement
 
 ### Step 5: Implement Build Artifact Caching (Optional)
+
 - [ ] Cache frontend/dist directory
 - [ ] Conditional build based on source changes
 - [ ] Test and measure
 
 ### Step 6: Documentation & Validation
+
 - [ ] Document all caching strategies
 - [ ] Create monitoring for cache hit rates
 - [ ] Add performance baseline to CI output
@@ -220,3 +232,4 @@
 
 **Owner**: CI/CD Optimization Task #110
 **Next Review**: After Phase 1 implementation
+

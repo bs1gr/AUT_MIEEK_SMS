@@ -24,8 +24,8 @@ class EventEmitter {
 }
 
 export const eventBus = new EventEmitter();
-```
 
+```text
 ### Supported Events
 
 ```typescript
@@ -45,8 +45,8 @@ export const EVENTS = {
   // Daily Performance events
   DAILY_PERFORMANCE_ADDED: 'daily_performance:added'
 } as const;
-```
 
+```text
 ## Implementation Details
 
 ### 1. Event Emitters (Data Modification Points)
@@ -63,8 +63,8 @@ eventBus.emit(EVENTS.GRADE_ADDED, {
   studentId: Number(studentId),
   courseId: Number(courseId)
 });
-```
 
+```text
 #### AttendanceView.tsx
 
 **Location**: `frontend/src/features/attendance/components/AttendanceView.tsx:683-702`
@@ -84,8 +84,8 @@ affectedStudentIds.forEach(sid => {
 affectedStudentIds.forEach(sid => {
   eventBus.emit(EVENTS.DAILY_PERFORMANCE_ADDED, { studentId: sid });
 });
-```
 
+```text
 ### 2. Event Listeners (Cached Data Consumers)
 
 #### StudentsView.tsx
@@ -121,8 +121,8 @@ useEffect(() => {
     // ... (all other events)
   };
 }, []);
-```
 
+```text
 **Effect**: When cache is invalidated, the expandable StudentCard will refetch fresh data on next expansion.
 
 #### StudentProfile.tsx
@@ -156,8 +156,8 @@ useEffect(() => {
     // ... (all other events)
   };
 }, [student?.id, loadStudentData]);
-```
 
+```text
 **Effect**: Immediately reloads grades, attendance, enrollments, highlights for the displayed student.
 
 ## Data Flow Diagram
@@ -181,8 +181,8 @@ useEffect(() => {
     ▼                  ▼
 [Fresh data]      [Updated UI]
 on next load
-```
 
+```text
 ## Coverage Analysis
 
 ### ✅ Covered Operations
@@ -319,3 +319,4 @@ When adding new data modification operations:
 **Last Updated**: 2025-01-XX
 **Status**: ✅ Implemented and tested
 **Breaking Changes**: None (backward compatible)
+

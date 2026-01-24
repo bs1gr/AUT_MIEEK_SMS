@@ -20,11 +20,14 @@
 **Effort**: 40-50 hours (2-3 weeks)
 
 **Description**:
-```
+
+```text
 ## Objective
+
 Implement comprehensive analytics and reporting dashboard for administrators and instructors to gain insights into student performance, attendance patterns, grade distributions, and course effectiveness.
 
 ## Scope
+
 - Student performance analytics (grades, trends, comparisons)
 - Attendance analytics (attendance rates, patterns, alerts)
 - Course effectiveness metrics
@@ -33,6 +36,7 @@ Implement comprehensive analytics and reporting dashboard for administrators and
 - Performance-optimized queries with caching
 
 ## Acceptance Criteria
+
 - [ ] Analytics API endpoints implemented (5+ endpoints)
   - GET /api/v1/analytics/students (performance metrics)
   - GET /api/v1/analytics/attendance (attendance analysis)
@@ -61,12 +65,14 @@ Implement comprehensive analytics and reporting dashboard for administrators and
   - Admin operations guide
 
 ## Technical Details
+
 - **Backend**: SQLAlchemy aggregation queries, caching strategy
 - **Frontend**: React dashboard with Chart.js or Recharts
 - **Database**: Optimized indexes on grade, attendance, student tables
 - **Performance**: Query optimization with EXPLAIN ANALYZE, caching headers
 
 ## Success Metrics
+
 - Dashboard loads in < 2 seconds (p95)
 - Export operations complete in < 5 seconds for 1000+ records
 - 95%+ code coverage on analytics module
@@ -74,13 +80,14 @@ Implement comprehensive analytics and reporting dashboard for administrators and
 - Zero performance regressions
 
 ## Definition of Done
+
 - [ ] All acceptance criteria met
 - [ ] All tests passing (local + CI)
 - [ ] Code reviewed and approved
 - [ ] Documentation complete
 - [ ] PR merged to main
-```
 
+```text
 **Checklist**:
 - [ ] Backend API endpoints (5+)
 - [ ] Frontend dashboard UI
@@ -104,11 +111,14 @@ Implement comprehensive analytics and reporting dashboard for administrators and
 **Effort**: 40-50 hours (2 weeks)
 
 **Description**:
-```
+
+```text
 ## Objective
+
 Implement real-time notification system with WebSocket support for instant message delivery to students, teachers, and administrators.
 
 ## Scope
+
 - WebSocket server (python-socketio)
 - Notification models and schemas
 - Redis Pub/Sub integration
@@ -118,6 +128,7 @@ Implement real-time notification system with WebSocket support for instant messa
 - Toast alerts and in-app notifications
 
 ## Acceptance Criteria
+
 - [ ] WebSocket server implemented
   - Connection handling (connect/disconnect)
   - Authentication via JWT
@@ -147,12 +158,14 @@ Implement real-time notification system with WebSocket support for instant messa
   - Frontend component documentation
 
 ## Technical Details
+
 - **Backend**: python-socketio, Redis Pub/Sub, SQLAlchemy
 - **Frontend**: React hooks, Socket.IO client, real-time state management
 - **Architecture**: Pub/Sub for horizontal scalability, persistence for reliability
 - **Security**: JWT authentication, permission-based filtering
 
 ## Success Metrics
+
 - WebSocket connection established in < 500ms
 - Notification delivery latency < 100ms (p95)
 - Support 1000+ concurrent connections
@@ -160,6 +173,7 @@ Implement real-time notification system with WebSocket support for instant messa
 - Zero reconnection failures under normal conditions
 
 ## Definition of Done
+
 - [ ] WebSocket server fully functional
 - [ ] Notification delivery working reliably
 - [ ] Frontend UI complete
@@ -167,8 +181,8 @@ Implement real-time notification system with WebSocket support for instant messa
 - [ ] Code reviewed and approved
 - [ ] Documentation complete
 - [ ] PR merged to main
-```
 
+```text
 **Checklist**:
 - [ ] WebSocket server (python-socketio)
 - [ ] Notification models and schemas
@@ -194,11 +208,14 @@ Implement real-time notification system with WebSocket support for instant messa
 **Effort**: 50-60 hours (2-3 weeks)
 
 **Description**:
-```
+
+```text
 ## Objective
+
 Implement comprehensive bulk import/export functionality for students, courses, grades, and attendance data with validation, preview, and rollback capabilities.
 
 ## Scope
+
 - CSV/Excel import with validation
 - Data preview and error reporting
 - Batch operations with transactions
@@ -208,6 +225,7 @@ Implement comprehensive bulk import/export functionality for students, courses, 
 - Background job processing (Celery)
 
 ## Acceptance Criteria
+
 - [ ] Import functionality
   - CSV import with delimiter detection
   - Excel import (XLSX, XLS)
@@ -242,12 +260,14 @@ Implement comprehensive bulk import/export functionality for students, courses, 
   - API documentation
 
 ## Technical Details
+
 - **Backend**: pandas, openpyxl, Celery, SQLAlchemy transactions
 - **Frontend**: React file upload, progress tracking, form validation
 - **Database**: Batch inserts, transaction handling, rollback procedures
 - **Performance**: Streaming for large files, background processing
 
 ## Success Metrics
+
 - Import 1000 records in < 5 seconds
 - Export 100k records in < 30 seconds
 - CSV parsing performance: 10k records/second
@@ -256,6 +276,7 @@ Implement comprehensive bulk import/export functionality for students, courses, 
 - Successful rollback to pre-import state
 
 ## Definition of Done
+
 - [ ] Import/export functionality fully working
 - [ ] Preview and validation working correctly
 - [ ] Background processing operational
@@ -264,8 +285,8 @@ Implement comprehensive bulk import/export functionality for students, courses, 
 - [ ] Code reviewed and approved
 - [ ] Documentation complete
 - [ ] PR merged to main
-```
 
+```text
 **Checklist**:
 - [ ] CSV/Excel import with validation
 - [ ] Data preview page
@@ -291,16 +312,20 @@ Implement comprehensive bulk import/export functionality for students, courses, 
 **Assignee**: Solo Developer
 
 **Description**:
-```
+
+```text
 ## Objective
+
 Track Phase 3 completion and $11.17.1 release readiness.
 
 ## Release Contents
+
 - #125: Analytics Dashboard
 - #126: Real-Time Notifications
 - #127: Bulk Import/Export
 
 ## Tracking Tasks
+
 - [ ] All 3 features implemented and tested
 - [ ] CI/CD all passing
 - [ ] Integration testing complete
@@ -314,35 +339,40 @@ Track Phase 3 completion and $11.17.1 release readiness.
 - [ ] Deployed to production
 
 ## Success Criteria
+
 - All 3 features working together without conflicts
 - Zero regressions from Phase 1/2
 - Performance targets met
 - 95%+ test coverage
 - Complete documentation
-```
 
+```text
 ---
 
 ## GitHub Issues Creation Workflow
 
 ### Step 1: Prerequisites
+
 - [ ] Repository: bs1gr/AUT_MIEEK_SMS
 - [ ] Owner has push access
 - [ ] All specifications reviewed
 
 ### Step 2: Create Issues in Order
+
 1. Create Issue #125 (Analytics Dashboard)
 2. Create Issue #126 (Real-Time Notifications)
 3. Create Issue #127 (Bulk Import/Export)
 4. Create Issue #128 (Release tracking)
 
 ### Step 3: Configure Each Issue
+
 - [ ] Copy description from template
 - [ ] Add all labels: `phase-3`, `$11.17.1`, `release`, plus feature-specific
 - [ ] Set effort/size estimate in GitHub Projects
 - [ ] Link to epic (if using GitHub Projects)
 
 ### Step 4: Post-Creation Actions
+
 - [ ] Link issues to $11.17.1 milestone
 - [ ] Add to project board
 - [ ] Create feature branches per issue
@@ -353,14 +383,16 @@ Track Phase 3 completion and $11.17.1 release readiness.
 
 ```bash
 # Create feature branches for each issue
+
 git checkout -b feature/analytics-dashboard    # For Issue #125
 git checkout -b feature/real-time-notifications # For Issue #126
 git checkout -b feature/bulk-import-export      # For Issue #127
 
 # Each branch tracks its GitHub issue
-# Each PR closes its corresponding issue
-```
 
+# Each PR closes its corresponding issue
+
+```text
 ---
 
 ## Weekly Progress Template
@@ -386,13 +418,14 @@ Use this template in GitHub issue comments to track weekly progress:
 
 **Next Week**:
 - [ ] Task for next week
-```
 
+```text
 ---
 
 ## Success Criteria for Phase 3
 
 ### Code Quality
+
 - [ ] All 3 features fully implemented
 - [ ] 95%+ test coverage for new code
 - [ ] Zero security vulnerabilities
@@ -400,6 +433,7 @@ Use this template in GitHub issue comments to track weekly progress:
 - [ ] All linting passing
 
 ### Testing
+
 - [ ] 40+ backend tests
 - [ ] 60+ frontend tests
 - [ ] 5+ E2E tests
@@ -407,6 +441,7 @@ Use this template in GitHub issue comments to track weekly progress:
 - [ ] Integration testing: All 3 features together
 
 ### Documentation
+
 - [ ] API documentation
 - [ ] User guides
 - [ ] Admin operations guides
@@ -414,6 +449,7 @@ Use this template in GitHub issue comments to track weekly progress:
 - [ ] Migration guide (if needed)
 
 ### Release Readiness
+
 - [ ] Staging deployment successful
 - [ ] 24-hour production monitoring plan
 - [ ] Rollback procedures documented
@@ -424,14 +460,14 @@ Use this template in GitHub issue comments to track weekly progress:
 
 ## Phase 3 Timeline at a Glance
 
-```
+```text
 Week 1-2:  Analytics Dashboard (40 hours) - Issue #125
 Week 3-4:  Real-Time Notifications (40 hours) - Issue #126
 Week 5-6:  Bulk Import/Export (50 hours) - Issue #127
 Week 7:    Testing, Polish, Release Prep
 Total:     6-7 weeks, ~60-70 hours
-```
 
+```text
 **Target Release**: March 2026 (approximately)
 
 ---
@@ -439,3 +475,4 @@ Total:     6-7 weeks, ~60-70 hours
 **Document Status**: Ready for GitHub issue creation
 **Last Updated**: January 11, 2026
 **Next Action**: Create GitHub issues #125-128 using these templates
+

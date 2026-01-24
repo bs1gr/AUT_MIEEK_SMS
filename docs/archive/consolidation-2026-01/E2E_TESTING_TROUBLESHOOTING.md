@@ -9,7 +9,7 @@
 
 ### Quick Diagnosis Flow
 
-```
+```text
 ┌─ Tests won't start?
 │  ├─ Port 8000 in use? → Run: netstat -ano | findstr ":8000"
 │  ├─ Backend down? → Run: python -m uvicorn backend.main:app --reload
@@ -29,8 +29,8 @@
    ├─ Slow machine? → PLAYWRIGHT_TEST_TIMEOUT=120000 npm run test
    ├─ Network slow? → Reduce: waitForLoadState('networkidle')
    └─ Selector broken? → Use fallback: .or() chains
-```
 
+```text
 ---
 
 ## ❓ FAQ
@@ -38,15 +38,17 @@
 ### **Q: How do I run a single test?**
 
 A: Use `--grep` to filter by test name:
+
 ```bash
 npx playwright test --grep "should create a new student" --run
-```
 
+```text
 Or run a specific file:
+
 ```bash
 npx playwright test tests/e2e/student-management.spec.ts --run
-```
 
+```text
 ---
 
 ### **Q: Why does my test timeout?**
@@ -88,16 +90,20 @@ A: Use Playwright Inspector:
 
 ```bash
 # Interactive debugging with UI
+
 npx playwright test --ui
 
 # Paused at start of test
+
 npx playwright test --debug
 
 # See full page HTML
-npx playwright test --reporter=list  # stdout shows page content
-```
 
+npx playwright test --reporter=list  # stdout shows page content
+
+```text
 Or add logging:
+
 ```typescript
 test('my test', async ({ page }) => {
   console.log('[DEBUG] Current URL:', page.url());
@@ -107,8 +113,8 @@ test('my test', async ({ page }) => {
   const html = await page.content();
   console.log('[DEBUG] HTML:', html.substring(0, 500));
 });
-```
 
+```text
 ---
 
 ### **Q: How do I test a specific browser?**
@@ -117,18 +123,22 @@ A: Use `--project` flag:
 
 ```bash
 # Just Chrome
+
 npx playwright test --project=chromium --run
 
 # Just Firefox
+
 npx playwright test --project=firefox --run
 
 # Just Safari
+
 npx playwright test --project=webkit --run
 
 # Mobile Safari
-npx playwright test --project="Mobile Safari" --run
-```
 
+npx playwright test --project="Mobile Safari" --run
+
+```text
 ---
 
 ### **Q: Why do tests pass locally but fail in GitHub Actions?**
@@ -173,22 +183,24 @@ use: {
   video: 'retain-on-failure',      // Record on failure
   trace: 'on-first-retry',          // Full trace on retry
 }
-```
 
+```text
 Files saved to:
-```
+
+```text
 test-results/
 ├── [test-name]/
 │   ├── test-failed-1.png         # Screenshot
 │   ├── video.webm                # Video
 │   └── trace.zip                 # Full trace
-```
 
+```text
 View trace:
+
 ```bash
 npx playwright show-trace test-results/[test-name]/trace.zip
-```
 
+```text
 ---
 
 ### **Q: My test creates data but next test fails. Why?**
@@ -233,24 +245,30 @@ A: Complete validation checklist:
 
 ```bash
 # 1. Code quality
+
 npx eslint tests/e2e/student-management.spec.ts
 
 # 2. Build works
+
 npm run build
 
 # 3. Tests run
+
 npm run test -- --run
 
 # 4. Check specific test
+
 npx playwright test --grep "should create" --run
 
 # 5. View diagnostics
+
 ls -la test-diagnostics/  # Check for failures
 
 # 6. Full report
-npx playwright show-report test-results/
-```
 
+npx playwright show-report test-results/
+
+```text
 ---
 
 ### **Q: Can I run tests in watch mode?**
@@ -259,12 +277,14 @@ A: Yes! Tests rerun on file changes:
 
 ```bash
 # Watch mode (rerun on save)
+
 npm run test
 
 # Or explicitly
-npx playwright test --watch
-```
 
+npx playwright test --watch
+
+```text
 Changes to rerun tests:
 - `tests/e2e/*.spec.ts` (test files)
 - `tests/e2e/helpers.ts` (helper changes)
@@ -278,18 +298,21 @@ A: Set environment variable:
 
 ```bash
 # Custom backend URL
+
 PLAYWRIGHT_BASE_URL=http://192.168.1.100:8000 npm run test
 
 # Custom API endpoint
-VITE_API_URL=http://api.example.com/v1 npm run test
-```
 
+VITE_API_URL=http://api.example.com/v1 npm run test
+
+```text
 Or in `.env.test`:
-```
+
+```text
 PLAYWRIGHT_BASE_URL=http://192.168.1.100:8000
 VITE_API_URL=http://api.example.com/v1
-```
 
+```text
 ---
 
 ### **Q: Tests are flaky (sometimes pass, sometimes fail). What do I do?**
@@ -343,17 +366,22 @@ A: Use Playwright Inspector:
 
 ```bash
 # Start with inspector
+
 npx playwright test --debug
 
 # Then in VS Code:
+
 # 1. Open Terminal
 # 2. Run above command
+
 # 3. Playwright Inspector opens in separate window
 # 4. Set breakpoints in VS Code
-# 5. Step through execution
-```
 
+# 5. Step through execution
+
+```text
 Or add Node debug:
+
 ```json
 {
   "type": "node",
@@ -363,8 +391,8 @@ Or add Node debug:
   "args": ["test", "--debug"],
   "cwd": "${workspaceFolder}/frontend"
 }
-```
 
+```text
 ---
 
 ### **Q: How do I test on mobile?**
@@ -373,18 +401,22 @@ A: Use mobile device configs:
 
 ```bash
 # Mobile Chrome
+
 npx playwright test --project="Mobile Chrome" --run
 
 # Mobile Safari
+
 npx playwright test --project="Mobile Safari" --run
 
 # Pixel 5
+
 npx playwright test --project="Pixel 5" --run
 
 # iPhone 12
-npx playwright test --project="iPhone 12" --run
-```
 
+npx playwright test --project="iPhone 12" --run
+
+```text
 ---
 
 ### **Q: How do I report a test failure?**
@@ -411,6 +443,7 @@ A: Include this info:
    - Node: 18.0.0
    - OS: Windows 11
    - Backend: Running on localhost:8000
+
    ```
 
 5. **Logs/Screenshots:**
@@ -446,22 +479,27 @@ A: Include this info:
 
 ```bash
 # Collect diagnostics
+
 mkdir -p debug
 npx playwright test --reporter=json > debug/test-results.json
 npx playwright test --reporter=html && cp -r playwright-report debug/
 
 # Package for sharing
+
 zip -r debug.zip debug/
 
 # Then provide:
+
 # 1. debug.zip file
 # 2. Terminal output (copy/paste)
-# 3. Test name that's failing
-```
 
+# 3. Test name that's failing
+
+```text
 ---
 
 **Last Updated:** 2025-01-05
 **Related Docs:**
 - [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md) - Main testing guide
 - [E2E_AUTHENTICATION_FIX.md](./E2E_AUTHENTICATION_FIX.md) - Auth fix details
+

@@ -37,77 +37,90 @@
 ### Method 1: GitHub Actions Web Interface
 
 **Step 1: Navigate to Actions**
-```
+
+```text
 1. Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/actions
 2. Select "Latest workflow runs"
 3. Click on the most recent run (top of list)
-```
 
+```text
 **Step 2: Check Workflow Status**
-```
+
+```text
 - Green checkmark (✓) = All checks passed
 - Red X (✗) = One or more checks failed
 - Yellow circle (◔) = In progress
-```
 
+```text
 **Step 3: Review Job Results**
-```
+
+```text
 Click on individual jobs to see:
 - Backend tests (pytest)
 - Frontend tests (vitest)
 - E2E tests (playwright)
 - Linting and formatting
 - Docker build
-```
 
+```text
 **Step 4: View Logs**
-```
+
+```text
 Expand each job to see detailed logs
 Look for:
 - ERROR: Failed assertions
 - FAILED: Test failures
 - Exit code: 1 (indicates failure)
-```
 
+```text
 ---
 
 ### Method 2: Command Line Monitoring
 
 #### Check latest workflow status
+
 ```powershell
 # View GitHub Actions from CLI (requires GitHub CLI)
+
 gh run list --repo bs1gr/AUT_MIEEK_SMS --branch main --limit 5
 
 # Or check git log for recent pushes
+
 git log --oneline -5 --graph
 
 # Show latest 10 commits
-git log --oneline -10
-```
 
+git log --oneline -10
+
+```text
 #### Monitor specific workflow
+
 ```powershell
 # Watch CI/CD pipeline
+
 gh run watch --repo bs1gr/AUT_MIEEK_SMS
 
 # Get detailed status
-gh run view --repo bs1gr/AUT_MIEEK_SMS
-```
 
+gh run view --repo bs1gr/AUT_MIEEK_SMS
+
+```text
 ---
 
 ## ✅ Expected Results
 
 ### For `ca8b2db2f` (Latest: docs commit)
-```
+
+```text
 ✓ All pre-commit hooks passed
 ✓ Markdownlint passed
 ✓ No code changes (docs only) = no test runs needed
 ✓ Status: PASS
-```
 
+```text
 ### For `1483ed2f1` (RBAC implementation)
-```
+
+```text
 Expected workflow: Full CI/CD pipeline
 ├── Pre-commit hooks: PASS (13/13)
 ├── Backend tests: PASS (370/370)
@@ -116,13 +129,14 @@ Expected workflow: Full CI/CD pipeline
 ├── Docker build: PASS
 ├── Coverage: PASS (75% backend, 70% frontend)
 └── Overall Status: PASS ✓
-```
 
+```text
 ---
 
 ## 🚨 What to Watch For
 
 ### Critical Alerts
+
 If you see any of these, **DO NOT** deploy to production:
 
 1. **Test Failures**
@@ -141,6 +155,7 @@ If you see any of these, **DO NOT** deploy to production:
    - Authentication bypass
 
 ### Non-Critical Warnings
+
 These can be proceeded with (will auto-fix on next commit):
 
 1. **Code Style Issues** (auto-fixable by ruff)
@@ -165,21 +180,25 @@ These can be proceeded with (will auto-fix on next commit):
 ## 🔄 Continuous Monitoring Schedule
 
 ### Every 30 minutes (during active development)
+
 - [ ] Check latest workflow status
 - [ ] Verify all checks still passing
 - [ ] Watch for any new failures
 
 ### Every 2 hours
+
 - [ ] Review logs for any warnings
 - [ ] Check performance metrics
 - [ ] Verify no regressions
 
 ### Daily (morning standup)
+
 - [ ] Review last 24 hours of CI runs
 - [ ] Document any failures or patterns
 - [ ] Plan fixes if needed
 
 ### Weekly (Friday)
+
 - [ ] Analyze CI/CD performance trends
 - [ ] Update baseline metrics
 - [ ] Optimize slow checks if needed
@@ -249,3 +268,4 @@ If CI/CD pipeline fails:
 **Last Checked**: January 8, 2026 21:30 UTC+2
 **Next Check**: January 8, 2026 22:00 UTC+2
 **Status**: ✅ Ready for monitoring and deployment
+

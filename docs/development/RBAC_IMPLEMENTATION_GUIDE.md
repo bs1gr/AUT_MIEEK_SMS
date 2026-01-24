@@ -25,7 +25,7 @@ This document describes the Role-Based Access Control (RBAC) system implemented 
 
 ### Three-Tier Permission Model
 
-```
+```text
 ┌─────────────────┐
 │   User Roles    │
 └────────┬────────┘
@@ -46,8 +46,8 @@ This document describes the Role-Based Access Control (RBAC) system implemented 
                     │ (key, res,   │
                     │  action)     │
                     └──────────────┘
-```
 
+```text
 ### Permission Resolution
 
 When checking if a user has a permission:
@@ -78,8 +78,8 @@ class Permission(BaseModel):
     # Relationships
     role_permissions: List[RolePermission]
     user_permissions: List[UserPermission]
-```
 
+```text
 **Permission Key Format**: `{resource}:{action}`
 - Examples: `students:create`, `grades:read`, `courses:update`, `reports:export`
 
@@ -114,15 +114,15 @@ class UserPermission(BaseModel):
     __table_args__ = (
         UniqueConstraint('user_id', 'permission_id', name='uq_user_permission'),
     )
-```
 
+```text
 ---
 
 ## Permission Structure
 
 ### Built-in Permission Levels
 
-```
+```text
 RESOURCES:
 ├── students
 │   ├── create
@@ -155,8 +155,8 @@ RESOURCES:
     ├── manage_roles
     ├── manage_permissions
     └── view_audit_logs
-```
 
+```text
 ### Default Role Permissions
 
 **Admin Role**:
@@ -183,7 +183,8 @@ RESOURCES:
 ### Permission Management
 
 #### List All Permissions
-```
+
+```text
 GET /api/v1/admin/permissions
 Query Parameters:
   - page: int (default: 1)
@@ -209,10 +210,11 @@ Response:
   "page": 1,
   "limit": 50
 }
-```
 
+```text
 #### Create Permission
-```
+
+```text
 POST /api/v1/admin/permissions
 Request Body:
 {
@@ -223,10 +225,11 @@ Request Body:
 }
 
 Response: [Permission object]
-```
 
+```text
 #### Update Permission
-```
+
+```text
 PUT /api/v1/admin/permissions/{id}
 Request Body:
 {
@@ -235,18 +238,20 @@ Request Body:
 }
 
 Response: [Permission object]
-```
 
+```text
 #### Delete Permission
-```
+
+```text
 DELETE /api/v1/admin/permissions/{id}
 Response: 204 No Content
-```
 
+```text
 ### User Permissions
 
 #### Grant Permission to User
-```
+
+```text
 POST /api/v1/admin/user-permissions
 Request Body:
 {
@@ -267,10 +272,11 @@ Response:
   "expires_at": "2026-12-31T23:59:59Z",
   "is_active": true
 }
-```
 
+```text
 #### Get User's Permissions
-```
+
+```text
 GET /api/v1/admin/user-permissions/{user_id}
 Response:
 {
@@ -291,16 +297,18 @@ Response:
     }
   ]
 }
-```
 
+```text
 #### Revoke Permission
-```
+
+```text
 DELETE /api/v1/admin/user-permissions/{id}
 Response: 204 No Content
-```
 
+```text
 #### Update Permission Expiration
-```
+
+```text
 PUT /api/v1/admin/user-permissions/{id}
 Request Body:
 {
@@ -308,12 +316,13 @@ Request Body:
 }
 
 Response: [UserPermission object]
-```
 
+```text
 ### Role Permissions
 
 #### Assign Permission to Role
-```
+
+```text
 POST /api/v1/admin/role-permissions
 Request Body:
 {
@@ -329,10 +338,11 @@ Response:
   "is_active": true,
   "created_at": "2026-01-06T10:00:00Z"
 }
-```
 
+```text
 #### Get Role Permissions
-```
+
+```text
 GET /api/v1/admin/role-permissions?role=teacher
 Response:
 {
@@ -351,14 +361,15 @@ Response:
   ],
   "total": 12
 }
-```
 
+```text
 #### Remove Permission from Role
-```
+
+```text
 DELETE /api/v1/admin/role-permissions/{id}
 Response: 204 No Content
-```
 
+```text
 ---
 
 ## Permission Checking
@@ -381,8 +392,8 @@ async def delete_user(
     # If AUTH_MODE="permissive", checks if user is admin (login required)
     # If AUTH_MODE="strict", enforces admin role strictly
     return await delete_user_service(user_id, db)
-```
 
+```text
 ### Service-Level Permission Checking
 
 ```python
@@ -405,12 +416,13 @@ class StudentService:
             raise HTTPException(status_code=403, detail="Not authorized")
 
         return self.db.query(Student).filter_by(id=student_id).first()
-```
 
+```text
 ### Checking Multiple Permissions
 
 ```python
 # Check if user has ANY of these permissions
+
 has_any = await perm_service.has_any_permission(
     user=current_user,
     permissions=[
@@ -420,6 +432,7 @@ has_any = await perm_service.has_any_permission(
 )
 
 # Check if user has ALL of these permissions
+
 has_all = await perm_service.has_all_permissions(
     user=current_user,
     permissions=[
@@ -427,8 +440,8 @@ has_all = await perm_service.has_all_permissions(
         ("reports", "export")
     ]
 )
-```
 
+```text
 ---
 
 ## Implementation Examples
@@ -436,6 +449,7 @@ has_all = await perm_service.has_all_permissions(
 ### Example 1: Adding Permission Check to Existing Endpoint
 
 **Before:**
+
 ```python
 @router.post("/students/import")
 async def import_students(
@@ -444,9 +458,10 @@ async def import_students(
 ):
     """Import students from CSV"""
     return await process_import(file)
-```
 
+```text
 **After:**
+
 ```python
 @router.post("/students/import")
 async def import_students(
@@ -462,12 +477,13 @@ async def import_students(
         raise HTTPException(status_code=403, detail="Not authorized to import students")
 
     return await process_import(file, current_user, db)
-```
 
+```text
 ### Example 2: Creating a Custom Permission
 
 ```python
 # In migration or seed data:
+
 permission = Permission(
     key="students:bulk_edit",
     resource="students",
@@ -479,6 +495,7 @@ db.add(permission)
 db.commit()
 
 # Assign to teacher role:
+
 role_perm = RolePermission(
     role="teacher",
     permission_id=permission.id,
@@ -486,12 +503,13 @@ role_perm = RolePermission(
 )
 db.add(role_perm)
 db.commit()
-```
 
+```text
 ### Example 3: Temporary User Permissions
 
 ```python
 # Grant permission that expires in 30 days
+
 permission = db.query(Permission).filter_by(
     resource="reports",
     action="export"
@@ -507,8 +525,8 @@ user_perm = UserPermission(
 )
 db.add(user_perm)
 db.commit()
-```
 
+```text
 ---
 
 ## Testing
@@ -530,16 +548,19 @@ All RBAC functionality is covered by 102+ tests in `backend/tests/test_rbac.py` 
 
 ```bash
 # Run all RBAC tests
+
 cd backend
 pytest tests/test_rbac.py tests/test_permissions_api.py -v
 
 # Run specific test
+
 pytest tests/test_rbac.py::TestPermissionModel::test_permission_creation -v
 
 # Run with coverage
-pytest tests/test_rbac.py --cov=backend.models --cov-report=html
-```
 
+pytest tests/test_rbac.py --cov=backend.models --cov-report=html
+
+```text
 ### Writing New RBAC Tests
 
 ```python
@@ -574,8 +595,8 @@ async def test_custom_permission_grant(db):
     user = db.query(User).get(1)
 
     assert await perm_service.has_permission(user, "custom", "action")
-```
 
+```text
 ---
 
 ## Troubleshooting
@@ -594,12 +615,13 @@ async def test_custom_permission_grant(db):
 
 ```python
 # Debug permission resolution
+
 perm_service = PermissionService(db)
 perms = await perm_service.get_user_permissions(user)
 print(f"User has {len(perms)} total permissions")
 print([p.key for p in perms])
-```
 
+```text
 #### 2. Permission API Returns 403
 
 **Problem**: Admin endpoint returns 403 Forbidden
@@ -612,10 +634,11 @@ print([p.key for p in perms])
 
 ```python
 # Check AUTH_MODE
+
 from backend.environment import RuntimeContext
 print(f"AUTH_MODE: {RuntimeContext.auth_mode()}")
-```
 
+```text
 #### 3. Migration Issues
 
 **Problem**: Fresh database migration fails
@@ -631,14 +654,17 @@ The system respects three auth modes:
 
 ```python
 # backend/environment.py
+
 AUTH_MODE = os.getenv("AUTH_MODE", "permissive")  # default: permissive
 
 # Modes:
+
 # "disabled" - No authentication required (emergency access, testing)
 # "permissive" - Authentication optional (login enables features)
-# "strict" - Full authentication required (production recommended)
-```
 
+# "strict" - Full authentication required (production recommended)
+
+```text
 **Use Cases**:
 - **Testing**: Set `AUTH_MODE=disabled` or `DISABLE_STARTUP_TASKS=1`
 - **Development**: Use `AUTH_MODE=permissive` (default)
@@ -648,6 +674,7 @@ AUTH_MODE = os.getenv("AUTH_MODE", "permissive")  # default: permissive
 
 ```python
 # List all permissions
+
 from backend.models import Permission, RolePermission, UserPermission
 from backend.db import SessionLocal
 
@@ -656,14 +683,16 @@ perms = db.query(Permission).all()
 print(f"Total permissions: {len(perms)}")
 
 # Check role assignments
+
 teacher_perms = db.query(RolePermission).filter_by(role="teacher").all()
 print(f"Teacher role has {len(teacher_perms)} permissions")
 
 # Check user overrides
+
 user_perms = db.query(UserPermission).filter_by(user_id=123).all()
 print(f"User 123 has {len(user_perms)} direct permissions")
-```
 
+```text
 ---
 
 ## Performance Considerations
@@ -684,6 +713,7 @@ For large deployments:
 
 ```python
 # Use eager loading to reduce queries
+
 from sqlalchemy.orm import joinedload
 
 user = db.query(User).options(
@@ -691,13 +721,14 @@ user = db.query(User).options(
 ).first()
 
 # Use permission caching
+
 perm_service = PermissionService(db)
 perms = await perm_service.get_user_permissions(
     user,
     cache_ttl=300  # Cache for 5 minutes
 )
-```
 
+```text
 ---
 
 ## See Also
@@ -708,3 +739,4 @@ perms = await perm_service.get_user_permissions(
 - [backend/models.py](../../backend/models.py) - Permission models (lines 1-100)
 - [backend/tests/test_rbac.py](../../backend/tests/test_rbac.py) - Complete test suite
 - [AUTHENTICATION.md](AUTHENTICATION.md) - Related auth documentation
+

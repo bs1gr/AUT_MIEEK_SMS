@@ -36,8 +36,8 @@ POSTGRES_PASSWORD=super-secure-password
 POSTGRES_SSLMODE=require       # prefer/require/verify-* as needed
 POSTGRES_OPTIONS=connect_timeout=10&application_name=sms
 # Leave DATABASE_URL blank to let the app build it automatically
-```
 
+```text
 > **Tip:** `DOCKER.ps1`, `docker-compose.yml`, and the helper scripts now read the
 > same variables, so the container picks up the PostgreSQL connection without
 > additional flags.
@@ -52,8 +52,8 @@ python -m backend.scripts.migrate_sqlite_to_postgres `
     --sqlite-path ../data/student_management.db `
     --postgres-url postgresql+psycopg://user:pass@host:5432/dbname `
     --dry-run --skip-migrations
-```
 
+```text
 This validates connectivity to the SQLite file and prints row counts for each
 model while skipping PostgreSQL writes.
 
@@ -66,8 +66,8 @@ cd backend
 python -m backend.scripts.migrate_sqlite_to_postgres `
     --sqlite-path ../data/student_management.db `
     --postgres-url postgresql+psycopg://user:pass@host:5432/dbname
-```
 
+```text
 Key options:
 
 | Flag | Description |
@@ -107,3 +107,4 @@ CASCADE` to guarantee clean imports.
 
 For detailed operational steps (backups, compose overrides, QNAP notes), see
 [docs/deployment/PRODUCTION_DOCKER_GUIDE.md](PRODUCTION_DOCKER_GUIDE.md).
+

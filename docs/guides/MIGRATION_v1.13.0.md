@@ -46,21 +46,25 @@ Version 1.13.0 removes all deprecated backend modules that were marked for depre
 ### 1. Course Import Module
 
 **Old Code (REMOVED):**
+
 ```python
 from backend.auto_import_courses import import_courses, parse_course_file
 
 # Or command line:
-python -m backend.auto_import_courses path/to/courses.csv
-```
 
+python -m backend.auto_import_courses path/to/courses.csv
+
+```text
 **New Code (1.14.0+):**
+
 ```python
 from backend.scripts.import_.courses import import_courses, parse_course_file
 
 # Or command line:
-python -m backend.scripts.import_.courses path/to/courses.csv
-```
 
+python -m backend.scripts.import_.courses path/to/courses.csv
+
+```text
 **Files to Update:**
 - Custom import scripts
 - Automation tools
@@ -73,28 +77,33 @@ python -m backend.scripts.import_.courses path/to/courses.csv
 #### Create Admin User
 
 **Old Code (REMOVED):**
+
 ```python
 from backend.tools.create_admin import create_admin_user
 
 create_admin_user(db, username="admin", email="admin@example.com", password="secure123")
-```
 
+```text
 **New Code (1.14.0+):**
+
 ```python
 from backend.db.cli.admin import create_admin_user
 
 create_admin_user(db, username="admin", email="admin@example.com", password="secure123")
-```
 
+```text
 **Command Line:**
+
 ```bash
 # Old (REMOVED)
+
 python -m backend.tools.create_admin
 
 # New (1.14.0+)
-python -m backend.db.cli.admin --create-admin
-```
 
+python -m backend.db.cli.admin --create-admin
+
+```text
 ---
 
 ### 3. Schema Management Tools
@@ -102,51 +111,57 @@ python -m backend.db.cli.admin --create-admin
 #### Database Reset
 
 **Old Code (REMOVED):**
+
 ```python
 from backend.tools.reset_db import reset_database
 
 reset_database()
-```
 
+```text
 **New Code (1.14.0+):**
+
 ```python
 from backend.db.cli.schema import reset_database
 
 reset_database()
-```
 
+```text
 #### Schema Drift Check
 
 **Old Code (REMOVED):**
+
 ```python
 from backend.tools.check_schema_drift import check_drift
 
 check_drift()
-```
 
+```text
 **New Code (1.14.0+):**
+
 ```python
 from backend.db.cli.schema import check_drift
 
 check_drift()
-```
 
+```text
 #### Schema Verification
 
 **Old Code (REMOVED):**
+
 ```python
 from backend.tools.verify_schema import verify_schema
 
 verify_schema()
-```
 
+```text
 **New Code (1.14.0+):**
+
 ```python
 from backend.db.cli.schema import verify_schema
 
 verify_schema()
-```
 
+```text
 ---
 
 ### 4. Diagnostic Tools
@@ -154,35 +169,39 @@ verify_schema()
 #### Secret/Credentials Check
 
 **Old Code (REMOVED):**
+
 ```python
 from backend.tools.check_secret import check_jwt_secret
 
 check_jwt_secret()
-```
 
+```text
 **New Code (1.14.0+):**
+
 ```python
 from backend.db.cli.diagnostics import check_jwt_secret
 
 check_jwt_secret()
-```
 
+```text
 #### First Run Validation
 
 **Old Code (REMOVED):**
+
 ```python
 from backend.tools.validate_first_run import validate_first_run
 
 validate_first_run()
-```
 
+```text
 **New Code (1.14.0+):**
+
 ```python
 from backend.db.cli.diagnostics import validate_first_run
 
 validate_first_run()
-```
 
+```text
 ---
 
 ## Complete Import Mapping
@@ -208,6 +227,7 @@ validate_first_run()
 Use this script to update all Python files in your custom code:
 
 **`migrate_imports.py`**
+
 ```python
 #!/usr/bin/env python3
 """
@@ -276,17 +296,20 @@ def main(directory: str = "."):
 if __name__ == "__main__":
     directory = sys.argv[1] if len(sys.argv) > 1 else "."
     main(directory)
-```
 
+```text
 **Usage:**
+
 ```bash
 # Run from repository root
+
 python migrate_imports.py .
 
 # Or for specific directory
-python migrate_imports.py ./my_scripts/
-```
 
+python migrate_imports.py ./my_scripts/
+
+```text
 ---
 
 ## Testing Migration
@@ -294,31 +317,39 @@ python migrate_imports.py ./my_scripts/
 After updating imports, verify everything works:
 
 ### 1. Static Analysis
+
 ```bash
 # Check for syntax errors
+
 python -m py_compile path/to/your/script.py
 
 # Type checking (if using mypy)
-mypy path/to/your/script.py
-```
 
+mypy path/to/your/script.py
+
+```text
 ### 2. Import Validation
+
 ```bash
 # Verify new imports work
+
 python -c "from backend.scripts.import_.courses import import_courses; print('✓ Course import OK')"
 python -c "from backend.db.cli.admin import create_admin_user; print('✓ Admin tools OK')"
 python -c "from backend.db.cli.schema import reset_database; print('✓ Schema tools OK')"
-```
 
+```text
 ### 3. Functional Testing
+
 ```bash
 # Run your scripts in test environment
+
 python your_custom_script.py --dry-run
 
 # Run application test suite
-cd backend && pytest -v
-```
 
+cd backend && pytest -v
+
+```text
 ---
 
 ## Rollback Plan
@@ -326,53 +357,67 @@ cd backend && pytest -v
 If you encounter issues and need to rollback to 1.14.0:
 
 ### Docker Users:
+
 ```bash
 # Pull 1.14.0 image
+
 docker pull your-registry/sms:1.12.9
 
 # Or rebuild from tag
+
 git checkout 1.14.0
 docker-compose build
 docker-compose up -d
-```
 
+```text
 ### Native Users:
+
 ```bash
 # Checkout 1.14.0
+
 git checkout 1.14.0
 
 # Reinstall dependencies
+
 cd backend && pip install -r requirements.txt
 cd ../frontend && npm install
 
 # Start application
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 ---
 
 ## FAQ
 
 ### Q: Do I need to migrate my database?
+
 **A:** No! This release only affects Python import paths. No database changes required.
 
 ### Q: Will my existing Docker volumes work?
+
 **A:** Yes! Docker volumes are fully compatible. Only code imports changed.
 
 ### Q: What if I'm using the web UI only?
+
 **A:** No action needed. This only affects custom Python scripts/automation.
 
 ### Q: How do I find all affected files?
+
 **A:** Use grep:
+
 ```bash
 grep -r "backend.auto_import_courses" --include="*.py" .
 grep -r "backend.tools" --include="*.py" .
-```
 
+```text
 ### Q: Can I still use 1.14.0?
+
 **A:** Yes, 1.14.0 remains fully functional with deprecated modules. However, we recommend migrating to 1.14.0 for ongoing support.
 
 ### Q: Will there be more breaking changes?
+
 **A:** No deprecated code remains after 1.14.0. Future releases will maintain backward compatibility unless major architectural changes are needed.
 
 ---
@@ -393,3 +438,4 @@ grep -r "backend.tools" --include="*.py" .
 
 *Last Updated: December 29, 2025*
 *Version: 1.13.0*
+

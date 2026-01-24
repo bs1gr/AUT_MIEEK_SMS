@@ -22,18 +22,20 @@
 ```powershell
 
 # Install development dependencies
+
 cd backend
 pip install -r requirements-dev.txt
 
 # Verify it works
+
 python -m pytest --version  # Should show: pytest 8.3.3
 
 # Run validation
+
 cd ..
 .\COMMIT_READY.ps1 -Mode quick
 
-```
-
+```text
 **That's it!** Your development environment is ready.
 
 Optional: install the repository-provided pre-commit hook which runs `COMMIT_READY.ps1 -Mode quick` at commit time.
@@ -44,15 +46,13 @@ PowerShell (Windows):
 ```powershell
 pwsh ./scripts/install-git-hooks.ps1
 
-```
-
+```text
 macOS / Linux:
 
 ```bash
 ./scripts/install-git-hooks.sh
 
-```
-
+```text
 ---
 
 ## 📦 Prerequisites
@@ -91,20 +91,23 @@ Your backend has **4 requirements files**:
 cd backend
 
 # Create virtual environment (recommended)
+
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 
 # Install production dependencies
+
 pip install -r requirements.txt
 
 # Install development dependencies
+
 pip install -r requirements-dev.txt
 
 # Verify installation
+
 python -m pytest --version
 
-```
-
+```text
 ### What Gets Installed
 
 **From requirements-dev.txt**:
@@ -123,18 +126,16 @@ python -m pytest --version
 
 **Symptom**:
 
-```
+```text
 ValueError: I/O operation on closed file
 
-```
-
+```text
 or
 
-```
+```text
 python: No module named pytest
 
-```
-
+```text
 **Cause**: Development dependencies not installed
 
 **Fix**:
@@ -143,20 +144,18 @@ python: No module named pytest
 cd backend
 pip install -r requirements-dev.txt
 
-```
-
+```text
 ---
 
 ### Issue 2: Python 3.13 Compatibility
 
 **Symptom**:
 
-```
+```text
 ValueError: I/O operation on closed file
 pytest's capture.py at line 571: self.tmpfile.seek(0)
 
-```
-
+```text
 **Cause**: Known compatibility issue between pytest < 8.0.0 and Python 3.13
 
 **Fix Options**:
@@ -167,8 +166,7 @@ pytest's capture.py at line 571: self.tmpfile.seek(0)
 cd backend
 pip install --upgrade pytest>=8.0.0 pytest-cov>=4.1.0
 
-```
-
+```text
 The project's `requirements-dev.txt` already specifies pytest 8.3.3, so a fresh install should work.
 
 #### Option B: Use Python 3.12 (Alternative)
@@ -183,16 +181,14 @@ python3.12 -m venv .venv
 pip install -r requirements.txt
 pip install -r requirements-dev.txt
 
-```
-
+```text
 #### Option C: Disable pytest Capture (Temporary Workaround)
 
 ```powershell
 cd backend
 python -m pytest -s  # -s disables capture
 
-```
-
+```text
 **Note**: Loses output control, not recommended for regular use.
 
 ---
@@ -208,11 +204,11 @@ python -m pytest -s  # -s disables capture
 ```powershell
 
 # Press Win + X → Select "Windows PowerShell" or "Terminal"
+
 cd D:\SMS\student-management-system
 .\COMMIT_READY.ps1 -Mode quick
 
-```
-
+```text
 **Why?** Git Bash (MINGW64) doesn't have:
 
 - Direct access to Python.exe
@@ -230,15 +226,16 @@ cd D:\SMS\student-management-system
 ```powershell
 
 # Check what's using the port
+
 netstat -ano | findstr :8000   # Backend
 netstat -ano | findstr :5173   # Frontend
 
 # Stop existing processes
+
 .\DOCKER.ps1 -Stop              # If Docker is running
 .\NATIVE.ps1 -Stop              # If native mode is running
 
-```
-
+```text
 ---
 
 ## ✅ Pre-commit Validation
@@ -252,8 +249,7 @@ The project uses a unified pre-commit validation script with 4 modes:
 ```powershell
 .\COMMIT_READY.ps1 -Mode quick
 
-```
-
+```text
 **Runs**:
 
 - ✅ Code quality checks (Ruff, ESLint)
@@ -266,10 +262,10 @@ The project uses a unified pre-commit validation script with 4 modes:
 .\COMMIT_READY.ps1
 
 # or
+
 .\COMMIT_READY.ps1 -Mode standard
 
-```
-
+```text
 **Runs**:
 
 - ✅ Full code quality checks
@@ -283,8 +279,7 @@ The project uses a unified pre-commit validation script with 4 modes:
 ```powershell
 .\COMMIT_READY.ps1 -Mode full
 
-```
-
+```text
 **Runs**:
 
 - ✅ Everything in standard mode
@@ -297,8 +292,7 @@ The project uses a unified pre-commit validation script with 4 modes:
 ```powershell
 .\COMMIT_READY.ps1 -Mode cleanup
 
-```
-
+```text
 **Runs**:
 
 - ✅ Remove Python cache (**pycache**, .pytest_cache)
@@ -311,10 +305,10 @@ The project uses a unified pre-commit validation script with 4 modes:
 ```powershell
 
 # Run with automatic fixes
+
 .\COMMIT_READY.ps1 -Mode quick -AutoFix
 
-```
-
+```text
 **Auto-fixes**:
 
 - ✅ Code formatting (Ruff format)
@@ -383,37 +377,41 @@ The following checks **require running** `COMMIT_READY.ps1`:
 ```powershell
 
 # 1. Start development environment
+
 .\NATIVE.ps1 -Start              # Backend + Frontend with hot-reload
 
 # 2. Make changes...
 
 # 3. Run quick validation before commit
+
 .\COMMIT_READY.ps1 -Mode quick
 
 # 4. If all checks pass, commit
+
 git add .
 git commit -m "your message"
 git push
 
-```
-
+```text
 ### Before Creating Pull Request
 
 ```powershell
 
 # Run standard validation
+
 .\COMMIT_READY.ps1 -Mode standard
 
 # Or full validation for major changes
+
 .\COMMIT_READY.ps1 -Mode full
 
-```
-
+```text
 ### Before Release
 
 ```powershell
 
 # Full validation with health checks
+
 .\COMMIT_READY.ps1 -Mode full
 
 # Review all reports
@@ -422,8 +420,7 @@ git push
 
 # Tag release
 
-```
-
+```text
 ---
 
 ## 🎯 Next Steps
@@ -497,8 +494,7 @@ After setup is complete:
 cd backend
 python -m pytest -v
 
-```
-
+```text
 ### Q: How do I run only frontend tests?
 
 **A**:
@@ -507,8 +503,7 @@ python -m pytest -v
 cd frontend
 npm test
 
-```
-
+```text
 ---
 
 ## 📚 Related Documentation
@@ -537,3 +532,4 @@ npm test
 **Last Updated**: 2025-11-28
 **Maintainer**: Development Team
 **Version**: 1.0.0 (Consolidated from 4 separate guides)
+

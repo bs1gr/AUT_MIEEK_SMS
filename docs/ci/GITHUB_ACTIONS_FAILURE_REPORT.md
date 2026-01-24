@@ -1,4 +1,5 @@
 # GitHub Actions Workflow Failure Report
+
 **Repository:** bs1gr/AUT_MIEEK_SMS
 **Branch:** main
 **Report Date:** December 27, 2025
@@ -20,6 +21,7 @@ Two critical workflows have failed on the most recent commit (`6941bbd`) with th
 ## 1. COMMIT_READY Smoke (quick) - Run #398
 
 ### Failure Details
+
 - **Workflow:** `commit-ready-smoke.yml`
 - **Status:** FAILED ❌
 - **Duration:** 1m 12s
@@ -27,6 +29,7 @@ Two critical workflows have failed on the most recent commit (`6941bbd`) with th
 - **Triggered:** Push to main branch
 
 ### Failed Jobs
+
 **Job 1: Run COMMIT_READY quick (smoke) (ubuntu-latest)** ❌
 - **Result:** Process completed with exit code 1
 - **Duration:** 1m 2s
@@ -37,6 +40,7 @@ Two critical workflows have failed on the most recent commit (`6941bbd`) with th
 - **Error Annotation:** "The strategy configuration was canceled because "commit-ready-quick.ubuntu-latest" failed"
 
 ### Step Sequence (Ubuntu Job)
+
 The job completed the following steps before failing:
 1. ✅ Set up job (0s)
 2. ✅ Checkout repository (1s)
@@ -66,6 +70,7 @@ This step likely runs the PowerShell script `COMMIT_READY.ps1` with the `-Quick`
 6. **Code formatting mismatch** - Black/Ruff formatting found issues that need fixing
 
 ### Logs Access Issue
+
 GitHub requires authentication to view the detailed job logs. The specific error message in the "Run COMMIT_READY quick smoke..." step is not visible without signing in to GitHub.
 
 ---
@@ -73,6 +78,7 @@ GitHub requires authentication to view the detailed job logs. The specific error
 ## 2. E2E Tests - Run #226
 
 ### Failure Details
+
 - **Workflow:** `e2e-tests.yml`
 - **Status:** FAILED ❌
 - **Duration:** 13m 24s (13m 5s for the "e2e" job)
@@ -81,6 +87,7 @@ GitHub requires authentication to view the detailed job logs. The specific error
 - **Browser:** Chromium (Playwright)
 
 ### Test Results Summary
+
 - **Total Failures:** 21 failed test cases
 - **Error Type:** TimeoutError (consistent across all failures)
 - **Failure Rate:** 100% (all tests in critical-flows.spec.ts failed)
@@ -90,16 +97,19 @@ GitHub requires authentication to view the detailed job logs. The specific error
 All failures occurred in `tests/critical-flows.spec.ts` with the following pattern:
 
 #### Authentication Flow Tests
+
 1. **Test:** "should login successfully" (Retry #2, #1, and initial attempt)
 2. **Test:** "should logout successfully" (Retry #2, #1, and initial attempt)
 
 #### Dashboard Navigation Tests
+
 3. **Test:** "should navigate to Students page" (Retry #2, #1, and initial attempt)
 4. **Test:** "should navigate to Courses page" (Retry #2, #1, and initial attempt)
 5. **Test:** "should navigate to Grades page" (All attempts)
 6. **Test:** "should navigate to Attendance page" (All attempts)
 
 #### Students Management Tests
+
 7. **Test:** "should display students list" (All attempts)
 8. **Test:** "should search students" (implied - included in "21 failed" count)
 
@@ -107,7 +117,8 @@ All failures occurred in `tests/critical-flows.spec.ts` with the following patte
 
 **Error Type:** `TimeoutError`
 **Error Message Template:**
-```
+
+```text
 TimeoutError: page.waitForURL: Timeout 10000ms exceeded.
 =========================== logs ===========================
 waiting for navigation until "load"
@@ -120,9 +131,10 @@ at ../src/__e2e__/helpers.ts:56
   57 | await page.waitForLoadState('networkidle');
   58 | }
   59 |
-```
 
+```text
 ### Location of Error
+
 **File:** [frontend/src/__e2e__/helpers.ts](frontend/src/__e2e__/helpers.ts#L56)
 **Function:** `login()` helper function
 **Line:** 56
@@ -146,11 +158,13 @@ The error indicates that:
 7. **Network connectivity:** GitHub Actions runner cannot reach localhost:8000/API
 
 ### Test Artifacts
+
 - **Artifact Generated:** `e2e-test-results` (17.1 MB)
 - **SHA256:** `99ba3a37772dc2d2e1fa3ca9d4a783a1d71e8cb0bcf60f3e3d26a1e60a319b89`
 - **Location:** Can be downloaded from GitHub Actions run results
 
 ### Test Configuration Details
+
 - **Framework:** Playwright with Chromium browser
 - **Test Suite:** `critical-flows.spec.ts`
 - **Retry Policy:** 2 retries per test (all retries also failed)
@@ -170,6 +184,7 @@ The same commit (`6941bbd`) also triggered failures in other workflows:
 These are likely cascading failures from the backend startup issues that also affect the E2E tests.
 
 ### Successful Workflows (Same Commit)
+
 - ✅ COMMIT_READY cleanup smoke test (#336)
 - ✅ Trivy Security Scan (#11)
 - ✅ CodeQL (#396)
@@ -180,6 +195,7 @@ These are likely cascading failures from the backend startup issues that also af
 ## Diagnostic Steps to Resolve
 
 ### For COMMIT_READY Smoke Failure
+
 1. **Check the detailed logs** by viewing the GitHub Actions run with authentication
 2. **Run locally:**
    ```powershell
@@ -196,6 +212,7 @@ These are likely cascading failures from the backend startup issues that also af
    - Import errors in backend/frontend
 
 ### For E2E Tests Failure
+
 1. **Start the backend manually:**
    ```bash
    cd backend
@@ -227,11 +244,13 @@ These are likely cascading failures from the backend startup issues that also af
 ## Recommendations
 
 ### Immediate Actions
+
 1. **Verify the recent commit `6941bbd`** - Check what changes were made to backup operations code
 2. **Check backend startup** - The E2E failure suggests backend isn't starting in CI environment
 3. **Review environment setup in CI** - `.github/workflows/e2e-tests.yml` may need Docker setup or backend startup
 
 ### Code Changes to Investigate
+
 The commit message mentions: **"security: strengthen path traversal protection in backup operations"**
 
 This might have introduced:
@@ -241,6 +260,7 @@ This might have introduced:
 - Database initialization issues
 
 ### Testing Recommendations
+
 1. Run `COMMIT_READY.ps1 -Quick` locally to verify all checks pass
 2. Run E2E tests locally with backend running
 3. Check all recent changes to:
@@ -262,3 +282,4 @@ For E2E tests:
 1. Visit: https://github.com/bs1gr/AUT_MIEEK_SMS/actions/runs/20542009613
 2. Download the `e2e-test-results` artifact (17.1 MB)
 3. Check the HTML report for detailed failure screenshots and logs
+

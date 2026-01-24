@@ -17,7 +17,10 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 **Windows Installer**: Download StudentManagementSystem_1.12.8_Setup.exe from the assets below.
 
 **Docker**:
+
 ```powershell
 # Pull the new version
+
 .\DOCKER.ps1 -Update
-```
+
+```text

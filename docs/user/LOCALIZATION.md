@@ -44,8 +44,8 @@ frontend/src/
 │   └── LanguageSwitcher.tsx     # Language toggle component
 ├── StudentManagementApp.tsx     # Loads config + providers
 └── [other components]           # Components using translations
-```
 
+```text
 ## Configuration Details
 
 ### Language Detection
@@ -79,8 +79,8 @@ export default {
   selectDate: 'Select Date'
   // ...more keys
 };
-```
 
+```text
 ### Aggregator (`translations.ts`)
 
 The aggregator shapes the resources passed to i18next:
@@ -99,8 +99,8 @@ export const translations = {
     ...attendanceEl
   }
 };
-```
 
+```text
 Add your namespace import and merge entry for both `en` and `el` whenever you introduce a new module. This keeps nested access available (`t('attendance.markAttendance')`) while still supporting legacy flat keys.
 
 ### Key Naming Convention
@@ -109,8 +109,8 @@ Use dot notation to organize keys hierarchically:
 
 ```text
 module.component.element
-```
 
+```text
 Examples:
 
 - `nav.students` → Navigation: Students
@@ -134,8 +134,8 @@ function MyComponent() {
     </div>
   );
 }
-```
 
+```text
 ### With Interpolation
 
 For dynamic values, use interpolation:
@@ -150,8 +150,8 @@ For dynamic values, use interpolation:
 
 // Component
 <span>{t('errors.minLength', { min: 5 })}</span>
-```
 
+```text
 ### In Class Components
 
 Wrap the class component with a functional component that provides the translation function:
@@ -174,8 +174,8 @@ const MyComponent = (props) => {
 };
 
 export default MyComponent;
-```
 
+```text
 ### Fallback Behavior
 
 If a translation key is missing, the system will:
@@ -220,8 +220,8 @@ export default {
   title: 'Το Χαρακτηριστικό μου',
   description: 'Περιγραφή χαρακτηριστικού'
 };
-```
 
+```text
 ### Step 2: Register the Namespace
 
 Import the new module in `frontend/src/translations.ts` and spread it into both language objects:
@@ -240,8 +240,8 @@ export const translations = {
     ...myFeatureEl
   }
 };
-```
 
+```text
 ### Step 3: Use in Component
 
 ```jsx
@@ -257,8 +257,8 @@ function MyFeature() {
     </div>
   );
 }
-```
 
+```text
 ## Testing
 
 ### Manual Testing Checklist
@@ -284,8 +284,8 @@ console.log(window.i18n.languages);
 
 // Change language programmatically
 window.i18n.changeLanguage('el');
-```
 
+```text
 ## Performance Considerations
 
 ### Bundle Size
@@ -363,8 +363,8 @@ The export endpoints in `backend/routers/routers_exports.py` now honor the reque
 ```jsx
 <button>Save</button>
 <h1>Student Management</h1>
-```
 
+```text
 **After (localized):**
 
 ```jsx
@@ -380,8 +380,8 @@ function Component() {
     </>
   );
 }
-```
 
+```text
 ### Existing Language Context
 
 The app previously used a custom `LanguageContext`. This can coexist with i18next:
@@ -411,3 +411,4 @@ For questions or issues with localization:
 **Last Updated**: 2025-11-15
 **Version**: 1.2 (1.9.7 alignment)
 **Languages Supported**: English (EN), Greek (EL)
+

@@ -13,6 +13,7 @@ Changes applied in this follow-up:
   - `tools/import_name_mapping.json` (used by `tools/check_imports_requirements.py`)
 
 - Integrated the import-vs-requirements checker into the existing `CI` job so it runs in
+
   the same environment that installs project dependencies. See `.github/workflows/ci.yml`.
 
 Verification performed locally (on Windows, pwsh):
@@ -25,9 +26,11 @@ Verification performed locally (on Windows, pwsh):
 Notes & next steps:
 
 - The venv wrapper does not auto-install project dependencies (to avoid heavy installs
+
   for simple checks). If you want the wrapper to install `backend/requirements.txt` the
   script can be extended to do so behind a `--install-deps` flag.
 - I created this PR update file so reviewers and CI bots can see the verification results.
+
   If you'd like, I can also attempt to edit the PR body directly via the GitHub API/CLI
   (requires a configured token on my behalf); tell me and I'll try.
 
@@ -38,3 +41,4 @@ Files changed in this follow-up (new/modified):
 - tools/check_imports_requirements.py — now loads mapping JSON
 - .pre-commit-config.yaml — runs checker through venv wrapper
 - .github/workflows/ci.yml — runs the checker as part of backend job
+

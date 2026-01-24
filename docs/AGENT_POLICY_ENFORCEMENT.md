@@ -27,20 +27,24 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 ### Policy 0: Deployment - NATIVE for Testing, DOCKER for Production
 
 **❌ FORBIDDEN:**
+
 ```powershell
 # These create ad-hoc procedures and break the system
+
 .\DOCKER.ps1 -Start                    # ❌ WRONG for testing - only for production
 .\NATIVE.ps1 -Start                    # ❌ WRONG for production - only for testing
 # Custom deployment scripts or procedures
-```
 
+```text
 **✅ REQUIRED:**
+
 ```powershell
 # ALWAYS use the correct script for the correct purpose
+
 .\NATIVE.ps1 -Start                    # ✅ Test/develop only (hot reload, 8000/5173)
 .\DOCKER.ps1 -Start                    # ✅ Deploy to production only (8080)
-```
 
+```text
 **Why This Exists:**
 - `DOCKER.ps1` and `NATIVE.ps1` are the **ONLY TWO** deployment entry points
 - They are comprehensive, tested, and documented
@@ -55,21 +59,25 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 ### Policy 1: Testing - NEVER Run Full Test Suite Directly
 
 **❌ FORBIDDEN:**
+
 ```powershell
 # These commands WILL crash VS Code - DO NOT USE
+
 cd backend && pytest -q
 cd backend && pytest tests/
 python -m pytest
-```
 
+```text
 **✅ REQUIRED:**
+
 ```powershell
 # ALWAYS use the batch test runner
+
 .\RUN_TESTS_BATCH.ps1                    # Default: 5 files per batch
 .\RUN_TESTS_BATCH.ps1 -BatchSize 3       # Smaller batches
 .\RUN_TESTS_BATCH.ps1 -Verbose           # Detailed output
-```
 
+```text
 **Why This Exists:**
 - 490+ test files overload system memory/CPU
 - Causes VS Code to freeze or crash completely
@@ -77,10 +85,11 @@ python -m pytest
 - Documented in: `.github/copilot-instructions.md`, `RUN_TESTS_BATCH.ps1`
 
 **Exception:** Single test files are OK for development:
+
 ```powershell
 cd backend && pytest tests/test_specific_file.py -v  # OK
-```
 
+```text
 **Enforcement:** Pre-commit hooks should warn if pytest runs detected in terminal history.
 
 ---
@@ -116,19 +125,22 @@ cd backend && pytest tests/test_specific_file.py -v  # OK
 ### Policy 3: Database - Alembic Migrations ONLY
 
 **❌ FORBIDDEN:**
+
 ```python
 # NEVER edit DB schema directly
+
 Base.metadata.create_all(engine)
 db.execute("ALTER TABLE ...")
-```
 
+```text
 **✅ REQUIRED:**
+
 ```bash
 cd backend
 alembic revision --autogenerate -m "description"
 alembic upgrade head
-```
 
+```text
 **Why This Exists:**
 - Direct schema changes corrupt data
 - Migrations provide version control
@@ -142,13 +154,15 @@ alembic upgrade head
 ### Policy 4: Frontend - i18n ALWAYS Required
 
 **❌ FORBIDDEN:**
+
 ```tsx
 // NEVER hardcode strings
 <button>Save</button>
 <p>Student not found</p>
-```
 
+```text
 **✅ REQUIRED:**
+
 ```tsx
 import { useTranslation } from 'react-i18next';
 
@@ -156,8 +170,8 @@ function MyComponent() {
   const { t } = useTranslation();
   return <button>{t('common.save')}</button>;
 }
-```
 
+```text
 **Why This Exists:**
 - Bilingual system (EN/EL) requires translations
 - Hardcoded strings break Greek users
@@ -176,13 +190,15 @@ function MyComponent() {
 - Bypassing validation with `--no-verify`
 
 **✅ REQUIRED:**
+
 ```powershell
 # ALWAYS run before commit
+
 .\COMMIT_READY.ps1 -Quick         # Quick validation (2-3 min)
 .\COMMIT_READY.ps1 -Standard      # Standard checks (5-8 min)
 .\COMMIT_READY.ps1 -Full          # Full validation (15-20 min)
-```
 
+```text
 **⏳ Patience Required (Do Not Interrupt):**
 - **Never** run git status/log or any git commands while COMMIT_READY.ps1 is running; let it finish naturally.
 - Wait reasonable minimums before checking status: **Quick: 5-10 minutes**, **Standard: 10-15 minutes**, **Full: 20-30 minutes**.
@@ -191,6 +207,7 @@ function MyComponent() {
 **🚦 Exception protocol (chicken-and-egg / known red pipeline):**
 - Use **ONLY** when the pipeline is already red due to a known failing suite **outside your change scope** and COMMIT_READY would fail for the same root cause.
 - Steps you **must** take before bypassing:
+
    1) Record a snapshot: `COMMIT_READY.ps1 -Quick -Snapshot` **or** `scripts/VERIFY_AND_RECORD_STATE.ps1`.
    2) Run the **smallest targeted checks** relevant to your change (e.g., `npx tsc --noEmit` for TS-only edits, or `ruff` for backend lint) and confirm they pass locally.
    3) Document the reason in your summary/commit message (e.g., "Bypass guard: backend tests already failing in main (unrelated)").
@@ -238,13 +255,15 @@ function MyComponent() {
 - Switching contexts without completing current task
 
 **✅ REQUIRED:**
+
 ```powershell
 # ALWAYS check before starting new work
+
 git status                        # Check for uncommitted changes
 git diff                          # Review pending changes
 # Check task tracker/work plan for incomplete items
-```
 
+```text
 **Pre-Task Checklist:**
 1. Run `git status` to verify no uncommitted changes
 2. Review `docs/plans/UNIFIED_WORK_PLAN.md` for pending tasks
@@ -261,11 +280,12 @@ git diff                          # Review pending changes
 - Documented in: `docs/development/GIT_WORKFLOW.md`
 
 **Exception:** Intentional WIP (work in progress) commits are allowed:
+
 ```powershell
 git add .
 git commit -m "WIP: feature description"  # OK for checkpoint
-```
 
+```text
 **Enforcement:** Agents must verify clean state before accepting new tasks.
 
 ---
@@ -279,17 +299,21 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 - Before any success claims (e.g., "tests passing", "ready to release"): Record a state snapshot
 
 **How to Record a Snapshot:**
+
 ```powershell
 # Option A (recommended): COMMIT_READY quick validation with snapshot
+
 .\u005CCOMMIT_READY.ps1 -Quick -Snapshot
 
 # Option B: VS Code Task
+
 Tasks: Run Task → "Record State Snapshot"
 
 # Option C: Direct script run
-pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.ps1
-```
 
+pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.ps1
+
+```text
 **What Gets Recorded (artifacts/state):**
 - Version checks (VERSION vs frontend/package.json)
 - Git branch, commit, remotes, concise change list
@@ -449,6 +473,7 @@ If you encounter:
 - **Policy conflicts** → Update this document via commit
 - **Unclear requirements** → Clarify with solo developer
 - **Technical blocks** → C11, 2026
+
 **Next Review:** February 11, 2026
 
 ---
@@ -463,3 +488,4 @@ If you encounter:
 ---
 
 **Remember:** These policies exist to protect you, the system, and other agents. Following them takes 10 minutes and saves hours of rework.
+

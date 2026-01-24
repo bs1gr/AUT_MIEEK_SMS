@@ -44,19 +44,21 @@ $11.17.2 is a focused patch release that hardens the release automation pipeline
 Follow the standard deployment flow:
 
 ### Docker
+
 ```powershell
 ./DOCKER.ps1 -Stop
 ./DOCKER.ps1 -Update
 ./DOCKER.ps1 -Start
-```
 
+```text
 ### Native
+
 ```powershell
 ./NATIVE.ps1 -Stop
 ./NATIVE.ps1 -Setup
 ./NATIVE.ps1 -Start
-```
 
+```text
 No manual database migrations or environment changes are required. The release is fully backward compatible.
 
 ---
@@ -70,3 +72,4 @@ No manual database migrations or environment changes are required. The release i
 
 **Prepared by**: GitHub Copilot Automation Team
 **Last Updated**: 2025-12-13
+

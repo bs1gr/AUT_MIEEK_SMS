@@ -14,8 +14,8 @@ backend/tools/
 ├── validate_first_run.py
 ├── check_secret.py
 └── ...
-```
 
+```text
 ### After (v2.0)
 
 ```bash
@@ -28,8 +28,8 @@ backend/db/cli/
 backend/tools/           # Backward compatibility layer
 ├── __init__.py           # Re-exports from backend.db.cli
 └── *.py (deprecated)     # Stubs with deprecation warnings
-```
 
+```text
 ## Benefits
 
 - **Organized Architecture**: CLI tools grouped under `backend/db/cli/`
@@ -45,32 +45,32 @@ backend/tools/           # Backward compatibility layer
 from backend.tools import create_admin
 from backend.tools import verify_schema, check_schema_drift
 from backend.tools import validate_first_run, check_secret
-```
 
+```text
 ### Python Imports - New Way (Recommended)
 
 ```python
 from backend.db.cli import create_admin
 from backend.db.cli import verify_schema, check_schema_drift
 from backend.db.cli import validate_first_run, check_secret
-```
 
+```text
 ### Command-Line - Old Way (Still Works)
 
 ```bash
 python -m backend.tools.create_admin --email admin@example.com
 python -m backend.tools.check_schema_drift
 python -m backend.tools.validate_first_run
-```
 
+```text
 ### Command-Line - New Way (Also Works)
 
 ```bash
 python -m backend.db.cli.admin --email admin@example.com
 python -m backend.db.cli.schema --check-drift
 python -m backend.db.cli.diagnostics --validate-first-run
-```
 
+```text
 ## Timeline
 
 - **v2.0**: Both import paths work; migration guide published
@@ -104,8 +104,8 @@ Example:
 ```python
 from backend.db.cli import create_admin
 user = create_admin("admin@example.com", "secure_password")
-```
 
+```text
 ### `backend.db.cli.schema`
 
 Functions:
@@ -121,8 +121,8 @@ Example:
 ```python
 from backend.db.cli import check_schema_drift
 exit_code = check_schema_drift(engine, fail_on_drift=True)
-```
 
+```text
 ### `backend.db.cli.diagnostics`
 
 Functions:
@@ -137,17 +137,18 @@ Example:
 ```python
 from backend.db.cli import validate_first_run
 ok = validate_first_run("data/student_management.db")
-```
 
+```text
 ## Backward Compatibility
 
 The `backend/tools/` module is now a compatibility layer:
 
 ```python
 # This still works but shows a deprecation warning:
-from backend.tools import create_admin  # ⚠️ DeprecationWarning
-```
 
+from backend.tools import create_admin  # ⚠️ DeprecationWarning
+
+```text
 The stub files re-export from `backend.db.cli`, so:
 
 - Functionality is identical
@@ -250,3 +251,4 @@ For questions or issues with the migration:
 **Last Updated:** December 9, 2025
 **Version:** 2.0
 **Status:** ✅ Stable
+

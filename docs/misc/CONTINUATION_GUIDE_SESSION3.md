@@ -9,14 +9,16 @@
 ## Quick Start (5 Minutes)
 
 ### Step 1: Verify State
+
 ```powershell
 cd d:\SMS\student-management-system
 git status
 git log --oneline -5
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 On branch main
 Your branch is ahead of 'origin/main' by 0 commits.
 Working tree clean
@@ -24,21 +26,23 @@ Working tree clean
 ecaaaa49f fix: Add missing useEffect dependencies (Batch 4)
 751d66610 fix: Replace any types (Batch 3)
 9a34cad8c fix: Remove 10 unused imports (Batch 2)
-```
 
+```text
 ### Step 2: Check ESLint Baseline
+
 ```powershell
 cd frontend
 npm run lint 2>&1 | tail -1
-```
 
+```text
 **Expected**: ~125 warnings (down from 170 at start)
 
 ### Step 3: Verify Tests
+
 ```powershell
 npm run test -- --run 2>&1 | tail -5
-```
 
+```text
 **Expected**: All 1,249/1,249 tests passing ✅
 
 ---
@@ -50,12 +54,14 @@ npm run test -- --run 2>&1 | tail -5
 **Problem**: Components have hardcoded English strings that should be translated.
 
 **Example (WRONG)**:
+
 ```tsx
 <button>Save Student</button>  // ❌ Hardcoded
 <p>No results found</p>        // ❌ Hardcoded
-```
 
+```text
 **Example (CORRECT)**:
+
 ```tsx
 import { useTranslation } from 'react-i18next';
 
@@ -63,8 +69,8 @@ function Component() {
   const { t } = useTranslation();
   return <button>{t('buttons.saveStudent')}</button>;  // ✅ Translated
 }
-```
 
+```text
 ### Priority Files (In Order of Impact)
 
 **HIGH IMPACT** (10+ strings each):
@@ -82,7 +88,7 @@ function Component() {
 
 ### Process for Each File
 
-```
+```text
 FOR EACH FILE:
 1. Read the file completely
 2. Identify all hardcoded strings
@@ -91,12 +97,12 @@ FOR EACH FILE:
 5. Replace hardcoded strings with t('key') calls
 6. Verify: npm run lint (should have fewer warnings)
 7. Commit when file complete
-```
 
+```text
 ### Translation File Structure
 
 **Location**: `frontend/src/locales/`
-```
+```text
 en/
   common.ts       - Common phrases (Save, Cancel, Delete)
   buttons.ts      - Button labels
@@ -107,8 +113,8 @@ en/
   ...
 el/
   (same structure in Greek)
-```
 
+```text
 ### Example: Adding Translation
 
 **File**: `frontend/src/locales/en/search.ts`
@@ -119,8 +125,8 @@ export default {
   advancedSearch: 'Advanced Search',
   // ... etc
 };
-```
 
+```text
 **File**: `frontend/src/locales/el/search.ts`
 ```typescript
 export default {
@@ -129,58 +135,64 @@ export default {
   advancedSearch: 'Προηγμένη Αναζήτηση',
   // ... etc
 };
-```
 
+```text
 **Usage**: `frontend/src/features/search/SavedSearches.tsx`
 ```tsx
 const { t } = useTranslation();
 return <p>{t('search.noResultsFound')}</p>;
-```
 
+```text
 ### Common Hardcoded String Patterns to Find
 
 **Buttons**:
+
 ```tsx
 <button>Save</button>
 <button>Delete</button>
 <button>Cancel</button>
-```
 
+```text
 **Messages**:
+
 ```tsx
 <p>No results found</p>
 <p>Error loading data</p>
 <p>Loading...</p>
-```
 
+```text
 **Labels**:
+
 ```tsx
 <label>Student Name</label>
 <label>Course</label>
 <label>Grade</label>
-```
 
+```text
 **Placeholders**:
+
 ```tsx
 <input placeholder="Enter name" />
 <input placeholder="Search..." />
-```
 
+```text
 ### Tools to Help
 
 **Find all hardcoded strings in a file**:
+
 ```bash
 cd frontend
 grep -n '"[A-Z]' src/features/search/SavedSearches.tsx
 grep -n "'[A-Z]" src/features/search/SavedSearches.tsx
-```
 
+```text
 **Find all files with hardcoded strings**:
+
 ```bash
 grep -r '>"[A-Z]' src/features/
 grep -r ">'\w" src/features/
-```
 
+```text
 ---
 
 ## Session Execution Plan
@@ -231,21 +243,25 @@ grep -r ">'\w" src/features/
 ## Key Commands
 
 **Check ESLint warnings**:
+
 ```powershell
 npm run lint 2>&1 | grep "problem"
-```
 
+```text
 **Check specific file for i18n issues**:
+
 ```powershell
 npx eslint src/features/search/SavedSearches.tsx
-```
 
+```text
 **Add all staged changes**:
+
 ```powershell
 git add frontend/src/
-```
 
+```text
 **Commit Batch 5 when complete**:
+
 ```powershell
 git commit -m "fix: Replace hardcoded strings with i18n translations (Phase 2 - Batch 5)
 
@@ -254,8 +270,8 @@ git commit -m "fix: Replace hardcoded strings with i18n translations (Phase 2 - 
 - SearchBar.tsx: 8 strings
 - Added translations to en.ts and el.ts files
 - All 1,249 frontend tests passing"
-```
 
+```text
 ---
 
 ## Success Criteria
@@ -283,29 +299,32 @@ git commit -m "fix: Replace hardcoded strings with i18n translations (Phase 2 - 
 ## Troubleshooting
 
 **If string doesn't have t() call**:
+
 ```typescript
 // ❌ WRONG
 <p>Loading...</p>
 
 // ✅ RIGHT
 <p>{t('common.loading')}</p>
-```
 
+```text
 **If translation key missing**:
-```
-Error: i18n key 'search.saveSearch' not found
-```
 
+```text
+Error: i18n key 'search.saveSearch' not found
+
+```text
 Solution:
 1. Add key to `frontend/src/locales/en/search.ts`
 2. Add Greek translation to `frontend/src/locales/el/search.ts`
 3. Use t('search.saveSearch') in component
 
 **If ESLint still shows warnings**:
+
 ```powershell
 npm run lint -- --fix
-```
 
+```text
 This auto-fixes some ESLint issues (formatting, imports).
 
 ---
@@ -327,17 +346,19 @@ This auto-fixes some ESLint issues (formatting, imports).
 **Common Pattern**: `feature.action` or `feature.noun`
 
 Examples:
-```
+
+```text
 search.noResultsFound
 search.saveSearch
 buttons.save
 buttons.cancel
 messages.loading
 student.nameRequired
-```
 
+```text
 **File Organization**:
-```
+
+```text
 locales/
   en/
     common.ts       // Generic: save, cancel, yes, no
@@ -348,8 +369,8 @@ locales/
     calendar.ts     // Calendar feature
   el/
     (same structure in Greek)
-```
 
+```text
 ---
 
 **Session Ready**: Yes ✅
@@ -357,3 +378,4 @@ locales/
 **Success Rate Expected**: 95%+ (well-defined task)
 
 **Remember**: One file at a time, commit after each file group.
+

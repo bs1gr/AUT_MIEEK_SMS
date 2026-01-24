@@ -24,6 +24,7 @@ This guide covers Role-Based Access Control (RBAC) administration for SMS $11.15
 ### Core Permissions (26 Total)
 
 #### Student Management (4 permissions)
+
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `students:view` | Students | View | Read all student data | admin, teacher, viewer |
@@ -32,6 +33,7 @@ This guide covers Role-Based Access Control (RBAC) administration for SMS $11.15
 | `students:delete` | Students | Delete | Remove students | admin |
 
 #### Course Management (4 permissions)
+
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `courses:view` | Courses | View | Read all courses | admin, teacher, viewer |
@@ -40,18 +42,21 @@ This guide covers Role-Based Access Control (RBAC) administration for SMS $11.15
 | `courses:delete` | Courses | Delete | Remove courses | admin |
 
 #### Grade Management (2 permissions)
+
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `grades:view` | Grades | View | Read all grades | admin, teacher, viewer |
 | `grades:edit` | Grades | Edit | Submit/modify grades | admin, teacher |
 
 #### Attendance Management (2 permissions)
+
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `attendance:view` | Attendance | View | Read attendance records | admin, teacher, viewer |
 | `attendance:edit` | Attendance | Edit | Log/modify attendance | admin, teacher |
 
 #### Reporting & Analytics (4 permissions)
+
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `reports:view` | Reports | View | Read reports | admin, teacher, viewer |
@@ -60,6 +65,7 @@ This guide covers Role-Based Access Control (RBAC) administration for SMS $11.15
 | `metrics:view` | Metrics | View | Read metrics dashboards | admin, teacher, viewer |
 
 #### System Administration (6 permissions)
+
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `audit:view` | Audit Log | View | Read audit logs | admin |
@@ -70,6 +76,7 @@ This guide covers Role-Based Access Control (RBAC) administration for SMS $11.15
 | `exports:generate` | Exports | Generate | Export data | admin |
 
 #### Advanced Features (4 permissions)
+
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `notifications:broadcast` | Notifications | Broadcast | Send system notifications | admin |
@@ -82,52 +89,63 @@ This guide covers Role-Based Access Control (RBAC) administration for SMS $11.15
 ## 👥 Default Roles
 
 ### Admin Role
+
 **Purpose**: Full system access for administrators
 **Permissions**: All 26 permissions (`*:*`)
 **Use Case**: System administrators, super users
 **Typical Users**: 1-2 people per organization
 
 **Granted Permissions**:
-```
+
+```text
 students:*, courses:*, grades:*, attendance:*,
 reports:*, analytics:*, metrics:*,
 audit:*, permissions:*, jobs:*, imports:*, exports:*,
 notifications:*, diagnostics:*, sessions:*
-```
 
+```text
 ### Teacher Role
+
 **Purpose**: Manage classes, grades, and attendance
 **Permissions** (11 total):
-```
+
+```text
 students:view,           (read student info)
 courses:view,            (read courses)
 grades:view, grades:edit, (view and submit grades)
 attendance:view, attendance:edit, (view and log attendance)
 reports:view, reports:generate, (view and create reports)
 analytics:view, metrics:view (read analytics)
-```
+
+```text
 **Use Case**: Teachers managing their classes
 **Typical Users**: 10-50 per organization
 
 ### Student Role
+
 **Purpose**: Limited self-service access
 **Permissions** (2 total):
-```
+
+```text
 grades:view,             (read own grades)
 reports:view             (read reports)
-```
+
+```text
 **Use Case**: Students viewing their own data
 **Typical Users**: 100-1000 per organization
 **Note**: Students can only see their own data (enforced via scoping filters)
 
 ### Viewer Role (Optional)
+
 **Purpose**: Read-only access for reporting/analysis
 **Permissions** (7 total):
-```
+
+```text
 students:view, courses:view,
 grades:view, attendance:view,
 reports:view, analytics:view, metrics:view
-```
+
+```text
 **Use Case**: Data analysts, auditors, parents (on own children only)
 **Typical Users**: 5-10 per organization
 
@@ -163,8 +181,8 @@ Every admin endpoint in the SMS API has a `@require_permission` decorator:
 async def create_student(data: StudentCreate, db: Session = Depends(get_db)):
     # Endpoint implementation
     pass
-```
 
+```text
 **When a User Tries to Access**:
 1. Request comes in with user's authentication token
 2. `@require_permission` decorator checks user's roles
@@ -181,14 +199,16 @@ async def create_student(data: StudentCreate, db: Session = Depends(get_db)):
 ### Viewing Current Permissions
 
 **Via API** (requires `permissions:view`):
+
 ```bash
 GET /api/v1/permissions/
 GET /api/v1/permissions/by-resource
 GET /api/v1/permissions/{permission_id}
 GET /api/v1/permissions/stats
-```
 
+```text
 **Via Database** (if you have DB access):
+
 ```sql
 -- List all permissions
 SELECT id, name, resource, action, description FROM permission;
@@ -206,48 +226,52 @@ JOIN user_role ur ON u.id = ur.user_id
 JOIN role r ON r.id = ur.role_id
 JOIN role_permission rp ON r.id = rp.role_id
 JOIN permission p ON p.id = rp.permission_id;
-```
 
+```text
 ### Granting Permissions
 
 **To a Role** (recommended):
+
 ```bash
 POST /api/v1/permissions/roles/grant
 {
   "role_id": 2,                    # Teacher role
   "permission_ids": [5, 6, 7, 8]   # Grant grades:view, grades:edit, etc.
 }
-```
 
+```text
 **To a User** (only if needed):
+
 ```bash
 POST /api/v1/permissions/users/grant
 {
   "user_id": 42,
   "permission_ids": [3, 4]  # Grant specific permissions
 }
-```
 
+```text
 ### Revoking Permissions
 
 **From a Role**:
+
 ```bash
 POST /api/v1/permissions/roles/revoke
 {
   "role_id": 3,
   "permission_ids": [1, 2]
 }
-```
 
+```text
 **From a User**:
+
 ```bash
 POST /api/v1/permissions/users/revoke
 {
   "user_id": 42,
   "permission_ids": [3, 4]
 }
-```
 
+```text
 ---
 
 ## 🚨 Common Admin Tasks
@@ -261,18 +285,22 @@ POST /api/v1/permissions/users/revoke
 2. Assign `admin` role to the user
 
 **Via API**:
+
 ```bash
 # Get admin role ID
+
 GET /api/v1/rbac/roles?name=admin
 
 # Assign role to user (assuming admin_role_id=1)
+
 POST /api/v1/rbac/users/{user_id}/roles
 {
   "role_id": 1  # Admin role
 }
-```
 
+```text
 **Via Database**:
+
 ```sql
 -- Find the admin role
 SELECT id FROM role WHERE name = 'admin';  -- Usually id=1
@@ -280,14 +308,15 @@ SELECT id FROM role WHERE name = 'admin';  -- Usually id=1
 -- Assign admin role to user
 INSERT INTO user_role (user_id, role_id)
 VALUES (42, 1);  -- User 42 gets admin role
-```
 
+```text
 **Verification**:
+
 ```bash
 GET /api/v1/rbac/users/{user_id}/permissions
 # Should see all 26 permissions listed
-```
 
+```text
 ---
 
 ### Task 2: Create Custom Role with Limited Permissions
@@ -299,8 +328,10 @@ GET /api/v1/rbac/users/{user_id}/permissions
 2. Grant specific permissions
 
 **Via API**:
+
 ```bash
 # Create role
+
 POST /api/v1/rbac/roles
 {
   "name": "department_head",
@@ -308,9 +339,11 @@ POST /api/v1/rbac/roles
 }
 
 # Grant permissions (get permission IDs first)
+
 GET /api/v1/permissions/by-resource
 
 # Then grant selected permissions
+
 POST /api/v1/permissions/roles/grant
 {
   "role_id": 5,  # department_head role ID
@@ -318,13 +351,15 @@ POST /api/v1/permissions/roles/grant
 }
 
 # Assign users to role
+
 POST /api/v1/rbac/users/{user_id}/roles
 {
   "role_id": 5
 }
-```
 
+```text
 **Via Database**:
+
 ```sql
 -- Create role
 INSERT INTO role (name, description)
@@ -345,8 +380,8 @@ INSERT INTO role_permission (role_id, permission_id) VALUES
 -- Assign users
 INSERT INTO user_role (user_id, role_id)
 VALUES (45, 5);  -- User 45 is now department head
-```
 
+```text
 ---
 
 ### Task 3: Revoke Single Permission from User
@@ -358,19 +393,23 @@ VALUES (45, 5);  -- User 45 is now department head
 2. Revoke specific permission
 
 **Via API**:
+
 ```bash
 # Find the permission ID
+
 GET /api/v1/permissions/?name=grades%3Aedit
 
 # Revoke from user
+
 POST /api/v1/permissions/users/revoke
 {
   "user_id": 32,
   "permission_ids": [8]  # grades:edit
 }
-```
 
+```text
 **Via Database**:
+
 ```sql
 -- Find permission ID
 SELECT id FROM permission WHERE name = 'grades:edit';  -- Usually id=8
@@ -382,8 +421,8 @@ WHERE user_id = 32 AND permission_id = 8;
 -- Or remove role from user (if inherited via role)
 DELETE FROM user_role
 WHERE user_id = 32 AND role_id = 2;  -- Remove teacher role
-```
 
+```text
 **Note**: If permission is inherited via role, revoking from the user won't help. You must either:
 - Remove the user from the role, OR
 - Revoke the permission from the role itself
@@ -395,14 +434,17 @@ WHERE user_id = 32 AND role_id = 2;  -- Remove teacher role
 **Scenario**: Need to know who can view student records
 
 **Via API**:
+
 ```bash
 # Get all users with students:view permission
+
 GET /api/v1/rbac/permissions/students:view/users
 
 # Response will include all users with the permission (directly or via role)
-```
 
+```text
 **Via Database**:
+
 ```sql
 -- Find students:view permission
 SELECT id FROM permission WHERE name = 'students:view';  -- id=1
@@ -431,8 +473,8 @@ WHERE rp.permission_id = 1 OR EXISTS (
   WHERE up.user_id = u.id AND up.permission_id = 1
 )
 ORDER BY u.username;
-```
 
+```text
 ---
 
 ### Task 5: Review What a Specific User Can Do
@@ -440,13 +482,15 @@ ORDER BY u.username;
 **Scenario**: Teacher claims they can't submit grades. Check what they can actually do.
 
 **Via API**:
+
 ```bash
 GET /api/v1/rbac/users/{user_id}/permissions
 
 # Response lists all permissions the user has (from all roles + direct perms)
-```
 
+```text
 **Via Database**:
+
 ```sql
 -- All permissions for a user (direct + role-based)
 SELECT DISTINCT p.name, p.resource, p.action, p.description,
@@ -462,8 +506,8 @@ LEFT JOIN role r ON ur.role_id = r.id
 JOIN permission p ON (up.permission_id = p.id OR rp.permission_id = p.id)
 WHERE u.id = 32
 ORDER BY p.resource, p.action;
-```
 
+```text
 ---
 
 ## 🔍 Troubleshooting Permission Issues
@@ -471,11 +515,12 @@ ORDER BY p.resource, p.action;
 ### Issue 1: User Gets "Access Denied" (403 Forbidden)
 
 **Symptoms**:
-```
+
+```text
 POST /api/v1/students/
 Response: 403 Forbidden - User lacks required permission: students:create
-```
 
+```text
 **Investigation**:
 1. Check user's roles and permissions
 2. Verify required permission is assigned to at least one role
@@ -485,12 +530,15 @@ Response: 403 Forbidden - User lacks required permission: students:create
 
 ```bash
 # Step 1: Check user's current permissions
+
 GET /api/v1/rbac/users/{user_id}/permissions
 
 # Step 2: Verify required permission exists
+
 GET /api/v1/permissions/?name=students%3Acreate
 
 # Step 3: Grant permission to user's role
+
 POST /api/v1/permissions/roles/grant
 {
   "role_id": {role_id},
@@ -498,9 +546,10 @@ POST /api/v1/permissions/roles/grant
 }
 
 # Step 4: Verify (user may need to re-login)
-GET /api/v1/rbac/users/{user_id}/permissions
-```
 
+GET /api/v1/rbac/users/{user_id}/permissions
+
+```text
 **Common Causes**:
 - ❌ User doesn't have a role assigned (admin should verify)
 - ❌ Required permission exists but isn't granted to user's role
@@ -515,29 +564,35 @@ GET /api/v1/rbac/users/{user_id}/permissions
 **Symptoms**: User assigned to admin role but should only be teacher
 
 **Investigation**:
+
 ```bash
 # Check user's roles
+
 GET /api/v1/rbac/users/{user_id}/roles
 
 # Should show only: teacher, not admin
-```
 
+```text
 **Solution**:
+
 ```bash
 # Find the user's roles
+
 GET /api/v1/rbac/users/{user_id}/roles
 
 # Remove admin role
+
 POST /api/v1/rbac/users/{user_id}/roles/remove
 {
   "role_id": 1  # admin role
 }
 
 # Verify
+
 GET /api/v1/rbac/users/{user_id}/roles
 # Should now show only: teacher
-```
 
+```text
 ---
 
 ### Issue 3: Permission Not Taking Effect
@@ -560,6 +615,7 @@ GET /api/v1/rbac/users/{user_id}/roles
 
 4. **Role permission grant didn't work**
    - Solution: Try direct user permission grant as workaround
+
    ```bash
    POST /api/v1/permissions/users/grant
    {
@@ -633,25 +689,30 @@ GET /api/v1/rbac/users/{user_id}/roles
 ## 🔐 Security Best Practices
 
 ### Principle of Least Privilege
+
 ✅ **DO**: Assign minimum permissions needed for job function
 ❌ **DON'T**: Assign admin to everyone "just in case"
 
 ### Regular Audits
+
 ✅ **DO**: Monthly review of role assignments
 ✅ **DO**: Monitor access logs for abuse
 ❌ **DON'T**: Fire and forget after assignment
 
 ### Role Segregation
+
 ✅ **DO**: Create separate roles for different job functions
 ✅ **DO**: Use role inheritance (e.g., "department_head" = "teacher" + "admin")
 ❌ **DON'T**: Give all users the same role
 
 ### Permission Documentation
+
 ✅ **DO**: Document custom roles and why they exist
 ✅ **DO**: Keep audit trail of all permission changes
 ❌ **DON'T**: Make ad-hoc permission grants without tracking
 
 ### Emergency Access
+
 ✅ **DO**: Have a documented emergency admin override procedure
 ✅ **DO**: Log all emergency access for audit purposes
 ✅ **DO**: Revoke emergency access once issue resolved
@@ -674,10 +735,11 @@ A: All permissions inherited from that role are revoked. Directly-assigned permi
 
 **Q: How do I backup permission settings?**
 A: Export from the permission database tables:
+
 ```bash
 mysqldump -u user -p database role role_permission user_role user_permission > rbac_backup.sql
-```
 
+```text
 **Q: How long do permission changes take to take effect?**
 A: Immediately for new sessions. Existing sessions may need to re-login if JWT token caching is enabled.
 
@@ -688,6 +750,7 @@ A: Immediately for new sessions. Existing sessions may need to re-login if JWT t
 ### If Admin Account is Locked Out
 
 **Option 1: Via Database** (requires DB access):
+
 ```sql
 -- Create new admin user
 INSERT INTO user (username, email, hashed_password, role)
@@ -699,9 +762,10 @@ VALUES (LAST_INSERT_ID(), 1);  -- Admin role ID=1
 
 -- Login with this user
 -- DELETE this user once normal admin access restored
-```
 
+```text
 **Option 2: Via API** (if any admin can authenticate):
+
 ```bash
 POST /api/v1/rbac/users
 {
@@ -716,19 +780,21 @@ POST /api/v1/rbac/users/{new_user_id}/roles
 }
 
 # Use this user to restore normal admin access
-# Then delete this temporary user
-```
 
+# Then delete this temporary user
+
+```text
 ### If Permission System is Broken
 
 **Nuclear Option** (reset to default permissions):
+
 ```bash
 POST /api/v1/rbac/reset-to-defaults
 {
   "confirm": true
 }
-```
 
+```text
 **Result**: All roles reset to defaults, all custom permissions cleared, all users reset to default role assignments.
 
 **Recovery**:
@@ -750,3 +816,4 @@ POST /api/v1/rbac/reset-to-defaults
 **Last Updated**: January 11, 2026
 **Version**: 1.15.2
 **Status**: Production Ready ✅
+

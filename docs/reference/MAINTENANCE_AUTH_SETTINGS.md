@@ -26,8 +26,8 @@ Returns current authentication configuration:
   "source": "backend/.env",
   "effective_policy": "🔐 Authentication required, but all authenticated users have full access (recommended)"
 }
-```
 
+```text
 ### 2. Update Settings
 
 **POST** `/control/api/maintenance/auth-settings`
@@ -41,8 +41,8 @@ Update one or more authentication settings:
   "auth_login_max_attempts": 10,
   "auth_login_lockout_seconds": 600
 }
-```
 
+```text
 **Response:**
 
 ```json
@@ -60,8 +60,8 @@ Update one or more authentication settings:
   },
   "timestamp": "2025-11-21T21:30:00"
 }
-```
 
+```text
 ### 3. Get Policy Guide
 
 **GET** `/control/api/maintenance/auth-policy-guide`
@@ -127,8 +127,8 @@ POST /control/api/maintenance/auth-settings
   "auth_enabled": true,
   "auth_mode": "permissive"
 }
-```
 
+```text
 **Result:** Users must login, but all authenticated users have full access.
 
 ### Example 2: Switch to Strict Mode
@@ -138,8 +138,8 @@ POST /control/api/maintenance/auth-settings
 {
   "auth_mode": "strict"
 }
-```
 
+```text
 **Result:** Full RBAC enforcement. Teachers can't access admin endpoints.
 
 ### Example 3: Adjust Lockout Policy
@@ -150,8 +150,8 @@ POST /control/api/maintenance/auth-settings
   "auth_login_max_attempts": 10,
   "auth_login_lockout_seconds": 600
 }
-```
 
+```text
 **Result:** Allow 10 attempts before 10-minute lockout (more lenient for users who forget passwords).
 
 ### Example 4: Disable Authentication (Testing)
@@ -161,8 +161,8 @@ POST /control/api/maintenance/auth-settings
 {
   "auth_enabled": false
 }
-```
 
+```text
 **Result:** All endpoints public, no login required.
 
 ## Configuration Presets
@@ -174,8 +174,8 @@ POST /control/api/maintenance/auth-settings
   "auth_enabled": false,
   "auth_mode": "disabled"
 }
-```
 
+```text
 No authentication for quick development.
 
 ### Production (Recommended)
@@ -185,8 +185,8 @@ No authentication for quick development.
   "auth_enabled": true,
   "auth_mode": "permissive"
 }
-```
 
+```text
 Users must login but no role restrictions.
 
 ### High-Security Production
@@ -196,8 +196,8 @@ Users must login but no role restrictions.
   "auth_enabled": true,
   "auth_mode": "strict"
 }
-```
 
+```text
 Full RBAC with role enforcement.
 
 ## Important Notes
@@ -211,15 +211,15 @@ Changes to authentication settings require an application restart:
 ```powershell
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -Start
-```
 
+```text
 **Native:**
 
 ```powershell
 .\NATIVE.ps1 -Stop
 .\NATIVE.ps1 -Start
-```
 
+```text
 ### Configuration Precedence
 
 1. Environment variables (highest priority)
@@ -267,8 +267,8 @@ Run maintenance endpoint tests:
 ```bash
 cd backend
 python -m pytest tests/test_control_maintenance.py -v
-```
 
+```text
 All 6 tests should pass:
 
 - ✅ Get current auth settings
@@ -305,8 +305,8 @@ All 6 tests should pass:
     "file": "D:/SMS/student-management-system/backend/.env"
   }
 }
-```
 
+```text
 ### Auth policy not changing behavior
 
 1. Verify `AUTH_ENABLED=true` (must be true for AUTH_MODE to work)
@@ -320,25 +320,29 @@ All 6 tests should pass:
 
 ```bash
 # Get current settings
+
 curl http://localhost:8080/control/api/maintenance/auth-settings
 
 # Update to permissive mode
+
 curl -X POST http://localhost:8080/control/api/maintenance/auth-settings \
   -H "Content-Type: application/json" \
   -d '{"auth_enabled": true, "auth_mode": "permissive"}'
-```
 
+```text
 ### Python
 
 ```python
 import requests
 
 # Get settings
+
 resp = requests.get("http://localhost:8080/control/api/maintenance/auth-settings")
 settings = resp.json()
 print(f"Current mode: {settings['auth_mode']}")
 
 # Update settings
+
 payload = {"auth_enabled": True, "auth_mode": "permissive"}
 resp = requests.post(
     "http://localhost:8080/control/api/maintenance/auth-settings",
@@ -346,8 +350,8 @@ resp = requests.post(
 )
 result = resp.json()
 print(result["message"])
-```
 
+```text
 ### JavaScript (Frontend)
 
 ```javascript
@@ -367,8 +371,8 @@ const updateResponse = await fetch('/control/api/maintenance/auth-settings', {
 });
 const result = await updateResponse.json();
 alert(result.message);
-```
 
+```text
 ## Related Documentation
 
 - [../AUTH_FIX_$11.9.7.4_IMPLEMENTED.md](../AUTH_FIX_$11.9.7.4_IMPLEMENTED.md) - Implementation details
@@ -380,3 +384,4 @@ alert(result.message);
 - **$11.9.7.4** - Initial implementation of maintenance suite auth settings management
 - **$11.9.7.4** - Added AUTH_MODE hybrid authorization system
 - **$11.9.7.2** - Introduced auth issues (binary AUTH_ENABLED behavior)
+

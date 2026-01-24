@@ -10,7 +10,7 @@
 
 ## 📁 File Structure Overview
 
-```
+```text
 student-management-system/
 │
 ├── docs/deployment/                    # Documentation (committed)
@@ -36,8 +36,7 @@ student-management-system/
 │
 └── .env.qnap.example                   # ✅ Configuration template
 
-```
-
+```text
 ---
 
 ## 📊 File Inventory & Audit
@@ -92,14 +91,14 @@ student-management-system/
 
 **Files Needed:**
 
-```
+```text
 📖 QNAP.md                           (read first)
 🐳 docker/Dockerfile.backend.qnap
 🐳 docker/Dockerfile.frontend.qnap
 🐳 docker/docker-compose.qnap.yml
 ⚙️  .env.qnap.example                 (copy to .env.qnap)
-```
 
+```text
 **Workflow:**
 
 1. Read [QNAP.md](../QNAP.md)
@@ -113,7 +112,7 @@ student-management-system/
 
 **Files Needed:**
 
-```
+```text
 📖 QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md  (comprehensive guide)
 📖 QNAP_DEPLOYMENT_SUMMARY.md             (decision reference)
 🐳 docker/Dockerfile.backend.qnap
@@ -121,8 +120,8 @@ student-management-system/
 🐳 docker/docker-compose.qnap.yml
 🐳 docker/nginx.qnap.conf
 ⚙️  .env.qnap.example
-```
 
+```text
 **Workflow:**
 
 1. Read [QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md](../QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md)
@@ -136,7 +135,7 @@ student-management-system/
 
 **Files Needed:**
 
-```
+```text
 📖 QNAP_TS-431P3_COMPATIBILITY.md    (read first - check RAM!)
 📖 QNAP_TS-431P3_ARM_BUILD_GUIDE.md  (step-by-step)
 📖 docker/README.ARM.md               (ARM vs x86_64 reference)
@@ -145,8 +144,8 @@ student-management-system/
 🐳 docker/docker-compose.qnap.arm32v7.yml
 🐳 docker/nginx.qnap.conf
 ⚙️  .env.qnap.example
-```
 
+```text
 **Workflow:**
 
 1. Read [QNAP_TS-431P3_COMPATIBILITY.md](../QNAP_TS-431P3_COMPATIBILITY.md)
@@ -161,11 +160,11 @@ student-management-system/
 
 **Files Needed:**
 
-```
+```text
 All files from Use Case 3
 + QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md (Phase 4-6)
-```
 
+```text
 **Workflow:**
 
 1. Complete Use Case 3 (ARM build & deploy)
@@ -285,20 +284,22 @@ All files reference **$11.9.7**. When updating:
 
 ```bash
 # Files to check for version references:
+
 grep -r "1.9.3" docs/deployment/*QNAP*
 grep -r "1.9.3" docker/*qnap*
 grep -r "1.9.3" docker/*arm32v7*
-```
 
+```text
 ### Cross-Reference Audit
 
 Run this command to verify all internal links:
 
 ```bash
 # Check for broken markdown links
-grep -r "\[.*\](.*/.*\.md)" docs/deployment/*QNAP*
-```
 
+grep -r "\[.*\](.*/.*\.md)" docs/deployment/*QNAP*
+
+```text
 ---
 
 ## 📋 Migration Guide (For Future Reorganization)
@@ -307,7 +308,7 @@ If we decide to reorganize into folders later:
 
 ### Proposed Structure
 
-```
+```text
 docs/deployment/qnap/
 ├── README.md                    # From QNAP.md
 ├── INDEX.md                     # Navigation (existing)
@@ -317,12 +318,13 @@ docs/deployment/qnap/
 │   ├── TS431P3-COMPATIBILITY.md # From QNAP_TS-431P3_COMPATIBILITY.md
 │   └── TS431P3-BUILD-GUIDE.md   # From QNAP_TS-431P3_ARM_BUILD_GUIDE.md
 └── FILE-ORGANIZATION.md         # This file
-```
 
+```text
 ### Migration Commands
 
 ```bash
 # When ready to reorganize (not now!)
+
 git mv docs/deployment/QNAP.md docs/deployment/qnap/README.md
 git mv docs/deployment/QNAP_DEPLOYMENT_SUMMARY.md docs/deployment/qnap/DEPLOYMENT-OPTIONS.md
 git mv docs/deployment/QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md docs/deployment/qnap/VIRTUAL-HOST-SETUP.md
@@ -332,9 +334,10 @@ git mv docs/deployment/QNAP_TS-431P3_COMPATIBILITY.md docs/deployment/qnap/arm/T
 git mv docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md docs/deployment/qnap/arm/TS431P3-BUILD-GUIDE.md
 
 # Update all cross-references
-# ... (search and replace in all files)
-```
 
+# ... (search and replace in all files)
+
+```text
 **Note:** Not doing this now to avoid breaking links and maintain backward compatibility.
 
 ---
@@ -452,3 +455,4 @@ git mv docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md docs/deployment/qnap/arm
 **Maintainer:** Student Management System Team
 **Version:** 1.9.3
 **License:** Same as main project
+

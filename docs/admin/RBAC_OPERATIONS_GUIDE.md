@@ -44,24 +44,25 @@ This guide covers day-to-day operational procedures for the RBAC system in produ
 
 ```bash
 # Test permission seeding
+
 cd backend
 python ops/seed_rbac_data.py --verify
-```
 
+```text
 **Expected Output**:
 
-```
+```text
 ✓ All 26 permissions exist
 ✓ All 3 roles exist
 ✓ All 44 role-permission mappings exist
-```
 
+```text
 **If issues found**: Re-run seeding script
 
 ```bash
 python ops/seed_rbac_data.py
-```
 
+```text
 #### 2. Verify Active Users Have Roles
 
 ```sql
@@ -69,8 +70,8 @@ python ops/seed_rbac_data.py
 SELECT COUNT(*) as users_without_roles
 FROM users
 WHERE is_active = 1 AND role_id IS NULL;
-```
 
+```text
 **Expected**: `users_without_roles = 0`
 
 **If non-zero**: Investigate and assign default role
@@ -85,18 +86,19 @@ WHERE is_active = 1 AND role_id IS NULL;
 UPDATE users
 SET role_id = (SELECT id FROM roles WHERE name = 'viewer')
 WHERE is_active = 1 AND role_id IS NULL;
-```
 
+```text
 #### 3. Review Failed Permission Checks (Last 24 Hours)
 
 **Check application logs**:
 
 ```powershell
 # Search for 403 errors in last 24 hours
+
 Select-String -Path "backend/logs/app.log" -Pattern "403.*Permission denied" |
     Select-Object -Last 20
-```
 
+```text
 **Pattern to watch for**: Same user hitting same permission multiple times
 
 **Action**: If legitimate access needed, grant permission. If abuse, investigate.
@@ -127,8 +129,8 @@ JOIN permissions p ON up.permission_id = p.id
 LEFT JOIN users granter ON up.granted_by = granter.id
 WHERE up.expires_at IS NULL OR up.expires_at > datetime('now')
 ORDER BY up.granted_at DESC;
-```
 
+```text
 **Red Flags**:
 - ⚠️ More than 5 direct permissions active
 - ⚠️ Direct permissions older than 30 days without expiration
@@ -142,8 +144,8 @@ ORDER BY up.granted_at DESC;
 -- Delete expired direct permissions
 DELETE FROM user_permissions
 WHERE expires_at < datetime('now', '-7 days');  -- Keep for 7 days as history
-```
 
+```text
 **Expected**: Should delete 0-10 records per week
 
 #### 3. Role Membership Review
@@ -157,8 +159,8 @@ FROM roles r
 LEFT JOIN users u ON r.id = u.role_id AND u.is_active = 1
 GROUP BY r.name
 ORDER BY user_count DESC;
-```
 
+```text
 **Expected Distribution** (example for 100 users):
 - `viewer`: 50-70 users
 - `teacher`: 20-30 users
@@ -183,8 +185,8 @@ WHERE p.is_active = 1
       WHERE up.permission_id = p.id
         AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
   );
-```
 
+```text
 **Expected**: 0-2 unused permissions
 
 **Action**: Review if permission is still needed, deactivate if obsolete
@@ -211,8 +213,8 @@ JOIN role_permissions rp ON r.id = rp.role_id
 JOIN permissions p ON rp.permission_id = p.id
 WHERE r.is_active = 1 AND p.is_active = 1
 ORDER BY r.name, p.resource, p.action;
-```
 
+```text
 **Save to CSV** for management review:
 
 ```bash
@@ -231,8 +233,8 @@ WHERE r.is_active = 1 AND p.is_active = 1
 ORDER BY r.name, p.resource, p.action;
 .quit
 EOF
-```
 
+```text
 #### 2. User Activity Analysis
 
 ```sql
@@ -247,8 +249,8 @@ LEFT JOIN roles r ON u.role_id = r.id
 WHERE u.is_active = 1
   AND (u.last_login IS NULL OR u.last_login < datetime('now', '-90 days'))
 ORDER BY u.created_at;
-```
 
+```text
 **Action**:
 - Contact users to confirm account needed
 - Deactivate accounts with no login in 90+ days
@@ -275,8 +277,8 @@ JOIN permissions p ON up.permission_id = p.id
 LEFT JOIN users granter ON up.granted_by = granter.id
 WHERE up.granted_at > datetime('now', '-30 days')
 ORDER BY up.granted_at DESC;
-```
 
+```text
 **Review for**:
 - Unusual permission grants (e.g., audit:view to non-admins)
 - Bulk grants (multiple users same permission same time)
@@ -309,12 +311,13 @@ ORDER BY up.granted_at DESC;
 ```sql
 -- Count 403 errors in application logs
 -- (Requires log parsing or metrics endpoint)
-```
 
+```text
 **PowerShell script** for log analysis:
 
 ```powershell
 # Count permission denied errors in last hour
+
 $logFile = "backend/logs/app.log"
 $pattern = "403.*Permission denied"
 $lastHour = (Get-Date).AddHours(-1)
@@ -326,8 +329,8 @@ $errors = Select-String -Path $logFile -Pattern $pattern |
     }
 
 Write-Host "Permission denied errors in last hour: $($errors.Count)"
-```
 
+```text
 **Thresholds**:
 - 🟢 **Normal**: <10 per hour
 - 🟡 **Warning**: 10-50 per hour (investigate)
@@ -345,8 +348,8 @@ SELECT
 FROM roles r
 LEFT JOIN users u ON r.id = u.role_id AND u.is_active = 1
 GROUP BY r.name;
-```
 
+```text
 **Expected Distribution**:
 - viewer: 50-70%
 - teacher: 20-40%
@@ -362,8 +365,8 @@ GROUP BY r.name;
 SELECT COUNT(*) as direct_permissions
 FROM user_permissions
 WHERE expires_at IS NULL OR expires_at > datetime('now');
-```
 
+```text
 **Thresholds**:
 - 🟢 **Healthy**: <20 direct permissions
 - 🟡 **Review**: 20-50 (should use roles)
@@ -377,8 +380,8 @@ WHERE expires_at IS NULL OR expires_at > datetime('now');
 SELECT COUNT(*) as expired_not_cleaned
 FROM user_permissions
 WHERE expires_at < datetime('now', '-7 days');
-```
 
+```text
 **Expected**: 0 (should be cleaned weekly)
 
 **Alert if**: >100 records
@@ -461,22 +464,24 @@ if __name__ == "__main__":
     else:
         print("\n⚠️  Some checks failed - review above")
         exit(1)
-```
 
+```text
 **Schedule**: Run daily via cron or Task Scheduler
 
 ```bash
 # Add to crontab (Linux)
-0 9 * * * cd /path/to/sms && python scripts/rbac_monitor.py >> logs/rbac_monitor.log 2>&1
-```
 
+0 9 * * * cd /path/to/sms && python scripts/rbac_monitor.py >> logs/rbac_monitor.log 2>&1
+
+```text
 ```powershell
 # Windows Task Scheduler (PowerShell)
+
 $action = New-ScheduledTaskAction -Execute "python" -Argument "scripts/rbac_monitor.py" -WorkingDirectory "D:\SMS\student-management-system"
 $trigger = New-ScheduledTaskTrigger -Daily -At 9am
 Register-ScheduledTask -TaskName "RBAC Health Check" -Action $action -Trigger $trigger
-```
 
+```text
 ---
 
 ## Incident Response
@@ -500,8 +505,8 @@ FROM roles r
 JOIN role_permissions rp ON r.id = rp.role_id
 JOIN permissions p ON rp.permission_id = p.id
 WHERE p.key = 'students:view';
-```
 
+```text
 **Resolution**:
 
 1. **If permission missing**: Re-run seeding script
@@ -550,8 +555,8 @@ JOIN role_permissions rp ON p.id = rp.permission_id
 JOIN users u ON rp.role_id = u.role_id
 WHERE u.email = 'locked.user@example.com'
   AND p.is_active = 1;
-```
 
+```text
 **Common Causes**:
 1. **No role assigned**: `role_id IS NULL`
 2. **Inactive role**: `r.is_active = 0`
@@ -600,12 +605,12 @@ WHERE role_id = (SELECT id FROM roles WHERE name = 'admin');
 -- Should return 26 (all permissions)
 
 -- If count is wrong, re-seed
-```
 
+```text
 ```bash
 python backend/ops/seed_rbac_data.py
-```
 
+```text
 **Prevention**:
 - Always maintain 2+ admin users
 - Never test permission changes on own admin account
@@ -658,6 +663,7 @@ python backend/ops/seed_rbac_data.py
 
 2. **Implementation** (1 hour)
    - Add to `backend/ops/seed_rbac_data.py`:
+
      ```python
      Permission(
          key="exports:download",
@@ -667,6 +673,7 @@ python backend/ops/seed_rbac_data.py
      ),
      ```
    - Add to role mappings:
+
      ```python
      ("admin", "exports:download"),
      ("teacher", "exports:download"),
@@ -677,6 +684,7 @@ python backend/ops/seed_rbac_data.py
    - Verify output shows new permission
    - Apply: `python backend/ops/seed_rbac_data.py`
    - Confirm in DB:
+
      ```sql
      SELECT * FROM permissions WHERE key = 'exports:download';
      ```
@@ -694,8 +702,8 @@ python backend/ops/seed_rbac_data.py
 
 ```sql
 UPDATE permissions SET is_active = 0 WHERE key = 'exports:download';
-```
 
+```text
 ---
 
 ### Modifying Role Permissions
@@ -704,6 +712,7 @@ UPDATE permissions SET is_active = 0 WHERE key = 'exports:download';
 
 1. **Impact Assessment** (30 minutes)
    - Identify affected users:
+
      ```sql
      SELECT COUNT(*) FROM users WHERE role_id = (SELECT id FROM roles WHERE name = 'teacher');
      ```
@@ -713,6 +722,7 @@ UPDATE permissions SET is_active = 0 WHERE key = 'exports:download';
    - Update `backend/ops/seed_rbac_data.py`
    - Run on staging: `python backend/ops/seed_rbac_data.py`
    - Verify:
+
      ```sql
      SELECT p.key
      FROM permissions p
@@ -761,8 +771,8 @@ LEFT JOIN permissions p ON rp.permission_id = p.id
 WHERE u.is_active = 1 AND p.is_active = 1
 GROUP BY u.email, r.name
 ORDER BY u.email;
-```
 
+```text
 **Save to**: `audits/rbac_access_review_YYYYQQ.csv`
 
 **Review for**:
@@ -777,8 +787,8 @@ ORDER BY u.email;
 ```sql
 -- Permissions assigned but never checked (requires app metrics)
 -- Manual review: Check application logs for permission usage
-```
 
+```text
 **Action**: Consider removing or consolidating unused permissions
 
 #### 3. Admin Access Log
@@ -802,8 +812,8 @@ JOIN permissions p ON up.permission_id = p.id
 WHERE p.key = 'system:admin'
   AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
 ORDER BY status, email;
-```
 
+```text
 **Expected**: 1-3 current admins, 0 direct grants
 
 #### 4. Compliance Checklist
@@ -832,8 +842,8 @@ SELECT p.key
 FROM permissions p
 JOIN role_permissions rp ON p.id = rp.permission_id
 WHERE rp.role_id = 1 AND p.is_active = 1;
-```
 
+```text
 **Expected**: Should use indexes on `role_permissions.role_id` and `permissions.id`
 
 ### Index Verification
@@ -843,8 +853,8 @@ WHERE rp.role_id = 1 AND p.is_active = 1;
 SELECT name, sql FROM sqlite_master
 WHERE type = 'index'
   AND (tbl_name LIKE '%permission%' OR tbl_name LIKE '%role%');
-```
 
+```text
 **Required Indexes**:
 - `permissions.key` (UNIQUE)
 - `permissions.is_active`
@@ -865,11 +875,12 @@ WHERE type = 'index'
 
 ```python
 # In backend code
+
 cache_hits = permission_cache_hits
 cache_misses = permission_cache_misses
 hit_rate = cache_hits / (cache_hits + cache_misses)
-```
 
+```text
 **Target**: >90% cache hit rate
 
 **If low hit rate**: Review cache TTL and eviction policy
@@ -893,9 +904,11 @@ DB_PATH="data/student_management.db"
 mkdir -p "$BACKUP_DIR"
 
 # Backup full database
+
 sqlite3 "$DB_PATH" ".backup $BACKUP_DIR/rbac_backup_$TIMESTAMP.db"
 
 # Export RBAC tables only (for quick restore)
+
 sqlite3 "$DB_PATH" <<EOF > "$BACKUP_DIR/rbac_tables_$TIMESTAMP.sql"
 .mode insert
 SELECT * FROM permissions;
@@ -905,11 +918,12 @@ SELECT * FROM user_permissions;
 EOF
 
 # Compress old backups (>7 days)
+
 find "$BACKUP_DIR" -name "*.db" -mtime +7 -exec gzip {} \;
 
 echo "Backup completed: $TIMESTAMP"
-```
 
+```text
 **Retention Policy**:
 - Keep daily backups for 30 days
 - Keep monthly backups for 1 year
@@ -921,32 +935,38 @@ echo "Backup completed: $TIMESTAMP"
 
 ```bash
 # Restore from SQL export
-sqlite3 data/student_management.db < backups/rbac/rbac_tables_20260108.sql
-```
 
+sqlite3 data/student_management.db < backups/rbac/rbac_tables_20260108.sql
+
+```text
 **Scenario 2: Full Database Restore**
 
 ```bash
 # Stop application first
+
 ./DOCKER.ps1 -Stop
 
 # Restore database
+
 cp backups/rbac/rbac_backup_20260108.db data/student_management.db
 
 # Restart application
-./DOCKER.ps1 -Start
-```
 
+./DOCKER.ps1 -Start
+
+```text
 **Scenario 3: Point-in-Time Recovery**
 
 ```bash
 # Find backup closest to desired time
+
 ls -lt backups/rbac/
 
 # Restore from that backup
-cp backups/rbac/rbac_backup_20260108_140000.db data/student_management.db
-```
 
+cp backups/rbac/rbac_backup_20260108_140000.db data/student_management.db
+
+```text
 ---
 
 ## Runbooks
@@ -1079,9 +1099,11 @@ cp backups/rbac/rbac_backup_20260108_140000.db data/student_management.db
 
 ```bash
 # Check if RBAC tables exist
+
 sqlite3 data/student_management.db "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%permission%' OR name LIKE '%role%';"
 
 # Count records in each table
+
 sqlite3 data/student_management.db "
   SELECT 'permissions', COUNT(*) FROM permissions UNION ALL
   SELECT 'roles', COUNT(*) FROM roles UNION ALL
@@ -1090,12 +1112,14 @@ sqlite3 data/student_management.db "
 "
 
 # Check for foreign key violations
+
 sqlite3 data/student_management.db "PRAGMA foreign_key_check;"
 
 # Verify indexes
-sqlite3 data/student_management.db "PRAGMA index_list(permissions);"
-```
 
+sqlite3 data/student_management.db "PRAGMA index_list(permissions);"
+
+```text
 ### Common Issues
 
 | Issue | Symptom | Fix |
@@ -1151,10 +1175,11 @@ SELECT p.key FROM permissions p JOIN role_permissions rp ON p.id = rp.permission
 
 -- Count users per role
 SELECT r.name, COUNT(u.id) FROM roles r LEFT JOIN users u ON r.id = u.role_id GROUP BY r.name;
-```
 
+```text
 ---
 
 **Last Updated**: January 8, 2026
 **Version**: 1.15.1
 **Maintained By**: SRE Team
+

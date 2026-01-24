@@ -8,6 +8,7 @@
 ## What the Script Does
 
 ### Phase 1: Remove Temporary Test Outputs
+
 - **13 test output files** (.txt, .log) from root directory
 - Total: ~90 KB
 
@@ -106,35 +107,43 @@ Adds patterns for:
 ## Usage Modes
 
 ### Quick Mode (~2 minutes)
+
 ```powershell
 .\WORKSPACE_CLEANUP.ps1 -Mode quick
-```
+
+```text
 - Removes temp files only
 - Does NOT move docs
 - Fast pre-commit cleanup
 
 ### Standard Mode (~5 minutes) - DEFAULT
+
 ```powershell
 .\WORKSPACE_CLEANUP.ps1
-```
+
+```text
 - Removes temp files
 - Moves docs to proper locations
 - Cleans temporary directories
 - Updates .gitignore
 
 ### Deep Mode (~10 minutes)
+
 ```powershell
 .\WORKSPACE_CLEANUP.ps1 -Mode deep
-```
+
+```text
 - Everything in Standard mode
 - Cleans all Python caches
 - Removes __pycache__ directories
 - Cleans frontend/dist
 
 ### Post-Release Mode (~3 minutes) - NEW
+
 ```powershell
 .\WORKSPACE_CLEANUP.ps1 -Mode post-release
-```
+
+```text
 - Moves RELEASE_NOTES_v*.md → docs/releases/
 - Moves GITHUB_RELEASE_v*.md → docs/releases/
 - Moves installer .exe → dist/
@@ -146,62 +155,75 @@ Adds patterns for:
 
 ```powershell
 # 1. Pre-release cleanup
+
 .\WORKSPACE_CLEANUP.ps1 -Mode deep
 
 # 2. Execute release
+
 .\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.13.0"
 
 # 3. Wait for GitHub Actions (~20 min)
 
 # 4. Post-release cleanup
+
 .\WORKSPACE_CLEANUP.ps1 -Mode post-release
 
 # 5. Commit cleanup
+
 git add -A
 git commit -m "chore: post-release cleanup for $11.14.0"
 git push origin main
-```
 
+```text
 ## Pre-Release Checklist
 
 ```powershell
 # 1. Preview cleanup
+
 .\WORKSPACE_CLEANUP.ps1 -DryRun
 
 # 2. Execute cleanup
+
 .\WORKSPACE_CLEANUP.ps1 -Mode deep
 
 # 3. Verify workspace
+
 git status
 
 # 4. Run validation
+
 .\COMMIT_READY.ps1 -Mode quick
 
 # 5. Commit cleanup
+
 git add -A
 git commit -m "chore: workspace cleanup and organization"
 git push origin main
 
 # 6. Generate release docs
+
 .\GENERATE_RELEASE_DOCS.ps1 -Version "1.13.0"
 git add CHANGELOG.md docs/releases/
 git commit -m "docs: release notes for $11.14.0"
 git push origin main
 
 # 7. Run release preparation
+
 .\RELEASE_PREPARATION.ps1 -Mode Quick
 
 # 8. Execute release
-.\RELEASE_READY.ps1 -ReleaseVersion "1.13.0" -TagRelease
-```
 
+.\RELEASE_READY.ps1 -ReleaseVersion "1.13.0" -TagRelease
+
+```text
 ## Or Use All-in-One Script
 
 ```powershell
 # Complete automated workflow
-.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.13.0"
-```
 
+.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.13.0"
+
+```text
 This automatically runs:
 1. Preparation (validation)
 2. Documentation generation
@@ -272,3 +294,4 @@ This automatically runs:
 **Estimated Time**: 5 minutes (standard mode)
 **Estimated Space Saved**: ~11.4 MB
 **Files Affected**: 68 total (27 removed, 41 moved)
+

@@ -25,6 +25,7 @@
 The Student Management System implements a comprehensive indexing strategy designed to optimize the most common database queries. This guide documents the current indexing approach, identifies optimization opportunities, and provides best practices for writing efficient queries.
 
 ### Key Metrics
+
 - **Database Model**: SQLAlchemy 2.0 + SQLite (native) / PostgreSQL (production)
 - **Query Profiling**: Integrated via `backend/db/query_profiler.py`
 - **Slow Query Threshold**: 100ms
@@ -72,18 +73,20 @@ All tables use the `SoftDeleteMixin` which adds:
 
 ```python
 deleted_at = Column(DateTime(timezone=True), nullable=True, index=True)
-```
 
+```text
 **Important**: Queries should always filter `deleted_at IS NULL` to exclude soft-deleted records.
 
 ```python
 # ✅ CORRECT - Excludes soft-deleted records
+
 db.query(Student).filter(Student.deleted_at.is_(None))
 
 # ❌ WRONG - Includes soft-deleted records
-db.query(Student).all()
-```
 
+db.query(Student).all()
+
+```text
 ---
 
 ## Query Performance Analysis
@@ -94,22 +97,26 @@ db.query(Student).all()
 
 ```python
 # ✅ Uses idx_student_email (< 1ms)
+
 student = db.query(Student).filter(Student.email == "user@example.com").first()
 
 # ✅ Uses idx_student_id (< 1ms)
+
 student = db.query(Student).filter(Student.student_id == "STU123").first()
 
 # ✅ Uses idx_student_active_email (< 1ms)
+
 active_student = db.query(Student).filter(
     Student.is_active == True,
     Student.email == "user@example.com"
 ).first()
-```
 
+```text
 #### 2. Attendance Range Queries (HIGH frequency)
 
 ```python
 # ✅ Uses idx_attendance_student_date (< 5ms)
+
 attendance = db.query(Attendance).filter(
     Attendance.student_id == student_id,
     Attendance.date >= start_date,
@@ -117,6 +124,7 @@ attendance = db.query(Attendance).filter(
 ).all()
 
 # ✅ Uses idx_attendance_student_course_date (< 3ms)
+
 attendance = db.query(Attendance).filter(
     Attendance.student_id == student_id,
     Attendance.course_id == course_id,
@@ -125,78 +133,88 @@ attendance = db.query(Attendance).filter(
 ).all()
 
 # ❌ SLOW - No index (full table scan, ~500ms+)
+
 attendance = db.query(Attendance).filter(
     Attendance.status == "Absent"
 ).all()
-```
 
+```text
 #### 3. Grade Analytics (HIGH frequency)
 
 ```python
 # ✅ Uses idx_grade_student_course (< 2ms)
+
 grades = db.query(Grade).filter(
     Grade.student_id == student_id,
     Grade.course_id == course_id
 ).all()
 
 # ✅ Uses idx_grade_student_category (< 2ms)
+
 category_grades = db.query(Grade).filter(
     Grade.student_id == student_id,
     Grade.category == "midterm"
 ).all()
 
 # ❌ SLOW - No date range index on both fields (> 100ms)
+
 # Better: Use date_submitted if only recent grades needed
 recent_grades = db.query(Grade).filter(
     Grade.date_submitted >= start_date,
     Grade.date_submitted <= end_date
 ).all()
-```
 
+```text
 #### 4. Enrollment Lookups (MEDIUM frequency)
 
 ```python
 # ✅ Uses idx_enrollment_student_course (< 1ms)
+
 enrollment = db.query(CourseEnrollment).filter(
     CourseEnrollment.student_id == student_id,
     CourseEnrollment.course_id == course_id
 ).first()
 
 # ✅ Check before creating (prevents duplicates)
+
 existing = db.query(CourseEnrollment).filter(
     CourseEnrollment.student_id == student_id,
     CourseEnrollment.course_id == course_id
 ).first()
 if not existing:
     # Create enrollment
-```
 
+```text
 #### 5. Dashboard Analytics (CRITICAL - optimize!)
 
 ```python
 # ✅ GOOD - Single query with targeted joins (~30ms)
+
 enrolled_students = db.query(Student).join(CourseEnrollment).filter(
     CourseEnrollment.course_id == course_id,
     Student.deleted_at.is_(None)
 ).all()
 
 # ✅ BETTER - Count only, no full student data (~5ms)
+
 enrolled_count = db.query(func.count(Student.id)).join(CourseEnrollment).filter(
     CourseEnrollment.course_id == course_id,
     Student.deleted_at.is_(None)
 ).scalar()
 
 # ❌ BAD - N+1 query problem (1 course query + N student queries)
+
 course = db.query(Course).filter(Course.id == course_id).first()
 # Then later: for student in course.enrolled_students -> N additional queries
 
 # ✅ FIXED - Use joinedload to eager-load relationships
+
 from sqlalchemy.orm import joinedload
 course = db.query(Course).options(joinedload(Course.enrolled_students)).filter(
     Course.id == course_id
 ).first()
-```
 
+```text
 ---
 
 ## N+1 Query Prevention
@@ -207,68 +225,75 @@ N+1 occurs when a query for 1 parent + N children results in 1+N queries:
 
 ```python
 # ❌ N+1 Problem: 1 query + 5 queries = 6 total
+
 courses = db.query(Course).all()  # 1 query
 for course in courses:
     students = course.enrolled_students  # 5 queries (if 5 courses)
-```
 
+```text
 ### Prevention Strategies
 
 #### Strategy 1: Explicit Joins
 
 ```python
 # ✅ Single query with join
+
 courses_with_students = db.query(Course).join(CourseEnrollment).filter(
     Course.deleted_at.is_(None)
 ).all()
-```
 
+```text
 #### Strategy 2: Eager Loading (joinedload)
 
 ```python
 from sqlalchemy.orm import joinedload
 
 # ✅ Single query with eager loading
+
 courses = db.query(Course).options(
     joinedload(Course.enrollments)
 ).filter(
     Course.deleted_at.is_(None)
 ).all()
-```
 
+```text
 #### Strategy 3: containedload (Many-to-Many)
 
 ```python
 from sqlalchemy.orm import contains_eager
 
 # ✅ For Student.enrollments many-to-many
+
 students = db.query(Student).join(CourseEnrollment).options(
     contains_eager(Student.enrollments)
 ).filter(
     Student.deleted_at.is_(None)
 ).all()
-```
 
+```text
 #### Strategy 4: Separate Query (For Large Result Sets)
 
 ```python
 # ✅ When relationship loading would be expensive
+
 students = db.query(Student).filter(Student.deleted_at.is_(None)).all()
 student_ids = [s.id for s in students]
 
 # Load enrollments separately with single query
+
 enrollments = db.query(CourseEnrollment).filter(
     CourseEnrollment.student_id.in_(student_ids)
 ).all()
 
 # Batch in memory
+
 enrollment_map = {}
 for e in enrollments:
     if e.student_id not in enrollment_map:
         enrollment_map[e.student_id] = []
     enrollment_map[e.student_id].append(e)
-```
 
+```text
 ---
 
 ## Optimization Techniques
@@ -277,68 +302,79 @@ for e in enrollments:
 
 ```python
 # ❌ Slower - Fetches full object
+
 student = db.query(Student).first()
 
 # ✅ Faster - Returns None or first value
+
 student = db.query(Student).first()
 
 # ✅ For counts - Use scalar()
-count = db.query(func.count(Student.id)).scalar()  # Returns int
-```
 
+count = db.query(func.count(Student.id)).scalar()  # Returns int
+
+```text
 ### 2. Filter Before Joins
 
 ```python
 # ❌ Slow - Joins all, then filters
+
 result = db.query(Grade).join(Student).filter(
     Student.id == 5
 ).all()
 
 # ✅ Fast - Filters first
+
 result = db.query(Grade).filter(
     Grade.student_id == 5
 ).all()
-```
 
+```text
 ### 3. Pagination for Large Result Sets
 
 ```python
 # ❌ Slow - Fetches all 10,000 records
+
 all_grades = db.query(Grade).filter(
     Grade.course_id == course_id
 ).all()
 
 # ✅ Fast - Paginate
+
 page_size = 100
 page = 1
 grades = db.query(Grade).filter(
     Grade.course_id == course_id
 ).offset((page-1) * page_size).limit(page_size).all()
-```
 
+```text
 ### 4. Select Only Needed Columns
 
 ```python
 # ❌ Fetches all columns
+
 students = db.query(Student).all()
 
 # ✅ Fetch only needed columns
-students = db.query(Student.id, Student.email, Student.first_name).all()
-```
 
+students = db.query(Student.id, Student.email, Student.first_name).all()
+
+```text
 ### 5. Batch Operations
 
 ```python
 # ❌ Slow - 100 individual inserts
+
 for student in students:
     db.add(student)
     db.commit()
 
 # ✅ Fast - Single batch insert
+
 db.add_all(students)
 db.commit()
-```
 
+```text
 ---
 
 ## Monitoring & Diagnostics
@@ -351,9 +387,10 @@ The system includes diagnostic endpoints for monitoring query performance:
 
 ```bash
 GET /api/v1/diagnostics/queries/summary
-```
 
+```text
 Response:
+
 ```json
 {
   "status": "ok",
@@ -373,22 +410,22 @@ Response:
     ]
   }
 }
-```
 
+```text
 #### 2. Get Slow Queries
 
 ```bash
 GET /api/v1/diagnostics/queries/slow?limit=20
-```
 
+```text
 Response shows queries exceeding 100ms threshold with execution time.
 
 #### 3. Get Query Patterns
 
 ```bash
 GET /api/v1/diagnostics/queries/patterns
-```
 
+```text
 Response shows:
 - Query count per table
 - Potential N+1 patterns detected
@@ -397,28 +434,32 @@ Response shows:
 
 ```bash
 POST /api/v1/diagnostics/queries/reset
-```
 
+```text
 Use after code changes to get clean baseline.
 
 ### Usage in Development
 
 ```python
 # Enable query profiling
+
 from backend.db.query_profiler import profiler
 
 # After running queries...
+
 summary = profiler.get_summary()
 print(f"Executed {summary['total_queries']} queries in {summary['total_time']:.2f}s")
 
 # Check for N+1 patterns
+
 if summary['n_plus_one_patterns']:
     print(f"⚠️  N+1 patterns detected: {summary['n_plus_one_patterns']}")
 
 # Reset for next test
-profiler.reset()
-```
 
+profiler.reset()
+
+```text
 ---
 
 ## Best Practices
@@ -427,29 +468,34 @@ profiler.reset()
 
 ```python
 # ✅ CORRECT
+
 active_students = db.query(Student).filter(Student.deleted_at.is_(None)).all()
 
 # ❌ WRONG - Includes deleted records
-all_students = db.query(Student).all()
-```
 
+all_students = db.query(Student).all()
+
+```text
 ### 2. Use Database Constraints Instead of Application Logic
 
 ```python
 # ✅ Database enforces uniqueness
+
 # In models.py: unique=True on column definition
 email = Column(String, unique=True)
 
 # ✅ Check before insert (catch race conditions)
+
 existing = db.query(Student).filter(Student.email == email).first()
 if existing:
     raise ValueError("Email already exists")
-```
 
+```text
 ### 3. Batch Date Range Validation
 
 ```python
 # ✅ Use database indexes for date ranges
+
 from datetime import datetime, timedelta
 
 start = datetime(2025, 1, 1)
@@ -460,12 +506,13 @@ records = db.query(Attendance).filter(
     Attendance.date >= start.date(),
     Attendance.date <= end.date()
 ).all()
-```
 
+```text
 ### 4. Cache Frequently Accessed Data
 
 ```python
 # ✅ Cache in memory for same request
+
 @app.get("/dashboard")
 async def dashboard(db: Session = Depends(get_db)):
     # Fetch once, use multiple times
@@ -479,22 +526,25 @@ async def dashboard(db: Session = Depends(get_db)):
     }
 
     return info
-```
 
+```text
 ### 5. Use Appropriate Transaction Isolation
 
 ```python
 # For read-only operations
+
 from sqlalchemy import text
 
 # ✅ Read-only query (faster, no locks)
+
 result = db.query(Student).filter(Student.id == 5).first()
 
 # ✅ Write operation (takes locks)
+
 db.add(student)
 db.commit()
-```
 
+```text
 ---
 
 ## Performance Benchmarks
@@ -513,7 +563,7 @@ db.commit()
 
 ### Benchmark Test Results ($11.11.2 Baseline)
 
-```
+```text
 Student Lookups:
   By ID: 0.8ms avg
   By Email: 0.9ms avg
@@ -532,40 +582,47 @@ Grade Analytics:
 Enrollment Checks:
   Duplicate check: 0.7ms avg
   List enrollments: 12ms avg
-```
 
+```text
 ### How to Benchmark Locally
 
 ```bash
 # 1. Enable query profiling
+
 cd backend
 PROFILING=1 python -m uvicorn main:app --reload
 
 # 2. Run test queries
+
 curl http://localhost:8000/api/v1/students/1
 
 # 3. Check diagnostics
+
 curl http://localhost:8000/api/v1/diagnostics/queries/summary
 
 # 4. Reset for next test
-curl -X POST http://localhost:8000/api/v1/diagnostics/queries/reset
-```
 
+curl -X POST http://localhost:8000/api/v1/diagnostics/queries/reset
+
+```text
 ---
 
 ## Maintenance Schedule
 
 ### Weekly
+
 - Review slow query logs
 - Check for N+1 patterns
 - Monitor average query time
 
 ### Monthly
+
 - Analyze query patterns for new trends
 - Review new endpoints for optimization
 - Update benchmarks if needed
 
 ### Per Release
+
 - Add new indexes for new features
 - Profile analytics queries
 - Verify no regression in query times
@@ -575,12 +632,14 @@ curl -X POST http://localhost:8000/api/v1/diagnostics/queries/reset
 ## Future Optimization Opportunities
 
 ### $11.11.2+
+
 - [ ] Add query result caching layer (Redis)
 - [ ] Implement materialized views for reports
 - [ ] Add database statistics collection
 - [ ] Create query optimization advisor
 
 ### $11.11.2+
+
 - [ ] Partition large tables (date-based)
 - [ ] Add read replicas for analytics
 - [ ] Implement connection pooling tuning
@@ -594,3 +653,4 @@ curl -X POST http://localhost:8000/api/v1/diagnostics/queries/reset
 - [Database Indexing Best Practices](https://use-the-index-luke.com/)
 - [N+1 Query Prevention](https://docs.sqlalchemy.org/en/20/orm/loading_relationships.html)
 - [SQLite Query Optimization](https://sqlite.org/queryplanner.html)
+

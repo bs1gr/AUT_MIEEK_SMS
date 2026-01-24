@@ -19,35 +19,41 @@ Added npm dependency caching to GitHub Actions workflows to improve CI/CD pipeli
 Added three caching enhancements:
 
 #### 1. **npm Dependencies Caching**
+
 ```yaml
 - name: Set up Node
+
   uses: actions/setup-node@v4
   with:
     node-version: '20'
     cache: 'npm'
     cache-dependency-path: frontend/package-lock.json
-```
 
+```text
 **Impact**: Skips `npm ci` when dependencies haven't changed
 - **Typical time saved**: 30-45 seconds per run
 - **Condition**: Triggered on `package-lock.json` changes
 
 #### 2. **Python Dependencies Caching** (verified; expanded dependency path)
+
 ```yaml
 - name: Set up Python
+
   uses: actions/setup-python@v5
   with:
     python-version: '3.11'
     cache: 'pip'
     cache-dependency-path: backend/requirements*.txt
-```
 
+```text
 **Impact**: Skips pip install when `requirements.txt` unchanged
 - **Typical time saved**: 20-30 seconds per run
 
 #### 3. **Playwright Browsers Caching** (updated: dynamic version-based key)
+
 ```yaml
 - name: Determine Playwright version
+
   id: pwver
   working-directory: ./frontend
   run: |
@@ -55,6 +61,7 @@ Added three caching enhancements:
     echo "minor=$(node -p \"require('./package.json').devDependencies['@playwright/test'].replace('^','').split('.').slice(0,2).join('.')\")" >> $GITHUB_OUTPUT
 
 - name: Cache Playwright browsers
+
   uses: actions/cache@v4
   with:
     path: ~/.cache/ms-playwright
@@ -62,8 +69,8 @@ Added three caching enhancements:
     restore-keys: |
       playwright-${{ runner.os }}-${{ steps.pwver.outputs.minor }}
       playwright-${{ runner.os }}-
-```
 
+```text
 **Impact**: Caches pre-built Chromium browser
 - **Typical time saved**: 45-60 seconds per run
 - **Cache size**: ~300MB
@@ -78,12 +85,14 @@ Added three caching enhancements:
 **Analysis of 20 actual E2E workflow runs** reveals different performance characteristics:
 
 #### Actual Baseline (Without Explicit Cache)
+
 - npm install: ~14-15 seconds (CDN-optimized)
 - Playwright install: ~23-29 seconds (fast download)
 - pip install: ~12-14 seconds (PyPI CDN)
 - **Total overhead**: ~48-56 seconds per run
 
 #### With Explicit Caching (Cache Hit)
+
 - npm install: ~12-13 seconds (2-3s savings)
 - Playwright install: ~16-18 seconds (7-11s savings)
 - pip install: ~11-12 seconds (1-2s savings)
@@ -91,6 +100,7 @@ Added three caching enhancements:
 - **Actual improvement**: **6.5% faster (~3-6 seconds saved)**
 
 #### Empirical Cache Hit Rates (pre-change, 20 runs)
+
 - npm cache: **75%** (target: 75-80% ✅)
 - Playwright cache: **40%** (target: 60-70% ⚠️ needs improvement)
 - pip cache: **45%** (target: 60-70% ⚠️ needs improvement)
@@ -109,6 +119,7 @@ The **theoretical 95% speedup** assumed a worst-case 120-140s uncached baseline.
 **Conclusion**: Explicit caching provides **marginal but valuable improvements** (6.5%) primarily for **consistency and reliability**, not dramatic speed gains.
 
 ### Realistic Monthly Impact
+
 - **Per-run savings**: 3-6 seconds average
 - **Monthly impact** (100 E2E runs): **5-10 minutes saved**
 - **Annual impact**: **1-2 hours of CI time**
@@ -142,16 +153,18 @@ Use the CI cache monitoring script to track performance:
 
 ```bash
 # Analyze last 10 runs
+
 python scripts/monitor_ci_cache.py --workflow e2e-tests.yml --runs 10
 
 # Weekly monitoring with JSON output
+
 python scripts/monitor_ci_cache.py \
   --workflow e2e-tests.yml \
   --runs 20 \
   --output "reports/cache_metrics_$(date +%Y%m%d).json" \
   --token YOUR_GITHUB_TOKEN
-```
 
+```text
 **Expected metrics**:
 - npm cache hit rate: 75-80%
 - Playwright cache hit rate: 60-70% (pre-change 40%, expected to improve with version key)
@@ -205,24 +218,28 @@ Current cache usage estimate:
    - Branch is pushing to remote
 
 **Solution**:
+
 ```bash
 # Manually push new commits to trigger fresh run
+
 git commit --allow-empty -m "trigger CI cache"
 git push origin main
-```
 
+```text
 ### Cache Too Large?
 
 **Symptom**: Build fails with "Cache size exceeds limit"
 
 **Action**: Delete old caches
+
 ```bash
 # Via GitHub CLI (requires admin role)
+
 gh actions-cache delete -R bs1gr/AUT_MIEEK_SMS --all
 
 # Manual: Actions → Manage Caches → Delete
-```
 
+```text
 ---
 
 ## Maintenance
@@ -273,3 +290,4 @@ Initial overall times post-change:
 Note: Component-level timing averages will be added after more runs; current summary reflects total setup times derived from the last 20 runs.
 
 Once validated, reflect results here and in `CACHE_OPTIMIZATION_SUMMARY.md`.
+

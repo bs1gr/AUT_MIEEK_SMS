@@ -1,4 +1,5 @@
 # Remaining Issues - Priority & Fix Plan
+
 **Date:** January 5, 2026
 **Status:** ✅ E2E Authentication Fixed
 **Latest Win:** ✅ E2E tests now successfully authenticate and navigate past login
@@ -8,9 +9,11 @@
 ## ✅ **RESOLVED ISSUES**
 
 ### 1. **E2E Authentication & Navigation Fixed** [WAS BLOCKING]
+
 - **Resolution Date:** January 5, 2026
 - **Status:** ✅ FIXED - Authentication layer working perfectly
 - **What Was Fixed:**
+
   1. ✅ TypeScript compilation error (line 242-244 selectOption RegExp → string)
   2. ✅ Enhanced seed script validation (logs user creation, entity counts)
   3. ✅ Improved login helpers with diagnostics (pre-flight checks, error capture)
@@ -20,6 +23,7 @@
 - **Root Cause (Final):** The `loginViaAPI()` helper only set the JWT token in localStorage but didn't set the user object. The AuthContext requires both `sms_access_token` and `sms_user_v1` for `RequireAuth` to recognize authenticated state.
 
 - **Solution:** Modified `loginViaAPI()` to:
+
   1. POST to `/auth/login` → get token
   2. GET from `/auth/me` → fetch user profile
   3. Set both in localStorage
@@ -39,6 +43,7 @@
 ### 🔴 **CRITICAL (Blocks Main Branch / CI Pipeline)**
 
 #### 1. **E2E Test Implementation Issues** [BEING FIXED]
+
 - **Status:** Authentication works ✅ | Tests improved with robustness enhancements 🔧
 - **Previous Symptoms:** Now Addressed:
   - ❌ Student creation doesn't capture ID → ✅ Now waits for API response
@@ -47,6 +52,7 @@
   - ❌ Analytics page can't find data → ✅ Now more lenient about visible elements
 
 - **Improvements Made (Session: 2026-01-05):**
+
   1. ✅ Added `waitForResponse()` calls to verify API operations complete
   2. ✅ Improved selector robustness with fallback options (.or() chains)
   3. ✅ Better error handling with graceful .catch(() => {}) for non-critical waits
@@ -78,6 +84,7 @@
 ### 🟠 **HIGH (Degrades CI/Deployment Capability)**
 
 #### 2. **Monitor & Fine-Tune E2E Tests in CI** [IN PROGRESS]
+
 - **Status:** Tests improved locally ✅ | Awaiting CI execution 🔄
 - **What to Monitor:**
   - Do tests timeout in CI environment?
@@ -86,6 +93,7 @@
   - Do all 26 tests execute or do some get skipped?
 
 - **If Tests Still Fail in CI:**
+
   1. Increase timeouts for slower runners
   2. Add more detailed logging
   3. Capture screenshots/videos
@@ -104,6 +112,7 @@
 ### 🟡 **MEDIUM (Reduces Code Quality / Test Coverage)**
 
 #### 3. **Test Coverage & Reporting** [MEDIUM]
+
 - **Status:** ⚠️ Local tests work, need coverage integration
 - **Current State:**
   - Backend pytest can generate coverage
@@ -111,13 +120,14 @@
   - Not aggregated or reported
 
 **Proposed Fixes:**
-```
+
+```text
 1. Add coverage collection to GitHub Actions
 2. Report coverage percentages
 3. Set minimum thresholds (60% backend, 50% frontend)
 4. Upload to coverage service (Codecov, Coveralls)
-```
 
+```text
 **Time to Fix:** 1 hour
 
 **Priority:** MEDIUM - Good to have for quality metrics
@@ -125,6 +135,7 @@
 ---
 
 #### 4. **Improve E2E Test Documentation** [MEDIUM]
+
 - **Status:** 🔄 Good start, needs completion
 - **What's Documented:**
   - Authentication fix ✅
@@ -143,6 +154,7 @@
 ### 🔵 **LOW (Nice-to-Have Improvements)**
 
 #### 5. **GitHub Actions Caching Optimization** [LOW]
+
 - **Status:** ⚠️ Caches exist but not fully optimized
 - **Could Improve:**
   - Docker layer caching
@@ -155,6 +167,7 @@
 ---
 
 #### 6. **Load Testing Integration** [LOW]
+
 - **Status:** ⚠️ Load tests exist but not in CI
 - **Could Add:**
   - Regular load test runs
@@ -189,11 +202,13 @@
    - Updated priority plan
 
 ### Commits Made
+
 - `e2f42531a` - E2E authentication state persistence fix
 - `344a32774` - Test robustness improvements
 - `d9386e238` - Session documentation
 
 ### Test Status
+
 - **Before:** 7/7 tests failing (authentication blocker)
 - **After:** Tests reach beyond login, improved robustness
 - **Metrics:** 26 tests, improved error handling
@@ -203,16 +218,19 @@
 ## 📋 Next Steps (For Future Sessions)
 
 ### Immediate (Next 30 min)
+
 1. Run tests in GitHub Actions
 2. Monitor for CI-specific issues
 3. Adjust timeouts if needed
 
 ### Soon (Next 1-2 hours)
+
 1. Complete test documentation
 2. Add coverage reporting
 3. Fine-tune remaining timeouts
 
 ### Later (Next session)
+
 1. Optimize CI caching
 2. Add load testing integration
 3. Performance metrics
@@ -231,3 +249,4 @@
 - [frontend/tests/e2e/student-management.spec.ts](../../frontend/tests/e2e/student-management.spec.ts) - Improved tests
 - [backend/seed_e2e_data.py](../../backend/seed_e2e_data.py) - Enhanced validation
 - [.github/workflows/e2e-tests.yml](../../.github/workflows/e2e-tests.yml) - Auth validation added
+

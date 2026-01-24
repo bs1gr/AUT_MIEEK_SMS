@@ -38,7 +38,7 @@
 
 ## 🎯 Your Adjusted Timeline (Jan 8)
 
-```
+```text
 TIME        PHASE                    WHAT TO DO               DURATION
 ─────────────────────────────────────────────────────────────────────
 08:00       WAKE UP                  Get coffee, stay focused 5 min
@@ -78,8 +78,8 @@ TIME        PHASE                    WHAT TO DO               DURATION
 ──────────────────────────────────────────────────────────────────────
 Jan 9 08:00 VERIFY OVERNIGHT         Check monitoring logs    10 min
             results
-```
 
+```text
 **Total Active Time**: ~2 hours
 **Then**: Automated monitoring for 24 hours (you can relax)
 
@@ -106,57 +106,75 @@ Before bed Jan 7, verify:
 ## 🚀 Execution Day (Jan 8, 08:00 UTC)
 
 ### When You Wake Up (07:45)
-```
+
+```text
 ☕ Get coffee
 🧠 Wake up your brain
 📋 Grab FINAL_READINESS_REPORT_JAN8.md
 ✅ Scan the success criteria (10 items)
 🎯 You got this!
-```
 
+```text
 ### Phase 1: Validation (08:00-08:20)
+
 ```powershell
 # Open JAN8_DEPLOYMENT_COMMAND_REFERENCE.md
+
 # Run Phase 1 commands (all 7 sections):
 #   1.1 Repository verification
+
 #   1.2 Database backup
 #   1.3 Port availability
+
 #   1.4 Disk space
 #   1.5 Docker status
+
 #   1.6 Environment files
 #   1.7 Documentation check
 
 # Expected: All checks pass ✅
-# If any fail: Stop, read troubleshooting, fix, retry
-```
 
+# If any fail: Stop, read troubleshooting, fix, retry
+
+```text
 ### Phase 2: Deployment (08:20-08:50)
+
 ```powershell
 # Run Phase 2 commands from reference:
+
 #   2.1 Build Docker image (if needed)
 #   2.2 Stop old container
+
 #   2.3 Deploy new container
 #   2.4 Check logs
+
 #   2.5 Verify migration
 
 # Expected: Container running, no critical errors
-# If fails: Check logs, troubleshoot, rollback if needed
-```
 
+# If fails: Check logs, troubleshoot, rollback if needed
+
+```text
 ### Phase 3: Health Checks (08:50-09:00)
+
 ```powershell
 # Run Phase 3 commands from reference:
+
 #   3.1 API health endpoints
 #   3.2 Verify API accessibility
+
 #   3.3 Database connection test
 
 # Expected: All endpoints responding ✅
-# If timeout: Wait 10 seconds, retry (normal)
-```
 
+# If timeout: Wait 10 seconds, retry (normal)
+
+```text
 ### Phase 4: Smoke Tests (09:00-10:00)
-```
+
+```text
 # Open STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md
+
 # Run 8 manual tests one by one, each ~7 minutes:
 
 Test 1: Login Flow (go to http://localhost:8080)
@@ -192,42 +210,54 @@ Test 8: Language Toggle
   - Expected: UI updates ✅
 
 # Document results:
+
 #   ✅ All tests passed (GREAT!)
 #   ❌ Some tests failed (go to troubleshooting)
-```
 
+```text
 ### Phase 5: E2E Tests (10:00-10:15)
+
 ```powershell
 # Run automated E2E tests:
+
 cd frontend
 npx playwright test --project=chromium
 
 # Expected: 19/19 tests passing ✅
+
 # If some fail: Check if critical tests pass
 #               (some flakiness is normal)
-```
 
+```text
 ### Phase 6: Wrap Up (10:15-11:00)
+
 ```powershell
 # 1. Review all test results
+
 #    - Phase 4 smoke tests: All passed? ✅
 #    - Phase 5 E2E tests: All/most passed? ✅
+
 #    - Logs clean? ✅
 #    - Performance OK? ✅
 
 # 2. Set up automated monitoring
+
 #    - Run monitoring script from reference
 #    - Logs saved automatically
+
 #    - Alerts configured if error
 
 # 3. Final documentation
+
 #    - Document deployment date/time
 #    - Note any issues
-#    - Record success
-```
 
+#    - Record success
+
+```text
 ### End of Deployment Day
-```
+
+```text
 11:00 ✅ DEPLOYMENT COMPLETE
       - Container running
       - All tests passed
@@ -236,8 +266,8 @@ npx playwright test --project=chromium
 
 Take a break!
 Relax knowing monitoring is automated for 24 hours.
-```
 
+```text
 ---
 
 ## 📊 Success Criteria (All 10 Must Be Met)
@@ -254,6 +284,7 @@ Check these off as you go:
 8. ✅ Performance within targets:
    - Student list <200ms
    - Analytics <500ms
+
 9. ✅ Monitoring script running (automated)
 10. ✅ You approve the deployment ✅
 
@@ -265,7 +296,7 @@ Check these off as you go:
 
 ### Problem During Phase 1-2 (Validation/Deployment)
 
-```
+```text
 WRONG: Panic, try random commands, make things worse
 RIGHT:
   1. Stop everything
@@ -274,11 +305,11 @@ RIGHT:
   4. Check troubleshooting in STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md
   5. Try again carefully
   6. If still stuck: Rollback (procedure documented)
-```
 
+```text
 ### Problem During Phase 3-5 (Tests)
 
-```
+```text
 WRONG: Keep retrying same failing test
 RIGHT:
   1. Check if health checks still passing
@@ -286,20 +317,22 @@ RIGHT:
   3. See if it's a critical test or non-critical
   4. If critical: Stop, troubleshoot
   5. If non-critical: Note it, continue
-```
 
+```text
 ### Emergency Rollback (5 Minutes)
 
 ```powershell
 # If deployment is truly broken:
+
 docker stop sms-fullstack
 docker rm sms-fullstack
 # Restore backup:
+
 Copy-Item "backups/pre_$11.17.2_*.db" `
   -Destination "data/student_management.db" -Force
 # System back to before deployment ✅
-```
 
+```text
 ---
 
 ## 📞 Help Resources
@@ -364,17 +397,18 @@ Copy-Item "backups/pre_$11.17.2_*.db" `
 
 ## ✅ When You're Done (Jan 8, 11:00 UTC)
 
-```
+```text
 🎉 YOU DEPLOYED $11.15.2 TO STAGING
 ✅ All tests passed
 ✅ Monitoring active
 ✅ Everything working
 
 YOU DID IT! 🚀
-```
 
+```text
 ---
 
 **Solo Developer**: You're ready. No team, no meetings, just you and the deployment. You've got all the tools, all the procedures, all the knowledge. Go execute Jan 8 deployment at 08:00 UTC.
 
 **Good luck! You've got this!** ✅
+

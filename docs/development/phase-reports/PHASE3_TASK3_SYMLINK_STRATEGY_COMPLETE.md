@@ -51,7 +51,7 @@ Created comprehensive `docs/development/SYMLINK_MANAGEMENT.md` (420+ lines) cove
 
 **Established Decision Framework:**
 
-```
+```text
 Need to share code/data?
 ├─ Code organization?
 │  └─ Use explicit imports and __init__.py exports
@@ -63,8 +63,8 @@ Need to share code/data?
 │  └─ Use copy-on-setup scripts
 └─ Still need symlink?
    └─ Document why in PR, get team approval (rare)
-```
 
+```text
 ### 4. Platform-Specific Guidance
 
 **Windows 10+:**
@@ -296,3 +296,4 @@ Established formal process if symlinks ever needed:
 **Status:** Committed to Task 3 Completion
 **Next Review:** Before starting Task 4
 **Owner:** AI Agent (SMS Development)
+

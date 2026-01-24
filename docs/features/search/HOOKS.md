@@ -11,10 +11,10 @@ The `useSearch` custom React hook provides a complete abstraction for search fun
 
 ## Location
 
-```
+```text
 frontend/src/hooks/useSearch.ts
-```
 
+```text
 ## Basic Usage
 
 ```typescript
@@ -34,8 +34,8 @@ export function MyComponent() {
     </button>
   );
 }
-```
 
+```text
 ## Hook API
 
 ### State Properties
@@ -65,8 +65,8 @@ interface UseSearchReturn {
     total_grades: number;
   };
 }
-```
 
+```text
 ## Core Methods
 
 ### 1. search()
@@ -108,8 +108,8 @@ const handleSearch = async (query: string) => {
     setError('Search failed');
   }
 };
-```
 
+```text
 #### Parameters
 
 | Parameter | Type | Required | Description |
@@ -135,8 +135,8 @@ const handleSearch = async (query: string) => {
   total: 150,           // Total count
   has_next: true        // Is there next page
 }
-```
 
+```text
 ---
 
 ### 2. getSuggestions()
@@ -156,8 +156,8 @@ const handleInputChange = async (value: string) => {
     setSuggestions(suggestions);
   }
 };
-```
 
+```text
 #### Returns
 
 ```typescript
@@ -165,8 +165,8 @@ const handleInputChange = async (value: string) => {
   { id: 1, name: 'Alice Johnson', email: 'alice@example.com' },
   { id: 2, name: 'Andrew Smith', email: 'andrew@example.com' }
 ]
-```
 
+```text
 ---
 
 ### 3. getSuggestionsDebounced()
@@ -188,8 +188,8 @@ const handleInputChange = (query: string) => {
   onChange={(e) => handleInputChange(e.target.value)}
   placeholder="Search..."
 />
-```
 
+```text
 **Best for**: Real-time autocomplete where input fires rapidly
 
 **Debouncing**: 300ms delay between requests
@@ -229,8 +229,8 @@ const handleAdvancedFilter = async (filters: FilterConfig) => {
     setError('Filter failed');
   }
 };
-```
 
+```text
 ---
 
 ### 5. loadMore()
@@ -252,8 +252,8 @@ return (
     </button>
   </>
 );
-```
 
+```text
 ---
 
 ### 6. clear()
@@ -268,8 +268,8 @@ const handleClear = () => {
   setFilters({});
   setQuery('');
 };
-```
 
+```text
 ---
 
 ## Complete Example: Search Page
@@ -494,8 +494,8 @@ export function AdvancedSearchPage() {
     </div>
   );
 }
-```
 
+```text
 ---
 
 ## Performance Optimization
@@ -511,8 +511,8 @@ const { getSuggestionsDebounced } = useSearch();
 for (let i = 0; i < 5; i++) {
   getSuggestionsDebounced('student', 'A'); // Only final call made
 }
-```
 
+```text
 ### Caching
 
 Suggestions are cached in memory:
@@ -526,8 +526,8 @@ const suggestions2 = await getSuggestionsDebounced('student', 'Alice');
 
 // Different entity clears cache for that type
 const suggestions3 = await getSuggestionsDebounced('course', 'Alice');
-```
 
+```text
 ### Pagination
 
 Results are managed per-page:
@@ -542,8 +542,8 @@ await search('test', 'student');
 await loadMore(2);
 
 // Results now contains pages 1 and 2
-```
 
+```text
 ---
 
 ## Error Handling
@@ -560,8 +560,8 @@ try {
   clear();
   // Retry search...
 }
-```
 
+```text
 ---
 
 ## Testing with useSearch
@@ -595,8 +595,8 @@ test('getSuggestionsDebounced debounces requests', async () => {
     expect(result.current.suggestions).toBeDefined();
   });
 });
-```
 
+```text
 ---
 
 ## TypeScript Interfaces
@@ -624,8 +624,8 @@ interface SearchStatistics {
   total_courses: number;
   total_grades: number;
 }
-```
 
+```text
 ---
 
 ## Best Practices
@@ -678,6 +678,7 @@ interface SearchStatistics {
 ## Changelog
 
 ### Version 1.0.0 (January 17, 2026)
+
 - Initial release
 - 6 core methods
 - Full TypeScript support
@@ -685,3 +686,4 @@ interface SearchStatistics {
 - Built-in caching
 - Error handling
 - Loading states
+

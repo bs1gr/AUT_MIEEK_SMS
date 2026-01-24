@@ -26,7 +26,7 @@ The Analytics Dashboard provides administrators and instructors with comprehensi
 
 ## 🏗️ Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                     Frontend Layer                       │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
@@ -63,8 +63,8 @@ The Analytics Dashboard provides administrators and instructors with comprehensi
          │   Database Layer    │
          │  (SQLite / Postgres)│
          └─────────────────────┘
-```
 
+```text
 ---
 
 ## 📊 Backend Architecture
@@ -78,6 +78,7 @@ The Analytics Dashboard provides administrators and instructors with comprehensi
 - Cache results for performance
 
 **Key Methods**:
+
 ```python
 class AnalyticsService:
     # Student performance
@@ -101,8 +102,8 @@ class AnalyticsService:
 
     # Dashboard aggregation
     get_dashboard_summary()
-```
 
+```text
 ### 2. Caching Strategy
 
 **Layer 1: In-Memory Cache (FastAPI)**
@@ -124,6 +125,7 @@ class AnalyticsService:
 ### 3. Database Optimization
 
 **Indexes to Create**:
+
 ```sql
 -- Grade queries
 CREATE INDEX idx_grade_student_id ON grade(student_id);
@@ -142,8 +144,8 @@ CREATE INDEX idx_student_status ON student(status);
 
 -- Course queries
 CREATE INDEX idx_course_id ON course(id);
-```
 
+```text
 **Query Optimization**:
 - Use `selectinload()` for related data
 - Batch operations for bulk calculations
@@ -184,12 +186,14 @@ CREATE INDEX idx_course_id ON course(id);
 
 ```python
 # Response wrapper
+
 class AnalyticsResponse(BaseModel):
     success: bool
     data: dict  # Varies by endpoint
     meta: dict  # request_id, timestamp, etc.
 
 # Student Performance
+
 class StudentPerformance(BaseModel):
     student_id: int
     name: str
@@ -200,6 +204,7 @@ class StudentPerformance(BaseModel):
     attendance_rate: float
 
 # Attendance Summary
+
 class AttendanceSummary(BaseModel):
     total_sessions: int
     attended: int
@@ -208,6 +213,7 @@ class AttendanceSummary(BaseModel):
     pattern: str  # "consistent", "declining", etc.
 
 # Grade Distribution
+
 class GradeDistribution(BaseModel):
     bins: List[str]  # ['A', 'B', 'C', 'D', 'F']
     counts: List[int]
@@ -216,6 +222,7 @@ class GradeDistribution(BaseModel):
     stddev: float
 
 # Course Metrics
+
 class CourseMetrics(BaseModel):
     course_id: int
     name: str
@@ -223,15 +230,15 @@ class CourseMetrics(BaseModel):
     average_grade: float
     attendance_rate: float
     effectiveness_score: float
-```
 
+```text
 ---
 
 ## 💻 Frontend Architecture
 
 ### 1. Components Structure
 
-```
+```text
 src/features/admin/analytics/
 ├── index.tsx                    # Barrel export
 ├── pages/
@@ -257,11 +264,12 @@ src/features/admin/analytics/
     ├── AnalyticsDashboard.test.tsx
     ├── StudentAnalytics.test.tsx
     └── ...other tests
-```
 
+```text
 ### 2. Key Hooks
 
 **useAnalytics** (Custom React Hook):
+
 ```typescript
 function useAnalytics(filters: AnalyticsFilters) {
   const { data, isLoading, error } = useQuery(
@@ -272,9 +280,10 @@ function useAnalytics(filters: AnalyticsFilters) {
 
   return { data, isLoading, error };
 }
-```
 
+```text
 **useStudentPerformance** (Specific Hook):
+
 ```typescript
 function useStudentPerformance(studentId: number, filters: TimeFilters) {
   const { data, isLoading, error } = useQuery(
@@ -284,8 +293,8 @@ function useStudentPerformance(studentId: number, filters: TimeFilters) {
 
   return { performance: data, isLoading, error };
 }
-```
 
+```text
 ### 3. Chart Libraries
 
 **Primary**: React with Recharts
@@ -318,7 +327,7 @@ function useStudentPerformance(studentId: number, filters: TimeFilters) {
 
 ### 1. Dashboard Load Flow
 
-```
+```text
 User visits /admin/analytics
   ↓
 AnalyticsDashboard component mounts
@@ -339,11 +348,11 @@ Results cached for 5-15 minutes
 Frontend receives response
   ↓
 Components render charts/tables
-```
 
+```text
 ### 2. Filter Application Flow
 
-```
+```text
 User selects date range / course / student
   ↓
 Filter state updated in component
@@ -361,11 +370,11 @@ Backend executes scoped queries
 Results cached with same key
   ↓
 Frontend updates visualizations
-```
 
+```text
 ### 3. Export Flow
 
-```
+```text
 User clicks Export button
   ↓
 Select format (PDF/Excel/CSV)
@@ -381,8 +390,8 @@ Or generates synchronously (if small < 1000 records)
 Frontend shows progress / download link
   ↓
 File downloaded to user's machine
-```
 
+```text
 ---
 
 ## 🧪 Testing Strategy
@@ -465,6 +474,7 @@ File downloaded to user's machine
 ## ✅ Implementation Checklist
 
 ### Phase 1: Backend (Days 1-3)
+
 - [ ] Design database indexes
 - [ ] Create AnalyticsService class
 - [ ] Implement query methods (5 main queries)
@@ -473,6 +483,7 @@ File downloaded to user's machine
 - [ ] Write backend tests (20+ tests)
 
 ### Phase 2: Frontend (Days 4-6)
+
 - [ ] Create dashboard layout component
 - [ ] Build individual analytics components
 - [ ] Implement custom hooks
@@ -481,6 +492,7 @@ File downloaded to user's machine
 - [ ] Write frontend tests (25+ tests)
 
 ### Phase 3: Optimization & Testing (Days 7-8)
+
 - [ ] Query performance testing
 - [ ] Cache effectiveness validation
 - [ ] E2E test creation (3+ workflows)
@@ -488,6 +500,7 @@ File downloaded to user's machine
 - [ ] Documentation updates
 
 ### Phase 4: Polish & Release (Day 9)
+
 - [ ] Bug fixes
 - [ ] Performance tuning
 - [ ] Final testing
@@ -533,3 +546,4 @@ File downloaded to user's machine
 **Status**: Ready for backend implementation
 **Last Updated**: January 12, 2026
 **Issue**: #134
+

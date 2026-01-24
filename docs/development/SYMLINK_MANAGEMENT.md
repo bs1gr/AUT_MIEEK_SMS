@@ -80,25 +80,30 @@ Based on current project analysis, there are **no active symlinks** in the repos
 
 ```powershell
 # Enable symlink support in Git
+
 git config core.symlinks true
 
 # Verify setting
-git config --get core.symlinks
-```
 
+git config --get core.symlinks
+
+```text
 #### Creation Methods
 
 ```powershell
 # PowerShell 7+ (recommended)
+
 New-Item -ItemType SymbolicLink -Path "./link-name" -Target "./target"
 
 # Windows PowerShell (requires admin)
+
 cmd /c mklink "./link-name" "./target"
 
 # Git Bash (if symlinks enabled)
-ln -s ./target ./link-name
-```
 
+ln -s ./target ./link-name
+
+```text
 #### Common Issues
 
 | Issue | Cause | Solution |
@@ -119,8 +124,8 @@ ln -s ./target ./link-name
 
 ```bash
 ln -s ./target ./link-name
-```
 
+```text
 #### Considerations
 
 - Symlinks can be created/modified by any user
@@ -139,8 +144,8 @@ ln -s ./target ./link-name
 
 ```bash
 ln -s ./target ./link-name
-```
 
+```text
 #### Considerations
 
 - Standard Unix behavior
@@ -157,10 +162,12 @@ ln -s ./target ./link-name
 
 ```yaml
 # Symlinks work in GitHub Actions
-- name: Create symlink
-  run: ln -s ./target ./link
-```
 
+- name: Create symlink
+
+  run: ln -s ./target ./link
+
+```text
 **Considerations:**
 
 - Runners are Linux-based
@@ -173,10 +180,11 @@ ln -s ./target ./link-name
 
 ```dockerfile
 # Docker inherits host symlinks
+
 COPY . /app
 # If /app contains symlinks, they're preserved
-```
 
+```text
 **Considerations:**
 
 - Symlinks must exist on build host
@@ -201,12 +209,14 @@ Given the project's constraints, **we recommend avoiding symlinks** in favor of:
 
 ```python
 # Instead of symlink, use explicit import in __init__.py
+
 from backend.scripts.admin import ensure_default_admin_account
 
 # Exported for convenience
-__all__ = ["ensure_default_admin_account"]
-```
 
+__all__ = ["ensure_default_admin_account"]
+
+```text
 **Benefits:**
 - Clear and explicit
 - Works everywhere (all languages, tools)
@@ -217,9 +227,10 @@ __all__ = ["ensure_default_admin_account"]
 
 ```markdown
 # Instead of symlink to document:
-See [Architecture Guide](../../docs/development/ARCHITECTURE.md)
-```
 
+See [Architecture Guide](../../docs/development/ARCHITECTURE.md)
+
+```text
 **Benefits:**
 - Rendered correctly on GitHub
 - Works with relative paths
@@ -230,10 +241,11 @@ See [Architecture Guide](../../docs/development/ARCHITECTURE.md)
 
 ```python
 # Instead of symlink to config:
+
 config_path = os.environ.get("CONFIG_PATH", "./config/app.ini")
 config = load_config(config_path)
-```
 
+```text
 **Benefits:**
 - Flexible per-environment
 - Docker/container native
@@ -244,10 +256,11 @@ config = load_config(config_path)
 
 ```bash
 # In setup script:
+
 cp .env.example .env
 cp config/app.default.ini config/app.ini
-```
 
+```text
 **Benefits:**
 - Explicit and clear
 - No special file system features
@@ -260,7 +273,7 @@ cp config/app.default.ini config/app.ini
 
 ### Decision Tree
 
-```
+```text
 Need to share code/data?
 ├─ Code organization?
 │  └─ Use explicit imports and __init__.py exports
@@ -273,8 +286,8 @@ Need to share code/data?
 └─ Still need symlink?
    └─ Document why in PR, get team approval
       (Very rare - symlinks avoided by design)
-```
 
+```text
 ### Approval Process (if symlink needed)
 
 If a future developer wants to use symlinks:
@@ -294,22 +307,26 @@ If a future developer wants to use symlinks:
 
 ```bash
 # Find all symlinks
+
 find . -type l
 
 # On Windows (PowerShell)
-Get-ChildItem -Recurse | Where-Object { $_.LinkType }
-```
 
+Get-ChildItem -Recurse | Where-Object { $_.LinkType }
+
+```text
 ### Verifying Symlink Targets
 
 ```bash
 # Show symlink target
+
 ls -l link-name
 
 # On Windows (PowerShell)
-Get-Item -Path "link-name" | Select-Object Target
-```
 
+Get-Item -Path "link-name" | Select-Object Target
+
+```text
 ### Common Troubleshooting
 
 | Problem | Check | Solution |
@@ -390,3 +407,4 @@ This strategy has proven effective and should be maintained unless compelling re
 **Status:** Stable
 **Version:** 1.10.1
 **Author:** AI Agent (SMS Development)
+

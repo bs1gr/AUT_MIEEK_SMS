@@ -22,10 +22,11 @@
 **Use when**: You want a fully automated release from start to finish
 
 **Command**:
+
 ```powershell
 .\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.16.0" -Mode Quick
-```
 
+```text
 ---
 
 ### 2. RELEASE_PREPARATION.ps1
@@ -48,10 +49,11 @@
 **Use when**: You want to validate readiness before release
 
 **Command**:
+
 ```powershell
 .\RELEASE_PREPARATION.ps1 -Mode Quick -AutoFix
-```
 
+```text
 ---
 
 ### 3. GENERATE_RELEASE_DOCS.ps1
@@ -68,10 +70,11 @@
 **Use when**: You need to generate release documentation from git history
 
 **Command**:
+
 ```powershell
 .\GENERATE_RELEASE_DOCS.ps1 -Version "1.16.0"
-```
 
+```text
 ---
 
 ### 4. RELEASE_READY.ps1
@@ -88,10 +91,11 @@
 **Use when**: All checks passed, docs committed, ready to tag and release
 
 **Command**:
+
 ```powershell
 .\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
-```
 
+```text
 ---
 
 ### 5. RELEASE_HELPER.ps1 ⭐ **POST-RELEASE ASSISTANT**
@@ -114,17 +118,20 @@
 - Want to create Phase 2 issues
 
 **Commands**:
+
 ```powershell
 # Manual workflow
+
 .\RELEASE_HELPER.ps1 -Action ValidateRelease
 .\RELEASE_HELPER.ps1 -Action OpenGitHub
 .\RELEASE_HELPER.ps1 -Action CopyRelease
 
 # Automated workflow (NEW - Jan 6, 2026)
+
 .\RELEASE_HELPER.ps1 -Action CreateRelease          # Current version
 .\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2  # Custom version
-```
 
+```text
 ---
 
 ### 6. UPDATE_RELEASE.ps1 ⚠️ **ONE-TIME USE - CAN DELETE**
@@ -152,20 +159,25 @@
 
 ```powershell
 # One command does everything
+
 .\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.16.0" -Mode Quick
 
 # What happens:
+
 # 1. Validates code quality ✅
 # 2. Generates release docs ✅
+
 # 3. Commits documentation ✅
 # 4. Creates git tag ✅
+
 # 5. Triggers GitHub Actions ✅
 # → GitHub Actions creates installer + draft release
 
 # Then manually:
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2  # Publish GitHub Release
-```
 
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2  # Publish GitHub Release
+
+```text
 **Timeline**: ~10 minutes (Quick mode)
 
 ---
@@ -176,22 +188,27 @@
 
 ```powershell
 # Step 1: Validate
+
 .\RELEASE_PREPARATION.ps1 -Mode Quick -AutoFix
 
 # Step 2: Generate docs
+
 .\GENERATE_RELEASE_DOCS.ps1 -Version "1.16.0"
 
 # Step 3: Review and commit docs
+
 git add CHANGELOG.md docs/releases/
 git commit -m "docs: release notes for $11.15.2"
 
 # Step 4: Tag and trigger release
+
 .\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
 
 # Step 5: Create GitHub Release (after Actions complete)
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
-```
 
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
+
+```text
 **Timeline**: ~15 minutes (with review time)
 
 ---
@@ -202,24 +219,30 @@ git commit -m "docs: release notes for $11.15.2"
 
 ```powershell
 # Step 1: Validate
+
 .\RELEASE_PREPARATION.ps1 -Mode Quick
 
 # Step 2: Skip auto-generation, write manually:
+
 # - Create docs/releases/RELEASE_NOTES_$11.15.2.md
 # - Create docs/releases/GITHUB_RELEASE_$11.15.2.md
+
 # - Update CHANGELOG.md
 
 # Step 3: Commit
+
 git add CHANGELOG.md docs/releases/
 git commit -m "docs: release notes for $11.15.2"
 
 # Step 4: Tag
+
 .\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
 
 # Step 5: Create GitHub Release
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
-```
 
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
+
+```text
 ---
 
 ## 🔄 Differences Between Scripts
@@ -246,12 +269,14 @@ git commit -m "docs: release notes for $11.15.2"
 
 ```powershell
 # Old way (UPDATE_RELEASE.ps1 - hardcoded $11.15.2):
+
 .\UPDATE_RELEASE.ps1
 
 # New way (RELEASE_HELPER.ps1 - any version):
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
-```
 
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
+
+```text
 The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
 - ✅ Version flexibility (not hardcoded)
 - ✅ Error handling (checks if release exists)
@@ -285,16 +310,18 @@ The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
 
 ```powershell
 # 1. Complete automation
+
 .\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.16.0" -Mode Quick
 
 # 2. Wait for GitHub Actions to build installer (~5 min)
 
 # 3. Create/publish GitHub Release
+
 .\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.15.2
 
 # Done! 🎉
-```
 
+```text
 **Total time**: ~15 minutes from start to published release
 
 ---
@@ -305,8 +332,10 @@ When automating releases, always follow this sequence and avoid duplicating logi
 
 1. **Primary orchestrator**: `RELEASE_WITH_DOCS.ps1`
    - Runs preparation, generates docs, commits, tags
+
 2. **GitHub Release**: `RELEASE_HELPER.ps1 -Action CreateRelease -Tag <version>`
    - Publishes/updates the GitHub Release UI via gh CLI
+
 3. **Never recreate** one-off scripts (e.g., `UPDATE_RELEASE.ps1` was removed)
 
 Agents must use these two scripts instead of writing new release scripts. If a release already exists, `RELEASE_HELPER.ps1` will offer to update it automatically.
@@ -317,3 +346,4 @@ Agents must use these two scripts instead of writing new release scripts. If a r
 - [Release Checklist Template](../releases/RELEASE_CHECKLIST_$11.15.2.md)
 - [GitHub Release Template](../releases/GITHUB_RELEASE_$11.15.2.md)
 - [Phase 2 Issues](../releases/GITHUB_ISSUES_PHASE2.md)
+

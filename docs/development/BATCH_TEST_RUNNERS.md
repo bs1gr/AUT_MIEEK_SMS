@@ -14,15 +14,18 @@ Splits tests by file into configurable batch sizes:
 
 ```powershell
 # Quick mode - small batches, fail fast (recommended during development)
+
 .\RUN_TESTS_BATCH.ps1 -BatchSize 5 -FastFail
 
 # Full mode - larger batches, complete run (recommended before commit)
+
 .\RUN_TESTS_BATCH.ps1 -BatchSize 10
 
 # Verbose output
-.\RUN_TESTS_BATCH.ps1 -BatchSize 8 -Verbose
-```
 
+.\RUN_TESTS_BATCH.ps1 -BatchSize 8 -Verbose
+
+```text
 **Features**:
 - Runs tests in batches of N files
 - 2-second delay between batches (lets system breathe)
@@ -36,14 +39,16 @@ Groups tests by functionality (routers, services, models, etc.):
 
 ```powershell
 # Run all categories in sequence
+
 .\RUN_TESTS_CATEGORY.ps1
 
 # Run specific category
+
 .\RUN_TESTS_CATEGORY.ps1 -Category routers
 .\RUN_TESTS_CATEGORY.ps1 -Category services
 .\RUN_TESTS_CATEGORY.ps1 -Category rbac -Verbose
-```
 
+```text
 **Categories**:
 - `routers` - API endpoint tests (students, courses, grades, etc.)
 - `services` - Business logic tests
@@ -58,13 +63,15 @@ The batch runner is automatically used when running `COMMIT_READY.ps1`:
 
 ```powershell
 # Quick mode - uses BatchSize 5, FastFail
+
 .\COMMIT_READY.ps1 -Quick
 
 # Standard/Full mode - uses BatchSize 8, complete run
+
 .\COMMIT_READY.ps1 -Standard
 .\COMMIT_READY.ps1 -Full
-```
 
+```text
 If `RUN_TESTS_BATCH.ps1` is missing, falls back to standard pytest.
 
 ## Benefits
@@ -103,15 +110,18 @@ For direct testing without COMMIT_READY:
 
 ```powershell
 # From project root
+
 .\RUN_TESTS_BATCH.ps1 -BatchSize 8
 
 # From backend directory (not recommended, use from root)
+
 cd backend
 python -m pytest tests/ -q  # Standard way if you must
-```
 
+```text
 ---
 
 **Created**: January 8, 2026
 **Purpose**: Prevent VSCode freezes during test execution
 **Status**: Integrated with COMMIT_READY.ps1 $11.15.2+
+

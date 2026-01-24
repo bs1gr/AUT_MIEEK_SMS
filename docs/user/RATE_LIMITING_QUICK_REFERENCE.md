@@ -9,68 +9,77 @@
 ## Typical Adjustments
 
 ### Issue: "Too Many Requests" on Imports
-```
+
+```text
 Current: TEACHER_IMPORT = 5,000/min
 Solution: Increase to 10,000/min
 Impact: Teachers can upload 10x more records per minute
-```
 
+```text
 ### Issue: Dashboard is Slow
-```
+
+```text
 Current: READ = 1,000/min
 Solution: Increase to 2,000/min
 Impact: Queries ~2x faster, covers 100+ concurrent users
-```
 
+```text
 ### Issue: Login Failures
-```
+
+```text
 Current: AUTH = 120/min
 Solution: Check it's 120+ (not lower)
 Note: If still failing, check error—might not be rate limit (would be 429)
-```
 
+```text
 ## Default Configuration (Per Minute)
 
-```
+```text
 ├─ READ:           1,000  (GET requests, queries)
 ├─ WRITE:            500  (POST/PUT updates)
 ├─ HEAVY:            200  (Reports, exports)
 ├─ AUTH:             120  (Login attempts) ← Fixed login 400 errors
 └─ TEACHER_IMPORT: 5,000  (Bulk uploads)
-```
 
+```text
 ## Environment Variables (Deployment)
 
 Override defaults at startup:
 
 ```bash
 # Docker
+
 docker run -e RATE_LIMIT_AUTH_PER_MINUTE=240 sms-app
 
 # Docker Compose
+
 environment:
   RATE_LIMIT_WRITE_PER_MINUTE: 1000
   RATE_LIMIT_AUTH_PER_MINUTE: 240
 
 # PowerShell
-$env:RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE="10000"
-```
 
+$env:RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE="10000"
+
+```text
 ## REST API (Admin Only)
 
 ### Get Limits
+
 ```bash
 curl http://localhost:8000/control/api/rate-limits
-```
 
+```text
 ### Update One Limit
+
 ```bash
 curl -X POST http://localhost:8000/control/api/rate-limits/update \
   -H "Content-Type: application/json" \
   -d '{"limit_type":"auth","value":240}'
-```
 
+```text
 ### Update Multiple
+
 ```bash
 curl -X POST http://localhost:8000/control/api/rate-limits/bulk-update \
   -H "Content-Type: application/json" \
@@ -81,13 +90,14 @@ curl -X POST http://localhost:8000/control/api/rate-limits/bulk-update \
       "auth": 240
     }
   }'
-```
 
+```text
 ### Reset All to Defaults
+
 ```bash
 curl -X POST http://localhost:8000/control/api/rate-limits/reset
-```
 
+```text
 ## Error Codes
 
 | Code | Meaning | Action |
@@ -109,3 +119,4 @@ curl -X POST http://localhost:8000/control/api/rate-limits/reset
 **Last Updated:** 2025-12-30
 **Version:** 1.14.0
 **Related:** [Full Rate Limiting Guide](RATE_LIMITING_GUIDE.md)
+

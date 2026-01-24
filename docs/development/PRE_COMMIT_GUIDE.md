@@ -16,18 +16,22 @@ Single source of truth for pre-commit workflows, replacing multiple overlapping 
 
 ```powershell
 # Standard validation (recommended)
+
 ./COMMIT_READY.ps1 -Standard
 
 # Faster (skip full tests)
+
 ./COMMIT_READY.ps1 -Quick
 
 # Full verification (all tests + Docker/Native health)
+
 ./COMMIT_READY.ps1 -Full
 
 # Cleanup only (format, lint, temp files)
-./COMMIT_READY.ps1 -Cleanup
-```
 
+./COMMIT_READY.ps1 -Cleanup
+
+```text
 **Optional AutoFix:** Add `-AutoFix` to apply formatting/import fixes automatically.
 
 ## 🎯 What COMMIT_READY Covers
@@ -51,8 +55,8 @@ python -m pip install --user pre-commit
 cd "d:\SMS\student-management-system"
 pre-commit install
 pre-commit run --all-files   # optional first sweep
-```
 
+```text
 **Hooks Provided:** `.pre-commit-config.yaml` (backend import checker). Uses your active Python env; for isolation, run inside a venv with `backend/requirements.txt` installed.
 
 **Sample Git Hook:** `.githooks/commit-ready-precommit.sample`
@@ -110,3 +114,4 @@ pre-commit run --all-files   # optional first sweep
 - `scripts/install-git-hooks.ps1`, `scripts/install-git-hooks.sh`
 - `COMMIT_READY.ps1` (help: `./COMMIT_READY.ps1 -Help`)
 - `docs/development/GIT_WORKFLOW.md`
+

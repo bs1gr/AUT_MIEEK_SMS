@@ -35,8 +35,8 @@ Migrated database-related CLI tools from scattered locations to organized `backe
 
 ```python
 from backend.db.cli import create_admin, verify_schema, validate_first_run
-```
 
+```text
 **Documentation:**
 
 - Created `docs/development/TOOLS_CONSOLIDATION.md`
@@ -69,7 +69,7 @@ Migrated utility scripts from `tools/` to organized `scripts/utils/` with clear 
 
 **New Structure:**
 
-```
+```text
 scripts/utils/
 ├── validators/      (Import, schema validation)
 ├── converters/      (Data format conversion)
@@ -79,8 +79,8 @@ scripts/utils/
 ├── installer/       (Installation tools)
 ├── tests/           (Test utilities)
 └── *.py             (General utilities)
-```
 
+```text
 **Results:**
 
 - ✅ 50+ utility scripts migrated
@@ -153,3 +153,4 @@ All old paths continue to work with deprecation warnings. Three-layer compatibil
 ---
 
 Next phase: Phase 2 (SMS.ps1 meta-wrapper and configuration clarification)
+

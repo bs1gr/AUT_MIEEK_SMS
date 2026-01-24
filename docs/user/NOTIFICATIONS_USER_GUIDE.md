@@ -38,24 +38,28 @@ When you click the bell icon:
 ## 🔔 Types of Notifications
 
 ### Student-Related
+
 - ✏️ **Grade Posted**: When a grade is entered for your course
 - 📝 **Assignment Due**: When an assignment deadline approaches
 - 🎓 **Enrollment Update**: When you're added/removed from a course
 - 📊 **Attendance Flagged**: When attendance falls below threshold
 
 ### Course-Related
+
 - 📢 **Course Announcement**: When instructor posts announcement
 - 📅 **Schedule Change**: When course schedule is modified
 - 👥 **Enrollment Change**: When student joins/leaves course
 - 📋 **Assessment Created**: When new assessment is added
 
 ### System-Related
+
 - ⚙️ **Maintenance Notice**: System maintenance scheduled
 - 🔐 **Security Alert**: Security-related event
 - 💾 **Backup Complete**: Backup operation finished
 - 🆘 **System Alert**: Important system event
 
 ### Admin-Only
+
 - 👤 **User Account Change**: New user created or account modified
 - 🔑 **Permission Grant**: Admin permission assigned
 - 📤 **Import Complete**: Data import process finished
@@ -74,22 +78,26 @@ When you click the bell icon:
 ### What You Can Configure
 
 #### Notification Types
+
 - ☑️ **Receive notifications** for specific event types
 - ☑️ **Email notifications** (on/off per type)
 - ☑️ **Real-time notifications** (on/off)
 
 #### Frequency Settings
+
 - **Immediate**: Get notifications as they happen
 - **Daily Digest**: Receive one summary email per day
 - **Weekly Digest**: Receive one summary per week
 - **Disable**: Turn off notifications for specific types
 
 #### Quiet Hours
+
 - **Start Time**: When to stop real-time notifications
 - **End Time**: When to resume notifications
 - **Email Still Arrives**: Email notifications during quiet hours
 
 #### Priority Levels
+
 - **High**: Critical events (always notify)
 - **Medium**: Important events (use your settings)
 - **Low**: Information events (optional)
@@ -303,3 +311,4 @@ If you encounter problems:
 **Version**: 1.0 (1.17.1)
 **Status**: Production Ready
 **Last Updated**: January 12, 2026
+

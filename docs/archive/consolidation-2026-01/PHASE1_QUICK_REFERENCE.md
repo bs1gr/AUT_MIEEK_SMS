@@ -9,6 +9,7 @@
 ## 📖 Three New Guides
 
 ### 1. Query Optimization Guide
+
 📄 [operations/QUERY_OPTIMIZATION.md](operations/QUERY_OPTIMIZATION.md)
 
 **When to use:**
@@ -18,17 +19,21 @@
 - Writing efficient database queries
 
 **Quick Examples:**
+
 ```python
 # ✅ Good - Uses index
+
 student = db.query(Student).filter(Student.email == "user@example.com").first()
 
 # ❌ Bad - Full table scan
+
 attendance = db.query(Attendance).filter(Attendance.status == "Absent").all()
 
 # ✅ Better - Paginate large result sets
-grades = db.query(Grade).offset(0).limit(100).all()
-```
 
+grades = db.query(Grade).offset(0).limit(100).all()
+
+```text
 **Key Topics:**
 - 17+ single-column & composite indexes
 - 5 optimization techniques
@@ -38,6 +43,7 @@ grades = db.query(Grade).offset(0).limit(100).all()
 ---
 
 ### 2. Error Recovery & Resilience Guide
+
 📄 [operations/ERROR_RECOVERY.md](operations/ERROR_RECOVERY.md)
 
 **When to use:**
@@ -47,20 +53,24 @@ grades = db.query(Grade).offset(0).limit(100).all()
 - Troubleshooting production issues
 
 **Quick Examples:**
+
 ```python
 # Exponential backoff retry
+
 @retry_on_transient(max_retries=3, backoff=1.0)
 async def fetch_data():
     return await db.query(...)
 
 # Circuit breaker pattern
+
 breaker = CircuitBreaker(failure_threshold=5, recovery_timeout=60)
 await breaker.call(external_api_call)
 
 # Graceful degradation
-analytics = get_analytics(db) or {"status": "degraded"}
-```
 
+analytics = get_analytics(db) or {"status": "degraded"}
+
+```text
 **Key Topics:**
 - Error categorization (transient, client, server)
 - 3 recovery patterns
@@ -72,6 +82,7 @@ analytics = get_analytics(db) or {"status": "degraded"}
 ---
 
 ### 3. API Contract & Versioning
+
 📄 [api/API_CONTRACT.md](api/API_CONTRACT.md)
 
 **When to use:**
@@ -81,11 +92,14 @@ analytics = get_analytics(db) or {"status": "degraded"}
 - Integrating with external systems
 
 **Quick Examples:**
+
 ```bash
 # v1 endpoint (supported until June 2026)
+
 GET /api/v1/students
 
 # Success response
+
 {
   "status": "ok",
   "data": [{...}],
@@ -93,6 +107,7 @@ GET /api/v1/students
 }
 
 # Error response
+
 {
   "status": "error",
   "error": {
@@ -100,8 +115,8 @@ GET /api/v1/students
     "message": "Email is required"
   }
 }
-```
 
+```text
 **Key Topics:**
 - Semantic versioning strategy
 - 6-month deprecation policy
@@ -175,7 +190,7 @@ GET /api/v1/students
 
 These guides reference and complement each other:
 
-```
+```text
 Query Optimization
   └─ References Error Recovery (connection pool management)
 
@@ -184,8 +199,8 @@ Error Recovery
 
 API Contract
   └─ Complements Query Optimization (no direct reference)
-```
 
+```text
 ---
 
 ## ✅ Quality Assurance Checklist
@@ -224,6 +239,7 @@ Phase 2 (Days 3-4) will focus on:
 For developers using these guides:
 
 ### Before writing new queries:
+
 - [ ] Review "Query Performance Analysis" section
 - [ ] Check if appropriate index exists
 - [ ] Test with query profiler
@@ -231,6 +247,7 @@ For developers using these guides:
 - [ ] Document in code
 
 ### Before releasing new API features:
+
 - [ ] Review "Response Format" standards
 - [ ] Check "Error Codes" reference
 - [ ] Plan for future deprecation
@@ -238,6 +255,7 @@ For developers using these guides:
 - [ ] Test with error scenarios
 
 ### Before pushing to production:
+
 - [ ] Review "Resilience Strategies"
 - [ ] Implement circuit breaker if external APIs
 - [ ] Add error logging per "Error Logging" guide
@@ -248,7 +266,7 @@ For developers using these guides:
 
 ## 📚 Documentation Structure
 
-```
+```text
 docs/
 ├─ operations/
 │  ├─ QUERY_OPTIMIZATION.md ⭐ NEW
@@ -263,8 +281,8 @@ docs/
 │  └─ ...
 │
 └─ ...
-```
 
+```text
 ---
 
 ## 🤝 Contributing to These Guides
@@ -304,3 +322,4 @@ Questions about these guides?
 **Last Updated**: 2025-12-12
 **Status**: Phase 1/3 Complete
 **Next Review**: After Phase 2 completion
+

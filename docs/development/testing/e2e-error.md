@@ -28,4 +28,5 @@
       - button "Request access" [ref=e29] [cursor=pointer]
   - button "Send Feedback" [ref=e31] [cursor=pointer]
   - contentinfo [ref=e32]: Student Management System © 2025 Vasilis Samaras - $11.14.0
-```
+
+```text
