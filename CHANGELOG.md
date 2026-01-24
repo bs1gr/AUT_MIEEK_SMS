@@ -12,7 +12,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.3] - 2026-01-22
 
 ### ⚠️ BREAKING CHANGES
-- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release($11.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 ### Features
 - BATCH 6 - Frontend SavedSearches Component
@@ -59,7 +59,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - silence MyPy Column assignment noise in import/export service
 - Comprehensive MyPy type error resolution in import_export_service
 - Resolve MyPy type errors in search and import/export services
-- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.2)
+- Raise markdown lint threshold to 8100 (temporary workaround for $11.18.0)
 - Update documentation versions to 1.17.2 (CI version consistency check)
 - Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
 - Resolve remaining ESLint violations (unused vars, types, quote escaping)
@@ -77,7 +77,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Correct version format validator path and PowerShell substitution bugs
 - Resolve all MyPy type errors (28 errors fixed)
 - Resolve linting errors (5 errors total)
-- Update all version references to v1.17.1 (9 files + package-lock.json)
+- Update all version references to $11.18.0 (9 files + package-lock.json)
 - Add missing RBAC schema exports; test audit documentation
 
 ### Security
@@ -118,19 +118,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Update work plan with frontend lint parsing error fixes (Jan 18)
 - Add Phase 6 final status report with completion verification
 - Add Phase 6 completion summary with infrastructure fixes and performance baseline
-- Fix version confusion - v1.18.0 is STABLE (not REMEDIATION)
+- Fix version confusion - $11.18.0 is STABLE (not REMEDIATION)
 - add user guide and mark feature #127 complete
 - Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
 - Add production validation documentation and test utilities
 - Terminal encoding fix - cleared corrupted PSReadLine history
-- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.1 released
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - $11.18.0 released
 - Update Phase 3 planning and release documentation
 - Add audit session summary with key findings and status
 - Document lesson learned implementation - verification before claims
 - Add critical lesson - verify test results before claiming success (Jan 12 incident)
 - Add comprehensive audit report and root cause analysis
 - Add action summary for CI fix and release complete
-- Add complete summary - CI fix and v1.18.0 release
+- Add complete summary - CI fix and $11.18.0 release
 
 ### Tests
 - fix useSearch loadMore async test flakiness

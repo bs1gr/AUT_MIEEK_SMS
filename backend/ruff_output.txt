@@ -1,0 +1,19 @@
+F811 Redefinition of unused `Base` from line 52
+   --> tests\conftest.py:152:1
+    |
+150 | from backend import models as models_mod
+151 |
+152 | Base = models_mod.Base
+    | ^^^^ `Base` redefined here
+    |
+   ::: tests\conftest.py:52:28
+    |
+ 51 | # Import ORM Base for schema creation
+ 52 | from backend.models import Base
+    |                            ---- previous definition of `Base` here
+ 53 |
+ 54 | # ============================================================================
+    |
+help: Remove definition: `Base`
+
+Found 1 error.

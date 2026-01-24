@@ -2061,11 +2061,17 @@ function Show-Summary {
 # ============================================================================
 
 function Invoke-MainWorkflow {
+    # Start transcript logging to capture all output
+    $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $transcriptPath = Join-Path $SCRIPT_DIR "commit_ready_$timestamp.log"
+    try { Start-Transcript -Path $transcriptPath -Force | Out-Null } catch { }
+
     $startBanner = "--------------------------------------------------------------`n COMMIT READY - Pre-Commit Verification`n Student Management System v$(Get-Version)`n--------------------------------------------------------------"
     Write-Host $startBanner -ForegroundColor Green
     Write-Host ""
     Write-Host "Mode: $Mode" -ForegroundColor Cyan
     Write-Host "Started: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Cyan
+    Write-Host "Log file: $transcriptPath" -ForegroundColor Cyan
     Write-Host ""
 
     # Optional: Version audit only
@@ -2266,6 +2272,8 @@ try {
         }
     }
 
+    # Stop transcript before exit
+    try { Stop-Transcript | Out-Null } catch { }
     exit $exitCode
 }
 catch {
@@ -2276,8 +2284,11 @@ catch {
     Write-Host $_.Exception.Message -ForegroundColor Red
     Write-Host ""
     Write-Host $_.ScriptStackTrace -ForegroundColor Gray
+    # Stop transcript before exit on error
+    try { Stop-Transcript | Out-Null } catch { }
     exit 1
 }
 finally {
-    # No-op, required for parser compliance
+    # Ensure transcript is stopped even if script is interrupted
+    try { Stop-Transcript | Out-Null } catch { }
 }

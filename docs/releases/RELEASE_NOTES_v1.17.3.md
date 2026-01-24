@@ -1,12 +1,12 @@
 # Release Notes - Version 1.17.3
 
 **Release Date**: 2026-01-22
-**Previous Version**: v1.18.0
+**Previous Version**: $11.18.0
 
 ## ⚠️ BREAKING CHANGES
 
-- **release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning** [1e45d96]
-  BREAKING CHANGES: None - fully backward compatible with v1.17.1
+- **release($11.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning** [1e45d96]
+  BREAKING CHANGES: None - fully backward compatible with $11.18.0
 
 ## ✨ Features
 
@@ -55,7 +55,7 @@
 - silence MyPy Column assignment noise in import/export service [75c651c]
 - Comprehensive MyPy type error resolution in import_export_service [363329c]
 - Resolve MyPy type errors in search and import/export services [6f535a8]
-- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.2) [74fd9c7]
+- Raise markdown lint threshold to 8100 (temporary workaround for $11.18.0) [74fd9c7]
 - Update documentation versions to 1.17.2 (CI version consistency check) [3aab152]
 - Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow [a780ac3]
 - Resolve remaining ESLint violations (unused vars, types, quote escaping) [8a1b9b3]
@@ -73,7 +73,7 @@
 - Correct version format validator path and PowerShell substitution bugs [169f330]
 - Resolve all MyPy type errors (28 errors fixed) [3e17b6e]
 - Resolve linting errors (5 errors total) [c198607]
-- Update all version references to v1.17.1 (9 files + package-lock.json) [d8f2d47]
+- Update all version references to $11.18.0 (9 files + package-lock.json) [d8f2d47]
 - Add missing RBAC schema exports; test audit documentation [a5c53dd]
 
 ## 🔒 Security
@@ -117,19 +117,19 @@
 - Update work plan with frontend lint parsing error fixes (Jan 18) [04a622b]
 - Add Phase 6 final status report with completion verification [fcbfacd]
 - Add Phase 6 completion summary with infrastructure fixes and performance baseline [fce0efe]
-- Fix version confusion - v1.18.0 is STABLE (not REMEDIATION) [b83aa1d]
+- Fix version confusion - $11.18.0 is STABLE (not REMEDIATION) [b83aa1d]
 - add user guide and mark feature #127 complete [9770655]
 - Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation [68df49e]
 - Add production validation documentation and test utilities [04dd222]
 - Terminal encoding fix - cleared corrupted PSReadLine history [c851216]
-- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.1 released [0916dc8]
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - $11.18.0 released [0916dc8]
 - Update Phase 3 planning and release documentation [1e5946a]
 - Add audit session summary with key findings and status [0d585c7]
 - Document lesson learned implementation - verification before claims [cc0cb48]
 - Add critical lesson - verify test results before claiming success (Jan 12 incident) [9b485b8]
 - Add comprehensive audit report and root cause analysis [fe0940a]
 - Add action summary for CI fix and release complete [6cfc933]
-- Add complete summary - CI fix and v1.18.0 release [b96771a]
+- Add complete summary - CI fix and $11.18.0 release [b96771a]
 
 ## ✅ Tests
 
@@ -670,7 +670,7 @@
 - [- Updat]
 - [- Adjus]
 - GitHub Copilot
-- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning [1e45d96]
+- release($11.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning [1e45d96]
 - [FEATURE]
 - [- Phase]
 - [- Phase]
@@ -692,7 +692,7 @@
 - [- Updat]
 - [- Fixed]
 - [RATIONA]
-- [v1.17.2]
+- [$11.18.0]
 - [- v1.18]
 - [- v1.17]
 - [- Provi]
@@ -973,7 +973,7 @@
 - [- Ensur]
 - [Fixes v]
 - GitHub Copilot
-- release: Prepare v1.17.1 - bugfix for RBAC schema exports (all tests passing) [3054c7e]
+- release: Prepare $11.18.0 - bugfix for RBAC schema exports (all tests passing) [3054c7e]
 - [- CI bl]
 - [- v1.18]
 - [- Artif]

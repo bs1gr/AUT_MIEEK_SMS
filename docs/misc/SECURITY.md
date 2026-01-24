@@ -159,21 +159,21 @@ This application requires proper security hardening before production deployment
 
 ## Changelog
 
-### v1.17.2 (January 14, 2026)
+### $11.18.0 (January 14, 2026)
 
 - ✅ Fixed 17 security vulnerabilities (path traversal, input validation)
 - ✅ Enhanced RBAC permission system (26 permissions, 79 endpoints)
 - ✅ Completed security scanning infrastructure
 - ✅ Added Secret Management Strategy documentation
 
-### v1.15.0 (January 5, 2026)
+### $11.18.0 (January 5, 2026)
 
 - ✅ Implemented audit logging for all sensitive operations
 - ✅ Enhanced error messages (user-friendly, no sensitive details)
 - ✅ API response standardization with RFC 7807 compliance
 - ✅ Backup encryption with AES-256-GCM
 
-### v1.14.0+ (Late 2025)
+### $11.18.0+ (Late 2025)
 
 - ✅ Gitleaks integration for secret scanning
 - ✅ Security headers middleware
