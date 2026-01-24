@@ -294,7 +294,9 @@ async def restore_encrypted_backup(
         sanitized_output_path = output_path
 
         # Decrypt and restore backup
-        restore_info = backup_service.restore_encrypted_backup(backup_name=backup_name, output_path=sanitized_output_path)
+        restore_info = backup_service.restore_encrypted_backup(
+            backup_name=backup_name, output_path=sanitized_output_path
+        )
 
         # Return restored file
         # Use safe filename to prevent any issues
