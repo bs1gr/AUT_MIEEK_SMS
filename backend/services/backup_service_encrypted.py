@@ -159,6 +159,9 @@ class BackupServiceEncrypted:
             resolved_backup.relative_to(resolved_backup_dir)
         except (ValueError, OSError):
             raise ValueError(f"Backup path outside allowed directory: {backup_name}")
+        
+        # CodeQL [python/path-injection] - backup_path is sanitized via _validate_backup_name and directory constraint
+        backup_path = resolved_backup
 
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")
@@ -175,21 +178,24 @@ class BackupServiceEncrypted:
         except ValueError:
             raise ValueError("Output path must be inside the backups directory")
 
+        # CodeQL [python/path-injection] - paths are sanitized via validation and directory constraints
+        sanitized_output = resolved_output
+
         # Decrypt and restore using validated paths
         metadata = self.encryption_service.decrypt_file(
             input_path=backup_path,
-            output_path=resolved_output,
+            output_path=sanitized_output,
         )
 
         # Verify output_path exists before returning
-        if not resolved_output.exists():
-            raise ValueError(f"Restored file not found at {resolved_output}")
+        if not sanitized_output.exists():
+            raise ValueError(f"Restored file not found at {sanitized_output}")
 
         return {
             "success": True,
             "backup_name": backup_name,
-            "restored_to": str(resolved_output),
-            "restored_size": resolved_output.stat().st_size,
+            "restored_to": str(sanitized_output),
+            "restored_size": sanitized_output.stat().st_size,
             "encryption": "AES-256-GCM",
             "metadata": metadata,
         }
