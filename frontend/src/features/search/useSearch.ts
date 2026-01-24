@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import apiClient from '@/api/api';
+import apiClient, { extractAPIResponseData } from '@/api/api';
 
 /**
  * Search result interface - unified across students, courses, and grades
@@ -76,16 +76,16 @@ export const useSearch = () => {
       }
 
       try {
-        const response = await apiClient.post<{
-          results: SearchResult[];
-          total: number;
-        }>('/search/advanced', {
+        const response = await apiClient.post('/search/advanced', {
           search_type: searchType,
           query: debouncedQuery || undefined,
           filters: filters.length > 0 ? filters : undefined,
         });
-
-        return response || { results: [], total: 0 };
+        const data = extractAPIResponseData<{ results: SearchResult[]; total: number }>(
+          response.data,
+          { results: [], total: 0 }
+        );
+        return data;
       } catch (err) {
         console.error('Search failed:', err);
         throw err;
@@ -102,8 +102,9 @@ export const useSearch = () => {
     queryKey: ['saved-searches'],
     queryFn: async () => {
       try {
-        const response = await apiClient.get<SavedSearch[]>('/search/saved');
-        return response.data || [];
+        const response = await apiClient.get('/search/saved');
+        const data = extractAPIResponseData<SavedSearch[]>(response.data, []);
+        return data;
       } catch (err) {
         console.error('Failed to fetch saved searches:', err);
         return [];
@@ -118,15 +119,14 @@ export const useSearch = () => {
   const createSavedSearch = useCallback(
     async (name: string, description?: string) => {
       try {
-        const response = await apiClient.post<SavedSearch>('/search/saved', {
+        const response = await apiClient.post('/search/saved', {
           name,
           description,
           search_type: searchType,
           query: searchQuery,
           filters: filters.length > 0 ? filters : undefined,
         });
-
-        return response.data;
+        return extractAPIResponseData<SavedSearch>(response.data);
       } catch (err) {
         console.error('Failed to save search:', err);
         throw err;
@@ -152,8 +152,8 @@ export const useSearch = () => {
    */
   const toggleFavoriteSavedSearch = useCallback(async (id: number) => {
     try {
-      const response = await apiClient.post<SavedSearch>(`/search/saved/${id}/favorite`);
-      return response;
+      const response = await apiClient.post(`/search/saved/${id}/favorite`);
+      return extractAPIResponseData<SavedSearch>(response.data);
     } catch (err) {
       console.error('Failed to toggle favorite:', err);
       throw err;

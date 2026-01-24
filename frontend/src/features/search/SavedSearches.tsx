@@ -135,7 +135,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
               : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
           }`}
         >
-          <Heart size={16} className={showFavoritesOnly ? 'fill-current' : ''} />
+          <HeartIcon size={16} className={showFavoritesOnly ? 'fill-current' : ''} />
           <span>{t('search.favoritesOnly')}</span>
         </button>
       </div>
@@ -220,7 +220,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                     }`}
                     aria-label={t('search.toggleFavorite')}
                   >
-                    <Heart
+                    <HeartIcon
                       size={18}
                       className={search.is_favorite ? 'fill-current' : ''}
                     />

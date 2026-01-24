@@ -279,12 +279,17 @@ async def restore_encrypted_backup(
         safe_output_filename = pathlib.Path(output_filename).name
         if safe_output_filename != output_filename:
             raise HTTPException(status_code=400, detail="Invalid output filename: contains path components")
+        # Validate clean filename one more time before path operation
+        if ".." in safe_output_filename or safe_output_filename.startswith("/"):
+            raise HTTPException(status_code=400, detail="Invalid output filename: path traversal detected")
         output_path = restore_dir / safe_output_filename
 
         # Additional safety: Ensure resolved paths are within allowed directories
         try:
-            output_path.resolve().relative_to(restore_dir.resolve())
-        except ValueError:
+            resolved_output = output_path.resolve()
+            resolved_restore_dir = restore_dir.resolve()
+            resolved_output.relative_to(resolved_restore_dir)
+        except (ValueError, OSError):
             raise HTTPException(status_code=400, detail="Output path outside allowed directory")
 
         # Decrypt and restore backup

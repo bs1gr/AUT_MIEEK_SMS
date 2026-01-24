@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { useStudents } from '@/hooks/useStudentsQuery';
-import StudentList from '../../../VirtualStudentList';
+import VirtualStudentList from '@/components/VirtualStudentList';
 import StudentForm from './StudentForm';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
 import { AdvancedFilters } from '../search/AdvancedFilters';
@@ -78,7 +78,7 @@ const StudentsView: React.FC = () => {
           <SkeletonLoader rows={10} />
         </div>
       ) : (
-        <StudentList
+        <VirtualStudentList
           students={students || []}
           onEdit={handleEdit}
           onDelete={handleDelete}

@@ -18,7 +18,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, onSubmit, onCanc
     first_name: '',
     last_name: '',
     email: '',
-    enrollment_number: '',
+    // student_id can be optionally provided via initialData when editing
     ...initialData
   });
 
