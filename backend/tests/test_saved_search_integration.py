@@ -26,18 +26,12 @@ from backend.models import User
 def enable_auth_for_saved_search_tests(monkeypatch):
     """Enable authentication for SavedSearch authorization tests."""
     from backend.config import settings
-    from backend.security.current_user import get_current_user
-    
+
     # Force AUTH to be enabled AFTER patch_settings_for_tests runs
     # Use raising=False to allow the patch to apply even if attribute doesn't exist yet
     monkeypatch.setattr(settings, "AUTH_ENABLED", True, raising=False)
     monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
-    
-    # Also ensure get_current_user respects the patched values at runtime
-    # by clearing any cached lookups
     yield
-    
-    # Cleanup is automatic via monkeypatch
 
 
 # Using admin_headers fixture from conftest.py
