@@ -21,6 +21,7 @@ import logging
 
 from backend.dependencies import get_db
 from backend.rbac import optional_require_role
+from backend.security.current_user import get_current_user
 from backend.models import User
 from backend.services.search_service import SearchService
 from backend.schemas.response import APIResponse, success_response, error_response
@@ -453,7 +454,7 @@ async def create_saved_search(
     request: Request,
     body: Dict[str, Any],
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role("*")),
+    current_user: User = Depends(get_current_user),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Create a new saved search.
@@ -526,7 +527,7 @@ async def list_saved_searches(
     search_type: Optional[str] = Query(None, description="Filter by search type"),
     is_favorite: Optional[bool] = Query(None, description="Filter by favorite status"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role("*")),
+    current_user: User = Depends(get_current_user),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Get all saved searches for the current user.
@@ -578,7 +579,7 @@ async def get_saved_search(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role("*")),
+    current_user: User = Depends(get_current_user),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Get details of a specific saved search.
@@ -639,7 +640,7 @@ async def update_saved_search(
     search_id: int,
     body: Dict[str, Any],
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role("*")),
+    current_user: User = Depends(get_current_user),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Update a saved search.
@@ -709,7 +710,7 @@ async def delete_saved_search(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role("*")),
+    current_user: User = Depends(get_current_user),
 ) -> APIResponse[Dict[str, str]]:
     """
     Delete a saved search.
@@ -758,7 +759,7 @@ async def toggle_saved_search_favorite(
     request: Request,
     search_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(optional_require_role("*")),
+    current_user: User = Depends(get_current_user),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Toggle favorite status of a saved search.
