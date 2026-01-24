@@ -599,9 +599,10 @@ async def get_saved_search(
         saved_search = service.get_saved_search(search_id, current_user.id)
 
         if not saved_search:
+            # Return 403 instead of 404 to avoid information leakage (don't reveal whether search exists)
             return error_response(
-                code="NOT_FOUND",
-                message="Saved search not found",
+                code="FORBIDDEN",
+                message="You do not have permission to access this saved search",
                 request_id=request.state.request_id,
             )
 
@@ -673,9 +674,10 @@ async def update_saved_search(
         saved_search = service.update_saved_search(search_id, current_user.id, update_data)
 
         if not saved_search:
+            # Return 403 instead of 404 to avoid information leakage
             return error_response(
-                code="NOT_FOUND",
-                message="Saved search not found",
+                code="FORBIDDEN",
+                message="You do not have permission to update this saved search",
                 request_id=request.state.request_id,
             )
 
@@ -728,9 +730,10 @@ async def delete_saved_search(
         success = service.delete_saved_search(search_id, current_user.id)
 
         if not success:
+            # Return 403 instead of 404 to avoid information leakage
             return error_response(
-                code="NOT_FOUND",
-                message="Saved search not found",
+                code="FORBIDDEN",
+                message="You do not have permission to delete this saved search",
                 request_id=request.state.request_id,
             )
 
@@ -776,9 +779,10 @@ async def toggle_saved_search_favorite(
         saved_search = service.toggle_favorite(search_id, current_user.id)
 
         if not saved_search:
+            # Return 403 instead of 404 to avoid information leakage
             return error_response(
-                code="NOT_FOUND",
-                message="Saved search not found",
+                code="FORBIDDEN",
+                message="You do not have permission to modify this saved search",
                 request_id=request.state.request_id,
             )
 
