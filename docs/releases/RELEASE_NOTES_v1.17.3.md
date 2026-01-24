@@ -1,12 +1,12 @@
 # Release Notes - Version 1.17.3
 
 **Release Date**: 2026-01-22
-**Previous Version**: $11.18.0
+**Previous Version**: v1.18.0
 
 ## ⚠️ BREAKING CHANGES
 
-- **release($11.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning** [1e45d96]
-  BREAKING CHANGES: None - fully backward compatible with $11.18.0
+- **release(v1.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning** [1e45d96]
+  BREAKING CHANGES: None - fully backward compatible with v1.18.0
 
 ## ✨ Features
 
