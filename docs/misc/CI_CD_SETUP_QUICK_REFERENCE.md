@@ -7,9 +7,9 @@ THIS HOUR (15 min)          THIS WEEK (1-2 hours)       ONGOING
 ├─ Slack Setup              ├─ SSH Configuration        ├─ Monitor Runs
 │  ├─ Create Webhook        │  ├─ Generate Keys         ├─ Review Logs
 │  └─ Add Secret            │  ├─ Deploy Keys           └─ Troubleshoot
-│                           │  └─ Test SSH              
-└─ Team Notifications       │                           
-   (Optional)               └─ Deployment Config        
+│                           │  └─ Test SSH
+└─ Team Notifications       │
+   (Optional)               └─ Deployment Config
                                ├─ Update Hosts
                                ├─ Uncomment Commands
                                └─ Test Deployment
@@ -249,4 +249,3 @@ curl -I https://prod.example.com/health
 ---
 
 **Status**: Setup ready to begin | **Version**: 1.17.4 | **Date**: January 25, 2026
-

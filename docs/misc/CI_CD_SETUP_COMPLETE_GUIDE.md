@@ -487,4 +487,3 @@ curl -X POST -H 'Content-type: application/json' \
 **Setup Complete When**: All checklist items marked ✅
 **Expected Time**: 2-3 hours total
 **Support**: Check troubleshooting section or review pipeline logs
-
