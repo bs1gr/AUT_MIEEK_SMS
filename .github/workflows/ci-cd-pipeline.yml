@@ -266,7 +266,7 @@ jobs:
         env:
           DISABLE_STARTUP_TASKS: '1'
           CSRF_ENABLED: '0'
-          AUTH_MODE: 'disabled'
+          AUTH_MODE: 'strict'
           GITHUB_ACTIONS: 'true'
           CI: 'true'
           SMS_ALLOW_DIRECT_PYTEST: '1'
