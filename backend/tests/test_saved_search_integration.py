@@ -23,15 +23,24 @@ from backend.models import User
 
 # Enable auth for these tests (override global test default AUTH_ENABLED=False)
 @pytest.fixture(autouse=True)
-def enable_auth_for_saved_search_tests(monkeypatch):
+def enable_auth_for_saved_search_tests():
     """Enable authentication for SavedSearch authorization tests."""
     from backend.config import settings
-
-    # Force AUTH to be enabled AFTER patch_settings_for_tests runs
-    # Use raising=False to allow the patch to apply even if attribute doesn't exist yet
-    monkeypatch.setattr(settings, "AUTH_ENABLED", True, raising=False)
-    monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
+    
+    # Save original values
+    orig_auth_enabled = getattr(settings, "AUTH_ENABLED", False)
+    orig_auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+    
+    # Use object.__setattr__ like conftest does to ensure it persists
+    # (bypasses property setters and works with monkeypatch)
+    object.__setattr__(settings, "AUTH_ENABLED", True)
+    object.__setattr__(settings, "AUTH_MODE", "strict")
+    
     yield
+    
+    # Restore original values
+    object.__setattr__(settings, "AUTH_ENABLED", orig_auth_enabled)
+    object.__setattr__(settings, "AUTH_MODE", orig_auth_mode)
 
 
 # Using admin_headers fixture from conftest.py
