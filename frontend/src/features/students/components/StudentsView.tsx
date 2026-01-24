@@ -38,7 +38,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
   setShowAddModal,
 }) => {
   // Performance monitoring for component renders
-  usePerformanceMonitor('StudentsView', 150);
+  usePerformanceMonitor('StudentsView');
 
   const { t } = useLanguage();
   const navigate = useNavigate();

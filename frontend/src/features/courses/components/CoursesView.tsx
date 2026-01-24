@@ -44,7 +44,7 @@ type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 
 const CourseManagement = ({ courses: externalCourses, loading: externalLoading = false, onAddCourse, onEdit, onDelete }: { courses?: CourseType[]; loading?: boolean; onAddCourse?: () => void; onEdit?: (course: CourseType) => void; onDelete?: (courseId: number) => void }) => {
   // Performance monitoring for component renders
-  usePerformanceMonitor('CoursesView', 200);
+  usePerformanceMonitor('CoursesView');
 
   const { t } = useLanguage();
   const [courses, setCourses] = useState<CourseType[]>(externalCourses || []);

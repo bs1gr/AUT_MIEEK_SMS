@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Edit, Trash2, Eye } from 'lucide-react';
 import { Student } from '@/types/student';
