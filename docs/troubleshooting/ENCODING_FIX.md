@@ -3,11 +3,12 @@
 ## Problem
 
 If you see commands appearing with a `ψ` (Greek psi) character prefix like:
-```
+
+```text
 PS D:\SMS\student-management-system> ψgit status
 ψgit: The term 'ψgit' is not recognized...
-```
 
+```text
 This is caused by **Greek DOS encoding (CodePage 737)** being used instead of UTF-8.
 
 ## Quick Fix
@@ -16,8 +17,8 @@ This is caused by **Greek DOS encoding (CodePage 737)** being used instead of UT
 
 ```powershell
 .\scripts\FIX_ENCODING.ps1
-```
 
+```text
 Then:
 1. Close ALL terminals in VS Code
 2. Press `Ctrl+Shift+P` → "Developer: Reload Window"
@@ -43,8 +44,8 @@ Add to your **workspace** `.vscode/settings.json`:
   "files.encoding": "utf8",
   "terminal.integrated.unicodeVersion": "11"
 }
-```
 
+```text
 ## What the fix does
 
 1. Sets PowerShell console to UTF-8 encoding (both input and output)
@@ -55,12 +56,13 @@ Add to your **workspace** `.vscode/settings.json`:
 ## Verification
 
 After applying the fix, test with:
+
 ```powershell
 git status
 cd ..
 ls
-```
 
+```text
 All commands should work without the `ψ` prefix!
 
 ## Technical Details
@@ -69,3 +71,4 @@ All commands should work without the `ψ` prefix!
 - **Solution**: Force UTF-8 (CP 65001) for all terminal operations
 - **Scope**: Fixes both VS Code terminal and regular PowerShell windows
 - **Persistence**: Added to `$PROFILE` so it loads on every PowerShell startup
+

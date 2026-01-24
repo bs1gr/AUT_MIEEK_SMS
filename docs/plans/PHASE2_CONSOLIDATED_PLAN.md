@@ -22,12 +22,14 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 ## 🎯 Phase 2 Goals & Success Metrics
 
 ### Primary Objectives
+
 1. **Security**: Fine-grained permissions for better access control
 2. **Quality**: Comprehensive CI/CD with coverage tracking
 3. **Deployment**: Enhanced installer experience and monitoring
 4. **Performance**: Load testing integration and benchmarking
 
 ### Success Metrics
+
 - [ ] Permission-based RBAC fully functional (15+ permissions defined)
 - [ ] E2E tests passing consistently in CI (95%+ success rate)
 - [ ] Test coverage reporting enabled (75% backend, 70% frontend)
@@ -47,6 +49,7 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 ## 🗓️ Implementation Timeline
 
 ### Week 1-2: RBAC Foundation (HIGH Priority)
+
 **Focus**: Design and database changes for permission system
 
 **Tasks**:
@@ -64,6 +67,7 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 ---
 
 ### Week 2-3: RBAC Implementation (HIGH Priority)
+
 **Focus**: Backend logic and endpoint refactoring
 
 **Tasks**:
@@ -81,6 +85,7 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 ---
 
 ### Week 3-4: CI/CD & Testing Improvements (HIGH Priority)
+
 **Focus**: E2E test monitoring and coverage reporting
 
 **Tasks**:
@@ -98,6 +103,7 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 ---
 
 ### Week 4-5: Load Testing & Performance (MEDIUM Priority)
+
 **Focus**: Performance benchmarking and regression detection
 
 **Tasks**:
@@ -115,6 +121,7 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 ---
 
 ### Week 5-6: Polish & Documentation (MEDIUM Priority)
+
 **Focus**: Final improvements and comprehensive documentation
 
 **Tasks**:
@@ -161,6 +168,7 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 #### 1.2 Database Schema
 
 **New Tables**:
+
 ```sql
 -- permissions table
 CREATE TABLE permissions (
@@ -181,18 +189,20 @@ CREATE TABLE roles_permissions (
     FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
     FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
 );
-```
 
+```text
 **Alembic Migration**:
+
 ```bash
 cd backend
 alembic revision --autogenerate -m "Add permissions and roles_permissions tables"
 alembic upgrade head
-```
 
+```text
 #### 1.3 Backend Implementation
 
 **Permission Check Decorator**:
+
 ```python
 # backend/security/permissions.py
 
@@ -219,9 +229,10 @@ def has_permission(user, permission_key: str) -> bool:
     if not user or not user.role:
         return False
     return permission_key in [p.key for p in user.role.permissions]
-```
 
+```text
 **Usage in Routers**:
+
 ```python
 from backend.security.permissions import require_permission
 
@@ -230,8 +241,8 @@ from backend.security.permissions import require_permission
 async def create_student(student: StudentCreate, current_user = Depends(get_current_user)):
     # Only users with students:create permission can access
     pass
-```
 
+```text
 #### 1.4 Permission Management API
 
 **New Endpoints**:
@@ -248,9 +259,12 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
 #### 2.1 E2E Test Monitoring
 
 **GitHub Actions Enhancement**:
+
 ```yaml
 # .github/workflows/e2e-tests.yml
+
 - name: Run E2E Tests with Retry
+
   uses: nick-invision/retry@v2
   with:
     timeout_minutes: 15
@@ -258,6 +272,7 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
     command: npm run test:e2e
 
 - name: Upload Test Results
+
   if: always()
   uses: actions/upload-artifact@v3
   with:
@@ -265,10 +280,11 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
     path: playwright-report/
 
 - name: Comment PR with Results
+
   if: github.event_name == 'pull_request'
   uses: daun/playwright-report-comment@v3
-```
 
+```text
 **Success Criteria**:
 - [ ] E2E tests run on every PR
 - [ ] Test results posted as PR comments
@@ -278,36 +294,44 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
 #### 2.2 Coverage Reporting
 
 **Backend Coverage (pytest-cov)**:
+
 ```yaml
 # .github/workflows/backend-tests.yml
+
 - name: Run Tests with Coverage
+
   run: |
     cd backend
     pytest --cov=backend --cov-report=xml --cov-report=term
 
 - name: Upload Coverage to Codecov
+
   uses: codecov/codecov-action@v3
   with:
     files: ./backend/coverage.xml
     flags: backend
     fail_ci_if_error: true
-```
 
+```text
 **Frontend Coverage (Vitest)**:
+
 ```yaml
 # .github/workflows/frontend-tests.yml
+
 - name: Run Tests with Coverage
+
   run: |
     cd frontend
     npm run test:coverage
 
 - name: Upload Coverage to Codecov
+
   uses: codecov/codecov-action@v3
   with:
     files: ./frontend/coverage/coverage-final.json
     flags: frontend
-```
 
+```text
 **Minimum Thresholds**:
 - Backend: 75% overall, 60% per file
 - Frontend: 70% overall, 50% per file
@@ -315,23 +339,27 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
 #### 2.3 CI Cache Optimization
 
 **Docker Layer Caching**:
+
 ```yaml
 - name: Build Docker with Cache
+
   uses: docker/build-push-action@v4
   with:
     cache-from: type=gha
     cache-to: type=gha,mode=max
-```
 
+```text
 **NPM Cache**:
+
 ```yaml
 - name: Cache NPM Dependencies
+
   uses: actions/cache@v3
   with:
     path: ~/.npm
     key: ${{ runner.os }}-npm-${{ hashFiles('**/package-lock.json') }}
-```
 
+```text
 **Expected Improvement**: 30% faster CI execution (from ~15 min to ~10 min)
 
 ---
@@ -349,18 +377,22 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
 4. Login flow (100 concurrent users)
 
 **GitHub Actions**:
+
 ```yaml
 # .github/workflows/load-tests.yml
+
 - name: Run Load Tests
+
   run: |
     cd load_tests
     locust -f locustfile.py --headless -u 100 -r 10 --run-time 5m --host http://localhost:8000
 
 - name: Check Performance Regression
+
   run: |
     python scripts/check_performance_regression.py
-```
 
+```text
 **Performance Baselines** (from $11.15.2):
 - Student list: <100ms (p95)
 - Grade calculation: <200ms (p95)
@@ -369,11 +401,13 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
 #### 3.2 Database Query Profiling
 
 **SQLAlchemy Logging**:
+
 ```python
 # Enable in development
-logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
-```
 
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
+```text
 **Query Performance Tracking**:
 - Log slow queries (>100ms)
 - Track N+1 query patterns
@@ -410,31 +444,37 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 ## 🚧 Implementation Order (Priority)
 
 ### Sprint 1 (Week 1): Foundation
+
 1. **RBAC Design** - Permission matrix and database schema
 2. **E2E Monitoring** - GitHub Actions setup for test tracking
 3. **Documentation** - Phase 2 kickoff guide
 
 ### Sprint 2 (Week 2): Core Implementation
+
 1. **RBAC Backend** - Models, migrations, permission checks
 2. **Coverage Setup** - Codecov integration
 3. **Load Test Baseline** - Initial load tests
 
 ### Sprint 3 (Week 3): Integration
+
 1. **RBAC Endpoints** - Permission management API
 2. **CI Optimization** - Cache improvements
 3. **Performance Tracking** - Query profiling
 
 ### Sprint 4 (Week 4): Testing
+
 1. **RBAC Testing** - Integration and E2E tests
 2. **Load Testing** - CI integration
 3. **Regression Detection** - Automated alerts
 
 ### Sprint 5 (Week 5): Polish
+
 1. **RBAC Frontend** - Permission management UI (optional)
 2. **Documentation** - Admin guides
 3. **Installer Validation** - Final testing
 
 ### Sprint 6 (Week 6): Release
+
 1. **Final Testing** - Full regression suite
 2. **Migration Guide** - $11.15.2 → $11.15.2
 3. **Release Prep** - Release notes, tagging
@@ -444,6 +484,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 ## 📊 Success Criteria
 
 ### Must Have (Phase 2 Complete)
+
 - [ ] Fine-grained permissions fully implemented
 - [ ] 15+ permissions defined and tested
 - [ ] Permission management API functional
@@ -452,6 +493,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 - [ ] Load testing integrated
 
 ### Nice to Have
+
 - [ ] Permission management UI in admin panel
 - [ ] Real-time performance dashboard
 - [ ] Automated performance regression alerts
@@ -462,15 +504,18 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 ## 🔗 Reference Documents
 
 ### Planning
+
 - [RBAC_PHASE2.4_PLAN.md](RBAC_PHASE2.4_PLAN.md) - Original RBAC plan
 - [REMAINING_ISSUES_PRIORITY_PLAN.md](REMAINING_ISSUES_PRIORITY_PLAN.md) - CI/CD issues
 - [INSTALLER_IMPROVEMENTS_$11.15.2+.md](INSTALLER_IMPROVEMENTS_$11.15.2+.md) - Installer notes
 
 ### Implementation
+
 - [PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md](PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md) - Phase 1 reference
 - [../misc/IMPLEMENTATION_PATTERNS.md](../misc/IMPLEMENTATION_PATTERNS.md) - Code patterns
 
 ### Status Tracking
+
 - [../ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md) - Current work status
 - [../releases/EXECUTION_TRACKER_$11.15.2.md](../releases/EXECUTION_TRACKER_$11.15.2.md) - Phase 2 tracker (to be created)
 
@@ -488,3 +533,4 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 **Last Updated**: January 6, 2026
 **Next Review**: Sprint 1 completion (Week 1)
+

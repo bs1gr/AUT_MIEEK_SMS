@@ -12,12 +12,14 @@
 
 ```powershell
 # ❌ FORBIDDEN - isBackground=true (NEVER)
+
 .\RUN_TESTS_BATCH.ps1           # Running hidden = HANG DETECTION IMPOSSIBLE
 
 # ✅ REQUIRED - isBackground=false (ALWAYS)
-.\RUN_TESTS_BATCH.ps1           # Running visible = HANG DETECTION POSSIBLE
-```
 
+.\RUN_TESTS_BATCH.ps1           # Running visible = HANG DETECTION POSSIBLE
+
+```text
 ---
 
 ## 🔴 Why This Matters
@@ -44,36 +46,44 @@
 
 ```powershell
 # Rule: If you're running ANY external process/script, it MUST be visible
+
 isBackground=false              # DEFAULT for everything
 
 # ONLY exception: If user explicitly requests background execution
-# "Run this in the background" → Then use isBackground=true with EXPLICIT acknowledgment
-```
 
+# "Run this in the background" → Then use isBackground=true with EXPLICIT acknowledgment
+
+```text
 ### For Test Runners
 
 ```powershell
 # ❌ WRONG
+
 .\RUN_TESTS_BATCH.ps1 -BatchSize 5    # (runs hidden)
 
 # ✅ CORRECT
+
 .\RUN_TESTS_BATCH.ps1 -BatchSize 5    # (visible, can monitor)
 # User sees: "Batch 1: [████████░░] 45s" real-time
-# User can ctrl+c immediately if hung
-```
 
+# User can ctrl+c immediately if hung
+
+```text
 ### For Long-Running Operations
 
 ```powershell
 # ❌ WRONG
+
 docker build -t sms:latest .          # (background, can't see progress)
 
 # ✅ CORRECT
+
 docker build -t sms:latest .          # (visible, see every step)
 # User sees: "Step 5/12: RUN pip install -r..."
-# User can interrupt if something goes wrong
-```
 
+# User can interrupt if something goes wrong
+
+```text
 ---
 
 ## ✅ Checklist Before Running Any Process
@@ -109,7 +119,7 @@ All background task invocations in this session and future sessions MUST be refa
 
 **What the user should see:**
 
-```
+```text
 ⏳ Backend Test Runner - RUN_TESTS_BATCH.ps1
 ════════════════════════════════════════════════
 
@@ -127,8 +137,8 @@ Batch 2 of 16: admin_routes_test (5 files)
    ⏳ (current)
 
 Elapsed: 1m 23s | Remaining: ~8m 15s
-```
 
+```text
 User can see:
 - ✅ Exactly which batch is running
 - ✅ How many files in batch
@@ -142,21 +152,22 @@ User can see:
 
 When processes are visible, you can instantly see:
 
-```
+```text
 ⏳ STUCK: Batch 3 showing same file for >60 seconds
 ❌ TIMEOUT: No output for 2+ minutes
 🔄 LOOP: Seeing repeated error messages
 💥 CRASH: Sudden stop with error, not completing
-```
 
+```text
 When processes are hidden (background=true):
-```
+
+```text
 😐 User stares at blank screen
 ⏸️ Can't tell if running or hung
 🕐 Waits 30 minutes hoping it completes
 😤 Finally kills it manually
-```
 
+```text
 ---
 
 ## 📝 Implementation Notes
@@ -212,8 +223,8 @@ Batch 2/16: admin (5 files) - Started 14:33:02
   ^ (running...)
 
 [Ctrl+C to stop]  [Est. remaining: 7m 32s]
-```
 
+```text
 ---
 
 ## 💡 Benefits of Terminal Visibility
@@ -246,3 +257,4 @@ Batch 2/16: admin (5 files) - Started 14:33:02
 ---
 
 This policy prevents wasted debugging time and keeps operations transparent.
+

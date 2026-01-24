@@ -6,7 +6,7 @@ The complete release process now includes comprehensive prerequisite checking to
 
 ## 🚀 Three-Phase Release Process
 
-```
+```text
 PHASE 1: PREPARE      PHASE 1.5: DOCS       PHASE 2: RELEASE      PHASE 3: MONITOR
 (15-40 min)           (2-5 min)             (1 min)               (20 min)
 ┌───────────────┐     ┌───────────────┐     ┌───────────────┐     ┌───────────────┐
@@ -20,17 +20,18 @@ PHASE 1: PREPARE      PHASE 1.5: DOCS       PHASE 2: RELEASE      PHASE 3: MONIT
 └───────────────┘     └───────────────┘     └───────────────┘     └───────────────┘
          ↓                     ↓                     ↓
    READY FOR DOCS        DOCS COMMITTED        TAG PUSHED
-```
 
+```text
 ---
 
 ## Phase 1: Prepare Your Codebase (15-40 minutes)
 
 ### Quick Start
+
 ```powershell
 .\RELEASE_PREPARATION.ps1 -Mode Quick
-```
 
+```text
 ### What It Does
 
 The `RELEASE_PREPARATION.ps1` script performs 8 critical checks:
@@ -82,28 +83,33 @@ The `RELEASE_PREPARATION.ps1` script performs 8 critical checks:
 ### Running Preparation
 
 **Quick Mode (Recommended)**:
+
 ```powershell
 .\RELEASE_PREPARATION.ps1 -Mode Quick
 # Time: 5-10 minutes
-# Includes: Git, version, pre-commit, installer checks (no tests)
-```
 
+# Includes: Git, version, pre-commit, installer checks (no tests)
+
+```text
 **Full Mode (Thorough)**:
+
 ```powershell
 .\RELEASE_PREPARATION.ps1 -Mode Full
 # Time: 20-40 minutes
-# Includes: All above + backend tests + frontend checks
-```
 
+# Includes: All above + backend tests + frontend checks
+
+```text
 **With Auto-Fix**:
+
 ```powershell
 .\RELEASE_PREPARATION.ps1 -Mode Quick -AutoFix
 # Auto-fixes version inconsistencies and formatting issues
-```
 
+```text
 ### Expected Output
 
-```
+```text
 ╔════════════════════════════════════════╗
 ║   Release Preparation - SMS            ║
 ╚════════════════════════════════════════╝
@@ -148,20 +154,20 @@ Next steps:
 
 3. Verify release:
    https://github.com/bs1gr/AUT_MIEEK_SMS/releases
-```
 
+```text
 ### If Preparation Fails
 
 Each failure is descriptive and actionable:
 
-```
+```text
 ❌ Pre-commit checks failed
    → Check the error messages above
    → Issues are usually formatting or linting
    → Run: .\COMMIT_READY.ps1 -Quick (manually)
    → Then re-run preparation
-```
 
+```text
 ### Handling Auto-Fix
 
 If you enable `--AutoFix`:
@@ -171,12 +177,14 @@ If you enable `--AutoFix`:
 4. Issues are committed automatically
 
 Example:
+
 ```powershell
 .\RELEASE_PREPARATION.ps1 -Mode Quick -AutoFix
 # Auto-fixes issues and continues
-# Much faster recovery from common problems
-```
 
+# Much faster recovery from common problems
+
+```text
 ---
 
 ## Phase 2: Execute Release (1 minute)
@@ -185,8 +193,8 @@ Example:
 
 ```powershell
 .\RELEASE_READY.ps1 -ReleaseVersion 1.12.9 -TagRelease
-```
 
+```text
 ### What Happens
 
 1. **Local Operations** (1 min):
@@ -203,7 +211,7 @@ Example:
 
 ### Expected Output
 
-```
+```text
 Release 1.12.9 is ready and pushed!
 ✓ Version files updated
 ✓ Code validated
@@ -214,23 +222,26 @@ Release 1.12.9 is ready and pushed!
   1. Create GitHub Release $11.14.0
   2. Build installer
   3. Upload installer to release
-```
 
+```text
 ### Variants
 
 **For Hotfix (Same Version)**:
+
 ```powershell
 .\RELEASE_READY.ps1 -ReleaseVersion 1.12.8 -TagRelease
 # Force-recreates tag and triggers fresh build
-```
 
+```text
 **For Version-Only Update (No Tag)**:
+
 ```powershell
 .\RELEASE_READY.ps1 -ReleaseVersion 1.12.9
 # Updates version, commits, pushes
-# Does NOT create tag (do that manually later)
-```
 
+# Does NOT create tag (do that manually later)
+
+```text
 ---
 
 ## Phase 3: Monitor & Verify (20 minutes)
@@ -245,19 +256,21 @@ Release 1.12.9 is ready and pushed!
 ### Workflow Steps
 
 **release-on-tag.yml**:
-```
+
+```text
 ✓ create-release: Creates GitHub Release
 ✓ trigger-installer-build: Dispatches installer workflow
-```
 
+```text
 **release-installer-with-sha.yml**:
-```
+
+```text
 ✓ resolve-tag: Determines version
 ✓ build-installer: Builds the installer
 ✓ upload-asset: Uploads to release
 ✓ create-summary: Generates SHA256 info
-```
 
+```text
 ### Verify Result
 
 **Check Release Page**:
@@ -269,15 +282,18 @@ Release 1.12.9 is ready and pushed!
    - SHA256 hash (in notes)
 
 **Download & Verify**:
+
 ```powershell
 # Download installer
+
 gh release download $11.14.0 --pattern "*.exe"
 
 # Verify SHA256
+
 (Get-FileHash SMS_Installer_$11.14.0.exe -Algorithm SHA256).Hash
 # Should match hash in release notes
-```
 
+```text
 ---
 
 ## Complete Example Walkthrough
@@ -285,6 +301,7 @@ gh release download $11.14.0 --pattern "*.exe"
 ### Scenario: Release $11.14.0
 
 **Step 1: Prepare** (10 min)
+
 ```powershell
 C:\SMS\student-management-system> .\RELEASE_PREPARATION.ps1 -Mode Quick
 
@@ -309,9 +326,10 @@ C:\SMS\student-management-system> .\RELEASE_PREPARATION.ps1 -Mode Quick
 ╔════════════════════════════════════════╗
 ║   ✓ Ready for Release                  ║
 ╚════════════════════════════════════════╝
-```
 
+```text
 **Step 2: Release** (1 min)
+
 ```powershell
 C:\SMS\student-management-system> .\RELEASE_READY.ps1 -ReleaseVersion 1.13.0 -TagRelease
 
@@ -336,10 +354,11 @@ Creating tag $11.14.0...
 
 Release 1.13.0 is ready and pushed!
 → GitHub Actions workflows are now running
-```
 
+```text
 **Step 3: Monitor** (20 min)
-```
+
+```text
 GitHub Actions:
 1. Create GitHub Release on tag - RUNNING
    └─ create-release ✓ Complete
@@ -350,10 +369,11 @@ GitHub Actions:
    └─ build-installer ⏳ In Progress (5 min remaining)
    └─ upload-asset ⏳ Waiting
    └─ create-summary ⏳ Waiting
-```
 
+```text
 **Step 4: Verify** (< 1 min)
-```
+
+```text
 GitHub Release Page:
 ✓ $11.14.0 published
 ✓ Release notes visible
@@ -364,8 +384,8 @@ PowerShell Verification:
 (Get-FileHash SMS_Installer_$11.14.0.exe -Algorithm SHA256).Hash
 Result: abc123def456...
 ✓ Matches! Release is valid.
-```
 
+```text
 ---
 
 ## Prerequisites Summary
@@ -385,16 +405,18 @@ Before running RELEASE_READY.ps1, RELEASE_PREPARATION.ps1 ensures:
 ## Failure Scenarios & Recovery
 
 ### Scenario 1: Pre-Commit Fails
-```
+
+```text
 ❌ Pre-commit checks failed
 
 Recovery:
 .\RELEASE_PREPARATION.ps1 -Mode Quick -AutoFix
 # Auto-fixes issues and retries
-```
 
+```text
 ### Scenario 2: Version Mismatch
-```
+
+```text
 ❌ Version consistency check failed
 
 Recovery:
@@ -403,29 +425,33 @@ git add .
 git commit -m "chore: sync version references"
 git push origin main
 .\RELEASE_PREPARATION.ps1 -Mode Quick
-```
 
+```text
 ### Scenario 3: Test Fails
-```
+
+```text
 ❌ Backend tests failed: test_api.py::test_login FAILED
 
 Recovery:
 # Fix the code
+
 cd backend
 python -m pytest -q -x  # Stop on first failure
 # Fix the issue, then:
-.\RELEASE_PREPARATION.ps1 -Mode Quick
-```
 
+.\RELEASE_PREPARATION.ps1 -Mode Quick
+
+```text
 ### Scenario 4: Already Released
-```
+
+```text
 Release 1.12.8 already exists
 
 Recovery:
 .\RELEASE_READY.ps1 -ReleaseVersion 1.12.8 -TagRelease
 # Forces tag recreation and fresh build
-```
 
+```text
 ---
 
 ## Time Breakdown
@@ -487,3 +513,4 @@ Recovery:
 
 **Status**: ✅ Complete with comprehensive prerequisites
 **Readiness**: ✅ Production ready
+

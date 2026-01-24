@@ -10,39 +10,45 @@
 ## 📋 Phase 1: Repository & Code Verification (15 minutes)
 
 ### Step 1.1: Repository Status Check
+
 **Checklist Item**: "Repository Status: Git status clean"
 
 ```powershell
 # Execute in PowerShell
+
 cd d:\SMS\student-management-system
 git status
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 On branch main
 Your branch is up to date with 'origin/main'.
 nothing to commit, working tree clean
-```
 
+```text
 **If Output Differs**:
 - ❌ Uncommitted changes present
   - Action: `git stash` to save, or commit before proceeding
   - Decision: Cannot proceed until clean
 
 ### Step 1.2: Version File Verification
+
 **Checklist Item**: "Version file contains: 1.15.1"
 
 ```powershell
 # Read VERSION file
+
 Get-Content VERSION
-```
 
+```text
 **Expected Output**:
-```
-1.15.1
-```
 
+```text
+1.15.1
+
+```text
 **If Output Differs**:
 - ❌ Version is 1.15.0 or other
   - Action: Version file was not updated during release prep
@@ -50,28 +56,33 @@ Get-Content VERSION
   - Fix: `echo "1.15.1" | Set-Content VERSION` (if authorized)
 
 ### Step 1.3: CHANGELOG Verification
+
 **Checklist Item**: "CHANGELOG.md contains $11.17.2 entry"
 
 ```powershell
 # Check for $11.15.2 in CHANGELOG
+
 Select-String "## \[1.15.1\]" CHANGELOG.md | Select-Object -First 1
-```
 
+```text
 **Expected Output**:
-```
-## [1.15.1] - 2026-01-07
-```
 
+```text
+## [1.15.1] - 2026-01-07
+
+```text
 **If Output Differs**:
 - ⚠️ $11.17.2 entry missing
   - Action: Verify release notes were created
   - Decision: Proceed with caution, document issue for $11.17.2
 
 ### Step 1.4: Key Files Presence Check
+
 **Checklist Item**: "Release files present and readable"
 
 ```powershell
 # Check release documentation exists
+
 $requiredFiles = @(
   "docs/releases/RELEASE_NOTES_$11.17.2.md",
   "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.17.2.md",
@@ -85,15 +96,16 @@ foreach ($file in $requiredFiles) {
     Write-Host "❌ $file MISSING"
   }
 }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 ✅ docs/releases/RELEASE_NOTES_$11.15.2.md exists
 ✅ docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.2.md exists
 ✅ docs/deployment/PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md exists
-```
 
+```text
 **If Output Differs**:
 - ❌ Files missing
   - Action: Locate missing files or regenerate from templates
@@ -101,22 +113,25 @@ foreach ($file in $requiredFiles) {
   - Contact: Tech lead for file recovery
 
 ### Step 1.5: Git Log Verification
+
 **Checklist Item**: "Recent commits contain release-related changes"
 
 ```powershell
 # Show last 5 commits
-git log --oneline -5
-```
 
+git log --oneline -5
+
+```text
 **Expected Output** (should show recent commits like):
-```
+
+```text
 ae8c37b67 docs: Complete Phase 2 planning with swimlanes and dependencies
 4d78ddfa4 docs: Create Phase 2 swimlanes, dependencies, and critical path analysis
 cda3d264c docs: Create comprehensive project status summary (Jan 7, 2026)
 8aea7bcf8 docs: Update UNIFIED_WORK_PLAN.md with Phase 2 detailed task breakdown
 3b9d44fd5 docs: Prepare $11.15.2 release package
-```
 
+```text
 **If Output Differs**:
 - ⚠️ Commits missing or out of order
   - Action: Verify commits were pushed to origin/main
@@ -128,21 +143,24 @@ cda3d264c docs: Create comprehensive project status summary (Jan 7, 2026)
 ## 🏗️ Phase 2: Infrastructure Verification (20 minutes)
 
 ### Step 2.1: Docker Installation Check
+
 **Checklist Item**: "Docker installed and running"
 
 ```powershell
 # Check Docker version
+
 docker --version
 docker ps
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 Docker version 27.0.0 or higher
 CONTAINER ID   IMAGE      COMMAND   STATUS
 (empty if no containers running - that's OK)
-```
 
+```text
 **If Docker Not Found**:
 - ❌ Docker not installed
   - Action: Install Docker Desktop from docker.com
@@ -156,19 +174,22 @@ CONTAINER ID   IMAGE      COMMAND   STATUS
   - Effort: 2 minutes
 
 ### Step 2.2: Port Availability Check
+
 **Checklist Item**: "Required ports available (8080, 5432)"
 
 ```powershell
 # Check if ports are in use
+
 netstat -ano | findstr ":8080"
 netstat -ano | findstr ":5432"
-```
 
+```text
 **Expected Output**:
-```
-(Empty output = port available)
-```
 
+```text
+(Empty output = port available)
+
+```text
 **If Ports In Use**:
 - ⚠️ Port already bound
   - Action: `DOCKER.ps1 -Stop` to stop existing containers
@@ -182,23 +203,26 @@ netstat -ano | findstr ":5432"
   - Effort: 1 minute
 
 ### Step 2.3: Disk Space Verification
+
 **Checklist Item**: "Disk space ≥5GB available"
 
 ```powershell
 # Check disk space on D: drive
+
 Get-Volume D | Select-Object SizeRemaining, Size |
   ForEach-Object {
     $free = [math]::Round($_.SizeRemaining / 1GB, 2)
     $total = [math]::Round($_.Size / 1GB, 2)
     Write-Host "D: Drive - $free GB free / $total GB total"
   }
-```
 
+```text
 **Expected Output**:
-```
-D: Drive - 250.5 GB free / 500 GB total
-```
 
+```text
+D: Drive - 250.5 GB free / 500 GB total
+
+```text
 **If Less Than 5GB Free**:
 - ❌ Insufficient disk space
   - Action: Clean up temporary files, old Docker images
@@ -207,23 +231,27 @@ D: Drive - 250.5 GB free / 500 GB total
   - Effort: 10-15 minutes
 
 ### Step 2.4: Network Connectivity Check
+
 **Checklist Item**: "Network connectivity to GitHub and registries"
 
 ```powershell
 # Test GitHub connectivity
+
 Test-NetConnection github.com -Port 443
 
 # Test Docker Hub connectivity
-Test-NetConnection docker.io -Port 443
-```
 
+Test-NetConnection docker.io -Port 443
+
+```text
 **Expected Output**:
-```
+
+```text
 ComputerName     : github.com
 RemotePort       : 443
 TcpTestSucceeded : True
-```
 
+```text
 **If TcpTestSucceeded = False**:
 - ❌ Network unreachable
   - Action: Check VPN, firewall, proxy settings
@@ -231,10 +259,12 @@ TcpTestSucceeded : True
   - Effort: 5-10 minutes to diagnose
 
 ### Step 2.5: Environment Files Check
+
 **Checklist Item**: ".env files present in backend and frontend"
 
 ```powershell
 # Check backend .env
+
 if (Test-Path "backend/.env") {
   Write-Host "✅ backend/.env exists"
 } else {
@@ -243,19 +273,21 @@ if (Test-Path "backend/.env") {
 }
 
 # Check frontend .env
+
 if (Test-Path "frontend/.env") {
   Write-Host "✅ frontend/.env exists"
 } else {
   Write-Host "⚠️ frontend/.env MISSING - check if needed"
 }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 ✅ backend/.env exists
 ✅ frontend/.env exists
-```
 
+```text
 **If Files Missing**:
 - ⚠️ .env files not configured
   - Action: Copy from .env.example templates
@@ -267,10 +299,12 @@ if (Test-Path "frontend/.env") {
 ## 💾 Phase 3: Database & Data Verification (15 minutes)
 
 ### Step 3.1: Database Backup Verification
+
 **Checklist Item**: "Database backup created pre-1.15.1"
 
 ```powershell
 # Check for backups
+
 Get-ChildItem "backend/backups/" -Filter "*.db.bak" |
   Sort-Object LastWriteTime -Descending |
   Select-Object -First 5 |
@@ -278,14 +312,15 @@ Get-ChildItem "backend/backups/" -Filter "*.db.bak" |
     $size = [math]::Round($_.Length / 1MB, 2)
     Write-Host "$($_.Name) - $size MB - Modified: $($_.LastWriteTime)"
   }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 student_management_2026-01-07_backup.db.bak - 2.5 MB - Modified: 2026-01-07 14:30:00
 student_management_2026-01-06_backup.db.bak - 2.5 MB - Modified: 2026-01-06 20:15:00
-```
 
+```text
 **If No Backups Found**:
 - ❌ No database backup exists
   - Action: Create backup immediately
@@ -299,10 +334,12 @@ student_management_2026-01-06_backup.db.bak - 2.5 MB - Modified: 2026-01-06 20:1
   - Decision: Investigate why DB so small
 
 ### Step 3.2: Database File Status Check
+
 **Checklist Item**: "Current database file readable and valid"
 
 ```powershell
 # Check database file
+
 if (Test-Path "data/student_management.db") {
   $dbSize = (Get-Item "data/student_management.db").Length / 1MB
   Write-Host "✅ Database file exists ($dbSize MB)"
@@ -312,13 +349,14 @@ if (Test-Path "data/student_management.db") {
 } else {
   Write-Host "❌ Database file not found at data/student_management.db"
 }
-```
 
+```text
 **Expected Output**:
-```
-✅ Database file exists (2.5 MB)
-```
 
+```text
+✅ Database file exists (2.5 MB)
+
+```text
 **If Database Missing**:
 - ❌ Database not initialized
   - Action: Restore from backup or let application initialize
@@ -326,10 +364,12 @@ if (Test-Path "data/student_management.db") {
   - Note: First startup will be slow (migration running)
 
 ### Step 3.3: Test Data Verification
+
 **Checklist Item**: "Test data exists (at least 50 students)"
 
 ```powershell
 # Run Python script to count records
+
 python -c "
 import sys
 sys.path.insert(0, 'backend')
@@ -344,14 +384,15 @@ if count >= 50:
 else:
     print(f'⚠️ Only {count} students (need ≥50 for realistic testing)')
 "
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 Students in database: 150
 ✅ Test data exists
-```
 
+```text
 **If Test Data Missing**:
 - ⚠️ Database empty
   - Action: Seed test data before deployment
@@ -364,20 +405,23 @@ Students in database: 150
   - Effort: 5 minutes
 
 ### Step 3.4: Database Constraints Check
+
 **Checklist Item**: "Database constraints and indexes exist"
 
 ```powershell
 # Verify via Alembic (database is at latest version)
+
 cd backend
 alembic current
 cd ..
-```
 
+```text
 **Expected Output**:
-```
-(head)
-```
 
+```text
+(head)
+
+```text
 **If Not at Head**:
 - ⚠️ Migrations not applied
   - Action: Run migrations
@@ -390,28 +434,32 @@ cd ..
 ## 📚 Phase 4: Documentation Verification (10 minutes)
 
 ### Step 4.1: Release Notes Readability
+
 **Checklist Item**: "Release notes are clear and complete"
 
 ```powershell
 # Check release notes length and content
+
 $notes = Get-Content "docs/releases/RELEASE_NOTES_$11.15.2.md"
 $lineCount = @($notes).Count
 Write-Host "Release notes: $lineCount lines"
 
 # Check for key sections
+
 if ($notes -match "## Features") { Write-Host "✅ Features section present" }
 if ($notes -match "## Bug Fixes") { Write-Host "✅ Bug Fixes section present" }
 if ($notes -match "## Migration") { Write-Host "✅ Migration guide present" }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 Release notes: 650 lines
 ✅ Features section present
 ✅ Bug Fixes section present
 ✅ Migration guide present
-```
 
+```text
 **If Sections Missing**:
 - ⚠️ Incomplete release notes
   - Action: Add missing sections
@@ -419,49 +467,58 @@ Release notes: 650 lines
   - Effort: 15 minutes to complete
 
 ### Step 4.2: Deployment Plan Readability
+
 **Checklist Item**: "Deployment plan clear and actionable"
 
 ```powershell
 # Verify deployment plan structure
+
 $plan = Get-Content "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.15.2.md"
 Write-Host "Deployment plan: $(@($plan).Count) lines"
 
 # Check phases
+
 if ($plan -match "Phase 1") { Write-Host "✅ Phase 1 documented" }
 if ($plan -match "Phase 2") { Write-Host "✅ Phase 2 documented" }
 if ($plan -match "Rollback") { Write-Host "✅ Rollback procedure documented" }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 Deployment plan: 400 lines
 ✅ Phase 1 documented
 ✅ Phase 2 documented
 ✅ Rollback procedure documented
-```
 
+```text
 ### Step 4.3: API Documentation Current
+
 **Checklist Item**: "API documentation updated for $11.15.2"
 
 ```powershell
 # Check if CONTROL_API.md mentions $11.15.2 or recent changes
+
 Select-String "1.15" "backend/CONTROL_API.md" -ErrorAction SilentlyContinue | Select-Object -First 1
-```
 
+```text
 **Expected Output**:
-```
-(Should show version reference or recent update date)
-```
 
+```text
+(Should show version reference or recent update date)
+
+```text
 ---
 
 ## ⚙️ Phase 5: Deployment Scripts Verification (10 minutes)
 
 ### Step 5.1: PowerShell Script Availability
+
 **Checklist Item**: "DOCKER.ps1 and NATIVE.ps1 present and executable"
 
 ```powershell
 # Check deployment scripts
+
 if (Test-Path "DOCKER.ps1") {
   Write-Host "✅ DOCKER.ps1 exists"
 } else {
@@ -475,23 +532,28 @@ if (Test-Path "NATIVE.ps1") {
 }
 
 # Verify they're readable
-Get-Content "DOCKER.ps1" -TotalCount 5 | ForEach-Object { Write-Host $_ }
-```
 
+Get-Content "DOCKER.ps1" -TotalCount 5 | ForEach-Object { Write-Host $_ }
+
+```text
 **Expected Output**:
-```
+
+```text
 ✅ DOCKER.ps1 exists
 ✅ NATIVE.ps1 exists
 # DOCKER.ps1
+
 # Comprehensive Docker deployment management script
 # Usage: .\DOCKER.ps1 -Help
-```
 
+```text
 ### Step 5.2: Docker Compose Files Check
+
 **Checklist Item**: "Docker Compose files present"
 
 ```powershell
 # Check docker-compose files
+
 $composeFiles = @(
   "docker/docker-compose.yml",
   "docker/docker-compose.prod.yml"
@@ -504,19 +566,22 @@ foreach ($file in $composeFiles) {
     Write-Host "❌ $file MISSING"
   }
 }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 ✅ docker/docker-compose.yml exists
 ✅ docker/docker-compose.prod.yml exists
-```
 
+```text
 ### Step 5.3: Script Syntax Validation
+
 **Checklist Item**: "Scripts have valid PowerShell syntax"
 
 ```powershell
 # Quick syntax check on DOCKER.ps1
+
 $errors = @()
 $ast = [System.Management.Automation.Language.Parser]::ParseFile(
   (Resolve-Path "DOCKER.ps1"),
@@ -530,13 +595,14 @@ if ($errors.Count -eq 0) {
   Write-Host "❌ DOCKER.ps1 has syntax errors:"
   $errors | ForEach-Object { Write-Host "  - $_" }
 }
-```
 
+```text
 **Expected Output**:
-```
-✅ DOCKER.ps1 syntax valid
-```
 
+```text
+✅ DOCKER.ps1 syntax valid
+
+```text
 **If Syntax Errors Found**:
 - ❌ Script has errors
   - Action: Do not execute, contact tech lead
@@ -547,21 +613,24 @@ if ($errors.Count -eq 0) {
 ## 🧪 Phase 6: Pre-Deployment Tests (10 minutes)
 
 ### Step 6.1: Docker Image Availability
+
 **Checklist Item**: "Required Docker images are available or can be pulled"
 
 ```powershell
 # Check if base images available
+
 Write-Host "Checking Docker images..."
 docker images | findstr "python"
 docker images | findstr "node"
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 python        latest    abc123...   2 weeks ago   1.2GB
 node          20        def456...   1 month ago   500MB
-```
 
+```text
 **If Images Not Found**:
 - ⚠️ Images not cached locally (will be pulled on first build)
   - Action: This is normal, will pull during `DOCKER.ps1 -Start`
@@ -569,26 +638,31 @@ node          20        def456...   1 month ago   500MB
   - Effort: Automatic during deployment
 
 ### Step 6.2: Network Connectivity to Docker Registry
+
 **Checklist Item**: "Can reach Docker Hub and GitHub registries"
 
 ```powershell
 # Test connectivity
+
 Test-NetConnection -ComputerName docker.io -Port 443 -InformationLevel Quiet
 Test-NetConnection -ComputerName ghcr.io -Port 443 -InformationLevel Quiet
 
 Write-Host "Docker Hub: $(if ($? -eq $true) {'✅ Accessible'} else {'❌ Unreachable'})"
-```
 
+```text
 **Expected Output**:
-```
-Docker Hub: ✅ Accessible
-```
 
+```text
+Docker Hub: ✅ Accessible
+
+```text
 ### Step 6.3: Backend Requirements Check
+
 **Checklist Item**: "Python dependencies specified in requirements.txt"
 
 ```powershell
 # Check requirements exist
+
 if (Test-Path "backend/requirements.txt") {
   $requirementCount = (Get-Content "backend/requirements.txt" | Measure-Object -Line).Lines
   Write-Host "✅ requirements.txt exists ($requirementCount dependencies)"
@@ -597,24 +671,28 @@ if (Test-Path "backend/requirements.txt") {
 }
 
 # Check requirements.lock
+
 if (Test-Path "backend/requirements-lock.txt") {
   Write-Host "✅ requirements-lock.txt exists (pinned versions)"
 } else {
   Write-Host "⚠️ requirements-lock.txt missing (non-critical)"
 }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 ✅ requirements.txt exists (45 dependencies)
 ✅ requirements-lock.txt exists (pinned versions)
-```
 
+```text
 ### Step 6.4: Frontend Dependencies Check
+
 **Checklist Item**: "NPM dependencies specified in package.json"
 
 ```powershell
 # Check package.json
+
 if (Test-Path "frontend/package.json") {
   Write-Host "✅ frontend/package.json exists"
 
@@ -627,25 +705,28 @@ if (Test-Path "frontend/package.json") {
 }
 
 # Check package-lock.json
+
 if (Test-Path "frontend/package-lock.json") {
   Write-Host "✅ frontend/package-lock.json exists (locked versions)"
 } else {
   Write-Host "⚠️ package-lock.json missing (will use latest)"
 }
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 ✅ frontend/package.json exists
   Dependencies: ~30 packages
 ✅ frontend/package-lock.json exists (locked versions)
-```
 
+```text
 ---
 
 ## ✅ Phase 7: Final Sign-Off (5 minutes)
 
 ### Step 7.1: Compilation of Results
+
 **Create Summary Table**:
 
 | Category | Item | Status | Comment |
@@ -668,6 +749,7 @@ if (Test-Path "frontend/package-lock.json") {
 | | NPM deps | ✅ PASS | ~30 packages locked |
 
 ### Step 7.2: Risk Assessment
+
 - ✅ All critical checks PASS
 - ✅ No blocking issues identified
 - ✅ Infrastructure ready for deployment
@@ -737,3 +819,4 @@ if (Test-Path "frontend/package-lock.json") {
 **Created**: January 7, 2026
 **Owner**: DevOps Lead
 **Next Review**: January 8, 2026 (Day of execution)
+

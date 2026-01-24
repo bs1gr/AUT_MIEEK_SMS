@@ -35,7 +35,7 @@ All documentation, procedures, and planning materials in this repository assume 
 
 ## 📋 Solo Execution Timeline (Jan 8, Revised)
 
-```
+```text
 UTC Time    Activity                        Duration  Notes
 ─────────────────────────────────────────────────────────────
 08:00       Pre-deployment validation       15 min    All 30 items checked solo
@@ -59,8 +59,8 @@ Next Day (Jan 9):
 08:00       Verify overnight stability      10 min    Check for critical errors
 08:10       Review logs from overnight      20 min    Any issues occurred?
 08:30       FINAL SIGN-OFF                 ✅        Document completion
-```
 
+```text
 **Key Change**: Timeline is now ~2 hours for execution, not 4 hours
 
 ---
@@ -300,3 +300,4 @@ You have all of these in place. You're ready.
 **Time Estimate**: 2 hours (08:00-10:35 UTC)
 **Success Criteria**: All 10 items met
 **You Got This** ✅
+

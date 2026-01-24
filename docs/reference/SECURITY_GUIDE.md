@@ -18,8 +18,8 @@ templates/students/*.csv
 *ΕΓΓΡΑΦΕΣ*.csv
 *enrollment*.csv
 *personal*.csv
-```
 
+```text
 ---
 
 ## 🛡️ Simple Security Measures for Public Repositories
@@ -40,26 +40,30 @@ templates/students/*.csv
 
 ```bash
 # Always use .env.example as template
+
 cp backend/.env.example backend/.env
 # Edit .env with real credentials (never commit!)
-```
 
+```text
 ### 2. Review Before Committing
 
 **Pre-commit checklist:**
 
 ```powershell
 # Check what you're about to commit
+
 git status
 git diff --staged
 
 # Review specific file
+
 git diff --staged path/to/file
 
 # If you see sensitive data, unstage it:
-git reset HEAD path/to/sensitive/file
-```
 
+git reset HEAD path/to/sensitive/file
+
+```text
 ### 3. Use .gitignore Properly
 
 Already protected patterns in your repo:
@@ -76,14 +80,16 @@ Already protected patterns in your repo:
 
 ```powershell
 # Search for common patterns
+
 git log --all -S "password" --source --all
 git log --all -S "secret" --source --all
 git log --all -S "api_key" --source --all
 
 # Or use automated tools (already in your workflow)
-# See: .github/workflows/secret-guard.yml
-```
 
+# See: .github/workflows/secret-guard.yml
+
+```text
 ### 5. Separate Test Data from Real Data
 
 **Best practices:**
@@ -101,8 +107,8 @@ templates/
 │   └── template.csv         # ← Template only (safe to commit)
 ├── test-data/
 │   └── sample_students.csv  # ← Fake data (safe to commit)
-```
 
+```text
 ### 6. Emergency: If You Accidentally Commit Secrets
 
 **Immediate actions:**
@@ -118,8 +124,8 @@ templates/
 git-filter-repo --invert-paths --path "path/to/secret/file" --force
 git remote add origin <url>
 git push origin main --force --tags
-```
 
+```text
 ### 7. GitHub Security Features (Already Enabled)
 
 Your repository already has:
@@ -132,26 +138,29 @@ Your repository already has:
 
 ```bash
 # Enable GitHub's built-in secret scanning
+
 # Go to: Settings → Security → Code security and analysis
 # Enable: "Secret scanning" (free for public repos)
-```
 
+```text
 ### 8. Environment Variables Best Practices
 
 **Current setup (already secure):**
 
 ```bash
 # backend/.env.example (safe to commit)
+
 DATABASE_URL=sqlite:///data/student_management.db
 SECRET_KEY=change-this-in-production
 DEBUG=False
 
 # backend/.env (never committed, gitignored)
+
 DATABASE_URL=sqlite:///data/student_management.db
 SECRET_KEY=actual-secret-key-here-32-chars-min
 DEBUG=False
-```
 
+```text
 **Key principle:**
 
 - ✅ Commit `.env.example` with dummy values
@@ -163,30 +172,34 @@ DEBUG=False
 
 ```python
 # Good: Use local file that won't be committed
+
 python backend/auto_import_courses.py --file /path/outside/repo/ΕΓΓΡΑΦΕΣ.csv
 
 # Bad: Use file inside templates/students/ (now gitignored)
-```
 
+```text
 ### 10. Quick Security Audit
 
 Run this monthly:
 
 ```powershell
 # Check for accidentally tracked sensitive files
+
 git ls-files | Select-String -Pattern "\.env$|password|secret|credential"
 
 # Check .gitignore is working
+
 git status --ignored
 
 # Verify no large files committed
+
 git rev-list --objects --all | `
   git cat-file --batch-check='%(objecttype) %(objectname) %(objectsize) %(rest)' | `
   Where-Object { $_ -match '^blob' } | `
   Sort-Object { [int]($_ -split '\s+')[2] } -Descending | `
   Select-Object -First 10
-```
 
+```text
 ---
 
 ## 📋 Security Checklist for Public Repos
@@ -239,3 +252,4 @@ Monthly maintenance:
 
 **Last Updated**: November 20, 2025
 **Repository**: bs1gr/AUT_MIEEK_SMS (Public)
+

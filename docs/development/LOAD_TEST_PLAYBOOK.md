@@ -48,8 +48,8 @@ export default function () {
   check(res, { 'status 200': r => r.status === 200 });
   sleep(1);
 }
-```
 
+```text
 ---
 
 ## 3. Scenario Matrix
@@ -121,3 +121,4 @@ Action: Investigate commit diff, revert or optimize before release tagging.
 
 ---
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` and `PERFORMANCE_OPTIMIZATIONS_2025-01-10.md`.
+

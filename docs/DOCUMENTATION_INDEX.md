@@ -188,6 +188,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[installer/README.md](../installer/README.md)** - Windows installer build & distribution (Inno Setup canonical workflow)
 
 ### Admin Documentation (Phase 2 - NEW $11.15.2+)
+
 ### Admin Documentation (Phase 2 - NEW $11.17.2+)
 
 - **[admin/PERMISSION_MANAGEMENT_GUIDE.md](admin/PERMISSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Complete permission management guide (930 lines)
@@ -568,15 +569,18 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 
 ```powershell
 # View archive contents
+
 Get-ChildItem "archive/sessions_2025-11" | Select-Object Name
 
 # Read archived document
+
 Get-Content "archive/sessions_2025-11/SESSION_2025-11-22_AUTH_FIX.md"
 
 # Search archive
-Get-ChildItem "archive/sessions_2025-11" -Filter "*.md" | Select-String "AUTH_MODE"
-```
 
+Get-ChildItem "archive/sessions_2025-11" -Filter "*.md" | Select-String "AUTH_MODE"
+
+```text
 **See:** [Archive README](../archive/sessions_2025-11/README.md) for complete inventory and restoration procedures
 
 ---
@@ -792,3 +796,4 @@ Session validation and E2E testing fix records are now consolidated in the dedic
 This structure ensures session records are organized chronologically by date, discoverable in a dedicated location, separate from primary documentation, and properly versioned and archived.
 
 See docs/DOCUMENTATION_CONSOLIDATION_PLAN.md for the consolidation strategy and rationale.
+

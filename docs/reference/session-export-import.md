@@ -95,6 +95,7 @@ Added all corresponding Greek translations
    - Students (enrolled in those courses)
    - Grades, Attendance, Performance (for those enrollments)
    - Highlights (for those students in that semester)
+
 4. Data serialized to JSON with metadata
 5. Browser downloads `session_export_<semester>_<timestamp>.json`
 
@@ -108,11 +109,13 @@ Added all corresponding Greek translations
    - Courses first (dependencies for other records)
    - Students second (referenced by enrollments)
    - Then: Enrollments → Grades → Attendance → Performance → Highlights
+
 6. For each record:
    - Check if exists (by course_code or student_id)
    - If exists and strategy=skip: skip
    - If exists and strategy=update: update fields
    - If not exists: create new record
+
 7. Returns summary with counts for each data type
 8. UI displays toast with totals
 
@@ -193,8 +196,8 @@ Added all corresponding Greek translations
   "daily_performance": [...],
   "highlights": [...]
 }
-```
 
+```text
 ### Import Logic Pseudocode
 
 ```python
@@ -209,8 +212,8 @@ for course in import_data["courses"]:
     else:
         create_new(course)
         results["created"] += 1
-```
 
+```text
 ### Database Relationships Preserved
 
 - Enrollments reference `student_id_ref` and `course_code_ref` (not internal IDs)
@@ -285,3 +288,4 @@ for course in import_data["courses"]:
 - Backend router auto-registers on startup
 - Frontend: Rebuild required to include new UI
 - Compatible with both Docker and native deployment modes
+

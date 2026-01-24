@@ -42,8 +42,8 @@ docker run -d `
   -p 5432:5432 `
   -v sms_postgres_data:/var/lib/postgresql/data `
   postgres:15-alpine
-```
 
+```text
 **Windows (Native)**:
 
 Download from <https://www.postgresql.org/download/windows/>
@@ -59,38 +59,44 @@ docker run -d \
   -p 5432:5432 \
   -v sms_postgres_data:/var/lib/postgresql/data \
   postgres:15-alpine
-```
 
+```text
 ### Step 2: Backup SQLite Database
 
 ```powershell
 # Stop the application first
+
 .\DOCKER.ps1 -Stop
 # or for native mode:
+
 .\NATIVE.ps1 -Stop
 
 # Create timestamped backup
+
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 Copy-Item "data\student_management.db" "backups\database\student_management_${timestamp}.db"
 
 # Verify backup
+
 if (Test-Path "backups\database\student_management_${timestamp}.db") {
     Write-Host "✓ Backup created successfully" -ForegroundColor Green
 } else {
     Write-Host "✗ Backup failed!" -ForegroundColor Red
     exit 1
 }
-```
 
+```text
 ### Step 3: Configure PostgreSQL Connection
 
 Edit `backend/.env`:
 
 ```bash
 # Database Configuration
+
 DATABASE_ENGINE=postgresql
 
 # PostgreSQL Connection (Option 1: Individual parameters)
+
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_USER=sms_user
@@ -99,24 +105,29 @@ POSTGRES_DB=sms_db
 POSTGRES_SSLMODE=prefer
 
 # PostgreSQL Connection (Option 2: Full URL - overrides above)
+
 # DATABASE_URL=postgresql://sms_user:changeme@localhost:5432/sms_db
 
 # Optional: Connection pooling (auto-configured, but can override)
+
 # SQLALCHEMY_POOL_SIZE=20
 # SQLALCHEMY_MAX_OVERFLOW=10
-# SQLALCHEMY_POOL_RECYCLE=3600
-```
 
+# SQLALCHEMY_POOL_RECYCLE=3600
+
+```text
 **Security Best Practices**:
 
 ```bash
 # Generate strong password
+
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 # For production, use environment variables instead of .env file
-export POSTGRES_PASSWORD="your_generated_password"
-```
 
+export POSTGRES_PASSWORD="your_generated_password"
+
+```text
 ### Step 4: Export SQLite Data
 
 Install `pgloader` (recommended) or use manual export:
@@ -125,32 +136,37 @@ Install `pgloader` (recommended) or use manual export:
 
 ```powershell
 # Install pgloader (Windows with WSL2 or Docker)
+
 docker run --rm -v ${PWD}:/data dimitri/pgloader:latest `
   pgloader `
   /data/data/student_management.db `
   postgresql://sms_user:changeme@host.docker.internal:5432/sms_db
-```
 
+```text
 **Option B: Manual Export with Python**:
 
 ```python
 # backend/scripts/migrate_sqlite_to_postgres.py
+
 import sqlite3
 import psycopg
 from datetime import datetime
 
 # Connect to SQLite
+
 sqlite_conn = sqlite3.connect('data/student_management.db')
 sqlite_conn.row_factory = sqlite3.Row
 sqlite_cur = sqlite_conn.cursor()
 
 # Connect to PostgreSQL
+
 pg_conn = psycopg.connect(
     "postgresql://sms_user:changeme@localhost:5432/sms_db"
 )
 pg_cur = pg_conn.cursor()
 
 # Get all tables
+
 sqlite_cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
 tables = [row[0] for row in sqlite_cur.fetchall()
           if not row[0].startswith('sqlite_') and row[0] != 'alembic_version']
@@ -158,6 +174,7 @@ tables = [row[0] for row in sqlite_cur.fetchall()
 print(f"Found {len(tables)} tables to migrate: {', '.join(tables)}")
 
 # Migrate each table
+
 for table in tables:
     print(f"Migrating table: {table}")
 
@@ -189,6 +206,7 @@ for table in tables:
     print(f"  ✓ Migrated {len(rows)} rows")
 
 # Update sequences for auto-increment columns
+
 for table in tables:
     try:
         pg_cur.execute(f"""
@@ -205,37 +223,42 @@ for table in tables:
 print("\n✓ Migration completed!")
 sqlite_conn.close()
 pg_conn.close()
-```
 
+```text
 Run migration script:
 
 ```powershell
 cd backend
 python scripts/migrate_sqlite_to_postgres.py
-```
 
+```text
 ### Step 5: Run Alembic Migrations
 
 ```powershell
 cd backend
 
 # Check current migration status
+
 alembic current
 
 # Apply all migrations to PostgreSQL
+
 alembic upgrade head
 
 # Verify schema
-alembic current
-```
 
+alembic current
+
+```text
 ### Step 6: Verify Data Integrity
 
 ```powershell
 # Start application in test mode
+
 .\NATIVE.ps1 -Backend
 
 # In another terminal, run verification
+
 cd backend
 python -c "
 from backend.db import init_db, get_session
@@ -251,6 +274,7 @@ print(f'Grades: {db.query(Grade).count()}')
 print(f'Attendance: {db.query(Attendance).count()}')
 
 # Test a query
+
 student = db.query(Student).first()
 if student:
     print(f'Sample student: {student.first_name} {student.last_name}')
@@ -260,14 +284,15 @@ else:
 db.close()
 print('✓ Verification complete')
 "
-```
 
+```text
 ### Step 7: Production Deployment
 
 **For Docker Mode**:
 
 ```powershell
 # Update docker-compose configuration to use external PostgreSQL
+
 # Edit docker/docker-compose.yml or set environment variables
 
 $env:DATABASE_ENGINE="postgresql"
@@ -275,16 +300,18 @@ $env:POSTGRES_HOST="your-postgres-host"
 $env:POSTGRES_PASSWORD="your-secure-password"
 
 # Start application
-.\DOCKER.ps1 -Start
-```
 
+.\DOCKER.ps1 -Start
+
+```text
 **For Native Mode**:
 
 ```powershell
 # Ensure backend/.env has PostgreSQL configuration
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 ### Step 8: Performance Tuning
 
 After migration, optimize PostgreSQL:
@@ -309,17 +336,19 @@ SELECT query, calls, total_exec_time, mean_exec_time
 FROM pg_stat_statements
 ORDER BY mean_exec_time DESC
 LIMIT 10;
-```
 
+```text
 ## Rollback Procedure
 
 If migration fails:
 
 ```powershell
 # Stop application
+
 .\DOCKER.ps1 -Stop
 
 # Restore SQLite from backup
+
 $backupFile = Get-ChildItem "backups\database\student_management_*.db" |
               Sort-Object LastWriteTime -Descending |
               Select-Object -First 1
@@ -327,13 +356,15 @@ $backupFile = Get-ChildItem "backups\database\student_management_*.db" |
 Copy-Item $backupFile.FullName "data\student_management.db" -Force
 
 # Revert backend/.env
+
 DATABASE_ENGINE=sqlite
 # Comment out PostgreSQL settings
 
 # Restart application
-.\DOCKER.ps1 -Start
-```
 
+.\DOCKER.ps1 -Start
+
+```text
 ## Performance Comparison
 
 | Metric | SQLite | PostgreSQL |
@@ -352,20 +383,23 @@ DATABASE_ENGINE=sqlite
 
 ```bash
 # Daily backup script
+
 #!/bin/bash
 BACKUP_DIR="/backups/postgresql"
 DATE=$(date +%Y%m%d_%H%M%S)
 BACKUP_FILE="${BACKUP_DIR}/sms_db_${DATE}.sql.gz"
 
 # Create backup
+
 pg_dump -U sms_user -d sms_db | gzip > "${BACKUP_FILE}"
 
 # Keep last 30 days
+
 find "${BACKUP_DIR}" -name "sms_db_*.sql.gz" -mtime +30 -delete
 
 echo "Backup completed: ${BACKUP_FILE}"
-```
 
+```text
 ### Monitoring
 
 ```sql
@@ -390,29 +424,33 @@ SELECT query, calls, total_exec_time, mean_exec_time
 FROM pg_stat_statements
 ORDER BY mean_exec_time DESC
 LIMIT 20;
-```
 
+```text
 ## Troubleshooting
 
 ### Connection Refused
 
 ```bash
 # Check if PostgreSQL is running
+
 docker ps | grep postgres
 # or
+
 sudo systemctl status postgresql
 
 # Check network connectivity
-nc -zv localhost 5432
-```
 
+nc -zv localhost 5432
+
+```text
 ### Authentication Failed
 
 ```bash
 # Reset password
-docker exec -it sms-postgres psql -U postgres -c "ALTER USER sms_user PASSWORD 'new_password';"
-```
 
+docker exec -it sms-postgres psql -U postgres -c "ALTER USER sms_user PASSWORD 'new_password';"
+
+```text
 ### Slow Queries After Migration
 
 ```sql
@@ -424,8 +462,8 @@ CREATE INDEX idx_grades_course_id ON grades(course_id);
 
 -- Update statistics
 VACUUM ANALYZE;
-```
 
+```text
 ### Out of Connections
 
 ```sql
@@ -439,8 +477,8 @@ ALTER SYSTEM SET max_connections = 200;
 -- Or optimize connection pooling in backend/.env
 SQLALCHEMY_POOL_SIZE=15
 SQLALCHEMY_MAX_OVERFLOW=5
-```
 
+```text
 ## Support
 
 - **PostgreSQL Documentation**: <https://www.postgresql.org/docs/>
@@ -453,3 +491,4 @@ SQLALCHEMY_MAX_OVERFLOW=5
 - `backend/models.py` - Connection pooling setup
 - `docs/development/ARCHITECTURE.md` - System architecture
 - `backend/ENV_VARS.md` - Environment variables
+

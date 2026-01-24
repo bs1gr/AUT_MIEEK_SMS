@@ -29,8 +29,8 @@ All scripts read this file
 Image tag: sms-fullstack:1.7.0
 Container name: sms-app
 Volume name: sms_data
-```
 
+```text
 ### Version Flow
 
 ```text
@@ -52,8 +52,8 @@ Volume name: sms_data
          ▼                       ▼
     Docker Run              Docker Build
     Uses exact tag         Creates exact tag
-```
 
+```text
 ### Image Tagging Convention
 
 **Format**: `sms-fullstack:${VERSION}`
@@ -78,14 +78,14 @@ Volume name: sms_data
 
 ```powershell
 docker build -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
-```
 
+```text
 **Force Rebuild** (no cache):
 
 ```powershell
 docker build --no-cache -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
-```
 
+```text
 ### When to Force Rebuild
 
 Use `--no-cache` when:
@@ -126,8 +126,8 @@ When starting the application, RUN.ps1 now:
 ```powershell
 $containerImage = docker inspect sms-app --format '{{.Config.Image}}'
 # Returns: sms-fullstack:1.7.0
-```
 
+```text
 2. **Compares with expected version**:
 
 ```powershell
@@ -136,8 +136,8 @@ if ($containerImage -ne $IMAGE_TAG) {
     # Container running wrong version!
     # Auto-restart with correct version
 }
-```
 
+```text
 3. **Auto-corrects version mismatch**:
 
 - Stops old container
@@ -155,8 +155,8 @@ if ($imageCheck) {
 } else {
     Write-Log "WARNING: Image build completed but tag verification failed"
 }
-```
 
+```text
 ## Common Scenarios
 
 ### Scenario 1: Developer Testing New Code
@@ -167,17 +167,20 @@ if ($imageCheck) {
 
 ```powershell
 # 1. Update VERSION file temporarily
+
 "1.7.1-dev" | Set-Content VERSION
 
 # 2. Build with new tag
+
 .\SMART_SETUP.ps1
 
 # 3. Test thoroughly
 
 # 4. Revert VERSION file or commit if ready
-git checkout VERSION  # or git add VERSION && git commit
-```
 
+git checkout VERSION  # or git add VERSION && git commit
+
+```text
 ### Scenario 2: Production Deployment
 
 **Problem**: Deploying new version to production.
@@ -186,20 +189,24 @@ git checkout VERSION  # or git add VERSION && git commit
 
 ```powershell
 # 1. Update VERSION file
+
 "1.7.1" | Set-Content VERSION
 
 # 2. Commit version bump
+
 git add VERSION
 git commit -m "chore: bump version to 1.7.1"
 
 # 3. Build and deploy
+
 .\RUN.ps1 -Update
 
 # 4. Verify version
+
 docker inspect sms-app --format '{{.Config.Image}}'
 # Should show: sms-fullstack:1.7.1
-```
 
+```text
 ### Scenario 3: Emergency Rebuild
 
 **Problem**: Need to force complete rebuild due to corrupted cache.
@@ -208,19 +215,22 @@ docker inspect sms-app --format '{{.Config.Image}}'
 
 ```powershell
 # Option 1: Using RUN.ps1
+
 .\RUN.ps1 -UpdateNoCache
 
 # Option 2: Using SMART_SETUP.ps1
+
 .\SMART_SETUP.ps1 -Force
 
 # Option 3: Manual
+
 docker stop sms-app
 docker rm sms-app
 docker rmi sms-fullstack:1.7.0
 docker build --no-cache -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
 .\RUN.ps1
-```
 
+```text
 ### Scenario 4: Testing Multiple Versions
 
 **Problem**: Need to test different versions side-by-side.
@@ -229,16 +239,19 @@ docker build --no-cache -t sms-fullstack:1.7.0 -f docker/Dockerfile.fullstack .
 
 ```powershell
 # Version 1.7.0 (production)
+
 docker run -d --name sms-app-prod -p 8080:8000 sms-fullstack:1.7.0
 
 # Version 1.7.1 (testing)
+
 docker run -d --name sms-app-test -p 8081:8000 sms-fullstack:1.7.1
 
 # Compare both versions
+
 curl http://localhost:8080/health  # Production
 curl http://localhost:8081/health  # Testing
-```
 
+```text
 ## Troubleshooting
 
 ### Issue: "Container running old image"
@@ -247,8 +260,8 @@ curl http://localhost:8081/health  # Testing
 
 ```text
 WARNING: Container is running old image: sms-fullstack:1.7.0 (expected: sms-fullstack:1.7.1)
-```
 
+```text
 **Cause**: VERSION file was updated but container wasn't restarted.
 
 **Fix**: Script auto-restarts, or manually:
@@ -256,16 +269,16 @@ WARNING: Container is running old image: sms-fullstack:1.7.0 (expected: sms-full
 ```powershell
 .\RUN.ps1 -Stop
 .\RUN.ps1
-```
 
+```text
 ### Issue: "Image not found"
 
 **Symptom**:
 
 ```text
 Error response from daemon: No such image: sms-fullstack:1.7.1
-```
 
+```text
 **Cause**: Image hasn't been built yet.
 
 **Fix**:
@@ -273,9 +286,10 @@ Error response from daemon: No such image: sms-fullstack:1.7.1
 ```powershell
 .\SMART_SETUP.ps1
 # or
-docker build -t sms-fullstack:1.7.1 -f docker/Dockerfile.fullstack .
-```
 
+docker build -t sms-fullstack:1.7.1 -f docker/Dockerfile.fullstack .
+
+```text
 ### Issue: "Build succeeds but changes not visible"
 
 **Symptom**: Code changes don't appear in running container.
@@ -286,8 +300,8 @@ docker build -t sms-fullstack:1.7.1 -f docker/Dockerfile.fullstack .
 
 ```powershell
 .\RUN.ps1 -UpdateNoCache
-```
 
+```text
 ### Issue: "Multiple images with same tag"
 
 **Symptom**:
@@ -296,8 +310,8 @@ docker build -t sms-fullstack:1.7.1 -f docker/Dockerfile.fullstack .
 docker images | grep sms-fullstack
 sms-fullstack    1.7.0    abc123def456    2 days ago    500MB
 sms-fullstack    1.7.0    789ghi012jkl    5 minutes ago  502MB
-```
 
+```text
 **Cause**: Built new image without removing old one with same tag.
 
 **Fix**: Clean up dangling images
@@ -305,9 +319,10 @@ sms-fullstack    1.7.0    789ghi012jkl    5 minutes ago  502MB
 ```powershell
 docker image prune -f
 # or remove specific image by ID
-docker rmi 789ghi012jkl
-```
 
+docker rmi 789ghi012jkl
+
+```text
 ## Best Practices
 
 ### For Developers
@@ -341,6 +356,7 @@ docker rmi 789ghi012jkl
 
    ```yaml
    - name: Get version
+
      run: |
        $VERSION = Get-Content VERSION
        echo "IMAGE_TAG=sms-fullstack:$VERSION" >> $GITHUB_ENV
@@ -350,9 +366,11 @@ docker rmi 789ghi012jkl
 
    ```yaml
    - name: Build
+
      run: docker build -t ${{ env.IMAGE_TAG }} .
 
    - name: Push
+
      run: docker push ${{ env.IMAGE_TAG }}
    ```
 
@@ -360,6 +378,7 @@ docker rmi 789ghi012jkl
 
    ```yaml
    - name: Verify
+
      run: |
        $image = docker inspect sms-app --format '{{.Config.Image}}'
        if ($image -ne $env:IMAGE_TAG) { exit 1 }
@@ -395,8 +414,8 @@ docker rmi 789ghi012jkl
 
 ```text
 1.7.0
-```
 
+```text
 - Plain text, single line
 - Semantic version format
 - No prefix (no 'v')
@@ -406,8 +425,8 @@ docker rmi 789ghi012jkl
 
 ```text
 VERSION=1.7.0
-```
 
+```text
 - Auto-synced by SMART_SETUP.ps1
 - Used by docker-compose.yml
 - Should match VERSION file
@@ -420,8 +439,8 @@ services:
     image: sms-backend:${VERSION:-latest}
   frontend:
     image: sms-frontend:${VERSION:-latest}
-```
 
+```text
 - Uses VERSION from .env
 - Falls back to `latest` if not set
 
@@ -457,3 +476,4 @@ Potential enhancements:
 - ✅ Commit VERSION changes to Git for traceability
 
 **Golden Rule**: If you change VERSION file, rebuild and restart!
+

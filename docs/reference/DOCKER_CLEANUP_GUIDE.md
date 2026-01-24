@@ -16,8 +16,8 @@ Complete guide for removing Docker cache from old container installations.
 
 ```powershell
 .\DOCKER.ps1 -Prune
-```
 
+```text
 **Use when:**
 
 - Running low on disk space
@@ -43,8 +43,8 @@ Complete guide for removing Docker cache from old container installations.
 
 ```powershell
 .\DOCKER.ps1 -PruneAll
-```
 
+```text
 **Use when:**
 
 - Experiencing Docker issues
@@ -71,8 +71,8 @@ Complete guide for removing Docker cache from old container installations.
 
 ```powershell
 .\DOCKER.ps1 -DeepClean
-```
 
+```text
 **⚠️ WARNING: This deletes your database!**
 
 **Use ONLY when:**
@@ -145,8 +145,8 @@ Some containers are still running. Stop them first:
 ```powershell
 .\DOCKER.ps1 -Stop
 docker ps -a  # Verify all stopped
-```
 
+```text
 ### "Cannot remove volume in use"
 
 Volume is mounted by a running container:
@@ -154,16 +154,16 @@ Volume is mounted by a running container:
 ```powershell
 docker ps    # Check running containers
 docker stop $(docker ps -aq)  # Stop all
-```
 
+```text
 ### Build cache won't clear
 
 Force builder prune:
 
 ```powershell
 docker builder prune -a -f --all
-```
 
+```text
 ### Disk space not freed after cleanup
 
 Check for large image layers:
@@ -171,16 +171,16 @@ Check for large image layers:
 ```powershell
 docker images -a
 docker system prune -a --volumes  # Nuclear option
-```
 
+```text
 ---
 
 ## Understanding Docker Disk Usage
 
 ```powershell
 docker system df
-```
 
+```text
 Output explained:
 
 - **Images**: Built Docker images (your app)
@@ -232,24 +232,29 @@ Only Docker-specific cache and images are removed.
 
 ```powershell
 # Check what's using space
+
 docker system df
 docker images
 docker ps -a
 docker volume ls
 
 # Safe cleanup (preserves data)
+
 .\DOCKER.ps1 -Prune
 
 # Aggressive cleanup (preserves data)
+
 .\DOCKER.ps1 -PruneAll
 
 # Nuclear option (creates backup first)
+
 .\DOCKER.ps1 -DeepClean
 
 # After cleanup, fresh start
-.\DOCKER.ps1 -Install
-```
 
+.\DOCKER.ps1 -Install
+
+```text
 ---
 
 ## Related Documentation
@@ -258,3 +263,4 @@ docker volume ls
 - **New PC Setup:** `DEPLOY_ON_NEW_PC.md`
 - **Quick Start:** `docs/user/QUICK_START_GUIDE.md`
 - **Troubleshooting:** `README.md` → Troubleshooting section
+

@@ -5,9 +5,11 @@
 **Commits:** 2 (1 backend endpoint, 1 frontend UI)
 
 ## Overview
+
 Completed full frontend integration for import preview and background job monitoring. Users can now validate bulk imports before executing them and track long-running import/export jobs via manual job ID lookup.
 
 ## Backend Changes (Previous Commit)
+
 - **Endpoint:** `POST /api/v1/imports/preview` (multipart form)
 - **Features:**
   - Validates students/courses without persisting
@@ -20,6 +22,7 @@ Completed full frontend integration for import preview and background job monito
 ## Frontend Changes (This Session)
 
 ### 1. New Components
+
 **ImportPreviewPanel** (`frontend/src/components/tools/ImportPreviewPanel.tsx`)
 - Multi-file upload (CSV/JSON)
 - Manual JSON paste option
@@ -37,6 +40,7 @@ Completed full frontend integration for import preview and background job monito
 - Cleanup on unmount
 
 ### 2. Operations View Enhancement
+
 **OperationsView.tsx**
 - New "Imports" tab in operations tablist
 - Imports tab contains:
@@ -46,12 +50,14 @@ Completed full frontend integration for import preview and background job monito
 - Tab switching with proper ARIA labels
 
 ### 3. API Client Updates
+
 **api.js**
 - `importAPI.preview({ type, files, jsonText, allowUpdates, skipDuplicates })`
 - `jobsAPI.get(jobId)` - fetch single job status
 - `jobsAPI.list()` - list recent jobs
 
 ### 4. Internationalization
+
 **English locales (`frontend/src/locales/en/export.js`)**
 - `importsTab`, `importPreviewTitle/Description`
 - `importTypeStudents/Courses`, `allowUpdates`, `skipDuplicates`
@@ -66,11 +72,13 @@ Completed full frontend integration for import preview and background job monito
 - All above strings translated to Greek with consistent terminology
 
 ### 5. Types Updates
+
 **operations/types.ts**
 - Added `'imports'` to `OPERATIONS_TAB_KEYS`
 
 ## Files Changed
-```
+
+```text
 frontend/src/api/api.js                           +48 lines (2 new APIs)
 frontend/src/components/tools/ImportPreviewPanel.tsx  +244 lines (new)
 frontend/src/components/tools/JobProgressMonitor.tsx  +119 lines (new)
@@ -78,14 +86,16 @@ frontend/src/features/operations/components/OperationsView.tsx  +44 lines
 frontend/src/features/operations/types.ts         +2 lines
 frontend/src/locales/en/export.js                 +37 lines
 frontend/src/locales/el/export.js                 +37 lines
-```
 
+```text
 ## Test Results
+
 - ✅ Backend: 383 passed, 3 skipped
 - ✅ Frontend: 53 test files, 1189 tests passed
 - ✅ All lint checks clean
 
 ## User Experience Flow
+
 1. User navigates to Operations → Imports tab
 2. Uploads CSV/JSON files or pastes JSON data
 3. Selects import type (students/courses) and options
@@ -95,6 +105,7 @@ frontend/src/locales/el/export.js                 +37 lines
 7. In parallel, user can track jobs by entering a job ID in the Job Monitor input
 
 ## Next Steps (Recommended)
+
 1. **Hook preview → auto-job-creation:** Add "Confirm & Import" button to preview results that creates a background job
 2. **Add import completion endpoint:** `POST /api/v1/imports/execute` to commit validated data
 3. **Add tests:** Unit tests for ImportPreviewPanel, JobProgressMonitor, and API client methods
@@ -103,7 +114,8 @@ frontend/src/locales/el/export.js                 +37 lines
 6. **Documentation:** Add user guide for imports workflow
 
 ## Commit Message
-```
+
+```text
 feat(frontend): add imports tab with preview & job monitoring
 
 - New components: ImportPreviewPanel (multipart form, validates CSV/JSON)
@@ -114,9 +126,10 @@ feat(frontend): add imports tab with preview & job monitoring
 - Full i18n support: EN and EL translations for preview & job UI
 - API methods added: importAPI.preview(), jobsAPI.get/list()
 - All tests passing (backend 383, frontend 1189)
-```
 
+```text
 ## Architecture Notes
+
 - **Validation:** Backend-only (frontend calls `/imports/preview` endpoint)
 - **State:** React local state for form inputs and preview results
 - **Polling:** useEffect-based with cleanup on unmount
@@ -128,3 +141,4 @@ feat(frontend): add imports tab with preview & job monitoring
 **Version:** 1.11.3 (post-import-preview-ui)
 **Related PRs/Issues:** Phase 2.3 import preview implementation
 **Reviewed by:** Code review recommended for production deployment
+

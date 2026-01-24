@@ -42,8 +42,8 @@
 ✅ Node.js cache (node_modules/.cache/)
 ✅ Build artifacts (frontend/dist/, frontend/build/)
 ✅ Temporary files (*.tmp, *.temp, *.bak, *.backup, *.old)
-```
 
+```text
 **Features**:
 
 - Automatic (no confirmation)
@@ -66,8 +66,8 @@
 ✅ Stopped containers
 ✅ Unused networks
 ❌ Keeps: Volumes, Active images, Running containers
-```
 
+```text
 #### -DeepClean (Nuclear Option)
 
 ```powershell
@@ -76,8 +76,8 @@
 ✅ ALL Docker volumes (sms_data, etc.)
 ✅ Docker build cache
 ⚠️  WARNING: Requires full rebuild
-```
 
+```text
 **Features**:
 
 - `-Prune`: Safe, can run anytime
@@ -111,8 +111,8 @@
 ✅ [8] __pycache__ directories
 ✅ [9] .pytest_cache directories
 ✅ [10] Node/Vite cache (node_modules/.cache/, .vite/)
-```
 
+```text
 **Docker (Read-Only Analysis)**:
 
 ```powershell
@@ -120,15 +120,15 @@
 ○ [12] Docker images/cache (reports, doesn't remove)
 ○ [13] Docker volumes (reports, doesn't remove)
 ○ [14] Dockerfile variants (reports only)
-```
 
+```text
 **Optional Modes**:
 
 ```powershell
 -Docs     : Remove all .md files except READMEs
 -Obsolete : Remove specific named obsolete files
-```
 
+```text
 **Features**:
 
 - Most comprehensive
@@ -147,7 +147,7 @@
 
 #### What It Removes (16 files)
 
-```
+```text
 VERSIONING_GUIDE.md
 TEACHING_SCHEDULE_GUIDE.md
 RUST_BUILDTOOLS_UPDATE.md
@@ -164,8 +164,8 @@ DEPENDENCY_UPDATE_LOG.md
 DAILY_PERFORMANCE_GUIDE.md
 COMPLETE_UPDATE_SUMMARY.md
 CODE_IMPROVEMENTS.md
-```
 
+```text
 **Features**:
 
 - Targeted removal
@@ -195,12 +195,12 @@ CODE_IMPROVEMENTS.md
 
 #### What It Removes
 
-```
+```text
 artifacts_run_*   (directories)
 run*.log          (files)
 run_*.log         (files)
-```
 
+```text
 **Features**:
 
 - Git status aware
@@ -287,27 +287,32 @@ run_*.log         (files)
 # === PRIMARY ENTRY POINTS ===
 
 # 1. Daily/Commit Cleanup (automatic, safe)
+
 .\COMMIT_READY.ps1                    # Pre-commit validation + cleanup
 
 # 2. Docker Cleanup (production)
+
 .\DOCKER.ps1 -Prune                   # Safe Docker cleanup
 .\DOCKER.ps1 -DeepClean               # Nuclear Docker cleanup
 
 # === MAINTENANCE SCRIPTS ===
 
 # 3. Comprehensive Maintenance (monthly)
+
 .\scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
 
 # Optional modes:
+
 .\scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1 -Docs      # + Remove non-essential docs
 .\scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1 -Obsolete  # + Remove specific obsolete files
 
 # === CI AUTOMATION ===
 
 # 4. CI Artifacts (automatic)
-.\.github\scripts\cleanup_artifacts.ps1
-```
 
+.\.github\scripts\cleanup_artifacts.ps1
+
+```text
 ---
 
 ## 📝 Action Items for Consolidation
@@ -354,7 +359,7 @@ run_*.log         (files)
 
 ## 🎭 Usage Decision Tree
 
-```
+```text
 Do you need cleanup?
 │
 ├─ Before commit? → COMMIT_READY.ps1
@@ -368,8 +373,8 @@ Do you need cleanup?
 ├─ Remove docs? → CLEANUP_COMPREHENSIVE.ps1 -Docs
 │
 └─ CI artifacts? → .github/scripts/cleanup_artifacts.ps1 (automatic)
-```
 
+```text
 ---
 
 ## 📊 Space Savings Potential
@@ -437,3 +442,4 @@ Based on typical project state:
 **Last Updated**: 2025-11-28
 **Maintainer**: Development Team
 **Status**: Consolidated from CLEANUP_SCRIPTS_ANALYSIS.md
+

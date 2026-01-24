@@ -6,13 +6,13 @@
 
 ## 📅 Timeline at a Glance
 
-```
+```text
 Week of Jan 4:   Team Prep (kickoff, backup, branch setup)
 Week of Jan 7:   Week 1 - Foundation & Performance
 Week of Jan 14:  Week 2 - Testing & Stability
 Friday Jan 24:   RELEASE 1.15.0 to Production
-```
 
+```text
 ---
 
 ## 🎯 8 Improvements (Jan 7-20)
@@ -50,7 +50,7 @@ Copy-paste patterns for:
 
 **Copy to Jira/GitHub Issues** (optional):
 
-```
+```text
 Title: [$11.15.2-Phase1] Improvement #N: [Name]
 Description: See EXECUTION_TRACKER_$11.15.2.md for details
 Assigned to: [Developer Name]
@@ -58,8 +58,8 @@ Effort: [hours from tracker]
 Success Criteria: [from tracker]
 Testing: [from tracker]
 Reference: [section from IMPLEMENTATION_PATTERNS.md]
-```
 
+```text
 ---
 
 ## ✅ Daily Checklist for Developers
@@ -198,3 +198,4 @@ Update your task status:
 **Last Updated**: January 4, 2026
 **Version**: 1.15.0
 **Status**: Ready for Phase 1 Implementation
+

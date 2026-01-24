@@ -22,14 +22,17 @@ What I changed (high level)
 ---------------------------
 
 - COMMIT_READY.ps1 — added an explicit check requiring `DEV_EASE` to be set for local
+
   invocations that use SkipTests, SkipCleanup, or AutoFix. This prevents accidental skips
   unless explicitly opted into by the developer.
 - Removed runtime/CI usage of DEV_EASE and related opt-in (ALLOW_CI_DEV_EASE). CI workflows
+
   will no longer attempt to enable DEV_EASE.
 - Removed the permissive dev-run CI workflow that started backend with DEV_EASE.
 - Backend config: removed DEV_EASE runtime handling; documented that DEV_EASE is pre-commit-only.
 - NATIVE.ps1: marked DEV_EASE as deprecated in help text and ensured it is not injected into child processes.
 - Added an easy-to-install pre-commit hook sample `.githooks/commit-ready-precommit.sample` and
+
   cross-platform installer scripts under `scripts/` (`install-git-hooks.ps1` and `install-git-hooks.sh`).
 - Updated docs across the repo to reflect the new policy and show how to enable the pre-commit hook.
 
@@ -72,3 +75,4 @@ Notes
 This PR is intentionally conservative: it keeps developer ergonomics (pre-commit convenience)
 while preventing accidental weakening of runtime or CI security. It also adds a small quality-of-life
 installer to encourage contributing developers to enable the canonical checks automatically.
+

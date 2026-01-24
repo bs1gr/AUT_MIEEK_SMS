@@ -48,39 +48,43 @@ The notifications dashboard shows:
 #### Notification Service
 
 **Enable/Disable**:
-```
+
+```text
 Settings > Notifications > Service Status
 - Toggle to enable/disable all notifications
 - Changes apply immediately
 - Users see "Service Offline" if disabled
-```
 
+```text
 **WebSocket Configuration**:
-```
+
+```text
 Settings > Notifications > WebSocket
 - Max concurrent connections: (default: 1000)
 - Connection timeout: (default: 30 minutes)
 - Message buffer size: (default: 1000)
 - Reconnection retry: (default: automatic)
-```
 
+```text
 **Email Configuration**:
-```
+
+```text
 Settings > Notifications > Email
 - SMTP server: (configured in .env)
 - From address: notifications@school.edu
 - Reply-to address: support@school.edu
 - Subject prefix: [SMS]
 - Enable daily digest: Yes/No
-```
 
+```text
 ### Notification Types
 
 **View all notification types**:
-```
-Settings > Notifications > Types
-```
 
+```text
+Settings > Notifications > Types
+
+```text
 **For each type, configure**:
 - ✅ **Enabled**: Turn type on/off system-wide
 - ✅ **Default user setting**: New users get this preference
@@ -112,10 +116,10 @@ Settings > Notifications > Types
 
 ### Real-Time Monitoring
 
-```
+```text
 Admin > Notifications > Monitor
-```
 
+```text
 **View**:
 - 📈 Notifications sent (last hour/day/week)
 - 📊 Delivery status breakdown (delivered/failed/pending)
@@ -128,15 +132,15 @@ Admin > Notifications > Monitor
 
 Run periodic health checks:
 
-```
+```text
 Admin > Notifications > Health Check
 - WebSocket server: Connected/Disconnected
 - Email service: Ready/Error
 - Database: Connected/Error
 - Queue: OK/Backlog
 - Performance: Normal/Degraded
-```
 
+```text
 **Automated Health Checks**:
 - Every 5 minutes during business hours
 - Every 30 minutes during off-hours
@@ -146,15 +150,15 @@ Admin > Notifications > Health Check
 
 Configure when to alert administrators:
 
-```
+```text
 Settings > Notifications > Alerts
 - Error rate threshold: (default: 5%)
 - Queue depth threshold: (default: 1000)
 - Connection drop threshold: (default: 50)
 - Email delivery failure: (default: 10%)
 - Response time > X ms: (default: 1000ms)
-```
 
+```text
 ---
 
 ## 🔧 Troubleshooting
@@ -220,10 +224,10 @@ Settings > Notifications > Alerts
 
 ### Viewing Notifications Log
 
-```
+```text
 Admin > Notifications > Logs
-```
 
+```text
 **Filter by**:
 - 🔍 User: View notifications for specific user
 - 📅 Date range: Custom date selection
@@ -239,10 +243,11 @@ Admin > Notifications > Logs
 ### User Notification Settings
 
 **View user settings**:
-```
-Admin > Users > [Select User] > Notifications
-```
 
+```text
+Admin > Users > [Select User] > Notifications
+
+```text
 **Can override**:
 - ☑️ Notification types enabled/disabled
 - 📧 Email preferences
@@ -258,21 +263,23 @@ Admin > Users > [Select User] > Notifications
 ### Bulk Management
 
 **Disable notifications for group**:
-```
+
+```text
 Admin > Notifications > Bulk Actions
 - Select users
 - Select action: Disable all / Disable type / Enable type
 - Apply
-```
 
+```text
 **Audit settings**:
-```
+
+```text
 Admin > Notifications > Audit
 - View all setting changes
 - By user, date, type
 - Export audit report
-```
 
+```text
 ---
 
 ## 🔐 Security
@@ -293,10 +300,11 @@ All notification changes are logged:
 - Previous value and new value
 
 **Access audit trail**:
-```
-Admin > Audit > Filter: Notifications
-```
 
+```text
+Admin > Audit > Filter: Notifications
+
+```text
 ### Privacy Considerations
 
 - ✅ Users see only their own notifications
@@ -312,44 +320,48 @@ Admin > Audit > Filter: Notifications
 ### Pre-Built Reports
 
 **Notification Delivery Report**:
-```
+
+```text
 Admin > Notifications > Reports > Delivery
 - Total sent: (this period)
 - Delivery rate: (%)
 - By type breakdown
 - By user breakdown
 - Trends over time
-```
 
+```text
 **Email Performance Report**:
-```
+
+```text
 Admin > Notifications > Reports > Email
 - Sent vs delivered
 - Bounce rate
 - Open rate (if tracking enabled)
 - Error breakdown
-```
 
+```text
 **System Health Report**:
-```
+
+```text
 Admin > Notifications > Reports > Health
 - Uptime percentage
 - Error rate
 - Performance metrics
 - Resource usage
-```
 
+```text
 ### Custom Reports
 
 Create custom reports:
-```
+
+```text
 Admin > Notifications > Custom Report
 - Select date range
 - Select metrics
 - Select filters
 - Generate/Export
-```
 
+```text
 ---
 
 ## 🚨 Incident Response
@@ -379,7 +391,7 @@ Admin > Notifications > Custom Report
 
 ### Escalation Path
 
-```
+```text
 Error Rate > 10% →
   1. Alert administrator
   2. Check system health
@@ -397,8 +409,8 @@ Email Failures > 20% →
   2. Check SMTP credentials
   3. Review email service
   4. Manual retry if needed
-```
 
+```text
 ---
 
 ## 📅 Maintenance
@@ -430,14 +442,15 @@ Email Failures > 20% →
 - ✅ Retention: 90 days
 
 **To restore notifications**:
-```
+
+```text
 Admin > Backup & Recovery > Restore
 - Select date
 - Preview what will be restored
 - Confirm restoration
 - System automatically restores
-```
 
+```text
 ---
 
 ## 🆘 Support
@@ -465,6 +478,7 @@ Admin > Backup & Recovery > Restore
 ## 📝 Change Log
 
 ### 1.17.1 (January 12, 2026) - Initial Release
+
 - WebSocket-based real-time notifications
 - Email notification support
 - User preference management
@@ -473,6 +487,7 @@ Admin > Backup & Recovery > Restore
 - Health checks and alerting
 
 ### Planned for 1.17.1
+
 - Email templates customization
 - Notification batching
 - Advanced filtering options
@@ -485,3 +500,4 @@ Admin > Backup & Recovery > Restore
 **Status**: Production Ready
 **Last Updated**: January 12, 2026
 **Next Review**: February 12, 2026
+

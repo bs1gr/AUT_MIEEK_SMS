@@ -92,7 +92,7 @@
 
 **14 commits ahead of main branch:**
 
-```
+```text
 3b2003573 docs: Update UNIFIED_WORK_PLAN - Phase 2 RBAC backend 50% complete (Weeks 2-3)
 e43a8c687 docs: Update UNIFIED_WORK_PLAN - Week 5 backend tasks completed early
 7a7567b16 docs: Update root DOCUMENTATION_INDEX with Phase 2 RBAC guides
@@ -107,8 +107,8 @@ bc7dbb0b0 docs(rbac): Mark endpoint audit as 100% complete
 5dc800fc3 fix: Update @require_permission decorator to handle both sync and async functions
 0900c8c34 feat: add RBAC decorators to courses/enrollments/highlights/performance
 a6ae1a355 feat: batch test runners and RBAC audit prep work
-```
 
+```text
 ---
 
 ## Files Changed Summary
@@ -147,7 +147,7 @@ a6ae1a355 feat: batch test runners and RBAC audit prep work
 
 ### Backend Tests: ✅ 100% Passing
 
-```
+```text
 370 passed, 48 skipped in 34.17s
 
 Skipped breakdown:
@@ -158,8 +158,8 @@ Skipped breakdown:
 Warnings:
 - 4 SQLAlchemy transaction rollback warnings (expected in tests)
 - 119 SQLAlchemy datetime deprecation warnings (Python 3.13 compatibility)
-```
 
+```text
 **Key Test Files:**
 - `test_permissions_api.py` - 14 tests, all passing
 - `test_rbac.py` - 17 tests, all passing
@@ -185,24 +185,30 @@ Recommended: Run frontend tests after Docker deployment verification.
 
 ```powershell
 # 1. Build and start Docker container
+
 .\DOCKER.ps1 -UpdateClean
 
 # 2. Verify container is running
+
 docker ps
 
 # 3. Seed RBAC data
+
 docker exec sms-fullstack python /app/backend/ops/seed_rbac_data.py --verify
 
 # 4. Check seeding results
+
 docker exec sms-fullstack python /app/backend/ops/seed_rbac_data.py --dry-run
 
 # 5. Run health monitoring
+
 docker exec sms-fullstack python /app/scripts/rbac_monitor.py --verbose
 
 # 6. Test permission API endpoints
-# (Use Postman/curl or frontend to test endpoints)
-```
 
+# (Use Postman/curl or frontend to test endpoints)
+
+```text
 **Success Criteria:**
 - ✅ Container builds without errors
 - ✅ Seeding script runs successfully
@@ -347,24 +353,29 @@ If performance issues observed:
 
 ```powershell
 # Run automated health checks
+
 python scripts/rbac_monitor.py
 
 # Check for users without roles
+
 # Check admin count
 # Check for expired permission cleanup
+
 # Check for direct user permissions
 # Verify permission seeding
-```
 
+```text
 ### Weekly Operations (15 minutes)
 
 ```powershell
 # Review permission audit logs
+
 # Check for permission anomalies
 # Verify role assignments
-# Review access patterns
-```
 
+# Review access patterns
+
+```text
 See [RBAC_OPERATIONS_GUIDE.md](../admin/RBAC_OPERATIONS_GUIDE.md) for complete procedures.
 
 ---
@@ -435,3 +446,4 @@ The system provides:
 **Document Owner**: AI Agent / Tech Lead
 **Last Updated**: January 8, 2026
 **Review Status**: Ready for Team Review
+

@@ -27,15 +27,17 @@
 - ✅ Explained why batch testing is mandatory (prevents crashes)
 
 **Key Additions:**
+
 ```markdown
 **Critical rules:**
 5. ❌ Never run full pytest suite directly → ALWAYS use .\RUN_TESTS_BATCH.ps1
 10. ✅ Always use batch test runner for backend tests
 
 ### Testing
-⚠️ CRITICAL: ALWAYS USE BATCH TEST RUNNER TO PREVENT SYSTEM CRASHES
-```
 
+⚠️ CRITICAL: ALWAYS USE BATCH TEST RUNNER TO PREVENT SYSTEM CRASHES
+
+```text
 **Impact:** Every agent loads this file in their context automatically.
 
 ---
@@ -46,6 +48,7 @@
 
 **Contents:**
 - 🚨 6 Mandatory Policies (Zero Exceptions)
+
   1. Testing - NEVER run full test suite directly
   2. Planning - Single source of truth ONLY
   3. Database - Alembic migrations ONLY
@@ -274,3 +277,4 @@ An implementation is successful when:
 **Implemented By:** AI Agent (Copilot)
 **Date:** January 9, 2026
 **Review Date:** February 9, 2026
+

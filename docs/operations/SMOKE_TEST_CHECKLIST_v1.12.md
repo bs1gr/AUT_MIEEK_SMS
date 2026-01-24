@@ -22,8 +22,8 @@
 ```powershell
 Get-Content .\VERSION              # Expect 1.12.x
 (Get-Content .\frontend\package.json | ConvertFrom-Json).version
-```
 
+```text
 - [ ] Version files aligned with target release number (VERSION + package.json)
 
 ---
@@ -34,15 +34,18 @@ This path should be executed first; the manual sections deepen coverage.
 
 ```powershell
 # 1. Reset + run deterministic encoding regeneration
+
 python fix_greek_encoding_permanent.py
 
 # 2. Run quick commit-ready validation
+
 .\COMMIT_READY.ps1 -Quick
 
 # 3. Launch developer smoke script (native defaults)
-scripts\dev\SMOKE_TEST.ps1
-```
 
+scripts\dev\SMOKE_TEST.ps1
+
+```text
 - [ ] `COMMIT_READY.ps1 -Quick` finishes without failures (lint, format, essential tests)
 - [ ] `scripts\dev\SMOKE_TEST.ps1` reports success for API + frontend probes
 - [ ] `fix_greek_encoding_permanent.py` updates `installer/*.txt` timestamps
@@ -59,8 +62,8 @@ If any step fails, resolve before continuing. Re-run the failing script to confi
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -Update            # rebuilds if needed
 .\DOCKER.ps1 -Start
-```
 
+```text
 - [ ] Container image builds without errors
 - [ ] `curl http://localhost:8080/health` returns **200** with `database_status="ok"`
 - [ ] Frontend reachable at `http://localhost:8080`
@@ -73,8 +76,8 @@ If any step fails, resolve before continuing. Re-run the failing script to confi
 .\NATIVE.ps1 -Stop
 .\NATIVE.ps1 -Setup             # only required after dependency changes
 .\NATIVE.ps1 -Start
-```
 
+```text
 - [ ] Backend running on port **8000** (check `http://localhost:8000/health`)
 - [ ] Frontend on port **5173** with hot reload
 - [ ] Lifespan migration task completes instantly (no blocking output)
@@ -162,3 +165,4 @@ If any step fails, resolve before continuing. Re-run the failing script to confi
 - Capture key screenshots for release archives or QA docs
 - Record timings for Docker build and smoke scenarios to feed performance baselines
 - Create GitHub discussion entry summarising anomalies or noteworthy observations
+

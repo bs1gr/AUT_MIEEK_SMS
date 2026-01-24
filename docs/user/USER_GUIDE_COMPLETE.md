@@ -123,11 +123,13 @@ The system automatically detects your browser language (English or Greek). To ch
 
 ```powershell
 ## Download from GitHub Releases
+
 ## Extract SMS_Distribution_1.8.6.3.zip
 ## Run as Administrator:
-.\SMS_Installer_1.8.6.3.exe
-```
 
+.\SMS_Installer_1.8.6.3.exe
+
+```text
 **GUI Installer Features:**
 
 - ✅ Visual step-by-step wizard
@@ -149,12 +151,14 @@ See: [Installer Documentation](../../installer/README.md)
 
 ```powershell
 ## Windows
+
 .\DOCKER.ps1 -Install
 
 ## Linux/Mac
-docker-compose up -d
-```
 
+docker-compose up -d
+
+```text
 **Access:** <http://localhost:8080>
 
 ### Option 3: Native Development Mode
@@ -169,16 +173,18 @@ docker-compose up -d
 
 ```powershell
 ## Windows
+
 .\NATIVE.ps1 -Setup
 .\NATIVE.ps1 -Start
 
 ## Linux/Mac
+
 cd backend && python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cd ../frontend && npm install
 npm run dev
-```
 
+```text
 **Access:**
 
 - Frontend: <http://localhost:5173>
@@ -191,22 +197,22 @@ npm run dev
 ```powershell
 .\DOCKER.ps1 -Start    # Docker mode
 .\NATIVE.ps1 -Start    # Native mode
-```
 
+```text
 **Stop Application:**
 
 ```powershell
 .\DOCKER.ps1 -Stop     # Docker mode
 .\NATIVE.ps1 -Stop     # Native mode
-```
 
+```text
 **Check Status:**
 
 ```powershell
 .\DOCKER.ps1 -Status   # Docker mode
 .\NATIVE.ps1 -Status   # Native mode
-```
 
+```text
 ---
 
 ## User Interface Overview
@@ -517,8 +523,8 @@ The system calculates final grades automatically:
 
 ```text
 Final Grade = Σ(Component Grade × Weight) - (Absences × Penalty)
-```
 
+```text
 **Example:**
 
 - Midterm: 15/20 × 30% = 4.5
@@ -806,8 +812,8 @@ Available export formats:
     "date_of_birth": "2000-01-15"
   }
 ]
-```
 
+```text
 ### Importing Courses
 
 **Excel Template Columns:**
@@ -1025,16 +1031,19 @@ Advanced users can edit `.env` file directly:
 
 ```env
 ## Authentication
+
 AUTH_ENABLED=true
 AUTH_MODE=permissive
 
 ## Admin Bootstrap
+
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 
 Note about automated admin password rotation:
 
 - DEFAULT_ADMIN_AUTO_RESET (default: false): enables safe automatic rotation of the default
+
    administrator password at application startup. When set to true and a
    DIFFERENT DEFAULT_ADMIN_PASSWORD is present in the environment, the
    application will update the stored admin password to match the configured
@@ -1053,8 +1062,10 @@ Note about automated admin password rotation:
 
    ```powershell
 #   # Update `.env` in the deployment or set the container env via your orchestration tool
+
    Set-Content -Path ./backend/.env -Value (Get-Content ./backend/.env) -Force
 #   # Then restart the backend so the bootstrap runs at startup
+
    docker compose restart sms-backend
    ```
 
@@ -1063,6 +1074,7 @@ Note about automated admin password rotation:
 
    ```powershell
 #   # Reset flag in your orchestration or .env and restart
+
    docker compose exec sms-backend pwsh -c "(Get-Content /app/backend/.env) -replace 'DEFAULT_ADMIN_AUTO_RESET=true','DEFAULT_ADMIN_AUTO_RESET=false' | Set-Content /app/backend/.env"
    docker compose restart sms-backend
    ```
@@ -1072,6 +1084,7 @@ Note about automated admin password rotation:
 - Only the configured default admin (DEFAULT_ADMIN_EMAIL) will be affected.
 - The flag defaults to false to avoid unexpected changes in production.
 - When password rotation is in your CI/CD, prefer to perform a single atomic rollout
+
      so the new credential takes effect across all app instances consistently.
 
 ## Database
@@ -1084,8 +1097,7 @@ DATABASE_URL=sqlite:///./data/student_management.db
 ENABLE_CACHING=true
 CACHE_TTL=300
 
-```
-
+```text
 ### Performance Settings
 
 **Enable Caching:**
@@ -1317,8 +1329,8 @@ A: Yes! The system supports PostgreSQL. Edit `backend/.env`:
 ```env
 DATABASE_ENGINE=postgresql
 DATABASE_URL=postgresql://user:password@localhost:5432/sms_db
-```
 
+```text
 **Q: How do I backup data automatically?**
 A: Backups are automatic (daily). Configure in Control Panel → Operations → Backup Settings.
 
@@ -1447,15 +1459,18 @@ The Student Management System now supports fine-grained Role-Based Access Contro
 - **Permissions**: Fine-grained actions (e.g., create student, export data).
 
 ### Managing Roles & Permissions
+
 - Admins can create, update, and delete roles and permissions via the Admin → RBAC section or API endpoints.
 - Assign roles to users and grant/revoke permissions to roles using the RBAC management UI or API.
 - See the [RBAC Permission Matrix](../api/RBAC_API_MATRIX.md) for a full list of actions and required permissions.
 
 ### Who Can Manage RBAC?
+
 - Only users with the `*` (wildcard) permission (typically admins) can assign/revoke roles and permissions.
 - All RBAC changes are logged and rate-limited for security.
 
 ### API Reference
+
 - See the API documentation for endpoint details: [API Contract](../api/API_CONTRACT.md)
 
 ---
@@ -1478,3 +1493,4 @@ These pages are available in both development and Docker modes.
 - All changes are reflected in real time and are subject to audit logging and rate limiting.
 
 ---
+

@@ -24,17 +24,19 @@
 **Status:** Infrastructure fixed ✅ | Functional broken ❌
 
 #### The Problem
-```
+
+```text
 Test Flow:
 1. Page loads ✅ (Form renders with email/password fields)
 2. Test fills credentials
 3. Test clicks login button
 4. TIMEOUT ❌ (20+ seconds, test fails)
 → Never reaches dashboard redirect
-```
 
+```text
 #### Root Cause Analysis
-```
+
+```text
 Multiple possibilities (in order of likelihood):
 
 A) Test User Not Seeded (60% likely)
@@ -52,9 +54,10 @@ C) Test Helpers Wrong Selectors (10% likely)
    - Form inputs using different selectors
    - Unlikely (selectors have fallbacks)
    - Fix: Add better error logging to helpers
-```
 
+```text
 #### Files to Check
+
 | File | Check | Status |
 |------|-------|--------|
 | [backend/seed_e2e_data.py](backend/seed_e2e_data.py) | Creates user? Logs output? | ⚠️ |
@@ -65,8 +68,10 @@ C) Test Helpers Wrong Selectors (10% likely)
 #### Proposed Fixes (in priority order)
 
 **Fix A: Add Seed Validation to Workflow** (15 min)
+
 ```yaml
 - name: Validate test data
+
   run: |
     python << 'EOF'
     from sqlalchemy import create_engine
@@ -85,11 +90,13 @@ C) Test Helpers Wrong Selectors (10% likely)
       print(f"✅ Test user exists: {user.email} (role: {user.role})")
       print(f"   Active: {user.is_active}, Password hash: {user.hashed_password[:20]}...")
     EOF
-```
 
+```text
 **Fix B: Add Login Endpoint Health Check** (20 min)
+
 ```yaml
 - name: Test login endpoint
+
   run: |
     python << 'EOF'
     import requests
@@ -109,9 +116,10 @@ C) Test Helpers Wrong Selectors (10% likely)
     else:
       print(f"❌ Login failed: {response.text}")
     EOF
-```
 
+```text
 **Fix C: Improve Test Helper Logging** (20 min)
+
 ```typescript
 // Add to login() function
 console.log('🔐 Attempting login with:', email);
@@ -121,15 +129,17 @@ page.on('response', (response) => {
     response.json().then(data => console.log('Response body:', data));
   }
 });
-```
 
+```text
 #### Time Estimate
+
 - Investigation: 30 minutes
 - Implementation: 45 minutes - 1 hour
 - Testing: 30 minutes
 - **Total: 1.5-2 hours**
 
 #### Success Criteria
+
 - [ ] Seed validation shows user exists
 - [ ] Login endpoint returns 200 OK
 - [ ] E2E tests pass locally (.\e2e-local.ps1)
@@ -145,14 +155,16 @@ page.on('response', (response) => {
 **Status:** Script exists but validation missing ⚠️
 
 #### The Problem
-```
+
+```text
 Test Data Issues:
 - Students list empty? Tests timeout waiting for students
 - Courses not created? Course selection fails
 - Enrollments not linked? Navigation fails
-```
 
+```text
 #### Current Seed Script Status
+
 ✅ Creates test user (test@example.com)
 ✅ Creates 4 test students
 ✅ Creates 2 test courses
@@ -163,6 +175,7 @@ Test Data Issues:
 #### Proposed Fixes
 
 **Fix: Add validation and expand seed**
+
 ```python
 # In seed_e2e_data.py, add:
 
@@ -189,9 +202,10 @@ Test Data Issues:
 
    assert student_count >= 4, "Insufficient students"
    assert course_count >= 2, "Insufficient courses"
-```
 
+```text
 #### Time Estimate
+
 - Review current seed: 15 minutes
 - Add enrollments: 20 minutes
 - Add validation: 20 minutes
@@ -199,6 +213,7 @@ Test Data Issues:
 - **Total: 1 hour**
 
 #### Success Criteria
+
 - [ ] Seed script creates students AND enrollments
 - [ ] Seed script prints what was created
 - [ ] Seed script validates counts are sufficient
@@ -216,7 +231,8 @@ Test Data Issues:
 **Status:** Diagnostic test added but output invisible ⚠️
 
 #### The Problem
-```
+
+```text
 We added a diagnostic test that logs:
 - Page HTML structure
 - Console errors
@@ -224,9 +240,10 @@ We added a diagnostic test that logs:
 
 But output doesn't appear in test results!
 → Can't see what the page actually contains
-```
 
+```text
 #### Proposed Fix
+
 ```typescript
 // Move diagnostic logic to fixtures instead of test
 export async function globalSetup(config: FullConfig) {
@@ -254,14 +271,16 @@ export async function globalSetup(config: FullConfig) {
 
   await browser.close();
 }
-```
 
+```text
 #### Time Estimate
+
 - Implementation: 30 minutes
 - Testing: 15 minutes
 - **Total: 45 minutes**
 
 #### Success Criteria
+
 - [ ] Diagnostic file created in test-results/
 - [ ] Contains page snapshot
 - [ ] Contains console logs
@@ -275,15 +294,18 @@ export async function globalSetup(config: FullConfig) {
 **Status:** Fixed 1 error, may have others
 
 #### Fixed This Session
+
 ✅ [frontend/tests/e2e/student-management.spec.ts](frontend/tests/e2e/student-management.spec.ts:232) - RegExp in selectOption
 
 #### Remaining Checks
+
 ```bash
 cd frontend && npx tsc --noEmit
 # Check output for other errors
-```
 
+```text
 #### Time Estimate
+
 - Check for remaining errors: 10 minutes
 - Fix if found: 15-30 minutes
 
@@ -292,12 +314,14 @@ cd frontend && npx tsc --noEmit
 ## 🟡 MEDIUM Priority Issues
 
 ### Issue #5: E2E Test Flakiness
+
 - Tests timeout intermittently
 - Need better wait strategies
 - **Fix Time:** 1.5-2 hours
 - **Files:** All E2E test files
 
 ### Issue #6: Test Coverage Not Aggregated
+
 - Backend coverage: OK
 - Frontend coverage: OK
 - Combined report: Missing
@@ -308,10 +332,12 @@ cd frontend && npx tsc --noEmit
 ## 🔵 LOW Priority Issues
 
 ### Issue #7: GitHub Actions Caching
+
 - Can optimize npm/pip/playwright caches
 - **Fix Time:** 1.5-2 hours
 
 ### Issue #8: Load Testing Disabled
+
 - Workflow exists but not integrated
 - **Fix Time:** 1.5 hours
 
@@ -320,7 +346,8 @@ cd frontend && npx tsc --noEmit
 ## 📅 Recommended Fix Schedule
 
 ### TODAY (If Continuing)
-```
+
+```text
 1. [30 min] Add seed validation to workflow
 2. [20 min] Add login endpoint health check
 3. [20 min] Expand seed to include enrollments
@@ -328,32 +355,35 @@ cd frontend && npx tsc --noEmit
 5. [30 min] Verify CI E2E passes
 
 Total: 2.5 hours → Goal: Fix #1 (login timeout)
-```
 
+```text
 ### TOMORROW
-```
+
+```text
 1. [45 min] Move diagnostic test to fixture
 2. [30 min] Improve test helper logging
 3. [30 min] Fix any remaining TypeScript errors
 4. [20 min] Document test data requirements
 
 Total: 2 hours → Goal: Better observability
-```
 
+```text
 ### THIS WEEK
-```
+
+```text
 1. [1.5 hours] Fix E2E flakiness
 2. [1 hour] Aggregate test coverage
 3. [1 hour] Optimize caching
 
 Total: 3.5 hours → Goal: Polish & optimize
-```
 
+```text
 ---
 
 ## 🎯 Key Metrics
 
 ### Before This Session
+
 | Metric | Value |
 |--------|-------|
 | Frontend rendering | ❌ Not working |
@@ -362,6 +392,7 @@ Total: 3.5 hours → Goal: Polish & optimize
 | CI pipeline | BLOCKED |
 
 ### After This Session
+
 | Metric | Value |
 |--------|-------|
 | Frontend rendering | ✅ Fixed |
@@ -370,6 +401,7 @@ Total: 3.5 hours → Goal: Polish & optimize
 | CI pipeline | Partially working |
 
 ### Target (End of Week)
+
 | Metric | Value |
 |--------|-------|
 | Frontend rendering | ✅ Working |
@@ -411,3 +443,4 @@ Total: 3.5 hours → Goal: Polish & optimize
 **Last Updated:** December 28, 2025, 8:00 PM UTC
 **Session Duration:** ~3.25 hours
 **Status:** Ready for next phase ✅
+

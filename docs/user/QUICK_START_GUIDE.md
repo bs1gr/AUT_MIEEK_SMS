@@ -15,14 +15,14 @@
 
 ```powershell
 .\DOCKER.ps1 -Start
-```
 
+```text
 ### For Native Development (Developers Only)
 
 ```powershell
 .\NATIVE.ps1 -Start
-```
 
+```text
 ---
 
 ## What DOCKER.ps1 Does Automatically
@@ -64,8 +64,8 @@
   Mode: Docker (Production)
 
 ═══════════════════════════════════════════════════════════
-```
 
+```text
 **Open your browser and go to:** `http://localhost:8080`
 
 ---
@@ -128,14 +128,14 @@ Use this if you prefer to create the admin account after the app is already runn
 ```powershell
 docker exec -it sms-app python /app/backend/tools/create_admin.py --email admin@example.com
 # Enter password when prompted
-```
 
+```text
 **For Native Development:**
 
 ```powershell
 python backend/tools/create_admin.py --email admin@example.com --password YourPassword123!
-```
 
+```text
 ### Troubleshooting Login
 
 **"Access Denied" message in Control Panel?**
@@ -167,8 +167,8 @@ python backend/tools/create_admin.py --email admin@example.com --password YourPa
   Mode: Native (Development)
 
 ═══════════════════════════════════════════════════════════
-```
 
+```text
 **Open your browser and go to:** `http://localhost:5173`
 
 ---
@@ -179,6 +179,7 @@ Use `DOCKER.ps1` for Docker deployment or `NATIVE.ps1` for native development:
 
 ```powershell
 # Docker commands
+
 .\DOCKER.ps1 -Start           # Start application
 .\DOCKER.ps1 -Stop            # Stop application
 .\DOCKER.ps1 -Status          # Check status
@@ -187,12 +188,13 @@ Use `DOCKER.ps1` for Docker deployment or `NATIVE.ps1` for native development:
 .\DOCKER.ps1 -Help            # Show all commands
 
 # Native development commands
+
 .\NATIVE.ps1 -Start           # Start backend + frontend
 .\NATIVE.ps1 -Stop            # Stop all processes
 .\NATIVE.ps1 -Status          # Check status
 .\NATIVE.ps1 -Help            # Show all commands
-```
 
+```text
 ---
 
 ## Prerequisites
@@ -216,8 +218,8 @@ Use `DOCKER.ps1` for Docker deployment or `NATIVE.ps1` for native development:
 3. Open PowerShell in the folder
 4. Run .\DOCKER.ps1 -Start
 5. Open browser to http://localhost:8080
-```
 
+```text
 ### Scenario 2: Developer Setup (Native Mode)
 
 ```text
@@ -230,13 +232,12 @@ Optional: run with `-DevEase` to enable a permissive local dev mode that relaxes
 
 ```powershell
 .\NATIVE.ps1 -Start -DevEase
-```
 
+```text
 5. Open browser to <http://localhost:5173>
 6. Hot reload enabled for development
 
-```
-
+```text
 ---
 
 ## Troubleshooting
@@ -261,12 +262,14 @@ Optional: run with `-DevEase` to enable a permissive local dev mode that relaxes
 
 ```powershell
 # Check what's using port 8080
+
 netstat -ano | findstr ":8080"
 
 # Stop SMS if running
-.\DOCKER.ps1 -Stop
-```
 
+.\DOCKER.ps1 -Stop
+
+```text
 ### Problem: "Failed to resolve import i18next"
 
 **Solution:** You're using the wrong URL for your mode
@@ -281,13 +284,15 @@ netstat -ano | findstr ":8080"
 
 ```powershell
 # For Docker - full rebuild
+
 .\DOCKER.ps1 -UpdateClean
 
 # For total reset (removes all data!)
+
 .\DOCKER.ps1 -DeepClean
 .\DOCKER.ps1 -Install
-```
 
+```text
 ---
 
 ## Quick Reference
@@ -296,20 +301,20 @@ netstat -ano | findstr ":8080"
 
 ```powershell
 .\DOCKER.ps1 -Start
-```
 
+```text
 ### To Stop
 
 ```powershell
 .\DOCKER.ps1 -Stop
-```
 
+```text
 ### To Check Status
 
 ```powershell
 .\DOCKER.ps1 -Status
-```
 
+```text
 ### To Open in Browser
 
 Open <http://localhost:8080> (Docker) or <http://localhost:5173> (native dev)
@@ -371,22 +376,23 @@ For Linux environments:
 ```bash
 ./scripts/linux_env_check.sh
 ./scripts/linux_env_check.sh --fix
-```
 
+```text
 - Start in Docker (recommended):
 
 ```bash
 pwsh ./DOCKER.ps1 -Start
-```
 
+```text
 - Start in native development (hot reload, devs only):
 
 ```bash
 pwsh ./NATIVE.ps1 -Start
-```
 
+```text
 If PowerShell 7+ (pwsh) is not available, you can fall back to:
 
 ```bash
 docker compose up -d --build
-```
+
+```text

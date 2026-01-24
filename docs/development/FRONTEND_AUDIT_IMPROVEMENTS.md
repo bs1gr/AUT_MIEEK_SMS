@@ -37,7 +37,7 @@ The Student Management System frontend demonstrates a **modern, well-structured 
 
 ### 1.1 Component Hierarchy
 
-```
+```text
 App (Root)
 ├── ErrorBoundary
 ├── AuthContext.Provider
@@ -56,16 +56,16 @@ App (Root)
         ├── /calendar → CalendarPage
         ├── /operations → OperationsPage
         └── /power → PowerPage
-```
 
+```text
 ### 1.2 Data Flow Patterns (EXCELLENT ✅)
 
-```
+```text
 Data Flow: API → useQuery hook → Zustand store → Component
 Cache Flow: useMutation → onSuccess → queryClient.invalidateQueries → refetch
 UI Updates: Store changes → Re-render only affected components (not whole tree)
-```
 
+```text
 **Key Observation:** Your architecture properly separates:
 
 1. **Server state** (via React Query) - API data with caching
@@ -75,7 +75,7 @@ UI Updates: Store changes → Re-render only affected components (not whole tree
 
 ### 1.3 Hook Architecture (STRONG 💪)
 
-```
+```text
 useStudentsQuery.ts/useCoursesQuery.ts
 ├── useStudents() - Fetch + filter
 ├── useStudent(id) - Single student
@@ -88,8 +88,8 @@ useStudentModals.ts - Composed modal hooks (add + edit)
 useCourseModals.ts - Same for courses
 useVirtualScroll.ts - Performance optimization
 useAutosave.ts - Auto-save functionality
-```
 
+```text
 This is a **best-practice pattern** that other React projects should follow.
 
 ### 1.4 Store Architecture (STRONG 💪)
@@ -100,8 +100,8 @@ Zustand stores (lightweight + TypeScript):
 ├── useCoursesStore - courses[], selectedCourse, methods
 ├── useGradesStore - grades[], selectedGrade, methods
 └── useAttendanceStore - attendance[], methods
-```
 
+```text
 **Benefit:** Unlike Redux, Zustand is:
 
 - Minimal boilerplate
@@ -135,8 +135,8 @@ function StudentsView({ students, onEdit, onDelete }) {
     </div>
   );
 }
-```
 
+```text
 #### Recommended Fix
 
 ```tsx
@@ -196,8 +196,8 @@ function StudentsView({ students, onEdit, onDelete }) {
     </table>
   );
 }
-```
 
+```text
 **Impact:** 30-40% reduction in render cycles for large lists
 
 ---
@@ -211,8 +211,8 @@ While loading, UI shows blank space or spinner. Better UX: skeleton screens.
 ```tsx
 // ❌ CURRENT
 if (isLoading) return <div>Loading...</div>;
-```
 
+```text
 #### Recommended Implementation
 
 ```tsx
@@ -239,8 +239,8 @@ function StudentsView({ students, loading }) {
     </table>
   );
 }
-```
 
+```text
 **Tailwind Classes for Skeleton:**
 
 ```css
@@ -253,8 +253,8 @@ function StudentsView({ students, loading }) {
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-```
 
+```text
 **Impact:** Perceived load time reduced by 20% (psychological effect)
 
 ---
@@ -268,8 +268,8 @@ API errors show static messages. Better: smart recovery strategies.
 ```tsx
 // ❌ CURRENT: One-time failure
 if (error) return <ErrorNotification message={error.message} />;
-```
 
+```text
 #### Recommended Implementation
 
 ```typescript
@@ -356,8 +356,8 @@ function StudentsPage() {
     </>
   );
 }
-```
 
+```text
 **Smart Error Categorization:**
 
 ```typescript
@@ -381,8 +381,8 @@ const errorMessages: Record<ErrorCategory, string> = {
   server: 'Server is having issues. We are working on it.',
   unknown: 'Something went wrong. Please try again.'
 };
-```
 
+```text
 **Impact:** User confidence +40%, error reports -60%
 
 ---
@@ -396,8 +396,8 @@ No protection against accidental multiple submissions or rapid API calls.
 ```tsx
 // ❌ CURRENT: User can spam submit button
 <button onClick={handleSubmit}>Save</button>
-```
 
+```text
 #### Recommended Implementation
 
 ```typescript
@@ -453,8 +453,8 @@ function StudentForm({ onSubmit }) {
     </form>
   );
 }
-```
 
+```text
 **Also Disable Button During Submission:**
 
 ```tsx
@@ -464,8 +464,8 @@ function StudentForm({ onSubmit }) {
 >
   {mutation.isPending ? 'Saving...' : 'Save'}
 </button>
-```
 
+```text
 **Impact:** Eliminates duplicate submissions, 50% fewer support tickets
 
 ---
@@ -479,8 +479,8 @@ You have `useVirtualScroll.ts` but it may not be used in all list views. Large l
 ```tsx
 // ❌ CURRENT: Renders all 1000 students
 {students.map(student => <StudentRow key={student.id} {...} />)}
-```
 
+```text
 #### Recommended Implementation
 
 Your `useVirtualScroll.ts` is great. Ensure it's applied to all major list views:
@@ -513,8 +513,8 @@ function StudentsView({ students }) {
     </div>
   );
 }
-```
 
+```text
 **Impact:** Renders 20 items instead of 1000 → 98% performance improvement
 
 ---
@@ -530,8 +530,8 @@ Entire bundle loads at once. Single SPA can be >500KB.
 import StudentsPage from '@/pages/StudentsPage';
 import CoursesPage from '@/pages/CoursesPage';
 import GradingPage from '@/pages/GradingPage';
-```
 
+```text
 #### Recommended Implementation
 
 ```tsx
@@ -568,8 +568,8 @@ function PageLoadingSpinner() {
     </div>
   );
 }
-```
 
+```text
 **Vite Config to Enable:**
 
 ```typescript
@@ -587,8 +587,8 @@ export default defineConfig({
     }
   }
 });
-```
 
+```text
 **Impact:** Initial bundle -50%, faster First Meaningful Paint
 
 ---
@@ -636,8 +636,8 @@ function StudentsView() {
   usePerformanceMonitor('StudentsView');
   // ... component code
 }
-```
 
+```text
 **Advanced: Track API Call Performance**
 
 ```typescript
@@ -659,8 +659,8 @@ export function useApiPerformance(endpoint: string) {
     return () => observer.unsubscribe();
   }, [endpoint, queryClient]);
 }
-```
 
+```text
 **Impact:** Proactive performance issues detection
 
 ---
@@ -686,8 +686,8 @@ const validate = () => {
   // ... more rules
   return newErrors;
 };
-```
 
+```text
 #### Recommended Implementation
 
 ```typescript
@@ -758,8 +758,8 @@ function StudentForm() {
     </form>
   );
 }
-```
 
+```text
 **Benefits:**
 
 - Single source of truth for validation rules
@@ -779,8 +779,8 @@ Check current bundle:
 
 ```bash
 npm run build -- --visualizer
-```
 
+```text
 #### Common Issues
 
 - Unused dependencies
@@ -802,16 +802,16 @@ npm run build -- --visualizer
     "lodash": "remove-if-unused"
   }
 }
-```
 
+```text
 **Check dependencies:**
 
 ```bash
 npm ls --all  # Find duplicate versions
 npm audit     # Find security issues + unused
 npm outdated  # Find old packages
-```
 
+```text
 **Tree-shake unused exports:**
 
 ```typescript
@@ -829,8 +829,8 @@ const debounce = (fn, delay) => {
     timeout = setTimeout(() => fn(...args), delay);
   };
 };
-```
 
+```text
 ---
 
 ### 2.10 🎯 PRIORITY 10: Testing Improvements
@@ -884,8 +884,8 @@ describe('Student Workflow Integration', () => {
     });
   });
 });
-```
 
+```text
 **Add Performance Tests:**
 
 ```typescript
@@ -908,8 +908,8 @@ describe('StudentList Performance', () => {
     expect(duration).toBeLessThan(500);
   });
 });
-```
 
+```text
 ---
 
 ## 3. IMPLEMENTATION ROADMAP
@@ -950,8 +950,8 @@ const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info')
   setToast({ message, type });
   setTimeout(() => setToast(null), 3000);
 };
-```
 
+```text
 **Improved:**
 
 ```tsx
@@ -970,8 +970,8 @@ function useToast() {
 
 // In component
 const { toast, show } = useToast();
-```
 
+```text
 ### 4.2 CoursesView.tsx
 
 **Already Using:**
@@ -1026,8 +1026,8 @@ interface FrontendMetrics {
     [componentName: string]: number; // ms
   };
 }
-```
 
+```text
 ### 5.2 Google Web Vitals Integration
 
 ```typescript
@@ -1040,8 +1040,8 @@ function setupWebVitals() {
   getLCP(metric => console.log('LCP:', metric.value));
   getTTFB(metric => console.log('TTFB:', metric.value));
 }
-```
 
+```text
 ---
 
 ## 6. SECURITY CHECKLIST
@@ -1060,15 +1060,17 @@ function setupWebVitals() {
 
 ```bash
 # Weekly checks
+
 npm audit                    # Check vulnerabilities
 npm outdated                 # Check outdated packages
 npm ls --all                 # Check for duplicates
 
 # Automated updates
+
 npm update --save            # Update patch versions
 npm update @latest --save    # Update all
-```
 
+```text
 ---
 
 ## 7. DEPLOYMENT OPTIMIZATION
@@ -1077,14 +1079,16 @@ npm update @latest --save    # Update all
 
 ```bash
 # Current
+
 npm run build           # Check build size
 npm run build -- --visualizer  # Visual analysis
 
 # Optimized
+
 npm run build -- --minify=terser
 npm run build -- --sourcemap=false  # Remove in production
-```
 
+```text
 ### 7.2 Production Deployment Checklist
 
 - [ ] Remove React DevTools
@@ -1166,3 +1170,4 @@ Your frontend architecture is **modern and well-structured**. These improvements
 **Document Version:** 1.0
 **Last Updated:** December 4, 2025
 **Maintainer:** Development Team
+

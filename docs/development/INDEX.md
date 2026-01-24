@@ -123,8 +123,8 @@ frontend/
 │   └── utils/        # Utility functions
 └── tests/
     └── e2e/          # Playwright E2E tests
-```
 
+```text
 ## 🔧 Development Tools
 
 ### Backend
@@ -179,12 +179,14 @@ Follow conventional commits:
 
 ```bash
 # Run with debugger
+
 python -m debugpy --listen 5678 --wait-for-client -m uvicorn backend.main:app --reload
 
 # View logs
-tail -f backend/logs/app.log
-```
 
+tail -f backend/logs/app.log
+
+```text
 ### Frontend Debugging
 
 - React DevTools extension
@@ -211,3 +213,4 @@ tail -f backend/logs/app.log
 - Check [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
 - Review [TODO.md](../../TODO.md) for current priorities
 - Ask in development discussions
+

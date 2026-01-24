@@ -11,6 +11,7 @@ This patch release addresses local development friction regarding pre-commit hoo
 ## 🚀 New Features
 
 ### CI/CD Maintenance
+
 - **Workflow Cleanup Automation**: Added `cleanup-workflow-runs.yml` to automatically delete old workflow runs.
   - Runs weekly (Sundays at midnight UTC).
   - Configurable retention count (default: 5).
@@ -19,6 +20,7 @@ This patch release addresses local development friction regarding pre-commit hoo
 ## 🐛 Bug Fixes
 
 ### Developer Experience
+
 - **Pre-commit Hook Logic**: Fixed an issue where pre-commit hooks in `COMMIT_READY.ps1` were running unconditionally, causing friction during local development iterations.
 - **Reset Scripts**: Enhanced safety checks in system reset scripts to prevent accidental data loss or misconfiguration.
 
@@ -36,3 +38,4 @@ No special upgrade steps required.
 ---
 
 *Generated for Student Management System $11.12.7*
+

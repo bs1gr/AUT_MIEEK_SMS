@@ -18,12 +18,14 @@ The Student Management System includes a comprehensive monitoring and alerting s
 
 ```bash
 # Start monitoring stack only
+
 docker-compose -f docker/docker-compose.monitoring.yml up -d
 
 # Start with main application
-docker-compose -f docker/docker-compose.yml -f docker/docker-compose.monitoring.yml up -d
-```
 
+docker-compose -f docker/docker-compose.yml -f docker/docker-compose.monitoring.yml up -d
+
+```text
 ### Accessing Services
 
 | Service | URL | Default Credentials |
@@ -87,8 +89,7 @@ Application (FastAPI)
                     │
                     └─> Grafana queries for dashboards
 
-```
-
+```text
 ### Logs Flow
 
 ```text
@@ -103,8 +104,8 @@ Application Logs
                     ├─> Stores in log database
                     │
                     └─> Grafana queries for log exploration
-```
 
+```text
 ## Available Metrics
 
 ### HTTP Metrics
@@ -225,63 +226,74 @@ Application Logs
 
 ```promql
 # Total request rate
+
 rate(sms_http_requests_total[5m])
 
 # Request rate by endpoint
-sum by (handler) (rate(sms_http_requests_total[5m]))
-```
 
+sum by (handler) (rate(sms_http_requests_total[5m]))
+
+```text
 **Response Time**:
 
 ```promql
 # 50th percentile (median)
+
 histogram_quantile(0.50, rate(sms_http_request_duration_seconds_bucket[5m]))
 
 # 95th percentile
+
 histogram_quantile(0.95, rate(sms_http_request_duration_seconds_bucket[5m]))
 
 # 99th percentile
-histogram_quantile(0.99, rate(sms_http_request_duration_seconds_bucket[5m]))
-```
 
+histogram_quantile(0.99, rate(sms_http_request_duration_seconds_bucket[5m]))
+
+```text
 **Error Rate**:
 
 ```promql
 # 4xx error rate
+
 rate(sms_http_requests_total{status=~"4.."}[5m])
 
 # 5xx error rate
+
 rate(sms_http_requests_total{status=~"5.."}[5m])
 
 # Error percentage
+
 (
   rate(sms_http_requests_total{status=~"5.."}[5m])
   /
   rate(sms_http_requests_total[5m])
 ) * 100
-```
 
+```text
 **Active Students**:
 
 ```promql
 # Total active students
+
 sms_students_total{status="active"}
 
 # Change over time
-rate(sms_students_total{status="active"}[1h])
-```
 
+rate(sms_students_total{status="active"}[1h])
+
+```text
 **Cache Performance**:
 
 ```promql
 # Cache hit rate
+
 (
   rate(sms_cache_hits_total[5m])
   /
   (rate(sms_cache_hits_total[5m]) + rate(sms_cache_misses_total[5m]))
 ) * 100
-```
 
+```text
 ## Querying Logs
 
 ### LogQL Basics
@@ -290,38 +302,38 @@ rate(sms_students_total{status="active"}[1h])
 
 ```logql
 {job="sms-backend"}
-```
 
+```text
 **Filter by log level**:
 
 ```logql
 {job="sms-backend", level="ERROR"}
-```
 
+```text
 **Search for specific text**:
 
 ```logql
 {job="sms-backend"} |= "authentication failed"
-```
 
+```text
 **Filter out noise**:
 
 ```logql
 {job="sms-backend"} != "health check"
-```
 
+```text
 **Extract and count errors**:
 
 ```logql
 sum(count_over_time({job="sms-backend", level="ERROR"}[5m]))
-```
 
+```text
 **Parse JSON logs**:
 
 ```logql
 {job="sms-backend"} | json | line_format "{{.level}} {{.message}}"
-```
 
+```text
 ## Troubleshooting
 
 ### Monitoring Stack Not Starting
@@ -332,16 +344,19 @@ sum(count_over_time({job="sms-backend", level="ERROR"}[5m]))
 
 ```bash
 # Check logs
+
 docker-compose -f docker-compose.monitoring.yml logs
 
 # Check port conflicts
+
 netstat -ano | findstr "3000 9090 9093 3100"
 
 # Remove old volumes
+
 docker-compose -f docker-compose.monitoring.yml down -v
 docker-compose -f docker-compose.monitoring.yml up -d
-```
 
+```text
 ### No Metrics in Prometheus
 
 **Problem**: Prometheus shows no data
@@ -418,6 +433,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 ```yaml
 # In docker-compose.monitoring.yml, add memory limits:
+
 services:
   prometheus:
     deploy:
@@ -426,8 +442,8 @@ services:
           memory: 2G
         reservations:
           memory: 1G
-```
 
+```text
 ## Performance Tuning
 
 ### Prometheus Retention
@@ -438,8 +454,8 @@ Adjust retention period in `docker-compose.monitoring.yml`:
 command:
   - '--storage.tsdb.retention.time=30d'  # Keep 30 days
   - '--storage.tsdb.retention.size=10GB'  # Max 10GB
-```
 
+```text
 ### Loki Retention
 
 Edit `monitoring/loki/loki-config.yml`:
@@ -447,8 +463,8 @@ Edit `monitoring/loki/loki-config.yml`:
 ```yaml
 limits_config:
   retention_period: 744h  # 31 days
-```
 
+```text
 ### Scrape Interval
 
 Balance between granularity and load:
@@ -462,8 +478,8 @@ Edit `monitoring/prometheus/prometheus.yml`:
 ```yaml
 global:
   scrape_interval: 15s
-```
 
+```text
 ## Security Best Practices
 
 1. **Change Default Credentials**
@@ -502,60 +518,70 @@ global:
 
 ```bash
 # Export dashboards
+
 curl -X GET http://admin:admin@localhost:3000/api/dashboards/db/sms-overview \
   > backup/sms-overview-$(date +%Y%m%d).json
-```
 
+```text
 ### Backup Prometheus Data
 
 ```bash
 # Stop Prometheus
+
 docker-compose -f docker-compose.monitoring.yml stop prometheus
 
 # Backup data directory
+
 tar -czf prometheus-backup-$(date +%Y%m%d).tar.gz \
   -C /var/lib/docker/volumes/student-management-system_prometheus-data/_data .
 
 # Restart Prometheus
-docker-compose -f docker-compose.monitoring.yml start prometheus
-```
 
+docker-compose -f docker-compose.monitoring.yml start prometheus
+
+```text
 ### Restore from Backup
 
 ```bash
 # Stop services
+
 docker-compose -f docker-compose.monitoring.yml down
 
 # Restore data
+
 tar -xzf prometheus-backup-20250118.tar.gz \
   -C /var/lib/docker/volumes/student-management-system_prometheus-data/_data
 
 # Restart services
-docker-compose -f docker-compose.monitoring.yml up -d
-```
 
+docker-compose -f docker-compose.monitoring.yml up -d
+
+```text
 ## Integration with CI/CD
 
 ### Health Checks in Deployment
 
 ```bash
 # Check if metrics endpoint is responding
+
 if ! curl -f http://localhost:8000/metrics > /dev/null 2>&1; then
     echo "ERROR: Metrics endpoint not responding"
     exit 1
 fi
 
 # Check Prometheus can scrape
+
 if ! curl -f http://localhost:9090/api/v1/targets | grep '"health":"up"' > /dev/null; then
     echo "ERROR: Prometheus cannot scrape targets"
     exit 1
 fi
-```
 
+```text
 ### Load Testing with Monitoring
 
 ```bash
 # Run load test while monitoring metrics
+
 docker run --rm --network host \
   grafana/k6 run \
   -u 100 \
@@ -563,9 +589,10 @@ docker run --rm --network host \
   loadtest.js
 
 # Watch metrics in real-time
-watch -n 1 'curl -s http://localhost:9090/api/v1/query?query=rate(sms_http_requests_total[1m])'
-```
 
+watch -n 1 'curl -s http://localhost:9090/api/v1/query?query=rate(sms_http_requests_total[1m])'
+
+```text
 ## Additional Resources
 
 - [Prometheus Documentation](https://prometheus.io/docs/)
@@ -582,3 +609,4 @@ For monitoring-related issues:
 2. Review service logs
 3. Consult [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
 4. Open an issue on GitHub
+

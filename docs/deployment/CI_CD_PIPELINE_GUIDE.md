@@ -11,7 +11,7 @@ The Student Management System uses a comprehensive multi-stage CI/CD pipeline th
 
 ### Pipeline Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                     PHASE 1: PRE-COMMIT VALIDATION                  │
 │  ✓ Version Verification  ✓ Linting  ✓ Type Checking               │
@@ -36,8 +36,8 @@ The Student Management System uses a comprehensive multi-stage CI/CD pipeline th
 │                     PHASE 5: DEPLOYMENT                             │
 │  Staging (auto) → Production (on tag) → Release Creation           │
 └─────────────────────────────────────────────────────────────────────┘
-```
 
+```text
 ---
 
 ## Workflows
@@ -63,8 +63,8 @@ version-verification:
   - Checks 11+ files for version references
   - Generates version verification report
   - Fails on critical inconsistencies
-```
 
+```text
 **Exit Codes:**
 
 - `0`: All versions consistent ✅
@@ -82,8 +82,8 @@ lint-backend:
 lint-frontend:
   - ESLint (JavaScript/TypeScript)
   - TypeScript compiler (type checking)
-```
 
+```text
 #### Stage 3: Automated Testing
 
 ```yaml
@@ -101,8 +101,8 @@ smoke-tests:
   - Integration testing
   - SMOKE_TEST.ps1 script
   - End-to-end validation
-```
 
+```text
 #### Stage 4: Build & Package
 
 ```yaml
@@ -117,8 +117,8 @@ build-docker-images:
   - GitHub Container Registry push
   - Automatic version tagging
   - Build cache optimization
-```
 
+```text
 **Docker Image Tags:**
 
 - `latest` - Latest main branch
@@ -139,8 +139,8 @@ security-scan-frontend:
 security-scan-docker:
   - Trivy (container scanning)
   - SARIF upload to GitHub Security tab
-```
 
+```text
 #### Stage 6: Documentation Validation
 
 ```yaml
@@ -149,8 +149,8 @@ cleanup-and-docs:
   - Find obsolete/deprecated files
   - Validate markdown links
   - Generate documentation index
-```
 
+```text
 #### Stage 7: Staging Deployment
 
 ```yaml
@@ -160,8 +160,8 @@ deploy-staging:
   - Auto-deployment
   - Health checks
   - URL: https://staging.sms.example.com
-```
 
+```text
 #### Stage 8: Production Deployment
 
 ```yaml
@@ -172,8 +172,8 @@ deploy-production:
   - Manual approval required (GitHub environment protection)
   - Health validation
   - URL: https://sms.example.com
-```
 
+```text
 #### Stage 9: Release Management
 
 ```yaml
@@ -182,8 +182,8 @@ create-release:
   - Downloads all build artifacts
   - Creates GitHub Release
   - Attaches test reports, coverage, etc.
-```
 
+```text
 #### Stage 10: Monitoring
 
 ```yaml
@@ -191,8 +191,8 @@ post-deployment-monitoring:
   - 5-minute health monitoring
   - Error rate checking
   - Performance validation
-```
 
+```text
 ---
 
 ### 2. quickstart-validation.yml (Fast Pre-Commit)
@@ -237,8 +237,8 @@ verify-version-consistency:
   - Validates version matches release tag
   - Fails workflow if inconsistencies detected
   - Provides clear error messages with fix instructions
-```
 
+```text
 #### Stage 2: Installer Check & Build
 
 ```yaml
@@ -252,8 +252,8 @@ build-installer-if-needed:
   - Fixes Greek language encoding
   - Compiles with Inno Setup
   - Code signs with AUT MIEEK certificate
-```
 
+```text
 #### Stage 3: SHA256 Calculation
 
 ```yaml
@@ -261,8 +261,8 @@ calculate-sha256:
   - Computes SHA256 hash using PowerShell Get-FileHash
   - Calculates file size in MB
   - Outputs hash for verification instructions
-```
 
+```text
 #### Stage 4: Release Integration
 
 ```yaml
@@ -276,8 +276,8 @@ upload-installer-asset:
   - Uploads installer as release asset
   - Sets proper content-type (application/octet-stream)
   - Only for release events (not manual dispatch)
-```
 
+```text
 #### Stage 5: Summary & Notifications
 
 ```yaml
@@ -288,23 +288,26 @@ create-summary:
 post-notifications:
   - Success notification with installer details
   - Failure notification for troubleshooting
-```
 
+```text
 **Usage:**
 
 ```bash
 # Automatic (on release creation)
+
 git tag -a $11.12.2 -m "Release $11.12.2"
 git push origin $11.12.2
 # → Workflow triggers automatically
 
 # Manual (for existing releases)
+
 # Go to Actions → Release - Build & Upload Installer with SHA256
 # Click "Run workflow"
+
 # Enter: $11.12.2
 # Click "Run workflow" button
-```
 
+```text
 **Benefits:**
 
 - ✅ Ensures version consistency before building
@@ -324,24 +327,28 @@ The pipeline integrates with the automated version management system:
 
 ```powershell
 # VERIFY_VERSION.ps1 is called in version-verification job
+
 .\scripts\VERIFY_VERSION.ps1 -CheckOnly
 
 # Exit codes determine pipeline behavior:
+
 # - 0: Continue (all consistent)
 # - 1: Fail pipeline (critical issues)
-# - 2: Fail pipeline (inconsistencies)
-```
 
+# - 2: Fail pipeline (inconsistencies)
+
+```text
 **Automatic Version Extraction:**
 
 ```yaml
 - name: Extract version from VERSION file
+
   id: version
   run: |
     VERSION=$(cat VERSION | tr -d '[:space:]')
     echo "version=$VERSION" >> $GITHUB_OUTPUT
-```
 
+```text
 This version is used for:
 
 - Docker image tagging
@@ -352,15 +359,18 @@ This version is used for:
 
 ```powershell
 # SMOKE_TEST.ps1 runs comprehensive validation
+
 .\scripts\SMOKE_TEST.ps1
 
 # Validates:
+
 # - 263 backend tests
 # - Database migrations
+
 # - Health endpoints
 # - Configuration consistency
-```
 
+```text
 ---
 
 ## Artifacts Generated
@@ -429,56 +439,67 @@ Configure in GitHub Settings → Environments:
 
 ```bash
 # 1. Make changes
+
 git checkout -b feature/new-feature
 # ... make code changes ...
 
 # 2. Push to trigger quickstart validation
+
 git push origin feature/new-feature
 # ⚡ quickstart-validation.yml runs (~5 min)
 
 # 3. Create PR
+
 gh pr create --title "Add new feature"
 # 🔄 Both quickstart + full ci-cd run
 
 # 4. After PR approval, merge to main
+
 gh pr merge --squash
 # 🚀 Full pipeline runs, deploys to staging
 
 # 5. Tag for production release
+
 git tag -a $11.9.7 -m "Release $11.9.7"
 git push origin $11.9.7
 # 🎯 Production deployment + GitHub Release
-```
 
+```text
 ### Manual Version Update Workflow
 
 ```bash
 # 1. Update version
+
 Set-Content .\VERSION "1.9.0"
 
 # 2. Run automated version update
+
 .\scripts\VERIFY_VERSION.ps1 -Update -Report
 
 # 3. Commit changes
+
 git add -A
 git commit -m "chore: bump version to 1.9.0"
 
 # 4. Push - pipeline validates version consistency
+
 git push origin main
 # ✅ version-verification job passes
-```
 
+```text
 ### Manual Deployment Trigger
 
 ```bash
 # Deploy to specific environment via GitHub CLI
+
 gh workflow run ci-cd-pipeline.yml \
   --field deploy_environment=staging
 
 # Or via GitHub UI:
-# Actions → CI/CD Pipeline → Run workflow → Select environment
-```
 
+# Actions → CI/CD Pipeline → Run workflow → Select environment
+
+```text
 ---
 
 ## Customization Guide
@@ -487,6 +508,7 @@ gh workflow run ci-cd-pipeline.yml \
 
 ```yaml
 # Add after test-frontend job
+
 custom-e2e-tests:
   name: 🌐 E2E Tests (Playwright)
   runs-on: ubuntu-latest
@@ -494,16 +516,20 @@ custom-e2e-tests:
   steps:
     - uses: actions/checkout@v4
     - name: Install Playwright
+
       run: cd frontend && npx playwright install
     - name: Run E2E tests
-      run: cd frontend && npm run test:e2e
-```
 
+      run: cd frontend && npm run test:e2e
+
+```text
 ### Adding Notification Integrations
 
 ```yaml
 # Add to notify-completion job
+
 - name: Send Slack notification
+
   uses: slackapi/slack-github-action@v1
   with:
     webhook-url: ${{ secrets.SLACK_WEBHOOK }}
@@ -520,15 +546,17 @@ custom-e2e-tests:
           }
         ]
       }
-```
 
+```text
 ### Custom Deployment Scripts
 
 Replace placeholder deployment commands:
 
 ```yaml
 # In deploy-production job
+
 - name: Deploy to production
+
   run: |
     # SSH deployment example
     ssh ${{ secrets.PROD_USER }}@${{ secrets.PROD_HOST }} << 'EOF'
@@ -542,8 +570,8 @@ Replace placeholder deployment commands:
     kubectl set image deployment/sms-app \
       sms-app=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
     kubectl rollout status deployment/sms-app
-```
 
+```text
 ---
 
 ## Monitoring & Debugging
@@ -552,37 +580,40 @@ Replace placeholder deployment commands:
 
 ```bash
 # List recent workflow runs
+
 gh run list --workflow=ci-cd-pipeline.yml
 
 # Watch live run
+
 gh run watch
 
 # View logs for failed run
-gh run view <run-id> --log-failed
-```
 
+gh run view <run-id> --log-failed
+
+```text
 ### Common Issues
 
 #### Version Verification Fails
 
-```
+```text
 ❌ Version inconsistencies detected
-```
 
+```text
 **Solution:**
 
 ```powershell
 .\scripts\VERIFY_VERSION.ps1 -Update
 git add -A
 git commit -m "fix: update version references"
-```
 
+```text
 #### Docker Build Fails
 
-```
+```text
 ERROR: failed to solve: failed to push
-```
 
+```text
 **Solution:**
 
 - Check GITHUB_TOKEN permissions
@@ -591,10 +622,10 @@ ERROR: failed to solve: failed to push
 
 #### Tests Timeout
 
-```
+```text
 Error: The operation was canceled.
-```
 
+```text
 **Solution:**
 
 - Increase timeout in workflow YAML
@@ -611,6 +642,7 @@ Error: The operation was canceled.
 
    ```yaml
    - uses: actions/cache@v3
+
      with:
        path: ~/.npm
        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -690,3 +722,4 @@ Error: The operation was canceled.
 **Last Updated:** 2025-11-24
 **Maintained By:** SMS Development Team
 **Pipeline Version:** 1.0.0
+

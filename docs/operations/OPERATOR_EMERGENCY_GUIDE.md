@@ -14,16 +14,18 @@ Safe operator workflow
 
 ```powershell
 # Request the server to stop the frontend via control API
-.\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000' -AdminToken '<admin-token-if-needed>'
-```
 
+.\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000' -AdminToken '<admin-token-if-needed>'
+
+```text
 2. If the control API is not available and you must perform emergency host-level termination, run the interactive operator script (requires explicit confirmation):
 
 ```powershell
 # Interactive emergency frontend shutdown (operator-only)
-.\scripts\operator\KILL_FRONTEND_NOW.ps1 -Confirm
-```
 
+.\scripts\operator\KILL_FRONTEND_NOW.ps1 -Confirm
+
+```text
 Notes:
 
 - The `scripts/operator/KILL_FRONTEND_NOW.ps1` script is intentionally destructive and requires `-Confirm` to proceed.
@@ -46,3 +48,4 @@ References
 - Backend gating (_safe_run/_allow_taskkill): `backend/main.py`
 
 If you need further help, contact the on-call operator or open an issue in the ops tracker.
+

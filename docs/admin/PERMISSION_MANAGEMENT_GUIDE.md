@@ -47,8 +47,8 @@ After deploying $11.15.2+, run the permission seeding script:
 ```bash
 cd backend
 python ops/seed_rbac_data.py
-```
 
+```text
 This creates:
 - **26 permissions** across 8 domains
 - **3 default roles** (admin, teacher, viewer)
@@ -66,23 +66,23 @@ This creates:
 
 ```bash
 python backend/ops/seed_rbac_data.py
-```
 
+```text
 **Dry run** (preview without changes):
 
 ```bash
 python backend/ops/seed_rbac_data.py --dry-run
-```
 
+```text
 **Verification only** (check existing data):
 
 ```bash
 python backend/ops/seed_rbac_data.py --verify
-```
 
+```text
 ### Seed Script Output
 
-```
+```text
 ======================================================================
 RBAC Data Seeding Script
 ======================================================================
@@ -111,8 +111,8 @@ Permissions: 0 created, 0 updated, 26 unchanged
 Roles: 0 created, 0 updated, 3 unchanged
 Role-Permission Mappings: 0 created, 44 skipped
 ======================================================================
-```
 
+```text
 ### What Gets Seeded
 
 **Permissions** (26 total):
@@ -149,8 +149,8 @@ SELECT id, name, description, is_active, created_at
 FROM roles
 WHERE is_active = 1
 ORDER BY name;
-```
 
+```text
 **Expected Output**:
 
 | id | name | description | is_active | created_at |
@@ -170,18 +170,18 @@ JOIN role_permissions rp ON p.id = rp.permission_id
 WHERE rp.role_id = 1  -- Change role_id as needed
   AND p.is_active = 1
 ORDER BY p.resource, p.action;
-```
 
+```text
 **Example Output for admin role**:
 
-```
+```text
 attendance:delete | attendance | delete | Delete attendance records
 attendance:edit   | attendance | edit   | Log and update attendance
 attendance:view   | attendance | view   | View attendance records
 ...
 (26 rows - admin has all permissions)
-```
 
+```text
 ### Create Custom Role
 
 **Using SQL**:
@@ -189,14 +189,14 @@ attendance:view   | attendance | view   | View attendance records
 ```sql
 INSERT INTO roles (name, description, is_active, created_at, updated_at)
 VALUES ('instructor', 'Teaching assistant with limited access', 1, datetime('now'), datetime('now'));
-```
 
+```text
 **Verify Creation**:
 
 ```sql
 SELECT * FROM roles WHERE name = 'instructor';
-```
 
+```text
 ---
 
 ## Granting Permissions
@@ -215,8 +215,8 @@ SELECT id FROM permissions WHERE key = 'grades:edit';  -- e.g., returns 10
 -- Step 3: Grant permission
 INSERT INTO role_permissions (role_id, permission_id, created_at)
 VALUES (4, 10, datetime('now'));
-```
 
+```text
 **Method 2: Using API** (POST `/api/v1/permissions/roles/grant`):
 
 ```bash
@@ -227,8 +227,8 @@ curl -X POST http://localhost:8080/api/v1/permissions/roles/grant \
     "role_name": "instructor",
     "permission_key": "grades:edit"
   }'
-```
 
+```text
 **Response**:
 
 ```json
@@ -237,8 +237,8 @@ curl -X POST http://localhost:8080/api/v1/permissions/roles/grant \
   "role_name": "instructor",
   "permission_key": "grades:edit"
 }
-```
 
+```text
 ### Grant Multiple Permissions to Role
 
 **Bulk SQL Insert**:
@@ -249,8 +249,8 @@ INSERT INTO role_permissions (role_id, permission_id, created_at)
 SELECT 4, id, datetime('now')
 FROM permissions
 WHERE key IN ('grades:view', 'grades:edit', 'attendance:view', 'attendance:edit');
-```
 
+```text
 **Verify**:
 
 ```sql
@@ -258,8 +258,8 @@ SELECT p.key
 FROM permissions p
 JOIN role_permissions rp ON p.id = rp.permission_id
 WHERE rp.role_id = 4;
-```
 
+```text
 ### Grant Permission Directly to User
 
 **Use Case**: Temporary access or special cases
@@ -274,8 +274,8 @@ SELECT id FROM permissions WHERE key = 'audit:view';          -- e.g., 23
 -- Step 2: Grant permission
 INSERT INTO user_permissions (user_id, permission_id, granted_by, granted_at, expires_at)
 VALUES (42, 23, 1, datetime('now'), datetime('now', '+7 days'));
-```
 
+```text
 **Note**: `granted_by` should be the ID of the admin granting the permission.
 
 ---
@@ -290,8 +290,8 @@ VALUES (42, 23, 1, datetime('now'), datetime('now', '+7 days'));
 DELETE FROM role_permissions
 WHERE role_id = (SELECT id FROM roles WHERE name = 'instructor')
   AND permission_id = (SELECT id FROM permissions WHERE key = 'grades:edit');
-```
 
+```text
 **Method 2: Using API** (POST `/api/v1/permissions/roles/revoke`):
 
 ```bash
@@ -302,8 +302,8 @@ curl -X POST http://localhost:8080/api/v1/permissions/roles/revoke \
     "role_name": "instructor",
     "permission_key": "grades:edit"
   }'
-```
 
+```text
 ### Revoke All Permissions from Role
 
 **SQL**:
@@ -311,8 +311,8 @@ curl -X POST http://localhost:8080/api/v1/permissions/roles/revoke \
 ```sql
 DELETE FROM role_permissions
 WHERE role_id = (SELECT id FROM roles WHERE name = 'instructor');
-```
 
+```text
 **Warning**: This removes ALL permissions from the role.
 
 ### Revoke Direct User Permission
@@ -323,8 +323,8 @@ WHERE role_id = (SELECT id FROM roles WHERE name = 'instructor');
 DELETE FROM user_permissions
 WHERE user_id = (SELECT id FROM users WHERE email = 'temp.admin@example.com')
   AND permission_id = (SELECT id FROM permissions WHERE key = 'audit:view');
-```
 
+```text
 ---
 
 ## User Permission Workflows
@@ -338,8 +338,8 @@ WHERE user_id = (SELECT id FROM users WHERE email = 'temp.admin@example.com')
 UPDATE users
 SET role_id = (SELECT id FROM roles WHERE name = 'teacher')
 WHERE email = 'instructor@example.com';
-```
 
+```text
 **Verify**:
 
 ```sql
@@ -347,8 +347,8 @@ SELECT u.email, r.name as role
 FROM users u
 LEFT JOIN roles r ON u.role_id = r.id
 WHERE u.email = 'instructor@example.com';
-```
 
+```text
 ### View All User Permissions
 
 **SQL** (combines role permissions + direct permissions):
@@ -375,8 +375,8 @@ WHERE u.email = 'instructor@example.com'
   AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
 
 ORDER BY key;
-```
 
+```text
 ### Check If User Has Specific Permission
 
 **SQL**:
@@ -406,8 +406,8 @@ FROM (
       AND p.is_active = 1
       AND (up.expires_at IS NULL OR up.expires_at > datetime('now'))
 );
-```
 
+```text
 **Result**: `has_permission = 1` means user has the permission, `0` means they don't.
 
 ---
@@ -456,14 +456,14 @@ FROM (
 
 ```sql
 SELECT * FROM permissions WHERE key = 'students:edit';
-```
 
+```text
 **If missing**, re-run seeding script:
 
 ```bash
 python backend/ops/seed_rbac_data.py
-```
 
+```text
 ### Expired Direct Permissions
 
 **Symptom**: User had access yesterday but not today
@@ -476,8 +476,8 @@ FROM user_permissions up
 JOIN permissions p ON up.permission_id = p.id
 WHERE up.user_id = (SELECT id FROM users WHERE email = 'user@example.com')
   AND up.expires_at < datetime('now');
-```
 
+```text
 **Solution**: Grant new permission or remove expiration:
 
 ```sql
@@ -485,8 +485,8 @@ UPDATE user_permissions
 SET expires_at = NULL
 WHERE user_id = (SELECT id FROM users WHERE email = 'user@example.com')
   AND permission_id = (SELECT id FROM permissions WHERE key = 'audit:view');
-```
 
+```text
 ### Check Permission Audit Trail
 
 **View recent permission grants**:
@@ -504,8 +504,8 @@ JOIN permissions p ON up.permission_id = p.id
 LEFT JOIN users granter ON up.granted_by = granter.id
 ORDER BY up.granted_at DESC
 LIMIT 20;
-```
 
+```text
 ---
 
 ## Security Best Practices
@@ -523,15 +523,15 @@ SELECT
     datetime('now')
 FROM permissions
 WHERE key IN ('grades:view', 'grades:edit', 'students:view');
-```
 
+```text
 ❌ **DON'T**: Grant admin to everyone
 
 ```sql
 -- Bad: Giving full admin access to instructors
 UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'admin');
-```
 
+```text
 ### 2. Use Role-Based Permissions
 
 ✅ **DO**: Assign permissions to roles, then roles to users
@@ -551,8 +551,8 @@ WHERE key IN ('grades:view', 'grades:edit');
 
 UPDATE users SET role_id = (SELECT id FROM roles WHERE name = 'grader')
 WHERE email IN ('ta1@example.com', 'ta2@example.com');
-```
 
+```text
 ❌ **DON'T**: Grant permissions directly to individual users (except for temporary access)
 
 ### 3. Use Expiration for Temporary Access
@@ -569,8 +569,8 @@ VALUES (
     datetime('now'),
     datetime('now', '+7 days')
 );
-```
 
+```text
 ### 4. Regular Audits
 
 **Monthly permission review query**:
@@ -588,8 +588,8 @@ JOIN permissions p ON up.permission_id = p.id
 LEFT JOIN users granter ON up.granted_by = granter.id
 WHERE up.expires_at IS NULL OR up.expires_at > datetime('now')
 ORDER BY u.email;
-```
 
+```text
 **Export role permissions matrix**:
 
 ```sql
@@ -603,8 +603,8 @@ JOIN permissions p ON rp.permission_id = p.id
 WHERE r.is_active = 1 AND p.is_active = 1
 GROUP BY r.name, p.resource
 ORDER BY r.name, p.resource;
-```
 
+```text
 ### 5. Protect Admin Role
 
 ✅ **DO**: Limit admin role to 1-2 trusted users
@@ -613,8 +613,8 @@ ORDER BY r.name, p.resource;
 -- Check who has admin role
 SELECT email FROM users
 WHERE role_id = (SELECT id FROM roles WHERE name = 'admin');
-```
 
+```text
 ✅ **DO**: Use separate roles for day-to-day operations
 
 ```sql
@@ -629,8 +629,8 @@ SELECT
     datetime('now')
 FROM permissions
 WHERE key NOT LIKE 'system:%';
-```
 
+```text
 ---
 
 ## Common Permission Scenarios
@@ -644,8 +644,8 @@ WHERE key NOT LIKE 'system:%';
 UPDATE users
 SET role_id = (SELECT id FROM roles WHERE name = 'teacher')
 WHERE email = 'new.teacher@example.com';
-```
 
+```text
 **Teacher role includes**:
 - `courses:view`, `courses:create`, `courses:edit`
 - `students:view`
@@ -666,8 +666,8 @@ VALUES (
     datetime('now'),
     datetime('now', '+14 days')
 );
-```
 
+```text
 ### Scenario 3: Promote User to Admin
 
 **Goal**: Elevate trusted user to full admin
@@ -682,8 +682,8 @@ WHERE u.email = 'trusted.user@example.com';
 UPDATE users
 SET role_id = (SELECT id FROM roles WHERE name = 'admin')
 WHERE email = 'trusted.user@example.com';
-```
 
+```text
 ### Scenario 4: Create Custom "Registrar" Role
 
 **Goal**: User who manages student records but not grades
@@ -714,8 +714,8 @@ WHERE key IN (
 UPDATE users
 SET role_id = (SELECT id FROM roles WHERE name = 'registrar')
 WHERE email IN ('registrar1@example.com', 'registrar2@example.com');
-```
 
+```text
 ---
 
 ## API Endpoints for Permission Management
@@ -724,8 +724,8 @@ WHERE email IN ('registrar1@example.com', 'registrar2@example.com');
 
 ```bash
 GET /api/v1/permissions/
-```
 
+```text
 **Response**:
 
 ```json
@@ -740,14 +740,14 @@ GET /api/v1/permissions/
   },
   ...
 ]
-```
 
+```text
 ### Get Permissions Grouped by Resource
 
 ```bash
 GET /api/v1/permissions/by-resource
-```
 
+```text
 **Response**:
 
 ```json
@@ -761,14 +761,14 @@ GET /api/v1/permissions/by-resource
   },
   ...
 ]
-```
 
+```text
 ### Get Permission Statistics
 
 ```bash
 GET /api/v1/permissions/stats
-```
 
+```text
 **Response**:
 
 ```json
@@ -789,8 +789,8 @@ GET /api/v1/permissions/stats
     ...
   ]
 }
-```
 
+```text
 ### Grant Permission to Role
 
 ```bash
@@ -801,8 +801,8 @@ Content-Type: application/json
   "role_name": "teacher",
   "permission_key": "students:edit"
 }
-```
 
+```text
 ### Revoke Permission from Role
 
 ```bash
@@ -813,14 +813,14 @@ Content-Type: application/json
   "role_name": "teacher",
   "permission_key": "students:delete"
 }
-```
 
+```text
 ### Get User's Effective Permissions
 
 ```bash
 GET /api/v1/permissions/users/{user_id}
-```
 
+```text
 **Response**:
 
 ```json
@@ -841,8 +841,8 @@ GET /api/v1/permissions/users/{user_id}
     ...
   ]
 }
-```
 
+```text
 ---
 
 ## Backup & Restore
@@ -861,28 +861,28 @@ SELECT * FROM role_permissions;
 SELECT * FROM user_permissions;
 .quit
 EOF
-```
 
+```text
 **Or use Python script**:
 
 ```bash
 python backend/ops/seed_rbac_data.py --export rbac_backup.json
-```
 
+```text
 ### Restore from Backup
 
 **Re-run seeding script** (safest):
 
 ```bash
 python backend/ops/seed_rbac_data.py
-```
 
+```text
 **Or restore from SQL backup**:
 
 ```bash
 sqlite3 data/student_management.db < rbac_backup.sql
-```
 
+```text
 ---
 
 ## Maintenance
@@ -894,8 +894,8 @@ sqlite3 data/student_management.db < rbac_backup.sql
 ```sql
 DELETE FROM user_permissions
 WHERE expires_at < datetime('now');
-```
 
+```text
 ### Deactivate Permission (Don't Delete)
 
 **Better than deletion** (preserves history):
@@ -904,16 +904,16 @@ WHERE expires_at < datetime('now');
 UPDATE permissions
 SET is_active = 0, updated_at = datetime('now')
 WHERE key = 'old:permission';
-```
 
+```text
 ### Re-activate Permission
 
 ```sql
 UPDATE permissions
 SET is_active = 1, updated_at = datetime('now')
 WHERE key = 'old:permission';
-```
 
+```text
 ---
 
 ## Support & Documentation
@@ -928,3 +928,4 @@ WHERE key = 'old:permission';
 **Last Updated**: January 8, 2026
 **Version**: 1.15.1
 **Reviewed By**: Phase 2 RBAC Team
+

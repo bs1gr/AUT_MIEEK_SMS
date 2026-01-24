@@ -14,6 +14,7 @@
 This document defines all permissions for the Student Management System's Role-Based Access Control (RBAC) implementation.
 
 ### Permission Naming Convention
+
 - Format: `<domain>:<action>`
 - Domain: students, courses, grades, attendance, reports, audit, users, system
 - Action: view, create, edit, delete, manage
@@ -158,6 +159,7 @@ This document defines all permissions for the Student Management System's Role-B
 ## 🎭 Role Definitions
 
 ### Admin Role (Default: All Permissions)
+
 ```python
 admin_permissions = [
     "students:view", "students:create", "students:edit", "students:delete",
@@ -172,9 +174,10 @@ admin_permissions = [
     "system:import", "system:export",
     "notifications:manage",
 ]
-```
 
+```text
 ### Teacher Role (Teaching Permissions)
+
 ```python
 teacher_permissions = [
     "students:view", "students:edit",  # Can view and update (limited)
@@ -186,9 +189,10 @@ teacher_permissions = [
     "system:export",  # Can export for grading
     "notifications:manage",  # Can send class announcements (limited)
 ]
-```
 
+```text
 ### Viewer Role (Read-Only)
+
 ```python
 viewer_permissions = [
     "students:view",
@@ -199,19 +203,21 @@ viewer_permissions = [
     "reports:view",  # Limited reports
     "analytics:view",  # Limited analytics
 ]
-```
 
+```text
 ---
 
 ## 🔄 Permission Hierarchy & Combinations
 
 ### Implicit Permissions
+
 Some permissions imply others:
 - `students:edit` implies `students:view`
 - `grades:edit` implies `grades:view`
 - `permissions:manage` implies `permissions:view`
 
 ### Combined Permissions
+
 Some operations require multiple permissions:
 - **Grade calculation**: `grades:view` + `attendance:view`
 - **Student report**: `students:view` + `grades:view` + `attendance:view`
@@ -244,17 +250,20 @@ Some operations require multiple permissions:
 ## 🚀 Implementation Plan
 
 ### Phase 1: Database Changes (Week 1)
+
 1. Create `permissions` table
 2. Create `role_permissions` junction table
 3. Seed 25 permissions
 4. Assign default permissions to roles
 
 ### Phase 2: Backend Implementation (Week 2)
+
 1. Implement `@require_permission()` decorator
 2. Refactor all admin endpoints to use permissions
 3. Add permission checks to existing endpoints
 
 ### Phase 3: API & UI (Week 3)
+
 1. Create permission management API
 2. Build admin UI for role/permission management
 3. Add permission indicators in UI
@@ -290,3 +299,4 @@ Some operations require multiple permissions:
 **Status**: ✅ APPROVED & READY FOR IMPLEMENTATION
 **Deliverables**: 2 markdown documents + endpoint mapping complete
 **Next Phase**: Step 2 - Database Schema & Migration (#90)
+

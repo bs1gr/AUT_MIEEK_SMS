@@ -22,26 +22,31 @@
 ## 🗂️ File-by-File Analysis
 
 ### 1. **backend/rbac.py** (389 lines) ✅ READY
+
 **Status**: Production-ready RBAC utilities
 
 **Key Functions**:
+
 ```python
 # Permission checking (supports 3 sources)
+
 has_permission(user, permission_key, db) -> bool
   ├─ Direct: UserPermission (with expiration)
   ├─ Role-based: UserRole → RolePermission
   └─ Legacy: User.role == "admin" (all permissions)
 
 # Decorators (not yet used in endpoints)
+
 @require_permission("students:view", allow_self_access=True)
 @require_any_permission("grades:view", "grades:edit")  # OR logic
 @require_all_permissions("students:edit", "users:manage")  # AND logic
 
 # Helpers
+
 get_user_permissions(user, db) -> list[str]  # Get all user permissions
 check_permission(current_user, db) -> callable  # Dependency for inline checks
-```
 
+```text
 **Self-Access Logic** (Lines 98-163):
 - ✅ Students can access own data (`_is_self_access()` helper)
 - ✅ Checks path params (`student_id`) and query params (`user_id`)
@@ -62,17 +67,19 @@ check_permission(current_user, db) -> callable  # Dependency for inline checks
 ---
 
 ### 2. **backend/security/current_user.py** (102 lines) ✅ SOLID
+
 **Status**: Authentication foundation (used by all endpoints)
 
 **Key Function**:
+
 ```python
 get_current_user(request, token, db) -> User | SimpleNamespace
   ├─ AUTH_MODE="disabled" → Returns dummy admin user
   ├─ AUTH_MODE="permissive" → Allows both auth + dummy
   ├─ AUTH_MODE="strict" → Requires bearer token
   └─ Validates JWT, fetches User from DB
-```
 
+```text
 **AUTH_MODE Behavior** (Lines 28-73):
 - `disabled`: Always returns dummy admin (for tests)
 - `permissive`: Returns dummy if no auth header, validates if present
@@ -88,30 +95,36 @@ get_current_user(request, token, db) -> User | SimpleNamespace
 ---
 
 ### 3. **backend/routers/routers_auth.py** (1070 lines) ⚠️ LEGACY
+
 **Status**: Currently used by all admin endpoints (148 endpoints)
 
 **Key Functions**:
+
 ```python
 # Legacy role-based auth (lines 305-344)
+
 require_role(*roles: str)  # ❌ STRICT: Enforces role always
 optional_require_role(*roles: str)  # ✅ FLEXIBLE: Respects AUTH_MODE
 
 # Used by 20+ endpoints (sample from grep):
+
 @router.get("/admin/users")
 async def list_users(
     current_admin: Any = Depends(optional_require_role("admin")),
     db: Session = Depends(get_db),
 ):
     ...
-```
 
+```text
 **Usage Statistics** (from grep search):
 - ✅ `optional_require_role` used in **20+ matches** across routers
 - ❌ `@require_permission` used in **0 matches** (new decorator not adopted)
 
 **Migration Path**:
+
 ```python
 # OLD (current - 148 endpoints)
+
 @router.post("/students/")
 async def create_student(
     current_admin: Any = Depends(optional_require_role("admin")),
@@ -119,6 +132,7 @@ async def create_student(
 ):
 
 # NEW (Phase 2 target - 148 endpoints)
+
 @router.post("/students/")
 @require_permission("students:create")
 async def create_student(
@@ -126,8 +140,8 @@ async def create_student(
     db: Session = Depends(get_db),
     ...
 ):
-```
 
+```text
 **Backward Compatibility Plan**:
 1. Keep `optional_require_role` functional during migration
 2. Migrate endpoints incrementally (by router file)
@@ -138,6 +152,7 @@ async def create_student(
 ---
 
 ### 4. **backend/dependencies.py** (394 lines) ℹ️ UTILITIES
+
 **Status**: General-purpose utilities (not RBAC-specific)
 
 **Relevant Functions**:
@@ -152,6 +167,7 @@ async def create_student(
 ---
 
 ### 5. **backend/models.py** (Lines 399-535) ✅ SCHEMA READY
+
 **Status**: Already reviewed in Task 2
 
 **6 RBAC Tables**:
@@ -172,7 +188,7 @@ async def create_student(
 
 ### Request → Response Flow
 
-```
+```text
 1. Client Request
    └─ Header: Authorization: Bearer <token>
 
@@ -191,11 +207,11 @@ async def create_student(
 
 4. Response
    └─ Return data or HTTPException(403)
-```
 
+```text
 ### Phase 2 Target Flow
 
-```
+```text
 1. Client Request
    └─ Header: Authorization: Bearer <token>
 
@@ -216,13 +232,14 @@ async def create_student(
 
 4. Response
    └─ Return data or HTTPException(403, "Permission denied: requires 'students:create'")
-```
 
+```text
 ---
 
 ## 📊 Endpoint Migration Status
 
 ### Current State ($11.15.2)
+
 | Router | Endpoints | Auth Method | Status |
 |--------|-----------|-------------|--------|
 | routers_auth.py | 13 | `optional_require_role("admin")` | ❌ Legacy |
@@ -236,6 +253,7 @@ async def create_student(
 | **Total** | **148** | **Legacy role-based** | **0% migrated** |
 
 ### Phase 2 Target ($11.15.2)
+
 | Week | Action | Endpoints Migrated | Progress |
 |------|--------|-------------------|----------|
 | Week 1 | Seed permissions (25) + roles (3) | 0 | Setup |
@@ -249,6 +267,7 @@ async def create_student(
 ## 🚨 Critical Gaps & Blockers
 
 ### 1. **No Permission Data** 🔴 BLOCKER
+
 **Issue**: Permission and Role tables are empty (no seed data)
 
 **Impact**:
@@ -258,8 +277,10 @@ async def create_student(
 - ❌ No role-permission assignments
 
 **Solution** (Week 1 of Phase 2):
+
 ```python
 # backend/ops/seed_rbac_data.py
+
 def seed_permissions():
     """Seed 25 permissions from PERMISSION_MATRIX.md"""
     permissions = [
@@ -279,16 +300,18 @@ def seed_roles():
         ("viewer", "Read-only access to reports and data"),
     ]
     # ... assign permissions to roles via RolePermission
-```
 
+```text
 **Effort**: 4 hours (scripted seeding + testing)
 
 ---
 
 ### 2. **Endpoint Migration Strategy** 🟠 HIGH PRIORITY
+
 **Issue**: 148 endpoints need migration from `optional_require_role` → `@require_permission`
 
 **Current Pattern** (routers_students.py example):
+
 ```python
 @router.post("/students/", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
@@ -301,9 +324,10 @@ async def create_student(
     # 1. current_admin dependency checks role
     # 2. Business logic executes
     ...
-```
 
+```text
 **Target Pattern** (Phase 2):
+
 ```python
 @router.post("/students/", response_model=StudentResponse)
 @limiter.limit(RATE_LIMIT_WRITE)
@@ -318,8 +342,8 @@ async def create_student(
     # 2. current_user available for business logic
     # 3. has_permission() checks UserPermission + RolePermission + legacy
     ...
-```
 
+```text
 **Migration Checklist** (per endpoint):
 1. Replace `optional_require_role(...)` with `get_current_user`
 2. Add `@require_permission(...)` decorator
@@ -333,9 +357,11 @@ async def create_student(
 ---
 
 ### 3. **Decorator Integration** 🟡 MEDIUM PRIORITY
+
 **Issue**: `@require_permission` decorator exists but not tested with endpoints
 
 **Current Implementation** (backend/rbac.py lines 166-232):
+
 ```python
 def require_permission(permission_key: str, allow_self_access: bool = False) -> Callable:
     def decorator(func: Callable) -> Callable:
@@ -361,8 +387,8 @@ def require_permission(permission_key: str, allow_self_access: bool = False) -> 
 
         return wrapper
     return decorator
-```
 
+```text
 **Potential Issues**:
 1. ⚠️ Depends on kwargs (current_user, db, request must be named parameters)
 2. ⚠️ No validation that decorator is applied after dependencies
@@ -380,6 +406,7 @@ def require_permission(permission_key: str, allow_self_access: bool = False) -> 
 ---
 
 ### 4. **Permission Resolution Performance** 🟢 LOW PRIORITY
+
 **Issue**: `has_permission()` runs 3 queries per check (lines 49-90):
 1. UserPermission query (direct permissions)
 2. Permission query (get permission ID)
@@ -391,13 +418,16 @@ def require_permission(permission_key: str, allow_self_access: bool = False) -> 
 - ⚠️ Expiration check on every request
 
 **Optimization Options**:
+
 ```python
 # Option 1: Cache user permissions in Redis (5 min TTL)
+
 @cache(key="user_perms:{user_id}", ttl=300)
 def get_cached_permissions(user_id: int, db: Session) -> set[str]:
     return set(get_user_permissions(user, db))
 
 # Option 2: Include permissions in JWT token (max 10-15 perms)
+
 payload = {
     "sub": user.email,
     "permissions": ["students:view", "grades:edit", ...],  # ← Add here
@@ -405,9 +435,10 @@ payload = {
 }
 
 # Option 3: Eager load permissions on login
-user.permissions = get_user_permissions(user, db)  # Store in session
-```
 
+user.permissions = get_user_permissions(user, db)  # Store in session
+
+```text
 **Recommendation**: Defer to Phase 3 (performance optimization)
 **Effort**: 4 hours (Redis integration + testing)
 
@@ -416,30 +447,35 @@ user.permissions = get_user_permissions(user, db)  # Store in session
 ## ✅ Strengths of Current Implementation
 
 ### 1. **Separation of Concerns** ⭐⭐⭐⭐⭐
+
 - ✅ `backend/rbac.py` - Permission logic isolated
 - ✅ `backend/security/current_user.py` - Authentication isolated
 - ✅ `backend/models.py` - Database schema isolated
 - ✅ Clear boundaries between auth, RBAC, and business logic
 
 ### 2. **Backward Compatibility** ⭐⭐⭐⭐⭐
+
 - ✅ User.role (legacy) + UserRole (new) can coexist
 - ✅ `has_permission()` checks both systems (lines 77-90)
 - ✅ `optional_require_role` respects AUTH_MODE for tests
 - ✅ Gradual migration path without breaking changes
 
 ### 3. **Self-Access Support** ⭐⭐⭐⭐
+
 - ✅ Students can view own data (`_is_self_access()`)
 - ✅ Checks path params, query params, and body
 - ✅ Permission-aware (only certain permissions allow self-access)
 - ⚠️ Not yet used in production endpoints
 
 ### 4. **Expiration Support** ⭐⭐⭐⭐
+
 - ✅ UserPermission.expires_at for temporary permissions
 - ✅ Timezone-aware comparison (lines 59-68)
 - ✅ Automatic permission revocation on expiration
 - ⚠️ No cleanup job for expired permissions
 
 ### 5. **Test Mode Support** ⭐⭐⭐⭐⭐
+
 - ✅ AUTH_MODE="disabled" bypasses all checks
 - ✅ `has_permission()` returns True when auth disabled (lines 29-35)
 - ✅ `get_current_user()` returns dummy admin
@@ -450,9 +486,11 @@ user.permissions = get_user_permissions(user, db)  # Store in session
 ## ⚠️ Weaknesses & Technical Debt
 
 ### 1. **Raw SQL Usage** (backend/rbac.py lines 77-90)
+
 **Issue**: Uses raw SQL instead of SQLAlchemy ORM
 
 **Code**:
+
 ```python
 result = db.execute(
     text("""
@@ -465,13 +503,15 @@ result = db.execute(
     """),
     {"user_id": user.id, "perm_id": permission.id},
 )
-```
 
+```text
 **Why**: Comment says "to avoid schema mismatch" (models may not be fully defined yet)
 
 **Fix**: Use SQLAlchemy ORM once UserRole/RolePermission models imported properly
+
 ```python
 # Preferred ORM approach
+
 role_perm = (
     db.query(RolePermission)
     .join(UserRole)
@@ -481,13 +521,14 @@ role_perm = (
     )
     .first()
 )
-```
 
+```text
 **Effort**: 30 minutes (refactor + test)
 
 ---
 
 ### 2. **No Permission Caching**
+
 **Issue**: Every request queries DB 3 times for permissions
 
 **Impact**:
@@ -499,14 +540,17 @@ role_perm = (
 ---
 
 ### 3. **Error Messages Not Bilingual**
+
 **Issue**: Permission errors only in English
 
 **Current**:
+
 ```python
 raise HTTPException(403, f"Permission denied: requires '{permission_key}'")
-```
 
+```text
 **Target**:
+
 ```python
 from backend.error_messages import get_error_message
 
@@ -518,20 +562,23 @@ raise HTTPException(
         permission=permission_key
     )
 )
-```
 
+```text
 **Effort**: 1 hour (add to error_messages.py + update decorators)
 
 ---
 
 ### 4. **No Audit Logging for Permission Checks**
+
 **Issue**: Permission denials not logged for security audit
 
 **Current**: Permission check fails silently (only HTTPException raised)
 
 **Target**:
+
 ```python
 # In has_permission() before returning False
+
 if not has_perm:
     audit_log(
         action="permission_denied",
@@ -540,8 +587,8 @@ if not has_perm:
         details={"permission": permission_key},
     )
     return False
-```
 
+```text
 **Effort**: 2 hours (integrate with AuditLog model)
 
 ---
@@ -549,6 +596,7 @@ if not has_perm:
 ## 📋 Phase 2 Implementation Roadmap
 
 ### Week 1: Foundation (Jan 27-31)
+
 **Tasks**:
 1. ✅ Create `backend/ops/seed_rbac_data.py` (4 hours)
    - Seed 25 permissions
@@ -571,6 +619,7 @@ if not has_perm:
 ---
 
 ### Week 2: Endpoint Migration (Feb 3-7)
+
 **Tasks**:
 1. ✅ Migrate high-priority routers (8 hours)
    - routers_students.py (8 endpoints)
@@ -588,6 +637,7 @@ if not has_perm:
 ---
 
 ### Week 3: Complete Migration (Feb 10-14)
+
 **Tasks**:
 1. ✅ Migrate remaining routers (12 hours)
    - All 148 endpoints using `@require_permission`
@@ -604,6 +654,7 @@ if not has_perm:
 ## 🎯 Recommendations for Phase 2
 
 ### ✅ DO THIS
+
 1. **Start with seeding**: Can't test without data (Week 1 blocker)
 2. **Migrate incrementally**: One router at a time, test thoroughly
 3. **Keep backward compatibility**: Don't remove `optional_require_role` until all endpoints migrated
@@ -611,12 +662,14 @@ if not has_perm:
 5. **Document permission changes**: Update API docs with required permissions
 
 ### ❌ DON'T DO THIS
+
 1. **Don't optimize prematurely**: Cache permissions only if performance issue
 2. **Don't break tests**: Keep AUTH_MODE="disabled" bypass working
 3. **Don't migrate all at once**: Incremental migration reduces risk
 4. **Don't delete legacy code**: Keep `User.role` for rollback safety
 
 ### 🔧 NICE TO HAVE (Phase 3)
+
 1. Redis caching for user permissions
 2. Permission expiration cleanup job
 3. Real-time permission updates (WebSocket)
@@ -646,3 +699,4 @@ if not has_perm:
 **Review Duration**: 2 hours
 **Files Reviewed**: 5 files (1,955 lines total)
 **Next Review**: Before Phase 2 Week 1 kickoff (Jan 27)
+

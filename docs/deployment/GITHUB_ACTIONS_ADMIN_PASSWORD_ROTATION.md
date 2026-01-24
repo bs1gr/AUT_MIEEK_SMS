@@ -39,19 +39,23 @@ Your application must be configured with these environment variables:
 
 ```bash
 # Enable authentication
+
 AUTH_ENABLED=True
 
 # Default admin account configuration
+
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 
 # Current admin password (will be rotated)
+
 DEFAULT_ADMIN_PASSWORD=your-current-password
 
 # Enable automatic password rotation (CRITICAL)
-DEFAULT_ADMIN_AUTO_RESET=True
-```
 
+DEFAULT_ADMIN_AUTO_RESET=True
+
+```text
 ### GitHub Secrets Setup
 
 Store sensitive credentials as GitHub repository secrets:
@@ -78,15 +82,18 @@ Follow these guidelines when generating new passwords:
 
 ```bash
 # Generate a strong password using Python
+
 python -c "import secrets, string; chars = string.ascii_letters + string.digits + string.punctuation; print(''.join(secrets.choice(chars) for _ in range(32)))"
 
 # Or using PowerShell
+
 -join ((33..126) | Get-Random -Count 32 | ForEach-Object {[char]$_})
 
 # Or using OpenSSL
-openssl rand -base64 32
-```
 
+openssl rand -base64 32
+
+```text
 **Requirements:**
 
 - Minimum length: 12 characters (recommend 24+)
@@ -146,9 +153,11 @@ jobs:
 
     steps:
       - name: Checkout repository
+
         uses: actions/checkout@v4
 
       - name: Update environment configuration
+
         run: |
           # Create updated .env file with new password
           cat > backend/.env <<EOF
@@ -161,6 +170,7 @@ jobs:
           EOF
 
       - name: Deploy to production
+
         uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
@@ -186,13 +196,14 @@ jobs:
             ./DOCKER.ps1 -Start
 
       - name: Verify rotation
+
         run: |
           echo "✅ Password rotation completed"
           echo "📋 Reason: ${{ github.event.inputs.reason }}"
           echo "⏰ Timestamp: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
           echo "👤 Triggered by: ${{ github.actor }}"
-```
 
+```text
 ### Usage
 
 1. Go to **Actions** tab in your repository
@@ -214,6 +225,7 @@ on:
   schedule:
     # Run at 2 AM UTC on the 1st of every month
     - cron: '0 2 1 * *'
+
   workflow_dispatch:
 
 jobs:
@@ -222,6 +234,7 @@ jobs:
 
     steps:
       - name: Generate new password
+
         id: gen_password
         run: |
           # Generate a cryptographically secure password
@@ -230,6 +243,7 @@ jobs:
           echo "new_password=$NEW_PASS" >> $GITHUB_OUTPUT
 
       - name: Update production environment
+
         uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
@@ -256,6 +270,7 @@ jobs:
             pwsh -NoProfile -File DOCKER.ps1 -Start
 
       - name: Update GitHub secret
+
         uses: gliech/create-github-secret-action@v1
         with:
           name: ADMIN_PASSWORD
@@ -263,6 +278,7 @@ jobs:
           pa_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
       - name: Send notification
+
         uses: slackapi/slack-github-action@$11.9.7
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
@@ -279,8 +295,8 @@ jobs:
                 }
               ]
             }
-```
 
+```text
 ### Multi-Environment Rotation
 
 Rotate passwords across development, staging, and production:
@@ -307,9 +323,11 @@ jobs:
 
     steps:
       - name: Checkout
+
         uses: actions/checkout@v4
 
       - name: Generate environment-specific password
+
         id: gen_pass
         run: |
           NEW_PASS=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-32)
@@ -317,6 +335,7 @@ jobs:
           echo "password=$NEW_PASS" >> $GITHUB_OUTPUT
 
       - name: Deploy to ${{ matrix.environment }}
+
         uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets[format('{0}_HOST', matrix.environment)] }}
@@ -341,11 +360,12 @@ jobs:
             pwsh -NoProfile -File DOCKER.ps1 -Start
 
       - name: Verify deployment
+
         run: |
           sleep 10
           curl -f https://${{ matrix.environment }}.example.com/health || exit 1
-```
 
+```text
 ## Integration with Secret Managers
 
 ### AWS Secrets Manager
@@ -362,6 +382,7 @@ jobs:
 
     steps:
       - name: Configure AWS credentials
+
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -369,6 +390,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Generate and store new password
+
         id: rotate
         run: |
           # Generate new password
@@ -383,6 +405,7 @@ jobs:
           echo "password=$NEW_PASS" >> $GITHUB_OUTPUT
 
       - name: Deploy updated configuration
+
         uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
@@ -401,8 +424,8 @@ jobs:
             # Restart
             pwsh -NoProfile -File DOCKER.ps1 -Stop
             pwsh -NoProfile -File DOCKER.ps1 -Start
-```
 
+```text
 ### HashiCorp Vault
 
 ```yaml
@@ -417,6 +440,7 @@ jobs:
 
     steps:
       - name: Import Secrets from Vault
+
         uses: hashicorp/vault-action@v2
         with:
           url: https://vault.example.com
@@ -426,6 +450,7 @@ jobs:
             secret/data/sms/admin current_password | CURRENT_PASSWORD
 
       - name: Generate new password
+
         id: gen
         run: |
           NEW_PASS=$(openssl rand -base64 32)
@@ -433,6 +458,7 @@ jobs:
           echo "password=$NEW_PASS" >> $GITHUB_OUTPUT
 
       - name: Update Vault secret
+
         run: |
           vault kv put secret/sms/admin \
             email="${{ env.ADMIN_EMAIL }}" \
@@ -444,6 +470,7 @@ jobs:
           VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
 
       - name: Deploy to production
+
         uses: appleboy/ssh-action@$11.9.7
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
@@ -453,8 +480,8 @@ jobs:
             # Application reads directly from Vault
             pwsh -NoProfile -File DOCKER.ps1 -Stop
             pwsh -NoProfile -File DOCKER.ps1 -Start
-```
 
+```text
 ## Troubleshooting
 
 ### Password Not Updating
@@ -471,18 +498,21 @@ jobs:
 
 ```bash
 # Verify environment configuration
+
 grep "DEFAULT_ADMIN_AUTO_RESET" backend/.env
 # Should output: DEFAULT_ADMIN_AUTO_RESET=True
 
 # Check application logs
+
 docker logs sms-app | grep -i "bootstrap"
 # Look for: "Bootstrap: updated default admin user ... (password)"
 
 # Force restart to reload environment
+
 ./DOCKER.ps1 -Stop
 ./DOCKER.ps1 -Start
-```
 
+```text
 ### Refresh Tokens Not Revoked
 
 **Symptom:** Old sessions still work after password rotation
@@ -497,6 +527,7 @@ docker logs sms-app | grep -i "bootstrap"
 
 ```bash
 # Manually revoke all refresh tokens for admin
+
 docker exec sms-app python3 -c "
 from backend.db import SessionLocal
 from backend.models import RefreshToken, User
@@ -511,8 +542,8 @@ try:
 finally:
     session.close()
 "
-```
 
+```text
 ### Deployment Fails
 
 **Symptom:** GitHub Actions workflow fails during deployment
@@ -523,48 +554,56 @@ finally:
 
 ```yaml
 # Solution: Verify SSH key and host
+
 - name: Test SSH connection
+
   run: |
     ssh -i <(echo "${{ secrets.SSH_PRIVATE_KEY }}") \
         -o StrictHostKeyChecking=no \
         ${{ secrets.DEPLOYMENT_USER }}@${{ secrets.DEPLOYMENT_HOST }} \
         "echo 'SSH connection successful'"
-```
 
+```text
 **Permission Denied:**
 
 ```bash
 # Solution: Ensure deployment user has correct permissions
+
 sudo chown -R deploy:deploy /opt/student-management-system
 sudo chmod -R 755 /opt/student-management-system
-```
 
+```text
 **Application Won't Start:**
 
 ```bash
 # Check Docker logs
+
 docker logs sms-app --tail 100
 
 # Verify .env file syntax
+
 cat backend/.env | grep -v '^#' | grep -v '^$'
 
 # Test configuration
-docker exec sms-app python3 -c "from backend.config import settings; print(settings.DEFAULT_ADMIN_AUTO_RESET)"
-```
 
+docker exec sms-app python3 -c "from backend.config import settings; print(settings.DEFAULT_ADMIN_AUTO_RESET)"
+
+```text
 ### Audit Logging
 
 Monitor password rotation events in application logs:
 
 ```bash
 # View rotation events
+
 docker logs sms-app 2>&1 | grep -i "bootstrap.*password"
 
 # Expected output:
+
 # Bootstrap: updated default admin user admin@example.com (password)
 # Bootstrap: created default admin user admin@example.com
-```
 
+```text
 ## FAQ
 
 ### Q: How often should I rotate the admin password?
@@ -601,32 +640,36 @@ docker logs sms-app 2>&1 | grep -i "bootstrap.*password"
 
 ```bash
 # The workflow example backs up .env before changes
+
 cp backend/.env.backup.20251123_020000 backend/.env
 ./DOCKER.ps1 -Stop
 ./DOCKER.ps1 -Start
-```
 
+```text
 **Option 2: Set previous password**
 
 ```bash
 # Update .env with previous password
+
 DEFAULT_ADMIN_PASSWORD=<previous-password>
 DEFAULT_ADMIN_AUTO_RESET=True
 
 # Restart to apply
+
 ./DOCKER.ps1 -Stop
 ./DOCKER.ps1 -Start
-```
 
+```text
 **Option 3: Manual database update**
 
 ```bash
 # Use admin reset script
+
 python3 scripts/reset_admin_password.py \
   --email admin@example.com \
   --password "<previous-password>"
-```
 
+```text
 ### Q: Can I disable auto-reset after rotation?
 
 **A:** Yes, set `DEFAULT_ADMIN_AUTO_RESET=False` after the rotation completes. However, leaving it enabled is recommended for:
@@ -641,6 +684,7 @@ python3 scripts/reset_admin_password.py \
 
 ```bash
 # Test login with new credentials
+
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
@@ -649,9 +693,10 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
   }'
 
 # Expected: 200 OK with access token
-# Failed: 401 Unauthorized
-```
 
+# Failed: 401 Unauthorized
+
+```text
 ### Q: Can I use this feature without GitHub Actions?
 
 **A:** Absolutely! `DEFAULT_ADMIN_AUTO_RESET` works with:
@@ -689,3 +734,4 @@ For issues or questions:
 
 **Last Updated:** 2025-11-23
 **Version:** 1.8.8
+

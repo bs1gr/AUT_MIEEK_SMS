@@ -34,17 +34,18 @@ How to run locally (dev)
 ```powershell
 cd backend
 # ensure virtualenv and deps installed
-python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
-```
 
+python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+
+```text
 2. Start frontend dev server:
 
 ```powershell
 cd frontend
 npm install
 npm run dev
-```
 
+```text
 3. Open app in browser and use the login widget (top-right). If backend sets HttpOnly cookie you don't need to store refresh_token in localStorage.
 
 Create admin user (one-off)
@@ -55,17 +56,19 @@ Recommended (preferred) — run as a module from the repository root:
 
 ```powershell
 # From repository root
-python -m backend.tools.create_admin --email admin@example.com --password 'StrongP@ssw0rd!'
-```
 
+python -m backend.tools.create_admin --email admin@example.com --password 'StrongP@ssw0rd!'
+
+```text
 Alternate (if running the script file directly):
 
 ```powershell
 # Ensure Python can import the 'backend' package from the repo root
+
 $env:PYTHONPATH = (Resolve-Path .).Path
 python backend/tools/create_admin.py --email admin@example.com --password 'StrongP@ssw0rd!'
-```
 
+```text
 Do NOT rely on public `/auth/register` to create admin users. If an account must be promoted, use your internal admin process or the script above. This prevents privilege escalation by untrusted users.
 
 CSRF workflow (state-changing requests)
@@ -76,6 +79,7 @@ FastAPI now exposes a double-submit CSRF flow that is **opt-in until you set `CS
    - Call `GET /api/v1/security/csrf`.
    - The response sets the signed cookie (default `fastapi-csrf-token`) and returns `{ csrf_token, header_name, cookie_name, expires_in }`.
    - Cache the `csrf_token` in memory only (treat it like a transient secret).
+
 2. For each state-changing API call, include the header from step 1. Example axios interceptor:
 
 ```ts
@@ -85,8 +89,8 @@ api.interceptors.request.use((config) => {
   }
   return config;
 });
-```
 
+```text
 3. Tokens rotate on login/refresh responses. After a user authenticates (or refreshes), read the new header emitted by the backend and update your in-memory value.
 4. Logout clears both the refresh cookie and the CSRF cookie, so you should drop any cached token client-side.
 
@@ -109,3 +113,4 @@ If you want, I can now:
 - Implement stricter SameSite + CSRF handling on the backend.
 
 End of document.
+

@@ -17,6 +17,7 @@ This release fixes critical issues in the **Rate Limiting Configuration Panel**,
 ## 🐛 Bugs Fixed
 
 ### 1. **Translation Key Error in Rate Limits Panel**
+
 - **Issue**: "key 'controlPanel.rateLimits (en)' returned an object instead of string"
 - **Root Cause**: Incomplete translation paths using `t('rateLimits.x')` instead of proper nested path
 - **Files Changed**:
@@ -27,6 +28,7 @@ This release fixes critical issues in the **Rate Limiting Configuration Panel**,
 - **Impact**: ✅ Rate Limits panel now displays correctly in both EN/EL
 
 ### 2. **HTTP 500 Error - JSON Serialization Failure**
+
 - **Issue**: "Object of type function is not JSON serializable" on rate limit API calls
 - **Root Cause**: FastAPI endpoints missing `Depends()` wrapper on dependency injection
 - **Files Changed**:
@@ -36,6 +38,7 @@ This release fixes critical issues in the **Rate Limiting Configuration Panel**,
 - **Impact**: ✅ API endpoints now return proper JSON responses
 
 ### 3. **Missing Authentication Headers**
+
 - **Issue**: Frontend rate limit requests failing due to missing Authorization header
 - **Root Cause**: Direct `fetch()` calls not using axios interceptor
 - **Files Changed**:
@@ -44,6 +47,7 @@ This release fixes critical issues in the **Rate Limiting Configuration Panel**,
 - **Impact**: ✅ Authenticated requests now properly include JWT tokens
 
 ### 4. **HTTP 403 Error Visible to Non-Admin Users**
+
 - **Issue**: Non-admin users seeing "Failed to load settings: 403" error message
 - **Root Cause**: Rate Limits tab visible but protected at API level
 - **Files Changed**:
@@ -56,11 +60,13 @@ This release fixes critical issues in the **Rate Limiting Configuration Panel**,
 ## ✨ Enhancements
 
 ### Enhanced Error Handling
+
 - **File**: `backend/error_handlers.py`
 - **Improvement**: Better handling of non-serializable objects (functions, exceptions)
 - **Benefit**: Prevents cascading JSON serialization errors
 
 ### Improved Rate Limit UI
+
 - **File**: `frontend/src/components/ControlPanel/RateLimitAdjuster.tsx`
 - **Improvement**: Clearer connection between API calls and user actions
 - **Benefit**: Better visibility into rate limit adjustments
@@ -88,34 +94,38 @@ This release fixes critical issues in the **Rate Limiting Configuration Panel**,
 ## 📁 Files Changed
 
 ### Backend (3 files)
-```
+
+```text
 backend/routers/control/rate_limits.py       +42, -12
 backend/error_handlers.py                     +8, -2
 DOCKER.ps1                                    +2, -2
-```
 
+```text
 ### Frontend (4 files)
-```
+
+```text
 frontend/src/components/ControlPanel.tsx                      +5, -3
 frontend/src/components/ControlPanel/RateLimitAdjuster.tsx   +12, -8
 frontend/src/locales/en/controlPanel.js                      +1, -1
 frontend/src/locales/el/controlPanel.js                      +1, -1
-```
 
+```text
 ### Configuration & Documentation (4 files)
-```
+
+```text
 CHANGELOG.md                                  +64, -0
 frontend/src/index.css                        +2, -2
 docs/releases/RELEASE_NOTES_$11.15.2.md       +3, -3
 .github/docker_manager.bat                    +15, -5
-```
 
+```text
 ### Installation (2 files)
-```
+
+```text
 SMS_Installer.iss                             +2, -2
 installer/run_docker_install.cmd              +1, -1
-```
 
+```text
 **Summary**: 13 files changed, ~160 insertions, ~45 deletions
 
 ---
@@ -123,19 +133,23 @@ installer/run_docker_install.cmd              +1, -1
 ## 🚀 Deployment Guide
 
 ### Docker Deployment
+
 ```powershell
 .\DOCKER.ps1 -Start
 # Application available at http://localhost:8080
-```
 
+```text
 ### Native Development
+
 ```powershell
 .\NATIVE.ps1 -Start
 # Backend: http://localhost:8000 (API)
-# Frontend: http://localhost:5173 (Dev server)
-```
 
+# Frontend: http://localhost:5173 (Dev server)
+
+```text
 ### Verification
+
 1. Login as admin user
 2. Navigate to `/power` → Advanced Settings
 3. Click **Rate Limits** tab (now visible to admins only)
@@ -166,16 +180,19 @@ installer/run_docker_install.cmd              +1, -1
 **No database migrations required** - this is a pure code fix release.
 
 **For existing deployments**:
+
 ```bash
 # Docker: Just restart
+
 .\DOCKER.ps1 -Update
 
 # Native: Pull latest and restart
+
 .\NATIVE.ps1 -Stop
 git pull origin main
 .\NATIVE.ps1 -Start
-```
 
+```text
 ---
 
 ## 🧪 Known Issues & Limitations
@@ -216,3 +233,4 @@ For issues or questions:
 
 *Generated: 2025-12-30 19:15:00*
 *Version Status: Release-Ready ✅*
+

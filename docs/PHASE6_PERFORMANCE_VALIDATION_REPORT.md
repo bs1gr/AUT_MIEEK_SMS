@@ -78,14 +78,15 @@ Phase 6 performance validation testing has identified **critical latency issues*
 ### Evidence
 
 **From Load Test Output:**
-```
+
+```text
 [2026-01-17 17:12:57,898] Starting Locust 2.42.6
 [2026-01-17 17:12:57,900] Ramping to 100 users at a rate of 10.00 per second
 ...
 GET      /health                                                   4060-4066 ms
 GET      /api/v1/students?skip=0&limit=1000                        4060-4066 ms
-```
 
+```text
 The fact that **even the `/health` endpoint** takes 4000+ ms indicates **system-wide latency** rather than specific endpoint issues.
 
 ---
@@ -173,8 +174,8 @@ The fact that **even the `/health` endpoint** takes 4000+ ms indicates **system-
 
 ```powershell
 locust -f locustfile.py --headless -u 1 -r 1 --run-time 30s --host http://localhost:8000
-```
 
+```text
 **Expected**: Should see if latency is consistent or load-dependent
 
 ---
@@ -185,11 +186,13 @@ locust -f locustfile.py --headless -u 1 -r 1 --run-time 30s --host http://localh
 
 ```powershell
 # Run light load to warm up system, then measure
+
 locust -f locustfile.py --headless -u 10 -r 1 --run-time 10s --host http://localhost:8000
 # Then run real test
-locust -f locustfile.py --headless -u 100 -r 10 --run-time 60s --host http://localhost:8000
-```
 
+locust -f locustfile.py --headless -u 100 -r 10 --run-time 60s --host http://localhost:8000
+
+```text
 **Expected**: Should see significant improvement if initialization is bottleneck
 
 ---
@@ -200,8 +203,8 @@ locust -f locustfile.py --headless -u 100 -r 10 --run-time 60s --host http://loc
 
 ```powershell
 locust -f locustfile.py --headless -u 500 -r 50 --run-time 120s --host http://localhost:8000
-```
 
+```text
 ---
 
 ### Test 5: 1000 User Extreme Load
@@ -210,8 +213,8 @@ locust -f locustfile.py --headless -u 500 -r 50 --run-time 120s --host http://lo
 
 ```powershell
 locust -f locustfile.py --headless -u 1000 -r 100 --run-time 180s --host http://localhost:8000
-```
 
+```text
 ---
 
 ## Frontend Profiling Status
@@ -234,12 +237,13 @@ locust -f locustfile.py --headless -u 1000 -r 100 --run-time 180s --host http://
 **Current Status**: ❌ NOT VERIFIED (database not pre-initialized)
 
 **To Verify**:
+
 ```bash
 cd backend
 alembic current
 alembic history | head -20
-```
 
+```text
 ---
 
 ## Performance Optimization Checklist
@@ -265,22 +269,25 @@ alembic history | head -20
 **Issue**: Even health check taking 4+ seconds indicates system-wide problem
 
 **Diagnosis**:
+
 ```python
 # Current implementation probably hits database
+
 @app.get("/health")
 async def health_check():
     # Probably checking DB connectivity
     return {"status": "ok"}
-```
 
+```text
 **Fix**: Make health check lightweight
+
 ```python
 @app.get("/health")
 async def health_check():
     # Don't hit database - just return static response
     return {"status": "ok", "timestamp": datetime.now()}
-```
 
+```text
 ---
 
 ### 2. `/api/v1/students` (4063 ms - ❌ CRITICAL)
@@ -295,19 +302,22 @@ async def health_check():
 - No pagination optimization
 
 **Fixes**:
+
 ```python
 # Add eager loading
+
 students = db.query(Student).options(
     selectinload(Student.enrollments),
     selectinload(Student.enrollments, Enrollment.course)
 ).offset(skip).limit(limit).all()
 
 # Add result caching
+
 @cache.cached(timeout=300)
 def get_students_list(skip: int, limit: int):
     ...
-```
 
+```text
 ---
 
 ### 3. `/api/v1/courses` (4055 ms - ❌ CRITICAL)
@@ -332,15 +342,17 @@ def get_students_list(skip: int, limit: int):
 - No caching of analytics data
 
 **Fixes**:
+
 ```python
 # Cache dashboard data
+
 @cache.cached(timeout=3600)  # Cache for 1 hour
 def get_dashboard():
     # Use GROUP BY queries, not Python aggregation
     # Use database views for complex calculations
     ...
-```
 
+```text
 ---
 
 ### 5. `/api/v1/export/students/excel` (4048 ms - ⚠️ HIGH)
@@ -396,3 +408,4 @@ The system is **not ready for production** with current performance characterist
 **Test Framework**: Locust 2.42.6
 **Database**: SQLite (development)
 **Environment**: Native (Backend 8000, Frontend 5173)
+

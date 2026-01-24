@@ -45,14 +45,18 @@ I found a `DeprecationWarning` in the test logs related to `datetime.datetime.ut
 Replace `datetime.utcnow()` with `datetime.now(datetime.UTC)`. This would require importing `timezone` from `datetime` at the top of the file: `from datetime import datetime, timedelta, timezone`.
 
 Example:
+
 ```python
 # Before
+
 from datetime import datetime, timedelta
 
 connection.last_heartbeat = datetime.utcnow() - timedelta(seconds=400)
 
 # After
+
 from datetime import datetime, timedelta, timezone
 
 connection.last_heartbeat = datetime.now(timezone.utc) - timedelta(seconds=400)
-```
+
+```text

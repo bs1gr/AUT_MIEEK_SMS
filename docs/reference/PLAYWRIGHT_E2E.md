@@ -15,16 +15,17 @@ How to run locally
 cd frontend
 npm install
 npx playwright install --with-deps
-```
 
+```text
 3. Run the E2E tests:
 
 ```pwsh
 cd frontend
 npm run e2e
-```
 
+```text
 Notes
 
 - The test uses the environment variable `E2E_API_BASE` to target a non-default backend address.
 - This is a lightweight scaffold — expand tests to drive the UI through the browser if you want full end-to-end coverage (start the frontend dev server and use Playwright's `page` fixture to interact with the UI).
+

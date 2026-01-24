@@ -43,7 +43,7 @@ The SMS project uses a **multi-layered secret management strategy** with respons
 
 **Files Structure**:
 
-```
+```text
 .env.example                    (Tracked - template only)
 .env.production.example         (Tracked - template only)
 .env                           (⚠️ Gitignored - DO NOT COMMIT)
@@ -52,12 +52,13 @@ frontend/.env                  (⚠️ Gitignored - DO NOT COMMIT)
 docker/.env                    (⚠️ Gitignored - DO NOT COMMIT)
 .env.qnap.example             (Tracked - QNAP-specific template)
 .env.production.SECURE        (⚠️ Gitignored - Production secrets only)
-```
 
+```text
 **Git Protection** (`.gitignore` enforcement):
 
 ```gitignore
 # Environment files (use .env.example as template)
+
 .env
 backend/.env
 frontend/.env
@@ -65,8 +66,8 @@ docker/.env
 *.env
 !*.env.example
 .env.production.SECURE  # Production secrets file (DO NOT COMMIT)
-```
 
+```text
 ### C. Secrets in Code (Scanning)
 
 **Scanning Tools**:
@@ -103,8 +104,8 @@ Template (.env.example):
 Production (.env.production.example):
   SECRET_KEY=REPLACE_WITH_RANDOM_64_CHAR_SECRET
   SECRET_KEY_STRICT_ENFORCEMENT=1
-```
 
+```text
 **Enforcement Layers**:
 
 1. **Docker Validation** (DOCKER.ps1)
@@ -130,11 +131,11 @@ Production (.env.production.example):
 
 **Default Credentials** (Documented in code):
 
-```
+```text
 Email: admin@example.com
 Password: YourSecurePassword123!
-```
 
+```text
 **⚠️ CRITICAL**: These are publicly documented and MUST be changed.
 
 **Setup Methods**:
@@ -160,14 +161,14 @@ POSTGRES_DB=student_management
 POSTGRES_USER=sms_user
 POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD_HERE
 DATABASE_URL=postgresql+psycopg://sms_user:PASSWORD@host:5432/db
-```
 
+```text
 **Development** (SQLite - no password):
 
 ```env
 DATABASE_URL=sqlite:///./data/student_management.db
-```
 
+```text
 ---
 
 ## Responsibility Matrix
@@ -298,8 +299,8 @@ None currently listed in `.secrets.baseline`.
 
 ```bash
 cp .env.example .env
-```
 
+```text
 **Step 2**: Update with secure values
 
 ```env
@@ -308,22 +309,22 @@ AUTH_ENABLED=True
 AUTH_MODE=permissive
 DEFAULT_ADMIN_EMAIL=your.email@company.com
 DEFAULT_ADMIN_PASSWORD=<secure-password>
-```
 
+```text
 **Step 3**: Start with validation
 
 ```bash
 .\DOCKER.ps1 -Start  # Validates SECRET_KEY automatically
-```
 
+```text
 ### Production Deployment
 
 **Step 1**: Create .env.production.SECURE
 
 ```bash
 cp .env.production.example .env.production.SECURE
-```
 
+```text
 **Step 2**: Configure with strong credentials
 
 ```env
@@ -332,22 +333,23 @@ SECRET_KEY_STRICT_ENFORCEMENT=1
 AUTH_MODE=strict
 POSTGRES_PASSWORD=<very-strong-password>
 DEFAULT_ADMIN_PASSWORD=<very-strong-password>
-```
 
+```text
 **Step 3**: Transfer to production host (secure channel only)
 
 ```bash
 # Use secure transfer method (SCP, SFTP, password manager, etc.)
-# NEVER commit or email this file
-```
 
+# NEVER commit or email this file
+
+```text
 **Step 4**: Verify permissions
 
 ```bash
 chmod 600 .env.production.SECURE
 ls -la .env.production.SECURE  # Should be: -rw------- (600)
-```
 
+```text
 ---
 
 ## Testing & Validation
@@ -356,36 +358,41 @@ ls -la .env.production.SECURE  # Should be: -rw------- (600)
 
 ```bash
 # Test that Gitleaks catches hardcoded secrets
+
 echo "FAKE_API_KEY=sk_test_123456789" >> test_secret.txt
 git add test_secret.txt
 git commit -m "test"  # Should fail with Gitleaks error
 git reset HEAD~1
 rm test_secret.txt
-```
 
+```text
 ### Validate SECRET_KEY Format
 
 ```bash
 # Test strong key acceptance
+
 python -c "from backend.config import get_secret_key; print('✓ Valid key')"
 
 # Test weak key rejection (will raise error)
+
 export SECRET_KEY="change-me"
 python -c "from backend.config import get_secret_key"  # Will fail
-```
 
+```text
 ### Test Docker Validation
 
 ```bash
 # Valid SECRET_KEY
+
 echo "SECRET_KEY=<your-64-char-key>" > .env
 .\DOCKER.ps1 -Start  # Succeeds
 
 # Weak SECRET_KEY
+
 echo "SECRET_KEY=placeholder" > .env
 .\DOCKER.ps1 -Start  # Fails with validation error
-```
 
+```text
 ---
 
 ## Summary Dashboard
@@ -425,3 +432,4 @@ echo "SECRET_KEY=placeholder" > .env
 **Document Status**: Ready for deployment
 **Last Review**: January 10, 2026
 **Next Review**: March 10, 2026 (Quarterly)
+

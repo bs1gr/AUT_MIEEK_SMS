@@ -22,16 +22,16 @@
 
 ### 1.2 Deployment Architecture
 
-```
+```text
 Frontend (SPA)
 ├── Development: Vite dev server (localhost:5173)
 ├── Production: Built React SPA served by FastAPI (port 8080)
 └── Built artifacts: frontend/dist/ → copied to backend/static/
-```
 
+```text
 ### 1.3 File Structure
 
-```
+```text
 frontend/src/
 ├── App.tsx                          # Root with providers & navigation
 ├── api/api.js                       # Axios client with auth interceptor
@@ -48,8 +48,8 @@ frontend/src/
 ├── __tests__/                       # Vitest suite
 ├── config/                          # Constants, API config
 └── translations.ts                  # i18n setup & namespace mapping
-```
 
+```text
 ---
 
 ## 2. COMPONENT INVENTORY (39 TOTAL)
@@ -156,8 +156,8 @@ const { data, isLoading } = useQuery({
 if (!localStorage.getItem('token')) {
   redirect('/login');
 }
-```
 
+```text
 **Key Point:** The API client automatically includes the `Authorization: Bearer <token>` header if `localStorage.token` exists.
 
 ### 3.2 🌍 i18n Mandatory Pattern
@@ -180,11 +180,11 @@ function MyComponent() {
 
 // ❌ NEVER hardcode strings:
 // return <h1>Add Student</h1>;  // Translation integrity test will fail!
-```
 
+```text
 **Translation Structure:**
 
-```
+```text
 frontend/src/locales/
 ├── en/
 │   ├── common.ts        # Shared: title, save, cancel, error, loading
@@ -198,8 +198,8 @@ frontend/src/locales/
 │   └── validation.ts    # Form error messages
 └── el/
     └── [same structure in Greek]
-```
 
+```text
 ### 3.3 🎨 Form Validation Pattern
 
 ```typescript
@@ -233,8 +233,8 @@ const handleSubmit = async (e) => {
     setErrors({ submit: error.response?.data?.detail });
   }
 };
-```
 
+```text
 ### 3.4 📅 Date Handling Pattern
 
 ```typescript
@@ -251,8 +251,8 @@ await api.post('/students/', {
   ...formData,
   enrollment_date: new Date(formData.enrollment_date).toISOString().split('T')[0]
 });
-```
 
+```text
 ### 3.5 🔄 React Query Pattern
 
 ```typescript
@@ -279,8 +279,8 @@ const mutation = useMutation({
 const handleCreate = (formData) => {
   mutation.mutate(formData);
 };
-```
 
+```text
 ### 3.6 🛡️ Error Handling Pattern
 
 ```typescript
@@ -305,8 +305,8 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-```
 
+```text
 ---
 
 ## 4. COMPONENT DEEP DIVES
@@ -341,8 +341,8 @@ function App() {
     </ErrorBoundary>
   );
 }
-```
 
+```text
 **Provider Stack:**
 
 1. ErrorBoundary - Catches React render errors
@@ -394,8 +394,8 @@ function StudentList() {
     </div>
   );
 }
-```
 
+```text
 ### 4.3 StudentForm Component (Example)
 
 ```typescript
@@ -470,8 +470,8 @@ function StudentForm({ student, onSubmit, onCancel }) {
     </Modal>
   );
 }
-```
 
+```text
 ---
 
 ## 5. API INTEGRATION
@@ -502,8 +502,8 @@ apiClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-```
 
+```text
 ### 5.2 API Endpoints Summary
 
 **Students:**
@@ -560,8 +560,8 @@ interface AuthContextType {
 
 // Usage:
 const { user, login, logout } = useContext(AuthContext);
-```
 
+```text
 ### 6.2 Server State (React Query)
 
 ```typescript
@@ -578,8 +578,8 @@ useMutation({
     queryClient.invalidateQueries({ queryKey: ['students'] });
   }
 });
-```
 
+```text
 ### 6.3 UI State (Local React State)
 
 ```typescript
@@ -587,21 +587,21 @@ const [showForm, setShowForm] = useState(false);
 const [selectedStudent, setSelectedStudent] = useState(null);
 const [searchTerm, setSearchTerm] = useState('');
 const [errors, setErrors] = useState({});
-```
 
+```text
 ---
 
 ## 7. TESTING STRATEGY
 
 ### 7.1 Test File Location & Naming
 
-```
+```text
 frontend/src/components/students/__tests__/StudentList.test.tsx
 frontend/src/components/students/__tests__/StudentForm.test.tsx
 frontend/src/services/__tests__/authService.test.ts
 frontend/src/utils/__tests__/date.test.ts
-```
 
+```text
 ### 7.2 Test Patterns
 
 ```typescript
@@ -647,22 +647,24 @@ describe('StudentList', () => {
     });
   });
 });
-```
 
+```text
 ---
 
 ## 8. CONFIGURATION
 
 ### 8.1 Environment Variables
 
-```
+```text
 # frontend/.env
+
 VITE_API_URL=http://localhost:8000/api/v1      # Dev
 # or: /api/v1                                   # Production (relative)
+
 VITE_APP_VERSION=1.9.7
 VITE_ENABLE_DEBUG=false
-```
 
+```text
 ### 8.2 Vite Config (vite.config.ts)
 
 ```typescript
@@ -682,16 +684,16 @@ export default defineConfig({
     sourcemap: false
   }
 });
-```
 
+```text
 ### 8.3 Build Output
 
 ```bash
 npm run build        # Creates frontend/dist/
                      # Copy to backend/static/
                      # FastAPI serves as SPA fallback
-```
 
+```text
 ---
 
 ## 9. BUILD & DEPLOYMENT
@@ -703,27 +705,28 @@ cd frontend
 npm install
 npm run dev              # HMR on localhost:5173
                          # Proxy to backend:8000/api
-```
 
+```text
 ### 9.2 Production Mode (Docker)
 
 ```bash
 npm run build            # → frontend/dist/
 COPY dist /app/static    # Dockerfile copies to backend/static/
 FastAPI serves SPA       # GET * → index.html (React handles routing)
-```
 
+```text
 ### 9.3 SPA Routing Fallback
 
 ```python
 # backend/main.py
+
 @app.get("/{full_path:path}")
 async def serve_spa(full_path: str):
     # If not /api/v1/*, serve index.html
     # React Router handles client-side routing
     return FileResponse("static/index.html")
-```
 
+```text
 ---
 
 ## 10. SECURITY CONSIDERATIONS
@@ -776,8 +779,8 @@ const StudentForm = React.lazy(() => import('./StudentForm'));
 <Suspense fallback={<LoadingSpinner />}>
   <StudentList />
 </Suspense>
-```
 
+```text
 ### 12.2 Query Optimization
 
 ```typescript
@@ -788,16 +791,16 @@ const { data } = useQuery({
   staleTime: 5 * 60 * 1000,  // 5 minutes
   gcTime: 10 * 60 * 1000      // 10 minutes (formerly cacheTime)
 });
-```
 
+```text
 ### 12.3 Memoization
 
 ```typescript
 const StudentListMemo = React.memo(StudentList, (prev, next) => {
   return prev.filters === next.filters;
 });
-```
 
+```text
 ---
 
 ## 13. DEBUGGING & MONITORING
@@ -816,8 +819,8 @@ api.interceptors.response.use(response => {
   console.debug('[API]', response.config.url, response.data);
   return response;
 });
-```
 
+```text
 ### 13.3 Error Reporting
 
 ```typescript
@@ -830,8 +833,8 @@ fetch('/api/logs/frontend-error', {
     url: window.location.href
   })
 });
-```
 
+```text
 ---
 
 ## 14. CHECKLIST FOR NEW FEATURES
@@ -866,3 +869,4 @@ When adding a new feature:
 **Last Updated:** $11.9.7
 **Maintainer:** Development Team
 **Questions?** Check the main `ARCHITECTURE.md` or `docs/user/LOCALIZATION.md`
+

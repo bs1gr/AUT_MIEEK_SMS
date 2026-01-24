@@ -46,6 +46,7 @@ Before deploying 1.14.2, verify:
 ## ✅ Code Changes Validated
 
 ### Rate Limiting Panel Fixes
+
 - [x] Frontend translation keys fixed (controlPanel.rateLimits.*)
 - [x] Backend FastAPI dependencies wrapped with Depends()
 - [x] Authentication headers added to fetch requests
@@ -53,6 +54,7 @@ Before deploying 1.14.2, verify:
 - [x] Error handling enhanced for non-serializable objects
 
 ### Files Modified (13 total)
+
 - [x] frontend/src/components/ControlPanel.tsx
 - [x] frontend/src/components/ControlPanel/RateLimitAdjuster.tsx
 - [x] frontend/src/locales/en/controlPanel.js
@@ -103,36 +105,46 @@ Before deploying 1.14.2, verify:
 ## 🚀 Deployment Steps
 
 ### Step 1: Backup Current Environment
+
 ```powershell
 # Existing deployment is already backed up by DOCKER.ps1 -Update
-# Current database: sms_data volume
-```
 
+# Current database: sms_data volume
+
+```text
 ### Step 2: Deploy New Version
+
 ```powershell
 # Option A: Update existing deployment
+
 .\DOCKER.ps1 -Update
 
 # Option B: Fresh deployment
+
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -DeepClean
 .\DOCKER.ps1 -Start
-```
 
+```text
 ### Step 3: Verify Deployment
+
 ```powershell
 # Check container status
+
 docker ps
 
 # Check logs
+
 docker logs sms-app --tail 50
 
 # Health check
-curl http://localhost:8080/health
-```
 
+curl http://localhost:8080/health
+
+```text
 ### Step 4: Smoke Test
-```
+
+```text
 1. Open http://localhost:8080 in browser
 2. Login as admin
 3. Navigate to /power > Advanced Settings
@@ -141,8 +153,8 @@ curl http://localhost:8080/health
 6. Logout and login as non-admin
 7. Navigate to /power
 8. Verify Rate Limits tab is hidden
-```
 
+```text
 ---
 
 ## 📊 Release Quality Metrics
@@ -208,18 +220,21 @@ If issues occur:
 
 ```powershell
 # Docker rollback
+
 .\DOCKER.ps1 -Stop
 
 # The previous version is still available in the volume
+
 # Restore from backup if needed
 .\DOCKER.ps1 -Start
 
 # Or deploy previous tag
+
 docker pull sms-fullstack:1.14.1
 docker tag sms-fullstack:1.14.1 sms-fullstack:latest
 docker-compose -f docker/docker-compose.yml up -d
-```
 
+```text
 ---
 
 ## 📞 Support & Troubleshooting
@@ -227,30 +242,34 @@ docker-compose -f docker/docker-compose.yml up -d
 ### Common Issues
 
 **Issue**: Rate Limits tab not visible to admin
-```
-Solution: Clear browser cache, logout/login again
-```
 
+```text
+Solution: Clear browser cache, logout/login again
+
+```text
 **Issue**: Settings don't save
-```
+
+```text
 Solution: Check browser DevTools > Network tab
           Verify Auth header is sent
           Check docker logs for API errors
-```
 
+```text
 **Issue**: Translation errors in console
-```
+
+```text
 Solution: Verify all translation keys are present
           Check frontend/src/locales/ for completeness
-```
 
+```text
 **Issue**: 403 Forbidden on Rate Limits API
-```
+
+```text
 Solution: Verify JWT token is valid
           Check user role in database
           Restart authentication session
-```
 
+```text
 ---
 
 ## ✅ Release Signoff
@@ -269,3 +288,4 @@ Solution: Verify JWT token is valid
 **Release Prepared By**: AI Copilot
 **Date**: December 30, 2025
 **Next Review**: After production deployment
+

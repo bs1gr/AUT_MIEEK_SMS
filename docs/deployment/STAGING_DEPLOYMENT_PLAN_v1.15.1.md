@@ -42,14 +42,16 @@ This plan guides deployment of $11.15.2 (Post-Phase 1 Polish release) to staging
 
 ```bash
 # Clone or pull latest main branch
+
 cd /staging/student-management-system
 git pull origin main
 git log --oneline -5  # Verify $11.15.2 commit 3b9d44fd5 is latest
 
 # Verify version file
-cat VERSION  # Should show: 1.15.1
-```
 
+cat VERSION  # Should show: 1.15.1
+
+```text
 - [ ] Latest commit is `3b9d44fd5`
 - [ ] VERSION file shows 1.15.1
 - [ ] CHANGELOG.md updated with $11.15.2 entry
@@ -59,13 +61,15 @@ cat VERSION  # Should show: 1.15.1
 
 ```bash
 # Backup current database ($11.15.2)
+
 mkdir -p /staging/backups/pre-1.15.1
 docker exec sms-fullstack sqlite3 /data/student_management.db ".backup '/staging/backups/pre-1.15.1/student_management_$11.15.2.db'"
 
 # Verify backup
-ls -lh /staging/backups/pre-1.15.1/
-```
 
+ls -lh /staging/backups/pre-1.15.1/
+
+```text
 - [ ] Database backed up
 - [ ] Backup verified (file size >100KB)
 - [ ] Backup path documented
@@ -78,18 +82,22 @@ ls -lh /staging/backups/pre-1.15.1/
 
 ```bash
 # Navigate to project
+
 cd /staging/student-management-system
 
 # Verify clean state
+
 git status  # Should show no uncommitted changes
 
 # Pull latest code
+
 git pull origin main
 
 # Verify version
-cat VERSION  # 1.15.1
-```
 
+cat VERSION  # 1.15.1
+
+```text
 - [ ] Code updated to latest
 - [ ] Version confirmed
 - [ ] No local changes
@@ -98,15 +106,18 @@ cat VERSION  # 1.15.1
 
 ```bash
 # Using Docker deployment script
+
 ./DOCKER.ps1 -Stop
 
 # Verify containers stopped
+
 docker ps  # Should show no running sms containers
 
 # Alternative (direct docker-compose)
-docker-compose down
-```
 
+docker-compose down
+
+```text
 - [ ] $11.15.2 containers stopped
 - [ ] No data loss (volumes preserved)
 - [ ] Ports freed
@@ -115,23 +126,29 @@ docker-compose down
 
 ```bash
 # Deploy $11.15.2
+
 ./DOCKER.ps1 -Update
 
 # What happens:
+
 # - Pulls latest images
 # - Rebuilds if necessary
+
 # - Starts containers
 # - Waits for health checks
+
 # - Runs startup migrations
 
 # Monitor startup
+
 docker-compose logs -f sms-fullstack
 
 # Watch for:
+
 # "Application startup complete"
 # "Uvicorn running on 0.0.0.0:8000"
-```
 
+```text
 - [ ] Build completed successfully
 - [ ] Containers started
 - [ ] Health checks passing
@@ -141,23 +158,29 @@ docker-compose logs -f sms-fullstack
 
 ```bash
 # Basic accessibility
+
 curl -s http://localhost:8080 | head -20
 # Should return HTML with login form
 
 # API health check
+
 curl -s http://localhost:8080/api/v1/health | jq .
 
 # Check version endpoint
+
 curl -s http://localhost:8080/api/v1/version | jq .
 
 # Expected response:
+
 # {
 #   "version": "1.15.1",
+
 #   "status": "ok",
 #   "environment": "staging"
-# }
-```
 
+# }
+
+```text
 - [ ] Frontend accessible (port 8080)
 - [ ] Backend responding (port 8000/api)
 - [ ] Health checks passing
@@ -173,13 +196,15 @@ curl -s http://localhost:8080/api/v1/version | jq .
 
 ```bash
 # Execute smoke tests
+
 cd /staging/student-management-system
 python -m pytest backend/tests/test_smoke_*.py -v
 
 # Or use smoke test script if available
-./COMMIT_READY.ps1 -Quick  # Quick validation
-```
 
+./COMMIT_READY.ps1 -Quick  # Quick validation
+
+```text
 **Test Categories**:
 
 - [ ] **Authentication Tests**
@@ -212,10 +237,12 @@ python -m pytest backend/tests/test_smoke_*.py -v
 
 ```bash
 # Test metrics collection
+
 cd /staging/student-management-system
 npm run e2e  # Run E2E tests
 
 # Verify metrics collection
+
 python scripts/e2e_metrics_collector.py \
   frontend/playwright-report/report.json \
   staging-$(date +%s) \
@@ -224,11 +251,13 @@ python scripts/e2e_metrics_collector.py \
   300
 
 # Expected output:
+
 # ✅ Metrics saved
 # ✅ E2E Test Metrics Collected
-# ✅ Pass rate data extracted
-```
 
+# ✅ Pass rate data extracted
+
+```text
 - [ ] E2E tests run successfully
 - [ ] Metrics collector works
 - [ ] Reports generated
@@ -238,6 +267,7 @@ python scripts/e2e_metrics_collector.py \
 
 ```bash
 # Create 100 students
+
 for i in {1..100}; do
   curl -X POST http://localhost:8080/api/v1/students \
     -H "Content-Type: application/json" \
@@ -245,11 +275,12 @@ for i in {1..100}; do
 done
 
 # Measure list performance
+
 time curl -s http://localhost:8080/api/v1/students | jq .
 
 # Expected: <100ms response time
-```
 
+```text
 - [ ] Student creation works
 - [ ] List performance <100ms
 - [ ] No timeouts or errors
@@ -263,15 +294,18 @@ time curl -s http://localhost:8080/api/v1/students | jq .
 
 ```bash
 # Check application logs
+
 docker-compose logs sms-fullstack --tail=100
 
 # Look for:
+
 # ✅ No ERROR or CRITICAL messages
 # ✅ Successful startup sequence
+
 # ✅ Health checks passing
 # ✅ Database migrations completed
-```
 
+```text
 - [ ] No error messages
 - [ ] Startup completed cleanly
 - [ ] Health checks green
@@ -280,13 +314,14 @@ docker-compose logs sms-fullstack --tail=100
 
 ```bash
 # Test monitoring endpoints
+
 curl -s http://localhost:8080/api/v1/metrics/students | jq .
 curl -s http://localhost:8080/api/v1/metrics/courses | jq .
 curl -s http://localhost:8080/api/v1/metrics/grades | jq .
 
 # Expected: Metric objects with count/stats
-```
 
+```text
 - [ ] Metrics endpoints responding
 - [ ] Audit log API functional
 - [ ] No missing data
@@ -308,23 +343,28 @@ If critical issues found, rollback to $11.15.2:
 
 ```bash
 # Stop current deployment
+
 ./DOCKER.ps1 -Stop
 
 # Restore database backup (if needed)
+
 docker exec sms-fullstack sqlite3 /data/student_management.db ".restore '/staging/backups/pre-1.15.1/student_management_$11.15.2.db'"
 
 # Checkout previous version
+
 git checkout $11.15.2  # Or git checkout <commit-hash>
 cat VERSION  # Verify 1.15.0
 
 # Restart with previous version
+
 ./DOCKER.ps1 -Start
 
 # Verify rollback
+
 curl -s http://localhost:8080/api/v1/version | jq .
 # Should show version 1.15.0
-```
 
+```text
 **Rollback Time**: <5 minutes
 **Data Loss**: None (using volume backups)
 
@@ -349,20 +389,24 @@ curl -s http://localhost:8080/api/v1/version | jq .
 ## 📅 Timeline & Deadlines
 
 ### Jan 7 (Today)
+
 - ✅ $11.15.2 release prepared (DONE)
 - ⏳ Staging deployment begins
 
 ### Jan 8-9 (Tomorrow-Next Day)
+
 - [ ] Deploy to staging
 - [ ] Run validation tests
 - [ ] Gather feedback
 
 ### Jan 10-14 (Week 2)
+
 - [ ] Fix any staging issues
 - [ ] Get production approval
 - [ ] Schedule production deployment
 
 ### Jan 15+ (Production Deploy)
+
 - [ ] Deploy to production
 - [ ] Monitor for issues
 - [ ] Document findings
@@ -409,3 +453,4 @@ curl -s http://localhost:8080/api/v1/version | jq .
 **Target Date**: January 8, 2026
 **Environment**: Staging
 **Version**: 1.15.1
+

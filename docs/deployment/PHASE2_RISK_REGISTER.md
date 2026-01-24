@@ -528,31 +528,37 @@ Third-party services go down:
 ## 📈 Risk Trend & Timeline
 
 ### Week 1 (Jan 27-31): RBAC Foundation
+
 - ⚠️ **HIGH RISK**: R2, R8 (security bugs in new code)
 - ⚠️ **MEDIUM RISK**: R1 (schema design), R3 (N+1 queries)
 - **Action**: Heavy code review, security focus, performance testing
 
 ### Week 2 (Feb 3-7): Endpoint Refactoring
+
 - ⚠️ **HIGH RISK**: R2, R8 (security, endpoint coverage)
 - ⚠️ **MEDIUM RISK**: R4 (schedule - busy week)
 - **Action**: Security checklist for every endpoint, integration tests
 
 ### Week 3 (Feb 10-14): Permission Management API
+
 - 🟢 **MEDIUM RISK**: R7 (test coverage)
 - 🟢 **MEDIUM RISK**: R4 (schedule tracking)
 - **Action**: Test plan, coverage reports, weekly standup
 
 ### Week 4 (Feb 17-21): CI/CD Integration
+
 - 🟢 **LOW RISK**: R6, R10 (infrastructure)
 - 🟢 **MEDIUM RISK**: R7 (CI test coverage)
 - **Action**: Baseline metrics, monitoring setup
 
 ### Week 5 (Feb 24-28): Documentation & Testing
+
 - 🟢 **LOW RISK**: R3, R4 (mostly safe)
 - ⚠️ **MEDIUM RISK**: R7 (final test push)
 - **Action**: Comprehensive test suite, all edge cases
 
 ### Week 6 (Mar 3-7): Final Testing & Release
+
 - ⚠️ **MEDIUM RISK**: R4 (if running late), R9 (data migration)
 - **Action**: Final security review, migration test, staging validation
 
@@ -563,7 +569,8 @@ Third-party services go down:
 ### Weekly Monitoring Checklist
 
 **Every Monday Standup** (15 minutes):
-```
+
+```text
 R1: Schema conflicts
    Status: ✅ ON TRACK / ⚠️ ATTENTION / 🔴 CRITICAL
    Notes: ______________________________
@@ -588,8 +595,8 @@ R5: Team absence
 R7: Test coverage
    Status: ✅ ON TRACK / ⚠️ BELOW TARGET / 🔴 CRITICAL
    Notes: Coverage: ___%
-```
 
+```text
 ---
 
 ## 📋 Risk Control Owner Assignments
@@ -613,7 +620,7 @@ R7: Test coverage
 
 **Before Phase 2 Kicks Off** (Jan 27):
 
-```
+```text
 ☐ All risks identified and assessed
 ☐ Mitigation strategies approved by tech lead
 ☐ Monitoring procedures documented
@@ -626,11 +633,12 @@ R7: Test coverage
 Signed Off By: _________________ (Tech Lead)
 Date: _________________
 Status: ✅ APPROVED
-```
 
+```text
 ---
 
 **Document Status**: ✅ Complete and ready for review
 **Created**: January 7, 2026
 **Review Cycle**: Weekly during Phase 2
 **Next Review**: January 20, 2026 (Phase 2 prep final check)
+

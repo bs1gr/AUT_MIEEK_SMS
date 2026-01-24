@@ -70,15 +70,18 @@ Available endpoints for monitoring:
 
 ```bash
 # Detailed health status
+
 GET /health
 
 # Kubernetes readiness probe
+
 GET /health/ready
 
 # Kubernetes liveness probe
-GET /health/live
-```
 
+GET /health/live
+
+```text
 ### Logging
 
 - **Application Logs**: `backend/logs/app.log` (native) or container logs (Docker)
@@ -89,12 +92,14 @@ View logs:
 
 ```bash
 # Docker
+
 docker logs sms-fullstack
 
 # Native
-tail -f backend/logs/app.log
-```
 
+tail -f backend/logs/app.log
+
+```text
 ### Performance Monitoring
 
 - Response cache hit rates
@@ -108,90 +113,109 @@ tail -f backend/logs/app.log
 
 ```bash
 # Pull latest changes
+
 git pull origin main
 
 # Fast update with backup
+
 .\DOCKER.ps1 -Update
 
 # Or clean rebuild (no cache)
+
 .\DOCKER.ps1 -UpdateClean
 
 # Or manual Docker rebuild
+
 docker compose -f docker/docker-compose.yml down
 docker compose -f docker/docker-compose.yml build
 docker compose -f docker/docker-compose.yml up -d
-```
 
+```text
 ### Database Migrations
 
 ```bash
 cd backend
 
 # Check current version
+
 alembic current
 
 # Apply pending migrations
+
 alembic upgrade head
 
 # Rollback if needed
-alembic downgrade -1
-```
 
+alembic downgrade -1
+
+```text
 ### Backup & Restore
 
 ```bash
 # Backup database
+
 .\scripts\ops\backup-database.ps1
 
 # Restore database
-.\scripts\ops\restore-database.ps1 -BackupFile path\to\backup.db
-```
 
+.\scripts\ops\restore-database.ps1 -BackupFile path\to\backup.db
+
+```text
 ## 🐳 Docker Deployment
 
 ### Production Setup
 
 ```bash
 # Build production images
+
 docker compose -f docker-compose.prod.yml build
 
 # Start services
+
 docker compose -f docker-compose.prod.yml up -d
 
 # Check status
+
 docker compose -f docker-compose.prod.yml ps
 
 # View logs
-docker compose -f docker-compose.prod.yml logs -f
-```
 
+docker compose -f docker-compose.prod.yml logs -f
+
+```text
 ### Environment Variables
 
 Key production environment variables (set in `.env`):
 
 ```env
 # Core settings
+
 SMS_ENV=production
 SMS_EXECUTION_MODE=docker
 
 # Security (REQUIRED)
+
 SECRET_KEY=<strong-random-key-48-chars-minimum>
 SECRET_KEY_STRICT_ENFORCEMENT=true
 
 # Authentication
+
 AUTH_ENABLED=true
 
 # CSRF Protection
+
 CSRF_ENABLED=true
 COOKIE_SECURE=true
 
 # CORS
+
 CORS_ORIGINS=https://yourdomain.com
 
 # Database
-DATABASE_URL=sqlite:////data/student_management.db
-```
 
+DATABASE_URL=sqlite:////data/student_management.db
+
+```text
 ## 📦 Release Management
 
 - **[../releases/](../releases/)** - Version-specific release notes
@@ -234,44 +258,54 @@ Access the web-based control panel:
 
 ```bash
 # Docker (recommended)
+
 .\DOCKER.ps1 -Start
 
 # Native development
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 ### Stop Services
 
 ```bash
 # Docker stop
+
 .\DOCKER.ps1 -Stop
 
 # Native stop
+
 .\NATIVE.ps1 -Stop
 
 # Docker compose directly
-docker compose -f docker/docker-compose.yml down
-```
 
+docker compose -f docker/docker-compose.yml down
+
+```text
 ### Check Status
 
 ```bash
 # Docker status
+
 .\DOCKER.ps1 -Status
 
 # Native status
+
 .\NATIVE.ps1 -Status
 
 # Docker compose
+
 docker compose -f docker/docker-compose.yml ps
 
 # Health check
-curl http://localhost:8080/health
-```
 
+curl http://localhost:8080/health
+
+```text
 ## 🆘 Getting Help
 
 - Review troubleshooting guides above
 - Check [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
 - Contact system administrator
 - Emergency guide: [../OPERATOR_EMERGENCY_GUIDE.md](../OPERATOR_EMERGENCY_GUIDE.md)
+

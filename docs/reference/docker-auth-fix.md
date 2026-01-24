@@ -21,19 +21,21 @@ Changed the default value for `AUTH_ENABLED` from `False` to `True`:
 
 ```yaml
 # BEFORE (incorrect)
+
 - AUTH_ENABLED=${AUTH_ENABLED:-False}
 
 # AFTER (correct)
-- AUTH_ENABLED=${AUTH_ENABLED:-True}
-```
 
+- AUTH_ENABLED=${AUTH_ENABLED:-True}
+
+```text
 Also set sensible defaults for admin bootstrap:
 
 ```yaml
 - DEFAULT_ADMIN_EMAIL=${DEFAULT_ADMIN_EMAIL:-admin@example.com}
 - DEFAULT_ADMIN_FULL_NAME=${DEFAULT_ADMIN_FULL_NAME:-System Administrator}
-```
 
+```text
 ### 2. Deployment Steps
 
 **For New Installations:**
@@ -71,9 +73,10 @@ If you already have a running Docker container with the old configuration:
 
 ```powershell
 # Rebuild containers to pick up new environment variables
-.\DOCKER.ps1 -UpdateClean
-```
 
+.\DOCKER.ps1 -UpdateClean
+
+```text
 ### 3. Verify the Fix
 
 After restarting, check:
@@ -179,14 +182,16 @@ If you're using docker-compose directly (not via DOCKER.ps1):
 
 ```bash
 # Rebuild with new environment
+
 docker-compose down
 docker-compose build --no-cache backend
 docker-compose up -d
 
 # Check logs
-docker-compose logs backend | grep -i admin
-```
 
+docker-compose logs backend | grep -i admin
+
+```text
 ## For QNAP/NAS Deployments
 
 If deploying to QNAP or other NAS:
@@ -229,3 +234,4 @@ If you still have issues:
 2. Look for any ERROR or WARNING messages
 3. Verify all environment variables are set: `docker exec sms-backend env | grep AUTH`
 4. Consult `docs/AUTHENTICATION.md` for more details
+

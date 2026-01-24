@@ -37,19 +37,23 @@
 
 ```powershell
 # Clone repository
+
 git clone https://github.com/bs1gr/AUT_MIEEK_SMS.git
 cd student-management-system
 
 # Native development setup (hot-reload enabled)
+
 .\NATIVE.ps1 -Setup    # Install all dependencies
 .\NATIVE.ps1 -Start    # Start backend + frontend
 
 # Access points:
+
 # - Frontend: http://localhost:5173 (Vite HMR)
 # - Backend API: http://localhost:8000
-# - API Docs: http://localhost:8000/docs
-```
 
+# - API Docs: http://localhost:8000/docs
+
+```text
 ### First Tasks Checklist
 
 - [ ] Set up development environment
@@ -91,8 +95,8 @@ cd student-management-system
 ┌──────────────────────────────────────────────────────────┐
 │              SQLite / PostgreSQL Database                 │
 └──────────────────────────────────────────────────────────┘
-```
 
+```text
 ### Deployment Modes
 
 | Mode | Description | Use Case | Ports |
@@ -119,62 +123,76 @@ See: [ARCHITECTURE.md](../ARCHITECTURE.md) for detailed architecture
 cd backend
 
 # Create virtual environment
+
 python -m venv venv
 
 # Activate (Windows)
+
 .\venv\Scripts\activate
 # Activate (Linux/Mac)
+
 source venv/bin/activate
 
 # Install dependencies
+
 pip install -r requirements.txt
 pip install -r requirements-dev.txt  # Development tools
 
 # Create environment file
+
 cp .env.example .env
 # Edit .env with your settings
 
 # Initialize database
+
 alembic upgrade head
 
 # Run development server (with auto-reload)
-uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
-```
 
+uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+
+```text
 ### Frontend Setup (React + Vite)
 
 ```bash
 cd frontend
 
 # Install dependencies
+
 npm install
 
 # Create environment file
+
 cp .env.example .env.local
 # Edit VITE_API_URL if needed
 
 # Run development server (HMR enabled)
+
 npm run dev
 
 # Access: http://localhost:5173
-```
 
+```text
 ### Docker Development
 
 ```powershell
 # Build and start
+
 docker-compose up -d
 
 # View logs
+
 docker-compose logs -f
 
 # Rebuild after code changes
+
 docker-compose up -d --build
 
 # Stop
-docker-compose down
-```
 
+docker-compose down
+
+```text
 ### IDE Configuration
 
 **VS Code Extensions (Recommended):**
@@ -197,8 +215,8 @@ docker-compose down
     "source.fixAll.eslint": true
   }
 }
-```
 
+```text
 ---
 
 ## Code Structure
@@ -238,8 +256,8 @@ backend/
     ├── conftest.py      # Pytest fixtures
     ├── test_students_router.py
     └── test_grades_calculation.py
-```
 
+```text
 ### Frontend Structure
 
 ```text
@@ -275,8 +293,8 @@ frontend/
     └── e2e/             # Playwright E2E tests
         ├── auth.spec.ts
         └── students.spec.ts
-```
 
+```text
 ---
 
 ## Backend Development
@@ -299,14 +317,14 @@ class ExampleResponse(BaseModel):
 
     class Config:
         from_attributes = True  # SQLAlchemy 2.0 compatibility
-```
 
+```text
 **2. Export Schema (`backend/schemas/__init__.py`):**
 
 ```python
 from .example import ExampleCreate, ExampleResponse
-```
 
+```text
 **3. Create Router (`backend/routers/routers_example.py`):**
 
 ```python
@@ -345,8 +363,8 @@ async def get_example(
     if not example:
         raise HTTPException(status_code=404, detail="Example not found")
     return example
-```
 
+```text
 **4. Register Router (`backend/main.py`):**
 
 ```python
@@ -355,32 +373,34 @@ from backend.routers import routers_example
 def register_routers(app: FastAPI):
     # ... existing routers ...
     app.include_router(routers_example.router, prefix="/api/v1")
-```
 
+```text
 ### Critical Backend Patterns
 
 #### ❌ Wrong: Direct require_role for Admin Endpoints
 
 ```python
 # BYPASSES AUTH_MODE - Never use for admin endpoints
+
 @router.get("/admin/users")
 async def list_users(
     current_admin: Any = Depends(require_role("admin"))
 ):
     pass
-```
 
+```text
 #### ✅ Correct: optional_require_role for Admin Endpoints
 
 ```python
 # RESPECTS AUTH_MODE - Always use for admin endpoints
+
 @router.get("/admin/users")
 async def list_users(
     current_admin: Any = Depends(optional_require_role("admin"))
 ):
     pass
-```
 
+```text
 **AUTH_MODE Behavior:**
 
 - `disabled`: No authentication (emergency access)
@@ -414,8 +434,8 @@ class Example(Base):
         Index("idx_example_name", "name"),
         Index("idx_example_user", "user_id"),
     )
-```
 
+```text
 **Critical Rules:**
 
 - Always use `ondelete="CASCADE"` for foreign keys
@@ -461,8 +481,8 @@ export const ExampleList = () => {
     </div>
   );
 };
-```
 
+```text
 **2. Add Translations (`frontend/src/translations.js`):**
 
 ```javascript
@@ -480,36 +500,36 @@ export const translations = {
     },
   },
 };
-```
 
+```text
 **3. Critical Frontend Patterns:**
 
 #### ❌ Wrong: Hardcoded Strings
 
 ```jsx
 <button>Save</button>  // Never hardcode UI text!
-```
 
+```text
 #### ✅ Correct: Use i18n
 
 ```jsx
 const { t } = useTranslation();
 <button>{t('common.save')}</button>
-```
 
+```text
 #### ❌ Wrong: Direct Axios Calls
 
 ```jsx
 axios.get('http://localhost:8000/api/v1/students')  // Hardcoded URL
-```
 
+```text
 #### ✅ Correct: Use API Client
 
 ```jsx
 import { apiClient } from '../api/api';
 apiClient.get('/students')  // Configured client
-```
 
+```text
 ### State Management with Zustand
 
 ```javascript
@@ -524,8 +544,8 @@ export const useExampleStore = create((set) => ({
   selectExample: (example) => set({ selectedExample: example }),
   clearSelection: () => set({ selectedExample: null }),
 }));
-```
 
+```text
 ### Custom Hooks
 
 ```javascript
@@ -554,8 +574,8 @@ export const useExamples = () => {
     createExample: createMutation.mutate,
   };
 };
-```
 
+```text
 ---
 
 ## Database & Migrations
@@ -566,17 +586,20 @@ export const useExamples = () => {
 cd backend
 
 # Create new migration (auto-detects model changes)
+
 alembic revision --autogenerate -m "Add example table"
 
 # Review generated migration file in backend/alembic/versions/
 
 # Apply migration
+
 alembic upgrade head
 
 # Rollback if needed
-alembic downgrade -1
-```
 
+alembic downgrade -1
+
+```text
 ### Migration Best Practices
 
 1. **Always review auto-generated migrations** before applying
@@ -589,6 +612,7 @@ alembic downgrade -1
 
 ```python
 # backend/alembic/versions/xxxx_add_column.py
+
 def upgrade():
     # Add column
     op.add_column('students', sa.Column('middle_name', sa.String(50)))
@@ -605,8 +629,8 @@ def upgrade():
 def downgrade():
     op.drop_index('idx_student_middle_name')
     op.drop_column('students', 'middle_name')
-```
 
+```text
 ### Database Version Mismatch
 
 **Problem:** Native and Docker use different DB versions
@@ -615,12 +639,14 @@ def downgrade():
 
 ```powershell
 # Check version mismatch
+
 .\scripts\CHECK_VOLUME_VERSION.ps1
 
 # Auto-migrate Docker volume
-.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
-```
 
+.\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
+
+```text
 ---
 
 ## Authentication & Security
@@ -643,29 +669,32 @@ def downgrade():
 7. Token expired? Use refresh_token (POST /auth/refresh)
    ↓
 8. New access_token issued
-```
 
+```text
 ### Implementing Protected Endpoints
 
 ```python
 from backend.security.dependencies import require_role, optional_require_role
 
 # Public endpoint (no auth)
+
 @router.get("/public/data")
 async def public_data():
     return {"data": "public"}
 
 # Protected endpoint (any authenticated user)
+
 @router.get("/protected/data")
 async def protected_data(current_user: User = Depends(require_role())):
     return {"user_id": current_user.id}
 
 # Role-specific endpoint (respects AUTH_MODE)
+
 @router.get("/admin/data")
 async def admin_data(current_admin: Any = Depends(optional_require_role("admin"))):
     return {"admin": True}
-```
 
+```text
 ### Security Checklist
 
 - [ ] All admin endpoints use `optional_require_role("admin")`
@@ -692,10 +721,11 @@ All endpoints are versioned under `/api/v1/`:
 
 ```python
 # backend/main.py
+
 app.include_router(students_router, prefix="/api/v1")
 app.include_router(courses_router, prefix="/api/v1")
-```
 
+```text
 **Future versions:**
 
 - `/api/v2/` - Breaking changes
@@ -707,30 +737,34 @@ app.include_router(courses_router, prefix="/api/v1")
 from backend.rate_limiting import limiter, RATE_LIMIT_WRITE, RATE_LIMIT_READ
 
 # Write operations: configured via backend.rate_limiting.RATE_LIMIT_WRITE (defaults shown for high-throughput environments)
+
 @router.post("/items")
 @limiter.limit(RATE_LIMIT_WRITE)
 async def create_item(request: Request, ...):
     pass
 
 # Read operations: configured via backend.rate_limiting.RATE_LIMIT_READ
+
 @router.get("/items")
 @limiter.limit(RATE_LIMIT_READ)
 async def list_items(request: Request, ...):
     pass
 
 # Heavy operations: configured via backend.rate_limiting.RATE_LIMIT_HEAVY
+
 @router.post("/bulk-import")
 @limiter.limit(RATE_LIMIT_HEAVY)
 async def bulk_import(request: Request, ...):
     pass
-```
 
+```text
 ### Error Handling
 
 ```python
 from fastapi import HTTPException, status
 
 # Standard error responses
+
 raise HTTPException(
     status_code=status.HTTP_404_NOT_FOUND,
     detail="Student not found"
@@ -745,8 +779,8 @@ raise HTTPException(
     status_code=status.HTTP_409_CONFLICT,
     detail="Email already exists"
 )
-```
 
+```text
 ### Pagination
 
 ```python
@@ -761,8 +795,8 @@ async def list_students(
 ):
     students = db.query(Student).offset(skip).limit(limit).all()
     return students
-```
 
+```text
 ### API Documentation
 
 **Access Swagger UI:** [Swagger UI](http://localhost:8000/docs)
@@ -791,10 +825,11 @@ async def create_student(student: StudentCreate, ...):
     - **last_name**: Student's last name (required)
     - **email**: Unique email address (required)
     - **student_id**: Optional student ID (auto-generated if not provided)
+
     """
     pass
-```
 
+```text
 See: [API_EXAMPLES.md](API_EXAMPLES.md) for common API patterns
 
 ---
@@ -807,29 +842,36 @@ See: [API_EXAMPLES.md](API_EXAMPLES.md) for common API patterns
 cd backend
 
 # Run all tests
+
 pytest
 
 # Run with verbose output
+
 pytest -v
 
 # Run specific test file
+
 pytest tests/test_students_router.py
 
 # Run with coverage
+
 pytest --cov=backend --cov-report=html
 # View: htmlcov/index.html
 
 # Run tests matching pattern
+
 pytest -k "test_create"
 
 # Stop on first failure
-pytest -x
-```
 
+pytest -x
+
+```text
 ### Writing Backend Tests
 
 ```python
 # backend/tests/test_example.py
+
 import pytest
 from fastapi.testclient import TestClient
 from backend.main import app
@@ -851,29 +893,34 @@ def test_get_example_not_found():
     response = client.get("/api/v1/examples/99999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Example not found"
-```
 
+```text
 ### Frontend Testing (Playwright E2E)
 
 ```bash
 cd frontend
 
 # Install Playwright browsers (first time only)
+
 npx playwright install
 
 # Run E2E tests
+
 npm run test:e2e
 
 # Run in UI mode (interactive)
+
 npx playwright test --ui
 
 # Run specific test
+
 npx playwright test tests/e2e/students.spec.ts
 
 # Debug test
-npx playwright test --debug
-```
 
+npx playwright test --debug
+
+```text
 ### Writing E2E Tests
 
 ```typescript
@@ -900,8 +947,8 @@ test('create example item', async ({ page }) => {
   // Verify item appears in list
   await expect(page.locator('.example-list')).toContainText('Test Example');
 });
-```
 
+```text
 ### Test Coverage Goals
 
 - **Backend**: > 80% code coverage
@@ -929,22 +976,24 @@ from backend.caching import cache_response
 @cache_response(ttl=300)  # 5-minute cache
 async def list_students(...):
     pass
-```
 
+```text
 **N+1 Query Fixes (100x reduction):**
 
 ```python
 # ❌ Wrong: N+1 queries
+
 students = db.query(Student).all()
 for student in students:
     courses = student.courses  # Separate query per student
 
 # ✅ Correct: Single query with join
+
 students = db.query(Student).options(
     joinedload(Student.courses)
 ).all()
-```
 
+```text
 **React Optimization (+60-70% render speed):**
 
 ```jsx
@@ -959,8 +1008,8 @@ const config = useMemo(() => ({ key: 'value' }), []);
 export const ExpensiveComponent = React.memo(({ data }) => {
   // ...
 });
-```
 
+```text
 ### Performance Monitoring
 
 **Backend:**
@@ -977,8 +1026,8 @@ async def slow_operation():
     duration = time.time() - start
     if duration > 0.3:  # 300ms threshold
         logger.warning(f"Slow operation: {duration:.2f}s")
-```
 
+```text
 **Frontend:**
 
 ```javascript
@@ -986,8 +1035,8 @@ async def slow_operation():
 // Monitor bundle size with Vite build analysis
 npm run build
 npx vite-bundle-visualizer
-```
 
+```text
 See: [Performance Optimizations Guide](../../PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)
 
 ---
@@ -1030,8 +1079,8 @@ test(grades): add calculation tests
 refactor(api): simplify error handling
 perf(database): add indexes to improve queries
 chore(deps): update dependencies
-```
 
+```text
 **Structure:**
 
 ```html
@@ -1040,8 +1089,8 @@ chore(deps): update dependencies
 [optional body]
 
 [optional footer]
-```
 
+```text
 **Types:**
 
 - `feat`: New feature
@@ -1073,13 +1122,15 @@ chore(deps): update dependencies
 
 ```bash
 # Install pre-commit hooks
+
 pip install pre-commit
 pre-commit install
 
 # Run manually
-pre-commit run --all-files
-```
 
+pre-commit run --all-files
+
+```text
 ### Pull Request Checklist
 
 - [ ] Code follows style guidelines
@@ -1108,57 +1159,71 @@ pre-commit run --all-files
 
 ```bash
 # Format code
+
 ruff format .
 
 # Lint code
+
 ruff check .
 
 # Type check
+
 mypy backend/
 
 # Run specific test class
+
 pytest tests/test_students_router.py::TestStudentRouter
 
 # Generate migration
-alembic revision --autogenerate -m "description"
-```
 
+alembic revision --autogenerate -m "description"
+
+```text
 **Frontend:**
 
 ```bash
 # Format code
+
 npm run format
 
 # Lint code
+
 npm run lint
 
 # Type check (if using TypeScript)
+
 npm run type-check
 
 # Build for production
+
 npm run build
 
 # Preview production build
-npm run preview
-```
 
+npm run preview
+
+```text
 **Docker:**
 
 ```bash
 # Rebuild specific service
+
 docker-compose up -d --build backend
 
 # View logs
+
 docker-compose logs -f backend
 
 # Execute command in container
+
 docker-compose exec backend bash
 
 # Clean rebuild
+
 docker-compose down -v
 docker-compose up -d --build
-```
 
+```text
 ### Resources
 
 **Documentation:**
@@ -1188,3 +1253,4 @@ docker-compose up -d --build
 **Last Updated:** November 22, 2025
 **Maintained By:** SMS Development Team
 **Feedback:** Create issue with label `documentation`
+

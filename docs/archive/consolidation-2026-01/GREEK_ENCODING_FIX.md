@@ -15,7 +15,7 @@ The installer was experiencing Greek text encoding issues that persisted across 
 
 An **automatic encoding pipeline** that applies every build:
 
-```
+```text
 Git Storage (UTF-8 - human-readable)
     ↓
 INSTALLER_BUILDER.ps1 triggers build
@@ -27,8 +27,8 @@ Inno Setup 6 reads CP1253 text files
 Compiles proper Greek text into installer binary
     ↓
 Windows displays correct Greek characters ✓
-```
 
+```text
 ### How It Works
 
 #### 1. Source Files in Git (UTF-8)
@@ -68,13 +68,13 @@ The `fix_greek_encoding_permanent.py` script:
 
 When you read CP1253 files in PowerShell, they appear "garbled":
 
-```
+```text
 Disk File (hex):     CA E1 EB FE F2 20 DE F1 E8 E1 F4 E5...
 PowerShell display:  ΄±»þò £ðèñôå...  (wrong interpretation)
 Inno Setup reads:    "Καλώς ήρθατε..."  (correct)
 Installer output:    Καλώς ήρθατε      (displayed correctly)
-```
 
+```text
 **This is normal and expected:**
 
 - PowerShell defaults to UTF-8 interpretation
@@ -184,3 +184,4 @@ To confirm Greek text displays correctly:
 - **Simple**: Clear UTF-8 (git) → CP1253 (compile) pipeline
 - **Reliable**: No ambiguity or manual steps
 - **Permanent**: Embedded in build process
+

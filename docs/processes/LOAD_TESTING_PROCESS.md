@@ -5,6 +5,7 @@
 ---
 
 ## 🚦 When to Run Load Tests
+
 - Before every major or minor release
 - After significant backend or database changes
 - After infrastructure or scaling changes
@@ -12,6 +13,7 @@
 ---
 
 ## 🛠️ Tools
+
 - **Locust** (primary, Python-based)
 - **Gatling** (optional, JVM-based)
 - **Prometheus/Grafana** for monitoring
@@ -19,6 +21,7 @@
 ---
 
 ## 📋 Checklist
+
 - [ ] Update load test scenarios to reflect new features/endpoints
 - [ ] Run Locust/Gatling tests against staging or pre-production
 - [ ] Record key metrics: response times, throughput, error rates, resource usage
@@ -29,6 +32,7 @@
 ---
 
 ## 📝 Example Metrics to Capture
+
 - 95th/99th percentile response time per endpoint
 - Max concurrent users supported
 - Error rate under load
@@ -38,9 +42,11 @@
 ---
 
 ## 📂 Where to Document
+
 - `docs/operations/LOAD_TEST_RESULTS.md` (append each run)
 - Release notes (summary of results and any actions taken)
 
 ---
 
 _Last updated: 2025-12-18_
+

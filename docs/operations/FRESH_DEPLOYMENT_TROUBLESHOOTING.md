@@ -8,8 +8,8 @@
 
 ```text
 [plugin:vite:import-analysis] Failed to resolve import "i18next" from "src/i18n/config.js"
-```
 
+```text
 **Root Cause:**
 You're accessing the wrong URL for your deployment mode.
 
@@ -27,28 +27,32 @@ REM Check if Docker containers are running
 docker ps
 
 REM If you see containers, use port 8080
-```
 
+```text
 #### If using Native mode
 
 The error means frontend dependencies weren't installed. Fix it:
 
 ```powershell
 # Stop everything first
+
 .\DOCKER.ps1 -Stop
 
 # Install frontend dependencies (if using native mode)
+
 cd frontend
 npm install
 cd ..
 
 # Start again in Docker mode (recommended)
+
 .\DOCKER.ps1 -Start
 
 # Or start in native mode for development
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 ---
 
 ## Understanding Deployment Modes
@@ -95,16 +99,19 @@ cd ..
 
 ```powershell
 # Option A: Run with bypass (one-time)
+
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\DOCKER.ps1 -Start
 
 # Option B: Set policy permanently (CurrentUser scope)
+
 pwsh -Command "Set-ExecutionPolicy -Scope CurrentUser RemoteSigned"
 .\DOCKER.ps1 -Start
 
 # Option C: Use VBS toggle (no PowerShell issues)
-# Double-click DOCKER_TOGGLE.vbs in Windows Explorer
-```
 
+# Double-click DOCKER_TOGGLE.vbs in Windows Explorer
+
+```text
 ### 2. Missing Prerequisites
 
 **Error:** "Python 3.11+ is required but not found"
@@ -125,13 +132,15 @@ pwsh -Command "Set-ExecutionPolicy -Scope CurrentUser RemoteSigned"
 
 ```powershell
 # Make sure you're in the correct directory
+
 cd D:\SMS\student-management-system  # Or wherever you extracted the files
 dir  # Should show DOCKER.ps1, NATIVE.ps1, COMMIT_READY.ps1, etc.
 
 # Then run
-.\DOCKER.ps1 -Start
-```
 
+.\DOCKER.ps1 -Start
+
+```text
 ### 4. npm Install Failed
 
 **Error:** "npm install failed" or dependency errors
@@ -140,23 +149,28 @@ dir  # Should show DOCKER.ps1, NATIVE.ps1, COMMIT_READY.ps1, etc.
 
 ```powershell
 # Clear npm cache
+
 npm cache clean --force
 
 # Delete node_modules and try again
+
 cd frontend
 Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
 Remove-Item package-lock.json -ErrorAction SilentlyContinue
 
 # Reinstall
+
 npm install
 
 # If still fails, check npm version
+
 npm --version  # Should be 9+ for Node 18+
 
 # Update npm if needed
-npm install -g npm@latest
-```
 
+npm install -g npm@latest
+
+```text
 ---
 
 ## How to Check What's Running
@@ -165,23 +179,27 @@ npm install -g npm@latest
 
 ```powershell
 # Using DOCKER.ps1
+
 .\DOCKER.ps1 -Status
 
 # Or using NATIVE.ps1
+
 .\NATIVE.ps1 -Status
 
 # Or check directly
+
 docker ps  # Shows Docker containers
 netstat -ano | findstr ":8080"  # Check if port 8080 is in use
 netstat -ano | findstr ":8000"  # Check if port 8000 is in use
 netstat -ano | findstr ":5173"  # Check if port 5173 is in use
-```
 
+```text
 ### From Control Panel
 
 1. Open Control Panel at:
    - Docker: <http://localhost:8080/control>
    - Native: <http://localhost:8000/control>
+
 2. Check "System Status" section
 3. Click "Run Diagnostics" for detailed health check
 
@@ -193,26 +211,33 @@ If everything is broken and you want to start completely fresh:
 
 ```powershell
 # 1. Stop everything
+
 .\DOCKER.ps1 -Stop  # Or .\NATIVE.ps1 -Stop
 
 # 2. Clean Docker (if using Docker mode)
+
 .\DOCKER.ps1 -DeepClean  # Removes containers, images, volumes
 
 # 3. Delete data directory (⚠️ loses database)
+
 Remove-Item -Recurse -Force data -ErrorAction SilentlyContinue
 
 # 4. Delete node_modules (if using native mode)
+
 Remove-Item -Recurse -Force frontend\node_modules -ErrorAction SilentlyContinue
 
 # 5. Delete Python virtual environment (if using native mode)
+
 Remove-Item -Recurse -Force backend\venv -ErrorAction SilentlyContinue
 
 # 6. Fresh installation
+
 .\DOCKER.ps1 -Install  # For Docker mode
 # Or
-.\NATIVE.ps1 -Setup    # For native mode
-```
 
+.\NATIVE.ps1 -Setup    # For native mode
+
+```text
 ---
 
 ## Verifying Successful Installation
@@ -222,9 +247,10 @@ Remove-Item -Recurse -Force backend\venv -ErrorAction SilentlyContinue
 ```powershell
 .\DOCKER.ps1 -Status  # For Docker mode
 # Or
-.\NATIVE.ps1 -Status  # For native mode
-```
 
+.\NATIVE.ps1 -Status  # For native mode
+
+```text
 Should show:
 
 - ✅ Backend: RUNNING
@@ -306,20 +332,25 @@ If ports 8000, 8080, or 5173 are already in use:
 
 ```powershell
 # Find what's using the port
+
 netstat -ano | findstr ":8080"
 # Note the PID (last column)
 
 # Kill that process (replace 1234 with actual PID) — operator guidance follows
+
 # Prefer using operator tooling rather than running taskkill directly.
 #  - Request frontend stop via control API helper:
+
 #      .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
 # If you are an operator and understand the risks, run the emergency script interactively:
+
 #      .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
 
 # Or use diagnostic script
-.\scripts\DIAGNOSE_STATE.ps1
-```
 
+.\scripts\DIAGNOSE_STATE.ps1
+
+```text
 ---
 
 ## Summary: Most Common Fix
@@ -331,3 +362,4 @@ netstat -ano | findstr ":8080"
 3. If no containers → Run `cd frontend && npm install` then restart
 
 **That fixes 90% of fresh deployment issues.**
+

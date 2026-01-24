@@ -1,4 +1,5 @@
 # Agent Continuation Protocol
+
 ## How to Understand and Continue Work Without Duplication
 
 **Version**: 1.0
@@ -23,6 +24,7 @@ When multiple agents work on a project sequentially or in parallel, they need to
 ## 📌 Core Principle: Single Source of Truth
 
 ### The Hierarchy (in order of authority)
+
 1. **`docs/ACTIVE_WORK_STATUS.md`** ← **PRIMARY** — Current state of all active work items
 2. **`docs/releases/RELEASE_PREPARATION_$11.15.2.md`** ← Active release timeline & Phase 1 tasks
 3. **`docs/misc/TODO.md`** ← Historical backlog and completed phases (reference only)
@@ -37,10 +39,11 @@ When multiple agents work on a project sequentially or in parallel, they need to
 ### Step 1: Read the State (5 minutes)
 
 **File to read first:**
-```
-docs/ACTIVE_WORK_STATUS.md
-```
 
+```text
+docs/ACTIVE_WORK_STATUS.md
+
+```text
 **What to extract:**
 - Current version and release target
 - Phase/milestone in progress
@@ -49,22 +52,24 @@ docs/ACTIVE_WORK_STATUS.md
 - Any blockers or decision points
 
 **Sample extraction:**
-```
+
+```text
 CURRENT STATE (from ACTIVE_WORK_STATUS.md):
 - Version: 1.14.2 (stable)
 - Target: 1.15.0 (Phase 1, Jan 7–20)
 - In Progress: Backend test reconciliation (60+ failures from APIResponse format)
 - Last Worked: Jan 5, 2026, 15:30 UTC (type-safety frontend cleanup)
 - Blocker: Backend test count mismatch in release prep doc
-```
 
+```text
 ### Step 2: Understand the Phase (3 minutes)
 
 **File to read:**
-```
-docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
-```
 
+```text
+docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
+
+```text
 **What to extract:**
 - Phase name and timeline
 - List of 8 improvements with links to implementation docs
@@ -86,20 +91,23 @@ docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
 ### When You Start Work
 
 **Find your item in ACTIVE_WORK_STATUS:**
+
 ```yaml
 - Task: "Backend test reconciliation"
+
   Status: "not-started" ← Change to "in-progress"
   Owner: "" ← Add your name/agent ID
   Started: "" ← Add date/time
   Last Update: "" ← Add current date/time
-```
 
+```text
 ### As You Work
 
 **After each significant change**, update the item:
 
 ```yaml
 - Task: "Backend test reconciliation"
+
   Status: "in-progress"
   Owner: "Agent-Copilot"
   Started: "2026-01-05 16:00 UTC"
@@ -110,14 +118,15 @@ docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
     → Next: Categorize failures by type
   Blockers: None
   PR/Commit: None yet
-```
 
+```text
 ### When You Finish
 
 **Mark the task as done and record the output:**
 
 ```yaml
 - Task: "Backend test reconciliation"
+
   Status: "done"
   Owner: "Agent-Copilot"
   Completed: "2026-01-05 17:15 UTC"
@@ -128,14 +137,15 @@ docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
     ✓ PR ready: feature/backend-test-fixes (#47)
   PR/Commit: "feature/backend-test-fixes (#47)"
   Links: "docs/TEST_FAILURE_PATTERNS.md, docs/releases/$11.15.2_test_status.md"
-```
 
+```text
 ### If You Hit a Blocker
 
 **Record it immediately:**
 
 ```yaml
 - Task: "Backend test reconciliation"
+
   Status: "blocked"
   Blocker: "Cannot determine if failures are pre-existing or new (no baseline test run from $11.15.2 release)"
   Blocker Reason: "Release prep doc claims 'all tests passing' but 60 failures exist on current main"
@@ -143,8 +153,8 @@ docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
     1. Should we treat these as pre-existing and defer to Phase 1 task #4?
     2. Or should we fix them now as part of Phase 0 stabilization?
   Escalation: "Release lead must clarify Phase 0 test expectations"
-```
 
+```text
 ---
 
 ## 📊 ACTIVE_WORK_STATUS Format (YAML)
@@ -180,6 +190,7 @@ current_state:
 
 work_items:
   - id: "PHASE1-001"
+
     title: "Backend test reconciliation (Phase 0 gap)"
     status: "not-started"  # not-started / in-progress / blocked / done
     priority: "critical"
@@ -216,6 +227,7 @@ work_items:
     commit_link: ""
 
   - id: "PHASE1-002"
+
     title: "Commit & document type-safety frontend changes"
     status: "in-progress"
     priority: "high"
@@ -252,6 +264,7 @@ work_items:
     commit_link: ""
 
   - id: "PHASE1-003"
+
     title: "Create feature branch for Phase 1 improvements"
     status: "not-started"
     priority: "high"
@@ -283,3 +296,4 @@ notes: |
   - Blockers are explicit so agents can escalate or work around them
   - Links to implementation docs allow agents to dive deep without re-reading entire release plan
   - Status values are standardized: not-started / in-progress / blocked / done
+

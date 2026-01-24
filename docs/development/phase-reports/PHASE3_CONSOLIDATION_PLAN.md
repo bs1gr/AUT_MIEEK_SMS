@@ -62,8 +62,8 @@ docs/
 │   └── (operational guides)
 └── reference/
     └── (quick reference guides)
-```
 
+```text
 ### Issue
 
 - Two separate `DOCUMENTATION_INDEX.md` files with different content
@@ -161,8 +161,8 @@ backend/
    └── migrate/runner.py (migration runner - primary)
 
 tools/ → scripts/utils/ (Phase 1 migration)
-```
 
+```text
 ### Issue
 
 - Backend utilities scattered across multiple files
@@ -190,8 +190,8 @@ backend/scripts/
 │   └── jobs.py (migrate_job.py content)
 ├── README.md
 └── ORGANIZATION.md
-```
 
+```text
 #### Step 2: Create Import Compatibility (90 min)
 
 - [ ] Create `backend/scripts/admin/__init__.py` with exports
@@ -298,8 +298,8 @@ Create `docs/development/SYMLINK_MANAGEMENT.md`:
 - Procedure for adding new symlinks
 - Verification checklist
 - Troubleshooting guide
-```
 
+```text
 #### Step 3: Document Existing References (30 min)
 
 - [ ] Map all file cross-references (includes, imports, links)
@@ -400,3 +400,4 @@ Comprehensive validation that all Phase 3 changes work correctly and don't intro
 4. **Integration Tests** (30 min)
    - [ ] Full test suite passes (backend + frontend)
    - [ ] Docker build succeeds
+

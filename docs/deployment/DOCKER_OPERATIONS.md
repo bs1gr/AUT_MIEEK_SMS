@@ -4,14 +4,17 @@
 **Mode:** Docker Deployment
 
 **🎯 CRITICAL WORKFLOW RULE:**
+
 ```powershell
 # ✅ Use DOCKER.ps1 ONLY for production deployment
+
 .\DOCKER.ps1 -Start          # Production container (8080)
 
 # ✅ Use NATIVE.ps1 for testing/development (NOT here)
-.\NATIVE.ps1 -Start          # Testing only (8000/5173, hot reload)
-```
 
+.\NATIVE.ps1 -Start          # Testing only (8000/5173, hot reload)
+
+```text
 This guide explains the operational architecture for the Student Management System Docker deployment and how to perform common tasks.
 
 ---
@@ -61,18 +64,23 @@ The system follows a **clean separation of concerns** between host operations an
 
 ```powershell
 # Run the installation command
+
 .\DOCKER.ps1 -Install
 
 # What it does:
+
 # ✅ Checks Docker availability (fails if not installed)
 # ✅ Creates .env files from templates
+
 # ✅ Syncs VERSION to docker-compose .env
 # ✅ Builds Docker images
+
 # ✅ Starts containers
 # ✅ Waits for services to be ready
-# ✅ Displays access URLs
-```
 
+# ✅ Displays access URLs
+
+```text
 **Options:**
 
 - `.\DOCKER.ps1 -UpdateClean` - Force rebuild with `--no-cache`
@@ -85,31 +93,38 @@ The system follows a **clean separation of concerns** between host operations an
 
 ```powershell
 # Start containers (detached mode)
+
 .\DOCKER.ps1 -Start
 
 # View status (container health, ports, URLs)
+
 .\DOCKER.ps1 -Status
 
 # Stop all containers
+
 .\DOCKER.ps1 -Stop
 
 # Restart all containers
+
 .\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start
 
 # View backend logs (follow mode)
+
 .\DOCKER.ps1 -Logs
 
 # Show help and available commands
-.\DOCKER.ps1 -Help
-```
 
+.\DOCKER.ps1 -Help
+
+```text
 **Interactive Mode:**
 
 ```powershell
 # Run without parameters for help display
-.\DOCKER.ps1
-```
 
+.\DOCKER.ps1
+
+```text
 ---
 
 ### Building and Updating
@@ -118,32 +133,39 @@ The system follows a **clean separation of concerns** between host operations an
 
 ```powershell
 # Rebuild specific service
+
 docker compose build backend
 docker compose build frontend
 
 # Rebuild all services
+
 docker compose build
 
 # Rebuild without cache (clean build)
+
 docker compose build --no-cache
 
 # Rebuild and restart
-docker compose up -d --build
-```
 
+docker compose up -d --build
+
+```text
 #### Update After Pulling Changes
 
 ```powershell
 # 1. Stop containers
+
 .\DOCKER.ps1 -Stop
 
 # 2. Rebuild images
+
 docker compose build
 
 # 3. Start containers
-.\DOCKER.ps1 -Start
-```
 
+.\DOCKER.ps1 -Start
+
+```text
 ---
 
 ### Database Operations
@@ -161,8 +183,8 @@ docker compose build
 
 ```powershell
 docker compose exec backend python -c "from backend.db import backup_database; backup_database()"
-```
 
+```text
 #### Restore Database
 
 **Via Control Panel:**
@@ -182,15 +204,18 @@ docker compose exec backend python -c "from backend.db import backup_database; b
 
 ```powershell
 # Follow backend logs (live updates)
+
 .\DOCKER.ps1 -Logs
 
 # View specific number of lines
+
 docker logs sms-fullstack --tail 100
 
 # View all logs
-docker compose -f docker/docker-compose.yml logs -f
-```
 
+docker compose -f docker/docker-compose.yml logs -f
+
+```text
 #### Health Checks
 
 **Via Control Panel:**
@@ -203,15 +228,18 @@ docker compose -f docker/docker-compose.yml logs -f
 
 ```powershell
 # Basic health check
+
 curl http://localhost:8080/health
 
 # Readiness probe
+
 curl http://localhost:8080/health/ready
 
 # Liveness probe
-curl http://localhost:8080/health/live
-```
 
+curl http://localhost:8080/health/live
+
+```text
 ---
 
 ### Troubleshooting
@@ -220,36 +248,44 @@ curl http://localhost:8080/health/live
 
 ```powershell
 # Check container status
+
 docker ps -a
 
 # View container logs
+
 docker logs student-management-system-backend-1
 docker logs student-management-system-frontend-1
 
 # Check Docker daemon
+
 docker info
 
 # Verify images exist
-docker images | findstr sms
-```
 
+docker images | findstr sms
+
+```text
 #### Port Conflicts
 
 ```powershell
 # Check what's using port 8080
+
 netstat -ano | findstr ":8080"
 
 # Kill process by PID — operator guidance
+
 # Prefer operator tooling; request frontend stop via the control API helper:
 #   .\scripts\maintenance\stop_frontend_safe.ps1 -ControlUrl 'http://127.0.0.1:8000'
+
 # Operator emergency (interactive, requires confirmation):
 #   .\scripts\internal\KILL_FRONTEND_NOW.ps1 -Confirm
 
 # Or change port in docker-compose.yml:
+
 # ports:
 #   - "8081:80"  # Frontend now on 8081
-```
 
+```text
 #### Database Issues
 
 **Via Control Panel:**
@@ -263,28 +299,34 @@ netstat -ano | findstr ":8080"
 
 ```powershell
 # Access backend container
+
 docker compose exec backend bash
 
 # Check database file
+
 ls -lh /data/student_management.db
 
 # Run migrations
-cd /app/backend && alembic upgrade head
-```
 
+cd /app/backend && alembic upgrade head
+
+```text
 #### Reset Everything
 
 ```powershell
 # Stop and remove containers, networks, and volumes
+
 docker compose down -v
 
 # Remove images
+
 docker rmi sms-backend:1.3.8 sms-frontend:1.3.8
 
 # Fresh setup
-.\SMART_SETUP.ps1
-```
 
+.\SMART_SETUP.ps1
+
+```text
 ---
 
 ## 🔒 What You CANNOT Do From Control Panel (Docker Mode)
@@ -338,61 +380,75 @@ These operations require **host-level access** and must be run from PowerShell:
 
 ```powershell
 # 1. Start system
+
 .\DOCKER.ps1 -Start
 
 # 2. Make code changes in your editor
 
 # 3. Rebuild affected service
+
 docker compose -f docker/docker-compose.yml build
 
 # 4. Restart containers
+
 .\DOCKER.ps1 -Stop; .\DOCKER.ps1 -Start
 
 # 5. Check logs for errors
+
 .\DOCKER.ps1 -Logs
 
 # 6. Test changes at http://localhost:8080
-```
 
+```text
 ### Production Deployment Workflow
 
 ```powershell
 # 1. Pull latest code
+
 git pull origin main
 
 # 2. Stop current containers
+
 .\DOCKER.ps1 -Stop
 
 # 3. Rebuild images (no cache for production)
+
 .\DOCKER.ps1 -UpdateClean
 
 # 4. Verify health
+
 .\DOCKER.ps1 -Status
 # Or visit http://localhost:8080/health
 
 # 5. Check Control Panel diagnostics
-# http://localhost:8080 → Power Tab → Diagnostics
-```
 
+# http://localhost:8080 → Power Tab → Diagnostics
+
+```text
 ### Backup Before Upgrade
 
 ```powershell
 # 1. Create database backup via Control Panel
+
 # http://localhost:8080 → Power Tab → Operations → Create Database Backup
 
 # 2. Stop containers
+
 .\DOCKER.ps1 -Stop
 
 # 3. Backup entire data volume (optional)
+
 docker run --rm -v sms_data:/data -v ${PWD}/backups:/backup alpine tar czf /backup/sms_data_$(date +%Y%m%d_%H%M%S).tar.gz -C /data .
 
 # 4. Pull new version
+
 git pull origin main
 
 # 5. Rebuild and start
-.\DOCKER.ps1 -Update
-```
 
+.\DOCKER.ps1 -Update
+
+```text
 ---
 
 ## 📚 Additional Resources
@@ -425,3 +481,4 @@ git pull origin main
 **Last Updated:** December 2025
 **Version:** 1.9.3
 **Architecture:** Docker-First, Host/Container Separation
+

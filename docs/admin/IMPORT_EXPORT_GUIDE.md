@@ -23,22 +23,26 @@ The import process follows a 4-step wizard to ensure data integrity:
 2. **Preview**: Review the first few rows of parsed data to confirm column mapping.
 3. **Validation**: The system checks for errors (duplicates, missing required fields, invalid formats).
     - *Note*: If critical errors are found, the import is blocked.
+
 4. **Commit**: Confirm the import to write data to the database.
 
 ### Required Columns
 
 #### Students
+
 - `first_name`
 - `last_name`
 - `email` (Unique)
 - `registration_number` (Unique)
 
 #### Courses
+
 - `code` (Unique)
 - `title`
 - `credits`
 
 #### Grades
+
 - `student_registration_number`
 - `course_code`
 - `grade`
@@ -85,3 +89,4 @@ If an import completes but the data is incorrect:
 
 - **Max File Size**: 10MB
 - **Max Rows**: 5000 per batch (split larger files if necessary)
+

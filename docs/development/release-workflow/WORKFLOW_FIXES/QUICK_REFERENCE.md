@@ -23,28 +23,31 @@
 ## 🛠️ Quick Fix Commands
 
 ### Apply E2E Fix (Do First!)
+
 ```bash
 cp WORKFLOW_FIXES/fix-2-e2e-tests.yml .github/workflows/e2e-tests.yml
 git add .github/workflows/e2e-tests.yml
 git commit -m "fix(ci): improve E2E test environment and health checks"
 git push
-```
 
+```text
 ### Apply COMMIT_READY Fix
+
 ```bash
 cp WORKFLOW_FIXES/fix-1-commit-ready-smoke.yml .github/workflows/commit-ready-smoke.yml
 git add .github/workflows/commit-ready-smoke.yml
 git commit -m "fix(ci): split COMMIT_READY smoke matrix for isolation"
 git push
-```
 
+```text
 ### Delete Duplicate Workflow
+
 ```bash
 git rm .github/workflows/quickstart-validation.yml
 git commit -m "chore(ci): remove duplicate quickstart workflow"
 git push
-```
 
+```text
 ## 🔍 Root Causes Summary
 
 **Pattern 1: Test Execution Issues**
@@ -101,13 +104,15 @@ git push
 
 ```bash
 # Restore from backup
+
 cp .github/workflows.backup/* .github/workflows/
 
 # Or revert last commit
+
 git revert HEAD
 git push
-```
 
+```text
 ## 💡 Pro Tips
 
 1. **Test locally first:** `.\COMMIT_READY.ps1 -Quick`
@@ -126,3 +131,4 @@ git push
 ---
 
 **Ready to fix? Start here:** `WORKFLOW_FIXES/IMPLEMENTATION_GUIDE.md` 🚀
+

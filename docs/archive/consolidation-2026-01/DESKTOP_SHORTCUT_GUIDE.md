@@ -17,8 +17,8 @@ Run this command once from PowerShell:
 
 ```powershell
 .\CREATE_DESKTOP_SHORTCUT.ps1
-```
 
+```text
 This creates a shortcut named **"Student Management System"** on your Desktop.
 
 ### Step 2: Use the Shortcut
@@ -53,7 +53,7 @@ When you click the shortcut, you'll see:
 
 **When Starting:**
 
-```
+```text
 ═══════════════════════════════════════════════════════
   SMS Docker Toggle - Smart Start/Stop
 ═══════════════════════════════════════════════════════
@@ -68,11 +68,11 @@ When you click the shortcut, you'll see:
 ℹ️  Click the shortcut again to stop
 
 Press any key to close...
-```
 
+```text
 **When Stopping:**
 
-```
+```text
 ═══════════════════════════════════════════════════════
   SMS Docker Toggle - Smart Start/Stop
 ═══════════════════════════════════════════════════════
@@ -85,8 +85,8 @@ Press any key to close...
 ℹ️  Click the shortcut again to start
 
 Press any key to close...
-```
 
+```text
 ## Technical Details
 
 ### DOCKER_TOGGLE.ps1
@@ -135,24 +135,24 @@ The shortcut uses `-ExecutionPolicy Bypass` to avoid issues, but if you encounte
 
 ```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
 
+```text
 ## Advanced Usage
 
 ### Manual Toggle (without shortcut)
 
 ```powershell
 .\DOCKER_TOGGLE.ps1
-```
 
+```text
 ### Direct Commands (traditional way)
 
 ```powershell
 .\DOCKER.ps1 -Start    # Start only
 .\DOCKER.ps1 -Stop     # Stop only
 .\DOCKER.ps1 -Status   # Check status
-```
 
+```text
 ## Customization
 
 ### Change Shortcut Name
@@ -195,3 +195,4 @@ The toggle script works seamlessly with your existing SMS scripts:
   - Smart start/stop toggle
   - Desktop shortcut creator
   - Visual feedback and status messages
+

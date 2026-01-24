@@ -30,23 +30,26 @@ Ensure you have:
 
 ```powershell
 # Terminal 1: Start Backend
+
 cd backend
 python -m uvicorn backend.main:app --reload
 
 # Terminal 2: Start Frontend + E2E Tests
+
 cd frontend
 npm run dev  # Starts Vite on port 5173
 
 # Terminal 3: Run Tests
+
 cd frontend
 npm run e2e
-```
 
+```text
 **Expected**: Tests should start automatically when both servers are running. Frontend WebServer in `playwright.config.ts` starts with `npm run dev`.
 
 ### Expected Results
 
-```
+```text
 Running 195 tests using 4 workers
 
 ✅ Student Management: 7 passed
@@ -56,8 +59,8 @@ Running 195 tests using 4 workers
 
 Summary: 19/24 critical tests passing (79% overall)
 Duration: ~3-5 minutes
-```
 
+```text
 ---
 
 ## 🔧 Complete Setup (10 Minutes)
@@ -68,24 +71,27 @@ Duration: ~3-5 minutes
 cd frontend
 npm ci  # Install dependencies
 npx playwright install  # Install browser binaries
-```
 
+```text
 ### Step 2: Verify Backend
 
 ```bash
 cd backend
 
 # Option A: Native (fastest for testing)
+
 python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 
 # Option B: Docker
+
 docker-compose -f docker/docker-compose.yml up backend redis
 
 # Verify Backend Health
+
 curl http://localhost:8000/health/live
 curl http://localhost:8000/health/ready
-```
 
+```text
 **Backend must respond before E2E tests start!**
 
 ### Step 3: Run Tests
@@ -94,28 +100,34 @@ curl http://localhost:8000/health/ready
 cd frontend
 
 # Run all tests (includes UI server startup)
+
 npm run e2e
 
 # Run specific file
+
 npm run e2e -- student-management.spec.ts
 
 # Interactive UI mode (recommended for debugging)
+
 npm run e2e -- --ui
 
 # Debug mode with step-by-step control
-npm run e2e -- --debug
-```
 
+npm run e2e -- --debug
+
+```text
 ### Step 4: View Results
 
 ```bash
 # HTML report
+
 npm run e2e -- && npx playwright show-report
 
 # Playwright Inspector
-npx playwright test --debug
-```
 
+npx playwright test --debug
+
+```text
 ---
 
 ## 📊 Test Inventory & Coverage
@@ -133,7 +145,7 @@ npx playwright test --debug
 
 ### Coverage Map
 
-```
+```text
 ✅ CRITICAL PATH (19/19 passing = 100%)
   ├─ Authentication (2 tests)
   │  ├─ Login flow ✅
@@ -161,8 +173,8 @@ npx playwright test --debug
      ├─ Broadcast notification ⚠️ (403 Forbidden)
      ├─ In-app notification UI ✅
      └─ Various scenarios (mixed)
-```
 
+```text
 ---
 
 ## ⚙️ Configuration Details
@@ -201,24 +213,28 @@ export default defineConfig({
     timeout: 120 * 1000,  // 2 minutes to start
   },
 });
-```
 
+```text
 ### Environment Variables
 
 ```bash
 # Set custom base URL
+
 PLAYWRIGHT_BASE_URL=http://custom-url:5173 npm run e2e
 
 # CI mode (single worker, 2 retries)
+
 CI=true npm run e2e
 
 # Debug output
+
 DEBUG=pw:api npm run e2e
 
 # Headed mode (show browser windows)
-npx playwright test --headed
-```
 
+npx playwright test --headed
+
+```text
 ---
 
 ## 🔍 CI/CD Integration
@@ -229,6 +245,7 @@ The E2E tests run in the CI pipeline with special configuration:
 
 ```yaml
 - name: Run E2E Tests
+
   run: cd frontend && npm run e2e
   env:
     CI: 'true'  # Enables retries and single worker mode
@@ -236,14 +253,15 @@ The E2E tests run in the CI pipeline with special configuration:
   timeout-minutes: 30
 
 - name: Upload Test Results
+
   if: always()
   uses: actions/upload-artifact@v4
   with:
     name: playwright-report
     path: frontend/playwright-report/
     retention-days: 30
-```
 
+```text
 ### CI-Specific Differences
 
 | Setting | Local | CI |
@@ -264,30 +282,36 @@ The E2E tests run in the CI pipeline with special configuration:
 ### Issue #1: Backend Connection Refused (ECONNREFUSED 127.0.0.1:8000)
 
 **Symptoms**:
-```
+
+```text
 [WebServer] Error: connect ECONNREFUSED 127.0.0.1:8000
 Failed to load resource: net::ERR_CONNECTION_REFUSED
-```
 
+```text
 **Root Cause**: Backend not running or not responding on port 8000
 
 **Solutions**:
+
 ```bash
 # Check if backend is running
+
 netstat -ano | findstr ":8000"  # Windows
 lsof -i :8000                   # macOS/Linux
 
 # Start backend if not running
+
 cd backend && python -m uvicorn backend.main:app --reload
 
 # Or with Docker
+
 docker-compose -f docker/docker-compose.yml up backend redis
 
 # Verify health endpoint
+
 curl -i http://localhost:8000/health/live
 # Should return 200 OK
-```
 
+```text
 **Prevention**: Always start backend **before** running E2E tests.
 
 ---
@@ -295,41 +319,48 @@ curl -i http://localhost:8000/health/live
 ### Issue #2: Vite WebServer Timeout (120s)
 
 **Symptoms**:
-```
+
+```text
 Timeout waiting for webServer http://localhost:5173
 Command timed out after 120 seconds
-```
 
+```text
 **Root Cause**: Frontend build is slow or dependencies not installed
 
 **Solutions**:
+
 ```bash
 # Clean install
+
 cd frontend
 rm -rf node_modules package-lock.json
 npm ci
 
 # Run dev separately first to warm up
+
 npm run dev
 
 # Then in another terminal
+
 npm run e2e
 
 # Or increase timeout in playwright.config.ts
+
 webServer: {
   timeout: 180 * 1000,  // 3 minutes
 }
-```
 
+```text
 ---
 
 ### Issue #3: Test Timeout (60s)
 
 **Symptoms**:
-```
-Timeout 60000ms exceeded while waiting for locator
-```
 
+```text
+Timeout 60000ms exceeded while waiting for locator
+
+```text
 **Root Cause**:
 - Backend slow to respond
 - Element not found (wrong selector)
@@ -354,8 +385,8 @@ await page.waitForResponse(resp =>
 
 // Option D: Debug with inspector
 npx playwright test --debug
-```
 
+```text
 ---
 
 ### Issue #4: Intermittent Failures ("Flaky Tests")
@@ -367,7 +398,8 @@ npx playwright test --debug
 - Slow CI runner
 
 **Monitoring** (CI Mode):
-```
+
+```text
 Run 1: 19/24 passing ✅
 Run 2: 19/24 passing ✅
 Run 3: 18/24 passing ⚠️ (flaky detected)
@@ -375,23 +407,28 @@ Run 4: 19/24 passing ✅
 Run 5: 19/24 passing ✅
 
 Flakiness: 1/5 runs = 20% (acceptable, investigate further)
-```
 
+```text
 **Investigation Steps**:
+
 ```bash
 # Run failing test 5 times in a row
+
 for i in {1..5}; do
   echo "Run $i:"
   npx playwright test notification-broadcast.spec.ts --headed
 done
 
 # Document failure pattern
+
 # Example: "Test passes locally (native mode), fails in CI"
 #         "Fails every 3rd run when running full suite"
-#         "Intermittent 403 Forbidden on notification endpoint"
-```
 
+#         "Intermittent 403 Forbidden on notification endpoint"
+
+```text
 **Fixes**:
+
 ```typescript
 // Bad: Hard sleep
 await page.waitForTimeout(1000);
@@ -406,35 +443,37 @@ await page.waitForResponse(resp => resp.status() === 200);
 await page.locator('button:has-text("Save")').click();
 await page.waitForResponse(resp => resp.url().includes('/api/v1/'));
 await expect(page.locator('[data-testid="success-toast"]')).toBeVisible();
-```
 
+```text
 ---
 
 ### Issue #5: Notification Tests Failing (403 Forbidden)
 
 **Symptoms** (Expected for $11.15.2, Fixed in $11.15.2):
-```
+
+```text
 GET /api/v1/control/notifications/broadcast 403 Forbidden
 Test: should broadcast notification to all users
 Status: ⚠️ Known limitation
-```
 
+```text
 **Root Cause**: Test broadcast endpoint requires special permissions (non-critical for $11.15.2)
 
 **Status**: Deferred to $11.15.2 - Notification system refactoring
 
 **Workaround**: Skip notification tests in $11.15.2
+
 ```bash
 npm run e2e -- --grep="^(?!.*Notifications)"
-```
 
+```text
 ---
 
 ## 📈 Monitoring & Tracking
 
 ### Baseline Metrics ($11.15.2)
 
-```
+```text
 Test Execution:
   - Duration: ~3-5 minutes (local), ~8-12 minutes (CI with retries)
   - Parallel Workers: 4 (local), 1 (CI)
@@ -451,8 +490,8 @@ Flakiness:
   - Current: 0/5 runs failing (0% flaky)
   - Target: 0% flaky tests
   - Tracking: Check each new release
-```
 
+```text
 ### Tracking Template (Copy for Weekly Monitoring)
 
 ```markdown
@@ -480,8 +519,8 @@ Flakiness:
 - [ ] Continue monitoring (target: 95%+ success rate for 5 consecutive runs)
 - [ ] Document any new failure patterns
 - [ ] Escalate if flakiness >5%
-```
 
+```text
 ---
 
 ## 🛠️ Debugging Tips
@@ -490,15 +529,16 @@ Flakiness:
 
 ```bash
 # Step through test line-by-line
-npx playwright test --debug
-```
 
+npx playwright test --debug
+
+```text
 ### 2. Headed Mode (See Browser)
 
 ```bash
 npx playwright test --headed
-```
 
+```text
 ### 3. Screenshot Debugging
 
 ```typescript
@@ -506,16 +546,17 @@ npx playwright test --headed
 await page.screenshot({ path: 'screenshot.png' });
 
 // Automatically captured on failure in test-results/
-```
 
+```text
 ### 4. Video Analysis
 
 ```bash
 # Replay test execution
+
 npx playwright show-report
 # Click on failed test → click video icon
-```
 
+```text
 ### 5. Network Tab
 
 ```typescript
@@ -528,15 +569,16 @@ page.on('response', response => {
 page.on('requestfailed', request => {
   console.log(`Failed: ${request.url()}`);
 });
-```
 
+```text
 ### 6. Trace Viewer (Full Debug Info)
 
 ```bash
 # View detailed trace with network, DOM snapshots
-npx playwright show-trace trace.zip
-```
 
+npx playwright show-trace trace.zip
+
+```text
 ---
 
 ## 📋 Checklist: Pre-Release E2E Validation
@@ -617,3 +659,4 @@ Use this checklist before releasing a new version:
 **Status**: Production Ready
 **Last Updated**: January 7, 2026
 **Maintained By**: QA / DevOps Team
+

@@ -21,6 +21,7 @@ Version 1.15.0 marks the completion of **Phase 1 Infrastructure Improvements**, 
 ### Infrastructure & Backend
 
 #### #60 Audit Logging System ✅
+
 Complete audit trail for all user actions with compliance-ready tracking.
 
 **What's New:**
@@ -42,6 +43,7 @@ Complete audit trail for all user actions with compliance-ready tracking.
 ---
 
 #### #61 API Response Standardization ✅
+
 Unified response format across all endpoints for consistent client-side handling.
 
 **What's New:**
@@ -51,6 +53,7 @@ Unified response format across all endpoints for consistent client-side handling
 - Helper functions: `extractAPIResponseData()` and `extractAPIError()`
 
 **Response Format:**
+
 ```typescript
 {
   "success": true,
@@ -61,8 +64,8 @@ Unified response format across all endpoints for consistent client-side handling
     "timestamp": "2026-01-05T12:00:00Z"
   }
 }
-```
 
+```text
 **Benefits:**
 - Predictable error handling across all endpoints
 - Better TypeScript type safety
@@ -72,6 +75,7 @@ Unified response format across all endpoints for consistent client-side handling
 ---
 
 #### #63 Backup Encryption ✅
+
 AES-256-GCM encryption for sensitive data at rest.
 
 **What's New:**
@@ -87,13 +91,15 @@ AES-256-GCM encryption for sensitive data at rest.
 - Ready for compliance requirements (HIPAA, SOC 2)
 
 **Configuration:**
+
 ```bash
 BACKUP_KEY=your-master-encryption-key
-```
 
+```text
 ---
 
 #### #65 Query Optimization ✅
+
 95% performance improvement via eager loading and query optimization.
 
 **What's Optimized:**
@@ -108,25 +114,30 @@ BACKUP_KEY=your-master-encryption-key
 - Attendance queries: 1200ms → <60ms (95% faster)
 
 **Before:**
+
 ```python
 # N+1 queries (100+ database calls)
+
 grades = db.query(Grade).all()
 for grade in grades:
     student_name = grade.student.name  # Additional query
-```
 
+```text
 **After:**
+
 ```python
 # Single query with eager loading (1 database call)
+
 grades = db.query(Grade).options(
     joinedload(Grade.student),
     joinedload(Grade.course)
 ).all()
-```
 
+```text
 ---
 
 #### #66 Business Metrics ✅
+
 Comprehensive analytics endpoints for data-driven insights.
 
 **New Endpoints:**
@@ -144,6 +155,7 @@ Comprehensive analytics endpoints for data-driven insights.
 - Student/course comparisons
 
 **Example Response:**
+
 ```json
 {
   "total_students": 150,
@@ -158,13 +170,14 @@ Comprehensive analytics endpoints for data-driven insights.
     "F": 5
   }
 }
-```
 
+```text
 ---
 
 ### Frontend & User Experience
 
 #### #64 Error Messages (i18n) ✅
+
 Beautiful, localized error display with actionable recovery suggestions.
 
 **What's New:**
@@ -189,6 +202,7 @@ Beautiful, localized error display with actionable recovery suggestions.
 - Bilingual support (English/Greek)
 
 **Usage:**
+
 ```tsx
 import { useErrorHandler } from '@/hooks/useErrorHandler';
 
@@ -199,11 +213,12 @@ try {
 } catch (error) {
   showError(error); // Automatically formatted and displayed
 }
-```
 
+```text
 ---
 
 #### #62 Soft-Delete Auto-Filtering ✅
+
 Automatic filtering of deleted records for cleaner queries.
 
 **What's New:**
@@ -218,19 +233,23 @@ Automatic filtering of deleted records for cleaner queries.
 - All other entities with soft-delete requirements
 
 **Behavior:**
+
 ```python
 # Default: Only active records
+
 students = db.query(Student).all()  # Excludes deleted
 
 # Explicit: Include deleted records
-students = db.query(Student).filter(Student.deleted_at.isnot(None)).all()
-```
 
+students = db.query(Student).filter(Student.deleted_at.isnot(None)).all()
+
+```text
 ---
 
 ### Quality & Testing
 
 #### #67 E2E Test Suite ✅
+
 Comprehensive end-to-end testing with multi-browser support.
 
 **What's New:**
@@ -252,39 +271,47 @@ Comprehensive end-to-end testing with multi-browser support.
 - Mobile responsiveness
 
 **Running Tests:**
+
 ```bash
 # Run all E2E tests
+
 npm run test:e2e
 
 # Run with UI
+
 npm run test:e2e:ui
 
 # Run specific browser
-npm run test:e2e -- --project=chromium
-```
 
+npm run test:e2e -- --project=chromium
+
+```text
 ---
 
 ## 🐛 Bug Fixes
 
 ### TypeScript & Type Safety
+
 - Fixed missing type declarations for `extractAPIError` and `extractAPIResponseData`
 - Fixed null/unknown type handling in error interfaces
 - Added default exports for error locale modules
 - Improved type safety in RBAC and reports components
 
 ### E2E Testing
+
 - Resolved authentication state persistence in E2E tests
 - Improved test robustness and error handling
 - Applied final eslint fixes and catch parameter cleanup
 - Fixed page text lookup guards for null values
 
 ### Backend
+
 - Adapted backend tests to APIResponse format standardization
 - Fixed backup service float assignment type mismatch
 - Added response_model to /admin/users endpoint for FastAPI validation
 
 ### Documentation & Quality
+
 - Aligned documentation index version with VERSION file
 - Updated markdown table column counts
 - Excluded false-positive files from detect-secrets scanning
@@ -295,18 +322,21 @@ npm run test:e2e -- --project=chromium
 ## 📝 Improvements
 
 ### Code Quality
+
 - Full ruff and eslint compliance across codebase
 - Complete TypeScript type coverage for new components
 - Enhanced error handling with proper type guards
 - Consistent code formatting via pre-commit hooks
 
 ### Testing
+
 - 316/316 backend tests passing ✅
 - 30+ E2E tests ready and validated ✅
 - Enhanced test helpers for error response handling
 - Improved test fixtures and data seeding
 
 ### Documentation
+
 - Phase 1 completion summaries and readiness reviews
 - Comprehensive E2E testing guide and troubleshooting FAQ
 - Updated active work status and execution tracker
@@ -317,18 +347,21 @@ npm run test:e2e -- --project=chromium
 ## 🔒 Security
 
 ### Encryption
+
 - **AES-256-GCM** for backup data at rest
 - Hardware-accelerated encryption via cryptography library
 - Secure key derivation with PBKDF2
 - Key rotation ready for compliance
 
 ### Audit Logging
+
 - Complete action trail with IP and user tracking
 - Request ID correlation for debugging
 - Compliance-ready audit logs (GDPR, FERPA)
 - Tamper-evident logging
 
 ### Secret Scanning
+
 - Gitleaks integration verified and active
 - Pre-commit hooks prevent secret commits
 - Baseline file updated for known false positives
@@ -338,17 +371,20 @@ npm run test:e2e -- --project=chromium
 ## ⚡ Performance
 
 ### Query Optimization
+
 - **95% improvement** via eager loading on major endpoints
 - Eliminated N+1 queries across the application
 - Optimized database indexes on frequently queried fields
 - Reduced average response time from 1500ms to <100ms
 
 ### Caching
+
 - Improved query performance through relationship caching
 - Optimized SQLAlchemy query patterns
 - Better use of joinedload and selectinload
 
 ### Database
+
 - Indexed fields: email, student_id, course_code, date
 - Optimized foreign key relationships
 - Efficient soft-delete filtering via query hooks
@@ -374,57 +410,73 @@ npm run test:e2e -- --project=chromium
 ### From 1.14.3 to 1.15.0
 
 #### 1. Backup Your Data
+
 ```bash
 # Docker deployment
+
 .\DOCKER.ps1 -Stop
 Copy-Item data/student_management.db data/student_management_backup_$(Get-Date -Format 'yyyyMMdd').db
 
 # Native deployment
-Copy-Item backend/data/student_management.db backend/data/backup_$(Get-Date -Format 'yyyyMMdd').db
-```
 
+Copy-Item backend/data/student_management.db backend/data/backup_$(Get-Date -Format 'yyyyMMdd').db
+
+```text
 #### 2. Update Code
+
 ```bash
 git pull origin main
 git checkout 1.15.0
-```
 
+```text
 #### 3. Update Dependencies
+
 ```bash
 # Backend
+
 cd backend
 pip install -r requirements.txt
 
 # Frontend
+
 cd ../frontend
 npm install
-```
 
+```text
 #### 4. Run Database Migrations
+
 Migrations run automatically on startup, but you can verify:
+
 ```bash
 cd backend
 alembic current  # Check current version
 alembic upgrade head  # Apply migrations
-```
 
+```text
 #### 5. Update Configuration (Optional)
+
 Add encryption key if using backup encryption:
+
 ```bash
 # backend/.env
-BACKUP_KEY=your-secure-master-key-here
-```
 
+BACKUP_KEY=your-secure-master-key-here
+
+```text
 #### 6. Restart Application
+
 ```bash
 # Docker
+
 .\DOCKER.ps1 -Start
 
 # Native
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 #### 7. Verify Installation
+
 - Check version: `cat VERSION` should show `1.15.0`
 - Check logs: All migrations should complete successfully
 - Test login and basic operations
@@ -437,19 +489,21 @@ BACKUP_KEY=your-secure-master-key-here
 **None** - This release is fully backward compatible with 1.14.3.
 
 ### API Response Format (Gradual Migration)
+
 The new `APIResponse[T]` format is backward compatible. Old response formats continue to work. The frontend includes helpers to handle both formats:
 
 ```typescript
 // Works with both old and new formats
 const data = extractAPIResponseData(response);
 const error = extractAPIError(errorResponse);
-```
 
+```text
 ---
 
 ## 🔮 What's Next (Phase 2)
 
 ### Planned for 1.16.0
+
 - **Fine-Grained RBAC**: Permission-based access control
 - **Installer Improvements**: Enhanced Windows installer experience
 - **E2E Test Monitoring**: Continuous integration improvements
@@ -462,11 +516,13 @@ See [Phase 2 Plan](../plans/PHASE2_CONSOLIDATED_PLAN.md) for details.
 ## 📚 Documentation
 
 ### New Documentation
+
 - [PHASE1_COMPLETION_SUMMARY.md](../PHASE1_COMPLETION_SUMMARY.md) - Complete Phase 1 summary
 - [E2E_TESTING_GUIDE.md](../E2E_TESTING_GUIDE.md) - Comprehensive E2E testing guide
 - [IMPLEMENTATION_PATTERNS.md](../misc/IMPLEMENTATION_PATTERNS.md) - Code patterns reference
 
 ### Updated Documentation
+
 - [ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md) - Current project status
 - [DOCUMENTATION_INDEX.md](../DOCUMENTATION_INDEX.md) - Master documentation index
 - [README.md](../../README.md) - Updated feature list
@@ -498,3 +554,4 @@ This project is licensed under the MIT License. See [LICENSE](../../LICENSE) for
 ---
 
 **Full Changelog**: [1.14.3...1.15.0](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/1.14.3...1.15.0)
+

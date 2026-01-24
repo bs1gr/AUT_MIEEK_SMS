@@ -81,8 +81,8 @@ student-management-system/
 └── docs/
     ├── SCRIPTS_GUIDE.md           # This file
     └── ...
-```
 
+```text
 ## Root-Level Scripts
 
 ### For End-Users
@@ -98,8 +98,8 @@ Canonical Docker deployment and management script (v2.0)
 .\DOCKER.ps1 -Update       # Update with backup
 .\DOCKER.ps1 -Logs         # View logs
 .\DOCKER.ps1 -Help         # Show all commands
-```
 
+```text
 #### `NATIVE.ps1` (root)
 
 Native development mode with hot reload (v2.0)
@@ -109,8 +109,8 @@ Native development mode with hot reload (v2.0)
 .\NATIVE.ps1 -Start        # Start backend + frontend
 .\NATIVE.ps1 -Stop         # Stop all processes
 .\NATIVE.ps1 -Help         # Show all commands
-```
 
+```text
 ## Developer Scripts (`scripts/dev/`)
 
 Scripts for active development work. See [scripts/dev/README.md](../scripts/dev/README.md) for detailed documentation.
@@ -125,8 +125,8 @@ Debug Python import issues.
 
 ```powershell
 python scripts\dev\debug_import_control.py
-```
 
+```text
 ### Diagnostic Tools (`scripts/dev/internal/`)
 
 #### `DEBUG_PORTS.ps1/.bat`
@@ -135,8 +135,8 @@ Check and debug port conflicts.
 
 ```powershell
 scripts\dev\internal\DEBUG_PORTS.ps1
-```
 
+```text
 Shows what's using ports 8000, 5173, 8080.
 
 #### `DIAGNOSE_STATE.ps1`
@@ -145,8 +145,8 @@ Comprehensive system diagnostics.
 
 ```powershell
 scripts\dev\internal\DIAGNOSE_STATE.ps1
-```
 
+```text
 Checks:
 
 - Docker status
@@ -162,16 +162,16 @@ Frontend-specific diagnostics.
 
 ```powershell
 scripts\dev\internal\DIAGNOSE_FRONTEND.ps1
-```
 
+```text
 #### `DEVTOOLS.ps1/.bat`
 
 Advanced developer tools menu.
 
 ```powershell
 scripts\dev\internal\DEVTOOLS.ps1
-```
 
+```text
 Provides access to:
 
 - Code analysis tools
@@ -187,8 +187,8 @@ Quick, non-destructive cleanup.
 
 ```batch
 scripts\dev\CLEANUP.bat
-```
 
+```text
 Removes:
 
 - Python `__pycache__`
@@ -209,8 +209,8 @@ Full workspace cleanup with Docker artifacts removal.
 
 ```powershell
 .\DOCKER.ps1 -DeepClean
-```
 
+```text
 Removes everything including Docker caches, with automatic backup creation.
 
 > **Note:** Legacy `SUPER_CLEAN_AND_DEPLOY.ps1` was archived in v2.0. Use `DOCKER.ps1 -DeepClean` instead.
@@ -221,8 +221,8 @@ Remove deprecated/obsolete files.
 
 ```powershell
 scripts\dev\internal\CLEANUP_OBSOLETE_FILES.ps1
-```
 
+```text
 ### Utility Scripts
 
 #### `KILL_FRONTEND_NOW.ps1/.bat`
@@ -231,8 +231,8 @@ Force-kill frontend processes.
 
 ```powershell
 scripts\dev\internal\KILL_FRONTEND_NOW.ps1
-```
 
+```text
 Use when frontend is stuck or won't stop normally.
 
 #### `TEST_TERMINAL.ps1`
@@ -241,16 +241,16 @@ Test PowerShell environment.
 
 ```powershell
 scripts\dev\internal\TEST_TERMINAL.ps1
-```
 
+```text
 #### `VERIFY_LOCALIZATION.ps1`
 
 Verify localization files.
 
 ```powershell
 scripts\dev\internal\VERIFY_LOCALIZATION.ps1
-```
 
+```text
 ## Deployment Scripts (`scripts/deploy/`)
 
 Scripts for deployment and production operations. See [scripts/deploy/README.md](../scripts/deploy/README.md) for detailed documentation.
@@ -275,8 +275,8 @@ Check Docker volume schema version.
 ```powershell
 scripts\deploy\CHECK_VOLUME_VERSION.ps1
 scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
-```
 
+```text
 Detects schema mismatches between native DB and Docker volumes, offers migration.
 
 #### `set-docker-metadata.ps1`
@@ -285,8 +285,8 @@ Set Docker image metadata.
 
 ```powershell
 scripts\deploy\set-docker-metadata.ps1
-```
 
+```text
 Tags images with version and metadata.
 
 ### Packaging Tools (`scripts/deploy/internal/`)
@@ -297,8 +297,8 @@ Create deployment-ready package.
 
 ```powershell
 scripts\deploy\internal\CREATE_DEPLOYMENT_PACKAGE.ps1
-```
 
+```text
 Creates a ZIP with:
 
 - Source code
@@ -312,16 +312,16 @@ Create distribution package.
 
 ```powershell
 scripts\deploy\internal\CREATE_PACKAGE.ps1
-```
 
+```text
 #### `INSTALLER.ps1/.bat`
 
 Packaged installer for distribution.
 
 ```powershell
 scripts\deploy\internal\INSTALLER.ps1
-```
 
+```text
 ## Release Compliance Scripts (`scripts/ops/`)
 
 Purpose-built PowerShell helpers that keep GitHub releases, GHCR packages, and compliance records in sync every time you cut a tag. Use these scripts (or their GitHub Actions wrapper) before publishing a new release so legacy assets are clearly marked and stale containers are removed.
@@ -374,78 +374,92 @@ Purpose-built PowerShell helpers that keep GitHub releases, GHCR packages, and c
 
 ```powershell
 # Native development mode (v2.0)
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 #### Running Tests
 
 ```powershell
 # Quick smoke test
+
 scripts\dev\SMOKE_TEST.ps1
 
 # Full test suite
+
 cd backend
 python -m pytest
-```
 
+```text
 #### Debugging Issues
 
 ```powershell
 # Check system state
+
 scripts\dev\internal\DIAGNOSE_STATE.ps1
 
 # Check port conflicts
+
 scripts\dev\internal\DEBUG_PORTS.ps1
 
 # Frontend-specific issues
-scripts\dev\internal\DIAGNOSE_FRONTEND.ps1
-```
 
+scripts\dev\internal\DIAGNOSE_FRONTEND.ps1
+
+```text
 #### Cleanup After Development
 
 ```powershell
 # Quick cleanup (preserves data)
+
 scripts\dev\CLEANUP.bat
 
 # Deep cleanup
-scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
-```
 
+scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1
+
+```text
 ### For End-Users/DevOps
 
 #### Fullstack Docker (Recommended)
 
 ```powershell
 # Start (v2.0)
-.\DOCKER.ps1 -Start
-```
 
+.\DOCKER.ps1 -Start
+
+```text
 #### Maintenance
 
 ```powershell
 # Backup database
+
 .\DOCKER.ps1 -Backup
 
 # Check volume version
+
 scripts\deploy\CHECK_VOLUME_VERSION.ps1
 
 # Stop services
-.\DOCKER.ps1 -Stop
-```
 
+.\DOCKER.ps1 -Stop
+
+```text
 #### Updating/Upgrading
 
 ```powershell
 # Update with automatic backup
+
 .\DOCKER.ps1 -Update
 
 # Or manually:
+
 .\DOCKER.ps1 -Stop
 git pull
 scripts\deploy\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
 .\DOCKER.ps1 -Start
-```
 
+```text
 ### GitHub Release Maintenance
 
 - `scripts/ops/archive-releases.ps1` — PowerShell helper that marks historical GitHub releases as archived/pre-release and injects the standard warning banner. Supports `-DryRun`, custom repository/owner overrides, offline fixtures via `-ReleasesJsonPath` (see `scripts/ops/samples/releases.sample.json`), and optional body suffixes so you can verify the exact markdown that will be pushed before touching production releases. Run it from the repo root (`pwsh -NoProfile -File scripts/ops/archive-releases.ps1 -DryRun`) to audit the changes, then rerun without `-DryRun` when ready.
@@ -540,3 +554,4 @@ When adding new scripts:
 - File an issue: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Read main README: [README.md](../README.md)
 - Check status: `.\DOCKER.ps1 -Status`
+

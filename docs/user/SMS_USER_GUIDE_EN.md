@@ -56,6 +56,7 @@ The Student Management System (SMS) is a comprehensive bilingual (English/Greek)
 3. Enter default credentials:
    - **Email:** `admin@example.com`
    - **Password:** `YourSecurePassword123!`
+
 4. Click **Sign In**
 
 **Security Note:** Change the default password immediately after first login.
@@ -89,6 +90,7 @@ Click the language toggle button (EN/EL) in the top-right corner of the navigati
    - **Email** (optional)
    - **Date of Birth** (optional)
    - **Phone** (optional)
+
 4. Click **Save**
 
 **Autosave Note:** Student notes save automatically after 2 seconds of inactivity.
@@ -133,6 +135,7 @@ Each student card has a notes section for personal observations:
    - **Semester** (e.g., "Fall 2025")
    - **Credits** (numeric value)
    - **Description** (optional)
+
 4. Click **Save**
 
 ### Configuring Evaluation Rules
@@ -175,6 +178,7 @@ Configure point deduction for unexcused absences:
    - **Absent** - Student did not attend (red X)
    - **Late** - Student arrived late (orange clock)
    - **Excused** - Valid reason for absence (blue shield)
+
 4. Changes save automatically after 2 seconds
 
 **Autosave Status:** Look for the cloud upload icon in the header - it pulses when saving.
@@ -210,6 +214,7 @@ Quick overview of attendance across dates:
    - **Weight** (default: 1.0, use 2.0 for double-weighted assignments)
    - **Date Assigned** (optional)
    - **Date Submitted** (optional)
+
 4. Click **Save Grade**
 
 ### Grade Validation
@@ -254,6 +259,7 @@ Daily performance lets you rate student participation for each class session.
    - **3** - Satisfactory
    - **4** - Good participation
    - **5** - Excellent participation
+
 3. Absent students cannot be rated
 4. Ratings save automatically with attendance
 
@@ -347,6 +353,7 @@ Session export/import lets you package entire semesters into JSON files and tran
 4. Choose merge strategy:
    - **Update** - Create new records and update existing ones
    - **Skip** - Create new records only, skip duplicates
+
 5. (Optional) Enable **Dry Run** to validate without importing
 6. Click **Import Session**
 
@@ -429,6 +436,7 @@ Export data in multiple formats:
    - **Grades** - Excel/PDF
    - **Attendance** - Excel/PDF
    - **Session** - JSON (full semester)
+
 3. Select format
 4. Click **Export**
 
@@ -496,6 +504,7 @@ Check system status:
    - Frontend status
    - Database connection
    - API response times
+
 3. Click **Check System Health** to refresh
 
 ### Database Management
@@ -655,15 +664,18 @@ The Student Management System supports fine-grained Role-Based Access Control (R
 - **Permissions**: Specific actions (e.g., create student, export data)
 
 ### Managing Roles & Permissions
+
 - Admins can manage roles and permissions via the Admin → RBAC section or API endpoints.
 - Assign roles to users and grant/revoke permissions to roles using the RBAC management UI or API.
 - See the [RBAC Permission Matrix](../api/RBAC_API_MATRIX.md) for a full list of actions and required permissions.
 
 ### Who Can Manage RBAC?
+
 - Only users with the `*` (wildcard) permission (typically admins) can assign/revoke roles and permissions.
 - All RBAC changes are logged and rate-limited for security.
 
 ### API Reference
+
 - See the API documentation for endpoint details: [API Contract](../api/API_CONTRACT.md)
 
 ---
@@ -690,3 +702,4 @@ All API endpoints, including RBAC, are documented and testable via the built-in 
 For the latest updates, visit: [AUT_MIEEK_SMS on GitHub](https://github.com/bs1gr/AUT_MIEEK_SMS)
 
 © 2025 Vasileios Samaras. All rights reserved.
+

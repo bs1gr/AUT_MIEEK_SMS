@@ -14,51 +14,59 @@ First, ensure you have installed the git hooks (one-time setup):
 
 ```powershell
 # Run comprehensive pre-commit checks and generate commit message
+
 .\COMMIT_READY.ps1
 
 # Or use specific mode
+
 .\COMMIT_READY.ps1 -Mode quick      # Fast validation (2-3 min)
 .\COMMIT_READY.ps1 -Mode standard   # Standard workflow (5-8 min) - DEFAULT
 .\COMMIT_READY.ps1 -Mode full       # Comprehensive (15-20 min)
 .\COMMIT_READY.ps1 -Mode cleanup    # Cleanup only (1-2 min)
 
 # Review generated message (if using -GenerateCommit)
+
 Get-Content .\commit_msg.txt
 
 # Commit with generated message
+
 git add .
 git commit -F commit_msg.txt
 git push origin main
-```
 
+```text
 ### 2. Manual Workflow
 
 ```powershell
 # Run smoke tests (quick mode)
+
 .\COMMIT_READY.ps1 -Mode quick
 
 # Stage changes
+
 git add <files>
 
 # Commit with conventional message
+
 git commit -m "type(scope): subject"
 
 # Push
-git push origin main
-```
 
+git push origin main
+
+```text
 ## Commit Message Standards
 
 ### Conventional Commits Format
 
-```
+```text
 <type>(<scope>): <subject>
 
 <body>
 
 <footer>
-```
 
+```text
 ### Types
 
 | Type | Description | Example |
@@ -105,7 +113,7 @@ Common scopes in this project:
 
 **Good commit messages:**
 
-```
+```text
 feat(ux): add universal autosave pattern
 
 - Implement autosave for NotesSection and CourseEvaluationRules
@@ -114,18 +122,18 @@ feat(ux): add universal autosave pattern
 - Eliminate manual save buttons for cleaner UX
 
 Closes #234
-```
 
-```
+```text
+```text
 fix(api): correct grade percentage calculation
 
 The absence penalty was being applied twice when calculating
 final percentages. Now applies once at the end as intended.
 
 Fixes #456
-```
 
-```
+```text
+```text
 docs: update all references to v2.0 consolidated scripts
 
 - Replace RUN.ps1 → DOCKER.ps1
@@ -135,8 +143,8 @@ docs: update all references to v2.0 consolidated scripts
 
 All legacy script references updated to point to consolidated
 DOCKER.ps1 (production) and NATIVE.ps1 (development).
-```
 
+```text
 ## Pre-Commit Automation
 
 ### Pre-commit automation — COMMIT_READY.ps1 (Unified)
@@ -159,21 +167,26 @@ Usage examples:
 
 ```powershell
 # Standard validation (recommended)
+
 .\COMMIT_READY.ps1 -Mode standard
 
 # Fast pre-commit checks
+
 .\COMMIT_READY.ps1 -Mode quick
 
 # Comprehensive validation (includes health checks)
+
 .\COMMIT_READY.ps1 -Mode full
 
 # Cleanup-only
+
 .\COMMIT_READY.ps1 -Mode cleanup
 
 # Auto-fix where supported (use DEV_EASE if you intend to skip tests/cleanup locally)
-.\COMMIT_READY.ps1 -Mode standard -AutoFix
-```
 
+.\COMMIT_READY.ps1 -Mode standard -AutoFix
+
+```text
 ### Developer note — DEV_EASE policy
 
 --------------------------------
@@ -202,80 +215,96 @@ To ensure pre-commit checks run for all contributors, we provide a sample hook a
 
 ```powershell
 # 1. Create feature branch
+
 git checkout -b feature/autosave-notes
 
 # 2. Make changes
+
 # ... edit files ...
 
 # 3. Run automated workflow
+
 .\COMMIT_READY.ps1 -Mode standard
 
 # 4. Review and commit
+
 Get-Content .\commit_msg.txt
 git add .
 git commit -F commit_msg.txt
 
 # 5. Push branch
+
 git push origin feature/autosave-notes
 
 # 6. Create PR on GitHub
-```
 
+```text
 ### Hotfix
 
 ```powershell
 # 1. Create hotfix branch from main
+
 git checkout -b hotfix/auth-bug main
 
 # 2. Fix the issue
+
 # ... edit files ...
 
 # 3. Quick test and commit
+
 .\COMMIT_READY.ps1 -Mode quick
 git add .
 git commit -m "fix(auth): correct token validation logic"
 
 # 4. Push and merge immediately
+
 git push origin hotfix/auth-bug
 # Merge PR on GitHub
-```
 
+```text
 ### Documentation Update
 
 ```powershell
 # 1. Update docs
+
 # ... edit *.md files ...
 
 # 2. Skip tests for doc-only changes (use DEV_EASE)
+
 $env:DEV_EASE = 'true'
 .\COMMIT_READY.ps1 -Mode quick
 
 # 3. Commit
+
 git add docs/
 git commit -F commit_msg.txt
 git push origin main
-```
 
+```text
 ## Release Workflow
 
 ### 1. Prepare Release
 
 ```powershell
 # Update version
+
 echo "1.17.1" > VERSION
 
 # Update CHANGELOG.md
+
 # Move [Unreleased] section to [1.17.1] - YYYY-MM-DD
 
 # Commit version bump
+
 git add VERSION CHANGELOG.md
 git commit -m "chore(release): bump version to 1.17.1"
-```
 
+```text
 ### 2. Create Tag
 
 ```powershell
 # Create annotated tag
+
 git tag -a $11.17.1 -m "Release $11.17.1: Description
 
 - Feature 1
@@ -283,71 +312,85 @@ git tag -a $11.17.1 -m "Release $11.17.1: Description
 - Bug fix 1"
 
 # Push tag
-git push origin $11.17.1
-```
 
+git push origin $11.17.1
+
+```text
 ### 3. Create GitHub Release
 
 ```powershell
 # Use GitHub CLI (if available)
+
 gh release create $11.9.7 --notes-file docs/releases/$11.9.7.md
 
 # Or create manually on GitHub
-# Navigate to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
-```
 
+# Navigate to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
+
+```text
 ## Common Tasks
 
 ### Amend Last Commit
 
 ```powershell
 # Make additional changes
+
 # ... edit files ...
 
 # Add to last commit
+
 git add .
 git commit --amend --no-edit
 
 # Or edit commit message
-git commit --amend
-```
 
+git commit --amend
+
+```text
 ### Undo Last Commit
 
 ```powershell
 # Keep changes (soft reset)
+
 git reset --soft HEAD~1
 
 # Discard changes (hard reset - DANGER)
-git reset --hard HEAD~1
-```
 
+git reset --hard HEAD~1
+
+```text
 ### Stash Changes
 
 ```powershell
 # Save work in progress
+
 git stash save "work in progress on feature X"
 
 # List stashes
+
 git stash list
 
 # Apply stash
+
 git stash pop
 
 # Apply specific stash
-git stash apply stash@{0}
-```
 
+git stash apply stash@{0}
+
+```text
 ### Cherry-Pick Commit
 
 ```powershell
 # Get commit hash
+
 git log --oneline
 
 # Apply specific commit
-git cherry-pick <commit-hash>
-```
 
+git cherry-pick <commit-hash>
+
+```text
 ## Branch Strategy
 
 ### Branch Types
@@ -361,14 +404,14 @@ git cherry-pick <commit-hash>
 
 ### Branch Naming
 
-```
+```text
 feature/autosave-pattern
 fix/grade-calculation
 hotfix/security-patch
 docs/api-documentation
 refactor/control-router
-```
 
+```text
 ### Merge Strategy
 
 - **Features**: Squash merge to main
@@ -381,23 +424,27 @@ refactor/control-router
 
 ```powershell
 # Run tests manually to see details
+
 .\COMMIT_READY.ps1 -Mode quick
 
 # Or skip tests (not recommended - use DEV_EASE)
+
 $env:DEV_EASE = 'true'
 .\COMMIT_READY.ps1 -Mode quick
-```
 
+```text
 ### Error: "Git preparation failed"
 
 ```powershell
 # Verify you have changes
+
 git status
 
 # Check for uncommitted changes
-git diff
-```
 
+git diff
+
+```text
 ### Warning: "Found TODOs in modified files"
 
 Review and resolve TODOs before committing, or acknowledge them in commit message.
@@ -435,12 +482,14 @@ Update `README.md`, `CHANGELOG.md`, or `VERSION` file before committing.
 ## Current Project Status
 
 ### Phase 2.3: Integration & UI (✅ COMPLETED)
+
 - Async job queue & audit logging integration
 - Frontend job progress monitor and import preview UI
 - Comprehensive testing infrastructure (1568 total tests)
 - Production-ready deployment runbook
 
 ### Quality Infrastructure (✅ OPTIMIZED)
+
 - **CI/CD Pipeline**: Parallel jobs with npm caching (30-45s savings)
 - **Test Coverage**: 379 backend + 1189 frontend tests (100% passing)
 - **Code Quality**: Ruff, ESLint, TypeScript (0 issues)
@@ -448,6 +497,7 @@ Update `README.md`, `CHANGELOG.md`, or `VERSION` file before committing.
 - **Pre-commit Automation**: COMMIT_READY.ps1 with 4 modes
 
 ### Next Priorities (Phase 2.4+)
+
 - Fine-grained RBAC permissions system
 - API examples & diagrams documentation
 - Metrics & load testing suite
@@ -462,8 +512,8 @@ Create `.git/hooks/pre-commit` (make executable on Unix):
 ```bash
 #!/bin/sh
 pwsh -File ./COMMIT_READY.ps1 -Mode quick
-```
 
+```text
 ### VS Code Extensions
 
 Recommended extensions:
@@ -503,3 +553,4 @@ See [CI/CD Pipeline Guide](../deployment/CI_CD_PIPELINE_GUIDE.md) for details.
 
 **Maintained by**: Development Team
 **Questions?**: Create GitHub issue with `documentation` label
+

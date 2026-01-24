@@ -5,6 +5,7 @@
 ---
 
 ## Tag Information
+
 - **Tag version**: `1.18.0`
 - **Target**: `main` branch
 - **Release title**: `1.18.0 - PWA & Mobile Experience`
@@ -47,8 +48,9 @@ Version 1.18.0 transforms the Student Management System into a fully installable
 
 ```bash
 .\DOCKER.ps1 -Update
-```
 
+```text
 ---
 
 **Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/1.17.3...1.18.0
+

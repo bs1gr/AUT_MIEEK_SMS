@@ -15,12 +15,14 @@ Install Pandoc: <https://pandoc.org/installing.html>
 
 ```bash
 # English PDF
+
 pandoc SMS_USER_GUIDE_EN.md -o ../SMS_User_Guide_EN.pdf --pdf-engine=xelatex -V geometry:margin=1in --toc
 
 # Greek PDF (requires Greek fonts)
-pandoc SMS_USER_GUIDE_EL.md -o ../SMS_User_Guide_EL.pdf --pdf-engine=xelatex -V geometry:margin=1in -V mainfont="DejaVu Sans" --toc
-```
 
+pandoc SMS_USER_GUIDE_EL.md -o ../SMS_User_Guide_EL.pdf --pdf-engine=xelatex -V geometry:margin=1in -V mainfont="DejaVu Sans" --toc
+
+```text
 ### Method 2: Using Markdown to PDF Online Converters
 
 1. **Markdown PDF** (VSCode Extension)
@@ -52,11 +54,13 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install Pandoc
+
         run: |
           sudo apt-get update
           sudo apt-get install -y pandoc texlive-xelatex texlive-fonts-recommended
 
       - name: Convert English to PDF
+
         run: |
           pandoc docs/user/SMS_USER_GUIDE_EN.md \
             -o frontend/public/docs/SMS_User_Guide_EN.pdf \
@@ -65,6 +69,7 @@ jobs:
             --toc
 
       - name: Convert Greek to PDF
+
         run: |
           pandoc docs/user/SMS_USER_GUIDE_EL.md \
             -o frontend/public/docs/SMS_User_Guide_EL.pdf \
@@ -74,14 +79,15 @@ jobs:
             --toc
 
       - name: Commit PDFs
+
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add frontend/public/docs/*.pdf
           git commit -m "Auto-generate user guide PDFs" || echo "No changes"
           git push
-```
 
+```text
 ## Output Location
 
 PDFs should be placed in:
@@ -149,8 +155,8 @@ table td {
   border: 1px solid #E5E7EB;
   padding: 0.5em;
 }
-```
 
+```text
 Then use:
 
 ```bash
@@ -159,8 +165,8 @@ pandoc SMS_USER_GUIDE_EN.md -o SMS_User_Guide_EN.pdf \
   --css=pdf-style.css \
   -V geometry:margin=1in \
   --toc
-```
 
+```text
 ## Manual Conversion Steps
 
 If automated conversion is not available:
@@ -189,3 +195,4 @@ After conversion, verify:
 - PDF generation may take a few seconds depending on document length
 - Total pages: ~40-50 for English, ~45-55 for Greek
 - Recommended PDF settings: A4 size, 1-inch margins, 11pt font
+

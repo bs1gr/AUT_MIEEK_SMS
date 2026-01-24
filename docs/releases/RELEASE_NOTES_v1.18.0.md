@@ -23,11 +23,13 @@ This release transforms the Student Management System into a fully installable P
 ## 🛠️ Technical Details
 
 ### New Features
+
 - **Service Worker:** Powered by `vite-plugin-pwa` and Workbox for robust caching strategies.
 - **Manifest:** Full web app manifest with maskable icons and theme configuration.
 - **Persistence Layer:** `persistQueryClient` integration with `localStorage` for React Query cache persistence.
 
 ### New Components
+
 - `PwaInstallPrompt`: Custom UI to encourage installation on supported devices.
 - `PwaReloadPrompt`: Non-intrusive notification when a new version is ready.
 
@@ -39,9 +41,11 @@ This release transforms the Student Management System into a fully installable P
 ## 📝 Upgrade Notes
 
 ### Frontend
+
 - Users will see a "New content available" prompt upon first load after deployment.
 - Browser cache will be primed with new assets.
 
 ---
 **Contributors:** Development Team
 **Signed-off by:** QA Lead
+

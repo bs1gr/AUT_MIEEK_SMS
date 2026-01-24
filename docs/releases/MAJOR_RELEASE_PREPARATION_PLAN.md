@@ -22,12 +22,14 @@ This major release aims to achieve a **"new solid status"** by:
 ## 📊 Current State Audit
 
 ### Version Information
+
 - **Current Version:** 1.12.9
 - **Total Git Tags:** 22 tags
 - **Recent Release Series:** v1.12.x (9 tags), v1.11.x (3 tags), v1.10.x (2 tags), v1.9.x (7 tags)
 - **Test Tag:** v-test-1
 
 ### GitHub Release Status
+
 **Total Releases:** 24+ releases found
 
 **Active Published Releases:**
@@ -48,22 +50,24 @@ This major release aims to achieve a **"new solid status"** by:
 ### Local Workspace Artifacts
 
 **Directory Sizes:**
-```
+
+```text
 artifacts/     2.75 MB   - Build artifacts, installers
 backups/       364.16 MB - Database backups (LARGEST)
 templates/     0.07 MB   - Template files
 test-results/  0.31 MB   - E2E test artifacts
-```
 
+```text
 **Cache Directories:**
-```
+
+```text
 backend/.pytest_cache/      0.03 MB
 frontend/node_modules/      271.71 MB (IGNORE - managed by npm)
 .mypy_cache/                (Present)
 .ruff_cache/                (Present)
 .pytest_cache/              (Root - present)
-```
 
+```text
 **Scripts at Root:** 10 PowerShell scripts (245.95 KB total)
 - COMMIT_READY.ps1 (75 KB) ✅ Keep
 - DOCKER.ps1 (41 KB) ✅ Keep
@@ -90,14 +94,16 @@ frontend/node_modules/      271.71 MB (IGNORE - managed by npm)
 - CONTRIBUTING.md ✅ Keep
 
 ### Existing Archive Structure
-```
+
+```text
 docs/archive/
 ├── documentation/     - Historical documentation files
 ├── pr-updates/        - PR update documentation
 └── reports-2025-12/   - December 2025 audit reports
-```
 
+```text
 ### Database Migrations
+
 - **Migration Directory:** `backend/alembic/versions/` (path not found - check actual location)
 - **Migration Status:** Migrations run automatically on startup via lifespan
 
@@ -106,6 +112,7 @@ docs/archive/
 ## 🎬 Phase 1: Pre-Release Audit & Documentation
 
 ### Task 1.1: Comprehensive Improvement Report
+
 **Create:** `docs/releases/reports/IMPROVEMENTS_1.14.0_to_1.14.0.md`
 
 **Content Sections:**
@@ -157,6 +164,7 @@ docs/archive/
 ---
 
 ### Task 1.2: Failed Test Artifacts Audit
+
 **Search for:**
 - E2E test failure artifacts: `frontend/test-diagnostics/`, `frontend/test-logs/`
 - Playwright reports: `playwright-report/` (none found in current scan)
@@ -174,6 +182,7 @@ docs/archive/
 ---
 
 ### Task 1.3: Obsolete Configuration Files Audit
+
 **Review:**
 - `.env.production.example`, `.env.qnap.example` - Still relevant?
 - Root config files moved to `config/`: already done (mypy.ini, pytest.ini, ruff.toml)
@@ -192,18 +201,22 @@ docs/archive/
 ## 🗄️ Phase 2: Archival Strategy
 
 ### Task 2.1: GitHub Release Cleanup
+
 **Delete Draft Releases:**
+
 ```bash
 # Identify drafts
+
 gh release list --limit 50 | grep "Draft"
 
 # Delete duplicate drafts (REQUIRES CONFIRMATION)
+
 gh release delete 1.14.0 --yes  # Draft only, keep published
 gh release delete 1.14.0 --yes  # Draft only
 gh release delete 1.14.0 --yes  # Draft only
 gh release delete pr-45-load-report-20251222-175218 --yes
-```
 
+```text
 **Archive Pre-1.12.0 Releases:**
 - **Strategy:** Keep all published releases (tags remain in git)
 - **Documentation:** Create `docs/archive/releases/PRE_1.14.0_RELEASES.md`
@@ -212,14 +225,17 @@ gh release delete pr-45-load-report-20251222-175218 --yes
   - Document upgrade paths from old versions
 
 **Delete Test Tag:**
+
 ```bash
 # Local
+
 git tag -d v-test-1
 
 # Remote (REQUIRES CONFIRMATION)
-git push origin :refs/tags/v-test-1
-```
 
+git push origin :refs/tags/v-test-1
+
+```text
 **Timeline:** 1 hour
 
 ---
@@ -227,6 +243,7 @@ git push origin :refs/tags/v-test-1
 ### Task 2.2: Local Workspace Archival
 
 #### 2.2.1: Database Backups (364 MB)
+
 **Current Location:** `backups/`
 
 **Strategy:**
@@ -235,21 +252,25 @@ git push origin :refs/tags/v-test-1
 - **Document:** Create `backups/README.md` with retention policy
 
 **Actions:**
+
 ```powershell
 # Identify old backups (>30 days)
+
 Get-ChildItem -Path ".\backups" -Filter "*.db" |
   Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-30) } |
   Select-Object Name, LastWriteTime, @{N="Size_MB";E={[math]::Round($_.Length/1MB,2)}}
 
 # Create archive directory (manual copy to external drive)
+
 New-Item -ItemType Directory -Path ".\backups\archive-2025-12" -Force
 
 # Move old backups
+
 Move-Item -Path ".\backups\*.db" -Destination ".\backups\archive-2025-12\" -Filter {$_.LastWriteTime -lt (Get-Date).AddDays(-30)}
 
 # Document in .gitignore (already present: backups/)
-```
 
+```text
 **Expected Savings:** ~300 MB (if 80% are old)
 
 **Timeline:** 30 minutes
@@ -257,6 +278,7 @@ Move-Item -Path ".\backups\*.db" -Destination ".\backups\archive-2025-12\" -Filt
 ---
 
 #### 2.2.2: Build Artifacts (2.75 MB)
+
 **Current Location:** `artifacts/`
 
 **Strategy:**
@@ -265,15 +287,18 @@ Move-Item -Path ".\backups\*.db" -Destination ".\backups\archive-2025-12\" -Filt
 - **Document:** Update `artifacts/README.md` with build process
 
 **Actions:**
+
 ```powershell
 # List artifacts with dates
+
 Get-ChildItem -Path ".\artifacts" -Recurse |
   Select-Object Name, LastWriteTime, @{N="Size_MB";E={[math]::Round($_.Length/1MB,2)}}
 
 # Remove old installer builds (manual review first)
-# Keep only: SMS_Setup_1.12.9.exe, SMS_Setup_1.12.8.exe, SMS_Setup_1.12.7.exe
-```
 
+# Keep only: SMS_Setup_1.12.9.exe, SMS_Setup_1.12.8.exe, SMS_Setup_1.12.7.exe
+
+```text
 **Expected Savings:** ~2 MB
 
 **Timeline:** 20 minutes
@@ -281,6 +306,7 @@ Get-ChildItem -Path ".\artifacts" -Recurse |
 ---
 
 #### 2.2.3: Test Artifacts (0.31 MB)
+
 **Current Location:** `test-results/`
 
 **Strategy:**
@@ -289,16 +315,19 @@ Get-ChildItem -Path ".\artifacts" -Recurse |
 - **Gitignore:** Ensure `test-results/` is gitignored (already added in 1.14.0)
 
 **Actions:**
+
 ```powershell
 # Verify gitignore
+
 Select-String -Path ".gitignore" -Pattern "test-results"
 
 # Clean old test results
+
 Remove-Item -Path ".\test-results\e2e\*" -Recurse -Force -ErrorAction SilentlyContinue
 
 # Keep only latest successful run
-```
 
+```text
 **Expected Savings:** ~0.3 MB
 
 **Timeline:** 10 minutes
@@ -306,6 +335,7 @@ Remove-Item -Path ".\test-results\e2e\*" -Recurse -Force -ErrorAction SilentlyCo
 ---
 
 #### 2.2.4: Cache Directories
+
 **Locations:**
 - `.pytest_cache/` (root)
 - `backend/.pytest_cache/` (0.03 MB)
@@ -318,16 +348,18 @@ Remove-Item -Path ".\test-results\e2e\*" -Recurse -Force -ErrorAction SilentlyCo
 - **Gitignore:** Already present for all except root `.pytest_cache/`
 
 **Actions:**
+
 ```powershell
 # Clean Python caches
+
 Remove-Item -Path ".\.pytest_cache" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path ".\backend\.pytest_cache" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path ".\.mypy_cache" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path ".\.ruff_cache" -Recurse -Force -ErrorAction SilentlyContinue
 
 # Verify gitignore covers these
-```
 
+```text
 **Expected Savings:** ~50-100 MB (mypy/ruff caches can grow)
 
 **Timeline:** 5 minutes
@@ -335,22 +367,27 @@ Remove-Item -Path ".\.ruff_cache" -Recurse -Force -ErrorAction SilentlyContinue
 ---
 
 #### 2.2.5: Obsolete Scripts Review
+
 **Candidate:** `start-backend.ps1` (0.26 KB)
 
 **Actions:**
+
 ```powershell
 # Check usage
+
 Select-String -Path "*.md","*.ps1" -Pattern "start-backend.ps1"
 
 # If unused, move to archive
-Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-backend.ps1"
-```
 
+Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-backend.ps1"
+
+```text
 **Timeline:** 10 minutes
 
 ---
 
 ### Task 2.3: Archive Documentation
+
 **Current Archives:**
 - `docs/archive/documentation/` - Historical docs
 - `docs/archive/pr-updates/` - PR update docs
@@ -377,6 +414,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 ## 📦 Phase 3: Version Bump & Release Preparation
 
 ### Task 3.1: Version Bump to 1.14.0
+
 **Files to Update:**
 - `VERSION` - Change to `1.13.0`
 - `frontend/package.json` - Update `version` field
@@ -384,15 +422,17 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 - `TODO.md` - Update "Current Version" line
 
 **Verification:**
+
 ```powershell
 .\scripts\VERIFY_VERSION.ps1 -ExpectedVersion "1.13.0"
-```
 
+```text
 **Timeline:** 15 minutes
 
 ---
 
 ### Task 3.2: CHANGELOG.md Consolidation
+
 **Current Issue:** CHANGELOG.md has duplicate entries for 1.14.0
 
 **Actions:**
@@ -419,6 +459,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
    - Duplicate GitHub draft releases (1.14.0, 1.14.0, 1.14.0 drafts)
    - Test tag v-test-1
    - Obsolete configuration examples
+
    ```
 
 **Timeline:** 30 minutes
@@ -426,6 +467,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 ---
 
 ### Task 3.3: Create Comprehensive Release Report
+
 **File:** `docs/releases/reports/RELEASE_REPORT_1.14.0.md`
 
 **Sections:**
@@ -462,6 +504,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 ---
 
 ### Task 3.4: Pre-Release Validation
+
 **Run:** `COMMIT_READY.ps1 -Full`
 
 **Checklist:**
@@ -480,18 +523,23 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 ## 🚀 Phase 4: Release Execution
 
 ### Task 4.1: Automated Release
+
 **Execute:**
+
 ```powershell
 # Generate release documentation
+
 .\GENERATE_RELEASE_DOCS.ps1 -Version "1.13.0"
 
 # Run release preparation
+
 .\RELEASE_PREPARATION.ps1 -Mode Full
 
 # Execute release with docs
-.\RELEASE_WITH_DOCS.ps1 -Version "1.13.0"
-```
 
+.\RELEASE_WITH_DOCS.ps1 -Version "1.13.0"
+
+```text
 **Expected Outputs:**
 - Git tag `1.14.0` created and pushed
 - GitHub release published with:
@@ -506,6 +554,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 ---
 
 ### Task 4.2: Post-Release Verification
+
 **Checklist:**
 1. ✅ GitHub release visible and published
 2. ✅ Installer downloadable and functional
@@ -515,23 +564,28 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 6. ✅ CHANGELOG.md consistent with release notes
 
 **Actions:**
+
 ```bash
 # Verify release
+
 gh release view 1.14.0
 
 # Verify tag
+
 git tag -l 1.14.0
 git show 1.14.0
 
 # Verify documentation
-gh browse  # Check GitHub web UI
-```
 
+gh browse  # Check GitHub web UI
+
+```text
 **Timeline:** 15 minutes
 
 ---
 
 ### Task 4.3: Final Workspace Cleanup
+
 **Run:** `WORKSPACE_CLEANUP.ps1`
 
 **Expected Results:**
@@ -547,6 +601,7 @@ gh browse  # Check GitHub web UI
 ## 📋 Execution Summary
 
 ### Total Estimated Time
+
 - **Phase 1 (Audit & Docs):** 4.5 hours
 - **Phase 2 (Archival):** 4 hours
 - **Phase 3 (Version Bump & Prep):** 3.5 hours
@@ -554,6 +609,7 @@ gh browse  # Check GitHub web UI
 - **Total:** ~13.25 hours (can parallelize some tasks)
 
 ### Disk Space Savings
+
 - Database backups: ~300 MB (archived externally)
 - Build artifacts: ~2 MB (old installers deleted)
 - Test artifacts: ~0.3 MB (cleaned)
@@ -561,6 +617,7 @@ gh browse  # Check GitHub web UI
 - **Total Expected Savings:** ~350-400 MB
 
 ### GitHub Cleanup
+
 - Draft releases deleted: 4 (1.14.0, 1.14.0, 1.14.0, pr-45-load-report)
 - Test tags deleted: 1 (v-test-1)
 - Archived documentation: Pre-1.14.0 release history
@@ -570,24 +627,29 @@ gh browse  # Check GitHub web UI
 ## ⚠️ Critical Safeguards
 
 ### Backup Before Execution
+
 ```powershell
 # Create full backup before starting
+
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $backupDir = ".\pre-1.14.0-backup-$timestamp"
 
 # Backup critical files
+
 Copy-Item -Path ".\VERSION" -Destination "$backupDir\"
 Copy-Item -Path ".\CHANGELOG.md" -Destination "$backupDir\"
 Copy-Item -Path ".\backend\main.py" -Destination "$backupDir\"
 Copy-Item -Path ".\frontend\package.json" -Destination "$backupDir\"
 
 # Backup database
+
 Copy-Item -Path ".\data\student_management.db" -Destination "$backupDir\"
 
 Write-Host "✅ Backup created: $backupDir" -ForegroundColor Green
-```
 
+```text
 ### Rollback Plan
+
 If issues occur during release:
 1. **Revert Version:** `git checkout HEAD~1 VERSION CHANGELOG.md`
 2. **Delete Tag:** `git tag -d 1.14.0 && git push origin :refs/tags/1.14.0`
@@ -595,6 +657,7 @@ If issues occur during release:
 4. **Restore Backup:** Copy files from `pre-1.14.0-backup-*/`
 
 ### User Approval Required
+
 **Before executing these destructive actions, confirm with user:**
 - [ ] Delete GitHub draft releases (1.14.0, 1.14.0, 1.14.0, pr-45 drafts)
 - [ ] Delete git tag v-test-1 (local + remote)
@@ -633,3 +696,4 @@ If issues occur during release:
 - [GitHub Releases API](https://docs.github.com/en/rest/releases/releases)
 
 **Plan Status:** ✅ **READY FOR USER REVIEW**
+

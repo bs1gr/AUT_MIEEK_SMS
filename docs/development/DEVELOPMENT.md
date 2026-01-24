@@ -16,8 +16,8 @@
 ```pwsh
 python -m pip install --upgrade pip
 python -m pip install -r backend/requirements.txt
-```
 
+```text
 > Tip: Run `NATIVE.ps1 -Start` (PowerShell) to start the backend and frontend in the supported native development mode. The helper script sets `SMS_ENV=development` automatically.
 >
 > If you need a permissive local dev mode that relaxes authentication and CSRF for convenient front-end/back-end iteration, use the `-DevEase` flag:
@@ -31,8 +31,8 @@ python -m pip install -r backend/requirements.txt
 ```pwsh
 python -m pip install -r backend/requirements-dev.txt
 # or install globally: pip install mypy ruff
-```
 
+```text
 ## Run tests
 
 ### Backend tests
@@ -40,16 +40,16 @@ python -m pip install -r backend/requirements-dev.txt
 ```pwsh
 cd backend
 python -m pytest -q
-```
 
+```text
 ### Frontend tests
 
 ```pwsh
 cd frontend
 npm run test          # Watch mode (interactive)
 npm run test -- --run # One-time run (CI mode)
-```
 
+```text
 **Test coverage (updated 2025-11-17):** 43 test files with 1008 total tests
 
 - **React Contexts (Auth, Language, Theme): 68 tests**
@@ -69,15 +69,16 @@ npm run test -- --run # One-time run (CI mode)
 
 ```pwsh
 pre-commit run --all-files
-```
 
+```text
 ## Run mypy
 
 ```pwsh
 python -m mypy backend --config-file config/mypy.ini --show-error-codes
-```
 
+```text
 ## Notes
 
 - The project uses `backend/requirements-dev.txt` for development-only packages. CI workflows use the same file when available.
 - If you plan to build Docker images for production, do not include dev requirements in the production image.
+

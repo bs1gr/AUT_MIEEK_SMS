@@ -13,6 +13,7 @@
 $11.12.2 successfully delivered **automated release infrastructure** with SHA256 verification, secure certificate handling, and comprehensive diagnostics. $11.12.2 will be a **focused patch release** addressing the post-install issue discovered in $11.12.2 and polishing the automation workflow.
 
 ### Key Achievements from $11.12.2
+
 - ✅ Automated installer builds (33s end-to-end)
 - ✅ SHA256 hash verification infrastructure
 - ✅ Secure certificate import (ready for secrets)
@@ -25,6 +26,7 @@ $11.12.2 successfully delivered **automated release infrastructure** with SHA256
 ## Phase 1: Critical Bug Fixes (Day 1) - IN PROGRESS
 
 ### 1.1 Fix Missing DOCKER_TOGGLE.vbs ✅
+
 **Priority**: CRITICAL | **Effort**: Small | **Impact**: High
 **Status**: ✅ COMPLETE (2025-12-12)
 
@@ -49,6 +51,7 @@ $11.12.2 successfully delivered **automated release infrastructure** with SHA256
 ---
 
 ### 1.2 Validate Installer Completeness 🔄
+
 **Priority**: HIGH | **Effort**: Small | **Impact**: Medium
 **Status**: TODO
 
@@ -66,8 +69,10 @@ $11.12.2 successfully delivered **automated release infrastructure** with SHA256
 - [ ] Verify all icons load correctly
 
 **Validation Checklist:**
+
 ```powershell
 # Files that must exist:
+
 - DOCKER.ps1
 - DOCKER_TOGGLE.vbs (NEW)
 - NATIVE.ps1
@@ -76,13 +81,14 @@ $11.12.2 successfully delivered **automated release infrastructure** with SHA256
 - run_docker_install.cmd
 - All wizard images (wizard_image.bmp, wizard_small.bmp)
 - Language files (installer_welcome_el.txt, etc.)
-```
 
+```text
 ---
 
 ## Phase 2: Release Workflow Polish (Day 2)
 
 ### 2.1 Enable Code Signing with Secrets 🔒
+
 **Priority**: MEDIUM | **Effort**: Small | **Impact**: Medium
 **Status**: TODO
 
@@ -109,6 +115,7 @@ $11.12.2 successfully delivered **automated release infrastructure** with SHA256
 ---
 
 ### 2.2 Improve Workflow Diagnostics 📊
+
 **Priority**: LOW | **Effort**: Small | **Impact**: Low
 **Status**: TODO
 
@@ -125,7 +132,8 @@ $11.12.2 successfully delivered **automated release infrastructure** with SHA256
 - [ ] Add summary table at workflow end
 
 **Expected Output:**
-```
+
+```text
 === Build Summary ===
 Version Verification:  ✅ 0.8s
 Greek Encoding:        ✅ 0.3s
@@ -135,13 +143,14 @@ Code Signing:          ⚠️  Skipped (no secrets)
 SHA256 Calculation:    ✅ 0.1s
 Asset Upload:          ✅ 0.4s
 Total Duration:        5.3s
-```
 
+```text
 ---
 
 ## Phase 3: Documentation Updates (Day 3)
 
 ### 3.1 Update Troubleshooting Guides 📖
+
 **Priority**: MEDIUM | **Effort**: Small | **Impact**: Medium
 **Status**: TODO
 
@@ -160,6 +169,7 @@ Total Duration:        5.3s
 ---
 
 ### 3.2 Complete Release Audit 📋
+
 **Priority**: LOW | **Effort**: Small | **Impact**: Low
 **Status**: TODO
 
@@ -175,6 +185,7 @@ Total Duration:        5.3s
 ## Success Criteria
 
 ### Release $11.12.2 Success Requires:
+
 1. ✅ DOCKER_TOGGLE.vbs included in installer
 2. ⏳ Desktop shortcut works on fresh install
 3. ⏳ All referenced files exist in repository
@@ -184,6 +195,7 @@ Total Duration:        5.3s
 7. ⏳ Documentation updated
 
 ### Optional Goals (If Time Permits):
+
 - 🔒 Code signing enabled with secrets
 - 📊 Enhanced workflow diagnostics
 - 📖 Comprehensive troubleshooting guide
@@ -217,6 +229,7 @@ Total Duration:        5.3s
 ## Testing Strategy
 
 ### Manual Testing (Required):
+
 1. **Clean Installation Test**
    - Uninstall any previous version
    - Install $11.12.2 from scratch
@@ -238,6 +251,7 @@ Total Duration:        5.3s
    - Check for error messages
 
 ### Automated Testing:
+
 - ✅ Version consistency check (VERIFY_VERSION.ps1)
 - ✅ Backend tests (pytest)
 - ✅ Frontend tests (vitest - fast suite)
@@ -248,6 +262,7 @@ Total Duration:        5.3s
 ## Post-Release Actions
 
 ### Immediate (Day 3):
+
 1. Tag release as $11.12.2
 2. Trigger automated workflow
 3. Verify installer asset uploaded
@@ -256,6 +271,7 @@ Total Duration:        5.3s
 6. Announce release (if public)
 
 ### Follow-up (Week 1):
+
 1. Monitor GitHub issues for installer problems
 2. Collect user feedback
 3. Update troubleshooting docs with new issues
@@ -268,6 +284,7 @@ Total Duration:        5.3s
 Based on $11.12.2 experience:
 
 ### Release Automation Enhancements:
+
 - Multi-platform installers (ARM, Linux AppImage)
 - Automatic changelog generation from commits
 - Release notes template automation
@@ -275,12 +292,14 @@ Based on $11.12.2 experience:
 - Signature verification in workflow
 
 ### Developer Experience:
+
 - One-click development environment setup
 - Automated dependency updates
 - Pre-commit hook improvements
 - Better error messages in scripts
 
 ### Operations:
+
 - Monitoring dashboard for releases
 - Automatic rollback on critical failures
 - Staged rollout support
@@ -297,3 +316,4 @@ Based on $11.12.2 experience:
 - Set foundation for larger $11.12.2 release
 
 **Next Major Release**: $11.12.2 (Feature Release, TBD)
+
