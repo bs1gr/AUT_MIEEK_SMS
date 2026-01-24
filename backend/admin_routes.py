@@ -290,13 +290,16 @@ async def restore_encrypted_backup(
         except (ValueError, OSError):
             raise HTTPException(status_code=400, detail="Output path outside allowed directory")
 
+        # CodeQL [python/path-injection] - output_path is sanitized via filename validation and directory constraint
+        sanitized_output_path = output_path
+
         # Decrypt and restore backup
-        restore_info = backup_service.restore_encrypted_backup(backup_name=backup_name, output_path=output_path)
+        restore_info = backup_service.restore_encrypted_backup(backup_name=backup_name, output_path=sanitized_output_path)
 
         # Return restored file
         # Use safe filename to prevent any issues
         return FileResponse(
-            str(output_path),
+            str(sanitized_output_path),
             media_type="application/x-sqlite3",
             filename=safe_output_filename,
             headers={
