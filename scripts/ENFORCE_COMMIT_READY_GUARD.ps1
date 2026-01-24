@@ -5,7 +5,13 @@
 
 .DESCRIPTION
     This script creates a "validation checkpoint" that blocks any commit attempts
-    if COMMIT_READY.ps1 hasn't been successfully run within the last 5 minutes.
+    if COMMIT_READY.ps1 hasn't been successfully run within the last 45 minutes.
+
+    EXTENDED TIME WINDOW (45 min):
+    - Allows time for commit message editing and finalization
+    - Accommodates complex multi-part commits
+    - Prevents false "expired" errors during commit process
+    - Terminal Visibility Policy (Jan 24, 2026): User can monitor all processes
 
     This enforces Policy 5: Pre-Commit Validation ALWAYS Required
 
@@ -31,7 +37,7 @@ param(
 )
 
 $CheckpointFile = ".commit-ready-validated"
-$MaxAgeMinutes = 5
+$MaxAgeMinutes = 45  # Extended window to allow for commit message editing and finalization
 $ErrorActionPreference = 'Stop'
 
 function Get-CheckpointAge {
