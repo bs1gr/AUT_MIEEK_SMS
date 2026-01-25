@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient, { extractAPIResponseData } from '@/api/api';
 
@@ -7,9 +7,17 @@ import apiClient, { extractAPIResponseData } from '@/api/api';
  */
 export interface SearchResult {
   id: number;
-  name: string;
+  name?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  display_name?: string;
   type: 'student' | 'course' | 'grade';
   metadata?: Record<string, unknown>;
+  course_name?: string;
+  course_code?: string;
+  credits?: number;
+  grade_value?: number;
 }
 
 /**
@@ -45,6 +53,12 @@ export interface AdvancedSearchRequest {
   filters?: FilterCriteria[];
   page?: number;
   limit?: number;
+  sort?: SearchSortState;
+}
+
+export interface SearchSortState {
+  field: 'relevance' | 'name' | 'email' | 'created_at' | 'updated_at';
+  direction: 'asc' | 'desc';
 }
 
 /**
@@ -55,6 +69,9 @@ export const useSearch = () => {
   const [searchType, setSearchType] = useState<'students' | 'courses' | 'grades'>('students');
   const [filters, setFilters] = useState<FilterCriteria[]>([]);
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [page, setPage] = useState(0);
+  const [limit, setLimit] = useState(20);
+  const [sort, setSort] = useState<SearchSortState>({ field: 'relevance', direction: 'desc' });
 
   // Debounce search query - 300ms delay
   useMemo(() => {
@@ -65,27 +82,55 @@ export const useSearch = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Reset pagination when query, filters, or type change
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedQuery, filters, searchType]);
+
   /**
    * Fetch search results based on current query and filters
    */
   const { data: searchResults, isLoading, error } = useQuery({
-    queryKey: ['search', searchType, debouncedQuery, filters],
+    queryKey: ['search', searchType, debouncedQuery, filters, page, limit, sort],
     queryFn: async () => {
       if (!debouncedQuery && filters.length === 0) {
-        return { results: [], total: 0 };
+        return { results: [], total: 0, has_more: false, limit, offset: page * limit };
       }
 
       try {
         const response = await apiClient.post('/search/advanced', {
-          search_type: searchType,
+          entity: searchType,
           query: debouncedQuery || undefined,
-          filters: filters.length > 0 ? filters : undefined,
+          filters: filters.length > 0 ? filters.reduce<Record<string, unknown>>((acc, curr) => {
+            // If multiple filters on same field, convert to array
+            if (acc[curr.field]) {
+              const existing = acc[curr.field];
+              acc[curr.field] = Array.isArray(existing) ? [...existing, curr.value] : [existing, curr.value];
+            } else {
+              acc[curr.field] = curr.value;
+            }
+            return acc;
+          }, {}) : undefined,
+          page,
+          page_size: limit,
+          sort,
         });
-        const data = extractAPIResponseData<{ results: SearchResult[]; total: number }>(
-          response.data,
-          { results: [], total: 0 }
-        );
-        return data;
+
+        const data = extractAPIResponseData<{
+          results: SearchResult[];
+          total: number;
+          has_more?: boolean;
+          limit?: number;
+          offset?: number;
+        }>(response);
+
+        return {
+          results: data?.results || [],
+          total: data?.total || 0,
+          has_more: data?.has_more ?? false,
+          limit: data?.limit ?? limit,
+          offset: data?.offset ?? page * limit,
+        };
       } catch (err) {
         console.error('Search failed:', err);
         throw err;
@@ -93,6 +138,7 @@ export const useSearch = () => {
     },
     enabled: Boolean(debouncedQuery || filters.length > 0),
     staleTime: 30000, // 30 seconds
+    keepPreviousData: true,
   });
 
   /**
@@ -208,11 +254,19 @@ export const useSearch = () => {
     searchType,
     setSearchType,
     filters,
+    setFilters,
     debouncedQuery,
+    page,
+    setPage,
+    limit,
+    setLimit,
+    sort,
+    setSort,
 
     // Search results
     searchResults: searchResults?.results || [],
     totalResults: searchResults?.total || 0,
+    hasMore: searchResults?.has_more ?? false,
     isLoading,
     error,
 

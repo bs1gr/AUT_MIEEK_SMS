@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 import logging
 
 from backend.dependencies import get_db
-from backend.rbac import optional_require_role
+from backend.security.permissions import optional_require_permission
 from backend.security.current_user import get_current_user, require_auth_even_if_disabled
 from backend.models import User
 from backend.services.search_service import SearchService
@@ -66,7 +66,7 @@ async def search_students(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role("students:view")),
+    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for students by name, email, or enrollment number.
@@ -109,7 +109,7 @@ async def search_courses(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role("courses:view")),
+    current_user: Optional[User] = Depends(optional_require_permission("courses:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for courses by name, code, or description.
@@ -156,7 +156,7 @@ async def search_grades(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role("grades:view")),
+    current_user: Optional[User] = Depends(optional_require_permission("grades:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for grades with optional text query and filtering.
@@ -204,7 +204,7 @@ async def advanced_search(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role("*:view")),
+    current_user: Optional[User] = Depends(optional_require_permission("*:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Perform advanced search with complex filter combinations.
@@ -293,7 +293,7 @@ async def get_suggestions(
     q: str = Query(..., min_length=1, max_length=255, description="Partial query"),
     limit: int = Query(5, ge=1, le=20, description="Maximum suggestions"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role(None)),
+    current_user: Optional[User] = Depends(optional_require_permission(None)),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Get real-time search suggestions for autocomplete.
@@ -349,7 +349,7 @@ async def get_suggestions(
     description="Get system-wide statistics for searchable entities",
 )
 async def get_statistics(
-    request: Request, db: Session = Depends(get_db), current_user: Optional[User] = Depends(optional_require_role(None))
+    request: Request, db: Session = Depends(get_db), current_user: Optional[User] = Depends(optional_require_permission(None))
 ) -> APIResponse[Dict[str, int]]:
     """
     Get system-wide statistics for searchable entities.
@@ -708,7 +708,7 @@ async def toggle_saved_search_favorite(
     - Requires authentication (any authenticated user)
     - User can only modify their own searches
     """
-    # current_user is guaranteed non-None by optional_require_role("*") dependency
+    # current_user is guaranteed non-None by optional_require_permission("*") dependency
 
     try:
         from backend.services.saved_search_service import SavedSearchService
@@ -755,7 +755,7 @@ async def full_text_search_students(
     request: Request,
     search_request: "FullTextSearchRequest",
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role("students:view")),
+    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Full-text search across student names and emails.
@@ -828,7 +828,7 @@ async def advanced_search_students(
     request: Request,
     search_request: "AdvancedSearchRequest",
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role("students:view")),
+    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Advanced search with complex filters and sorting.
@@ -934,7 +934,7 @@ async def get_search_facets(
     request: Request,
     q: str = Query(..., min_length=1, max_length=255, description="Search query"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_role("students:view")),
+    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[Dict[str, Any]]:
     """
     Get faceted search results for discovery and filtering.

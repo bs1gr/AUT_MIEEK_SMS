@@ -41,9 +41,9 @@ Implement a comprehensive full-text search API with advanced filtering, sorting,
 ```sql
 -- Full-text search index on student names and email
 CREATE INDEX idx_student_fulltext ON student USING GIN (
-    to_tsvector('english', 
-        COALESCE(first_name, '') || ' ' || 
-        COALESCE(last_name, '') || ' ' || 
+    to_tsvector('english',
+        COALESCE(first_name, '') || ' ' ||
+        COALESCE(last_name, '') || ' ' ||
         COALESCE(email, '')
     )
 );
@@ -60,8 +60,8 @@ CREATE INDEX idx_enrollment_type ON enrollment(enrollment_type);
 
 -- Composite index for complex queries
 CREATE INDEX idx_student_search_composite ON student(
-    status, 
-    created_at DESC, 
+    status,
+    created_at DESC,
     id
 ) WHERE deleted_at IS NULL;
 ```

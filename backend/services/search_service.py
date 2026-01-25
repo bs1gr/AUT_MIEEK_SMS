@@ -679,7 +679,7 @@ class SearchService:
             Dictionary with facet counts for status, enrollment_type
         """
         try:
-            from backend.models import Enrollment
+            from backend.models import CourseEnrollment
 
             query_lower = f"%{query.lower()}%"
 
@@ -704,9 +704,9 @@ class SearchService:
             # Enrollment type facets
             enrollment_facets = {}
             enrollment_results = (
-                base_query.outerjoin(Enrollment, Student.id == Enrollment.student_id)
-                .with_entities(Enrollment.enrollment_type, func.count().label("count"))
-                .group_by(Enrollment.enrollment_type)
+                base_query.outerjoin(CourseEnrollment, Student.id == CourseEnrollment.student_id)
+                .with_entities(CourseEnrollment.enrollment_type, func.count().label("count"))
+                .group_by(CourseEnrollment.enrollment_type)
                 .all()
             )
             for enrollment_type, count in enrollment_results:
