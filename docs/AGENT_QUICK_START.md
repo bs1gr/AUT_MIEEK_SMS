@@ -207,4 +207,3 @@ You now know:
 4. How to unblock yourself
 
 Go to [docs/ACTIVE_WORK_STATUS.md](./ACTIVE_WORK_STATUS.md) and pick your next task. 🚀
-

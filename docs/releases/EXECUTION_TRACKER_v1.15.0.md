@@ -513,4 +513,3 @@
 - [Implementation Patterns](../../IMPLEMENTATION_PATTERNS.md)
 - [Codebase Audit Report](../../CODEBASE_AUDIT_REPORT.md)
 - [Remaining Issues Plan](../plans/REMAINING_ISSUES_PRIORITY_PLAN.md)
-

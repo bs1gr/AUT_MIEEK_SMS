@@ -846,4 +846,3 @@ Monitor (24 hours)
 - Scalability architecture
 - Monitoring and observability
 - Deployment architecture
-

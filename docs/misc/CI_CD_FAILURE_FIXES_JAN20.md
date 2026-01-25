@@ -135,4 +135,3 @@ import { render, screen } from '@testing-library/react';
 
 **All fixes complete and pushed!** ✅
 Expected CI/CD validation: 28/28 checks passing within 20 minutes.
-

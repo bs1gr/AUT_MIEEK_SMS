@@ -739,4 +739,3 @@ perms = await perm_service.get_user_permissions(
 - [backend/models.py](../../backend/models.py) - Permission models (lines 1-100)
 - [backend/tests/test_rbac.py](../../backend/tests/test_rbac.py) - Complete test suite
 - [AUTHENTICATION.md](AUTHENTICATION.md) - Related auth documentation
-

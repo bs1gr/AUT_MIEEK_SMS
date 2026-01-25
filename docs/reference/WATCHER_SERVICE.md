@@ -253,4 +253,3 @@ Test-Path data\.triggers\start_monitoring.ps1  # Should be False
 The Watcher Service provides a robust, Windows-compatible solution for true one-click monitoring auto-start from containerized applications. By leveraging PowerShell background jobs and bind mounts, it bridges the container/host boundary without requiring Docker socket mounting or manual command execution.
 
 **Key Achievement**: Button click → 2-5 seconds → monitoring running automatically. No manual intervention required.
-

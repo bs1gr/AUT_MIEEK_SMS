@@ -195,4 +195,3 @@ January 5, 2026
 
 - [E2E_AUTHENTICATION_FIX.md](../E2E_AUTHENTICATION_FIX.md) - User-facing summary
 - [REMAINING_ISSUES_PRIORITY_PLAN.md](../plans/REMAINING_ISSUES_PRIORITY_PLAN.md) - Overall project status
-

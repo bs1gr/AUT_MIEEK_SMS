@@ -184,4 +184,3 @@ To confirm Greek text displays correctly:
 - **Simple**: Clear UTF-8 (git) → CP1253 (compile) pipeline
 - **Reliable**: No ambiguity or manual steps
 - **Permanent**: Embedded in build process
-

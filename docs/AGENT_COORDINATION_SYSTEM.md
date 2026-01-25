@@ -329,4 +329,3 @@ A: Document it in ACTIVE_WORK_STATUS under "Blockers" or create a separate item 
 That's it. Everything else is just details and examples.
 
 **Go read [AGENT_QUICK_START.md](./AGENT_QUICK_START.md) and pick your next task.**
-

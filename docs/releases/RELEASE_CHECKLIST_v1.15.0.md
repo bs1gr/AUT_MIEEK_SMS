@@ -242,4 +242,3 @@ If gh CLI unavailable or you prefer manual control:
 
 **Last Updated**: January 6, 2026
 **Next Update**: After GitHub Release published
-

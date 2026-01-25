@@ -13,7 +13,14 @@ export default defineConfig({
     setupFiles: ['src/setupTests.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}'],
     exclude: ['node_modules', 'dist', 'src/__e2e__/**'],
-    pool: 'threads',
+    // Use forked processes instead of worker threads to mitigate
+    // ERR_WORKER_OUT_OF_MEMORY on large suites in Windows
+    pool: 'forks',
+    // Ensure fully serial execution to keep memory usage low
+    sequence: {
+      files: 'serial',
+      tests: 'serial'
+    },
     maxThreads: 1,
     minThreads: 1,
     passWithNoTests: true

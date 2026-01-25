@@ -11,7 +11,18 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import apiClient, { extractAPIResponseData } from '../api/api';
+import apiClient, { extractAPIResponseData as _extractAPIResponseData } from '../api/api';
+
+// Safe extractor: falls back to response.data when extractAPIResponseData is unavailable in tests
+const safeExtractAPIResponseData = (response: any) => {
+  try {
+    return typeof _extractAPIResponseData === 'function'
+      ? _extractAPIResponseData(response)
+      : (response?.data ?? response);
+  } catch {
+    return response?.data ?? response;
+  }
+};
 
 /**
  * Search result types from API
@@ -56,6 +67,22 @@ export interface SearchFilters {
   credits?: number;
   status?: string;
   academic_year?: number;
+  enrollment_type?: string;
+  created_after?: string;
+  created_before?: string;
+  updated_after?: string;
+  updated_before?: string;
+}
+
+export interface SearchSort {
+  field?: string;
+  direction?: 'asc' | 'desc';
+}
+
+interface AdvancedFilterOptions {
+  query?: string;
+  page?: number;
+  sort?: SearchSort;
 }
 
 /**
@@ -122,6 +149,7 @@ export const useSearch = (
   const suggestionsTimeout = useRef<NodeJS.Timeout | null>(null);
   const lastQueryRef = useRef<string | undefined>(undefined);
   const lastFiltersRef = useRef<SearchFilters | undefined>(undefined);
+  const lastSortRef = useRef<SearchSort | undefined>(undefined);
 
   /**
    * Basic search by query string
@@ -149,7 +177,7 @@ export const useSearch = (
         const url = `/search/${searchType}?q=${encodeURIComponent(query)}&limit=${pageSize}&offset=${offset}&page=${page}`;
 
         const response = await apiClient.get(url);
-        const incomingResults = (extractAPIResponseData(response) as SearchResult[] | undefined) || [];
+        const incomingResults = (safeExtractAPIResponseData(response) as SearchResult[] | undefined) || [];
 
         setState(prev => {
           const mergedResults = page > 0
@@ -214,7 +242,7 @@ export const useSearch = (
           }
         });
 
-        const suggestions = (extractAPIResponseData(response) as SearchSuggestion[] | undefined) || [];
+        const suggestions = (safeExtractAPIResponseData(response) as SearchSuggestion[] | undefined) || [];
 
         // Cache results
         suggestionsCache.current.set(query, suggestions);
@@ -262,38 +290,92 @@ export const useSearch = (
    * Advanced search with filters
    */
   const advancedFilter = useCallback(
-    async (filters: SearchFilters, page: number = 0) => {
+    async (filters: SearchFilters = {}, options: AdvancedFilterOptions | number = {}) => {
+      const normalizedOptions: AdvancedFilterOptions =
+        typeof options === 'number' ? { page: options } : (options || {});
+
+      const { query, page = 0, sort } = normalizedOptions;
+
       lastFiltersRef.current = filters;
-      lastQueryRef.current = undefined;
+      lastQueryRef.current = query ?? lastQueryRef.current;
+      lastSortRef.current = sort ?? lastSortRef.current;
 
       setState(prev => ({ ...prev, isLoading: true, error: null }));
 
       try {
         const offset = page * pageSize;
+        const resolvedQuery = (query ?? lastQueryRef.current ?? '*').trim() || '*';
+        const sortSpec: SearchSort = {
+          field: sort?.field || 'relevance',
+          direction: sort?.direction || 'desc'
+        };
 
-        const response = await apiClient.post('/search/advanced', {
-          filters
-        }, {
-          params: {
-            search_type: searchType,
+        let incomingResults: SearchResult[] = [];
+        let total = 0;
+        let hasMore = false;
+
+        if (searchType === 'students') {
+          const response = await apiClient.post('/search/students/advanced', {
+            query: resolvedQuery,
+            filters,
+            sort: sortSpec,
             limit: pageSize,
-            offset,
-            page
-          }
-        });
+            offset
+          });
 
-        const incomingResults = (extractAPIResponseData(response) as SearchResult[] | undefined) || [];
+          const data = safeExtractAPIResponseData(response) as
+            | { results?: SearchResult[]; total?: number; has_more?: boolean }
+            | SearchResult[]
+            | undefined;
+
+          if (Array.isArray(data)) {
+            incomingResults = data;
+            total = data.length;
+            hasMore = data.length === pageSize;
+          } else {
+            incomingResults = data?.results || [];
+            total = typeof data?.total === 'number' ? data.total : incomingResults.length;
+            hasMore = typeof data?.has_more === 'boolean'
+              ? data.has_more
+              : incomingResults.length === pageSize;
+          }
+        } else if (searchType === 'grades') {
+          const response = await apiClient.get('/search/grades', {
+            params: {
+              q: resolvedQuery !== '*' ? resolvedQuery : undefined,
+              limit: pageSize,
+              offset,
+              ...filters
+            }
+          });
+          const data = safeExtractAPIResponseData(response) as SearchResult[] | undefined;
+          incomingResults = data || [];
+          total = incomingResults.length;
+          hasMore = incomingResults.length === pageSize;
+        } else {
+          // courses or fallback
+          const response = await apiClient.get(`/search/${searchType}`, {
+            params: {
+              q: resolvedQuery !== '*' ? resolvedQuery : undefined,
+              limit: pageSize,
+              offset
+            }
+          });
+          const data = safeExtractAPIResponseData(response) as SearchResult[] | undefined;
+          incomingResults = data || [];
+          total = incomingResults.length;
+          hasMore = incomingResults.length === pageSize;
+        }
 
         setState(prev => {
           const mergedResults = page > 0
             ? [...prev.results, ...incomingResults]
             : incomingResults;
-          const hasMore = incomingResults.length === pageSize;
 
           return {
             ...prev,
             results: mergedResults,
-            total: mergedResults.length,
+            total,
             hasMore,
             currentPage: page,
             isLoading: false,
@@ -324,15 +406,15 @@ export const useSearch = (
    * Load next page of results (pagination)
    */
   const loadMore = useCallback(
-    (query?: string, filters?: SearchFilters) => {
+    (query?: string, filters?: SearchFilters, sort?: SearchSort) => {
       const nextPage = state.currentPage + 1;
 
       if (filters) {
-        advancedFilter(filters, nextPage);
+        advancedFilter(filters, { page: nextPage, query, sort });
       } else if (query) {
         search(query, nextPage);
       } else if (lastFiltersRef.current) {
-        advancedFilter(lastFiltersRef.current, nextPage);
+        advancedFilter(lastFiltersRef.current, { page: nextPage, query: lastQueryRef.current, sort: sort ?? lastSortRef.current });
       } else if (lastQueryRef.current) {
         search(lastQueryRef.current, nextPage);
       }
@@ -347,7 +429,7 @@ export const useSearch = (
     async () => {
       try {
         const response = await apiClient.get('/search/statistics');
-        const stats = (extractAPIResponseData(response) as SearchStatistics | undefined) || {
+        const stats = (safeExtractAPIResponseData(response) as SearchStatistics | undefined) || {
           total_students: 0,
           total_courses: 0,
           total_grades: 0

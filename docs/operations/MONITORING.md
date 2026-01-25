@@ -609,4 +609,3 @@ For monitoring-related issues:
 2. Review service logs
 3. Consult [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
 4. Open an issue on GitHub
-

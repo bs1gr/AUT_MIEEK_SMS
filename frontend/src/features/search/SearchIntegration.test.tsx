@@ -1,8 +1,9 @@
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
+import { renderWithI18n } from '@/test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
-import SearchPage from './SearchPage';
+import SearchView from './SearchView';
 import * as searchHooks from './useSearch';
 import * as apiModule from '@/api/api';
 
@@ -30,7 +31,7 @@ describe('Search Integration Tests - Full Workflow', () => {
   );
 
   const renderPage = () => {
-    return render(<SearchPage />, { wrapper });
+    return renderWithI18n(<SearchView />, { wrapper });
   };
 
   const mockUseSearch = (overrides?: any) => {

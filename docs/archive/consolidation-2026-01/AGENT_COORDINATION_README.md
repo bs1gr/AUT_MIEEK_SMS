@@ -119,4 +119,3 @@ The system is live. Agents can now coordinate seamlessly without duplication, re
 **Every agent should start with [docs/AGENT_QUICK_START.md](docs/AGENT_QUICK_START.md).**
 
 🚀 Ready to continue work?
-

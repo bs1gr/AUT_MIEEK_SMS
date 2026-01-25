@@ -709,4 +709,3 @@ test('SearchBar calls onSearch with query', async () => {
 - i18n support (EN/EL)
 - Accessibility compliance
 - Responsive design
-

@@ -640,4 +640,3 @@ WHERE rp.permission_id IS NULL AND up.permission_id IS NULL;
 **Version**: 1.15.1
 **Last Updated**: January 11, 2026
 **Status**: Production Ready ✅
-

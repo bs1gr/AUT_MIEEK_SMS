@@ -149,4 +149,3 @@ if: secrets.DOCKERHUB_USERNAME != ''
 
 For questions about the fixes, see the comprehensive documentation or check GitHub Actions logs at:
 https://github.com/bs1gr/AUT_MIEEK_SMS/actions
-

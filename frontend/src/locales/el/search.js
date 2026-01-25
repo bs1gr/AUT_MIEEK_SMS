@@ -11,6 +11,7 @@ export default {
   ariaLabel: 'Αναζήτηση',
   search: 'Αναζήτηση',
   noSuggestions: 'Δεν βρέθηκαν προτάσεις',
+  unknown: 'Άγνωστο',
   type: {
     student: 'Φοιτητής',
     course: 'Μάθημα',
@@ -69,5 +70,43 @@ export default {
   filters: {
     title: 'Φίλτρα',
     custom: 'Προσαρμοσμένα Φίλτρα'
+  },
+  sort: {
+    label: 'Ταξινόμηση κατά',
+    directionLabel: 'Κατεύθυνση ταξινόμησης',
+    relevance: 'Σχετικότητα',
+    name: 'Όνομα',
+    email: 'Email',
+    created: 'Ημ/νία δημιουργίας',
+    updated: 'Ημ/νία ενημέρωσης',
+    asc: 'Αύξουσα',
+    desc: 'Φθίνουσα'
+  },
+  pagination: {
+    range: '{{start}}-{{end}} από {{total}} αποτελέσματα'
+  },
+  pageLabel: 'Σελίδα {{page}}',
+  limitLabel: 'Αποτελέσματα ανά σελίδα',
+  limitOption: '{{count}} ανά σελίδα',
+  typeLabel: 'Τύπος',
+  queryLabel: 'Ερώτημα',
+  resultsTitle: 'Αποτελέσματα',
+  resultsSummary: '{{count}} συνολικά αποτελέσματα',
+    noResults: 'Δεν βρέθηκαν αποτελέσματα',
+  facets: {
+    title: 'Βελτίωση αποτελεσμάτων',
+    subtitle: 'Χρησιμοποιήστε τα facets για περιορισμό',
+    total: '{{total}} αντιστοιχίες',
+    status: 'Κατάσταση',
+    enrollment_type: 'Τύπος φοίτησης',
+    months: 'Μήνες',
+    loading: 'Φόρτωση facets...',
+    values: {
+      active: 'Ενεργός',
+      inactive: 'Ανενεργός',
+      suspended: 'Αναστολή',
+      'full-time': 'Πλήρης φοίτηση',
+      'part-time': 'Μερική φοίτηση'
+    }
   }
 };

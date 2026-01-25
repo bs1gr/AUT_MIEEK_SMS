@@ -195,4 +195,3 @@ The toggle script works seamlessly with your existing SMS scripts:
   - Smart start/stop toggle
   - Desktop shortcut creator
   - Visual feedback and status messages
-

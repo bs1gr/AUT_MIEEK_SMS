@@ -30,6 +30,7 @@ export default {
   attendance: 'Attendance',
   grades: 'Grades',
   calendar: 'Calendar',
+  searchTab: 'Search',
   utilsTab: 'Utils',
   maintenance: 'Maintenance',
    export: 'Export',

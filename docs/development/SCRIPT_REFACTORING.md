@@ -304,4 +304,3 @@ sys.path.insert(0, str(PROJECT_ROOT))
 - [Architecture Documentation](ARCHITECTURE.md) - Overall system design
 - [Development Guide](DEVELOPMENT.md) - Development workflow
 - [Git Workflow](GIT_WORKFLOW.md) - Commit and branching standards
-

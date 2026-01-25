@@ -72,4 +72,3 @@ No manual database migrations or environment changes are required. The release i
 
 **Prepared by**: GitHub Copilot Automation Team
 **Last Updated**: 2025-12-13
-

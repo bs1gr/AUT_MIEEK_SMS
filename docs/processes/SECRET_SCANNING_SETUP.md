@@ -49,4 +49,3 @@ repos:
 - [ ] Document secret scanning in onboarding and security docs
 
 _Last updated: 2025-12-18_
-

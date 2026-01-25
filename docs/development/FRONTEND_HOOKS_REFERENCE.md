@@ -93,4 +93,3 @@ Manages modal open/close state.
 
 ---
 **Note:** Always prefer using these hooks over implementing raw logic in components to ensure consistency and testability.
-

@@ -175,4 +175,3 @@ January 5, 2026
 - `docs/plans/REMAINING_ISSUES_PRIORITY_PLAN.md` - Issue tracking
 - Commit: `e2f42531a` - Main auth fix
 - Commit: `344a32774` - Robustness improvements
-

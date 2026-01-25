@@ -30,6 +30,7 @@ export default {
   attendance: 'Παρουσίες',
   grades: 'Βαθμοί',
   calendar: 'Ημερολόγιο',
+  searchTab: 'Αναζήτηση',
   utilsTab: 'Εργαλεία',
   maintenance: 'Συντήρηση',
   export: 'Εξαγωγή',

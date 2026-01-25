@@ -265,4 +265,3 @@ v1.12.x → $11.15.2
 **Last Updated**: January 9, 2026
 **Document Owner**: Tech Lead / Release Manager
 **Next Review**: January 27, 2026 (Phase 2 kickoff)
-

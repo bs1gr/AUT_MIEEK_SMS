@@ -121,4 +121,3 @@ docker compose -f docker-compose.qnap.yml down
 - Compose files: `docker-compose.qnap.yml`, `docker/docker-compose.qnap.yml` variants
 - Backend tooling: `backend/tools/create_admin`
 - Archived deep dives: `archive/qnap-2025-12-06/`
-

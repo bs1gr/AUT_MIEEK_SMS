@@ -40,6 +40,10 @@ export const CalendarPage = lazy(() =>
   import(/* webpackChunkName: "calendar" */ './pages/CalendarPage')
 );
 
+export const SearchPage = lazy(() =>
+  import(/* webpackChunkName: "search" */ './pages/SearchPage')
+);
+
 // Low-priority routes (load only when needed)
 export const OperationsPage = lazy(() =>
   import(/* webpackChunkName: "operations" */ './pages/OperationsPage')
@@ -59,6 +63,10 @@ export const ImportExportPage = lazy(() =>
 
 export const AnalyticsPage = lazy(() =>
   import(/* webpackChunkName: "analytics" */ './pages/AnalyticsPage')
+);
+
+export const SearchPage = lazy(() =>
+  import(/* webpackChunkName: "search" */ './pages/SearchPage')
 );
 
 /**
@@ -95,5 +103,6 @@ export default {
   AdminPermissionsPage,
   ImportExportPage,
   AnalyticsPage,
+  SearchPage,
   preloadCriticalRoutes,
 };

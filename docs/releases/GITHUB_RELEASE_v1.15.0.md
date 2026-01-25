@@ -295,4 +295,3 @@ After publishing:
 
 **Created**: January 6, 2026
 **Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/1.15.0 (after creation)
-

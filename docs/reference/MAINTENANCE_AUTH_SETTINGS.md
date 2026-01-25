@@ -384,4 +384,3 @@ alert(result.message);
 - **$11.9.7.4** - Initial implementation of maintenance suite auth settings management
 - **$11.9.7.4** - Added AUTH_MODE hybrid authorization system
 - **$11.9.7.2** - Introduced auth issues (binary AUTH_ENABLED behavior)
-

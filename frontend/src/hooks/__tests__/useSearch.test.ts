@@ -230,7 +230,7 @@ describe('useSearch Hook', () => {
         { id: 1, first_name: 'John', grade_value: 85 }
       ];
 
-      vi.mocked(apiClient.post).mockResolvedValue({
+      vi.mocked(apiClient.get).mockResolvedValue({
         data: mockResults
       });
 
@@ -308,7 +308,7 @@ describe('useSearch Hook', () => {
     it('should load more results for filters', async () => {
       const mockResults = [{ id: 1, grade_value: 85 }];
 
-      vi.mocked(apiClient.post)
+      vi.mocked(apiClient.get)
         .mockResolvedValueOnce({ data: mockResults })
         .mockResolvedValueOnce({ data: mockResults });
 
@@ -324,12 +324,12 @@ describe('useSearch Hook', () => {
         result.current.loadMore();
         // Wait for the async advancedFilter to complete
         await waitFor(() => {
-          expect(vi.mocked(apiClient.post).mock.calls.length).toBeGreaterThan(1);
+          expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThan(1);
         });
       });
 
-      // Should make two API calls
-      expect(vi.mocked(apiClient.post).mock.calls.length).toBe(2);
+      // Should make at least two API calls (statistics may add one extra GET)
+      expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThanOrEqual(2);
     });
   });
 

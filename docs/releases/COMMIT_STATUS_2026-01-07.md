@@ -136,4 +136,3 @@ This would involve:
 4. Publishing release documentation
 
 Estimated time: 1-2 hours
-

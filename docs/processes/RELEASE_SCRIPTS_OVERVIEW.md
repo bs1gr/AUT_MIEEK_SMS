@@ -346,4 +346,3 @@ Agents must use these two scripts instead of writing new release scripts. If a r
 - [Release Checklist Template](../releases/RELEASE_CHECKLIST_$11.15.2.md)
 - [GitHub Release Template](../releases/GITHUB_RELEASE_$11.15.2.md)
 - [Phase 2 Issues](../releases/GITHUB_ISSUES_PHASE2.md)
-

@@ -446,4 +446,3 @@ Have ideas for improvements? File a GitHub issue!
 **Version**: 1.15.2
 **Release Date**: January 11, 2026
 **Status**: Production Ready ✅
-

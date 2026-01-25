@@ -1,6 +1,7 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { renderWithI18n } from '../../test-utils/i18n-test-wrapper';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import SearchView from './SearchView';
 import * as searchHooks from './useSearch';
@@ -80,10 +81,10 @@ describe('SearchView Component', () => {
     vi.mocked(searchHooks.useSearch).mockReturnValue(defaultMock as any);
   };
 
-  const renderComponent = () => {
-    return render(
+  const renderComponent = (props: any = {}) => {
+    return renderWithI18n(
       <QueryClientProvider client={queryClient}>
-        <SearchView />
+        <SearchView {...props} />
       </QueryClientProvider>
     );
   };

@@ -948,4 +948,3 @@ async def error_handler_middleware(request: Request, call_next):
 - [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)
 - [Graceful Degradation](https://www.w3.org/wiki/Graceful_degradation_versus_progressive_enhancement)
 - [Resilience4j Documentation](https://resilience4j.readme.io/)
-

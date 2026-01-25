@@ -514,4 +514,3 @@ For issues or questions:
 **Version:** 1.2.0
 **Last Updated:** October 30, 2025
 **Maintainer:** Student Management System Team
-

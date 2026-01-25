@@ -54,4 +54,3 @@ Invoke-WebRequest http://localhost:8080/health
 ---
 
 _Last updated: 2025-12-18_
-

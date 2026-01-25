@@ -213,4 +213,3 @@ yamllint .github/workflows/release-installer-with-sha.yml
 **Date:** January 4, 2026
 **Version:** 1.14.2
 **Status:** All critical CI errors resolved ✅
-

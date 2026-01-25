@@ -554,4 +554,3 @@ This project is licensed under the MIT License. See [LICENSE](../../LICENSE) for
 ---
 
 **Full Changelog**: [1.14.3...1.15.0](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/1.14.3...1.15.0)
-

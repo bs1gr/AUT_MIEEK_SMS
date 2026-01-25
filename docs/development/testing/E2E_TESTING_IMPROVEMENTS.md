@@ -279,4 +279,3 @@ The improvements now detect:
 
 **Status:** Ready for E2E workflow testing
 **Next Milestone:** Debug remaining E2E failures with improved diagnostics
-

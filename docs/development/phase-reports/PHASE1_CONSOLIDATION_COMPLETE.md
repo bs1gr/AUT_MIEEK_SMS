@@ -153,4 +153,3 @@ All old paths continue to work with deprecation warnings. Three-layer compatibil
 ---
 
 Next phase: Phase 2 (SMS.ps1 meta-wrapper and configuration clarification)
-

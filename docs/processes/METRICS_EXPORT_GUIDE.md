@@ -45,4 +45,3 @@ app.mount("/metrics", make_asgi_app())
 ---
 
 _Last updated: 2025-12-18_
-

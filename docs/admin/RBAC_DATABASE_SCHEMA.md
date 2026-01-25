@@ -421,4 +421,3 @@ viewer_perms = [
 1. Create seeding script (Task 4 prerequisite)
 2. Design `@require_permission()` decorator (Task 4)
 3. Plan migration from User.role to UserRole table
-

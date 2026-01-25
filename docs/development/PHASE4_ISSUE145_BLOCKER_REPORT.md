@@ -45,7 +45,7 @@ AssertionError: assert 'success' in {'detail': 'Not Found'}
 
 The tests expect these endpoints to exist:
 - `GET /api/v1/search/students` - Search students
-- `GET /api/v1/search/courses` - Search courses  
+- `GET /api/v1/search/courses` - Search courses
 - `GET /api/v1/search/grades` - Search grades
 - `POST /api/v1/search/advanced` - Advanced search with filters
 - `GET /api/v1/search/suggestions` - Search suggestions
@@ -128,7 +128,7 @@ class TestStudentSearchEndpoint:
     def test_search_students_by_name(self, client, admin_headers, test_data):
         """Should search students by first or last name"""
         response = client.get(self.endpoint, params={"q": "John"}, headers=admin_headers)
-        
+
         assert response.status_code == 200  # ❌ Gets 404 instead
         data = response.json()
         assert data["success"] is True

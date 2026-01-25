@@ -217,4 +217,3 @@ Added a mandatory password change prompt on first login for the default admin ac
 - After password change, immediate feedback with success toast
 - Modal automatically closes when condition is met
 - Responsive design works on mobile and desktop
-

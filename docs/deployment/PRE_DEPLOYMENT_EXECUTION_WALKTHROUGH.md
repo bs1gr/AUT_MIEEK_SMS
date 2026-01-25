@@ -819,4 +819,3 @@ if (Test-Path "frontend/package-lock.json") {
 **Created**: January 7, 2026
 **Owner**: DevOps Lead
 **Next Review**: January 8, 2026 (Day of execution)
-

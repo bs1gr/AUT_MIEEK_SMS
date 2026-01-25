@@ -11,6 +11,7 @@ export default {
   ariaLabel: 'Search',
   search: 'Search',
   noSuggestions: 'No suggestions found',
+  unknown: 'Unknown',
   type: {
     student: 'Student',
     course: 'Course',
@@ -69,5 +70,43 @@ export default {
   filters: {
     title: 'Filters',
     custom: 'Custom Filters'
+  },
+  sort: {
+    label: 'Sort by',
+    directionLabel: 'Sort direction',
+    relevance: 'Relevance',
+    name: 'Name',
+    email: 'Email',
+    created: 'Created',
+    updated: 'Updated',
+    asc: 'Ascending',
+    desc: 'Descending'
+  },
+  pagination: {
+    range: '{{start}}-{{end}} of {{total}} results'
+  },
+  pageLabel: 'Page {{page}}',
+  limitLabel: 'Results per page',
+  limitOption: '{{count}} per page',
+  typeLabel: 'Type',
+  queryLabel: 'Query',
+  resultsTitle: 'Results',
+  resultsSummary: '{{count}} total results',
+  noResults: 'No results found',
+  facets: {
+    title: 'Refine results',
+    subtitle: 'Use facets to narrow the search',
+    total: '{{total}} matches',
+    status: 'Status',
+    enrollment_type: 'Enrollment type',
+    months: 'Months',
+    loading: 'Loading facets...',
+    values: {
+      active: 'Active',
+      inactive: 'Inactive',
+      suspended: 'Suspended',
+      'full-time': 'Full-time',
+      'part-time': 'Part-time'
+    }
   }
 };

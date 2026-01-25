@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithI18n } from '@/test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import SearchPagination from './SearchPagination';
@@ -15,7 +16,7 @@ describe('SearchPagination Component', () => {
   };
 
   const renderComponent = (props = defaultProps) => {
-    return render(<SearchPagination {...props} />);
+    return renderWithI18n(<SearchPagination {...props} />);
   };
 
   it('renders pagination controls', () => {

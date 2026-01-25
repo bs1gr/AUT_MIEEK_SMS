@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
+import { renderWithI18n } from '../../test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import SearchFacets from './SearchFacets';
@@ -41,8 +42,12 @@ describe('SearchFacets Component', () => {
 
   const mockOnSelect = vi.fn();
 
+  beforeEach(() => {
+    mockOnSelect.mockClear();
+  });
+
   const renderComponent = (facets = mockFacets, loading = false) => {
-    return render(
+    return renderWithI18n(
       <SearchFacets facets={facets} loading={loading} onSelect={mockOnSelect} />
     );
   };
@@ -141,7 +146,7 @@ describe('SearchFacets Component', () => {
   });
 
   it('shows empty state when no facets provided', () => {
-    renderComponent(undefined, false);
+    renderComponent([], false);
 
     expect(screen.getByText(/no filters available/i)).toBeInTheDocument();
   });

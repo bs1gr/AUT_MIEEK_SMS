@@ -113,4 +113,3 @@ If you want, I can now:
 - Implement stricter SameSite + CSRF handling on the backend.
 
 End of document.
-

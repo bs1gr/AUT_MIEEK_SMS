@@ -386,4 +386,3 @@ All operations are idempotent:
 | Windows Package Manager | Medium | One-click install via `winget` |
 | Staged rollout | High | Gradual user adoption |
 | Automated bump | Low | Pre-release version bumping |
-

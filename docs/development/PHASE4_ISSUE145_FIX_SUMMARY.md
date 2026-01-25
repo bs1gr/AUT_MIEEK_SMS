@@ -76,7 +76,7 @@ current_user: Optional[User] = Depends(optional_require_permission("students:vie
 15  # ✅ All 15 routes successfully loaded
 
 # Routes available:
-# /students, /courses, /grades, /advanced, /suggestions, /statistics, 
+# /students, /courses, /grades, /advanced, /suggestions, /statistics,
 # /saved-searches (CRUD), and more
 ```
 
@@ -147,7 +147,6 @@ current_user: Optional[User] = Depends(optional_require_permission("students:vie
 
 ---
 
-**Author**: AI Agent  
-**Session**: Phase 4 Issue #145 Fix (January 25, 2026 - Evening)  
+**Author**: AI Agent
+**Session**: Phase 4 Issue #145 Fix (January 25, 2026 - Evening)
 **Fix Status**: Applied and Ready for Testing
-

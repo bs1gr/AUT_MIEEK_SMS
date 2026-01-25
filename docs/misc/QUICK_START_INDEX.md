@@ -209,4 +209,3 @@ When you finish deployment, verify ALL 10 are true:
 **Then**: Execute deployment Jan 8, 08:00 UTC
 
 **You've got this!** ✅
-

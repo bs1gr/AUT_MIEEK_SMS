@@ -119,4 +119,3 @@ curl -X POST http://localhost:8000/control/api/rate-limits/reset
 **Last Updated:** 2025-12-30
 **Version:** 1.14.0
 **Related:** [Full Rate Limiting Guide](RATE_LIMITING_GUIDE.md)
-

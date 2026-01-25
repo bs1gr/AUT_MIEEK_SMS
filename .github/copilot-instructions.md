@@ -65,6 +65,12 @@ cd backend && pytest -q
 - ❌ **NEVER use incorrect version format** → ALWAYS use `v1.x.x` format (e.g., v1.15.1), NEVER `v11.x.x` or `$11.x.x`
 - ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/lifespan.py`)
 - ❌ Never use `require_role()` for admin endpoints → Use `optional_require_role()` (respects AUTH_MODE)
+- ❌ **NEVER create unnecessary documentation** → Only create files that are ESSENTIAL:
+  - Code files (components, services, routers)
+  - Documentation that doesn't already exist in the codebase
+  - Files explicitly required by policy (pre-commit, CI/CD, migrations)
+  - **FORBIDDEN**: Status reports, verification documents, summary files, handoff notes, session reports, progress trackers (except `UNIFIED_WORK_PLAN.md`)
+  - Code commits and the work plan are sufficient documentation. Let code speak for itself.
 
 ---
 

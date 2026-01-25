@@ -370,4 +370,3 @@ When adding a new environment variable:
 - `NATIVE.ps1` - Reads root .env during native deployment
 - `backend/config.py` - Python config loading
 - `.env.example` - Template for all environments
-

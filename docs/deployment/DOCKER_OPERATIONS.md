@@ -481,4 +481,3 @@ git pull origin main
 **Last Updated:** December 2025
 **Version:** 1.9.3
 **Architecture:** Docker-First, Host/Container Separation
-
