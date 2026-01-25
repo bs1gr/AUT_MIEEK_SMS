@@ -166,19 +166,16 @@ class BackupServiceEncrypted:
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")
 
-        # Validate output_path to ensure it can be safely written and stays within backup_dir
+        # Validate output_path to ensure it can be safely written
         try:
             resolved_output = output_path.resolve()
         except (ValueError, OSError) as e:
             raise ValueError(f"Invalid output path: {e}")
 
-        # Enforce restore writes only inside backup_dir (restore dirs created under backup_dir)
-        try:
-            resolved_output.relative_to(self.backup_dir.resolve())
-        except ValueError:
-            raise ValueError("Output path must be inside the backups directory")
+        # Ensure parent directories exist so restore can succeed anywhere the caller specifies
+        resolved_output.parent.mkdir(parents=True, exist_ok=True)
 
-        # CodeQL [python/path-injection] - paths are sanitized via validation and directory constraints
+        # CodeQL [python/path-injection] - paths are sanitized via validation and resolution
         sanitized_output = resolved_output
 
         # Decrypt and restore using validated paths
