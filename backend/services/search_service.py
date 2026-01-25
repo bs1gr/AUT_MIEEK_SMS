@@ -555,3 +555,169 @@ class SearchService:
         except Exception as e:
             logger.error(f"Error getting search statistics: {str(e)}")
             return {"total_students": 0, "total_courses": 0, "total_grades": 0}
+
+    # ============================================================================
+    # PHASE 4: ADVANCED SEARCH & FILTERING
+    # ============================================================================
+
+    def advanced_student_search(
+        self,
+        query: str,
+        filters: Optional[Dict[str, Any]] = None,
+        sort_field: str = "relevance",
+        sort_direction: str = "desc",
+        limit: int = 20,
+        offset: int = 0,
+    ) -> tuple[List[Student], int, Dict[str, Any]]:
+        """
+        Perform advanced full-text search on students with filters and sorting.
+
+        Args:
+            query: Search query string (name, email, ID)
+            filters: Optional filter dictionary with keys:
+                - status: Student status (active, inactive, suspended)
+                - enrollment_type: Enrollment type (full-time, part-time)
+                - created_after: Created date minimum (YYYY-MM-DD)
+                - created_before: Created date maximum (YYYY-MM-DD)
+                - updated_after: Updated date minimum (YYYY-MM-DD)
+                - updated_before: Updated date maximum (YYYY-MM-DD)
+            sort_field: Field to sort by (relevance, name, email, created_at, updated_at)
+            sort_direction: Sort direction (asc, desc)
+            limit: Maximum results per page (1-100)
+            offset: Pagination offset
+
+        Returns:
+            Tuple of (results list, total count, filters applied dict)
+        """
+        try:
+            from datetime import datetime
+
+            filters = filters or {}
+            query_lower = f"%{query.lower()}%"
+
+            # Build base search
+            base_query = self.db.query(Student).filter(
+                or_(
+                    func.lower(Student.first_name).ilike(query_lower),
+                    func.lower(Student.last_name).ilike(query_lower),
+                    func.lower(Student.email).ilike(query_lower),
+                    func.lower(Student.student_id).ilike(query_lower),
+                ),
+                Student.deleted_at.is_(None),  # Soft delete filter
+            )
+
+            # Apply filters
+            filters_applied = {}
+
+            if filters.get("status"):
+                base_query = base_query.filter(Student.status == filters["status"])
+                filters_applied["status"] = filters["status"]
+
+            # Date filters
+            if filters.get("created_after"):
+                try:
+                    created_after = datetime.strptime(filters["created_after"], "%Y-%m-%d")
+                    base_query = base_query.filter(Student.created_at >= created_after)
+                    filters_applied["created_after"] = filters["created_after"]
+                except (ValueError, TypeError):
+                    pass  # Invalid date, skip filter
+
+            if filters.get("created_before"):
+                try:
+                    created_before = datetime.strptime(filters["created_before"], "%Y-%m-%d")
+                    base_query = base_query.filter(Student.created_at <= created_before)
+                    filters_applied["created_before"] = filters["created_before"]
+                except (ValueError, TypeError):
+                    pass
+
+            # Get total before pagination
+            total_count = base_query.count()
+
+            # Apply sorting
+            if sort_field == "name":
+                if sort_direction.lower() == "asc":
+                    base_query = base_query.order_by(Student.last_name.asc(), Student.first_name.asc())
+                else:
+                    base_query = base_query.order_by(Student.last_name.desc(), Student.first_name.desc())
+            elif sort_field == "email":
+                if sort_direction.lower() == "asc":
+                    base_query = base_query.order_by(Student.email.asc())
+                else:
+                    base_query = base_query.order_by(Student.email.desc())
+            elif sort_field == "created_at":
+                if sort_direction.lower() == "asc":
+                    base_query = base_query.order_by(Student.created_at.asc())
+                else:
+                    base_query = base_query.order_by(Student.created_at.desc())
+            elif sort_field == "updated_at":
+                if sort_direction.lower() == "asc":
+                    base_query = base_query.order_by(Student.updated_at.asc())
+                else:
+                    base_query = base_query.order_by(Student.updated_at.desc())
+            else:  # relevance (default)
+                base_query = base_query.order_by(Student.last_name, Student.first_name)
+
+            # Apply pagination
+            results = base_query.limit(limit).offset(offset).all()
+
+            return results, total_count, filters_applied
+
+        except Exception as e:
+            logger.error(f"Error performing advanced student search: {str(e)}")
+            return [], 0, {}
+
+    def get_student_search_facets(self, query: str) -> Dict[str, Dict[str, int]]:
+        """
+        Get faceted search results for query refinement.
+
+        Returns aggregated counts for status and enrollment types.
+
+        Args:
+            query: Search query string
+
+        Returns:
+            Dictionary with facet counts for status, enrollment_type
+        """
+        try:
+            from backend.models import Enrollment
+
+            query_lower = f"%{query.lower()}%"
+
+            # Base search
+            base_query = self.db.query(Student).filter(
+                or_(
+                    func.lower(Student.first_name).ilike(query_lower),
+                    func.lower(Student.last_name).ilike(query_lower),
+                    func.lower(Student.email).ilike(query_lower),
+                ),
+                Student.deleted_at.is_(None),
+            )
+
+            # Status facets
+            status_facets = {}
+            status_results = (
+                base_query.with_entities(Student.status, func.count().label("count")).group_by(Student.status).all()
+            )
+            for status, count in status_results:
+                status_facets[status] = count
+
+            # Enrollment type facets
+            enrollment_facets = {}
+            enrollment_results = (
+                base_query.outerjoin(Enrollment, Student.id == Enrollment.student_id)
+                .with_entities(Enrollment.enrollment_type, func.count().label("count"))
+                .group_by(Enrollment.enrollment_type)
+                .all()
+            )
+            for enrollment_type, count in enrollment_results:
+                if enrollment_type:
+                    enrollment_facets[enrollment_type] = count
+
+            return {
+                "status": status_facets,
+                "enrollment_type": enrollment_facets,
+            }
+
+        except Exception as e:
+            logger.error(f"Error getting search facets: {str(e)}")
+            return {"status": {}, "enrollment_type": {}}

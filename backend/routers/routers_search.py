@@ -16,7 +16,6 @@ Version: 1.0.0
 from typing import Optional, List, Dict, Any
 from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
 import logging
 
 from backend.dependencies import get_db
@@ -25,6 +24,17 @@ from backend.security.current_user import get_current_user, require_auth_even_if
 from backend.models import User
 from backend.services.search_service import SearchService
 from backend.schemas.response import APIResponse, success_response, error_response
+from backend.schemas.search import (
+    FullTextSearchRequest,
+    FullTextSearchResponse,
+    StudentFullTextSearchResult,
+    AdvancedSearchRequest,
+    AdvancedSearchResponse,
+    SearchFacetsResponse,
+    SearchFacets,
+    SavedSearchCreateSchema,
+    SavedSearchUpdateSchema,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,70 +47,6 @@ router = APIRouter(
         500: {"description": "Internal server error"},
     },
 )
-
-
-# ============================================================================
-# PYDANTIC SCHEMAS
-# ============================================================================
-
-
-class StudentSearchResult:
-    """Student search result."""
-
-    id: int
-    first_name: str
-    last_name: str
-    email: str
-    enrollment_number: str
-    type: str = "student"
-
-
-class CourseSearchResult:
-    """Course search result."""
-
-    id: int
-    course_name: str
-    course_code: str
-    credits: int
-    academic_year: int
-    type: str = "course"
-
-
-class GradeSearchResult:
-    """Grade search result."""
-
-    id: int
-    student_id: int
-    student_name: str
-    course_id: int
-    course_name: str
-    grade_value: Optional[float]
-    type: str = "grade"
-
-
-class AdvancedFilterRequest:
-    """Advanced filter request schema."""
-
-    filters: Dict[str, Any]
-    search_type: str  # "students", "courses", or "grades"
-
-
-class AdvancedSearchRequest(BaseModel):
-    """Request body for advanced search endpoint."""
-
-    entity: Optional[str] = None
-    query: Optional[str] = ""
-    filters: Dict[str, Any] = {}
-    page: Optional[int] = None
-    page_size: Optional[int] = None
-
-
-class SearchSuggestion:
-    """Search suggestion result."""
-
-    text: str
-    type: str  # "student" or "course"
-    id: int
 
 
 # ============================================================================
@@ -479,7 +425,6 @@ async def create_saved_search(
 
     try:
         from backend.services.saved_search_service import SavedSearchService
-        from backend.schemas.search import SavedSearchCreateSchema
 
         create_data = SavedSearchCreateSchema(**body)
         service = SavedSearchService(db)
@@ -661,7 +606,6 @@ async def update_saved_search(
 
     try:
         from backend.services.saved_search_service import SavedSearchService
-        from backend.schemas.search import SavedSearchUpdateSchema
 
         update_data = SavedSearchUpdateSchema(**body)
         service = SavedSearchService(db)
@@ -791,6 +735,252 @@ async def toggle_saved_search_favorite(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to toggle favorite",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
+        )
+
+
+# ============================================================================
+# PHASE 4: ADVANCED FULL-TEXT SEARCH ENDPOINTS
+# ============================================================================
+
+
+@router.post(
+    "/students/full-text",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Full-text student search",
+    description="Perform full-text search on students with pagination",
+)
+async def full_text_search_students(
+    request: Request,
+    search_request: "FullTextSearchRequest",
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_role("students:view")),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Full-text search across student names and emails.
+
+    **Request Body:**
+    ```json
+    {
+        "query": "John",
+        "limit": 20,
+        "offset": 0
+    }
+    ```
+
+    **Response:**
+    Returns paginated search results with total count and has_more flag.
+
+    **Permissions:**
+    - Public if AUTH_MODE=disabled
+    - Requires `students:view` if AUTH_MODE=permissive or strict
+    """
+    try:
+        search_service = SearchService(db)
+        results, total_count = search_service.full_text_search(
+            query=search_request.query,
+            limit=search_request.limit,
+            offset=search_request.offset,
+        )
+
+        # Convert to response schema
+        result_items = [
+            StudentFullTextSearchResult(
+                id=student.id,
+                first_name=student.first_name,
+                last_name=student.last_name,
+                email=student.email,
+                status=student.status,
+                relevance_score=0.85,  # Default score, can be enhanced
+                created_at=student.created_at,
+                updated_at=student.updated_at,
+            )
+            for student in results
+        ]
+
+        response_data = FullTextSearchResponse(
+            results=result_items,
+            total=total_count,
+            limit=search_request.limit,
+            offset=search_request.offset,
+            has_more=(search_request.offset + search_request.limit) < total_count,
+        )
+
+        return success_response(response_data.model_dump(), request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error in full-text search: {str(e)}")
+        return error_response(
+            code="SEARCH_ERROR",
+            message="Failed to perform full-text search",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
+        )
+
+
+@router.post(
+    "/students/advanced",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Advanced student search with filters",
+    description="Advanced search with filters, sorting, and pagination",
+)
+async def advanced_search_students(
+    request: Request,
+    search_request: "AdvancedSearchRequest",
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_role("students:view")),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Advanced search with complex filters and sorting.
+
+    **Request Body:**
+    ```json
+    {
+        "query": "John",
+        "filters": {
+            "status": "active",
+            "created_after": "2025-01-01",
+            "created_before": "2025-12-31"
+        },
+        "sort": {
+            "field": "name",
+            "direction": "asc"
+        },
+        "limit": 20,
+        "offset": 0
+    }
+    ```
+
+    **Filters:**
+    - `status`: active, inactive, suspended
+    - `enrollment_type`: full-time, part-time
+    - `created_after`, `created_before`: Date range (YYYY-MM-DD)
+    - `updated_after`, `updated_before`: Date range (YYYY-MM-DD)
+
+    **Sort Fields:**
+    - `relevance` (default), `name`, `email`, `created_at`, `updated_at`
+
+    **Permissions:**
+    - Public if AUTH_MODE=disabled
+    - Requires `students:view` if AUTH_MODE=permissive or strict
+    """
+    try:
+        import time
+
+        start_time = time.time()
+        search_service = SearchService(db)
+
+        # Extract filter parameters
+        filters = search_request.filters.model_dump() if search_request.filters else {}
+        sort_field = search_request.sort.field if search_request.sort else "relevance"
+        sort_direction = search_request.sort.direction if search_request.sort else "desc"
+
+        # Perform advanced search
+        scored_results, total_count, filters_applied = search_service.advanced_student_search(
+            query=search_request.query,
+            filters=filters,
+            sort_field=sort_field,
+            sort_direction=sort_direction,
+            limit=search_request.limit,
+            offset=search_request.offset,
+        )
+
+        # Calculate query time
+        query_time_ms = (time.time() - start_time) * 1000
+
+        # Convert to response schema
+        result_items = [
+            StudentFullTextSearchResult(
+                id=student.id,
+                first_name=student.first_name,
+                last_name=student.last_name,
+                email=student.email,
+                status=student.status,
+                relevance_score=score,
+                created_at=student.created_at,
+                updated_at=student.updated_at,
+            )
+            for student, score in scored_results
+        ]
+
+        response_data = AdvancedSearchResponse(
+            results=result_items,
+            total=total_count,
+            limit=search_request.limit,
+            offset=search_request.offset,
+            has_more=(search_request.offset + search_request.limit) < total_count,
+            query_time_ms=query_time_ms,
+            filters_applied=filters_applied,
+        )
+
+        return success_response(response_data.model_dump(), request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error in advanced search: {str(e)}")
+        return error_response(
+            code="SEARCH_ERROR",
+            message="Failed to perform advanced search",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
+        )
+
+
+@router.get(
+    "/students/facets",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Get search facets",
+    description="Get faceted search results for query refinement",
+)
+async def get_search_facets(
+    request: Request,
+    q: str = Query(..., min_length=1, max_length=255, description="Search query"),
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_role("students:view")),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Get faceted search results for discovery and filtering.
+
+    Returns aggregated counts for:
+    - Status (active, inactive, suspended)
+    - Enrollment types (full-time, part-time)
+
+    **Query Parameters:**
+    - `q`: Search query (required)
+
+    **Response:**
+    ```json
+    {
+        "facets": {
+            "status": {"active": 120, "inactive": 15},
+            "enrollment_type": {"full-time": 100, "part-time": 35}
+        },
+        "query": "John"
+    }
+    ```
+
+    **Permissions:**
+    - Public if AUTH_MODE=disabled
+    - Requires `students:view` if AUTH_MODE=permissive or strict
+    """
+    try:
+        search_service = SearchService(db)
+        facets_data = search_service.get_student_search_facets(query=q)
+
+        response_data = SearchFacetsResponse(
+            facets=SearchFacets(
+                status=facets_data.get("status", {}),
+                enrollment_type=facets_data.get("enrollment_type", {}),
+                months={},  # Not implemented yet
+                total_results=sum(facets_data.get("status", {}).values()),
+            ),
+            query=q,
+        )
+
+        return success_response(response_data.model_dump(), request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error getting search facets: {str(e)}")
+        return error_response(
+            code="SEARCH_ERROR",
+            message="Failed to get search facets",
             details={"error": str(e)},
             request_id=request.state.request_id,
         )
