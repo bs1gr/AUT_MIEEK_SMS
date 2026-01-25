@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithI18n } from '@/test-utils/i18n-test-wrapper';
-import SearchBar from '../SearchBar';
+import SearchBar from '../components/SearchBar';
 
 /**
  * Test suite for SearchBar component
@@ -127,14 +127,14 @@ describe('SearchBar Component', () => {
    * Test 6: Shows search history dropdown
    */
   it('should display search history dropdown when input is focused', async () => {
-    const user = userEvent.setup({ delay: null });
-
     renderWithI18n(<SearchBar {...defaultProps} showHistory={true} />);
 
     const input = screen.getByTestId('search-input');
-    await user.click(input);
+    fireEvent.focus(input);
 
-    expect(screen.getByTestId('search-history-dropdown')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('search-history-dropdown')).toBeInTheDocument();
+    });
   });
 
   /**
@@ -159,23 +159,20 @@ describe('SearchBar Component', () => {
    * Test 8: Keyboard navigation (arrow down/up, Enter, Escape)
    */
   it('should handle keyboard navigation in history dropdown', async () => {
-    const user = userEvent.setup({ delay: null });
-
     renderWithI18n(<SearchBar {...defaultProps} showHistory={true} query="" />);
 
     const input = screen.getByTestId('search-input');
 
     // Focus input to show history
-    await user.click(input);
+    fireEvent.focus(input);
 
-    // Press ArrowDown to highlight first item
-    fireEvent.keyDown(input, { key: 'ArrowDown' });
-
-    // Should highlight first item (visual indication in test)
     await waitFor(() => {
       const dropdown = screen.getByTestId('search-history-dropdown');
       expect(dropdown).toBeInTheDocument();
     });
+
+    // Press ArrowDown to highlight first item
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
 
     // Press Enter to select highlighted item
     fireEvent.keyDown(input, { key: 'Enter' });
@@ -242,14 +239,14 @@ describe('SearchBar Component', () => {
    * Test 13: Closes history dropdown on Escape key
    */
   it('should close history dropdown on Escape key', async () => {
-    const user = userEvent.setup({ delay: null });
-
     renderWithI18n(<SearchBar {...defaultProps} showHistory={true} query="" />);
 
     const input = screen.getByTestId('search-input');
-    await user.click(input);
+    fireEvent.focus(input);
 
-    expect(screen.getByTestId('search-history-dropdown')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('search-history-dropdown')).toBeInTheDocument();
+    });
 
     fireEvent.keyDown(input, { key: 'Escape' });
 
@@ -262,8 +259,6 @@ describe('SearchBar Component', () => {
    * Test 14: Closes history dropdown on outside click
    */
   it('should close history dropdown when clicking outside', async () => {
-    const user = userEvent.setup({ delay: null });
-
     renderWithI18n(
       <div>
         <SearchBar {...defaultProps} showHistory={true} query="" />
@@ -272,9 +267,11 @@ describe('SearchBar Component', () => {
     );
 
     const input = screen.getByTestId('search-input');
-    await user.click(input);
+    fireEvent.focus(input);
 
-    expect(screen.getByTestId('search-history-dropdown')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('search-history-dropdown')).toBeInTheDocument();
+    });
 
     const outsideElement = screen.getByTestId('outside-element');
     fireEvent.mouseDown(outsideElement);
@@ -298,16 +295,17 @@ describe('SearchBar Component', () => {
    * Test 16: Limits history dropdown to 5 items
    */
   it('should limit history dropdown to 5 items', async () => {
-    const user = userEvent.setup({ delay: null });
     const longHistory = Array.from({ length: 10 }, (_, i) => `Query ${i}`);
 
-    renderWithI18n(<SearchBar {...defaultProps} searchHistory={longHistory} query="" />);
+    renderWithI18n(<SearchBar {...defaultProps} searchHistory={longHistory} query="" showHistory={true} />);
 
     const input = screen.getByTestId('search-input');
-    await user.click(input);
+    fireEvent.focus(input);
 
-    const items = screen.getAllByTestId(/search-history-item-/);
-    expect(items).toHaveLength(5);
+    await waitFor(() => {
+      const items = screen.getAllByTestId(/search-history-item-/);
+      expect(items).toHaveLength(5);
+    });
   });
 
   /**
@@ -331,13 +329,11 @@ describe('SearchBar Component', () => {
   /**
    * Test 18: Hides history dropdown when showHistory is false
    */
-  it('should not show history dropdown when showHistory is false', async () => {
-    const user = userEvent.setup({ delay: null });
-
-    renderWithI18n(<SearchBar {...defaultProps} showHistory={false} query="" />);
+  it('should not show history dropdown when showHistory is false', () => {
+    renderWithI18n(<SearchBar {...defaultProps} showHistory={false} />);
 
     const input = screen.getByTestId('search-input');
-    await user.click(input);
+    fireEvent.focus(input);
 
     expect(screen.queryByTestId('search-history-dropdown')).not.toBeInTheDocument();
   });
@@ -345,13 +341,11 @@ describe('SearchBar Component', () => {
   /**
    * Test 19: Handles empty search history gracefully
    */
-  it('should handle empty search history gracefully', async () => {
-    const user = userEvent.setup({ delay: null });
-
-    renderWithI18n(<SearchBar {...defaultProps} searchHistory={[]} query="" />);
+  it('should handle empty search history gracefully', () => {
+    renderWithI18n(<SearchBar {...defaultProps} searchHistory={[]} showHistory={true} />);
 
     const input = screen.getByTestId('search-input');
-    await user.click(input);
+    fireEvent.focus(input);
 
     expect(screen.queryByTestId('search-history-dropdown')).not.toBeInTheDocument();
   });
