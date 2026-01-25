@@ -328,4 +328,3 @@ cd frontend && npx playwright test tests/e2e/notifications.spec.ts
 **Author:** GitHub Copilot
 **Date:** January 5, 2026
 **Confidence:** Very High - Root cause identified and fixed
-

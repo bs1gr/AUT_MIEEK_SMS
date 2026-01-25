@@ -148,4 +148,3 @@ The following were consolidated here and moved to `archive/version-management-20
 - `PIP_VERSION.md`
 
 Use this guide as the canonical reference going forward.
-

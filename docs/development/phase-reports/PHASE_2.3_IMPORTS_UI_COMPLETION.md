@@ -141,4 +141,3 @@ feat(frontend): add imports tab with preview & job monitoring
 **Version:** 1.11.3 (post-import-preview-ui)
 **Related PRs/Issues:** Phase 2.3 import preview implementation
 **Reviewed by:** Code review recommended for production deployment
-

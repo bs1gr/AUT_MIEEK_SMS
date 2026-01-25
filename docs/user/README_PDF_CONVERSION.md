@@ -195,4 +195,3 @@ After conversion, verify:
 - PDF generation may take a few seconds depending on document length
 - Total pages: ~40-50 for English, ~45-55 for Greek
 - Recommended PDF settings: A4 size, 1-inch margins, 11pt font
-

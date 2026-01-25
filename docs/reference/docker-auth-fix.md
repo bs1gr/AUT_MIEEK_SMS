@@ -234,4 +234,3 @@ If you still have issues:
 2. Look for any ERROR or WARNING messages
 3. Verify all environment variables are set: `docker exec sms-backend env | grep AUTH`
 4. Consult `docs/AUTHENTICATION.md` for more details
-

@@ -282,4 +282,3 @@ For E2E tests:
 1. Visit: https://github.com/bs1gr/AUT_MIEEK_SMS/actions/runs/20542009613
 2. Download the `e2e-test-results` artifact (17.1 MB)
 3. Check the HTML report for detailed failure screenshots and logs
-

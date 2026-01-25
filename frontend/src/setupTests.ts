@@ -1,17 +1,19 @@
 import '@testing-library/jest-dom/vitest';
-import i18n from './i18n/config';
+import testI18n from './test-utils/i18n-test-wrapper';
 
-// Ensure i18n is using English for tests
-i18n.changeLanguage('en').catch(() => {
+// Use test-specific i18n instance (avoids corruption from translations.ts spreading)
+testI18n.changeLanguage('en').catch(() => {
   // Initialization may not be complete yet, that's okay
 });
 
 // Log translation keys for debugging (will be visible in test output)
 if (typeof process !== 'undefined' && (process.env.DEBUG_I18N || process.env.NODE_ENV === 'test')) {
   // Translation debugging - using warn to comply with ESLint console rules
-  const searchKeys = i18n.getResourceBundle('en', 'translation')?.search;
+  const searchKeys = testI18n.getResourceBundle('en', 'translation')?.search;
   if (!searchKeys) {
     console.warn('[i18n] No search translation keys found in English bundle');
+  } else {
+    console.warn('[i18n] Search translation keys loaded:', Object.keys(searchKeys).length, 'keys');
   }
 }
 

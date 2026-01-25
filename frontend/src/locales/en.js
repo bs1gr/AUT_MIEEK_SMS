@@ -22,6 +22,7 @@ export const en = {
   attendance: 'Attendance',
   grades: 'Grades',
   calendar: 'Calendar',
+  searchTab: 'Search',
   utilsTab: 'Utils',
 
   // Common Actions

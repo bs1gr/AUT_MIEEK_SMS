@@ -491,4 +491,3 @@ SQLALCHEMY_MAX_OVERFLOW=5
 - `backend/models.py` - Connection pooling setup
 - `docs/development/ARCHITECTURE.md` - System architecture
 - `backend/ENV_VARS.md` - Environment variables
-

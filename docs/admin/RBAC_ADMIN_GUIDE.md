@@ -816,4 +816,3 @@ POST /api/v1/rbac/reset-to-defaults
 **Last Updated**: January 11, 2026
 **Version**: 1.15.2
 **Status**: Production Ready ✅
-

@@ -308,4 +308,3 @@ curl http://localhost:8080/health
 - Check [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
 - Contact system administrator
 - Emergency guide: [../OPERATOR_EMERGENCY_GUIDE.md](../OPERATOR_EMERGENCY_GUIDE.md)
-

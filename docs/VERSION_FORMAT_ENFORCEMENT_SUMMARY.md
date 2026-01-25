@@ -457,4 +457,3 @@ function Invoke-VersionFormatValidation {
 **Status**: ✅ **SYSTEM ACTIVE AND ENFORCED**
 
 This enforcement system makes it **impossible** to use forbidden version formats without deliberate circumvention. Even then, the violation is logged in Git history and rejected by CI/CD. This is the only reliable way to ensure compliance with Policy 2 across all current and future agents.
-

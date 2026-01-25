@@ -605,4 +605,3 @@ After installation:
 **Version**: 1.9.3
 **Last Updated**: January 2025
 **License**: MIT
-

@@ -1182,4 +1182,3 @@ SELECT r.name, COUNT(u.id) FROM roles r LEFT JOIN users u ON r.id = u.role_id GR
 **Last Updated**: January 8, 2026
 **Version**: 1.15.1
 **Maintained By**: SRE Team
-

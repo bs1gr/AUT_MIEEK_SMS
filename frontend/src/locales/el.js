@@ -22,6 +22,7 @@ export const el = {
   attendance: 'Παρουσίες',
   grades: 'Βαθμοί',
   calendar: 'Ημερολόγιο',
+  searchTab: 'Αναζήτηση',
   utilsTab: 'Εργαλεία',
 
   // Common Actions

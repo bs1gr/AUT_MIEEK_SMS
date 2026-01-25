@@ -57,4 +57,3 @@ For issues and questions, please refer to the documentation or create an issue o
 
 **Version**: 1.14.0
 **Last Updated**: December 29, 2025
-

@@ -118,4 +118,3 @@ When contributing documentation:
 ## 📧 Feedback
 
 Found issues with documentation? Create a GitHub issue with the `documentation` label.
-

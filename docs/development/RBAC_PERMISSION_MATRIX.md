@@ -696,4 +696,3 @@ def test_endpoint_permission_enforcement(client: TestClient):
 4. Build permission check decorator
 5. Create seed script for default permissions
 6. Refactor existing endpoints (see [GitHub Issue #104](https://github.com/bs1gr/AUT_MIEEK_SMS/issues/104))
-

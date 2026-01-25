@@ -71,4 +71,3 @@ All commands should work without the `ψ` prefix!
 - **Solution**: Force UTF-8 (CP 65001) for all terminal operations
 - **Scope**: Fixes both VS Code terminal and regular PowerShell windows
 - **Persistence**: Added to `$PROFILE` so it loads on every PowerShell startup
-

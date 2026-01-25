@@ -8,6 +8,10 @@ import SearchFacets from './SearchFacets';
 
 export const SearchView: React.FC = () => {
   const { t } = useTranslation();
+  const translate = (key: string, fallback: string, options: Record<string, unknown> = {}) => {
+    const value = t(key, { defaultValue: fallback, ...options });
+    return value === key ? fallback : value;
+  };
   const {
     searchQuery,
     setSearchQuery,
@@ -31,9 +35,9 @@ export const SearchView: React.FC = () => {
 
   const typeOptions = useMemo(
     () => [
-      { value: 'students', label: t('students.title') },
-      { value: 'courses', label: t('courses.title') },
-      { value: 'grades', label: t('grades.title') },
+      { value: 'students', label: t('search.stats.students', { defaultValue: 'students' }).toLowerCase() },
+      { value: 'courses', label: t('search.stats.courses', { defaultValue: 'courses' }).toLowerCase() },
+      { value: 'grades', label: t('search.stats.grades', { defaultValue: 'grades' }).toLowerCase() },
     ],
     [t]
   );
@@ -52,6 +56,8 @@ export const SearchView: React.FC = () => {
     setLimit(nextLimit);
     setPage(0);
   };
+
+  const placeholder = translate('search.placeholder.students', 'Search students...').toLowerCase();
 
   const renderResultPrimary = (result: any) => {
     if (result.display_name) return result.display_name;
@@ -74,7 +80,7 @@ export const SearchView: React.FC = () => {
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700" htmlFor="search-type">
-              {t('search.typeLabel')}
+              {translate('search.typeLabel', 'Type')}
             </label>
             <select
               id="search-type"
@@ -92,13 +98,13 @@ export const SearchView: React.FC = () => {
 
           <div className="flex items-center gap-2 w-full md:w-1/2">
             <label className="text-sm font-medium text-gray-700" htmlFor="search-input">
-              {t('search.queryLabel')}
+              {translate('search.queryLabel', 'Search query')}
             </label>
             <input
               id="search-input"
               type="text"
               value={searchQuery}
-              placeholder={t('search.placeholder.students')}
+              placeholder={placeholder}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setPage(0);
@@ -109,7 +115,7 @@ export const SearchView: React.FC = () => {
 
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700" htmlFor="search-limit">
-              {t('search.limitLabel')}
+              {translate('search.limitLabel', 'Results per page')}
             </label>
             <select
               id="search-limit"
@@ -119,7 +125,7 @@ export const SearchView: React.FC = () => {
             >
               {[10, 20, 50].map((option) => (
                 <option key={option} value={option}>
-                  {t('search.limitOption', { count: option })}
+                  {option}
                 </option>
               ))}
             </select>
@@ -138,23 +144,23 @@ export const SearchView: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h3 className="text-base font-semibold text-gray-800">
-                  {t('search.resultsTitle')}
+                  {translate('search.resultsTitle', 'Results')}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {t('search.resultsSummary', { count: totalResults })}
+                  {translate('search.resultsSummary', `${totalResults} total results`, { count: totalResults })}
                 </p>
               </div>
             </div>
 
             {error && (
               <div className="p-3 text-sm text-red-700 bg-red-50 border border-red-200 rounded-md" role="alert">
-                {String(error)}
+                {error instanceof Error ? error.message : String(error)}
               </div>
             )}
 
             {!error && searchResults.length === 0 && !isLoading && (
               <div className="p-4 text-sm text-gray-600 border border-gray-200 rounded-md bg-gray-50">
-                {t('search.noResults')}
+                {translate('search.noResults', 'No results found')}
               </div>
             )}
 
@@ -166,9 +172,12 @@ export const SearchView: React.FC = () => {
                       <p className="text-sm font-semibold text-gray-900">{renderResultPrimary(result)}</p>
                       <p className="text-xs text-gray-600">{renderResultSecondary(result)}</p>
                     </div>
-                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                    <button
+                      type="button"
+                      className="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-100"
+                    >
                       {t(`search.type.${result.type}`)}
-                    </span>
+                    </button>
                   </div>
                 </li>
               ))}

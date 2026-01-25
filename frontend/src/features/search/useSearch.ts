@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient, { extractAPIResponseData } from '@/api/api';
 
@@ -74,7 +74,7 @@ export const useSearch = () => {
   const [sort, setSort] = useState<SearchSortState>({ field: 'relevance', direction: 'desc' });
 
   // Debounce search query - 300ms delay
-  useMemo(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
     }, 300);
@@ -149,14 +149,22 @@ export const useSearch = () => {
     queryFn: async () => {
       try {
         const response = await apiClient.get('/search/saved');
-        const data = extractAPIResponseData<SavedSearch[]>(response.data, []);
-        return data;
+        const extracted = extractAPIResponseData<SavedSearch[]>(response);
+        if (Array.isArray(extracted)) {
+          return extracted;
+        }
+        if (Array.isArray((response as any)?.data)) {
+          return (response as any).data as SavedSearch[];
+        }
+        return [];
       } catch (err) {
         console.error('Failed to fetch saved searches:', err);
         return [];
       }
     },
-    staleTime: 60000, // 1 minute
+    initialData: [],
+    staleTime: 0,
+    refetchOnMount: true,
   });
 
   /**
@@ -172,7 +180,7 @@ export const useSearch = () => {
           query: searchQuery,
           filters: filters.length > 0 ? filters : undefined,
         });
-        return extractAPIResponseData<SavedSearch>(response.data);
+        return extractAPIResponseData<SavedSearch>(response);
       } catch (err) {
         console.error('Failed to save search:', err);
         throw err;
@@ -199,7 +207,7 @@ export const useSearch = () => {
   const toggleFavoriteSavedSearch = useCallback(async (id: number) => {
     try {
       const response = await apiClient.post(`/search/saved/${id}/favorite`);
-      return extractAPIResponseData<SavedSearch>(response.data);
+      return extractAPIResponseData<SavedSearch>(response);
     } catch (err) {
       console.error('Failed to toggle favorite:', err);
       throw err;

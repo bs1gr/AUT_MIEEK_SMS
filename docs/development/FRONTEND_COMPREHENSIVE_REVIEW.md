@@ -869,4 +869,3 @@ When adding a new feature:
 **Last Updated:** $11.9.7
 **Maintainer:** Development Team
 **Questions?** Check the main `ARCHITECTURE.md` or `docs/user/LOCALIZATION.md`
-

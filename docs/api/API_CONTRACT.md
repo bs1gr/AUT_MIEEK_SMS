@@ -794,4 +794,3 @@ See `RBAC_API_MATRIX.md` for a full list of RBAC endpoints and required permissi
 - See also: `docs/api/RBAC_API_MATRIX.md` for a permission matrix table.
 
 ---
-

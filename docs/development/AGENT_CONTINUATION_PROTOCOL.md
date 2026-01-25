@@ -296,4 +296,3 @@ notes: |
   - Blockers are explicit so agents can escalate or work around them
   - Links to implementation docs allow agents to dive deep without re-reading entire release plan
   - Status values are standardized: not-started / in-progress / blocked / done
-

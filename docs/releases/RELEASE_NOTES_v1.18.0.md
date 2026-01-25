@@ -48,4 +48,3 @@ This release transforms the Student Management System into a fully installable P
 ---
 **Contributors:** Development Team
 **Signed-off by:** QA Lead
-

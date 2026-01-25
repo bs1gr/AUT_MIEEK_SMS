@@ -239,4 +239,3 @@
 **Every agent reads docs/AGENT_QUICK_START.md first.** Everything else follows naturally.
 
 🎯 **Next agent, go read [docs/AGENT_QUICK_START.md](docs/AGENT_QUICK_START.md) now.**
-

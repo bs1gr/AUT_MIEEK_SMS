@@ -89,4 +89,3 @@ If an import completes but the data is incorrect:
 
 - **Max File Size**: 10MB
 - **Max Rows**: 5000 per batch (split larger files if necessary)
-

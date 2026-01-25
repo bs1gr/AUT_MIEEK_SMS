@@ -65,4 +65,3 @@ updates:
 - Review license reports quarterly
 
 _Last updated: 2025-12-18_
-

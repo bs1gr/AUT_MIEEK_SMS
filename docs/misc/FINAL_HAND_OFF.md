@@ -251,4 +251,3 @@ RESULT:    Success! 🎉
 **Timeline**: Deploy Jan 8, 08:00-11:00 UTC
 
 **Go get 'em! See you on the other side!** 🚀
-

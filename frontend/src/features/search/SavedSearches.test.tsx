@@ -34,6 +34,13 @@ describe('SavedSearches Component', () => {
   beforeEach(() => {
     queryClient = new QueryClient();
     vi.clearAllMocks();
+    vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      savedSearches: [],
+      loadingSavedSearches: false,
+      deleteSavedSearch: vi.fn(),
+      toggleFavoriteSavedSearch: vi.fn(),
+      loadSavedSearch: vi.fn(),
+    } as any);
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (

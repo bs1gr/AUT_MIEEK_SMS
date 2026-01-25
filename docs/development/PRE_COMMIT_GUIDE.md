@@ -114,4 +114,3 @@ pre-commit run --all-files   # optional first sweep
 - `scripts/install-git-hooks.ps1`, `scripts/install-git-hooks.sh`
 - `COMMIT_READY.ps1` (help: `./COMMIT_READY.ps1 -Help`)
 - `docs/development/GIT_WORKFLOW.md`
-

@@ -339,4 +339,3 @@ locust -f load_tests/locustfile.py --headless -u 1 -r 1 --run-time 30s --host ht
 **Result**: ✅ **Phase 6 testing can now proceed!**
 
 Database is properly initialized, backend is running, and load tests can execute. Performance investigation continues in Phase 6.5.
-

@@ -143,4 +143,3 @@ This avoids surprises from retagging `latest`.
 
 - If pull is denied: ensure you are authenticated and have permission for the repo.
 - If you see mismatched digests between Docker Hub and GHCR, each registry stores its own manifest digests; pick the registry you will deploy from and use its digest.
-

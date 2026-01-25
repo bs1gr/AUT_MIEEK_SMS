@@ -32,4 +32,3 @@ This folder collects session reports and artifacts for January 2026 to provide c
 
 - Frontend and E2E tests can be run via tasks in the VS Code workspace (see `Run frontend tests (vitest)` and `RUN_E2E_TESTS.ps1`).
 - For production deployment checks, use `DOCKER.ps1 -Start` (testing and development use `NATIVE.ps1 -Start`).
-

@@ -41,4 +41,3 @@ Files changed in this follow-up (new/modified):
 - tools/check_imports_requirements.py — now loads mapping JSON
 - .pre-commit-config.yaml — runs checker through venv wrapper
 - .github/workflows/ci.yml — runs the checker as part of backend job
-

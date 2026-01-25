@@ -554,4 +554,3 @@ When adding new scripts:
 - File an issue: <https://github.com/bs1gr/AUT_MIEEK_SMS/issues>
 - Read main README: [README.md](../README.md)
 - Check status: `.\DOCKER.ps1 -Status`
-

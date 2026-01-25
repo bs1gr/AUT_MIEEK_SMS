@@ -650,4 +650,3 @@ npm run test -- src/**/*auth*.test.*
 **Maintainer:** Security Team
 **Contact:** See CONTRIBUTING.md for security disclosure policy
 **Review Frequency:** Quarterly (next review: March 2026)
-

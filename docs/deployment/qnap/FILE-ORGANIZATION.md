@@ -455,4 +455,3 @@ git mv docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md docs/deployment/qnap/arm
 **Maintainer:** Student Management System Team
 **Version:** 1.9.3
 **License:** Same as main project
-

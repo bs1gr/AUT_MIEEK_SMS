@@ -254,4 +254,3 @@ Potential additions:
 
 **Last Updated:** November 13, 2025
 **Version:** 1.6.0+
-

@@ -92,4 +92,3 @@ $env:RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE=10
 - `backend/rate_limiting.py` - Rate limit configuration
 - `backend/routers/routers_imports.py` - Import endpoints
 - `backend/ENV_VARS.md` - Environment variables
-

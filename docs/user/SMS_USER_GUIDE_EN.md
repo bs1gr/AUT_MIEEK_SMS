@@ -702,4 +702,3 @@ All API endpoints, including RBAC, are documented and testable via the built-in 
 For the latest updates, visit: [AUT_MIEEK_SMS on GitHub](https://github.com/bs1gr/AUT_MIEEK_SMS)
 
 © 2025 Vasileios Samaras. All rights reserved.
-

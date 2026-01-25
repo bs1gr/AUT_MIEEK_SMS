@@ -62,4 +62,3 @@ pytest -q
 - For macOS/Linux, replace the Windows activate commands with `source backend/.venv/bin/activate`.
 
 If you'd like, I can also add a small PowerShell script under `scripts/` to automate the above steps for Windows developers.
-

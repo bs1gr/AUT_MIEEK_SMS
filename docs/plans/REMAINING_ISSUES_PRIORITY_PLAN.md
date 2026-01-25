@@ -249,4 +249,3 @@
 - [frontend/tests/e2e/student-management.spec.ts](../../frontend/tests/e2e/student-management.spec.ts) - Improved tests
 - [backend/seed_e2e_data.py](../../backend/seed_e2e_data.py) - Enhanced validation
 - [.github/workflows/e2e-tests.yml](../../.github/workflows/e2e-tests.yml) - Auth validation added
-

@@ -928,4 +928,3 @@ WHERE key = 'old:permission';
 **Last Updated**: January 8, 2026
 **Version**: 1.15.1
 **Reviewed By**: Phase 2 RBAC Team
-

@@ -546,4 +546,3 @@ File downloaded to user's machine
 **Status**: Ready for backend implementation
 **Last Updated**: January 12, 2026
 **Issue**: #134
-

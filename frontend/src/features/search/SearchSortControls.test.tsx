@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
+import { renderWithI18n } from '../../test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';
 import SearchSortControls from './SearchSortControls';
@@ -6,13 +7,17 @@ import SearchSortControls from './SearchSortControls';
 describe('SearchSortControls Component', () => {
   const mockOnChange = vi.fn();
 
+  beforeEach(() => {
+    mockOnChange.mockClear();
+  });
+
   const defaultSort = {
     field: 'relevance' as const,
     direction: 'desc' as const,
   };
 
   const renderComponent = (sort = defaultSort) => {
-    return render(<SearchSortControls sort={sort} onChange={mockOnChange} />);
+    return renderWithI18n(<SearchSortControls sort={sort} onChange={mockOnChange} />);
   };
 
   it('renders sort field selector', () => {

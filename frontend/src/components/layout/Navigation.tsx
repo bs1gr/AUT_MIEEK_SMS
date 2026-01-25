@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
 
-export type NavigationView = 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'power';
+export type NavigationView = 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'power' | 'search';
 
 export interface NavigationTab {
   key: NavigationView;

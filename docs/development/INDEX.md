@@ -213,4 +213,3 @@ tail -f backend/logs/app.log
 - Check [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
 - Review [TODO.md](../../TODO.md) for current priorities
 - Ask in development discussions
-
