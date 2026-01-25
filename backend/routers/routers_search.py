@@ -200,7 +200,7 @@ async def search_grades(
 )
 async def advanced_search(
     request: Request,
-    body: AdvancedSearchRequest,
+    body: Dict[str, Any],
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
@@ -248,7 +248,7 @@ async def advanced_search(
     """
     try:
         # Validate entity
-        entity = body.entity or "students"
+        entity = body.get("entity", "students")
         if entity not in ["students", "courses", "grades"]:
             return error_response(
                 code="INVALID_ENTITY",
@@ -260,7 +260,7 @@ async def advanced_search(
 
         # Use entity as search_type for backward compatibility
         results = search_service.advanced_filter(
-            filters=body.filters or {}, search_type=entity, limit=limit, offset=offset
+            filters=body.get("filters", {}), search_type=entity, limit=limit, offset=offset
         )
 
         return success_response(results, request_id=request.state.request_id)
@@ -349,7 +349,9 @@ async def get_suggestions(
     description="Get system-wide statistics for searchable entities",
 )
 async def get_statistics(
-    request: Request, db: Session = Depends(get_db), current_user: Optional[User] = Depends(optional_require_permission(None))
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(optional_require_permission(None)),
 ) -> APIResponse[Dict[str, int]]:
     """
     Get system-wide statistics for searchable entities.
