@@ -60,18 +60,21 @@ When running native development with `NATIVE.ps1`, you have several alternatives
 
 ```text
 # HELP sms_http_requests_total Total number of HTTP requests
+
 # TYPE sms_http_requests_total counter
 sms_http_requests_total{handler="/api/v1/students",method="GET",status="200"} 42.0
 
 # HELP sms_students_total Total number of students in the system
+
 # TYPE sms_students_total gauge
 sms_students_total{status="active"} 150.0
 
 # HELP sms_http_request_duration_seconds Duration of HTTP requests in seconds
+
 # TYPE sms_http_request_duration_seconds histogram
 sms_http_request_duration_seconds_bucket{le="0.01"} 1234.0
-```
 
+```text
 **Use cases:**
 
 - Quick debugging
@@ -120,17 +123,20 @@ sms_http_request_duration_seconds_bucket{le="0.01"} 1234.0
 
 ```yaml
 # docker-compose.monitoring.yml already configured for this
+
 prometheus:
   extra_hosts:
     - "host.docker.internal:host-gateway"
 
 # Scrapes from host machine
+
 scrape_configs:
   - job_name: 'sms-backend'
+
     static_configs:
       - targets: ['host.docker.internal:8000']
-```
 
+```text
 ---
 
 ### Option 3: Local Prometheus Installation (Advanced)
@@ -270,32 +276,38 @@ scrape_configs:
 
 ```powershell
 # Option 1: Native only (fastest)
+
 .\NATIVE.ps1 -Start
 
 # Check metrics manually when needed
-curl http://localhost:8000/metrics
-```
 
+curl http://localhost:8000/metrics
+
+```text
 ### For Feature Development
 
 ```powershell
 # Option 2: Hybrid mode
+
 .\NATIVE.ps1 -Start
 
 # Start monitoring
+
 docker-compose -f docker/docker-compose.monitoring.yml up -d
 
 # Open Grafana
-Start-Process http://localhost:3000
-```
 
+Start-Process http://localhost:3000
+
+```text
 ### For Production-Like Testing
 
 ```powershell
 # Full Docker stack with monitoring
-.\DOCKER.ps1 -WithMonitoring
-```
 
+.\DOCKER.ps1 -WithMonitoring
+
+```text
 ---
 
 ## Accessing Metrics in Native Mode
@@ -304,6 +316,7 @@ Start-Process http://localhost:3000
 
 ```python
 # scripts/dev/check-metrics.py
+
 import requests
 import json
 
@@ -327,18 +340,19 @@ def get_student_count():
 
 if __name__ == '__main__':
     get_metrics()
-```
 
+```text
 Usage:
 
 ```powershell
 python scripts/dev/check-metrics.py
-```
 
+```text
 ### PowerShell Script to Monitor
 
 ```powershell
 # scripts/dev/watch-metrics.ps1
+
 while ($true) {
     Clear-Host
     Write-Host "=== SMS Metrics ===" -ForegroundColor Cyan
@@ -356,14 +370,14 @@ while ($true) {
 
     Start-Sleep -Seconds 5
 }
-```
 
+```text
 Usage:
 
 ```powershell
 .\scripts\dev\watch-metrics.ps1
-```
 
+```text
 ---
 
 ## Native Mode + Monitoring: Step-by-Step
@@ -374,35 +388,36 @@ Usage:
 
 ```powershell
 .\NATIVE.ps1 -Setup
-```
 
+```text
 **Step 2: Enable metrics**
 
 ```powershell
 # In backend/.env
-ENABLE_METRICS=1
-```
 
+ENABLE_METRICS=1
+
+```text
 **Step 3: Start backend**
 
 ```powershell
 cd backend
 .\.venv\Scripts\python -m uvicorn backend.main:app --reload --host 0.0.0.0
-```
 
+```text
 **Step 4: Start frontend** (separate terminal)
 
 ```powershell
 cd frontend
 npm run dev
-```
 
+```text
 **Step 5: Start monitoring** (requires Docker)
 
 ```powershell
 docker-compose -f docker-compose.monitoring.yml up -d
-```
 
+```text
 **Step 6: Verify**
 
 - Backend: <http://localhost:8000>
@@ -429,46 +444,51 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 ```yaml
 # In docker-compose.monitoring.yml
+
 # Already configured!
 extra_hosts:
   - "host.docker.internal:host-gateway"
 
 # Prometheus config uses:
-targets: ['host.docker.internal:8000']
-```
 
+targets: ['host.docker.internal:8000']
+
+```text
 **Solution 2 (Linux):**
 
 ```yaml
 # Use host network mode
-network_mode: "host"
-```
 
+network_mode: "host"
+
+```text
 **Solution 3 (Manual):**
 Find host IP and use that:
 
 ```powershell
 # Get host IP
+
 ipconfig | Select-String "IPv4"
 
 # Update prometheus.yml
-targets: ['192.168.1.100:8000']  # Your IP
-```
 
+targets: ['192.168.1.100:8000']  # Your IP
+
+```text
 ### Metrics not showing in Grafana
 
 **Check 1: Backend is running**
 
 ```powershell
 curl http://localhost:8000/health
-```
 
+```text
 **Check 2: Metrics endpoint works**
 
 ```powershell
 curl http://localhost:8000/metrics
-```
 
+```text
 **Check 3: Prometheus is scraping**
 
 - Open <http://localhost:9090/targets>
@@ -479,9 +499,10 @@ curl http://localhost:8000/metrics
 
 ```powershell
 # In backend, check environment
-python -c "import os; print(os.getenv('ENABLE_METRICS', 'not set'))"
-```
 
+python -c "import os; print(os.getenv('ENABLE_METRICS', 'not set'))"
+
+```text
 ### High resource usage
 
 **Problem:** Docker monitoring stack uses too much RAM
@@ -490,8 +511,8 @@ python -c "import os; print(os.getenv('ENABLE_METRICS', 'not set'))"
 
 ```powershell
 docker-compose -f docker-compose.monitoring.yml down
-```
 
+```text
 **Alternative:** Use metrics endpoint only (no Docker)
 
 ---
@@ -543,46 +564,57 @@ docker-compose -f docker-compose.monitoring.yml down
 
 ```powershell
 # Native backend + frontend (fast reloads)
+
 .\NATIVE.ps1 -Start
 
 # Add monitoring when needed (Docker)
-docker-compose -f docker/docker-compose.monitoring.yml up -d
-```
 
+docker-compose -f docker/docker-compose.monitoring.yml up -d
+
+```text
 **For production-like:**
 
 ```powershell
 # Everything in Docker
-.\DOCKER.ps1 -WithMonitoring
-```
 
+.\DOCKER.ps1 -WithMonitoring
+
+```text
 ---
 
 ## Quick Reference
 
 ```powershell
 # Native mode setup
+
 .\NATIVE.ps1 -Setup
 
 # Start native mode
+
 .\NATIVE.ps1 -Start
 
 # Enable metrics
+
 $env:ENABLE_METRICS="1"
 
 # Check metrics
+
 curl http://localhost:8000/metrics
 
 # Add monitoring (Docker)
+
 docker-compose -f docker/docker-compose.monitoring.yml up -d
 
 # Access Grafana
+
 Start-Process http://localhost:3000
 
 # Stop monitoring
-docker-compose -f docker-compose.monitoring.yml down
-```
 
+docker-compose -f docker-compose.monitoring.yml down
+
+```text
 ---
 
 **Conclusion:** While full native monitoring isn't available, the **hybrid mode** (native app + Docker monitoring) gives you the best development experience with full observability. 🚀
+

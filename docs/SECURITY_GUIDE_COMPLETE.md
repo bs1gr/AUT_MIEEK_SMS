@@ -61,12 +61,14 @@ The `SECRET_KEY` is used to cryptographically sign JWT authentication tokens and
 
 ```bash
 # Recommended: 48-byte (64-character) key
+
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 
 # Minimum: 32-byte (43-character) key
-python -c "import secrets; print(secrets.token_urlsafe(32))"
-```
 
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+```text
 #### Setting SECRET_KEY
 
 **Docker Deployment:**
@@ -130,14 +132,14 @@ Edit `backend/.env` **before first startup**:
 ```dotenv
 DEFAULT_ADMIN_EMAIL=your.email@company.com
 DEFAULT_ADMIN_PASSWORD=<secure-generated-password>
-```
 
+```text
 Generate secure password:
 
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(24))"
-```
 
+```text
 #### Method 2: Post-Deployment via Control Panel
 
 1. Login with default credentials (immediately after first start only)
@@ -151,10 +153,11 @@ Use dedicated scripts for credential management:
 
 ```powershell
 # See backend/tools/CREATE_ADMIN.md for detailed instructions
+
 cd backend
 python -m backend.tools.create_admin
-```
 
+```text
 #### Automated Password Rotation (CI/CD)
 
 For automated deployments, use `DEFAULT_ADMIN_AUTO_RESET`:
@@ -162,8 +165,8 @@ For automated deployments, use `DEFAULT_ADMIN_AUTO_RESET`:
 ```dotenv
 DEFAULT_ADMIN_AUTO_RESET=True
 DEFAULT_ADMIN_PASSWORD=<rotating-password>
-```
 
+```text
 See: `docs/deployment/GITHUB_ACTIONS_ADMIN_PASSWORD_ROTATION.md`
 
 ---
@@ -189,8 +192,8 @@ Example PostgreSQL configuration:
 
 ```dotenv
 DATABASE_URL=postgresql://sms_user:SECURE_PASSWORD@localhost:5432/sms_db
-```
 
+```text
 See: `docs/operations/SQLITE_TO_POSTGRESQL_MIGRATION.md`
 
 #### SQL Injection Protection
@@ -225,16 +228,17 @@ The application uses SQLAlchemy ORM exclusively:
 
 ```yaml
 SECRET_KEY=${SECRET_KEY:-local-dev-secret-key-20251105-change-me}
-```
 
+```text
 **After:**
 
 ```yaml
 # SECRET_KEY is required - no default provided for security
+
 # Generate with: python -c "import secrets; print(secrets.token_urlsafe(48))"
 - SECRET_KEY=${SECRET_KEY:?SECRET_KEY must be set in .env file}
-```
 
+```text
 **Test Results:**
 
 ```text
@@ -242,8 +246,8 @@ Test: docker compose config without SECRET_KEY
 Result: error while interpolating services.backend.environment
 Message: required variable SECRET_KEY is missing a value: SECRET_KEY must be set in .env file
 Verdict: ✅ PASS - Correctly rejects missing SECRET_KEY
-```
 
+```text
 **Verification:**
 
 - ✅ Docker compose rejects missing SECRET_KEY
@@ -262,20 +266,22 @@ Verdict: ✅ PASS - Correctly rejects missing SECRET_KEY
 ```dotenv
 DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
-```
 
+```text
 **After:**
 
 ```dotenv
 # ⚠️  SECURITY WARNING: DO NOT use these example values in production!
+
 # Generate a secure password with: python -c "import secrets; print(secrets.token_urlsafe(24))"
 #
 # DEFAULT_ADMIN_EMAIL=admin@yourdomain.com
+
 # DEFAULT_ADMIN_PASSWORD=CHANGEME_GENERATE_SECURE_PASSWORD
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 # DEFAULT_ADMIN_FORCE_RESET=False
-```
 
+```text
 **Verification:**
 
 - ✅ No hardcoded credentials active by default
@@ -313,8 +319,8 @@ DEFAULT_ADMIN_FULL_NAME=System Administrator
 ✅ Valid 32-char key accepted
 ✅ Valid 48-char key accepted
 ✅ Production .env validation passed
-```
 
+```text
 **Backend Validation (4/4 tests passing):**
 
 ```text
@@ -322,16 +328,16 @@ DEFAULT_ADMIN_FULL_NAME=System Administrator
 ✅ Empty key rejected when AUTH_ENABLED
 ✅ Valid key accepted in all modes
 ✅ Test mode accepts any key (as expected)
-```
 
+```text
 **SQL Sanitization (3/3 tests passing):**
 
 ```text
 ✅ String parameters properly escaped
 ✅ Special characters sanitized
 ✅ Numeric parameters safely converted
-```
 
+```text
 **Total Security Tests:** 17/17 ✅ PASSING (100%)
 
 ---
@@ -359,25 +365,29 @@ Before deploying to production, verify:
 
 ```dotenv
 # Authentication & Session Security
+
 SECRET_KEY=<48+ character random key>
 AUTH_MODE=permissive  # Options: disabled, permissive, strict
 AUTH_ENABLED=True
 CSRF_ENABLED=True
 
 # Admin Credentials
+
 DEFAULT_ADMIN_EMAIL=<your-admin-email>
 DEFAULT_ADMIN_PASSWORD=<secure-generated-password>
 DEFAULT_ADMIN_FULL_NAME=<Administrator Name>
 
 # Database (Production)
+
 DATABASE_URL=postgresql://user:pass@host:5432/dbname
 
 # Rate Limiting
+
 RATE_LIMIT_ENABLED=True
 RATE_LIMIT_WRITE=60/minute
 RATE_LIMIT_READ=1000/minute
-```
 
+```text
 See: `backend/ENV_VARS.md` for complete reference
 
 ### Authentication Modes
@@ -414,8 +424,8 @@ CSRF middleware automatically protects against cross-site request forgery:
 
 ```dotenv
 CSRF_ENABLED=True  # Disable only for testing/debugging
-```
 
+```text
 ---
 
 ## Ongoing Security Practices
@@ -449,32 +459,37 @@ CSRF_ENABLED=True  # Disable only for testing/debugging
 
 ```bash
 # Check for failed logins
+
 grep "Authentication failed" backend/logs/app.log
 
 # Monitor admin access
+
 grep "admin" backend/logs/app.log | grep "200 OK"
 
 # Review rate limit triggers
-grep "429 Too Many Requests" backend/logs/app.log
-```
 
+grep "429 Too Many Requests" backend/logs/app.log
+
+```text
 ### 3. Backup Security
 
 **Backup Encryption (Recommended for production):**
 
 ```bash
 # Encrypt backup before storing
-gpg --symmetric --cipher-algo AES256 backup_2025-12-06.db
-```
 
+gpg --symmetric --cipher-algo AES256 backup_2025-12-06.db
+
+```text
 **Backup Verification:**
 
 ```bash
 # Test restore process monthly
+
 .\DOCKER.ps1 -Stop
 .\scripts\CHECK_VOLUME_VERSION.ps1 -AutoMigrate
-```
 
+```text
 See: `docs/operations/DOCKER_NAMING_CONVENTIONS.md` for backup procedures
 
 ---
@@ -489,36 +504,37 @@ See: `docs/operations/DOCKER_NAMING_CONVENTIONS.md` for backup procedures
 
 ```powershell
 ./DOCKER.ps1 -Stop
-```
 
+```text
 2. **Preserve evidence:**
 
 ```powershell
 # Copy logs before they rotate
-Copy-Item backend/logs/app.log "incident_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
-```
 
+Copy-Item backend/logs/app.log "incident_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
+
+```text
 3. **Reset credentials:**
 
 ```bash
 cd backend
 python -m backend.tools.create_admin --force-reset
-```
 
+```text
 4. **Regenerate SECRET_KEY:**
 
 ```bash
 python -c "import secrets; print(secrets.token_urlsafe(48))"
 # Update .env file with new key
-```
 
+```text
 5. **Audit database:**
 
 ```sql
 SELECT * FROM users WHERE last_login > NOW() - INTERVAL '24 hours';
 SELECT * FROM audit_log WHERE timestamp > NOW() - INTERVAL '24 hours';
-```
 
+```text
 ### Forgotten Admin Password
 
 #### Option 1: Use Recovery Script
@@ -526,26 +542,29 @@ SELECT * FROM audit_log WHERE timestamp > NOW() - INTERVAL '24 hours';
 ```bash
 cd backend
 python -m backend.tools.create_admin --reset-password admin@example.com
-```
 
+```text
 #### Option 2: Direct Database Reset
 
 ```bash
 # SQLite
+
 sqlite3 data/student_management.db
 UPDATE users SET password_hash = '<new-bcrypt-hash>' WHERE email = 'admin@example.com';
 
 # PostgreSQL
-psql -d sms_db -c "UPDATE users SET password_hash = '<new-bcrypt-hash>' WHERE email = 'admin@example.com';"
-```
 
+psql -d sms_db -c "UPDATE users SET password_hash = '<new-bcrypt-hash>' WHERE email = 'admin@example.com';"
+
+```text
 #### Option 3: Emergency Access Mode
 
 ```dotenv
 # Temporarily in backend/.env (DISABLE AFTER USE)
-AUTH_MODE=disabled
-```
 
+AUTH_MODE=disabled
+
+```text
 See: `docs/operations/OPERATOR_EMERGENCY_GUIDE.md`
 
 ---
@@ -558,20 +577,22 @@ See: `docs/operations/OPERATOR_EMERGENCY_GUIDE.md`
 
 ```powershell
 ./COMMIT_READY.ps1 -Standard
-```
 
+```text
 **Security-Specific Tests:**
 
 ```bash
 # Backend security tests
+
 cd backend
 pytest tests/test_auth*.py tests/test_security*.py -v
 
 # Frontend authentication tests
+
 cd frontend
 npm run test -- src/**/*auth*.test.*
-```
 
+```text
 ### Security Test Coverage
 
 **Current Coverage:** 17/17 tests (100%) ✅
@@ -629,3 +650,4 @@ npm run test -- src/**/*auth*.test.*
 **Maintainer:** Security Team
 **Contact:** See CONTRIBUTING.md for security disclosure policy
 **Review Frequency:** Quarterly (next review: March 2026)
+

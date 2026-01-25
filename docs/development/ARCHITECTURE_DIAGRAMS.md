@@ -51,8 +51,8 @@ graph TB
     Student --> PostgreSQL
     Grade --> SQLite
     Grade --> PostgreSQL
-```
 
+```text
 ---
 
 ## 2. Deployment Modes
@@ -76,8 +76,8 @@ graph LR
   Browser["Browser"]
   Browser -->|8080| Docker
   Browser -->|5173| Native
-```
 
+```text
 ---
 
 ## 3. Startup Lifespan Sequence
@@ -101,8 +101,8 @@ sequenceDiagram
   Health-->>Lifespan: OK
   Lifespan-->>App: Ready
   App-->>Process: Listening on port
-```
 
+```text
 ---
 
 ## 4. Authentication Flow (JWT)
@@ -144,8 +144,8 @@ sequenceDiagram
     Auth-->>API: New access_token
     API-->>Client: {access_token}
   end
-```
 
+```text
 ---
 
 ## 5. Database Schema Relationships
@@ -206,8 +206,8 @@ erDiagram
         datetime session_date
         string status "present/absent/late"
     }
-```
 
+```text
 ---
 
 ## 6. Request Lifecycle
@@ -248,8 +248,8 @@ graph TB
     ErrorHandler --> Response
     Response --> Logging
     Logging --> Return
-```
 
+```text
 ---
 
 ## 7. Analytics Pipeline
@@ -280,8 +280,8 @@ graph LR
     Compute --> Cache
     Cache --> Format
     Format --> Return
-```
 
+```text
 ---
 
 ## 8. Backend Modular Architecture
@@ -315,8 +315,8 @@ graph TB
     Routers --> Services
     Services --> Models
     Models --> DB
-```
 
+```text
 ---
 
 ## 9. CI/CD Pipeline
@@ -363,8 +363,8 @@ graph LR
     AllPass -->|Yes| Success
     AllPass -->|No| Fail
     Success --> Deploy
-```
 
+```text
 ---
 
 ## 10. Frontend Component Hierarchy
@@ -410,8 +410,8 @@ graph TB
     Card --> UseAuth
     Card --> UseStudents
     Table --> API
-```
 
+```text
 ---
 
 ## 11. Backup & Recovery
@@ -447,8 +447,8 @@ graph TB
     Restore --> Verify2
     Verify2 --> Restart
     Restart --> Online
-```
 
+```text
 ---
 
 ## 12. Rate Limiting
@@ -473,8 +473,8 @@ graph LR
 
     Allow --> Response
     Reject --> Response
-```
 
+```text
 ---
 
 ## Migration Path: SQLite → PostgreSQL
@@ -506,35 +506,40 @@ graph LR
     Verify --> Switch
     Switch --> Test
     Test --> Live
-```
 
+```text
 ---
 
 ## Architecture Decision Records
 
 ### ADR-1: Single FastAPI Container
+
 - **Decision**: One container (FastAPI + React build)
 - **Rationale**: Simpler deployment, single port, easier scaling
 - **Status**: ✅ Implemented
 
 ### ADR-2: SQLite → PostgreSQL Path
+
 - **Decision**: SQLite for dev, PostgreSQL for production
 - **Rationale**: ~500 concurrent users (SQLite), 10,000+ (PostgreSQL)
 - **Migration**: Documented procedure available
 - **Status**: ✅ Guide provided
 
 ### ADR-3: Modular Backend Architecture
+
 - **Decision**: 5 focused modules vs. monolithic main.py
 - **Rationale**: Maintainability, testability, code reuse
 - **Impact**: main.py: 1555 → 100 lines
 - **Status**: ✅ Implemented ($11.11.1)
 
 ### ADR-4: React SPA with REST API
+
 - **Decision**: Direct axios calls to FastAPI
 - **Rationale**: Standard REST, simple auth, no GraphQL overhead
 - **Status**: ✅ Implemented
 
 ### ADR-5: Soft Deletes via Mixin
+
 - **Decision**: Mark deleted, don't physically remove
 - **Rationale**: Audit trail, recovery, compliance
 - **Status**: ✅ All models use SoftDeleteMixin
@@ -569,8 +574,8 @@ graph LR
   API->>DB: fetch authorized data
   DB-->>API: data
   API-->>Client: 200 data
-```
 
+```text
 ---
 
 ## 4. Grade Submission & Cache Invalidation
@@ -595,8 +600,8 @@ sequenceDiagram
   DB-->>Grades: rows
   Grades->>Cache: store cached response
   Grades-->>Client: 200 list
-```
 
+```text
 ---
 
 ## 5. Rate Limiting Decision
@@ -610,8 +615,8 @@ flowchart LR
   B -->|POST/PUT/DELETE| F[Check limiter bucket]
   F -->|Exceeds| G[429]
   F -->|Allowed| E[Proceed to handler]
-```
 
+```text
 ---
 
 ## 6. Future Diagrams (TODO)
@@ -622,3 +627,4 @@ flowchart LR
 
 ---
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` for full documentation set.
+

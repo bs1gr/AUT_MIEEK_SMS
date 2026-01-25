@@ -9,6 +9,7 @@
 ## 🎯 Problem Identified
 
 ### Root Cause
+
 The application had two critical path resolution issues:
 
 1. **Backend Module Import from Site-Packages**
@@ -24,6 +25,7 @@ The application had two critical path resolution issues:
    - Root Cause: DATABASE_URL path resolution was pointing to wrong location
 
 ### Impact
+
 - ✗ Migrations couldn't run (blocked entire Phase 6 testing)
 - ✗ Database wasn't properly initialized (missing tables)
 - ✗ Load tests couldn't proceed (migrations run on startup via lifespan)
@@ -43,6 +45,7 @@ The application had two critical path resolution issues:
 3. Falls back to `Path(__file__).resolve().parents[1]` as last resort
 
 **Code**:
+
 ```python
 def _get_project_root() -> Path:
     """Get the project root by finding .git directory or using explicit env var."""
@@ -64,8 +67,8 @@ def _get_project_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 _PROJECT_ROOT = _get_project_root()
-```
 
+```text
 **Benefits**:
 - ✅ Works regardless of whether backend is installed in site-packages
 - ✅ Finds project root reliably via .git directory
@@ -85,12 +88,14 @@ _PROJECT_ROOT = _get_project_root()
 **File**: `backend/migrations/env.py`
 
 **Change**: Added environment variable setup before importing config:
+
 ```python
 # Set environment variables to ensure config.py resolves paths correctly
+
 os.environ.setdefault("SMS_PROJECT_ROOT", PROJECT_ROOT)
 os.environ.setdefault("PYTHONPATH", PROJECT_ROOT)
-```
 
+```text
 **Benefits**:
 - ✅ Alembic can now find the correct database path
 - ✅ config.py resolves paths correctly even when run from migrations
@@ -101,12 +106,14 @@ os.environ.setdefault("PYTHONPATH", PROJECT_ROOT)
 **File**: `NATIVE.ps1`
 
 **Change**: Added PYTHONPATH and SMS_PROJECT_ROOT setting before starting backend:
+
 ```powershell
 # Set PYTHONPATH and SMS environment variables for the backend process
+
 $env:PYTHONPATH = $SCRIPT_DIR
 $env:SMS_PROJECT_ROOT = $SCRIPT_DIR
-```
 
+```text
 **Benefits**:
 - ✅ Backend process starts with correct environment
 - ✅ No need to manually set PYTHONPATH before running
@@ -117,85 +124,101 @@ $env:SMS_PROJECT_ROOT = $SCRIPT_DIR
 ## ✅ Verification & Testing
 
 ### Test 1: config.py Path Resolution
+
 ```powershell
 cd d:\SMS\student-management-system
 python -c "from backend.config import settings; print('DATABASE_URL:', settings.DATABASE_URL)"
-```
 
+```text
 **Result**:
-```
+
+```text
 DATABASE_URL: sqlite:///D:/SMS/student-management-system/data/student_management.db
-```
+
+```text
 ✅ **FIXED** - Points to correct project directory!
 
 ### Test 2: Alembic Current Status
+
 ```powershell
 cd backend
 alembic current
-```
 
+```text
 **Result**:
-```
+
+```text
 INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
 INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
 feature127_import_export (head)
 64887d60dbfb (head) (mergepoint)
-```
+
+```text
 ✅ **FIXED** - Alembic can now read migration status!
 
 ### Test 3: Alembic Migrations
+
 ```powershell
 cd backend
 alembic upgrade heads
-```
 
+```text
 **Result**:
-```
+
+```text
 INFO  [alembic.runtime.migration] Running upgrade d37fb9f4bd49 -> feature127_import_export,
 Add import/export tables for Feature #127 - Bulk Import/Export.
-```
+
+```text
 ✅ **FIXED** - Migrations ran successfully!
 
 ### Test 4: Database Tables Verification
+
 ```powershell
 python -c "from sqlalchemy import inspect, create_engine; from backend.config import settings;
 engine = create_engine(settings.DATABASE_URL);
 print('Tables:', [t for t in inspect(engine).get_table_names()])"
-```
 
+```text
 **Result**:
-```
+
+```text
 Tables: ['alembic_version', 'attendances', 'audit_logs', 'course_enrollments',
 'courses', 'daily_performances', 'export_jobs', 'grades', 'highlights',
 'import_export_history', 'import_jobs', 'import_rows', 'notification_preferences',
 'notifications', 'permissions', 'refresh_tokens', 'role_permissions', 'roles',
 'students', 'user_permissions', 'user_roles', 'users']
-```
+
+```text
 ✅ **FIXED** - All 21 database tables present!
 
 ### Test 5: Backend Health Check
+
 ```powershell
 $response = Invoke-WebRequest -Uri 'http://localhost:8000/health'
 $response.Content | ConvertFrom-Json | Format-List
-```
 
+```text
 **Result**:
-```
+
+```text
 status         : healthy
 timestamp      : 17/01/2026 6:02:05 μμ
 uptime_seconds : 11
 environment    : native
 version        : 1.18.0
 database       : connected
-```
+
+```text
 ✅ **FIXED** - Backend starts and connects to database!
 
 ### Test 6: Load Testing (1 User)
+
 ```powershell
 cd d:\SMS\student-management-system
 locust -f load_tests/locustfile.py --headless -u 1 -r 1 --run-time 30s --host http://localhost:8000
-```
 
+```text
 **Initial Results**:
 - Students endpoint: ~2067ms (still slower than pre-fix 4000ms? Need investigation)
 - Health endpoint: 2-3ms (excellent!)
@@ -221,11 +244,13 @@ locust -f load_tests/locustfile.py --headless -u 1 -r 1 --run-time 30s --host ht
 ## 🔍 Outstanding Issues
 
 ### 1. Health Endpoint Shows 100% Failure in Load Tests
+
 **Observation**: Health endpoint failing in load tests while returning success when called directly
 **Hypothesis**: Possible race condition or auth mode issue in load test scenario
 **Action**: Investigate in Phase 6.5 when running full load tests
 
 ### 2. Students Endpoint Showing ~2067ms
+
 **Observation**: Still slower than expected (target <500ms p95)
 **Hypothesis**: Cold start query? Database query performance issue? Indexes needed?
 **Action**:
@@ -264,17 +289,20 @@ locust -f load_tests/locustfile.py --headless -u 1 -r 1 --run-time 30s --host ht
 ## 🚀 Next Steps: Phase 6.5+
 
 ### Immediate (Phase 6.4)
+
 - [ ] Continue single-user load testing to establish baseline
 - [ ] Investigate health endpoint failures
 - [ ] Profile database query times
 - [ ] Check index effectiveness
 
 ### Short-term (Phase 6.5)
+
 - [ ] Run 100-user load test
 - [ ] Verify latency improvements
 - [ ] Document performance baselines
 
 ### Medium-term (Phase 6.6+)
+
 - [ ] Run 500+ user stress tests
 - [ ] Performance optimization based on findings
 - [ ] Production readiness validation
@@ -311,3 +339,4 @@ locust -f load_tests/locustfile.py --headless -u 1 -r 1 --run-time 30s --host ht
 **Result**: ✅ **Phase 6 testing can now proceed!**
 
 Database is properly initialized, backend is running, and load tests can execute. Performance investigation continues in Phase 6.5.
+

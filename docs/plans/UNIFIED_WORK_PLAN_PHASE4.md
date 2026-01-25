@@ -45,6 +45,7 @@
    - Performance testing & benchmarks
 
 ### Success Criteria
+
 - [ ] Full-text search API endpoints complete
 - [ ] Frontend search UI fully functional
 - [ ] Saved searches implementation complete
@@ -72,6 +73,7 @@
 ## 📋 Implementation Tasks
 
 ### Task 1: Backend Search API (Week 1)
+
 - [ ] Create search service layer
 - [ ] Implement full-text search queries
 - [ ] Add database indexes for performance
@@ -81,6 +83,7 @@
 - [ ] Write comprehensive tests (>80% coverage)
 
 ### Task 2: Advanced Filters Backend (Week 1)
+
 - [ ] Create filter service layer
 - [ ] Build filter parser/builder
 - [ ] Implement multi-field filtering logic
@@ -90,6 +93,7 @@
 - [ ] Performance optimize complex queries
 
 ### Task 3: Frontend Search Component (Week 1)
+
 - [ ] Create `SearchBar.tsx` component
 - [ ] Implement search input with debouncing
 - [ ] Create search results display component
@@ -99,6 +103,7 @@
 - [ ] Write component tests (>80% coverage)
 
 ### Task 4: Frontend Advanced Filters (Week 1)
+
 - [ ] Create `AdvancedFilters.tsx` component
 - [ ] Build filter UI with form fields
 - [ ] Implement filter state management
@@ -108,6 +113,7 @@
 - [ ] Write component tests
 
 ### Task 5: Saved Searches Backend (Week 2)
+
 - [ ] Create SavedSearch model
 - [ ] Create POST `/api/v1/saved-searches` endpoint (create)
 - [ ] Create GET `/api/v1/saved-searches` endpoint (list)
@@ -118,6 +124,7 @@
 - [ ] Write CRUD tests
 
 ### Task 6: Saved Searches Frontend (Week 2)
+
 - [ ] Create `SavedSearches.tsx` component
 - [ ] Add save search button/modal
 - [ ] Create saved searches list view
@@ -127,6 +134,7 @@
 - [ ] Write component tests
 
 ### Task 7: Search Optimization (Week 2)
+
 - [ ] Profile current search performance
 - [ ] Add database indexes
 - [ ] Implement query caching
@@ -136,6 +144,7 @@
 - [ ] Document performance metrics
 
 ### Task 8: Testing & Documentation (Week 2)
+
 - [ ] E2E tests for search workflows
 - [ ] Integration tests for filters
 - [ ] Performance tests (< 500ms target)
@@ -164,13 +173,14 @@
 
 ```python
 # New modules needed:
+
 backend/routers/routers_search.py       # Search endpoints
 backend/services/search_service.py      # Search business logic
 backend/services/filter_service.py      # Filter business logic
 backend/models.py                       # SavedSearch model (add)
 backend/schemas/search.py               # Pydantic models
-```
 
+```text
 ### Frontend Architecture
 
 ```typescript
@@ -181,8 +191,8 @@ frontend/src/features/search/AdvancedFilters.tsx
 frontend/src/features/search/SavedSearches.tsx
 frontend/src/hooks/useSearch.ts         // Custom hook for search logic
 frontend/src/api/search.ts              # API client methods
-```
 
+```text
 ### Database Changes
 
 - Add indexes on: `Student.first_name`, `Student.last_name`, `Student.email`, `Student.student_id`
@@ -224,3 +234,4 @@ frontend/src/api/search.ts              # API client methods
 - ✅ All prerequisites met for Phase 4
 
 **Next**: Begin Task 1 (Backend Search API implementation)
+

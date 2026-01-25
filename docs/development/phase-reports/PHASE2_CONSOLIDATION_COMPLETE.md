@@ -33,26 +33,30 @@ Created `/SMS.ps1` as a unified entry point for all management scripts.
 
 ```powershell
 # Docker operations
+
 .\SMS.ps1 -Docker -Install              # First-time setup
 .\SMS.ps1 -Docker -Start                # Start deployment
 .\SMS.ps1 -Docker -Stop                 # Stop deployment
 
 # Native development
+
 .\SMS.ps1 -Native -Setup                # Install dependencies
 .\SMS.ps1 -Native -Start                # Start dev environment
 .\SMS.ps1 -Native -Stop                 # Stop environment
 
 # Pre-commit validation
+
 .\SMS.ps1 -CommitReady -Quick           # Quick checks
 .\SMS.ps1 -CommitReady -Standard        # Standard checks
 .\SMS.ps1 -CommitReady -Full            # Full checks
 
 # Other operations
+
 .\SMS.ps1 -Installer -Build             # Build installer
 .\SMS.ps1 -Verify -Workspace            # Verify workspace
 .\SMS.ps1 -Version -Version_Update "1.11.0"  # Update version
-```
 
+```text
 ### Implementation Details
 
 - **Language:** PowerShell 7+
@@ -87,7 +91,7 @@ Created comprehensive environment configuration strategy guide.
 
 **Single Source of Truth:** Root `.env` is authoritative
 
-```
+```text
 Root .env                    ← PRIMARY: Used by all deployment modes
 ├─ Read by DOCKER.ps1
 ├─ Read by NATIVE.ps1
@@ -95,8 +99,8 @@ Root .env                    ← PRIMARY: Used by all deployment modes
 
 backend/.env (legacy)        ← IGNORED: Not used anymore
 frontend/.env (legacy)       ← IGNORED: Not used anymore
-```
 
+```text
 ### Configuration Sourcing
 
 **Docker Deployment:**
@@ -196,16 +200,18 @@ None - Phase 2 focused on new additions
 
 ```powershell
 # Old way (still works):
+
 .\DOCKER.ps1 -Start
 .\NATIVE.ps1 -Start
 .\COMMIT_READY.ps1 -Quick
 
 # New way (convenience):
+
 .\SMS.ps1 -Docker -Start
 .\SMS.ps1 -Native -Start
 .\SMS.ps1 -CommitReady -Quick
-```
 
+```text
 **Configuration:**
 
 - Single source of truth makes setup simpler
@@ -260,3 +266,4 @@ Ready for $11.10.1 release with Phase 1 & 2 complete.
 
 **Previous Phase:** Phase 1 Consolidation (Backend utilities, import validation, scripts reorganization)
 **Next Phase:** Phase 3 Consolidation (Documentation, backend scripts, symlinks)
+

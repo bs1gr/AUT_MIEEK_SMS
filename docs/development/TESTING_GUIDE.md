@@ -68,22 +68,24 @@ This guide covers all testing strategies, tools, and procedures for the Student 
 - High code coverage
 
 **Example - Backend**:
+
 ```python
 def test_has_permission_admin_user(db):
     """Test that admin users have all permissions."""
     admin = create_test_admin(db)
     assert has_permission(admin, "students:create")
     assert has_permission(admin, "*:*")
-```
 
+```text
 **Example - Frontend**:
+
 ```tsx
 test('renders button with correct text', () => {
   render(<SubmitButton />);
   expect(screen.getByRole('button', { name: /submit/i })).toBeInTheDocument();
 });
-```
 
+```text
 ---
 
 ### Integration Tests
@@ -101,6 +103,7 @@ test('renders button with correct text', () => {
 - Cover realistic workflows
 
 **Example - Backend**:
+
 ```python
 def test_create_student_with_permission(client, admin_headers, db):
     """Test creating student via API with permission check."""
@@ -111,9 +114,10 @@ def test_create_student_with_permission(client, admin_headers, db):
     )
     assert response.status_code == 201
     assert response.json()["data"]["first_name"] == "John"
-```
 
+```text
 **Example - Frontend**:
+
 ```tsx
 test('submits form and shows success message', async () => {
   render(<StudentForm />);
@@ -121,8 +125,8 @@ test('submits form and shows success message', async () => {
   await userEvent.click(screen.getByRole('button', { name: /submit/i }));
   expect(await screen.findByText(/success/i)).toBeInTheDocument();
 });
-```
 
+```text
 ---
 
 ### E2E Tests
@@ -148,6 +152,7 @@ test('submits form and shows success message', async () => {
 - ⏳ Notifications (deferred)
 
 **Example**:
+
 ```typescript
 test('should create a new student successfully', async ({ page }) => {
   await loginViaAPI(page, ADMIN_CREDENTIALS);
@@ -157,8 +162,8 @@ test('should create a new student successfully', async ({ page }) => {
   await page.click('button:has-text("Save")');
   await expect(page.locator('text=John')).toBeVisible();
 });
-```
 
+```text
 **Reference**: [E2E Testing Guide](../operations/E2E_TESTING_GUIDE.md)
 
 ---
@@ -185,12 +190,13 @@ test('should create a new student successfully', async ({ page }) => {
 - Login: <500ms
 
 **Execution**:
+
 ```bash
 cd load-testing
 k6 run scripts/student_list.js  # Single scenario
 k6 run scripts/main_scenario.js --vus 100 --duration 5m  # Load test
-```
 
+```text
 **Reference**: `load-testing/README.md`
 
 ---
@@ -210,20 +216,25 @@ k6 run scripts/main_scenario.js --vus 100 --duration 5m  # Load test
 - `admin_user` - Pre-created admin user
 
 **Running**:
+
 ```powershell
 # Single test file
+
 cd backend && pytest tests/test_students.py -v
 
 # Single test
+
 cd backend && pytest tests/test_students.py::test_create_student -v
 
 # With coverage
+
 cd backend && pytest --cov=. --cov-report=html
 
 # Batch runner (REQUIRED for all tests)
-.\RUN_TESTS_BATCH.ps1
-```
 
+.\RUN_TESTS_BATCH.ps1
+
+```text
 **Coverage Target**: ≥75% (backend), target 85%+
 
 **Excluded from Coverage**:
@@ -247,23 +258,29 @@ cd backend && pytest --cov=. --cov-report=html
 - `waitFor()` - Wait for async operations
 
 **Running**:
+
 ```bash
 # All tests
+
 cd frontend && npm test
 
 # Watch mode (development)
+
 cd frontend && npm test -- --watch
 
 # Single file
+
 npm test -- src/features/Students/__tests__/StudentList.test.tsx
 
 # With coverage
+
 npm test -- --coverage
 
 # CI mode (single run)
-npm test -- --run
-```
 
+npm test -- --run
+
+```text
 **Coverage Target**: ≥70% (frontend), target 80%+
 
 **Best Practices**:
@@ -281,6 +298,7 @@ npm test -- --run
 **Focus**: API endpoints + business logic + database
 
 **Pattern**:
+
 ```python
 def test_endpoint_with_auth_and_db(client, admin_headers, db):
     # 1. Set up test data
@@ -296,8 +314,8 @@ def test_endpoint_with_auth_and_db(client, admin_headers, db):
 
     # 4. Assert database state
     assert db.query(Student).count() == 2
-```
 
+```text
 **Test Organization**:
 - `backend/tests/test_*_router.py` - API endpoint tests
 - `backend/tests/test_*_service.py` - Business logic tests
@@ -311,6 +329,7 @@ def test_endpoint_with_auth_and_db(client, admin_headers, db):
 **Focus**: Components + API interactions + state management
 
 **Pattern**:
+
 ```tsx
 test('StudentForm submits and updates list', async () => {
   const { getByRole, findByText } = render(
@@ -327,8 +346,8 @@ test('StudentForm submits and updates list', async () => {
   // Wait for API call and re-render
   await findByText('John');
 });
-```
 
+```text
 **Test Organization**:
 - `src/features/*/tests/` - Feature-level tests
 - `src/components/*/tests/` - Component tests
@@ -345,33 +364,40 @@ test('StudentForm submits and updates list', async () => {
 - Playwright browsers installed
 
 **Installation**:
+
 ```bash
 npm install @playwright/test
 npx playwright install
-```
 
+```text
 ### Running E2E Tests
 
 **Locally**:
+
 ```bash
 # Run all tests
+
 npm run e2e
 
 # Run specific test
+
 npm run e2e -- --grep "should create a student"
 
 # Interactive mode (debug)
+
 npm run e2e -- --ui
 
 # Single browser
-npm run e2e -- --project=chromium
-```
 
+npm run e2e -- --project=chromium
+
+```text
 **In CI**:
+
 ```bash
 npm run e2e:ci  # Runs in GitHub Actions environment
-```
 
+```text
 ### E2E Test Structure
 
 ```typescript
@@ -388,11 +414,12 @@ test.describe('Student Management', () => {
     // ... test steps
   });
 });
-```
 
+```text
 ### Common Patterns
 
 **Authentication via API**:
+
 ```typescript
 async function loginViaAPI(page, credentials) {
   const response = await page.request.post('/api/v1/auth/login', {
@@ -405,24 +432,26 @@ async function loginViaAPI(page, credentials) {
     domain: 'localhost'
   }]);
 }
-```
 
+```text
 **Wait for API Response**:
+
 ```typescript
 const responsePromise = page.waitForResponse('/api/v1/students');
 await page.click('button:has-text("Save")');
 await responsePromise;
-```
 
+```text
 **Screenshot on Failure**:
+
 ```typescript
 test.afterEach(async ({ page }, info) => {
   if (info.status !== 'passed') {
     await page.screenshot({ path: `failure-${Date.now()}.png` });
   }
 });
-```
 
+```text
 ### Monitoring E2E Tests
 
 **Dashboard**: [E2E_CI_MONITORING.md](../operations/E2E_CI_MONITORING.md)
@@ -442,42 +471,50 @@ test.afterEach(async ({ page }, info) => {
 ### Setup
 
 **k6 Installation**:
+
 ```bash
 # Windows
+
 choco install k6
 
 # macOS
+
 brew install k6
 
 # Linux
-apt install k6
-```
 
+apt install k6
+
+```text
 ### Running Load Tests
 
 **Single Scenario**:
+
 ```bash
 cd load-testing
 k6 run scripts/student_list.js
-```
 
+```text
 **Full Load Test**:
+
 ```bash
 k6 run scripts/main_scenario.js \
   --vus 100 \
   --duration 5m \
   --ramp-up 30s \
   --ramp-down 30s
-```
 
+```text
 **With Output**:
+
 ```bash
 k6 run scripts/main_scenario.js --out json=results.json
-```
 
+```text
 ### Performance Baselines
 
 **Established Baselines** (1.15.2):
+
 ```json
 {
   "student_list": {
@@ -492,15 +529,16 @@ k6 run scripts/main_scenario.js --out json=results.json
     "p99": "300ms"
   }
 }
-```
 
+```text
 ### Regression Detection
 
 **Automated Check**:
+
 ```bash
 python load-testing/scripts/check_regression.py results.json
-```
 
+```text
 **Thresholds**:
 - Fail if p95 increases >20% from baseline
 - Fail if error rate increases >50%
@@ -526,17 +564,19 @@ python load-testing/scripts/check_regression.py results.json
 ### Running All Tests Safely
 
 **❌ NEVER do this** (crashes VS Code):
+
 ```powershell
 cd backend && pytest -q
-```
 
+```text
 **✅ ALWAYS do this**:
+
 ```powershell
 .\RUN_TESTS_BATCH.ps1              # Backend tests (batched)
 npm --prefix frontend run test -- --run  # Frontend tests
 npm --prefix frontend run e2e      # E2E tests
-```
 
+```text
 ### Test Execution in CI
 
 **Automatic on every push to main**:
@@ -574,24 +614,26 @@ coverage:
       default:
         target: 75%
         threshold: 2%
-```
 
+```text
 ### Viewing Coverage
 
 **Backend**:
+
 ```bash
 cd backend
 pytest --cov=. --cov-report=html
 open htmlcov/index.html
-```
 
+```text
 **Frontend**:
+
 ```bash
 cd frontend
 npm test -- --coverage
 open coverage/index.html
-```
 
+```text
 **CI Artifacts**:
 - Coverage reports saved to GitHub Actions artifacts
 - Job summary shows coverage percentages
@@ -613,6 +655,7 @@ Files excluded from coverage requirements:
 ### Write Testable Code
 
 **✅ Good**:
+
 ```python
 def calculate_grade(scores: List[float]) -> float:
     """Pure function, easy to test."""
@@ -623,9 +666,10 @@ def create_grade(data: GradeCreate, user = Depends(get_current_user)):
     """Call pure function from endpoint."""
     grade = Grade(average=calculate_grade(data.scores))
     return grade
-```
 
+```text
 **❌ Poor**:
+
 ```python
 @router.post("/grades/")
 async def create_grade(data: GradeCreate):
@@ -635,27 +679,29 @@ async def create_grade(data: GradeCreate):
     db.add(Grade(average=average))
     db.commit()
     return Grade
-```
 
+```text
 ### Naming Conventions
 
 **Test Names**: `test_<function>_<scenario>_<expected>`
 
 ```python
 # ✅ Good
+
 def test_create_student_with_valid_data_returns_201():
 def test_create_student_without_permission_returns_403():
 def test_calculate_grade_with_empty_scores_returns_zero():
 
 # ❌ Poor
+
 def test_student():
 def test_1():
 def test_create():
-```
 
+```text
 ### Organization
 
-```
+```text
 backend/tests/
 ├── test_students.py          # Related tests grouped
 ├── test_grades.py
@@ -664,20 +710,22 @@ backend/tests/
 ├── fixtures/                 # Shared test data
 │   └── sample_data.py
 └── conftest.py              # Shared fixtures
-```
 
+```text
 ### Mocking Strategy
 
 **✅ Mock external services**:
+
 ```python
 @patch('backend.services.email.send_email')
 def test_creates_student_and_sends_email(mock_email):
     # Test only our logic, mock email service
     create_student(...)
     mock_email.assert_called_once()
-```
 
+```text
 **✅ Use real database**:
+
 ```python
 def test_student_soft_delete(db):
     # Use real SQLAlchemy/DB for complex queries
@@ -687,8 +735,8 @@ def test_student_soft_delete(db):
 
     student.soft_delete()
     # Test actual DB behavior
-```
 
+```text
 ### Parametrized Tests
 
 ```python
@@ -702,8 +750,8 @@ def test_create_student_permission(role, allowed, db, client):
     user = create_user(role=role, db=db)
     response = client.post("/api/v1/students/", headers=auth(user))
     assert (response.status_code == 201) == allowed
-```
 
+```text
 ---
 
 ## Troubleshooting
@@ -713,14 +761,17 @@ def test_create_student_permission(role, allowed, db, client):
 **Symptom**: "Direct pytest execution is disabled"
 
 **Solution**:
+
 ```powershell
 # ❌ WRONG
+
 cd backend && pytest -q
 
 # ✅ CORRECT
-.\RUN_TESTS_BATCH.ps1
-```
 
+.\RUN_TESTS_BATCH.ps1
+
+```text
 ### Tests Pass Locally, Fail in CI
 
 **Common Causes**:
@@ -730,20 +781,23 @@ cd backend && pytest -q
 4. **Stale data**: Tests should be isolated with clean database
 
 **Solutions**:
+
 ```python
 # ✅ Wait for database change
+
 def test_creates_student(client, admin_headers, db):
     response = client.post("/api/v1/students/", ...)
     assert response.status_code == 201
     # Verify in database
     assert db.query(Student).filter_by(name="John").first()
-```
 
+```text
 ### E2E Flakiness
 
 **Symptoms**: Tests pass randomly, fail on re-run
 
 **Solutions**:
+
 ```typescript
 // ✅ Wait for element instead of fixed delay
 await expect(page.locator('text=Success')).toBeVisible();
@@ -760,55 +814,65 @@ await response;
 const button = await page.locator('button:has-text("Save")').or(
   page.locator('button[aria-label="Save"]')
 );
-```
 
+```text
 ### Coverage Not Updating
 
 **Symptom**: Coverage stays at same % despite code changes
 
 **Solution**:
+
 ```bash
 # Clear coverage cache
+
 rm -rf .coverage htmlcov coverage/
 
 # Regenerate
+
 pytest --cov=. --cov-report=html
 npm test -- --coverage
-```
 
+```text
 ### Load Test Connection Errors
 
 **Symptom**: "Connection refused" running load tests
 
 **Solution**:
+
 ```bash
 # 1. Start the application
+
 .\DOCKER.ps1 -Start
 
 # 2. Wait for startup (20s)
+
 Start-Sleep -Seconds 20
 
 # 3. Run load test
-cd load-testing && k6 run scripts/main_scenario.js
-```
 
+cd load-testing && k6 run scripts/main_scenario.js
+
+```text
 ---
 
 ## Resources
 
 ### Documentation
+
 - [E2E Testing Guide](../operations/E2E_TESTING_GUIDE.md) - Detailed E2E procedures
 - [E2E CI Monitoring](../operations/E2E_CI_MONITORING.md) - Monitoring dashboard
 - [Load Testing](../../load-testing/README.md) - Performance testing
 - [Database Migration](../operations/DATABASE_MIGRATION_GUIDE.md) - Database setup
 
 ### Tools & Links
+
 - pytest: https://pytest.org
 - Vitest: https://vitest.dev
 - Playwright: https://playwright.dev
 - k6: https://k6.io
 
 ### CI/CD
+
 - Main CI: `.github/workflows/ci-cd-pipeline.yml`
 - E2E CI: `.github/workflows/e2e-tests.yml`
 - Batch Runner: `RUN_TESTS_BATCH.ps1`
@@ -819,3 +883,4 @@ cd load-testing && k6 run scripts/main_scenario.js
 **Last Updated**: January 10, 2026
 **Author**: Solo Developer + AI Agent
 **Status**: Production Ready
+

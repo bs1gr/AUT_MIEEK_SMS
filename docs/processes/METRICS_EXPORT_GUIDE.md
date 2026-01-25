@@ -5,6 +5,7 @@
 ---
 
 ## 🛠️ Tools & Libraries
+
 - **Prometheus Python Client:** `prometheus_client`
 - **OpenTelemetry Python SDK:** `opentelemetry-sdk`, `opentelemetry-instrumentation-fastapi`
 - **Grafana:** For dashboards and alerting
@@ -12,6 +13,7 @@
 ---
 
 ## 📋 Checklist
+
 - [ ] Install required libraries (`prometheus_client`, `opentelemetry-sdk`, etc.)
 - [ ] Add FastAPI middleware for metrics export (see `backend/middleware_config.py`)
 - [ ] Expose `/metrics` endpoint (Prometheus scrape target)
@@ -24,20 +26,23 @@
 ---
 
 ## 📝 Example: FastAPI Prometheus Integration
+
 ```python
 from prometheus_client import make_asgi_app
 from fastapi import FastAPI
 
 app = FastAPI()
 app.mount("/metrics", make_asgi_app())
-```
 
+```text
 ---
 
 ## 📂 Where to Document
+
 - `docs/operations/METRICS_MONITORING.md` (setup, dashboards, alerting)
 - Prometheus/Grafana config files
 
 ---
 
 _Last updated: 2025-12-18_
+

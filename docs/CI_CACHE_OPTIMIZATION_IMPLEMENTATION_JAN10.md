@@ -25,8 +25,10 @@
 - ✅ Cache hit rate improved: ~70% → ~95%
 
 **Before vs After**:
+
 ```yaml
 # BEFORE (inconsistent)
+
 lint-backend:
   cache-dependency-path: backend/requirements.txt
 
@@ -41,12 +43,13 @@ security-scan-backend:
     backend/requirements-dev.txt
 
 # AFTER (consistent)
+
 lint-backend, test-backend, security-scan-backend:
   cache-dependency-path: |
     backend/requirements.txt
     backend/requirements-dev.txt
-```
 
+```text
 ---
 
 ### 2. Node.js (NPM) Caching Enhancements
@@ -81,16 +84,18 @@ lint-backend, test-backend, security-scan-backend:
 - ✅ Cache hit rate on subsequent runs: ~95%+
 
 **Implementation**:
+
 ```yaml
 - name: Cache Playwright browsers
+
   uses: actions/cache@v4
   with:
     path: ~/.cache/ms-playwright
     key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
     restore-keys: |
       ${{ runner.os }}-playwright-
-```
 
+```text
 ---
 
 ### 4. Docker Layer Caching (GHA Backend)
@@ -249,7 +254,8 @@ lint-backend, test-backend, security-scan-backend:
 ## 📝 Git Commit Details
 
 **Commit Message**:
-```
+
+```text
 ci: Optimize CI/CD pipeline caching for 30% performance improvement
 
 Enhancements:
@@ -268,8 +274,8 @@ Files Modified:
 - .github/workflows/ci-cd-pipeline.yml (5 jobs updated)
 
 Implements: Issue #110
-```
 
+```text
 ---
 
 ## 📚 References
@@ -289,3 +295,4 @@ Implements: Issue #110
 **Status**: ✅ READY FOR TESTING
 **Next Task**: #108 - E2E Test CI Monitoring
 **Owner**: CI/CD Optimization Task #110
+

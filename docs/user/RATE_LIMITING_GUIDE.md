@@ -17,12 +17,14 @@ The Student Management System includes a flexible rate limiting system that prev
 ## Why These Limits?
 
 ### Educational Context
+
 - Designed for classroom environments with 30-100+ concurrent users
 - Teachers need fast bulk operations (imports, exports)
 - Students need responsive data access
 - Balance: Prevent DoS attacks without frustrating legitimate users
 
 ### Fixed Issues
+
 - **Login 400 errors**: Increased AUTH from 60→120/min (was blocking legitimate attempts)
 - **Import slowdowns**: TEACHER_IMPORT at 5,000/min allows continuous bulk operations
 - **Dashboard lag**: READ/WRITE limits prevent cascade failures from simple mistakes
@@ -38,7 +40,7 @@ The Student Management System includes a flexible rate limiting system that prev
 
 ### Control Panel Features
 
-```
+```text
 Rate Limit Configuration
 ├── Read Requests (GET queries)
 │   └── Slider: 0-10,000/min
@@ -50,8 +52,8 @@ Rate Limit Configuration
 │   └── Slider: 0-500/min
 └── Bulk Imports (Teachers)
     └── Slider: 0-20,000/min
-```
 
+```text
 ### Visual Indicators
 
 - **Default value** shown for each limit
@@ -62,20 +64,22 @@ Rate Limit Configuration
 ## Configuration Methods
 
 ### 1. **Admin Control Panel** (Recommended)
+
 - User-friendly interface
 - Changes apply immediately
 - Persisted to disk
 - Full audit trail via request logging
 
-```
+```text
 POST /control/api/rate-limits/update
 {
   "limit_type": "auth",
   "value": 240
 }
-```
 
+```text
 ### 2. **Environment Variables** (Deployment)
+
 - Set at startup time
 - Override defaults and saved config
 - Useful for container/Kubernetes deployments
@@ -86,15 +90,16 @@ RATE_LIMIT_WRITE_PER_MINUTE=1000
 RATE_LIMIT_AUTH_PER_MINUTE=240
 RATE_LIMIT_HEAVY_PER_MINUTE=400
 RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE=10000
-```
 
+```text
 ### 3. **Docker/Kubernetes**
+
 ```yaml
 environment:
   - RATE_LIMIT_AUTH_PER_MINUTE=240
   - RATE_LIMIT_WRITE_PER_MINUTE=1000
-```
 
+```text
 ## Rate Limit Behavior
 
 ### What Happens at Limit?
@@ -108,7 +113,7 @@ When a user exceeds a rate limit:
 
 ### Example: Login Attempts
 
-```
+```text
 User 1: Login (1st attempt) → ✅ OK
 User 1: Login (2nd attempt) → ✅ OK
 User 1: Login (3rd attempt) → ✅ OK
@@ -116,8 +121,8 @@ User 2: Login (1st attempt) → ✅ OK
 User 2: Login (2nd attempt) → ✅ OK
 ...after 120 in 60 seconds...
 User N: Login → ❌ 429 Too Many Requests
-```
 
+```text
 **Wait 60+ seconds before next login attempt.**
 
 ### Per-User vs Global
@@ -150,14 +155,17 @@ User N: Login → ❌ 429 Too Many Requests
 3. Application caching? Restart backend: `DOCKER.ps1 -Restart`
 
 **Reset Configuration:**
+
 ```powershell
 # Via Control Panel
+
 # Click "Reset Defaults" button
 
 # Or via API
-POST /control/api/rate-limits/reset
-```
 
+POST /control/api/rate-limits/reset
+
+```text
 ### Login Still Failing with 400
 
 **This is NOT a rate limit error** (would be 429)
@@ -176,11 +184,13 @@ POST /control/api/rate-limits/reset
 ## API Endpoints (Admin)
 
 ### Get Current Configuration
+
 ```http
 GET /control/api/rate-limits
-```
 
+```text
 **Response:**
+
 ```json
 {
   "current": {
@@ -199,9 +209,10 @@ GET /control/api/rate-limits
   },
   "timestamp": "2025-12-30T10:30:00Z"
 }
-```
 
+```text
 ### Update Single Limit
+
 ```http
 POST /control/api/rate-limits/update
 Content-Type: application/json
@@ -210,9 +221,10 @@ Content-Type: application/json
   "limit_type": "auth",
   "value": 240
 }
-```
 
+```text
 ### Bulk Update Multiple Limits
+
 ```http
 POST /control/api/rate-limits/bulk-update
 Content-Type: application/json
@@ -224,28 +236,33 @@ Content-Type: application/json
     "auth": 240
   }
 }
-```
 
+```text
 ### Reset All to Defaults
+
 ```http
 POST /control/api/rate-limits/reset
-```
 
+```text
 ## Best Practices
 
 ### For Teachers
+
 - 💡 **Imports slow?** Ask admin to increase TEACHER_IMPORT limit
 - 💡 **Dashboard lagging?** Ask admin to check READ limit
 
 ### For Administrators
+
 - 🔍 **Monitor logs** for 429 errors to identify bottlenecks
 - 📊 **Peak hours**: Consider higher limits during registration/grading periods
 - 🔄 **Regular review**: Check admin logs for limit adjustments made
 - 🛡️ **Security**: Keep AUTH limit moderate (120-240) to prevent brute force
 
 ### For Developers
+
 - 🧪 **Testing**: Disable limits with `DISABLE_STARTUP_TASKS=1` env var
 - 📝 **Endpoints**: Always apply appropriate limit decorator:
+
   ```python
   @router.post("/items/")
   @limiter.limit(RATE_LIMIT_WRITE)
@@ -273,3 +290,4 @@ POST /control/api/rate-limits/reset
 - [CONTROL_API.md](../backend/CONTROL_API.md) - Full API reference
 - [Architecture](./development/ARCHITECTURE.md) - System design
 - [Security Guide](./user/SECURITY.md) - Security best practices
+

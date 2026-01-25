@@ -71,8 +71,8 @@ const MyComponent = () => {
     </div>
   );
 };
-```
 
+```text
 ### Advanced Example: Attendance with Autosave
 
 ```tsx
@@ -118,8 +118,8 @@ const AttendanceView = ({ courses, students }) => {
     </div>
   );
 };
-```
 
+```text
 ### Authentication & Authorization Summary
 
 - All autosave-related endpoints are guarded with `optional_require_role("admin", "teacher")` where applicable, enabling Teacher access (validated in the archived auth review).
@@ -239,8 +239,8 @@ Provide clear feedback to users about autosave status:
     </span>
   </div>
 )}
-```
 
+```text
 ### Accessibility
 
 - Use ARIA live regions for screen readers:
@@ -271,8 +271,8 @@ Add autosave-related keys to locale files:
   savedSuccessfully: 'Αποθηκεύτηκε επιτυχώς',
   saveFailed: 'Η αποθήκευση απέτυχε',
 }
-```
 
+```text
 ## Performance Optimization
 
 ### Memory Management
@@ -305,8 +305,8 @@ const performSave = useCallback(async () => {
     }
   }
 }, [attendancePromises, performancePromises]);
-```
 
+```text
 ## Testing
 
 ### Unit Test Example
@@ -346,8 +346,8 @@ describe('useAutosave', () => {
     expect(result.current.isPending).toBe(true);
   });
 });
-```
 
+```text
 ## Migration Guide
 
 ### Converting Manual Save to Autosave
@@ -380,8 +380,8 @@ const MyForm = () => {
     </>
   );
 };
-```
 
+```text
 **After:**
 
 ```tsx
@@ -413,8 +413,8 @@ const MyForm = () => {
     </>
   );
 };
-```
 
+```text
 ## Troubleshooting
 
 ### Issue: Save called on initial render
@@ -447,3 +447,4 @@ const MyForm = () => {
 - [State Management Guide](./STATE_MANAGEMENT.md)
 - [Performance Optimization](./PERFORMANCE_OPTIMIZATION.md)
 - [API Client Usage](./API_CLIENT.md)
+

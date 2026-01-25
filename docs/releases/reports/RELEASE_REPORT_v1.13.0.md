@@ -98,48 +98,60 @@ All deprecated modules have been removed. Users must update import paths:
 ## Upgrade Instructions
 
 ### For Web UI Users
+
 **No action needed.** The web application works unchanged.
 
 ### For Docker Users
+
 ```bash
 # Pull $11.14.0 and restart
+
 docker-compose pull
 docker-compose up -d
-```
 
+```text
 ### For Native Development
+
 ```bash
 # Update repository
+
 git pull origin main
 
 # Install dependencies (if needed)
+
 cd backend && pip install -r requirements.txt
 cd ../frontend && npm install
 
 # Start application
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 ### For Custom Script Users
+
 **See:** Migration Guide
 
 **Quick Example:**
+
 ```python
 # OLD ($11.17.2) - NO LONGER WORKS
+
 from backend.auto_import_courses import import_courses
 from backend.tools.create_admin import create_admin_user
 
 # NEW ($11.17.2+)
+
 from backend.scripts.import_.courses import import_courses
 from backend.db.cli.admin import create_admin_user
-```
 
+```text
 **Automated Migration:**
 Use the migration script provided in the guide:
+
 ```bash
 python migrate_imports.py ./my_scripts/
-```
 
+```text
 ---
 
 ## Technical Details
@@ -175,10 +187,11 @@ python migrate_imports.py ./my_scripts/
 ### Test Results
 
 **Backend Tests:** ✅ All Passing (418 tests)
-```
-418 passed, 3 skipped in 15.23s
-```
 
+```text
+418 passed, 3 skipped in 15.23s
+
+```text
 **Version Consistency:** ✅ All Passing
 - VERSION file: 1.13.0
 - Frontend package.json: 1.13.0
@@ -252,22 +265,27 @@ python migrate_imports.py ./my_scripts/
 If issues arise during upgrade:
 
 ### Docker Rollback:
+
 ```bash
 # Use $11.17.2 image
+
 docker pull your-registry/sms:1.12.9
 docker-compose up -d
-```
 
+```text
 ### Git Rollback:
+
 ```bash
 # Checkout $11.14.0 tag
+
 git checkout $11.14.0
 
 # Reinstall dependencies
+
 cd backend && pip install -r requirements.txt
 cd ../frontend && npm install
-```
 
+```text
 **Likelihood:** Very Low (all breaking changes validated, zero active usage detected)
 
 ---
@@ -275,11 +293,13 @@ cd ../frontend && npm install
 ## Post-Release Tasks
 
 ### Immediate:
+
 - [ ] Monitor issue tracker for migration questions
 - [ ] Validate Docker Hub deployment
 - [ ] Confirm GitHub release created successfully
 
 ### Short-Term (Next 7 Days):
+
 - [ ] Execute Phase 5 manual cleanup (GitHub UI)
   - Review and delete draft releases
   - Clean test tags
@@ -287,6 +307,7 @@ cd ../frontend && npm install
 - [ ] Update external documentation if needed
 
 ### Long-Term:
+
 - [ ] Archive v1.12.x branch after 30 days
 - [ ] Review Docker backup volumes for retention compliance
 - [ ] Plan future deprecations (if any)
@@ -378,3 +399,4 @@ cd ../frontend && npm install
 ---
 
 *This release completes the repository cleanup initiative started in $11.14.0. All deprecated code has been successfully removed, establishing a clean foundation for future development.*
+

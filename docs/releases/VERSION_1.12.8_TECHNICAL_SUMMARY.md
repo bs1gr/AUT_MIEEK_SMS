@@ -17,31 +17,37 @@ This release fixes critical issues in the authentication bypass logic and test i
 ### 1. Authentication Logic (`backend/security/current_user.py`)
 
 #### Problem
+
 - Overly complex auth bypass logic with redundant CI/pytest detection
 - Auth endpoints couldn't generate tokens properly in test environments
 - Test helpers failed with `KeyError: 'access_token'`
 
 #### Solution
+
 ```python
 # Simplified bypass logic
+
 if not auth_enabled or auth_mode == "disabled":
     if not is_auth_endpoint:
         if not auth_header_probe:
             return dummy_admin_user  # Bypass for non-auth endpoints
 
 # Auth endpoints always work (even when AUTH disabled)
+
 if is_auth_endpoint or auth_enabled:
     if not auth_header.startswith("Bearer "):
         raise HTTPException(401, "Missing bearer token")
-```
 
+```text
 #### Key Changes
+
 - Removed redundant CI/pytest environment detection
 - Auth endpoints (`/api/v1/auth/*`) always follow normal authentication flow
 - Non-auth endpoints bypass when `AUTH_ENABLED=False` AND no Authorization header
 - Test helpers can now successfully call `/auth/login` and get tokens
 
 #### Files Modified
+
 - `backend/security/current_user.py` (lines 18-50)
 
 ---
@@ -49,11 +55,13 @@ if is_auth_endpoint or auth_enabled:
 ### 2. SECRET_KEY Validation (`backend/config.py`)
 
 #### Problem
+
 - Early return for CI/pytest prevented config tests from testing validation behavior
 - Tests expecting explicit validation errors got auto-generated keys instead
 - Tests couldn't control SECRET_KEY validation for testing purposes
 
 #### Solution
+
 ```python
 @model_validator(mode="after")
 def check_secret_key(self) -> "Settings":
@@ -73,15 +81,17 @@ def check_secret_key(self) -> "Settings":
         # Warning mode: allow but warn
         logger.warning("Weak key")
         return self
-```
 
+```text
 #### Key Changes
+
 - Removed early CI/pytest return that bypassed test control
 - Auto-generation only happens when enforcement is active
 - Tests can explicitly control behavior by setting non-default keys
 - Production always enforces secure keys
 
 #### Files Modified
+
 - `backend/config.py` (lines 400-495, removed unused `allow_insecure_flag`)
 
 ---
@@ -89,10 +99,12 @@ def check_secret_key(self) -> "Settings":
 ### 3. Test Configuration (`backend/tests/conftest.py`)
 
 #### Problem
+
 - Tests needed consistent AUTH_ENABLED=False for non-auth tests
 - Some tests were hitting 401 errors unexpectedly
 
 #### Solution
+
 ```python
 @pytest.fixture(scope="function", autouse=True)
 def patch_settings_for_tests(request, monkeypatch):
@@ -107,14 +119,16 @@ def patch_settings_for_tests(request, monkeypatch):
 
     # 4. Reset login throttle
     login_throttle.clear()
-```
 
+```text
 #### Key Changes
+
 - Restored `AUTH_ENABLED=False` patch for non-auth tests
 - Auth-specific tests can still use helper functions to get tokens
 - All security features disabled by default in tests
 
 #### Files Modified
+
 - `backend/tests/conftest.py` (lines 80-106)
 
 ---
@@ -122,25 +136,30 @@ def patch_settings_for_tests(request, monkeypatch):
 ### 4. Database Configuration (`backend/models.py`, `backend/tests/db_setup.py`)
 
 #### Problem
+
 - SQLite thread safety errors in tests
 - "SQLite objects created in a thread can only be used in that same thread"
 
 #### Solution
+
 ```python
 # Test database configuration
+
 engine = create_engine(
     "sqlite:///:memory:",
     connect_args={"check_same_thread": False},  # Allow cross-thread access
     poolclass=NullPool  # No connection pooling
 )
-```
 
+```text
 #### Key Changes
+
 - Added `check_same_thread=False` for test SQLite connections
 - Used NullPool to prevent connection reuse issues
 - Maintains thread safety through isolated transactions
 
 #### Files Modified
+
 - `backend/tests/db_setup.py` (engine configuration)
 - `backend/models.py` (added note about thread safety)
 
@@ -149,14 +168,17 @@ engine = create_engine(
 ### 5. Other Fixes
 
 #### CSV Import Router
+
 - Fixed docstring formatting issues that were causing syntax errors
 - Consolidated duplicate docstrings in `_parse_csv_students` function
 
 #### Admin Bootstrap Tests
+
 - Updated mock expectations to align with actual bootstrap behavior
 - Fixed test assertions for user creation
 
 #### Code Quality
+
 - Removed unused `allow_insecure_flag` variable
 - All pre-commit hooks passing (ruff, ruff-format, secrets)
 
@@ -167,34 +189,39 @@ engine = create_engine(
 ### Before This Release
 
 ❌ **Auth Tests**
-```
+
+```text
 KeyError: 'access_token'  # Auth endpoints couldn't generate tokens
 FAILED tests/test_sessions_router.py::test_sessions_semesters_empty
-```
 
+```text
 ❌ **Config Tests**
-```
+
+```text
 ValidationError: 1 validation error for Settings  # Early return broke tests
 FAILED tests/test_config_settings.py::test_secret_key_placeholder_generates_random_key_when_enforced
-```
 
+```text
 ❌ **Non-Auth Tests**
-```
+
+```text
 AssertionError: {"status":401,"detail":"Missing bearer token"}  # Unexpected auth requirement
 FAILED tests/test_students_router.py::test_create_student_success
-```
 
+```text
 ### After This Release
 
 ✅ **Auth Tests**
+
 ```python
 def test_sessions_export_requires_auth():
     headers = get_auth_headers(client)  # Now works!
     response = client.get("/api/v1/sessions/export", headers=headers)
     assert response.status_code == 200
-```
 
+```text
 ✅ **Config Tests**
+
 ```python
 def test_secret_key_validation():
     settings = Settings(
@@ -202,15 +229,16 @@ def test_secret_key_validation():
         SECRET_KEY_STRICT_ENFORCEMENT=True
     )
     # Now properly tests validation (auto-gen in CI, error in prod)
-```
 
+```text
 ✅ **Non-Auth Tests**
+
 ```python
 def test_create_student_success(client):
     response = client.post("/api/v1/students/", json=payload)
     assert response.status_code == 201  # Works without auth!
-```
 
+```text
 ---
 
 ## Migration Guide
@@ -225,38 +253,42 @@ This release has **zero breaking changes** for:
 ### For Test Writers
 
 **Before (Broken):**
+
 ```python
 def test_with_auth():
     # This would fail with KeyError
     token = get_auth_headers()["Authorization"]
-```
 
+```text
 **After (Works):**
+
 ```python
 def test_with_auth():
     # Now works correctly
     headers = get_auth_headers(client)
     response = client.get("/api/v1/endpoint", headers=headers)
-```
 
+```text
 ### For Config Tests
 
 **Before (Broken):**
+
 ```python
 def test_secret_key_validation():
     # Would get auto-generated key, breaking test
     settings = Settings(SECRET_KEY="weak", AUTH_ENABLED=True)
-```
 
+```text
 **After (Works):**
+
 ```python
 def test_secret_key_validation():
     # Now properly tests validation behavior
     settings = Settings(SECRET_KEY="weak", SECRET_KEY_STRICT_ENFORCEMENT=True)
     # In CI/pytest: auto-generates secure key
     # In prod: raises ValidationError
-```
 
+```text
 ---
 
 ## Configuration Reference
@@ -431,3 +463,4 @@ For questions or issues:
 **Document Version:** 1.0
 **Last Updated:** December 27, 2025
 **Prepared By:** Development Team
+

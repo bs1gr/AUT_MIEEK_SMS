@@ -23,11 +23,13 @@ Prereqs: Container Station installed, SSH access, and repository copied to the N
 ```bash
 cd /share/Container/AUT_MIEEK_SMS
 # Build and start
+
 docker compose -f docker-compose.qnap.yml up -d --build
 # Follow logs
-docker compose -f docker-compose.qnap.yml logs -f
-```
 
+docker compose -f docker-compose.qnap.yml logs -f
+
+```text
 Open `http://<NAS-IP>:8080/`.
 
 **Data volume:** `sms_data_qnap` (change to a bind mount if you prefer a shared folder).
@@ -37,14 +39,14 @@ Open `http://<NAS-IP>:8080/`.
 ```bash
 docker compose -f docker-compose.qnap.yml pull
 docker compose -f docker-compose.qnap.yml up -d --build
-```
 
+```text
 **Uninstall:**
 
 ```bash
 docker compose -f docker-compose.qnap.yml down
-```
 
+```text
 ---
 
 ## 🏗️ ARM / TS-431P3 (Summary)
@@ -119,3 +121,4 @@ docker compose -f docker-compose.qnap.yml down
 - Compose files: `docker-compose.qnap.yml`, `docker/docker-compose.qnap.yml` variants
 - Backend tooling: `backend/tools/create_admin`
 - Archived deep dives: `archive/qnap-2025-12-06/`
+

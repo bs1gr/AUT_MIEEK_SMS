@@ -87,8 +87,8 @@ Hardening checklist (apply when moving beyond local use):
 ```powershell
 Invoke-RestMethod -Uri http://localhost:8080/control/api/monitoring/start -Method POST
 Invoke-RestMethod -Uri http://localhost:8080/control/api/monitoring/status -Method GET | ConvertTo-Json -Depth 4
-```
 
+```text
 Sample status payload when stopped:
 
 ```json
@@ -101,8 +101,8 @@ Sample status payload when stopped:
       "loki": {"running": false, "url": "http://localhost:3100", "port": 3100}
    }
 }
-```
 
+```text
 ## Deployment Modes
 
 ### 1. Docker Mode (Fullstack) - RECOMMENDED
@@ -111,8 +111,8 @@ Sample status payload when stopped:
 
 ```powershell
 .\DOCKER.ps1 -WithMonitoring
-```
 
+```text
 **Architecture:**
 
 - Main App: `sms-app` container (port 8080:8000)
@@ -143,12 +143,14 @@ Sample status payload when stopped:
 
 ```powershell
 # Native mode (no monitoring - monitoring is Docker-only)
+
 .\NATIVE.ps1 -Start
 
 # Docker mode with monitoring
-.\DOCKER.ps1 -WithMonitoring
-```
 
+.\DOCKER.ps1 -WithMonitoring
+
+```text
 **Architecture:**
 
 - Backend: `sms-backend` container (port 8000)
@@ -163,8 +165,8 @@ Sample status payload when stopped:
 
 ```powershell
 .\NATIVE.ps1 -Start
-```
 
+```text
 **Architecture:**
 
 - Backend: Uvicorn on localhost:8000
@@ -191,6 +193,7 @@ If you really need monitoring while developing natively:
 
    ```yaml
    - targets: ['host.docker.internal:8000']  # Change to: ['localhost:8000']
+
    ```
 
 3. Access Grafana at <http://localhost:3000>
@@ -283,8 +286,8 @@ Note ($11.9.7): The Power page no longer embeds Grafana/Prometheus or raw metric
 const currentHost = window.location.hostname;
 const GRAFANA_URL = `http://${currentHost}:3000`;
 const PROMETHEUS_URL = `http://${currentHost}:9090`;
-```
 
+```text
 This allowed the legacy power page to work even if:
 
 - Accessed via different hostname (not localhost)
@@ -312,8 +315,8 @@ To use custom Grafana port:
 
 ```powershell
 .\DOCKER.ps1 -WithMonitoring -GrafanaPort 3001
-```
 
+```text
 **Note:** Custom port configuration is a future enhancement. Currently uses default ports.
 Currently supported for Grafana only. Prometheus uses fixed port 9090.
 
@@ -343,8 +346,8 @@ sms_http_request_duration_seconds_bucket{le="0.5"} 1200
 sms_students_total{status="active"} 150
 sms_db_query_duration_seconds_sum 45.67
 sms_auth_attempts_total{result="success"} 500
-```
 
+```text
 ### System Metrics (Node Exporter)
 
 **Collected From:** Host system
@@ -415,22 +418,22 @@ sms_auth_attempts_total{result="success"} 500
 ```powershell
 docker --version
 docker ps
-```
 
+```text
 **Check Port Conflicts:**
 
 ```powershell
 netstat -ano | findstr ":3000"
 netstat -ano | findstr ":9090"
-```
 
+```text
 **View Logs:**
 
 ```powershell
 docker logs sms-grafana
 docker logs sms-prometheus
-```
 
+```text
 ### Power Page Returns 404
 
 **Current workflow ($11.9.7+):** Ensure `SERVE_FRONTEND=1` (or the reverse proxy serves the built SPA) so the React router can handle `/power`. Rebuild the frontend (`npm run build` inside `frontend/`) if assets are missing.
@@ -441,8 +444,8 @@ docker logs sms-prometheus
 
 ```powershell
 curl http://localhost:8080/openapi.json | jq '.paths | keys | .[] | select(. == "/power")'
-```
 
+```text
 ### Grafana Dashboards Empty
 
 **Check Prometheus Targets:**
@@ -455,12 +458,14 @@ curl http://localhost:8080/openapi.json | jq '.paths | keys | .[] | select(. == 
 
 ```powershell
 # Docker mode
+
 docker exec sms-app curl -s http://localhost:8000/metrics | head -n 5
 
 # Native mode (monitoring not supported)
-curl http://localhost:8000/metrics
-```
 
+curl http://localhost:8000/metrics
+
+```text
 ### Metrics Not Updating
 
 **Verify Scrape Interval:**
@@ -558,3 +563,4 @@ For issues or questions:
 **Version:** 1.0.0
 **Last Updated:** November 18, 2025
 **Maintained By:** SMS Development Team
+

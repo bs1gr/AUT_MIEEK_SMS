@@ -16,8 +16,8 @@ Concise examples of common API interactions. Replace placeholder values where no
 curl -X POST "http://localhost:8000/api/v1/auth/login" \
   -H "Content-Type: application/json" \
   -d '{"username": "teacher1", "password": "CorrectHorseBatteryStaple1!"}'
-```
 
+```text
 Successful response (200):
 
 ```json
@@ -26,16 +26,16 @@ Successful response (200):
   "token_type": "bearer",
   "expires_in": 3600
 }
-```
 
+```text
 ### Authenticated request
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/students" \
   -H "Authorization: Bearer <jwt>" \
   -H "Accept-Language: en"
-```
 
+```text
 ---
 
 ## 2. Error Response (Validation)
@@ -46,8 +46,8 @@ Example: submitting an invalid grade (greater than max).
 curl -X POST "http://localhost:8000/api/v1/grades" \
   -H "Content-Type: application/json" \
   -d '{"student_id": 1, "course_id": 5, "grade": 105, "max_grade": 100}'
-```
 
+```text
 Failure (422):
 
 ```json
@@ -61,8 +61,8 @@ Failure (422):
     }
   ]
 }
-```
 
+```text
 ---
 
 ## 3. Rate Limiting Example
@@ -75,8 +75,8 @@ After exceeding allowed requests:
   "error_id": "RATE_LIMIT_EXCEEDED",
   "retry_after": 30
 }
-```
 
+```text
 Headers to inspect:
 
 - `X-RateLimit-Limit`
@@ -91,8 +91,8 @@ First request (uncached):
 
 ```bash
 curl -w '\nTime: %{time_total}\n' -X GET "http://localhost:8000/api/v1/courses"
-```
 
+```text
 Second request (cached within TTL): Should have reduced `time_total`.
 
 ---
@@ -101,8 +101,8 @@ Second request (cached within TTL): Should have reduced `time_total`.
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/students" -H "Accept-Language: el"
-```
 
+```text
 Expect translated headers / localized strings where supported.
 
 ---
@@ -111,8 +111,8 @@ Expect translated headers / localized strings where supported.
 
 ```bash
 curl -X GET "http://localhost:8000/api/v1/students?page=2&limit=25"
-```
 
+```text
 Response shape (example):
 
 ```json
@@ -122,8 +122,8 @@ Response shape (example):
   "limit": 25,
   "total": 143
 }
-```
 
+```text
 ---
 
 ## 7. Common HTTP Status Codes
@@ -165,3 +165,4 @@ Use these for client-side localization and reliable condition handling.
 ---
 
 **Reference**: See `docs/DOCUMENTATION_INDEX.md` for full documentation set.
+

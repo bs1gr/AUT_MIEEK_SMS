@@ -30,6 +30,7 @@ These were not caught locally because:
 ### Frontend TypeScript Errors (8 total)
 
 #### NotificationBell.tsx (2 errors)
+
 ```typescript
 // ❌ BEFORE
 import React, { useCallback, useEffect, useState } from 'react';
@@ -38,26 +39,28 @@ const { data, refetch, isLoading } = useQuery<UnreadCountResponse>({
 // ✅ AFTER
 import { useCallback, useEffect, useState } from 'react';
 const { data, refetch } = useQuery<UnreadCountResponse>({
-```
 
+```text
 **Fixes:**
 - Removed unused `React` import
 - Removed unused `isLoading` variable
 
 #### NotificationCenter.tsx (2 errors)
+
 ```typescript
 // ❌ BEFORE
 import React, { useCallback, useEffect, useState } from 'react';
 
 // ✅ AFTER
 import { useCallback, useState } from 'react';
-```
 
+```text
 **Fixes:**
 - Removed unused `React` import
 - Removed unused `useEffect` import
 
 #### notifications.spec.ts (4 errors)
+
 ```typescript
 // ❌ BEFORE
 test('...', async ({ page, browser }) => {  // browser unused
@@ -77,8 +80,8 @@ test('...', async ({ page }) => {  // removed browser parameter
 
   const text = await timestamp.textContent();
   expect((text || '').length).toBeGreaterThan(0);  // null safety
-```
 
+```text
 **Fixes:**
 - Removed unused `browser` parameter from test signature
 - Removed `secondPage` variable declaration and all cleanup code
@@ -93,13 +96,15 @@ test('...', async ({ page }) => {  // removed browser parameter
 
 ```python
 # MyPy complains about these patterns:
+
 notification.is_read = True  # type: ignore needed?
 notification.read_at = datetime.now(timezone.utc)
 
 # But SQLAlchemy ORM handles these correctly at runtime
-# The type stubs don't fully capture ORM behavior
-```
 
+# The type stubs don't fully capture ORM behavior
+
+```text
 **Resolution:** These are valid SQLAlchemy ORM patterns. MyPy type stubs for SQLAlchemy don't fully capture the dynamic attribute assignment behavior. No changes required - the code is correct.
 
 ---
@@ -145,13 +150,15 @@ notification.read_at = datetime.now(timezone.utc)
 ## Verification
 
 ### Local Verification
+
 ```bash
 ✅ TypeScript compilation: PASSED
 ✅ Pre-commit hooks: PASSED
 ✅ No new errors introduced
-```
 
+```text
 ### Remote CI/CD
+
 - **Pipeline:** https://github.com/bs1gr/AUT_MIEEK_SMS/actions/runs/20729596393
 - **Status:** In Progress (started immediately after push)
 - **Expected:** ✅ All checks passing
@@ -205,12 +212,12 @@ notification.read_at = datetime.now(timezone.utc)
 
 ## Commit History
 
-```
+```text
 4ab05c3a9 (HEAD -> main, origin/main) Merge hotfix/ci-type-errors
 c9a5acb97 (origin/hotfix/ci-type-errors, hotfix/ci-type-errors) fix: resolve CI/CD TypeScript errors
 0876e2dec Merge feature/69-realtime-notifications (original failing merge)
-```
 
+```text
 ---
 
 ## Next Steps
@@ -235,3 +242,4 @@ c9a5acb97 (origin/hotfix/ci-type-errors, hotfix/ci-type-errors) fix: resolve CI/
 **Resolution Status:** ✅ **COMPLETE**
 **CI/CD Status:** ⏳ **RUNNING** (expected to pass)
 **Production Impact:** None (fix deployed before feature went live)
+

@@ -21,6 +21,7 @@ All three optional enhancements from Phase 2.1 have been successfully implemente
 ### 1. PDF/CSV Export (Commit: 98a54af8)
 
 #### Backend Implementation
+
 **New Service**: `backend/services/report_exporters.py` (330+ lines)
 
 Features:
@@ -50,6 +51,7 @@ Features:
 - Reuses report generation logic for consistency
 
 #### Frontend Implementation
+
 **Updated**: `frontend/src/components/StudentPerformanceReport.tsx`
 
 Features:
@@ -69,6 +71,7 @@ Features:
 - Handles blob responses properly
 
 #### Technical Details
+
 - **Dependencies**: ReportLab 4.4.4 (already in requirements.txt)
 - **Error Handling**: Graceful fallback if PDF generation fails
 - **File Naming**: `{student_name}_performance_{start_date}_to_{end_date}.{ext}`
@@ -79,6 +82,7 @@ Features:
 ### 2. Bulk Report Generation (Commit: 3b53d6cd)
 
 #### Backend Implementation
+
 **New Endpoint**: `POST /reports/bulk/student-performance`
 
 Features:
@@ -111,9 +115,10 @@ Features:
     "include_highlights": true,
     "course_ids": [1, 2]         # optional filter
 }
-```
 
+```text
 **Response Format (JSON)**:
+
 ```json
 {
     "success": true,
@@ -128,8 +133,8 @@ Features:
         {"student_id": 5, "error": "Student not found"}
     ]
 }
-```
 
+```text
 **Response Format (CSV)**:
 - Combined file with all student data
 - Header row with column names
@@ -138,6 +143,7 @@ Features:
 - Filename: `bulk_performance_report_{start_date}_{end_date}.csv`
 
 #### Use Cases
+
 - Generate semester reports for entire class
 - Batch export for grade submission
 - Comparative analysis across students
@@ -145,6 +151,7 @@ Features:
 - Parent-teacher conference preparation
 
 #### Performance Considerations
+
 - Maximum 50 students to prevent timeouts
 - Rate limited (10 req/min) to prevent abuse
 - Individual student failures don't block entire request
@@ -155,6 +162,7 @@ Features:
 ### 3. Report Caching (Commit: 69a30ced)
 
 #### Cache Implementation
+
 **Updated**: `backend/cache.py`
 - Added `CacheConfig.STUDENT_REPORT = timedelta(minutes=15)`
 - Redis support with in-memory fallback
@@ -173,22 +181,27 @@ Features:
 #### Cache Invalidation Endpoints
 
 **1. Invalidate Student-Specific Cache**
+
 ```http
 DELETE /reports/cache/{student_id}
-```
+
+```text
 - Clears all cached reports for a specific student
 - Use when student data is updated (grades, attendance, etc.)
 - Returns count of invalidated entries
 
 **2. Invalidate All Report Caches**
+
 ```http
 DELETE /reports/cache
-```
+
+```text
 - Clears all cached reports system-wide
 - Use after bulk data imports or system-wide changes
 - Returns total count of invalidated entries
 
 #### Cache Behavior
+
 - **TTL**: 15 minutes (configurable via `CacheConfig.STUDENT_REPORT`)
 - **Storage**: Redis (if enabled) or in-memory fallback
 - **Key Format**: `student_report:{student_id}:{period}:{dates}:{filters}`
@@ -196,12 +209,14 @@ DELETE /reports/cache
 - **Hit Rate**: Logged for monitoring and optimization
 
 #### Performance Impact
+
 - **Cache Hit**: ~5-10ms response time (Redis read)
 - **Cache Miss**: ~200-500ms response time (DB queries + computation)
 - **Improvement**: 95-98% reduction in response time for cached reports
 - **Database Load**: Significantly reduced for frequently requested reports
 
 #### Integration Points
+
 Cache invalidation should be triggered on:
 - Grade updates/deletions
 - Attendance record changes
@@ -215,32 +230,36 @@ Cache invalidation should be triggered on:
 ## 🔧 Technical Architecture
 
 ### Export Pipeline
-```
+
+```text
 Request → Report Generator → Format Converter → Response
                                  ├─ PDF (ReportLab)
                                  ├─ CSV (csv module)
                                  └─ JSON (Pydantic)
-```
 
+```text
 ### Bulk Processing Pipeline
-```
+
+```text
 Request → Validate → For Each Student → Generate Report → Aggregate
                          ├─ Success: Add to results
                          └─ Error: Add to failed_students
-```
 
+```text
 ### Caching Pipeline
-```
+
+```text
 Request → Build Cache Key → Check Cache
                               ├─ HIT: Return cached data
                               └─ MISS: Generate → Cache → Return
-```
 
+```text
 ---
 
 ## 📈 Performance Metrics
 
 ### Export Performance
+
 | Format | Generation Time | File Size (avg) |
 |--------|----------------|-----------------|
 | JSON   | ~200ms         | ~10KB          |
@@ -248,6 +267,7 @@ Request → Build Cache Key → Check Cache
 | PDF    | ~300ms         | ~50KB          |
 
 ### Bulk Processing Performance
+
 | Student Count | Time (JSON) | Time (CSV) |
 |---------------|-------------|------------|
 | 10 students   | ~2-3s       | ~3-4s      |
@@ -255,6 +275,7 @@ Request → Build Cache Key → Check Cache
 | 50 students   | ~10-15s     | ~15-20s    |
 
 ### Cache Performance
+
 | Metric                | Value        |
 |----------------------|--------------|
 | Cache Hit Rate       | 60-80%       |
@@ -268,22 +289,27 @@ Request → Build Cache Key → Check Cache
 ## 🧪 Testing Recommendations
 
 ### PDF/CSV Export Tests
+
 ```python
 # Test PDF generation
+
 report = generate_student_performance_report(student_id=1)
 pdf_bytes = generate_pdf_report(report.model_dump())
 assert len(pdf_bytes) > 0
 assert pdf_bytes[:4] == b'%PDF'
 
 # Test CSV generation
+
 csv_string = generate_csv_report(report.model_dump())
 assert "Student Information" in csv_string
 assert student.email in csv_string
-```
 
+```text
 ### Bulk Report Tests
+
 ```python
 # Test bulk generation
+
 response = client.post("/reports/bulk/student-performance", json={
     "student_ids": [1, 2, 3],
     "period": "current_semester",
@@ -293,25 +319,29 @@ assert response.status_code == 200
 data = response.json()
 assert data["total_generated"] == 3
 assert data["total_failed"] == 0
-```
 
+```text
 ### Cache Tests
+
 ```python
 # Test cache hit
+
 response1 = client.post("/reports/student-performance", json=request_data)
 response2 = client.post("/reports/student-performance", json=request_data)
 # Second request should be faster (cache hit)
 
 # Test cache invalidation
+
 client.delete(f"/reports/cache/{student_id}")
 # Next request should regenerate (cache miss)
-```
 
+```text
 ---
 
 ## 📝 Usage Examples
 
 ### Export PDF Report
+
 ```typescript
 // Frontend
 const handleDownloadPDF = async () => {
@@ -330,11 +360,13 @@ const handleDownloadPDF = async () => {
   link.click();
   URL.revokeObjectURL(url);
 };
-```
 
+```text
 ### Generate Bulk Reports
+
 ```python
 # Backend
+
 response = await client.post("/reports/bulk/student-performance", {
     "student_ids": [1, 2, 3, 4, 5],
     "period": "current_semester",
@@ -344,36 +376,42 @@ response = await client.post("/reports/bulk/student-performance", {
 })
 
 # Returns CSV file with all student data
-```
 
+```text
 ### Invalidate Cache After Data Update
+
 ```python
 # After updating student grades
+
 student_id = 123
 db.add(new_grade)
 db.commit()
 
 # Invalidate cached reports
-await client.delete(f"/reports/cache/{student_id}")
-```
 
+await client.delete(f"/reports/cache/{student_id}")
+
+```text
 ---
 
 ## 🚀 Future Enhancements (Optional)
 
 ### PDF Export Enhancements
+
 - [ ] Custom templates with school branding
 - [ ] Multi-page reports with detailed analysis
 - [ ] Charts and graphs (matplotlib integration)
 - [ ] Watermarks and digital signatures
 
 ### Bulk Operations
+
 - [ ] Frontend UI for bulk report generation
 - [ ] Progress indicator during generation
 - [ ] Email delivery for large batches
 - [ ] Scheduled report generation
 
 ### Caching Improvements
+
 - [ ] Smart cache prewarming for common requests
 - [ ] Cache hit rate monitoring dashboard
 - [ ] Automatic cache invalidation on data changes
@@ -384,12 +422,14 @@ await client.delete(f"/reports/cache/{student_id}")
 ## 📦 Files Modified
 
 ### Backend
+
 - `backend/services/report_exporters.py` - **NEW** (330 lines)
 - `backend/routers/routers_reports.py` - Extended to 900+ lines
 - `backend/cache.py` - Added STUDENT_REPORT config
 - `backend/schemas/reports.py` - BulkReportRequest already existed
 
 ### Frontend
+
 - `frontend/src/components/StudentPerformanceReport.tsx` - Added download UI
 - `frontend/src/api/api.js` - Added downloadStudentReport method
 
@@ -438,3 +478,4 @@ The system now provides comprehensive reporting capabilities with:
 **Lines of Code**: ~600+ new lines
 **Tests Required**: ~15 test cases
 **Documentation**: This document + inline comments
+

@@ -28,29 +28,35 @@
 ## 📋 Phase 1: Pre-Deployment Validation (08:00-09:00)
 
 ### 1.1 Repository Verification (2 min)
+
 ```powershell
 cd d:\SMS\student-management-system
 git status
 git log --oneline -3
 # Expected: Clean working tree, HEAD at fc6a30cd4 or later
-```
 
+```text
 ### 1.2 Database Backup (10 min)
+
 ```powershell
 # Backup existing database
+
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $backupPath = "d:\SMS\student-management-system\backups\pre_$11.17.2_$timestamp.db"
 Copy-Item -Path "d:\SMS\student-management-system\data\student_management.db" -Destination $backupPath -Force -ErrorAction SilentlyContinue
 Write-Host "Database backed up to: $backupPath"
 
 # List recent backups
+
 Get-ChildItem -Path "d:\SMS\student-management-system\backups\*.db" -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 3 | Format-Table Name, Length, LastWriteTime
 # Expected: Backup file exists with current timestamp
-```
 
+```text
 ### 1.3 Port Availability Check (3 min)
+
 ```powershell
 # Check if ports are available
+
 $ports = @(8080, 8000, 5173)
 foreach ($port in $ports) {
     $connection = Test-NetConnection -ComputerName 127.0.0.1 -Port $port -InformationLevel Quiet
@@ -62,73 +68,91 @@ foreach ($port in $ports) {
 }
 
 # If port 8080 is in use, stop container:
+
 # docker ps
 # docker stop sms-fullstack
-# docker rm sms-fullstack (optional, if not needed)
-```
 
+# docker rm sms-fullstack (optional, if not needed)
+
+```text
 ### 1.4 Disk Space Check (2 min)
+
 ```powershell
 # Check available disk space
+
 $drive = Get-PSDrive -PSProvider FileSystem -Name D
 Write-Host "Drive D: Space available: $([Math]::Round($drive.Free/1GB, 2)) GB"
 # Expected: At least 5 GB free
-```
 
+```text
 ### 1.5 Docker Status (3 min)
+
 ```powershell
 # Verify Docker is running
+
 docker ps
 # Expected: Docker responds, shows any running containers
 
 # List recent images
+
 docker images | head -10
 # Expected: Images exist (sms-fullstack, etc.)
-```
 
+```text
 ### 1.6 Environment Files (2 min)
+
 ```powershell
 # Verify environment files exist
+
 Test-Path backend/.env
 Test-Path frontend/.env
 # Expected: Both return True
 
 # Verify .env files have content
+
 Get-Content backend/.env | head -3
 Get-Content frontend/.env | head -3
-```
 
+```text
 ### 1.7 Pre-Deployment Documentation (3 min)
+
 ```powershell
 # Verify deployment documentation is in place
+
 Test-Path docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md
 Test-Path docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.17.2.md
 # Expected: Both return True
-```
 
+```text
 ---
 
 ## 🚀 Phase 2: Deployment Execution (09:45-10:45)
 
 ### 2.1 Build Docker Image (if needed)
+
 ```powershell
 # Only run if image doesn't exist or needs rebuild
+
 cd d:\SMS\student-management-system
 docker build -t sms-fullstack:latest -f docker/Dockerfile .
 # Expected: Build completes without errors (may take 2-5 min)
-```
 
+```text
 ### 2.2 Stop Existing Container (if running)
+
 ```powershell
 # Stop and remove old container
+
 docker stop sms-fullstack -ErrorAction SilentlyContinue
 docker rm sms-fullstack -ErrorAction SilentlyContinue
 Write-Host "Old container cleaned up" -ForegroundColor Green
-```
 
+```text
 ### 2.3 Deploy Container with Volume Mount
+
 ```powershell
 # Deploy container with current data directory
+
 docker run -d `
   --name sms-fullstack `
   -p 8080:8000 `
@@ -139,33 +163,40 @@ docker run -d `
   sms-fullstack:latest
 
 Write-Host "Container deployed" -ForegroundColor Green
-```
 
+```text
 ### 2.4 Check Container Logs (3 min)
+
 ```powershell
 # Wait for startup
+
 Start-Sleep -Seconds 3
 
 # Check logs for startup messages
+
 docker logs sms-fullstack | head -50
 # Expected: FastAPI startup message, no critical errors
 
 # Watch logs in real-time (press Ctrl+C to stop)
-docker logs -f sms-fullstack
-```
 
+docker logs -f sms-fullstack
+
+```text
 ### 2.5 Verify Migration Completed (2 min)
+
 ```powershell
 # Check logs for migration messages
+
 docker logs sms-fullstack | Select-String "migration|upgrade|alembic" -Context 0
 # Expected: Messages show migrations ran or were already up-to-date
-```
 
+```text
 ---
 
 ## ✅ Phase 3: Health Checks (10:30-10:40)
 
 ### 3.1 API Health Endpoints (with retry)
+
 ```powershell
 function Test-HealthEndpoint {
     param([string]$Url, [int]$MaxRetries = 30)
@@ -187,25 +218,30 @@ function Test-HealthEndpoint {
 }
 
 # Test all health endpoints
+
 Test-HealthEndpoint "http://localhost:8080/health"
 Test-HealthEndpoint "http://localhost:8080/health/ready"
 Test-HealthEndpoint "http://localhost:8080/health/live"
-```
 
+```text
 ### 3.2 Verify API Accessibility
+
 ```powershell
 # Test basic API call
+
 try {
     $response = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/students?limit=1" -Method Get
     Write-Host "✅ API is responding to requests" -ForegroundColor Green
 } catch {
     Write-Host "❌ API not responding: $_" -ForegroundColor Red
 }
-```
 
+```text
 ### 3.3 Database Connection Test
+
 ```powershell
 # Test database by querying students count
+
 try {
     $response = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/students?limit=1" -Method Get
     if ($response.data) {
@@ -214,14 +250,15 @@ try {
 } catch {
     Write-Host "❌ Database issue: $_" -ForegroundColor Red
 }
-```
 
+```text
 ---
 
 ## 🧪 Phase 4: Manual Smoke Tests (10:40-11:40)
 
 ### Quick Reference - Each Test Should Pass
-```
+
+```text
 Test 1: Login Flow
   - Navigate to http://localhost:8080
   - Expected: Login page loads
@@ -261,8 +298,8 @@ Test 8: Multi-language Support
   - Toggle between EN and EL
   - Expected: UI updates correctly
   - Duration: 1-2 min
-```
 
+```text
 **For detailed test procedures**, refer to:
 - `docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md` (Section 2)
 
@@ -271,61 +308,73 @@ Test 8: Multi-language Support
 ## 🤖 Phase 5: Automated E2E Tests (11:40-11:55)
 
 ### Run Playwright E2E Tests
+
 ```powershell
 cd d:\SMS\student-management-system/frontend
 
 # Run all E2E tests
+
 npx playwright test --project=chromium
 # Expected: 19/19 tests passing or similar baseline
 
 # If specific test fails:
-npx playwright test --project=chromium --grep "test name"
-```
 
+npx playwright test --project=chromium --grep "test name"
+
+```text
 ### Alternative: Run via npm script
+
 ```powershell
 cd d:\SMS\student-management-system/frontend
 npm run test:e2e
 # Expected: Same results, all critical tests passing
-```
 
+```text
 ---
 
 ## 📊 Phase 6: Monitoring & Sign-Off
 
 ### 6.1 Container Running Verification
+
 ```powershell
 # Check container is still running
+
 docker ps | Select-Object STATUS, PORTS, NAMES | Format-Table
 # Expected: sms-fullstack container showing "Up" status
-```
 
+```text
 ### 6.2 Memory/CPU Usage
+
 ```powershell
 # Check container resource usage
+
 docker stats --no-stream sms-fullstack
 # Expected: Reasonable memory usage (<500MB for initial), CPU <10%
-```
 
+```text
 ### 6.3 Log Monitoring Plan
+
 ```powershell
 # Start continuous log monitoring for 24 hours
+
 # Option 1: Save logs to file
 docker logs sms-fullstack > d:\SMS\student-management-system\monitoring\deployment_logs_$(Get-Date -Format "yyyyMMdd_HHmm").txt
 
 # Option 2: Real-time monitoring (in separate terminal)
-docker logs -f sms-fullstack
-```
 
+docker logs -f sms-fullstack
+
+```text
 ### 6.4 Monitoring Checklist (Next 24 Hours)
-```
+
+```text
 □ Every 1 hour: Check container still running (docker ps)
 □ Every 1 hour: Check no critical errors in logs (docker logs | grep -i error)
 □ Every 4 hours: Check API health endpoint (curl http://localhost:8080/health)
 □ Every 4 hours: Check database performance (query student count)
 □ Morning after: Final verification before production sign-off
-```
 
+```text
 ---
 
 ## 🆘 Troubleshooting Quick Reference
@@ -378,3 +427,4 @@ Before declaring deployment successful:
 **Ready for Jan 8 execution**: ✅
 **Last verified**: January 7, 2026, 21:00 UTC
 **Next action**: Execute Phase 1 (Pre-deployment validation) at 08:00 Jan 8
+

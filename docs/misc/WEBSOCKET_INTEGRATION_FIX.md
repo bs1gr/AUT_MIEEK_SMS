@@ -9,10 +9,11 @@
 ## Problem Identified
 
 All 75 E2E tests failed with the same error:
-```
-Error: WebSocket did not connect within timeout
-```
 
+```text
+Error: WebSocket did not connect within timeout
+
+```text
 ### Root Cause Analysis
 
 **Investigation revealed:**
@@ -34,6 +35,7 @@ Error: WebSocket did not connect within timeout
 **File:** `frontend/src/components/NotificationBell.tsx`
 
 **Changes:**
+
 ```typescript
 // Added import
 import { useNotificationWebSocket } from '../services/notificationWebSocket';
@@ -55,8 +57,8 @@ useEffect(() => {
 {isConnected && (
   <span className="absolute top-1 left-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" title="Live updates active" />
 )}
-```
 
+```text
 **Result:**
 - ✅ WebSocket connection established when component mounts
 - ✅ Real-time notifications trigger data refetch
@@ -70,6 +72,7 @@ useEffect(() => {
 **File:** `frontend/src/App.tsx`
 
 **Changes:**
+
 ```typescript
 // Added import
 import NotificationBell from './components/NotificationBell';
@@ -79,8 +82,8 @@ const { user, isInitializing, accessToken } = useAuth();
 
 // Added to header (before LogoutButton)
 <NotificationBell authToken={accessToken || undefined} />
-```
 
+```text
 **Result:**
 - ✅ Notification bell visible in authenticated header
 - ✅ Auth token passed from AuthContext
@@ -93,14 +96,16 @@ const { user, isInitializing, accessToken } = useAuth();
 **File:** `frontend/src/services/notificationWebSocket.ts`
 
 **Before:**
+
 ```typescript
 const getBaseUrl = useCallback(() => {
   const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
   return apiUrl.replace(/\/api\/v1$/, '') || window.location.origin;
 }, []);
-```
 
+```text
 **After:**
+
 ```typescript
 const getBaseUrl = useCallback(() => {
   const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
@@ -119,8 +124,8 @@ const getBaseUrl = useCallback(() => {
 
   return wsUrl.replace(/\/api\/v1$/, '');
 }, []);
-```
 
+```text
 **Result:**
 - ✅ Correctly converts `http://localhost:8000` → `ws://localhost:8000`
 - ✅ Correctly converts `https://` → `wss://` for production
@@ -131,7 +136,7 @@ const getBaseUrl = useCallback(() => {
 
 ## Connection Flow (After Fix)
 
-```
+```text
 1. User logs in → AuthContext provides accessToken
 2. App.tsx renders → NotificationBell component mounts
 3. NotificationBell receives authToken prop
@@ -142,18 +147,20 @@ const getBaseUrl = useCallback(() => {
 8. Real-time notifications received → trigger data refetch
 9. Bell badge updates with new unread count
 10. NotificationCenter shows updated list
-```
 
+```text
 ---
 
 ## Testing Status Update
 
 ### Before Fix
+
 - Backend Tests: ✅ 35/35 PASSING
 - Frontend Unit Tests: ✅ 12/12 PASSING
 - E2E Tests: ❌ 0/75 PASSING (WebSocket timeout)
 
 ### After Fix (Expected)
+
 - Backend Tests: ✅ 35/35 PASSING
 - Frontend Unit Tests: ✅ 12/12 PASSING (may need updates for new hook)
 - E2E Tests: ✅ Should pass (WebSocket connects)
@@ -182,15 +189,18 @@ const getBaseUrl = useCallback(() => {
 ## Visual Indicators
 
 ### Connection Status
+
 - **Connected:** Green pulsing dot in top-left of bell icon
 - **Disconnected:** No indicator
 - **Tooltip:** "Notifications (Live)" when connected
 
 ### Unread Count
+
 - **Badge:** Red circle with count in top-right
 - **99+:** Displayed when count exceeds 99
 
 ### Real-Time Updates
+
 - New notification arrives via WebSocket
 - Bell badge updates immediately
 - NotificationCenter list refreshes automatically
@@ -200,15 +210,19 @@ const getBaseUrl = useCallback(() => {
 ## Environment Configuration
 
 **Development (Native):**
+
 ```env
 VITE_API_URL=http://localhost:8000/api/v1
-```
+
+```text
 → WebSocket URL: `ws://localhost:8000/api/v1/notifications/ws`
 
 **Production (Docker):**
+
 ```env
 VITE_API_URL=/api/v1
-```
+
+```text
 → WebSocket URL: `ws://<host>/api/v1/notifications/ws` or `wss://<host>/api/v1/notifications/ws`
 
 ---
@@ -216,19 +230,24 @@ VITE_API_URL=/api/v1
 ## Next Steps
 
 ### 1. Verify Fix (Recommended)
+
 ```bash
 # Restart services to pick up changes
+
 Get-Process | Where-Object {$_.ProcessName -match "python|node"} | Stop-Process -Force
 .\NATIVE.ps1 -Start
 
 # Wait 10 seconds for services to start
+
 Start-Sleep -Seconds 10
 
 # Run E2E tests
-cd frontend && npx playwright test tests/e2e/notifications.spec.ts
-```
 
+cd frontend && npx playwright test tests/e2e/notifications.spec.ts
+
+```text
 ### 2. Expected E2E Results
+
 - ✅ Bell icon visible
 - ✅ WebSocket connects within 10 seconds
 - ✅ Real-time notifications received
@@ -236,6 +255,7 @@ cd frontend && npx playwright test tests/e2e/notifications.spec.ts
 - ✅ Connection resilience works
 
 ### 3. Manual Testing Checklist
+
 - [ ] Log in to application
 - [ ] Verify bell icon appears in header
 - [ ] Check for green pulse indicator (WebSocket connected)
@@ -251,16 +271,19 @@ cd frontend && npx playwright test tests/e2e/notifications.spec.ts
 ## Deployment Impact
 
 ### No Breaking Changes
+
 - ✅ Backend unchanged (already working)
 - ✅ Existing API calls still function
 - ✅ Graceful degradation if WebSocket fails (polling continues)
 
 ### Performance Benefits
+
 - ✅ Real-time updates (no 30-second polling delay)
 - ✅ Reduced API calls (WebSocket push vs pull)
 - ✅ Better user experience (instant notifications)
 
 ### Backward Compatibility
+
 - ✅ Polling still works as fallback
 - ✅ NotificationCenter works without WebSocket
 - ✅ Unread count refetches on window focus
@@ -270,12 +293,14 @@ cd frontend && npx playwright test tests/e2e/notifications.spec.ts
 ## Lessons Learned
 
 ### Value of Comprehensive E2E Testing
+
 1. **E2E tests caught integration gap** that unit tests missed
 2. Backend and frontend unit tests both passed ✅
 3. Only E2E tests revealed **missing integration** between components
 4. Tests found the issue **before production deployment**
 
 ### Integration Checklist for Future Features
+
 - [ ] Service/hook implemented ✅
 - [ ] Component uses service/hook ✅
 - [ ] Component integrated in app ✅
@@ -303,3 +328,4 @@ cd frontend && npx playwright test tests/e2e/notifications.spec.ts
 **Author:** GitHub Copilot
 **Date:** January 5, 2026
 **Confidence:** Very High - Root cause identified and fixed
+

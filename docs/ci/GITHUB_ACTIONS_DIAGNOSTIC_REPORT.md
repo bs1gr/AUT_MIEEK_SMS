@@ -1,4 +1,5 @@
 # GitHub Actions Workflow Diagnostic Report
+
 **Date:** 2025-12-27
 **Version:** 1.12.8
 **Status:** 7/18 Workflows Failing (39% Failure Rate)
@@ -8,12 +9,14 @@
 ## Executive Summary
 
 ### Critical Issues Found:
+
 - **100% Failure Rate:** 7 workflows consistently fail
 - **Pattern:** All test-execution workflows failing, analysis-only workflows passing
 - **Root Causes:** Environment inconsistencies, dependency issues, missing tooling
 - **Impact:** Cannot validate code quality or deploy with confidence
 
 ### Quick Stats:
+
 | Metric | Value |
 |--------|-------|
 | Total Workflows | 33 |
@@ -29,6 +32,7 @@
 ### 🔴 **TIER 1: CRITICAL (100% Failure Rate)**
 
 #### 1. **CI/CD Pipeline** (`.github/workflows/ci-cd-pipeline.yml`)
+
 - **Status:** ❌ 4/4 Failed
 - **Symptom:** Consistently fails on version-verification and test jobs
 - **Root Causes:**
@@ -38,13 +42,16 @@
   - Missing environment variable setup for test isolation
 
 **Issues Identified:**
+
 ```yaml
 # Line 41: Windows runner required for PowerShell scripts
+
 runs-on: windows-latest
 # Line 180: But then switches to Ubuntu for tests
-runs-on: ubuntu-latest
-```
 
+runs-on: ubuntu-latest
+
+```text
 **Proposed Fixes:**
 1. Consolidate Windows/Ubuntu logic with proper conditions
 2. Create unified test environment with consistent Python/Node versions
@@ -52,6 +59,7 @@ runs-on: ubuntu-latest
 4. Use environment variables for all configuration
 
 #### 2. **Docker Publish** (`.github/workflows/docker-publish.yml`)
+
 - **Status:** ❌ 4/4 Failed
 - **Symptom:** Fails during Docker build or image push
 - **Root Causes:**
@@ -66,6 +74,7 @@ runs-on: ubuntu-latest
 4. Add image scanning before push
 
 #### 3. **COMMIT_READY Smoke (quick)** (`.github/workflows/commit-ready-smoke.yml`)
+
 - **Status:** ❌ 6/6 Failed
 - **Symptom:** Fails on both ubuntu-latest and windows-latest
 - **Root Causes:**
@@ -82,6 +91,7 @@ runs-on: ubuntu-latest
 5. Implement OS-specific setup steps
 
 #### 4. **E2E Tests** (`.github/workflows/e2e-tests.yml`)
+
 - **Status:** ❌ 4/4 Failed
 - **Symptom:** Playwright environment setup fails
 - **Root Causes:**
@@ -97,6 +107,7 @@ runs-on: ubuntu-latest
 4. Use Docker container with pre-installed Playwright
 
 #### 5. **Load Testing** (`.github/workflows/load-testing.yml`)
+
 - **Status:** ❌ 1/1 Failed
 - **Symptom:** Test setup or execution fails
 - **Root Causes:**
@@ -110,6 +121,7 @@ runs-on: ubuntu-latest
 3. Validate test setup before running load tests
 
 #### 6. **PR Hygiene** (`.github/workflows/pr-hygiene.yml`)
+
 - **Status:** ❌ 1/1 Failed
 - **Symptom:** PR checks fail
 - **Root Causes:**
@@ -117,6 +129,7 @@ runs-on: ubuntu-latest
   - May have conditional logic errors
 
 #### 7. **Quickstart Validation (Fast Pre-Commit)** (`.github/workflows/quickstart-validation.yml`)
+
 - **Status:** ❌ 2/2 Failed
 - **Symptom:** Setup or validation fails
 - **Root Causes:**
@@ -150,21 +163,25 @@ runs-on: ubuntu-latest
 ## Root Cause Analysis
 
 ### Pattern 1: **Test Execution Failures**
+
 All workflows that run tests (pytest, vitest, Playwright, etc.) fail.
 - **Hypothesis:** Missing environment setup or dependency installation
 - **Evidence:** Analysis-only workflows pass
 
 ### Pattern 2: **Cross-OS Complexity**
+
 Workflows using matrix strategies with Windows+Ubuntu fail.
 - **Hypothesis:** Shell differences (PowerShell vs Bash), path separators
 - **Evidence:** Separate ubuntu-only workflows often pass
 
 ### Pattern 3: **Missing Tool Validation**
+
 Python 3.11 + latest npm may have incompatibilities.
 - **Hypothesis:** Version mismatch between ecosystem packages
 - **Evidence:** Local Python 3.13 works fine
 
 ### Pattern 4: **Workflow Duplication**
+
 Multiple similar workflows doing same thing.
 - **Hypothesis:** Code duplication leading to maintenance issues
 - **Evidence:** COMMIT_READY Smoke + Quickstart Validation are very similar
@@ -176,61 +193,73 @@ Multiple similar workflows doing same thing.
 ### 🎯 **Phase 1: Immediate Fixes (This Week)**
 
 #### Fix 1: Decouple Windows PowerShell Logic
+
 **File:** `.github/workflows/ci-cd-pipeline.yml`
 ```yaml
 # Before:
+
 jobs:
   version-verification:
     runs-on: windows-latest  # ❌ Forces all to Windows
 
 # After:
+
 jobs:
   version-verification:
     runs-on: ubuntu-latest
     steps:
       - name: Verify Version (Linux)
+
         if: runner.os == 'Linux'
         run: bash scripts/verify_version.sh
       - name: Verify Version (Windows)
+
         if: runner.os == 'Windows'
         run: pwsh scripts/verify_version.ps1
-```
 
+```text
 #### Fix 2: Fix COMMIT_READY Smoke Test
+
 **File:** `.github/workflows/commit-ready-smoke.yml`
 - Split matrix into separate jobs
 - Use bash scripts instead of PowerShell for core logic
 - Add explicit environment setup
 
 #### Fix 3: Remove Duplicate Workflows
+
 **Action:** Consolidate `quickstart-validation.yml` into `commit-ready-smoke.yml`
 - Keep only `commit-ready-smoke.yml`
 - Delete `quickstart-validation.yml`
 
 #### Fix 4: Fix E2E Environment
+
 **File:** `.github/workflows/e2e-tests.yml`
 ```yaml
 - name: Install Playwright System Dependencies
+
   run: |
     sudo apt-get update
     sudo apt-get install -y \
       libwoff1 libopus0 libwebp6 libwebpdemux2 libenchant-2-2 \
       libgudev-1.0-0 libsecret-1-0 libhyphen0 libgdk-pixbuf2.0-0 \
       libegl1 libgles2 libxslt1.1 libxkbcommon0
-```
 
+```text
 ---
 
 ### 🎯 **Phase 2: Refactoring (Next Week)**
 
 #### Consolidation 1: Merge Duplicate Workflows
+
 - ✂️ Delete: `quickstart-validation.yml`
 - ✂️ Delete: `commit-ready.yml` (if redundant)
 - ✂️ Consolidate: Similar cleanup/smoke tests
 
 #### Consolidation 2: Extract Common Workflows
+
 Create reusable workflow files:
-```
+
+```text
 .github/workflows/
 ├── _shared/
 │   ├── setup-python.yml (reusable)
@@ -240,9 +269,10 @@ Create reusable workflow files:
 ├── ci-cd-pipeline.yml (uses reusables)
 ├── e2e-tests.yml (uses reusables)
 └── ...
-```
 
+```text
 #### Consolidation 3: Create Unified Test Matrix
+
 ```yaml
 test-all:
   strategy:
@@ -250,18 +280,20 @@ test-all:
       python-version: ['3.11', '3.12', '3.13']
       node-version: ['18', '20']
       os: [ubuntu-latest, windows-latest]
-```
 
+```text
 ---
 
 ### 🎯 **Phase 3: Long-term Improvements**
 
 #### 1. **Version Standardization**
+
 - Update Python to 3.12 or 3.13 (3.11 EOL approaching)
 - Keep Node at 20 LTS
 - Use consistent versions across all workflows
 
 #### 2. **Caching Strategy**
+
 ```yaml
 cache:
   pip: true
@@ -273,17 +305,19 @@ cache:
     ~/.npm
     node_modules
     ~/.cache/docker
-```
 
+```text
 #### 3. **Failure Recovery**
+
 ```yaml
 retry:
   max-attempts: 3
   delay-seconds: 30
   backoff-multiplier: 2
-```
 
+```text
 #### 4. **Resource Limits**
+
 ```yaml
 jobs:
   tests:
@@ -291,13 +325,14 @@ jobs:
     runs-on: ubuntu-latest-4-cores
     resources:
       memory: 8GB
-```
 
+```text
 ---
 
 ## Proposed Remediation Plan
 
 ### Priority 1: Immediate (Today)
+
 1. ✅ Fix E2E test environment dependencies
 2. ✅ Split COMMIT_READY matrix into separate jobs
 3. ✅ Fix CI/CD pipeline Windows/Ubuntu separation
@@ -305,6 +340,7 @@ jobs:
 **Est. Time:** 2-3 hours
 
 ### Priority 2: Short-term (This Week)
+
 4. Consolidate duplicate workflows
 5. Extract common setup logic
 6. Update Python version policy
@@ -312,6 +348,7 @@ jobs:
 **Est. Time:** 4-6 hours
 
 ### Priority 3: Medium-term (This Month)
+
 7. Implement reusable workflows
 8. Add caching layer
 9. Set up failure monitoring
@@ -322,7 +359,7 @@ jobs:
 
 ## Files Requiring Changes
 
-```
+```text
 High Priority:
 ✗ .github/workflows/ci-cd-pipeline.yml (763 lines - refactor)
 ✗ .github/workflows/commit-ready-smoke.yml (needs matrix fix)
@@ -336,8 +373,8 @@ Medium Priority:
 Low Priority:
 ○ .github/workflows/docker.yml (if exists)
 ○ Scripts organization (consolidate cross-platform scripts)
-```
 
+```text
 ---
 
 ## Success Criteria
@@ -353,7 +390,7 @@ After fixes:
 
 ## Appendix: Workflow Dependency Graph
 
-```
+```text
 Version Verification
     ↓
 CI/CD Pipeline ─→ Docker Publish ─→ Deploy
@@ -367,8 +404,8 @@ Markdown Lint (independent)
 
 COMMIT_READY Smoke (should be independent)
 Load Testing (should be independent)
-```
 
+```text
 **Issue:** Too many hard dependencies. Should be more independent.
 
 ---
@@ -387,3 +424,4 @@ Load Testing (should be independent)
 **Report Generated:** 2025-12-27 20:55:00 UTC
 **Status:** Ready for Implementation
 **Recommended Action:** Proceed with Phase 1 fixes immediately
+

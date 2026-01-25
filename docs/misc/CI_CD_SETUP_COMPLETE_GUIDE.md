@@ -1,4 +1,5 @@
 # CI/CD Setup - Complete Implementation Guide
+
 **January 25, 2026**
 
 ---
@@ -28,6 +29,7 @@ This guide provides step-by-step instructions to complete the CI/CD setup. All a
 5. **Configure the webhook**:
    - **App Name**: `SMS Pipeline`
    - **Posting to Channel**: Select the channel where you want notifications
+
      (e.g., `#deployments`, `#pipeline`, `#alerts`)
    - Click **"Add New Webhook to Workspace"**
 
@@ -71,16 +73,19 @@ Run this command on your local machine (Windows PowerShell or Unix terminal):
 
 ```bash
 # Generate ED25519 key (modern, secure)
+
 ssh-keygen -t ed25519 -f deploy_key -N ""
 
 # Or if ED25519 not supported, use RSA:
+
 # ssh-keygen -t rsa -b 4096 -f deploy_key -N ""
 
 # This creates two files:
+
 # - deploy_key (PRIVATE - keep secret!)
 # - deploy_key.pub (PUBLIC - share with servers)
-```
 
+```text
 ### Step 2: Add Private Key to GitHub Secrets
 
 1. Open the private key file in a text editor:
@@ -106,61 +111,72 @@ SSH into your staging server and configure the deployment user:
 
 ```bash
 # 1. Connect to staging server
+
 ssh deploy@staging.example.com
 
 # 2. Create .ssh directory if it doesn't exist
+
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 
 # 3. Add public key (deploy_key.pub contents) to authorized_keys
+
 echo "PASTE_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 
 # 4. Verify permissions are correct
+
 ls -la ~/.ssh/
 # Output should show: -rw------- for authorized_keys
 
 # 5. Test connection from local machine
+
 # (From your local machine, in the directory with deploy_key):
 ssh -i deploy_key deploy@staging.example.com "echo 'SSH connection successful'"
-```
 
+```text
 ### Step 4: Configure Production Server
 
 Repeat Step 3 for production server:
 
 ```bash
 # Connect to production server
+
 ssh deploy@prod.example.com
 
 # Follow the same steps as staging
+
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 echo "PASTE_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys
 chmod 600 ~/.ssh/authorized_keys
 
 # Test connection
-ssh -i deploy_key deploy@prod.example.com "echo 'Production SSH connection successful'"
-```
 
+ssh -i deploy_key deploy@prod.example.com "echo 'Production SSH connection successful'"
+
+```text
 ### Step 5: Verify SSH Configuration
 
 Test both connections work:
 
 ```bash
 # Verify staging access
+
 ssh -i deploy_key deploy@staging.example.com "whoami && pwd"
 # Expected output: deploy, /home/deploy
 
 # Verify production access
+
 ssh -i deploy_key deploy@prod.example.com "whoami && pwd"
 # Expected output: deploy, /home/deploy
 
 # Test Docker access (if applicable)
+
 ssh -i deploy_key deploy@staging.example.com "docker --version"
 ssh -i deploy_key deploy@prod.example.com "docker --version"
-```
 
+```text
 ---
 
 ## ⚙️ THIS WEEK - Configure Deployment Hosts (1-2 hours)
@@ -173,18 +189,22 @@ Edit `.github/workflows/ci-cd-pipeline.yml` and update the host variables:
 
 ```yaml
 # For Staging Deployment (around line 770)
+
 - name: Deploy to staging server
+
   env:
     DEPLOY_HOST: staging.example.com      # ← UPDATE THIS
     DEPLOY_USER: deploy
 
 # For Production Deployment (around line 854)
+
 - name: Deploy to production
+
   env:
     DEPLOY_HOST: prod.example.com         # ← UPDATE THIS
     DEPLOY_USER: deploy
-```
 
+```text
 **Replace**:
 - `staging.example.com` → Your actual staging hostname/IP
 - `prod.example.com` → Your actual production hostname/IP
@@ -195,53 +215,64 @@ Edit `.github/workflows/ci-cd-pipeline.yml` and update the host variables:
 Find the commented deployment commands and uncomment them:
 
 **For Staging** (around line 791):
+
 ```yaml
 # Uncomment and configure for your deployment:
-# ssh -i ${{ secrets.DEPLOY_KEY }} $DEPLOY_USER@$DEPLOY_HOST 'cd /opt/sms && docker-compose pull && docker-compose up -d'
-```
 
+# ssh -i ${{ secrets.DEPLOY_KEY }} $DEPLOY_USER@$DEPLOY_HOST 'cd /opt/sms && docker-compose pull && docker-compose up -d'
+
+```text
 **For Production** (around line 876):
+
 ```yaml
 # Kubernetes example:
-# ssh $DEPLOY_USER@$DEPLOY_HOST 'kubectl set image deployment/sms sms=$IMAGE:$VERSION --record'
-```
 
+# ssh $DEPLOY_USER@$DEPLOY_HOST 'kubectl set image deployment/sms sms=$IMAGE:$VERSION --record'
+
+```text
 Choose the deployment method that matches your infrastructure:
 
 **Option A: Docker Compose**
+
 ```bash
 ssh -i ${{ secrets.DEPLOY_KEY }} $DEPLOY_USER@$DEPLOY_HOST 'cd /opt/sms && docker-compose pull && docker-compose up -d'
-```
 
+```text
 **Option B: Kubernetes**
+
 ```bash
 ssh -i ${{ secrets.DEPLOY_KEY }} $DEPLOY_USER@$DEPLOY_HOST 'kubectl set image deployment/sms sms=${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} --record'
-```
 
+```text
 **Option C: Direct Docker**
+
 ```bash
 ssh -i ${{ secrets.DEPLOY_KEY }} $DEPLOY_USER@$DEPLOY_HOST 'docker stop sms || true && docker run -d --name sms -p 8080:8000 ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest'
-```
 
+```text
 ### Step 3: Prepare Deployment Directories
 
 Ensure deployment directories exist on servers:
 
 ```bash
 # Connect to staging
+
 ssh deploy@staging.example.com
 
 # Create deployment directory
+
 mkdir -p /opt/sms
 cd /opt/sms
 
 # If using Docker Compose, ensure docker-compose.yml exists
+
 # (Copy from your repository or create a production-ready version)
 
 # Set permissions
-sudo chown -R deploy:deploy /opt/sms
-```
 
+sudo chown -R deploy:deploy /opt/sms
+
+```text
 **Repeat for production server.**
 
 ### Step 4: Update Health Check URLs
@@ -249,15 +280,17 @@ sudo chown -R deploy:deploy /opt/sms
 In the workflow file, find health check sections and update the URLs:
 
 **Staging Health Check** (around line 804):
+
 ```yaml
 STAGING_URL="https://staging.sms.example.com"  # ← UPDATE
-```
 
+```text
 **Production Health Check** (around line 868):
+
 ```yaml
 PROD_URL="https://sms.example.com"             # ← UPDATE
-```
 
+```text
 Make sure these URLs are accessible and `/health` endpoint responds.
 
 ### Step 5: Optional - Setup Teams Notifications
@@ -289,14 +322,16 @@ If you want Teams notifications (for failures only):
 
 ```bash
 # Check if workflow is valid YAML
+
 # Run this in your repo directory
 python -m pip install yamllint
 yamllint .github/workflows/ci-cd-pipeline.yml
 
 # Or use online validator:
-# https://www.yamllint.com/
-```
 
+# https://www.yamllint.com/
+
+```text
 ### Test 2: Trigger Test Pipeline
 
 1. Make a small commit to main branch:
@@ -320,14 +355,16 @@ Once deployment completes, manually verify health endpoints:
 
 ```bash
 # Test staging
+
 curl -i https://staging.sms.example.com/health
 # Expected: 200 OK with {"status": "healthy", ...}
 
 # Test production
+
 curl -i https://sms.example.com/health
 # Expected: 200 OK with {"status": "healthy", ...}
-```
 
+```text
 ### Test 4: Check Logs
 
 Review pipeline logs for any issues:
@@ -351,66 +388,78 @@ Review pipeline logs for any issues:
 
 ```bash
 # Verify key permissions
+
 ls -la ~/.ssh/deploy_key*
 # Should show: -rw------- (600) for private key, -rw-r--r-- (644) for public
 
 # Fix permissions
+
 chmod 600 ~/.ssh/deploy_key
 chmod 644 ~/.ssh/deploy_key.pub
 
 # Test with verbose output
-ssh -vvv -i deploy_key deploy@staging.example.com "echo 'test'"
-```
 
+ssh -vvv -i deploy_key deploy@staging.example.com "echo 'test'"
+
+```text
 ### Health Check Timeouts
 
 **Problem**: `❌ Staging health check failed after 30 attempts`
 
 ```bash
 # Check if endpoint is accessible
+
 curl -I https://staging.sms.example.com/health
 
 # Verify SSL certificate (if using HTTPS)
+
 curl -k -I https://staging.sms.example.com/health
 
 # Check if port is open
+
 telnet staging.sms.example.com 443
 # Or: nc -zv staging.sms.example.com 443
 
 # Review deployment logs on server
-ssh deploy@staging.example.com "docker logs sms | tail -50"
-```
 
+ssh deploy@staging.example.com "docker logs sms | tail -50"
+
+```text
 ### Slack Notifications Not Appearing
 
 **Problem**: No Slack message after successful pipeline
 
 ```bash
 # Verify webhook URL is correct (doesn't contain typos)
+
 # Test webhook manually:
 curl -X POST -H 'Content-type: application/json' \
   --data '{"text":"Test message from CI/CD"}' \
   YOUR_WEBHOOK_URL
 
 # Check GitHub secrets are set
+
 # Settings → Secrets → Verify SLACK_WEBHOOK_URL exists
 
 # Check workflow has correct secret name (case-sensitive):
+
 # env:
 #   SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-```
 
+```text
 ---
 
 ## 📋 Complete Setup Checklist
 
 ### Slack Integration
+
 - [ ] Slack webhook created
 - [ ] Webhook URL copied and verified
 - [ ] `SLACK_WEBHOOK_URL` secret added to GitHub
 - [ ] Test notification received (on next commit)
 
 ### SSH Deployment
+
 - [ ] SSH key pair generated locally
 - [ ] Private key added to GitHub secret: `DEPLOY_KEY`
 - [ ] Public key deployed to staging server
@@ -419,6 +468,7 @@ curl -X POST -H 'Content-type: application/json' \
 - [ ] Docker access verified on both servers
 
 ### Workflow Configuration
+
 - [ ] Staging host URL updated (DEPLOY_HOST)
 - [ ] Production host URL updated (DEPLOY_HOST)
 - [ ] Health check URLs updated (STAGING_URL, PROD_URL)
@@ -426,6 +476,7 @@ curl -X POST -H 'Content-type: application/json' \
 - [ ] Appropriate deployment method selected (Docker Compose/K8s/Direct)
 
 ### Testing & Validation
+
 - [ ] Workflow YAML syntax validated
 - [ ] Test commit pushed to trigger pipeline
 - [ ] Smoke tests executed successfully
@@ -435,6 +486,7 @@ curl -X POST -H 'Content-type: application/json' \
 - [ ] Health endpoints verified manually (curl)
 
 ### Optional - Teams Integration
+
 - [ ] Teams webhook created (optional)
 - [ ] `TEAMS_WEBHOOK_URL` secret added (optional)
 - [ ] Test failure notification received (optional)
@@ -459,6 +511,7 @@ curl -X POST -H 'Content-type: application/json' \
 3. **Deployment User Security**
    - Use dedicated deployment user (not root)
    - Restrict SSH key to specific commands (optional):
+
      ```
      no-port-forwarding,no-X11-forwarding,no-pty ssh-ed25519 AAAAC3NzaC...
      ```

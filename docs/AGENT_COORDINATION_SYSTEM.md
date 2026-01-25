@@ -25,7 +25,7 @@ When multiple agents work on a project:
 
 ## 📊 The System at a Glance
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │  AGENT ARRIVES & PICKS UP WORK                                  │
 ├─────────────────────────────────────────────────────────────────┤
@@ -57,19 +57,21 @@ When multiple agents work on a project:
 │                       where you left off)                        │
 │                                                                  │
 └─────────────────────────────────────────────────────────────────┘
-```
 
+```text
 ---
 
 ## 📁 The Three Key Documents
 
 ### 1. **AGENT_QUICK_START.md** (Entry Point)
+
 - **Who reads it**: Every agent first
 - **What it says**: "Read ACTIVE_WORK_STATUS, find your task, do it, update the status"
 - **Length**: 5 minutes
 - **You are here**: ← This document is basically the extended version of this
 
 ### 2. **ACTIVE_WORK_STATUS.md** (Source of Truth)
+
 - **Who reads it**: Every agent, repeatedly
 - **What it contains**:
   - Current version and release target
@@ -83,6 +85,7 @@ When multiple agents work on a project:
 - **Authority**: This is the official state; all other docs are reference
 
 ### 3. **AGENT_CONTINUATION_PROTOCOL.md** (The Manual)
+
 - **Who reads it**: Agents who need deep context
 - **What it says**: "Here's the format for ACTIVE_WORK_STATUS, here's how to update it, here's when to escalate"
 - **Length**: 10 minutes for full read
@@ -94,7 +97,7 @@ When multiple agents work on a project:
 
 ### Before Work (Agent Arrival)
 
-```
+```text
 Time: 0 min
 Agent: "I'm ready to work"
 
@@ -104,6 +107,7 @@ Agent: "I'm ready to work"
 ↓ Open ACTIVE_WORK_STATUS.md
   Find current items:
   - PHASE1-002: 🟦 IN PROGRESS
+
     Owner: Agent-Copilot
     Started: 2026-01-05 16:00
     Last Update: 2026-01-05 17:30
@@ -113,11 +117,11 @@ Agent: "I'm ready to work"
 ↓ Decision: Continue PHASE1-002 (highest priority, in progress)
 
 Time: 3 min (ready to start work)
-```
 
+```text
 ### During Work
 
-```
+```text
 Time: 3-15 min
 Agent: Working on PHASE1-002 (committing type-safety changes)
 
@@ -130,11 +134,11 @@ Agent: Working on PHASE1-002 (committing type-safety changes)
   - Commit: "a1b2c3d (refactor: improve type safety)"
 
 Time: 15 min (work done)
-```
 
+```text
 ### After Work (For Next Agent)
 
-```
+```text
 Time: 15 min
 Agent: "Work done, updating the state"
 
@@ -155,11 +159,11 @@ Agent: "Work done, updating the state"
 ↓ Hand off to next agent
 
 Time: 18 min (ready for next agent)
-```
 
+```text
 ### Next Agent Arrives (No Re-Planning)
 
-```
+```text
 Time: Day 2, 09:00 UTC
 New Agent: "I'm ready to work, what do I do?"
 
@@ -176,8 +180,8 @@ New Agent: "I'm ready to work, what do I do?"
 ↓ NO REPLANNING. NO DUPLICATED WORK.
 
 Time: 09:10 UTC (work started immediately)
-```
 
+```text
 ---
 
 ## 🟥 🟦 ✅ Understanding the Status Colors
@@ -194,7 +198,8 @@ Time: 09:10 UTC (work started immediately)
 ## 🔗 Example: How PHASE1-002 Worked (Real Case)
 
 **Session 1 (Jan 5, 16:00 UTC)**:
-```
+
+```text
 PHASE1-002: Type-safety frontend changes
 Status: 🟦 IN PROGRESS
 Owner: Agent-Copilot
@@ -203,10 +208,11 @@ Next Action:
   2. Stage changes: git add... ← NEXT
   3. Commit: git commit -m "..."
   4. Push: git push origin main
-```
 
+```text
 **Session 2 (Jan 5, 18:00 UTC)**:
-```
+
+```text
 Agent picks up work:
 1. Opens ACTIVE_WORK_STATUS.md
 2. Sees PHASE1-002 IN PROGRESS
@@ -214,17 +220,18 @@ Agent picks up work:
 4. Executes those commands
 5. Updates ACTIVE_WORK_STATUS: Status = ✅ DONE
 6. Commit: a1b2c3d (refactor: improve type safety)
-```
 
+```text
 **Session 3 (Jan 6, 09:00 UTC)**:
-```
+
+```text
 New agent arrives:
 1. Opens ACTIVE_WORK_STATUS.md
 2. Sees PHASE1-002 is ✅ DONE (not confused)
 3. Sees PHASE1-003 is 🟥 NOT STARTED
 4. Starts PHASE1-003 immediately (no re-planning)
-```
 
+```text
 **Zero duplication. Zero confusion.**
 
 ---
@@ -322,3 +329,4 @@ A: Document it in ACTIVE_WORK_STATUS under "Blockers" or create a separate item 
 That's it. Everything else is just details and examples.
 
 **Go read [AGENT_QUICK_START.md](./AGENT_QUICK_START.md) and pick your next task.**
+

@@ -32,8 +32,8 @@ This document summarizes all improvements, fixes, and enhancements in version 1.
 /highlights       → HighlightsPage (protected)
 /operations       → OperationsPage (protected)
 /*                → NotFoundPage (catch-all)
-```
 
+```text
 #### Type-Safe Route Parameters
 
 **File**: `frontend/src/pages/StudentProfilePage.tsx`
@@ -48,8 +48,8 @@ This document summarizes all improvements, fixes, and enhancements in version 1.
 
 ```typescript
 const { id } = useParams<{ id: string }>();
-```
 
+```text
 **After**:
 
 ```typescript
@@ -58,8 +58,8 @@ interface StudentProfileParams {
 }
 
 const { id } = useParams<StudentProfileParams>();
-```
 
+```text
 **Benefits**:
 
 - ✅ Better TypeScript type clarity
@@ -110,8 +110,8 @@ const { id } = useParams<StudentProfileParams>();
     if (!isNaN(value)) setMaxGrade(value);
   }}
 />
-```
 
+```text
 **Benefits**:
 
 - ✅ Improved UX for Greek users (Cyprus/Greece use comma as decimal separator)
@@ -144,9 +144,10 @@ const { id } = useParams<StudentProfileParams>();
 
 ```python
 # Line 27 in conftest.py
-os.environ.setdefault("SERVE_FRONTEND", "0")
-```
 
+os.environ.setdefault("SERVE_FRONTEND", "0")
+
+```text
 **Why it works**:
 
 - During tests, we don't want frontend serving enabled
@@ -159,8 +160,8 @@ os.environ.setdefault("SERVE_FRONTEND", "0")
 ```text
 Before: 374 passed, 1 failed, 1 skipped
 After:  375 passed, 0 failed, 1 skipped
-```
 
+```text
 **Test Details**:
 
 - Test: `test_root_endpoint` in `backend/tests/test_main.py`
@@ -226,8 +227,8 @@ After:  375 passed, 0 failed, 1 skipped
 ✅ 375 tests passing
 ⏭️ 1 test skipped
 ❌ 0 tests failing
-```
 
+```text
 **Coverage**: All major routers tested
 
 - Students router
@@ -245,8 +246,8 @@ After:  375 passed, 0 failed, 1 skipped
 ```text
 ✅ 1022 tests passing
    across 46 test files
-```
 
+```text
 **Test Files**:
 
 - Components tests
@@ -264,8 +265,8 @@ After:  375 passed, 0 failed, 1 skipped
    ✓ Backend tests
    ✓ Frontend tests
    ✓ Cleanup operations
-```
 
+```text
 ---
 
 ## 📦 Files Changed
@@ -335,3 +336,4 @@ Version 1.9.9 focused on consolidating improvements across:
 4. **Documentation** - Comprehensive routing reference
 
 All changes have been thoroughly tested, validated, and deployed to production.
+

@@ -41,47 +41,52 @@ Complete testing guide for Feature #128, covering all test types, execution proc
 ```bash
 cd backend
 pytest tests/test_search_service.py -v
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 tests/test_search_service.py::test_search_students PASSED
 tests/test_search_service.py::test_search_students_with_filters PASSED
 ... (33 tests total)
 
 ====== 33 passed in 2.45s ======
-```
 
+```text
 ### Quick Test (Frontend Only)
 
 ```bash
 cd frontend
 npm run test -- --run src/hooks/__tests__/useSearch.test.ts
-```
 
+```text
 **Expected Output**:
-```
+
+```text
  ✓ src/hooks/__tests__/useSearch.test.ts (20)
 
 Test Files  1 passed (1)
      Tests  20 passed (20)
-```
 
+```text
 ### Complete Backend Test Suite
 
 ```bash
 cd backend
 
 # Run all search tests
+
 pytest tests/test_search_*.py -v
 
 # Or run with coverage
+
 pytest tests/test_search_*.py --cov=backend.services.search_service --cov-report=html
 
 # Or run with output
-pytest tests/test_search_*.py -v --tb=short
-```
 
+pytest tests/test_search_*.py -v --tb=short
+
+```text
 **Duration**: ~5-10 minutes
 **Expected**: 208 tests passing
 
@@ -91,15 +96,18 @@ pytest tests/test_search_*.py -v --tb=short
 cd frontend
 
 # Run all component tests
+
 npm run test -- --run
 
 # Or run with coverage
+
 npm run test -- --run --coverage
 
 # Or run watch mode (for development)
-npm run test
-```
 
+npm run test
+
+```text
 **Duration**: ~3-5 minutes
 **Expected**: 214 tests passing
 
@@ -109,15 +117,18 @@ npm run test
 cd frontend
 
 # Run E2E tests (Playwright)
+
 npm run e2e
 
 # Or with specific browser
+
 npx playwright test tests/e2e/advanced_search.spec.ts --project=chromium
 
 # Or run with headed browser (see what's happening)
-npx playwright test tests/e2e/advanced_search.spec.ts --headed
-```
 
+npx playwright test tests/e2e/advanced_search.spec.ts --headed
+
+```text
 **Duration**: ~10-15 minutes
 **Expected**: 80 tests passing
 
@@ -125,21 +136,25 @@ npx playwright test tests/e2e/advanced_search.spec.ts --headed
 
 ```bash
 # Terminal 1: Backend tests
+
 cd backend
 pytest tests/test_search_*.py -v --tb=short
 
 # Terminal 2: Frontend tests
+
 cd frontend
 npm run test -- --run
 
 # Terminal 3: E2E tests
+
 cd frontend
 npm run e2e
 
 # Or use batch runner
-./RUN_TESTS_BATCH.ps1
-```
 
+./RUN_TESTS_BATCH.ps1
+
+```text
 **Total Duration**: ~20-30 minutes
 **Expected**: 422+ tests passing
 
@@ -153,6 +168,7 @@ npm run e2e
 cd backend
 
 # Generate coverage report
+
 pytest tests/test_search_*.py \
   --cov=backend.services.search_service \
   --cov=backend.routers.routers_search \
@@ -160,10 +176,11 @@ pytest tests/test_search_*.py \
   --cov-report=term
 
 # Open HTML report
+
 start htmlcov/index.html  # Windows
 # or open htmlcov/index.html  # Mac/Linux
-```
 
+```text
 **Expected Coverage**:
 - `search_service.py`: >95%
 - `routers_search.py`: >90%
@@ -175,13 +192,15 @@ start htmlcov/index.html  # Windows
 cd frontend
 
 # Generate coverage report
+
 npm run test -- --run --coverage
 
 # Open coverage report
+
 start coverage/index.html  # Windows
 # or open coverage/index.html  # Mac/Linux
-```
 
+```text
 **Expected Coverage**:
 - Hooks: >90%
 - Components: >85%
@@ -216,8 +235,8 @@ class TestNewFeature:
         # Assert
         assert len(results) == 1
         assert results[0].first_name == 'Alice'
-```
 
+```text
 ### Adding Frontend Component Test
 
 ```typescript
@@ -242,8 +261,8 @@ describe('MyComponent', () => {
     });
   });
 });
-```
 
+```text
 ### Adding E2E Test
 
 ```typescript
@@ -264,23 +283,24 @@ test.describe('My Feature', () => {
     await expect(page.locator('text=Alice Johnson')).toBeVisible();
   });
 });
-```
 
+```text
 ---
 
 ## Part 4: Test Organization
 
 ### Backend Test Files
 
-```
+```text
 backend/tests/
 ├── test_search_service.py          # 33 unit tests
 ├── test_search_api_endpoints.py    # 95 endpoint tests
 ├── test_search_integration.py      # 80 integration tests
 └── conftest.py                     # Shared fixtures
-```
 
+```text
 **Fixtures in conftest.py**:
+
 ```python
 @pytest.fixture
 def search_service(session):
@@ -296,11 +316,11 @@ def admin_headers():
 def student_user(session):
     """Create test student"""
     return session.add(Student(...))
-```
 
+```text
 ### Frontend Test Files
 
-```
+```text
 frontend/src/
 ├── hooks/__tests__/
 │   └── useSearch.test.ts                    # 20 tests
@@ -311,8 +331,8 @@ frontend/src/
 │   └── SavedSearches.test.tsx               # 36 tests
 └── tests/e2e/
     └── advanced_search.spec.ts              # 80 tests
-```
 
+```text
 ---
 
 ## Part 5: Debugging Failed Tests
@@ -321,55 +341,67 @@ frontend/src/
 
 ```bash
 # Run single failing test with verbose output
+
 cd backend
 pytest tests/test_search_service.py::TestSearch::test_search_students -vv
 
 # Run with detailed output and print statements
+
 pytest tests/test_search_service.py -vv -s
 
 # Run with Python debugger
+
 pytest tests/test_search_service.py --pdb
 
 # Run with coverage for specific test
-pytest tests/test_search_service.py::test_search_students --cov --cov-report=term-missing
-```
 
+pytest tests/test_search_service.py::test_search_students --cov --cov-report=term-missing
+
+```text
 ### Frontend Test Failure
 
 ```bash
 cd frontend
 
 # Run single component test
+
 npm run test -- src/components/__tests__/SearchBar.test.tsx
 
 # Run with verbose output
+
 npm run test -- --reporter=verbose
 
 # Run in watch mode to debug interactively
+
 npm run test -- src/components/__tests__/SearchBar.test.tsx --watch
 
 # Run with coverage
-npm run test -- --coverage
-```
 
+npm run test -- --coverage
+
+```text
 ### E2E Test Failure
 
 ```bash
 cd frontend
 
 # Run single E2E test with headed browser
+
 npx playwright test tests/e2e/advanced_search.spec.ts -g "test name" --headed
 
 # Run with inspector (step through)
+
 npx playwright test tests/e2e/advanced_search.spec.ts --debug
 
 # Run with video recording
+
 npx playwright test tests/e2e/advanced_search.spec.ts --headed
 
 # Check test artifacts
-ls -la test-results/
-```
 
+ls -la test-results/
+
+```text
 ### Common Issues & Solutions
 
 | Issue | Solution |
@@ -408,8 +440,8 @@ class SearchUser(HttpUser):
     @task(1)
     def get_statistics(self):
         self.client.get("/api/v1/search/statistics")
-```
 
+```text
 Run load test:
 
 ```bash
@@ -417,13 +449,14 @@ cd load-testing
 locust -f search_load_test.py --host=http://localhost:8000
 
 # Or with parameters
+
 locust -f search_load_test.py \
   --host=http://localhost:8000 \
   --users=100 \
   --spawn-rate=10 \
   --run-time=10m
-```
 
+```text
 ### Expected Performance
 
 | Operation | Target | Acceptable |
@@ -455,9 +488,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
+
         with:
           python-version: '3.11'
       - run: |
+
           cd backend
           pip install -r requirements.txt
           pytest tests/test_search_*.py -v --cov
@@ -467,9 +502,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
+
         with:
           node-version: '20'
       - run: |
+
           cd frontend
           npm install
           npm run test -- --run
@@ -480,26 +517,30 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
       - run: |
+
           cd frontend
           npm install
           npx playwright install
           npm run e2e
-```
 
+```text
 ### Pre-Commit Hooks
 
 Run tests before commit:
 
 ```bash
 # Install pre-commit hooks
+
 pre-commit install
 
 # This will run:
+
 # - Backend: pytest tests/test_search_*.py
 # - Frontend: npm run test -- --run
-# Before allowing commit
-```
 
+# Before allowing commit
+
+```text
 ---
 
 ## Part 8: Test Quality Metrics
@@ -534,25 +575,27 @@ Focus: Single function/method behavior
 
 ```python
 # Test a single method
+
 def test_search_students_name_only(self):
     results = self.service.search_students('Alice')
     assert len(results) > 0
-```
 
+```text
 ### Integration Tests (80 total)
 
 Focus: Multiple components working together
 
 ```python
 # Test API -> Service -> Database flow
+
 def test_search_api_to_database(self):
     response = self.client.post('/api/v1/search/students',
                                 json={'query': 'Alice'})
     assert response.status_code == 200
     results = response.json()['data']['results']
     assert len(results) > 0
-```
 
+```text
 ### Component Tests (114 total)
 
 Focus: React component behavior
@@ -562,8 +605,8 @@ it('should display search results', async () => {
   render(<SearchResults results={mockResults} />);
   expect(screen.getByText('Alice Johnson')).toBeInTheDocument();
 });
-```
 
+```text
 ### E2E Tests (80 total)
 
 Focus: Complete user workflows
@@ -574,8 +617,8 @@ test('should search and filter results', async ({ page }) => {
   await page.click('button:has-text("Search")');
   await expect(page.locator('text=Alice')).toBeVisible();
 });
-```
 
+```text
 ---
 
 ## Part 10: Test Maintenance
@@ -607,15 +650,18 @@ test('should search and filter results', async ({ page }) => {
 
 ```bash
 # Check test flakiness over time
+
 pytest tests/test_search_*.py --co  # List all tests
 
 # Look for patterns in failures
+
 grep -r "FAILED" test-results/
 
 # Analyze test duration
-pytest tests/test_search_*.py --durations=10
-```
 
+pytest tests/test_search_*.py --durations=10
+
+```text
 ---
 
 ## Test Checklist
@@ -637,6 +683,7 @@ Before deploying Feature #128:
 ## Changelog
 
 ### Version 1.0.0 (January 17, 2026)
+
 - Initial testing guide
 - 422+ tests documented
 - Coverage targets defined
@@ -644,3 +691,4 @@ Before deploying Feature #128:
 - CI/CD integration
 - Debugging procedures
 - Test maintenance guidelines
+

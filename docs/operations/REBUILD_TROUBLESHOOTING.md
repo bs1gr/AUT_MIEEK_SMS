@@ -14,8 +14,8 @@ This document describes common issues encountered during the rebuild process and
 
 ```text
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) unable to open database file
-```
 
+```text
 **Solution:** The rebuild process now automatically:
 
 1. Detects when a new empty volume is created (no data migration)
@@ -28,8 +28,8 @@ sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) unable to open datab
 ```powershell
 docker compose exec backend python -c "from backend.models import Base, init_db; engine = init_db('sqlite:////data/student_management.db'); Base.metadata.create_all(bind=engine)"
 docker compose restart backend
-```
 
+```text
 ### 2. Volume Permission Issues
 
 **Problem:** The `/data` directory in containers was owned by `root`, but the application runs as `appuser`, preventing database file creation.
@@ -38,8 +38,8 @@ docker compose restart backend
 
 ```text
 touch: cannot touch '/data/student_management.db': Permission denied
-```
 
+```text
 **Solution:**
 
 - Updated `docker/Dockerfile.backend` to create `/data` directory and set ownership during image build
@@ -49,8 +49,8 @@ touch: cannot touch '/data/student_management.db': Permission denied
 
 ```powershell
 docker compose exec -u root backend chown -R appuser:appuser /data
-```
 
+```text
 ### 3. Empty Baseline Migration
 
 **Problem:** The Alembic baseline migration (`0b65fa8f5f95_baseline.py`) was empty and didn't create tables, causing subsequent migrations to fail.
@@ -59,8 +59,8 @@ docker compose exec -u root backend chown -R appuser:appuser /data
 
 ```text
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: courses
-```
 
+```text
 **Current Approach:** Instead of relying on Alembic migrations for initial schema creation, the rebuild process uses SQLAlchemy's `create_all()` method to initialize the database. Future schema changes should still use Alembic migrations.
 
 ## Rebuild Process Flow
@@ -124,6 +124,7 @@ If something goes wrong after rebuild:
      backend:
        volumes:
          - sms_data_rebuild_$11.9.7_20251029_154149:/data
+
    ```
 
 3. Restart:
@@ -136,3 +137,4 @@ If something goes wrong after rebuild:
 
 - [Docker Naming Conventions](DOCKER_NAMING_CONVENTIONS.md)
 - [Architecture Overview](ARCHITECTURE.md)
+

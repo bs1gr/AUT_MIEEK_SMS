@@ -28,12 +28,14 @@ The Bulk Import/Export tool allows you to manage large sets of data efficiently.
 ## 📥 Importing Data
 
 ### Step 1: Choose Data Type
+
 Click the **Import Data** button and select what you want to import:
 - **Import Students**: For student registration
 - **Import Courses**: For course catalog
 - **Import Grades**: For bulk grade entry
 
 ### Step 2: Prepare Your File
+
 Your file must be in **CSV** (`.csv`) or **Excel** (`.xlsx`) format.
 
 **Required Columns:**
@@ -47,6 +49,7 @@ Your file must be in **CSV** (`.csv`) or **Excel** (`.xlsx`) format.
 > **Tip**: You can download a template file from the import wizard.
 
 ### Step 3: Upload and Validate
+
 1. Drag and drop your file or click to browse.
 2. The system will **validate** your data automatically.
 3. You will see a summary:
@@ -54,6 +57,7 @@ Your file must be in **CSV** (`.csv`) or **Excel** (`.xlsx`) format.
    - ❌ **Errors**: Rows with issues (missing data, duplicates)
 
 ### Step 4: Commit
+
 If the validation looks good, click **Import** to save the data to the system.
 
 ---
@@ -66,6 +70,7 @@ If the validation looks good, click **Import** to save the data to the system.
    - **Excel**: Best for editing
    - **CSV**: Best for other software
    - **PDF**: Best for printing/reporting
+
 4. Click **Export** to download the file.
 
 ---
@@ -96,4 +101,6 @@ The **History** table at the bottom of the page shows all past operations.
 - **Fix**: Ensure you are using `.csv` or `.xlsx`.
 
 ### Need Help?
+
 Contact your system administrator if you encounter persistent issues. Provide the **Job ID** from the History table.
+

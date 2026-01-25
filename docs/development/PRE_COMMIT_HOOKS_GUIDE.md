@@ -32,12 +32,13 @@ Three new custom pre-commit hooks have been added to the SMS repository to enhan
 **Trigger**: Commits modifying `backend/routers/*.py`
 
 **Example output** (errors):
-```
+
+```text
 ❌ ERRORS (must fix):
   Missing @require_permission before @router.post("/students/") (routers_students.py:45)
   Check decorator format: @require_permission('invalid') (routers_courses.py:120)
-```
 
+```text
 **Fix**: Add missing `@require_permission()` decorator to endpoint
 
 **Stage**: `commit` (runs automatically before commit)
@@ -57,18 +58,20 @@ Three new custom pre-commit hooks have been added to the SMS repository to enhan
 **Trigger**: Commits modifying `backend/models.py` or migration files
 
 **Example output** (warnings):
-```
+
+```text
 ⚠️  WARNINGS (informational):
   Note: If you modified models.py, run 'alembic revision --autogenerate'
-```
 
+```text
 **Fix**: Run migration command if needed:
+
 ```bash
 cd backend
 alembic revision --autogenerate -m "description"
 alembic upgrade head
-```
 
+```text
 **Stage**: `commit` (runs automatically before commit)
 
 ---
@@ -86,7 +89,8 @@ alembic upgrade head
 **Trigger**: Manual execution
 
 **Example output** (success):
-```
+
+```text
 ✅ PASSED:
   ✅ Staging validation guide
   ✅ CI/CD monitoring guide
@@ -94,15 +98,16 @@ alembic upgrade head
   ... (more checks)
 
 ✅ All deployment readiness checks passed!
-```
 
+```text
 **Example output** (missing files):
-```
+
+```text
 ❌ Missing files required for deployment:
   • Staging validation guide (docs/deployment/STAGING_DEPLOYMENT_VALIDATION_JAN8.md)
   • CI/CD monitoring guide (docs/deployment/CI_CD_MONITORING_JAN8.md)
-```
 
+```text
 **Stage**: `manual` (must be run explicitly)
 
 ---
@@ -114,41 +119,49 @@ alembic upgrade head
 #### Automatic on Commit (Stages: `commit`)
 
 All hooks with `stages: [commit]` run automatically when you execute:
+
 ```bash
 git commit -m "your message"
-```
 
+```text
 #### Manual Deployment Readiness Check
 
 To check deployment readiness before deployment:
+
 ```bash
 # Run all manual-stage hooks
+
 pre-commit run --hook-stage manual
 
 # Or run just the deployment readiness hook
-pre-commit run validate-deployment-readiness --all-files
-```
 
+pre-commit run validate-deployment-readiness --all-files
+
+```text
 #### Run All Hooks (Including Manual)
 
 ```bash
 # Run all hooks (all stages)
-pre-commit run --all-files --hook-stage manual
-```
 
+pre-commit run --all-files --hook-stage manual
+
+```text
 #### Run Specific Hook
 
 ```bash
 # Just RBAC validation
+
 pre-commit run validate-rbac-decorators --all-files
 
 # Just migrations validation
+
 pre-commit run validate-migrations --all-files
 
 # Just deployment readiness
-pre-commit run validate-deployment-readiness --all-files
-```
 
+pre-commit run validate-deployment-readiness --all-files
+
+```text
 ---
 
 ## Configuration
@@ -157,6 +170,7 @@ pre-commit run validate-deployment-readiness --all-files
 
 ```yaml
 - id: validate-rbac-decorators
+
   name: "RBAC: Validate decorator usage consistency"
   entry: python scripts/validate_rbac_decorators.py
   language: system
@@ -165,6 +179,7 @@ pre-commit run validate-deployment-readiness --all-files
   stages: [commit]                   # Runs on git commit
 
 - id: validate-migrations
+
   name: "Database: Validate migration consistency"
   entry: python scripts/validate_migrations.py
   language: system
@@ -173,28 +188,32 @@ pre-commit run validate-deployment-readiness --all-files
   stages: [commit]
 
 - id: validate-deployment-readiness
+
   name: "Deployment: Validate readiness checklist"
   entry: python scripts/validate_deployment_readiness.py
   language: system
   pass_filenames: false
   stages: [manual]   # Must be run manually
-```
 
+```text
 ### Customizing Hooks
 
 To modify hook behavior, edit the configuration in `.pre-commit-config.yaml`:
 
 ```yaml
 # Change files pattern to apply hook to different files
+
 files: ^backend/routers/.*\.py$
 
 # Change stages (when hook runs)
+
 stages: [commit]  # commit, push, or manual
 
 # Modify entry point/script
-entry: python scripts/your_script.py
-```
 
+entry: python scripts/your_script.py
+
+```text
 ---
 
 ## Integration with Deployment
@@ -221,6 +240,7 @@ entry: python scripts/your_script.py
    ```yaml
    # In GitHub Actions workflow
    - name: Validate Pre-commit Hooks
+
      run: |
        pre-commit run --all-files --hook-stage manual
    ```
@@ -230,36 +250,46 @@ entry: python scripts/your_script.py
 ## Common Issues & Solutions
 
 ### Issue: Hook doesn't run
+
 **Solution**: Check that hook stage matches:
+
 ```bash
 # If manual hook didn't run:
+
 pre-commit run validate-deployment-readiness --hook-stage manual
 
 # If commit hook didn't run:
+
 git add your_file.py
 git commit -m "message"  # Should run automatically
-```
 
+```text
 ### Issue: "Python not found"
+
 **Solution**: Ensure Python is in PATH and pre-commit is installed:
+
 ```bash
 python --version
 pre-commit --version
 
 # Reinstall pre-commit if needed
+
 pip install pre-commit
 pre-commit install
-```
 
+```text
 ### Issue: Hook gives false positive
+
 **Solution**: Check error message and fix reported issue, or override:
+
 ```bash
 # Skip pre-commit checks (not recommended):
+
 git commit --no-verify -m "message"
 
 # But better: Fix the issue and retry
-```
 
+```text
 ---
 
 ## Hook Scripts Location
@@ -270,12 +300,13 @@ All new hook scripts are located in `scripts/`:
 - `validate_deployment_readiness.py` - Deployment readiness checklist
 
 Each script is self-contained and can be run directly:
+
 ```bash
 python scripts/validate_rbac_decorators.py
 python scripts/validate_migrations.py
 python scripts/validate_deployment_readiness.py
-```
 
+```text
 ---
 
 ## Future Enhancements
@@ -301,3 +332,4 @@ Potential additions to pre-commit framework:
 
 **Last Updated**: January 8, 2026
 **Status**: ✅ Tested and ready for production use
+

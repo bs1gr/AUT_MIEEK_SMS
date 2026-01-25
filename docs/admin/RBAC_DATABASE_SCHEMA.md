@@ -11,7 +11,7 @@
 
 The RBAC system uses a **multi-table design** supporting both role-based and direct user permissions:
 
-```
+```text
 ┌─────────┐      ┌──────────────┐      ┌────────────┐
 │  User   │─────▶│  UserRole    │─────▶│    Role    │
 └─────────┘      └──────────────┘      └────────────┘
@@ -25,13 +25,14 @@ The RBAC system uses a **multi-table design** supporting both role-based and dir
 ┌──────────────────┐                   ┌────────────┐
 │ UserPermission   │──────────────────▶│ Permission │
 └──────────────────┘                   └────────────┘
-```
 
+```text
 ---
 
 ## 🗂️ Table Schemas
 
 ### 1. **Permission** Table
+
 **Purpose**: Stores all system permissions with resource:action convention
 
 | Column | Type | Constraints | Index | Description |
@@ -51,17 +52,19 @@ The RBAC system uses a **multi-table design** supporting both role-based and dir
 - `idx_permissions_is_active` - Filter active permissions
 
 **Example Rows**:
+
 ```sql
 INSERT INTO permissions (key, resource, action, description, is_active) VALUES
 ('students:view', 'students', 'view', 'View student list and details', true),
 ('students:create', 'students', 'create', 'Create new students', true),
 ('students:edit', 'students', 'edit', 'Update student information', true),
 ('students:delete', 'students', 'delete', 'Soft-delete students', true);
-```
 
+```text
 ---
 
 ### 2. **Role** Table
+
 **Purpose**: Stores role definitions (Admin, Teacher, Viewer, etc.)
 
 | Column | Type | Constraints | Index | Description |
@@ -74,16 +77,18 @@ INSERT INTO permissions (key, resource, action, description, is_active) VALUES
 - `idx_roles_name` (unique) - Fast lookup by role name
 
 **Example Rows**:
+
 ```sql
 INSERT INTO roles (name, description) VALUES
 ('admin', 'System administrator with full access'),
 ('teacher', 'Teaching staff with grading and attendance permissions'),
 ('viewer', 'Read-only access to reports and data');
-```
 
+```text
 ---
 
 ### 3. **RolePermission** Table (Junction)
+
 **Purpose**: Maps which permissions belong to each role
 
 | Column | Type | Constraints | Index | Description |
@@ -103,6 +108,7 @@ INSERT INTO roles (name, description) VALUES
 - Standard index on `permission_id` for reverse lookups
 
 **Example Rows**:
+
 ```sql
 -- Admin role gets all permissions (25 rows)
 INSERT INTO role_permissions (role_id, permission_id) VALUES
@@ -116,11 +122,12 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
 (2, 1),  -- teacher gets students:view
 (2, 10), -- teacher gets grades:edit
 ...;
-```
 
+```text
 ---
 
 ### 4. **UserRole** Table (Junction)
+
 **Purpose**: Maps which roles are assigned to each user
 
 | Column | Type | Constraints | Index | Description |
@@ -137,16 +144,18 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
 - `idx_user_role_unique` (user_id, role_id) - Prevent duplicate assignments
 
 **Example Rows**:
+
 ```sql
 INSERT INTO user_roles (user_id, role_id) VALUES
 (1, 1),  -- User 1 has admin role
 (2, 2),  -- User 2 has teacher role
 (3, 3);  -- User 3 has viewer role
-```
 
+```text
 ---
 
 ### 5. **UserPermission** Table (Direct Assignments)
+
 **Purpose**: Grant specific permissions directly to users (bypassing roles)
 
 | Column | Type | Constraints | Index | Description |
@@ -174,14 +183,16 @@ INSERT INTO user_roles (user_id, role_id) VALUES
 - **Time-limited permissions**: Expire automatically via `expires_at` check
 
 **Example Rows**:
+
 ```sql
 INSERT INTO user_permissions (user_id, permission_id, granted_by, granted_at, expires_at) VALUES
 (5, 22, 1, '2026-01-08 10:00:00+00', '2026-01-15 23:59:59+00');  -- Temporary system:import
-```
 
+```text
 ---
 
 ### 6. **User** Table (Extended)
+
 **Purpose**: User accounts with legacy role field for backward compatibility
 
 | Column | Type | Constraints | Index | Description |
@@ -246,13 +257,14 @@ def user_has_permission(user_id: int, permission_key: str) -> bool:
         return True  # Admins have all permissions
 
     return False
-```
 
+```text
 ---
 
 ## 📈 Performance Considerations
 
 ### Index Strategy
+
 All foreign keys are indexed for JOIN performance:
 - `role_permissions.role_id` - Fast role → permissions lookup
 - `role_permissions.permission_id` - Fast permission → roles lookup
@@ -263,6 +275,7 @@ All foreign keys are indexed for JOIN performance:
 - `permissions.is_active` - Filter active permissions only
 
 ### Query Optimization
+
 - **Composite unique indexes** prevent duplicate assignments
 - **Cascade deletes** maintain referential integrity
 - **is_active flag** allows soft-disabling permissions without deletion
@@ -273,43 +286,56 @@ All foreign keys are indexed for JOIN performance:
 ## 🚀 Seeding Strategy
 
 ### Default Permissions (25 total)
+
 Reference: [PERMISSION_MATRIX.md](./PERMISSION_MATRIX.md)
 
 ```python
 # Students domain (4)
+
 students:view, students:create, students:edit, students:delete
 
 # Courses domain (4)
+
 courses:view, courses:create, courses:edit, courses:delete
 
 # Grades domain (3)
+
 grades:view, grades:edit, grades:delete
 
 # Attendance domain (3)
+
 attendance:view, attendance:edit, attendance:delete
 
 # Enrollments domain (2)
+
 enrollments:view, enrollments:manage
 
 # Reports/Analytics domain (2)
+
 reports:view, analytics:view
 
 # Users domain (2)
+
 users:view, users:manage
 
 # Permissions domain (2)
+
 permissions:view, permissions:manage
 
 # System domain (3)
-audit:view, system:import, system:export
-```
 
+audit:view, system:import, system:export
+
+```text
 ### Default Roles (3 core)
+
 ```python
 # Admin role: All 25 permissions
+
 admin = Role(name="admin", description="System administrator")
 
 # Teacher role: 11 permissions
+
 teacher_perms = [
     "students:view", "students:edit",
     "courses:view",
@@ -320,18 +346,20 @@ teacher_perms = [
 ]
 
 # Viewer role: 7 permissions
+
 viewer_perms = [
     "students:view", "courses:view", "grades:view",
     "attendance:view", "enrollments:view",
     "reports:view", "analytics:view"
 ]
-```
 
+```text
 ---
 
 ## 🔧 Migration Plan
 
 ### Phase 1: Seeding (Week 1 - Jan 27-31)
+
 1. ✅ Create tables (already exists via models.py)
 2. 🔜 Seed 25 permissions via `backend/seed_permissions.py`
 3. 🔜 Create 3 default roles (admin, teacher, viewer)
@@ -341,12 +369,14 @@ viewer_perms = [
 **Script**: `backend/ops/seed_rbac_data.py` (to be created)
 
 ### Phase 2: Integration (Week 2 - Feb 3-7)
+
 1. Update `@require_permission()` decorator to use new tables
 2. Refactor all admin endpoints to check permissions
 3. Maintain backward compatibility with legacy User.role
 4. Add permission checks to 148 endpoints
 
 ### Phase 3: UI (Week 3 - Feb 10-14)
+
 1. Build permission management API
 2. Create admin UI for role/permission assignment
 3. Add permission indicators in frontend
@@ -356,12 +386,14 @@ viewer_perms = [
 ## 📋 Open Questions & Decisions
 
 ### ✅ Resolved
+
 - **Multi-role support**: Users can have multiple roles via UserRole
 - **Direct permissions**: UserPermission allows exceptions to role-based access
 - **Expiration**: UserPermission supports time-limited access via expires_at
 - **Resource/action split**: Permission table splits key into resource+action for flexible querying
 
 ### ❓ Pending
+
 - **Role hierarchy**: Should admin inherit teacher permissions? (Current: No hierarchy, explicit assignments)
 - **Permission caching**: Cache user permissions in Redis? (Current: Query on each request)
 - **Audit trail**: Log permission changes? (Current: No, but can add via AuditLog)
@@ -389,3 +421,4 @@ viewer_perms = [
 1. Create seeding script (Task 4 prerequisite)
 2. Design `@require_permission()` decorator (Task 4)
 3. Plan migration from User.role to UserRole table
+

@@ -39,18 +39,21 @@ This feature adds **real-time WebSocket-based notifications** to the Student Man
 ## Test Results
 
 ### ✅ Backend Unit Tests
+
 - **File:** `backend/tests/test_notifications_router.py`
 - **Tests:** 35/35 PASSING (100%)
 - **Coverage:** Endpoints, authentication, broadcast, preferences, storage
 - **Duration:** ~2.8 seconds
 
 ### ✅ Frontend Unit Tests
+
 - **File:** `frontend/src/services/__tests__/notificationWebSocket.test.ts`
 - **Tests:** 12/12 PASSING (100%)
 - **Coverage:** Connection, reconnection, message handling, cleanup
 - **Duration:** Instant
 
 ### ⚠️ E2E Tests (Infrastructure Issues Only)
+
 - **File:** `frontend/tests/e2e/notifications.spec.ts`
 - **Scenarios:** 14 comprehensive test cases
 - **Results:** 16/75 PASSING (21%)
@@ -109,7 +112,7 @@ This feature adds **real-time WebSocket-based notifications** to the Student Man
 
 ## Integration Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
 │ User App                                        │
 │ ┌─────────────────────────────────────────────┐ │
@@ -158,8 +161,8 @@ This feature adds **real-time WebSocket-based notifications** to the Student Man
 │ │ └─ notification table with soft-delete      │ │
 │ └─────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────┘
-```
 
+```text
 ---
 
 ## Testing Strategy Validation
@@ -311,3 +314,4 @@ The feature can be **merged to main immediately** and deployed to production. E2
 **Prepared by:** GitHub Copilot
 **Date:** January 5, 2026
 **Confidence Level:** 🟢 **HIGH** - Ready for production
+

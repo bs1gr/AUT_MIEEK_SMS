@@ -36,7 +36,8 @@ All required documents have been created and are ready:
 ## 🎯 Your Reading Plan (Tonight)
 
 ### Option A: Full Reading (50 minutes)
-```
+
+```text
 Time    Document                          Duration
 ────────────────────────────────────────────────
 08:00   Read SOLO_QUICK_START.md          15 min
@@ -44,27 +45,29 @@ Time    Document                          Duration
 08:25   Read SOLO_PROJECT_NOTICE.md       15 min
 08:40   Read SOLO_SUMMARY.md              10 min
 08:50   ✅ READY - Get coffee + relax
-```
 
+```text
 ### Option B: Quick Reading (30 minutes)
-```
+
+```text
 Time    Document                          Duration
 ────────────────────────────────────────────────
 08:00   Read SOLO_QUICK_START.md          15 min
 08:15   Read SOLO_DEPLOYMENT_CHECKLIST.md 15 min
 08:30   ✅ READY - You know enough!
         (Refer to other docs during deployment)
-```
 
+```text
 ### Option C: Tomorrow Morning Only
-```
+
+```text
 Time    Document                          Duration
 ────────────────────────────────────────────────
 07:45   Quick skim SOLO_QUICK_START.md    10 min
         (Just before deployment starts)
 08:00   Follow SOLO_DEPLOYMENT_CHECKLIST  As you go
-```
 
+```text
 **Recommendation**: Option A (full reading) gives you most confidence. Option B is also solid.
 
 ---
@@ -77,29 +80,34 @@ Run these commands TONIGHT to verify your system is ready:
 
 ```powershell
 # Check 1: Git status
+
 git status
 # Expected: "nothing to commit, working tree clean"
 
 # Check 2: Docker running
+
 docker ps
 # Expected: Shows container list (may be empty)
 
 # Check 3: Can run docker commands
+
 docker images
 # Expected: Shows image list including node:*, python:*, etc.
 
 # Check 4: Port 8080 available
+
 netstat -ano | findstr ":8080"
 # Expected: No results (port is free)
 
 # Check 5: Environment files exist
+
 Test-Path "backend/.env"
 Test-Path "frontend/.env"
 # Expected: Both return True
 
 # All checks pass? ✅ You're technically ready!
-```
 
+```text
 ---
 
 ## ✅ Pre-Deployment Readiness Checklist
@@ -107,12 +115,14 @@ Test-Path "frontend/.env"
 Before you sleep tonight, complete this checklist:
 
 ### Documentation Reading
+
 - [ ] Started reading SOLO_QUICK_START.md (or completed it)
 - [ ] Have SOLO_DEPLOYMENT_CHECKLIST.md bookmarked
 - [ ] Know where to find troubleshooting guide
 - [ ] Understand your timeline (08:00-11:00 UTC)
 
 ### Technical Preparation
+
 - [ ] Ran git status (clean repo)
 - [ ] Ran docker ps (Docker works)
 - [ ] Verified environment files exist
@@ -120,6 +130,7 @@ Before you sleep tonight, complete this checklist:
 - [ ] Downloaded/printed all documents you'll need
 
 ### Personal Preparation
+
 - [ ] Calendar cleared for Jan 8, 08:00-11:00 UTC
 - [ ] Phone will be on silent during deployment
 - [ ] Coffee/tea/water ready for tomorrow morning
@@ -128,6 +139,7 @@ Before you sleep tonight, complete this checklist:
 - [ ] Reviewed success criteria (you understand what "done" looks like)
 
 ### Mental Preparation
+
 - [ ] Understand you have full documentation
 - [ ] Know emergency rollback is 5 minutes
 - [ ] Confident in procedures (they're proven)
@@ -140,7 +152,7 @@ Before you sleep tonight, complete this checklist:
 
 ## 📊 Deployment Day Timeline (Jan 8)
 
-```
+```text
 TIME        PHASE                    WHAT'S HAPPENING        DOCUMENT TO USE
 ──────────────────────────────────────────────────────────────────────────────
 07:45       Wake up                  Get coffee              (self-explanatory)
@@ -151,8 +163,8 @@ TIME        PHASE                    WHAT'S HAPPENING        DOCUMENT TO USE
 10:00       E2E tests                Automated tests         (npx command)
 10:15       Review                   Check all results       CHECKLIST.md Phase 6
 11:00       ✅ DONE                  Take a break!           Relax 😊
-```
 
+```text
 **You have everything you need for every phase above!**
 
 ---
@@ -318,3 +330,4 @@ Everything is ready. You have:
 **Readiness**: ✅ CONFIRMED
 **Confidence**: 95%+
 **You**: READY 🚀
+

@@ -30,12 +30,14 @@ The Student Management System now features a fully-functional real-time notifica
 ### User-Facing Features
 
 #### Notification Bell (🔔)
+
 - **Location**: Top-right corner of navigation bar
 - **Shows**: Unread notification count
 - **Click to**: Open notification dropdown
 - **Real-time updates**: New notifications appear instantly
 
 #### Notification Dropdown
+
 - **Recent notifications**: Last 20 shown (newest first)
 - **Mark as read**: Individual or bulk
 - **Delete notifications**: Keep your list clean
@@ -43,6 +45,7 @@ The Student Management System now features a fully-functional real-time notifica
 - **Responsive design**: Works on mobile, tablet, desktop
 
 #### Notification Types Supported
+
 | Type | Description | Email | Real-Time |
 |------|-------------|-------|-----------|
 | `grade_posted` | Grade entered for course | ✅ | ✅ |
@@ -55,6 +58,7 @@ The Student Management System now features a fully-functional real-time notifica
 | `system_alert` | System event | ✅ | ✅ |
 
 #### User Preferences
+
 - **Enable/disable per type**: Control what you see
 - **Email digests**: Daily or weekly summaries
 - **Quiet hours**: Silence notifications during specific times
@@ -64,6 +68,7 @@ The Student Management System now features a fully-functional real-time notifica
 ### Technical Features
 
 #### Backend Infrastructure
+
 - **WebSocket Server**: Python-socketio based
 - **Connection Manager**: Auto-reconnect, cleanup
 - **Database Models**: Notification + NotificationPreference
@@ -73,6 +78,7 @@ The Student Management System now features a fully-functional real-time notifica
 - **Error Handling**: Graceful degradation, logging
 
 #### Frontend Components
+
 - **NotificationBell**: Bell icon with badge
 - **NotificationDropdown**: Dropdown menu interface
 - **NotificationItem**: Individual notification card
@@ -82,6 +88,7 @@ The Student Management System now features a fully-functional real-time notifica
 - **Responsive Design**: Mobile-optimized UI
 
 #### Email Integration
+
 - **SMTP Support**: Gmail, Office 365, etc.
 - **Template System**: Professional email formatting
 - **Batch Sending**: Efficient delivery
@@ -90,6 +97,7 @@ The Student Management System now features a fully-functional real-time notifica
 - **Failsafe**: Queue if service temporarily unavailable
 
 #### Admin Features
+
 - **System Dashboard**: Monitor notifications in real-time
 - **Health Checks**: Automated service monitoring
 - **Audit Logs**: All changes tracked and logged
@@ -133,6 +141,7 @@ All existing functionality continues to work unchanged:
 ## Migration Guide ($11.17.2 → $11.17.2)
 
 ### For Users
+
 **No action required**. Notifications are opt-in:
 1. Log in normally
 2. See notification bell in top-right
@@ -140,6 +149,7 @@ All existing functionality continues to work unchanged:
 4. Enable notifications you want
 
 ### For Administrators
+
 **Recommended setup**:
 1. Review `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md`
 2. Configure email settings (if desired)
@@ -148,6 +158,7 @@ All existing functionality continues to work unchanged:
 5. Monitor health dashboard
 
 ### For Developers
+
 **Integration points**:
 - WebSocket endpoint: `wss://hostname/socket.io`
 - REST API: `/api/v1/notifications/*`
@@ -185,36 +196,44 @@ To enable:
 ## Installation & Deployment
 
 ### Docker Deployment (Recommended)
+
 ```bash
 # Pull latest image
+
 docker pull bs1gr/sms:$11.17.2
 
 # Or build locally
+
 cd /path/to/sms
 ./DOCKER.ps1 -Start
-```
 
+```text
 ### Native Development
+
 ```bash
 # Start development environment
+
 ./NATIVE.ps1 -Start
 
 # Backend runs on http://localhost:8000
-# Frontend runs on http://localhost:5173
-```
 
+# Frontend runs on http://localhost:5173
+
+```text
 ### Windows Installer
+
 Download: `SMS_Installer_$11.17.2.exe` from releases
 - Installs $11.17.2
 - Includes all dependencies
 - One-click setup
 
 ### Database Migration
+
 ```bash
 cd backend
 alembic upgrade head
-```
 
+```text
 No data loss. Migration adds new tables (Notification, NotificationPreference).
 
 ---
@@ -222,14 +241,17 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 ## Documentation
 
 ### For Users
+
 - [Notifications User Guide](../user/NOTIFICATIONS_USER_GUIDE.md) - Full user documentation
 - [Settings Reference](../user/SETTINGS_REFERENCE.md) - Configuration options
 
 ### For Administrators
+
 - [Notifications Admin Guide](../admin/NOTIFICATIONS_ADMIN_GUIDE.md) - Admin documentation
 - [Health Monitoring](../admin/HEALTH_MONITORING.md) - Monitor system health
 
 ### For Developers
+
 - [API Documentation](../../backend/API_PERMISSIONS_REFERENCE.md#notifications) - REST API details
 - [WebSocket Events](../../backend/WEBSOCKET_REFERENCE.md) - WebSocket protocol
 - [Architecture](../development/ARCHITECTURE.md#notifications) - System design
@@ -239,6 +261,7 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 ## Test Coverage
 
 ### Backend Tests
+
 - ✅ 370/370 passing
 - ✅ Notification service: 45+ tests
 - ✅ WebSocket connection: 28+ tests
@@ -246,6 +269,7 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 - ✅ API endpoints: 50+ tests
 
 ### Frontend Tests
+
 - ✅ 1,249/1,249 passing
 - ✅ NotificationBell: 27 tests
 - ✅ NotificationDropdown: 25 tests
@@ -253,12 +277,14 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 - ✅ useNotifications hook: 35 tests
 
 ### E2E Tests
+
 - ✅ 19/19 critical path tests
 - ✅ Notification delivery: 3 tests
 - ✅ User preferences: 2 tests
 - ✅ Admin operations: 2 tests
 
 ### Coverage
+
 - **Backend**: 93% code coverage
 - **Frontend**: 91% component coverage
 - **Overall**: 93% combined
@@ -268,18 +294,21 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 ## Performance Metrics
 
 ### Delivery Performance
+
 - **Real-time delivery**: <100ms average
 - **99th percentile**: <500ms
 - **Uptime**: 99.9%+ (measured over 7 days)
 - **Error rate**: <0.1%
 
 ### Scalability
+
 - **Concurrent connections**: 1000+ supported
 - **Messages/minute**: 10,000+ capacity
 - **Database queries**: Optimized with indexing
 - **Memory footprint**: <50MB per 100 connections
 
 ### User Experience
+
 - **Page load time**: <2s (with notifications)
 - **Notification appearance**: <200ms
 - **Dropdown open time**: <100ms
@@ -290,15 +319,16 @@ No data loss. Migration adds new tables (Notification, NotificationPreference).
 ## Upgrade Path
 
 From $11.17.2:
-```
+
+```text
 1. Download $11.17.1
 2. Run database migration (automatic on startup)
 3. Restart application
 4. Test notifications in browser
 5. Configure preferences
 6. Monitor health dashboard
-```
 
+```text
 **Time required**: 5-10 minutes
 **Downtime**: <2 minutes (during restart)
 **Data loss**: None (migration is additive)
@@ -308,18 +338,21 @@ From $11.17.2:
 ## Support & Resources
 
 ### Getting Help
+
 - 📖 User Guide: `docs/user/NOTIFICATIONS_USER_GUIDE.md`
 - 🔧 Admin Guide: `docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md`
 - 💬 Issues: GitHub Issues (tag: `notifications`)
 - 📧 Email: support@school.edu
 
 ### Feedback
+
 Share feedback about $11.17.1:
 1. GitHub Discussions
 2. Email to administrator
 3. In-app feedback form (coming soon)
 
 ### Bug Reports
+
 Found a bug?
 1. Check known issues above
 2. Search GitHub issues
@@ -334,12 +367,14 @@ Found a bug?
 ## What's Next
 
 ### $11.17.1 (Planned Q1 2026)
+
 - Email template customization
 - Advanced filtering options
 - Performance optimizations
 - Bug fixes from user feedback
 
 ### $11.17.1 (Planned Q2 2026)
+
 - Mobile push notifications
 - Webhook integrations
 - Notification analytics
@@ -377,3 +412,4 @@ SMS is released under the [MIT License](../../LICENSE).
 **Download $11.17.1** from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.1)
 
 **Questions?** See [Frequently Asked Questions](./FAQ_$11.17.1.md) or contact support.
+

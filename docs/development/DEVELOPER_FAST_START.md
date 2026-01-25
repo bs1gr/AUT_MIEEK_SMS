@@ -14,15 +14,17 @@ python -m venv .venv
 . .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements-dev.txt
-```
 
+```text
 1. Install and enable pre-commit hooks (recommended)
 
 ```powershell
 # from repository root
+
 pip install pre-commit
 pre-commit install
 # Run the hooks across the repo once (CI will also run pre-commit)
+
 pre-commit run --all-files
 
 Optional: install the repository-provided pre-commit sample hook which runs
@@ -35,24 +37,24 @@ PowerShell (Windows)
 
 ```powershell
 pwsh ./scripts/install-git-hooks.ps1
-```
 
+```text
 POSIX (macOS / Linux)
 
 ```bash
 ./scripts/install-git-hooks.sh
-```
 
-```
-
+```text
+```text
 1. Run tests locally
 
 ```powershell
 # activate backend venv (see above) then from repository root
+
 . .\backend\.venv\Scripts\Activate.ps1
 pytest -q
-```
 
+```text
 ## Notes
 
 - CI is configured to run `pre-commit` early in the backend job and will fail if hooks find issues.
@@ -60,3 +62,4 @@ pytest -q
 - For macOS/Linux, replace the Windows activate commands with `source backend/.venv/bin/activate`.
 
 If you'd like, I can also add a small PowerShell script under `scripts/` to automate the above steps for Windows developers.
+

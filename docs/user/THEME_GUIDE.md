@@ -68,8 +68,8 @@ shadow-[inset_4px_4px_8px_#bebebe,inset_-4px_-4px_8px_#ffffff]
 
 /* Dark mode variants */
 shadow-[8px_8px_16px_#0a0a0a,-8px_-8px_16px_#1a1a1a]
-```
 
+```text
 **Inspired by:** Dribbble neumorphic designs, Soft UI
 
 ---
@@ -152,8 +152,8 @@ export type ThemeVariant =
   | 'gradient'
   | 'modern-dark'
   | 'light-professional';
-```
 
+```text
 ### Theme Styles Object
 
 Each theme provides consistent styling for:
@@ -176,8 +176,8 @@ const theme = themeStyles[selectedTheme];
   <button className={theme.button}>Action</button>
   <input className={theme.input} />
 </div>
-```
 
+```text
 ## User Guide
 
 ### How to Switch Themes
@@ -225,8 +225,8 @@ export const themeStyles = {
     // ... other properties
   }
 };
-```
 
+```text
 ## Design Inspiration Sources
 
 1. **shadcn/ui** - Component architecture, color systems
@@ -254,3 +254,4 @@ Potential additions:
 
 **Last Updated:** November 13, 2025
 **Version:** 1.6.0+
+

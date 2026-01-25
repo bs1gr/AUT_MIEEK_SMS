@@ -26,33 +26,39 @@
 ## Immediate Next Steps (For You to Execute)
 
 ### STEP 1: Run Tests with Fixes (Policy-Compliant Method)
+
 ```powershell
 # Use the VS Code Task "Run frontend tests (vitest)"
+
 # OR run the batch runner:
 cd "d:\SMS\student-management-system"
 .\RUN_TESTS_BATCH.ps1
 
 # If you want just frontend tests with environment override:
+
 $env:SMS_ALLOW_DIRECT_VITEST = "1"
 cd frontend
 npm run test -- --run
-```
 
+```text
 **Expected Output**: Fresh test-results.log showing current pass/fail status
 
 ---
 
 ### STEP 2: Analyze Fresh Test Results
+
 Once tests complete, check:
 
 ```powershell
 # Show summary
+
 Get-Content "d:\SMS\student-management-system\frontend\test-results.log" | Select-String "passed|failed" -Context 2
 
 # Find specific tests we fixed
-Get-Content "d:\SMS\student-management-system\frontend\test-results.log" | Select-String "AdvancedFilters|SearchResults|AnalyticsDashboard|useAnalytics"
-```
 
+Get-Content "d:\SMS\student-management-system\frontend\test-results.log" | Select-String "AdvancedFilters|SearchResults|AnalyticsDashboard|useAnalytics"
+
+```text
 **Compare Against Baseline**:
 - Before: 56 failures
 - After: Should see significant reduction
@@ -60,6 +66,7 @@ Get-Content "d:\SMS\student-management-system\frontend\test-results.log" | Selec
 ---
 
 ### STEP 3: Identify Remaining Failures
+
 If tests still show failures, read `VITEST_REMAINING_FIXES_JAN20.md` which documents:
 - 7 specific identified remaining failures
 - Root causes for each
@@ -70,26 +77,31 @@ If tests still show failures, read `VITEST_REMAINING_FIXES_JAN20.md` which docum
 ## Summary of Fixes Applied (Ready for Verification)
 
 ### 1. Import Paths ✅ (useAnalytics)
+
 - **Change**: `../../../api/api` → `../../../../api/api`
 - **Why**: Test file is 4 directory levels deep
 - **Expected Result**: Import resolution errors eliminated
 
 ### 2. Button Selectors ✅ (AdvancedFilters)
+
 - **Change**: Ambiguous regex `/filter|advanced/i` → specific `/advanced filters/i`
 - **Why**: Multiple buttons matched, now matches exactly one
 - **Expected Result**: "Found multiple elements" errors eliminated
 
 ### 3. Panel Visibility ✅ (AdvancedFilters)
+
 - **Change**: `!screen.getByRole('region')` → `screen.queryByRole('region')`
 - **Why**: getByRole() throws, queryByRole() returns null safely for optional elements
 - **Expected Result**: Optional element checks now safe
 
 ### 4. Pagination Pattern ✅ (SearchResults)
+
 - **Change**: `/page 2|2\/|results 11-20/i` → `/page 3/i`
 - **Why**: Component renders "Page 3" (currentPage + 1), test pattern should match
 - **Expected Result**: Pagination assertions now correct
 
 ### 5. i18n Rendering ✅ (AnalyticsDashboard)
+
 - **Changes**:
   - Added missing translation: `"analytics.error_title": "Error Loading Analytics"`
   - Query changes: `getByText("Error")` → `getByText("Error Loading Analytics")`
@@ -102,11 +114,13 @@ If tests still show failures, read `VITEST_REMAINING_FIXES_JAN20.md` which docum
 ## Documentation Completed
 
 ### Files Created:
+
 1. **SESSION_SUMMARY_JAN20.md** - Comprehensive session summary with all technical details
 2. **VITEST_REMAINING_FIXES_JAN20.md** - 7 specific remaining failures with fix approaches
 3. **NEXT_STEPS_FOR_USER.md** - This file (quick reference for you)
 
 ### Reference for Future Fixes:
+
 All documentation includes:
 - Root cause analysis for each failure category
 - Code patterns that work correctly
@@ -128,16 +142,19 @@ All documentation includes:
 ## Remaining Work Categories (7 Known Issues)
 
 ### HIGH Priority (2 issues):
+
 1. **AdvancedFilters Panel Visibility** - Verify fix from queryByRole changes
 2. **SearchResults Error Icon** - SVG element not rendering in error state
 
 ### MEDIUM Priority (4 issues):
+
 1. **useSearch - Suggestion Errors** - Mock setup for error handling
 2. **useSearch - Load More Search** - Data mismatch in results
 3. **useSearch - Load More Filters** - Result count mismatch
 4. **useSearch - Cleanup Spy** - setTimeout spy not capturing calls
 
 ### LOW Priority (~10-15 issues):
+
 - Additional component tests based on new test run output
 
 ---
@@ -145,11 +162,13 @@ All documentation includes:
 ## Key Learning Points (For Future Reference)
 
 ### Pattern 1: Relative Import Paths
+
 Count directory depth: features(1) → analytics(2) → hooks(3) → __tests__(4)
 - To reach `api/api.js`: Need 4 parent traversals = `../../../../api/api`
 - Formula: Each directory level = one `../`
 
 ### Pattern 2: i18n in Tests
+
 ```typescript
 const Wrapper = ({ children }) => (
   <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
@@ -159,13 +178,15 @@ render(component, { wrapper: Wrapper });
 // Query for TRANSLATED TEXT, not i18n keys
 expect(screen.getByText("Refresh")).toBeInTheDocument();  // ✅
 expect(screen.getByText("common.refresh")).toBeInTheDocument();  // ❌
-```
 
+```text
 ### Pattern 3: Query Method Selection
+
 - `getByRole()`: For required elements (throws if not found)
 - `queryByRole()`: For optional elements (returns null if not found)
 
 ### Pattern 4: Button Selectors
+
 - **Don't**: Use ambiguous regex with alternatives `/filter|advanced/i`
 - **Do**: Use specific translated text `/advanced filters/i`
 
@@ -195,6 +216,7 @@ expect(screen.getByText("common.refresh")).toBeInTheDocument();  // ❌
 - COMMIT_READY validation available if needed
 
 **To Commit**:
+
 ```powershell
 git add .
 git commit -m "test: Apply systematic vitest fixes (17 changes across 5 files)
@@ -209,8 +231,8 @@ git commit -m "test: Apply systematic vitest fixes (17 changes across 5 files)
 Fixes address ~46 of 56 identified test failures (82%)
 Estimated improvement: 96.4% → ~99% pass rate
 Remaining work documented in VITEST_REMAINING_FIXES_JAN20.md"
-```
 
+```text
 ---
 
 ## Success Criteria
@@ -257,3 +279,4 @@ If you encounter issues:
 **Work Duration**: ~4 hours analysis + fixes + documentation
 **Target**: 100% test pass rate (1543/1543 tests)
 **Status**: 96.4% → 99% estimated (ready for your validation)
+

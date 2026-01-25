@@ -12,6 +12,7 @@
 **Main Objective**: Complete all design and planning work so Week 1 (Jan 27) can start with implementation immediately
 
 ### What We Can Do Now (Before Jan 27)
+
 1. ✅ Design permission matrix (no code changes)
 2. ✅ Design database schema (no migrations yet)
 3. ✅ Review existing codebase patterns
@@ -20,6 +21,7 @@
 6. ✅ Document migration strategy
 
 ### What We'll Do During Phase 2 (Jan 27+)
+
 - Database migrations
 - Code implementation
 - Integration testing
@@ -30,6 +32,7 @@
 ## 📋 Week 0 Task List (Jan 8-26)
 
 ### Task 1: Permission Matrix Design (4 hours)
+
 **GitHub Issue**: #116
 **Owner**: Tech Lead / Backend Dev
 **Timeline**: Jan 8-10
@@ -50,21 +53,24 @@
 - Default role assignments (admin, teacher, viewer)
 
 **Template** (to create):
+
 ```markdown
 # Permission Matrix
 
 ## Student Management Permissions
+
 | Permission | Description | Endpoints | Admin | Teacher | Viewer |
 |------------|-------------|-----------|-------|---------|--------|
 | students:view | View student list and details | GET /students, GET /students/{id} | ✅ | ✅ | ✅ |
 | students:create | Create new students | POST /students | ✅ | ❌ | ❌ |
 | students:edit | Update student information | PUT /students/{id} | ✅ | ⚠️ Limited | ❌ |
 | students:delete | Soft-delete students | DELETE /students/{id} | ✅ | ❌ | ❌ |
-```
 
+```text
 ---
 
 ### Task 2: Database Schema Design (6 hours)
+
 **GitHub Issue**: #117
 **Owner**: Backend Dev
 **Timeline**: Jan 10-12
@@ -80,8 +86,10 @@
 6. [ ] Write migration plan (upgrade/downgrade steps)
 
 **Schema Design** (to document):
+
 ```python
 # permissions table
+
 class Permission(Base):
     __tablename__ = "permissions"
 
@@ -94,6 +102,7 @@ class Permission(Base):
     roles = relationship("Role", secondary="role_permissions", back_populates="permissions")
 
 # role_permissions junction table
+
 class RolePermission(Base):
     __tablename__ = "role_permissions"
 
@@ -105,8 +114,8 @@ class RolePermission(Base):
     __table_args__ = (
         Index("ix_role_permission_unique", "role_id", "permission_id", unique=True),
     )
-```
 
+```text
 **Deliverable**: `docs/admin/RBAC_DESIGN.md` with:
 - ER diagram
 - Table schemas
@@ -116,6 +125,7 @@ class RolePermission(Base):
 ---
 
 ### Task 3: Review Existing Codebase (2 hours)
+
 **Timeline**: Jan 12-14
 
 **Objective**: Understand current auth patterns
@@ -128,8 +138,10 @@ class RolePermission(Base):
 5. [ ] Identify migration path from role-based to permission-based
 
 **Audit Checklist**:
+
 ```powershell
 # Count endpoints by router
+
 Get-ChildItem backend/routers/routers_*.py | ForEach-Object {
     $file = $_.Name
     $count = (Select-String -Path $_.FullName -Pattern "@router\.(get|post|put|delete)").Count
@@ -137,14 +149,16 @@ Get-ChildItem backend/routers/routers_*.py | ForEach-Object {
 }
 
 # Find all role checks
-Select-String -Path backend/routers/*.py -Pattern "require_role|optional_require_role"
-```
 
+Select-String -Path backend/routers/*.py -Pattern "require_role|optional_require_role"
+
+```text
 **Deliverable**: Endpoint audit spreadsheet
 
 ---
 
 ### Task 4: Permission Check Utilities Design (4 hours)
+
 **GitHub Issue**: #118
 **Timeline**: Jan 14-16
 
@@ -158,8 +172,10 @@ Select-String -Path backend/routers/*.py -Pattern "require_role|optional_require
 5. [ ] Plan error handling (403 Forbidden with permission name)
 
 **Decorator Template**:
+
 ```python
 # backend/rbac.py (to create)
+
 from functools import wraps
 from fastapi import HTTPException, Depends
 from backend.dependencies import get_current_user
@@ -189,13 +205,14 @@ def has_permission(user, permission_name: str) -> bool:
     """Check if user has a specific permission."""
     # Will implement after database changes
     pass
-```
 
+```text
 **Deliverable**: `backend/rbac.py` template with TODOs
 
 ---
 
 ### Task 5: Unit Test Templates (3 hours)
+
 **Timeline**: Jan 16-18
 
 **Objective**: Pre-write test cases for RBAC
@@ -208,11 +225,14 @@ def has_permission(user, permission_name: str) -> bool:
     - `test_multiple_permissions_or_logic()`
     - `test_multiple_permissions_and_logic()`
     - `test_permission_decorator_on_endpoint()`
+
 3. [x] Create placeholders for fixtures (db/client) to be finalized during implementation
 
 **Test Template**:
+
 ```python
 # backend/tests/test_rbac.py (created as backend/tests/test_rbac_templates.py)
+
 import pytest
 from backend.rbac import require_permission, has_permission
 
@@ -227,13 +247,14 @@ def test_permission_check_denies_unauthorized_user():
     pass
 
 # ... 40+ test cases
-```
 
+```text
 **Deliverable**: Complete test file with 40+ test stubs (`backend/tests/test_rbac_templates.py`, all marked skip for Phase 2)
 
 ---
 
 ### Task 6: Migration Strategy Document (2 hours)
+
 **Timeline**: Jan 18-20
 
 **Objective**: Plan the migration from role-based to permission-based
@@ -245,36 +266,42 @@ def test_permission_check_denies_unauthorized_user():
 4. [ ] Document impact on existing deployments
 
 **Migration Strategy**:
+
 ```markdown
 # RBAC Migration Strategy
 
 ## Phase 1: Database Changes (Week 1)
+
 1. Add permissions + role_permissions tables
 2. Seed default permissions (15+)
 3. Assign all permissions to admin role
 4. Assign read-only permissions to teacher role
 
 ## Phase 2: Dual Mode (Week 2)
+
 1. Keep existing role checks working
 2. Add permission checks alongside role checks
 3. Test both systems in parallel
 
 ## Phase 3: Cutover (Week 3)
+
 1. Remove old role checks
 2. Full permission-based access control
 3. Update documentation
 
 ## Rollback Plan
+
 - Keep old role-based code commented
 - Database migration has downgrade() function
 - Can revert in <1 hour if issues found
-```
 
+```text
 **Deliverable**: `docs/deployment/RBAC_MIGRATION_GUIDE.md`
 
 ---
 
 ### Task 7: Documentation Planning (2 hours)
+
 **Timeline**: Jan 20-22
 
 **Objective**: Plan all documentation updates needed
@@ -288,6 +315,7 @@ def test_permission_check_denies_unauthorized_user():
     - Migration: `docs/deployment/RBAC_MIGRATION_GUIDE.md` (sync with seeding + rollout)
     - Testing: `docs/development/TESTING_GUIDE.md` (add RBAC section + how to run new tests)
     - Release: `.github/pull_request_template/PHASE2_PR_GUIDE.md` (add permission checklist)
+
 2. [x] Create documentation templates
 3. [x] Assign owners for each doc (Tech Lead = architecture + migration, Backend Dev = API + dev guide, Frontend Dev = admin UI, QA = testing guide, Release Manager = PR template touch-up)
 
@@ -296,6 +324,7 @@ def test_permission_check_denies_unauthorized_user():
 ---
 
 ### Task 8: Review and Refinement (2 hours)
+
 **Timeline**: Jan 22-26
 
 **Objective**: Final review before Phase 2 kickoff
@@ -350,6 +379,7 @@ By January 26, we should have:
 ## 📝 Daily Log
 
 ### Jan 8, 2026
+
 - ✅ Created Phase 2 prep branch (`feature/phase2-rbac-prep`)
 - ✅ Reviewed Phase 2 plan (PHASE2_CONSOLIDATED_PLAN.md, UNIFIED_WORK_PLAN.md)
 - ✅ Created this preparation guide (PHASE2_PREP_GUIDE.md)
@@ -361,6 +391,7 @@ By January 26, we should have:
 - **Next**: Task 2 (Database Schema Design) - Target Jan 9-12
 
 ### Jan 9, 2026
+
 - Discovered schema already implemented in [backend/models.py](../../backend/models.py)
 - Documented 6 tables: Permission, Role, RolePermission, UserRole, UserPermission, User
 - Created [docs/admin/RBAC_DATABASE_SCHEMA.md](../admin/RBAC_DATABASE_SCHEMA.md)
@@ -376,6 +407,7 @@ By January 26, we should have:
 - **Next**: Task 4 (Decorator Design), Task 6 (Migration Strategy), or Task 7 (Docs Planning)
 
 ### Jan 10, 2026
+
 - ✅ **Completed Task 4: Decorator Design** (4 hours)
   - Refactored @require_permission / @require_any_permission / @require_all_permissions to use FastAPI DI
   - Decorators now inject request, db (Depends(get_db)), and current_user (Depends(get_current_user))
@@ -385,6 +417,7 @@ By January 26, we should have:
 - **Next**: Task 6 (Migration Strategy) or Task 7 (Docs Planning)
 
 ### Jan 11, 2026
+
 - ✅ **Completed Task 6: Migration Strategy** (2 hours)
   - **Seeding Plan** (`backend/ops/seed_rbac_data.py`):
     - Seed 25 permissions (PERMISSION_MATRIX.md)
@@ -392,6 +425,7 @@ By January 26, we should have:
     - Assign permissions: admin=25, teacher=11, viewer=7
     - Idempotent upsert by permission.key and role.name
   - **Rollout Steps**:
+
         1) Run seed script (native + docker) and verify counts (25 perms, 3 roles, 43 role-perms)
         2) Smoke-check has_permission() for admin/teacher/viewer
         3) Migrate endpoints router-by-router to @require_permission
@@ -402,6 +436,7 @@ By January 26, we should have:
 - **Next**: Task 7 (Documentation Plan) or start Task 5 (Test Templates)
 
 ### Jan 12, 2026
+
 - ✅ **Completed Task 5: Unit Test Templates** (3 hours)
   - Added `backend/tests/test_rbac_templates.py` with 45 skipped stubs covering permission resolution, decorator any/all logic, self-access, seeding idempotency, cache invalidation, and standardized error payloads
   - Placeholders rely on existing `db`/`client` fixtures; ready to implement once Phase 2 begins
@@ -409,6 +444,7 @@ By January 26, we should have:
 - **Next**: Task 7 (Documentation Plan) then Task 8 (Review & Refinement)
 
 ### Jan 13, 2026
+
 - ✅ **Completed Task 7: Documentation Planning** (2 hours)
   - Document updates scoped: architecture, API permissions, admin UI guide, dev RBAC guide, migration guide sync, testing guide RBAC section, PR template checklist
   - Owners assigned: Tech Lead (architecture/migration), Backend Dev (API + dev guide), Frontend Dev (admin UI), QA (testing guide), Release Manager (PR template)
@@ -423,3 +459,4 @@ By January 26, we should have:
 **Last Updated**: January 11, 2026 10:00
 **Next Review**: January 12, 2026 (after Task 5/7 kickoff)
 **Phase 2 Kickoff**: January 27, 2026
+

@@ -50,18 +50,18 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 
 ### **You're picking up work for the first time:**
 
-```
+```text
 1. Open: docs/ACTIVE_WORK_STATUS.md
 2. Look at "📋 Active Work Items"
 3. Find the item with Status = "🟥 NOT STARTED" and highest Priority
 4. Read its "Next Action" section
 5. Execute that action
 6. Update ACTIVE_WORK_STATUS with your progress
-```
 
+```text
 ### **You're continuing from yesterday:**
 
-```
+```text
 1. Open: docs/ACTIVE_WORK_STATUS.md
 2. Check the "Updated" timestamp at the top
 3. If older than your work day, review all "IN PROGRESS" items
@@ -69,11 +69,11 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 5. Pick one IN PROGRESS item
 6. Execute its "Next Action"
 7. Update ACTIVE_WORK_STATUS when done
-```
 
+```text
 ### **You're a release manager starting Phase 1:**
 
-```
+```text
 1. Open: docs/releases/RELEASE_PREPARATION_$11.15.2.md
 2. Jump to: "Phase 1: Infrastructure Improvements"
 3. Verify PHASE1-001, 002, 003 are marked done in ACTIVE_WORK_STATUS
@@ -82,9 +82,10 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
    - Assign owners
    - Update ACTIVE_WORK_STATUS with issue links
    - Update timeline with sprint schedule
-5. Announce start to team
-```
 
+5. Announce start to team
+
+```text
 ---
 
 ## 🔗 Key Files (Read in This Order)
@@ -119,13 +120,14 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 5. Mention the blocker in that work item
 
 Example:
-```
+
+```text
 Blocker: "Not clear if we should commit to main or feature branch"
 Owner: "Agent-Copilot, 2026-01-05 18:00 UTC"
 Related: PHASE1-002
 Escalation: Tech lead must clarify branch strategy
-```
 
+```text
 ---
 
 ## 📝 Template: Updating ACTIVE_WORK_STATUS
@@ -141,10 +143,11 @@ BLOCKER: [If blocked, describe]
 NEXT ACTION: [For the next agent]
 COMMIT: [If code changes, link to commit hash]
 LINK: [Link to PR, issue, or docs]
-```
 
+```text
 **Example**:
-```
+
+```text
 UPDATED: 2026-01-05 17:50 UTC by Agent-Copilot
 WORKED ON: PHASE1-002 (Commit type-safety changes)
 STATUS: in-progress
@@ -153,8 +156,8 @@ BLOCKER: None
 NEXT ACTION: git add/commit/push (see ACTIVE_WORK_STATUS.md PHASE1-002)
 COMMIT: (pending)
 LINK: docs/ACTIVE_WORK_STATUS.md#phase1-002
-```
 
+```text
 ---
 
 ## 🎯 Your Checklist (Use Every Time)
@@ -204,3 +207,4 @@ You now know:
 4. How to unblock yourself
 
 Go to [docs/ACTIVE_WORK_STATUS.md](./ACTIVE_WORK_STATUS.md) and pick your next task. 🚀
+

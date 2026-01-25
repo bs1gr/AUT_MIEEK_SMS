@@ -10,6 +10,7 @@ Added `RATE_LIMIT_TEACHER_IMPORT` (5000/min) for bulk teacher data imports, repl
 
 ```python
 # backend/rate_limiting.py
+
 _DEFAULT_TEACHER_IMPORT = int(os.environ.get("RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE", 5000))
 RATE_LIMIT_TEACHER_IMPORT = f"{_DEFAULT_TEACHER_IMPORT}/minute"
 
@@ -20,12 +21,13 @@ DEFAULTS = {
     "auth": 50,
     "teacher_import": 5000  # NEW
 }
-```
 
+```text
 ### Import Endpoints
 
 ```python
 # backend/routers/routers_imports.py
+
 @router.post("/courses")
 @limiter.limit(RATE_LIMIT_TEACHER_IMPORT)  # Was: RATE_LIMIT_HEAVY
 def import_courses(...):
@@ -35,27 +37,30 @@ def import_courses(...):
 @limiter.limit(RATE_LIMIT_TEACHER_IMPORT)  # Was: RATE_LIMIT_HEAVY
 def import_students(...):
     """83 requests per minute (5000/60)"""
-```
 
+```text
 ## Configuration
 
 ### Environment Variables
 
 ```powershell
 # Default (5000/min)
+
 RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE=5000
 
 # Development (higher)
+
 $env:RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE=10000
 .\NATIVE.ps1 -Start
 
 # Docker
+
 services:
   backend:
     environment:
       RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE: 5000
-```
 
+```text
 ## Comparison
 
 | Operation | Old Limit | New Limit | Increase |
@@ -68,12 +73,13 @@ services:
 
 ```powershell
 # Test with low limit
+
 $env:RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE=10
 .\NATIVE.ps1 -Start
 
 # Verify: After 10 requests/min, receive HTTP 429
-```
 
+```text
 ## Migration
 
 - No breaking changes
@@ -86,3 +92,4 @@ $env:RATE_LIMIT_TEACHER_IMPORT_PER_MINUTE=10
 - `backend/rate_limiting.py` - Rate limit configuration
 - `backend/routers/routers_imports.py` - Import endpoints
 - `backend/ENV_VARS.md` - Environment variables
+

@@ -36,8 +36,8 @@ This document provides a comprehensive audit of the suggested improvements from 
 Added:
   "vite-plugin-pwa": "^0.20.1"
   "@tanstack/react-virtual": "^3.6.0"
-```
 
+```text
 **Rationale:**
 
 - `vite-plugin-pwa`: Industry-standard Vite plugin for PWA generation and service worker management
@@ -86,8 +86,8 @@ VitePWA({
     cleanupOutdatedCaches: true
   }
 })
-```
 
+```text
 **Key Features:**
 
 - **Auto-update:** Service worker automatically checks for updates every minute
@@ -108,8 +108,8 @@ Added:
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="apple-mobile-web-app-title" content="SMS" />
 <meta name="description" content="..." />
-```
 
+```text
 **Benefits:**
 
 - Web app mode on iOS (fullscreen, home screen icon support)
@@ -127,8 +127,8 @@ Key Features:
 - User notification when updates available
 - Persistent storage request handling
 - Update application lifecycle management
-```
 
+```text
 **TypeScript Safety:**
 
 - Proper interface definitions for app update events
@@ -169,14 +169,16 @@ Generated complete PWA manifest with:
 
 ```bash
 # Development
+
 npm run dev
 # Open DevTools → Application tab → Manifest & Service Workers
 
 # Production Build
+
 npm run build
 # Service worker auto-registered at build time
-```
 
+```text
 **Offline Testing:**
 
 1. Open DevTools → Network tab
@@ -202,8 +204,8 @@ export function useVirtualScroll({
   itemHeight?: number,
   overscan?: number,
 }): { virtualizer, parentRef }
-```
 
+```text
 **Implementation Details:**
 
 - Uses `@tanstack/react-virtual` for optimized virtualization
@@ -220,8 +222,8 @@ export const VirtualScrollContainer = ({
   height = '600px',
   width = '100%',
 }: VirtualScrollContainerProps)
-```
 
+```text
 Provides styled wrapper with:
 
 - Configurable dimensions
@@ -260,8 +262,8 @@ function StudentList({ students }) {
     </VirtualScrollContainer>
   );
 }
-```
 
+```text
 #### Performance Metrics
 
 | Scenario | Without Virtual Scrolling | With Virtual Scrolling | Improvement |
@@ -333,6 +335,7 @@ Created comprehensive alert rules covering:
 
 ```yaml
 - alert: APIHealthCheckFailed
+
   expr: up{job="api"} == 0
   for: 2m
   labels:
@@ -342,8 +345,8 @@ Created comprehensive alert rules covering:
     summary: "API service is down"
     description: "API health check has been failing for {{ $value }}m"
     action: "Check API logs: docker logs sms-fullstack | tail -100"
-```
 
+```text
 ##### 2. **AlertManager Configuration** (Already Existed: `monitoring/alertmanager/alertmanager.yml`)
 
 **Enhancements Verified:**
@@ -387,7 +390,7 @@ Created comprehensive alert rules covering:
 
 #### Integration with Monitoring Stack
 
-```
+```text
 Prometheus (scrapes metrics every 30s)
     ↓
 Prometheus Alert Rules (evaluate every 30s)
@@ -395,8 +398,8 @@ Prometheus Alert Rules (evaluate every 30s)
 AlertManager (routes based on severity/component)
     ↓
 Receivers: Email, Slack, PagerDuty, Webhooks
-```
 
+```text
 #### Notification Channels
 
 1. **Critical Alerts:**
@@ -432,17 +435,20 @@ Alert metrics can be visualized in Grafana:
 
 ```bash
 # Test API down scenario
+
 docker-compose stop backend
 
 # Verify Alert fires (2-5 minutes)
+
 # Check AlertManager UI: http://localhost:9093
 
 # Resume service
+
 docker-compose start backend
 
 # Verify Alert resolves
-```
 
+```text
 ---
 
 ### 7.2 Automated Database Backups
@@ -476,13 +482,14 @@ db-backup:
   volumes:
     - ./backups:/backups
     - ./scripts/backup-database.sh:/usr/local/bin/backup-database.sh:ro
+
   healthcheck:
     test: ["CMD-SHELL", "find /backups -type f -mtime -1 | grep -q . || exit 1"]
     interval: 1h
     timeout: 10s
     retries: 3
-```
 
+```text
 **Features:**
 
 - Health check ensures recent backups exist (modified in last 24h)
@@ -504,8 +511,8 @@ Comprehensive backup automation with:
 ✅ Metadata generation (JSON format)
 ✅ Slack notifications (optional)
 ✅ Extensive logging with timestamps
-```
 
+```text
 **Features Breakdown:**
 
 1. **Connection Management:**
@@ -558,7 +565,7 @@ Comprehensive backup automation with:
 
 #### Backup Strategy
 
-```
+```text
 Day 1:  backup_20251201.sql.gz (1.2GB) ← Oldest
 Day 2:  backup_20251202.sql.gz (1.2GB)
 Day 3:  backup_20251203.sql.gz (1.2GB)
@@ -568,28 +575,33 @@ Day 31: backup_20251231.sql.gz (1.2GB) ← Newest
 
 At Day 31 completion:
   → backup_20251201.sql.gz deleted (>30 days old)
-```
 
+```text
 #### Restore Procedure
 
 ```bash
 # List available backups
+
 ls -lh backups/backup_*.sql.gz
 
 # Restore from specific backup
+
 BACKUP_FILE="backups/backup_student_management_20251204_103000.sql.gz"
 
 # Create new database (if needed)
+
 createdb -U sms_user student_management_restore
 
 # Restore from backup
+
 gunzip < "${BACKUP_FILE}" | \
   psql -U sms_user -d student_management_restore
 
 # Verify restore
-psql -U sms_user -d student_management_restore -c "SELECT COUNT(*) FROM students;"
-```
 
+psql -U sms_user -d student_management_restore -c "SELECT COUNT(*) FROM students;"
+
+```text
 #### Storage Sizing
 
 | Database Size | 30-day Backups | Storage Cost |
@@ -605,41 +617,46 @@ Optional enhancement for production:
 
 ```bash
 # Add to backup script
+
 aws s3 cp "${BACKUP_FILE}" \
   "s3://sms-backups/$(date +%Y-%m)/${BACKUP_FILE}" \
   --region us-east-1 \
   --storage-class STANDARD_IA  # Lower cost for infrequent access
-```
 
+```text
 **Cost Example:** 300GB backups to S3 Standard-IA = ~$3.75/month
 
 #### Monitoring Backup Health
 
 ```yaml
 # In Prometheus rules (already included)
+
 - alert: LatestBackupTooOld
+
   expr: (time() - postgresql_backup_latest_timestamp_seconds) > 172800
   annotations:
     summary: "Latest backup is older than 2 days"
     action: "Check backup service and logs"
 
 - alert: BackupFailedRecently
+
   expr: rate(backup_failures_total[5m]) > 0
   annotations:
     summary: "Backup failures detected"
-```
 
+```text
 #### Configuration Reference
 
 ```bash
 # In docker-compose environment
+
 POSTGRES_USER=sms_user
 POSTGRES_PASSWORD=secure_password_here
 POSTGRES_DB=student_management
 BACKUP_RETENTION_DAYS=30           # Keep 30 days of backups
 SLACK_WEBHOOK_URL=https://hooks... # Optional Slack notification
-```
 
+```text
 ---
 
 ### 7.3 Container Image Vulnerability Scanning
@@ -660,38 +677,41 @@ Enhanced from basic image scanning to comprehensive vulnerability analysis:
 - Run Trivy vulnerability scanner
   - Single image scan (latest tag)
   - SARIF output only
-```
 
+```text
 **Enhanced Implementation (Comprehensive):**
 
 A. **Backend Image Scan:**
 
 ```yaml
 - name: Run Trivy vulnerability scanner (Backend)
+
   uses: aquasecurity/trivy-action@master
   with:
     image-ref: ${{ env.DOCKER_REGISTRY }}/sms-backend:latest
     format: 'sarif'
     severity: 'CRITICAL,HIGH'
     exit-code: '1'  # Fail if vulnerabilities found
-```
 
+```text
 B. **Frontend Image Scan:**
 
 ```yaml
 - name: Run Trivy vulnerability scanner (Frontend)
+
   uses: aquasecurity/trivy-action@master
   with:
     image-ref: ${{ env.DOCKER_REGISTRY }}/sms-frontend:latest
     format: 'sarif'
     severity: 'CRITICAL,HIGH'
     exit-code: '1'
-```
 
+```text
 C. **Filesystem Scan (Source Code):**
 
 ```yaml
 - name: Run Trivy filesystem scan (Source code)
+
   uses: aquasecurity/trivy-action@master
   with:
     scan-type: 'fs'
@@ -699,8 +719,8 @@ C. **Filesystem Scan (Source Code):**
     format: 'sarif'
     severity: 'CRITICAL,HIGH'
     skip-dirs: 'node_modules,.git,docker,deploy'
-```
 
+```text
 Detects:
 
 - Hardcoded secrets (API keys, passwords)
@@ -711,6 +731,7 @@ D. **Infrastructure-as-Code (IaC) Scan:**
 
 ```yaml
 - name: Run Trivy config scan (IaC vulnerabilities)
+
   uses: aquasecurity/trivy-action@master
   with:
     scan-type: 'config'
@@ -718,8 +739,8 @@ D. **Infrastructure-as-Code (IaC) Scan:**
     format: 'sarif'
     severity: 'CRITICAL,HIGH,MEDIUM'
     skip-dirs: 'node_modules,.git'
-```
 
+```text
 Detects:
 
 - Docker security misconfigurations (privileged mode, etc.)
@@ -731,6 +752,7 @@ Detects:
 
 ```yaml
 - name: Upload Trivy results to GitHub Security tab
+
   uses: github/codeql-action/upload-sarif@v4
   with:
     sarif_file: |
@@ -739,21 +761,22 @@ Detects:
       trivy-filesystem-results.sarif
       trivy-config-results.sarif
     category: 'trivy'
-```
 
+```text
 Uploads all scan results to GitHub Security → Code scanning alerts tab for unified dashboard.
 
 ##### 3. **Artifact Preservation:**
 
 ```yaml
 - name: Upload Trivy reports as artifacts
+
   uses: actions/upload-artifact@v4
   with:
     name: trivy-security-reports
     path: trivy-*-results.sarif
     retention-days: 90
-```
 
+```text
 Preserves complete scan history for compliance and auditing.
 
 ##### 4. **New Dependency Scanning Job:**
@@ -762,13 +785,15 @@ Added `security-scan-dependencies` job for:
 
 ```yaml
 - pip-audit for Python dependencies
+
   Detects known vulnerabilities in backend packages
 
 - Optional Snyk integration
+
   Requires SNYK_TOKEN environment variable
   Can scan npm, pip, Docker, Kubernetes manifests
-```
 
+```text
 #### Vulnerability Coverage
 
 | Scan Type | Tools | Coverage |
@@ -790,7 +815,7 @@ Added `security-scan-dependencies` job for:
 
 #### CI/CD Integration
 
-```
+```text
 Push to main
     ↓
 [Build Docker Images]
@@ -805,11 +830,11 @@ If CRITICAL/HIGH found:
 If all pass:
   ✅ Continue to staging/production deploy
   📊 Archive scan results
-```
 
+```text
 #### Example Workflow Run
 
-```
+```text
 ✅ security-scan-docker
    ├─ Run Trivy vulnerability scanner (Backend): PASSED (0 CRITICAL, 2 HIGH)
    ├─ Run Trivy vulnerability scanner (Frontend): PASSED (0 critical, 0 high)
@@ -823,8 +848,8 @@ If all pass:
    └─ Snyk: SKIPPED (no SNYK_TOKEN)
 
 Overall: ✅ PASSED (minor issues detected, no blockers)
-```
 
+```text
 #### Managing Scan Results
 
 **In GitHub Web UI:**
@@ -846,7 +871,7 @@ Overall: ✅ PASSED (minor issues detected, no blockers)
 
 #### Remediation Workflow
 
-```
+```text
 ❌ Found: CVE-2024-12345 in python-package $11.9.7 (backend)
 
 1. Check pip-audit report
@@ -866,35 +891,39 @@ Overall: ✅ PASSED (minor issues detected, no blockers)
 
 5. Re-run scan in CI/CD
    Pipeline automatically re-scans on push
-```
 
+```text
 #### Advanced: Custom Policies
 
 Trivy supports custom policy files (YAML) for organization-specific checks:
 
 ```yaml
 # trivy-custom-policy.yaml
+
 metadata:
   name: "SMS Custom Security Policy"
 policies:
   - id: CUSTOM-001
+
     name: "Require security labels in Dockerfile"
     description: "All images must have security metadata labels"
     severity: MEDIUM
     targets:
       - dockerfile
+
     rules:
       - label: "security.scan-date" must exist
-```
 
+```text
 Integrate with:
 
 ```yaml
 - name: Custom policy scan
+
   run: |
     trivy config . --config trivy-custom-policy.yaml
-```
 
+```text
 ---
 
 ## 3. Implementation Verification Checklist
@@ -958,25 +987,31 @@ Integrate with:
 
 ```bash
 # Install dependencies
+
 npm install
 
 # Start development server
+
 npm run dev
 
 # In DevTools (F12):
+
 1. Applications → Service Workers
    - Should show active service worker
+
 2. Applications → Manifest
    - Should display manifest.json with icons
+
 3. Network → Offline (checkbox)
    - Navigate app, should work offline
+
 4. Console
    - Should show PWA registration logs
-```
 
+```text
 **Mobile Testing:**
 
-```
+```text
 iOS:
 1. Share button → Add to Home Screen
 2. App opens in fullscreen
@@ -988,8 +1023,8 @@ Android:
 2. Creates home screen shortcut
 3. App runs in standalone mode
 4. Offline navigation functional
-```
 
+```text
 ### Virtual Scrolling Testing
 
 ```tsx
@@ -1015,8 +1050,8 @@ const TestList = () => {
     </VirtualScrollContainer>
   );
 };
-```
 
+```text
 **Performance Metrics (Chrome DevTools):**
 
 - FPS: Should maintain 60 FPS during scroll
@@ -1028,50 +1063,60 @@ const TestList = () => {
 
 ```bash
 # Simulate API down
+
 docker-compose stop backend
 
 # Wait 2 minutes
+
 # Check AlertManager UI: http://localhost:9093
 # Should show "APIHealthCheckFailed" alert (critical)
 
 # Resume API
+
 docker-compose start backend
 
 # Alert should resolve after 2 minutes
-```
 
+```text
 ### Database Backup Testing
 
 ```bash
 # Verify backup runs on startup
+
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up db-backup
 
 # Check backup created
+
 ls -lh backups/
 
 # Verify backup integrity
+
 gzip -t backups/backup_*.sql.gz && echo "✅ Valid backup"
 
 # Test restore
+
 gunzip < backups/backup_*.sql.gz | psql -U sms_user -d test_restore
 
 # Cleanup
-rm -rf backups/backup_*.sql.gz
-```
 
+rm -rf backups/backup_*.sql.gz
+
+```text
 ### Vulnerability Scanning Testing
 
 ```bash
 # Run Trivy locally
+
 trivy image --severity CRITICAL,HIGH sms-backend:latest
 trivy fs --severity CRITICAL,HIGH .
 trivy config --severity CRITICAL,HIGH,MEDIUM .
 
 # Check CI/CD run results
+
 # GitHub Actions → Latest workflow run → security-scan-docker
 # Results appear in Security → Code scanning alerts
-```
 
+```text
 ---
 
 ## 5. Performance & Cost Analysis
@@ -1161,8 +1206,8 @@ window.addEventListener('logout', () => {
     names.forEach(name => caches.delete(name));
   });
 });
-```
 
+```text
 ### Virtual Scrolling Security
 
 ✅ **No new attack vectors introduced**
@@ -1192,8 +1237,8 @@ window.addEventListener('logout', () => {
 SLACK_WEBHOOK_URL=https://hooks.slack.com/...
 PAGERDUTY_API_KEY=pagerduty_token_here
 ALERTMANAGER_ADMIN_EMAIL=admin@example.com
-```
 
+```text
 ### Database Backup Security
 
 ✅ **Backup Encryption:**
@@ -1206,18 +1251,21 @@ ALERTMANAGER_ADMIN_EMAIL=admin@example.com
 
 ```bash
 # Encrypt backup with GPG
+
 pg_dump ... | gzip | gpg --encrypt -r backup-key > backup.sql.gz.gpg
 
 # OR: Encrypt at rest on S3
+
 aws s3 cp backup.sql.gz s3://bucket/ \
   --sse-c --sse-c-key=${ENCRYPTION_KEY}
 
 # OR: Use S3 client-side encryption
+
 openssl rand -out key.bin 32
 openssl enc -aes-256-cbc -salt -in backup.sql.gz \
   -out backup.sql.gz.enc -K $(cat key.bin | hexdump -v -e '/1 "%02x"')
-```
 
+```text
 ### Vulnerability Scanning Security
 
 ✅ **SARIF Results:**
@@ -1420,3 +1468,4 @@ All improvements have been documented, tested, and are ready for production depl
 **Document Version:** 1.0
 **Last Updated:** December 4, 2025
 **Status:** ✅ Complete - All improvements implemented and verified
+

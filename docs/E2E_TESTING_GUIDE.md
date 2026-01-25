@@ -23,37 +23,43 @@
 
 ```bash
 # 1. Ensure backend is running
+
 cd backend
 python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 
 # 2. Seed test data
+
 python seed_e2e_data.py
 
 # 3. In another terminal, run frontend tests
+
 cd frontend
 npm run test -- --run  # Single run
 npm run test           # Watch mode (rerun on file changes)
-```
 
+```text
 ### Full Setup with All Checks (10 minutes)
 
 ```bash
 # Clean install (if first time)
+
 cd frontend
 npm ci  # Clean install from package-lock.json
 npx playwright install  # Install browser binaries
 
 # Seed test data
+
 cd ../backend
 python seed_e2e_data.py
 
 # Run tests with detailed reporting
+
 cd ../frontend
 npx playwright test --reporter=list
 npx playwright test --reporter=html  # Open in browser
 npx playwright test --reporter=json > test-results.json
-```
 
+```text
 ---
 
 ## Running Tests
@@ -63,10 +69,11 @@ npx playwright test --reporter=json > test-results.json
 ```bash
 cd frontend
 npm run test -- --run  # Run all tests once
-```
 
+```text
 **Output:**
-```
+
+```text
 ✓ should create a new student successfully
 ✓ should edit an existing student
 ✓ should delete a student successfully
@@ -74,37 +81,37 @@ npm run test -- --run  # Run all tests once
 ✓ should assign a grade to a student
 ✓ should track attendance successfully
 ✓ should load analytics and reports page
-```
 
+```text
 ### Specific Test File
 
 ```bash
 cd frontend
 npx playwright test tests/e2e/student-management.spec.ts --run
-```
 
+```text
 ### Specific Test Case
 
 ```bash
 cd frontend
 npx playwright test --grep "should create a new student" --run
-```
 
+```text
 ### Watch Mode (Auto-rerun on changes)
 
 ```bash
 cd frontend
 npm run test  # Watches for file changes
-```
 
+```text
 ### Debug Mode (Interactive with UI)
 
 ```bash
 cd frontend
 npx playwright test --ui  # Opens Playwright Inspector
 npx playwright test --debug  # Opens Inspector with execution paused
-```
 
+```text
 ### With Specific Browser
 
 ```bash
@@ -112,15 +119,15 @@ cd frontend
 npx playwright test --project=chromium --run
 npx playwright test --project=firefox --run
 npx playwright test --project=webkit --run
-```
 
+```text
 ### With Extended Timeouts (for slow machines)
 
 ```bash
 cd frontend
 PLAYWRIGHT_TEST_TIMEOUT=60000 npx playwright test --run
-```
 
+```text
 ---
 
 ## Debugging Failing Tests
@@ -130,8 +137,8 @@ PLAYWRIGHT_TEST_TIMEOUT=60000 npx playwright test --run
 ```bash
 cd frontend
 npx playwright test --ui
-```
 
+```text
 **Features:**
 - ✅ Step through test line-by-line
 - ✅ Hover over elements to highlight them
@@ -142,23 +149,26 @@ npx playwright test --ui
 ### 2. **Capture Screenshots & Videos**
 
 **Configuration in `frontend/playwright.config.ts`:**
+
 ```typescript
 use: {
   screenshot: 'only-on-failure',  // Capture on failure
   video: 'retain-on-failure',      // Record on failure
   trace: 'on-first-retry',          // Full trace on retry
 }
-```
 
+```text
 **View Results:**
+
 ```bash
 cd frontend
 npx playwright show-trace trace.zip  # View full trace
-```
 
+```text
 ### 3. **Add Debugging Logs**
 
 **In Test File:**
+
 ```typescript
 test('my test', async ({ page }) => {
   // Add detailed logging
@@ -174,29 +184,32 @@ test('my test', async ({ page }) => {
   const html = await page.content();
   console.log('[DEBUG] Page HTML:', html.substring(0, 500));
 });
-```
 
+```text
 **Run with Logging:**
+
 ```bash
 npx playwright test --reporter=list  # Shows all console.log output
-```
 
+```text
 ### 4. **Increase Timeouts for Debugging**
 
 ```bash
 cd frontend
 PLAYWRIGHT_TEST_TIMEOUT=120000 npx playwright test --debug --grep "failing test"
-```
 
+```text
 ### 5. **Common Debugging Patterns**
 
 #### Check if Element Exists
+
 ```typescript
 const exists = await page.locator('[data-testid="element"]').count() > 0;
 console.log('Element exists:', exists);
-```
 
+```text
 #### Wait for Element with Logging
+
 ```typescript
 try {
   await page.waitForSelector('[data-testid="element"]', { timeout: 5000 });
@@ -207,15 +220,17 @@ try {
   const content = await page.content();
   console.log('Page content sample:', content.substring(0, 1000));
 }
-```
 
+```text
 #### Check Element Value
+
 ```typescript
 const value = await page.inputValue('[data-testid="input"]');
 console.log('Input value:', value);
-```
 
+```text
 #### Verify API Calls
+
 ```typescript
 const apiCall = await page.waitForResponse(
   resp => resp.url().includes('/api/v1/students') && resp.status() === 201,
@@ -223,8 +238,8 @@ const apiCall = await page.waitForResponse(
 );
 const responseData = await apiCall.json();
 console.log('[API] Response:', responseData);
-```
 
+```text
 ---
 
 ## Common Issues & Solutions
@@ -232,12 +247,13 @@ console.log('[API] Response:', responseData);
 ### 🔴 **Authentication Fails - Tests Redirect to Login**
 
 **Symptoms:**
-```
+
+```text
 ❌ Test starts but redirects to /auth/login
 ❌ localStorage shows empty sms_access_token
 ❌ Console: "Unauthorized"
-```
 
+```text
 **Root Cause:**
 - Test user credentials incorrect
 - Backend auth endpoint down
@@ -277,22 +293,25 @@ console.log('[API] Response:', responseData);
    ```
 
 **If Still Failing:**
+
 ```bash
 # Run with debug mode to see auth response
+
 npx playwright test --debug --grep "create a new student"
 # Check browser console in Inspector for error messages
-```
 
+```text
 ---
 
 ### 🟠 **Selector Not Found - "element.click() timed out"**
 
 **Symptoms:**
-```
+
+```text
 ❌ Timeout waiting for selector [data-testid="add-student-btn"]
 ❌ Could not find element
-```
 
+```text
 **Root Cause:**
 - Element not rendered yet (timing issue)
 - Wrong data-testid name
@@ -351,11 +370,12 @@ npx playwright test --debug --grep "create a new student"
 ### 🟡 **Test Times Out - Slower Machine**
 
 **Symptoms:**
-```
+
+```text
 ❌ Timeout waiting for network idle
 ❌ Takes >60 seconds per test
-```
 
+```text
 **Solutions:**
 
 1. **Increase default timeout:**
@@ -391,11 +411,12 @@ npx playwright test --debug --grep "create a new student"
 ### 🟢 **Tests Pass Locally but Fail in CI**
 
 **Symptoms:**
-```
+
+```text
 ✅ All tests pass locally
 ❌ Fail in GitHub Actions
-```
 
+```text
 **Common Causes & Solutions:**
 
 1. **Environment differences:**
@@ -441,15 +462,17 @@ npx playwright test --debug --grep "create a new student"
 ### ✅ DO
 
 #### 1. **Use Data-TestIDs**
+
 ```typescript
 // ✅ GOOD - Stable, not brittle to UI changes
 await page.click('[data-testid="add-student-btn"]');
 
 // ❌ BAD - Breaks if label text changes
 await page.click('button:has-text("Add Student")');
-```
 
+```text
 #### 2. **Wait Explicitly**
+
 ```typescript
 // ✅ GOOD - Wait before action
 await page.waitForSelector('[data-testid="element"]', { state: 'visible' });
@@ -457,9 +480,10 @@ await page.click('[data-testid="element"]');
 
 // ❌ BAD - Hope element exists
 await page.click('[data-testid="element"]');
-```
 
+```text
 #### 3. **Verify API Responses**
+
 ```typescript
 // ✅ GOOD - Verify API success
 await page.waitForResponse(
@@ -469,9 +493,10 @@ await page.waitForResponse(
 
 // ❌ BAD - Hope element appears
 await page.waitForSelector('[data-testid="success"]');
-```
 
+```text
 #### 4. **Use Locator Chains for Robustness**
+
 ```typescript
 // ✅ GOOD - Multiple fallbacks
 const button = page
@@ -482,9 +507,10 @@ await button.click();
 
 // ❌ BAD - Single selector fails if element not found
 await page.click('[data-testid="submit"]');
-```
 
+```text
 #### 5. **Handle Async Gracefully**
+
 ```typescript
 // ✅ GOOD - Catch timing failures
 await page
@@ -494,31 +520,34 @@ await page
 
 // ❌ BAD - Let test crash on timeout
 await page.waitForSelector('[data-testid="optional"]', { timeout: 2000 });
-```
 
+```text
 ---
 
 ### ❌ DON'T
 
 #### 1. **Hard-Code Waits**
+
 ```typescript
 // ❌ BAD - Magic number, unreliable
 await page.waitForTimeout(5000);
 
 // ✅ GOOD - Wait for specific condition
 await page.waitForSelector('[data-testid="element"]');
-```
 
+```text
 #### 2. **Click Without Visibility Check**
+
 ```typescript
 // ❌ BAD - Element might be off-screen
 await page.click('[data-testid="button"]');
 
 // ✅ GOOD - Ensure visible first
 await page.locator('[data-testid="button"]').click({ force: false });
-```
 
+```text
 #### 3. **Assume Element State**
+
 ```typescript
 // ❌ BAD - Assume checkbox is visible
 const checked = await page.isChecked('[data-testid="checkbox"]');
@@ -528,9 +557,10 @@ const exists = await page.locator('[data-testid="checkbox"]').count() > 0;
 if (exists) {
   const checked = await page.isChecked('[data-testid="checkbox"]');
 }
-```
 
+```text
 #### 4. **Ignore Setup Failures**
+
 ```typescript
 // ❌ BAD - Silently fail setup
 try {
@@ -544,9 +574,10 @@ try {
   console.error('[SETUP FAILED] Could not create test user:', err);
   throw err;  // Fail test if setup fails
 }
-```
 
+```text
 #### 5. **Test Multiple Concerns in One Test**
+
 ```typescript
 // ❌ BAD - Tests too much
 test('complex flow', async ({ page }) => {
@@ -566,15 +597,15 @@ test('should create a student', async ({ page }) => {
 test('should edit a student', async ({ page }) => {
   // Just test editing
 });
-```
 
+```text
 ---
 
 ## Architecture Overview
 
 ### Test Structure
 
-```
+```text
 frontend/
 ├── tests/
 │   └── e2e/
@@ -584,35 +615,38 @@ frontend/
 │       └── playwright.config.ts    # Browser/timeout config
 ├── playwright.config.ts            # Global config
 └── ...rest of app
-```
 
+```text
 ### Key Helpers
 
 #### `loginAsTestUser(page)`
+
 ```typescript
 // Logs in as test@example.com
 // Sets both JWT token AND user object in localStorage
 // Navigates to /dashboard
 await loginAsTestUser(page);
-```
 
+```text
 #### `generateStudentData()`
+
 ```typescript
 // Generates unique test data
 const student = generateStudentData();
 // Returns: { firstName, lastName, email, studentId }
-```
 
+```text
 #### `captureAndLogDiagnostics(page, testName)`
+
 ```typescript
 // Captures screenshot + HTML on failure
 // Saves to test-diagnostics/ folder
 await captureAndLogDiagnostics(page, testInfo.title);
-```
 
+```text
 ### Authentication Flow
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │ Test Starts                             │
 └──────────────┬──────────────────────────┘
@@ -647,8 +681,8 @@ await captureAndLogDiagnostics(page, testInfo.title);
 │ ✓ User operations work                  │
 │ ✓ API calls succeed                     │
 └──────────────────────────────────────────┘
-```
 
+```text
 ---
 
 ## CI Integration
@@ -669,15 +703,18 @@ Tests run automatically on:
 
 ```bash
 # Run tests exactly as CI does
+
 CI=true npm run test
 
 # With verbose output
+
 CI=true npm run test -- --reporter=verbose
 
 # With HTML report
-CI=true npm run test && npx playwright show-report
-```
 
+CI=true npm run test && npx playwright show-report
+
+```text
 ---
 
 ## Troubleshooting Checklist
@@ -709,3 +746,4 @@ Before reporting issues:
 
 **Last Updated:** 2025-01-05
 **Status:** ✅ All tests functional
+

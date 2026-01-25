@@ -20,7 +20,7 @@ This document clarifies the Student Management System's environment configuratio
 
 ### Authoritative Configuration
 
-```
+```text
 Root .env                         ← PRIMARY: Authoritative for all environments
 ├── Sourced by: DOCKER.ps1 (Docker deployment)
 ├── Sourced by: NATIVE.ps1 (Native development)
@@ -39,8 +39,8 @@ frontend/.env (legacy)            ← IGNORED: For reference only
 QNAP Variant .env files           ← SPECIALIZED: Deployment-specific
 ├── .env.qnap: QNAP ARM environment
 └── .env.production.example: Production template
-```
 
+```text
 ### How It Works
 
 1. **Root .env** is the single source of truth
@@ -64,14 +64,16 @@ QNAP Variant .env files           ← SPECIALIZED: Deployment-specific
 
 ```bash
 # DOCKER.ps1 reads:
+
 $env:DATABASE_URL = "sqlite:////data/student_management.db"
 $env:SECRET_KEY = "your-secret-key"
 $env:AUTH_MODE = "permissive"
 
 # Then passes to container:
-docker run -e DATABASE_URL="$env:DATABASE_URL" ... sms-fullstack
-```
 
+docker run -e DATABASE_URL="$env:DATABASE_URL" ... sms-fullstack
+
+```text
 ### Native Development
 
 **Where configuration comes from:**
@@ -84,14 +86,16 @@ docker run -e DATABASE_URL="$env:DATABASE_URL" ... sms-fullstack
 
 ```bash
 # NATIVE.ps1 reads root .env and loads into PowerShell:
+
 $env:DATABASE_URL = "sqlite:///./data/student_management.db"
 $env:SECRET_KEY = "dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345"
 
 # Then starts backend with these variables set:
+
 $env:DATABASE_URL = "..."
 uvicorn backend.main:app --reload
-```
 
+```text
 ---
 
 ## Configuration Files
@@ -107,23 +111,27 @@ uvicorn backend.main:app --reload
 
 ```bash
 # Database
+
 DATABASE_URL=sqlite:////data/student_management.db
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 
 # Security
+
 SECRET_KEY=dev-placeholder-secret-CHANGE_THIS_FOR_PRODUCTION_012345
 AUTH_MODE=permissive
 
 # API
+
 VITE_API_URL=/api/v1
 ENABLE_AUTO_LOGIN=true
 
 # Monitoring (optional)
+
 ENABLE_METRICS=false
 GRAFANA_ENABLED=false
-```
 
+```text
 ### `.env.example` (Template - Root Level)
 
 **Location:** `/.env.example`
@@ -189,8 +197,8 @@ GRAFANA_ENABLED=false
 
 4. Container receives environment variables
    └─ Backend code reads $env:DATABASE_URL
-```
 
+```text
 ### NATIVE.ps1 Script Execution
 
 ```powershell
@@ -205,8 +213,8 @@ GRAFANA_ENABLED=false
 
 4. Start frontend with environment
    └─ npm run dev (inherits $env:VITE_*)
-```
 
+```text
 ---
 
 ## Setting Up Your Environment
@@ -215,30 +223,36 @@ GRAFANA_ENABLED=false
 
 ```bash
 # 1. Copy template
+
 cp .env.example .env
 
 # 2. Review and update if needed
+
 cat .env
 
 # 3. Deploy
+
 .\SMS.ps1 -Docker -Install           # Or
 .\SMS.ps1 -Native -Setup
-```
 
+```text
 ### First-Time Setup (Production/QNAP)
 
 ```bash
 # 1. Copy production template
+
 cp .env.production.example .env
 
 # 2. Update with production values
+
 $EDITOR .env
 # Update: DATABASE_URL, SECRET_KEY, AUTH_MODE, etc.
 
 # 3. Deploy
-.\SMS.ps1 -Docker -Install
-```
 
+.\SMS.ps1 -Docker -Install
+
+```text
 ### Adding New Configuration
 
 When adding a new environment variable:
@@ -356,3 +370,4 @@ When adding a new environment variable:
 - `NATIVE.ps1` - Reads root .env during native deployment
 - `backend/config.py` - Python config loading
 - `.env.example` - Template for all environments
+

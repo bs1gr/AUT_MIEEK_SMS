@@ -37,14 +37,16 @@ User identified that **instructions alone are insufficient** for compliance. An 
 - Prevents all subsequent validation steps on failure
 
 **How It Works**:
+
 ```powershell
 # Phase 0.5: Version Format Enforcement (CRITICAL - always runs first)
+
 if (-not (Invoke-VersionFormatValidation)) {
     Write-Failure "Version format validation FAILED - commit blocked"
     exit 1  # Hard fail - blocks commit entirely
 }
-```
 
+```text
 **Execution Flow**:
 1. User runs: `.\COMMIT_READY.ps1 -Quick` or `-Standard` or `-Full`
 2. Phase 0.5 immediately validates VERSION file
@@ -52,13 +54,14 @@ if (-not (Invoke-VersionFormatValidation)) {
 4. If valid format → Continue to Phase 1 (formatting checks)
 
 **Error Example**:
-```
+
+```text
 ❌ CRITICAL VERSION VIOLATION DETECTED
 Version format $11.17.1 breaks version tracking (CRITICAL)
 Required format: v1.x.x (e.g., $11.17.2)
 Edit VERSION file to use correct format and retry COMMIT_READY.ps1
-```
 
+```text
 **Bypass**: `git commit --no-verify` (creates audit trail)
 
 ---
@@ -75,6 +78,7 @@ Edit VERSION file to use correct format and retry COMMIT_READY.ps1
 - Can scan all documentation files with `-CheckAll` parameter
 
 **Key Functions**:
+
 ```powershell
 function Test-VersionFormat {
     param(
@@ -84,23 +88,28 @@ function Test-VersionFormat {
     # Returns: $true (valid v1.x.x) or $false (invalid/forbidden)
     # Provides detailed error messages on failure
 }
-```
 
+```text
 **Usage Examples**:
+
 ```powershell
 # Quick validation of VERSION file
+
 .\scripts\validate_version_format.ps1
 
 # Verbose output
+
 .\scripts\validate_version_format.ps1 -Verbose
 
 # Scan all documentation files for version inconsistencies
+
 .\scripts\validate_version_format.ps1 -CheckAll
 
 # In pre-commit hook (bash):
-pwsh -Command "& '.\scripts\validate_version_format.ps1'" || exit 1
-```
 
+pwsh -Command "& '.\scripts\validate_version_format.ps1'" || exit 1
+
+```text
 **Exit Codes**:
 - `0` = Pass (v1.x.x format valid)
 - `1` = Fail (forbidden or invalid format)
@@ -135,13 +144,14 @@ pwsh -Command "& '.\scripts\validate_version_format.ps1'" || exit 1
 5. If invalid: Rejects entire workflow
 
 **Error Example in CI**:
-```
+
+```text
 ❌ CRITICAL VERSION VIOLATION: Version format v11.x.x breaks version tracking
 Detected: $11.17.1 (forbidden)
 Required format: v1.x.x (e.g., $11.17.1)
 exit 1
-```
 
+```text
 **Bypass**: Force push with `git push -f` (creates audit trail in GitHub)
 
 ---
@@ -157,12 +167,14 @@ exit 1
 - First line of defense against violations
 
 **Planned Implementation**:
+
 ```bash
 #!/bin/sh
 # Pre-commit hook: Delegate to COMMIT_READY.ps1 (handles version + env + checks)
-exec pwsh -NoProfile -ExecutionPolicy Bypass -File "./COMMIT_READY.ps1" -Mode quick
-```
 
+exec pwsh -NoProfile -ExecutionPolicy Bypass -File "./COMMIT_READY.ps1" -Mode quick
+
+```text
 **Status**:
 - Pre-commit hook infrastructure not yet created (low priority)
 - Covered by Layers 1 & 3 (COMMIT_READY + CI/CD)
@@ -198,53 +210,64 @@ exec pwsh -NoProfile -ExecutionPolicy Bypass -File "./COMMIT_READY.ps1" -Mode qu
 **Step 1**: Edit VERSION file to `$11.17.1`
 
 **Step 2**: Try to commit:
+
 ```powershell
 git add .
 git commit -m "Release $11.17.1"
-```
 
+```text
 **Result**:
-```
+
+```text
 ❌ CRITICAL VERSION VIOLATION DETECTED
 Version format $11.17.1 breaks version tracking
 Required format: v1.x.x
-```
+
+```text
 → **Commit BLOCKED** ✋
 
 **Step 3**: Try to bypass with --no-verify:
+
 ```powershell
 git commit --no-verify -m "Release $11.17.1"
-```
 
+```text
 **Result**:
-```
+
+```text
 [main abc1234] Release $11.17.1
 WARNING: Pre-commit hook may have been bypassed
-```
+
+```text
 → **Commit created but flagged** ⚠️
 
 **Step 4**: Try to push:
+
 ```powershell
 git push origin main
-```
 
+```text
 **Result** (in CI/CD):
-```
+
+```text
 ❌ CRITICAL VERSION VIOLATION: Version format v11.x.x breaks version tracking
 Detected: $11.17.1 (forbidden)
 exit 1
-```
+
+```text
 → **Push REJECTED** 🚫
 
 **Step 5**: Fix and retry:
+
 ```powershell
 # Edit VERSION file to $11.17.1
+
 .\COMMIT_READY.ps1 -Quick   # Validates new format
 git add VERSION
 git commit -m "Fix version format to $11.17.1"
 git push origin main        # Now succeeds ✅
-```
 
+```text
 ---
 
 ## 📋 Enforcement Verification Checklist
@@ -330,6 +353,7 @@ git push origin main        # Now succeeds ✅
 ### Code Examples
 
 **COMMIT_READY Phase 0.5**:
+
 ```powershell
 function Invoke-VersionFormatValidation {
     $versionFile = Join-Path $SCRIPT_DIR "VERSION"
@@ -348,11 +372,13 @@ function Invoke-VersionFormatValidation {
     }
     return $false
 }
-```
 
+```text
 **CI/CD Job Step**:
+
 ```yaml
 - name: 🔒 Validate Version Format (v1.x.x ONLY)
+
   shell: pwsh
   run: |
     $version = (Get-Content "VERSION").Trim()
@@ -366,8 +392,8 @@ function Invoke-VersionFormatValidation {
         Write-Error "❌ Invalid format: $version"
         exit 1
     }
-```
 
+```text
 ---
 
 ## 📚 Related Documentation
@@ -431,3 +457,4 @@ function Invoke-VersionFormatValidation {
 **Status**: ✅ **SYSTEM ACTIVE AND ENFORCED**
 
 This enforcement system makes it **impossible** to use forbidden version formats without deliberate circumvention. Even then, the violation is logged in Git history and rejected by CI/CD. This is the only reliable way to ensure compliance with Policy 2 across all current and future agents.
+

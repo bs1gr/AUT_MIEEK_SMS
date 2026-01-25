@@ -32,8 +32,8 @@ backend/scripts/
 ├── migrate/
 │   ├── __init__.py
 │   └── runner.py                        # Database migration utilities
-```
 
+```text
 ### Directory Rationale
 
 - **`admin/`** - Administrative operations (account setup, etc.)
@@ -48,24 +48,27 @@ Always import from the new location:
 
 ```python
 # ✅ CORRECT - New location
+
 from backend.scripts.admin import ensure_default_admin_account
 from backend.scripts.import_ import check_and_import_courses, wait_for_server
 from backend.scripts.migrate import run_migrations, check_migration_status
 
 # Also available via convenience re-export
-from backend.scripts import ensure_default_admin_account, check_and_import_courses
-```
 
+from backend.scripts import ensure_default_admin_account, check_and_import_courses
+
+```text
 ### For Existing Code (Backward Compatibility)
 
 The old import paths still work for backward compatibility:
 
 ```python
 # ⚠️ DEPRECATED but still works (shows deprecation warning)
+
 from backend.admin_bootstrap import ensure_default_admin_account
 from backend.auto_import_courses import check_and_import_courses, wait_for_server
-```
 
+```text
 These import statements work because we've created deprecation stubs at the old locations that re-export from the new location.
 
 ## Updated Import References
@@ -100,8 +103,8 @@ def ensure_default_admin_account(
     force_reset: bool = False,
 ) -> User:
     """Ensure default admin account exists and is properly configured."""
-```
 
+```text
 **Usage:**
 
 ```python
@@ -114,8 +117,8 @@ ensure_default_admin_account(
     session_factory=SessionLocal,
     logger=logging.getLogger(__name__)
 )
-```
 
+```text
 ### `backend/scripts/import_/courses.py`
 
 Contains course import functionality:
@@ -132,8 +135,8 @@ def check_and_import_courses(
     api_url: str = "http://localhost:8000/api/v1"
 ) -> bool:
     """Check if courses exist, and import from templates if database is empty."""
-```
 
+```text
 **Usage:**
 
 ```python
@@ -141,8 +144,8 @@ from backend.scripts.import_ import wait_for_server, check_and_import_courses
 
 if wait_for_server():
     check_and_import_courses()
-```
 
+```text
 ### `backend/scripts/migrate/runner.py`
 
 Contains migration utilities:
@@ -153,8 +156,8 @@ def run_migrations(is_test: bool = False) -> None:
 
 def check_migration_status() -> dict:
     """Check the current migration status and version."""
-```
 
+```text
 **Usage:**
 
 ```python
@@ -162,8 +165,8 @@ from backend.scripts.migrate import run_migrations, check_migration_status
 
 run_migrations()
 status = check_migration_status()
-```
 
+```text
 ## Deprecation Stubs
 
 Deprecation stubs have been created at the old locations to maintain backward compatibility:
@@ -178,8 +181,8 @@ These stubs emit `DeprecationWarning` when imported, guiding users to the new lo
 ```text
 DeprecationWarning: backend.admin_bootstrap is deprecated.
 Use backend.scripts.admin.bootstrap instead.
-```
 
+```text
 ## Docker Integration
 
 The Docker entrypoint has been updated to use the new import path:
@@ -188,14 +191,14 @@ The Docker entrypoint has been updated to use the new import path:
 
 ```python
 subprocess.Popen(["python", "-u", "-m", "backend.auto_import_courses", ...])
-```
 
+```text
 **After:**
 
 ```python
 subprocess.Popen(["python", "-u", "-m", "backend.scripts.import_.courses", ...])
-```
 
+```text
 ## Testing
 
 All existing tests continue to pass with the refactoring:
@@ -203,8 +206,8 @@ All existing tests continue to pass with the refactoring:
 ```bash
 cd backend && pytest -q
 # Result: 378 passed, 1 skipped ✅
-```
 
+```text
 ## Performance Impact
 
 **Zero performance impact.** The refactoring:
@@ -243,13 +246,15 @@ Potential future improvements to this structure:
 
 ```bash
 # Clear Python cache
+
 find . -type d -name __pycache__ -exec rm -r {} +
 find . -type f -name "*.pyc" -delete
 
 # Then try importing again
-python -c "from backend.scripts.import_ import check_and_import_courses"
-```
 
+python -c "from backend.scripts.import_ import check_and_import_courses"
+
+```text
 ### DeprecationWarning about old imports
 
 **Cause:** Code is still using old import paths.
@@ -258,12 +263,14 @@ python -c "from backend.scripts.import_ import check_and_import_courses"
 
 ```python
 # Old
+
 from backend.admin_bootstrap import ensure_default_admin_account
 
 # New
-from backend.scripts.admin import ensure_default_admin_account
-```
 
+from backend.scripts.admin import ensure_default_admin_account
+
+```text
 ### Module not found when running as subprocess
 
 **Cause:** Python path not set correctly when running subprocess.
@@ -275,8 +282,8 @@ import sys
 from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
-```
 
+```text
 ## Summary of Changes
 
 | File/Module | Change | Status |
@@ -297,3 +304,4 @@ sys.path.insert(0, str(PROJECT_ROOT))
 - [Architecture Documentation](ARCHITECTURE.md) - Overall system design
 - [Development Guide](DEVELOPMENT.md) - Development workflow
 - [Git Workflow](GIT_WORKFLOW.md) - Commit and branching standards
+

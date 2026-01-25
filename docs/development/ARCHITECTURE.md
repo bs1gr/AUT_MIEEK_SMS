@@ -13,12 +13,14 @@
 ## Accessibility, Color Contrast & i18n
 
 ### Accessibility & Color Contrast
+
 - All UI components must use high-contrast, vivid color classes for text (e.g., `text-indigo-700`, `text-indigo-800`).
 - Avoid low-contrast grays for primary content.
 - Validate UI with accessibility tools (Lighthouse, axe, etc.).
 - Use ARIA roles/labels for interactive elements.
 
 ### Internationalization (i18n)
+
 - All UI strings must be translated using the modular TypeScript translation files.
 - Never hardcode UI text; always use `t('key')`.
 - Translation completeness is enforced by tests; both EN and EL must be present for all keys.
@@ -42,8 +44,8 @@
 │  └──────────────┘  └──────────────┘  └──────────────┘    │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
-```
 
+```text
 ### Deployment Modes
 
 #### 1. **Native Mode** (Direct on Host)
@@ -114,8 +116,8 @@
 │                      │  3. Start backend (venv + uvicorn)   │
 │                      │  4. Start frontend (npm run dev)     │
 └──────────────────────┴──────────────────────────────────────┘
-```
 
+```text
 ### Stop Logic
 
 ```text
@@ -134,8 +136,8 @@
 │ (or down to remove)  │  2. Kill all node.exe                │
 │                      │  3. Kill backend process (PID)       │
 └──────────────────────┴──────────────────────────────────────┘
-```
 
+```text
 ### Important: Control Panel Limitation
 
 **In Docker mode**, the Control Panel "Stop All" button:
@@ -152,41 +154,49 @@
 
 ```powershell
 # Docker deployment (production)
+
 .\DOCKER.ps1 -Start
 
 # Native development mode
+
 .\NATIVE.ps1 -Start
 
 # Advanced modes
+
 .\DOCKER.ps1 -WithMonitoring  # With Grafana/Prometheus
 docker compose up -d          # Manual Docker start
-```
 
+```text
 ### 2. **Full Automated Stop** (Already Available)
 
 ```powershell
 # Docker stop
+
 .\DOCKER.ps1 -Stop
 
 # Native stop
+
 .\NATIVE.ps1 -Stop
 
 # Docker-specific
+
 docker compose stop     # Stop containers
 docker compose down     # Stop and remove
-```
 
+```text
 ### 3. **Restart Automation**
 
 ```powershell
 # Two-step restart
+
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -Start
 
 # Or use Update which handles restart
-.\DOCKER.ps1 -Update
-```
 
+.\DOCKER.ps1 -Update
+
+```text
 ### 4. **Scheduled Automation** (Using Windows Task Scheduler)
 
 #### Example: Auto-start on system boot
@@ -196,8 +206,8 @@ $trigger = New-ScheduledTaskTrigger -AtStartup
 $action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
   -Argument "-File D:\SMS\student-management-system\DOCKER.ps1 -Start"
 Register-ScheduledTask -TaskName "SMS-AutoStart" -Trigger $trigger -Action $action
-```
 
+```text
 #### Example: Auto-restart daily
 
 ```powershell
@@ -205,12 +215,13 @@ $trigger = New-ScheduledTaskTrigger -Daily -At 3AM
 $action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
   -Argument "-File D:\SMS\student-management-system\scripts\daily-restart.ps1"
 Register-ScheduledTask -TaskName "SMS-DailyRestart" -Trigger $trigger -Action $action
-```
 
+```text
 ### 5. **CI/CD Integration**
 
 ```yaml
 # Example GitHub Actions workflow
+
 name: Deploy SMS
 on:
   push:
@@ -222,11 +233,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Stop current instance
+
         run: .\DOCKER.ps1 -Stop
       - name: Start new instance
-        run: .\DOCKER.ps1 -Start
-```
 
+        run: .\DOCKER.ps1 -Start
+
+```text
 ---
 
 ## Database Versioning & Migration
@@ -291,9 +304,10 @@ POSTGRES_PASSWORD=ChangeMe!
 POSTGRES_DB=sms
 POSTGRES_SSLMODE=prefer
 # Optional advanced parameters
-POSTGRES_OPTIONS=application_name=sms&connect_timeout=10
-```
 
+POSTGRES_OPTIONS=application_name=sms&connect_timeout=10
+
+```text
 Set `DATABASE_URL` only when you need full control (custom driver parameters or managed hosting connection strings).
 
 ### SQLite → PostgreSQL Migration Workflow
@@ -304,6 +318,7 @@ Set `DATABASE_URL` only when you need full control (custom driver parameters or 
 
    - Set `DATABASE_ENGINE=postgresql` (or `DATABASE_URL`).
    - Provide the `POSTGRES_*` variables in `backend/.env` and Docker secrets if running in containers.
+
 4. **Run migrations**: `DOCKER.ps1` automatically runs Alembic migrations against the new engine before serving traffic.
 5. **Verify health**: Use `/health` endpoints plus targeted API smoke tests against the PostgreSQL-backed instance.
 6. **Fallback plan**: Keep the SQLite file/volume snapshot until PostgreSQL adoption is confirmed. The migration script can be re-run if additional data is added before cutover.
@@ -366,8 +381,8 @@ async def auto_migrate_docker_volume():
         return {"action": "auto_migrated", "from": docker_version, "to": native_version}
 
     return {"action": "none", "version": native_version}
-```
 
+```text
 #### Option B: Pre-Start Hook
 
 ```powershell
@@ -392,24 +407,28 @@ function Invoke-PreStartCheck {
         }
     }
 }
-```
 
+```text
 #### Option C: Startup Migration Script
 
 ```dockerfile
 # Add to Dockerfile.backend
+
 COPY scripts/startup-migrate.sh /app/
 ENTRYPOINT ["/app/startup-migrate.sh"]
 
 # startup-migrate.sh
+
 #!/bin/bash
 # Run Alembic migrations on container start
+
 cd /app/backend
 alembic upgrade head
 # Then start the app
-exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
-```
 
+exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
+
+```text
 ### Recommended Solution
 
 **Hybrid approach**: Automatic + Manual override
@@ -436,23 +455,23 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 ```powershell
 .\NATIVE.ps1 -Start  # Hot-reload enabled
-```
 
+```text
 2. **Run migrations immediately**:
 
 ```powershell
 cd backend
 alembic revision --autogenerate -m "description"
 alembic upgrade head
-```
 
+```text
 3. **Test in Docker before deployment**:
 
 ```powershell
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -Start
-```
 
+```text
 ### Production Deployment
 
 1. **Always use Docker mode**:
@@ -464,19 +483,21 @@ alembic upgrade head
 
 ```powershell
 # Before major updates
+
 docker compose exec backend sh -c "cd /data && tar czf backup.tar.gz student_management.db"
 # Use Control Panel to create new versioned volume
-```
 
+```text
 3. **Automate backups**:
 
 ```powershell
 # .\scripts\backup-docker-volume.ps1
+
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
    alpine tar czf "/backup/sms_data_$timestamp.tar.gz" -C /data .
-```
 
+```text
 ### Troubleshooting
 
 **"Already running" after exit**:
@@ -518,3 +539,4 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 1. **For now**: Use current manual workflow for volume migrations
 2. **Next step**: Add automatic version detection and warnings
 3. **Future**: Full automated migration with rollback support
+

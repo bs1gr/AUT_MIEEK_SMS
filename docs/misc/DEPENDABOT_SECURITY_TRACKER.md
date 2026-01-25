@@ -27,11 +27,12 @@
 - Status: Ready to commit
 
 **Validation**:
+
 ```bash
 pip install python-socketio==5.12.0
 pip show python-socketio  # Verify version 5.12.0
-```
 
+```text
 ---
 
 ## 🔴 HIGH Priority Issues
@@ -158,12 +159,14 @@ pip show python-socketio  # Verify version 5.12.0
 ## 🔧 Implementation Plan
 
 ### Phase 1: Immediate Fixes (TODAY)
+
 - ✅ Update python-socketio to 5.12.0
 - ✅ Fix HTML injection in test_websocket_client.html
 - ✅ Create path validation utility
 - 📝 Commit all changes
 
 ### Phase 2: Path Traversal Remediation (NEXT SESSION)
+
 - [ ] Update admin_routes.py to use validate_filename()
 - [ ] Update backup_service_encrypted.py to use PathValidator
 - [ ] Update routers_sessions.py to validate backup_filename
@@ -171,6 +174,7 @@ pip show python-socketio  # Verify version 5.12.0
 - [ ] Commit and push
 
 ### Phase 3: Verification (FINAL)
+
 - [ ] Re-run CodeQL scans in CI
 - [ ] Verify all issues resolved in GitHub
 - [ ] Close Dependabot alerts once fixes merge
@@ -183,24 +187,29 @@ pip show python-socketio  # Verify version 5.12.0
 
 ```python
 # Before (vulnerable to path traversal)
+
 output_path = restore_dir / output_filename
 
 # After (with validation)
+
 from backend.security.path_validation import validate_filename, validate_path
 
 # Validate filename
+
 validate_filename(output_filename, [".db"])
 
 # Validate path is within base directory
+
 validate_path(restore_dir, output_path)
 
 # Or use context manager
+
 from backend.security.path_validation import PathValidator
 
 with PathValidator(restore_dir) as validator:
     safe_path = validator.get_safe_path(output_filename)
-```
 
+```text
 ### Using Predefined Validators
 
 ```python
@@ -211,11 +220,12 @@ from backend.security.path_validation import (
 )
 
 # Validates .enc, .db, or .backup extensions
+
 validate_backup_filename("backup_20260118.enc")  # ✅ OK
 validate_backup_filename("../etc/passwd")         # ❌ ValueError
 validate_backup_filename("config.json")           # ❌ ValueError
-```
 
+```text
 ---
 
 ## 🧪 Testing Validation Utility
@@ -226,10 +236,12 @@ Run these tests to verify path validation:
 from backend.security.path_validation import validate_filename, validate_path
 
 # Test validate_filename
+
 validate_filename("backup_20260118.db")  # ✅ OK
 validate_filename("backup_20260118.enc", [".enc"])  # ✅ OK
 
 # Test invalid inputs
+
 try:
     validate_filename("../../../etc/passwd")  # Should raise ValueError
 except ValueError as e:
@@ -241,6 +253,7 @@ except ValueError as e:
     print(f"Blocked: {e}")  # "Invalid character"
 
 # Test path validation
+
 from pathlib import Path
 base_dir = Path("/backups")
 target = base_dir / "2026_01_18.db"
@@ -251,8 +264,8 @@ try:
     validate_path(base_dir, invalid_target)  # Should raise ValueError
 except ValueError as e:
     print(f"Blocked: {e}")  # "Path escape detected"
-```
 
+```text
 ---
 
 ## 📊 Security Metrics
@@ -292,3 +305,4 @@ except ValueError as e:
 **Owner**: bs1gr@yahoo.com
 **Next Review**: After Phase 2 implementation
 **Status**: ✅ Phase 1 COMPLETE | ⏳ Phase 2-3 PENDING
+

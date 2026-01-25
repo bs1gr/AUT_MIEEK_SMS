@@ -23,14 +23,16 @@
 
 ```powershell
 # Check version file
+
 Get-Content .\VERSION
 # Expected: 1.9.7
 
 # Check package.json
+
 Get-Content .\frontend\package.json | Select-String "version"
 # Expected: "version": "1.9.7"
-```
 
+```text
 ---
 
 ## Part 1: Installation & Startup (10 min)
@@ -39,13 +41,15 @@ Get-Content .\frontend\package.json | Select-String "version"
 
 ```powershell
 # Clean slate test
+
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -Prune
 
 # Fresh installation
-.\DOCKER.ps1 -Install
-```
 
+.\DOCKER.ps1 -Install
+
+```text
 **Checklist:**
 
 - [ ] Docker image builds successfully (no errors)
@@ -59,12 +63,14 @@ Get-Content .\frontend\package.json | Select-String "version"
 
 ```powershell
 # Setup (first time)
+
 .\NATIVE.ps1 -Setup
 
 # Start services
-.\NATIVE.ps1 -Start
-```
 
+.\NATIVE.ps1 -Start
+
+```text
 **Checklist:**
 
 - [ ] Backend starts on port 8000
@@ -109,9 +115,10 @@ Get-Content .\frontend\package.json | Select-String "version"
 
 ```bash
 # Rapid-fire requests (should get 429 after threshold)
-for i in {1..30}; do curl http://localhost:8080/api/v1/students; done
-```
 
+for i in {1..30}; do curl http://localhost:8080/api/v1/students; done
+
+```text
 - [ ] Rate limit enforced (429 Too Many Requests)
 - [ ] Retry-After header present
 
@@ -211,18 +218,21 @@ for i in {1..30}; do curl http://localhost:8080/api/v1/students; done
 cd backend
 
 # Check migration status
+
 alembic current
 # Should show current revision
 
 # Verify no pending migrations
+
 alembic check
 # Should report no issues
 
 # Test migration up/down
+
 alembic downgrade -1
 alembic upgrade head
-```
 
+```text
 **Checklist:**
 
 - [ ] Current migration matches VERSION
@@ -235,13 +245,15 @@ alembic upgrade head
 
 ```bash
 # Check database file
+
 ls data/student_management.db
 
 # SQLite integrity check
+
 sqlite3 data/student_management.db "PRAGMA integrity_check;"
 # Expected: ok
-```
 
+```text
 - [ ] Database file exists and is readable
 - [ ] Integrity check passes
 - [ ] No corruption detected
@@ -286,8 +298,8 @@ sqlite3 data/student_management.db "PRAGMA integrity_check;"
 ```bash
 curl -X GET http://localhost:8080/api/v1/students \
   -H "Authorization: Bearer YOUR_TOKEN"
-```
 
+```text
 **Checklist:**
 
 - [ ] HTTP 200 status
@@ -303,8 +315,8 @@ curl -X GET http://localhost:8080/api/v1/students \
 curl -X POST http://localhost:8080/api/v1/students \
   -H "Content-Type: application/json" \
   -d '{"invalid": "data"}'
-```
 
+```text
 - [ ] HTTP 422 Unprocessable Entity
 - [ ] RFC 7807 problem details returned
 - [ ] Clear error message
@@ -327,11 +339,12 @@ curl -X POST http://localhost:8080/api/v1/students \
 
 ```bash
 # Use curl with timing
+
 curl -w "@curl-format.txt" -o /dev/null -s http://localhost:8080/health
 
 # Or use browser DevTools Network tab
-```
 
+```text
 - [ ] All endpoints within acceptable ranges
 - [ ] No N+1 query issues (check logs for multiple queries)
 - [ ] Database connection pool healthy
@@ -340,15 +353,18 @@ curl -w "@curl-format.txt" -o /dev/null -s http://localhost:8080/health
 
 ```bash
 # Detailed health
+
 curl http://localhost:8080/health
 
 # Readiness probe
+
 curl http://localhost:8080/health/ready
 
 # Liveness probe
-curl http://localhost:8080/health/live
-```
 
+curl http://localhost:8080/health/live
+
+```text
 **Checklist:**
 
 - [ ] `/health` returns detailed status
@@ -371,9 +387,10 @@ curl http://localhost:8080/health/live
 
 ```powershell
 # Run full quality check
-.\COMMIT_READY.ps1 -Quick
-```
 
+.\COMMIT_READY.ps1 -Quick
+
+```text
 **Checklist:**
 
 - [ ] Ruff linting passes (no errors)
@@ -388,8 +405,8 @@ curl http://localhost:8080/health/live
 ```bash
 cd backend
 pytest --cov=backend --cov-report=term-missing
-```
 
+```text
 - [ ] Coverage > 70% (target)
 - [ ] Critical paths covered
 - [ ] No failing tests
@@ -402,12 +419,14 @@ pytest --cov=backend --cov-report=term-missing
 
 ```powershell
 # Stop container
+
 .\DOCKER.ps1 -Stop
 
 # Start again
-.\DOCKER.ps1 -Start
-```
 
+.\DOCKER.ps1 -Start
+
+```text
 - [ ] Data persists after container restart
 - [ ] Database version matches VERSION file
 - [ ] No migration conflicts
@@ -416,8 +435,8 @@ pytest --cov=backend --cov-report=term-missing
 
 ```bash
 docker logs sms-fullstack --tail 100
-```
 
+```text
 - [ ] No critical errors
 - [ ] Migrations ran successfully on startup
 - [ ] Uvicorn serving on port 8000 internally
@@ -426,8 +445,8 @@ docker logs sms-fullstack --tail 100
 
 ```bash
 docker exec sms-fullstack env | grep SMS_
-```
 
+```text
 - [ ] `SMS_ENV=production` (Docker)
 - [ ] `SMS_EXECUTION_MODE=docker`
 - [ ] `AUTH_ENABLED=true`
@@ -441,12 +460,14 @@ docker exec sms-fullstack env | grep SMS_
 
 ```powershell
 # Dry run first
+
 .\scripts\CLEANUP_PRE_RELEASE.ps1 -DryRun
 
 # Execute cleanup
-.\scripts\CLEANUP_PRE_RELEASE.ps1
-```
 
+.\scripts\CLEANUP_PRE_RELEASE.ps1
+
+```text
 **Checklist:**
 
 - [ ] Temp files removed
@@ -514,24 +535,25 @@ docker exec sms-fullstack env | grep SMS_
 cd backend
 pytest -v
 pytest --cov=backend --cov-report=html
-```
 
+```text
 ### Frontend Tests
 
 ```bash
 cd frontend
 npm run test
 npm run test:e2e  # Playwright E2E
-```
 
+```text
 ### Full Quality Suite
 
 ```powershell
 .\COMMIT_READY.ps1 -Full  # 15-20 minutes
-```
 
+```text
 ---
 
 **Version**: 1.0.0
 **Last Updated**: 2025-12-04
 **Next Review**: $11.9.7 release
+

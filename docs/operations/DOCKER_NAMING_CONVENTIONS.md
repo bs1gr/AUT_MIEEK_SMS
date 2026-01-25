@@ -19,6 +19,7 @@ sms-backend:1.1.0
 sms-frontend:1.1.0
 sms-backend:1.2.0
 sms-frontend:1.2.0
+
 ```text
 
 **Components:**
@@ -46,8 +47,8 @@ sms-frontend:1.2.0
 sms_data_rebuild_$11.9.7_20251029_143022
 sms_data_rebuild_$11.9.7_20251029_150845
 sms_data_rebuild_$11.9.7_20251030_091234
-```
 
+```text
 **Components:**
 
 - `sms_data_rebuild` - Indicates volume created via rebuild process
@@ -82,8 +83,8 @@ sms_data_rebuild_$11.9.7_20251030_091234
 sms_backup_$11.9.7_20251029_143022.db
 sms_backup_$11.9.7_20251029_150845.db
 sms_backup_$11.9.7_20251030_091234.db
-```
 
+```text
 **Components:**
 
 - `sms_backup` - Indicates database backup file
@@ -115,10 +116,11 @@ sms_backup_$11.9.7_20251030_091234.db
 ```powershell
 .\RUN.ps1
 # or use the management menu
+
 .\SMS.ps1
 # Select option 1: Start Containers
-```
 
+```text
 **What happens:**
 
 - Reads version from `VERSION` file (e.g., 1.1.0)
@@ -141,8 +143,8 @@ sms_backup_$11.9.7_20251030_091234.db
 ```powershell
 .\SMS.ps1
 # Select option 'X' - Rebuild from Scratch
-```
 
+```text
 **What happens:**
 
 1. **Stops** all running containers
@@ -177,8 +179,8 @@ sms_backup_$11.9.7_20251030_091234.db
 ✓ Containers started
 
 Rebuild completed successfully!
-```
 
+```text
 **When to use:**
 
 - ✅ After major code changes
@@ -195,8 +197,8 @@ Rebuild completed successfully!
 ```powershell
 .\SMS.ps1
 # Select option 'B' - Backup Database
-```
 
+```text
 **What happens:**
 
 - Reads current version from VERSION file
@@ -212,8 +214,8 @@ Creating backup from Docker volume...
 
 ✓ Backup created successfully (188.45 KB)
   Location: backups\sms_backup_$11.9.7_20251029_143022.db
-```
 
+```text
 **When to use:**
 
 - ✅ Before major data changes
@@ -232,16 +234,17 @@ Creating backup from Docker volume...
 
 ```powershell
 # Edit the VERSION file in project root
-echo "1.2.0" > VERSION
-```
 
+echo "1.2.0" > VERSION
+
+```text
 #### Step 2: Rebuild with New Version
 
 ```powershell
 .\SMS.ps1
 # Select option 'X' - Rebuild from Scratch
-```
 
+```text
 **Result:**
 
 - New images created: `sms-backend:1.2.0`, `sms-frontend:1.2.0`
@@ -254,31 +257,39 @@ echo "1.2.0" > VERSION
 
 ```powershell
 # Current state: VERSION = 1.1.0
+
 # Running: sms-backend:1.1.0, sms-frontend:1.1.0
 # Volume: sms_data_rebuild_$11.9.7_20251029_143022
 
 # Step 1: Create backup before upgrade
+
 .\SMS.ps1  # Option B - Backup
 # Creates: sms_backup_$11.9.7_20251029_150000.db
 
 # Step 2: Update version
+
 echo "1.2.0" > VERSION
 
 # Step 3: Rebuild with new version
+
 .\SMS.ps1  # Option X - Rebuild
 # Choose to keep existing volume (to preserve data)
 
 # Result:
+
 # - New images: sms-backend:1.2.0, sms-frontend:1.2.0
 # - Same volume: sms_data_rebuild_$11.9.7_20251029_143022 (data preserved)
+
 # - Old images still available for rollback
 
 # If something goes wrong, can easily rollback:
+
 # 1. Change VERSION back to 1.1.0
 # 2. docker compose up -d
-# 3. Uses old sms-backend:1.1.0 and sms-frontend:1.1.0 images
-```
 
+# 3. Uses old sms-backend:1.1.0 and sms-frontend:1.1.0 images
+
+```text
 ---
 
 ## Multiple Versions Coexisting
@@ -287,28 +298,35 @@ echo "1.2.0" > VERSION
 
 ```powershell
 # Production version: 1.1.0
+
 docker images
 # sms-backend:1.1.0
+
 # sms-frontend:1.1.0
 
 # Update VERSION to 1.2.0 and rebuild
+
 echo "1.2.0" > VERSION
 .\SMS.ps1  # Option X
 
 # Now have both versions
+
 docker images
 # sms-backend:1.2.0  (new)
+
 # sms-frontend:1.2.0 (new)
 # sms-backend:1.1.0  (old - still available)
+
 # sms-frontend:1.1.0 (old - still available)
 
 # Test $11.9.7, if issues found:
+
 echo "1.1.0" > VERSION
 docker compose down
 docker compose up -d
 # Back to stable $11.9.7
-```
 
+```text
 ---
 
 ## Cleanup Old Versions
@@ -317,36 +335,43 @@ docker compose up -d
 
 ```powershell
 # List all SMS images
+
 docker images | Select-String "sms-"
 
 # List all SMS volumes
+
 docker volume ls | Select-String "sms_data"
 
 # List all backups
-Get-ChildItem .\backups\*.db | Sort-Object LastWriteTime -Descending
-```
 
+Get-ChildItem .\backups\*.db | Sort-Object LastWriteTime -Descending
+
+```text
 ### Remove Specific Version
 
 ```powershell
 # Remove specific image version
+
 docker rmi sms-backend:1.0.0 sms-frontend:1.0.0
 
 # Remove specific volume (ensure not in use!)
+
 docker volume rm student-management-system_sms_data_rebuild_$11.9.7_20251020_120000
 
 # Remove specific backup
-Remove-Item .\backups\sms_backup_$11.9.7_20251020_120000.db
-```
 
+Remove-Item .\backups\sms_backup_$11.9.7_20251020_120000.db
+
+```text
 ### Automated Cleanup (via SMS.ps1)
 
 ```powershell
 .\SMS.ps1
 # Option 'M' - Manage Backups
-# Then 'C' - Clean old backups (keeps latest 10)
-```
 
+# Then 'C' - Clean old backups (keeps latest 10)
+
+```text
 ---
 
 ## Naming Convention Benefits
@@ -375,12 +400,14 @@ Remove-Item .\backups\sms_backup_$11.9.7_20251020_120000.db
 
 ```powershell
 # Ensure VERSION file exists and has content
+
 Get-Content VERSION
 
 # Use rebuild option which sets VERSION env var
-.\SMS.ps1  # Option X
-```
 
+.\SMS.ps1  # Option X
+
+```text
 ---
 
 ### Issue: Old naming pattern still in use
@@ -391,10 +418,11 @@ Get-Content VERSION
 
 ```powershell
 # Rebuild will clean up old images automatically
+
 .\SMS.ps1  # Option X
 # The rebuild process removes both old and new naming patterns
-```
 
+```text
 ---
 
 ### Issue: Cannot create new volume (name conflict)
@@ -417,12 +445,14 @@ Get-Content VERSION
 
 ```powershell
 # Old backups may use old naming
+
 # New backups (after update) use: sms_backup_v[VERSION]_[DATE]_[TIME].db
 
 # List all backups with details
-Get-ChildItem .\backups\*.db | Format-Table Name, LastWriteTime, Length
-```
 
+Get-ChildItem .\backups\*.db | Format-Table Name, LastWriteTime, Length
+
+```text
 ---
 
 ## Technical Implementation
@@ -457,16 +487,19 @@ Get-ChildItem .\backups\*.db | Format-Table Name, LastWriteTime, Length
 
 ```powershell
 # SMS.ps1 reads VERSION file
+
 $version = (Get-Content "VERSION" -Raw).Trim()  # "1.1.0"
 
 # Sets environment variable before docker compose
+
 $env:VERSION = $version
 
 # Docker Compose substitutes ${VERSION} in docker-compose.yml
+
 # image: sms-backend:${VERSION:-latest}
 # Becomes: sms-backend:1.1.0
-```
 
+```text
 ---
 
 ## Best Practices
@@ -524,3 +557,4 @@ If you encounter issues with naming conventions or versioning:
 4. Review logs: `.\SMS.ps1` → Option 9
 
 For more help, see [FRESH_DEPLOYMENT_TROUBLESHOOTING.md](FRESH_DEPLOYMENT_TROUBLESHOOTING.md) or open an issue on GitHub.
+

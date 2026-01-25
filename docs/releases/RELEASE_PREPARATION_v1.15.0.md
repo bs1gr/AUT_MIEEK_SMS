@@ -109,30 +109,36 @@
 ## 📝 Release Notes (Pre-Draft)
 
 ### 1.15.0 - Infrastructure & Quality Improvements
+
 **Release Date**: January 24, 2026
 
 #### ✨ New Features
+
 - Comprehensive audit logging for all sensitive operations
 - Business metrics dashboard for performance monitoring
 - Improved error messages with actionable guidance
 - Enhanced E2E test coverage for critical workflows
 
 #### 🚀 Performance Improvements
+
 - 95% faster list endpoint queries (grades, students, attendance)
 - Optimized database queries with eager loading
 - Reduced database round-trips through strategic caching
 
 #### 🔒 Security & Data Integrity
+
 - Automatic soft-delete filtering (deleted records invisible to API)
 - Backup encryption (AES-256) for sensitive data at rest
 - Standardized API response format with consistent error handling
 
 #### 🧪 Quality Assurance
+
 - Complete E2E test suite with proper seeding
 - Regression test coverage for all major features
 - Performance benchmarks and profiling
 
 #### 📚 Developer Experience
+
 - Standardized API response format (request ID, timestamps, error details)
 - Improved error handling with user-friendly messages
 - Better logging for debugging and monitoring
@@ -230,3 +236,4 @@
 - **Timeline**: 3 weeks (Planning + 2 weeks Phase 1 + Release prep)
 - **Resources**: 3 backend + 1 frontend + QA
 - **Success Criteria**: All 8 improvements tested and merged
+

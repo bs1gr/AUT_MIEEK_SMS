@@ -36,6 +36,7 @@
 | **Signature** | Not signed (AUT MIEEK cert password not provided) |
 
 ### Installer Features
+
 - ✅ Modern v2.0 wizard design with embeds images
 - ✅ Bilingual support (English + Greek)
 - ✅ Greek text properly encoded (Windows-1253)
@@ -48,12 +49,13 @@
 ## 🔧 Release Process Execution
 
 ### Phase 1: Pre-Commit Validation (COMMIT_READY.ps1)
-```
+
+```text
 Mode: Quick
 Duration: 72.2 seconds
 Status: ✅ ALL CHECKS PASSED
-```
 
+```text
 **Quality Metrics:**
 - Code Quality: 8/8 checks ✅
   - Backend Ruff linting ✅
@@ -76,11 +78,12 @@ Status: ✅ ALL CHECKS PASSED
   - Temporary files removed (15 files)
 
 ### Phase 2: Release Preparation (RELEASE_READY.ps1)
-```
+
+```text
 Duration: ~2 minutes
 Status: ✅ RELEASE READY
-```
 
+```text
 **Actions Completed:**
 - ✅ Version consistency verified (11/11 checks)
 - ✅ Installer wizard images regenerated
@@ -90,16 +93,18 @@ Status: ✅ RELEASE READY
 - ✅ Main branch pushed to GitHub
 
 **Commit:**
-```
-dbc3fe566 - chore(release): bump version to 1.12.8 and update docs
-```
 
+```text
+dbc3fe566 - chore(release): bump version to 1.12.8 and update docs
+
+```text
 ### Phase 3: Documentation Generation (RELEASE_WITH_DOCS.ps1)
-```
+
+```text
 Duration: ~3 minutes
 Status: ✅ DOCUMENTED AND TAGGED
-```
 
+```text
 **Outputs Generated:**
 - 📄 `docs/releases/RELEASE_NOTES_$11.14.0.md` - Complete release notes
 - 📄 `docs/releases/GITHUB_RELEASE_$11.14.0.md` - GitHub release description
@@ -107,16 +112,18 @@ Status: ✅ DOCUMENTED AND TAGGED
 - 🏷️ Git tag `$11.14.0` created and pushed
 
 **Commit:**
-```
-29f819479 - chore(release): bump version to 1.12.8 and update docs
-```
 
+```text
+29f819479 - chore(release): bump version to 1.12.8 and update docs
+
+```text
 ### Phase 4: Installer Build (INSTALLER_BUILDER.ps1)
-```
+
+```text
 Duration: 29 seconds build time
 Status: ✅ BUILD SUCCESSFUL
-```
 
+```text
 **Build Steps Executed:**
 - ✅ Version consistency audit
 - ✅ Greek language encoding audit & fix
@@ -127,46 +134,50 @@ Status: ✅ BUILD SUCCESSFUL
 - ✅ Installer smoke tests passed
 
 **Installer Verification:**
-```
+
+```text
 File: SMS_Installer_1.12.8.exe
 Size: 6.1 MB
 Version: vvvv$11.17.2
 Created: 2025-12-29 01:40:49
 Modified: 2025-12-29 01:41:18
 Status: ✅ Valid & Tested
-```
 
+```text
 ---
 
 ## 📊 Release Statistics
 
 ### Git Activity
-```
+
+```text
 Total commits: 10 new commits this session
 Including: 2 critical bug fixes + 1 documentation update
 Tag: $11.14.0 (signed, pushed to origin)
 Branch: main (up to date with origin)
 Status: Clean working tree
-```
 
+```text
 ### Code Changes
-```
+
+```text
 Files modified: 1 (E2E test pragma syntax fix)
 Tests passing: 1144/1189 (96%)
 Linting warnings: Minimal (existing legacy code)
 Type checking: ✅ Full pass
 Translation keys: ✅ Parity verified
-```
 
+```text
 ### Installer Metrics
-```
+
+```text
 Build time: 29 seconds
 Installer size: 6.1 MB (optimized)
 Compression: Inno Setup (LZMA2)
 Dependencies: Auto-detected & packaged
 Language support: English + Greek (2/2)
-```
 
+```text
 ---
 
 ## 🚀 Deployment Checklist
@@ -187,12 +198,14 @@ Language support: English + Greek (2/2)
 ## 📥 Installation Instructions
 
 ### For End Users:
+
 1. Download `SMS_Installer_1.12.8.exe` from releases
 2. Run the installer (Administrator privileges recommended)
 3. Follow the wizard (supports both English and Greek)
 4. Application starts automatically after installation
 
 ### For Developers:
+
 1. Clone repository: `git clone <repo>`
 2. Checkout release: `git checkout $11.14.0`
 3. Use DOCKER.ps1 or NATIVE.ps1 to start
@@ -203,17 +216,20 @@ Language support: English + Greek (2/2)
 ## 🔗 Release Resources
 
 ### Documentation
+
 - **Release Notes**: `docs/releases/RELEASE_NOTES_$11.14.0.md`
 - **GitHub Release**: `docs/releases/GITHUB_RELEASE_$11.14.0.md`
 - **Deployment Guide**: `DEPLOYMENT_REPORT_$11.14.0.md`
 - **API Documentation**: `http://localhost:8080/docs` (when running)
 
 ### Repository Links
+
 - **GitHub Tag**: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.14.0`
 - **Git Commit**: `https://github.com/bs1gr/AUT_MIEEK_SMS/commit/29f819479`
 - **Actions**: `https://github.com/bs1gr/AUT_MIEEK_SMS/actions`
 
 ### Downloads
+
 - **Installer**: `dist/SMS_Installer_1.12.8.exe` (6.1 MB)
 - **Docker Image**: `sms-fullstack:1.12.8`
 - **Source Code**: `$11.14.0` tag
@@ -223,6 +239,7 @@ Language support: English + Greek (2/2)
 ## ✨ What's New in $11.14.0
 
 ### Critical Bug Fixes
+
 1. **Docker Entrypoint** - Fixed ModuleNotFoundError
 2. **Database Unification** - Resolved path inconsistencies
 3. **Authentication** - Password validation requirements enforced
@@ -230,6 +247,7 @@ Language support: English + Greek (2/2)
 5. **Seed Script** - Idempotent data seeding
 
 ### Enhancements
+
 - Improved error messages and logging
 - Better configuration detection
 - Enhanced installer experience
@@ -237,6 +255,7 @@ Language support: English + Greek (2/2)
 - Comprehensive documentation
 
 ### Quality Improvements
+
 - All pre-commit hooks passing
 - Type checking 100%
 - Linting passing
@@ -270,6 +289,7 @@ Language support: English + Greek (2/2)
 ## 🎯 Support & Troubleshooting
 
 ### Installer Issues
+
 If the installer doesn't work:
 1. Run as Administrator
 2. Disable antivirus temporarily
@@ -277,6 +297,7 @@ If the installer doesn't work:
 4. Review installer log in `%TEMP%`
 
 ### Application Issues
+
 1. Check logs: `backend/logs/app.log`
 2. Verify database: `data/student_management.db` exists
 3. Test API: `http://localhost:8080/health`
@@ -307,3 +328,4 @@ The Student Management System $11.14.0 is production-ready and available for dep
 **Build Status**: ✅ Successful
 **Git Tag**: $11.14.0
 **Installer**: SMS_Installer_1.12.8.exe (6.1 MB)
+

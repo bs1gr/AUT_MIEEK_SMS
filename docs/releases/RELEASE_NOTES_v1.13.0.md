@@ -6,6 +6,7 @@
 ## ⚠️ BREAKING CHANGES
 
 - **Release 1.13.0 - MAJOR: Remove deprecated backend modules** [d26d09c]
+
   BREAKING CHANGES:
 
 ## 📝 Documentation
@@ -57,3 +58,4 @@
 - **Total Commits**: 33
 - **Contributors**: 2
 - **Breaking Changes**: 1
+

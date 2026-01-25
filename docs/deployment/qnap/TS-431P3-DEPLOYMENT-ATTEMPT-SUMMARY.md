@@ -15,10 +15,10 @@
 
 **Exit Code 139 / ELF Page Alignment Errors:**
 
-```
+```text
 libc.so.6: ELF load command address/offset not page-aligned
-```
 
+```text
 This error occurs across:
 
 - All Python Docker images (python:3.11-slim, python:3.11-slim-bookworm, balenalib/armv7hf-debian)
@@ -74,11 +74,11 @@ This error occurs across:
 **Status:** ❌ Failed at RUN step
 **Error:**
 
-```
+```text
 apt-get: error while loading shared libraries: libz.so.1:
 ELF load command address/offset not page-aligned
-```
 
+```text
 **Root Cause:** Base image compiled for 4KB pages, TS-431P3 uses 32KB pages
 
 ### Attempt 3: ARM Docker Build (python:3.11-slim-bookworm)
@@ -86,11 +86,11 @@ ELF load command address/offset not page-aligned
 **Status:** ❌ Failed at RUN step
 **Error:**
 
-```
+```text
 /bin/sh: error while loading shared libraries: libc.so.6:
 ELF load command address/offset not page-aligned
-```
 
+```text
 **Root Cause:** Same page size incompatibility
 
 ### Attempt 4: Balena ARM Images (balenalib/armv7hf-debian:bookworm)
@@ -98,11 +98,11 @@ ELF load command address/offset not page-aligned
 **Status:** ❌ Failed at RUN step
 **Error:**
 
-```
+```text
 /bin/sh: error while loading shared libraries: libc.so.6:
 ELF load command address/offset not page-aligned
-```
 
+```text
 **Root Cause:** Even Balena's specialized ARM images use 4KB pages
 
 ### Attempt 5: PostgreSQL Container (postgres:16-alpine)
@@ -220,7 +220,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 
 ### File Structure
 
-```
+```text
 /share/Container/student-management-system/
 ├── backend/                    # Application files
 ├── frontend/
@@ -235,8 +235,8 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 ├── sms-data/                  # Created (unused)
 ├── sms-backups/               # Created (unused)
 └── sms-logs/                  # Created (unused)
-```
 
+```text
 ---
 
 ## Lessons Learned
@@ -405,7 +405,7 @@ The TS-431P3 is NOT suitable for:
 
 ### Files to Keep (Useful for x86_64 QNAP)
 
-```
+```text
 docs/deployment/QNAP.md
 docs/deployment/QNAP_DEPLOYMENT_SUMMARY.md
 docs/deployment/QNAP_VIRTUAL_HOST_DEPLOYMENT_PLAN.md
@@ -414,19 +414,19 @@ docker/Dockerfile.frontend.qnap
 docker/docker-compose.qnap.yml
 docker/nginx.qnap.conf
 .env.qnap.example
-```
 
+```text
 ### Files to Mark as Non-Functional (TS-431P3 specific)
 
-```
+```text
 docs/deployment/QNAP_TS-431P3_COMPATIBILITY.md (update with failure notice)
 docs/deployment/QNAP_TS-431P3_ARM_BUILD_GUIDE.md (mark as unfeasible)
 docker/Dockerfile.backend.arm32v7 (won't work)
 docker/Dockerfile.frontend.arm32v7 (won't work)
 docker/docker-compose.qnap.arm32v7.yml (won't work)
 docker/README.ARM.md (update with limitations)
-```
 
+```text
 ---
 
 ## Cleanup Actions Needed
@@ -555,3 +555,4 @@ The TS-431P3 remains excellent for file storage and should continue serving that
 **Last Updated:** 2025-11-28
 **Status:** Final - Deployment Unfeasible
 **Recommendation:** Deploy on x86_64 hardware or cloud VPS
+

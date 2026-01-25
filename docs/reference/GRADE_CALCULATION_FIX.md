@@ -24,8 +24,8 @@
 Final Grade = (90% × 40%) + (0% × 60%) = 36%
 GPA = 0.36 × 4.0 = 1.44
 Display: "36% - D grade"
-```
 
+```text
 **Expected Behavior** ✅:
 
 ```text
@@ -33,8 +33,8 @@ Completed Weight = 40% (only Midterm done)
 Normalized Grade = (90% × 40%) / 40% = 90%
 GPA = 0.90 × 4.0 = 3.60
 Display: "90% - A grade"
-```
 
+```text
 ## Root Cause Analysis
 
 ### Backend Logic Issue
@@ -43,6 +43,7 @@ Display: "90% - A grade"
 **Method**: `_calculate_final_grade_from_records()` (lines 230-340)
 
 **Problem Code** (lines 306-310):
+
 ```python
 final_grade = 0.0
 total_weight_used = 0.0
@@ -52,8 +53,8 @@ for rule in evaluation_rules:
     if category in category_scores and weight > 0:
         final_grade += (category_scores[category] * weight) / 100
         total_weight_used += weight
-```
 
+```text
 **Issue**: The calculation summed weighted scores but didn't normalize when `total_weight_used < 100`. This meant incomplete work was treated as 0% for missing categories.
 
 ### Where This Affected
@@ -93,8 +94,10 @@ for rule in evaluation_rules:
 **Lines**: 306-321
 
 **New Code**:
+
 ```python
 # Calculate final grade based on COMPLETED work only
+
 # Normalize by total weight of categories with actual grades/data
 final_grade = 0.0
 total_weight_used = 0.0
@@ -106,16 +109,18 @@ for rule in evaluation_rules:
         total_weight_used += weight
 
 # Normalize to 100% scale based on completed work
+
 # If only 40% of work is done, scale up to show current performance out of 100%
 if total_weight_used > 0 and total_weight_used < 100:
     final_grade = (final_grade / total_weight_used) * 100
-```
 
+```text
 **Logic**:
 1. Calculate weighted sum of completed categories
 2. Track `total_weight_used` (sum of weights for categories with data)
 3. **If `total_weight_used < 100`**: Normalize to 100% scale
    - Formula: `final_grade = (final_grade / total_weight_used) * 100`
+
 4. **If `total_weight_used == 100`**: No normalization needed (all work complete)
 
 ### Examples
@@ -127,14 +132,16 @@ if total_weight_used > 0 and total_weight_used < 100:
 - Final (60%): Not yet taken
 
 **Calculation**:
+
 ```python
 final_grade = (85 * 40) / 100 = 34
 total_weight_used = 40
 
 # Normalize:
-final_grade = (34 / 40) * 100 = 85%
-```
 
+final_grade = (34 / 40) * 100 = 85%
+
+```text
 **Result**: Student sees 85% (A-), reflecting current performance
 
 #### Example 2: All Work Complete
@@ -144,14 +151,16 @@ final_grade = (34 / 40) * 100 = 85%
 - Final (60%): 90%
 
 **Calculation**:
+
 ```python
 final_grade = (85 * 40 + 90 * 60) / 100 = 88
 total_weight_used = 100
 
 # No normalization (total_weight_used == 100)
-final_grade = 88%
-```
 
+final_grade = 88%
+
+```text
 **Result**: Student sees 88% (B+), final grade
 
 #### Example 3: Multiple Partial Categories
@@ -163,14 +172,16 @@ final_grade = 88%
 - Final (30%): Not yet taken
 
 **Calculation**:
+
 ```python
 final_grade = (95 * 20 + 80 * 30) / 100 = 43
 total_weight_used = 50
 
 # Normalize:
-final_grade = (43 / 50) * 100 = 86%
-```
 
+final_grade = (43 / 50) * 100 = 86%
+
+```text
 **Result**: Student sees 86% (B), reflecting completed work
 
 #### Example 4: Edge Case - No Work Done
@@ -179,14 +190,16 @@ final_grade = (43 / 50) * 100 = 86%
 - All categories: 0% weight used
 
 **Calculation**:
+
 ```python
 final_grade = 0
 total_weight_used = 0
 
 # No normalization (total_weight_used == 0)
-final_grade = 0%
-```
 
+final_grade = 0%
+
+```text
 **Result**: Student sees 0%, expected behavior
 
 ## Testing
@@ -240,8 +253,8 @@ def test_zero_work_handled():
     # Setup: No grades in any category
     # Assert: final_grade == 0
     # Assert: No division by zero error
-```
 
+```text
 ## Impact Analysis
 
 ### User-Facing Changes
@@ -345,3 +358,4 @@ def test_zero_work_handled():
 **Status**: ✅ Implemented and tested
 **Breaking Changes**: None (backward compatible)
 **Performance Impact**: Negligible (< 1ms per calculation)
+

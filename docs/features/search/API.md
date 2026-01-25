@@ -17,8 +17,8 @@ All endpoints require authentication via Bearer token in the `Authorization` hea
 
 ```bash
 Authorization: Bearer YOUR_ACCESS_TOKEN
-```
 
+```text
 ## Endpoints
 
 ### 1. Search Students
@@ -39,8 +39,8 @@ Search for students by name, email, or other criteria.
     "phone": "555-0001"
   }
 }
-```
 
+```text
 #### Parameters
 
 | Parameter | Type | Required | Description |
@@ -78,11 +78,12 @@ Search for students by name, email, or other criteria.
     "version": "1.0.0"
   }
 }
-```
 
+```text
 #### Response - Errors
 
 **400 Bad Request**
+
 ```json
 {
   "success": false,
@@ -94,9 +95,10 @@ Search for students by name, email, or other criteria.
   },
   "meta": {"request_id": "req_xyz789", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 **403 Forbidden**
+
 ```json
 {
   "success": false,
@@ -108,19 +110,21 @@ Search for students by name, email, or other criteria.
   },
   "meta": {"request_id": "req_xyz789", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 #### Examples
 
 **Search by name**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/students" \
   -H "Authorization: Bearer token" \
   -H "Content-Type: application/json" \
   -d '{"query": "Alice"}'
-```
 
+```text
 **Search with pagination**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/students" \
   -H "Authorization: Bearer token" \
@@ -130,9 +134,10 @@ curl -X POST "http://localhost:8000/api/v1/search/students" \
     "page": 2,
     "page_size": 50
   }'
-```
 
+```text
 **Search with filters**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/students" \
   -H "Authorization: Bearer token" \
@@ -143,8 +148,8 @@ curl -X POST "http://localhost:8000/api/v1/search/students" \
       "email": "alice@"
     }
   }'
-```
 
+```text
 ---
 
 ### 2. Search Courses
@@ -165,8 +170,8 @@ Search for courses by name, code, or credits.
     "max_credits": 4
   }
 }
-```
 
+```text
 #### Parameters
 
 | Parameter | Type | Required | Description |
@@ -200,19 +205,21 @@ Search for courses by name, code, or credits.
   "error": null,
   "meta": {"request_id": "req_abc123", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 #### Examples
 
 **Search by name**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/courses" \
   -H "Authorization: Bearer token" \
   -H "Content-Type: application/json" \
   -d '{"query": "Math"}'
-```
 
+```text
 **Filter by credits**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/courses" \
   -H "Authorization: Bearer token" \
@@ -224,8 +231,8 @@ curl -X POST "http://localhost:8000/api/v1/search/courses" \
       "max_credits": 4
     }
   }'
-```
 
+```text
 ---
 
 ### 3. Search Grades
@@ -247,8 +254,8 @@ Search for grades with student, course, and value filters.
   "page": 1,
   "page_size": 20
 }
-```
 
+```text
 #### Parameters
 
 | Parameter | Type | Required | Description |
@@ -282,11 +289,12 @@ Search for grades with student, course, and value filters.
   "error": null,
   "meta": {"request_id": "req_abc123", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 #### Examples
 
 **Search grades for a student**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/grades" \
   -H "Authorization: Bearer token" \
@@ -296,9 +304,10 @@ curl -X POST "http://localhost:8000/api/v1/search/grades" \
       "student_id": 1
     }
   }'
-```
 
+```text
 **Search grades in a grade range**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/grades" \
   -H "Authorization: Bearer token" \
@@ -309,9 +318,10 @@ curl -X POST "http://localhost:8000/api/v1/search/grades" \
       "max_grade": 100
     }
   }'
-```
 
+```text
 **Search with multiple filters**
+
 ```bash
 curl -X POST "http://localhost:8000/api/v1/search/grades" \
   -H "Authorization: Bearer token" \
@@ -322,8 +332,8 @@ curl -X POST "http://localhost:8000/api/v1/search/grades" \
       "min_grade": 80
     }
   }'
-```
 
+```text
 ---
 
 ### 4. Advanced Search
@@ -344,8 +354,8 @@ Search across all entity types (students, courses, grades) with unified filterin
   "page": 1,
   "page_size": 20
 }
-```
 
+```text
 #### Parameters
 
 | Parameter | Type | Required | Description |
@@ -380,11 +390,12 @@ Search across all entity types (students, courses, grades) with unified filterin
   "error": null,
   "meta": {"request_id": "req_abc123", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 #### Error Cases
 
 **Invalid entity**
+
 ```json
 {
   "success": false,
@@ -396,8 +407,8 @@ Search across all entity types (students, courses, grades) with unified filterin
   },
   "meta": {"request_id": "req_xyz789", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 ---
 
 ### 5. Search Suggestions
@@ -436,22 +447,24 @@ Get autocomplete suggestions for a given entity type.
   "error": null,
   "meta": {"request_id": "req_abc123", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 #### Examples
 
 **Get student suggestions**
+
 ```bash
 curl "http://localhost:8000/api/v1/search/suggestions?query=A&entity=student" \
   -H "Authorization: Bearer token"
-```
 
+```text
 **Get course suggestions with custom limit**
+
 ```bash
 curl "http://localhost:8000/api/v1/search/suggestions?query=Math&entity=course&limit=5" \
   -H "Authorization: Bearer token"
-```
 
+```text
 ---
 
 ### 6. Search Statistics
@@ -483,15 +496,15 @@ Get statistics about searchable data (total counts by entity type).
   "error": null,
   "meta": {"request_id": "req_abc123", "timestamp": "2026-01-17T12:00:00Z"}
 }
-```
 
+```text
 #### Example
 
 ```bash
 curl "http://localhost:8000/api/v1/search/statistics" \
   -H "Authorization: Bearer token"
-```
 
+```text
 ---
 
 ## Common Response Codes
@@ -515,12 +528,13 @@ curl "http://localhost:8000/api/v1/search/statistics" \
 - **Statistics endpoint**: 60 requests per minute per user
 
 Rate limit headers in response:
-```
+
+```text
 X-RateLimit-Limit: 10
 X-RateLimit-Remaining: 9
 X-RateLimit-Reset: 1642419600
-```
 
+```text
 ---
 
 ## Response Format
@@ -548,8 +562,8 @@ All responses follow the APIResponse wrapper format:
     "version": "1.0.0"
   }
 }
-```
 
+```text
 ---
 
 ## Best Practices
@@ -599,9 +613,11 @@ All responses follow the APIResponse wrapper format:
 ## Changelog
 
 ### Version 1.0.0 (January 17, 2026)
+
 - Initial release
 - 6 search endpoints
 - Pagination support
 - Advanced filtering
 - Rate limiting
 - API Response wrapper format
+

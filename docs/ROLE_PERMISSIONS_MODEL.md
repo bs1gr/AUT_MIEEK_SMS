@@ -45,6 +45,7 @@ All protected endpoints use the `optional_require_role()` dependency:
 from backend.routers.routers_auth import optional_require_role
 
 # Educational data operations - Both roles allowed
+
 @router.post("/students/")
 async def create_student(
     ...,
@@ -53,14 +54,15 @@ async def create_student(
     pass
 
 # User management - Admin only
+
 @router.post("/auth/admin/users")
 async def admin_create_user(
     ...,
     current_admin=Depends(optional_require_role("admin"))
 ):
     pass
-```
 
+```text
 ### AUTH_MODE Configuration
 
 The system supports three authentication modes (configured via `AUTH_MODE` in `.env`):
@@ -87,8 +89,8 @@ import apiClient, { enrollmentsAPI } from '@/api/api';
 
 // Automatically includes Authorization: Bearer <token> header
 await enrollmentsAPI.enrollStudents(courseId, studentIds);
-```
 
+```text
 ## Common Patterns
 
 ### Checking User Role in Code
@@ -98,10 +100,11 @@ def get_current_user_role(user) -> str:
     return getattr(user, "role", None)
 
 # In endpoint
+
 if get_current_user_role(current_user) == "admin":
     # Admin-specific logic
-```
 
+```text
 ### Frontend Role Display
 
 ```typescript
@@ -110,8 +113,8 @@ import { useAuth } from '@/contexts/AuthContext';
 const { user } = useAuth();
 const isAdmin = user?.role === 'admin';
 const isTeacher = user?.role === 'teacher';
-```
 
+```text
 ## Migration from Old Model
 
 ### ❌ Old (Incorrect) Model
@@ -161,15 +164,17 @@ The system now uses permission-based enforcement for all protected endpoints.
 - See `docs/api/RBAC_API_MATRIX.md` for the full permission matrix and endpoint mapping.
 
 ### Example: Protecting an Endpoint
+
 ```python
 from backend.security.permissions import require_permission
 
 @router.post("/students/")
 async def create_student(..., current_user=Depends(require_permission("students.write"))):
     ...
-```
 
+```text
 ### Adding a New Permission
+
 1. Add the permission to the `permissions` table (via API or migration).
 2. Assign it to the appropriate roles (via API or admin UI).
 3. Use the permission in your endpoint dependency.
@@ -206,3 +211,4 @@ Use these to verify endpoint registration and try out new permissions.
 - [Authentication Guide](./user/AUTHENTICATION.md)
 - [API Reference](./API_REFERENCE.md)
 - [Deployment Guide](../DEPLOYMENT_GUIDE.md)
+

@@ -7,6 +7,7 @@
 ## 🚨 Critical Fixes (Blocking Commit)
 
 ### 1. Import/Export Service Type Mismatches
+
 - **File**: `backend/services/import_export_service.py`
 - **Errors**:
   - Line 61: `Incompatible types in assignment (expression has type "str", variable has type "Column[String]")`
@@ -20,14 +21,17 @@
 The following files have untyped function bodies (MyPy is skipping checks inside functions).
 
 ### 2. WebSocket Configuration
+
 - **File**: `backend/websocket_config.py`
 - **Action**: Add type hints to function signatures. (Completed - Added `-> None` to `__init__` and `Dict[str, Any]`)
 
 ### 3. WebSocket Manager
+
 - **File**: `backend/services/websocket_manager.py`
 - **Action**: Add type hints to `connect`, `disconnect`, and broadcast methods. (Completed - Added `WebSocket` type hints)
 
 ### 4. Cache Module
+
 - **File**: `backend/cache.py`
 - **Action**: Add type hints to cache retrieval/storage methods. (Completed - Added `-> None` to `__init__`)
 
@@ -37,3 +41,4 @@ The following files have untyped function bodies (MyPy is skipping checks inside
 
 ---
 *All items resolved as of Jan 14, 2026.*
+

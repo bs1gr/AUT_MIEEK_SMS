@@ -189,6 +189,7 @@ Fine-grained permission-based access control system replacing the current role-b
 ### New Tables
 
 #### `permissions` Table
+
 ```sql
 CREATE TABLE permissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -205,9 +206,10 @@ CREATE TABLE permissions (
 CREATE INDEX ix_permissions_key ON permissions(key);
 CREATE INDEX ix_permissions_resource ON permissions(resource);
 CREATE INDEX ix_permissions_is_active ON permissions(is_active);
-```
 
+```text
 #### `roles_permissions` Junction Table
+
 ```sql
 CREATE TABLE roles_permissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -222,9 +224,10 @@ CREATE TABLE roles_permissions (
 -- Indexes
 CREATE INDEX ix_roles_permissions_role_id ON roles_permissions(role_id);
 CREATE INDEX ix_roles_permissions_permission_id ON roles_permissions(permission_id);
-```
 
+```text
 #### `user_permissions` Table (for direct assignments)
+
 ```sql
 CREATE TABLE user_permissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -243,8 +246,8 @@ CREATE TABLE user_permissions (
 CREATE INDEX ix_user_permissions_user_id ON user_permissions(user_id);
 CREATE INDEX ix_user_permissions_permission_id ON user_permissions(permission_id);
 CREATE INDEX ix_user_permissions_expires_at ON user_permissions(expires_at);
-```
 
+```text
 ---
 
 ## 🔨 Implementation Details
@@ -255,6 +258,7 @@ CREATE INDEX ix_user_permissions_expires_at ON user_permissions(expires_at);
 
 ```python
 # backend/dependencies.py
+
 from functools import wraps
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
@@ -345,6 +349,7 @@ def _is_self_access(user: User, kwargs: dict) -> bool:
     Supports:
     - student_id parameter matching user.id
     - user_id parameter matching user.id
+
     """
     student_id = kwargs.get('student_id')
     user_id = kwargs.get('user_id')
@@ -355,12 +360,13 @@ def _is_self_access(user: User, kwargs: dict) -> bool:
         return True
 
     return False
-```
 
+```text
 #### 2. SQLAlchemy Models
 
 ```python
 # backend/models.py
+
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -416,6 +422,7 @@ class UserPermission(Base):
 
 
 # Update existing User model
+
 class User(Base):
     # ... existing fields ...
 
@@ -424,17 +431,19 @@ class User(Base):
 
 
 # Update existing Role model
+
 class Role(Base):
     # ... existing fields ...
 
     # Add relationship
     role_permissions = relationship("RolePermission", back_populates="role", cascade="all, delete-orphan")
-```
 
+```text
 #### 3. Pydantic Schemas
 
 ```python
 # backend/schemas/permissions.py
+
 from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
@@ -498,8 +507,8 @@ class UserPermissionResponse(BaseModel):
 
     class Config:
         from_attributes = True
-```
 
+```text
 ---
 
 ## 🚀 Migration Guide
@@ -510,12 +519,13 @@ class UserPermissionResponse(BaseModel):
 cd backend
 alembic revision --autogenerate -m "Add RBAC permission tables"
 alembic upgrade head
-```
 
+```text
 ### Step 2: Seed Default Permissions
 
 ```python
 # backend/scripts/seed_permissions.py
+
 from sqlalchemy.orm import Session
 from backend.models import Permission, Role, RolePermission
 from backend.db import SessionLocal
@@ -578,12 +588,13 @@ if __name__ == "__main__":
         print("✅ Permissions seeded successfully")
     finally:
         db.close()
-```
 
+```text
 ### Step 3: Refactor Endpoints
 
 ```python
 # Before (role-based)
+
 @router.post("/students/")
 async def create_student(
     student: StudentCreate,
@@ -593,6 +604,7 @@ async def create_student(
     pass
 
 # After (permission-based)
+
 @router.post("/students/")
 @require_permission("students:create")
 async def create_student(
@@ -601,15 +613,17 @@ async def create_student(
     db: Session = Depends(get_db)
 ):
     pass
-```
 
+```text
 ---
 
 ## 🧪 Testing Strategy
 
 ### Unit Tests
+
 ```python
 # backend/tests/test_permissions.py
+
 def test_admin_has_all_permissions(db: Session):
     admin = create_user(db, role="admin")
     assert has_permission(admin, "students:delete", db) == True
@@ -627,9 +641,10 @@ def test_self_access_allowed(db: Session):
     assert _is_self_access(student, {"student_id": student.id}) == True
     # But not others
     assert _is_self_access(student, {"student_id": 999}) == False
-```
 
+```text
 ### Integration Tests
+
 ```python
 def test_endpoint_permission_enforcement(client: TestClient):
     # Admin can delete
@@ -648,8 +663,8 @@ def test_endpoint_permission_enforcement(client: TestClient):
     )
     assert response.status_code == 403
     assert "Missing permission: students:delete" in response.json()["detail"]
-```
 
+```text
 ---
 
 ## 📚 Related Documents
@@ -681,3 +696,4 @@ def test_endpoint_permission_enforcement(client: TestClient):
 4. Build permission check decorator
 5. Create seed script for default permissions
 6. Refactor existing endpoints (see [GitHub Issue #104](https://github.com/bs1gr/AUT_MIEEK_SMS/issues/104))
+

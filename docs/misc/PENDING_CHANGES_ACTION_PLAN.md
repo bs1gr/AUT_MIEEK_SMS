@@ -109,45 +109,56 @@
 ### 🟡 REVIEW BEFORE COMMIT (5 files)
 
 #### Package Updates (2 files)
+
 - `frontend/package.json` (M) - Dependencies
 - `frontend/package-lock.json` (M) - Lock file
 
 **Action Required**: Verify if updates are intentional
+
 ```bash
 # Check what changed
+
 git diff frontend/package.json | head -50
 
 # Suggested action: COMMIT if dependencies were added for Phase 3 features
-```
 
+```text
 #### Test Data (3 files)
+
 - `backend/data/imports/1_courses.csv` (M)
 - `backend/data/imports/1_grades.csv` (M)
 - `backend/data/imports/1_students.csv` (M)
 
 **Action Required**: Verify if modifications are necessary for tests
+
 ```bash
 # Check what changed
+
 git diff backend/data/imports/
 
 # Suggested action:
+
 # - COMMIT if tests require these modifications
 # - IGNORE if these are just temporary test run artifacts
-```
 
+```text
 #### Settings (1 file)
+
 - `.vscode/settings.json` (M) - VS Code workspace settings
 
 **Action Required**: Verify if changes are shared project config
+
 ```bash
 # Check what changed
+
 git diff .vscode/settings.json
 
 # Suggested action:
+
 # - COMMIT if changes are project-wide settings
 # - IGNORE if changes are personal preferences
-```
 
+```text
 ---
 
 ### 🔴 DO NOT COMMIT (9 files - Temporary Test Artifacts)
@@ -175,19 +186,23 @@ git diff .vscode/settings.json
 
 ```bash
 # Check package.json changes
+
 git diff frontend/package.json
 
 # Check test data changes
+
 git diff backend/data/imports/1_courses.csv | head -20
 
 # Check settings changes
-git diff .vscode/settings.json
-```
 
+git diff .vscode/settings.json
+
+```text
 ### Step 2: Commit Production & Test Changes (5 min)
 
 ```bash
 # Stage all production/test/documentation files
+
 git add \
   backend/schemas/__init__.py \
   backend/services/search_service.py \
@@ -207,6 +222,7 @@ git add \
   docs/misc/*.md
 
 # Commit
+
 git commit -m "chore: Phase 3 completion - features, tests, translations, and documentation
 
 - Implemented Features #125 (Analytics), #126 (Notifications), #127 (Import/Export)
@@ -214,54 +230,61 @@ git commit -m "chore: Phase 3 completion - features, tests, translations, and do
 - Added i18n support for search features (EN/EL)
 - Updated work plan with Phase 4 readiness status
 - Consolidated legacy session documents to docs/misc"
-```
 
+```text
 ### Step 3: Conditionally Commit Package Updates (1 min)
 
 ```bash
 # If package.json changes are intentional Phase 3 dependencies:
+
 git add frontend/package.json frontend/package-lock.json
 git commit -m "chore: Update frontend dependencies from Phase 3 development"
-```
 
+```text
 ### Step 4: Handle Test Data (1 min)
 
 ```bash
 # Option A: Commit if necessary for tests
+
 git add backend/data/imports/*.csv
 git commit -m "test: Update test data for import/export features"
 
 # Option B: Ignore if just artifacts
-git restore backend/data/imports/*.csv
-```
 
+git restore backend/data/imports/*.csv
+
+```text
 ### Step 5: Handle Settings (1 min)
 
 ```bash
 # Option A: Commit if project-wide
+
 git add .vscode/settings.json
 git commit -m "chore: Update VS Code workspace settings"
 
 # Option B: Ignore if personal
-git restore .vscode/settings.json
-```
 
+git restore .vscode/settings.json
+
+```text
 ### Step 6: Clean Up Test Artifacts (1 min)
 
 ```bash
 # Remove temporary export files from working directory
+
 git clean -fd backend/data/exports/
 
 # Verify they're ignored
-git status backend/data/exports/
-```
 
+git status backend/data/exports/
+
+```text
 ### Step 7: Push to Remote (1 min)
 
 ```bash
 git push origin main
-```
 
+```text
 ---
 
 ## Pre-Commit Verification
@@ -270,18 +293,22 @@ Before pushing, run:
 
 ```bash
 # Verify all tests pass
+
 .\RUN_TESTS_BATCH.ps1
 
 # Verify TypeScript compilation
+
 npx tsc --noEmit
 
 # Verify linting
+
 npm run lint
 
 # Check final git status
-git status
-```
 
+git status
+
+```text
 **Expected Result**:
 - ✅ All tests passing (1,706+ tests)
 - ✅ No TypeScript errors
@@ -316,3 +343,4 @@ git status
 
 **Analysis Complete**: January 20, 2026, 18:50 UTC
 **Ready to Proceed**: Yes - Follow recommended action plan above
+

@@ -43,13 +43,15 @@ This guide provides step-by-step instructions for migrating the Student Manageme
 
 ```bash
 # Create backup of SQLite database
+
 cd backend
 cp data/student_management.db backups/student_management.db.pre-postgres-migration.$(date +%s).bak
 
 # Verify backup
-sqlite3 backups/student_management.db.pre-postgres-migration.*.bak "SELECT COUNT(*) FROM students;"
-```
 
+sqlite3 backups/student_management.db.pre-postgres-migration.*.bak "SELECT COUNT(*) FROM students;"
+
+```text
 ---
 
 ## 3. PostgreSQL Setup
@@ -57,24 +59,27 @@ sqlite3 backups/student_management.db.pre-postgres-migration.*.bak "SELECT COUNT
 ### 3.1 Install PostgreSQL
 
 **Linux (Ubuntu/Debian)**:
+
 ```bash
 sudo apt-get update
 sudo apt-get install postgresql postgresql-contrib
 sudo systemctl start postgresql
-```
 
+```text
 **macOS**:
+
 ```bash
 brew install postgresql
 brew services start postgresql
-```
 
+```text
 **Windows**:
 - Download from https://www.postgresql.org/download/windows/
 - Run installer with default settings
 - Note the password for `postgres` superuser
 
 **Docker**:
+
 ```bash
 docker run --name sms-postgres \
   -e POSTGRES_USER=sms_user \
@@ -83,31 +88,34 @@ docker run --name sms-postgres \
   -v postgres_data:/var/lib/postgresql/data \
   -p 5432:5432 \
   -d postgres:15
-```
 
+```text
 ### 3.2 Create SMS Database
 
 ```bash
 # Connect to PostgreSQL
+
 psql -U postgres
 
 # Create user and database
+
 CREATE USER sms_user WITH PASSWORD 'secure_password_here'; # pragma: allowlist secret
 export DATABASE_URL="postgresql://sms_user:sms_password@localhost:5432/sms_db" # pragma: allowlist secret
 CREATE DATABASE sms_db OWNER sms_user;
 GRANT ALL PRIVILEGES ON DATABASE sms_db TO sms_user;
 
 # Exit psql
-\q
-```
 
+\q
+
+```text
 ### 3.3 Verify Connection
 
 ```bash
 psql -h localhost -U sms_user -d sms_db -c "SELECT 1;"
 # Expected output: 1
-```
 
+```text
 ---
 
 ## 4. Data Migration Methods
@@ -120,19 +128,23 @@ psql -h localhost -U sms_user -d sms_db -c "SELECT 1;"
 
 ```bash
 # macOS
+
 brew install pgloader
 
 # Ubuntu/Debian
+
 sudo apt-get install pgloader
 
 # Or Docker
-docker run --rm -it dimitreOliveira/pgloader pgloader --version
-```
 
+docker run --rm -it dimitreOliveira/pgloader pgloader --version
+
+```text
 #### Migration
 
 ```bash
 # Create migration file: sqlite_to_postgres.load
+
 cat > sqlite_to_postgres.load << 'EOF'
 LOAD DATABASE
   FROM sqlite:///absolute/path/to/data/student_management.db
@@ -143,18 +155,20 @@ EXCLUDING TABLE NAMES MATCHING 'alembic_version'
 EOF
 
 # Run migration
+
 pgloader sqlite_to_postgres.load
 
 # Monitor output for errors
-```
 
+```text
 **Expected Output**:
-```
+
+```text
 [2025-12-11 15:30:00] Total execution time: 45.2s
 Rows read: 5,342
 Rows written: 5,342
-```
 
+```text
 ---
 
 ### Method B: Manual Migration (Educational / Debugging)
@@ -165,62 +179,72 @@ Rows written: 5,342
 
 ```bash
 # Get schema from SQLite
+
 sqlite3 data/student_management.db ".schema" > schema.sql
 
 # View Alembic migration files for reference
-ls -la backend/migrations/versions/
-```
 
+ls -la backend/migrations/versions/
+
+```text
 #### 2. Create PostgreSQL Schema via Alembic
 
 ```bash
 # Update config to use PostgreSQL
+
 # In .env or environment:
 export DATABASE_URL="postgresql://sms_user:sms_password@localhost:5432/sms_db" # pragma: allowlist secret
 
 # Run migrations on empty PostgreSQL DB
+
 cd backend
 alembic upgrade head
 
 # Verify tables created
+
 psql -U sms_user -d sms_db -c "\dt"
 # Should show: students, courses, grades, attendance, etc.
-```
 
+```text
 #### 3. Export Data from SQLite
 
 ```bash
 # For each table, export as CSV
+
 sqlite3 -header -csv data/student_management.db "SELECT * FROM students;" > students.csv
 sqlite3 -header -csv data/student_management.db "SELECT * FROM courses;" > courses.csv
 sqlite3 -header -csv data/student_management.db "SELECT * FROM grades;" > grades.csv
 sqlite3 -header -csv data/student_management.db "SELECT * FROM attendance;" > attendance.csv
 # Repeat for all tables...
-```
 
+```text
 #### 4. Import Data to PostgreSQL
 
 ```bash
 # Connect to PostgreSQL database
+
 psql -U sms_user -d sms_db
 
 # Import each table (disable constraints temporarily)
+
 \copy students(id, student_id, first_name, last_name, email, ...) FROM 'students.csv' WITH CSV HEADER;
 \copy courses(id, course_code, course_name, semester, ...) FROM 'courses.csv' WITH CSV HEADER;
 \copy grades(id, student_id, course_id, grade, ...) FROM 'grades.csv' WITH CSV HEADER;
 \copy attendance(id, student_id, course_id, session_date, ...) FROM 'attendance.csv' WITH CSV HEADER;
 
 # Verify counts match
+
 SELECT COUNT(*) FROM students;  -- Should match SQLite count
 SELECT COUNT(*) FROM courses;
 SELECT COUNT(*) FROM grades;
 
 # Update sequences
+
 SELECT setval('students_id_seq', (SELECT MAX(id) FROM students) + 1);
 SELECT setval('courses_id_seq', (SELECT MAX(id) FROM courses) + 1);
 -- Repeat for all tables...
-```
 
+```text
 ---
 
 ## 5. Connection Configuration
@@ -228,25 +252,31 @@ SELECT setval('courses_id_seq', (SELECT MAX(id) FROM courses) + 1);
 ### Update Application Config
 
 **Backend (.env file)**:
+
 ```bash
 # Old SQLite (if using file-based):
+
 # DATABASE_URL=sqlite:///./data/student_management.db
 
 # New PostgreSQL:
+
 DATABASE_URL=postgresql://sms_user:sms_password@postgres.example.com:5432/sms_db  # pragma: allowlist secret
 
 # Optional: Connection pooling tuning
+
 DB_POOL_SIZE=20
 DB_MAX_OVERFLOW=10
 DB_POOL_RECYCLE=3600
-```
 
+```text
 **Backend code (`backend/db.py`)**:
+
 ```python
 from sqlalchemy import create_engine
 from sqlalchemy.pool import QueuePool
 
 # Pool configuration automatically switches based on DB type
+
 if database_url.startswith("postgresql"):
     engine = create_engine(
         database_url,
@@ -263,11 +293,12 @@ else:  # SQLite
         connect_args={"check_same_thread": False},
         poolclass=StaticPool
     )
-```
 
+```text
 ### Update Docker Deployment
 
 **docker-compose.yml**:
+
 ```yaml
 version: '3.8'
 
@@ -280,8 +311,10 @@ services:
       POSTGRES_PASSWORD: sms_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     ports:
       - "5432:5432"
+
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sms_user -d sms_db"]
       interval: 10s
@@ -302,8 +335,8 @@ services:
 
 volumes:
   postgres_data:
-```
 
+```text
 ---
 
 ## 6. Verification & Testing
@@ -312,6 +345,7 @@ volumes:
 
 ```bash
 # Query counts from PostgreSQL
+
 psql -U sms_user -d sms_db << 'EOF'
 SELECT
   (SELECT COUNT(*) FROM students) as student_count,
@@ -322,6 +356,7 @@ SELECT
 EOF
 
 # Compare with SQLite counts
+
 sqlite3 data/student_management.db << 'EOF'
 SELECT
   (SELECT COUNT(*) FROM students) as student_count,
@@ -330,45 +365,50 @@ SELECT
   (SELECT COUNT(*) FROM attendance) as attendance_count,
   (SELECT COUNT(*) FROM course_enrollments) as enrollment_count;
 EOF
-```
 
+```text
 **Expected**: Counts should match exactly.
 
 ### 6.2 Data Sampling
 
 ```bash
 # Compare sample records
+
 psql -U sms_user -d sms_db -c "SELECT * FROM students LIMIT 5;"
 sqlite3 data/student_management.db "SELECT * FROM students LIMIT 5;"
 
 # Check for NULLs, encoding issues
-psql -U sms_user -d sms_db -c "SELECT * FROM students WHERE email IS NULL OR first_name IS NULL;"
-```
 
+psql -U sms_user -d sms_db -c "SELECT * FROM students WHERE email IS NULL OR first_name IS NULL;"
+
+```text
 ### 6.3 Smoke Tests
 
 ```bash
 # Run backend smoke tests with new database
+
 cd backend
 pytest tests/test_students_router.py -v
 pytest tests/test_courses_router.py -v
 pytest tests/test_grades_router.py -v
-```
 
+```text
 ### 6.4 Performance Baseline
 
 ```bash
 # Query timing on PostgreSQL
+
 psql -U sms_user -d sms_db -c "\timing on"
 SELECT COUNT(*) FROM grades WHERE student_id = 1;
 SELECT * FROM students WHERE email = 'john@example.com';
 
 # Compare with SQLite
+
 sqlite3 data/student_management.db ".timer on"
 SELECT COUNT(*) FROM grades WHERE student_id = 1;
 SELECT * FROM students WHERE email = 'john@example.com';
-```
 
+```text
 **Expected**: PostgreSQL should be ≥2x faster for large datasets.
 
 ---
@@ -379,38 +419,46 @@ SELECT * FROM students WHERE email = 'john@example.com';
 
 ```bash
 # 1. Stop application
+
 docker-compose down  # or equivalent for your deployment
 
 # 2. Restore database connection to SQLite
+
 # Edit .env:
 # DATABASE_URL=sqlite:///./data/student_management.db
 
 # 3. Verify SQLite backup is intact
+
 sqlite3 backups/student_management.db.pre-postgres-migration.*.bak "SELECT COUNT(*) FROM students;"
 
 # 4. Restart application
+
 docker-compose up
 
 # 5. Notify users of rollback
-```
 
+```text
 ### If PostgreSQL Runs Into Issues Post-Migration
 
 ```bash
 # 1. Identify the issue
+
 psql -U sms_user -d sms_db -c "SELECT * FROM pg_stat_activity WHERE state != 'idle';"
 
 # 2. Check logs
+
 docker logs postgres | tail -50
 
 # 3. Check connections
+
 psql -U sms_user -d sms_db -c "SELECT COUNT(*) FROM pg_stat_activity;"
 
 # 4. If connection pool exhausted:
+
 # Kill idle connections
 SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE state = 'idle' AND pid <> pg_backend_pid();
-```
 
+```text
 ---
 
 ## 8. Optimization After Migration
@@ -440,8 +488,8 @@ CREATE INDEX idx_attendance_status ON attendance(status);
 
 -- Verify indexes
 SELECT * FROM pg_indexes WHERE tablename = 'grades';
-```
 
+```text
 ### Analyze Statistics
 
 ```sql
@@ -454,8 +502,8 @@ ANALYZE course_enrollments;
 
 -- Check planner stats
 SELECT relname, n_live_tup, n_dead_tup FROM pg_stat_user_tables;
-```
 
+```text
 ### Enable Slow Query Log
 
 ```sql
@@ -464,8 +512,8 @@ log_min_duration_statement = 1000  -- Log queries > 1 second
 
 -- View slow queries
 SELECT query, mean_time, calls FROM pg_stat_statements ORDER BY mean_time DESC LIMIT 10;
-```
 
+```text
 ---
 
 ## 9. Connection Pooling Tuning
@@ -474,10 +522,12 @@ SELECT query, mean_time, calls FROM pg_stat_statements ORDER BY mean_time DESC L
 
 ```bash
 # Install
+
 sudo apt-get install pgbouncer  # Ubuntu
 brew install pgbouncer           # macOS
 
 # Configure /etc/pgbouncer/pgbouncer.ini
+
 [databases]
 sms_db = host=localhost port=5432 dbname=sms_db user=sms_user password=sms_password
 
@@ -490,9 +540,10 @@ reserve_pool_size = 5
 reserve_pool_timeout = 3
 
 # Start PgBouncer
-pgbouncer -d -c /etc/pgbouncer/pgbouncer.ini
-```
 
+pgbouncer -d -c /etc/pgbouncer/pgbouncer.ini
+
+```text
 ### Application-Level Pooling (SQLAlchemy)
 
 Already configured in backend (see Section 5).
@@ -505,9 +556,11 @@ Already configured in backend (see Section 5).
 
 ```bash
 # Connection count
+
 psql -U sms_user -d sms_db -c "SELECT count(*) FROM pg_stat_activity;"
 
 # Cache hit ratio (should be >99%)
+
 psql -U sms_user -d sms_db << 'EOF'
 SELECT
   sum(heap_blks_read) as heap_read, sum(heap_blks_hit) as heap_hit,
@@ -516,39 +569,46 @@ FROM pg_statio_user_tables;
 EOF
 
 # Dead rows (should be <10% of total)
+
 SELECT relname, n_live_tup, n_dead_tup,
   ROUND(100.0 * n_dead_tup / NULLIF(n_live_tup + n_dead_tup, 0), 2) AS dead_ratio
 FROM pg_stat_user_tables
 ORDER BY dead_ratio DESC;
-```
 
+```text
 ### Weekly Maintenance
 
 ```bash
 # Vacuum (removes dead rows)
+
 VACUUM ANALYZE;
 
 # Reindex if needed
+
 REINDEX TABLE students;
 REINDEX TABLE grades;
 
 # Check for missing indexes
-SELECT * FROM pg_stat_user_indexes ORDER BY idx_scan DESC;
-```
 
+SELECT * FROM pg_stat_user_indexes ORDER BY idx_scan DESC;
+
+```text
 ### Monthly Tasks
 
 ```bash
 # Full backup
+
 pg_dump -U sms_user -d sms_db -Fc > sms_db_backup_$(date +%Y%m%d).dump
 
 # Verify backup
+
 pg_restore --list sms_db_backup_*.dump | head -20
 
 # Archive old backups
-tar czf sms_backups_archive_$(date +%Y%m).tar.gz sms_db_backup_*.dump
-```
 
+tar czf sms_backups_archive_$(date +%Y%m).tar.gz sms_db_backup_*.dump
+
+```text
 ---
 
 ## 11. Troubleshooting
@@ -590,3 +650,4 @@ tar czf sms_backups_archive_$(date +%Y%m).tar.gz sms_db_backup_*.dump
 **Last Updated**: 2025-12-11
 **Maintained By**: DevOps Team
 **Next Review**: 2025-12-25
+

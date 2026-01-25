@@ -42,8 +42,8 @@ docs/
 └── archive/                 # Archived materials
     ├── documentation/
     └── pr-updates/
-```
 
+```text
 ## 📖 Core Documents
 
 ### Getting Started
@@ -118,3 +118,4 @@ When contributing documentation:
 ## 📧 Feedback
 
 Found issues with documentation? Create a GitHub issue with the `documentation` label.
+

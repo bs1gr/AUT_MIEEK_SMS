@@ -34,8 +34,8 @@ Enhanced the session import feature with comprehensive validation, automatic bac
 ```text
 pre_import_backup_2024-2025_Fall_20250119_103045.db
 pre_import_backup_2024-2025_Spring_20250119_145530.db
-```
 
+```text
 ### 3. **Transaction Rollback on Errors**
 
 - ⚠️ If critical errors occur during import (course/student creation failures), entire import is rolled back
@@ -70,8 +70,8 @@ pre_import_backup_2024-2025_Spring_20250119_145530.db
 
 ```text
 POST /api/v1/sessions/import?merge_strategy=update&dry_run=false
-```
 
+```text
 **New Parameter:**
 
 - `dry_run` (boolean, default: false): If true, only validates without importing
@@ -102,8 +102,8 @@ POST /api/v1/sessions/import?merge_strategy=update&dry_run=false
     // ... other data types
   }
 }
-```
 
+```text
 **Error Response (Validation Failed):**
 
 ```json
@@ -119,14 +119,14 @@ POST /api/v1/sessions/import?merge_strategy=update&dry_run=false
     "error_summary": "..."
   }
 }
-```
 
+```text
 ### 2. List Backups
 
 ```text
 GET /api/v1/sessions/backups
-```
 
+```text
 **Response:**
 
 ```json
@@ -144,14 +144,14 @@ GET /api/v1/sessions/backups
   "count": 5,
   "backup_directory": "D:/SMS/student-management-system/backups"
 }
-```
 
+```text
 ### 3. Rollback Import (New)
 
 ```text
 POST /api/v1/sessions/rollback?backup_filename=pre_import_backup_2024-2025_Fall_20250119_103045.db
-```
 
+```text
 **Requires:** Admin authentication
 
 **Response:**
@@ -166,8 +166,8 @@ POST /api/v1/sessions/rollback?backup_filename=pre_import_backup_2024-2025_Fall_
   "performed_by": "admin@example.com",
   "warning": "Database has been restored to previous state. Please restart the application to clear caches."
 }
-```
 
+```text
 ## Frontend Changes
 
 ### Enhanced Import UI
@@ -195,8 +195,8 @@ POST /api/v1/sessions/rollback?backup_filename=pre_import_backup_2024-2025_Fall_
 ```text
 💡 Tip: Click "Validate" first to check for errors before importing.
 A backup is automatically created before import.
-```
 
+```text
 ## Usage Guide
 
 ### Recommended Import Workflow
@@ -208,8 +208,8 @@ A backup is automatically created before import.
 2. Click "Validate" button
 3. Wait for validation result
 4. Review any errors
-```
 
+```text
 **If validation passes:**
 
 - Green box appears: "✅ Validation Passed"
@@ -231,8 +231,8 @@ A backup is automatically created before import.
 3. Click "Import Session"
 4. Wait for completion
 5. Review import summary
-```
 
+```text
 **Import creates automatic backup:**
 
 - Look for backup_path in response
@@ -244,8 +244,8 @@ A backup is automatically created before import.
 1. Check the import summary counts
 2. Browse imported data in the UI
 3. Verify courses, students, grades look correct
-```
 
+```text
 **If something went wrong:**
 
 - Proceed to "Rollback" section below
@@ -258,33 +258,40 @@ A backup is automatically created before import.
 
 ```bash
 # List available backups
+
 GET http://localhost:8000/api/v1/sessions/backups
 
 # Choose the pre_import backup you want
+
 # Rollback to that backup
 POST http://localhost:8000/api/v1/sessions/rollback?backup_filename=pre_import_backup_2024-2025_Fall_20250119_103045.db
-```
 
+```text
 #### Option 2: Manual Rollback
 
 ```bash
 # Stop the application
+
 ./DOCKER.ps1 -Stop  # or stop native mode
 
 # Go to backups directory
+
 cd backups
 
 # Find your backup
+
 ls *.db
 
 # Replace current database with backup
+
 # (from project root)
 copy backups/pre_import_backup_2024-2025_Fall_20250119_103045.db data/student_management.db
 
 # Restart application
-./DOCKER.ps1 -Start
-```
 
+./DOCKER.ps1 -Start
+
+```text
 ### Import Safety Checklist
 
 **Before Import:**
@@ -383,30 +390,34 @@ def validate_course_data(course_data):
 
     # ... more checks
     return True, None
-```
 
+```text
 ### Backup Creation Logic
 
 ```python
 # Before import starts
+
 backup_dir = Path("backups")
 backup_dir.mkdir(exist_ok=True)
 
 # Extract DB path from sqlite:///path/to/db.db
+
 db_path = extract_db_path(settings.DATABASE_URL)
 
 # Create timestamped backup
+
 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 backup_path = backup_dir / f"pre_import_backup_{semester}_{timestamp}.db"
 shutil.copy2(db_path, backup_path)
-```
 
+```text
 ### Critical Error Handling
 
 ```python
 critical_errors = []
 
 # Import courses (critical)
+
 for course in courses:
     valid, error = validate_course_data(course)
     if not valid:
@@ -415,14 +426,16 @@ for course in courses:
     # ... import logic
 
 # Check before commit
+
 if critical_errors:
     db.rollback()
     raise ImportAbortedError(critical_errors)
 
 # Only commit if no critical errors
-db.commit()
-```
 
+db.commit()
+
+```text
 ## Performance Considerations
 
 ### Validation Performance
@@ -526,3 +539,4 @@ db.commit()
 ---
 
 **Summary:** Session import is now production-ready with comprehensive safety features. Always validate first, automatic backups protect your data, and rollback capability provides peace of mind.
+
