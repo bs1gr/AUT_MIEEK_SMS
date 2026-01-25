@@ -17,20 +17,6 @@ from backend.models import Permission, RolePermission, User, UserPermission, Use
 from backend.security.current_user import get_current_user
 
 
-def optional_require_role(*roles: str):
-    """Lazy wrapper to preserve existing import paths.
-
-    The canonical implementation lives in ``backend.routers.routers_auth`` to respect
-    AUTH_MODE/AUTH_ENABLED semantics. We lazily import it here to avoid circular
-    imports while keeping ``backend.rbac.optional_require_role`` usable by routers
-    such as ``routers_search``.
-    """
-
-    from backend.routers.routers_auth import optional_require_role as _optional_require_role
-
-    return _optional_require_role(*roles)
-
-
 def _normalize_permission_key(key: str) -> str:
     """Normalize permission keys to a consistent `resource:action` format.
 

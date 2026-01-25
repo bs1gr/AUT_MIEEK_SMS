@@ -17,7 +17,13 @@ vi.mock('@/api/api', () => {
     __esModule: true,
     default: api,
     apiClient: api,
-    extractAPIResponseData: (data: any, fallback?: any) => data ?? fallback,
+    extractAPIResponseData: (response: any, fallback?: any) => {
+      const data = response?.data;
+      if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
+        return data.data ?? fallback;
+      }
+      return data ?? fallback;
+    },
   };
 });
 
@@ -146,8 +152,11 @@ describe('useSearch Hook', () => {
     ];
 
     vi.mocked(apiModule.apiClient.post).mockResolvedValue({
-      results: mockResults,
-      total: 1,
+      data: {
+        results: mockResults,
+        total: 1,
+        has_more: false,
+      },
     });
 
     const { result } = renderHook(() => useSearch(), { wrapper });
@@ -176,7 +185,7 @@ describe('useSearch Hook', () => {
       },
     ];
 
-    vi.mocked(apiModule.apiClient.get).mockResolvedValue(mockSavedSearches);
+    vi.mocked(apiModule.apiClient.get).mockResolvedValue({ data: mockSavedSearches });
 
     const { result } = renderHook(() => useSearch(), { wrapper });
 
@@ -198,7 +207,7 @@ describe('useSearch Hook', () => {
       updated_at: '2026-01-22T10:00:00Z',
     };
 
-    vi.mocked(apiModule.apiClient.post).mockResolvedValue(mockSavedSearch);
+    vi.mocked(apiModule.apiClient.post).mockResolvedValue({ data: mockSavedSearch });
 
     const { result } = renderHook(() => useSearch(), { wrapper });
 
