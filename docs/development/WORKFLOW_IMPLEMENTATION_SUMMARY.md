@@ -209,7 +209,7 @@ To verify the changes work correctly:
 
 1. **Check workflow files are valid YAML**:
    ```
-   # GitHub Actions will validate automatically
+# GitHub Actions will validate automatically
    ```
 
 2. **Test locally (dry-run)**:

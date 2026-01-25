@@ -202,8 +202,8 @@ When E2E tests fail, the workflow now:
    ```powershell
    .\e2e-local.ps1
    ```
-   - Tests improvements in local environment
-   - Faster iteration than waiting for GitHub Actions
+- Tests improvements in local environment
+- Faster iteration than waiting for GitHub Actions
 
 3. **Review Remaining Issues**
    - See `REMAINING_ISSUES_FINAL_SUMMARY.md` for full list
