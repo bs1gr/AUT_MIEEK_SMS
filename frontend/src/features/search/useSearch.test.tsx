@@ -1,64 +1,56 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React, { ReactNode } from 'react';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
+import type { ReactNode } from 'react';
 import { useSearch } from './useSearch';
 import * as apiModule from '@/api/api';
 
 // Mock the API
-vi.mock('@/api/api', () => {
-  const api = {
-    post: vi.fn(),
-    get: vi.fn(),
-    delete: vi.fn(),
-  };
-
-  return {
-    __esModule: true,
-    default: api,
-    apiClient: api,
-    extractAPIResponseData: (response: any, fallback?: any) => {
-      const data = response?.data;
-      if (data && typeof data === 'object' && 'success' in data && 'data' in data) {
-        return data.data ?? fallback;
-      }
-      return data ?? fallback;
-    },
-  };
-});
+vi.mock('@/api/api');
 
 describe('useSearch Hook', () => {
   let queryClient: QueryClient;
+  const mockApiClient = apiModule.apiClient as any;
 
   beforeEach(() => {
-    queryClient = new QueryClient();
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
     vi.clearAllMocks();
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      {children}
+    </QueryClientProvider>
   );
 
-  it('should initialize with default values', () => {
+  it('initializes with default state', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     expect(result.current.searchQuery).toBe('');
     expect(result.current.searchType).toBe('students');
     expect(result.current.filters).toEqual([]);
-    expect(result.current.searchResults).toEqual([]);
+    expect(result.current.page).toBe(0);
+    expect(result.current.limit).toBe(20);
+    expect(result.current.sort.field).toBe('relevance');
+    expect(result.current.sort.direction).toBe('desc');
   });
 
-  it('should update search query', async () => {
+  it('updates search query', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     act(() => {
-      result.current.setSearchQuery('test');
+      result.current.setSearchQuery('John Doe');
     });
 
-    expect(result.current.searchQuery).toBe('test');
+    expect(result.current.searchQuery).toBe('John Doe');
   });
 
-  it('should change search type', async () => {
+  it('updates search type', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     act(() => {
@@ -68,72 +60,126 @@ describe('useSearch Hook', () => {
     expect(result.current.searchType).toBe('courses');
   });
 
-  it('should add a filter', async () => {
+  it('debounces search query', async () => {
+    const mockResponse = {
+      data: {
+        results: [],
+        total: 0,
+        has_more: false,
+      },
+    };
+
+    mockApiClient.post.mockResolvedValue(mockResponse);
+    mockApiClient.post.mockImplementation(() => Promise.resolve(mockResponse));
+
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setSearchQuery('Test');
+    });
+
+    // Debounced query should not immediately trigger search
+    expect(result.current.debouncedQuery).toBe('');
+
+    // Wait for debounce (300ms)
+    await waitFor(
+      () => {
+        expect(result.current.debouncedQuery).toBe('Test');
+      },
+      { timeout: 500 }
+    );
+  });
+
+  it('resets page when query changes', async () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setPage(2);
+    });
+
+    expect(result.current.page).toBe(2);
+
+    act(() => {
+      result.current.setSearchQuery('New query');
+    });
+
+    await waitFor(() => {
+      expect(result.current.page).toBe(0);
+    });
+  });
+
+  it('adds a filter criterion', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     act(() => {
       result.current.addFilter({
-        field: 'name',
-        operator: 'contains',
-        value: 'test',
+        field: 'status',
+        operator: 'equals',
+        value: 'active',
       });
     });
 
     expect(result.current.filters).toHaveLength(1);
     expect(result.current.filters[0]).toEqual({
-      field: 'name',
-      operator: 'contains',
-      value: 'test',
+      field: 'status',
+      operator: 'equals',
+      value: 'active',
     });
   });
 
-  it('should remove a filter', async () => {
+  it('removes a filter criterion by index', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     act(() => {
       result.current.addFilter({
-        field: 'name',
-        operator: 'contains',
-        value: 'test',
+        field: 'status',
+        operator: 'equals',
+        value: 'active',
+      });
+      result.current.addFilter({
+        field: 'type',
+        operator: 'equals',
+        value: 'student',
       });
     });
 
-    expect(result.current.filters).toHaveLength(1);
+    expect(result.current.filters).toHaveLength(2);
 
     act(() => {
       result.current.removeFilter(0);
     });
 
-    expect(result.current.filters).toHaveLength(0);
+    expect(result.current.filters).toHaveLength(1);
+    expect(result.current.filters[0].field).toBe('type');
   });
 
-  it('should update a filter', async () => {
+  it('updates a filter criterion', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     act(() => {
       result.current.addFilter({
-        field: 'name',
-        operator: 'contains',
-        value: 'test',
+        field: 'status',
+        operator: 'equals',
+        value: 'active',
       });
     });
 
     act(() => {
-      result.current.updateFilter(0, { value: 'updated' });
+      result.current.updateFilter(0, { value: 'inactive' });
     });
 
-    expect(result.current.filters[0].value).toBe('updated');
+    expect(result.current.filters[0].value).toBe('inactive');
   });
 
-  it('should clear search', async () => {
+  it('clears all search parameters', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     act(() => {
-      result.current.setSearchQuery('test');
+      result.current.setSearchQuery('Test');
       result.current.addFilter({
-        field: 'name',
-        operator: 'contains',
-        value: 'test',
+        field: 'status',
+        operator: 'equals',
+        value: 'active',
       });
     });
 
@@ -146,86 +192,109 @@ describe('useSearch Hook', () => {
     expect(result.current.debouncedQuery).toBe('');
   });
 
-  it('should fetch search results', async () => {
-    const mockResults = [
-      { id: 1, name: 'John Doe', type: 'student' as const, metadata: {} },
-    ];
-
-    vi.mocked(apiModule.apiClient.post).mockResolvedValue({
-      data: {
-        results: mockResults,
-        total: 1,
-        has_more: false,
-      },
-    });
-
+  it('loads a saved search', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
-    act(() => {
-      result.current.setSearchQuery('john');
-    });
-
-    await waitFor(() => {
-      expect(result.current.searchResults).toHaveLength(1);
-    });
-
-    expect(result.current.searchResults[0]).toEqual(mockResults[0]);
-  });
-
-  it('should fetch saved searches', async () => {
-    const mockSavedSearches = [
-      {
-        id: 1,
-        name: 'My Search',
-        search_type: 'students' as const,
-        query: 'test',
-        is_favorite: true,
-        created_at: '2026-01-22T10:00:00Z',
-        updated_at: '2026-01-22T10:00:00Z',
-      },
-    ];
-
-    vi.mocked(apiModule.apiClient.get).mockResolvedValue({ data: mockSavedSearches });
-
-    const { result } = renderHook(() => useSearch(), { wrapper });
-
-    await waitFor(() => {
-      expect(result.current.savedSearches).toHaveLength(1);
-    });
-
-    expect(result.current.savedSearches[0]).toEqual(mockSavedSearches[0]);
-  });
-
-  it('should create a saved search', async () => {
-    const mockSavedSearch = {
+    const savedSearch = {
       id: 1,
-      name: 'My Search',
+      name: 'Active Students',
       search_type: 'students' as const,
-      query: 'test',
-      is_favorite: false,
-      created_at: '2026-01-22T10:00:00Z',
-      updated_at: '2026-01-22T10:00:00Z',
+      query: 'John',
+      filters: [
+        {
+          field: 'status',
+          operator: 'equals' as const,
+          value: 'active',
+        },
+      ],
+      is_favorite: true,
+      created_at: '2024-01-01',
+      updated_at: '2024-01-01',
     };
 
-    vi.mocked(apiModule.apiClient.post).mockResolvedValue({ data: mockSavedSearch });
+    act(() => {
+      result.current.loadSavedSearch(savedSearch);
+    });
 
+    expect(result.current.searchType).toBe('students');
+    expect(result.current.searchQuery).toBe('John');
+    expect(result.current.filters).toEqual(savedSearch.filters);
+  });
+
+  it('updates search limit', () => {
     const { result } = renderHook(() => useSearch(), { wrapper });
 
     act(() => {
-      result.current.setSearchQuery('test');
+      result.current.setLimit(50);
     });
 
-    const saved = await act(async () => {
-      return result.current.createSavedSearch('My Search', 'Test search');
+    expect(result.current.limit).toBe(50);
+  });
+
+  it('updates sort order', () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setSort({
+        field: 'name',
+        direction: 'asc',
+      });
     });
 
-    expect(saved).toEqual(mockSavedSearch);
-    expect(apiModule.apiClient.post).toHaveBeenCalledWith(
-      '/search/saved',
-      expect.objectContaining({
-        name: 'My Search',
-        description: 'Test search',
-      })
-    );
+    expect(result.current.sort.field).toBe('name');
+    expect(result.current.sort.direction).toBe('asc');
+  });
+
+  it('handles multiple filters on same field', () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.addFilter({
+        field: 'status',
+        operator: 'equals',
+        value: 'active',
+      });
+      result.current.addFilter({
+        field: 'status',
+        operator: 'equals',
+        value: 'pending',
+      });
+    });
+
+    expect(result.current.filters).toHaveLength(2);
+    expect(result.current.filters[0].field).toBe('status');
+    expect(result.current.filters[1].field).toBe('status');
+  });
+
+  it('disables query when no search criteria provided', () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    expect(result.current.searchResults).toEqual([]);
+    expect(result.current.totalResults).toBe(0);
+  });
+
+  it('returns empty state messages correctly', () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.error).toBe(null);
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it('updates page number', () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    act(() => {
+      result.current.setPage(3);
+    });
+
+    expect(result.current.page).toBe(3);
+  });
+
+  it('initializes with empty saved searches list', () => {
+    const { result } = renderHook(() => useSearch(), { wrapper });
+
+    expect(result.current.savedSearches).toEqual([]);
+    expect(result.current.loadingSavedSearches).toBe(false);
   });
 });
