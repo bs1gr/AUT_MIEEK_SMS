@@ -1,21 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { I18nextProvider } from 'react-i18next';
+import testI18n from '@/test-utils/i18n-test-wrapper';
 import { ReactNode } from 'react';
 import { SavedSearches } from './SavedSearches';
 import * as useSearchModule from './useSearch';
-
-// Mock translations
-vi.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key: string, options?: any) => {
-      if (key === 'search.showingSearches') {
-        return `Showing ${options?.count} of ${options?.total} searches`;
-      }
-      return key;
-    },
-  }),
-}));
 
 // Mock the useSearch hook
 vi.mock('./useSearch', () => ({
@@ -44,14 +34,16 @@ describe('SavedSearches Component', () => {
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <I18nextProvider i18n={testI18n}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </I18nextProvider>
   );
 
   it('should render component with header', () => {
     render(<SavedSearches />, { wrapper });
 
-    expect(screen.getByText('search.savedSearches')).toBeInTheDocument();
-    expect(screen.getByText('search.savedSearchesDescription')).toBeInTheDocument();
+    expect(screen.getByText('Saved Searches')).toBeInTheDocument();
+    expect(screen.getByText('View and manage your saved searches')).toBeInTheDocument();
   });
 
   it('should show loading state', () => {
@@ -65,14 +57,14 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    expect(screen.getByText('common.loading')).toBeInTheDocument();
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
   it('should show empty state when no searches', () => {
     render(<SavedSearches />, { wrapper });
 
-    expect(screen.getByText('search.noSavedSearches')).toBeInTheDocument();
-    expect(screen.getByText('search.createFirstSearch')).toBeInTheDocument();
+    expect(screen.getByText('No saved searches')).toBeInTheDocument();
+    expect(screen.getByText('Create your first search to get started')).toBeInTheDocument();
   });
 
   it('should render list of saved searches', () => {
@@ -218,7 +210,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches onLoadSearch={mockOnLoadSearch} />, { wrapper });
 
-    const loadButton = screen.getByRole('button', { name: /search.loadSearch/i });
+    const loadButton = screen.getByRole('button', { name: /load search/i });
     fireEvent.click(loadButton);
 
     expect(mockLoadSavedSearch).toHaveBeenCalledWith(mockSearch);
@@ -247,7 +239,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const favoriteButton = screen.getByRole('button', { name: /search.toggleFavorite/i });
+    const favoriteButton = screen.getByRole('button', { name: /toggle favorite/i });
     fireEvent.click(favoriteButton);
 
     await waitFor(() => {
@@ -280,7 +272,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const deleteButton = screen.getByRole('button', { name: /common.delete/i });
+    const deleteButton = screen.getByRole('button', { name: /delete/i });
     fireEvent.click(deleteButton);
 
     await waitFor(() => {

@@ -1,5 +1,6 @@
-import { screen, waitFor, within } from '@testing-library/react';
-import { renderWithI18n } from '@/test-utils/i18n-test-wrapper';
+import { screen, waitFor, within, render, RenderOptions } from '@testing-library/react';
+import { I18nextProvider } from 'react-i18next';
+import testI18n from '@/test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -9,7 +10,17 @@ import * as apiModule from '@/api/api';
 
 // Mock modules
 vi.mock('./useSearch');
-vi.mock('./useSearchFacets');
+vi.mock('./useSearchFacets', () => ({
+  useSearchFacets: vi.fn(() => ({
+    data: {
+      facets: [], // Empty array for facets - no facets displayed in tests
+      query: '',
+    },
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  })),
+}));
 vi.mock('@/api/api');
 
 describe('Search Integration Tests - Full Workflow', () => {
@@ -26,12 +37,18 @@ describe('Search Integration Tests - Full Workflow', () => {
     vi.clearAllMocks();
   });
 
-  const wrapper = ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  // Compose both i18n and query client wrappers
+  const renderWithProviders = (ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <I18nextProvider i18n={testI18n}>
+        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      </I18nextProvider>
+    );
+    return render(ui, { wrapper: Wrapper, ...options });
+  };
 
   const renderPage = () => {
-    return renderWithI18n(<SearchView />, { wrapper });
+    return renderWithProviders(<SearchView />);
   };
 
   const mockUseSearch = (overrides?: any) => {

@@ -32,26 +32,28 @@ testI18n
     fallbackLng: 'en',
     debug: false,
     resources: {
-      en: {
-        translation: {
-          ...studentsEn,
-          ...coursesEn,
-          ...gradesEn,
-          ...rbacEn,
+        en: {
+          translation: {
+            ...studentsEn,
+            ...coursesEn,
+            ...gradesEn,
+            ...rbacEn,
+            ...commonEn,
+          },
+          common: commonEn,
+          search: searchEn,
         },
-        common: commonEn,
-        search: searchEn,
-      },
-      el: {
-        translation: {
-          ...studentsEl,
-          ...coursesEl,
-          ...gradesEl,
-          ...rbacEl,
-        },
-        common: commonEl,
-        search: searchEl,
-      }
+        el: {
+          translation: {
+            ...studentsEl,
+            ...coursesEl,
+            ...gradesEl,
+            ...rbacEl,
+            ...commonEl,
+          },
+          common: commonEl,
+          search: searchEl,
+        }
     },
     interpolation: {
       escapeValue: false

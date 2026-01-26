@@ -62,6 +62,7 @@ export const translations: Translations = {
     utils: utilsEn,
     dashboard: dashboardEn,
     common: commonEn,
+    courses: coursesEn,
     // students, courses, grades: use root nav labels (strings) instead of namespace objects
     attendance: attendanceEn,
     calendar: calendarEn,
@@ -77,6 +78,7 @@ export const translations: Translations = {
     ...utilsEn,
     ...dashboardEn,
     ...commonEn,
+    ...coursesEn,
     // Avoid overriding root nav labels: keep students/courses/grades namespaced only
     ...attendanceEn,
     ...calendarEn,
@@ -98,6 +100,7 @@ export const translations: Translations = {
     utils: utilsEl,
     dashboard: dashboardEl,
     common: commonEl,
+    courses: coursesEl,
     // students, courses, grades: use root nav labels (strings) instead of namespace objects
     attendance: attendanceEl,
     calendar: calendarEl,
@@ -113,6 +116,7 @@ export const translations: Translations = {
     ...utilsEl,
     ...dashboardEl,
     ...commonEl,
+    ...coursesEl,
     // Avoid overriding root nav labels: keep students/courses/grades namespaced only
     ...attendanceEl,
     ...calendarEl,

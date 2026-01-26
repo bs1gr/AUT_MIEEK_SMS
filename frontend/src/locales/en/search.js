@@ -48,6 +48,11 @@ export default {
     nameRequired: 'Search name is required',
     success: 'Search saved successfully',
     limit: 'Maximum 10 saved searches per type',
+    showingSearches: 'Showing {{count}} of {{total}} searches',
+    filterByType: 'Filter by type',
+    favoritesOnly: 'Favorites only',
+    toggleFavorite: 'Toggle favorite',
+    loadSearch: 'Load search',
   },
   advanced: {
     title: 'Advanced Filters',
