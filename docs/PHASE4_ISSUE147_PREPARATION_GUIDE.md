@@ -171,16 +171,16 @@ export interface FilterCondition {
 
 ```typescript
 export const searchAPI = {
-  searchStudents: (query: SearchQuery) => 
+  searchStudents: (query: SearchQuery) =>
     apiClient.post('/search/students', query),
-  
-  searchCourses: (query: SearchQuery) => 
+
+  searchCourses: (query: SearchQuery) =>
     apiClient.post('/search/courses', query),
-  
-  getSearchFacets: (entityType: string) => 
+
+  getSearchFacets: (entityType: string) =>
     apiClient.get(`/search/${entityType}/facets`),
-  
-  advancedSearch: (query: SearchQuery) => 
+
+  advancedSearch: (query: SearchQuery) =>
     apiClient.post('/search/advanced', query),
 };
 ```
@@ -670,11 +670,11 @@ Before starting Issue #147, verify:
    # Morning
    git pull origin feature/phase4-issue-147
    .\NATIVE.ps1 -Start
-   
+
    # Before committing
    .\RUN_TESTS_BATCH.ps1
    .\COMMIT_READY.ps1 -Quick
-   
+
    # End of day
    git push origin feature/phase4-issue-147
    ```
@@ -719,4 +719,3 @@ Issue #147 is **COMPLETE** when:
 **Depends On**: PR #150 merge (status: open for review)
 **Urgency**: High (unblocks Phase 4 completion)
 **Next Milestone**: Issue #147 completion → v1.18.0 release
-

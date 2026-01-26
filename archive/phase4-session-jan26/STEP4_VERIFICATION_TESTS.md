@@ -182,4 +182,3 @@ PASS 20/20 tests
 ```
 
 After that, proceed to Step 5 using STEP5_ADVANCEDFILTERS_GUIDE.md
-

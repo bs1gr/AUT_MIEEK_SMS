@@ -30,14 +30,10 @@ export const AdvancedSearchPage: React.FC = () => {
     isLoading,
     setQuery,
     setEntityType,
-    addFilter,
-    removeFilter,
     setFilters,
-    clearFilters,
     refetch,
   } =
     useSearch();
-  const { savedSearches } = useSavedSearches();
 
   // TODO: Implement component render
   return (

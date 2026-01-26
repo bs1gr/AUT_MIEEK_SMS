@@ -65,7 +65,7 @@ npm --prefix frontend run test -- SearchBar.test.tsx --run
 - Write 12+ test cases (300+ lines)
 - Commit and push
 
-**Deliverables**: 
+**Deliverables**:
 - `components/AdvancedFilters.tsx`
 - `components/FilterCondition.tsx`
 - `__tests__/AdvancedFilters.test.tsx`
@@ -191,4 +191,3 @@ npm --prefix frontend run test -- SearchBar.test.tsx --run
 - Work plan: `docs/plans/UNIFIED_WORK_PLAN.md`
 - Quick reference: `QUICKSTART_ISSUE147.md`
 - Type definitions: `frontend/src/features/advanced-search/types/search.ts`
-

@@ -8,7 +8,6 @@
 import {
   SearchQuery,
   SearchResult,
-  SearchResultData,
   StudentSearchResult,
   CourseSearchResult,
   FilterCondition,
