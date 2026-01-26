@@ -173,8 +173,20 @@ export const useSearch = (
     ) => {
       setState((prev) => ({
         ...prev,
-        sortBy,
-        sortOrder,
+        sort_by: sortBy,
+        sort_order: sortOrder,
+        currentPage: 1, // Reset to first page
+      }));
+    },
+    []
+  );
+
+  // Update sort by (convenience method for SearchResults component)
+  const setSortBy = useCallback(
+    (sortBy: string) => {
+      setState((prev) => ({
+        ...prev,
+        sort_by: sortBy,
         currentPage: 1, // Reset to first page
       }));
     },
@@ -217,6 +229,7 @@ export const useSearch = (
     setFilters,
     clearFilters,
     setSort,
+    setSortBy,
     setCurrentPage,
     setPageSize,
 

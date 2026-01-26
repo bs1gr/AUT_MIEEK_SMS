@@ -7,9 +7,12 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useSearch, useSavedSearches } from '../hooks/useSearch';
 import SearchBar from './components/SearchBar';
 import AdvancedFilters from './components/AdvancedFilters';
+import { SearchResults } from './components/SearchResults';
+import { SearchResultItem } from '../types/search';
 
 /**
  * AdvancedSearchPage Component
@@ -24,16 +27,35 @@ import AdvancedFilters from './components/AdvancedFilters';
  */
 export const AdvancedSearchPage: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const {
     state,
     results,
     isLoading,
+    error,
     setQuery,
     setEntityType,
     setFilters,
+    setSortBy,
     refetch,
   } =
     useSearch();
+
+  // Handler for result card clicks - navigate to detail page
+  const handleResultClick = (result: SearchResultItem) => {
+    switch (result.type) {
+      case 'student':
+        navigate(`/students/${result.id}`);
+        break;
+      case 'course':
+        navigate(`/courses/${result.id}`);
+        break;
+      case 'grade':
+        // Grades don't have detail pages, could navigate to student profile
+        navigate(`/students/${result.student_id || result.id}`);
+        break;
+    }
+  };
 
   // TODO: Implement component render
   return (
@@ -88,20 +110,17 @@ export const AdvancedSearchPage: React.FC = () => {
             </div>
 
             {/* Search Results */}
-            {/* TODO: SearchResults component */}
-            <div className="bg-white rounded-lg shadow p-6">
-              {isLoading ? (
-                <p className="text-gray-500">{t('search.results.loading')}</p>
-              ) : results?.items.length === 0 ? (
-                <p className="text-gray-500">{t('search.results.no_results')}</p>
-              ) : (
-                <div>
-                  <p className="mb-4">
-                    {t('search.results.title')} ({results?.total})
-                  </p>
-                  {/* TODO: Result cards */}
-                </div>
-              )}
+            <div className="bg-white rounded-lg shadow mb-6">
+              <SearchResults
+                results={results?.items || []}
+                total={results?.total || 0}
+                isLoading={isLoading}
+                error={error ? error.message : null}
+                sortBy={state.sort_by}
+                onSortChange={(sortBy) => setSortBy(sortBy)}
+                onResultClick={handleResultClick}
+                onRetry={() => refetch()}
+              />
             </div>
 
             {/* Pagination */}

@@ -134,5 +134,44 @@ export default {
       isEmpty: 'Is empty',
       isNotEmpty: 'Is not empty'
     }
+  },
+  results: {
+    loading: 'Loading results...',
+    empty: 'No results found',
+    emptyHint: 'Try adjusting your search criteria or filters',
+    error: 'Error loading results',
+    retry: 'Try Again',
+    result: 'result',
+    results: 'results',
+    list: 'Search results',
+    sortBy: 'Sort by',
+    relevance: 'Relevance',
+    sort: {
+      relevance: 'Relevance',
+      name: 'Name',
+      newest: 'Newest',
+      updated: 'Recently Updated'
+    }
+  },
+  students: {
+    status: {
+      active: 'Active',
+      inactive: 'Inactive',
+      graduated: 'Graduated'
+    },
+    courses: 'Courses',
+    more: 'more'
+  },
+  courses: {
+    status: {
+      active: 'Active',
+      archived: 'Archived'
+    },
+    instructor: 'Instructor'
+  },
+  grades: {
+    points: 'points',
+    student: 'Student',
+    course: 'Course'
   }
 };
