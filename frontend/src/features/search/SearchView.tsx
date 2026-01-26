@@ -7,7 +7,7 @@ import SearchPagination from './SearchPagination';
 import SearchFacets from './SearchFacets';
 
 export const SearchView: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const translate = (key: string, fallback: string, options: Record<string, unknown> = {}) => {
     const value = t(key, { defaultValue: fallback, ...options });
     return value === key ? fallback : value;
@@ -35,9 +35,9 @@ export const SearchView: React.FC = () => {
 
   const typeOptions = useMemo(
     () => [
-      { value: 'students', label: t('search.stats.students', { defaultValue: 'students' }).toLowerCase() },
-      { value: 'courses', label: t('search.stats.courses', { defaultValue: 'courses' }).toLowerCase() },
-      { value: 'grades', label: t('search.stats.grades', { defaultValue: 'grades' }).toLowerCase() },
+      { value: 'students', label: t('stats.students', { defaultValue: 'students' }).toLowerCase() },
+      { value: 'courses', label: t('stats.courses', { defaultValue: 'courses' }).toLowerCase() },
+      { value: 'grades', label: t('stats.grades', { defaultValue: 'grades' }).toLowerCase() },
     ],
     [t]
   );
@@ -57,14 +57,14 @@ export const SearchView: React.FC = () => {
     setPage(0);
   };
 
-  const placeholder = translate('search.placeholder.students', 'Search students...').toLowerCase();
+  const placeholder = translate('placeholder.students', 'Search students...').toLowerCase();
 
   const renderResultPrimary = (result: any) => {
     if (result.display_name) return result.display_name;
     if (result.first_name || result.last_name) {
       return `${result.first_name || ''} ${result.last_name || ''}`.trim();
     }
-    return result.name || t('search.unknown');
+    return result.name || t('unknown');
   };
 
   const renderResultSecondary = (result: any) => {
@@ -184,7 +184,7 @@ export const SearchView: React.FC = () => {
             </ul>
 
             {isLoading && (
-              <div className="mt-3 text-sm text-gray-500">{t('search.loading')}</div>
+              <div className="mt-3 text-sm text-gray-500">{t('loading')}</div>
             )}
           </div>
 

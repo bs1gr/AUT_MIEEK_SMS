@@ -18,15 +18,28 @@ export const SearchPagination: React.FC<SearchPaginationProps> = ({
   onPageChange,
   className = '',
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
 
   const currentStart = total === 0 ? 0 : page * limit + 1;
   const currentEnd = Math.min(total, (page + 1) * limit);
 
+  // Safe translation with fallback
+  const rangeText = t('pagination.range', {
+    defaultValue: `${currentStart}-${currentEnd} of ${total} results`,
+    start: currentStart,
+    end: currentEnd,
+    total
+  });
+
+  const pageLabel = t('pageLabel', {
+    defaultValue: `Page ${page + 1}`,
+    page: page + 1
+  });
+
   return (
     <div className={`flex items-center justify-between gap-3 ${className}`}>
       <div className="text-sm text-gray-600">
-        {t('search.pagination.range', { start: currentStart, end: currentEnd, total })}
+        {rangeText}
       </div>
       <div className="flex items-center gap-2">
         <button
@@ -35,16 +48,16 @@ export const SearchPagination: React.FC<SearchPaginationProps> = ({
           disabled={page === 0}
           className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white disabled:opacity-60 hover:bg-gray-50"
         >
-          {t('common.previous')}
+          {t('common.previous', { defaultValue: 'Previous' })}
         </button>
-        <span className="text-sm text-gray-700">{t('search.pageLabel', { page: page + 1 })}</span>
+        <span className="text-sm text-gray-700">{pageLabel}</span>
         <button
           type="button"
           onClick={() => onPageChange(page + 1)}
           disabled={!hasMore && (page + 1) * limit >= total}
           className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white disabled:opacity-60 hover:bg-gray-50"
         >
-          {t('common.next')}
+          {t('common.next', { defaultValue: 'Next' })}
         </button>
       </div>
     </div>

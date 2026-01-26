@@ -24,7 +24,7 @@ interface SearchFacetsProps {
 }
 
 export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = false, onSelect, className = '' }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const [expandedFacets, setExpandedFacets] = useState<Record<string, boolean>>({});
   const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
   const [selectedValues, setSelectedValues] = useState<Record<string, Set<string>>>({});
@@ -32,7 +32,8 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
 
   const translate = (key: string, fallback: string) => {
     const value = t(key, { defaultValue: fallback });
-    return value === key ? fallback : value;
+    // Return the translated value or fallback if translation key wasn't found
+    return typeof value === 'string' && !value.includes('.') ? value : fallback;
   };
 
   const filteredFacets = facets || [];
@@ -40,15 +41,19 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
   if (loading) {
     return (
       <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
-        <p className="text-sm text-gray-500">{translate('search.facets.loading', 'Loading filters...')}</p>
+        <p className="text-sm text-gray-500">
+          {t('facets.loading', { defaultValue: 'Loading filters...' })}
+        </p>
       </div>
     );
   }
 
-  if (!filteredFacets.length) {
+  if (!filteredFacets || filteredFacets.length === 0) {
     return (
       <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
-        <p className="text-sm text-gray-500">{translate('search.facets.empty', 'No filters available')}</p>
+        <p className="text-sm text-gray-500">
+          {t('facets.empty', { defaultValue: 'No filters available' })}
+        </p>
       </div>
     );
   }

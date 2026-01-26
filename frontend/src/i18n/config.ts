@@ -10,25 +10,13 @@ if (!isTestEnvironment) {
   i18n.use(LanguageDetector);
 }
 
-// Helper to safely extract search translations and prevent namespace collisions
-const getSafeSearchTranslations = (enTranslations: any) => {
-  const search = enTranslations?.search;
-  // Check if search is corrupted (string, array, or array-like object with numeric keys)
-  const isCorrupted = typeof search === 'string' || Array.isArray(search) || (typeof search === 'object' && search !== null && '0' in search);
-
-  return isCorrupted ? {} : search;
-};
-
 i18n
   .use(initReactI18next)
   // Init i18next
   .init({
     resources: {
       en: {
-        translation: {
-          ...translations.en,
-          search: getSafeSearchTranslations(translations.en)
-        }
+        translation: translations.en
       },
       el: {
         translation: translations.el

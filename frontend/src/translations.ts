@@ -62,10 +62,8 @@ export const translations: Translations = {
     utils: utilsEn,
     dashboard: dashboardEn,
     common: commonEn,
-    students: studentsEn,
-    courses: coursesEn,
+    // students, courses, grades: use root nav labels (strings) instead of namespace objects
     attendance: attendanceEn,
-    grades: gradesEn,
     calendar: calendarEn,
     export: exportEn,
     help: helpEn,
@@ -79,17 +77,15 @@ export const translations: Translations = {
     ...utilsEn,
     ...dashboardEn,
     ...commonEn,
-    ...studentsEn,
-    ...coursesEn,
+    // Avoid overriding root nav labels: keep students/courses/grades namespaced only
     ...attendanceEn,
-    ...gradesEn,
     ...calendarEn,
     ...exportEn,
     ...helpEn,
     ...reportsEn,
     ...feedbackEn,
-    ...errorsEn,
-    ...searchEn
+    ...errorsEn
+    // searchEn flattened removed - contains students/courses/grades that override nav labels
   },
 
   el: {
@@ -102,10 +98,8 @@ export const translations: Translations = {
     utils: utilsEl,
     dashboard: dashboardEl,
     common: commonEl,
-    students: studentsEl,
-    courses: coursesEl,
+    // students, courses, grades: use root nav labels (strings) instead of namespace objects
     attendance: attendanceEl,
-    grades: gradesEl,
     calendar: calendarEl,
     export: exportEl,
     help: helpEl,
@@ -119,16 +113,14 @@ export const translations: Translations = {
     ...utilsEl,
     ...dashboardEl,
     ...commonEl,
-    ...studentsEl,
-    ...coursesEl,
+    // Avoid overriding root nav labels: keep students/courses/grades namespaced only
     ...attendanceEl,
-    ...gradesEl,
     ...calendarEl,
     ...exportEl,
     ...helpEl,
     ...reportsEl,
     ...feedbackEl,
-    ...errorsEl,
-    ...searchEl
+    ...errorsEl
+    // searchEl flattened removed - contains students/courses/grades that override nav labels
   }
 };

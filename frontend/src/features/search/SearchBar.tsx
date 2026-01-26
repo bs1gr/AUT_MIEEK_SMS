@@ -25,7 +25,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   className = '',
   autoFocus = false,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const [isOpen, setIsOpen] = useState(false);
   const [showRecent, setShowRecent] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -221,7 +221,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             <div>
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b flex items-center gap-1">
                 <HeartIcon size={12} className="text-red-500" />
-                {t('search.favoriteSearches')}
+                {t('favoriteSearches')}
               </div>
               <ul className="py-1">
                 {getFavoriteSavedSearches().slice(0, 5).map((saved: SavedSearch) => (
@@ -253,7 +253,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                 }}
                 className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium py-1"
               >
-                {t('search.viewAllSavedSearches')} ({savedSearches.length})
+                {t('viewAllSavedSearches')} ({savedSearches.length})
               </button>
             </div>
           )}
@@ -262,7 +262,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {!searchQuery && showRecent && savedSearches.length === 0 && (
             <div className="px-3 py-4 text-center text-sm text-gray-500">
               <Clock size={20} className="mx-auto mb-2 text-gray-400" />
-              <p>{t('search.noSavedSearches')}</p>
+              <p>{t('noSavedSearches')}</p>
             </div>
           )}
         </div>
