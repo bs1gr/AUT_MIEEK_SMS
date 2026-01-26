@@ -106,6 +106,8 @@ export default {
     enrollment_type: 'Enrollment type',
     months: 'Months',
     loading: 'Loading facets...',
+    empty: 'No filters available',
+    search: 'Search values...',
     values: {
       active: 'Active',
       inactive: 'Inactive',

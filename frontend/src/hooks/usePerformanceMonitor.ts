@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 type PerformanceMetrics = {
   renderTime: number;
@@ -8,7 +8,7 @@ type PerformanceMetrics = {
 
 export function usePerformanceMonitor(componentName: string, thresholdMs = 100) {
   const startTimeRef = useRef(performance.now());
-  const [metrics, setMetrics] = useState<PerformanceMetrics>({
+  const metricsRef = useRef<PerformanceMetrics>({
     renderTime: 0,
     renderCount: 0,
     totalTime: 0,
@@ -23,39 +23,35 @@ export function usePerformanceMonitor(componentName: string, thresholdMs = 100) 
     return () => {
       const duration = performance.now() - renderStart;
 
-      setMetrics((prev) => {
-        const renderCount = prev.renderCount + 1;
-        const totalTime = prev.totalTime + duration;
-        const next = {
-          renderTime: duration,
+      const renderCount = metricsRef.current.renderCount + 1;
+      const totalTime = metricsRef.current.totalTime + duration;
+      metricsRef.current = {
+        renderTime: duration,
+        renderCount,
+        totalTime,
+      };
+
+      if (duration >= thresholdMs) {
+        console.warn(
+          `[Performance] ${componentName} render exceeded threshold`,
+          { renderCount, duration, threshold: thresholdMs }
+        );
+
+        const analytics = (window as typeof window & { analytics?: { event?: (...args: unknown[]) => void } }).analytics;
+        analytics?.event?.('component_render', {
+          component: componentName,
+          duration,
           renderCount,
-          totalTime,
-        };
-
-        if (duration >= thresholdMs) {
-          console.warn(
-            `[Performance] ${componentName} render exceeded threshold`,
-            { renderCount, duration, threshold: thresholdMs }
-          );
-
-          const analytics = (window as typeof window & { analytics?: { event?: (...args: unknown[]) => void } }).analytics;
-          analytics?.event?.('component_render', {
-            component: componentName,
-            duration,
-            renderCount,
-            threshold: thresholdMs,
-          });
-        }
-
-        return next;
-      });
+          threshold: thresholdMs,
+        });
+      }
 
       // reset start time for next render measurement
       startTimeRef.current = performance.now();
     };
   });
 
-  return metrics;
+  return metricsRef.current;
 }
 
 export function useApiPerformance(endpoint: string, thresholdMs = 1000) {

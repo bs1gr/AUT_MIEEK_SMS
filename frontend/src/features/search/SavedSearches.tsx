@@ -25,7 +25,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   onLoadSearch,
   className = '',
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const queryClient = useQueryClient();
   const [filterType, setFilterType] = useState<'all' | 'students' | 'courses' | 'grades'>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -67,7 +67,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm(t('search.confirmDeleteSearch'))) {
+    if (window.confirm(t('confirmDeleteSearch'))) {
       call(() => deleteMutation.mutate(id));
     }
   };
@@ -106,10 +106,10 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {t('search.savedSearches')}
+          {t('savedSearches')}
         </h2>
         <p className="text-sm text-gray-600">
-          {t('search.savedSearchesDescription')}
+          {t('savedSearchesDescription')}
         </p>
       </div>
 
@@ -120,7 +120,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as 'all' | 'students' | 'courses' | 'grades')}
           className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-          aria-label={t('search.filterByType')}
+          aria-label={t('filterByType')}
         >
           <option value="all">{t('common.all')}</option>
           <option value="students">{t('students.title')}</option>
@@ -138,7 +138,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
           }`}
         >
           <HeartIcon size={16} className={showFavoritesOnly ? 'fill-current' : ''} />
-          <span>{t('search.favoritesOnly')}</span>
+          <span>{t('favoritesOnly')}</span>
         </button>
       </div>
 
@@ -156,11 +156,11 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
           <Search size={48} className="mx-auto text-gray-400 mb-3" />
           <p className="text-gray-600 font-medium">
             {showFavoritesOnly
-              ? t('search.noFavoriteSearches')
-              : t('search.noSavedSearches')}
+              ? t('noFavoriteSearches')
+              : t('noSavedSearches')}
           </p>
           <p className="text-sm text-gray-500 mt-1">
-            {t('search.createFirstSearch')}
+            {t('createFirstSearch')}
           </p>
         </div>
       )}
@@ -204,7 +204,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                     </div>
                     {search.filters && (
                       <span className="px-2 py-0.5 bg-gray-100 rounded">
-                        {Object.keys(search.filters).length} {t('search.filters')}
+                        {Object.keys(search.filters).length} {t('filters')}
                       </span>
                     )}
                   </div>
@@ -221,7 +221,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                         ? 'text-red-500 bg-red-50 hover:bg-red-100'
                         : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
                     }`}
-                    aria-label={t('search.toggleFavorite')}
+                    aria-label={t('toggleFavorite')}
                   >
                     <HeartIcon
                       size={18}
@@ -233,7 +233,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                   <button
                     onClick={() => handleLoadSearch(search)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    aria-label={t('search.loadSearch')}
+                    aria-label={t('loadSearch')}
                   >
                     <Search size={18} />
                   </button>
@@ -257,7 +257,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {/* Results Count */}
       {!loadingSavedSearches && filteredSearches.length > 0 && (
         <div className="mt-4 text-center text-sm text-gray-600">
-          {t('search.showingSearches', {
+          {t('showingSearches', {
             count: filteredSearches.length,
             total: savedSearches.length,
           })}

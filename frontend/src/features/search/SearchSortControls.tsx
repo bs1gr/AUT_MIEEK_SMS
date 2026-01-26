@@ -9,7 +9,7 @@ interface SearchSortControlsProps {
 }
 
 export const SearchSortControls: React.FC<SearchSortControlsProps> = ({ sort, onChange, className = '' }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
 
   const translate = (key: string, fallback: string) => {
     const value = t(key, { defaultValue: fallback });
@@ -27,7 +27,7 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({ sort, on
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className}`}>
       <label className="text-sm font-medium text-gray-700" htmlFor="search-sort-field">
-        {translate('search.sort.label', 'Sort by')}
+        {translate('sort.label', 'Sort by')}
       </label>
       <select
         id="search-sort-field"
@@ -35,15 +35,15 @@ export const SearchSortControls: React.FC<SearchSortControlsProps> = ({ sort, on
         onChange={handleFieldChange}
         className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
       >
-        <option value="relevance">{translate('search.sort.relevance', 'relevance')}</option>
-        <option value="name">{translate('search.sort.name', 'name')}</option>
-        <option value="email">{translate('search.sort.email', 'email')}</option>
-        <option value="created_at">{translate('search.sort.created', 'created_at')}</option>
-        <option value="updated_at">{translate('search.sort.updated', 'updated_at')}</option>
+        <option value="relevance">{translate('sort.relevance', 'relevance')}</option>
+        <option value="name">{translate('sort.name', 'name')}</option>
+        <option value="email">{translate('sort.email', 'email')}</option>
+        <option value="created_at">{translate('sort.created', 'created_at')}</option>
+        <option value="updated_at">{translate('sort.updated', 'updated_at')}</option>
       </select>
 
       <select
-        aria-label={translate('search.sort.directionLabel', 'Sort direction')}
+        aria-label={translate('sort.directionLabel', 'Sort direction')}
         value={sort.direction}
         onChange={handleDirectionChange}
         className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
