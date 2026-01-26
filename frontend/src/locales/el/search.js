@@ -3,6 +3,11 @@
  */
 
 export default {
+  page_title: 'Προχωρημένη Αναζήτηση',
+  page_description: 'Αναζήτηση και φιλτράρισμα φοιτητών, μαθημάτων και βαθμών',
+  students: 'Φοιτητές',
+  courses: 'Μαθήματα',
+  grades: 'Βαθμοί',
   placeholder: {
     students: 'Αναζητήστε φοιτητές...',
     courses: 'Αναζητήστε μαθήματα...',
