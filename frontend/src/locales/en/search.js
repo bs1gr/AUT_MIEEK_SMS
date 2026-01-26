@@ -108,5 +108,31 @@ export default {
       'full-time': 'Full-time',
       'part-time': 'Part-time'
     }
+  },
+  advancedFilters: {
+    title: 'Advanced Filters',
+    addFilter: 'Add Filter',
+    clearAll: 'Clear All',
+    removeFilter: 'Remove this filter',
+    empty: 'No filters added yet',
+    min: 'Minimum value',
+    max: 'Maximum value',
+    condition: {
+      field: 'Field',
+      operator: 'Operator',
+      value: 'Value',
+      selectField: 'Select field...',
+      selectOperator: 'Select operator...'
+    },
+    operators: {
+      equals: 'Equals',
+      contains: 'Contains',
+      startsWith: 'Starts with',
+      greaterThan: 'Greater than',
+      lessThan: 'Less than',
+      between: 'Between',
+      isEmpty: 'Is empty',
+      isNotEmpty: 'Is not empty'
+    }
   }
 };
