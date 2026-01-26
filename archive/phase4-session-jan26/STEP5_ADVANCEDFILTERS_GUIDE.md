@@ -276,10 +276,10 @@ describe('AdvancedFilters', () => {
         onFiltersChange={mockOnFiltersChange}
       />
     );
-    
+
     const header = getByRole('button', { name: /Advanced Filters/ });
     await userEvent.click(header);
-    
+
     expect(getByText(/Filter Condition 1/)).toBeInTheDocument();
   });
 
@@ -420,4 +420,3 @@ After Step 5 is complete:
 - Implementation Status: `ISSUE147_IMPLEMENTATION_STATUS.md`
 - Work Plan: `docs/plans/UNIFIED_WORK_PLAN.md`
 - Preparation Guide: `docs/PHASE4_ISSUE147_PREPARATION_GUIDE.md`
-

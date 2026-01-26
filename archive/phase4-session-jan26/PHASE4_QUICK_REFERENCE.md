@@ -290,4 +290,3 @@ npm --prefix frontend run test -- SearchBar.test.tsx --run
 ---
 
 **Print This** | **Last Updated**: Jan 25, 2026 | **Next Review**: After Step 5
-

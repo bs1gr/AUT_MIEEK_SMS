@@ -277,4 +277,3 @@ git push origin feature/phase4-issue-447
 **Ready?** Start with SearchBar component. See PHASE4_ISSUE147_PREPARATION_GUIDE.md for detailed specifications.
 
 **Good luck!** 🚀
-

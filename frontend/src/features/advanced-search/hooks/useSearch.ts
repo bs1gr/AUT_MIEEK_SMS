@@ -12,9 +12,7 @@ import {
   SearchQuery,
   SearchResult,
   SearchResultData,
-  SavedSearch,
   FilterCondition,
-  SearchResultItem,
 } from '@/features/advanced-search/types/search';
 
 /**

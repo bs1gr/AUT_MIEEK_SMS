@@ -9,7 +9,6 @@ import { apiClient } from '@/api/api';
 import {
   SearchQuery,
   SearchResult,
-  SearchResultData,
   SavedSearch,
   StudentSearchResult,
   CourseSearchResult,
