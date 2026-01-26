@@ -346,7 +346,8 @@ jobs:
           SMS_TEST_RUNNER: 'batch'
           CI: 'true'
           GITHUB_ACTIONS: 'true'
-        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html --coverage.reporter=lcov --coverage.reporter=text-summary
+          NODE_OPTIONS: '--max-old-space-size=4096'
+        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html --coverage.reporter=lcov --coverage.reporter=text-summary --threads 2 --maxWorkers 2
 
       - name: Upload test results
         if: always()
