@@ -120,7 +120,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as 'all' | 'students' | 'courses' | 'grades')}
           className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-          aria-label={t('filterByType')}
+          aria-label={t('saved.filterByType')}
         >
           <option value="all">{t('common.all')}</option>
           <option value="students">{t('students.title')}</option>
@@ -221,7 +221,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                         ? 'text-red-500 bg-red-50 hover:bg-red-100'
                         : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
                     }`}
-                    aria-label={t('toggleFavorite')}
+                    aria-label={t('saved.toggleFavorite')}
                   >
                     <HeartIcon
                       size={18}
@@ -233,7 +233,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                   <button
                     onClick={() => handleLoadSearch(search)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    aria-label={t('loadSearch')}
+                    aria-label={t('saved.loadSearch')}
                   >
                     <Search size={18} />
                   </button>
@@ -257,7 +257,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {/* Results Count */}
       {!loadingSavedSearches && filteredSearches.length > 0 && (
         <div className="mt-4 text-center text-sm text-gray-600">
-          {t('showingSearches', {
+          {t('saved.showingSearches', {
             count: filteredSearches.length,
             total: savedSearches.length,
           })}

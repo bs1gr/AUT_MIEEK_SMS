@@ -1,8 +1,10 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { I18nextProvider } from 'react-i18next';
 import StudentCard from './StudentCard';
 import { LanguageProvider } from '@/LanguageContext';
+import testI18n from '@/test-utils/i18n-test-wrapper';
 import type { Student, Course } from '@/types';
 import type { StudentStats } from './studentTypes';
 
@@ -99,9 +101,11 @@ const defaultProps = {
 
 const renderStudentCard = (props = {}) => {
   return render(
-    <LanguageProvider>
-      <StudentCard {...defaultProps} {...props} />
-    </LanguageProvider>
+    <I18nextProvider i18n={testI18n}>
+      <LanguageProvider>
+        <StudentCard {...defaultProps} {...props} />
+      </LanguageProvider>
+    </I18nextProvider>
   );
 };
 

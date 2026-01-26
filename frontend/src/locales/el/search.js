@@ -57,6 +57,11 @@ export default {
     nameRequired: 'Απαιτείται όνομα αναζήτησης',
     success: 'Η αναζήτηση αποθηκεύτηκε επιτυχώς',
     limit: 'Μέγιστο 10 αποθηκευμένες αναζητήσεις ανά τύπο',
+    showingSearches: 'Εμφάνιση {{count}} από {{total}} αναζητήσεις',
+    filterByType: 'Φιλτράρισμα ανά τύπο',
+    favoritesOnly: 'Μόνο αγαπημένα',
+    toggleFavorite: 'Εναλλαγή αγαπημένου',
+    loadSearch: 'Φόρτωση αναζήτησης',
   },
   advanced: {
     title: 'Προχωρημένα Φίλτρα',

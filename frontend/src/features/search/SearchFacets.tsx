@@ -42,7 +42,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
     return (
       <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
         <p className="text-sm text-gray-500">
-          {t('facets.loading', { defaultValue: 'Loading filters...' })}
+          {translate('search.facets.loading', 'Loading filters...')}
         </p>
       </div>
     );
@@ -52,7 +52,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
     return (
       <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
         <p className="text-sm text-gray-500">
-          {t('facets.empty', { defaultValue: 'No filters available' })}
+          {translate('search.facets.empty', 'No filters available')}
         </p>
       </div>
     );
