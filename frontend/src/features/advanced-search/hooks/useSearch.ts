@@ -140,6 +140,15 @@ export const useSearch = (
     }));
   }, []);
 
+  // Replace filter conditions
+  const setFilters = useCallback((filters: FilterCondition[]) => {
+    setState((prev) => ({
+      ...prev,
+      filters,
+      currentPage: 1,
+    }));
+  }, []);
+
   // Remove filter condition
   const removeFilter = useCallback((index: number) => {
     setState((prev) => ({
@@ -207,6 +216,7 @@ export const useSearch = (
     setEntityType,
     addFilter,
     removeFilter,
+    setFilters,
     clearFilters,
     setSort,
     setCurrentPage,

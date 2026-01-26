@@ -5,9 +5,11 @@
  * Main page component orchestrating all search UI elements.
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearch, useSavedSearches } from '../hooks/useSearch';
+import SearchBar from './components/SearchBar';
+import AdvancedFilters from './components/AdvancedFilters';
 
 /**
  * AdvancedSearchPage Component
@@ -22,7 +24,18 @@ import { useSearch, useSavedSearches } from '../hooks/useSearch';
  */
 export const AdvancedSearchPage: React.FC = () => {
   const { t } = useTranslation();
-  const { state, results, isLoading, setQuery, setEntityType, addFilter, removeFilter } =
+  const {
+    state,
+    results,
+    isLoading,
+    setQuery,
+    setEntityType,
+    addFilter,
+    removeFilter,
+    setFilters,
+    clearFilters,
+    refetch,
+  } =
     useSearch();
   const { savedSearches } = useSavedSearches();
 
@@ -52,16 +65,25 @@ export const AdvancedSearchPage: React.FC = () => {
           {/* Main Content */}
           <div className="col-span-3">
             {/* Search Bar */}
-            {/* TODO: SearchBar component */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <p className="text-gray-500">{t('common.placeholder')}</p>
-            </div>
+              <div className="bg-white rounded-lg shadow p-6 mb-6">
+                <SearchBar
+                  query={state.query}
+                  onQueryChange={setQuery}
+                  entityType={state.entityType}
+                  onEntityTypeChange={setEntityType}
+                  onSearch={() => refetch()}
+                  searchHistory={[]}
+                  showHistory={false}
+                />
+              </div>
 
             {/* Advanced Filters */}
-            {/* TODO: AdvancedFilters component */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <p className="text-gray-500">{t('common.placeholder')}</p>
-            </div>
+              <AdvancedFilters
+                className="mb-6"
+                filters={state.filters}
+                onFiltersChange={setFilters}
+                entityType={state.entityType}
+              />
 
             {/* Saved Searches */}
             {/* TODO: SavedSearches component */}
