@@ -38,9 +38,9 @@ testI18n
           ...coursesEn,
           ...gradesEn,
           ...rbacEn,
-          common: commonEn,
-          search: searchEn,
-        }
+        },
+        common: commonEn,
+        search: searchEn,
       },
       el: {
         translation: {
@@ -48,9 +48,9 @@ testI18n
           ...coursesEl,
           ...gradesEl,
           ...rbacEl,
-          common: commonEl,
-          search: searchEl,
-        }
+        },
+        common: commonEl,
+        search: searchEl,
       }
     },
     interpolation: {

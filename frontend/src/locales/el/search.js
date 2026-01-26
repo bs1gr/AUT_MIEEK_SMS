@@ -134,5 +134,44 @@ export default {
       isEmpty: 'Είναι κενό',
       isNotEmpty: 'Δεν είναι κενό'
     }
+  },
+  results: {
+    loading: 'Φόρτωση αποτελεσμάτων...',
+    empty: 'Δεν βρέθηκαν αποτελέσματα',
+    emptyHint: 'Δοκιμάστε να προσαρμόσετε τα κριτήρια αναζήτησης ή τα φίλτρα',
+    error: 'Σφάλμα φόρτωσης αποτελεσμάτων',
+    retry: 'Δοκιμάστε Ξανά',
+    result: 'αποτέλεσμα',
+    results: 'αποτελέσματα',
+    list: 'Αποτελέσματα αναζήτησης',
+    sortBy: 'Ταξινόμηση κατά',
+    relevance: 'Συνάφεια',
+    sort: {
+      relevance: 'Συνάφεια',
+      name: 'Όνομα',
+      newest: 'Νεότερα',
+      updated: 'Πρόσφατα Ενημερωμένα'
+    }
+  },
+  students: {
+    status: {
+      active: 'Ενεργός',
+      inactive: 'Ανενεργός',
+      graduated: 'Απόφοιτος'
+    },
+    courses: 'Μαθήματα',
+    more: 'περισσότερα'
+  },
+  courses: {
+    status: {
+      active: 'Ενεργό',
+      archived: 'Αρχειοθετημένο'
+    },
+    instructor: 'Διδάσκων'
+  },
+  grades: {
+    points: 'μόρια',
+    student: 'Φοιτητής',
+    course: 'Μάθημα'
   }
 };

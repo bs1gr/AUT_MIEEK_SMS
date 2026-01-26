@@ -10,6 +10,7 @@ import {
   SearchResult,
   StudentSearchResult,
   CourseSearchResult,
+  GradeSearchResult,
   FilterCondition,
 } from '../types/search';
 
@@ -71,6 +72,35 @@ export const mockCourseResults: CourseSearchResult[] = [
     created_at: '2025-01-03T00:00:00Z',
     updated_at: '2025-01-25T00:00:00Z',
     relevance_score: 0.88,
+  },
+];
+
+export const mockGradeResults: GradeSearchResult[] = [
+  {
+    id: 201,
+    type: 'grade',
+    student_id: 1,
+    student_name: 'John Doe',
+    course_id: 101,
+    course_code: 'CS101',
+    grade: 'A',
+    points: 95,
+    created_at: '2025-01-20T00:00:00Z',
+    updated_at: '2025-01-25T00:00:00Z',
+    relevance_score: 0.92,
+  },
+  {
+    id: 202,
+    type: 'grade',
+    student_id: 2,
+    student_name: 'Jane Smith',
+    course_id: 101,
+    course_code: 'CS101',
+    grade: 'B+',
+    points: 87,
+    created_at: '2025-01-20T00:00:00Z',
+    updated_at: '2025-01-25T00:00:00Z',
+    relevance_score: 0.85,
   },
 ];
 
