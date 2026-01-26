@@ -10,4 +10,3 @@
 - COMMIT_READY Smoke (with separate Ubuntu/Windows jobs)
 
 **Status:** Testing in progress...
-

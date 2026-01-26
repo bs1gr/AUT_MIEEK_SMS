@@ -328,4 +328,3 @@ The Student Management System $11.14.0 is production-ready and available for dep
 **Build Status**: ✅ Successful
 **Git Tag**: $11.14.0
 **Installer**: SMS_Installer_1.12.8.exe (6.1 MB)
-

@@ -432,4 +432,3 @@ Potential enhancements:
 - [ ] Publish to additional platforms (Chocolatey, Windows Package Manager)
 - [ ] Automated version bump before release
 - [ ] Release notes auto-generation from PRs and issues
-

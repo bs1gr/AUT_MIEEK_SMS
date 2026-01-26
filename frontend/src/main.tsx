@@ -23,6 +23,7 @@ import {
   OperationsPage,
   PowerPage,
   AdminPermissionsPage,
+  SearchPage,
   preloadCriticalRoutes,
 } from './routes';
 
@@ -53,6 +54,7 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/courses" element={<CoursesPage />} />
               <Route path="/attendance" element={<AttendancePage />} />
               <Route path="/grading" element={<GradingPage />} />
+              <Route path="/search" element={<SearchPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/operations" element={<OperationsPage />} />
               <Route path="/power" element={<PowerPage />} />

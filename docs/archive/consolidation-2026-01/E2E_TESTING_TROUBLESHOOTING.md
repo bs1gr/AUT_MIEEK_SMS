@@ -502,4 +502,3 @@ zip -r debug.zip debug/
 **Related Docs:**
 - [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md) - Main testing guide
 - [E2E_AUTHENTICATION_FIX.md](./E2E_AUTHENTICATION_FIX.md) - Auth fix details
-

@@ -268,4 +268,3 @@ You have:
 **You**: READY ✅
 
 **See you on January 8!** 🚀
-

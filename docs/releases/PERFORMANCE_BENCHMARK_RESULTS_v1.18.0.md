@@ -60,4 +60,3 @@ expect(renderTime).toBeLessThan(1500); // Budget
 ## ✅ Conclusion
 
 The performance goals for v1.18.0 have been met and exceeded. The application is now capable of handling datasets an order of magnitude larger than before without UI degradation.
-

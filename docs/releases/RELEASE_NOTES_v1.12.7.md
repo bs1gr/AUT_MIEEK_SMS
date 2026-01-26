@@ -38,4 +38,3 @@ No special upgrade steps required.
 ---
 
 *Generated for Student Management System $11.12.7*
-

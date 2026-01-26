@@ -48,4 +48,3 @@ References
 - Backend gating (_safe_run/_allow_taskkill): `backend/main.py`
 
 If you need further help, contact the on-call operator or open an issue in the ops tracker.
-

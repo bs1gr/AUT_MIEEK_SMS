@@ -77,4 +77,3 @@ The helper script is modular and can be enhanced to:
 - **Helper Script:** `scripts/generate-release-github-description.ps1` (156 lines, well-documented)
 - **Main Script:** `GENERATE_RELEASE_DOCS.ps1` (needs integration, 505 lines)
 - **Used by:** `RELEASE_WITH_DOCS.ps1` → `RELEASE_PREPARATION.ps1` → `GENERATE_RELEASE_DOCS.ps1`
-

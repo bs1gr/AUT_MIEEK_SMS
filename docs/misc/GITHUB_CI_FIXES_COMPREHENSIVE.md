@@ -440,4 +440,3 @@ test -f frontend/package.json && echo "✓ Frontend valid"
 ---
 
 **End of Report**
-

@@ -399,4 +399,3 @@ cd ../frontend && npm install
 ---
 
 *This release completes the repository cleanup initiative started in $11.14.0. All deprecated code has been successfully removed, establishing a clean foundation for future development.*
-

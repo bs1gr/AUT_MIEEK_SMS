@@ -412,4 +412,3 @@ SMS is released under the [MIT License](../../LICENSE).
 **Download $11.17.1** from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.1)
 
 **Questions?** See [Frequently Asked Questions](./FAQ_$11.17.1.md) or contact support.
-

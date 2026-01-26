@@ -291,4 +291,3 @@ assert body["error"]["code"].startswith("HTTP_")
 - **Error Response Schema:** `backend/schemas/response.py`
 - **Error Handlers:** `backend/error_handlers.py`
 - **Example Tests Fixed:** test_students_router.py, test_grades_router.py
-

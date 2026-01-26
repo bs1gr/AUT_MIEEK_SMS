@@ -311,4 +311,3 @@ Both use sqlite:/// prefix with correct slash count:
 **Deployed:** December 29, 2025 01:30 UTC
 **Version:** 1.12.8
 **Status:** ✅ HEALTHY
-

@@ -256,6 +256,35 @@ from .search import (
 from .search import (
     UnifiedSearchResultSchema as UnifiedSearchResultSchema,
 )
+
+# Phase 4 Full-Text Search schemas
+from .search import (
+    FullTextSearchRequest as FullTextSearchRequest,
+)
+from .search import (
+    AdvancedSearchRequest as AdvancedSearchRequest,
+)
+from .search import (
+    StudentFullTextSearchResult as StudentFullTextSearchResult,
+)
+from .search import (
+    FullTextSearchResponse as FullTextSearchResponse,
+)
+from .search import (
+    AdvancedSearchResponse as AdvancedSearchResponse,
+)
+from .search import (
+    SearchFilterRequest as SearchFilterRequest,
+)
+from .search import (
+    SearchSortRequest as SearchSortRequest,
+)
+from .search import (
+    SearchFacets as SearchFacets,
+)
+from .search import (
+    SearchFacetsResponse as SearchFacetsResponse,
+)
 from .students import StudentCreate as StudentCreate
 from .students import StudentResponse as StudentResponse
 from .students import StudentUpdate as StudentUpdate

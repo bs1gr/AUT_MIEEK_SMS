@@ -290,4 +290,3 @@ Initial overall times post-change:
 Note: Component-level timing averages will be added after more runs; current summary reflects total setup times derived from the last 20 runs.
 
 Once validated, reflect results here and in `CACHE_OPTIMIZATION_SUMMARY.md`.
-

@@ -165,4 +165,3 @@ If any step fails, resolve before continuing. Re-run the failing script to confi
 - Capture key screenshots for release archives or QA docs
 - Record timings for Docker build and smoke scenarios to feed performance baselines
 - Create GitHub discussion entry summarising anomalies or noteworthy observations
-

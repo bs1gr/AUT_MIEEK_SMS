@@ -41,4 +41,3 @@ The following files have untyped function bodies (MyPy is skipping checks inside
 
 ---
 *All items resolved as of Jan 14, 2026.*
-

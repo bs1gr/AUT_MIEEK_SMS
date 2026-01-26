@@ -58,4 +58,3 @@
 - **Total Commits**: 33
 - **Contributors**: 2
 - **Breaking Changes**: 1
-

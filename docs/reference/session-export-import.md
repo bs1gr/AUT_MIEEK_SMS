@@ -288,4 +288,3 @@ for course in import_data["courses"]:
 - Backend router auto-registers on startup
 - Frontend: Rebuild required to include new UI
 - Compatible with both Docker and native deployment modes
-

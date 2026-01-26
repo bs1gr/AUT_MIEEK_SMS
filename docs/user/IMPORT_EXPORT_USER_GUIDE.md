@@ -103,4 +103,3 @@ The **History** table at the bottom of the page shows all past operations.
 ### Need Help?
 
 Contact your system administrator if you encounter persistent issues. Provide the **Job ID** from the History table.
-

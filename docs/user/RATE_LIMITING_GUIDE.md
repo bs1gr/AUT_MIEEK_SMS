@@ -290,4 +290,3 @@ POST /control/api/rate-limits/reset
 - [CONTROL_API.md](../backend/CONTROL_API.md) - Full API reference
 - [Architecture](./development/ARCHITECTURE.md) - System design
 - [Security Guide](./user/SECURITY.md) - Security best practices
-

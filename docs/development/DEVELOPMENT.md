@@ -81,4 +81,3 @@ python -m mypy backend --config-file config/mypy.ini --show-error-codes
 
 - The project uses `backend/requirements-dev.txt` for development-only packages. CI workflows use the same file when available.
 - If you plan to build Docker images for production, do not include dev requirements in the production image.
-

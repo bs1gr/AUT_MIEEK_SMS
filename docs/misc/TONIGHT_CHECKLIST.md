@@ -217,4 +217,3 @@ You're going to succeed. 95%+ probability on first attempt. 100% with rollback o
 **Next**: Read SOLO_QUICK_START.md tonight
 
 **Go get 'em!** 🚀
-

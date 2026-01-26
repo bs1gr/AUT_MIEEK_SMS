@@ -211,4 +211,3 @@ Use these to verify endpoint registration and try out new permissions.
 - [Authentication Guide](./user/AUTHENTICATION.md)
 - [API Reference](./API_REFERENCE.md)
 - [Deployment Guide](../DEPLOYMENT_GUIDE.md)
-

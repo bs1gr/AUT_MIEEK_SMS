@@ -74,4 +74,3 @@ These are separate from authentication and should be addressed independently.
 ## Date
 
 2026-01-05
-

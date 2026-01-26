@@ -408,4 +408,3 @@ The system is **not ready for production** with current performance characterist
 **Test Framework**: Locust 2.42.6
 **Database**: SQLite (development)
 **Environment**: Native (Backend 8000, Frontend 5173)
-

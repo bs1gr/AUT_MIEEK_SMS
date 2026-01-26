@@ -270,4 +270,3 @@ Potential additions:
 **Inspired by:** shadcn/ui, daisyUI, Tailwind UI, Linear, Stripe, GitHub
 **Version:** 1.6.0+
 **Date:** November 13, 2025
-

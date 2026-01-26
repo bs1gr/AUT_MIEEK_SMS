@@ -11,6 +11,7 @@ export default {
   ariaLabel: 'Search',
   search: 'Search',
   noSuggestions: 'No suggestions found',
+  unknown: 'Unknown',
   type: {
     student: 'Student',
     course: 'Course',
@@ -69,5 +70,108 @@ export default {
   filters: {
     title: 'Filters',
     custom: 'Custom Filters'
+  },
+  sort: {
+    label: 'Sort by',
+    directionLabel: 'Sort direction',
+    relevance: 'Relevance',
+    name: 'Name',
+    email: 'Email',
+    created: 'Created',
+    updated: 'Updated',
+    asc: 'Ascending',
+    desc: 'Descending'
+  },
+  pagination: {
+    range: '{{start}}-{{end}} of {{total}} results'
+  },
+  pageLabel: 'Page {{page}}',
+  limitLabel: 'Results per page',
+  limitOption: '{{count}} per page',
+  typeLabel: 'Type',
+  queryLabel: 'Query',
+  resultsTitle: 'Results',
+  resultsSummary: '{{count}} total results',
+  noResults: 'No results found',
+  facets: {
+    title: 'Refine results',
+    subtitle: 'Use facets to narrow the search',
+    total: '{{total}} matches',
+    status: 'Status',
+    enrollment_type: 'Enrollment type',
+    months: 'Months',
+    loading: 'Loading facets...',
+    values: {
+      active: 'Active',
+      inactive: 'Inactive',
+      suspended: 'Suspended',
+      'full-time': 'Full-time',
+      'part-time': 'Part-time'
+    }
+  },
+  advancedFilters: {
+    title: 'Advanced Filters',
+    addFilter: 'Add Filter',
+    clearAll: 'Clear All',
+    removeFilter: 'Remove this filter',
+    empty: 'No filters added yet',
+    min: 'Minimum value',
+    max: 'Maximum value',
+    condition: {
+      field: 'Field',
+      operator: 'Operator',
+      value: 'Value',
+      selectField: 'Select field...',
+      selectOperator: 'Select operator...'
+    },
+    operators: {
+      equals: 'Equals',
+      contains: 'Contains',
+      startsWith: 'Starts with',
+      greaterThan: 'Greater than',
+      lessThan: 'Less than',
+      between: 'Between',
+      isEmpty: 'Is empty',
+      isNotEmpty: 'Is not empty'
+    }
+  },
+  results: {
+    loading: 'Loading results...',
+    empty: 'No results found',
+    emptyHint: 'Try adjusting your search criteria or filters',
+    error: 'Error loading results',
+    retry: 'Try Again',
+    result: 'result',
+    results: 'results',
+    list: 'Search results',
+    sortBy: 'Sort by',
+    relevance: 'Relevance',
+    sort: {
+      relevance: 'Relevance',
+      name: 'Name',
+      newest: 'Newest',
+      updated: 'Recently Updated'
+    }
+  },
+  students: {
+    status: {
+      active: 'Active',
+      inactive: 'Inactive',
+      graduated: 'Graduated'
+    },
+    courses: 'Courses',
+    more: 'more'
+  },
+  courses: {
+    status: {
+      active: 'Active',
+      archived: 'Archived'
+    },
+    instructor: 'Instructor'
+  },
+  grades: {
+    points: 'points',
+    student: 'Student',
+    course: 'Course'
   }
 };

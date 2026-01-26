@@ -686,4 +686,3 @@ interface SearchStatistics {
 - Built-in caching
 - Error handling
 - Loading states
-

@@ -272,4 +272,3 @@ Database and data are portable. Rebuild images for x86_64, migrate data volumes.
 **Last Updated:** 2025-11-28
 **Maintainer:** Student Management System Team
 **License:** Same as main project
-

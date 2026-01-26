@@ -697,4 +697,3 @@ After deployment, verify these baseline metrics:
 - Monitoring setup
 - Rollback procedures
 - Troubleshooting guide
-

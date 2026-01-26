@@ -303,4 +303,3 @@ audit.log_from_request(
 - Frontend components: 3-4 hours
 - Integration tests: 2-3 hours
 - Documentation: 1 hour
-

@@ -32,6 +32,7 @@ const AppLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigationTabs = useMemo<NavigationTab[]>(
     () => [
       { key: 'dashboard', label: t('dashboard'), path: '/dashboard' },
+      { key: 'search', label: t('searchTab'), path: '/search' },
       { key: 'attendance', label: t('attendance'), path: '/attendance' },
       { key: 'grading', label: t('grades'), path: '/grading' },
       { key: 'students', label: t('students'), path: '/students' },

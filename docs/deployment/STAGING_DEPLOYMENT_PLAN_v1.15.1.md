@@ -453,4 +453,3 @@ curl -s http://localhost:8080/api/v1/version | jq .
 **Target Date**: January 8, 2026
 **Environment**: Staging
 **Version**: 1.15.1
-

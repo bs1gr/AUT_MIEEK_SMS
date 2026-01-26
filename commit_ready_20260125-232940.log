@@ -1,0 +1,587 @@
+**********************
+PowerShell transcript start
+Start time: 20260125232940
+Username: REC\Vasilis
+RunAs User: REC\Vasilis
+Configuration Name:
+Machine: REC (Microsoft Windows NT 10.0.26220.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File .\COMMIT_READY.ps1 -Quick
+Process ID: 5768
+PSVersion: 7.5.4
+PSEdition: Core
+GitCommitId: 7.5.4
+OS: Microsoft Windows 10.0.26220
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.4
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-01-25 23:29:40
+Log file: D:\SMS\student-management-system\commit_ready_20260125-232940.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+ℹ️  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+ℹ️  Using version from VERSION file: 1.17.4
+ℹ️  Target version: 1.17.4
+ℹ️  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+✅ VERSION file: 1.17.4 (correct)
+✅ Backend main.py docstring: 1.17.4 (correct)
+✅ Frontend package.json: 1.17.4 (correct)
+✅ User guide version: 1.17.4 (correct)
+✅ Developer guide version: 1.17.4 (correct)
+✅ Documentation index version: 1.17.4 (correct)
+✅ COMMIT_READY.ps1 version: 1.17.4 (correct)
+✅ INSTALLER_BUILDER.ps1 version: 1.17.4 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+✅ Version verification completed successfully!
+✅ All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ Version format valid: 1.17.4
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+ℹ️  Installing runtime requirements (pip) from requirements.txt
+ℹ️  Installing dev requirements (pip)
+✅ Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+✅ conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running pre-commit hooks on staged files...
+✅ Pre-commit hooks passed (files auto-fixed).
+ℹ️  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+ℹ️  Running ruff check...
+✅ Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+ℹ️  Running mypy...
+✅ Backend type checking passed
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+ℹ️  Running ESLint...
+❌ Frontend linting failed
+ > student-management-frontend@1.17.4 lint > eslint "src/**/*.{ts,tsx}"   D:\SMS\student-management-system\frontend\src\App.tsx   49:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\components\__tests__\SearchBar.test.tsx   53:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\components\common\PwaReloadPrompt.tsx   13:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   21:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\AdvancedFilters.test.tsx     2:37  warning  'waitFor' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars    72:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any    92:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   116:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   143:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   171:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   195:31  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   200:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   229:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   254:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   282:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SavedSearches.test.tsx    11:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any    43:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any    64:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   107:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   144:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   185:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   217:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   246:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   276:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   319:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SavedSearches.tsx   34:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchBar.test.tsx     7:13  warning  'i18n' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars    91:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any   106:13  warning  'rerender' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   138:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any   173:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any   214:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchBar.tsx   112:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchFacets.test.tsx   1:18  warning  'fireEvent' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\features\search\SearchFacets.tsx    22:37  warning  Unexpected any. Specify a different type                                                                                                                                                   @typescript-eslint/no-explicit-any   193:26  warning  React Hook "useMemo" is called conditionally. React Hooks must be called in the exact same order in every component render. Did you accidentally call a React Hook after an early return?  react-hooks/rules-of-hooks  D:\SMS\student-management-system\frontend\src\features\search\SearchIntegration.test.tsx     1:18  warning  'waitFor' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars     1:27  warning  'within' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars    17:9   warning  'mockApiClient' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars    17:48  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any    37:38  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any    67:69  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any   293:11  warning  'mockFacets' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\features\search\SearchView.test.tsx    1:18  warning  'waitFor' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   13:15  warning  'sort' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars   13:33  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   20:35  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   22:24  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   31:31  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   81:69  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   84:35  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchView.tsx   62:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   70:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   88:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\useSearch.test.ts   25:25  error  Parsing error: '>' expected  D:\SMS\student-management-system\frontend\src\features\search\useSearch.test.tsx   20:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   20:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\useSearch.ts    87:5   warning  Error: Calling setState synchronously within an effect can trigger cascading renders  Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes.  Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).  D:\SMS\student-management-system\frontend\src\features\search\useSearch.ts:87:5   85 |   // Reset pagination when query, filters, or type change   86 |   useEffect(() => { > 87 |     setPage(0);      |     ^^^^^^^ Avoid calling setState() directly within an effect   88 |   }, [debouncedQuery, filters, searchType]);   89 |   90 |   /**  react-hooks/set-state-in-effect   156:40  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-explicit-any   157:31  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\useSearchFacets.test.ts   24:25  error  Parsing error: '>' expected  D:\SMS\student-management-system\frontend\src\features\students\StudentForm.tsx   52:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   65:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   78:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\students\StudentsView.tsx    48:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console    88:24  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any   104:19  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console   107:19  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console  D:\SMS\student-management-system\frontend\src\hooks\__tests__\useSearch.test.ts   286:23  warning  'rerender' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   296:13  warning  Avoid wrapping Testing Library util calls in `act`                                   testing-library/no-unnecessary-act   323:13  warning  Avoid wrapping Testing Library util calls in `act`                                   testing-library/no-unnecessary-act  D:\SMS\student-management-system\frontend\src\hooks\useSearch.ts   17:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\hooks\useSearchFacets.ts   34:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   34:78  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\i18n\config.ts   14:52  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\utils\navigation.ts   26:5  warning  Unused eslint-disable directive (no problems were reported from 'no-console')  D:\SMS\student-management-system\frontend\src\vite-env.d.ts    9:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   10:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  έεΨ 78 problems (2 errors, 76 warnings)   0 errors and 1 warning potentially fixable with the `--fix` option.
+
+─────────────────────────────────────────────────
+ Repository: Markdown Lint
+─────────────────────────────────────────────────
+ℹ️  Running markdownlint with auto-fix...
+✅ Markdown linting passed
+
+─────────────────────────────────────────────────
+ Frontend: TypeScript Type Checking
+─────────────────────────────────────────────────
+ℹ️  Skipping TypeScript type checking in quick mode (temporary)
+✅ TypeScript type checking passed
+
+─────────────────────────────────────────────────
+ Translation Integrity Check
+─────────────────────────────────────────────────
+ℹ️  Checking translation key parity...
+stderr | src/i18n/__tests__/translations.test.ts
+[i18n] Search translation keys loaded: 23 keys
+
+✅ Translation integrity verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 2: Test Suite Execution                                ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: pytest
+─────────────────────────────────────────────────
+ℹ️  Using in-memory SQLite for local tests (DATABASE_URL not set)
+ℹ️  Using strict auth mode for local tests (AUTH_MODE not set)
+ℹ️  Using batch test runner (prevents system freeze)...
+
+╔════════════════════════════════════════╗
+║   Batch Test Runner (SMS v1.17.2)     ║
+╚════════════════════════════════════════╝
+ℹ Scanning for test files...
+✓ Found 88 test files
+ℹ Split into 18 batches (5 files per batch)
+
+┌─────────────────────────────────────────┐
+│ Batch 1 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_admin_backup_encryption.py
+  • test_admin_bootstrap.py
+  • test_analytics_router.py
+  • test_analytics_service.py
+  • test_attendance_router.py
+ℹ Running tests...
+....................................................................     [100%]
+✓ Batch 1 completed successfully in 9.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 2 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_audit_router.py
+  • test_audit.py
+  • test_auth_flow.py
+  • test_auth_refresh.py
+  • test_auth_router.py
+ℹ Running tests...
+.........................................                                [100%]
+✓ Batch 2 completed successfully in 6.8s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 3 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_auto_import_courses.py
+  • test_backup_encryption.py
+  • test_change_password.py
+  • test_config_module.py
+  • test_config_settings.py
+ℹ Running tests...
+...................................................                      [100%]
+✓ Batch 3 completed successfully in 4.8s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 4 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_control_endpoints.py
+  • test_control_environment.py
+  • test_control_jwt_integration.py
+  • test_control_maintenance.py
+  • test_control_path_traversal.py
+ℹ Running tests...
+...........................                                              [100%]
+✓ Batch 4 completed successfully in 10.9s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 5 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_control_start_branches.py
+  • test_course_rule_normalization.py
+  • test_courses_router.py
+  • test_csrf_flow.py
+  • test_csv_import.py
+ℹ Running tests...
+...............................                                          [100%]
+✓ Batch 5 completed successfully in 5.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 6 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_daily_performance_router.py
+  • test_database_upload.py
+  • test_db_utils.py
+  • test_edge_cases.py
+  • test_enrollments_router.py
+ℹ Running tests...
+................................................                         [100%]
+✓ Batch 6 completed successfully in 5.1s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 7 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_environment_detection.py
+  • test_environment_module.py
+  • test_exception_handlers.py
+  • test_export_analytics.py
+  • test_grade_calculation_fix.py
+ℹ Running tests...
+...................                                                      [100%]
+✓ Batch 7 completed successfully in 5.9s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 8 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_grade_calculation_integration.py
+  • test_grade_calculation.py
+  • test_grades_router.py
+  • test_gzip_middleware.py
+  • test_health_checks.py
+ℹ Running tests...
+...............................                                          [100%]
+✓ Batch 8 completed successfully in 5.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 9 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_health.py
+  • test_import_export.py
+  • test_import_resolver_cov.py
+  • test_import_resolver.py
+  • test_imports_integration.py
+ℹ Running tests...
+..............................                                           [100%]
+✓ Batch 9 completed successfully in 9.3s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 10 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_imports_soft_delete.py
+  • test_imports_upload.py
+  • test_integration_smoke.py
+  • test_jwt_smoke.py
+  • test_list_routes.py
+ℹ Running tests...
+.....s..                                                                 [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
+✓ Batch 10 completed successfully in 4.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 11 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_logging_config_cov.py
+  • test_logging_config.py
+  • test_metrics_simple.py
+  • test_metrics.py
+  • test_models_relationships.py
+ℹ Running tests...
+..................                                                       [100%]
+✓ Batch 11 completed successfully in 4.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 12 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_notifications_router.py
+  • test_password_rehash.py
+  • test_performance_monitor.py
+  • test_permissions_api.py
+  • test_rate_limit_enforcement.py
+ℹ Running tests...
+..........................................................               [100%]
+✓ Batch 12 completed successfully in 5.9s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 13 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_rate_limiting.py
+  • test_rbac_enforcement.py
+  • test_rbac_router.py
+  • test_rbac_templates.py
+  • test_rbac.py
+ℹ Running tests...
+............sssssssssssssssssssssssssssssssssssssssssssss..........      [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rbac_templates.py:13: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:19: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:25: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:31: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:37: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:43: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:49: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:55: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:61: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:67: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:73: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:79: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:85: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:91: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:97: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:103: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:109: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:115: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:121: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:127: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:133: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:139: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:145: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:151: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:157: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:163: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:169: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:175: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:181: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:187: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:193: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:199: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:205: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:211: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:217: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:223: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:229: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:235: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:241: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:247: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:253: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+✓ Batch 13 completed successfully in 6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 14 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_register_role_enforcement.py
+  • test_reports_router.py
+  • test_request_id_middleware.py
+  • test_request_id.py
+  • test_response_cache_middleware.py
+ℹ Running tests...
+...........................                                              [100%]
+✓ Batch 14 completed successfully in 9.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 15 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_response_schemas.py
+  • test_routers_imports.py
+  • test_run_migrations_repo_root.py
+  • test_run_migrations_unit.py
+  • test_run_migrations.py
+ℹ Running tests...
+.....................................                                    [100%]
+✓ Batch 15 completed successfully in 23s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 16 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_saved_search_integration.py
+  • test_schemas_students.py
+  • test_search_api_endpoints.py
+  • test_search_integration.py
+  • test_search_service.py
+ℹ Running tests...
+........................................................................ [ 51%]
+.....................................................................    [100%]
+============================== warnings summary ===============================
+tests/test_saved_search_integration.py::TestSavedSearchCRUD::test_update_saved_search
+  D:\SMS\student-management-system\backend\services\saved_search_service.py:189: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    update_dict = update_data.dict(exclude_unset=True)
+
+tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
+  C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py:408: DeprecationWarning: Use 'content=<...>' to upload raw bytes/text content.
+    headers, stream = encode_request(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+✓ Batch 16 completed successfully in 6.8s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 17 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_services_analytics.py
+  • test_sessions_router.py
+  • test_soft_delete_filtering.py
+  • test_students_import.py
+  • test_students_router.py
+ℹ Running tests...
+...................................                                      [100%]
+✓ Batch 17 completed successfully in 5.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 18 of 18 (Files: 3)
+└─────────────────────────────────────────┘
+  • test_timing_middleware.py
+  • test_version_consistency.py
+  • test_websocket.py
+ℹ Running tests...
+.......sss...................                                            [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
+SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
+SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
+✓ Batch 18 completed successfully in 2.5s
+
+╔════════════════════════════════════════╗
+║          TEST EXECUTION SUMMARY        ║
+╚════════════════════════════════════════╝
+
+Batches:
+  Total:   18
+✓   Completed: 18
+
+Tests:
+  Total:   0
+
+Duration: 166.8s
+
+✓ All tests passed! 🎉
+✅ Backend tests passed
+
+─────────────────────────────────────────────────
+ Frontend: Vitest
+─────────────────────────────────────────────────
+ℹ️  Running fast frontend tests only...
+stderr | src/i18n/__tests__/translations.test.ts
+[i18n] Search translation keys loaded: 23 keys
+
+✅ Frontend tests passed
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Git Remote Synchronization                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Updating remote references...
+✅ Git remote is synchronized (or local is ahead)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Automated Cleanup                                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Python Cache Cleanup
+─────────────────────────────────────────────────
+✅ Removed 15 Python cache items
+
+─────────────────────────────────────────────────
+ Node.js Cache Cleanup
+─────────────────────────────────────────────────
+ℹ️  Node cache already clean
+
+─────────────────────────────────────────────────
+ Build Artifacts Cleanup
+─────────────────────────────────────────────────
+
+─────────────────────────────────────────────────
+ Temporary Files Cleanup
+─────────────────────────────────────────────────
+✅ Removed 15 temporary files
+
+─────────────────────────────────────────────────
+ Legacy Artifacts Cleanup
+─────────────────────────────────────────────────
+ℹ️  Total space freed: 3.6 MB
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 5: Documentation and Git Status                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Key Documentation Check
+─────────────────────────────────────────────────
+✅ README.md exists
+✅ CHANGELOG.md exists
+✅ docs/DOCUMENTATION_INDEX.md exists
+✅ DOCUMENTATION_INDEX.md found in docs/ (acceptable)
+
+─────────────────────────────────────────────────
+ Git Status
+─────────────────────────────────────────────────
+ℹ️  Uncommitted changes detected:
+M  .github/copilot-instructions.md A  .mcp.json AM PHASE4_INFRASTRUCTURE_FINALIZATION.md M  archive/deprecated-scripts-jan2026/commit_ready_20260124-180209.log M  archive/deprecated-scripts-jan2026/commit_ready_20260125-002314.log M  backend/data/imports/1_courses.csv M  backend/data/imports/1_grades.csv M  backend/data/imports/1_students.csv M  backend/migrations/versions/3af743932574_add_full_text_search_indexes_for_.py M  backend/migrations/versions/4bf8a44e5c21_add_search_optimization_indexes.py AM commit_ready_20260125-211046.log AM commit_ready_20260125-220603.log AM commit_ready_20260125-231622.log AM commit_ready_20260125-232420.log M  docs/AGENT_COORDINATION_SYSTEM.md M  docs/AGENT_POLICY_ENFORCEMENT.md M  docs/AGENT_QUICK_START.md M  docs/CI_CACHE_OPTIMIZATION_ANALYSIS.md M  docs/CI_CACHE_OPTIMIZATION_IMPLEMENTATION_JAN10.md M  docs/CONSOLIDATION_COMPLETE_2026-01-05.md M  docs/DOCUMENTATION_AUDIT_2026-01-05.md M  docs/DOCUMENTATION_INDEX.md M  docs/E2E_TESTING_GUIDE.md M  docs/FRONTEND_TESTING_STATUS.md M  docs/OUTSTANDING_ISSUES_SUMMARY_JAN10.md M  docs/PHASE6_PERFORMANCE_DIAGNOSIS_SUMMARY.md M  docs/PHASE6_PERFORMANCE_VALIDATION_REPORT.md M  docs/PHASE6_ROOT_CAUSE_DIAGNOSTIC.md M  docs/PHASE6_SQLITEPATH_FIX_SUMMARY.md M  docs/PWA_SETUP_GUIDE.md M  docs/RATE_LIMITING_TEACHER_IMPORTS.md M  docs/README.md M  docs/ROLE_PERMISSIONS_MODEL.md M  docs/SECRET_MANAGEMENT_STRATEGY.md M  docs/SECURITY_GUIDE_COMPLETE.md M  docs/TASK_108_E2E_CI_MONITORING_COMPLETE.md M  docs/TASK_110_CI_CACHE_OPTIMIZATION_COMPLETE.md M  docs/TASK_111_COMPLETION_JAN10.md M  docs/TERMINAL_ENCODING_FIX.md M  docs/TERMINAL_VISIBILITY_POLICY.md M  docs/VERSION_FORMAT_ENFORCEMENT_SUMMARY.md M  docs/VERSION_HISTORY.md M  docs/admin/IMPORT_EXPORT_GUIDE.md M  docs/admin/NOTIFICATIONS_ADMIN_GUIDE.md M  docs/admin/PERMISSION_MANAGEMENT_GUIDE.md M  docs/admin/PERMISSION_MATRIX.md M  docs/admin/PERMISSION_MATRIX_ENDPOINT_MAPPING.md M  docs/admin/PERMISSION_REFERENCE.md M  docs/admin/RBAC_ADMIN_GUIDE.md M  docs/admin/RBAC_CODEBASE_REVIEW.md M  docs/admin/RBAC_DATABASE_SCHEMA.md M  docs/admin/RBAC_ENDPOINT_AUDIT.md M  docs/admin/RBAC_OPERATIONS_GUIDE.md M  docs/api/API_CONTRACT.md M  docs/api/API_EXAMPLES.md M  docs/api/RBAC_API_MATRIX.md M  docs/archive/consolidation-2026-01/AGENT_COORDINATION_IMPLEMENTATION_COMPLETE.md M  docs/archive/consolidation-2026-01/AGENT_COORDINATION_README.md M  docs/archive/consolidation-2026-01/AGENT_COORDINATION_VISUAL_MAP.md M  docs/archive/consolidation-2026-01/CONFIG_STRATEGY.md M  docs/archive/consolidation-2026-01/DESKTOP_SHORTCUT_GUIDE.md M  docs/archive/consolidation-2026-01/DOCUMENTATION_CONSOLIDATION_COMPLETE.md M  docs/archive/consolidation-2026-01/DOCUMENTATION_CONSOLIDATION_PLAN.md M  docs/archive/consolidation-2026-01/E2E_AUTHENTICATION_FIX.md M  docs/archive/consolidation-2026-01/E2E_TESTING_TROUBLESHOOTING.md M  docs/archive/consolidation-2026-01/GREEK_ENCODING_FIX.md M  docs/archive/consolidation-2026-01/PHASE1_QUICK_REFERENCE.md M  docs/archive/documentation/checklists/SMOKE_TEST_CHECKLIST_v1.9.7.md M  docs/archive/documentation/reports/DOCUMENTATION_UPDATE_SUMMARY_v1_9_9.md M  docs/archive/documentation/reports/IMPROVEMENTS_AUDIT_REPORT.md M  docs/archive/documentation/reports/PRE_RELEASE_DOCUMENTATION_AUDIT.md M  docs/archive/pr-updates/PR-25-HARDENING-UPDATE.md M  docs/archive/pr-updates/PR-DEV_EASE-RESTRICT-AND-HOOKS.md M  docs/ci/GITHUB_ACTIONS_DIAGNOSTIC_REPORT.md M  docs/ci/GITHUB_ACTIONS_FAILURE_REPORT.md M  docs/deployment/CI_CD_MONITORING_JAN8.md M  docs/deployment/CI_CD_PIPELINE_GUIDE.md M  docs/deployment/DEPLOY.md M  docs/deployment/DEPLOYMENT_READINESS_SUMMARY.md M  docs/deployment/DEPLOYMENT_STATUS_TRACKER.md M  docs/deployment/DOCKER_OPERATIONS.md M  docs/deployment/EXECUTIVE_SUMMARY_PHASE2_READY.md M  docs/deployment/GITHUB_ACTIONS_ADMIN_PASSWORD_ROTATION.md M  docs/deployment/INDEX.md M  docs/deployment/PHASE2_COMPLETE_SUMMARY.md M  docs/deployment/PHASE2_DOCUMENTATION_HANDOFF.md M  docs/deployment/PHASE2_KICKOFF_TRANSITION_DOCUMENT.md M  docs/deployment/PHASE2_RBAC_DEPLOYMENT_READINESS.md M  docs/deployment/PHASE2_RISK_REGISTER.md M  docs/deployment/POSTGRES_MIGRATION_GUIDE.md M  docs/deployment/PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md M  docs/deployment/PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md M  docs/deployment/PRODUCTION_DEPLOYMENT_PLAN_v1.15.1.md M  docs/deployment/PRODUCTION_DOCKER_GUIDE.md M  docs/deployment/PR_DESCRIPTION.md M  docs/deployment/QNAP_DEPLOYMENT_GUIDE_COMPLETE.md M  docs/deployment/QUICK_REFERENCE_PHASE2.md M  docs/deployment/READY_FOR_PR.md M  docs/deployment/RUNBOOK.md M  docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md M  docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.15.1.md M  docs/deployment/STAGING_DEPLOYMENT_VALIDATION_JAN8.md M  docs/deployment/STAGING_MONITORING_LOG_JAN9.md M  docs/deployment/UNTRACKED_FILES_CONSOLIDATION_JAN9.md M  docs/deployment/VERIFICATION_ALL_DOCS_DELIVERED.md M  docs/deployment/qnap/FILE-ORGANIZATION.md M  docs/deployment/qnap/INDEX.md M  docs/deployment/qnap/TS-431P3-DEPLOYMENT-ATTEMPT-SUMMARY.md M  docs/deployment/reports/DEPLOYMENT_REPORT_v1.12.8.md M  docs/development/AGENT_CONTINUATION_PROTOCOL.md M  docs/development/API_EXAMPLES.md M  docs/development/ARCHITECTURE.md M  docs/development/ARCHITECTURE_DIAGRAMS.md M  docs/development/AUTHENTICATION.md M  docs/development/AUTH_AND_TEST_INFRASTRUCTURE.md M  docs/development/AUTOSAVE_PATTERN.md M  docs/development/BATCH_TEST_RUNNERS.md M  docs/development/DEVELOPER_FAST_START.md M  docs/development/DEVELOPER_GUIDE_COMPLETE.md M  docs/development/DEVELOPMENT.md M  docs/development/DEVELOPMENT_SETUP_GUIDE.md M  docs/development/E2E_AUTHENTICATION_FIXES.md M  docs/development/E2E_FIXES_2025-01-05.md M  docs/development/E2E_SESSION_SUMMARY_2025-01-05.md M  docs/development/FRONTEND_ANALYSIS_COMPLETE.md M  docs/development/FRONTEND_AUDIT_IMPROVEMENTS.md M  docs/development/FRONTEND_COMPREHENSIVE_REVIEW.md M  docs/development/FRONTEND_DOCUMENTATION_INDEX.md M  docs/development/FRONTEND_DOCUMENTATION_SUMMARY.md M  docs/development/FRONTEND_EXECUTIVE_SUMMARY.md M  docs/development/FRONTEND_HOOKS_REFERENCE.md M  docs/development/FRONTEND_QUICK_REFERENCE.md M  docs/development/GIT_WORKFLOW.md M  docs/development/INDEX.md M  docs/development/LOAD_TEST_PLAYBOOK.md M  docs/development/NATIVE_MODE_MONITORING.md M  docs/development/PHASE3_FEATURE125_ARCHITECTURE.md M  docs/development/PHASE3_FEATURE127_ARCHITECTURE.md M  docs/development/PHASE4_ISSUE145_BLOCKER_REPORT.md M  docs/development/PHASE4_ISSUE145_FIX_SUMMARY.md AM docs/development/PHASE4_ISSUE147_IMPLEMENTATION_PHASE1.md M  docs/development/PRE_COMMIT_GUIDE.md M  docs/development/PRE_COMMIT_HOOKS_GUIDE.md M  docs/development/PROJECT_STRUCTURE.md M  docs/development/RBAC_IMPLEMENTATION_GUIDE.md M  docs/development/RBAC_PERMISSION_MATRIX.md M  docs/development/RELEASE_DOCS_GENERATOR_INTEGRATION.md M  docs/development/SCRIPT_REFACTORING.md M  docs/development/SYMLINK_MANAGEMENT.md M  docs/development/TESTING_GUIDE.md M  docs/development/TOOLS_CONSOLIDATION.md M  docs/development/VERSIONING_AND_CACHING.md M  docs/development/VERSION_1_9_9_IMPROVEMENTS.md M  docs/development/VERSION_MANAGEMENT_GUIDE.md M  docs/development/WORKFLOW_CONSOLIDATION_INDEX.md M  docs/development/WORKFLOW_CONSOLIDATION_SUMMARY.md M  docs/development/WORKFLOW_IMPLEMENTATION_SUMMARY.md M  docs/development/phase-reports/OPTIONALS_SESSION_SUMMARY.md M  docs/development/phase-reports/PHASE1_CONSOLIDATION_COMPLETE.md M  docs/development/phase-reports/PHASE2_CONSOLIDATION_COMPLETE.md M  docs/development/phase-reports/PHASE3_CONSOLIDATION_COMPLETE.md M  docs/development/phase-reports/PHASE3_CONSOLIDATION_PLAN.md M  docs/development/phase-reports/PHASE3_TASK1_DOCUMENTATION_CONSOLIDATION_COMPLETE.md M  docs/development/phase-reports/PHASE3_TASK2_BACKEND_SCRIPTS_COMPLETE.md M  docs/development/phase-reports/PHASE3_TASK3_SYMLINK_STRATEGY_COMPLETE.md M  docs/development/phase-reports/PHASE_1_2.1_COMPLETION_SUMMARY.md M  docs/development/phase-reports/PHASE_2.1_OPTIONALS_COMPLETION.md M  docs/development/phase-reports/PHASE_2.2_2.3_PROGRESS.md M  docs/development/phase-reports/PHASE_2.2_COMPLETION_SUMMARY.md M  docs/development/phase-reports/PHASE_2.3_IMPORTS_UI_COMPLETION.md M  docs/development/phase-reports/PHASE_2.3_STATUS_UPDATE.md M  docs/development/release-workflow/COMPLETE_RELEASE_WORKFLOW.md M  docs/development/release-workflow/FILES_SUMMARY.md M  docs/development/release-workflow/POST_RELEASE_CLEANUP_GUIDE.md M  docs/development/release-workflow/START_HERE.md M  docs/development/release-workflow/WORKFLOW_ARCHITECTURE_DETAILED.md M  docs/development/release-workflow/WORKFLOW_DOCUMENTATION_INDEX.md M  docs/development/release-workflow/WORKFLOW_FIXES/IMPLEMENTATION_GUIDE.md M  docs/development/release-workflow/WORKFLOW_FIXES/PHASE1_STATUS.md M  docs/development/release-workflow/WORKFLOW_FIXES/QUICK_REFERENCE.md M  docs/development/release-workflow/WORKFLOW_TRIGGERING_IMPROVEMENTS.md M  docs/development/release-workflow/WORKFLOW_VERIFICATION_CHECKLIST.md M  docs/development/roadmaps/ROADMAP_v1.12.0.md M  docs/development/roadmaps/ROADMAP_v1.12.2.md M  docs/development/sessions/E2E_FIX_QUICK_REFERENCE_2025-01-05.md M  docs/development/sessions/FINAL_VALIDATION_STATUS_2025-01-05.md M  docs/development/sessions/PHASE3_IMPLEMENTATION_SESSION_2026-01-06.md M  docs/development/sessions/PHASE3_PREPARATION_COMPLETE_2026-01-06.md M  docs/development/sessions/RETEST_VALIDATION_2025-01-05.md M  docs/development/sessions/SESSION_FINAL_SUMMARY_2025-01-05.md M  docs/development/sessions/TEST_FAILURE_ANALYSIS_2025-01-05.md M  docs/development/sessions/VALIDATION_REPORT_2025-01-05.md M  docs/development/testing/E2E_TESTING_IMPROVEMENTS.md M  docs/development/testing/E2E_TEST_EXECUTION_SUMMARY.md M  docs/features/search/API.md M  docs/features/search/ARCHITECTURE.md M  docs/features/search/COMPONENTS.md M  docs/features/search/DEPLOYMENT.md M  docs/features/search/HOOKS.md M  docs/features/search/TESTING.md M  docs/guides/MIGRATION_v1.13.0.md M  docs/maintenance/CI_FIXES_JAN9_2026.md M  docs/misc/AGENT_QUICK_START.md M  docs/misc/CI_CD_FAILURE_FIXES_JAN20.md M  docs/misc/CI_CD_SECOND_ROUND_FIXES_JAN20.md M  docs/misc/CI_CONTINUATION_COMPLETE.md M  docs/misc/CI_DOCUMENTATION_INDEX.md M  docs/misc/CI_FIXES_APPLIED.md M  docs/misc/CI_FIXES_NEXT_STEPS.md M  docs/misc/CI_PRE_MERGE_CHECKLIST.md M  docs/misc/COMPLETE_DELIVERY_INDEX.md M  docs/misc/COMPREHENSIVE_WRAP_UP.md M  docs/misc/CONTINUATION_GUIDE_SESSION3.md M  docs/misc/DAY2_CODE_QUALITY_ACTION.md M  docs/misc/DEPENDABOT_SECURITY_TRACKER.md M  docs/misc/DEPLOYMENT_PREPARATION_COMPLETE.md M  docs/misc/DEPLOYMENT_READY_HANDOFF.md M  docs/misc/DEPLOYMENT_READY_v1.14.2.md M  docs/misc/DEPLOYMENT_SUCCESS.md M  docs/misc/FILE_MANIFEST.md M  docs/misc/FINAL_HAND_OFF.md M  docs/misc/FINAL_VERIFICATION_JAN7.md M  docs/misc/GITHUB_CI_FIXES_COMPREHENSIVE.md M  docs/misc/GITHUB_CI_MASTER_INDEX.md M  docs/misc/GITHUB_CI_QUICK_REFERENCE.md M  docs/misc/IMPLEMENTATION_PATTERNS.md M  docs/misc/JAN8_DEPLOYMENT_COMMAND_REFERENCE.md M  docs/misc/MERGE_READINESS_CHECKLIST.md M  docs/misc/NEXT_STEPS_FOR_USER.md M  docs/misc/PENDING_CHANGES_ACTION_PLAN.md M  docs/misc/PHASE2_DELIVERY_COMPLETE.md M  docs/misc/PHASE2_PLANNING_COMPLETE.md M  docs/misc/PHASE3_EXECUTION_COMPLETE.md M  docs/misc/PREPARATION_COMPLETE_JAN7.md M  docs/misc/PRODUCTION_MONITORING_CHECKLIST.md M  docs/misc/QUICK_START_INDEX.md M  docs/misc/READ_ME_FIRST.md M  docs/misc/SECURITY_FIX_ALERT_1457.md M  docs/misc/SESSION_HANDOFF_v1.15.1_JAN7.md M  docs/misc/SOLO_DEPLOYMENT_CHECKLIST.md M  docs/misc/SOLO_PROJECT_NOTICE.md M  docs/misc/SOLO_QUICK_START.md M  docs/misc/TODO.md M  docs/misc/TODO_PRIORITIES.md M  docs/misc/TONIGHT_CHECKLIST.md M  docs/misc/WEBSOCKET_INTEGRATION_FIX.md M  docs/misc/WORKFLOW_TEST_MARKER.md M  docs/misc/WORKSPACE_RECOVERY_GUIDE.md M  docs/operations/CI_CACHE_OPTIMIZATION.md M  docs/operations/CLEANUP_SCRIPTS_GUIDE.md M  docs/operations/DATABASE_MIGRATION_GUIDE.md M  docs/operations/DOCKER_NAMING_CONVENTIONS.md M  docs/operations/E2E_CI_MONITORING.md M  docs/operations/E2E_MONITORING_DELIVERY_SUMMARY.md M  docs/operations/E2E_MONITORING_PROCEDURES.md M  docs/operations/E2E_TESTING_GUIDE.md M  docs/operations/ERROR_RECOVERY.md M  docs/operations/FRESH_DEPLOYMENT_TROUBLESHOOTING.md M  docs/operations/INSTALLATION_GUIDE.md M  docs/operations/MONITORING.md M  docs/operations/MONITORING_ARCHITECTURE.md M  docs/operations/OPERATOR_EMERGENCY_GUIDE.md M  docs/operations/QUERY_OPTIMIZATION.md M  docs/operations/REBUILD_TROUBLESHOOTING.md M  docs/operations/SCRIPTS_GUIDE.md M  docs/operations/SMOKE_TEST_CHECKLIST_v1.12.md M  docs/operations/SQLITE_TO_POSTGRESQL_MIGRATION.md M  docs/plans/CODE_QUALITY_FIXES.md M  docs/plans/INSTALLER_IMPROVEMENTS_v1.15.2+.md M  docs/plans/PHASE2_CONSOLIDATED_PLAN.md M  docs/plans/PHASE2_PREP_GUIDE.md M  docs/plans/PHASE3_COMPLETION_FINAL.md M  docs/plans/PHASE3_GITHUB_ISSUES_PLAN.md M  docs/plans/PHASE3_ROADMAP.md M  docs/plans/PHASE4_PLANNING.md M  docs/plans/PHASE4_READINESS_COMPLETE.md M  docs/plans/PHASE4_ROADMAP.md M  docs/plans/REMAINING_ISSUES_PRIORITIZED.md M  docs/plans/REMAINING_ISSUES_PRIORITY_PLAN.md M  docs/plans/UNIFIED_WORK_PLAN.md M  docs/plans/UNIFIED_WORK_PLAN_PHASE4.md M  docs/processes/AUTOMATED_SCANNING_SETUP.md M  docs/processes/BACKUP_VERIFICATION_AUTOMATION.md M  docs/processes/BENCHMARKING_PROCESS.md M  docs/processes/LOAD_TESTING_PROCESS.md M  docs/processes/METRICS_EXPORT_GUIDE.md M  docs/processes/RELEASE_AUTOMATION_GUIDE.md M  docs/processes/RELEASE_SCRIPTS_OVERVIEW.md M  docs/processes/SECRET_SCANNING_SETUP.md M  docs/processes/SECURITY_AUDIT_SCHEDULE.md M  docs/reference/DOCKER_CLEANUP_GUIDE.md M  docs/reference/EVENT_SYSTEM_IMPLEMENTATION.md M  docs/reference/FRONTEND_AUTH.md M  docs/reference/GRADE_CALCULATION_FIX.md M  docs/reference/MAINTENANCE_AUTH_SETTINGS.md M  docs/reference/PLAYWRIGHT_E2E.md M  docs/reference/SECURITY_GUIDE.md M  docs/reference/WATCHER_SERVICE.md M  docs/reference/docker-auth-fix.md M  docs/reference/forced-password-change.md M  docs/reference/session-export-import.md M  docs/reference/session-import-safety.md M  docs/releases/COMMIT_STATUS_2026-01-07.md M  docs/releases/DEPLOYMENT_CHECKLIST_v1.14.2.md M  docs/releases/DEPLOYMENT_CHECKLIST_v1.17.3.md M  docs/releases/DEPLOYMENT_CHECKLIST_v1.18.0.md M  docs/releases/EXECUTION_TRACKER_v1.15.0.md M  docs/releases/GITHUB_RELEASE_v1.13.0.md M  docs/releases/GITHUB_RELEASE_v1.15.0.md M  docs/releases/GITHUB_RELEASE_v1.18.0.md M  docs/releases/MAJOR_RELEASE_PREPARATION_PLAN.md M  docs/releases/OPTIONAL_CLEANUP_COMPLETE_JAN9.md M  docs/releases/PERFORMANCE_BENCHMARK_RESULTS_v1.17.3.md M  docs/releases/PERFORMANCE_BENCHMARK_RESULTS_v1.18.0.md M  docs/releases/PHASE1_COMPLETION_REPORT.md M  docs/releases/PROGRESS_UPDATE_DAY1_v1.15.0.md M  docs/releases/QUICK_REFERENCE_v1.15.0.md M  docs/releases/RELEASE_AUDIT_v1.12.1.md M  docs/releases/RELEASE_CHECKLIST_v1.15.0.md M  docs/releases/RELEASE_COMPLETE_v1.12.0.md M  docs/releases/RELEASE_MANIFEST_v1.18.0.md M  docs/releases/RELEASE_NOTES_1.13.0.md M  docs/releases/RELEASE_NOTES_1.17.2.md M  docs/releases/RELEASE_NOTES_v1.11.2.md M  docs/releases/RELEASE_NOTES_v1.12.0.md M  docs/releases/RELEASE_NOTES_v1.12.2.md M  docs/releases/RELEASE_NOTES_v1.12.7.md M  docs/releases/RELEASE_NOTES_v1.13.0.md M  docs/releases/RELEASE_NOTES_v1.14.2.md M  docs/releases/RELEASE_NOTES_v1.15.0.md M  docs/releases/RELEASE_NOTES_v1.15.1.md M  docs/releases/RELEASE_NOTES_v1.15.2.md M  docs/releases/RELEASE_NOTES_v1.16.0.md M  docs/releases/RELEASE_NOTES_v1.17.0.md M  docs/releases/RELEASE_NOTES_v1.17.1.md M  docs/releases/RELEASE_NOTES_v1.17.2.md M  docs/releases/RELEASE_NOTES_v1.17.3.md M  docs/releases/RELEASE_NOTES_v1.18.0.md M  docs/releases/RELEASE_PREPARATION_v1.12.0.md M  docs/releases/RELEASE_PREPARATION_v1.15.0.md M  docs/releases/RELEASE_PREPARATION_v1.15.1_SUMMARY.md M  docs/releases/RELEASE_SUMMARY_1.13.0.md M  docs/releases/RELEASE_SUMMARY_v1.11.2.md M  docs/releases/RELEASE_SUMMARY_v1.12.0.md M  docs/releases/VERSION_1.12.8_TECHNICAL_SUMMARY.md M  docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.13.0.md M  docs/releases/reports/IMPROVEMENTS_v1.12.0_to_v1.12.9.md M  docs/releases/reports/RELEASE_REPORT_v1.13.0.md M  docs/releases/reports/RELEASE_v1.12.8_COMPLETE.md M  docs/releases/v1.9.0.md M  docs/releases/v1.9.3.md M  docs/reports/2025-12/CLEANUP_SUMMARY.md M  docs/reports/2025-12/COMPLETION_SUMMARY_2025_12_28.md M  docs/reports/2025-12/REMAINING_ISSUES_FINAL_SUMMARY.md M  docs/reports/2025-12/WORKSPACE_CLEANUP_GUIDE.md M  docs/reports/2026-01/00_START_HERE_MERGE_STATUS.md M  docs/reports/2026-01/AGENT_POLICY_ENFORCEMENT_IMPLEMENTATION.md M  docs/reports/2026-01/CI_CD_FAILURE_FIX_REPORT_JAN20.md M  docs/reports/2026-01/CI_CD_FIX_EXECUTIVE_SUMMARY.md M  docs/reports/2026-01/CI_HOTFIX_SUMMARY.md M  docs/reports/2026-01/CI_RUNTIME_VALIDATION.md M  docs/reports/2026-01/COMPLETE_PACKAGE_SUMMARY.md M  docs/reports/2026-01/COMPREHENSIVE_POLICY_ENFORCEMENT_COMPLETE.md M  docs/reports/2026-01/COMPREHENSIVE_TEST_REPORT_JAN17.md M  docs/reports/2026-01/FEATURE_COMPLETE_SUMMARY.md M  docs/reports/2026-01/FINAL_SUMMARY_JAN7.md M  docs/reports/2026-01/FINAL_TEST_VALIDATION.md M  docs/reports/2026-01/FINAL_VALIDATION_REPORT_JAN9.md M  docs/reports/2026-01/GITHUB_CI_REVIEW_SUMMARY.md M  docs/reports/2026-01/PHASE1_FINAL_STATUS.md M  docs/reports/2026-01/PHASE6_COMPLETION_SUMMARY.md M  docs/reports/2026-01/PROJECT_STATUS_2026_01_07.md M  docs/reports/2026-01/README.md M  docs/reports/2026-01/RELEASE_v1.15.0_SUMMARY.md M  docs/reports/2026-01/SOLO_DEPLOYMENT_PACKAGE_SUMMARY.md M  docs/reports/2026-01/SOLO_SUMMARY.md M  docs/reports/2026-01/TESTING_COMPLETE_SUMMARY.md M  docs/reports/2026-01/TEST_FIX_SUMMARY_JAN17.md M  docs/reports/2026-01/WORKSPACE_RECOVERY_GUIDE.md M  docs/sessions/DOCUMENTATION_AUDIT_SESSION_JAN10.md M  docs/troubleshooting/ENCODING_FIX.md M  docs/user/IMPORT_EXPORT_USER_GUIDE.md M  docs/user/LOCALIZATION.md M  docs/user/NOTIFICATIONS_USER_GUIDE.md M  docs/user/RATE_LIMITING_GUIDE.md M  docs/user/RATE_LIMITING_QUICK_REFERENCE.md M  docs/user/README_PDF_CONVERSION.md M  docs/user/SMS_USER_GUIDE_EL.md M  docs/user/SMS_USER_GUIDE_EN.md M  docs/user/THEMES_SUMMARY.md M  docs/user/THEME_GUIDE.md M  docs/user/USER_GUIDE_COMPLETE.md M  docs/user/╬Υ╬κ╬Ω╬Υ╬θ╬κ╬Ω_╬Χ╬γ╬γ╬β╬ζ╬Ω╬μ╬Ω.md M  docs/user/╬θ╬Φ╬Ω╬Υ╬θ╬μ_╬π╬κ╬Ω╬μ╬Ω╬μ.md M  frontend/package-lock.json M  frontend/src/App.tsx M  frontend/src/components/layout/Navigation.tsx M  frontend/src/features/search/SavedSearches.test.tsx M  frontend/src/features/search/SearchFacets.test.tsx M  frontend/src/features/search/SearchFacets.tsx M  frontend/src/features/search/SearchIntegration.test.tsx M  frontend/src/features/search/SearchPagination.test.tsx M  frontend/src/features/search/SearchSortControls.test.tsx M  frontend/src/features/search/SearchSortControls.tsx M  frontend/src/features/search/SearchView.test.tsx M  frontend/src/features/search/SearchView.tsx M  frontend/src/features/search/useSearch.test.ts M  frontend/src/features/search/useSearch.ts M  frontend/src/features/search/useSearchFacets.test.ts M  frontend/src/hooks/__tests__/useSearch.test.ts M  frontend/src/hooks/useSearch.ts M  frontend/src/locales/el.js M  frontend/src/locales/el/common.js M  frontend/src/locales/el/search.js M  frontend/src/locales/en.js M  frontend/src/locales/en/common.js M  frontend/src/locales/en/search.js M  frontend/src/main.tsx M  frontend/src/routes.ts M  frontend/src/setupTests.ts A  frontend/src/test-utils/i18n-test-wrapper.tsx M  frontend/tests/e2e/search_advanced.spec.ts M  frontend/vitest.config.ts ?? commit_ready_20260125-232940.log
+
+─────────────────────────────────────────────────
+ Root Documentation Whitelist
+─────────────────────────────────────────────────
+❌ Found 2 unclassified Markdown file(s) in repo root
+   • INFRASTRUCTURE_VERIFICATION_JAN25.md
+   • PHASE4_INFRASTRUCTURE_FINALIZATION.md
+ℹ️  Run .\\WORKSPACE_CLEANUP.ps1 -Mode standard to auto-organize, or move to docs/ manually
+
+╔══════════════════════════════════════════════════════════════╗
+║  Execution Summary                                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Mode: quick
+Duration: 242.5s
+
+Code Quality:
+  ✅ Docs & Version Sync
+  ✅ Version Consistency
+  ✅ Version Format
+  ✅ Backend Ruff
+  ✅ Backend MyPy
+  ❌ Frontend ESLint
+  ✅ Markdown Lint
+  ✅ TypeScript
+  ✅ Translation Integrity
+
+Tests:
+  ✅ Backend Dependencies
+  ✅ Conftest Config
+  ✅ Backend pytest
+  ✅ Frontend Vitest
+
+Health Checks:
+  ✅ Git Remote
+
+Cleanup:
+  ✅ Python Cache (15 items)
+  ✅ Node Cache (Already clean)
+  ✅ Build Artifacts
+  ✅ Temp Files (15 files removed)
+
+= * 60
+[FAIL] SOME CHECKS FAILED - REVIEW AND FIX
+= * 60
+**********************
+PowerShell transcript end
+End time: 20260125233342
+**********************

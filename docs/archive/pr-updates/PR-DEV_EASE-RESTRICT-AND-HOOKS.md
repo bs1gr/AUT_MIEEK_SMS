@@ -75,4 +75,3 @@ Notes
 This PR is intentionally conservative: it keeps developer ergonomics (pre-commit convenience)
 while preventing accidental weakening of runtime or CI security. It also adds a small quality-of-life
 installer to encourage contributing developers to enable the canonical checks automatically.
-

@@ -539,4 +539,3 @@ docker run --rm -v sms_data:/data -v "${PWD}/backups:/backup" `
 1. **For now**: Use current manual workflow for volume migrations
 2. **Next step**: Add automatic version detection and warnings
 3. **Future**: Full automated migration with rollback support
-

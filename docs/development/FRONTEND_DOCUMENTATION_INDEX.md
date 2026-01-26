@@ -543,4 +543,3 @@ Start here: `FRONTEND_COMPREHENSIVE_REVIEW.md`
 ---
 
 **Questions? See the relevant document above or check your role's recommended reading path.** 📚
-

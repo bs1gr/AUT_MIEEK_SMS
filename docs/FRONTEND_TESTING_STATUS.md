@@ -182,4 +182,3 @@ npm run e2e -- notifications
 *Branch: feature/69-realtime-notifications*
 *Version: 1.13.0*
 *Testing Status: COMPLETE - Ready for Merge*
-

@@ -617,4 +617,3 @@ docker-compose -f docker-compose.monitoring.yml down
 ---
 
 **Conclusion:** While full native monitoring isn't available, the **hybrid mode** (native app + Docker monitoring) gives you the best development experience with full observability. 🚀
-

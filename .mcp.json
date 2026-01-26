@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "github": {
+      "command": "mcp-server-github",
+      "disabled": false,
+      "description": "GitHub integration for pull requests, issues, and repository management"
+    },
+    "io_github": {
+      "command": "io-github-server",
+      "disabled": true,
+      "description": "DISABLED: Conflicting alternative GitHub implementation - use mcp_github instead"
+    }
+  }
+}

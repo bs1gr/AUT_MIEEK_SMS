@@ -140,4 +140,3 @@ When adding new documentation:
 3. Add entry to this structure document
 4. Include status tag: `Status: Active`, `Status: Draft`, etc.
 5. Add last-updated date in frontmatter
-
