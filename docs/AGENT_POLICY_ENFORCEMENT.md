@@ -90,7 +90,32 @@ python -m pytest
 cd backend && pytest tests/test_specific_file.py -v  # OK
 
 ```text
-**Enforcement:** Pre-commit hooks should warn if pytest runs detected in terminal history.
+**🚫 CRITICAL: When Running Tests in Background - DO NOT INTERRUPT**
+
+When tests are running in background (`isBackground: true`), follow this STRICTLY:
+
+❌ **FORBIDDEN:**
+- Checking terminal output during execution
+- Running git commands while tests run
+- Querying test result files mid-run
+- Any terminal activity that might interfere
+
+✅ **REQUIRED:**
+1. Start batch runner with `-isBackground: true`
+2. **Let it run completely undisturbed** (typically 5-10 minutes for full suite)
+3. **Wait for natural completion** (script will finish and show final summary)
+4. **Only then** check results or terminal output
+5. Check test result files AFTER completion, never during
+
+**Why This Matters:**
+- Interrupting background processes leaves them in incomplete state
+- Checking terminal mid-run can disrupt the test runner
+- Lost output = cannot verify results
+- Causes false negatives or incomplete test suites
+
+**Enforcement:** Agents must let batch runner complete naturally before checking results.
+
+---
 
 ---
 

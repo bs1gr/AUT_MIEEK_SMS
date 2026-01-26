@@ -96,7 +96,7 @@ $FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
 $BACKEND_PID_FILE = Join-Path $SCRIPT_DIR ".backend.pid"
 $FRONTEND_PID_FILE = Join-Path $SCRIPT_DIR ".frontend.pid"
 $BACKEND_PORT = 8000
-$FRONTEND_PORT = 8080  # Changed from 5173 due to Windows permission issues
+$FRONTEND_PORT = 5173  # Use standard Vite port (do not override - vite.config.ts sets this)
 $MIN_PYTHON_VERSION = [version]"3.11"
 $MIN_NODE_VERSION = [version]"18.0"
 
@@ -636,13 +636,13 @@ function Start-Frontend {
         $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
         if ($pwsh) {
             $processInfo = Start-Process -FilePath "pwsh" `
-                -ArgumentList "-NoExit", "-Command", "cd '$FRONTEND_DIR'; npm run dev -- --host 0.0.0.0 --port $FRONTEND_PORT" `
+                -ArgumentList "-NoExit", "-Command", "cd '$FRONTEND_DIR'; npm run dev" `
                 -WindowStyle Normal `
                 -PassThru
         } else {
             # Fall back to starting npm directly
             $processInfo = Start-Process -FilePath "npm" `
-                -ArgumentList "run", "dev", "--", "--host", "0.0.0.0", "--port", "$FRONTEND_PORT" `
+                -ArgumentList "run", "dev" `
                 -WindowStyle Normal `
                 -PassThru
         }
