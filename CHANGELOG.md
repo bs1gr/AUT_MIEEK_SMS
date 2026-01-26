@@ -9,6 +9,238 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.17.4] - 2026-01-26
+
+### ⚠️ BREAKING CHANGES
+- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning
+
+### Features
+- **search-results**: Add SearchResults component with entity-specific cards and tests
+- **advanced-filters**: add advanced filter builder and tests
+- **searchbar**: Implement real-time search with debouncing and history (Step 4)
+- Add E2E tests and update work plan for Phase 4 #147
+- Add comprehensive integration tests for Phase 4 #147
+- Add comprehensive test suite for Phase 4 #147 search components
+- **phase4**: Issue #145 - Backend search API implementation
+- CI/CD comprehensive enhancements (Jan 25)
+- Phase 4 PWA Capabilities and Advanced Search (#142, #143)
+- BATCH 6 - Frontend SavedSearches Component
+- BATCH 5 - Frontend AdvancedFilters Component
+- BATCH 4 - Frontend SearchBar Component
+- BATCH 2 - Add SavedSearches API endpoints
+- BATCH 1 - Add SavedSearch model and search services
+- **phase-3**: Complete Phase 3 implementation - Features 125, 126, 127
+- Add timing middleware and enhance test isolation
+- Add state snapshot system and fix pre-commit exit code handling
+- implement Feature #127 backend and version enforcement
+- implement Feature #127 backend and version enforcement
+- **import-export**: Add Feature #127 Phase 3 - API endpoints and backend implementation
+- Implement 4-layer version format enforcement system
+
+### Bug Fixes
+- **lint**: Resolve ESLint parsing errors and markdownlint issues
+- **search**: handle entity field in advanced search endpoint
+- **phase4**: Issue #145 - Resolve backend search API import blocker and Issue #147 frontend design
+- relax backup restore output path
+- **security**: Add CodeQL sanitizer annotations for path validation
+- **security**: Harden path validation for backup operations
+- Add explicit type assertions for SearchBar result properties
+- Remove deleteStudent reference from StudentsView
+- Resolve 15 TypeScript compilation errors
+- Change SavedSearch endpoints from optional_require_role to get_current_user
+- Depend on patch_settings_for_tests to ensure correct fixture order
+- Use object.__setattr__ to enforce auth in tests (bypasses monkeypatch ordering)
+- Remove unused import in test fixture
+- Return 403 for authorization failures; improve auth patching in tests
+- SavedSearch endpoints - enforce auth with optional_require_role('*')
+- CI/CD environment variables and E2E test blocking (Jan 24, 2026)
+- Correct version format from \.18.0 to v1.18.0 across documentation (Policy 2 compliance)
+- Remove redundant Base import redefinition in conftest.py
+- Add resilience to conftest teardown and explicit schema dependency
+- **frontend**: TypeScript Part 2 - fix remaining 15 errors
+- **frontend**: comprehensive TypeScript error fixes (part 1)
+- **frontend**: rename useSearch.test.ts to .tsx for JSX support
+- **backend**: resolve MyPy type error in saved_search_service
+- resolve search and analytics test failures
+- resolve remaining MyPy type errors in saved_search_service.py
+- resolve MyPy and ESLint errors from Phase 4 implementation
+- resolve npm audit lodash vulnerability and fix COMMIT_READY Windows workflow
+- Align SearchResult and analytics types with usage
+- Resolve ESLint warnings in frontend tests
+- Remove duplicate validation in rollback_import endpoint
+- **frontend**: Add search translation spreads to resolve i18n test failures
+- resolve TypeScript errors and increase markdown threshold
+- resolve 4 CI/CD failures - console.log to warn, remove unused imports
+- **frontend**: wrap analytics tests with i18n providers
+- **frontend**: Fix all SavedSearches test failures (25/25 passing)
+- **frontend**: Batch 11 lint cleanup - 0 warnings
+- **frontend**: Remove unused language variable in GradingView (44έΗΤ43 warnings)
+- **frontend**: Batch 10 - React Hook dependency and ref cleanup (useNotifications + usePerformanceMonitor, 2 fixes, 46έΗΤ44 warnings)
+- **frontend,backend**: Resolve CI TypeScript compilation and test fixture errors
+- Resolve TypeScript compilation errors for CI
+- Batch 6 Phase 3 - Replace any types with explicit types (3 warnings fixed)
+- Batch 6 Phase 2b - Wrap analytics grade labels with i18n (6 warnings fixed)
+- Batch 6 Phase 2a - Wrap ImportWizard 20+ hardcoded strings with i18n (20 warnings fixed)
+- Batch 6 Phase 1 - Remove unused vars, fix empty interfaces, wrap i18n literals (14 warnings fixed)
+- Batch 5 - Wrap i18n hardcoded strings with t() function (24 toast messages)
+- Complete Batch 3-4 ESLint cleanup - Type safety and React Hook dependencies
+- Resolve CI/CD failures - fix linting issues and dependency conflict
+- Add missing useEffect dependencies in custom hooks (Phase 2 - Batch 4)
+- Replace any types with proper types and add type definitions (Phase 2 - Batch 3)
+- Remove 10 unused imports across test files (Phase 2 - Batch 2)
+- **ci**: Add test environment variables to CI backend pytest - Fixes backend test failures
+- Add 'api' global to ESLint config - resolves final 4 blocking errors
+- Remove duplicate keys in translation files
+- silence MyPy Column assignment noise in import/export service
+- Comprehensive MyPy type error resolution in import_export_service
+- Resolve MyPy type errors in search and import/export services
+- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.2)
+- Update documentation versions to 1.17.2 (CI version consistency check)
+- Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
+- Resolve remaining ESLint violations (unused vars, types, quote escaping)
+- ESLint - Remove unused params and fix accessibility
+- Resolve 13 TypeScript errors and multiple linting issues
+- correct notification item translation keys and test expectations
+- trim trailing whitespace in scripts and docs
+- trim trailing whitespace in docs and scripts
+- resolve CI linting errors (explicit any, ts-expect-error)
+- resolve frontend TypeScript errors and git hook execution on Windows
+- resolve frontend TypeScript errors and git hook execution on Windows
+- resolve frontend TypeScript errors and type mismatches
+- Correct SocketIO async_mode from 'aiohttp' to 'asgi' for FastAPI compatibility
+- Add terminal encoding fix for Greek character artifacts
+- Correct version format validator path and PowerShell substitution bugs
+- Resolve all MyPy type errors (28 errors fixed)
+- Resolve linting errors (5 errors total)
+- Update all version references to v1.17.1 (9 files + package-lock.json)
+- Add missing RBAC schema exports; test audit documentation
+
+### Security
+- fix CodeQL path traversal warnings
+- Fix 2 path traversal vulnerabilities (CodeQL #1594, #1593)
+- Fix path traversal vulnerabilities (CodeQL High severity)
+- Fix critical vulnerabilities and add path validation utility
+
+### Refactoring
+- stabilize frontend test infrastructure (Phase 4)
+- Normalize whitespace in CI_CD_SETUP_HELPER.ps1 (trailing space cleanup)
+- Extend COMMIT_READY validation window from 5 to 45 minutes (Jan 24, 2026)
+- remove async from all student router endpoints
+- Update grading and student components with translations
+- Update frontend components and hooks
+
+### Documentation
+- Update work plan with PR #150 merge completion
+- Add comprehensive PR summary for Issue #147 completion
+- Update UNIFIED_WORK_PLAN with STEP 6 completion summary
+- Update UNIFIED_WORK_PLAN with STEP 5 completion summary
+- Update work plan - STEP 4 SearchBar tests verified (20/20 passing, 56/56 total) - Ready for Step 5
+- Update Phase 4 status - Issue #145 complete, #146 discovered
+- update work plan for Phase 4 initialization
+- finalize work plan, doc whitespace fixes, add markdown fixer script
+- **lint**: auto-fix 5158 markdown formatting issues across 536 files (MD022, MD031, MD032, FENCE_LANG)
+- Update work plan with Jan 25 continuation session status (cleanup & validation)
+- CI/CD setup automation & complete implementation guides
+- Update work plan with CI/CD fixes completion (Jan 24, 2026)
+- Update UNIFIED_WORK_PLAN.md with all 4 pending tasks completion status
+- release notes and changelog for v1.17.3
+- Update UNIFIED_WORK_PLAN with BATCH 4-6 completion
+- update work plan with Jan 22 CI verification
+- Fix markdown lint errors and streamline work plan >> >> - Fix README.md line length (reference-style link) >> - Fix frontend/README.md line length (split description) >> - Streamline UNIFIED_WORK_PLAN.md (3309 έΗΤ 153 lines, 95% reduction) >> - Archive historical records to UNIFIED_WORK_PLAN_ARCHIVE_JAN21.md >> - All markdown files pass markdownlint-cli2
+- clarify COMMIT_READY patience requirements
+- CI/CD fix executive summary and final status (all 4 issues resolved)
+- Add CI/CD failure analysis and fixes summary (force)
+- Add Phase 3 final completion report and action plan
+- Update work plan with test fixture verification
+- Update work plans, release notes, and CI artifacts from recent debugging sessions
+- Fix version format violations - change $11.x.x to v1.x.x
+- Begin CI monitoring for 7 queued commits
+- Update work plan - mark pending changes as committed
+- Update Phase 4 roadmap and repository cleanup status
+- Mark CI TypeScript fixes as complete in work plan
+- Update Batch 6 reports with final validation status
+- Add Batch 6 completion to unified work plan
+- Batch 6 Phase 1-3 Completion Report (43+ warnings fixed)
+- Add repository cleanup phase status report (Jan 18)
+- Update Phase 2 execution documentation and security guide (Jan 18)
+- Add comprehensive security policy with responsible disclosure guidelines
+- Add Phase 2 session summaries and continuatin guide for Batch 5
+- Add Repository Issues Cleanup phase before Phase 4 development
+- Add Phase 4 execution kickoff guide - ready for stakeholder review
+- Update work plan with frontend lint parsing error fixes (Jan 18)
+- Add Phase 6 final status report with completion verification
+- Add Phase 6 completion summary with infrastructure fixes and performance baseline
+- Fix version confusion - v1.18.0 is STABLE (not REMEDIATION)
+- add user guide and mark feature #127 complete
+- Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
+- Add production validation documentation and test utilities
+- Terminal encoding fix - cleared corrupted PSReadLine history
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.1 released
+- Update Phase 3 planning and release documentation
+- Add audit session summary with key findings and status
+- Document lesson learned implementation - verification before claims
+- Add critical lesson - verify test results before claiming success (Jan 12 incident)
+- Add comprehensive audit report and root cause analysis
+- Add action summary for CI fix and release complete
+- Add complete summary - CI fix and v1.18.0 release
+
+### Tests
+- **searchbar**: Fix all 20 SearchBar component tests - async, fireEvent, timeout improvements
+- **searchbar**: Simplify dropdown tests to use fireEvent.focus
+- fix useSearch loadMore async test flakiness
+- silence jsdom navigation errors
+- **frontend**: Achieve 100% pass rate (1550/1550 tests passing)
+- Fix all search endpoint tests - 49/49 passing
+
+### CI/CD
+- enforce auth in backend tests (AUTH_MODE=strict) to fix saved_search authorization failures
+- fix npm audit security scan and E2E test timeouts
+- Increase markdown lint threshold to 8210 to accommodate recent doc updates
+
+### Chores
+- Fix ESLint warnings and organize workspace - remove unused imports/vars, move docs to archive
+- Clean up root directory - move Phase 4 documentation to archive/phase4-session-jan26
+- **frontend**: relocate test_output.txt to test-results and add summary runner; chore(admin): update admin_routes; docs: minor fixes (#143)
+- **frontend**: relocate test_output.txt to test-results and add summary runner; chore(admin): update admin_routes; docs: minor fixes
+- **tests**: add RUN_FRONTEND_TESTS_SUMMARY.ps1 to capture vitest output and write summary to test-results/frontend
+- **archive**: move displaced site.webmanifest to archive/displaced-files-jan2026 with README for traceability
+- Archive 39 obsolete/deprecated scripts and test files
+- update README to reflect v1.18.0 release and fix auth header attachment
+- **release**: bump version to 1.17.3 and update docs
+- BATCH 3 - Database migration for SavedSearch table
+- improve .gitignore with import/export artifact patterns
+- **frontend**: stabilize i18n tests and vitest runner
+- organize documentation into docs/
+- finalize vitest fixes and search improvements
+- clean lint artifacts and update CI docs
+- **deps**: Add papaparse for bulk import feature (Phase #127)
+- update socketio/engineio deps and refresh plan status
+- Archive session documentation files
+- Clean staging area - accumulated changes
+- pre-commit validation complete
+- Remove test artifact file.tmp
+- Update gitignore to exclude ci_failure_log.txt artifact
+- Complete Phase 1 Cleanup & Prepare Phase 2 Execution
+- Raise markdown lint threshold from 8100 to 8200 (Phase 4 prep)
+- Fix datetime.utcnow() deprecation warnings and improve gitignore
+- remove build artifacts from version control
+- post-COMMIT_READY verification complete
+- cleanup workspace, organize feature #127 files, and apply code quality fixes
+- finalize version enforcement infrastructure and advance Feature #127 to Phase 4
+- minor documentation and escaping fixes in COMMIT_READY.ps1
+
+## [1.17.4] - 2026-01-26
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.17.3] - 2026-01-22
 
 ### ⚠️ BREAKING CHANGES
@@ -2552,3 +2784,4 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
+
