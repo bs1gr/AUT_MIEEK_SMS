@@ -11,8 +11,12 @@ import { useNavigate } from 'react-router-dom';
 import { useSearch, useSavedSearches } from '../hooks/useSearch';
 import SearchBar from './components/SearchBar';
 import AdvancedFilters from './components/AdvancedFilters';
+import { AdvancedQueryBuilder } from './components/AdvancedQueryBuilder';
 import { SearchResults } from './components/SearchResults';
 import { SearchResultItem } from '../types/search';
+import { FacetedNavigation } from './components/FacetedNavigation';
+import { SearchHistorySidebar } from './components/SearchHistorySidebar';
+import { useSearchHistory } from './hooks/useSearchHistory';
 
 /**
  * AdvancedSearchPage Component
@@ -38,8 +42,12 @@ export const AdvancedSearchPage: React.FC = () => {
     setFilters,
     setSortBy,
     refetch,
+    toggleFacet,
+    clearFacet,
   } =
     useSearch();
+
+  const { entries: historyEntries, addEntry } = useSearchHistory();
 
   // Handler for result card clicks - navigate to detail page
   const handleResultClick = (result: SearchResultItem) => {
@@ -73,11 +81,18 @@ export const AdvancedSearchPage: React.FC = () => {
         <div className="grid grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="col-span-1">
-            {/* TODO: Faceted navigation component */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">{t('search.facets.title')}</h2>
-              <p className="text-gray-500">{t('common.placeholder')}</p>
-            </div>
+            <FacetedNavigation
+              className="mb-6"
+              facets={results?.facets || {}}
+              selected={state.selectedFacets || {}}
+              onToggle={toggleFacet}
+              onClearFacet={clearFacet}
+            />
+
+            <SearchHistorySidebar
+              className="mb-6"
+              onSelect={(q) => setQuery(q)}
+            />
           </div>
 
           {/* Main Content */}
@@ -89,14 +104,19 @@ export const AdvancedSearchPage: React.FC = () => {
                   onQueryChange={setQuery}
                   entityType={state.entityType}
                   onEntityTypeChange={setEntityType}
-                  onSearch={() => refetch()}
-                  searchHistory={[]}
-                  showHistory={false}
+                  onSearch={() => {
+                    if (state.query?.trim()) {
+                      addEntry(state.query, state.entityType);
+                    }
+                    refetch();
+                  }}
+                  searchHistory={historyEntries}
+                  showHistory={true}
                 />
               </div>
 
-            {/* Advanced Filters */}
-              <AdvancedFilters
+            {/* Advanced Query Builder (wraps AdvancedFilters) */}
+              <AdvancedQueryBuilder
                 className="mb-6"
                 filters={state.filters}
                 onFiltersChange={setFilters}
