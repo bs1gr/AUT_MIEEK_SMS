@@ -19,8 +19,15 @@ import { useAutosave } from '@/hooks/useAutosave';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
-// Version marker to verify code reload
-console.warn('[AttendanceView] CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
+// Version marker to verify code reload (quiet unless debug)
+const DEBUG_ATTENDANCE_LOGS = import.meta.env.DEV && false;
+const debugAttendance = (...args: unknown[]) => {
+  if (DEBUG_ATTENDANCE_LOGS) {
+    console.warn('[AttendanceView]', ...args);
+  }
+};
+
+debugAttendance('CODE VERSION: 2024-11-29-FIX-404-ERRORS - 404 error handling ACTIVE');
 
 type Props = { courses: Course[]; students?: Student[] };
 
@@ -354,7 +361,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
             const data = await response.json();
             const courseList = Array.isArray(data) ? data : data.items || [];
             if (courseList.length > 0) {
-              console.warn('[AttendanceView] Fetched courses from API:', courseList);
+              debugAttendance('Fetched courses from API:', courseList);
               setLocalCourses(courseList);
             }
           }
@@ -414,11 +421,11 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                 clearTimeout(timeoutId);
 
                 if (!r.ok) {
-                  console.warn(`[AttendanceView] Fetch failed for course ${c.id}`);
+                  debugAttendance(`Fetch failed for course ${c.id}`);
                   return { id: c.id, count: 0 };
                 }
                 const arr = await r.json();
-                console.warn(`[AttendanceView] Enrollments for course ${c.id}:`, arr);
+                debugAttendance(`Enrollments for course ${c.id}:`, arr);
                 // Accept both array and object-with-items
                 if (Array.isArray(arr)) {
                   return { id: c.id, count: arr.length };
@@ -430,7 +437,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
               } catch (fetchErr) {
                 clearTimeout(timeoutId);
                 if (fetchErr instanceof Error && fetchErr.name === 'AbortError') {
-                  console.warn(`[AttendanceView] Enrollment fetch timeout for course ${c.id}`);
+                  debugAttendance(`Enrollment fetch timeout for course ${c.id}`);
                 } else {
                   console.error(`[AttendanceView] Error fetching enrollments for course ${c.id}:`, fetchErr);
                 }
@@ -452,7 +459,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         // Update with actual enrollment counts if available
         const ids = new Set<number>();
         results.forEach(({ id, count }) => { if (count > 0) ids.add(id); });
-        console.warn('[AttendanceView] coursesWithEnrollment (final):', Array.from(ids));
+        debugAttendance('coursesWithEnrollment (final):', Array.from(ids));
         // If we found courses with enrollments, use that; otherwise keep all courses available
         if (ids.size > 0) {
           setCoursesWithEnrollment(ids);

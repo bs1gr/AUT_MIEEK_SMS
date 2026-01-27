@@ -7,14 +7,24 @@ import type { ReactNode } from 'react';
 import { useSearchFacets } from './useSearchFacets';
 import * as apiModule from '@/api/api';
 
-// Mock the API
-vi.mock('@/api/api');
+// Mock the API with a default client that has a get method
+vi.mock('@/api/api', () => {
+  const mockGet = vi.fn();
+  return {
+    default: {
+      get: mockGet,
+    },
+    extractAPIResponseData: vi.fn((response) => response.data),
+  };
+});
 
 describe('useSearchFacets Hook', () => {
   let queryClient: QueryClient;
-  const mockApiClient = apiModule.apiClient as any;
+  let mockApiClient: any;
 
   beforeEach(() => {
+    // Get the mocked module
+    mockApiClient = vi.mocked(apiModule.default);
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -61,7 +71,8 @@ describe('useSearchFacets Hook', () => {
 
     const { result } = renderHook(() => useSearchFacets(''), { wrapper });
 
-    expect(result.current.isLoading).toBe(true);
+    // Query is disabled when empty, so it should not be loading
+    expect(result.current.isLoading).toBe(false);
   });
 
   it('fetches facets successfully', async () => {
@@ -100,7 +111,8 @@ describe('useSearchFacets Hook', () => {
 
     await waitFor(() => {
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        expect.stringContaining('q=john')
+        '/search/students/facets',
+        { params: { q: 'john' } }
       );
     });
   });
@@ -222,7 +234,8 @@ describe('useSearchFacets Hook', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(mockApiClient.get).toHaveBeenCalled();
+    // Query is disabled when empty, so the request should not fire
+    expect(mockApiClient.get).not.toHaveBeenCalled();
   });
 
   it('provides loading state during fetch', async () => {

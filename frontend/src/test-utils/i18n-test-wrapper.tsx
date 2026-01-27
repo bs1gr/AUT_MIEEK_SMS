@@ -37,22 +37,22 @@ testI18n
             ...studentsEn,
             ...coursesEn,
             ...gradesEn,
-            ...rbacEn,
             ...commonEn,
           },
           common: commonEn,
           search: searchEn,
+                  rbac: rbacEn,
         },
         el: {
           translation: {
             ...studentsEl,
             ...coursesEl,
             ...gradesEl,
-            ...rbacEl,
             ...commonEl,
           },
           common: commonEl,
           search: searchEl,
+                  rbac: rbacEl,
         }
     },
     interpolation: {

@@ -23,19 +23,21 @@ describe('SearchSortControls Component', () => {
   it('renders sort field selector', () => {
     renderComponent();
 
-    expect(screen.getByDisplayValue('relevance')).toBeInTheDocument();
+    const fieldSelect = screen.getByLabelText(/sort by/i);
+    expect(fieldSelect).toHaveValue('relevance');
   });
 
   it('renders sort direction selector', () => {
     renderComponent();
 
-    expect(screen.getByDisplayValue('desc')).toBeInTheDocument();
+    const directionSelect = screen.getByLabelText(/sort direction/i);
+    expect(directionSelect).toHaveValue('desc');
   });
 
   it('displays all sort field options', () => {
     renderComponent();
 
-    const fieldSelect = screen.getByDisplayValue('relevance') as HTMLSelectElement;
+    const fieldSelect = screen.getByLabelText(/sort by/i) as HTMLSelectElement;
     const options = Array.from(fieldSelect.options).map((o) => o.value);
 
     expect(options).toContain('relevance');
@@ -48,7 +50,7 @@ describe('SearchSortControls Component', () => {
   it('displays both sort directions', () => {
     renderComponent();
 
-    const directionSelect = screen.getByDisplayValue('desc') as HTMLSelectElement;
+    const directionSelect = screen.getByLabelText(/sort direction/i) as HTMLSelectElement;
     const options = Array.from(directionSelect.options).map((o) => o.value);
 
     expect(options).toContain('asc');
@@ -59,7 +61,7 @@ describe('SearchSortControls Component', () => {
     const user = userEvent.setup();
     renderComponent();
 
-    const fieldSelect = screen.getByDisplayValue('relevance') as HTMLSelectElement;
+    const fieldSelect = screen.getByLabelText(/sort by/i) as HTMLSelectElement;
     await user.selectOptions(fieldSelect, 'name');
 
     expect(mockOnChange).toHaveBeenCalledWith({
@@ -72,7 +74,7 @@ describe('SearchSortControls Component', () => {
     const user = userEvent.setup();
     renderComponent();
 
-    const directionSelect = screen.getByDisplayValue('desc') as HTMLSelectElement;
+    const directionSelect = screen.getByLabelText(/sort direction/i) as HTMLSelectElement;
     await user.selectOptions(directionSelect, 'asc');
 
     expect(mockOnChange).toHaveBeenCalledWith({
@@ -88,7 +90,7 @@ describe('SearchSortControls Component', () => {
       direction: 'asc',
     });
 
-    const fieldSelect = screen.getByDisplayValue('name') as HTMLSelectElement;
+    const fieldSelect = screen.getByLabelText(/sort by/i) as HTMLSelectElement;
     await user.selectOptions(fieldSelect, 'email');
 
     expect(mockOnChange).toHaveBeenCalledWith({
@@ -104,7 +106,7 @@ describe('SearchSortControls Component', () => {
       direction: 'asc',
     });
 
-    const directionSelect = screen.getByDisplayValue('asc') as HTMLSelectElement;
+    const directionSelect = screen.getByLabelText(/sort direction/i) as HTMLSelectElement;
     await user.selectOptions(directionSelect, 'desc');
 
     expect(mockOnChange).toHaveBeenCalledWith({
@@ -119,8 +121,10 @@ describe('SearchSortControls Component', () => {
       direction: 'asc',
     });
 
-    expect(screen.getByDisplayValue('created_at')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('asc')).toBeInTheDocument();
+    const fieldSelect = screen.getByLabelText(/sort by/i);
+    expect(fieldSelect).toHaveValue('created_at');
+    const directionSelect = screen.getByLabelText(/sort direction/i);
+    expect(directionSelect).toHaveValue('asc');
   });
 
   it('renders with appropriate labels', () => {
@@ -133,7 +137,7 @@ describe('SearchSortControls Component', () => {
     const user = userEvent.setup();
     renderComponent();
 
-    const fieldSelect = screen.getByDisplayValue('relevance') as HTMLSelectElement;
+    const fieldSelect = screen.getByLabelText(/sort by/i) as HTMLSelectElement;
 
     await user.selectOptions(fieldSelect, 'name');
     await user.selectOptions(fieldSelect, 'email');

@@ -57,7 +57,7 @@ type ToastType = 'success' | 'error' | 'info';
 type ToastState = { message: string; type: ToastType } | null;
 
 export default function AdminPermissionsPage() {
-  const { t } = useTranslation();
+  const { t } = useTranslation('rbac');
   const queryClient = useQueryClient();
   const [selectedResource, setSelectedResource] = useState<string>('all');
   const [grantMode, setGrantMode] = useState<'user' | 'role'>('role');
@@ -121,9 +121,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setSelectedPermission('');
       setTargetId('');
-      showToast(t('rbac.permissionGrantedSuccess'), 'success');
+      showToast(t('permissionGrantedSuccess'), 'success');
     },
-    onError: () => showToast(t('rbac.permissionGrantedError'), 'error'),
+    onError: () => showToast(t('permissionGrantedError'), 'error'),
   });
 
   const grantUserPermission = useMutation({
@@ -138,9 +138,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setSelectedPermission('');
       setTargetId('');
-      showToast(t('rbac.permissionGrantedSuccess'), 'success');
+      showToast(t('permissionGrantedSuccess'), 'success');
     },
-    onError: () => showToast(t('rbac.permissionGrantedError'), 'error'),
+    onError: () => showToast(t('permissionGrantedError'), 'error'),
   });
 
   const revokeRolePermission = useMutation({
@@ -155,9 +155,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setRevokePermission('');
       setRevokeTargetId('');
-      showToast(t('rbac.permissionRevokedSuccess'), 'success');
+      showToast(t('permissionRevokedSuccess'), 'success');
     },
-    onError: () => showToast(t('rbac.permissionRevokedError'), 'error'),
+    onError: () => showToast(t('permissionRevokedError'), 'error'),
   });
 
   const revokeUserPermission = useMutation({
@@ -172,9 +172,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setRevokePermission('');
       setRevokeTargetId('');
-      showToast(t('rbac.permissionRevokedSuccess'), 'success');
+      showToast(t('permissionRevokedSuccess'), 'success');
     },
-    onError: () => showToast(t('rbac.permissionRevokedError'), 'error'),
+    onError: () => showToast(t('permissionRevokedError'), 'error'),
   });
 
   const userPermissionsQuery = useQuery<UserPermissionsResponse, Error>({
@@ -236,37 +236,37 @@ export default function AdminPermissionsPage() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-          {t('rbac.configuration')}
+          {t('configuration')}
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          {t('rbac.rolePermissionMappings')}
+          {t('rolePermissionMappings')}
         </p>
       </div>
 
       {/* Grant Permission Section */}
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-          {t('rbac.grantPermission')}
+          {t('grantPermission')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('rbac.grantTo')}
+              {t('grantTo')}
             </label>
             <select
               value={grantMode}
               onChange={(e) => setGrantMode(e.target.value as 'user' | 'role')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <option value="role">{t('rbac.role')}</option>
-              <option value="user">{t('rbac.user')}</option>
+              <option value="role">{t('role')}</option>
+              <option value="user">{t('user')}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {grantMode === 'role' ? t('rbac.selectRole') : t('rbac.userId')}
+              {grantMode === 'role' ? t('selectRole') : t('userId')}
             </label>
             {grantMode === 'role' ? (
               <select
@@ -286,7 +286,7 @@ export default function AdminPermissionsPage() {
                 type="number"
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
-                placeholder={t('rbac.enterUserId')}
+                placeholder={t('enterUserId')}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             )}
@@ -294,7 +294,7 @@ export default function AdminPermissionsPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('rbac.selectPermission')}
+              {t('selectPermission')}
             </label>
             <select
               value={selectedPermission}
@@ -321,7 +321,7 @@ export default function AdminPermissionsPage() {
               }
               className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('rbac.grant')}
+              {t('grant')}
             </button>
           </div>
         </div>
@@ -330,27 +330,27 @@ export default function AdminPermissionsPage() {
       {/* Revoke Permission Section */}
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-          {t('rbac.revokePermission')}
+          {t('revokePermission')}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('rbac.grantTo')}
+              {t('grantTo')}
             </label>
             <select
               value={revokeMode}
               onChange={(e) => setRevokeMode(e.target.value as 'user' | 'role')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <option value="role">{t('rbac.role')}</option>
-              <option value="user">{t('rbac.user')}</option>
+              <option value="role">{t('role')}</option>
+              <option value="user">{t('user')}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {revokeMode === 'role' ? t('rbac.selectRole') : t('rbac.userId')}
+              {revokeMode === 'role' ? t('selectRole') : t('userId')}
             </label>
             {revokeMode === 'role' ? (
               <select
@@ -370,7 +370,7 @@ export default function AdminPermissionsPage() {
                 type="number"
                 value={revokeTargetId}
                 onChange={(e) => setRevokeTargetId(e.target.value)}
-                placeholder={t('rbac.enterUserId')}
+                placeholder={t('enterUserId')}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             )}
@@ -378,7 +378,7 @@ export default function AdminPermissionsPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('rbac.selectPermission')}
+              {t('selectPermission')}
             </label>
             <select
               value={revokePermission}
@@ -405,7 +405,7 @@ export default function AdminPermissionsPage() {
               }
               className="w-full px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('rbac.revoke')}
+              {t('revoke')}
             </button>
           </div>
         </div>
@@ -416,20 +416,20 @@ export default function AdminPermissionsPage() {
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-              {t('rbac.permissionAudit')}
+              {t('permissionAudit')}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{t('rbac.permissionAuditDesc')}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">{t('permissionAuditDesc')}</p>
           </div>
           {permissionStats && (
             <div className="flex gap-2 flex-wrap text-sm">
               <span className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
-                {t('rbac.totalPermissions', { count: permissionStats.total_permissions })}
+                {t('totalPermissions', { count: permissionStats.total_permissions })}
               </span>
               <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">
-                {t('rbac.activePermissions', { count: permissionStats.active_permissions })}
+                {t('activePermissions', { count: permissionStats.active_permissions })}
               </span>
               <span className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-                {t('rbac.inactivePermissions', { count: permissionStats.inactive_permissions })}
+                {t('inactivePermissions', { count: permissionStats.inactive_permissions })}
               </span>
             </div>
           )}
@@ -466,13 +466,13 @@ export default function AdminPermissionsPage() {
           <div className="flex flex-col md:flex-row md:items-end md:gap-3 gap-2">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('rbac.userPermissionLookup')}
+                {t('userPermissionLookup')}
               </label>
               <input
                 type="number"
                 value={auditUserId}
                 onChange={(e) => setAuditUserId(e.target.value)}
-                placeholder={t('rbac.enterUserId')}
+                placeholder={t('enterUserId')}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             </div>
@@ -481,7 +481,7 @@ export default function AdminPermissionsPage() {
               disabled={!auditUserId || userPermissionsQuery.isPending}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('rbac.viewPermissions')}
+              {t('viewPermissions')}
             </button>
           </div>
 
@@ -494,7 +494,7 @@ export default function AdminPermissionsPage() {
 
           {userPermissionsQuery.isError && (
             <div className="text-sm text-red-600 dark:text-red-400">
-              {t('rbac.userPermissionError')}
+              {t('userPermissionError')}
             </div>
           )}
 
@@ -511,7 +511,7 @@ export default function AdminPermissionsPage() {
 
               <div>
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">
-                  {t('rbac.directPermissions')}
+                  {t('directPermissions')}
                 </h4>
                 {userPermissionsQuery.data.direct_permissions.length === 0 ? (
                   <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
@@ -522,7 +522,7 @@ export default function AdminPermissionsPage() {
                         <span className="font-medium">{perm.permission_key}</span>
                         {perm.expires_at && (
                           <span className="text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100">
-                            {t('rbac.expiresAt', { date: perm.expires_at })}
+                            {t('expiresAt', { date: perm.expires_at })}
                           </span>
                         )}
                       </li>
@@ -533,7 +533,7 @@ export default function AdminPermissionsPage() {
 
               <div>
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">
-                  {t('rbac.rolePermissions')}
+                  {t('rolePermissions')}
                 </h4>
                 {userPermissionsQuery.data.role_permissions.length === 0 ? (
                   <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
@@ -559,7 +559,7 @@ export default function AdminPermissionsPage() {
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            {t('rbac.permission', { count: filteredPermissions.length })}
+            {t('permission', { count: filteredPermissions.length })}
           </h3>
           <select
             value={selectedResource}

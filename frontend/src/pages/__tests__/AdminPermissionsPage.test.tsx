@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { I18nextProvider } from 'react-i18next';
+import testI18n from '@/test-utils/i18n-test-wrapper';
 import AdminPermissionsPage from '../AdminPermissionsPage';
 import * as apiModule from '../../api/api';
 
@@ -22,9 +24,11 @@ function renderWithProviders(ui: React.ReactElement) {
     },
   });
   return render(
-    <QueryClientProvider client={client}>
-      {ui}
-    </QueryClientProvider>
+    <I18nextProvider i18n={testI18n}>
+      <QueryClientProvider client={client}>
+        {ui}
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }
 
