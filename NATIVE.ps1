@@ -382,6 +382,121 @@ function Test-Prerequisites {
     return $allPassed
 }
 
+function Test-VenvHealth {
+    <#
+    .SYNOPSIS
+    Test if virtual environment is healthy
+    .DESCRIPTION
+    Checks for corrupt venv (missing python.exe, pyvenv.cfg, etc.)
+    #>
+    param([string]$VenvPath)
+
+    if (-not (Test-Path $VenvPath)) {
+        return $false
+    }
+
+    # Check critical venv files
+    $pythonExe = Join-Path $VenvPath "Scripts\python.exe"
+    $pyvenvCfg = Join-Path $VenvPath "pyvenv.cfg"
+    $activateScript = Join-Path $VenvPath "Scripts\Activate.ps1"
+
+    if (-not (Test-Path $pythonExe)) {
+        Write-Warning "Missing python.exe in venv"
+        return $false
+    }
+
+    if (-not (Test-Path $pyvenvCfg)) {
+        Write-Warning "Missing pyvenv.cfg in venv"
+        return $false
+    }
+
+    if (-not (Test-Path $activateScript)) {
+        Write-Warning "Missing Activate.ps1 in venv"
+        return $false
+    }
+
+    return $true
+}
+
+function Remove-VenvForced {
+    <#
+    .SYNOPSIS
+    Forcefully remove virtual environment even if corrupted/locked
+    .DESCRIPTION
+    Uses multiple strategies to remove locked files (handles locked pyd, so, dll)
+    #>
+    param([string]$VenvPath)
+
+    if (-not (Test-Path $VenvPath)) {
+        return 0
+    }
+
+    Write-Info "Force-removing virtual environment at: $VenvPath"
+
+    # Strategy 1: Direct removal (works for most cases)
+    try {
+        Remove-Item -Path $VenvPath -Recurse -Force -ErrorAction Stop
+        Write-Success "Virtual environment removed"
+        return 0
+    }
+    catch {
+        Write-Warning "Direct removal failed: $_"
+    }
+
+    # Strategy 2: Use attrib to remove read-only flags, then remove
+    Write-Info "Attempting with attrib -r flag..."
+    try {
+        cmd /c attrib -r "$VenvPath\*" /s /d 2>&1 | Out-Null
+        Remove-Item -Path $VenvPath -Recurse -Force -ErrorAction Stop
+        Write-Success "Virtual environment removed (via attrib)"
+        return 0
+    }
+    catch {
+        Write-Warning "Attrib removal failed: $_"
+    }
+
+    # Strategy 3: Remove subdirectories one by one (handles locked files better)
+    Write-Info "Attempting granular removal..."
+    try {
+        Get-ChildItem -Path $VenvPath -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+                Remove-Item -Path $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+            }
+            catch {
+                # Silent - some files might still be locked
+            }
+        }
+
+        # Remove remaining files
+        Get-ChildItem -Path $VenvPath -File -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+                Remove-Item -Path $_.FullName -Force -ErrorAction SilentlyContinue
+            }
+            catch {
+                # Silent - some files might still be locked
+            }
+        }
+
+        # Remove root directory
+        Remove-Item -Path $VenvPath -Recurse -Force -ErrorAction SilentlyContinue
+
+        # Verify it's gone
+        if (-not (Test-Path $VenvPath)) {
+            Write-Success "Virtual environment removed (via granular removal)"
+            return 0
+        }
+        else {
+            Write-Warning "Some files remain in venv directory (likely still locked)"
+            Write-Info "Venv may need manual cleanup - consider restart if persistent"
+            return 1
+        }
+    }
+    catch {
+        Write-Warning "Granular removal failed: $_"
+        return 1
+    }
+}
+
 function Setup-Environment {
     Write-Header "Setting Up Development Environment"
 
@@ -394,35 +509,65 @@ function Setup-Environment {
     Write-Host "`n=== Backend Setup ===" -ForegroundColor Yellow
     Push-Location $BACKEND_DIR
     try {
-        # Check if venv exists
+        # Check if venv exists and is healthy
         $venvPath = Join-Path $BACKEND_DIR ".venv"
-        if (-not (Test-Path $venvPath)) {
+        $venvHealthy = Test-VenvHealth -VenvPath $venvPath
+
+        if (Test-Path $venvPath) {
+            if ($venvHealthy) {
+                Write-Info "Virtual environment exists and is healthy"
+            } else {
+                Write-Warning "Virtual environment is corrupted"
+                Write-Info "Removing corrupted venv..."
+                $removeResult = Remove-VenvForced -VenvPath $venvPath
+                if ($removeResult -ne 0) {
+                    Write-Warning "Could not fully remove corrupted venv"
+                    Write-Warning "Please restart your terminal or computer if venv creation fails"
+                }
+                # Mark for recreation
+                $venvHealthy = $false
+            }
+        } else {
+            $venvHealthy = $false
+        }
+
+        # Create or recreate venv
+        if (-not $venvHealthy) {
             Write-Info "Creating Python virtual environment..."
             python -m venv .venv
             if ($LASTEXITCODE -ne 0) {
                 Write-Error-Message "Failed to create virtual environment"
+                Write-Info "Venv creation failed. This may indicate:"
+                Write-Info "  • Python executable is locked (try restarting terminal)"
+                Write-Info "  • Disk space issues"
+                Write-Info "  • Permission problems"
                 return 1
             }
             Write-Success "Virtual environment created"
-        } else {
-            Write-Info "Virtual environment exists"
+        }
+
+        # Verify activation script exists before trying to use it
+        $activateScript = Join-Path $venvPath "Scripts\Activate.ps1"
+        if (-not (Test-Path $activateScript)) {
+            Write-Error-Message "Virtual environment activation script not found"
+            Write-Info "This indicates incomplete venv creation"
+            return 1
         }
 
         # Activate venv and install dependencies
         Write-Info "Installing Python dependencies..."
-        $activateScript = Join-Path $venvPath "Scripts\Activate.ps1"
+        & $activateScript
 
-        if (-not (Test-Path $activateScript)) {
-            Write-Error-Message "Virtual environment activation script not found"
+        python -m pip install --upgrade pip --quiet
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error-Message "Failed to upgrade pip"
             return 1
         }
 
-        & $activateScript
-        python -m pip install --upgrade pip --quiet
         pip install -r requirements.txt --quiet
-
         if ($LASTEXITCODE -ne 0) {
             Write-Error-Message "Failed to install Python dependencies"
+            Write-Info "Check requirements.txt for syntax errors or invalid packages"
             return 1
         }
 
@@ -748,11 +893,37 @@ function Clean-Environment {
     Write-Info "Cleaning backend..."
     Push-Location $BACKEND_DIR
     try {
-        $items = @(".venv", "__pycache__", ".pytest_cache", "*.pyc")
+        # Use robust removal for .venv (might be corrupted/locked)
+        if (Test-Path ".venv") {
+            $result = Remove-VenvForced -VenvPath (Join-Path $BACKEND_DIR ".venv")
+            if ($result -eq 0) {
+                Write-Success "Removed: .venv"
+            } else {
+                Write-Warning "Failed to fully remove .venv (may have locked files)"
+            }
+        }
+
+        # Remove other backend artifacts
+        $items = @("__pycache__", ".pytest_cache", "*.pyc", ".ruff_cache", ".mypy_cache")
         foreach ($item in $items) {
             if (Test-Path $item) {
-                Remove-Item $item -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Success "Removed: $item"
+                try {
+                    Remove-Item $item -Recurse -Force -ErrorAction Stop
+                    Write-Success "Removed: $item"
+                }
+                catch {
+                    Write-Warning "Failed to remove: $item - $_"
+                }
+            }
+        }
+
+        # Remove nested __pycache__
+        Get-ChildItem -Recurse -Filter "__pycache__" -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+            try {
+                Remove-Item -Path $_.FullName -Recurse -Force -ErrorAction Stop
+            }
+            catch {
+                # Silent
             }
         }
     } finally {
@@ -766,8 +937,13 @@ function Clean-Environment {
         $items = @("node_modules", "dist", ".vite")
         foreach ($item in $items) {
             if (Test-Path $item) {
-                Remove-Item $item -Recurse -Force -ErrorAction SilentlyContinue
-                Write-Success "Removed: $item"
+                try {
+                    Remove-Item $item -Recurse -Force -ErrorAction Stop
+                    Write-Success "Removed: $item"
+                }
+                catch {
+                    Write-Warning "Failed to remove: $item - $_"
+                }
             }
         }
     } finally {
