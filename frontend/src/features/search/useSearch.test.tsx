@@ -8,13 +8,24 @@ import { useSearch } from './useSearch';
 import * as apiModule from '@/api/api';
 
 // Mock the API
-vi.mock('@/api/api');
+const mockPost = vi.fn();
+vi.mock('@/api/api', () => {
+  const mockPost = vi.fn();
+  return {
+    default: {
+      post: mockPost,
+    },
+    extractAPIResponseData: vi.fn((response) => response.data),
+  };
+});
 
 describe('useSearch Hook', () => {
   let queryClient: QueryClient;
-  const mockApiClient = apiModule.apiClient as any;
+  let mockApiClient: any;
 
   beforeEach(() => {
+      // Get the mocked module
+      mockApiClient = vi.mocked(apiModule.default);
     queryClient = new QueryClient({
       defaultOptions: {
         queries: { retry: false },
@@ -74,7 +85,6 @@ describe('useSearch Hook', () => {
     };
 
     mockApiClient.post.mockResolvedValue(mockResponse);
-    mockApiClient.post.mockImplementation(() => Promise.resolve(mockResponse));
 
     const { result } = renderHook(() => useSearch(), { wrapper });
 
