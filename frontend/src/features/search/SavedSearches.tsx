@@ -106,10 +106,10 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {t('savedSearches')}
+          {t('saved.title')}
         </h2>
         <p className="text-sm text-gray-600">
-          {t('savedSearchesDescription')}
+          {t('saved.description')}
         </p>
       </div>
 
@@ -138,7 +138,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
           }`}
         >
           <HeartIcon size={16} className={showFavoritesOnly ? 'fill-current' : ''} />
-          <span>{t('favoritesOnly')}</span>
+          <span>{t('saved.favoritesOnly')}</span>
         </button>
       </div>
 

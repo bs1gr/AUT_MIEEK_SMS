@@ -137,7 +137,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const typeFilter = screen.getByRole('combobox', { name: /search.filterByType/i });
+    const typeFilter = screen.getByRole('combobox', { name: /Filter by type/i });
     fireEvent.change(typeFilter, { target: { value: 'students' } });
 
     await waitFor(() => {
@@ -178,7 +178,8 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const favoritesButton = screen.getByText('search.favoritesOnly');
+    // Find the favorites button by role and partial text match
+    const favoritesButton = screen.getByRole('button', { name: /Favorites only/i });
     fireEvent.click(favoritesButton);
 
     await waitFor(() => {

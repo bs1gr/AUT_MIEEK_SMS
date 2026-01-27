@@ -27,6 +27,11 @@ export default {
     courses: 'Courses',
     grades: 'Grades'
   },
+  // Generic labels used in saved searches list
+  filters: 'filters',
+  noSavedSearches: 'No saved searches',
+  noFavoriteSearches: 'No favorite searches found',
+  createFirstSearch: 'Create your first search to get started',
   presets: {
     title: 'Filter Presets',
     activeStudents: 'Active Students',
@@ -41,6 +46,7 @@ export default {
   },
   saved: {
     title: 'Saved Searches',
+    description: 'View and manage your saved searches',
     save: 'Save Search',
     load: 'Load',
     delete: 'Delete',
