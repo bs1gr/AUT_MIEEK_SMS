@@ -1,0 +1,304 @@
+**********************
+PowerShell transcript start
+Start time: 20260127174356
+Username: REC\Vasilis
+RunAs User: REC\Vasilis
+Configuration Name: 
+Machine: REC (Microsoft Windows NT 10.0.26220.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+Process ID: 3368
+PSVersion: 7.5.4
+PSEdition: Core
+GitCommitId: 7.5.4
+OS: Microsoft Windows 10.0.26220
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.5
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-01-27 17:43:56
+Log file: D:\SMS\student-management-system\commit_ready_20260127-174356.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+ℹ️  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+ℹ️  Using version from VERSION file: 1.17.5
+ℹ️  Target version: 1.17.5
+ℹ️  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+✅ VERSION file: 1.17.5 (correct)
+✅ Backend main.py docstring: 1.17.5 (correct)
+✅ Frontend package.json: 1.17.5 (correct)
+✅ User guide version: 1.17.5 (correct)
+✅ Developer guide version: 1.17.5 (correct)
+✅ Documentation index version: 1.17.5 (correct)
+✅ COMMIT_READY.ps1 version: 1.17.5 (correct)
+✅ INSTALLER_BUILDER.ps1 version: 1.17.5 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+✅ Version verification completed successfully!
+✅ All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ Version format valid: 1.17.5
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+ℹ️  Installing runtime requirements (pip) from requirements.txt
+ℹ️  Installing dev requirements (pip)
+✅ Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+✅ conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running pre-commit hooks on staged files...
+✅ Pre-commit hooks passed (files auto-fixed).
+ℹ️  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+ℹ️  Running ruff check...
+✅ Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+ℹ️  Running mypy...
+✅ Backend type checking passed
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+ℹ️  Running ESLint...
+✅ Frontend linting passed
+
+─────────────────────────────────────────────────
+ Repository: Markdown Lint
+─────────────────────────────────────────────────
+ℹ️  Running markdownlint with auto-fix...
+✅ Markdown linting passed
+
+─────────────────────────────────────────────────
+ Frontend: TypeScript Type Checking
+─────────────────────────────────────────────────
+ℹ️  Skipping TypeScript type checking in quick mode (temporary)
+✅ TypeScript type checking passed
+
+─────────────────────────────────────────────────
+ Translation Integrity Check
+─────────────────────────────────────────────────
+ℹ️  Checking translation key parity...
+stderr | src/i18n/__tests__/translations.test.ts
+[i18n] Search translation keys loaded: 6 keys
+
+✅ Translation integrity verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 2: Test Suite Execution                                ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: pytest
+─────────────────────────────────────────────────
+ℹ️  Using in-memory SQLite for local tests (DATABASE_URL not set)
+ℹ️  Using strict auth mode for local tests (AUTH_MODE not set)
+ℹ️  Using batch test runner (prevents system freeze)...
+
+╔════════════════════════════════════════╗
+║   Batch Test Runner (SMS v1.17.2)     ║
+╚════════════════════════════════════════╝
+ℹ Scanning for test files...
+✓ Found 88 test files
+ℹ Split into 18 batches (5 files per batch)
+
+┌─────────────────────────────────────────┐
+│ Batch 1 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_admin_backup_encryption.py
+  • test_admin_bootstrap.py
+  • test_analytics_router.py
+  • test_analytics_service.py
+  • test_attendance_router.py
+ℹ Running tests...
+D:\SMS\student-management-system\.venv\Scripts\python.exe: No module named pytest
+✗ Batch 1 failed in 0.1s
+⚠ FastFail enabled - stopping execution
+
+╔════════════════════════════════════════╗
+║          TEST EXECUTION SUMMARY        ║
+╚════════════════════════════════════════╝
+
+Batches:
+  Total:   18
+✓   Completed: 1
+
+Tests:
+  Total:   0
+✗   Failed Batches: 5
+
+Duration: 0.1s
+
+✗ Some tests failed
+❌ Backend tests failed
+
+
+─────────────────────────────────────────────────
+ Frontend: Vitest
+─────────────────────────────────────────────────
+ℹ️  Running fast frontend tests only...
+stderr | src/i18n/__tests__/translations.test.ts
+[i18n] Search translation keys loaded: 6 keys
+
+✅ Frontend tests passed
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Git Remote Synchronization                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Updating remote references...
+✅ Git remote is synchronized (or local is ahead)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Automated Cleanup                                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Python Cache Cleanup
+─────────────────────────────────────────────────
+✅ Removed 17 Python cache items
+
+─────────────────────────────────────────────────
+ Node.js Cache Cleanup
+─────────────────────────────────────────────────
+ℹ️  Node cache already clean
+
+─────────────────────────────────────────────────
+ Build Artifacts Cleanup
+─────────────────────────────────────────────────
+
+─────────────────────────────────────────────────
+ Temporary Files Cleanup
+─────────────────────────────────────────────────
+✅ Removed 17 temporary files
+
+─────────────────────────────────────────────────
+ Legacy Artifacts Cleanup
+─────────────────────────────────────────────────
+ℹ️  Total space freed: 1.66 MB
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 5: Documentation and Git Status                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Key Documentation Check
+─────────────────────────────────────────────────
+✅ README.md exists
+✅ CHANGELOG.md exists
+✅ docs/DOCUMENTATION_INDEX.md exists
+✅ DOCUMENTATION_INDEX.md found in docs/ (acceptable)
+
+─────────────────────────────────────────────────
+ Git Status
+─────────────────────────────────────────────────
+ℹ️  Uncommitted changes detected:
+ M backend/data/imports/1_courses.csv  M backend/data/imports/1_grades.csv  M backend/data/imports/1_students.csv  M commit_ready_20260127-155331.log  M commit_ready_20260127-160837.log  M docs/plans/UNIFIED_WORK_PLAN.md ?? commit_ready_20260127-161541.log ?? commit_ready_20260127-162200.log ?? commit_ready_20260127-170815.log ?? commit_ready_20260127-171623.log ?? commit_ready_20260127-174356.log
+
+─────────────────────────────────────────────────
+ Root Documentation Whitelist
+─────────────────────────────────────────────────
+✅ Root documentation whitelist satisfied
+
+╔══════════════════════════════════════════════════════════════╗
+║  Execution Summary                                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Mode: quick
+Duration: 76.2s
+
+Code Quality:
+  ✅ Docs & Version Sync
+  ✅ Version Consistency
+  ✅ Version Format
+  ✅ Backend Ruff
+  ✅ Backend MyPy
+  ✅ Frontend ESLint
+  ✅ Markdown Lint
+  ✅ TypeScript
+  ✅ Translation Integrity
+
+Tests:
+  ✅ Backend Dependencies
+  ✅ Conftest Config
+  ❌ Backend pytest
+  ✅ Frontend Vitest
+
+Health Checks:
+  ✅ Git Remote
+
+Cleanup:
+  ✅ Python Cache (17 items)
+  ✅ Node Cache (Already clean)
+  ✅ Build Artifacts
+  ✅ Temp Files (17 files removed)
+
+= * 60
+[FAIL] SOME CHECKS FAILED - REVIEW AND FIX
+= * 60
+**********************
+PowerShell transcript end
+End time: 20260127174512
+**********************

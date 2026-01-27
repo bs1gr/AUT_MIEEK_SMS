@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20260127160838
+Start time: 20260127170815
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name:
+Configuration Name: 
 Machine: REC (Microsoft Windows NT 10.0.26220.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
-Process ID: 31568
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File .\COMMIT_READY.ps1 -Quick
+Process ID: 22880
 PSVersion: 7.5.4
 PSEdition: Core
 GitCommitId: 7.5.4
@@ -19,12 +19,12 @@ WSManStackVersion: 3.0
 **********************
 --------------------------------------------------------------
  COMMIT READY - Pre-Commit Verification
- Student Management System v1.17.4
+ Student Management System v1.17.5
 --------------------------------------------------------------
 
 Mode: quick
-Started: 2026-01-27 16:08:38
-Log file: D:\SMS\student-management-system\commit_ready_20260127-160837.log
+Started: 2026-01-27 17:08:15
+Log file: D:\SMS\student-management-system\commit_ready_20260127-170815.log
 
 
 ╔══════════════════════════════════════════════════════════════╗
@@ -43,21 +43,21 @@ Log file: D:\SMS\student-management-system\commit_ready_20260127-160837.log
  + ======================================================================
 SMS Version Verification Tool
 ======================================================================
-ℹ️  Using version from VERSION file: 1.17.4
-ℹ️  Target version: 1.17.4
+ℹ️  Using version from VERSION file: 1.17.5
+ℹ️  Target version: 1.17.5
 ℹ️  Mode: CHECK ONLY
 
  + ======================================================================
 Checking Version References
 ======================================================================
-✅ VERSION file: 1.17.4 (correct)
-✅ Backend main.py docstring: 1.17.4 (correct)
-✅ Frontend package.json: 1.17.4 (correct)
-✅ User guide version: 1.17.4 (correct)
-✅ Developer guide version: 1.17.4 (correct)
-✅ Documentation index version: 1.17.4 (correct)
-✅ COMMIT_READY.ps1 version: 1.17.4 (correct)
-✅ INSTALLER_BUILDER.ps1 version: 1.17.4 (correct)
+✅ VERSION file: 1.17.5 (correct)
+✅ Backend main.py docstring: 1.17.5 (correct)
+✅ Frontend package.json: 1.17.5 (correct)
+✅ User guide version: 1.17.5 (correct)
+✅ Developer guide version: 1.17.5 (correct)
+✅ Documentation index version: 1.17.5 (correct)
+✅ COMMIT_READY.ps1 version: 1.17.5 (correct)
+✅ INSTALLER_BUILDER.ps1 version: 1.17.5 (correct)
 
  + ======================================================================
 Verification Summary
@@ -75,7 +75,7 @@ Failed:             0
 ║  Phase 0.5: Version Format Enforcement                        ║
 ╚══════════════════════════════════════════════════════════════╝
 
-✅ Version format valid: 1.17.4
+✅ Version format valid: 1.17.5
 
 ─────────────────────────────────────────────────
  Backend: Ensure Python Dependencies
@@ -172,7 +172,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_attendance_router.py
 ℹ Running tests...
 ....................................................................     [100%]
-✓ Batch 1 completed successfully in 10.1s
+✓ Batch 1 completed successfully in 11.7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -185,7 +185,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_auth_router.py
 ℹ Running tests...
 .........................................                                [100%]
-✓ Batch 2 completed successfully in 6.9s
+✓ Batch 2 completed successfully in 7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -198,7 +198,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_config_settings.py
 ℹ Running tests...
 ...................................................                      [100%]
-✓ Batch 3 completed successfully in 4.8s
+✓ Batch 3 completed successfully in 5.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -211,7 +211,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_control_path_traversal.py
 ℹ Running tests...
 ...........................                                              [100%]
-✓ Batch 4 completed successfully in 12.2s
+✓ Batch 4 completed successfully in 10.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -224,7 +224,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_csv_import.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 5 completed successfully in 6.5s
+✓ Batch 5 completed successfully in 5.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -237,7 +237,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_enrollments_router.py
 ℹ Running tests...
 ................................................                         [100%]
-✓ Batch 6 completed successfully in 6.1s
+✓ Batch 6 completed successfully in 5.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -250,7 +250,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_grade_calculation_fix.py
 ℹ Running tests...
 ...................                                                      [100%]
-✓ Batch 7 completed successfully in 6.2s
+✓ Batch 7 completed successfully in 5.5s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -263,7 +263,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_health_checks.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 8 completed successfully in 5.7s
+✓ Batch 8 completed successfully in 5.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -276,7 +276,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_imports_integration.py
 ℹ Running tests...
 ..............................                                           [100%]
-✓ Batch 9 completed successfully in 8.8s
+✓ Batch 9 completed successfully in 9.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -291,7 +291,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 .....s..                                                                 [100%]
 =========================== short test summary info ===========================
 SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
-✓ Batch 10 completed successfully in 4.4s
+✓ Batch 10 completed successfully in 4.7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -304,7 +304,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
   • test_models_relationships.py
 ℹ Running tests...
 ..................                                                       [100%]
-✓ Batch 11 completed successfully in 4.8s
+✓ Batch 11 completed successfully in 4.7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -317,7 +317,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
   • test_rate_limit_enforcement.py
 ℹ Running tests...
 ..........................................................               [100%]
-✓ Batch 12 completed successfully in 5.5s
+✓ Batch 12 completed successfully in 5.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -376,7 +376,7 @@ SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC ex
 SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
-✓ Batch 13 completed successfully in 5.6s
+✓ Batch 13 completed successfully in 6s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -389,7 +389,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_response_cache_middleware.py
 ℹ Running tests...
 ...........................                                              [100%]
-✓ Batch 14 completed successfully in 8.9s
+✓ Batch 14 completed successfully in 9.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -402,7 +402,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_run_migrations.py
 ℹ Running tests...
 .....................................                                    [100%]
-✓ Batch 15 completed successfully in 18.6s
+✓ Batch 15 completed successfully in 18.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -426,7 +426,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-✓ Batch 16 completed successfully in 6.2s
+✓ Batch 16 completed successfully in 7.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -439,7 +439,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
   • test_students_router.py
 ℹ Running tests...
 ...................................                                      [100%]
-✓ Batch 17 completed successfully in 5.3s
+✓ Batch 17 completed successfully in 5.9s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -454,7 +454,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
 SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
 SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
 SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
-✓ Batch 18 completed successfully in 2.2s
+✓ Batch 18 completed successfully in 2.6s
 
 ╔════════════════════════════════════════╗
 ║          TEST EXECUTION SUMMARY        ║
@@ -467,7 +467,7 @@ Batches:
 Tests:
   Total:   0
 
-Duration: 163s
+Duration: 163.6s
 
 ✓ All tests passed! 🎉
 ✅ Backend tests passed
@@ -534,7 +534,7 @@ stderr | src/i18n/__tests__/translations.test.ts
  Git Status
 ─────────────────────────────────────────────────
 ℹ️  Uncommitted changes detected:
- M commit_ready_20260126-215017.log ?? commit_ready_20260127-155331.log ?? commit_ready_20260127-160837.log
+ M commit_ready_20260127-155331.log  M commit_ready_20260127-160837.log  M frontend/src/features/advanced-search/AdvancedSearchPage.tsx  M frontend/src/features/advanced-search/hooks/useSearch.ts ?? commit_ready_20260127-161541.log ?? commit_ready_20260127-162200.log ?? commit_ready_20260127-170815.log ?? frontend/src/features/advanced-search/__tests__/AdvancedQueryBuilder.test.tsx ?? frontend/src/features/advanced-search/__tests__/FacetedNavigation.test.tsx ?? frontend/src/features/advanced-search/__tests__/SearchHistorySidebar.test.tsx ?? frontend/src/features/advanced-search/components/AdvancedQueryBuilder.tsx ?? frontend/src/features/advanced-search/components/FacetedNavigation.tsx ?? frontend/src/features/advanced-search/components/SearchHistorySidebar.tsx ?? frontend/src/features/advanced-search/hooks/useSearchHistory.ts
 
 ─────────────────────────────────────────────────
  Root Documentation Whitelist
@@ -546,7 +546,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ╚══════════════════════════════════════════════════════════════╝
 
 Mode: quick
-Duration: 231s
+Duration: 236.5s
 
 Code Quality:
   ✅ Docs & Version Sync
@@ -585,8 +585,8 @@ Cleanup:
 chore: pre-commit validation complete
 
 Status: ✅ PASSED
-Version: 1.17.4
-Duration: 231s
+Version: 1.17.5
+Duration: 236.5s
 Mode: quick
 
 Code Quality:
@@ -604,5 +604,5 @@ NEXT STEPS:
 4. Push: git push origin main
 **********************
 PowerShell transcript end
-End time: 20260127161229
+End time: 20260127171212
 **********************

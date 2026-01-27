@@ -19,8 +19,8 @@ function setup(facets: Record<string, FacetValue[]>, selected: Record<string, st
 describe('FacetedNavigation', () => {
   test('renders empty state', () => {
     setup({});
-    expect(screen.getByText(/facets/i)).toBeInTheDocument();
-    expect(screen.getByText(/No facets/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /facets/i })).toBeInTheDocument();
+    expect(screen.getByText(/No facets available/i)).toBeInTheDocument();
   });
 
   test('renders facet values and toggles selection', () => {
