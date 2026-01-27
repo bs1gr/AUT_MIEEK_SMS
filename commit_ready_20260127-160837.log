@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20260126215017
+Start time: 20260127160838
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name:
+Configuration Name: 
 Machine: REC (Microsoft Windows NT 10.0.26220.0)
 Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
-Process ID: 14180
+Process ID: 31568
 PSVersion: 7.5.4
 PSEdition: Core
 GitCommitId: 7.5.4
@@ -23,8 +23,8 @@ WSManStackVersion: 3.0
 --------------------------------------------------------------
 
 Mode: quick
-Started: 2026-01-26 21:50:17
-Log file: D:\SMS\student-management-system\commit_ready_20260126-215017.log
+Started: 2026-01-27 16:08:38
+Log file: D:\SMS\student-management-system\commit_ready_20260127-160837.log
 
 
 ╔══════════════════════════════════════════════════════════════╗
@@ -139,7 +139,7 @@ Failed:             0
 ─────────────────────────────────────────────────
 ℹ️  Checking translation key parity...
 stderr | src/i18n/__tests__/translations.test.ts
-[i18n] No search translation keys found in English bundle
+[i18n] Search translation keys loaded: 6 keys
 
 ✅ Translation integrity verified
 
@@ -172,7 +172,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_attendance_router.py
 ℹ Running tests...
 ....................................................................     [100%]
-✓ Batch 1 completed successfully in 16.9s
+✓ Batch 1 completed successfully in 10.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -185,7 +185,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_auth_router.py
 ℹ Running tests...
 .........................................                                [100%]
-✓ Batch 2 completed successfully in 6.4s
+✓ Batch 2 completed successfully in 6.9s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -198,7 +198,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_config_settings.py
 ℹ Running tests...
 ...................................................                      [100%]
-✓ Batch 3 completed successfully in 4.5s
+✓ Batch 3 completed successfully in 4.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -211,7 +211,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_control_path_traversal.py
 ℹ Running tests...
 ...........................                                              [100%]
-✓ Batch 4 completed successfully in 10.1s
+✓ Batch 4 completed successfully in 12.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -224,7 +224,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_csv_import.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 5 completed successfully in 5.4s
+✓ Batch 5 completed successfully in 6.5s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -237,7 +237,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_enrollments_router.py
 ℹ Running tests...
 ................................................                         [100%]
-✓ Batch 6 completed successfully in 4.8s
+✓ Batch 6 completed successfully in 6.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -250,7 +250,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_grade_calculation_fix.py
 ℹ Running tests...
 ...................                                                      [100%]
-✓ Batch 7 completed successfully in 5.5s
+✓ Batch 7 completed successfully in 6.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -263,7 +263,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_health_checks.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 8 completed successfully in 5.1s
+✓ Batch 8 completed successfully in 5.7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -304,7 +304,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
   • test_models_relationships.py
 ℹ Running tests...
 ..................                                                       [100%]
-✓ Batch 11 completed successfully in 4.4s
+✓ Batch 11 completed successfully in 4.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -317,7 +317,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
   • test_rate_limit_enforcement.py
 ℹ Running tests...
 ..........................................................               [100%]
-✓ Batch 12 completed successfully in 5.6s
+✓ Batch 12 completed successfully in 5.5s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -389,7 +389,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_response_cache_middleware.py
 ℹ Running tests...
 ...........................                                              [100%]
-✓ Batch 14 completed successfully in 9.1s
+✓ Batch 14 completed successfully in 8.9s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -402,7 +402,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_run_migrations.py
 ℹ Running tests...
 .....................................                                    [100%]
-✓ Batch 15 completed successfully in 24.8s
+✓ Batch 15 completed successfully in 18.6s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -426,7 +426,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-✓ Batch 16 completed successfully in 6.4s
+✓ Batch 16 completed successfully in 6.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -439,7 +439,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
   • test_students_router.py
 ℹ Running tests...
 ...................................                                      [100%]
-✓ Batch 17 completed successfully in 5.2s
+✓ Batch 17 completed successfully in 5.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -454,7 +454,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
 SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
 SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
 SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
-✓ Batch 18 completed successfully in 2.3s
+✓ Batch 18 completed successfully in 2.2s
 
 ╔════════════════════════════════════════╗
 ║          TEST EXECUTION SUMMARY        ║
@@ -467,7 +467,7 @@ Batches:
 Tests:
   Total:   0
 
-Duration: 169.6s
+Duration: 163s
 
 ✓ All tests passed! 🎉
 ✅ Backend tests passed
@@ -477,7 +477,7 @@ Duration: 169.6s
 ─────────────────────────────────────────────────
 ℹ️  Running fast frontend tests only...
 stderr | src/i18n/__tests__/translations.test.ts
-[i18n] No search translation keys found in English bundle
+[i18n] Search translation keys loaded: 6 keys
 
 ✅ Frontend tests passed
 
@@ -534,7 +534,7 @@ stderr | src/i18n/__tests__/translations.test.ts
  Git Status
 ─────────────────────────────────────────────────
 ℹ️  Uncommitted changes detected:
-M  .github/RELEASE_NOTES_v1.17.4.md M  CHANGELOG.md AM commit_ready_20260126-214252.log M  docs/releases/GITHUB_RELEASE_v1.17.4.md M  docs/releases/RELEASE_NOTES_v1.17.4.md M  frontend/src/features/search/SavedSearches.tsx M  frontend/src/features/search/SearchBar.tsx M  frontend/src/features/search/SearchFacets.tsx M  frontend/src/features/search/SearchPagination.tsx M  frontend/src/features/search/SearchSortControls.tsx M  frontend/src/features/search/SearchView.tsx M  frontend/src/hooks/usePerformanceMonitor.ts M  frontend/src/i18n/config.ts M  frontend/src/locales/el/search.js M  frontend/src/locales/en/search.js M  frontend/src/translations.ts AM frontend/test-results-search.txt ?? commit_ready_20260126-215017.log
+ M commit_ready_20260126-215017.log ?? commit_ready_20260127-155331.log ?? commit_ready_20260127-160837.log
 
 ─────────────────────────────────────────────────
  Root Documentation Whitelist
@@ -546,7 +546,7 @@ M  .github/RELEASE_NOTES_v1.17.4.md M  CHANGELOG.md AM commit_ready_20260126-214
 ╚══════════════════════════════════════════════════════════════╝
 
 Mode: quick
-Duration: 255.2s
+Duration: 231s
 
 Code Quality:
   ✅ Docs & Version Sync
@@ -586,7 +586,7 @@ chore: pre-commit validation complete
 
 Status: ✅ PASSED
 Version: 1.17.4
-Duration: 255.2s
+Duration: 231s
 Mode: quick
 
 Code Quality:
@@ -604,5 +604,5 @@ NEXT STEPS:
 4. Push: git push origin main
 **********************
 PowerShell transcript end
-End time: 20260126215432
+End time: 20260127161229
 **********************
