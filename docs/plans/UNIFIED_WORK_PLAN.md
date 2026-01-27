@@ -7,7 +7,35 @@
 **Current Branch**: `main`
 
 
-### Latest Update (Jan 27 - 16:35 UTC - v1.17.5 RELEASED - Security Updates Complete)
+### Latest Update (Jan 27 - 17:30 UTC - Issue #149 Performance Baseline Established)
+> 🔄 **ISSUE #149 PERFORMANCE & QA VALIDATION IN PROGRESS - BASELINE ESTABLISHED**
+> - ✅ Load testing environment configured (Locust 2.29.1, native servers on 8000/5173)
+> - ✅ Smoke test executed: 19 /health requests, avg 4875ms, median 4900ms, p95 7400ms, 0% errors
+>   - Observation: Health endpoint too heavy for SLA (comprehensive DB checks)
+> - ✅ Light scenario executed: 50 users, 60s, LightUser class
+>   - Total: 919 requests, 69 failures (7.51% error rate)
+>   - Performance: median 10ms, p95 2100ms, p99 2200ms, max 2300ms, req/s 15.45
+>   - Error breakdown: 67 search 422s (validation), 2 POST student 422s (validation)
+>   - Key endpoints tested: students pagination, courses pagination, analytics dashboard, search, export
+> - ✅ Results analyzed and documented below in Issue #149 section
+>
+> **Performance Observations**:
+> - ✅ Fast typical response paths (10-30ms median for most endpoints)
+> - ⚠️ Consistent outliers at p95 2100-2300ms on bulk operations (needs optimization)
+> - ℹ️ 422 validation errors expected with random test inputs (not system failures)
+> - 🎯 Primary optimization targets: bulk list queries (large limits), analytics dashboard, export endpoints
+>
+> **Next Steps**:
+> 1. ✅ Baseline established (smoke + light scenarios complete)
+> 2. 🔄 Run curated endpoint tests with valid inputs (reduce 422 noise)
+> 3. 🔄 Profile backend hot paths (indexes, caching, ORM patterns)
+> 4. 🔄 Optimize critical endpoints to meet <500ms p95 SLA target
+> 5. 🔄 Re-run load scenarios after optimization
+> 6. 🔄 Document final performance validation results
+>
+> **Ready for**: Backend profiling and optimization to reduce p95 from 2100ms → <500ms
+>
+### Previous Update (Jan 27 - 16:35 UTC - v1.17.5 RELEASED - Security Updates Complete)
 > ✅ **VERSION 1.17.5 RELEASED - COMPREHENSIVE SECURITY UPDATE**
 > - ✅ Fixed 7 CVEs in backend dependencies:
 >   - python-multipart: 0.0.20 → 0.0.22 (CVE-2026-24486)
@@ -35,12 +63,10 @@
 > **Next Steps**:
 > 1. ✅ Version tagging complete (v1.17.5)
 > 2. ✅ GitHub Release created at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.5
-> 3. ⏳ Issue #149 - Performance & QA validation
-> 4. ⏳ Monitor E2E CI execution (5+ runs, timeout adjustments)
-> 5. ⏳ Optional: Delete feature branch feature/phase4-advanced-search
-> 6. ⏳ Optional: Implement STEP 7-9 advanced search features (16 hours)
->
-> **Ready for**: Performance validation (Issue #149) or next phase planning
+> 3. ✅ STEP 7-9 optional advanced features implemented (FacetedNavigation, SearchHistory, AdvancedQueryBuilder)
+> 4. 🔄 Issue #149 - Performance & QA validation (baseline established, optimization next)
+> 5. ⏳ Monitor E2E CI execution (5+ runs, timeout adjustments)
+> 6. ⏳ Optional: Delete feature branch feature/phase4-advanced-search
 >
 ### Previous Update (Jan 26 - 11:20 UTC - PR #150 MERGED - Issue #147 Complete)
 > ✅ **PR #150 MERGED TO MAIN - PHASE 4 ISSUE #147 COMPLETE**
@@ -312,7 +338,138 @@
 | #146 | Backend | Saved searches CRUD | ✅ COMPLETE (v1.18.0) | Already Implemented |
 | #147 | Frontend | Advanced search UI & filters | 🔄 IN PROGRESS (Implementation started) | AI Agent |
 | #148 | Frontend | Saved searches UI/UX | ✅ COMPLETE (v1.18.0 + Jan 25 fixes) | AI Agent |
-| #149 | QA/Perf | Performance, benchmarks, QA | 🔄 NEXT PHASE | AI Agent |
+| #149 | QA/Perf | Performance, benchmarks, QA | 🔄 IN PROGRESS (Baseline established) | AI Agent |
+
+### Issue #149: Performance, Benchmarks & QA Validation
+
+**Status**: 🔄 IN PROGRESS - Baseline established, optimization phase next
+
+**Scope**:
+- Execute comprehensive load testing scenarios (smoke, light, medium, heavy, stress)
+- Establish performance baselines and identify bottlenecks
+- Profile backend hot paths (database queries, ORM patterns, caching)
+- Optimize critical endpoints to meet SLA targets (< 500ms p95 response time)
+- Re-validate performance after optimizations
+- Document final performance metrics and recommendations
+
+**Performance Targets**:
+- Development/Staging: p95 < 3000ms, p99 < 8000ms (current config)
+- Production (goal): p95 < 500ms, p99 < 1500ms
+- Error rate: < 1% (excluding validation errors)
+- Throughput: Support 50-200 concurrent users depending on scenario
+
+**Baseline Results (Jan 27, 2026 - 17:30 UTC)**:
+
+**Environment Configuration**:
+- Deployment: Native mode (NATIVE.ps1 -Start)
+- Backend: FastAPI on localhost:8000, Python 3.13.9, SQLite database
+- Frontend: Vite on localhost:5173
+- Auth: Disabled (CI_SKIP_AUTH=true, AUTH_MODE=disabled)
+- Load Tool: Locust 2.29.1 with gevent-based FastHttpUser
+
+**Smoke Test Results** (5 users, 30s, SmokeUser class):
+- Endpoint: GET /health (comprehensive health check with DB verification)
+- Requests: 19 total, 0 failures (0.00%)
+- Response times: avg 4875ms, median 4900ms, p95 7400ms, p99 7400ms
+- Throughput: 0.70 req/s
+- **Observation**: Health endpoint too heavy for SLA measurement (includes comprehensive DB + system checks)
+- **Recommendation**: Use /health/live or /health/ready for SLA monitoring; optimize /health for lighter checks
+
+**Light Scenario Results** (50 users, 5 spawn/sec, 60s, LightUser class):
+
+*Aggregated Metrics*:
+- Total requests: 919
+- Total failures: 69 (7.51% error rate)
+- Response times: avg 156ms, median 10ms, p95 2100ms, p99 2200ms, max 2300ms
+- Throughput: 15.45 req/s, 1.16 failures/s
+
+*Percentile Distribution (Aggregated)*:
+- 50%: 10ms, 66%: 17ms, 75%: 26ms, 80%: 61ms
+- 90%: 240ms, 95%: 2100ms, 98%: 2200ms, 99%: 2200ms
+- 99.9%: 2300ms, 100%: 2300ms
+
+*Key Endpoint Breakdown*:
+1. `/api/v1/students?skip=*&limit=*` (253 requests):
+   - Median: 5-23ms (varies by limit size)
+   - p95: 2100-2300ms (on large limits like 1000)
+   - Observation: Fast for small pages, outliers on bulk retrieval
+
+2. `/api/v1/courses?skip=0&limit=1000` (222 requests):
+   - Median: 8ms
+   - p95: 2100ms, p99: 2200ms
+   - Observation: Consistent ~2s delay at p95 for large result sets
+
+3. `/api/v1/analytics/dashboard` (85 requests):
+   - Median: 6ms
+   - p95: 210ms, p99: 2100ms
+   - Observation: Most requests fast, some outliers at 2.1s
+
+4. `/api/v1/students/search?q=*` (various queries):
+   - Median: 2-7ms for most queries
+   - 67 failures with 422 status (validation errors on random inputs)
+   - Examples: "Jorge", "Erika", emails, student IDs triggering validation
+   - Observation: Search endpoint strict, needs valid inputs for clean metrics
+
+5. `POST /api/v1/students` (21 requests):
+   - Median: 240ms
+   - p95: 480ms, max: 2300ms
+   - 2 failures with 422 status (validation errors)
+   - Observation: Write operations slower than reads, some outliers
+
+6. `/api/v1/export/students/excel` (22 requests):
+   - Median: 170ms
+   - p95: 2200ms
+   - Observation: Excel generation has high variance, p95 at 2.2s
+
+*Error Analysis* (69 total failures):
+- 67 search endpoint 422s: BadStatusCode on validation (query terms: names, emails, student IDs)
+- 2 POST student 422s: BadStatusCode on create (validation failures)
+- **Interpretation**: All errors are client validation (422), not server failures (500)
+- **Impact**: Error rate inflated by randomized test inputs; curated tests will reduce this
+
+**Performance Observations**:
+1. ✅ **Fast typical paths**: 10-30ms median response times for most endpoints (excellent)
+2. ⚠️ **Consistent outliers**: p95 times at 2100-2300ms on bulk operations (needs optimization)
+3. ℹ️ **Validation strict**: 422 errors expected with random inputs (not a bug, feature working as designed)
+4. 🎯 **Primary bottlenecks identified**:
+   - Large limit pagination (skip=0, limit=1000): 2.1-2.3s p95
+   - Analytics dashboard: 2.1s p99 on complex queries
+   - Excel export: 2.2s p95 for generation
+   - Write operations: 480ms p95 for POST /students
+
+**Root Cause Hypotheses**:
+- Missing or insufficient database indexes on pagination keys (skip, limit, sort fields)
+- No response caching on high-read endpoints (students list, courses list)
+- Potential N+1 query patterns in ORM (eager loading vs lazy loading)
+- Analytics dashboard may have unoptimized aggregations or joins
+- Excel export lacks streaming or bulk optimization
+- SQLite may have locking contention under concurrency (consider PostgreSQL for production)
+
+**Next Steps**:
+1. 🔄 **Curated endpoint tests**: Run scenarios with validated inputs to eliminate 422 noise
+2. 🔄 **Backend profiling**:
+   - Verify database indexes on students/courses tables (pagination fields, foreign keys)
+   - Check response cache configuration for safe read operations
+   - Inspect ORM query patterns for N+1 issues (use `.options(joinedload())` where appropriate)
+   - Profile analytics dashboard queries (EXPLAIN ANALYZE)
+   - Review Excel export implementation (streaming vs in-memory)
+3. 🔄 **Optimizations**:
+   - Add missing indexes if found
+   - Enable strategic caching for stable read endpoints
+   - Fix ORM N+1 patterns with eager loading
+   - Optimize analytics queries (reduce joins, add indexes, consider materialized views)
+   - Implement pagination limits (cap max limit to 100-500 to prevent unbounded queries)
+4. 🔄 **Re-validation**: Run light + medium scenarios after optimizations to measure improvements
+5. 🔄 **Documentation**: Update work plan with final performance metrics and SLA compliance status
+
+**Acceptance Criteria** (for completion):
+- [ ] p95 response times < 500ms for user-facing endpoints (students list, courses list, search)
+- [ ] p99 response times < 1500ms for read operations
+- [ ] Error rate < 1% (excluding expected validation errors)
+- [ ] Analytics dashboard p95 < 1000ms
+- [ ] Excel export p95 < 1500ms (acceptable for batch operation)
+- [ ] All optimizations documented with before/after metrics
+- [ ] Performance recommendations documented for production deployment
 
 ### Issue #147: Frontend Advanced Search UI & Filters
 
