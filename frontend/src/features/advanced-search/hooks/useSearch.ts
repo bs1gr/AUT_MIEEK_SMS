@@ -26,6 +26,7 @@ export interface UseSearchState {
   sortOrder: 'asc' | 'desc';
   currentPage: number;
   pageSize: number;
+  selectedFacets?: Record<string, string[]>;
 }
 
 /**
@@ -48,6 +49,7 @@ export const useSearch = (
     sortOrder: initialState?.sortOrder ?? 'desc',
     currentPage: initialState?.currentPage ?? 1,
     pageSize: initialState?.pageSize ?? 20,
+    selectedFacets: initialState?.selectedFacets ?? {},
   });
 
   // Debounce timer
@@ -64,10 +66,20 @@ export const useSearch = (
 
   // Build search query for API
   const buildSearchQuery = useCallback((): SearchQuery => {
+    // Merge facet selections into filters (simple equals mapping)
+    const facetFilters: FilterCondition[] = [];
+    const selectedFacets = debouncedQuery.selectedFacets || {};
+    Object.keys(selectedFacets).forEach((key) => {
+      const values = selectedFacets[key] || [];
+      values.forEach((val) => {
+        facetFilters.push({ field: key, operator: 'equals', value: val });
+      });
+    });
+
     return {
       q: debouncedQuery.query,
       entity_type: debouncedQuery.entityType === 'all' ? undefined : debouncedQuery.entityType,
-      filters: debouncedQuery.filters,
+      filters: [...debouncedQuery.filters, ...facetFilters],
       sort_by: debouncedQuery.sortBy,
       sort_order: debouncedQuery.sortOrder,
       page: debouncedQuery.currentPage,
@@ -143,6 +155,38 @@ export const useSearch = (
     setState((prev) => ({
       ...prev,
       filters,
+      currentPage: 1,
+    }));
+  }, []);
+
+  // Toggle facet selection
+  const toggleFacet = useCallback((facetKey: string, value: string) => {
+    setState((prev) => {
+      const current = new Set(prev.selectedFacets?.[facetKey] || []);
+      if (current.has(value)) {
+        current.delete(value);
+      } else {
+        current.add(value);
+      }
+      return {
+        ...prev,
+        selectedFacets: {
+          ...(prev.selectedFacets || {}),
+          [facetKey]: Array.from(current),
+        },
+        currentPage: 1,
+      };
+    });
+  }, []);
+
+  // Clear all values for a facet key
+  const clearFacet = useCallback((facetKey: string) => {
+    setState((prev) => ({
+      ...prev,
+      selectedFacets: {
+        ...(prev.selectedFacets || {}),
+        [facetKey]: [],
+      },
       currentPage: 1,
     }));
   }, []);
@@ -232,6 +276,8 @@ export const useSearch = (
     setSortBy,
     setCurrentPage,
     setPageSize,
+    toggleFacet,
+    clearFacet,
 
     // Utilities
     buildSearchQuery,
