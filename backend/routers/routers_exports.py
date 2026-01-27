@@ -1,6 +1,6 @@
 import os
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Query
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
@@ -489,6 +489,7 @@ from backend.services.audit_service import AuditLogger
 @require_permission("exports:generate")
 async def export_students_excel(
     request: Request,
+    limit: int = Query(100, ge=1, le=10000, description="Max records to export (default 100, max 10000)"),
     db: Session = Depends(get_db),
 ):
     audit = AuditLogger(db)
@@ -496,7 +497,14 @@ async def export_students_excel(
         (Student,) = import_names("models", "Student")
         lang = get_lang(request)
 
-        students = db.query(Student).filter(Student.deleted_at.is_(None)).all()
+        # Query with pagination to reduce memory overhead
+        students = (
+            db.query(Student)
+            .filter(Student.deleted_at.is_(None))
+            .order_by(Student.last_name, Student.first_name)
+            .limit(limit)
+            .all()
+        )
 
         wb = openpyxl.Workbook()
         ws: Any = wb.active
@@ -526,7 +534,7 @@ async def export_students_excel(
             request=request,
             action=AuditAction.BULK_EXPORT,
             resource=AuditResource.STUDENT,
-            details={"count": len(students), "format": "excel", "filename": filename},
+            details={"count": len(students), "requested_limit": limit, "format": "excel", "filename": filename},
             success=True,
         )
         return StreamingResponse(
