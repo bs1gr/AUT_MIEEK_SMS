@@ -34,13 +34,13 @@
 >
 > **Next Steps**:
 > 1. ✅ Version tagging complete (v1.17.5)
-> 2. ⏳ Create GitHub Release at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
+> 2. ✅ GitHub Release created at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.5
 > 3. ⏳ Issue #149 - Performance & QA validation
 > 4. ⏳ Monitor E2E CI execution (5+ runs, timeout adjustments)
 > 5. ⏳ Optional: Delete feature branch feature/phase4-advanced-search
 > 6. ⏳ Optional: Implement STEP 7-9 advanced search features (16 hours)
 >
-> **Ready for**: GitHub release creation, performance validation, or next phase planning
+> **Ready for**: Performance validation (Issue #149) or next phase planning
 >
 ### Previous Update (Jan 26 - 11:20 UTC - PR #150 MERGED - Issue #147 Complete)
 > ✅ **PR #150 MERGED TO MAIN - PHASE 4 ISSUE #147 COMPLETE**
