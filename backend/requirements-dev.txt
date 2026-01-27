@@ -16,3 +16,11 @@ httpx>=0.27.0
 python-multipart>=0.0.22
 protobuf>=5.29.5,<6.0
 types-requests>=2.32.0.20241016
+
+# Security constraints for development transitive dependencies
+filelock>=3.20.3
+virtualenv>=20.36.1  # CVE-2026-22702: Fix expected in 20.36.2 (not yet released)
+wheel>=0.46.2
+werkzeug>=3.1.5
+keras>=3.13.1
+orjson>=3.11.4  # CVE-2025-67221: No fix version listed, using latest
