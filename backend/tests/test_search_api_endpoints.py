@@ -446,9 +446,15 @@ class TestAdvancedSearchEndpoint:
         assert response.status_code == 200
         data = response.json()
 
-        # Response is a simple list - just verify format
+        # Response now has pagination metadata
         assert "data" in data
-        assert isinstance(data["data"], list)
+        assert isinstance(data["data"], dict)
+        assert "results" in data["data"]
+        assert isinstance(data["data"]["results"], list)
+        assert "total" in data["data"]
+        assert "has_more" in data["data"]
+        assert "limit" in data["data"]
+        assert "offset" in data["data"]
 
     def test_advanced_search_pagination(self, client, admin_headers, test_data):
         """Should support pagination"""
@@ -458,9 +464,12 @@ class TestAdvancedSearchEndpoint:
 
         assert response.status_code == 200
         data = response.json()
-        # Response is a simple list - just verify format (pagination may not be implemented)
+        # Response now has pagination metadata
         assert "data" in data
-        assert isinstance(data["data"], list)
+        assert isinstance(data["data"], dict)
+        assert "results" in data["data"]
+        assert isinstance(data["data"]["results"], list)
+        assert data["data"]["limit"] == 20  # default limit or from query_string
 
 
 class TestSuggestionsEndpoint:
