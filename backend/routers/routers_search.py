@@ -258,9 +258,34 @@ async def advanced_search(
 
         search_service = SearchService(db)
 
+        # Get user-provided filters
+        user_filters = body.get("filters", {}) if isinstance(body.get("filters"), dict) else {}
+        
+        # If query text is provided, convert it to entity-specific field filters
+        query_text = body.get("query", "").strip()
+        if query_text:
+            # Merge query-based filters with user filters
+            # Query filters apply to common searchable fields based on entity type
+            query_filters = {}
+            if entity == "students":
+                # For students, search text matches against name fields (first_name, last_name)
+                # Store as a marker; _filter_students will handle it
+                query_filters["_query_text"] = query_text
+            elif entity == "courses":
+                # For courses, search text matches against course_name, course_code
+                query_filters["_query_text"] = query_text
+            elif entity == "grades":
+                # For grades, search text matches against student/course names
+                query_filters["_query_text"] = query_text
+            
+            # Merge query filters with user filters (user filters take precedence)
+            filters_to_use = {**query_filters, **user_filters}
+        else:
+            filters_to_use = user_filters
+
         # Use entity as search_type for backward compatibility
         results = search_service.advanced_filter(
-            filters=body.get("filters", {}), search_type=entity, limit=limit, offset=offset
+            filters=filters_to_use, search_type=entity, limit=limit, offset=offset
         )
 
         return success_response(results, request_id=request.state.request_id)
