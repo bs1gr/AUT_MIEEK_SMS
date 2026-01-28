@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import apiClient from '@/api/api';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/LanguageContext';
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,7 @@ interface RegisterWidgetProps {
 
 const RegisterWidget: React.FC<RegisterWidgetProps> = ({ variant = 'dialog', onRegisterSuccess, collapsedByDefault = false }) => {
   const { login } = useAuth();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

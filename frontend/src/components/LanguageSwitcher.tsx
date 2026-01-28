@@ -1,5 +1,5 @@
-import { useTranslation } from 'react-i18next';
 import { Globe } from 'lucide-react';
+import { useLanguage } from '@/LanguageContext';
 
 /**
  * LanguageSwitcher Component
@@ -15,23 +15,21 @@ import { Globe } from 'lucide-react';
  * - Automatic persistence via i18next
  */
 const LanguageSwitcher: React.FC = () => {
-  const { i18n } = useTranslation();
+  const { t, language, setLanguage } = useLanguage();
 
-  // Get current language (default to 'en' if not set)
-  const currentLanguage = i18n.language || 'en';
+  const currentLanguage = language || 'en';
 
-  // Toggle between English and Greek
   const toggleLanguage = (): void => {
     const newLanguage = currentLanguage === 'en' ? 'el' : 'en';
-    i18n.changeLanguage(newLanguage);
+    setLanguage(newLanguage);
   };
 
   return (
     <button
       onClick={toggleLanguage}
       className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200 shadow-sm"
-      aria-label={`Switch to ${currentLanguage === 'en' ? 'Greek' : 'English'}`}
-      title={`Current language: ${currentLanguage === 'en' ? 'English' : 'Ελληνικά'}`}
+      aria-label={t('lang.switchLabel', { defaultValue: `Switch to ${currentLanguage === 'en' ? 'Greek' : 'English'}` })}
+      title={t('lang.currentLabel', { defaultValue: `Current language: ${currentLanguage === 'en' ? 'English' : 'Ελληνικά'}` })}
     >
       <Globe className="w-5 h-5 text-gray-600 dark:text-gray-300" />
       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">

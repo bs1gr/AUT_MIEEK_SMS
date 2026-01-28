@@ -456,4 +456,11 @@ export default {
   },
   // Footer
   footerCredits: 'Student Management System © {{year}} Vasilis Samaras - v{{version}}',
+
+  // Pagination & Navigation
+  previous: 'Previous',
+  next: 'Next',
+  page: 'Page',
+  sortBy: 'Sort by',
+  query: 'Query',
 };

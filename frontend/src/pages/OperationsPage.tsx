@@ -2,13 +2,13 @@ import { OperationsView } from '@/features/operations';
 import { SectionErrorBoundary } from '@/components/ErrorBoundaries';
 import { useStudentsStore } from '@/stores';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/LanguageContext';
 import { Link } from 'react-router-dom';
 
 export default function OperationsPage() {
   const students = useStudentsStore((state) => state.students);
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
 
   return (
     <SectionErrorBoundary section="OperationsPage">

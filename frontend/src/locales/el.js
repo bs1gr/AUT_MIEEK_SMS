@@ -81,7 +81,7 @@ export const el = {
   greekGrade: 'Ελληνικός Βαθμός (0-20)',
 
   // Tabs
-  powerTab: 'Ενέργεια',
+  powerTab: 'Σύστημα',
 
   // Search & Filtering (Phase 4)
   searchPlaceholder: 'Αναζήτηση...',
@@ -134,6 +134,13 @@ export const el = {
   showingSearches: 'Εμφάνιση {{count}} από {{total}} αναζητήσεων',
   filters: 'φίλτρα',
   all: 'Όλα',
+
+  // Pagination & Search UI
+  previous: 'Προηγούμενο',
+  next: 'Επόμενο',
+  page: 'Σελίδα',
+  sortBy: 'Ταξινόμηση κατά',
+  query: 'Ερώτημα',
 };
 
 export default el;

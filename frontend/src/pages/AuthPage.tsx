@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/LanguageContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoginWidget from '@/components/auth/LoginWidget';
 import RegisterWidget from '@/components/auth/RegisterWidget';
@@ -16,7 +16,7 @@ const AuthPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
 
   const redirectPath = useMemo(() => {
     const state = location.state as LocationState | undefined;

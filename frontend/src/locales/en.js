@@ -81,7 +81,7 @@ export const en = {
   greekGrade: 'Greek Grade (0-20)',
 
   // Tabs
-  powerTab: 'Power',
+  powerTab: 'System',
 
   // Search & Filtering (Phase 4)
   searchPlaceholder: 'Search...',
@@ -134,6 +134,13 @@ export const en = {
   showingSearches: 'Showing {{count}} of {{total}} searches',
   filters: 'filters',
   all: 'All',
+
+  // Pagination & Search UI
+  previous: 'Previous',
+  next: 'Next',
+  page: 'Page',
+  sortBy: 'Sort by',
+  query: 'Query',
 
   // Continue with rest of translations...
   // (This is just the structure - would include all translations)

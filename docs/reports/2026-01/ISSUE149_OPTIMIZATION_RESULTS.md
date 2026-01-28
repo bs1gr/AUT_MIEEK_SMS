@@ -73,7 +73,7 @@
 - **Verdict**: ❌ **Insufficient** - Still 90ms over SLA
 
 ### Path B: Async/Background Export (RECOMMENDED)
-- **Implementation**: 
+- **Implementation**:
   - Return job ID immediately (p50 <100ms)
   - Generate Excel in background task (Celery, APScheduler, or FastAPI background tasks)
   - Poll job status endpoint for completion
@@ -83,7 +83,7 @@
 - **Effort**: 4-6 hours (add background task queue, job tracking, status endpoints)
 
 ### Path C: Streaming Export (ADVANCED)
-- **Implementation**: 
+- **Implementation**:
   - Return `StreamingResponse` with chunked Excel generation
   - Write rows incrementally to output stream
   - Client receives partial file as server generates

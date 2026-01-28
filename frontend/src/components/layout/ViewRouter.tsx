@@ -39,7 +39,7 @@ export interface ViewRouterProps {
   onEditCourse: (course: Course) => void;
   onDeleteCourse: (courseId: number) => Promise<void>;
 
-  // Power view specific (render props pattern)
+  // System view specific (render props pattern) - formerly 'power'
   renderPowerView?: () => ReactElement | null;
 }
 
@@ -121,7 +121,8 @@ export default function ViewRouter({
             <OperationsView students={students} />
           )}
 
-          {activeView === 'power' && renderPowerView && renderPowerView()}
+          {/* Legacy support: 'system' view (formerly 'power') */}
+          {(activeView === 'system' || activeView === 'power') && renderPowerView && renderPowerView()}
         </Suspense>
       </motion.div>
     </AnimatePresence>

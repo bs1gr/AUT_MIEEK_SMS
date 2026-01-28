@@ -63,7 +63,7 @@ const StudentManagementApp = () => {
       const params = new URLSearchParams(window.location.search);
       const queryView = (params.get('view') || '').trim().toLowerCase();
       const v = hash || queryView || 'dashboard';
-      const allowed = new Set<string>(['dashboard','students','courses','attendance','grading','calendar','operations','power']);
+      const allowed = new Set<string>(['dashboard','students','courses','attendance','grading','calendar','operations','system']);
       return allowed.has(v) ? v as NavigationView : 'dashboard';
     } catch {
       return 'dashboard';
@@ -77,7 +77,7 @@ const StudentManagementApp = () => {
     const onHashChange = () => {
       const hashView = (window.location.hash || '').replace('#','').trim().toLowerCase();
       if (!hashView) return;
-      const allowed = new Set<string>(['dashboard','students','courses','attendance','grading','calendar','operations','power']);
+      const allowed = new Set<string>(['dashboard','students','courses','attendance','grading','calendar','operations','system']);
       if (allowed.has(hashView)) {
         setActiveView(hashView as NavigationView);
       }
@@ -119,7 +119,7 @@ const StudentManagementApp = () => {
           { key: 'courses', label: t('courses'), path: '/courses' },
           { key: 'calendar', label: t('calendar'), path: '/calendar' },
           { key: 'operations', label: t('utilsTab'), path: '/operations' },
-          { key: 'power', label: t('power'), path: '/power' },
+          { key: 'system', label: t('power'), path: '/power' },
         ]}
       />
 

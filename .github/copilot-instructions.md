@@ -78,6 +78,51 @@ cd backend && pytest -q
 
 **⚠️ CRITICAL**: All agents MUST follow these policies. Violations cause system crashes, data loss, and work duplication. See [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) for complete details.
 
+### Policy 0: Verification - ALWAYS Verify Before Claiming Success (MANDATORY)
+
+**❌ FORBIDDEN:**
+- Claiming fixes are "complete" without verification
+- Stating "ready for production" without testing
+- Saying "all tests passing" without checking actual output
+- Marking work as "done" without validation
+
+**✅ REQUIRED:**
+1. **Make the change**
+2. **Run the tests** (wait for completion)
+3. **Read the actual test output** (not just exit codes)
+4. **Verify in running application** (visual check if UI change)
+5. **ONLY THEN** claim the fix is complete
+
+**For UI/Frontend Changes:**
+```powershell
+# Make the change, then:
+npm --prefix frontend run test -- ComponentName.test --run  # Run tests
+.\NATIVE.ps1 -Start                                         # Start app
+# Open browser to http://localhost:5173
+# Visually verify the change works correctly
+# Test language switcher if i18n changes
+# ONLY THEN say "verified and working"
+```
+
+**For Backend Changes:**
+```powershell
+# Make the change, then:
+.\RUN_TESTS_BATCH.ps1                                      # Run tests
+# Read test-results/backend_batch_full.txt
+# Check for ✓ symbols (passed) or ✗ symbols (failed)
+# ONLY THEN say "tests passing"
+```
+
+**Why This Exists:**
+- Prevents false claims of completion
+- Ensures quality before marking work done
+- Builds trust with solo developer
+- Catches issues before they reach production
+
+**Enforcement:** Any claim of "fixed" or "complete" must include verification steps taken.
+
+---
+
 ### Policy 1: Testing - NEVER Run Full Test Suite Directly
 
 **❌ FORBIDDEN:**
