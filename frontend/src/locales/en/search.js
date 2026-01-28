@@ -5,9 +5,9 @@
 export default {
   page_title: 'Advanced Search',
   page_description: 'Search and filter students, courses, and grades',
-  students: 'Students',
-  courses: 'Courses',
-  grades: 'Grades',
+  typeStudent: 'Students',
+  typeCourse: 'Courses',
+  typeGrade: 'Grades',
   placeholder: {
     students: 'Search students...',
     courses: 'Search courses...',

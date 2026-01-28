@@ -45,6 +45,8 @@ import errorsEn from './locales/en/errors.js';
 import errorsEl from './locales/el/errors.js';
 import searchEn from './locales/en/search.js';
 import searchEl from './locales/el/search.js';
+import analyticsEn from './locales/en/analytics.js';
+import analyticsEl from './locales/el/analytics.js';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -54,8 +56,17 @@ export interface Translations {
 export const translations: Translations = {
   en: {
     // Root keys (navigation labels, etc.)
-    ...enRoot,
-    // Namespaced access (t('namespace.key'))
+    ...enRoot
+  },
+
+  el: {
+    // Root keys (navigation labels, etc.)
+    ...elRoot
+  }
+};
+
+export const translationNamespaces = {
+  en: {
     controlPanel: controlPanelEn,
     rbac: rbacEn,
     auth: authEn,
@@ -63,7 +74,8 @@ export const translations: Translations = {
     dashboard: dashboardEn,
     common: commonEn,
     courses: coursesEn,
-    // students, courses, grades: use root nav labels (strings) instead of namespace objects
+    students: studentsEn,
+    grades: gradesEn,
     attendance: attendanceEn,
     calendar: calendarEn,
     export: exportEn,
@@ -72,28 +84,10 @@ export const translations: Translations = {
     feedback: feedbackEn,
     errors: errorsEn,
     search: searchEn,
-    // Flattened access (t('key'))
-    ...controlPanelEn,
-    ...authEn,
-    ...utilsEn,
-    ...dashboardEn,
-    ...commonEn,
-    ...coursesEn,
-    // Avoid overriding root nav labels: keep students/courses/grades namespaced only
-    ...attendanceEn,
-    ...calendarEn,
-    ...exportEn,
-    ...helpEn,
-    ...reportsEn,
-    ...feedbackEn,
-    ...errorsEn
-    // searchEn flattened removed - contains students/courses/grades that override nav labels
+    analytics: analyticsEn
   },
 
   el: {
-    // Root keys (navigation labels, etc.)
-    ...elRoot,
-    // Namespaced access (t('namespace.key'))
     controlPanel: controlPanelEl,
     rbac: rbacEl,
     auth: authEl,
@@ -101,7 +95,8 @@ export const translations: Translations = {
     dashboard: dashboardEl,
     common: commonEl,
     courses: coursesEl,
-    // students, courses, grades: use root nav labels (strings) instead of namespace objects
+    students: studentsEl,
+    grades: gradesEl,
     attendance: attendanceEl,
     calendar: calendarEl,
     export: exportEl,
@@ -110,21 +105,8 @@ export const translations: Translations = {
     feedback: feedbackEl,
     errors: errorsEl,
     search: searchEl,
-    // Flattened access (t('key'))
-    ...controlPanelEl,
-    ...authEl,
-    ...utilsEl,
-    ...dashboardEl,
-    ...commonEl,
-    ...coursesEl,
-    // Avoid overriding root nav labels: keep students/courses/grades namespaced only
-    ...attendanceEl,
-    ...calendarEl,
-    ...exportEl,
-    ...helpEl,
-    ...reportsEl,
-    ...feedbackEl,
-    ...errorsEl
-    // searchEl flattened removed - contains students/courses/grades that override nav labels
+    analytics: analyticsEl
   }
 };
+
+export default translations;

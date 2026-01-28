@@ -41,25 +41,59 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     setLanguageState(lang);
   };
 
-  // Create a wrapper for t() that handles nested keys for backward compatibility
-  const t = (key: string, options?: Record<string, unknown>): string => {
-    // Try i18next first (it handles nested keys automatically)
-    const translation = i18nT(key, options);
-
-    // If translation is the same as key, it wasn't found
-    if (translation === key) {
-      // Return the key itself as fallback
-      return key;
-    }
-
-    return translation;
-  };
-
   useEffect(() => {
     if (language) {
       localStorage.setItem('i18nextLng', language);
     }
   }, [language]);
+
+  const namespaceFallbacks = [
+    'dashboard',
+    'attendance',
+    'search',
+    'grades',
+    'students',
+    'courses',
+    'calendar',
+    'utils',
+    'controlPanel',
+    'rbac',
+    'auth',
+    'common',
+    'export',
+    'help',
+    'reports',
+    'feedback',
+    'analytics',
+    'errors'
+  ];
+
+  const t = (key: string, options?: Record<string, unknown>): string => {
+    const tryNamespace = (ns: string, k: string) => {
+      const value = i18nT(k, { ...(options || {}), ns });
+      return typeof value === 'string' && value !== k ? value : null;
+    };
+
+    // Support prefixed keys like "auth.loginTitle"
+    if (key.includes('.')) {
+      const [ns, ...rest] = key.split('.');
+      const nsKey = rest.join('.');
+      const namespaced = tryNamespace(ns, nsKey);
+      if (namespaced) return namespaced;
+    }
+
+    // Try default namespace
+    const direct = i18nT(key, options);
+    if (typeof direct === 'string' && direct !== key) return direct;
+
+    // Fallback across known namespaces
+    for (const ns of namespaceFallbacks) {
+      const namespaced = tryNamespace(ns, key);
+      if (namespaced) return namespaced;
+    }
+
+    return key;
+  };
 
   return (
     <LanguageContext.Provider value={{ t, language, setLanguage }}>
@@ -74,33 +108,4 @@ export const useLanguage = () => {
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
-};
-
-export const LanguageSwitcher = () => {
-  const { t, language, setLanguage } = useLanguage();
-
-  return (
-    <div className="flex items-center space-x-2 bg-white rounded-lg shadow px-3 py-2">
-      <button
-        onClick={() => setLanguage('en')}
-        className={`px-3 py-1 rounded transition-colors ${
-          language === 'en'
-            ? 'bg-indigo-600 text-white'
-            : 'text-gray-600 hover:bg-gray-100'
-        }`}
-      >
-        {t('lang.enShort')}
-      </button>
-      <button
-        onClick={() => setLanguage('el')}
-        className={`px-3 py-1 rounded transition-colors ${
-          language === 'el'
-            ? 'bg-indigo-600 text-white'
-            : 'text-gray-600 hover:bg-gray-100'
-        }`}
-      >
-        {t('lang.elShort')}
-      </button>
-    </div>
-  );
 };

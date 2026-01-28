@@ -455,4 +455,11 @@ export default {
   },
   // Υποσέλιδο
   footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Vasilis Samaras - v{{version}}',
+
+  // Σελιδοποίηση & Πλοήγηση
+  previous: 'Προηγούμενο',
+  next: 'Επόμενο',
+  page: 'Σελίδα',
+  sortBy: 'Ταξινόμηση κατά',
+  query: 'Ερώτημα',
 };

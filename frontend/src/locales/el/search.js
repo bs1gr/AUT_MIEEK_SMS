@@ -5,9 +5,9 @@
 export default {
   page_title: 'Προχωρημένη Αναζήτηση',
   page_description: 'Αναζήτηση και φιλτράρισμα φοιτητών, μαθημάτων και βαθμών',
-  students: 'Φοιτητές',
-  courses: 'Μαθήματα',
-  grades: 'Βαθμοί',
+  typeStudent: 'Φοιτητές',
+  typeCourse: 'Μαθήματα',
+  typeGrade: 'Βαθμοί',
   search_placeholder: 'Αναζήτηση σπουδαστών, μαθημάτων, βαθμών...',
   search_label: 'Αναζήτηση',
   search_aria_label: 'Αναζήτηση σπουδαστών, μαθημάτων ή βαθμών',

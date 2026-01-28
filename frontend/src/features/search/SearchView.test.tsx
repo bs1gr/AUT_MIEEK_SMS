@@ -185,7 +185,7 @@ describe('SearchView Component', () => {
 
     renderComponent();
 
-    const typeSelect = screen.getByDisplayValue('students') as HTMLSelectElement;
+    const typeSelect = document.getElementById('search-type') as HTMLSelectElement;
     await user.selectOptions(typeSelect, 'courses');
 
     expect(setSearchType).toHaveBeenCalledWith('courses');
@@ -199,7 +199,7 @@ describe('SearchView Component', () => {
 
     renderComponent();
 
-    const limitSelect = screen.getByDisplayValue(20) as HTMLSelectElement;
+    const limitSelect = document.getElementById('search-limit') as HTMLSelectElement;
     await user.selectOptions(limitSelect, '50');
 
     expect(setLimit).toHaveBeenCalledWith(50);

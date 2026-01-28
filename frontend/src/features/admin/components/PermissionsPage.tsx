@@ -5,13 +5,6 @@ import Spinner from '@/components/ui/Spinner';
 import Toast from '@/components/ui/Toast';
 import { useState } from 'react';
 
-/**
- * @deprecated This file is deprecated as of v1.17.5
- * AdminPermissionsPage has been moved to features/admin/components/PermissionsPage.tsx
- * This file is kept for backward compatibility with legacy routes
- * Import from: @/features/admin → PermissionsPage instead
- */
-
 interface Permission {
   id: number;
   key: string;
@@ -63,7 +56,19 @@ interface UserPermissionsResponse {
 type ToastType = 'success' | 'error' | 'info';
 type ToastState = { message: string; type: ToastType } | null;
 
-export default function AdminPermissionsPage() {
+/**
+ * RBAC Permissions Management Page
+ *
+ * Provides comprehensive interface for:
+ * - Granting/revoking permissions to roles and users
+ * - Viewing permission statistics and distribution
+ * - Auditing user permissions
+ * - Managing permission-resource mappings
+ *
+ * Moved to features/admin module in v1.17.5+ for better organization
+ * Previously located at pages/AdminPermissionsPage.tsx
+ */
+export default function PermissionsPage() {
   const { t } = useTranslation('rbac');
   const queryClient = useQueryClient();
   const [selectedResource, setSelectedResource] = useState<string>('all');

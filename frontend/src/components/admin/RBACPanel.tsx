@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { useLanguage } from '@/LanguageContext';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,15 +35,82 @@ interface RBACSummary {
 }
 
 export const RBACPanel: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useLanguage();
+  const { i18n } = useTranslation('rbac');
+
+  // Permission translation map - hardcoded for reliability
+  const permissionTranslations = useMemo(() => {
+    const isGreek = i18n.language === 'el';
+    return {
+      analytics: isGreek ? 'Αναλυτικά' : 'Analytics',
+      'analytics:export': isGreek ? 'Εξαγωγή Αναλυτικών' : 'Export Analytics',
+      'analytics:view': isGreek ? 'Προβολή Αναλυτικών' : 'View Analytics',
+      attendance: isGreek ? 'Παρουσίες' : 'Attendance',
+      'attendance:create': isGreek ? 'Δημιουργία Παρουσιών' : 'Create Attendance',
+      'attendance:delete': isGreek ? 'Διαγραφή Παρουσιών' : 'Delete Attendance',
+      'attendance:edit': isGreek ? 'Επεξεργασία Παρουσιών' : 'Edit Attendance',
+      'attendance:export': isGreek ? 'Εξαγωγή Παρουσιών' : 'Export Attendance',
+      'attendance:view': isGreek ? 'Προβολή Παρουσιών' : 'View Attendance',
+      'attendance:view_all': isGreek ? 'Προβολή Όλων Παρουσιών' : 'View All Attendance',
+      audit: isGreek ? 'Έλεγχος' : 'Audit',
+      'audit:export': isGreek ? 'Εξαγωγή Ελέγχου' : 'Export Audit',
+      'audit:view': isGreek ? 'Προβολή Ελέγχου' : 'View Audit',
+      backups: isGreek ? 'Αντίγραφα Ασφαλείας' : 'Backups',
+      'backups:create': isGreek ? 'Δημιουργία Αντιγράφων' : 'Create Backups',
+      'backups:restore': isGreek ? 'Επαναφορά Αντιγράφων' : 'Restore Backups',
+      'backups:view': isGreek ? 'Προβολή Αντιγράφων' : 'View Backups',
+      courses: isGreek ? 'Μαθήματα' : 'Courses',
+      'courses:create': isGreek ? 'Δημιουργία Μαθημάτων' : 'Create Courses',
+      'courses:delete': isGreek ? 'Διαγραφή Μαθημάτων' : 'Delete Courses',
+      'courses:edit': isGreek ? 'Επεξεργασία Μαθημάτων' : 'Edit Courses',
+      'courses:view': isGreek ? 'Προβολή Μαθημάτων' : 'View Courses',
+      grades: isGreek ? 'Βαθμοί' : 'Grades',
+      'grades:create': isGreek ? 'Δημιουργία Βαθμών' : 'Create Grades',
+      'grades:delete': isGreek ? 'Διαγραφή Βαθμών' : 'Delete Grades',
+      'grades:edit': isGreek ? 'Επεξεργασία Βαθμών' : 'Edit Grades',
+      'grades:export': isGreek ? 'Εξαγωγή Βαθμών' : 'Export Grades',
+      'grades:view': isGreek ? 'Προβολή Βαθμών' : 'View Grades',
+      import: isGreek ? 'Εισαγωγή' : 'Import',
+      'import:execute': isGreek ? 'Εκτέλεση Εισαγωγής' : 'Execute Import',
+      'import:view': isGreek ? 'Προβολή Εισαγωγής' : 'View Import',
+      logs: isGreek ? 'Αρχεία Καταγραφής' : 'Logs',
+      'logs:export': isGreek ? 'Εξαγωγή Αρχείων' : 'Export Logs',
+      'logs:view': isGreek ? 'Προβολή Αρχείων' : 'View Logs',
+      monitoring: isGreek ? 'Παρακολούθηση' : 'Monitoring',
+      'monitoring:control': isGreek ? 'Έλεγχος Παρακολούθησης' : 'Control Monitoring',
+      'monitoring:view': isGreek ? 'Προβολή Παρακολούθησης' : 'View Monitoring',
+      rbac: isGreek ? 'RBAC' : 'RBAC',
+      'rbac:assign': isGreek ? 'Ανάθεση RBAC' : 'Assign RBAC',
+      'rbac:view': isGreek ? 'Προβολή RBAC' : 'View RBAC',
+      reports: isGreek ? 'Αναφορές' : 'Reports',
+      'reports:create': isGreek ? 'Δημιουργία Αναφορών' : 'Create Reports',
+      'reports:export': isGreek ? 'Εξαγωγή Αναφορών' : 'Export Reports',
+      'reports:view': isGreek ? 'Προβολή Αναφορών' : 'View Reports',
+      settings: isGreek ? 'Ρυθμίσεις' : 'Settings',
+      'settings:edit': isGreek ? 'Επεξεργασία Ρυθμίσεων' : 'Edit Settings',
+      'settings:view': isGreek ? 'Προβολή Ρυθμίσεων' : 'View Settings',
+      students: isGreek ? 'Σπουδαστές' : 'Students',
+      'students:create': isGreek ? 'Δημιουργία Σπουδαστών' : 'Create Students',
+      'students:delete': isGreek ? 'Διαγραφή Σπουδαστών' : 'Delete Students',
+      'students:edit': isGreek ? 'Επεξεργασία Σπουδαστών' : 'Edit Students',
+      'students:export': isGreek ? 'Εξαγωγή Σπουδαστών' : 'Export Students',
+      'students:view': isGreek ? 'Προβολή Σπουδαστών' : 'View Students',
+      system: isGreek ? 'Σύστημα' : 'System',
+      'system:control': isGreek ? 'Έλεγχος Συστήματος' : 'Control System',
+      'system:view': isGreek ? 'Προβολή Συστήματος' : 'View System',
+      users: isGreek ? 'Χρήστες' : 'Users',
+      'users:create': isGreek ? 'Δημιουργία Χρηστών' : 'Create Users',
+      'users:delete': isGreek ? 'Διαγραφή Χρηστών' : 'Delete Users',
+      'users:edit': isGreek ? 'Επεξεργασία Χρηστών' : 'Edit Users',
+      'users:view': isGreek ? 'Προβολή Χρηστών' : 'View Users',
+    };
+  }, [i18n.language]);
+
+  const translatePermission = (permName: string): string => {
+    return permissionTranslations[permName as keyof typeof permissionTranslations] || permName;
+  };
 
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedRole, setSelectedRole] = useState<number | null>(null);
-  const [selectedPermission, setSelectedPermission] = useState<number | null>(null);
-  const [userId, setUserId] = useState<number | null>(null);
-  const [roleName, setRoleName] = useState('');
-
-  // Fetch RBAC summary
   const { data: rbacData, isLoading: isSummaryLoading, refetch: refetchSummary } = useApiQuery<RBACSummary>(
     ['rbac-summary'],
     () => apiClient.get('/admin/rbac/summary').then(r => r.data),
@@ -175,7 +243,7 @@ export const RBACPanel: React.FC = () => {
                     <ul className="space-y-2 max-h-48 overflow-y-auto">
                       {rbacData.permissions.map((perm) => (
                         <li key={perm.id} className="text-sm p-2 bg-green-50 rounded">
-                          <strong>{perm.name}</strong>
+                          <strong>{translatePermission(perm.name)}</strong>
                         </li>
                       ))}
                     </ul>
@@ -196,7 +264,7 @@ export const RBACPanel: React.FC = () => {
                         <div key={idx} className="text-sm p-1 bg-gray-100 rounded flex justify-between">
                           <span>{role?.name}</span>
                           <span className="text-gray-600">→</span>
-                          <span>{perm?.name}</span>
+                          <span>{perm?.name ? translatePermission(perm.name) : ''}</span>
                         </div>
                       );
                     })}
@@ -346,7 +414,7 @@ export const RBACPanel: React.FC = () => {
                     <option value="">{t('rbac.selectPermission')}</option>
                     {rbacData?.permissions.map((perm) => (
                       <option key={perm.id} value={perm.id}>
-                        {perm.name}
+                        {translatePermission(perm.name)}
                       </option>
                     ))}
                   </select>

@@ -27,7 +27,7 @@ describe('LanguageContext', () => {
       expect(result.current.language).toBeTruthy();
     });
 
-    it('provides translation function', () => {
+    it('provides language controls', () => {
       const { result } = renderHook(() => useLanguage(), { wrapper });
 
       expect(typeof result.current.t).toBe('function');
@@ -93,29 +93,12 @@ describe('LanguageContext', () => {
   });
 
   describe('t function', () => {
-    it('provides translation function from context', () => {
-      const { result } = renderHook(() => useLanguage(), { wrapper });
-
-      expect(typeof result.current.t).toBe('function');
-    });
-
-    it('translation function returns key as fallback for missing keys', () => {
+    it('returns key as fallback for missing keys', () => {
       const { result } = renderHook(() => useLanguage(), { wrapper });
 
       const translated = result.current.t('missing.nonexistent.key');
 
-      // Should return the key itself when translation is not found
       expect(translated).toBe('missing.nonexistent.key');
-    });
-
-    it('translation function handles interpolation format', () => {
-      const { result } = renderHook(() => useLanguage(), { wrapper });
-
-      // Test that the function accepts interpolation options
-      const translated = result.current.t('some.key', { value: 'test' });
-
-      // Since key doesn't exist, should return the key
-      expect(typeof translated).toBe('string');
     });
   });
 

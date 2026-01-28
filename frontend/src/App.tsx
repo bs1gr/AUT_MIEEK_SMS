@@ -39,7 +39,7 @@ const AppLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
       { key: 'courses', label: t('courses'), path: '/courses' },
       { key: 'calendar', label: t('calendar'), path: '/calendar' },
       { key: 'operations', label: t('utilsTab'), path: '/operations' },
-      { key: 'power', label: t('powerTab'), path: '/power' },
+      { key: 'system', label: t('powerTab'), path: '/power' },
     ],
     [t]
   );

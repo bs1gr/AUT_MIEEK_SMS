@@ -49,12 +49,14 @@ export const OperationsPage = lazy(() =>
   import(/* webpackChunkName: "operations" */ './pages/OperationsPage')
 );
 
+// System/Power page moved to operations feature module (v1.17.5+)
 export const PowerPage = lazy(() =>
-  import(/* webpackChunkName: "power" */ './pages/PowerPage')
+  import(/* webpackChunkName: "system" */ './features/operations').then(m => ({ default: m.SystemPage }))
 );
 
+// Admin/RBAC page moved to admin feature module (v1.17.5+)
 export const AdminPermissionsPage = lazy(() =>
-  import(/* webpackChunkName: "admin-permissions" */ './pages/AdminPermissionsPage')
+  import(/* webpackChunkName: "admin-permissions" */ './features/admin').then(m => ({ default: m.PermissionsPage }))
 );
 
 /**

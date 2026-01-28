@@ -45,17 +45,17 @@ Detects corrupt virtual environments by checking for critical files:
 ```powershell
 function Test-VenvHealth {
     param([string]$VenvPath)
-    
+
     # Check for:
     # - Scripts\python.exe
-    # - pyvenv.cfg  
+    # - pyvenv.cfg
     # - Scripts\Activate.ps1
 }
 ```
 
 **Usage**: Called during Setup to detect if existing venv is usable
 
-**Returns**: 
+**Returns**:
 - `$true` if venv is healthy
 - `$false` if venv is missing/corrupt
 
@@ -228,7 +228,7 @@ No performance impact on normal operation.
 
 ### "Virtual environment is corrupted"
 **Means**: Critical files missing from `.venv`
-**Fix**: 
+**Fix**:
 ```powershell
 .\NATIVE.ps1 -Setup
 # Will automatically remove and recreate
@@ -240,7 +240,7 @@ No performance impact on normal operation.
 - Python executable is locked (restart terminal)
 - Disk space issue
 - Permission denied on directory
-**Fix**: 
+**Fix**:
 ```powershell
 # Restart terminal, then:
 .\NATIVE.ps1 -Setup

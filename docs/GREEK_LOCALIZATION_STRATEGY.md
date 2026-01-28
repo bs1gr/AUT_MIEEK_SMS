@@ -99,7 +99,7 @@ const operators = [
 ```
 
 **BUT**: Some keys used in newer components (after v1.15.0) are not found:
-- Components try: `t('rbac.errorSearching')` 
+- Components try: `t('rbac.errorSearching')`
 - File doesn't have this key (it's from `search` namespace)
 
 ### Issue 4: Namespace Confusion
@@ -291,7 +291,7 @@ const { t: tCommon } = useTranslation('common');
    - `clear_search` → `clear` or `buttons.clear`
 
 2. **Add missing keys to BOTH files**:
-   - `errorSearching` 
+   - `errorSearching`
    - Complete `history` object (EN missing)
    - Complete `queryBuilder` object (EN missing)
 

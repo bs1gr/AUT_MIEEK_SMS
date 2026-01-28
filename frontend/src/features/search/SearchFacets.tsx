@@ -25,16 +25,6 @@ interface SearchFacetsProps {
 
 export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = false, onSelect, className = '' }) => {
   const { t } = useTranslation('search');
-  const [expandedFacets, setExpandedFacets] = useState<Record<string, boolean>>({});
-  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
-  const [selectedValues, setSelectedValues] = useState<Record<string, Set<string>>>({});
-  const [selectSelections, setSelectSelections] = useState<Record<string, string>>({});
-
-  const translate = (key: string, fallback: string) => {
-    const value = t(key, { defaultValue: fallback });
-    // Return the translated value or fallback if translation key wasn't found
-    return typeof value === 'string' && !value.includes('.') ? value : fallback;
-  };
 
   const filteredFacets = facets || [];
 
@@ -42,7 +32,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
     return (
       <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
         <p className="text-sm text-gray-500">
-          {translate('search.facets.loading', 'Loading filters...')}
+          {t('facets.loading', { defaultValue: 'Loading filters...' })}
         </p>
       </div>
     );
@@ -52,7 +42,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
     return (
       <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
         <p className="text-sm text-gray-500">
-          {translate('search.facets.empty', 'No filters available')}
+          {t('facets.empty', { defaultValue: 'No filters available' })}
         </p>
       </div>
     );
@@ -88,7 +78,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
           <h4 className="text-sm font-semibold text-gray-700">{facet.label}</h4>
           <input
             type="text"
-            placeholder={translate('search.facets.search', 'Search values...')}
+            placeholder={t('facets.search', { defaultValue: 'Search values...' })}
             className="text-xs px-2 py-1 border border-gray-200 rounded"
             value={searchTerm}
             onChange={(e) => setSearchTerms((prev) => ({ ...prev, [facet.field]: e.target.value }))}
@@ -118,8 +108,8 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
             onClick={() => setExpandedFacets((prev) => ({ ...prev, [facet.field]: !prev[facet.field] }))}
           >
             {expandedFacets[facet.field]
-              ? translate('search.facets.showLess', 'Show less')
-              : translate('search.facets.showMore', 'Show more')}
+              ? t('facets.showLess', { defaultValue: 'Show less' })
+              : t('facets.showMore', { defaultValue: 'Show more' })}
           </button>
         )}
       </div>
@@ -159,7 +149,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
           type="number"
           min={facet.min}
           max={facet.max}
-          placeholder={translate('search.facets.min', 'Min')}
+          placeholder={t('facets.min', { defaultValue: 'Min' })}
           className="px-2 py-1 text-sm border border-gray-300 rounded"
           onChange={(e) => onSelect?.(facet.field, { min: parseFloat(e.target.value) })}
         />
@@ -167,7 +157,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
           type="number"
           min={facet.min}
           max={facet.max}
-          placeholder={translate('search.facets.max', 'Max')}
+          placeholder={t('facets.max', { defaultValue: 'Max' })}
           className="px-2 py-1 text-sm border border-gray-300 rounded"
           onChange={(e) => onSelect?.(facet.field, { max: parseFloat(e.target.value) })}
         />
@@ -181,13 +171,13 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
       <div className="flex items-center gap-2">
         <input
           type="date"
-          placeholder={translate('search.facets.start', 'Start')}
+          placeholder={t('facets.start', { defaultValue: 'Start' })}
           className="px-2 py-1 text-sm border border-gray-300 rounded"
           onChange={(e) => onSelect?.(facet.field, { start: e.target.value })}
         />
         <input
           type="date"
-          placeholder={translate('search.facets.end', 'End')}
+          placeholder={t('facets.end', { defaultValue: 'End' })}
           className="px-2 py-1 text-sm border border-gray-300 rounded"
           onChange={(e) => onSelect?.(facet.field, { end: e.target.value })}
         />
@@ -218,8 +208,8 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
     <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-4 ${className}`}>
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-semibold text-gray-800">{translate('search.facets.title', 'Filters')}</h3>
-          <p className="text-xs text-gray-500">{translate('search.facets.subtitle', 'Use facets to narrow the search')}</p>
+          <h3 className="text-base font-semibold text-gray-800">{t('facets.title', { defaultValue: 'Filters' })}</h3>
+          <p className="text-xs text-gray-500">{t('facets.subtitle', { defaultValue: 'Use facets to narrow the search' })}</p>
         </div>
       </div>
 
@@ -228,7 +218,7 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
       <div className="flex items-center justify-between pt-2">
         <span className="text-xs text-gray-500">{`${filteredFacets.length} filters available`}</span>
         <button type="button" className="text-xs text-blue-600 hover:underline" onClick={handleClearAll}>
-          {translate('search.facets.clear', 'Clear all')}
+          {t('facets.clear', { defaultValue: 'Clear all' })}
         </button>
       </div>
     </div>

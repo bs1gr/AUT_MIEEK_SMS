@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/LanguageContext';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ interface LoginWidgetProps {
 
 const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSuccess }) => {
   const { login } = useAuth();
-  const { t } = useTranslation();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
