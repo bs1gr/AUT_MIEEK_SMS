@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { Power } from 'lucide-react';
 
 const LogoutButton: React.FC = () => {
   const { logout } = useAuth();
@@ -25,9 +25,10 @@ const LogoutButton: React.FC = () => {
       variant="outline"
       disabled={loading}
       data-testid="logout-button"
+      aria-label={loading ? t('common.loading') : t('common.logout')}
+      title={loading ? t('common.loading') : t('common.logout')}
     >
-      <LogOut className="h-4 w-4" aria-hidden="true" />
-      <span>{loading ? t('common.loading') : t('common.logout')}</span>
+      <Power className="h-4 w-4" aria-hidden="true" />
     </Button>
   );
 };
