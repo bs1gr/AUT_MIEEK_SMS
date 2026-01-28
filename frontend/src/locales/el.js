@@ -16,7 +16,7 @@ export const el = {
   language: 'el',
 
   // Navigation
-  dashboard: 'Πίνακας Ελέγχου',
+  dashboard: 'Επισκόπηση',
   students: 'Σπουδαστές',
   courses: 'Μαθήματα',
   attendance: 'Παρουσίες',
@@ -33,7 +33,7 @@ export const el = {
   confirm: 'Επιβεβαίωση',
   edit: 'Επεξεργασία',
   delete: 'Διαγραφή',
-  remove: 'Κατάργηση',
+  remove: 'Αφαίρεση',
   preview: 'Προεπισκόπηση',
   clearAll: 'Εκκαθάριση Όλων',
   actions: 'Ενέργειες',
@@ -47,16 +47,16 @@ export const el = {
   serverControl: 'Πίνακας Ελέγχου',
   backendStatus: 'Κατάσταση Διακομιστή',
   backendOnline: 'Διακομιστής Σε Σύνδεση',
-  backendOffline: 'Διακομιστής Χωρίς Σύνδεση',
+  backendOffline: 'Διακομιστής Αποσύνδεσης',
   checking: 'Έλεγχος...',
-  uptime: 'Χρόνος Λειτουργίας',
+  uptime: 'Χρόνος Διαθεσιμότητας',
   restart: 'Επανεκκίνηση',
   exit: 'Έξοδος',
   confirmExit: 'Επιβεβαίωση Εξόδου;',
   yesExit: 'Ναι, Έξοδος',
   exiting: 'Τερματισμός...',
-  serverStopped: 'Διακομιστής Σταμάτησε με Επιτυχία',
-  canCloseWindow: 'Μπορείτε τώρα να κλείσετε το παράθυρο',
+  serverStopped: 'Ο Διακομιστής Σταμάτησε με Επιτυχία',
+  canCloseWindow: 'Μπορείτε να κλείσετε αυτό το παράθυρο',
 
   // Common States & Messages
   loading: 'Φόρτωση...',
@@ -66,7 +66,7 @@ export const el = {
   failedToLoadData: 'Αποτυχία φόρτωσης δεδομένων',
   failedToSaveData: 'Αποτυχία αποθήκευσης δεδομένων',
   fillRequiredFields: 'Συμπληρώστε όλα τα υποχρεωτικά πεδία',
-  pleaseSelect: 'Παρακαλώ επιλέξτε ένα σπουδαστή και ένα μάθημα',
+  pleaseSelect: 'Επιλέξτε έναν σπουδαστή και ένα μάθημα',
 
   // Date/Time/Weight
   date: 'Ημερομηνία',
@@ -81,7 +81,7 @@ export const el = {
   greekGrade: 'Ελληνικός Βαθμός (0-20)',
 
   // Tabs
-  powerTab: 'Power',
+  powerTab: 'Ενέργεια',
 
   // Search & Filtering (Phase 4)
   searchPlaceholder: 'Αναζήτηση...',
@@ -101,17 +101,17 @@ export const el = {
   searchSaved: 'Η αναζήτηση αποθηκεύτηκε με επιτυχία',
   failedToSaveSearch: 'Αποτυχία αποθήκευσης αναζήτησης',
   failedToDeleteSearch: 'Αποτυχία διαγραφής αναζήτησης',
-  failedToToggleFavorite: 'Αποτυχία αλλαγής αγαπημένου',
+  failedToToggleFavorite: 'Αποτυχία εναλλαγής αγαπημένου',
   searchDeleted: 'Η αναζήτηση διαγράφηκε με επιτυχία',
 
   // Advanced Filters
-  advancedFilters: 'Προηγμένα Φίλτρα',
+  advancedFilters: 'Προχωρημένα Φίλτρα',
   addFilter: 'Προσθήκη Φίλτρου',
-  removeFilter: 'Κατάργηση Φίλτρου',
+  removeFilter: 'Αφαίρεση Φίλτρου',
   filterField: 'Πεδίο',
   filterOperator: 'Τελεστής',
   filterValue: 'Τιμή',
-  equals: 'Ίσο με',
+  equals: 'Ισοδυναμεί',
   contains: 'Περιέχει',
   startsWith: 'Ξεκινά με',
   greaterThan: 'Μεγαλύτερο από',
@@ -119,21 +119,21 @@ export const el = {
   between: 'Μεταξύ',
   applyFilters: 'Εφαρμογή Φίλτρων',
   resetFilters: 'Επαναφορά Φίλτρων',
-  noFiltersApplied: 'Δεν εφαρμόζονται φίλτρα',
+  noFiltersApplied: 'Δεν έχουν εφαρμοστεί φίλτρα',
 
   // Saved Searches Management
   savedSearches: 'Αποθηκευμένες Αναζητήσεις',
-  savedSearchesDescription: 'Διαχείριση και οργάνωση των αποθηκευμένων αναζητήσεών σας',
-  filterByType: 'Φιλτράρισμα κατά Τύπο',
+  savedSearchesDescription: 'Διαχειρίστε και οργανώστε τις αποθηκευμένες αναζητήσεις σας',
+  filterByType: 'Φίλτρο κατά Τύπο',
   favoritesOnly: 'Μόνο Αγαπημένα',
   noFavoriteSearches: 'Δεν βρέθηκαν αγαπημένες αναζητήσεις',
   createFirstSearch: 'Δημιουργήστε την πρώτη σας αναζήτηση για να ξεκινήσετε',
   toggleFavorite: 'Εναλλαγή Αγαπημένου',
   loadSearch: 'Φόρτωση Αναζήτησης',
-  confirmDeleteSearch: 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτήν την αναζήτηση;',
-  showingSearches: 'Εμφάνιση {{count}} από {{total}} αναζητήσεις',
+  confirmDeleteSearch: 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτή την αναζήτηση;',
+  showingSearches: 'Εμφάνιση {{count}} από {{total}} αναζητήσεων',
   filters: 'φίλτρα',
-  all: 'Όλα'
+  all: 'Όλα',
 };
 
 export default el;
