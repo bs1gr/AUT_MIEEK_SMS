@@ -32,26 +32,6 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
 
   const filteredFacets = facets || [];
 
-  if (loading) {
-    return (
-      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
-        <p className="text-sm text-gray-500">
-          {t('facets.loading', { defaultValue: 'Loading filters...' })}
-        </p>
-      </div>
-    );
-  }
-
-  if (!filteredFacets || filteredFacets.length === 0) {
-    return (
-      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
-        <p className="text-sm text-gray-500">
-          {t('facets.empty', { defaultValue: 'No filters available' })}
-        </p>
-      </div>
-    );
-  }
-
   const toggleCheckbox = (field: string, value: string) => {
     setSelectedValues((prev) => {
       const next = new Set(prev[field] || []);
@@ -189,8 +169,12 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
     </div>
   );
 
-  const renderedFacets = useMemo(() =>
-    filteredFacets.map((facet) => {
+  // Call useMemo unconditionally for all renders
+  const renderedFacets = useMemo(() => {
+    if (!filteredFacets || filteredFacets.length === 0) {
+      return null;
+    }
+    return filteredFacets.map((facet) => {
       switch (facet.type) {
         case 'checkbox':
           return renderCheckboxFacet(facet);
@@ -203,10 +187,30 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
         default:
           return null;
       }
-    }),
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [filteredFacets, expandedFacets, searchTerms, selectedValues, selectSelections]
-  );
+  }, [filteredFacets, expandedFacets, searchTerms, selectedValues, selectSelections, t]);
+
+  // Conditional rendering based on state
+  if (loading) {
+    return (
+      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
+        <p className="text-sm text-gray-500">
+          {t('facets.loading', { defaultValue: 'Loading filters...' })}
+        </p>
+      </div>
+    );
+  }
+
+  if (!filteredFacets || filteredFacets.length === 0) {
+    return (
+      <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm ${className}`}>
+        <p className="text-sm text-gray-500">
+          {t('facets.empty', { defaultValue: 'No filters available' })}
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className={`p-4 bg-white border border-gray-200 rounded-lg shadow-sm space-y-4 ${className}`}>
