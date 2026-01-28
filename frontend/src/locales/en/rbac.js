@@ -43,5 +43,10 @@ export default {
   userPermissionError: 'Unable to load user permissions',
   directPermissions: 'Direct permissions',
   rolePermissions: 'Role-based permissions',
-  expiresAt: 'Expires {{date}}'
+  expiresAt: 'Expires {{date}}',
+  overview: 'Overview',
+  users: 'Users',
+  assignRoleTab: 'Assign Role to User',
+  grantPermissionTab: 'Grant Permission',
+  settings: 'Settings'
 };

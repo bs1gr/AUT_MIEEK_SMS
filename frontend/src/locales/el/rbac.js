@@ -43,5 +43,10 @@ export default {
   userPermissionError: 'Αποτυχία φόρτωσης δικαιωμάτων χρήστη',
   directPermissions: 'Άμεσα δικαιώματα',
   rolePermissions: 'Δικαιώματα μέσω ρόλου',
-  expiresAt: 'Λήγει {{date}}'
+  expiresAt: 'Λήγει {{date}}',
+  overview: 'Επισκόπηση',
+  users: 'Χρήστες',
+  assignRoleTab: 'Ανάθεση Ρόλου σε Χρήστη',
+  grantPermissionTab: 'Ανάθεση Δικαιώματος',
+  settings: 'Ρυθμίσεις'
 };

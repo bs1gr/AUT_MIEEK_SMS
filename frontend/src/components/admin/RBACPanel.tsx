@@ -111,6 +111,10 @@ export const RBACPanel: React.FC = () => {
   };
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [userId, setUserId] = useState<number | null>(null);
+  const [roleName, setRoleName] = useState('');
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [selectedPermission, setSelectedPermission] = useState<string | null>(null);
   const { data: rbacData, isLoading: isSummaryLoading, refetch: refetchSummary } = useApiQuery<RBACSummary>(
     ['rbac-summary'],
     () => apiClient.get('/admin/rbac/summary').then(r => r.data),
@@ -176,11 +180,11 @@ export const RBACPanel: React.FC = () => {
   };
 
   const tabs = [
-    { id: 'overview', label: t('common:overview') || 'Overview' },
-    { id: 'users', label: t('common:users') || 'Users' },
-    { id: 'assign-role', label: t('rbac.assignRole') },
-    { id: 'grant-permission', label: t('rbac.grantPermission') },
-    { id: 'settings', label: t('common:settings') || 'Settings' },
+    { id: 'overview', label: t('rbac.overview') || 'Overview' },
+    { id: 'users', label: t('rbac.users') || 'Users' },
+    { id: 'assign-role', label: t('rbac.assignRoleTab') || t('rbac.assignRole') },
+    { id: 'grant-permission', label: t('rbac.grantPermissionTab') || t('rbac.grantPermission') },
+    { id: 'settings', label: t('rbac.settings') || 'Settings' },
   ];
 
   if (isSummaryLoading) {
