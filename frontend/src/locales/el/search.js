@@ -213,5 +213,20 @@ export default {
     or: 'Ή',
     noteOr: 'Σημείωση: Η ομαδοποίηση OR είναι μόνο UI προς το παρόν· το backend εφαρμόζει επίπεδα φίλτρα.',
     noteAnd: 'Τα φίλτρα συνδυάζονται με AND.'
-  }
+  },
+  errorSearching: 'Σφάλμα κατά την αναζήτηση',
+  equals: 'Ισούται',
+  contains: 'Περιέχει',
+  startsWith: 'Ξεκινά με',
+  greaterThan: 'Μεγαλύτερο από',
+  lessThan: 'Μικρότερο από',
+  between: 'Μεταξύ',
+  isEmpty: 'Είναι κενό',
+  isNotEmpty: 'Δεν είναι κενό',
+  advancedFilters: 'Προχωρημένα Φίλτρα',
+  addFilter: 'Προσθήκη Φίλτρου',
+  noFiltersApplied: 'Δεν έχουν εφαρμοστεί φίλτρα',
+  filterField: 'Πεδίο Φίλτρου',
+  filterOperator: 'Τελεστής Φίλτρου',
+  filterValue: 'Τιμή Φίλτρου'
 };

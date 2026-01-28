@@ -120,7 +120,7 @@ const AdvancedFilters: FC<AdvancedFiltersProps> = ({
   disabled = false,
   className = '',
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const [expanded, setExpanded] = useState<boolean>(false);
 
   const fields = useMemo(() => resolveFields(entityType, availableFields), [entityType, availableFields]);

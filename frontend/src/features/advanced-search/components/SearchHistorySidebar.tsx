@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const SearchHistorySidebar: React.FC<Props> = ({ onSelect, className }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const { entries, removeEntry, clearAll } = useSearchHistory();
 
   return (

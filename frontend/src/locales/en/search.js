@@ -191,5 +191,33 @@ export default {
     points: 'points',
     student: 'Student',
     course: 'Course'
-  }
+  },
+  history: {
+    title: 'Search History',
+    clear: 'Clear All',
+    empty: 'No recent searches.'
+  },
+  queryBuilder: {
+    title: 'Advanced Query Builder',
+    group: 'Group operator',
+    and: 'AND',
+    or: 'OR',
+    noteOr: 'Note: OR grouping is UI-only for now; backend applies flat filters.',
+    noteAnd: 'Filters are combined with AND.'
+  },
+  errorSearching: 'Error performing search',
+  equals: 'Equals',
+  contains: 'Contains',
+  startsWith: 'Starts with',
+  greaterThan: 'Greater than',
+  lessThan: 'Less than',
+  between: 'Between',
+  isEmpty: 'Is empty',
+  isNotEmpty: 'Is not empty',
+  advancedFilters: 'Advanced Filters',
+  addFilter: 'Add Filter',
+  noFiltersApplied: 'No filters applied',
+  filterField: 'Filter Field',
+  filterOperator: 'Filter Operator',
+  filterValue: 'Filter Value'
 };

@@ -50,7 +50,7 @@ const FilterCondition: FC<FilterConditionProps> = ({
   onRemove,
   disabled = false,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
 
   const selectedField = useMemo(() => {
     const field = fields.find((f) => f.name === condition.field);

@@ -30,7 +30,7 @@ import { useSearchHistory } from './hooks/useSearchHistory';
  * - Pagination controls
  */
 export const AdvancedSearchPage: React.FC = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const navigate = useNavigate();
   const {
     state,
