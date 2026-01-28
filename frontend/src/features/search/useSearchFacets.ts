@@ -11,6 +11,19 @@ export interface SearchFacetsResult {
   query: string;
 }
 
+export interface FacetDefinition {
+  field: string;
+  label: string;
+  type: 'checkbox' | 'select' | 'range' | 'date-range';
+  values?: Array<{
+    label: string;
+    value: string;
+    count?: number;
+  }>;
+  min?: number;
+  max?: number;
+}
+
 export const useSearchFacets = (query: string) => {
   return useQuery({
     queryKey: ['search-facets', query],
@@ -20,7 +33,41 @@ export const useSearchFacets = (query: string) => {
         params: { q: query },
       });
       const data = extractAPIResponseData<SearchFacetsResult>(response);
-      return data;
+
+      // Transform API response into FacetDefinition array format
+      const facetDefinitions: FacetDefinition[] = [];
+
+      if (data?.facets) {
+        // Status facet (checkbox type)
+        if (data.facets.status && Object.keys(data.facets.status).length > 0) {
+          facetDefinitions.push({
+            field: 'status',
+            label: 'Status',
+            type: 'checkbox',
+            values: Object.entries(data.facets.status).map(([value, count]) => ({
+              label: value.charAt(0).toUpperCase() + value.slice(1),
+              value,
+              count: count as number,
+            })),
+          });
+        }
+
+        // Enrollment type facet (checkbox type)
+        if (data.facets.enrollment_type && Object.keys(data.facets.enrollment_type).length > 0) {
+          facetDefinitions.push({
+            field: 'enrollment_type',
+            label: 'Enrollment Type',
+            type: 'checkbox',
+            values: Object.entries(data.facets.enrollment_type).map(([value, count]) => ({
+              label: value.charAt(0).toUpperCase() + value.slice(1),
+              value,
+              count: count as number,
+            })),
+          });
+        }
+      }
+
+      return { facets: facetDefinitions };
     },
     staleTime: 60000,
   });
