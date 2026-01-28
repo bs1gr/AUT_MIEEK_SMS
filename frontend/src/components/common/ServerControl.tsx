@@ -56,7 +56,7 @@ const ServerControl: React.FC = () => {
   const [intervalMs, setIntervalMs] = useState<number>(5000);
   const [lastCheckedAt, setLastCheckedAt] = useState<string | null>(null);
   // Startup grace period and retry backoff to avoid scary offline message during boot
-  const [startupGraceUntil] = useState<number>(() => Date.now() + 12000); // 12s grace
+  const [startupGraceUntil] = useState<number>(() => Date.now() + 3000); // 3s grace (reduced from 12s)
   const [retryDelay, setRetryDelay] = useState<number>(1000); // start at 1s, backoff to 4s max
   const [didShowOffline, setDidShowOffline] = useState<boolean>(false);
   const runningInsideContainer = (healthData?.environment || '').toLowerCase() === 'docker';
