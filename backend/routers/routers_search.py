@@ -260,7 +260,7 @@ async def advanced_search(
 
         # Get user-provided filters
         user_filters = body.get("filters", {}) if isinstance(body.get("filters"), dict) else {}
-        
+
         # If query text is provided, convert it to entity-specific field filters
         query_text = body.get("query", "").strip()
         if query_text:
@@ -277,7 +277,7 @@ async def advanced_search(
             elif entity == "grades":
                 # For grades, search text matches against student/course names
                 query_filters["_query_text"] = query_text
-            
+
             # Merge query filters with user filters (user filters take precedence)
             filters_to_use = {**query_filters, **user_filters}
         else:
@@ -288,7 +288,16 @@ async def advanced_search(
             filters=filters_to_use, search_type=entity, limit=limit, offset=offset
         )
 
-        return success_response(results, request_id=request.state.request_id)
+        # Format response to match frontend expectations
+        response_data = {
+            "results": results,
+            "total": len(results),  # Note: This is count of returned results, not total available
+            "has_more": len(results) >= limit,  # Heuristic: if we got exactly limit results, there might be more
+            "limit": limit,
+            "offset": offset,
+        }
+
+        return success_response(response_data, request_id=request.state.request_id)
     except ValueError as ve:
         logger.warning(f"Invalid filter value: {str(ve)}")
         return error_response(
