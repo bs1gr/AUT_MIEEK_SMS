@@ -14,7 +14,8 @@ import {
   Server,
   Shield,
   Download,
-  Activity
+  Activity,
+  ChevronDown
 } from 'lucide-react';
 import axios, { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
@@ -133,12 +134,13 @@ const CONTROL_API = `${API_BASE}/control/api`;
 interface ControlPanelProps {
   showTitle?: boolean;
   variant?: 'full' | 'embedded';
+  initialTab?: string;
 }
 
-const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant = 'full' }) => {
+const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant = 'full', initialTab }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<string>('operations');
+  const [activeTab, setActiveTab] = useState<string>(initialTab || (variant === 'embedded' ? 'maintenance' : 'operations'));
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [diagnostics, setDiagnostics] = useState<DiagnosticItem[]>([]);
   const [ports, setPorts] = useState<PortInfo[]>([]);
@@ -147,6 +149,10 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
+  // Maintenance panel collapse states (closed by default)
+  const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(false);
+  const [expandRBAC, setExpandRBAC] = useState<boolean>(false);
+  const [expandDevTools, setExpandDevTools] = useState<boolean>(false);
   const [uptime, setUptime] = useState<string>('');
   const uptimeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -891,17 +897,79 @@ function formatUptime(seconds: number): string {
               <p className="text-sm text-purple-200 mb-2">{t('maintenanceSubtitle') || 'System administration, user management, backups, and database maintenance all in one place.'}</p>
             </div>
 
-            <AdminUsersPanel onToast={handleToast} />
+            {/* Admin Users Panel - Collapsible */}
+            <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+              <button
+                type="button"
+                onClick={() => setExpandAdminUsers(!expandAdminUsers)}
+                className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              >
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  {t('administratorUsersHeading') || 'User Management'}
+                </h3>
+                <ChevronDown
+                  size={20}
+                  className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                    expandAdminUsers ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+              {expandAdminUsers && (
+                <div className="p-6">
+                  <AdminUsersPanel onToast={handleToast} />
+                </div>
+              )}
+            </div>
 
-            {/* RBACPanel: Only visible to admins */}
+            {/* RBACPanel: Only visible to admins - Collapsible */}
             {user?.role === 'admin' && (
-              <div className="bg-white border rounded-xl p-6">
-                <h3 className="text-lg font-semibold mb-4 text-indigo-700">{t('rbac.configuration')}</h3>
-                <RBACPanel />
+              <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setExpandRBAC(!expandRBAC)}
+                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    {t('rbac.configuration') || 'RBAC Configuration'}
+                  </h3>
+                  <ChevronDown
+                    size={20}
+                    className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                      expandRBAC ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {expandRBAC && (
+                  <div className="p-6">
+                    <RBACPanel />
+                  </div>
+                )}
               </div>
             )}
 
-            <DevToolsPanel variant="embedded" onToast={handleToast} />
+            {/* DevTools Panel - Collapsible */}
+            <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+              <button
+                type="button"
+                onClick={() => setExpandDevTools(!expandDevTools)}
+                className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              >
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  {t('utils.operationsMonitor') || 'Dev Tools & Operations'}
+                </h3>
+                <ChevronDown
+                  size={20}
+                  className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                    expandDevTools ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+              {expandDevTools && (
+                <div className="p-6">
+                  <DevToolsPanel variant="embedded" onToast={handleToast} />
+                </div>
+              )}
+            </div>
           </div>
         )}
 
