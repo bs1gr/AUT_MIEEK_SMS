@@ -302,6 +302,19 @@ class SearchService:
         """Filter students with advanced criteria."""
         query = self.db.query(Student).filter(Student.deleted_at.is_(None))
 
+        # Handle query text search across name and email fields
+        query_text = filters.pop("_query_text", None)
+        if query_text:
+            query_lower = f"%{query_text.lower()}%"
+            query = query.filter(
+                or_(
+                    func.lower(Student.first_name).ilike(query_lower),
+                    func.lower(Student.last_name).ilike(query_lower),
+                    func.lower(Student.email).ilike(query_lower),
+                    func.lower(Student.student_id).ilike(query_lower),
+                )
+            )
+
         # Apply text filters
         for field in ["first_name", "last_name", "email", "student_id"]:
             if field in filters and filters[field]:
@@ -335,6 +348,17 @@ class SearchService:
     def _filter_courses(self, filters: Dict[str, Any], limit: int, offset: int) -> List[Dict[str, Any]]:
         """Filter courses with advanced criteria."""
         query = self.db.query(Course).filter(Course.deleted_at.is_(None))
+
+        # Handle query text search across course_name and course_code fields
+        query_text = filters.pop("_query_text", None)
+        if query_text:
+            query_lower = f"%{query_text.lower()}%"
+            query = query.filter(
+                or_(
+                    func.lower(Course.course_name).ilike(query_lower),
+                    func.lower(Course.course_code).ilike(query_lower),
+                )
+            )
 
         # Apply text filters
         for field in ["course_name", "course_code"]:
@@ -378,6 +402,18 @@ class SearchService:
             .join(Course, Grade.course_id == Course.id)
             .filter(Grade.deleted_at.is_(None), Student.deleted_at.is_(None), Course.deleted_at.is_(None))
         )
+
+        # Handle query text search across student and course names
+        query_text = filters.pop("_query_text", None)
+        if query_text:
+            query_lower = f"%{query_text.lower()}%"
+            query = query.filter(
+                or_(
+                    func.lower(Student.first_name).ilike(query_lower),
+                    func.lower(Student.last_name).ilike(query_lower),
+                    func.lower(Course.course_name).ilike(query_lower),
+                )
+            )
 
         # Apply grade range filters
         if "grade_min" in filters and filters["grade_min"] is not None:
