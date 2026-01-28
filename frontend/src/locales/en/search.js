@@ -109,6 +109,7 @@ export default {
   resultsTitle: 'Results',
   resultsSummary: '{{count}} total results',
   noResults: 'No results found',
+  viewDetails: 'View details',
   facets: {
     title: 'Refine results',
     subtitle: 'Use facets to narrow the search',

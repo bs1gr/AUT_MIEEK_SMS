@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import { useSearch } from './useSearch';
 import { useSearchFacets } from './useSearchFacets';
 import SearchSortControls from './SearchSortControls';
@@ -8,6 +9,7 @@ import SearchFacets from './SearchFacets';
 
 export const SearchView: React.FC = () => {
   const { t } = useTranslation('search');
+  const navigate = useNavigate();
   const {
     searchQuery,
     setSearchQuery,
@@ -51,6 +53,26 @@ export const SearchView: React.FC = () => {
     const nextLimit = Number(event.target.value) || 20;
     setLimit(nextLimit);
     setPage(0);
+  };
+
+  const handleResultClick = (result: any) => {
+    // Navigate to the appropriate detail page based on result type
+    switch (result.type) {
+      case 'student':
+        navigate(`/students/${result.id}`);
+        break;
+      case 'course':
+        navigate(`/courses/${result.id}`);
+        break;
+      case 'grade':
+        // For grades, navigate to the student's detail page
+        if (result.student_id) {
+          navigate(`/students/${result.student_id}`);
+        }
+        break;
+      default:
+        console.warn('Unknown result type:', result.type);
+    }
   };
 
   const placeholder = useMemo(() => {
@@ -175,9 +197,11 @@ export const SearchView: React.FC = () => {
                     </div>
                     <button
                       type="button"
-                      className="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-100"
+                      className="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 hover:border-blue-200 transition-colors cursor-pointer"
+                      onClick={() => handleResultClick(result)}
+                      aria-label={t('viewDetails', { defaultValue: 'View details' })}
                     >
-                      {t(`search.type.${result.type}`)}
+                      {t(`type.${result.type}`)}
                     </button>
                   </div>
                 </li>

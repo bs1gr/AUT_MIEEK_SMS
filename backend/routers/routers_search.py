@@ -66,7 +66,6 @@ async def search_students(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for students by name, email, or enrollment number.
@@ -109,7 +108,6 @@ async def search_courses(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_permission("courses:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for courses by name, code, or description.
@@ -156,7 +154,6 @@ async def search_grades(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_permission("grades:view")),
 ) -> APIResponse[List[Dict[str, Any]]]:
     """
     Search for grades with optional text query and filtering.
@@ -204,8 +201,7 @@ async def advanced_search(
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_permission("*:view")),
-) -> APIResponse[List[Dict[str, Any]]]:
+) -> APIResponse[Dict[str, Any]]:
     """
     Perform advanced search with complex filter combinations.
 

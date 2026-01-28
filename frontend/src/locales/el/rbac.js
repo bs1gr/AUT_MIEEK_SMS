@@ -48,5 +48,7 @@ export default {
   users: 'Χρήστες',
   assignRoleTab: 'Ανάθεση Ρόλου σε Χρήστη',
   grantPermissionTab: 'Ανάθεση Δικαιώματος',
+  rolesLabel: 'Ρόλοι ({{count}})',
+  permissionsLabel: 'Δικαιώματα ({{count}})',
   settings: 'Ρυθμίσεις'
 };

@@ -110,6 +110,20 @@ export const RBACPanel: React.FC = () => {
     return permissionTranslations[permName as keyof typeof permissionTranslations] || permName;
   };
 
+  const getTranslationValue = (key: string): string => {
+    const value = t(key) as string;
+    return value && value !== key ? value : '';
+  };
+
+  const translateRoleName = (name?: string): string => {
+    if (!name) return '';
+    return getTranslationValue(`controlPanel.roles.${name}`) || name;
+  };
+
+  const translateRoleDescription = (role: Role): string => {
+    return getTranslationValue(`controlPanel.roleDescriptions.${role.name}`) || role.description || '';
+  };
+
   const [activeTab, setActiveTab] = useState('overview');
   const [userId, setUserId] = useState<number | null>(null);
   const [roleName, setRoleName] = useState('');
@@ -225,14 +239,18 @@ export const RBACPanel: React.FC = () => {
               <div className="grid grid-cols-2 gap-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">{t('common:roles', { count: rbacData.roles.length }) || `Roles (${rbacData.roles.length})`}</CardTitle>
+                    <CardTitle className="text-sm">
+                      {t('rbac.rolesLabel', { count: rbacData.roles.length }) || `Roles (${rbacData.roles.length})`}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
                       {rbacData.roles.map((role) => (
                         <li key={role.id} className="text-sm p-2 bg-blue-50 rounded">
-                          <strong>{role.name}</strong>
-                          {role.description && <p className="text-xs text-gray-600">{role.description}</p>}
+                          <strong>{translateRoleName(role.name)}</strong>
+                          {translateRoleDescription(role) && (
+                            <p className="text-xs text-gray-600">{translateRoleDescription(role)}</p>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -241,7 +259,9 @@ export const RBACPanel: React.FC = () => {
 
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">{t('common:permissions', { count: rbacData.permissions.length }) || `Permissions (${rbacData.permissions.length})`}</CardTitle>
+                    <CardTitle className="text-sm">
+                      {t('rbac.permissionsLabel', { count: rbacData.permissions.length }) || `Permissions (${rbacData.permissions.length})`}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 max-h-48 overflow-y-auto">
@@ -266,7 +286,7 @@ export const RBACPanel: React.FC = () => {
                       const perm = rbacData.permissions.find((p) => p.id === rp.permission_id);
                       return (
                         <div key={idx} className="text-sm p-1 bg-gray-100 rounded flex justify-between">
-                          <span>{role?.name}</span>
+                          <span>{translateRoleName(role?.name)}</span>
                           <span className="text-gray-600">→</span>
                           <span>{perm?.name ? translatePermission(perm.name) : ''}</span>
                         </div>
@@ -307,7 +327,7 @@ export const RBACPanel: React.FC = () => {
                                   key={role!.id}
                                   className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded"
                                 >
-                                  {role!.name}
+                                  {translateRoleName(role?.name)}
                                 </span>
                               ))
                             ) : (
@@ -336,7 +356,7 @@ export const RBACPanel: React.FC = () => {
                     type="number"
                     value={userId || ''}
                     onChange={(e) => setUserId(e.target.value ? parseInt(e.target.value) : null)}
-                    placeholder="Enter user ID"
+                    placeholder={t('rbac.enterUserId')}
                   />
                 </div>
                 <div>
@@ -353,7 +373,7 @@ export const RBACPanel: React.FC = () => {
                       .filter((role) => ["admin", "teacher", "guest"].includes(role.name))
                       .map((role) => (
                         <option key={role.id} value={role.name}>
-                          {role.name}
+                          {t(`controlPanel.roles.${role.name}`) || role.name}
                         </option>
                       ))}
                   </select>
@@ -401,7 +421,7 @@ export const RBACPanel: React.FC = () => {
                     <option value="">{t('rbac.selectRole')}</option>
                     {rbacData?.roles.map((role) => (
                       <option key={role.id} value={role.id}>
-                        {role.name}
+                        {t(`controlPanel.roles.${role.name}`) || role.name}
                       </option>
                     ))}
                   </select>

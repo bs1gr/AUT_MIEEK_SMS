@@ -41,8 +41,8 @@ const errors_el = {
   BAD_GATEWAY: 'Σφάλμα πύλης. Παρακαλώ προσπαθήστε ξανά',
 
   // Student specific
-  STUDENT_NOT_FOUND: 'Ο φοιτητής δεν βρέθηκε',
-  INVALID_STUDENT_ID: 'Μη έγκυρη μορφή ταυτότητας φοιτητή',
+  STUDENT_NOT_FOUND: 'Ο σπουδαστής δεν βρέθηκε',
+  INVALID_STUDENT_ID: 'Μη έγκυρη μορφή ταυτότητας σπουδαστή',
 
   // Grade specific
   GRADE_NOT_FOUND: 'Η εγγραφή βαθμού δεν βρέθηκε',
