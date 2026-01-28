@@ -30,7 +30,8 @@ export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = fa
   const [selectedValues, setSelectedValues] = useState<Record<string, Set<string>>>({});
   const [selectSelections, setSelectSelections] = useState<Record<string, string>>({});
 
-  const filteredFacets = facets || [];
+  // Ensure facets is always an array
+  const filteredFacets = Array.isArray(facets) ? facets : [];
 
   const toggleCheckbox = (field: string, value: string) => {
     setSelectedValues((prev) => {
