@@ -265,9 +265,8 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
     }
   }, [onToast, t, updateUptime]);
 
-  useEffect(() => {
-    void runHealthCheck();
-  }, [runHealthCheck]);
+  // Note: Health check runs on user demand via button click, not automatically
+  // This prevents startup failures when health endpoint is temporarily unavailable
 
   useEffect(() => {
     if (!autoRefresh) return undefined;
