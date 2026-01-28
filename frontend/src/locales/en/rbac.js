@@ -48,5 +48,7 @@ export default {
   users: 'Users',
   assignRoleTab: 'Assign Role to User',
   grantPermissionTab: 'Grant Permission',
+  rolesLabel: 'Roles ({{count}})',
+  permissionsLabel: 'Permissions ({{count}})',
   settings: 'Settings'
 };

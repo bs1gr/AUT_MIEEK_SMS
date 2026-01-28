@@ -4,8 +4,8 @@
 
 export default {
   page_title: 'Προχωρημένη Αναζήτηση',
-  page_description: 'Αναζήτηση και φιλτράρισμα φοιτητών, μαθημάτων και βαθμών',
-  typeStudent: 'Φοιτητές',
+  page_description: 'Αναζήτηση και φιλτράρισμα σπουδαστών, μαθημάτων και βαθμών',
+  typeStudent: 'Σπουδαστές',
   typeCourse: 'Μαθήματα',
   typeGrade: 'Βαθμοί',
   search_placeholder: 'Αναζήτηση σπουδαστών, μαθημάτων, βαθμών...',
@@ -18,7 +18,7 @@ export default {
   entity_type_aria_label: 'Φιλτράρισμα κατά τύπο οντότητας',
   all_types: 'Όλα',
   placeholder: {
-    students: 'Αναζητήστε φοιτητές...',
+    students: 'Αναζητήστε σπουδαστές...',
     courses: 'Αναζητήστε μαθήματα...',
     grades: 'Αναζητήστε βαθμούς...'
   },
@@ -27,12 +27,12 @@ export default {
   noSuggestions: 'Δεν βρέθηκαν προτάσεις',
   unknown: 'Άγνωστο',
   type: {
-    student: 'Φοιτητής',
+    student: 'Σπουδαστής',
     course: 'Μάθημα',
     grade: 'Βαθμός'
   },
   stats: {
-    students: 'Φοιτητές',
+    students: 'Σπουδαστές',
     courses: 'Μαθήματα',
     grades: 'Βαθμοί'
   },
@@ -43,7 +43,7 @@ export default {
   createFirstSearch: 'Δημιουργήστε την πρώτη σας αναζήτηση για να ξεκινήσετε',
   presets: {
     title: 'Προκαθορισμένα Φίλτρα',
-    activeStudents: 'Ενεργοί Φοιτητές',
+    activeStudents: 'Ενεργοί Σπουδαστές',
     currentYear: 'Τρέχον Έτος',
     recentEnrollments: 'Πρόσφατες Εγγραφές',
     highCredit: 'Μαθήματα Υψηλών Μονάδων',
@@ -88,7 +88,7 @@ export default {
     gradeMin: 'Ελάχιστος Βαθμός',
     gradeMax: 'Μέγιστος Βαθμός',
     passed: 'Επιτυχών',
-    studentId: 'ID Φοιτητή',
+    studentId: 'ID Σπουδαστή',
     courseId: 'ID Μαθήματος',
     enterValue: 'Εισάγετε τιμή'
   },
@@ -117,7 +117,8 @@ export default {
   queryLabel: 'Ερώτημα',
   resultsTitle: 'Αποτελέσματα',
   resultsSummary: '{{count}} συνολικά αποτελέσματα',
-    noResults: 'Δεν βρέθηκαν αποτελέσματα',
+  noResults: 'Δεν βρέθηκαν αποτελέσματα',
+  viewDetails: 'Προβολή λεπτομερειών',
   facets: {
     title: 'Βελτίωση αποτελεσμάτων',
     subtitle: 'Χρησιμοποιήστε τα facets για περιορισμό',
@@ -198,7 +199,7 @@ export default {
   },
   grades: {
     points: 'μόρια',
-    student: 'Φοιτητής',
+    student: 'Σπουδαστής',
     course: 'Μάθημα'
   },
   history: {

@@ -20,7 +20,7 @@ export default {
   printCalendarLegendPeriodsHint: 'Δείχνει πόσες διδακτικές ώρες έχουν προγραμματιστεί.',
   printCalendarLegendNote: 'Οι ώρες εμφανίζονται στη ζώνη ώρας της συσκευής σας.',
   printCalendarNoClassesDay: 'Δεν έχουν προγραμματιστεί μαθήματα',
-  printCalendarFooterNote: 'Παράχθηκε από το Σύστημα Διαχείρισης Φοιτητών.',
+  printCalendarFooterNote: 'Παράχθηκε από το Σύστημα Διαχείρισης Σπουδαστών.',
   studentsListCSV: 'Λίστα Σπουδαστών (CSV)',
   exportAllStudentsCSV: 'Εξαγωγή όλων των πληροφοριών σπουδαστών σε CSV',
   exportAllDataZIP: 'Εξαγωγή Όλων των Δεδομένων (ZIP)',
