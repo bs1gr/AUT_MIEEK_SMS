@@ -25,6 +25,10 @@ interface SearchFacetsProps {
 
 export const SearchFacets: React.FC<SearchFacetsProps> = ({ facets, loading = false, onSelect, className = '' }) => {
   const { t } = useTranslation('search');
+  const [expandedFacets, setExpandedFacets] = useState<Record<string, boolean>>({});
+  const [searchTerms, setSearchTerms] = useState<Record<string, string>>({});
+  const [selectedValues, setSelectedValues] = useState<Record<string, Set<string>>>({});
+  const [selectSelections, setSelectSelections] = useState<Record<string, string>>({});
 
   const filteredFacets = facets || [];
 
