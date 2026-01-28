@@ -194,7 +194,7 @@ async def search_grades(
 
 @router.post(
     "/advanced",
-    response_model=APIResponse[List[Dict[str, Any]]],
+    response_model=APIResponse[Dict[str, Any]],
     summary="Advanced search with filters",
     description="Perform advanced search with complex filter combinations",
 )
@@ -284,9 +284,7 @@ async def advanced_search(
             filters_to_use = user_filters
 
         # Use entity as search_type for backward compatibility
-        results = search_service.advanced_filter(
-            filters=filters_to_use, search_type=entity, limit=limit, offset=offset
-        )
+        results = search_service.advanced_filter(filters=filters_to_use, search_type=entity, limit=limit, offset=offset)
 
         # Format response to match frontend expectations
         response_data = {

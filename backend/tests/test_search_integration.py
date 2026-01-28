@@ -341,7 +341,7 @@ class TestAPIServiceDatabaseFlow:
         data = response.json()
 
         # Verify all results match filter
-        for course in data["data"]:
+        for course in data["data"]["results"]:
             assert course["credits"] >= 3
 
     def test_grade_search_with_multiple_filters_integration(self, client, admin_headers, sample_data, db: Session):
