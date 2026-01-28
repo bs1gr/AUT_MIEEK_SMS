@@ -1,5 +1,6 @@
 import React, { ReactNode, useMemo } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Power } from 'lucide-react';
 import { ThemeProvider } from './ThemeContext';
 import { AppearanceThemeProvider } from './contexts/AppearanceThemeContext';
 import { LanguageProvider, useLanguage } from './LanguageContext';
@@ -72,11 +73,12 @@ const AppLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
           <button
             type="button"
             onClick={handleLogout}
-            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            className="p-2 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-red-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
             aria-label={t('logout')}
             data-testid="logout-button"
+            title={t('logout')}
           >
-            {t('logout')}
+            <Power className="h-5 w-5" />
           </button>
         </div>
       )}
