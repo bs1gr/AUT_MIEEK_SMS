@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { translations } from '../../translations';
+import { translations, translationNamespaces } from '../../translations';
 
 describe('Translation Integrity', () => {
   describe('Key Parity', () => {
@@ -106,8 +106,8 @@ describe('Translation Integrity', () => {
 
       for (const key of commonKeys) {
         const keys = key.split('.');
-        let enValue: unknown = translations.en;
-        let elValue: unknown = translations.el;
+        let enValue: unknown = translationNamespaces.en;
+        let elValue: unknown = translationNamespaces.el;
 
         for (const k of keys) {
           enValue = (enValue as Record<string, unknown>)?.[k];

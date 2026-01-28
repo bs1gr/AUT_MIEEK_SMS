@@ -16,7 +16,7 @@ interface Props {
  * Note: Current backend expects flat filters (AND). OR behavior is planned future work.
  */
 export const AdvancedQueryBuilder: React.FC<Props> = ({ filters, onFiltersChange, entityType, className }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const [groupOperator, setGroupOperator] = useState<'AND' | 'OR'>('AND');
 
   return (

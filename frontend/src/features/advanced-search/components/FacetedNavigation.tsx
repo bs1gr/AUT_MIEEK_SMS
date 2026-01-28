@@ -22,7 +22,7 @@ export const FacetedNavigation: React.FC<FacetedNavigationProps> = ({
   onClearFacet,
   className,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('search');
   const facetKeys = Object.keys(facets || {});
 
   if (!facetKeys.length) {

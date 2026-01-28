@@ -80,6 +80,9 @@ export const en = {
   letterGrade: 'Letter Grade',
   greekGrade: 'Greek Grade (0-20)',
 
+  // Tabs
+  powerTab: 'Power',
+
   // Search & Filtering (Phase 4)
   searchPlaceholder: 'Search...',
   searchType: 'Search Type',
