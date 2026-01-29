@@ -1,8 +1,8 @@
 # v1.17.5 Release Summary
 
-**Release Date**: January 29, 2026  
-**Status**: ✅ **PRODUCTION READY & RELEASED**  
-**Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS  
+**Release Date**: January 29, 2026
+**Status**: ✅ **PRODUCTION READY & RELEASED**
+**Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS
 **Tag**: v1.17.5
 
 ---
@@ -147,9 +147,9 @@ This release demonstrates the project's commitment to **user experience quality*
 
 ---
 
-**Release Status**: ✅ COMPLETE  
-**Date Released**: January 29, 2026  
-**Ready for Deployment**: YES  
+**Release Status**: ✅ COMPLETE
+**Date Released**: January 29, 2026
+**Ready for Deployment**: YES
 **Ready for Production**: YES
 
 Enjoy the improved MIEEK Dark theme! 🎨
