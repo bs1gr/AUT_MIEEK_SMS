@@ -41,11 +41,12 @@ export const FacetedNavigation: React.FC<FacetedNavigationProps> = ({
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-lg font-semibold mb-4">{t('search.facets.title')}</h2>
         <div className="space-y-6">
-          {facetKeys.map((facetKey) => {
+          {facetKeys.map((facetKey, groupIdx) => {
             const values = facets[facetKey] || [];
             const selectedValues = new Set(selected?.[facetKey] || []);
             return (
-              <div key={facetKey}>
+              <React.Fragment key={facetKey}>
+                <div>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold text-gray-700">
                     {t(`search.facets.${facetKey}`, { defaultValue: facetKey })}
@@ -61,29 +62,38 @@ export const FacetedNavigation: React.FC<FacetedNavigationProps> = ({
                   )}
                 </div>
                 <ul className="space-y-1">
-                  {values.map((v) => {
+                  {values.map((v, idx) => {
                     const valueStr = String(v.value);
                     const isSelected = selectedValues.has(valueStr);
                     return (
-                      <li key={valueStr}>
-                        <label className="flex items-center justify-between cursor-pointer">
-                          <span className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => onToggle(facetKey, valueStr)}
-                              className="accent-blue-600"
-                              aria-label={`${facetKey}:${valueStr}`}
-                            />
-                            <span className="text-sm text-gray-800">{t(`search.facets.values.${valueStr}`, { defaultValue: valueStr })}</span>
-                          </span>
-                          <span className="text-xs text-gray-500">{v.count}</span>
-                        </label>
-                      </li>
+                      <React.Fragment key={valueStr}>
+                        <li>
+                          <label className="flex items-center justify-between cursor-pointer">
+                            <span className="flex items-center gap-2">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => onToggle(facetKey, valueStr)}
+                                className="accent-blue-600"
+                                aria-label={`${facetKey}:${valueStr}`}
+                              />
+                              <span className="text-sm text-gray-800">{t(`search.facets.values.${valueStr}`, { defaultValue: valueStr })}</span>
+                            </span>
+                            <span className="text-xs text-gray-500">{v.count}</span>
+                          </label>
+                        </li>
+                        {idx < values.length - 1 && (
+                          <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" />
+                        )}
+                      </React.Fragment>
                     );
                   })}
                 </ul>
               </div>
+              {groupIdx < facetKeys.length - 1 && (
+                <div className="border-t-2 border-gray-600 dark:border-gray-400 my-3" />
+              )}
+            </React.Fragment>
             );
           })}
         </div>

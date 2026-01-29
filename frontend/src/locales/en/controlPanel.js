@@ -48,6 +48,14 @@ export default {
       name: 'Light Professional',
       description: 'Clean minimal light mode',
     },
+    mieek: {
+      name: 'ΜΙΕΕΚ',
+      description: 'Professional admin interface with green accent',
+    },
+    mieekDark: {
+      name: 'ΜΙΕΕΚ Dark',
+      description: 'Dark professional interface with vivid white text',
+    },
   },
   appearancePreview: 'Live preview',
   appearancePreviewDesc: 'See how analytics cards, buttons, and inputs adapt to the selected appearance theme.',

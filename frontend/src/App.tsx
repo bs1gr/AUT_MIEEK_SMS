@@ -59,12 +59,13 @@ const AppLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen">
-      {/* Header with Title and Language Toggle */}
-      <div className="flex items-center justify-between pb-4">
-        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('systemTitle')}</h1>
-        <LanguageSwitcher />
-      </div>
+    <div className="min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Header with Title and Language Toggle */}
+        <div className="flex items-center justify-between pb-4">
+          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('systemTitle')}</h1>
+          <LanguageSwitcher />
+        </div>
 
       {/* Navigation + Logout - only show when authenticated */}
       {user && (
@@ -84,6 +85,7 @@ const AppLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
       )}
 
       {children}
+      </div>
     </div>
   );
 };

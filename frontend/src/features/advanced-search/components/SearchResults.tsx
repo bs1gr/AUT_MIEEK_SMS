@@ -213,7 +213,14 @@ export const SearchResults: React.FC<SearchResultsProps> = ({
 
       {/* Results list */}
       <div className="space-y-4" role="list" aria-label={t('results.list')}>
-        {results.map((result, index) => renderResultCard(result, index))}
+        {results.map((result, index) => (
+          <React.Fragment key={`result-${result.id}-${index}`}>
+            {renderResultCard(result, index)}
+            {index < results.length - 1 && (
+              <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" />
+            )}
+          </React.Fragment>
+        ))}
       </div>
     </div>
   );

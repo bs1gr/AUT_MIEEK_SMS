@@ -1,12 +1,27 @@
 # Unified Work Plan - Student Management System
 
 **Version**: 1.17.5
-**Last Updated**: January 28, 2026 (10:05 UTC - Greek Localization Restoration Complete)
+**Last Updated**: January 29, 2026 (MIEEK Dark UI refinements)
 **Status**: ✅ v1.17.5 RELEASED + Greek Localization Restored
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant
 **Current Branch**: `main`
 
-### Latest Update (Jan 28 - 10:05 UTC - Greek Localization Restoration Complete)
+### Latest Update (Jan 29 - MIEEK Dark UI refinements)
+> ✅ **MIEEK DARK THEME VISUAL REFINEMENTS (IN PROGRESS)**
+>
+> **What Was Updated**:
+> - Scoped black background to MIEEK Dark only (html/body/root)
+> - Input fields forced to white backgrounds with black text
+> - Placeholder contrast adjusted for visibility
+> - Weekly Teaching Schedule day toggle now white with purple tick
+> - Attendance/Courses UI alignment tweaks for dark theme
+>
+> **Notes**:
+> - Visual verification in browser pending for all pages
+>
+---
+
+### Previous Update (Jan 28 - 10:05 UTC - Greek Localization Restoration Complete)
 > ✅ **GREEK LOCALIZATION PARITY RESTORED - ALL TESTS PASSING**
 >
 > **What Was Fixed**:

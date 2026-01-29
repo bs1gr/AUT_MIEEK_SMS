@@ -30,23 +30,28 @@ export const SearchHistorySidebar: React.FC<Props> = ({ onSelect, className }) =
           <p className="text-gray-500">{t('search.history.empty', { defaultValue: 'No recent searches.' })}</p>
         ) : (
           <ul className="space-y-2">
-            {entries.map((e) => (
-              <li key={e.id} className="flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => onSelect(e.query)}
-                  className="text-sm text-left text-gray-800 hover:text-blue-700"
-                >
-                  {e.query}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => removeEntry(e.id)}
-                  className="text-xs text-red-600 hover:text-red-800"
-                >
-                  {t('common.remove', { defaultValue: 'Remove' })}
-                </button>
-              </li>
+            {entries.map((e, idx) => (
+              <React.Fragment key={e.id}>
+                <li className="flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={() => onSelect(e.query)}
+                    className="text-sm text-left text-gray-800 hover:text-blue-700"
+                  >
+                    {e.query}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeEntry(e.id)}
+                    className="text-xs text-red-600 hover:text-red-800"
+                  >
+                    {t('common.remove', { defaultValue: 'Remove' })}
+                  </button>
+                </li>
+                {idx < entries.length - 1 && (
+                  <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" />
+                )}
+              </React.Fragment>
             ))}
           </ul>
         )}

@@ -403,7 +403,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
   }, [courses, loadEnrollmentStats]);
 
   return (
-    <div className="space-y-6 bg-slate-100 pb-10">
+    <div className="space-y-6 pb-10">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <img

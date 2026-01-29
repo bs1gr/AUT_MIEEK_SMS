@@ -6,7 +6,9 @@ export type AppearanceThemeVariant =
   | 'neumorphism'
   | 'gradient'
   | 'modern-dark'
-  | 'light-professional';
+  | 'light-professional'
+  | 'mieek'
+  | 'mieek-dark';
 
 type AppearanceThemeContextValue = {
   appearanceTheme: AppearanceThemeVariant;
@@ -23,6 +25,8 @@ const SUPPORTED_THEMES: readonly AppearanceThemeVariant[] = [
   'gradient',
   'modern-dark',
   'light-professional',
+  'mieek',
+  'mieek-dark',
 ];
 
 const isAppearanceTheme = (value: unknown): value is AppearanceThemeVariant =>
