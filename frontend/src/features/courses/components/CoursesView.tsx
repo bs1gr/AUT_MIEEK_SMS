@@ -886,14 +886,14 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
                             <div className="flex items-center space-x-3">
                               <button
                                 onClick={() => toggleDay(day.en)}
-                                className={`w-6 h-6 rounded border-2 transition-all ${
+                                className={`weekly-schedule-toggle w-6 h-6 rounded border-2 transition-all ${
                                   isActive
-                                    ? 'bg-indigo-600 border-indigo-600'
+                                    ? 'weekly-schedule-toggle--active bg-indigo-600 border-indigo-600'
                                     : 'border-gray-300 hover:border-indigo-400'
                                 }`}
                               >
                                 {isActive && (
-                                  <svg className="w-full h-full text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="weekly-schedule-toggle__icon w-full h-full text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                   </svg>
                                 )}

@@ -2,20 +2,240 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  /* Redefine white color for mieek-dark theme */
+  [data-appearance="mieek-dark"] {
+    --color-white: 10 10 10;
+    --color-gray-50: 10 10 10;
+    --color-gray-100: 15 15 15;
+    --color-slate-50: 10 10 10;
+    --color-slate-100: 15 15 15;
+  }
 }
 
-:root {
-  --appearance-bg: #f3f4f6;
-  --appearance-surface: #ffffff;
-  --appearance-surface-subtle: #f8fafc;
-  --appearance-text: #111827;
-  --appearance-muted-text: #374151;
-  --appearance-border: rgba(15, 23, 42, 0.08);
-  --appearance-accent: #4f46e5;
+@layer utilities {
+  /* ABSOLUTE OVERRIDE: All white/light backgrounds to dark */
+  [data-appearance="mieek-dark"] .bg-white {
+    --tw-bg-opacity: 1 !important;
+    background-color: rgb(10 10 10 / var(--tw-bg-opacity)) !important;
+    color: rgb(255 255 255) !important;
+  }
+
+  [data-appearance="mieek-dark"] .bg-gray-50,
+  [data-appearance="mieek-dark"] .bg-gray-100,
+  [data-appearance="mieek-dark"] .bg-slate-50,
+  [data-appearance="mieek-dark"] .bg-slate-100 {
+    --tw-bg-opacity: 1 !important;
+    background-color: rgb(10 10 10 / var(--tw-bg-opacity)) !important;
+    color: rgb(255 255 255) !important;
+  }
+
+  /* GRADIENT OVERRIDES: Light gradient colors to dark */
+  [data-appearance="mieek-dark"] .from-indigo-50,
+  [data-appearance="mieek-dark"] .from-purple-50,
+  [data-appearance="mieek-dark"] .from-blue-50 {
+    --tw-gradient-from: #0a0a0a var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(10 10 10 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  [data-appearance="mieek-dark"] .to-purple-50,
+  [data-appearance="mieek-dark"] .to-indigo-50,
+  [data-appearance="mieek-dark"] .to-blue-50 {
+    --tw-gradient-to: #0a0a0a var(--tw-gradient-to-position) !important;
+  }
+
+  [data-appearance="mieek-dark"] .via-indigo-50,
+  [data-appearance="mieek-dark"] .via-purple-50,
+  [data-appearance="mieek-dark"] .via-blue-50 {
+    --tw-gradient-to: rgb(10 10 10 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), #0a0a0a var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+
+  /* Darken strong gradients in mieek-dark */
+  [data-appearance="mieek-dark"] .from-indigo-600,
+  [data-appearance="mieek-dark"] .from-purple-600 {
+    --tw-gradient-from: #0a0a0a var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(10 10 10 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  [data-appearance="mieek-dark"] .to-purple-600,
+  [data-appearance="mieek-dark"] .to-indigo-600 {
+    --tw-gradient-to: #0a0a0a var(--tw-gradient-to-position) !important;
+  }
+
+  /* Force green-tinted shadows to blue in mieek-dark */
+  [data-appearance="mieek-dark"] [class*="shadow-green"],
+  [data-appearance="mieek-dark"] [class*="shadow-emerald"],
+  [data-appearance="mieek-dark"] [class*="shadow-lime"],
+  [data-appearance="mieek-dark"] [class*="shadow-teal"],
+  [data-appearance="mieek-dark"] [class*="shadow-cyan"] {
+    --tw-shadow-color: rgba(59, 130, 246, 0.35) !important;
+  }
+
+  /* Force all greenish gradients to blueish in mieek-dark */
+  [data-appearance="mieek-dark"] .from-green-50,
+  [data-appearance="mieek-dark"] .from-green-100,
+  [data-appearance="mieek-dark"] .from-green-200,
+  [data-appearance="mieek-dark"] .from-green-300,
+  [data-appearance="mieek-dark"] .from-green-400,
+  [data-appearance="mieek-dark"] .from-green-500,
+  [data-appearance="mieek-dark"] .from-green-600,
+  [data-appearance="mieek-dark"] .from-green-700,
+  [data-appearance="mieek-dark"] .from-green-800,
+  [data-appearance="mieek-dark"] .from-green-900,
+  [data-appearance="mieek-dark"] .from-emerald-50,
+  [data-appearance="mieek-dark"] .from-emerald-100,
+  [data-appearance="mieek-dark"] .from-emerald-200,
+  [data-appearance="mieek-dark"] .from-emerald-300,
+  [data-appearance="mieek-dark"] .from-emerald-400,
+  [data-appearance="mieek-dark"] .from-emerald-500,
+  [data-appearance="mieek-dark"] .from-emerald-600,
+  [data-appearance="mieek-dark"] .from-emerald-700,
+  [data-appearance="mieek-dark"] .from-emerald-800,
+  [data-appearance="mieek-dark"] .from-emerald-900,
+  [data-appearance="mieek-dark"] .from-teal-50,
+  [data-appearance="mieek-dark"] .from-teal-100,
+  [data-appearance="mieek-dark"] .from-teal-200,
+  [data-appearance="mieek-dark"] .from-teal-300,
+  [data-appearance="mieek-dark"] .from-teal-400,
+  [data-appearance="mieek-dark"] .from-teal-500,
+  [data-appearance="mieek-dark"] .from-teal-600,
+  [data-appearance="mieek-dark"] .from-teal-700,
+  [data-appearance="mieek-dark"] .from-teal-800,
+  [data-appearance="mieek-dark"] .from-teal-900,
+  [data-appearance="mieek-dark"] .from-cyan-50,
+  [data-appearance="mieek-dark"] .from-cyan-100,
+  [data-appearance="mieek-dark"] .from-cyan-200,
+  [data-appearance="mieek-dark"] .from-cyan-300,
+  [data-appearance="mieek-dark"] .from-cyan-400,
+  [data-appearance="mieek-dark"] .from-cyan-500,
+  [data-appearance="mieek-dark"] .from-cyan-600,
+  [data-appearance="mieek-dark"] .from-cyan-700,
+  [data-appearance="mieek-dark"] .from-cyan-800,
+  [data-appearance="mieek-dark"] .from-cyan-900,
+  [data-appearance="mieek-dark"] .from-lime-50,
+  [data-appearance="mieek-dark"] .from-lime-100,
+  [data-appearance="mieek-dark"] .from-lime-200,
+  [data-appearance="mieek-dark"] .from-lime-300,
+  [data-appearance="mieek-dark"] .from-lime-400,
+  [data-appearance="mieek-dark"] .from-lime-500,
+  [data-appearance="mieek-dark"] .from-lime-600,
+  [data-appearance="mieek-dark"] .from-lime-700,
+  [data-appearance="mieek-dark"] .from-lime-800,
+  [data-appearance="mieek-dark"] .from-lime-900 {
+    --tw-gradient-from: #0b1b2f var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgb(11 27 47 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+  }
+
+  [data-appearance="mieek-dark"] .to-green-50,
+  [data-appearance="mieek-dark"] .to-green-100,
+  [data-appearance="mieek-dark"] .to-green-200,
+  [data-appearance="mieek-dark"] .to-green-300,
+  [data-appearance="mieek-dark"] .to-green-400,
+  [data-appearance="mieek-dark"] .to-green-500,
+  [data-appearance="mieek-dark"] .to-green-600,
+  [data-appearance="mieek-dark"] .to-green-700,
+  [data-appearance="mieek-dark"] .to-green-800,
+  [data-appearance="mieek-dark"] .to-green-900,
+  [data-appearance="mieek-dark"] .to-emerald-50,
+  [data-appearance="mieek-dark"] .to-emerald-100,
+  [data-appearance="mieek-dark"] .to-emerald-200,
+  [data-appearance="mieek-dark"] .to-emerald-300,
+  [data-appearance="mieek-dark"] .to-emerald-400,
+  [data-appearance="mieek-dark"] .to-emerald-500,
+  [data-appearance="mieek-dark"] .to-emerald-600,
+  [data-appearance="mieek-dark"] .to-emerald-700,
+  [data-appearance="mieek-dark"] .to-emerald-800,
+  [data-appearance="mieek-dark"] .to-emerald-900,
+  [data-appearance="mieek-dark"] .to-teal-50,
+  [data-appearance="mieek-dark"] .to-teal-100,
+  [data-appearance="mieek-dark"] .to-teal-200,
+  [data-appearance="mieek-dark"] .to-teal-300,
+  [data-appearance="mieek-dark"] .to-teal-400,
+  [data-appearance="mieek-dark"] .to-teal-500,
+  [data-appearance="mieek-dark"] .to-teal-600,
+  [data-appearance="mieek-dark"] .to-teal-700,
+  [data-appearance="mieek-dark"] .to-teal-800,
+  [data-appearance="mieek-dark"] .to-teal-900,
+  [data-appearance="mieek-dark"] .to-cyan-50,
+  [data-appearance="mieek-dark"] .to-cyan-100,
+  [data-appearance="mieek-dark"] .to-cyan-200,
+  [data-appearance="mieek-dark"] .to-cyan-300,
+  [data-appearance="mieek-dark"] .to-cyan-400,
+  [data-appearance="mieek-dark"] .to-cyan-500,
+  [data-appearance="mieek-dark"] .to-cyan-600,
+  [data-appearance="mieek-dark"] .to-cyan-700,
+  [data-appearance="mieek-dark"] .to-cyan-800,
+  [data-appearance="mieek-dark"] .to-cyan-900,
+  [data-appearance="mieek-dark"] .to-lime-50,
+  [data-appearance="mieek-dark"] .to-lime-100,
+  [data-appearance="mieek-dark"] .to-lime-200,
+  [data-appearance="mieek-dark"] .to-lime-300,
+  [data-appearance="mieek-dark"] .to-lime-400,
+  [data-appearance="mieek-dark"] .to-lime-500,
+  [data-appearance="mieek-dark"] .to-lime-600,
+  [data-appearance="mieek-dark"] .to-lime-700,
+  [data-appearance="mieek-dark"] .to-lime-800,
+  [data-appearance="mieek-dark"] .to-lime-900 {
+    --tw-gradient-to: #0b1b2f var(--tw-gradient-to-position) !important;
+  }
+
+  [data-appearance="mieek-dark"] .via-green-50,
+  [data-appearance="mieek-dark"] .via-green-100,
+  [data-appearance="mieek-dark"] .via-green-200,
+  [data-appearance="mieek-dark"] .via-green-300,
+  [data-appearance="mieek-dark"] .via-green-400,
+  [data-appearance="mieek-dark"] .via-green-500,
+  [data-appearance="mieek-dark"] .via-green-600,
+  [data-appearance="mieek-dark"] .via-green-700,
+  [data-appearance="mieek-dark"] .via-green-800,
+  [data-appearance="mieek-dark"] .via-green-900,
+  [data-appearance="mieek-dark"] .via-emerald-50,
+  [data-appearance="mieek-dark"] .via-emerald-100,
+  [data-appearance="mieek-dark"] .via-emerald-200,
+  [data-appearance="mieek-dark"] .via-emerald-300,
+  [data-appearance="mieek-dark"] .via-emerald-400,
+  [data-appearance="mieek-dark"] .via-emerald-500,
+  [data-appearance="mieek-dark"] .via-emerald-600,
+  [data-appearance="mieek-dark"] .via-emerald-700,
+  [data-appearance="mieek-dark"] .via-emerald-800,
+  [data-appearance="mieek-dark"] .via-emerald-900,
+  [data-appearance="mieek-dark"] .via-teal-50,
+  [data-appearance="mieek-dark"] .via-teal-100,
+  [data-appearance="mieek-dark"] .via-teal-200,
+  [data-appearance="mieek-dark"] .via-teal-300,
+  [data-appearance="mieek-dark"] .via-teal-400,
+  [data-appearance="mieek-dark"] .via-teal-500,
+  [data-appearance="mieek-dark"] .via-teal-600,
+  [data-appearance="mieek-dark"] .via-teal-700,
+  [data-appearance="mieek-dark"] .via-teal-800,
+  [data-appearance="mieek-dark"] .via-teal-900,
+  [data-appearance="mieek-dark"] .via-cyan-50,
+  [data-appearance="mieek-dark"] .via-cyan-100,
+  [data-appearance="mieek-dark"] .via-cyan-200,
+  [data-appearance="mieek-dark"] .via-cyan-300,
+  [data-appearance="mieek-dark"] .via-cyan-400,
+  [data-appearance="mieek-dark"] .via-cyan-500,
+  [data-appearance="mieek-dark"] .via-cyan-600,
+  [data-appearance="mieek-dark"] .via-cyan-700,
+  [data-appearance="mieek-dark"] .via-cyan-800,
+  [data-appearance="mieek-dark"] .via-cyan-900,
+  [data-appearance="mieek-dark"] .via-lime-50,
+  [data-appearance="mieek-dark"] .via-lime-100,
+  [data-appearance="mieek-dark"] .via-lime-200,
+  [data-appearance="mieek-dark"] .via-lime-300,
+  [data-appearance="mieek-dark"] .via-lime-400,
+  [data-appearance="mieek-dark"] .via-lime-500,
+  [data-appearance="mieek-dark"] .via-lime-600,
+  [data-appearance="mieek-dark"] .via-lime-700,
+  [data-appearance="mieek-dark"] .via-lime-800,
+  [data-appearance="mieek-dark"] .via-lime-900 {
+    --tw-gradient-to: rgb(11 27 47 / 0) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), #0b1b2f var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
   --appearance-accent-fill: #4f46e5;
   --appearance-accent-strong: #4338ca;
   --appearance-accent-contrast: #ffffff;
@@ -382,106 +602,920 @@ html {
   background: rgba(107, 114, 128, 0.6);
 }
 
-/* Appearance theme overrides (global UI changer) */
-[data-appearance] body,
-[data-appearance] #root,
-[data-appearance] .app-shell {
-  background: var(--appearance-bg);
-  color: var(--appearance-text);
+/* Mieek theme - Professional admin interface with green accent (inspired by admin.mieek.ac.cy) */
+.mieek {
+  --appearance-bg: linear-gradient(135deg, #ffffff 0%, #fcfcfc 50%, #fafafa 100%);
+  --appearance-surface: #ffffff;
+  --appearance-surface-subtle: #fcfcfc;
+  --appearance-text: #1a3a38;
+  --appearance-muted-text: #275f5a;
+  --appearance-border: #d6d9d8;
+  --appearance-accent: #38cf15;
+  --appearance-accent-fill: #38cf15;
+  --appearance-accent-strong: #2ba310;
+  --appearance-accent-contrast: #ffffff;
+  --appearance-shadow: rgba(56, 207, 21, 0.18);
+  --appearance-highlight: rgba(56, 207, 21, 0.08);
+  background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 50%, #fafafa 100%);
+  color: #1a3a38;
 }
 
-[data-appearance] .app-shell {
-  border: 1px solid var(--appearance-border);
-  box-shadow: 0 40px 65px -35px var(--appearance-shadow);
+.mieek body {
+  background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 50%, #fafafa 100%);
+  color: #1a3a38;
 }
 
-[data-appearance] .bg-white,
-[data-appearance] .bg-gray-50,
-[data-appearance] .bg-gray-100,
-[data-appearance] .bg-slate-50,
-[data-appearance] .bg-slate-100 {
-  background-color: var(--appearance-surface) !important;
-  color: var(--appearance-text) !important;
-  -webkit-backdrop-filter: blur(var(--appearance-blur));
-  backdrop-filter: blur(var(--appearance-blur));
+.mieek #root {
+  background: linear-gradient(135deg, #ffffff 0%, #fcfcfc 50%, #fafafa 100%);
+  color: #1a3a38;
 }
 
-[data-appearance] .bg-gray-200,
-[data-appearance] .bg-slate-200 {
-  background-color: var(--appearance-surface-subtle) !important;
+/* Mieek theme - Clean white surfaces */
+.mieek .bg-white {
+  background: rgba(255, 255, 255, 0.95) !important;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
-[data-appearance] .text-gray-900,
-[data-appearance] .text-gray-800,
-[data-appearance] .text-slate-900,
-[data-appearance] .text-slate-800 {
-  color: var(--appearance-text) !important;
+.mieek .bg-gray-50 {
+  background-color: rgba(252, 252, 252, 0.85) !important;
 }
 
-[data-appearance] .text-gray-600,
-[data-appearance] .text-gray-500,
-[data-appearance] .text-slate-600,
-[data-appearance] .text-slate-500,
-[data-appearance] .text-gray-400 {
-  color: var(--appearance-muted-text) !important;
+.mieek .bg-gray-100 {
+  background-color: rgba(250, 250, 250, 0.9) !important;
 }
 
-[data-appearance] .border-gray-200,
-[data-appearance] .border-gray-300,
-[data-appearance] .border-slate-200,
-[data-appearance] .border-slate-300 {
-  border-color: var(--appearance-border) !important;
+.mieek .text-gray-800 {
+  color: #1a3a38 !important;
 }
 
-[data-appearance] .bg-indigo-600,
-[data-appearance] .bg-indigo-500,
-[data-appearance] .bg-purple-600,
-[data-appearance] .bg-blue-600,
-[data-appearance] .bg-emerald-600 {
-  background: var(--appearance-accent-fill, var(--appearance-accent)) !important;
-  color: var(--appearance-accent-contrast) !important;
-  box-shadow: 0 12px 30px -12px var(--appearance-shadow);
+.mieek .text-gray-700 {
+  color: #275f5a !important;
 }
 
-[data-appearance] .text-indigo-600,
-[data-appearance] .text-indigo-500,
-[data-appearance] .text-purple-600,
-[data-appearance] .text-blue-600,
-[data-appearance] .text-emerald-600 {
-  color: var(--appearance-accent) !important;
+.mieek .text-gray-600 {
+  color: #3d7a72 !important;
 }
 
-[data-appearance] .ring-indigo-500,
-[data-appearance] .focus\:ring-indigo-500:focus,
-[data-appearance] .focus-visible\:ring-indigo-500:focus-visible {
-  box-shadow: 0 0 0 3px var(--appearance-highlight);
+.mieek .border-gray-200 {
+  border-color: rgba(214, 217, 216, 0.6) !important;
 }
 
-[data-appearance] .shadow,
-[data-appearance] .shadow-sm,
-[data-appearance] .shadow-md,
-[data-appearance] .shadow-lg,
-[data-appearance] .shadow-xl,
-[data-appearance] .shadow-2xl {
-  box-shadow: 0 25px 55px -30px var(--appearance-shadow) !important;
+.mieek .border-gray-300 {
+  border-color: rgba(214, 217, 216, 0.8) !important;
 }
 
-[data-appearance] .highlight-card,
-[data-appearance] .metric-card {
-  border-color: var(--appearance-border) !important;
-  background: var(--appearance-surface) !important;
+/* Mieek theme - Subtle shadows with green tint */
+.mieek .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(56, 207, 21, 0.04) !important;
 }
 
-[data-appearance] .text-muted,
-[data-appearance] .muted-text,
-[data-appearance] .description {
-  color: var(--appearance-muted-text) !important;
+.mieek .shadow {
+  box-shadow: 0 1px 3px 0 rgba(56, 207, 21, 0.08), 0 1px 2px -1px rgba(56, 207, 21, 0.06) !important;
 }
 
-[data-appearance] a,
-[data-appearance] button,
-[data-appearance] .link {
-  transition: color 200ms ease, background 200ms ease, box-shadow 200ms ease;
+.mieek .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(56, 207, 21, 0.1), 0 2px 4px -2px rgba(56, 207, 21, 0.08) !important;
+}
+
+.mieek .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(56, 207, 21, 0.12), 0 4px 6px -4px rgba(56, 207, 21, 0.1) !important;
+}
+
+.mieek .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(56, 207, 21, 0.14), 0 8px 10px -6px rgba(56, 207, 21, 0.12) !important;
+}
+
+/* Mieek theme - Green accent for interactive elements */
+.mieek .bg-indigo-600 {
+  background-color: #38cf15 !important;
+}
+
+.mieek .bg-indigo-50 {
+  background-color: rgba(56, 207, 21, 0.08) !important;
+}
+
+.mieek .text-indigo-600 {
+  color: #2ba310 !important;
+}
+
+.mieek .text-indigo-700 {
+  color: #248a0d !important;
+}
+
+.mieek .border-indigo-600 {
+  border-color: #38cf15 !important;
+}
+
+/* Mieek theme - Status colors with professional tones */
+.mieek .bg-green-500 {
+  background-color: #38cf15 !important;
+}
+
+.mieek .bg-blue-500 {
+  background-color: #42a5f5 !important;
+}
+
+.mieek .bg-red-500 {
+  background-color: #ef5350 !important;
+}
+
+.mieek .bg-yellow-500 {
+  background-color: #ffa726 !important;
+}
+
+.mieek .text-green-600 {
+  color: #2ba310 !important;
+}
+
+.mieek .text-blue-600 {
+  color: #1e88e5 !important;
+}
+
+.mieek .text-red-600 {
+  color: #e53935 !important;
+}
+
+.mieek .text-yellow-600 {
+  color: #fb8c00 !important;
+}
+
+/* Mieek scrollbar styling - Clean green accent */
+.mieek ::-webkit-scrollbar-track {
+  background: rgba(252, 252, 252, 0.8);
+}
+
+.mieek ::-webkit-scrollbar-thumb {
+  background: rgba(56, 207, 21, 0.3);
+  border-radius: 6px;
+}
+
+.mieek ::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 207, 21, 0.5);
+}
+
+/* Mieek Dark theme - rebuilt from scratch (clean, minimal overrides) */
+.mieek-dark,
+[data-appearance='mieek-dark'] {
+  --appearance-bg: #0a0a0a;
+  --appearance-surface: #0b0b0b;
+  --appearance-surface-subtle: #0e0e0e;
+  --appearance-text: #ffffff;
+  --appearance-muted-text: #c7c7c7;
+  --appearance-border: #1a1a1a;
+  --appearance-accent: #38cf15;
+  --appearance-accent-fill: #38cf15;
+  --appearance-accent-strong: #2ba310;
+  --appearance-accent-contrast: #0a0a0a;
+  --appearance-shadow: rgba(0, 0, 0, 0.6);
+  --appearance-highlight: rgba(59, 130, 246, 0.16);
+  background: #0a0a0a;
+  color: #ffffff;
+}
+
+.mieek-dark body,
+.mieek-dark #root,
+[data-appearance='mieek-dark'] body,
+[data-appearance='mieek-dark'] #root {
+  background: #0a0a0a !important;
+  color: #ffffff !important;
+}
+
+/* ULTRA-PRIORITY: Override ALL white backgrounds in mieek-dark theme */
+[data-appearance='mieek-dark'] [class*="bg-white"],
+.mieek-dark [class*="bg-white"],
+html[data-appearance='mieek-dark'] [class*="bg-white"],
+body[data-appearance='mieek-dark'] [class*="bg-white"] {
+  background-color: #141414 !important;
+  color: #ffffff !important;
+}
+  background-color: #0b0b0b !important;
+[data-appearance='mieek-dark'] .bg-white {
+  background-color: #0b0b0b !important;
+  color: #ffffff !important;
+}
+
+[data-appearance='mieek-dark'] .bg-gray-50,
+[data-appearance='mieek-dark'] .bg-slate-50 {
+  background-color: #0b0b0b !important;
+  color: #ffffff !important;
+}
+
+[data-appearance='mieek-dark'] .bg-gray-100,
+[data-appearance='mieek-dark'] .bg-slate-100 {
+  background-color: #0e0e0e !important;
+  color: #ffffff !important;
+}
+
+[data-appearance='mieek-dark'] .border-gray-100,
+[data-appearance='mieek-dark'] .border-gray-200,
+[data-appearance='mieek-dark'] .border-gray-300,
+[data-appearance='mieek-dark'] .border-slate-200,
+[data-appearance='mieek-dark'] .border-slate-300 {
+  border-color: #262626 !important;
+}
+
+[data-appearance='mieek-dark'] .border,
+[data-appearance='mieek-dark'] .border-t,
+[data-appearance='mieek-dark'] .border-r,
+[data-appearance='mieek-dark'] .border-b,
+[data-appearance='mieek-dark'] .border-l,
+.mieek-dark .border,
+.mieek-dark .border-t,
+.mieek-dark .border-r,
+.mieek-dark .border-b,
+.mieek-dark .border-l {
+  border-color: #0a0a0a !important;
+}
+
+[data-appearance='mieek-dark'] .border-indigo-100,
+[data-appearance='mieek-dark'] .border-indigo-200,
+[data-appearance='mieek-dark'] .border-indigo-300 {
+  border-color: #0a0a0a !important;
+}
+
+[data-appearance='mieek-dark'] .border-emerald-100,
+[data-appearance='mieek-dark'] .border-emerald-200,
+[data-appearance='mieek-dark'] .border-blue-100,
+[data-appearance='mieek-dark'] .border-blue-200,
+[data-appearance='mieek-dark'] .border-sky-100,
+[data-appearance='mieek-dark'] .border-sky-200,
+[data-appearance='mieek-dark'] .border-cyan-100,
+[data-appearance='mieek-dark'] .border-cyan-200,
+[data-appearance='mieek-dark'] .border-teal-100,
+[data-appearance='mieek-dark'] .border-teal-200,
+[data-appearance='mieek-dark'] .border-violet-100,
+[data-appearance='mieek-dark'] .border-violet-200,
+[data-appearance='mieek-dark'] .border-purple-100,
+[data-appearance='mieek-dark'] .border-purple-200,
+[data-appearance='mieek-dark'] .border-rose-100,
+[data-appearance='mieek-dark'] .border-rose-200,
+[data-appearance='mieek-dark'] .border-pink-100,
+[data-appearance='mieek-dark'] .border-pink-200,
+[data-appearance='mieek-dark'] .border-amber-100,
+[data-appearance='mieek-dark'] .border-amber-200,
+[data-appearance='mieek-dark'] .border-yellow-100,
+[data-appearance='mieek-dark'] .border-yellow-200,
+[data-appearance='mieek-dark'] .border-lime-100,
+[data-appearance='mieek-dark'] .border-lime-200 {
+  border-color: #0a0a0a !important;
+}
+
+[data-appearance='mieek-dark'] .border-gray-50,
+[data-appearance='mieek-dark'] .border-gray-100,
+[data-appearance='mieek-dark'] .border-gray-200,
+[data-appearance='mieek-dark'] .border-gray-300,
+[data-appearance='mieek-dark'] .border-slate-50,
+[data-appearance='mieek-dark'] .border-slate-100,
+[data-appearance='mieek-dark'] .border-slate-200,
+[data-appearance='mieek-dark'] .border-slate-300,
+[data-appearance='mieek-dark'] .border-zinc-50,
+[data-appearance='mieek-dark'] .border-zinc-100,
+[data-appearance='mieek-dark'] .border-zinc-200,
+[data-appearance='mieek-dark'] .border-zinc-300,
+[data-appearance='mieek-dark'] .border-stone-50,
+[data-appearance='mieek-dark'] .border-stone-100,
+[data-appearance='mieek-dark'] .border-stone-200,
+[data-appearance='mieek-dark'] .border-stone-300,
+[data-appearance='mieek-dark'] .border-neutral-50,
+[data-appearance='mieek-dark'] .border-neutral-100,
+[data-appearance='mieek-dark'] .border-neutral-200,
+[data-appearance='mieek-dark'] .border-neutral-300 {
+  border-color: #0a0a0a !important;
+}
+
+/* Override green borders and rings to blue */
+[data-appearance='mieek-dark'] .border-green-500,
+[data-appearance='mieek-dark'] .border-green-600,
+[data-appearance='mieek-dark'] .border-emerald-500,
+[data-appearance='mieek-dark'] .border-emerald-600,
+.mieek-dark .border-green-500,
+.mieek-dark .border-green-600,
+.mieek-dark .border-emerald-500,
+.mieek-dark .border-emerald-600 {
+  border-color: #3b82f6 !important;
+}
+
+[data-appearance='mieek-dark'] .ring-green-500,
+[data-appearance='mieek-dark'] .ring-green-600,
+[data-appearance='mieek-dark'] .ring-emerald-500,
+[data-appearance='mieek-dark'] .ring-emerald-600,
+.mieek-dark .ring-green-500,
+.mieek-dark .ring-green-600,
+.mieek-dark .ring-emerald-500,
+.mieek-dark .ring-emerald-600 {
+  --tw-ring-color: #3b82f6 !important;
+}
+
+[data-appearance='mieek-dark'] .focus\:ring-green-500:focus,
+[data-appearance='mieek-dark'] .focus\:ring-green-600:focus,
+[data-appearance='mieek-dark'] .focus\:ring-emerald-500:focus,
+[data-appearance='mieek-dark'] .focus\:ring-emerald-600:focus,
+.mieek-dark .focus\:ring-green-500:focus,
+.mieek-dark .focus\:ring-green-600:focus,
+.mieek-dark .focus\:ring-emerald-500:focus,
+.mieek-dark .focus\:ring-emerald-600:focus {
+  --tw-ring-color: #3b82f6 !important;
+}
+
+/* Override ALL focus states to use blue instead of green */
+[data-appearance='mieek-dark'] *:focus,
+[data-appearance='mieek-dark'] button:focus,
+[data-appearance='mieek-dark'] select:focus,
+[data-appearance='mieek-dark'] input:focus,
+[data-appearance='mieek-dark'] textarea:focus,
+.mieek-dark *:focus,
+.mieek-dark button:focus,
+.mieek-dark select:focus,
+.mieek-dark input:focus,
+.mieek-dark textarea:focus {
+  --tw-ring-color: #3b82f6 !important;
+  outline-color: #3b82f6 !important;
+}
+
+/* Override focus-visible states */
+[data-appearance='mieek-dark'] *:focus-visible,
+[data-appearance='mieek-dark'] button:focus-visible,
+[data-appearance='mieek-dark'] select:focus-visible,
+.mieek-dark *:focus-visible,
+.mieek-dark button:focus-visible,
+.mieek-dark select:focus-visible {
+  --tw-ring-color: #3b82f6 !important;
+  outline-color: #3b82f6 !important;
+}
+
+[data-appearance='mieek-dark'] .border-white,
+[data-appearance='mieek-dark'] [class*="border-white/"],
+.mieek-dark .border-white,
+.mieek-dark [class*="border-white/"] {
+  border-color: #0a0a0a !important;
+}
+
+[data-appearance='mieek-dark'] .ring-white,
+[data-appearance='mieek-dark'] [class*="ring-white/"],
+.mieek-dark .ring-white,
+.mieek-dark [class*="ring-white/"] {
+  --tw-ring-color: #0a0a0a !important;
+}
+
+[data-appearance='mieek-dark'] .ring-offset-white,
+[data-appearance='mieek-dark'] [class*="ring-offset-white/"],
+.mieek-dark .ring-offset-white,
+.mieek-dark [class*="ring-offset-white/"] {
+  --tw-ring-offset-color: #0a0a0a !important;
+}
+
+[data-appearance='mieek-dark'] .text-gray-900,
+[data-appearance='mieek-dark'] .text-slate-900,
+[data-appearance='mieek-dark'] .text-black {
+  color: #ffffff !important; /* white for headers */
+}
+
+[data-appearance='mieek-dark'] .text-gray-800,
+[data-appearance='mieek-dark'] .text-slate-800 {
+  color: #ffffff !important; /* white for headers */
+}
+
+/* Higher specificity for headers to override dark: utility classes */
+html[data-appearance='mieek-dark'] .text-gray-900,
+html[data-appearance='mieek-dark'] .text-slate-900,
+html[data-appearance='mieek-dark'] .text-black,
+html[data-appearance='mieek-dark'] .text-gray-800,
+html[data-appearance='mieek-dark'] .text-slate-800 {
+  color: #ffffff !important; /* pure white for headers */
+}
+
+[data-appearance='mieek-dark'] .text-gray-700,
+[data-appearance='mieek-dark'] .text-slate-700 {
+  color: #d1d5db !important; /* gray-300 (reduced from gray-700) */
+}
+
+[data-appearance='mieek-dark'] .text-gray-600,
+[data-appearance='mieek-dark'] .text-slate-600 {
+  color: #9ca3af !important; /* gray-400 (reduced from gray-600) */
+}
+
+[data-appearance='mieek-dark'] .text-gray-500,
+[data-appearance='mieek-dark'] .text-slate-500 {
+  color: #9ca3af !important; /* gray-400 (reduced from gray-500) */
+}
+
+[data-appearance='mieek-dark'] .text-gray-400,
+[data-appearance='mieek-dark'] .text-slate-400 {
+  color: #6b7280 !important; /* gray-500 (reduced from gray-400) */
+}
+
+[data-appearance='mieek-dark'] .text-gray-300,
+[data-appearance='mieek-dark'] .text-slate-300 {
+  color: #6b7280 !important; /* gray-500 (reduced from gray-300) */
+}
+
+[data-appearance='mieek-dark'] .text-gray-200,
+[data-appearance='mieek-dark'] .text-slate-200 {
+  color: #4b5563 !important; /* gray-600 (reduced from gray-200) */
+}
+
+[data-appearance='mieek-dark'] .text-gray-100,
+[data-appearance='mieek-dark'] .text-slate-100 {
+  color: #4b5563 !important; /* gray-600 (reduced from gray-100) */
+}
+
+/* INPUT AND PLACEHOLDER STYLING FOR MIEEK DARK */
+[data-appearance='mieek-dark'] input,
+[data-appearance='mieek-dark'] textarea,
+[data-appearance='mieek-dark'] select {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  border-color: #d0d0d0 !important;
+}
+
+/* All input types explicitly */
+[data-appearance='mieek-dark'] input[type="text"],
+[data-appearance='mieek-dark'] input[type="email"],
+[data-appearance='mieek-dark'] input[type="password"],
+[data-appearance='mieek-dark'] input[type="search"],
+[data-appearance='mieek-dark'] input[type="number"],
+[data-appearance='mieek-dark'] input[type="date"],
+[data-appearance='mieek-dark'] input[type="time"],
+[data-appearance='mieek-dark'] input[type="datetime-local"],
+[data-appearance='mieek-dark'] input[type="tel"],
+[data-appearance='mieek-dark'] input[type="url"] {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  border-color: #d0d0d0 !important;
+}
+
+[data-appearance='mieek-dark'] input::placeholder,
+[data-appearance='mieek-dark'] textarea::placeholder {
+  color: #888888 !important;
+  opacity: 1 !important;
+}
+
+[data-appearance='mieek-dark'] input:hover,
+[data-appearance='mieek-dark'] textarea:hover,
+[data-appearance='mieek-dark'] select:hover {
+  background-color: #f9f9f9 !important;
+  border-color: #b0b0b0 !important;
+}
+
+[data-appearance='mieek-dark'] input:focus,
+[data-appearance='mieek-dark'] textarea:focus,
+[data-appearance='mieek-dark'] select:focus {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #3b82f6 !important;
+  outline: none;
+}
+
+[data-appearance='mieek-dark'] input:disabled,
+[data-appearance='mieek-dark'] textarea:disabled,
+[data-appearance='mieek-dark'] select:disabled {
+  background-color: #e8e8e8 !important;
+  color: #666666 !important;
+  border-color: #c0c0c0 !important;
+  opacity: 1 !important;
+}
+
+/* Force light backgrounds on ALL input elements regardless of nesting */
+html[data-appearance='mieek-dark'] input,
+html[data-appearance='mieek-dark'] textarea,
+html[data-appearance='mieek-dark'] select,
+html[data-appearance='mieek-dark'] *[type="text"],
+html[data-appearance='mieek-dark'] *[type="email"],
+html[data-appearance='mieek-dark'] *[type="password"],
+html[data-appearance='mieek-dark'] *[type="search"],
+html[data-appearance='mieek-dark'] *[type="number"],
+html[data-appearance='mieek-dark'] *[type="date"] {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  border-color: #d0d0d0 !important;
+}
+
+/* Time and additional input types */
+html[data-appearance='mieek-dark'] *[type="time"],
+html[data-appearance='mieek-dark'] *[type="datetime-local"],
+html[data-appearance='mieek-dark'] *[type="color"],
+html[data-appearance='mieek-dark'] *[type="range"] {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  border-color: #d0d0d0 !important;
+}
+
+/* Number input spinners styling */
+html[data-appearance='mieek-dark'] input[type="number"]::-webkit-outer-spin-button,
+html[data-appearance='mieek-dark'] input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+  color: #000000 !important;
+}
+
+/* Time picker icon/indicator */
+html[data-appearance='mieek-dark'] input[type="time"]::-webkit-calendar-picker-indicator,
+html[data-appearance='mieek-dark'] input[type="date"]::-webkit-calendar-picker-indicator,
+html[data-appearance='mieek-dark'] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) !important;
+  cursor: pointer;
+}
+
+/* Weekly Teaching Schedule toggle boxes (mieek-dark) */
+html[data-appearance='mieek-dark'] .weekly-schedule-toggle {
+  background-color: #ffffff !important;
+  border-color: #d0d0d0 !important;
+}
+
+html[data-appearance='mieek-dark'] .weekly-schedule-toggle--active {
+  background-color: #ffffff !important;
+  border-color: #8b5cf6 !important;
+}
+
+html[data-appearance='mieek-dark'] .weekly-schedule-toggle__icon {
+  color: #8b5cf6 !important;
+}
+
+/* Weekly Teaching Schedule checkboxes (mieek-dark) */
+html[data-appearance='mieek-dark'] input[type="checkbox"] {
+  background-color: #ffffff !important;
+  border-color: #d0d0d0 !important;
+  color: #000000 !important;
+}
+
+html[data-appearance='mieek-dark'] input[type="checkbox"]:checked {
+  background-color: #ffffff !important;
+  border-color: #8b5cf6 !important;
+  color: #8b5cf6 !important; /* tick color */
+}
+
+html[data-appearance='mieek-dark'] input[type="checkbox"]:focus {
+  outline: 2px solid #8b5cf6 !important;
+  outline-offset: 2px;
+}
+/* Ensure modal/dialog inputs also get light backgrounds */
+html[data-appearance='mieek-dark'] [role="dialog"] input,
+html[data-appearance='mieek-dark'] [role="dialog"] textarea,
+html[data-appearance='mieek-dark'] [role="alertdialog"] input,
+html[data-appearance='mieek-dark'] [role="alertdialog"] textarea {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+  border-color: #d0d0d0 !important;
+}
+
+/* CRITICAL: Override all bg-white and dark:bg-* classes on inputs in MIEEK Dark */
+html[data-appearance='mieek-dark'] input[class*="bg-white"],
+html[data-appearance='mieek-dark'] input[class*="bg-teal"],
+html[data-appearance='mieek-dark'] textarea[class*="bg-white"],
+html[data-appearance='mieek-dark'] textarea[class*="bg-teal"],
+html[data-appearance='mieek-dark'] select[class*="bg-white"],
+html[data-appearance='mieek-dark'] select[class*="bg-teal"] {
+  background-color: #f5f5f5 !important;
+  color: #000000 !important;
+}
+
+/* Map primary indigo utilities to black background with blue border */
+[data-appearance='mieek-dark'] .bg-indigo-600,
+[data-appearance='mieek-dark'] .bg-indigo-500 {
+  background-color: #0a0a0a !important;
+  color: #ffffff !important;
+  border: 1px solid #3b82f6 !important;
+}
+
+[data-appearance='mieek-dark'] .text-indigo-600,
+[data-appearance='mieek-dark'] .text-indigo-700 {
+  color: #3b82f6 !important;
+}
+
+[data-appearance='mieek-dark'] .border-indigo-600 {
+  border-color: #3b82f6 !important;
+}
+
+/* Override white and light gray backgrounds */
+[data-appearance='mieek-dark'] .bg-white,
+[data-appearance='mieek-dark'] .shadow.bg-white,
+[data-appearance='mieek-dark'] .rounded-lg.bg-white,
+[data-appearance='mieek-dark'] .rounded-xl.bg-white,
+[data-appearance='mieek-dark'] .rounded-md.bg-white,
+[data-appearance='mieek-dark'] div.bg-white,
+[data-appearance='mieek-dark'] select.bg-white,
+[data-appearance='mieek-dark'] button.bg-white,
+.mieek-dark .bg-white,
+.mieek-dark .shadow.bg-white,
+.mieek-dark .rounded-lg.bg-white,
+.mieek-dark .rounded-xl.bg-white,
+.mieek-dark .rounded-md.bg-white,
+.mieek-dark div.bg-white,
+.mieek-dark select.bg-white,
+.mieek-dark button.bg-white {
+  background-color: #0b0b0b !important;
+  color: #ffffff !important;
+}
+
+[data-appearance='mieek-dark'] .bg-gray-50,
+[data-appearance='mieek-dark'] .bg-gray-100,
+[data-appearance='mieek-dark'] .bg-slate-50,
+[data-appearance='mieek-dark'] .bg-slate-100,
+.mieek-dark .bg-gray-50,
+.mieek-dark .bg-gray-100,
+.mieek-dark .bg-slate-50,
+.mieek-dark .bg-slate-100 {
+  background-color: #0b0b0b !important;
+  color: #ffffff !important;
+}
+
+/* MIEEK Dark theme - Main background (black) */
+html[data-appearance='mieek-dark'] {
+  background-color: #000000 !important;
+}
+
+html[data-appearance='mieek-dark'] body {
+  background-color: #000000 !important;
+}
+
+html[data-appearance='mieek-dark'] > body > #root,
+html[data-appearance='mieek-dark'] > body > #root > div {
+  background-color: #000000 !important;
+}
+
+/* Status badges/tints (preserve color intent without forcing white) */
+[data-appearance='mieek-dark'] .bg-green-50,
+[data-appearance='mieek-dark'] .bg-green-100 {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  color: #22c55e !important;
+}
+
+[data-appearance='mieek-dark'] .bg-red-50,
+[data-appearance='mieek-dark'] .bg-red-100 {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #ef4444 !important;
+}
+
+[data-appearance='mieek-dark'] .bg-yellow-50,
+[data-appearance='mieek-dark'] .bg-yellow-100,
+[data-appearance='mieek-dark'] .bg-amber-50,
+[data-appearance='mieek-dark'] .bg-amber-100 {
+  background-color: rgba(251, 191, 36, 0.18) !important;
+  color: #fbbf24 !important;
+}
+
+[data-appearance='mieek-dark'] .bg-blue-50,
+[data-appearance='mieek-dark'] .bg-blue-100,
+[data-appearance='mieek-dark'] .bg-sky-50,
+[data-appearance='mieek-dark'] .bg-sky-100 {
+  background-color: rgba(96, 165, 250, 0.18) !important;
+  color: #60a5fa !important;
+}
+
+[data-appearance='mieek-dark'] .bg-purple-50,
+[data-appearance='mieek-dark'] .bg-purple-100,
+[data-appearance='mieek-dark'] .bg-violet-50,
+[data-appearance='mieek-dark'] .bg-violet-100 {
+  background-color: rgba(168, 85, 247, 0.18) !important;
+  color: #a855f7 !important;
+}
+
+/* Links and interactive elements */
+[data-appearance='mieek-dark'] a {
+  color: #38cf15;
+}
+
+[data-appearance='mieek-dark'] a:hover {
+  color: #2ba310;
+}
+
+/* Hover states for buttons */
+[data-appearance='mieek-dark'] button:hover,
+[data-appearance='mieek-dark'] .btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* Focus states for accessibility */
+[data-appearance='mieek-dark'] button:focus,
+[data-appearance='mieek-dark'] input:focus,
+[data-appearance='mieek-dark'] textarea:focus,
+[data-appearance='mieek-dark'] select:focus {
+  outline: 2px solid #38cf15;
+  outline-offset: 2px;
+}
+
+/* Form inputs */
+[data-appearance='mieek-dark'] input,
+[data-appearance='mieek-dark'] textarea,
+[data-appearance='mieek-dark'] select {
+  background-color: #0b0b0b !important;
+  border-color: #1a1a1a !important;
+  color: #ffffff !important;
+}
+
+/* FINAL OVERRIDE: Force light input fields in MIEEK Dark */
+html[data-appearance='mieek-dark'] input,
+html[data-appearance='mieek-dark'] textarea,
+html[data-appearance='mieek-dark'] select,
+html[data-appearance='mieek-dark'] input[type="text"],
+html[data-appearance='mieek-dark'] input[type="email"],
+html[data-appearance='mieek-dark'] input[type="password"],
+html[data-appearance='mieek-dark'] input[type="search"],
+html[data-appearance='mieek-dark'] input[type="number"],
+html[data-appearance='mieek-dark'] input[type="date"],
+html[data-appearance='mieek-dark'] input[type="time"],
+html[data-appearance='mieek-dark'] input[type="datetime-local"],
+html[data-appearance='mieek-dark'] input[type="tel"],
+html[data-appearance='mieek-dark'] input[type="url"] {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #d0d0d0 !important;
+}
+
+html[data-appearance='mieek-dark'] input::placeholder,
+html[data-appearance='mieek-dark'] textarea::placeholder {
+  color: #888888 !important;
+  opacity: 1 !important;
+}
+
+html[data-appearance='mieek-dark'] input:focus,
+html[data-appearance='mieek-dark'] textarea:focus,
+html[data-appearance='mieek-dark'] select:focus {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-color: #3b82f6 !important;
+  outline: none;
+}
+
+html[data-appearance='mieek-dark'] input[type="time"]::-webkit-calendar-picker-indicator,
+html[data-appearance='mieek-dark'] input[type="date"]::-webkit-calendar-picker-indicator,
+html[data-appearance='mieek-dark'] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) !important;
+  cursor: pointer;
+}
+
+[data-appearance='mieek-dark'] input::placeholder,
+[data-appearance='mieek-dark'] textarea::placeholder {
+  color: #666666 !important;
+}
+
+[data-appearance='mieek-dark'] input:disabled,
+[data-appearance='mieek-dark'] textarea:disabled,
+[data-appearance='mieek-dark'] select:disabled {
+  background-color: #0f0f0f !important;
+  opacity: 0.5;
+}
+
+/* Card and modal backgrounds */
+[data-appearance='mieek-dark'] .card,
+[data-appearance='mieek-dark'] .modal,
+[data-appearance='mieek-dark'] .panel {
+  background-color: #0b0b0b !important;
+  border: 1px solid #1a1a1a;
+}
+
+/* Shadows for depth */
+[data-appearance='mieek-dark'] .shadow-sm {
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-appearance='mieek-dark'] .shadow,
+[data-appearance='mieek-dark'] .shadow-md {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-appearance='mieek-dark'] .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.5) !important;
+}
+
+[data-appearance='mieek-dark'] .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Scrollbar styling */
+[data-appearance='mieek-dark'] ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+[data-appearance='mieek-dark'] ::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+[data-appearance='mieek-dark'] ::-webkit-scrollbar-thumb {
+  background: #1e40af;
+  border-radius: 6px;
+  border: 2px solid #0a0a0a;
+}
+
+[data-appearance='mieek-dark'] ::-webkit-scrollbar-thumb:hover {
+  background: #3b82f6;
+}
+
+/* Table styling */
+[data-appearance='mieek-dark'] table {
+  border-color: #262626 !important;
+}
+
+[data-appearance='mieek-dark'] thead,
+[data-appearance='mieek-dark'] th {
+  background-color: #0b0b0b !important;
+  border-color: #1a1a1a !important;
+}
+
+/* CRITICAL: Force all white backgrounds to dark (highest priority) */
+body[data-appearance='mieek-dark'] *[class*="bg-white"],
+body.mieek-dark *[class*="bg-white"],
+html[data-appearance='mieek-dark'] *[class*="bg-white"],
+html.mieek-dark *[class*="bg-white"],
+[data-appearance='mieek-dark'] *[class*="bg-white"],
+.mieek-dark *[class*="bg-white"] {
+  background-color: #0b0b0b !important;
+  background-image: none !important;
+  color: #ffffff !important;
+}
+
+html[data-appearance='mieek-dark'] .bg-gray-50,
+html[data-appearance='mieek-dark'] .bg-gray-100,
+html[data-appearance='mieek-dark'] .bg-slate-50,
+html[data-appearance='mieek-dark'] .bg-slate-100,
+[data-appearance='mieek-dark'] *[class*="bg-gray-50"],
+[data-appearance='mieek-dark'] *[class*="bg-gray-100"],
+[data-appearance='mieek-dark'] *[class*="bg-slate-50"],
+[data-appearance='mieek-dark'] *[class*="bg-slate-100"] {
+  background-color: #0b0b0b !important;
+  background-image: none !important;
+  color: #ffffff !important;
+}
+
+[data-appearance='mieek-dark'] tbody tr:hover {
+  background-color: rgba(56, 207, 21, 0.05) !important;
+}
+
+/* Alerts and notifications */
+[data-appearance='mieek-dark'] .alert-success,
+[data-appearance='mieek-dark'] .notification-success {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  border-color: #22c55e !important;
+  color: #22c55e !important;
+}
+
+[data-appearance='mieek-dark'] .alert-error,
+[data-appearance='mieek-dark'] .notification-error {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+}
+
+[data-appearance='mieek-dark'] .alert-warning,
+[data-appearance='mieek-dark'] .notification-warning {
+  background-color: rgba(251, 191, 36, 0.18) !important;
+  border-color: #fbbf24 !important;
+  color: #fbbf24 !important;
+}
+
+[data-appearance='mieek-dark'] .alert-info,
+[data-appearance='mieek-dark'] .notification-info {
+  background-color: rgba(96, 165, 250, 0.18) !important;
+  border-color: #60a5fa !important;
+  color: #60a5fa !important;
+}
+
+/* Dropdown menus */
+[data-appearance='mieek-dark'] .dropdown-menu,
+[data-appearance='mieek-dark'] .menu {
+  background-color: #0b0b0b !important;
+  border: 1px solid #1a1a1a !important;
+}
+
+[data-appearance='mieek-dark'] .dropdown-item:hover,
+[data-appearance='mieek-dark'] .menu-item:hover {
+  background-color: rgba(56, 207, 21, 0.1) !important;
+}
+
+/* Logout button: match default theme styling in mieek-dark */
+[data-appearance='mieek-dark'] button[data-testid='logout-button'] {
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  color: #374151 !important;
+  box-shadow: none !important;
+}
+
+[data-appearance='mieek-dark'] button[data-testid='logout-button'] svg {
+  stroke: currentColor !important;
+}
+
+[data-appearance='mieek-dark'] button[data-testid='logout-button']:hover {
+  background-color: #f9fafb !important;
+  border-color: #f87171 !important;
+  color: #374151 !important;
+}
+
+/* Code blocks */
+[data-appearance='mieek-dark'] code,
+[data-appearance='mieek-dark'] pre {
+  background-color: #0a0a0a !important;
+  border: 1px solid #1a1a1a !important;
+  color: #38cf15 !important;
+}
+
+/* Selection highlight */
+[data-appearance='mieek-dark'] ::selection {
+  background-color: rgba(56, 207, 21, 0.3);
+  color: #ffffff;
 }
 
 [data-appearance='glassmorphism'] {
@@ -563,6 +1597,139 @@ html {
   --appearance-blur: 6px;
   --appearance-highlight: rgba(14, 165, 233, 0.2);
 }
+
+[data-appearance='mieek'] {
+  --appearance-bg: linear-gradient(135deg, #ffffff 0%, #fcfcfc 50%, #fafafa 100%);
+  --appearance-surface: #ffffff;
+  --appearance-surface-subtle: #fcfcfc;
+  --appearance-text: #1a3a38;
+  --appearance-muted-text: #275f5a;
+  --appearance-border: #d6d9d8;
+  --appearance-accent: #38cf15;
+  --appearance-accent-fill: #38cf15;
+  --appearance-accent-strong: #2ba310;
+  --appearance-accent-contrast: #ffffff;
+  --appearance-shadow: rgba(56, 207, 21, 0.18);
+  --appearance-blur: 0px;
+  --appearance-highlight: rgba(56, 207, 21, 0.08);
+}
+
+[data-appearance='mieek-dark'] {
+  --appearance-bg: #0a0a0a;
+  --appearance-surface: #0b0b0b;
+  --appearance-surface-subtle: #0e0e0e;
+  --appearance-text: #ffffff;
+  --appearance-muted-text: #c7c7c7;
+  --appearance-border: #1a1a1a;
+  --appearance-accent: #38cf15;
+  --appearance-accent-fill: #38cf15;
+  --appearance-accent-strong: #2ba310;
+  --appearance-accent-contrast: #0a0a0a;
+  --appearance-shadow: rgba(0, 0, 0, 0.6);
+  --appearance-blur: 0px;
+  --appearance-highlight: rgba(59, 130, 246, 0.16);
+}
+
+/* MIEEK DARK COLOR SAFEGUARD (must come after generic [data-appearance] rules) */
+html[data-appearance='mieek-dark'] .text-red-500,
+html[data-appearance='mieek-dark'] .text-red-600,
+html[data-appearance='mieek-dark'] .text-red-700,
+html[data-appearance='mieek-dark'] .text-red-800 {
+  color: #ef4444 !important;
+}
+
+html[data-appearance='mieek-dark'] .text-green-500,
+html[data-appearance='mieek-dark'] .text-green-600,
+html[data-appearance='mieek-dark'] .text-green-700,
+html[data-appearance='mieek-dark'] .text-green-800 {
+  color: #22c55e !important;
+}
+
+html[data-appearance='mieek-dark'] .text-blue-500,
+html[data-appearance='mieek-dark'] .text-blue-600,
+html[data-appearance='mieek-dark'] .text-blue-700,
+html[data-appearance='mieek-dark'] .text-blue-800 {
+  color: #60a5fa !important;
+}
+
+html[data-appearance='mieek-dark'] .text-yellow-500,
+html[data-appearance='mieek-dark'] .text-yellow-600,
+html[data-appearance='mieek-dark'] .text-yellow-700,
+html[data-appearance='mieek-dark'] .text-yellow-800,
+html[data-appearance='mieek-dark'] .text-amber-500,
+html[data-appearance='mieek-dark'] .text-amber-600,
+html[data-appearance='mieek-dark'] .text-amber-700 {
+  color: #fbbf24 !important;
+}
+
+html[data-appearance='mieek-dark'] .text-purple-500,
+html[data-appearance='mieek-dark'] .text-purple-600,
+html[data-appearance='mieek-dark'] .text-purple-700 {
+  color: #a855f7 !important;
+}
+
+html[data-appearance='mieek-dark'] .text-indigo-500,
+html[data-appearance='mieek-dark'] .text-indigo-600,
+html[data-appearance='mieek-dark'] .text-indigo-700 {
+  color: #6366f1 !important;
+}
+
+html[data-appearance='mieek-dark'] .text-emerald-500,
+html[data-appearance='mieek-dark'] .text-emerald-600,
+html[data-appearance='mieek-dark'] .text-emerald-700,
+html[data-appearance='mieek-dark'] .text-cyan-500,
+html[data-appearance='mieek-dark'] .text-cyan-600,
+html[data-appearance='mieek-dark'] .text-cyan-700,
+html[data-appearance='mieek-dark'] .text-teal-500,
+html[data-appearance='mieek-dark'] .text-teal-600,
+html[data-appearance='mieek-dark'] .text-teal-700,
+html[data-appearance='mieek-dark'] .text-sky-500,
+html[data-appearance='mieek-dark'] .text-sky-600,
+html[data-appearance='mieek-dark'] .text-sky-700 {
+  color: #38bdf8 !important;
+}
+
+html[data-appearance='mieek-dark'] .text-orange-500,
+html[data-appearance='mieek-dark'] .text-orange-600,
+html[data-appearance='mieek-dark'] .text-orange-700,
+html[data-appearance='mieek-dark'] .text-pink-500,
+html[data-appearance='mieek-dark'] .text-pink-600 {
+  color: #f97316 !important;
+}
+
+html[data-appearance='mieek-dark'] .bg-red-50,
+html[data-appearance='mieek-dark'] .bg-red-100,
+html[data-appearance='mieek-dark'] .bg-red-200,
+html[data-appearance='mieek-dark'] .bg-green-50,
+html[data-appearance='mieek-dark'] .bg-green-100,
+html[data-appearance='mieek-dark'] .bg-green-200,
+html[data-appearance='mieek-dark'] .bg-blue-50,
+html[data-appearance='mieek-dark'] .bg-blue-100,
+html[data-appearance='mieek-dark'] .bg-blue-200,
+html[data-appearance='mieek-dark'] .bg-yellow-50,
+html[data-appearance='mieek-dark'] .bg-yellow-100,
+html[data-appearance='mieek-dark'] .bg-yellow-200,
+html[data-appearance='mieek-dark'] .bg-amber-50,
+html[data-appearance='mieek-dark'] .bg-amber-100,
+html[data-appearance='mieek-dark'] .bg-emerald-50,
+html[data-appearance='mieek-dark'] .bg-emerald-100,
+html[data-appearance='mieek-dark'] .bg-cyan-50,
+html[data-appearance='mieek-dark'] .bg-cyan-100,
+html[data-appearance='mieek-dark'] .bg-teal-50,
+html[data-appearance='mieek-dark'] .bg-teal-100,
+html[data-appearance='mieek-dark'] .bg-sky-50,
+html[data-appearance='mieek-dark'] .bg-sky-100,
+html[data-appearance='mieek-dark'] .bg-purple-50,
+html[data-appearance='mieek-dark'] .bg-purple-100,
+html[data-appearance='mieek-dark'] .bg-indigo-50,
+html[data-appearance='mieek-dark'] .bg-indigo-100,
+html[data-appearance='mieek-dark'] .bg-orange-50,
+html[data-appearance='mieek-dark'] .bg-orange-100,
+html[data-appearance='mieek-dark'] .bg-pink-50,
+html[data-appearance='mieek-dark'] .bg-pink-100 {
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
 /* Custom animations */
 @keyframes slide-in {
   from {
@@ -822,6 +1989,7 @@ html {
     text-align: left;
   }
 }
+
 
 @media print {
   body {

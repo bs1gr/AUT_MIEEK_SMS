@@ -193,15 +193,19 @@ const AdvancedFilters: FC<AdvancedFiltersProps> = ({
               </p>
             ) : (
               filters.map((filter, index) => (
-                <FilterCondition
-                  key={`${filter.field}-${index}`}
-                  index={index}
-                  condition={filter}
-                  fields={fields}
-                  onConditionChange={(condition) => handleConditionChange(index, condition)}
-                  onRemove={() => handleRemove(index)}
-                  disabled={disabled}
-                />
+                <React.Fragment key={`${filter.field}-${index}`}>
+                  <FilterCondition
+                    index={index}
+                    condition={filter}
+                    fields={fields}
+                    onConditionChange={(condition) => handleConditionChange(index, condition)}
+                    onRemove={() => handleRemove(index)}
+                    disabled={disabled}
+                  />
+                  {index < filters.length - 1 && (
+                    <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" />
+                  )}
+                </React.Fragment>
               ))
             )}
           </div>

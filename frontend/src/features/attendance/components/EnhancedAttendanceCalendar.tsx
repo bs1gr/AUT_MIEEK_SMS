@@ -326,12 +326,12 @@ const EnhancedAttendanceCalendar = () => {
       status: t('clear'),
       label: String(t('clear')),
       icon: XCircle,
-      color: 'blue',
-      bgColor: 'bg-white-50',
-      hoverColor: 'hover:bg-blue-100',
-      activeColor: 'bg-white-500',
-      textColor: 'text-blue-700',
-      activeTextColor: 'text-black'
+      color: 'gray',
+      bgColor: 'bg-gray-700',
+      hoverColor: 'hover:bg-gray-800',
+      activeColor: 'bg-gray-600',
+      textColor: 'text-white',
+      activeTextColor: 'text-white'
     }
   ];
 

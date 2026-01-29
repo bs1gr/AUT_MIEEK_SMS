@@ -168,11 +168,11 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {/* Saved Searches List */}
       {!loadingSavedSearches && filteredSearches.length > 0 && (
         <div className="space-y-3">
-          {filteredSearches.map((search: SavedSearch) => (
-            <div
-              key={search.id}
-              className="p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow"
-            >
+          {filteredSearches.map((search: SavedSearch, idx) => (
+            <React.Fragment key={search.id}>
+              <div
+                className="p-4 border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow"
+              >
               <div className="flex items-start justify-between gap-3">
                 {/* Left: Search Info */}
                 <div className="flex-1 min-w-0">
@@ -250,6 +250,10 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                 </div>
               </div>
             </div>
+              {idx < filteredSearches.length - 1 && (
+                <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" role="separator" aria-orientation="horizontal" />
+              )}
+            </React.Fragment>
           ))}
         </div>
       )}

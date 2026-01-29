@@ -47,6 +47,18 @@ const THEME_COPY: Record<AppearanceThemeVariant, ThemeCopy> = {
     fallbackName: 'Light Professional',
     fallbackDescription: 'Clean minimal light mode',
   },
+  mieek: {
+    nameKey: 'controlPanel.themeOptions.mieek.name',
+    descriptionKey: 'controlPanel.themeOptions.mieek.description',
+    fallbackName: 'ΜΙΕΕΚ',
+    fallbackDescription: 'Professional admin interface with green accent',
+  },
+  'mieek-dark': {
+    nameKey: 'controlPanel.themeOptions.mieekDark.name',
+    descriptionKey: 'controlPanel.themeOptions.mieekDark.description',
+    fallbackName: 'ΜΙΕΕΚ Dark',
+    fallbackDescription: 'Dark professional interface with vivid white text',
+  },
 };
 
 interface ThemeSelectorProps {
@@ -123,6 +135,26 @@ export const themeStyles: Record<AppearanceThemeVariant, {
     secondaryButton: 'rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm',
     text: 'text-slate-900',
     mutedText: 'text-slate-500',
+  },
+  mieek: {
+    container: 'rounded-2xl border border-gray-200 bg-white shadow-xl shadow-green-100/70 text-slate-900',
+    card: 'rounded-xl border border-gray-100 bg-white/95 p-4 shadow-md shadow-green-100/60',
+    subtleCard: 'rounded-xl border border-gray-100 bg-gray-50/80 p-3',
+    input: 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-slate-900 focus:border-green-500 focus:ring-2 focus:ring-green-200',
+    button: 'rounded-lg bg-green-500 hover:bg-green-400 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-green-200/80 transition-all',
+    secondaryButton: 'rounded-lg border border-gray-200 bg-white hover:bg-gray-50 px-4 py-2 text-sm font-medium text-slate-700 shadow-sm',
+    text: 'text-slate-900',
+    mutedText: 'text-slate-600',
+  },
+  'mieek-dark': {
+    container: 'rounded-2xl border border-gray-800 bg-black shadow-2xl shadow-green-500/20 text-white',
+    card: 'rounded-xl border border-gray-800 bg-gray-900/95 p-4 shadow-xl shadow-green-500/10',
+    subtleCard: 'rounded-xl border border-gray-800 bg-gray-900/80 p-3',
+    input: 'rounded-lg border border-gray-700 bg-gray-950 px-3 py-2 text-sm text-white focus:border-green-500 focus:ring-2 focus:ring-green-500/30',
+    button: 'rounded-lg bg-green-500 hover:bg-green-400 px-4 py-2 text-sm font-semibold text-black shadow-lg shadow-green-500/30 transition-all',
+    secondaryButton: 'rounded-lg border border-gray-700 bg-gray-900 hover:bg-gray-800 px-4 py-2 text-sm font-medium text-white shadow-md',
+    text: 'text-white',
+    mutedText: 'text-gray-400',
   },
 };
 

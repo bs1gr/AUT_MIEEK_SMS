@@ -1152,7 +1152,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
           <button onClick={() => selectAllAttendance('Absent')} className="w-full sm:w-auto px-3 py-2 rounded bg-red-500 text-white flex items-center justify-center sm:justify-start gap-2"><XCircle size={16} /> {t('absent') || 'Absent'}</button>
           <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-3 py-2 rounded bg-yellow-500 text-white flex items-center justify-center sm:justify-start gap-2"><Clock size={16} /> {t('late') || 'Late'}</button>
           <button onClick={() => selectAllAttendance('Excused')} className="w-full sm:w-auto px-3 py-2 rounded bg-blue-500 text-white flex items-center justify-center sm:justify-start gap-2"><AlertCircle size={16} /> {t('excused') || 'Excused'}</button>
-          <button onClick={clearAllAttendance} className="w-full sm:w-auto px-3 py-2 rounded bg-gray-200 text-gray-800 flex items-center justify-center sm:justify-start gap-2">{t('clear') || 'Clear'}</button>
+          <button onClick={clearAllAttendance} className="w-full sm:w-auto px-3 py-2 rounded bg-gray-700 text-white flex items-center justify-center sm:justify-start gap-2 hover:bg-gray-800">{t('clear') || 'Clear'}</button>
         </div>
       </div>
 

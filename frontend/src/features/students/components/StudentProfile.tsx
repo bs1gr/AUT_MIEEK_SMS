@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
 import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText } from 'lucide-react';
 import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
@@ -265,12 +265,12 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               <div className="flex items-center space-x-3">
                 {student.is_active ? (
                   <>
-                    <CheckCircle size={20} className="text-green-600" />
+                    <CheckCircle size={20} className="text-green-600" style={{ color: '#22c55e' }} strokeWidth={2.5} />
                     <span className="text-green-600 font-semibold">{t('active')}</span>
                   </>
                 ) : (
                   <>
-                    <XCircle size={20} className="text-red-600" />
+                    <XCircle size={20} className="text-red-600" style={{ color: '#ef4444' }} strokeWidth={2.5} />
                     <span className="text-red-600 font-semibold">{t('inactive')}</span>
                   </>
                 )}
@@ -327,19 +327,24 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             </h3>
 
             <div className="space-y-4">
-              {Object.entries(distribution).map(([grade, count]) => {
+              {Object.entries(distribution).map(([grade, count], idx) => {
                 const total = grades.length;
                 const percentage = total > 0 ? (count / total * 100) : 0;
                 // colour map intentionally omitted when rendering lightweight bars
 
                 return (
-                  <div key={grade}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-700">{t('grade')} {grade}</span>
-                      <span className="text-gray-600">{count} {t('assignments')} ({percentage.toFixed(0)}%)</span>
+                  <React.Fragment key={grade}>
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-gray-700">{t('grade')} {grade}</span>
+                        <span className="text-gray-600">{count} {t('assignments')} ({percentage.toFixed(0)}%)</span>
+                      </div>
+                      <div className="mt-1 text-xs text-gray-600">{percentage.toFixed(0)}%</div>
                     </div>
-                    <div className="mt-1 text-xs text-gray-600">{percentage.toFixed(0)}%</div>
-                  </div>
+                    {idx < Object.entries(distribution).length - 1 && (
+                      <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" role="separator" aria-orientation="horizontal" />
+                    )}
+                  </React.Fragment>
                 );
               })}
             </div>
@@ -356,13 +361,13 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               <p className="text-gray-500 text-center py-8">{t('noHighlights')}</p>
             ) : (
               <div className="space-y-4">
-                {highlights.slice(0, 5).map(highlight => (
-                  <div
-                    key={highlight.id}
-                    className={`p-4 rounded-lg border-l-4 ${
-                      highlight.is_positive
-                        ? 'bg-green-50 border-green-500'
-                        : 'bg-yellow-50 border-yellow-500'
+                {highlights.slice(0, 5).map((highlight, idx) => (
+                  <React.Fragment key={highlight.id}>
+                    <div
+                      className={`p-4 rounded-lg border-l-4 ${
+                        highlight.is_positive
+                          ? 'bg-green-50 border-green-500'
+                          : 'bg-yellow-50 border-yellow-500'
                     }`}
                   >
                     {highlight.rating && (
@@ -380,6 +385,10 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                     <p className="text-sm text-gray-600 mt-1">{highlight.highlight_text}</p>
                     <p className="text-xs text-gray-500 mt-2">{highlight.semester}</p>
                   </div>
+                  {idx < highlights.slice(0, 5).length - 1 && (
+                    <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" role="separator" aria-orientation="horizontal" />
+                  )}
+                </React.Fragment>
                 ))}
               </div>
             )}
@@ -393,23 +402,28 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             <p className="text-gray-500">{t('noEnrollments')}</p>
           ) : (
             <div className="space-y-2">
-              {enrollments.map(e => {
+              {enrollments.map((e, idx) => {
                 const course = coursesById[e.course_id];
                 return (
-                  <div key={e.id} className="flex items-center justify-between p-3 rounded border">
-                    <div>
-                      <div className="font-semibold text-gray-800">{course ? `${course.course_code} — ${course.course_name}` : `Course #${e.course_id}`}</div>
-                      <div className="text-xs text-gray-500">{t('enrolled')}: {e.enrolled_at || '-'}</div>
-                    </div>
-                    <div>
-                      <button
-                        className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
-                        onClick={() => { setBreakdownCourseId(e.course_id); setShowBreakdown(true); }}
+                  <React.Fragment key={e.id}>
+                    <div className="flex items-center justify-between p-3 rounded border">
+                      <div>
+                        <div className="font-semibold text-gray-800">{course ? `${course.course_code} — ${course.course_name}` : `Course #${e.course_id}`}</div>
+                        <div className="text-xs text-gray-500">{t('enrolled')}: {e.enrolled_at || '-'}</div>
+                      </div>
+                      <div>
+                        <button
+                          className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+                          onClick={() => { setBreakdownCourseId(e.course_id); setShowBreakdown(true); }}
                       >
                         {t('viewBreakdown')}
                       </button>
                     </div>
                   </div>
+                  {idx < enrollments.length - 1 && (
+                    <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" role="separator" aria-orientation="horizontal" />
+                  )}
+                </React.Fragment>
                 );
               })}
             </div>
