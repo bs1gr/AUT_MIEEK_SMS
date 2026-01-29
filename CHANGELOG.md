@@ -8,7 +8,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [1.17.5] - 2026-01-29
 
+### ⚠️ BREAKING CHANGES
+- None - fully backward compatible with v1.17.4
+
+### Features
+- **theme**: MIEEK Dark theme visual refinements with improved input contrast
+- **components**: Add Divider component for layout separation
+
+### Bug Fixes
+- **theme**: Fix input field visibility in MIEEK Dark mode
+- **ui**: Fix JSX closing tag in SavedSearches component
+- **theme**: Add CSS class hooks for weekly schedule styling
 
 ## [1.17.4] - 2026-01-26
 
