@@ -180,6 +180,6 @@ git push origin --delete v1.17.5
 
 ---
 
-**Release**: v1.17.5  
-**Date**: January 29, 2026  
+**Release**: v1.17.5
+**Date**: January 29, 2026
 **Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS

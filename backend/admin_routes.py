@@ -290,8 +290,10 @@ async def restore_encrypted_backup(
         except (ValueError, OSError):
             raise HTTPException(status_code=400, detail="Output path outside allowed directory")
 
+        # lgtm [py/path-injection]: output_path is constrained via filename validation and directory bounds check
         # CodeQL [python/path-injection] - output_path is sanitized via filename validation and directory constraint
         sanitized_output_path = output_path
+
 
         # Decrypt and restore backup
         restore_info = backup_service.restore_encrypted_backup(
