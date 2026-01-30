@@ -131,7 +131,7 @@ class Settings(BaseSettings):
     # - If a local `backend/.env` exists (native/dev), prefer it
     # - Otherwise fall back to the container path used in Docker deployments
     try:
-        _candidate_local = Path(__file__).resolve().parents[1] / ".env"
+        _candidate_local = Path(__file__).resolve().parent / ".env"
         if _candidate_local.exists():
             _env_file_path = str(_candidate_local)
         else:

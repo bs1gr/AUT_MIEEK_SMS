@@ -30,6 +30,38 @@ function Write-Warning { param($msg) Write-Host "⚠ $msg" -ForegroundColor Yell
 function Write-Error { param($msg) Write-Host "✗ $msg" -ForegroundColor Red }
 function Write-Step { param($msg) Write-Host "`n═══ $msg ═══" -ForegroundColor Yellow }
 
+function Get-EnvValue {
+    param(
+        [string]$FilePath,
+        [string]$Key,
+        [string]$Default = ""
+    )
+
+    if (-not (Test-Path $FilePath)) {
+        return $Default
+    }
+
+    $lines = Get-Content -Path $FilePath -ErrorAction SilentlyContinue
+    foreach ($line in $lines) {
+        $trimmed = $line.Trim()
+        if (-not $trimmed -or $trimmed.StartsWith("#")) {
+            continue
+        }
+        $pair = $trimmed.Split("=", 2)
+        if ($pair.Count -ne 2) {
+            continue
+        }
+        $name = $pair[0].Trim()
+        if ($name -ne $Key) {
+            continue
+        }
+        $value = $pair[1].Trim().Trim('"').Trim("'")
+        return $value
+    }
+
+    return $Default
+}
+
 Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║   Training Environment Setup          ║" -ForegroundColor Cyan
 Write-Host "║   SMS v1.17.6 - Phase 5               ║" -ForegroundColor Cyan
@@ -52,7 +84,7 @@ Write-Info "Backend directory: $backendDir"
 Write-Step "Step 1: System Health Check"
 
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8000/api/v1/health" -Method GET -TimeoutSec 5 -UseBasicParsing
+    $response = Invoke-WebRequest -Uri "http://localhost:8000/health" -Method GET -TimeoutSec 10
     if ($response.StatusCode -eq 200) {
         Write-Success "Backend API is running (port 8000)"
     }
@@ -61,6 +93,28 @@ try {
     Write-Host "  .\NATIVE.ps1 -Start" -ForegroundColor Yellow
     exit 1
 }
+
+# Step 1b: Authenticate as admin
+Write-Step "Step 1b: Admin Authentication"
+
+$backendEnv = Join-Path $backendDir ".env"
+$adminEmail = Get-EnvValue -FilePath $backendEnv -Key "DEFAULT_ADMIN_EMAIL" -Default "admin@example.com"
+$adminPassword = Get-EnvValue -FilePath $backendEnv -Key "DEFAULT_ADMIN_PASSWORD" -Default "YourSecurePassword123!"
+
+try {
+    $loginPayload = @{ email = $adminEmail; password = $adminPassword }
+    $loginResponse = Invoke-RestMethod -Uri "http://localhost:8000/api/v1/auth/login" -Method POST -ContentType "application/json" -Body ($loginPayload | ConvertTo-Json)
+    $accessToken = $loginResponse.access_token
+    if (-not $accessToken) {
+        throw "Missing access_token in login response."
+    }
+    Write-Success "Authenticated as $adminEmail"
+} catch {
+    Write-Error "Admin login failed. Verify DEFAULT_ADMIN_EMAIL and DEFAULT_ADMIN_PASSWORD in backend/.env"
+    throw
+}
+
+$authHeaders = @{ Authorization = "Bearer $accessToken" }
 
 # Step 2: Create training test accounts
 Write-Step "Step 2: Creating Training Test Accounts"
@@ -180,6 +234,11 @@ $credentialsContent += @"
 **END OF CREDENTIALS**
 "@
 
+$credentialsDir = Split-Path -Parent $credentialsFile
+if (-not (Test-Path $credentialsDir)) {
+    New-Item -ItemType Directory -Path $credentialsDir -Force | Out-Null
+}
+
 $credentialsContent | Out-File -FilePath $credentialsFile -Encoding UTF8
 Write-Success "Credentials saved to: $credentialsFile"
 
@@ -197,6 +256,82 @@ $sampleCourses = @(
 Write-Info "Creating $($sampleCourses.Count) sample courses..."
 foreach ($course in $sampleCourses) {
     Write-Host "  • $($course.code) - $($course.name)" -ForegroundColor Gray
+}
+
+# Step 2b: Create accounts via API
+Write-Step "Step 2b: Creating Accounts via API"
+
+$createdAdmins = 0
+$createdTeachers = 0
+$createdStudents = 0
+
+foreach ($admin in $trainingAccounts.admins) {
+    try {
+        $payload = @{
+            email = $admin.email
+            password = $admin.password
+            full_name = "$($admin.first_name) $($admin.last_name)"
+            role = "admin"
+        }
+        Invoke-RestMethod -Uri "http://localhost:8000/api/v1/admin/users" -Method POST -Headers $authHeaders -ContentType "application/json" -Body ($payload | ConvertTo-Json) | Out-Null
+        $createdAdmins++
+        Write-Success "Created admin: $($admin.email)"
+    } catch {
+        Write-Warning "Admin exists or failed: $($admin.email)"
+    }
+}
+
+foreach ($teacher in $trainingAccounts.teachers) {
+    try {
+        $payload = @{
+            email = $teacher.email
+            password = $teacher.password
+            full_name = "$($teacher.first_name) $($teacher.last_name)"
+            role = "teacher"
+        }
+        Invoke-RestMethod -Uri "http://localhost:8000/api/v1/admin/users" -Method POST -Headers $authHeaders -ContentType "application/json" -Body ($payload | ConvertTo-Json) | Out-Null
+        $createdTeachers++
+        Write-Success "Created teacher: $($teacher.email)"
+    } catch {
+        Write-Warning "Teacher exists or failed: $($teacher.email)"
+    }
+}
+
+foreach ($student in $trainingAccounts.students) {
+    try {
+        $payload = @{
+            email = $student.email
+            password = $student.password
+            full_name = "$($student.first_name) $($student.last_name)"
+            role = "student"
+        }
+        Invoke-RestMethod -Uri "http://localhost:8000/api/v1/admin/users" -Method POST -Headers $authHeaders -ContentType "application/json" -Body ($payload | ConvertTo-Json) | Out-Null
+        $createdStudents++
+        Write-Success "Created student: $($student.email)"
+    } catch {
+        Write-Warning "Student exists or failed: $($student.email)"
+    }
+}
+
+# Step 3b: Create courses via API
+Write-Step "Step 3b: Creating Courses via API"
+
+$createdCourses = 0
+foreach ($course in $sampleCourses) {
+    try {
+        $payload = @{
+            course_code = $course.code
+            course_name = $course.name
+            semester = "Spring 2026"
+            credits = $course.credits
+            description = $course.description
+        }
+        Invoke-RestMethod -Uri "http://localhost:8000/api/v1/courses" -Method POST -Headers $authHeaders -ContentType "application/json" -Body ($payload | ConvertTo-Json) | Out-Null
+        $createdCourses++
+        Write-Success "Created course: $($course.code)"
+    } catch {
+        Write-Warning "Course exists or failed: $($course.code)"
+    }
 }
 
 # Step 4: Generate sample grades and attendance
@@ -244,10 +379,10 @@ Write-Host "`n╔═════════════════════
 Write-Host "║   Training Environment Setup Complete  ║" -ForegroundColor Green
 Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Green
 
-Write-Success "Created 3 admin training accounts"
-Write-Success "Created 5 teacher training accounts"
-Write-Success "Created 10 student training accounts"
-Write-Success "Created $($sampleCourses.Count) sample courses"
+Write-Success "Created $createdAdmins admin training accounts"
+Write-Success "Created $createdTeachers teacher training accounts"
+Write-Success "Created $createdStudents student training accounts"
+Write-Success "Created $createdCourses sample courses"
 
 if ($Mode -eq 'full') {
     Write-Success "Generated comprehensive sample data"
