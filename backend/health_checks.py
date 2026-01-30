@@ -253,9 +253,9 @@ class HealthChecker:
             # Check database type and run appropriate diagnostic query
             # Get database dialect from the session
             dialect_name = db.bind.dialect.name if db.bind else "unknown"
-            
+
             journal_mode = "N/A (PostgreSQL)"  # Default for non-SQLite
-            
+
             if dialect_name == "sqlite":
                 # Check for WAL mode (better for concurrent access) - SQLite only
                 result = db.execute(text("PRAGMA journal_mode")).fetchone()
