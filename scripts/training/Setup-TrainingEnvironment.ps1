@@ -100,7 +100,7 @@ Write-Info "Creating student accounts ($($trainingAccounts.students.Count))..."
 $credentialsFile = Join-Path $projectRoot "docs/training/TRAINING_CREDENTIALS.md"
 $credentialsContent = @"
 # Training Environment Credentials
-## SMS v1.17.6 - Phase 5 Training (Feb 3-5, 2026)
+## SMS v1.17.6 - Phase 5 Training
 
 **CONFIDENTIAL - FOR TRAINER USE ONLY**
 **Generated**: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
@@ -151,17 +151,17 @@ $credentialsContent += @"
 
 ## Usage Instructions
 
-### For Admin Training (Feb 3)
+### For Admin Training
 - Use any of the 3 admin accounts
 - Demonstrate user management with teacher/student accounts
 - Show role assignment and permission configuration
 
-### For Teacher Training (Feb 4)
+### For Teacher Training
 - Each trainer gets 1-2 teacher accounts
 - Use student accounts TRAIN001-TRAIN010 for grade entry demos
 - Demonstrate attendance tracking with sample students
 
-### For Student Training (Feb 5)
+### For Student Training
 - Distribute 1 student account to each participant for hands-on practice
 - Students can view their own grades/attendance
 - Demonstrate password reset flow
@@ -173,7 +173,7 @@ $credentialsContent += @"
 - **DO NOT** share these credentials with participants before training
 - **DO NOT** commit this file to git (already in .gitignore)
 - **ROTATE** all passwords after training completion
-- **DELETE** test accounts after go-live (Feb 7, 2026)
+- **DELETE** test accounts when ready for production
 
 ---
 
@@ -258,7 +258,7 @@ Write-Host "  1. Review credentials file: $credentialsFile" -ForegroundColor Cya
 Write-Host "  2. Test login with each account type" -ForegroundColor Cyan
 Write-Host "  3. Verify all features working in browser" -ForegroundColor Cyan
 Write-Host "  4. Prepare printed handouts with credentials" -ForegroundColor Cyan
-Write-Host "  5. Ready for training delivery (Feb 3-5, 2026)`n" -ForegroundColor Cyan
+Write-Host "  5. Ready for training delivery when scheduled`n" -ForegroundColor Cyan
 
 Write-Warning "SECURITY: Delete test accounts after training with:"
 Write-Host "  .\scripts\training\Cleanup-TrainingEnvironment.ps1`n" -ForegroundColor Yellow
