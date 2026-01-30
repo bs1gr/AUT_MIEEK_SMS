@@ -143,6 +143,7 @@ When tests are running in background (`isBackground: true`), follow this STRICTL
 - Running git commands while tests run
 - Querying test result files mid-run
 - Any terminal activity that might interfere
+- Running *any* command in the same terminal session (including `Start-Sleep`)
 
 ✅ **REQUIRED:**
 1. Start batch runner with `-isBackground: true`

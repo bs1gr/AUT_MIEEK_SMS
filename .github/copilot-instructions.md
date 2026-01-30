@@ -56,6 +56,10 @@ cd backend && pytest -q
 .\RUN_TESTS_BATCH.ps1
 ```
 
+**Background test runs must be left completely undisturbed**:
+- ❌ Do NOT run any commands in the same terminal while the batch runner or COMMIT_READY is active (this includes `Start-Sleep`).
+- ✅ If you need to wait, use a separate terminal or wait without issuing commands.
+
 **Why**: Running all tests at once overloads memory/CPU. Project policy enforces batch testing via guard in `backend/tests/conftest.py`. CI is exempt; local runs require `SMS_ALLOW_DIRECT_PYTEST=1` override or batch runner.
 
 **Other Critical Rules**:
