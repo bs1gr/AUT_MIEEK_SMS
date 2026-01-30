@@ -954,37 +954,39 @@ async def advanced_search_students(
         )
 
 
+# ============================================================================
+# FACETED NAVIGATION ENDPOINTS (Phase 4 Step 7)
+# ============================================================================
+
+
 @router.get(
     "/students/facets",
     response_model=APIResponse[Dict[str, Any]],
-    summary="Get search facets",
-    description="Get faceted search results for query refinement",
+    summary="Get student facets",
+    description="Get faceted search results for students (status, enrollment type, enrollment year)",
 )
-async def get_search_facets(
+async def get_student_facets(
     request: Request,
-    q: str = Query(..., min_length=1, max_length=255, description="Search query"),
+    q: Optional[str] = Query(None, max_length=255, description="Optional search query"),
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(optional_require_permission("students:view")),
 ) -> APIResponse[Dict[str, Any]]:
     """
-    Get faceted search results for discovery and filtering.
+    Get faceted navigation data for student search.
 
-    Returns aggregated counts for:
-    - Status (active, inactive, suspended)
-    - Enrollment types (full-time, part-time)
+    Returns facet categories with value counts for:
+    - Student Status (active, inactive)
+    - Enrollment Type (study year)
+    - Enrollment Year
 
     **Query Parameters:**
-    - `q`: Search query (required)
+    - `q`: Optional search query to filter facets
 
     **Response:**
-    ```json
-    {
-        "facets": {
-            "status": {"active": 120, "inactive": 15},
-            "enrollment_type": {"full-time": 100, "part-time": 35}
-        },
-        "query": "John"
-    }
+    Returns facet categories with values and counts.
+
+    **Example:**
+    ```
+    GET /api/v1/search/students/facets
     ```
 
     **Permissions:**
@@ -992,25 +994,66 @@ async def get_search_facets(
     - Requires `students:view` if AUTH_MODE=permissive or strict
     """
     try:
-        search_service = SearchService(db)
-        facets_data = search_service.get_student_search_facets(query=q)
+        from backend.services.facet_service import FacetService
 
-        response_data = SearchFacetsResponse(
-            facets=SearchFacets(
-                status=facets_data.get("status", {}),
-                enrollment_type=facets_data.get("enrollment_type", {}),
-                months={},  # Not implemented yet
-                total_results=sum(facets_data.get("status", {}).values()),
-            ),
-            query=q,
+        facet_service = FacetService(db)
+        result = facet_service.get_student_facets(query=q)
+        return success_response(result.model_dump(), request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error getting student facets: {str(e)}")
+        return error_response(
+            code="FACET_ERROR",
+            message="Failed to get student facets",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
         )
 
-        return success_response(response_data.model_dump(), request_id=request.state.request_id)
+
+@router.get(
+    "/courses/facets",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Get course facets",
+    description="Get faceted search results for courses (semester, credits, status)",
+)
+async def get_course_facets(
+    request: Request,
+    q: Optional[str] = Query(None, max_length=255, description="Optional search query"),
+    db: Session = Depends(get_db),
+) -> APIResponse[Dict[str, Any]]:
+    """
+    Get faceted navigation data for course search.
+
+    Returns facet categories with value counts for:
+    - Semester
+    - Credits
+    - Course Status
+
+    **Query Parameters:**
+    - `q`: Optional search query to filter facets
+
+    **Response:**
+    Returns facet categories with values and counts.
+
+    **Example:**
+    ```
+    GET /api/v1/search/courses/facets
+    ```
+
+    **Permissions:**
+    - Public if AUTH_MODE=disabled
+    - Requires `courses:view` if AUTH_MODE=permissive or strict
+    """
+    try:
+        from backend.services.facet_service import FacetService
+
+        facet_service = FacetService(db)
+        result = facet_service.get_course_facets(query=q)
+        return success_response(result.model_dump(), request_id=request.state.request_id)
     except Exception as e:
-        logger.error(f"Error getting search facets: {str(e)}")
+        logger.error(f"Error getting course facets: {str(e)}")
         return error_response(
-            code="SEARCH_ERROR",
-            message="Failed to get search facets",
+            code="FACET_ERROR",
+            message="Failed to get course facets",
             details={"error": str(e)},
             request_id=request.state.request_id,
         )

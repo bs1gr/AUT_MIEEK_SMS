@@ -285,6 +285,20 @@ from .search import (
 from .search import (
     SearchFacetsResponse as SearchFacetsResponse,
 )
+
+# Phase 4 Faceted Navigation schemas
+from .search import (
+    FacetValue as FacetValue,
+)
+from .search import (
+    FacetCategory as FacetCategory,
+)
+from .search import (
+    StudentFacetsResponse as StudentFacetsResponse,
+)
+from .search import (
+    CourseFacetsResponse as CourseFacetsResponse,
+)
 from .students import StudentCreate as StudentCreate
 from .students import StudentResponse as StudentResponse
 from .students import StudentUpdate as StudentUpdate

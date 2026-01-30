@@ -341,3 +341,41 @@ class SearchFacetsResponse(BaseModel):
 
     facets: SearchFacets = Field(..., description="Faceted results")
     query: str = Field(..., description="Original search query")
+
+
+# ============================================================================
+# FACETED NAVIGATION SCHEMAS (Phase 4 Step 7)
+# ============================================================================
+
+
+class FacetValue(BaseModel):
+    """Individual facet value with count."""
+
+    value: str = Field(..., description="Facet value")
+    count: int = Field(..., ge=0, description="Number of results with this value")
+    is_selected: bool = Field(False, description="Whether this facet is currently selected")
+
+
+class FacetCategory(BaseModel):
+    """Facet category with multiple values."""
+
+    name: str = Field(..., description="Facet category name (e.g., 'status', 'enrollment_type')")
+    label: str = Field(..., description="Display label for facet (e.g., 'Student Status')")
+    values: List[FacetValue] = Field(..., description="Facet values with counts")
+    is_expanded: bool = Field(False, description="Whether facet is expanded in UI")
+
+
+class StudentFacetsResponse(BaseModel):
+    """Faceted search response for students."""
+
+    facets: List[FacetCategory] = Field(..., description="Available facets for students")
+    total_results: int = Field(..., ge=0, description="Total results matching current filters")
+    query: Optional[str] = Field(None, description="Current search query")
+
+
+class CourseFacetsResponse(BaseModel):
+    """Faceted search response for courses."""
+
+    facets: List[FacetCategory] = Field(..., description="Available facets for courses")
+    total_results: int = Field(..., ge=0, description="Total results matching current filters")
+    query: Optional[str] = Field(None, description="Current search query")
