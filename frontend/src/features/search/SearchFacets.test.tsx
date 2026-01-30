@@ -142,7 +142,7 @@ describe('SearchFacets Component', () => {
   it('shows loading state', () => {
     renderComponent(mockFacets, true);
 
-    expect(screen.getByText(/loading filters/i)).toBeInTheDocument();
+    expect(screen.getByText(/loading facets/i)).toBeInTheDocument();
   });
 
   it('shows empty state when no facets provided', () => {

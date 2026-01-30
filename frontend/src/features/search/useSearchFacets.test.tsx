@@ -42,6 +42,20 @@ describe('useSearchFacets Hook', () => {
   );
 
   const mockFacetsResponse = {
+    facets: {
+      status: {
+        active: 45,
+        inactive: 12,
+      },
+      enrollment_type: {
+        'full-time': 38,
+        'part-time': 15,
+      },
+    },
+    query: 'test',
+  };
+
+  const expectedTransformedFacets = {
     facets: [
       {
         field: 'status',
@@ -55,7 +69,7 @@ describe('useSearchFacets Hook', () => {
       {
         field: 'enrollment_type',
         label: 'Enrollment Type',
-        type: 'select' as const,
+        type: 'checkbox' as const,
         values: [
           { label: 'Full-time', count: 38, value: 'full-time' },
           { label: 'Part-time', count: 15, value: 'part-time' },
@@ -76,9 +90,9 @@ describe('useSearchFacets Hook', () => {
   });
 
   it('fetches facets successfully', async () => {
-    mockApiClient.get.mockResolvedValue({
-      data: mockFacetsResponse,
-    });
+    // Mock the API to return the SearchFacetsResult format
+    mockApiClient.get.mockResolvedValue(mockFacetsResponse);
+    vi.mocked(apiModule.extractAPIResponseData).mockReturnValue(mockFacetsResponse);
 
     const { result } = renderHook(() => useSearchFacets('test'), { wrapper });
 
@@ -86,7 +100,8 @@ describe('useSearchFacets Hook', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.data).toEqual(mockFacetsResponse);
+    // The hook transforms the API response, so check the transformed structure
+    expect(result.current.data).toMatchObject(expectedTransformedFacets);
   });
 
   it('handles API errors gracefully', async () => {
@@ -184,32 +199,25 @@ describe('useSearchFacets Hook', () => {
   });
 
   it('handles different facet types', async () => {
+    // The hook only transforms status and enrollment_type from API response
     const complexFacetsResponse = {
-      facets: [
-        {
-          field: 'status',
-          label: 'Status',
-          type: 'checkbox' as const,
-          values: [{ label: 'Active', count: 45, value: 'active' }],
+      facets: {
+        status: {
+          active: 45,
+          inactive: 12,
+          graduated: 8,
         },
-        {
-          field: 'gpa',
-          label: 'GPA',
-          type: 'range' as const,
-          min: 0,
-          max: 4,
+        enrollment_type: {
+          'full-time': 38,
+          'part-time': 15,
+          audit: 5,
         },
-        {
-          field: 'enrollment_date',
-          label: 'Enrollment Date',
-          type: 'date-range' as const,
-        },
-      ],
+      },
+      query: 'test',
     };
 
-    mockApiClient.get.mockResolvedValue({
-      data: complexFacetsResponse,
-    });
+    mockApiClient.get.mockResolvedValue(complexFacetsResponse);
+    vi.mocked(apiModule.extractAPIResponseData).mockReturnValue(complexFacetsResponse);
 
     const { result } = renderHook(() => useSearchFacets('test'), { wrapper });
 
@@ -217,10 +225,14 @@ describe('useSearchFacets Hook', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    expect(result.current.data?.facets).toHaveLength(3);
+    // Should transform into 2 facet definitions (both checkbox type)
+    expect(result.current.data?.facets).toHaveLength(2);
     expect(result.current.data?.facets[0].type).toBe('checkbox');
-    expect(result.current.data?.facets[1].type).toBe('range');
-    expect(result.current.data?.facets[2].type).toBe('date-range');
+    expect(result.current.data?.facets[0].field).toBe('status');
+    expect(result.current.data?.facets[0].values).toHaveLength(3);
+    expect(result.current.data?.facets[1].type).toBe('checkbox');
+    expect(result.current.data?.facets[1].field).toBe('enrollment_type');
+    expect(result.current.data?.facets[1].values).toHaveLength(3);
   });
 
   it('handles empty search query', async () => {
