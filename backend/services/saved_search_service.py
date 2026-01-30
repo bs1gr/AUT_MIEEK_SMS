@@ -186,7 +186,7 @@ class SavedSearchService:
                 return None
 
             # Update only provided fields
-            update_dict = update_data.dict(exclude_unset=True)
+            update_dict = update_data.model_dump(exclude_unset=True)
             for key, value in update_dict.items():
                 setattr(saved_search, key, value)
 

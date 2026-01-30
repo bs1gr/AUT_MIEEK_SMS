@@ -32,6 +32,9 @@
     - 'cleanup'  : Only run cleanup operations
     Default: standard
 
+    NOTE: Validation checkpoint now valid for 90 minutes (doubled from 45 min on Jan 30, 2026)
+    to accommodate time-consuming test runs. Auto-commit available after successful validation.
+
 .PARAMETER SkipTests
     Skip all test execution (not recommended)
 
@@ -1980,10 +1983,18 @@ function New-CommitMessage {
     Write-Host "=" * 60 -ForegroundColor Cyan
 
     if ($script:Results.Overall) {
-        Write-Host "1. Review the changes: git status" -ForegroundColor White
-        Write-Host "2. Stage your changes: git add ." -ForegroundColor White
-        Write-Host "3. Commit with message above" -ForegroundColor White
-        Write-Host "4. Push: git push origin main" -ForegroundColor White
+        Write-Host "✅ VALIDATION PASSED - Ready to commit!" -ForegroundColor Green
+        Write-Host ""
+        Write-Host "Option 1 - AUTOMATIC (NEW):" -ForegroundColor Yellow
+        Write-Host "  .\scripts\AUTO_COMMIT_AFTER_READY.ps1" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Option 2 - MANUAL:" -ForegroundColor Yellow
+        Write-Host "  1. Review changes: git status" -ForegroundColor White
+        Write-Host "  2. Stage changes: git add ." -ForegroundColor White
+        Write-Host "  3. Commit: git commit -m '<message above>'" -ForegroundColor White
+        Write-Host "  4. Push: git push origin main" -ForegroundColor White
+        Write-Host ""
+        Write-Host "Note: Validation checkpoint valid for 90 minutes (extended on Jan 30, 2026)" -ForegroundColor Cyan
     } else {
         Write-Host "[WARN] Fix the failed checks before committing" -ForegroundColor Yellow
         Write-Host "Review the failures above and address them" -ForegroundColor White

@@ -1,16 +1,16 @@
 **********************
 PowerShell transcript start
-Start time: 20260129233710
+Start time: 20260130120002
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name: 
-Machine: REC (Microsoft Windows NT 10.0.26220.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File D:\SMS\student-management-system\COMMIT_READY.ps1 -Quick
-Process ID: 12292
+Configuration Name:
+Machine: REC (Microsoft Windows NT 10.0.26300.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+Process ID: 30800
 PSVersion: 7.5.4
 PSEdition: Core
 GitCommitId: 7.5.4
-OS: Microsoft Windows 10.0.26220
+OS: Microsoft Windows 10.0.26300
 Platform: Win32NT
 PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
 PSRemotingProtocolVersion: 2.3
@@ -23,8 +23,8 @@ WSManStackVersion: 3.0
 --------------------------------------------------------------
 
 Mode: quick
-Started: 2026-01-29 23:37:10
-Log file: D:\SMS\student-management-system\commit_ready_20260129-233710.log
+Started: 2026-01-30 12:00:02
+Log file: D:\SMS\student-management-system\commit_ready_20260130-120002.log
 
 
 ╔══════════════════════════════════════════════════════════════╗
@@ -172,7 +172,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_attendance_router.py
 ℹ Running tests...
 ....................................................................     [100%]
-✓ Batch 1 completed successfully in 16.7s
+✓ Batch 1 completed successfully in 23.9s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -185,7 +185,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_auth_router.py
 ℹ Running tests...
 .........................................                                [100%]
-✓ Batch 2 completed successfully in 6.6s
+✓ Batch 2 completed successfully in 6.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -198,7 +198,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_config_settings.py
 ℹ Running tests...
 ...................................................                      [100%]
-✓ Batch 3 completed successfully in 4.8s
+✓ Batch 3 completed successfully in 5.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -211,7 +211,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_control_path_traversal.py
 ℹ Running tests...
 ...........................                                              [100%]
-✓ Batch 4 completed successfully in 10.6s
+✓ Batch 4 completed successfully in 11.5s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -224,7 +224,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_csv_import.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 5 completed successfully in 6s
+✓ Batch 5 completed successfully in 6.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -237,7 +237,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_enrollments_router.py
 ℹ Running tests...
 ................................................                         [100%]
-✓ Batch 6 completed successfully in 8.6s
+✓ Batch 6 completed successfully in 5.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -250,7 +250,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_grade_calculation_fix.py
 ℹ Running tests...
 ...................                                                      [100%]
-✓ Batch 7 completed successfully in 7.3s
+✓ Batch 7 completed successfully in 6.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -263,7 +263,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_health_checks.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 8 completed successfully in 5.6s
+✓ Batch 8 completed successfully in 5.5s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -276,7 +276,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_imports_integration.py
 ℹ Running tests...
 ..............................                                           [100%]
-✓ Batch 9 completed successfully in 9.1s
+✓ Batch 9 completed successfully in 9.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -304,7 +304,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
   • test_models_relationships.py
 ℹ Running tests...
 ..................                                                       [100%]
-✓ Batch 11 completed successfully in 4.3s
+✓ Batch 11 completed successfully in 4.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -317,7 +317,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
   • test_rate_limit_enforcement.py
 ℹ Running tests...
 ..........................................................               [100%]
-✓ Batch 12 completed successfully in 5.5s
+✓ Batch 12 completed successfully in 6.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -376,7 +376,7 @@ SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC ex
 SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
-✓ Batch 13 completed successfully in 5.5s
+✓ Batch 13 completed successfully in 6.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -389,7 +389,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_response_cache_middleware.py
 ℹ Running tests...
 ...........................                                              [100%]
-✓ Batch 14 completed successfully in 8.8s
+✓ Batch 14 completed successfully in 9.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -402,7 +402,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_run_migrations.py
 ℹ Running tests...
 .....................................                                    [100%]
-✓ Batch 15 completed successfully in 19.2s
+✓ Batch 15 completed successfully in 41.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -426,7 +426,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-✓ Batch 16 completed successfully in 6.4s
+✓ Batch 16 completed successfully in 7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -439,7 +439,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
   • test_students_router.py
 ℹ Running tests...
 ...................................                                      [100%]
-✓ Batch 17 completed successfully in 5.7s
+✓ Batch 17 completed successfully in 5.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -467,7 +467,7 @@ Batches:
 Tests:
   Total:   0
 
-Duration: 172s
+Duration: 201.5s
 
 ✓ All tests passed! 🎉
 ✅ Backend tests passed
@@ -496,7 +496,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ─────────────────────────────────────────────────
  Python Cache Cleanup
 ─────────────────────────────────────────────────
-✅ Removed 15 Python cache items
+✅ Removed 13 Python cache items
 
 ─────────────────────────────────────────────────
  Node.js Cache Cleanup
@@ -510,12 +510,12 @@ stderr | src/i18n/__tests__/translations.test.ts
 ─────────────────────────────────────────────────
  Temporary Files Cleanup
 ─────────────────────────────────────────────────
-✅ Removed 15 temporary files
+✅ Removed 13 temporary files
 
 ─────────────────────────────────────────────────
  Legacy Artifacts Cleanup
 ─────────────────────────────────────────────────
-ℹ️  Total space freed: 3.61 MB
+ℹ️  Total space freed: 2.01 MB
 
 ╔══════════════════════════════════════════════════════════════╗
 ║  Phase 5: Documentation and Git Status                        ║
@@ -534,7 +534,7 @@ stderr | src/i18n/__tests__/translations.test.ts
  Git Status
 ─────────────────────────────────────────────────
 ℹ️  Uncommitted changes detected:
- M commit_ready_20260129-233623.log  M docs/releases/DEPLOYMENT_CHECKLIST_v1.17.5.md  M docs/releases/RELEASE_SUMMARY_v1.17.5.md ?? commit_ready_20260129-233710.log
+M  backend/admin_routes.py D  commit_ready_20260129-233623.log RM commit_ready_20260129-234547.log -> commit_ready_20260130-120002.log R  commit_ready_20260129-233710.log -> commit_ready_20260130-120054.log M  docs/releases/COMPLETE_RELEASE_DEPLOYMENT_REPORT_JAN29_2026.md M  docs/releases/v1.17.6_DEPLOYMENT_VERIFIED.md
 
 ─────────────────────────────────────────────────
  Root Documentation Whitelist
@@ -546,7 +546,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ╚══════════════════════════════════════════════════════════════╝
 
 Mode: quick
-Duration: 355.5s
+Duration: 412.4s
 
 Code Quality:
   ✅ Docs & Version Sync
@@ -569,10 +569,10 @@ Health Checks:
   ✅ Git Remote
 
 Cleanup:
-  ✅ Python Cache (15 items)
+  ✅ Python Cache (13 items)
   ✅ Node Cache (Already clean)
   ✅ Build Artifacts
-  ✅ Temp Files (15 files removed)
+  ✅ Temp Files (13 files removed)
 
 = * 60
 [OK] ALL CHECKS PASSED - READY TO COMMIT
@@ -586,7 +586,7 @@ chore: pre-commit validation complete
 
 Status: ✅ PASSED
 Version: 1.17.6
-Duration: 355.5s
+Duration: 412.4s
 Mode: quick
 
 Code Quality:
@@ -604,5 +604,5 @@ NEXT STEPS:
 4. Push: git push origin main
 **********************
 PowerShell transcript end
-End time: 20260129234305
+End time: 20260130120655
 **********************
