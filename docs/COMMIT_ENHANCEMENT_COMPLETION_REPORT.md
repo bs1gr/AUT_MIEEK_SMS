@@ -22,7 +22,7 @@
 
 ### 1. Extended Validation Checkpoint Time
 
-**Files Modified**: 
+**Files Modified**:
 - `scripts/ENFORCE_COMMIT_READY_GUARD.ps1`
 
 **Change**:
