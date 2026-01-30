@@ -147,6 +147,9 @@ foreach ($batch in $batches) {
     Push-Location $backendDir -ErrorAction Stop | Out-Null
 
     try {
+        # Set PYTHONPATH to project root to ensure local backend package is used
+        $env:PYTHONPATH = $projectRoot
+        
         if ($Verbose) {
             $output = python -m pytest $testFiles -v --tb=short 2>&1
         } else {
@@ -156,6 +159,8 @@ foreach ($batch in $batches) {
         $exitCode = $LASTEXITCODE
     } finally {
         Pop-Location
+        # Clean up PYTHONPATH
+        Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
     }
 
     $batchDuration = (Get-Date) - $batchStart

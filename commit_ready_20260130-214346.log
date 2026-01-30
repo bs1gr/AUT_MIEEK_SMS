@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20260130212902
+Start time: 20260130214346
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name:
+Configuration Name: 
 Machine: REC (Microsoft Windows NT 10.0.26300.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File .\COMMIT_READY.ps1 -Quick
-Process ID: 38152
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File D:\SMS\student-management-system\COMMIT_READY.ps1 -Quick
+Process ID: 37536
 PSVersion: 7.5.4
 PSEdition: Core
 GitCommitId: 7.5.4
@@ -23,8 +23,8 @@ WSManStackVersion: 3.0
 --------------------------------------------------------------
 
 Mode: quick
-Started: 2026-01-30 21:29:02
-Log file: D:\SMS\student-management-system\commit_ready_20260130-212902.log
+Started: 2026-01-30 21:43:46
+Log file: D:\SMS\student-management-system\commit_ready_20260130-214346.log
 
 
 ╔══════════════════════════════════════════════════════════════╗
@@ -151,6 +151,8 @@ stderr | src/i18n/__tests__/translations.test.ts
 ─────────────────────────────────────────────────
  Backend: pytest
 ─────────────────────────────────────────────────
+ℹ️  Using in-memory SQLite for local tests (DATABASE_URL not set)
+ℹ️  Using strict auth mode for local tests (AUTH_MODE not set)
 ℹ️  Using batch test runner (prevents system freeze)...
 
 ╔════════════════════════════════════════╗
@@ -170,7 +172,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_attendance_router.py
 ℹ Running tests...
 ....................................................................     [100%]
-✓ Batch 1 completed successfully in 8.6s
+✓ Batch 1 completed successfully in 8.9s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -183,7 +185,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_auth_router.py
 ℹ Running tests...
 .........................................                                [100%]
-✓ Batch 2 completed successfully in 6.5s
+✓ Batch 2 completed successfully in 6.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -222,7 +224,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_csv_import.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 5 completed successfully in 5.3s
+✓ Batch 5 completed successfully in 5.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -248,7 +250,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_facet_service.py
 ℹ Running tests...
 ..................................                                       [100%]
-✓ Batch 7 completed successfully in 5.4s
+✓ Batch 7 completed successfully in 5.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -274,7 +276,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_import_resolver.py
 ℹ Running tests...
 ....................                                                     [100%]
-✓ Batch 9 completed successfully in 5.3s
+✓ Batch 9 completed successfully in 5.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -289,7 +291,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ...................s.                                                    [100%]
 =========================== short test summary info ===========================
 SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
-✓ Batch 10 completed successfully in 7.2s
+✓ Batch 10 completed successfully in 7.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -315,7 +317,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
   • test_permissions_api.py
 ℹ Running tests...
 ...........................................................              [100%]
-✓ Batch 12 completed successfully in 5.7s
+✓ Batch 12 completed successfully in 5.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -374,7 +376,7 @@ SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC ex
 SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
-✓ Batch 13 completed successfully in 5.9s
+✓ Batch 13 completed successfully in 5.8s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -387,7 +389,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_request_id.py
 ℹ Running tests...
 .................................                                        [100%]
-✓ Batch 14 completed successfully in 7.5s
+✓ Batch 14 completed successfully in 7.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -400,7 +402,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_run_migrations_unit.py
 ℹ Running tests...
 ....................................                                     [100%]
-✓ Batch 15 completed successfully in 2.8s
+✓ Batch 15 completed successfully in 2.7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -420,7 +422,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-✓ Batch 16 completed successfully in 24.2s
+✓ Batch 16 completed successfully in 24.6s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -433,7 +435,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
   • test_students_import.py
 ℹ Running tests...
 .........................................................                [100%]
-✓ Batch 17 completed successfully in 5.1s
+✓ Batch 17 completed successfully in 5.3s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -449,7 +451,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
 SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
 SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
 SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
-✓ Batch 18 completed successfully in 4.5s
+✓ Batch 18 completed successfully in 4.6s
 
 ╔════════════════════════════════════════╗
 ║          TEST EXECUTION SUMMARY        ║
@@ -462,7 +464,7 @@ Batches:
 Tests:
   Total:   0
 
-Duration: 157.7s
+Duration: 157.9s
 
 ✓ All tests passed! 🎉
 ✅ Backend tests passed
@@ -529,7 +531,7 @@ stderr | src/i18n/__tests__/translations.test.ts
  Git Status
 ─────────────────────────────────────────────────
 ℹ️  Uncommitted changes detected:
-M  backend/tests/test_admin_backup_encryption.py A  commit_ready_20260130-191116.log A  commit_ready_20260130-191827.log A  commit_ready_20260130-192218.log AM commit_ready_20260130-211517.log AM commit_ready_20260130-211936.log AM commit_ready_20260130-212326.log M  docs/COMMIT_ENHANCEMENT_COMPLETION_REPORT.md M  docs/MONITORING_CONFIGURATION_INVESTIGATION.md M  docs/USER_TRAINING_QUICKSTART_EL.md M  docs/USER_TRAINING_QUICKSTART_EN.md M  docs/deployment/PHASE5_DAY2_COMPLETION.md M  docs/deployment/PRODUCTION_GO_LIVE_CHECKLIST.md M  docs/deployment/TROUBLESHOOTING_GUIDE.md M  docs/monitoring/GRAFANA_DASHBOARDS_SETUP.md A  docs/monitoring/MONITORING_OPERATIONS_GUIDE.md M  docs/operations/BACKUP_RESTORE_PROCEDURES.md M  docs/operations/DAILY_OPERATIONS_CHECKLIST.md M  docs/operations/INCIDENT_RESPONSE_RUNBOOK.md M  docs/operations/MONITORING_SETUP.md M  docs/plans/UNIFIED_WORK_PLAN.md M  docs/releases/PHASE5_HEALTH_VERIFICATION.md M  docs/releases/PHASE5_USER_TRAINING_MATERIALS.md M  docs/training/PRODUCTION_USER_TRAINING_PROGRAM.md M  docs/training/PRODUCTION_USER_TRAINING_PROGRAM_EL.md M  docs/training/STUDENT_TRAINING_SLIDES.md M  scripts/AUTO_COMMIT_AFTER_READY.ps1 A  scripts/grafana/Configure-AlertNotifications.ps1 A  scripts/grafana/Configure-Dashboards.ps1 A  scripts/grafana/Manage-GrafanaPassword.ps1 A  scripts/grafana/Manage-GrafanaUsers.ps1 A  scripts/monitoring/Configure-AlertRules.ps1 A  scripts/monitoring/Verify-MonitoringStack.ps1 ?? commit_ready_20260130-212902.log
+ M commit_ready_20260130-212902.log ?? commit_ready_20260130-214346.log
 
 ─────────────────────────────────────────────────
  Root Documentation Whitelist
@@ -541,7 +543,7 @@ M  backend/tests/test_admin_backup_encryption.py A  commit_ready_20260130-191116
 ╚══════════════════════════════════════════════════════════════╝
 
 Mode: quick
-Duration: 226.8s
+Duration: 224.1s
 
 Code Quality:
   ✅ Docs & Version Sync
@@ -581,7 +583,7 @@ chore: pre-commit validation complete
 
 Status: ✅ PASSED
 Version: 1.17.6
-Duration: 226.8s
+Duration: 224.1s
 Mode: quick
 
 Code Quality:
@@ -607,5 +609,5 @@ Option 2 - MANUAL:
 Note: Validation checkpoint valid for 90 minutes (extended on Jan 30, 2026)
 **********************
 PowerShell transcript end
-End time: 20260130213249
+End time: 20260130214730
 **********************
