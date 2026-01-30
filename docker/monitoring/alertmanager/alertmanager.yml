@@ -1,0 +1,117 @@
+# Alertmanager Configuration for SMS Monitoring Stack
+# Handles alert routing and notifications
+
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# List of templates referenced in route and inhibition rules
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Routing rules for alert groups
+route:
+  # Default receiver for all alerts
+  receiver: 'default'
+
+  # Group alerts by labels
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 30m
+
+  # Sub-routes for specific alert types
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical'
+      group_wait: 0s
+      group_interval: 5m
+      repeat_interval: 5m
+
+    # Warning alerts - standard notification
+    - match:
+        severity: warning
+      receiver: 'warnings'
+      group_wait: 30s
+      group_interval: 15m
+      repeat_interval: 1h
+
+    # Info alerts - aggregated notification
+    - match:
+        severity: info
+      receiver: 'info'
+      group_wait: 60s
+      group_interval: 30m
+      repeat_interval: 2h
+
+# Alert receivers (notification destinations)
+receivers:
+  # Default receiver (email)
+  - name: 'default'
+    email_configs:
+      - to: 'alerts@your-institution.edu'
+        from: 'sms-alerts@your-institution.edu'
+        smarthost: 'smtp.your-institution.edu:587'
+        auth_username: 'alerts@your-institution.edu'
+        auth_password: '${SMTP_PASSWORD}'
+        require_tls: true
+        headers:
+          Subject: '[SMS Monitoring] Alert: {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>{{ .GroupLabels.alertname }}</h2>
+          {{ range .Alerts }}
+            <p>{{ .Annotations.summary }}</p>
+            <p>{{ .Annotations.description }}</p>
+          {{ end }}
+
+  # Critical alerts receiver (multiple channels)
+  - name: 'critical'
+    email_configs:
+      - to: 'critical-alerts@your-institution.edu'
+        from: 'sms-alerts@your-institution.edu'
+        smarthost: 'smtp.your-institution.edu:587'
+        auth_username: 'alerts@your-institution.edu'
+        auth_password: '${SMTP_PASSWORD}'
+        require_tls: true
+        headers:
+          Subject: '[CRITICAL] SMS Alert: {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - channel: '#sms-critical'
+        title: '🚨 Critical Alert'
+        text: '{{ .GroupLabels.alertname }}: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        send_resolved: true
+
+  # Warning alerts receiver
+  - name: 'warnings'
+    email_configs:
+      - to: 'alerts@your-institution.edu'
+        from: 'sms-alerts@your-institution.edu'
+        smarthost: 'smtp.your-institution.edu:587'
+        auth_username: 'alerts@your-institution.edu'
+        auth_password: '${SMTP_PASSWORD}'
+        require_tls: true
+        headers:
+          Subject: '[WARNING] SMS Alert: {{ .GroupLabels.alertname }}'
+
+  # Info alerts receiver (logged only, minimal notification)
+  - name: 'info'
+    email_configs: []  # Info alerts not emailed by default
+
+# Inhibition rules to suppress certain alerts
+inhibit_rules:
+  # Suppress warning if critical alert for same instance/alertname
+  - source_match:
+      severity: critical
+    target_match:
+      severity: warning
+    equal: ['alertname', 'instance', 'cluster']
+
+  # Suppress info if warning alert for same instance/alertname
+  - source_match:
+      severity: warning
+    target_match:
+      severity: info
+    equal: ['alertname', 'instance', 'cluster']
