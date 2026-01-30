@@ -50,7 +50,7 @@ networks:
     driver: bridge
   app-network:
     external: true
-    name: student-management-system_default
+    name: docker_sms_network
 
 volumes:
   prometheus-data:

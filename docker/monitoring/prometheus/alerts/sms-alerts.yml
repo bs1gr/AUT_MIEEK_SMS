@@ -1,0 +1,216 @@
+# Prometheus Alert Rules for SMS Monitoring Stack
+groups:
+  - name: sms_alerts
+    interval: 30s
+    rules:
+      # === DATABASE ALERTS ===
+
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding ({{ $labels.instance }})"
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_activity_count > 90
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL has high number of connections"
+          description: "PostgreSQL has {{ $value }} connections (threshold: 90)"
+
+      - alert: PostgreSQLHighCacheHitRatio
+        expr: rate(pg_stat_database_blks_hit[5m]) / (rate(pg_stat_database_blks_hit[5m]) + rate(pg_stat_database_blks_read[5m])) < 0.99
+        for: 10m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "PostgreSQL cache hit ratio is low"
+          description: "PostgreSQL cache hit ratio is {{ $value | humanizePercentage }} (threshold: 99%)"
+
+      # === BACKEND ALERTS ===
+
+      - alert: BackendDown
+        expr: up{job="sms-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "SMS Backend is down"
+          description: "SMS Backend API is not responding ({{ $labels.instance }})"
+
+      - alert: BackendHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "Backend has high error rate"
+          description: "Backend error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
+
+      - alert: BackendHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "Backend response time is high"
+          description: "p95 response time is {{ $value }}s (threshold: 1s)"
+
+      - alert: BackendHighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 / 1024 > 2
+        for: 5m
+        labels:
+          severity: warning
+          component: backend
+        annotations:
+          summary: "Backend memory usage is high"
+          description: "Backend is using {{ $value }}GB memory (threshold: 2GB)"
+
+      # === REDIS ALERTS ===
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache is not responding ({{ $labels.instance }})"
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis is using {{ $value | humanizePercentage }} of available memory (threshold: 90%)"
+
+      - alert: RedisEvictedKeys
+        expr: rate(redis_evicted_keys_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Redis is evicting keys"
+          description: "Redis is evicting {{ $value }} keys per second due to memory pressure"
+
+      # === SYSTEM ALERTS ===
+
+      - alert: NodeDiskSpaceLow
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs|vfat"} / node_filesystem_size_bytes) < 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Node disk space is low"
+          description: "{{ $labels.device }} has {{ $value | humanizePercentage }} free space (threshold: 10%)"
+
+      - alert: NodeDiskSpaceCritical
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs|squashfs|vfat"} / node_filesystem_size_bytes) < 0.05
+        for: 5m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Node disk space is critically low"
+          description: "{{ $labels.device }} has {{ $value | humanizePercentage }} free space (threshold: 5%)"
+
+      - alert: NodeHighCPUUsage
+        expr: (1 - avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Node CPU usage is high"
+          description: "CPU usage is {{ $value | humanizePercentage }} (threshold: 80%)"
+
+      - alert: NodeHighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Node memory usage is high"
+          description: "Memory usage is {{ $value | humanizePercentage }} (threshold: 85%)"
+
+      - alert: NodeSwapUsage
+        expr: (1 - (node_memory_SwapFree_bytes / node_memory_SwapTotal_bytes)) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "Node swap usage is high"
+          description: "Swap usage is {{ $value | humanizePercentage }} (threshold: 50%)"
+
+      # === CONTAINER ALERTS ===
+
+      - alert: ContainerDown
+        expr: container_last_seen{container_name!=""} < (time() - 300)
+        for: 5m
+        labels:
+          severity: critical
+          component: container
+        annotations:
+          summary: "Container has not been seen for 5+ minutes"
+          description: "Container {{ $labels.container_name }} is down ({{ $labels.instance }})"
+
+      - alert: ContainerHighCPUUsage
+        expr: (rate(container_cpu_usage_seconds_total[5m]) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: "Container CPU usage is high"
+          description: "{{ $labels.container_name }} CPU usage is {{ $value }}% (threshold: 80%)"
+
+      - alert: ContainerHighMemoryUsage
+        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          component: container
+        annotations:
+          summary: "Container memory usage is high"
+          description: "{{ $labels.container_name }} memory usage is {{ $value | humanizePercentage }} (threshold: 85%)"
+
+      # === APPLICATION ALERTS ===
+
+      - alert: PrometheusScrapeFailed
+        expr: up{job="prometheus"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          component: monitoring
+        annotations:
+          summary: "Prometheus scrape has failed"
+          description: "Prometheus cannot scrape its own metrics"
+
+      - alert: PrometheusRuleEvaluationFailures
+        expr: increase(prometheus_rule_evaluation_failures_total[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: monitoring
+        annotations:
+          summary: "Prometheus rule evaluation is failing"
+          description: "Prometheus had {{ $value }} rule evaluation failures in the last 5 minutes"
