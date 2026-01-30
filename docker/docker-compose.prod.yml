@@ -50,17 +50,16 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./backups:/backups
-      - ./scripts/backup-database.sh:/usr/local/bin/backup-database.sh:ro
+      - ../backups:/backups
+      - ../scripts/backup-database.sh:/usr/local/bin/backup-database.sh:ro
     entrypoint: |
       sh -c '
-      chmod +x /usr/local/bin/backup-database.sh
       # Run backup immediately on startup, then on schedule
-      /usr/local/bin/backup-database.sh
+      sh /usr/local/bin/backup-database.sh
       # Schedule daily backups (2 AM UTC)
       while true; do
         sleep 86400  # 24 hours
-        /usr/local/bin/backup-database.sh
+        sh /usr/local/bin/backup-database.sh
       done'
     deploy:
       resources:
