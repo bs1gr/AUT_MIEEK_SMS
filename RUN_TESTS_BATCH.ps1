@@ -149,7 +149,7 @@ foreach ($batch in $batches) {
     try {
         # Set PYTHONPATH to project root to ensure local backend package is used
         $env:PYTHONPATH = $projectRoot
-        
+
         if ($Verbose) {
             $output = python -m pytest $testFiles -v --tb=short 2>&1
         } else {

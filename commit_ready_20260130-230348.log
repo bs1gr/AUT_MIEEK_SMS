@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20260130214346
+Start time: 20260130230348
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name:
+Configuration Name: 
 Machine: REC (Microsoft Windows NT 10.0.26300.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File D:\SMS\student-management-system\COMMIT_READY.ps1 -Quick
-Process ID: 37536
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+Process ID: 27592
 PSVersion: 7.5.4
 PSEdition: Core
 GitCommitId: 7.5.4
@@ -23,8 +23,8 @@ WSManStackVersion: 3.0
 --------------------------------------------------------------
 
 Mode: quick
-Started: 2026-01-30 21:43:46
-Log file: D:\SMS\student-management-system\commit_ready_20260130-214346.log
+Started: 2026-01-30 23:03:48
+Log file: D:\SMS\student-management-system\commit_ready_20260130-230348.log
 
 
 ╔══════════════════════════════════════════════════════════════╗
@@ -172,7 +172,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_attendance_router.py
 ℹ Running tests...
 ....................................................................     [100%]
-✓ Batch 1 completed successfully in 8.9s
+✓ Batch 1 completed successfully in 11.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -185,7 +185,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_auth_router.py
 ℹ Running tests...
 .........................................                                [100%]
-✓ Batch 2 completed successfully in 6.3s
+✓ Batch 2 completed successfully in 6.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -211,7 +211,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_control_path_traversal.py
 ℹ Running tests...
 ...........................                                              [100%]
-✓ Batch 4 completed successfully in 10.3s
+✓ Batch 4 completed successfully in 10s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -224,7 +224,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_csv_import.py
 ℹ Running tests...
 ...............................                                          [100%]
-✓ Batch 5 completed successfully in 5.1s
+✓ Batch 5 completed successfully in 5.2s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -250,7 +250,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_facet_service.py
 ℹ Running tests...
 ..................................                                       [100%]
-✓ Batch 7 completed successfully in 5.3s
+✓ Batch 7 completed successfully in 5.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -263,7 +263,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_gzip_middleware.py
 ℹ Running tests...
 ..............................                                           [100%]
-✓ Batch 8 completed successfully in 5.2s
+✓ Batch 8 completed successfully in 5.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -276,7 +276,7 @@ stderr | src/i18n/__tests__/translations.test.ts
   • test_import_resolver.py
 ℹ Running tests...
 ....................                                                     [100%]
-✓ Batch 9 completed successfully in 5.2s
+✓ Batch 9 completed successfully in 5.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -291,7 +291,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ...................s.                                                    [100%]
 =========================== short test summary info ===========================
 SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
-✓ Batch 10 completed successfully in 7.1s
+✓ Batch 10 completed successfully in 7.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -376,7 +376,7 @@ SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC ex
 SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
-✓ Batch 13 completed successfully in 5.8s
+✓ Batch 13 completed successfully in 5.7s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -389,7 +389,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
   • test_request_id.py
 ℹ Running tests...
 .................................                                        [100%]
-✓ Batch 14 completed successfully in 7.3s
+✓ Batch 14 completed successfully in 7.4s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -422,7 +422,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-✓ Batch 16 completed successfully in 24.6s
+✓ Batch 16 completed successfully in 25.1s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -435,7 +435,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
   • test_students_import.py
 ℹ Running tests...
 .........................................................                [100%]
-✓ Batch 17 completed successfully in 5.3s
+✓ Batch 17 completed successfully in 5.9s
   Waiting 2 seconds before next batch...
 
 ┌─────────────────────────────────────────┐
@@ -464,7 +464,7 @@ Batches:
 Tests:
   Total:   0
 
-Duration: 157.9s
+Duration: 161.9s
 
 ✓ All tests passed! 🎉
 ✅ Backend tests passed
@@ -531,7 +531,7 @@ stderr | src/i18n/__tests__/translations.test.ts
  Git Status
 ─────────────────────────────────────────────────
 ℹ️  Uncommitted changes detected:
- M commit_ready_20260130-212902.log ?? commit_ready_20260130-214346.log
+ M RUN_TESTS_BATCH.ps1  M commit_ready_20260130-214346.log M  docs/plans/UNIFIED_WORK_PLAN.md MM docs/training/EMAIL_TEMPLATES.md MM docs/training/PRE_READING_MATERIALS.md M  scripts/training/Setup-TrainingEnvironment.ps1 ?? commit_ready_20260130-230348.log
 
 ─────────────────────────────────────────────────
  Root Documentation Whitelist
@@ -543,7 +543,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ╚══════════════════════════════════════════════════════════════╝
 
 Mode: quick
-Duration: 224.1s
+Duration: 227.4s
 
 Code Quality:
   ✅ Docs & Version Sync
@@ -583,7 +583,7 @@ chore: pre-commit validation complete
 
 Status: ✅ PASSED
 Version: 1.17.6
-Duration: 224.1s
+Duration: 227.4s
 Mode: quick
 
 Code Quality:
@@ -609,5 +609,5 @@ Option 2 - MANUAL:
 Note: Validation checkpoint valid for 90 minutes (extended on Jan 30, 2026)
 **********************
 PowerShell transcript end
-End time: 20260130214730
+End time: 20260130230735
 **********************
