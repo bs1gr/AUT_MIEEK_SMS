@@ -89,11 +89,20 @@ def test_database_url_autobuilds_when_engine_is_postgres():
     assert "sslmode=require" in settings.DATABASE_URL
 
 
-def test_database_url_autobuild_requires_complete_postgres_config():
+def test_database_url_autobuild_requires_complete_postgres_config(monkeypatch):
+    for key in (
+        "POSTGRES_USER",
+        "POSTGRES_PASSWORD",
+        "POSTGRES_DB",
+        "POSTGRES_HOST",
+        "POSTGRES_PORT",
+    ):
+        monkeypatch.delenv(key, raising=False)
     with pytest.raises(ValueError):
         build_settings(
             DATABASE_ENGINE="postgresql",
             DATABASE_URL="",
             POSTGRES_USER="sms",
             POSTGRES_PASSWORD="pw",  # pragma: allowlist secret
+            POSTGRES_DB="",
         )
