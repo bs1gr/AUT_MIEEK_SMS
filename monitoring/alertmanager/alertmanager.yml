@@ -197,9 +197,16 @@ time_intervals:
   # After hours and weekends
   - name: after-hours
     time_intervals:
+      # 6 PM to midnight on weekdays
       - times:
           - start_time: '18:00'
-            end_time: '08:00'
+            end_time: '23:59'
         weekdays: ['monday:friday']
+      # Midnight to 8 AM on weekdays (next day)
+      - times:
+          - start_time: '00:00'
+            end_time: '08:00'
+        weekdays: ['tuesday:saturday']
+      # All day Saturday and Sunday
       - weekdays: ['saturday', 'sunday']
         location: 'Local'
