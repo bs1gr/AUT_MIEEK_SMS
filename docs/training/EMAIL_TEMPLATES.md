@@ -9,7 +9,7 @@
 
 ## Template 1: Administrator Training Invitation
 
-**Subject**: SMS Training - Administrator Session (Feb 3, 2026)
+**Subject**: SMS Training - Administrator Session
 
 **Body**:
 
@@ -18,8 +18,8 @@ Dear [Admin Name],
 
 You are invited to attend the Student Management System (SMS) Administrator Training session.
 
-📅 DATE: Tuesday, February 3, 2026
-🕘 TIME: 9:00 AM - 1:00 PM (4 hours)
+📅 DATE: [To be scheduled]
+🕘 TIME: 4 hours (specific time TBA)
 📍 LOCATION: [Building Name], Room [Number]
 👥 PARTICIPANTS: 2-3 system administrators
 
@@ -47,7 +47,7 @@ TECHNICAL REQUIREMENTS:
 • Screen resolution: 1280x720 minimum
 
 RSVP:
-Please confirm your attendance by replying to this email by January 31, 2026.
+Please confirm your attendance by replying to this email within [timeframe].
 
 If you cannot attend, please contact us immediately so we can arrange an alternative session.
 
@@ -77,7 +77,7 @@ ATTACHMENTS:
 
 ## Template 2: Teacher Training Invitation
 
-**Subject**: SMS Training - Teacher Session (Feb 4, 2026) - RSVP Required
+**Subject**: SMS Training - Teacher Session - RSVP Required
 
 **Body**:
 
@@ -86,8 +86,8 @@ Dear [Teacher Name],
 
 You are invited to attend the Student Management System (SMS) Teacher Training session.
 
-📅 DATE: Wednesday, February 4, 2026
-🕑 TIME: 2:00 PM - 5:00 PM (3 hours)
+📅 DATE: [To be scheduled]
+🕑 TIME: 3 hours (specific time TBA)
 📍 LOCATION: [Building Name], Room [Number]
 👥 PARTICIPANTS: 25+ instructors
 
@@ -119,12 +119,12 @@ TECHNICAL REQUIREMENTS:
 • Recommended: Laptop (larger screen easier for data entry)
 
 RSVP:
-**Please confirm your attendance by replying to this email by February 1, 2026.**
+**Please confirm your attendance by replying to this email within [timeframe].**
 
 Due to limited seating (25 participants max), we need accurate headcount. If you cannot attend, please let us know immediately so we can offer your spot to a colleague or arrange a makeup session.
 
-GO-LIVE DATE:
-The SMS will be available for use starting **Friday, February 7, 2026**. You'll receive your login credentials on February 6.
+THE SMS WILL BE AVAILABLE SOON:
+The SMS will be available for use when training is complete. You'll receive your login credentials before go-live.
 
 QUESTIONS?
 Contact: training@mieek.edu.cy or call +357 XXXX XXXX
@@ -149,7 +149,7 @@ ATTACHMENTS:
 
 ## Template 3: Student Training Invitation
 
-**Subject**: SMS Training - Student Session (Feb 5, 2026) - Choose Your Time
+**Subject**: SMS Training - Student Session - Choose Your Time
 
 **Body**:
 
@@ -160,12 +160,12 @@ You are invited to attend the Student Management System (SMS) Student Training s
 
 The SMS is a new web-based system where you'll be able to view your grades, attendance, and course information anytime, from any device.
 
-📅 DATE: Thursday, February 5, 2026
+📅 DATE: [To be scheduled]
 
 🕘 TIME: Choose ONE session that works for your schedule:
-   • Session 1: 9:00 AM - 10:30 AM
-   • Session 2: 12:00 PM - 1:30 PM
-   • Session 3: 3:00 PM - 4:30 PM
+   • Session 1: [Time TBA]
+   • Session 2: [Time TBA]
+   • Session 3: [Time TBA]
 
 📍 LOCATION: [Building Name], Computer Lab [Number]
 👥 PARTICIPANTS: ~170 students per session
@@ -191,13 +191,13 @@ If you can use a web browser, you can use the SMS. No technical knowledge requir
 REGISTRATION:
 **Please register for ONE session by replying to this email with your preferred time.**
 
-Example: "I'd like to attend Session 2 (12:00 PM)"
+Example: "I'd like to attend Session 2"
 
-Registration closes: February 3, 2026
+Registration closes: [Date TBA]
 Seats are limited to 170 per session - first come, first served.
 
 YOUR LOGIN CREDENTIALS:
-You'll receive your personal SMS login credentials via email on **February 6, 2026**. The system will be available starting February 7.
+You'll receive your personal SMS login credentials via email before the system goes live.
 
 DEVICE OPTIONS:
 • Laptop/tablet: Best for training (larger screen)
@@ -231,16 +231,16 @@ ATTACHMENTS:
 
 ---
 
-## Template 4: Training Reminder Email (1 Day Before)
+## Template 4: Training Reminder Email
 
-**Subject**: Reminder: SMS Training Tomorrow - [Role] Session
+**Subject**: Reminder: SMS Training [Tomorrow/Upcoming] - [Role] Session
 
 **Body**:
 
 ```
 Dear [Name],
 
-This is a friendly reminder about your SMS training session **tomorrow**:
+This is a friendly reminder about your SMS training session:
 
 📅 DATE: [Date]
 🕘 TIME: [Time]
@@ -296,9 +296,9 @@ Your training materials are attached:
 • Keyboard shortcuts cheat sheet
 
 YOUR LOGIN CREDENTIALS:
-You'll receive your personal SMS login credentials via email on **February 6, 2026** (one day before go-live).
+You'll receive your personal SMS login credentials via email on **[Date before go-live]**.
 
-GO-LIVE DATE: Friday, February 7, 2026 🚀
+GO-LIVE DATE: [Date TBA] 🚀
 
 FEEDBACK SURVEY:
 Please take 3-5 minutes to complete our training feedback survey:
@@ -307,14 +307,14 @@ Please take 3-5 minutes to complete our training feedback survey:
 Your feedback helps us improve future training and support.
 
 SUPPORT RESOURCES:
-Starting February 7:
+After go-live:
 • Email: sms-support@mieek.edu.cy
 • Response time: < 2 hours (business hours)
 • Help guides: Available in SMS (Help menu)
 • Office hours: Weekly drop-in sessions (schedule TBA)
 
-EXTENDED SUPPORT (Feb 7-14):
-For the first week, we'll provide extra support:
+EXTENDED SUPPORT:
+For the first week after go-live, we'll provide extra support:
 • Faster response times
 • On-site help in computer labs
 • Phone support for urgent issues
@@ -334,8 +334,8 @@ If your colleagues missed training, they can:
 NEXT STEPS:
 1. Review attached materials at your own pace
 2. Complete feedback survey (3-5 min)
-3. Watch for credentials email (Feb 6)
-4. Log in for the first time (Feb 7)
+3. Watch for credentials email
+4. Log in for the first time when system goes live
 5. Change your password on first login
 
 Thank you for your participation and patience during training. We're excited for you to start using the SMS!
@@ -356,16 +356,16 @@ ATTACHMENTS:
 
 ---
 
-## Template 6: Credentials Delivery Email (Feb 6)
+## Template 6: Credentials Delivery Email
 
-**Subject**: Your SMS Login Credentials - Go-Live Tomorrow!
+**Subject**: Your SMS Login Credentials - System Going Live Soon!
 
 **Body**:
 
 ```
 Dear [Name],
 
-Welcome to the Student Management System (SMS)! The system goes live **tomorrow, February 7, 2026**.
+Welcome to the Student Management System (SMS)! The system is going live soon.
 
 YOUR LOGIN CREDENTIALS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -415,9 +415,9 @@ Forgot something from training? Review materials at:
 PASSWORD RESET:
 If you forget your password, click "Forgot Password" on the login page. You'll receive a reset link via email.
 
-GO-LIVE SCHEDULE (Feb 7):
-• 6:00 AM: System available
-• 8:00 AM - 5:00 PM: Extended support available
+GO-LIVE SCHEDULE:
+• [Time TBA]: System available
+• [Hours TBA]: Extended support available
 • On-site help in computer labs
 
 We're excited for you to start using the SMS!
@@ -437,12 +437,12 @@ SMS Implementation Team
 
 ## Email Sending Schedule
 
-| Email Template | Send Date | Recipients | Purpose |
-|----------------|-----------|------------|---------|
-| **Training Invitation** | Jan 27-28 | All participants | Initial invitation + RSVP |
-| **Reminder Email** | 1 day before | Confirmed attendees | Final reminder + checklist |
-| **Thank You Email** | Same day as training | Session attendees | Materials + feedback survey |
-| **Credentials Email** | Feb 6 (day before go-live) | All users | Login credentials delivery |
+| Email Template | When to Send | Recipients | Purpose |
+|----------------|--------------|------------|---------|
+| **Training Invitation** | Before training | All participants | Initial invitation + RSVP |
+| **Reminder Email** | Before session | Confirmed attendees | Final reminder + checklist |
+| **Thank You Email** | After training | Session attendees | Materials + feedback survey |
+| **Credentials Email** | Before go-live | All users | Login credentials delivery |
 
 ---
 
@@ -484,4 +484,3 @@ All templates should be translated to Greek (Ελληνικά) for bilingual sup
 **Document Version**: 1.0
 **Last Updated**: January 30, 2026
 **Training Coordinator**: SMS Implementation Team
-

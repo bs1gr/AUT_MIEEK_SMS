@@ -2,7 +2,6 @@
 ## Student Management System v1.17.6
 ## ΜΙΕΕΚ Cyprus Technical College
 
-**Training Dates**: February 3-5, 2026
 **Target Audience**: Administrators, Teachers, and Students
 **Estimated Reading Time**: 15-20 minutes
 
@@ -20,13 +19,15 @@ Your training session will be **hands-on** and **interactive**. You'll learn by 
 
 ## Training Schedule Overview
 
-| Date | Role | Duration | Time |
-|------|------|----------|------|
-| **Feb 3, 2026** | Administrators | 4 hours | 9:00 AM - 1:00 PM |
-| **Feb 4, 2026** | Teachers | 3 hours | 2:00 PM - 5:00 PM |
-| **Feb 5, 2026** | Students | 1.5 hours | Multiple sessions |
+Training sessions will be scheduled when ready. Each role has a dedicated session:
 
-**Your session details will be in your calendar invite.**
+| Role | Duration | Participants |
+|------|----------|--------------|
+| **Administrators** | 4 hours | 2-3 system administrators |
+| **Teachers** | 3 hours | 25+ instructors |
+| **Students** | 1.5 hours | Multiple sessions as needed |
+
+**You'll receive calendar invite with specific details when training is scheduled.**
 
 ---
 
@@ -54,9 +55,9 @@ The SMS is a web-based application designed to streamline academic administratio
 
 **You do NOT need to do anything before training.** Test accounts will be provided during your session for hands-on practice.
 
-### After Training (Go-Live: February 7, 2026)
+### After Training (When System Goes Live)
 
-You'll receive your personal login credentials via email on **February 6, 2026**. Your email will include:
+You'll receive your personal login credentials via email before the system goes live. Your email will include:
 
 1. Your unique email address (username)
 2. Temporary password (you'll change this on first login)
@@ -115,7 +116,7 @@ The SMS works best with modern web browsers. **Update your browser before traini
 
 ## Role-Specific Preparation
 
-### For Administrators (Feb 3)
+### For Administrators
 
 **What You'll Learn**:
 - User account management (create, edit, delete users)
@@ -137,7 +138,7 @@ The SMS works best with modern web browsers. **Update your browser before traini
 
 ---
 
-### For Teachers (Feb 4)
+### For Teachers
 
 **What You'll Learn**:
 - Navigating the teacher dashboard
@@ -161,7 +162,7 @@ The SMS works best with modern web browsers. **Update your browser before traini
 
 ---
 
-### For Students (Feb 5)
+### For Students
 
 **What You'll Learn**:
 - Logging in and navigating the system
@@ -211,13 +212,13 @@ A: Trainers will have backup devices available. We'll help you troubleshoot.
 ### Access & Security
 
 **Q: When will I receive my real login credentials?**
-A: February 6, 2026 (one day before go-live). You'll use test accounts during training.
+A: You'll receive them via email before the system goes live. You'll use test accounts during training.
 
 **Q: What if I forget my password after training?**
 A: Use the "Forgot Password" link on the login page. You'll receive a reset link via email.
 
 **Q: Can I access the SMS from home?**
-A: Yes! The system is accessible from anywhere with internet (after go-live on Feb 7).
+A: Yes! The system is accessible from anywhere with internet (after go-live).
 
 ---
 
@@ -255,9 +256,9 @@ Within **24 hours**, you'll receive:
 - ✉️ Feedback survey link
 - ✉️ Contact information for support team
 
-### Go-Live Support (Feb 7-14, 2026)
+### Go-Live Support
 
-For the first week after go-live, **extended support** will be available:
+When the system goes live, **extended support** will be available for the first week:
 
 - **Email**: sms-support@mieek.edu.cy
 - **Response Time**: < 2 hours during business hours
@@ -275,16 +276,15 @@ After the first week:
 
 ---
 
-## Important Dates Summary
+## Important Milestones
 
-| Date | Event |
-|------|-------|
-| **Feb 3** | Admin training (9 AM - 1 PM) |
-| **Feb 4** | Teacher training (2 PM - 5 PM) |
-| **Feb 5** | Student training (multiple sessions) |
-| **Feb 6** | Login credentials sent via email |
-| **Feb 7** | **Go-Live Day** - System available for use |
-| **Feb 7-14** | Extended support period |
+| Milestone | Event |
+|-----------|-------|
+| **Training Prep** | Environment setup and test accounts |
+| **Training Sessions** | Admin, teacher, and student training |
+| **Credentials Delivery** | Login credentials sent via email |
+| **Go-Live** | System available for production use |
+| **Extended Support** | First week after go-live |
 
 ---
 
@@ -316,7 +316,7 @@ For urgent issues during training: **Trainer will provide**
 
 ## Final Checklist
 
-**Before Training Day**, confirm you have:
+**Before Training**, confirm you have:
 
 - [ ] Calendar invite received and confirmed
 - [ ] Browser updated to latest version
@@ -325,7 +325,7 @@ For urgent issues during training: **Trainer will provide**
 - [ ] Questions or scenarios written down
 - [ ] This document read and understood
 
-**You're Ready!** See you at training. 🎓
+**You're Ready!** 🎓
 
 ---
 
@@ -344,4 +344,3 @@ The SMS interface supports both languages. You can switch between English and Gr
 **Training Coordinator**: SMS Implementation Team
 
 **Questions?** Contact training@mieek.edu.cy
-
