@@ -250,14 +250,25 @@ class HealthChecker:
             # Try a simple query to verify connectivity
             db.execute(text("SELECT 1"))
 
-            # Check for WAL mode (better for concurrent access)
-            result = db.execute(text("PRAGMA journal_mode")).fetchone()
-            journal_mode = result[0] if result else "unknown"
+            # Check database type and run appropriate diagnostic query
+            # Get database dialect from the session
+            dialect_name = db.bind.dialect.name if db.bind else "unknown"
+            
+            journal_mode = "N/A (PostgreSQL)"  # Default for non-SQLite
+            
+            if dialect_name == "sqlite":
+                # Check for WAL mode (better for concurrent access) - SQLite only
+                result = db.execute(text("PRAGMA journal_mode")).fetchone()
+                journal_mode = result[0] if result else "unknown"
+            elif dialect_name == "postgresql":
+                # For PostgreSQL, just confirm connectivity (already done above)
+                journal_mode = "N/A (PostgreSQL)"
 
             return {
                 "status": HealthCheckStatus.HEALTHY,
                 "message": "Database connection successful",
                 "journal_mode": journal_mode,
+                "dialect": dialect_name,
                 "details": {
                     "connected": True,
                     "responsive": True,
