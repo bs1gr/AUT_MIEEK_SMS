@@ -16,7 +16,7 @@
 #>
 
 param(
-    [int]$BatchSize = 5,
+    [int]$BatchSize = 3,
     [switch]$Verbose,
     [switch]$FastFail
 )

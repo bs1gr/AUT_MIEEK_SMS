@@ -30,8 +30,6 @@ from backend.schemas.search import (
     StudentFullTextSearchResult,
     AdvancedSearchRequest,
     AdvancedSearchResponse,
-    SearchFacetsResponse,
-    SearchFacets,
     SavedSearchCreateSchema,
     SavedSearchUpdateSchema,
 )
