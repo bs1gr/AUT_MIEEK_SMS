@@ -1,5 +1,6 @@
 import { screen, waitFor, within, render, RenderOptions } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
+import { MemoryRouter } from 'react-router-dom';
 import testI18n from '@/test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -40,9 +41,11 @@ describe('Search Integration Tests - Full Workflow', () => {
   // Compose both i18n and query client wrappers
   const renderWithProviders = (ui: React.ReactElement, options?: Omit<RenderOptions, 'wrapper'>) => {
     const Wrapper = ({ children }: { children: React.ReactNode }) => (
-      <I18nextProvider i18n={testI18n}>
-        <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-      </I18nextProvider>
+      <MemoryRouter>
+        <I18nextProvider i18n={testI18n}>
+          <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+        </I18nextProvider>
+      </MemoryRouter>
     );
     return render(ui, { wrapper: Wrapper, ...options });
   };
@@ -112,7 +115,7 @@ describe('Search Integration Tests - Full Workflow', () => {
     renderPage();
 
     // Step 1: Enter search query
-    const searchInput = screen.getByRole('textbox', { name: /search/i });
+    const searchInput = screen.getByRole('textbox', { name: /query/i });
     await user.type(searchInput, 'John');
 
     expect(searchHooks.useSearch().setSearchQuery).toHaveBeenCalled();
@@ -267,7 +270,7 @@ describe('Search Integration Tests - Full Workflow', () => {
     renderPage();
 
     // Change search type
-    const typeSelect = screen.getByDisplayValue('students') as HTMLSelectElement;
+    const typeSelect = screen.getByLabelText(/type/i) as HTMLSelectElement;
     await user.selectOptions(typeSelect, 'courses');
 
     expect(setSearchType).toHaveBeenCalledWith('courses');
@@ -371,7 +374,7 @@ describe('Search Integration Tests - Full Workflow', () => {
 
     renderPage();
 
-    const input = screen.getByRole('textbox', { name: /search/i });
+    const input = screen.getByRole('textbox', { name: /query/i });
 
     // Rapid typing should be handled by debounce
     await user.type(input, 'test query');
