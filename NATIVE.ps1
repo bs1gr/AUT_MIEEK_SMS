@@ -667,8 +667,8 @@ function Start-Backend {
         $pythonExe = Join-Path $venvPath "Scripts\python.exe"
         $uvicornScript = Join-Path $venvPath "Scripts\uvicorn.exe"
 
+        # Always use backend.main:app since WorkingDirectory is $SCRIPT_DIR (project root)
         $module = 'backend.main:app'
-        if ($PWD -eq $BACKEND_DIR) { $module = 'main:app' }
         $args = @($module, "--host", "127.0.0.1", "--port", $BACKEND_PORT)
         if (-not $NoReload) {
             $args = @($module, "--reload", "--host", "127.0.0.1", "--port", $BACKEND_PORT)
