@@ -1,7 +1,7 @@
 # Agent Policy Enforcement - Mandatory Compliance
 
-**Version**: 1.1
-**Date**: January 11, 2026
+**Version**: 1.2
+**Date**: January 30, 2026
 **Status**: ACTIVE - ALL AGENTS MUST COMPLY
 **Authority**: Project-wide mandatory policy
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** - Single developer with AI assistant as only support
@@ -399,14 +399,31 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 
 ---
 
+### Policy 9: Session Start Instruction Review - MANDATORY for ALL Agents
+
+**✅ REQUIRED (every session, no exceptions):**
+1. Read `.github/copilot-instructions.md` and this document **at the start of every session**.
+2. Explicitly confirm compliance before doing any work.
+3. **Multi-agent requirement:** The primary agent must ensure **every subagent** is instructed to read and follow these policies before they begin tasks.
+
+**Why This Exists:**
+- Prevents policy drift across sessions
+- Ensures consistent behavior across multiple agents
+- Avoids repeated mistakes when context changes
+
+**Enforcement:** Any work started without this review is considered non-compliant.
+
+---
+
 ## 🔍 How to Verify Compliance
 
 ### For Agents Starting Work
 
 **Step 1: Read Entry Points (5 min)**
 1. Read `.github/copilot-instructions.md` (primary instructions)
-2. Read `docs/AGENT_QUICK_START.md` (onboarding guide)
-3. Read `docs/AGENT_COORDINATION_SYSTEM.md` (coordination)
+2. Read this document (`docs/AGENT_POLICY_ENFORCEMENT.md`)
+3. Read `docs/AGENT_QUICK_START.md` (onboarding guide)
+4. Read `docs/AGENT_COORDINATION_SYSTEM.md` (coordination)
 
 **Step 2: Check Current State (3 min)**
 1. Read `docs/plans/UNIFIED_WORK_PLAN.md` (current priorities)
@@ -523,6 +540,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 An agent has successfully integrated when they:
 
 ✅ **Read all entry documentation** (10 min investment)
+✅ **Repeat instruction review every session** (including subagents)
 ✅ **Run tests using batch runner** (no crashes)
 ✅ **Update work plan** (no duplicate trackers)
 ✅ **Use correct versioning** (1.17.1 from VERSION file)
