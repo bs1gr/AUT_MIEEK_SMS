@@ -21,6 +21,7 @@
 
 **First Steps for AI Agents**:
 0. Record a workspace snapshot: run COMMIT_READY Quick with -Snapshot or use the VS Code task "Record State Snapshot" (artifacts/state)
+0a. **Session start (mandatory):** Re-read this file and `docs/AGENT_POLICY_ENFORCEMENT.md` every session. Primary agent must ensure subagents do the same.
 1. Check current status in [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) (single source of truth)
 2. Read [DOCUMENTATION_INDEX.md](../docs/DOCUMENTATION_INDEX.md) for navigation
 3. Follow [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) (prevents crashes & duplication)
