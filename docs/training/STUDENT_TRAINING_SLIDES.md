@@ -1,9 +1,9 @@
 # Student Training Slides
 ## SMS v1.17.6 - Your Academic Information Portal
 
-**Duration**: 1.5 hours  
-**Audience**: All Students (500+ in multiple sessions)  
-**Date**: February 5, 2026  
+**Duration**: 1.5 hours
+**Audience**: All Students (500+ in multiple sessions)
+**Date**: February 5, 2026
 **Format**: Presentation slides with live demos
 
 ---
@@ -29,7 +29,7 @@
 - Show SMS logo/branding
 - Display schedule for the day
 
-**Demo**: 
+**Demo**:
 - Open SMS on projector
 - Show login page
 - Make it look inviting
@@ -59,7 +59,7 @@
 - Display types of data (grades, attendance, courses)
 - Emphasize privacy and security
 
-**Demo**: 
+**Demo**:
 - Show student dashboard overview
 - Display different sections available
 - Show grades and attendance examples
@@ -93,7 +93,7 @@
 - Receive initial password
 - Practice will change after first login (optional)
 
-**Demo**: 
+**Demo**:
 - Show what to do with username and password
 - Demonstrate first login
 - Show password change process
@@ -130,7 +130,7 @@
 4. Successfully login
 5. Take screenshot of dashboard
 
-**Demo**: 
+**Demo**:
 - Walk through login page
 - Explain each field
 - Show what happens on submit
@@ -182,7 +182,7 @@
 3. Click on a card to see details
 4. Use the menu to navigate
 
-**Demo**: 
+**Demo**:
 - Show full dashboard layout
 - Explain what each card shows
 - Click on a card to show details
@@ -229,7 +229,7 @@
 4. Understand the grade breakdown
 5. Look for trends (improving/declining grades)
 
-**Demo**: 
+**Demo**:
 - Navigate to Grades section
 - Show list of courses
 - Click into a course
@@ -285,7 +285,7 @@
 4. Identify any concerning patterns
 5. Note follow-up actions if needed
 
-**Demo**: 
+**Demo**:
 - Navigate to Attendance section
 - Show attendance by course
 - Display attendance percentage
@@ -340,7 +340,7 @@
 4. Check course schedule
 5. Access course materials if available
 
-**Demo**: 
+**Demo**:
 - Navigate to Courses section
 - Display course list
 - Show course status (active, completed, planned)
@@ -390,7 +390,7 @@
 4. Identify improvement areas
 5. Find support resources
 
-**Demo**: 
+**Demo**:
 - Show academic standing section
 - Display GPA and calculation
 - Show academic standing status
@@ -438,7 +438,7 @@
 4. Review notification settings
 5. Practice changing password (optional)
 
-**Demo**: 
+**Demo**:
 - Navigate to Account Settings
 - Show profile information
 - Display password change form
@@ -479,7 +479,7 @@
 - Display FAQ page
 - Show how to report problems
 
-**Demo**: 
+**Demo**:
 - Show help icon/link in SMS
 - Display FAQ page
 - Show contact information
@@ -559,7 +559,7 @@
 3. Complete feedback survey
 4. Celebrate completion
 
-**Demo**: 
+**Demo**:
 - Open feedback survey
 - Show simple format
 - Collect responses
@@ -670,8 +670,7 @@ By end of training, students should be able to:
 
 ---
 
-**Training Conducted By**: TBD  
-**Training Dates**: February 5, 2026 (multiple sessions)  
-**Session Times**: [TBD - to be scheduled]  
+**Training Conducted By**: TBD
+**Training Dates**: February 5, 2026 (multiple sessions)
+**Session Times**: [TBD - to be scheduled]
 **Attendees**: All enrolled students
-

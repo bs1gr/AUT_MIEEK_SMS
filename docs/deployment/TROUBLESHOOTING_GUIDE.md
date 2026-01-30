@@ -1,10 +1,10 @@
 # SMS Production Troubleshooting Guide
 ## v1.17.6 - Days 3-5 Go-Live Support Procedures
 
-**Version**: 1.0  
-**Date**: January 31, 2026  
-**Purpose**: Comprehensive troubleshooting for administrators during production go-live and operations  
-**Target Audience**: Day 3-5 training participants and on-call support team  
+**Version**: 1.0
+**Date**: January 31, 2026
+**Purpose**: Comprehensive troubleshooting for administrators during production go-live and operations
+**Target Audience**: Day 3-5 training participants and on-call support team
 
 ---
 
@@ -66,7 +66,7 @@ sms-frontend-proxy      Up 2 hours
    ```bash
    # Backend logs
    docker logs sms-backend | grep -i "error\|exception\|failed"
-   
+
    # Database logs
    docker logs sms-postgres | grep -i "error\|fatal\|shutdown"
    ```
@@ -153,7 +153,7 @@ docker exec sms-postgres pg_isready -U sms_user -d student_management
    ```bash
    # View active connections
    docker exec sms-postgres psql -U sms_user -d student_management -c "SELECT pid, usename, query FROM pg_stat_activity WHERE state = 'active';"
-   
+
    # Kill idle connections
    docker exec sms-postgres psql -U sms_user -d student_management -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE state = 'idle' AND query_start < now() - interval '1 hour';"
    ```
@@ -686,7 +686,6 @@ Contacts:
 
 ---
 
-**Created**: January 31, 2026  
-**Last Updated**: January 31, 2026  
+**Created**: January 31, 2026
+**Last Updated**: January 31, 2026
 **Version**: 1.0 - Production Ready for Go-Live
-

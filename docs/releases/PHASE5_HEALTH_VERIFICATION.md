@@ -1,7 +1,7 @@
 # Phase 5 Production Deployment - Health Verification Procedures
 
 **Created**: January 30, 2026 - 15:40 UTC
-**Purpose**: Post-deployment validation checklist  
+**Purpose**: Post-deployment validation checklist
 **Status**: Ready to execute when Docker containers start
 
 ---
@@ -32,7 +32,7 @@ docker compose ps
 # Expected progression:
 # First check (5s later):
 #   - sms-db: Up X seconds (starting)
-#   - sms-web: Up X seconds (starting)  
+#   - sms-web: Up X seconds (starting)
 #   - sms-proxy: Up X seconds (starting)
 
 # Final state (after ~30s):
@@ -84,7 +84,7 @@ while ($attempt -lt $maxAttempts) {
   } catch {
     # Database not ready yet
   }
-  
+
   $attempt++
   if ($attempt -lt $maxAttempts) {
     Start-Sleep -Seconds 2
@@ -108,7 +108,7 @@ Write-Host "Checking backend API..." -ForegroundColor Cyan
 
 try {
   $response = Invoke-RestMethod -Uri "http://localhost:8000/health" -TimeoutSec 5
-  
+
   if ($response.status -eq "healthy") {
     Write-Host "✅ Backend API healthy" -ForegroundColor Green
     Write-Host "   Database: $($response.database)" -ForegroundColor Gray
@@ -132,11 +132,11 @@ Write-Host "Checking frontend web interface..." -ForegroundColor Cyan
 
 try {
   $response = Invoke-WebRequest -Uri "http://localhost:8080" -TimeoutSec 5
-  
+
   if ($response.StatusCode -eq 200) {
     Write-Host "✅ Frontend accessible on port 8080" -ForegroundColor Green
     Write-Host "   Response size: $($response.Content.Length) bytes" -ForegroundColor Gray
-    
+
     # Quick content check
     if ($response.Content -match "login|sign in" -or $response.Content -match "σύνδεση") {
       Write-Host "✅ Login page detected" -ForegroundColor Green
@@ -168,7 +168,7 @@ foreach ($endpoint in $endpoints) {
     $response = Invoke-RestMethod -Uri "http://localhost:8000$($endpoint.path)" `
                                  -TimeoutSec 3 `
                                  -ErrorAction Stop
-    
+
     if ($response.success -eq $true) {
       Write-Host "✅ $($endpoint.name) - OK" -ForegroundColor Green
     } else {
@@ -196,7 +196,7 @@ foreach ($endpoint in $endpoints) {
 ### Expected Success (Most Should Pass)
 
 - [x] All above ✅ PLUS:
-- [x] Database queries execute successfully  
+- [x] Database queries execute successfully
 - [x] API endpoints return valid JSON responses
 - [x] Frontend HTML contains login form
 - [x] No error messages in Docker logs
@@ -251,7 +251,7 @@ docker logs sms-db
 # - "directory already exists" → volume issue
 #   Solution: docker volume rm sms_postgres_data
 
-# - "could not bind" → port 5432 in use  
+# - "could not bind" → port 5432 in use
 #   Solution: Find/kill process using 5432
 
 # - "permission denied" → mount permission issue

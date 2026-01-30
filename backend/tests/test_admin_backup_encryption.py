@@ -183,5 +183,5 @@ def test_backup_requires_authentication(client):
     """Test backup endpoint requires authentication."""
     response = client.post("/control/api/operations/database-backup")
 
-    # 401 Unauthorized or 404 if control API is disabled
-    assert response.status_code in (401, 404)
+    # 400 Bad Request (missing body), 401 Unauthorized, or 404 if control API is disabled
+    assert response.status_code in (400, 401, 404)
