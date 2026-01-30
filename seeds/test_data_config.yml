@@ -1,0 +1,35 @@
+# SMS Database Seeding Configuration
+# Customize test data generation parameters
+
+# Number of seed records to create
+num_students: 500          # Total student users
+num_teachers: 25           # Total teacher users
+num_admins: 2              # Total admin users
+
+# Course configuration
+courses_per_teacher: 3     # Courses per teacher (3-5 recommended)
+students_per_course: 40    # Students per course (30-50 recommended)
+
+# Grade distribution
+grade_range: [60, 100]     # Min and max possible grades
+# Grade distribution curve (optional):
+# - 10% A (90-100)
+# - 20% B (80-89)
+# - 30% C (70-79)
+# - 25% D (60-69)
+# - 15% F (below 60)
+
+# Attendance patterns
+attendance_rate: 0.85      # Average attendance percentage (0.0-1.0)
+# Generates 60 class days of attendance records
+
+# Data generation options
+seed_realistic_data: true  # Use realistic names, emails, IDs
+randomize_dates: true      # Randomize enrollment/grade dates
+include_notes: true        # Add sample notes to grades
+enable_sparse_grades: false # Allow students with incomplete grades
+
+# Output options
+verbose: false             # Print detailed progress
+create_backup: true        # Backup existing data before seeding
+timestamp_backup: true     # Include timestamp in backup name
