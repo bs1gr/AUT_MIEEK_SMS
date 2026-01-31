@@ -424,7 +424,14 @@ jobs:
       - name: Initialize test database
         run: |
           cd backend
-          python -c "from sqlalchemy import create_engine; create_engine('sqlite:///./data/test_smoke.db').execute('SELECT 1')"
+          python - <<'PY'
+          from sqlalchemy import create_engine, text
+
+          engine = create_engine('sqlite:///./data/test_smoke.db')
+          with engine.connect() as conn:
+              conn.execute(text('SELECT 1'))
+              conn.commit()
+          PY
 
       - name: Start backend server
         env:
@@ -1045,14 +1052,15 @@ jobs:
       - name: Determine pipeline status
         id: status
         run: |
-          if [ "${{ needs.create-release.result }}" == "success" ]; then
-            echo "status=success" >> $GITHUB_OUTPUT
-            echo "emoji=✅" >> $GITHUB_OUTPUT
-            echo "message=CI/CD Pipeline completed successfully" >> $GITHUB_OUTPUT
-          else
+          RESULTS="${{ needs.create-release.result }} ${{ needs.post-deployment-monitoring.result }}"
+          if echo "$RESULTS" | grep -Eq "failure|cancelled"; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "emoji=❌" >> $GITHUB_OUTPUT
             echo "message=CI/CD Pipeline failed" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "emoji=✅" >> $GITHUB_OUTPUT
+            echo "message=CI/CD Pipeline completed successfully" >> $GITHUB_OUTPUT
           fi
 
       - name: Send notification
