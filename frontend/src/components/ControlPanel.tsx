@@ -796,6 +796,11 @@ function formatUptime(seconds: number): string {
 
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <div className="space-y-4">
+                {environment.environment_mode === 'docker' && (
+                  <div className="text-xs text-blue-300 bg-blue-900/20 border border-blue-700/50 rounded-md px-3 py-2">
+                    {t('dockerContainer')}
+                  </div>
+                )}
                 {/* Application Info */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-400 mb-2">{t('appInfo')}</h3>
@@ -829,12 +834,14 @@ function formatUptime(seconds: number): string {
                     <p className="text-sm"><span className="text-gray-400">{t('virtualEnv')}:</span> <span className="ml-2">{environment.venv_active ? t('yes') : t('no')}</span></p>
                   </div>
 
-                  <div>
-                        <h3 className="text-sm font-medium text-gray-400 mb-2">{t('nodejs')}</h3>
-                    <p className="text-sm"><span className="text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.node_version || t('notInstalled')}</span></p>
-                    <p className="text-sm"><span className="text-gray-400">{t('npm')}:</span> <span className="ml-2 font-mono">{environment.npm_version || t('notInstalled')}</span></p>
-                    <p className="text-sm"><span className="text-gray-400">{t('path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.node_path || '-'}</span></p>
-                  </div>
+                  {environment.environment_mode !== 'docker' && (
+                    <div>
+                          <h3 className="text-sm font-medium text-gray-400 mb-2">{t('nodejs')}</h3>
+                      <p className="text-sm"><span className="text-gray-400">{t('version')}:</span> <span className="ml-2 font-mono">{environment.node_version || t('notInstalled')}</span></p>
+                      <p className="text-sm"><span className="text-gray-400">{t('npm')}:</span> <span className="ml-2 font-mono">{environment.npm_version || t('notInstalled')}</span></p>
+                      <p className="text-sm"><span className="text-gray-400">{t('path')}:</span> <span className="ml-2 font-mono text-xs break-all">{environment.node_path || '-'}</span></p>
+                    </div>
+                  )}
 
                   <div>
                         <h3 className="text-sm font-medium text-gray-400 mb-2">{t('docker')}</h3>

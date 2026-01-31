@@ -657,6 +657,50 @@ html {
   color: #3d7a72 !important;
 }
 
+/* Mieek theme - enforce pitch black for light gray text on light surfaces */
+.mieek .text-gray-400,
+.mieek .text-gray-500,
+.mieek .text-gray-600,
+.mieek .text-gray-700,
+.mieek .text-slate-400,
+.mieek .text-slate-500,
+.mieek .text-slate-600,
+.mieek .text-slate-700,
+.mieek .text-neutral-400,
+.mieek .text-neutral-500,
+.mieek .text-neutral-600,
+.mieek .text-neutral-700,
+.mieek .text-zinc-400,
+.mieek .text-zinc-500,
+.mieek .text-zinc-600,
+.mieek .text-zinc-700,
+.mieek .text-stone-400,
+.mieek .text-stone-500,
+.mieek .text-stone-600,
+.mieek .text-stone-700,
+[data-appearance='mieek'] .text-gray-400,
+[data-appearance='mieek'] .text-gray-500,
+[data-appearance='mieek'] .text-gray-600,
+[data-appearance='mieek'] .text-gray-700,
+[data-appearance='mieek'] .text-slate-400,
+[data-appearance='mieek'] .text-slate-500,
+[data-appearance='mieek'] .text-slate-600,
+[data-appearance='mieek'] .text-slate-700,
+[data-appearance='mieek'] .text-neutral-400,
+[data-appearance='mieek'] .text-neutral-500,
+[data-appearance='mieek'] .text-neutral-600,
+[data-appearance='mieek'] .text-neutral-700,
+[data-appearance='mieek'] .text-zinc-400,
+[data-appearance='mieek'] .text-zinc-500,
+[data-appearance='mieek'] .text-zinc-600,
+[data-appearance='mieek'] .text-zinc-700,
+[data-appearance='mieek'] .text-stone-400,
+[data-appearance='mieek'] .text-stone-500,
+[data-appearance='mieek'] .text-stone-600,
+[data-appearance='mieek'] .text-stone-700 {
+  color: #000000 !important;
+}
+
 .mieek .border-gray-200 {
   border-color: rgba(214, 217, 216, 0.6) !important;
 }
