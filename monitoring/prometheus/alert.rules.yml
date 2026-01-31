@@ -1,0 +1,146 @@
+# Prometheus Alert Rules for SMS
+# File: alert.rules.yml
+# Place in: monitoring/prometheus/alert.rules.yml
+
+groups:
+  - name: system_alerts
+    interval: 30s
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes (current: {{ $value }}%)"
+
+      - alert: CriticalCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 2m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical CPU usage detected"
+          description: "CPU usage is above 90% (current: {{ $value }}%)"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 5 minutes (current: {{ $value }}%)"
+
+      - alert: LowDiskSpace
+        expr: node_filesystem_free_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"} * 100 < 10
+        for: 10m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is below 10% (current: {{ $value }}%)"
+
+  - name: application_alerts
+    interval: 30s
+    rules:
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "High error rate detected"
+          description: "Application is returning 5xx errors at {{ $value }} req/s"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: application
+        annotations:
+          summary: "Slow response time"
+          description: "p95 response time is above 500ms (current: {{ $value }}s)"
+
+      - alert: HighDatabaseConnections
+        expr: pg_stat_activity_count > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database connection count"
+          description: "Database has {{ $value }} active connections"
+
+      - alert: ServiceDown
+        expr: up{job=~"backend|postgres|redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Service is down"
+          description: "{{ $labels.job }} service is not responding"
+
+  - name: security_alerts
+    interval: 60s
+    rules:
+      - alert: HighFailedLoginRate
+        expr: rate(failed_login_attempts_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High failed login attempt rate"
+          description: "Detected {{ $value }} failed login attempts per second"
+
+      - alert: UnauthorizedAccessAttempts
+        expr: rate(http_requests_total{status="403"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High rate of unauthorized access attempts"
+          description: "Detected {{ $value }} 403 errors per second"
+
+  - name: availability_alerts
+    interval: 30s
+    rules:
+      - alert: ContainerDown
+        expr: count(container_last_seen) < 5
+        for: 2m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Container count below expected"
+          description: "Only {{ $value }} containers running (expected: 5+)"
+
+      - alert: BackendUnhealthy
+        expr: up{job="backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Backend service is down"
+          description: "Backend API is not responding to health checks"
+
+      - alert: DatabaseUnhealthy
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: availability
+        annotations:
+          summary: "Database is down"
+          description: "PostgreSQL database is not responding"
