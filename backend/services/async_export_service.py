@@ -80,7 +80,8 @@ class AsyncExportService:
                 cell.fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
                 cell.alignment = Alignment(horizontal="center")
 
-            # Data rows
+            # Data rows with progress tracking
+            total_students = len(students)
             for row, student in enumerate(students, 2):
                 ws.cell(row=row, column=1, value=student.id)
                 ws.cell(row=row, column=2, value=student.first_name)
@@ -89,6 +90,16 @@ class AsyncExportService:
                 ws.cell(row=row, column=5, value=student.student_id)
                 ws.cell(row=row, column=6, value=str(student.enrollment_date) if student.enrollment_date else "")
                 ws.cell(row=row, column=7, value="Active" if student.is_active else "Inactive")
+
+                # Update progress every 10% or every 100 records (whichever is smaller)
+                current_index = row - 1  # row starts at 2, so index is row-1
+                update_interval = min(max(total_students // 10, 1), 100)
+                if current_index % update_interval == 0 or current_index == total_students:
+                    progress = int((current_index / total_students) * 100)
+                    export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
+                    if export_job:
+                        export_job.progress_percent = progress
+                        db.commit()
 
             # Adjust column widths
             for col in range(1, len(headers) + 1):
@@ -155,6 +166,17 @@ class AsyncExportService:
                 ws.cell(row=row, column=5, value=course.credits or 0)
                 ws.cell(row=row, column=6, value="Active" if course.is_active else "Inactive")
 
+                # Update progress every 10% or every 100 records
+                current_index = row - 1
+                total_courses = len(courses)
+                update_interval = min(max(total_courses // 10, 1), 100)
+                if current_index % update_interval == 0 or current_index == total_courses:
+                    progress = int((current_index / total_courses) * 100)
+                    export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
+                    if export_job:
+                        export_job.progress_percent = progress
+                        db.commit()
+
             for col in range(1, len(headers) + 1):
                 ws.column_dimensions[get_column_letter(col)].width = 18
 
@@ -215,6 +237,17 @@ class AsyncExportService:
                 ws.cell(row=row, column=3, value=grade.grade)
                 ws.cell(row=row, column=4, value=grade.points)
                 ws.cell(row=row, column=5, value=str(grade.created_at) if grade.created_at else "")
+
+                # Update progress every 10% or every 100 records
+                current_index = row - 1
+                total_grades = len(grades)
+                update_interval = min(max(total_grades // 10, 1), 100)
+                if current_index % update_interval == 0 or current_index == total_grades:
+                    progress = int((current_index / total_grades) * 100)
+                    export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
+                    if export_job:
+                        export_job.progress_percent = progress
+                        db.commit()
 
             for col in range(1, len(headers) + 1):
                 ws.column_dimensions[get_column_letter(col)].width = 18

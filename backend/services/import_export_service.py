@@ -449,3 +449,113 @@ class ImportExportService:
         )
         db.add(entry)
         db.commit()
+
+    def cleanup_old_export_jobs(
+        self, db: Session, days_old: int = 30, delete_files: bool = True
+    ) -> Dict[str, Any]:
+        """Clean up old completed/failed export jobs.
+
+        Args:
+            db: Database session
+            days_old: Delete jobs older than this many days (default: 30)
+            delete_files: Whether to delete associated files (default: True)
+
+        Returns:
+            Dictionary with cleanup statistics
+        """
+        from datetime import timedelta
+
+        cutoff_date = datetime.now(UTC) - timedelta(days=days_old)
+
+        # Find old completed or failed jobs
+        old_jobs = (
+            db.query(ExportJob)
+            .filter(
+                ExportJob.status.in_(["completed", "failed"]),
+                ExportJob.created_at < cutoff_date,
+            )
+            .all()
+        )
+
+        deleted_jobs = 0
+        deleted_files = 0
+        errors = []
+
+        for job in old_jobs:
+            try:
+                # Delete associated file if requested
+                if delete_files and job.file_path:
+                    file_path = Path(job.file_path)
+                    if file_path.exists():
+                        file_path.unlink()
+                        deleted_files += 1
+                        logger.info(f"Deleted export file: {job.file_path}")
+
+                # Delete job record
+                db.delete(job)
+                deleted_jobs += 1
+
+            except Exception as e:
+                error_msg = f"Failed to delete job {job.id}: {str(e)}"
+                logger.error(error_msg)
+                errors.append(error_msg)
+
+        # Commit all deletions
+        if deleted_jobs > 0:
+            db.commit()
+            logger.info(f"Cleanup complete: {deleted_jobs} jobs, {deleted_files} files deleted")
+
+        return {
+            "deleted_jobs": deleted_jobs,
+            "deleted_files": deleted_files,
+            "cutoff_date": cutoff_date.isoformat(),
+            "errors": errors,
+        }
+
+    def archive_export_job(self, db: Session, job_id: int, archive_path: Optional[str] = None) -> bool:
+        """Archive an export job by moving its file to archive directory.
+
+        Args:
+            db: Database session
+            job_id: Export job ID to archive
+            archive_path: Custom archive path (default: data/exports/archive/)
+
+        Returns:
+            True if archived successfully, False otherwise
+        """
+        job = db.query(ExportJob).filter(ExportJob.id == job_id).first()
+        if not job or not job.file_path:
+            return False
+
+        # Set up archive directory
+        if archive_path is None:
+            archive_dir = EXPORT_DIR / "archive"
+        else:
+            archive_dir = Path(archive_path)
+
+        archive_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            source_file = Path(job.file_path)
+            if not source_file.exists():
+                logger.warning(f"Export file not found: {job.file_path}")
+                return False
+
+            # Create archive filename with timestamp
+            archive_filename = f"{job.id}_{source_file.name}"
+            archive_file = archive_dir / archive_filename
+
+            # Move file to archive
+            shutil.move(str(source_file), str(archive_file))
+
+            # Update job record with new path
+            job.file_path = str(archive_file)
+            db.commit()
+
+            logger.info(f"Archived export job {job_id} to {archive_file}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to archive export job {job_id}: {str(e)}")
+            db.rollback()
+            return False
