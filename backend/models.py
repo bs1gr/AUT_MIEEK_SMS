@@ -707,6 +707,7 @@ class ExportJob(Base):
     file_path = Column(String(500), nullable=True)  # Path to generated file
     status = Column(String(50), nullable=False, default="pending", index=True)  # pending, processing, completed, failed
     total_records = Column(Integer, default=0)
+    progress_percent = Column(Integer, nullable=True)  # 0-100 for tracking export generation progress
     filters = Column(JSON, nullable=True)  # {status: active, course_id: 5}
     scheduled = Column(Boolean, default=False)
     schedule_frequency = Column(String(50), nullable=True)  # weekly, monthly, daily
