@@ -141,6 +141,27 @@ export const el = {
   page: 'Σελίδα',
   sortBy: 'Ταξινόμηση κατά',
   query: 'Ερώτημα',
+
+  // Import/Export (Εισαγωγή/Εξαγωγή)
+  importExport: {
+    openExportDialog: 'Εξαγωγή Δεδομένων',
+    exportData: 'Εξαγωγή Δεδομένων',
+    exportType: 'Τύπος Εξαγωγής',
+    students: 'Σπουδαστές',
+    courses: 'Μαθήματα',
+    grades: 'Βαθμοί',
+    startExport: 'Έναρξη Εξαγωγής',
+    download: 'Λήψη',
+    cancel: 'Ακύρωση',
+    status: {
+      pending: 'Εν αναμονή...',
+      processing: 'Επεξεργασία...',
+      completed: 'Ολοκληρώθηκε',
+      failed: 'Η εξαγωγή απέτυχε',
+    },
+    jobId: 'Αναγνωριστικό Εργασίας',
+    pollingStatus: 'Ερώτηση ενημερώσεων...',
+  },
 };
 
 export default el;

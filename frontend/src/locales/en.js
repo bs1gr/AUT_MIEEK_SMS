@@ -142,6 +142,27 @@ export const en = {
   sortBy: 'Sort by',
   query: 'Query',
 
+  // Import/Export
+  importExport: {
+    openExportDialog: 'Export Data',
+    exportData: 'Export Data',
+    exportType: 'Export Type',
+    students: 'Students',
+    courses: 'Courses',
+    grades: 'Grades',
+    startExport: 'Start Export',
+    download: 'Download',
+    cancel: 'Cancel',
+    status: {
+      pending: 'Pending...',
+      processing: 'Processing...',
+      completed: 'Completed',
+      failed: 'Export failed',
+    },
+    jobId: 'Job ID',
+    pollingStatus: 'Polling for updates...',
+  },
+
   // Continue with rest of translations...
   // (This is just the structure - would include all translations)
 };

@@ -26,11 +26,13 @@ from backend.schemas import (
     error_response,
 )
 from backend.services.import_export_service import ImportExportService
+from backend.services.async_export_service import AsyncExportService
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/import-export", tags=["Import/Export"])
 service = ImportExportService()
+async_export_service = AsyncExportService()
 
 
 # ========== IMPORT ENDPOINTS ==========
@@ -369,13 +371,17 @@ async def create_export(
     current_user=Depends(get_current_user),
 ) -> APIResponse[ExportJobResponse]:
     """
-    Create a new export job.
+    Create a new async export job.
+
+    Returns immediately with job ID (< 100ms). Export processes in background.
 
     - **export_type**: students, courses, grades, attendance, dashboard
     - **file_format**: csv, xlsx, pdf
     - **filters**: Optional filtering criteria
 
     **Permissions**: exports:generate
+
+    **Returns**: Export job with ID for polling status
     """
     try:
         job = service.create_export_job(
@@ -386,23 +392,31 @@ async def create_export(
             user_id=current_user.id if current_user else None,
         )
 
-        background_tasks.add_task(service.process_export_job, db, job.id)
+        # Queue background task - non-blocking
+        background_tasks.add_task(
+            async_export_service.process_export_task,
+            job.id,
+            export_request.export_type,
+            export_request.filters,
+            getattr(export_request, "limit", 10000),
+        )
 
+        # Return immediately with job ID (< 100ms response time)
         return success_response(
             ExportJobResponse(
                 id=job.id,
                 export_type=job.export_type,
                 file_format=job.file_format,
-                file_path=job.file_path,
+                file_path=None,  # Not yet generated
                 status=job.status,
-                total_records=job.total_records,
+                total_records=0,  # Will be updated when complete
                 filters=job.filters,
                 scheduled=job.scheduled,
                 schedule_frequency=job.schedule_frequency,
                 scheduled_at=job.scheduled_at,
                 created_by=job.created_by,
                 created_at=job.created_at,
-                completed_at=job.completed_at,
+                completed_at=None,
             ),
             request_id=request.state.request_id,
         )
@@ -446,6 +460,51 @@ async def get_export_job(
             created_at=job.created_at,
             completed_at=job.completed_at,
         )
+    )
+
+
+@router.get("/exports/{export_job_id}/download")
+@require_permission("exports:download")
+async def download_export(
+    export_job_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Download completed export file.
+
+    Only available when export status is 'completed'.
+
+    **Permissions**: exports:download
+    """
+    import os
+    from fastapi.responses import FileResponse
+
+    job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
+    if not job:
+        return error_response("NOT_FOUND", f"Export job {export_job_id} not found", request_id=request.state.request_id)
+
+    if job.status != "completed":
+        return error_response(
+            "INVALID_STATE", f"Export not ready (status: {job.status})", request_id=request.state.request_id
+        )
+
+    if not job.file_path or not os.path.exists(job.file_path):
+        return error_response("NOT_FOUND", "Export file not found", request_id=request.state.request_id)
+
+    # Log download
+    logger.info(
+        f"Downloading export {export_job_id} for user {request.state.user_id if hasattr(request.state, 'user_id') else 'unknown'}"
+    )
+
+    # Return file
+    filename = f"{job.export_type}_export_{job.id}.{job.file_format}"
+    return FileResponse(
+        path=job.file_path,
+        filename=filename,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        if job.file_format == "xlsx"
+        else "application/octet-stream",
     )
 
 
