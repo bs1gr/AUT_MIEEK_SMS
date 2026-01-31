@@ -16,7 +16,7 @@
   docker ps -a --filter "name=sms" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
   ```
   - Backend: ✓ healthy
-  - PostgreSQL: ✓ healthy  
+  - PostgreSQL: ✓ healthy
   - Redis: ✓ healthy
   - Monitoring stack: ✓ all services up
 
@@ -141,7 +141,7 @@
   ```powershell
   # Backend dependencies
   cd backend && pip list --outdated
-  
+
   # Frontend dependencies
   cd frontend && npm outdated
   ```

@@ -105,13 +105,13 @@ if ($RetestFailed -and (Test-Path $FailureFile)) {
 if ($failedFiles.Count -gt 0) {
     Write-Info "💾 Saving failed test files for re-testing..."
     Write-Host "   To retest, run: .\RUN_TESTS_BATCH.ps1 -RetestFailed" -ForegroundColor Yellow
-    
+
     $failureContent = @(
         "# Failed test files (generated $(Get-Date))"
         "# To retest: .\RUN_TESTS_BATCH.ps1 -RetestFailed"
         ""
     ) + $failedFiles
-    
+
     Set-Content -Path $FailureFile -Value $failureContent -Force
     Write-Success "Failed files saved to: $FailureFile"
 }
@@ -304,7 +304,7 @@ Get-Item .test-failures -ErrorAction SilentlyContinue
 - **Before**: Full test suite re-run (18 batches, ~13 min)
 - **After**: Only failed batches (1-2 batches, ~30 sec)
 - **Benefit**: 26x faster iteration cycles
-- **Example Scenario**: 
+- **Example Scenario**:
   - Fixing 3 bugs with test failures = 39 min (3 × 13 min) → 1.5 min (3 × 30 sec)
   - **Total savings: 37.5 minutes** on a typical debugging session
 
