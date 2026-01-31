@@ -169,9 +169,13 @@ export const exportAdminEN = {
     title: 'Export System Settings',
     description: 'Configure export system behavior and limits',
     retentionDays: 'Retention Period (Days)',
+    retentionDaysHint: 'Delete exports older than this period',
     maxConcurrent: 'Max Concurrent Exports',
+    maxConcurrentHint: 'Maximum number of simultaneous exports',
     timeout: 'Export Timeout (Seconds)',
+    timeoutHint: 'Maximum time allowed for export generation',
     maxRecords: 'Max Records per Export',
+    maxRecordsHint: 'Limit the number of records per export (0 = unlimited)',
   },
 
   // Detail Modal
