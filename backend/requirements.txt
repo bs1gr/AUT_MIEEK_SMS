@@ -37,6 +37,7 @@ python-socketio[aiohttp]==5.14.0
 python-engineio==4.13.0
 pandas>=2.0.0
 protobuf>=6.0.0  # CVE-2026-0994 fixed in 6.x
+apscheduler>=3.10.4
 
 # Security constraints for transitive dependencies
 filelock>=3.20.3
