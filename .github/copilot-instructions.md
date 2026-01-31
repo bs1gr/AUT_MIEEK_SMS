@@ -30,6 +30,38 @@
 
 ---
 
+## 🚨 Critical Rules - MANDATORY FOR ALL AGENTS
+
+### 🔴 MANDATORY RULE: SOLO DEVELOPER - NO STAKEHOLDERS
+
+**This is a SOLO DEVELOPER project. There are NO stakeholders, no review committees, no steering groups.**
+
+**❌ FORBIDDEN:**
+- Mentioning "stakeholder approval" or "awaiting stakeholder decision"
+- Creating schedules that depend on external reviews
+- Adding items like "awaiting stakeholder feedback"
+- Deferring decisions to non-existent teams
+
+**✅ REQUIRED:**
+- **Owner makes all decisions unilaterally** (you are working for the owner only)
+- **Proceed directly** - no approval gates, no waiting periods
+- **Make recommendations** when choices exist, then implement owner's preference
+- **No scheduling around non-existent stakeholders**
+- Default to **Option 1** when multiple paths exist (deployment-ready features first)
+
+**Why This Matters:**
+- Avoids wasting time on approval processes that don't exist
+- Clarifies decision authority (owner only)
+- Eliminates artificial bottlenecks
+- Focuses effort on value delivery, not ceremony
+
+**Example Corrections:**
+- ❌ "Awaiting stakeholder selection for Phase 5" → ✅ "Owner to select Phase 5 direction"
+- ❌ "Pending team review" → ✅ "Ready for owner decision"
+- ❌ "Waiting for approval before deployment" → ✅ "Ready to deploy when owner decides"
+
+---
+
 ## 🚨 Critical "Don't Do This" Rules
 
 These are the most common mistakes that break the codebase:

@@ -24,6 +24,45 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 
 ## 📜 Mandatory Policies - Zero Exceptions
 
+### Policy 0.5: SOLO DEVELOPER - NO STAKEHOLDERS (NEW - MANDATORY)
+
+**🔴 CRITICAL CLARIFICATION**: This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**.
+
+**What this means:**
+- Owner makes all decisions unilaterally
+- No external approval cycles needed
+- No steering committees or review boards
+- No waiting for "stakeholder feedback"
+- No scheduling around non-existent participants
+
+**❌ FORBIDDEN:**
+- Saying "awaiting stakeholder decision" or "stakeholder approval needed"
+- Creating schedules that depend on external reviews
+- Deferring action to non-existent teams
+- Waiting for feedback from people who don't exist
+
+**✅ REQUIRED:**
+1. **Make recommendations** when multiple paths exist
+2. **Owner decides** (unilateral authority)
+3. **Implement immediately** (no approval gates)
+4. **Default to Option 1** when unsure (deployment-ready features first)
+5. **Remove all references** to stakeholders from planning/decisions
+
+**Examples:**
+- ❌ "Awaiting stakeholder selection for Phase 5" → ✅ "Ready for owner to select Phase 5"
+- ❌ "Pending team review before deploy" → ✅ "Ready to deploy at owner's command"
+- ❌ "Waiting for committee approval" → ✅ "Owner decides now"
+
+**Why This Exists:**
+- Eliminates artificial bottlenecks
+- Clarifies decision authority (owner only)
+- Focuses effort on delivery, not ceremony
+- Accelerates progress without approval overhead
+
+**Enforcement:** Any reference to non-existent stakeholders will be corrected before implementation.
+
+---
+
 ### Policy 0: Verification - ALWAYS Verify Before Claiming Success
 
 **❌ FORBIDDEN:**
