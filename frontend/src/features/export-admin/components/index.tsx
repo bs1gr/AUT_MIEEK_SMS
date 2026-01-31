@@ -46,7 +46,7 @@ export const ExportMetricsChart: React.FC<any> = ({ metrics, period, onPeriodCha
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-700" />
               <XAxis dataKey="date" stroke="#64748b" className="dark:stroke-slate-500 text-xs" />
               <YAxis stroke="#64748b" className="dark:stroke-slate-500 text-xs" />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{
                   backgroundColor: '#1e293b',
                   border: '1px solid #475569',
@@ -55,10 +55,10 @@ export const ExportMetricsChart: React.FC<any> = ({ metrics, period, onPeriodCha
                 }}
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="duration_ms" 
-                stroke="#3b82f6" 
+              <Line
+                type="monotone"
+                dataKey="duration_ms"
+                stroke="#3b82f6"
                 strokeWidth={2}
                 dot={{ fill: '#3b82f6', r: 4 }}
                 activeDot={{ r: 6 }}
@@ -80,7 +80,7 @@ export const ExportMetricsChart: React.FC<any> = ({ metrics, period, onPeriodCha
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" className="dark:stroke-slate-700" />
               <XAxis dataKey="date" stroke="#64748b" className="dark:stroke-slate-500 text-xs" />
               <YAxis stroke="#64748b" className="dark:stroke-slate-500 text-xs" />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{
                   backgroundColor: '#1e293b',
                   border: '1px solid #475569',
@@ -211,8 +211,8 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             disabled={isSaving}
             className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
           >
@@ -225,9 +225,9 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
               t('actions.save')
             )}
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleTest} 
+          <Button
+            variant="outline"
+            onClick={handleTest}
             disabled={isTesting}
             className="flex-1 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
           >
@@ -308,6 +308,7 @@ export const ExportSettingsPanel: React.FC<any> = ({ settings, onSave }) => {
                 setFormData({ ...formData, export_timeout_seconds: parseInt(e.target.value) })
               }
               className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+            />
             <p className="text-xs text-slate-500 dark:text-slate-400">{t('settings.timeoutHint')}</p>
           </div>
 
@@ -328,8 +329,8 @@ export const ExportSettingsPanel: React.FC<any> = ({ settings, onSave }) => {
 
         {/* Save Button */}
         <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-          <Button 
-            onClick={handleSave} 
+          <Button
+            onClick={handleSave}
             disabled={isSaving}
             className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
           >
@@ -461,7 +462,7 @@ export const ExportDetailModal: React.FC<any> = ({ open, onClose, export: exp })
                 <p className="text-sm font-semibold text-slate-900 dark:text-white">{exp.progress_percent}%</p>
               </div>
               <div className="h-2 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div 
+                <div
                   className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
                   style={{ width: `${exp.progress_percent}%` }}
                 />
@@ -472,18 +473,14 @@ export const ExportDetailModal: React.FC<any> = ({ open, onClose, export: exp })
 
         {/* Footer */}
         <div className="border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-6">
-          <Button 
-            onClick={onClose} 
+          <Button
+            onClick={onClose}
             variant="outline"
             className="w-full border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
           >
             {t('actions.close')}
           </Button>
         </div>
-      </Card>
-    </div>
-  );
-};
       </Card>
     </div>
   );

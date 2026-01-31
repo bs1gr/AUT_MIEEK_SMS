@@ -154,7 +154,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                     <FormItem>
                       <FormLabel className="text-slate-700 dark:text-slate-300 font-medium">{t('schedule.name')}</FormLabel>
                       <FormControl>
-                        <Input 
+                        <Input
                           placeholder={t('schedule.namePlaceholder')}
                           {...field}
                           className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
@@ -307,9 +307,9 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('schedule.scheduleCount', { count: schedules.length })}</p>
           </div>
           {!showForm && (
-            <Button 
-              onClick={() => setShowForm(true)} 
-              size="sm" 
+            <Button
+              onClick={() => setShowForm(true)}
+              size="sm"
               className="gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
             >
               <Plus className="h-4 w-4" />
@@ -327,8 +327,8 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
         ) : (
           <div className="grid gap-4">
             {schedules.map((schedule) => (
-              <Card 
-                key={schedule.id} 
+              <Card
+                key={schedule.id}
                 className="p-5 sm:p-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-shadow duration-200"
               >
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -337,23 +337,23 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                     <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-3">
                       <h4 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white truncate">{schedule.name}</h4>
                       <div className="flex flex-wrap gap-2">
-                        <Badge 
+                        <Badge
                           variant={schedule.is_active ? 'default' : 'secondary'}
-                          className={schedule.is_active 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' 
+                          className={schedule.is_active
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
                             : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                           }
                         >
                           {schedule.is_active ? t('schedule.active') : t('schedule.inactive')}
                         </Badge>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 capitalize"
                         >
                           {t(`type.${schedule.export_type}`)}
                         </Badge>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className="bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 uppercase text-xs"
                         >
                           {schedule.export_format}
@@ -387,8 +387,8 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                   {/* Actions */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
                       >
@@ -396,11 +396,11 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                         <span className="sr-only">{t('actions.menu')}</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent 
+                    <DropdownMenuContent
                       align="end"
                       className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
                     >
-                      <DropdownMenuItem 
+                      <DropdownMenuItem
                         onClick={() => handleToggle(schedule)}
                         className="text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
                       >
