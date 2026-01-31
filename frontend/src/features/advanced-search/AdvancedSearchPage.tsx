@@ -8,12 +8,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useSearch, useSavedSearches } from '../hooks/useSearch';
+import { useSearch, useSavedSearches } from './hooks/useSearch';
 import SearchBar from './components/SearchBar';
 import AdvancedFilters from './components/AdvancedFilters';
 import { AdvancedQueryBuilder } from './components/AdvancedQueryBuilder';
 import { SearchResults } from './components/SearchResults';
-import { SearchResultItem } from '../types/search';
+import { SearchResultItem } from './types/search';
 import { FacetedNavigation } from './components/FacetedNavigation';
 import { SearchHistorySidebar } from './components/SearchHistorySidebar';
 import { useSearchHistory } from './hooks/useSearchHistory';
