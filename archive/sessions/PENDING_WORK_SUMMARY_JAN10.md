@@ -89,7 +89,7 @@ docker exec sms-container healthcheck
 docker logs -f sms-container --tail 50
 
 # Test API
-curl http://production-host:8080/api/v1/health
+curl http://production-host:8080/health
 
 # Check database
 psql -h production-host -U sms_user -d sms_db -c "SELECT version();"

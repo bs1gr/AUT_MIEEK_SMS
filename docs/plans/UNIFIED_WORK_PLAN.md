@@ -862,7 +862,7 @@ Monitor [ISSUE149_OPTIMIZATION_RESULTS.md](../reports/2026-01/ISSUE149_OPTIMIZAT
 | Excel export | 301ms | 260ms | **560ms** | ⚠️ MISSED (by 60ms) |
 
 **Error Breakdown**:
-- 76 failures: `/api/v1/health` endpoint (404) - **Test issue**: endpoint doesn't exist
+- 76 failures: `/api/v1/health` path (404) - **Test issue**: load test used wrong path; correct endpoint is `/health`
 - 28 failures: `/api/v1/students/search` (422) - **Test issue**: validation errors on query params
 - No server errors (500) - all errors are test configuration issues
 
@@ -889,7 +889,7 @@ Monitor [ISSUE149_OPTIMIZATION_RESULTS.md](../reports/2026-01/ISSUE149_OPTIMIZAT
    - Consider streaming export generation
    - Batch processing for large datasets
    - Async task queue for export jobs
-2. **Test Fixes**: Implement `/api/v1/health` endpoint or update test scenarios
+2. **Test Fixes**: Update test scenarios to use `/health` (load_tests/locustfile.py updated)
 3. **p99 Outliers**: Investigate 2000ms p99 times (cold starts, periodic slowness)
    - Acceptable for production but could be improved with caching/connection pooling
 

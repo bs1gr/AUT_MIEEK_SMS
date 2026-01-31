@@ -148,7 +148,7 @@
 docker-compose ps
 
 # 4. Test health endpoint
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 
 # 5. Run smoke tests
 .\RUN_E2E_TESTS.ps1

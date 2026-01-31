@@ -106,7 +106,7 @@ npm run dev -- --port 5173
 
 ```bash
 # Test health endpoint
-curl -X GET http://localhost:8080/api/v1/health
+curl -X GET http://localhost:8080/health
 
 # Expected response (200 OK):
 #{
@@ -128,7 +128,7 @@ curl -X GET http://localhost:8080/api/v1/health
 ```bash
 # Test 1: Health Endpoint
 Write-Host "Test 1: Health Endpoint"
-$response = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health" -ErrorAction Stop
+$response = Invoke-WebRequest -Uri "http://localhost:8080/health" -ErrorAction Stop
 $response.StatusCode  # Should be 200
 Write-Host "✅ Health endpoint: PASS"
 
@@ -139,7 +139,7 @@ Write-Host "✅ Database connection: PASS"
 
 # Test 3: Authentication (if endpoints require)
 Write-Host "Test 3: API Response"
-$response = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health" -ErrorAction Stop
+$response = Invoke-WebRequest -Uri "http://localhost:8080/health" -ErrorAction Stop
 if ($response.StatusCode -eq 200) { Write-Host "✅ API responding: PASS" }
 ```
 
@@ -345,7 +345,7 @@ npm run preview -- --host 0.0.0.0 --port 5173
 
 ```bash
 # Check health endpoint (should work immediately)
-curl -X GET http://localhost:8080/api/v1/health
+curl -X GET http://localhost:8080/health
 
 # Expected: 200 OK with version 1.15.2
 ```
@@ -362,7 +362,7 @@ curl -X GET http://localhost:8080/api/v1/health
 # Test 1: Health Endpoint
 Write-Host "Test 1: Health Endpoint"
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health" -TimeoutSec 5
+    $response = Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 5
     if ($response.StatusCode -eq 200) {
         Write-Host "✅ Health check: PASS ($(Get-Date))"
     }
@@ -447,7 +447,7 @@ for ($i = 0; $i -lt 12; $i++) {
 
     # Health check
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health" -TimeoutSec 5
+        $response = Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 5
         Write-Host "✅ Health: OK ($(Get-Date -Format 'mm:ss'))"
     } catch {
         Write-Host "❌ Health: FAIL - $_"
@@ -501,7 +501,7 @@ while ((Get-Date) -lt $endTime) {
 
     # Health check
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health" -TimeoutSec 5
+        $response = Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 5
         "$timestamp - Health: OK (HTTP $($response.StatusCode))" | Tee-Object -FilePath $monitoringLog -Append
     } catch {
         "$timestamp - Health: FAIL - $_" | Tee-Object -FilePath $monitoringLog -Append
@@ -572,7 +572,7 @@ Write-Host "✔️  Verifying rollback..."
 Start-Sleep -Seconds 20
 
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health"
+    $response = Invoke-WebRequest -Uri "http://localhost:8080/health"
     if ($response.StatusCode -eq 200) {
         Write-Host "✅ ROLLBACK SUCCESSFUL - v1.15.1 is operational"
     }

@@ -6,7 +6,7 @@ class WebsiteUser(HttpUser):
 
     @task(2)
     def index(self):
-        self.client.get("/api/v1/health")
+        self.client.get("/health")
 
     @task(4)
     def login(self):

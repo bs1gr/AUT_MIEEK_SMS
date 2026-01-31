@@ -171,7 +171,7 @@ Status:         ✅ APPROVED - 98.0% pass rate exceeds production threshold
 .\DOCKER.ps1 -Start
 
 # 3. Verify
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 ```
 
 ### Short-term (Phase 3 - Feature #127)

@@ -96,7 +96,7 @@ git push origin v1.17.5
 
 ### ✅ Docker Deployment
 - [ ] Application starts successfully on port 8080
-- [ ] Health check endpoint responds: http://localhost:8080/api/v1/health
+- [ ] Health check endpoint responds: http://localhost:8080/health
 - [ ] Database migrations apply automatically
 - [ ] All API endpoints accessible
 - [ ] Login functionality works

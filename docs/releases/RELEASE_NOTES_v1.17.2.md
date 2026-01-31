@@ -154,7 +154,7 @@ git checkout $11.17.2
 
 # Verify deployment
 
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 
 ```text
 #### Native Development
