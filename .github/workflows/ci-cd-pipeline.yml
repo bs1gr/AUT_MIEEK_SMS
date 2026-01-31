@@ -1119,6 +1119,5 @@ jobs:
         with:
           github-token: ${{ github.token }}
           ms-teams-webhook-uri: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          notification-summary: "CI/CD pipeline failed for branch: ${{ github.ref }}"
           notification-color: failure
-          title: "SMS Pipeline Failed"
-          description: "CI/CD pipeline failed for branch: ${{ github.ref }}"
