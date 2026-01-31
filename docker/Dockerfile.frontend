@@ -43,7 +43,10 @@ COPY --from=build /app/frontend/dist /usr/share/nginx/html
 # Nginx configuration
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 
-# Harden: use non-root user (nginx:nginx) and set root filesystem read-only
-USER nginx
+# Ensure nginx cache/run dirs are writable
+RUN mkdir -p /var/cache/nginx/client_temp /var/run \
+      && chown -R nginx:nginx /var/cache/nginx /var/run /usr/share/nginx/html /etc/nginx/conf.d
+
+# Run as root so entrypoint can initialize configs; nginx worker runs as nginx
 EXPOSE 8080
 CMD ["nginx", "-g", "daemon off;"]
