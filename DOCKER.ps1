@@ -234,6 +234,20 @@ function Get-DockerVersion {
     }
 }
 
+function Get-DockerVersionString {
+    try {
+        $versionOutput = docker --version 2>$null
+        if ($LASTEXITCODE -ne 0) { return $null }
+
+        if ($versionOutput -match 'Docker version ([^,]+)') {
+            return $matches[1]
+        }
+        return $versionOutput.Trim()
+    } catch {
+        return $null
+    }
+}
+
 function Test-PortInUse {
     param([int]$Port)
     try {
@@ -1104,6 +1118,12 @@ function Start-Application {
     if ($useCompose) {
         Write-Info "Detected PostgreSQL configuration - using Docker Compose (production overlay)"
 
+        $env:FRONTEND_VERSION = $VERSION
+        $dockerVersionString = Get-DockerVersionString
+        if ($dockerVersionString) {
+            $env:HOST_DOCKER_VERSION = $dockerVersionString
+        }
+
         if (-not (Test-Path $COMPOSE_BASE) -or -not (Test-Path $COMPOSE_PROD)) {
             Write-Error-Message "Compose files not found for production deployment"
             return 1
@@ -1153,12 +1173,19 @@ function Start-Application {
         "-e", "SMS_ENV=production",
         "-e", "SMS_EXECUTION_MODE=docker",
         "-e", "TZ=Europe/Athens",
+        "-e", "FRONTEND_VERSION=$VERSION",
         "-v", "${VOLUME_NAME}:/data",
         "-v", "${SCRIPT_DIR}/templates:/app/templates:ro",
         "-v", "${SCRIPT_DIR}/backups:/app/backups",
         "--restart", "unless-stopped",
         $IMAGE_TAG
     )
+
+    $dockerVersionString = Get-DockerVersionString
+    if ($dockerVersionString) {
+        $dockerCmd += "-e"
+        $dockerCmd += "HOST_DOCKER_VERSION=$dockerVersionString"
+    }
 
     & docker $dockerCmd 2>$null | Out-Null
 

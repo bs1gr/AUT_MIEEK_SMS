@@ -327,6 +327,7 @@ async def get_environment_info(include_packages: bool = False):
     node_ok, node_version = check_node_installed()
     npm_ok, npm_version = check_npm_installed()
     docker_version = check_docker_version()
+    docker_version = docker_version or os.environ.get("HOST_DOCKER_VERSION")
 
     venv_active = hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
 
@@ -365,6 +366,8 @@ async def get_environment_info(include_packages: bool = False):
                 frontend_version = fv
     except Exception:
         frontend_version = None
+    if not frontend_version:
+        frontend_version = os.environ.get("FRONTEND_VERSION")
 
     git_revision: Optional[str] = None
     try:
