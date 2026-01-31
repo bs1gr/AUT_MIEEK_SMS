@@ -26,6 +26,17 @@ def get_lifespan():
         profiler.register(engine)
         logging.getLogger(__name__).info("✅ Query profiler registered")
 
+        # Initialize export scheduler and maintenance tasks
+        try:
+            from backend.services.maintenance_scheduler import get_maintenance_scheduler
+            
+            scheduler = get_maintenance_scheduler()
+            scheduler.start_export_scheduler()
+            scheduler.schedule_cleanup_task(frequency="daily")
+            logging.getLogger(__name__).info("✅ Export scheduler and maintenance tasks started")
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"⚠️  Export scheduler not available: {e}")
+
         # Start WebSocket background tasks
         try:
             await start_background_tasks()
@@ -73,6 +84,16 @@ def get_lifespan():
         yield
         if STARTUP_DEBUG:
             logging.info("[LIFESPAN DEBUG] Minimal shutdown path executing")
+
+        # Stop export scheduler on shutdown
+        try:
+            from backend.services.maintenance_scheduler import get_maintenance_scheduler
+            
+            scheduler = get_maintenance_scheduler()
+            scheduler.stop_export_scheduler()
+            logging.getLogger(__name__).info("✅ Export scheduler stopped")
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"⚠️  Error stopping export scheduler: {e}")
 
         # Stop WebSocket background tasks on shutdown
         try:
