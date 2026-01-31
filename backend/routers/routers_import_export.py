@@ -367,6 +367,7 @@ async def create_export(
     request: Request,
     background_tasks: BackgroundTasks,
     export_request: ExportJobCreate,
+    export_format: str = Query("excel", pattern="^(excel|csv|pdf)$"),
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ) -> APIResponse[ExportJobResponse]:
@@ -376,7 +377,7 @@ async def create_export(
     Returns immediately with job ID (< 100ms). Export processes in background.
 
     - **export_type**: students, courses, grades, attendance, dashboard
-    - **file_format**: csv, xlsx, pdf
+    - **export_format**: excel (default), csv, pdf
     - **filters**: Optional filtering criteria
 
     **Permissions**: exports:generate
@@ -397,6 +398,7 @@ async def create_export(
             async_export_service.process_export_task,
             job.id,
             export_request.export_type,
+            export_format,
             export_request.filters,
             getattr(export_request, "limit", 10000),
         )
