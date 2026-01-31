@@ -112,7 +112,7 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
           <div>
             <Label>{t('email.host')}</Label>
             <Input
-              placeholder="smtp.gmail.com"
+              placeholder={t('email.hostPlaceholder')}
               value={formData.smtp_host || ''}
               onChange={(e) => setFormData({ ...formData, smtp_host: e.target.value })}
             />
@@ -121,7 +121,7 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
             <Label>{t('email.port')}</Label>
             <Input
               type="number"
-              placeholder="587"
+              placeholder={t('email.portPlaceholder')}
               value={formData.smtp_port || ''}
               onChange={(e) => setFormData({ ...formData, smtp_port: parseInt(e.target.value) })}
             />
@@ -129,7 +129,7 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
           <div>
             <Label>{t('email.username')}</Label>
             <Input
-              placeholder="your-email@gmail.com"
+              placeholder={t('email.usernamePlaceholder')}
               value={formData.smtp_username || ''}
               onChange={(e) => setFormData({ ...formData, smtp_username: e.target.value })}
             />
@@ -138,7 +138,7 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
             <Label>{t('email.password')}</Label>
             <Input
               type="password"
-              placeholder="••••••••"
+              placeholder={t('email.passwordPlaceholder')}
               value={formData.smtp_password || ''}
               onChange={(e) => setFormData({ ...formData, smtp_password: e.target.value })}
             />
@@ -148,7 +148,7 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
         <div>
           <Label>{t('email.fromEmail')}</Label>
           <Input
-            placeholder="noreply@example.com"
+            placeholder={t('email.fromEmailPlaceholder')}
             value={formData.from_email || ''}
             onChange={(e) => setFormData({ ...formData, from_email: e.target.value })}
           />
@@ -157,7 +157,7 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
         <div>
           <Label>{t('email.adminEmails')}</Label>
           <Textarea
-            placeholder="admin@example.com&#10;admin2@example.com"
+            placeholder={t('email.adminEmailsPlaceholder')}
             value={(formData.admin_emails || []).join('\n')}
             onChange={(e) =>
               setFormData({
@@ -170,10 +170,10 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
 
         <div className="flex gap-4">
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? t('saving') : t('save')}
+            {isSaving ? t('actions.saving') : t('actions.save')}
           </Button>
           <Button variant="outline" onClick={handleTest} disabled={isTesting}>
-            {isTesting ? t('testing') : t('email.testButton')}
+            {isTesting ? t('actions.testing') : t('email.testButton')}
           </Button>
         </div>
       </CardContent>
@@ -247,7 +247,7 @@ export const ExportSettingsPanel: React.FC<any> = ({ settings, onSave }) => {
         </div>
 
         <Button onClick={handleSave} disabled={isSaving}>
-          {isSaving ? t('saving') : t('save')}
+          {isSaving ? t('actions.saving') : t('actions.save')}
         </Button>
       </CardContent>
     </Card>
@@ -258,13 +258,17 @@ export const ExportSettingsPanel: React.FC<any> = ({ settings, onSave }) => {
 export const ExportDetailModal: React.FC<any> = ({ open, onClose, export: exp }) => {
   const { t } = useTranslation('exportAdmin');
 
+  const resolvedType = exp?.export_type ? t(`type.${exp.export_type}`) : '-';
+  const resolvedFormat = exp?.export_format ? t(`format.${exp.export_format}`) : '-';
+  const resolvedStatus = exp?.status ? t(`status.${exp.status}`) : '-';
+
   if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
       <Card className="w-full max-w-2xl">
         <CardHeader>
-          <CardTitle>{t('detail.title')}</CardTitle>
+              <strong>{t('detail.status')}:</strong> {resolvedStatus}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2">
@@ -339,7 +343,9 @@ export const PerformanceAnalytics: React.FC<any> = ({ metrics, onPeriodChange })
                 <div key={format} className="rounded-lg border p-4">
                   <p className="text-sm font-medium capitalize">{format}</p>
                   <p className="text-2xl font-bold">{data.count}</p>
-                  <p className="text-xs text-muted-foreground">{data.success_rate?.toFixed(1)}% success</p>
+                  <p className="text-xs text-muted-foreground">
+                    {data.success_rate?.toFixed(1)}% {t('success')}
+                  </p>
                 </div>
               ))}
             </div>

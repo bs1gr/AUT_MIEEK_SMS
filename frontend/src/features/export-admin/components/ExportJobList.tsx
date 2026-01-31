@@ -30,7 +30,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Download, RotateCw, Trash2, Eye, MoreHorizontal, FileText } from 'lucide-react';
+import { Download, RotateCw, Trash2, Eye, MoreHorizontal } from 'lucide-react';
 import { useExportJobs, useDeleteExport, useDownloadExport, useRerunExport } from '../hooks/useExportAdmin';
 import { ExportJobListProps, ExportJob } from '../types/export';
 import { formatDistanceToNow } from 'date-fns';
@@ -112,9 +112,9 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
   // Format file size
   const formatFileSize = (bytes?: number) => {
     if (!bytes) return '-';
-    if (bytes < 1024) return `${bytes}B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)}KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(2)}MB`;
+    if (bytes < 1024) return `${bytes}${t('units.bytes')}`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)}${t('units.kilobytes')}`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)}${t('units.megabytes')}`;
   };
 
   // Loading state
@@ -193,7 +193,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                 <TableRow key={job.id}>
                   <TableCell className="font-mono text-sm">{job.id.substring(0, 8)}</TableCell>
                   <TableCell className="capitalize">{t(`type.${job.export_type}`)}</TableCell>
-                  <TableCell className="uppercase">{job.export_format}</TableCell>
+                  <TableCell className="uppercase">{t(`format.${job.export_format}`)}</TableCell>
                   <TableCell>{getStatusBadge(job.status)}</TableCell>
                   <TableCell>
                     <div className="w-20">
@@ -208,7 +208,9 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                   </TableCell>
                   <TableCell>{formatFileSize(job.file_size_bytes)}</TableCell>
                   <TableCell>
-                    {job.duration_seconds ? `${job.duration_seconds.toFixed(2)}s` : '-'}
+                    {job.duration_seconds
+                      ? `${job.duration_seconds.toFixed(2)}${t('units.secondsShort')}`
+                      : '-'}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}

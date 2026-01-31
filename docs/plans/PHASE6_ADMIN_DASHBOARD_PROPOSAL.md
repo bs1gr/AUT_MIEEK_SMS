@@ -1,9 +1,9 @@
 # Phase 6 Proposal: Export Management Admin Dashboard
 
-**Version**: 1.0  
-**Date**: February 1, 2026  
-**Status**: 📋 PROPOSAL - Awaiting Approval  
-**Target Timeline**: 4-6 weeks  
+**Version**: 1.0
+**Date**: February 1, 2026
+**Status**: 📋 PROPOSAL - Awaiting Approval
+**Target Timeline**: 4-6 weeks
 **Effort Estimate**: 120-160 hours
 
 ---
@@ -304,7 +304,7 @@ frontend/src/features/export-admin/
 ## 📋 Implementation Phases
 
 ### Phase 6.1: Core Components (Week 1)
-**Duration**: 4-5 days  
+**Duration**: 4-5 days
 **Effort**: 40 hours
 
 - [x] Create component structure
@@ -320,7 +320,7 @@ frontend/src/features/export-admin/
 ---
 
 ### Phase 6.2: Advanced Features (Week 2)
-**Duration**: 4-5 days  
+**Duration**: 4-5 days
 **Effort**: 45 hours
 
 - [x] Build ExportScheduler form
@@ -336,7 +336,7 @@ frontend/src/features/export-admin/
 ---
 
 ### 6.3: Configuration & Settings (Week 3)
-**Duration**: 3-4 days  
+**Duration**: 3-4 days
 **Effort**: 30 hours
 
 - [x] Build EmailConfigPanel
@@ -351,7 +351,7 @@ frontend/src/features/export-admin/
 ---
 
 ### Phase 6.4: Analytics & Optimization (Week 4)
-**Duration**: 4-5 days  
+**Duration**: 4-5 days
 **Effort**: 40 hours
 
 - [x] Build ExportMetricsChart
@@ -367,7 +367,7 @@ frontend/src/features/export-admin/
 ---
 
 ### Phase 6.5: Internationalization & Polish (Week 5)
-**Duration**: 2-3 days  
+**Duration**: 2-3 days
 **Effort**: 15 hours
 
 - [x] Add i18n translations (EN/EL)
@@ -481,7 +481,7 @@ frontend/src/features/export-admin/
 | Docs/Polish | 15 | Low |
 | **Total** | **142** | **-** |
 
-**Contingency (15%)**: +21 hours  
+**Contingency (15%)**: +21 hours
 **Final estimate**: 160 hours = 4-5 weeks
 
 ---
@@ -515,7 +515,7 @@ If timeline is constrained, deliver **Minimal MVP** first:
 - ExportSettingsPanel (basic settings)
 - Skip: Metrics, Analytics, Advanced Filtering
 
-**Time**: ~60 hours (3 weeks)  
+**Time**: ~60 hours (3 weeks)
 **Benefit**: Quick value delivery
 
 ---
@@ -548,8 +548,7 @@ If timeline is constrained, deliver **Minimal MVP** first:
 
 ---
 
-**Status**: 📋 Ready for approval  
-**Date**: February 1, 2026  
-**Prepared by**: AI Agent  
+**Status**: 📋 Ready for approval
+**Date**: February 1, 2026
+**Prepared by**: AI Agent
 **Version**: v1.17.6
-

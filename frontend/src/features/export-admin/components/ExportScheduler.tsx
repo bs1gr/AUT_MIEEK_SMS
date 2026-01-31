@@ -187,9 +187,9 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="excel">Excel</SelectItem>
-                          <SelectItem value="csv">CSV</SelectItem>
-                          <SelectItem value="pdf">PDF</SelectItem>
+                          <SelectItem value="excel">{t('format.excel')}</SelectItem>
+                          <SelectItem value="csv">{t('format.csv')}</SelectItem>
+                          <SelectItem value="pdf">{t('format.pdf')}</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -252,7 +252,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                     type="submit"
                     disabled={createScheduleMutation.isPending}
                   >
-                    {createScheduleMutation.isPending ? t('creating') : t('create')}
+                    {createScheduleMutation.isPending ? t('actions.creating') : t('actions.create')}
                   </Button>
                   <Button
                     type="button"
@@ -262,7 +262,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                       form.reset();
                     }}
                   >
-                    {t('cancel')}
+                    {t('actions.cancel')}
                   </Button>
                 </div>
               </form>
@@ -348,7 +348,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                         className="text-destructive"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        {t('delete')}
+                        {t('actions.delete')}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

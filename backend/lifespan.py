@@ -29,7 +29,7 @@ def get_lifespan():
         # Initialize export scheduler and maintenance tasks
         try:
             from backend.services.maintenance_scheduler import get_maintenance_scheduler
-            
+
             scheduler = get_maintenance_scheduler()
             scheduler.start_export_scheduler()
             scheduler.schedule_cleanup_task(frequency="daily")
@@ -88,7 +88,7 @@ def get_lifespan():
         # Stop export scheduler on shutdown
         try:
             from backend.services.maintenance_scheduler import get_maintenance_scheduler
-            
+
             scheduler = get_maintenance_scheduler()
             scheduler.stop_export_scheduler()
             logging.getLogger(__name__).info("✅ Export scheduler stopped")

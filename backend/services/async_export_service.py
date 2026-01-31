@@ -12,7 +12,6 @@ from datetime import datetime, timezone
 from typing import Optional, Dict, Any
 from enum import Enum
 import csv
-import io
 
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment
@@ -25,6 +24,7 @@ try:
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import inch
+
     REPORTLAB_AVAILABLE = True
 except ImportError:
     REPORTLAB_AVAILABLE = False
@@ -304,7 +304,9 @@ class AsyncExportService:
                 if filters.get("search"):
                     search_term = f"%{filters['search']}%"
                     query = query.filter(
-                        (Student.first_name.ilike(search_term)) | (Student.last_name.ilike(search_term)) | (Student.email.ilike(search_term))
+                        (Student.first_name.ilike(search_term))
+                        | (Student.last_name.ilike(search_term))
+                        | (Student.email.ilike(search_term))
                     )
 
             students = query.limit(limit).all()
@@ -315,14 +317,16 @@ class AsyncExportService:
                 writer = csv.writer(f)
                 writer.writerow(["Student ID", "First Name", "Last Name", "Email", "Status", "Created At"])
                 for student in students:
-                    writer.writerow([
-                        student.id,
-                        student.first_name,
-                        student.last_name,
-                        student.email,
-                        student.status,
-                        student.created_at.isoformat() if student.created_at else ""
-                    ])
+                    writer.writerow(
+                        [
+                            student.id,
+                            student.first_name,
+                            student.last_name,
+                            student.email,
+                            student.status,
+                            student.created_at.isoformat() if student.created_at else "",
+                        ]
+                    )
 
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
@@ -367,13 +371,15 @@ class AsyncExportService:
                 writer = csv.writer(f)
                 writer.writerow(["Course Code", "Course Name", "Instructor", "Status", "Created At"])
                 for course in courses:
-                    writer.writerow([
-                        course.course_code,
-                        course.course_name,
-                        course.instructor_name or "",
-                        course.status,
-                        course.created_at.isoformat() if course.created_at else ""
-                    ])
+                    writer.writerow(
+                        [
+                            course.course_code,
+                            course.course_name,
+                            course.instructor_name or "",
+                            course.status,
+                            course.created_at.isoformat() if course.created_at else "",
+                        ]
+                    )
 
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
@@ -415,14 +421,16 @@ class AsyncExportService:
                 writer = csv.writer(f)
                 writer.writerow(["Student ID", "Student Name", "Course Code", "Grade", "Points", "Recorded At"])
                 for grade in grades:
-                    writer.writerow([
-                        grade.student.id if grade.student else "",
-                        f"{grade.student.first_name} {grade.student.last_name}" if grade.student else "",
-                        grade.course.course_code if grade.course else "",
-                        grade.grade,
-                        grade.points or "",
-                        grade.recorded_at.isoformat() if grade.recorded_at else ""
-                    ])
+                    writer.writerow(
+                        [
+                            grade.student.id if grade.student else "",
+                            f"{grade.student.first_name} {grade.student.last_name}" if grade.student else "",
+                            grade.course.course_code if grade.course else "",
+                            grade.grade,
+                            grade.points or "",
+                            grade.recorded_at.isoformat() if grade.recorded_at else "",
+                        ]
+                    )
 
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
@@ -461,7 +469,9 @@ class AsyncExportService:
                 if filters.get("search"):
                     search_term = f"%{filters['search']}%"
                     query = query.filter(
-                        (Student.first_name.ilike(search_term)) | (Student.last_name.ilike(search_term)) | (Student.email.ilike(search_term))
+                        (Student.first_name.ilike(search_term))
+                        | (Student.last_name.ilike(search_term))
+                        | (Student.email.ilike(search_term))
                     )
 
             students = query.limit(limit).all()
@@ -474,40 +484,40 @@ class AsyncExportService:
 
             # Add title
             title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
+                "CustomTitle",
+                parent=styles["Heading1"],
                 fontSize=16,
-                textColor=colors.HexColor('#1f77b4'),
-                spaceAfter=20
+                textColor=colors.HexColor("#1f77b4"),
+                spaceAfter=20,
             )
             elements.append(Paragraph("Student Export Report", title_style))
-            elements.append(Spacer(1, 0.3*inch))
+            elements.append(Spacer(1, 0.3 * inch))
 
             # Prepare table data
             table_data = [["ID", "First Name", "Last Name", "Email", "Status"]]
             for student in students:
-                table_data.append([
-                    str(student.id),
-                    student.first_name,
-                    student.last_name,
-                    student.email,
-                    student.status
-                ])
+                table_data.append(
+                    [str(student.id), student.first_name, student.last_name, student.email, student.status]
+                )
 
             # Create and style table
-            table = Table(table_data, colWidths=[0.6*inch, 1.2*inch, 1.2*inch, 2*inch, 0.8*inch])
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f77b4')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ]))
+            table = Table(table_data, colWidths=[0.6 * inch, 1.2 * inch, 1.2 * inch, 2 * inch, 0.8 * inch])
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f77b4")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                        ("FONTSIZE", (0, 1), (-1, -1), 9),
+                    ]
+                )
+            )
             elements.append(table)
 
             # Build PDF
@@ -561,39 +571,45 @@ class AsyncExportService:
 
             # Add title
             title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
+                "CustomTitle",
+                parent=styles["Heading1"],
                 fontSize=16,
-                textColor=colors.HexColor('#1f77b4'),
-                spaceAfter=20
+                textColor=colors.HexColor("#1f77b4"),
+                spaceAfter=20,
             )
             elements.append(Paragraph("Course Export Report", title_style))
-            elements.append(Spacer(1, 0.3*inch))
+            elements.append(Spacer(1, 0.3 * inch))
 
             # Prepare table data
             table_data = [["Code", "Name", "Instructor", "Status"]]
             for course in courses:
-                table_data.append([
-                    course.course_code,
-                    course.course_name[:30],  # Truncate long names
-                    course.instructor_name or "N/A",
-                    course.status
-                ])
+                table_data.append(
+                    [
+                        course.course_code,
+                        course.course_name[:30],  # Truncate long names
+                        course.instructor_name or "N/A",
+                        course.status,
+                    ]
+                )
 
             # Create and style table
-            table = Table(table_data, colWidths=[1*inch, 2*inch, 1.5*inch, 1*inch])
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f77b4')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ]))
+            table = Table(table_data, colWidths=[1 * inch, 2 * inch, 1.5 * inch, 1 * inch])
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f77b4")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                        ("FONTSIZE", (0, 1), (-1, -1), 9),
+                    ]
+                )
+            )
             elements.append(table)
 
             # Build PDF
@@ -644,41 +660,42 @@ class AsyncExportService:
 
             # Add title
             title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
+                "CustomTitle",
+                parent=styles["Heading1"],
                 fontSize=16,
-                textColor=colors.HexColor('#1f77b4'),
-                spaceAfter=20
+                textColor=colors.HexColor("#1f77b4"),
+                spaceAfter=20,
             )
             elements.append(Paragraph("Grade Export Report", title_style))
-            elements.append(Spacer(1, 0.3*inch))
+            elements.append(Spacer(1, 0.3 * inch))
 
             # Prepare table data
             table_data = [["Student", "Course", "Grade", "Points"]]
             for grade in grades:
                 student_name = f"{grade.student.first_name} {grade.student.last_name}" if grade.student else "N/A"
                 course_code = grade.course.course_code if grade.course else "N/A"
-                table_data.append([
-                    student_name[:25],
-                    course_code,
-                    grade.grade,
-                    str(grade.points) if grade.points else "N/A"
-                ])
+                table_data.append(
+                    [student_name[:25], course_code, grade.grade, str(grade.points) if grade.points else "N/A"]
+                )
 
             # Create and style table
-            table = Table(table_data, colWidths=[2*inch, 1.5*inch, 0.8*inch, 0.8*inch])
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1f77b4')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-                ('FONTSIZE', (0, 1), (-1, -1), 9),
-            ]))
+            table = Table(table_data, colWidths=[2 * inch, 1.5 * inch, 0.8 * inch, 0.8 * inch])
+            table.setStyle(
+                TableStyle(
+                    [
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f77b4")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                        ("FONTSIZE", (0, 0), (-1, 0), 10),
+                        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                        ("FONTSIZE", (0, 1), (-1, -1), 9),
+                    ]
+                )
+            )
             elements.append(table)
 
             # Build PDF
@@ -705,8 +722,12 @@ class AsyncExportService:
             return False, None, str(e)
 
     def process_export_task(
-        self, export_job_id: int, export_type: str, export_format: str = "excel",
-        filters: Optional[Dict[str, Any]] = None, limit: int = 10000
+        self,
+        export_job_id: int,
+        export_type: str,
+        export_format: str = "excel",
+        filters: Optional[Dict[str, Any]] = None,
+        limit: int = 10000,
     ) -> tuple[bool, Optional[str], str]:
         """Process export task in background.
 

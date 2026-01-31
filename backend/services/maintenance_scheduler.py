@@ -7,9 +7,7 @@ Runs maintenance tasks at regular intervals.
 
 import logging
 from datetime import datetime, timezone, timedelta
-from typing import Optional
 
-from sqlalchemy.orm import Session
 from backend.db import SessionLocal
 from backend.services.import_export_service import ImportExportService
 from backend.services.export_performance_monitor import get_export_performance_monitor
@@ -35,15 +33,10 @@ class MaintenanceScheduler:
         db = SessionLocal()
         try:
             logger.info(f"Starting cleanup of exports older than {days_old} days")
-            stats = self.import_export_service.cleanup_old_export_jobs(
-                days_old=days_old,
-                delete_files=delete_files
-            )
+            stats = self.import_export_service.cleanup_old_export_jobs(days_old=days_old, delete_files=delete_files)
 
             logger.info(
-                f"Cleanup complete: "
-                f"Deleted {stats.get('deleted_jobs', 0)} jobs, "
-                f"{stats.get('deleted_files', 0)} files"
+                f"Cleanup complete: Deleted {stats.get('deleted_jobs', 0)} jobs, {stats.get('deleted_files', 0)} files"
             )
         except Exception as e:
             logger.error(f"Cleanup failed: {e}")
@@ -60,12 +53,12 @@ class MaintenanceScheduler:
         db = SessionLocal()
         try:
             from backend.models import ExportJob
+
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_old)
 
-            old_exports = db.query(ExportJob).filter(
-                ExportJob.created_at < cutoff_date,
-                ExportJob.status == "completed"
-            ).all()
+            old_exports = (
+                db.query(ExportJob).filter(ExportJob.created_at < cutoff_date, ExportJob.status == "completed").all()
+            )
 
             for export_job in old_exports:
                 try:
@@ -135,21 +128,16 @@ class MaintenanceScheduler:
             # Map frequency to cron expression
             cron_map = {
                 "hourly": ("*/1", "*", "*", "*", "*"),  # Every hour
-                "daily": ("0", "2", "*", "*", "*"),     # Daily at 2 AM
-                "weekly": ("0", "2", "*", "*", "0"),    # Weekly on Monday at 2 AM
-                "monthly": ("0", "2", "1", "*", "*"),   # Monthly on 1st at 2 AM
+                "daily": ("0", "2", "*", "*", "*"),  # Daily at 2 AM
+                "weekly": ("0", "2", "*", "*", "0"),  # Weekly on Monday at 2 AM
+                "monthly": ("0", "2", "1", "*", "*"),  # Monthly on 1st at 2 AM
             }
 
             if frequency in cron_map:
                 from apscheduler.triggers.cron import CronTrigger
+
                 minute, hour, day, month, day_of_week = cron_map[frequency]
-                trigger = CronTrigger(
-                    minute=minute,
-                    hour=hour,
-                    day=day,
-                    month=month,
-                    day_of_week=day_of_week
-                )
+                trigger = CronTrigger(minute=minute, hour=hour, day=day, month=month, day_of_week=day_of_week)
 
                 self.export_scheduler.scheduler.add_job(
                     self.cleanup_old_exports,
@@ -157,7 +145,7 @@ class MaintenanceScheduler:
                     id=f"cleanup_exports_{frequency}",
                     name=f"Cleanup old exports ({frequency})",
                     replace_existing=True,
-                    kwargs={"days_old": 30, "delete_files": True}
+                    kwargs={"days_old": 30, "delete_files": True},
                 )
 
                 logger.info(f"Scheduled export cleanup ({frequency})")

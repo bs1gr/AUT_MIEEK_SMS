@@ -34,7 +34,7 @@ The **comprehensive export enhancement system** is now **fully integrated and op
 - **Dependency**: apscheduler>=3.10.4 added to requirements.txt
 
 **File**: `backend/services/export_scheduler.py` (211 lines)
-**Features**: 
+**Features**:
 - ScheduleFrequency enum with 5 scheduling modes
 - Cron expression support for custom schedules
 - Automatic retry logic for failed exports
@@ -346,8 +346,7 @@ For questions or issues:
 
 **Status**: ✅ **READY FOR PRODUCTION DEPLOYMENT**
 
-**Version**: 1.17.6  
-**Commit**: cd64fbe6c  
-**Date**: February 1, 2026  
+**Version**: 1.17.6
+**Commit**: cd64fbe6c
+**Date**: February 1, 2026
 **Time**: 23:45 UTC
-

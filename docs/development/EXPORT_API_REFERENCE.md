@@ -1,7 +1,7 @@
 # Export System API Reference
 
-**Version**: 1.17.6  
-**Last Updated**: February 1, 2026  
+**Version**: 1.17.6
+**Last Updated**: February 1, 2026
 **Status**: Production Ready
 
 This document provides complete API reference for the export system, including all endpoints for job management, scheduling, performance monitoring, and configuration.
@@ -646,16 +646,16 @@ echo "Export created with ID: $EXPORT_ID"
 while true; do
   STATUS_RESPONSE=$(curl -s -X GET "$BASE_URL/import-export/exports/$EXPORT_ID" \
     -H "Authorization: Bearer $TOKEN")
-  
+
   STATUS=$(echo $STATUS_RESPONSE | jq -r '.data.status')
   PROGRESS=$(echo $STATUS_RESPONSE | jq '.data.progress_percent')
-  
+
   echo "Status: $STATUS ($PROGRESS%)"
-  
+
   if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ]; then
     break
   fi
-  
+
   sleep 2
 done
 
@@ -725,4 +725,3 @@ curl -X GET "http://localhost:8080/api/v1/import-export/metrics?days=30" \
 **For more information, see:**
 - [EXPORT_ENHANCEMENTS_COMPLETE.md](EXPORT_ENHANCEMENTS_COMPLETE.md)
 - [EXPORT_ENHANCEMENTS_COMPLETION_SUMMARY.md](EXPORT_ENHANCEMENTS_COMPLETION_SUMMARY.md)
-

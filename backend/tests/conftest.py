@@ -49,7 +49,7 @@ from fastapi.testclient import TestClient
 from backend.tests.db_setup import TestingSessionLocal, engine
 
 # Import ORM Base for schema creation
-from backend.models import Base, ExportJob, ImportExportHistory
+from backend.models import Base
 
 # CRITICAL: Create all database tables at module load time
 # This ensures tables exist before any fixtures run or tests execute

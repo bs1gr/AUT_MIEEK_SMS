@@ -20,7 +20,6 @@ export const exportAdminEN = {
     view: 'View Details',
     rerun: 'Re-run Export',
     test: 'Test Connection',
-    create: 'Create',
     creating: 'Creating...',
     saving: 'Saving...',
     testing: 'Testing...',
@@ -61,6 +60,13 @@ export const exportAdminEN = {
     students: 'Students',
     courses: 'Courses',
     grades: 'Grades',
+  },
+
+  // Export Formats
+  format: {
+    excel: 'Excel',
+    csv: 'CSV',
+    pdf: 'PDF',
   },
 
   // Frequency
@@ -150,6 +156,12 @@ export const exportAdminEN = {
     notifyOnCompletion: 'Notify on completion',
     notifyOnFailure: 'Notify on failure',
     notifyOnScheduleFailure: 'Notify on schedule failure',
+    hostPlaceholder: 'smtp.gmail.com',
+    portPlaceholder: '587',
+    usernamePlaceholder: 'your-email@gmail.com',
+    passwordPlaceholder: '••••••••',
+    fromEmailPlaceholder: 'noreply@example.com',
+    adminEmailsPlaceholder: 'admin@example.com\nadmin2@example.com',
   },
 
   // Settings
@@ -189,6 +201,12 @@ export const exportAdminEN = {
   loading: 'Loading...',
   error: 'Error',
   success: 'Success',
+  units: {
+    bytes: 'B',
+    kilobytes: 'KB',
+    megabytes: 'MB',
+    secondsShort: 's',
+  },
   errors: {
     loadFailed: 'Failed to load exports. Please try again.',
   },
@@ -256,6 +274,13 @@ export const exportAdminEL = {
     students: 'Φοιτητές',
     courses: 'Μαθήματα',
     grades: 'Βαθμοί',
+  },
+
+  // Export Formats
+  format: {
+    excel: 'Excel',
+    csv: 'CSV',
+    pdf: 'PDF',
   },
 
   // Frequency
@@ -345,6 +370,12 @@ export const exportAdminEL = {
     notifyOnCompletion: 'Ειδοποίηση κατά ολοκλήρωση',
     notifyOnFailure: 'Ειδοποίηση κατά αποτυχία',
     notifyOnScheduleFailure: 'Ειδοποίηση κατά αποτυχίας χρονοδιαγράμματος',
+    hostPlaceholder: 'smtp.gmail.com',
+    portPlaceholder: '587',
+    usernamePlaceholder: 'your-email@gmail.com',
+    passwordPlaceholder: '••••••••',
+    fromEmailPlaceholder: 'noreply@example.com',
+    adminEmailsPlaceholder: 'admin@example.com\nadmin2@example.com',
   },
 
   // Settings
@@ -384,6 +415,12 @@ export const exportAdminEL = {
   loading: 'Φόρτωση...',
   error: 'Σφάλμα',
   success: 'Επιτυχία',
+  units: {
+    bytes: 'B',
+    kilobytes: 'KB',
+    megabytes: 'MB',
+    secondsShort: 's',
+  },
   errors: {
     loadFailed: 'Αποτυχία φόρτωσης εξαγωγών. Παρακαλώ προσπαθήστε ξανά.',
   },
