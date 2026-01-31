@@ -154,6 +154,8 @@ $ROOT_ENV = Join-Path $SCRIPT_DIR ".env"
 $ROOT_ENV_EXAMPLE = Join-Path $SCRIPT_DIR ".env.example"
 $BACKEND_ENV = Join-Path $SCRIPT_DIR "backend\.env"
 $BACKEND_ENV_EXAMPLE = Join-Path $SCRIPT_DIR "backend\.env.example"
+$COMPOSE_BASE = Join-Path $SCRIPT_DIR "docker\docker-compose.yml"
+$COMPOSE_PROD = Join-Path $SCRIPT_DIR "docker\docker-compose.prod.yml"
 
 # ============================================================================
 # UTILITY FUNCTIONS
@@ -290,6 +292,125 @@ function Test-SecretKeySecure {
     }
 
     return $true
+}
+
+function Get-EnvVarValue {
+    param([string]$Name)
+
+    if (-not (Test-Path $ROOT_ENV)) {
+        return $null
+    }
+
+    $lines = Get-Content $ROOT_ENV -ErrorAction SilentlyContinue
+    foreach ($line in $lines) {
+        if ($line -match "^\s*$Name\s*=\s*(.+?)\s*$") {
+            return $matches[1].Trim()
+        }
+    }
+
+    return $null
+}
+
+function Use-ComposeMode {
+    $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
+    $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
+
+    if ($dbEngine -and $dbEngine -match "postgres") {
+        return $true
+    }
+
+    if ($pgHost) {
+        return $true
+    }
+
+    return $false
+}
+
+function Get-ComposeContainerId {
+    param([string]$ServiceName)
+
+    if (-not (Test-Path $COMPOSE_BASE)) {
+        return $null
+    }
+
+    $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
+    if (Test-Path $ROOT_ENV) {
+        $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+    }
+
+    $id = docker compose @composeArgs ps -q $ServiceName 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($id)) {
+        return $null
+    }
+
+    return $id.Trim()
+}
+
+function Get-ComposeServiceStatus {
+    param([string]$ServiceName)
+
+    $id = Get-ComposeContainerId -ServiceName $ServiceName
+    if (-not $id) {
+        return $null
+    }
+
+    $statusRaw = docker inspect -f '{{.State.Status}}|{{.State.Health.Status}}' $id 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($statusRaw)) {
+        return $null
+    }
+
+    $parts = $statusRaw -split '\|'
+    $status = if ($parts.Count -gt 0) { $parts[0] } else { $null }
+    $health = if ($parts.Count -gt 1) { $parts[1] } else { $null }
+
+    return @{
+        Id = $id
+        Status = $status
+        Health = $health
+        IsRunning = $status -eq "running"
+        IsHealthy = $health -eq "healthy"
+    }
+}
+
+function Wait-ForComposeHealthy {
+    param(
+        [string]$ServiceName = "backend",
+        [int]$TimeoutSeconds = 90
+    )
+
+    Write-Info "Waiting for compose service '$ServiceName' to become healthy..."
+
+    $elapsed = 0
+    $checkInterval = 3
+
+    while ($elapsed -lt $TimeoutSeconds) {
+        Start-Sleep -Seconds $checkInterval
+        $elapsed += $checkInterval
+
+        $status = Get-ComposeServiceStatus -ServiceName $ServiceName
+        if (-not $status) {
+            Write-Host "." -NoNewline
+            continue
+        }
+
+        if ($status.IsHealthy -or ($status.IsRunning -and -not $status.Health)) {
+            Write-Host "`n"
+            Write-Success "Compose service '$ServiceName' is running"
+            return $true
+        }
+
+        if (-not $status.IsRunning) {
+            Write-Host "`n"
+            Write-Error-Message "Compose service '$ServiceName' stopped unexpectedly"
+            return $false
+        }
+
+        Write-Host "." -NoNewline
+    }
+
+    Write-Host "`n"
+    Write-Error-Message "Timeout waiting for compose service '$ServiceName'"
+    return $false
 }
 
 function Initialize-EnvironmentFiles {
@@ -979,6 +1100,40 @@ function Start-Application {
         }
     }
 
+    $useCompose = Use-ComposeMode
+    if ($useCompose) {
+        Write-Info "Detected PostgreSQL configuration - using Docker Compose (production overlay)"
+
+        if (-not (Test-Path $COMPOSE_BASE) -or -not (Test-Path $COMPOSE_PROD)) {
+            Write-Error-Message "Compose files not found for production deployment"
+            return 1
+        }
+
+        $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
+        if (Test-Path $ROOT_ENV) {
+            $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+        }
+
+        Push-Location $SCRIPT_DIR
+        try {
+            docker compose @composeArgs up -d --build 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error-Message "Failed to start Docker Compose stack"
+                return 1
+            }
+        } finally {
+            Pop-Location
+        }
+
+        if (Wait-ForComposeHealthy -ServiceName "backend") {
+            Show-AccessInfo -MonitoringEnabled:$false
+            return 0
+        }
+
+        Write-Error-Message "Compose stack started but backend is not healthy"
+        return 1
+    }
+
     # Start container
     Write-Info "Starting container..."
 
@@ -1033,6 +1188,30 @@ function Start-Application {
 function Stop-Application {
     if ($Silent) { Write-InstallerLog "Stop-Application called" }
     Write-Header "Stopping SMS Application"
+
+    if (Use-ComposeMode) {
+        Write-Info "Stopping Docker Compose stack..."
+        if (Test-Path $COMPOSE_BASE) {
+            $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
+            if (Test-Path $ROOT_ENV) {
+                $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+            }
+
+            Push-Location $SCRIPT_DIR
+            try {
+                docker compose @composeArgs down 2>$null | Out-Null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "Compose stack stopped"
+                    return 0
+                }
+            } finally {
+                Pop-Location
+            }
+        }
+
+        Write-Error-Message "Failed to stop compose stack"
+        return 1
+    }
 
     $status = Get-ContainerStatus
     if (-not $status -or -not $status.IsRunning) {
@@ -1093,6 +1272,26 @@ function Show-Status {
     }
     Write-Success "Docker is available"
 
+    if (Use-ComposeMode) {
+        if (-not (Test-Path $COMPOSE_BASE)) {
+            Write-Error-Message "Compose file not found"
+            return 1
+        }
+
+        $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
+        if (Test-Path $ROOT_ENV) {
+            $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+        }
+
+        Push-Location $SCRIPT_DIR
+        try {
+            docker compose @composeArgs ps
+            return $LASTEXITCODE
+        } finally {
+            Pop-Location
+        }
+    }
+
     $status = Get-ContainerStatus
     if (-not $status) {
         Write-Info "SMS is not running"
@@ -1140,6 +1339,29 @@ function Show-Status {
 
 function Show-Logs {
     if ($Silent) { Write-InstallerLog "Show-Logs called" }
+
+    if (Use-ComposeMode) {
+        if (-not (Test-Path $COMPOSE_BASE)) {
+            Write-Error-Message "Compose file not found"
+            return 1
+        }
+
+        Write-Header "SMS Application Logs"
+        Write-Info "Press Ctrl+C to stop viewing logs`n"
+        $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
+        if (Test-Path $ROOT_ENV) {
+            $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+        }
+
+        Push-Location $SCRIPT_DIR
+        try {
+            docker compose @composeArgs logs -f --tail 100 backend
+            return $LASTEXITCODE
+        } finally {
+            Pop-Location
+        }
+    }
+
     $status = Get-ContainerStatus
     if (-not $status -or -not $status.IsRunning) {
         Write-Error-Message "SMS is not running"
