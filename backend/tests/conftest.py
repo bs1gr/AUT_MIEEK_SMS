@@ -49,7 +49,12 @@ from fastapi.testclient import TestClient
 from backend.tests.db_setup import TestingSessionLocal, engine
 
 # Import ORM Base for schema creation
-from backend.models import Base
+from backend.models import Base, ExportJob, ImportExportHistory
+
+# CRITICAL: Create all database tables at module load time
+# This ensures tables exist before any fixtures run or tests execute
+# This is necessary for session-scoped fixtures to work properly in pytest
+Base.metadata.create_all(bind=engine)
 
 # ============================================================================
 # Error Response Helper Functions (v1.15.0 - API Standardization)
@@ -491,3 +496,22 @@ def mock_db_engine(monkeypatch):
 def admin_headers(admin_token: str) -> dict[str, str]:
     """Return headers with admin authentication."""
     return {"Authorization": f"Bearer {admin_token}"}
+
+
+@pytest.fixture(scope="function", autouse=True)
+def patch_async_export_service_db(monkeypatch):
+    """Patch backend.db.SessionLocal to use test database for background tasks.
+
+    This ensures that when background tasks import and use SessionLocal,
+    they get the test database (TestingSessionLocal) instead of production.
+    """
+    try:
+        import backend.db
+        from backend.tests.db_setup import TestingSessionLocal
+
+        # Replace the SessionLocal that will be imported by background tasks
+        monkeypatch.setattr(backend.db, "SessionLocal", TestingSessionLocal)
+    except Exception as e:
+        # If patching fails, tests will still run but background tasks might fail
+        print(f"Failed to patch SessionLocal: {e}")
+        pass
