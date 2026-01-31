@@ -41,14 +41,14 @@ Added a pytest fixture that monkeypatches `backend.db.SessionLocal` to use the t
 @pytest.fixture(scope="function", autouse=True)
 def patch_async_export_service_db(monkeypatch):
     """Patch backend.db.SessionLocal to use test database for background tasks.
-    
+
     This ensures that when background tasks import and use SessionLocal,
     they get the test database (TestingSessionLocal) instead of production.
     """
     try:
         import backend.db
         from backend.tests.db_setup import TestingSessionLocal
-        
+
         # Replace the SessionLocal that will be imported by background tasks
         monkeypatch.setattr(backend.db, "SessionLocal", TestingSessionLocal)
     except Exception as e:
@@ -118,7 +118,7 @@ backend/routers/routers_import_export.py:
   create_export() endpoint
     ↓ creates job with db from Depends(get_db)
     ↓ queues background_tasks.add_task()
-    
+
 backend/services/async_export_service.py:
   process_export_task(job_id)
     ↓ imports SessionLocal from backend.db
@@ -281,4 +281,3 @@ Resolves async export test failures introduced in Phase 4.
 **Author**: AI Agent (Copilot)
 **Reviewer**: Solo Developer
 **Status**: ✅ Verified and Ready for Commit
-

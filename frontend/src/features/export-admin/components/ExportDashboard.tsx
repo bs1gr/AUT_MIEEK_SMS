@@ -14,11 +14,13 @@ import { Download, RefreshCw, Plus } from 'lucide-react';
 // Import child components
 import ExportJobList from './ExportJobList';
 import ExportScheduler from './ExportScheduler';
-import ExportMetricsChart from './ExportMetricsChart';
-import EmailConfigPanel from './EmailConfigPanel';
-import ExportSettingsPanel from './ExportSettingsPanel';
-import ExportDetailModal from './ExportDetailModal';
-import PerformanceAnalytics from './PerformanceAnalytics';
+import {
+  ExportMetricsChart,
+  EmailConfigPanel,
+  ExportSettingsPanel,
+  ExportDetailModal,
+  PerformanceAnalytics,
+} from './index';
 
 // Import hooks
 import {

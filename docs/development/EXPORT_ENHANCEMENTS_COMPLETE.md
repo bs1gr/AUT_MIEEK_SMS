@@ -145,9 +145,9 @@ async def lifespan(app: FastAPI):
     # Startup
     scheduler = get_export_scheduler()
     scheduler.start()
-    
+
     yield
-    
+
     # Shutdown
     scheduler.stop()
 ```
@@ -193,7 +193,7 @@ if service.is_enabled():
         download_url="https://sms.local/api/v1/exports/123/download",
         expires_in_days=7
     )
-    
+
 # Send failure notification
 service.send_export_failed(
     export_job=export_job,
@@ -354,9 +354,9 @@ async def lifespan(app: FastAPI):
     scheduler = get_maintenance_scheduler()
     scheduler.start_export_scheduler()
     scheduler.schedule_cleanup_task(frequency="daily")
-    
+
     yield
-    
+
     # Shutdown
     scheduler.stop_export_scheduler()
 ```
@@ -370,12 +370,12 @@ New fields added to track performance:
 ```python
 class ExportJob(Base):
     # ... existing fields ...
-    
+
     # Performance metrics
     file_size_bytes: int = Column(Integer, nullable=True)  # Size of generated file
     duration_seconds: float = Column(Float, nullable=True)  # Export generation time
     progress_percent: int = Column(Integer, default=0)      # Progress 0-100
-    
+
     # Notifications
     notification_sent: bool = Column(Boolean, default=False)  # Email sent flag
     notification_email: str = Column(String(255), nullable=True)  # Recipient email

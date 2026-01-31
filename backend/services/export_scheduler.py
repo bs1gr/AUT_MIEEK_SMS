@@ -6,7 +6,7 @@ Uses APScheduler for reliable, persistent scheduling.
 """
 
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from typing import Optional, Dict, Any, Callable
 from enum import Enum
 
@@ -14,12 +14,12 @@ try:
     from apscheduler.schedulers.background import BackgroundScheduler
     from apscheduler.triggers.cron import CronTrigger
     from apscheduler.triggers.interval import IntervalTrigger
+
     APSCHEDULER_AVAILABLE = True
 except ImportError:
     APSCHEDULER_AVAILABLE = False
 
 from sqlalchemy.orm import Session
-from backend.models import ExportJob, User
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +74,7 @@ class ExportScheduler:
         frequency: str,
         export_callback: Callable,
         filters: Optional[Dict[str, Any]] = None,
-        cron_expression: Optional[str] = None
+        cron_expression: Optional[str] = None,
     ) -> bool:
         """Schedule a recurring export.
 
@@ -111,7 +111,7 @@ class ExportScheduler:
                 id=job_id,
                 args=[export_type, export_format, user_id, filters],
                 name=f"Export {export_type} as {export_format}",
-                replace_existing=False
+                replace_existing=False,
             )
 
             logger.info(f"Scheduled export job: {job_id}")
@@ -153,12 +153,14 @@ class ExportScheduler:
         jobs = []
         for job in self.scheduler.get_jobs():
             if job.id.startswith("export_"):
-                jobs.append({
-                    "id": job.id,
-                    "name": job.name,
-                    "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
-                    "trigger": str(job.trigger)
-                })
+                jobs.append(
+                    {
+                        "id": job.id,
+                        "name": job.name,
+                        "next_run": job.next_run_time.isoformat() if job.next_run_time else None,
+                        "trigger": str(job.trigger),
+                    }
+                )
         return jobs
 
     def _get_trigger(self, frequency: str, cron_expression: Optional[str] = None):
@@ -185,13 +187,7 @@ class ExportScheduler:
                 parts = cron_expression.split()
                 if len(parts) >= 5:
                     minute, hour, day, month, day_of_week = parts[:5]
-                    return CronTrigger(
-                        minute=minute,
-                        hour=hour,
-                        day=day,
-                        month=month,
-                        day_of_week=day_of_week
-                    )
+                    return CronTrigger(minute=minute, hour=hour, day=day, month=month, day_of_week=day_of_week)
             return None
         except Exception as e:
             logger.error(f"Invalid trigger configuration: {e}")

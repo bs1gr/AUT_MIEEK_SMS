@@ -450,9 +450,7 @@ class ImportExportService:
         db.add(entry)
         db.commit()
 
-    def cleanup_old_export_jobs(
-        self, db: Session, days_old: int = 30, delete_files: bool = True
-    ) -> Dict[str, Any]:
+    def cleanup_old_export_jobs(self, db: Session, days_old: int = 30, delete_files: bool = True) -> Dict[str, Any]:
         """Clean up old completed/failed export jobs.
 
         Args:

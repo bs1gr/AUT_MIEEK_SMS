@@ -10,7 +10,6 @@ Tracks and logs export performance metrics including:
 """
 
 import logging
-import time
 import os
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any, List
@@ -79,12 +78,14 @@ class ExportPerformanceMonitor:
             export_id=export_id,
             export_type=export_type,
             export_format=export_format,
-            start_time=datetime.now(timezone.utc)
+            start_time=datetime.now(timezone.utc),
         )
         logger.info(f"Started tracking export {export_id} ({export_type}/{export_format})")
         return metrics
 
-    def end_tracking(self, metrics: ExportMetrics, file_path: Optional[str] = None, error: Optional[str] = None) -> ExportMetrics:
+    def end_tracking(
+        self, metrics: ExportMetrics, file_path: Optional[str] = None, error: Optional[str] = None
+    ) -> ExportMetrics:
         """End tracking and record metrics.
 
         Args:
@@ -174,38 +175,42 @@ class ExportPerformanceMonitor:
                         try:
                             data = json.loads(line)
                             # Parse datetime strings
-                            data['start_time'] = datetime.fromisoformat(data['start_time'].replace('Z', '+00:00'))
-                            if data.get('end_time'):
-                                data['end_time'] = datetime.fromisoformat(data['end_time'].replace('Z', '+00:00'))
+                            data["start_time"] = datetime.fromisoformat(data["start_time"].replace("Z", "+00:00"))
+                            if data.get("end_time"):
+                                data["end_time"] = datetime.fromisoformat(data["end_time"].replace("Z", "+00:00"))
 
-                            if data['start_time'] > cutoff_time:
-                                if export_type is None or data.get('export_type') == export_type:
+                            if data["start_time"] > cutoff_time:
+                                if export_type is None or data.get("export_type") == export_type:
                                     metrics_list.append(data)
                         except json.JSONDecodeError:
                             continue
 
             # Calculate statistics
             if metrics_list:
-                stats['total_exports'] = len(metrics_list)
-                stats['successful'] = sum(1 for m in metrics_list if m.get('status') == 'completed')
-                stats['failed'] = sum(1 for m in metrics_list if m.get('status') == 'failed')
+                stats["total_exports"] = len(metrics_list)
+                stats["successful"] = sum(1 for m in metrics_list if m.get("status") == "completed")
+                stats["failed"] = sum(1 for m in metrics_list if m.get("status") == "failed")
 
-                completed = [m for m in metrics_list if m.get('status') == 'completed']
+                completed = [m for m in metrics_list if m.get("status") == "completed"]
                 if completed:
-                    stats['avg_duration_seconds'] = sum(m.get('total_duration_seconds', 0) for m in completed) / len(completed)
-                    stats['avg_records_per_second'] = sum(m.get('records_per_second', 0) for m in completed) / len(completed)
-                    stats['avg_file_size_mb'] = sum(m.get('file_size_mb', 0) for m in completed) / len(completed)
-                    stats['total_records_processed'] = sum(m.get('total_records', 0) for m in completed)
-                    stats['total_file_size_mb'] = sum(m.get('file_size_mb', 0) for m in completed)
+                    stats["avg_duration_seconds"] = sum(m.get("total_duration_seconds", 0) for m in completed) / len(
+                        completed
+                    )
+                    stats["avg_records_per_second"] = sum(m.get("records_per_second", 0) for m in completed) / len(
+                        completed
+                    )
+                    stats["avg_file_size_mb"] = sum(m.get("file_size_mb", 0) for m in completed) / len(completed)
+                    stats["total_records_processed"] = sum(m.get("total_records", 0) for m in completed)
+                    stats["total_file_size_mb"] = sum(m.get("file_size_mb", 0) for m in completed)
 
                     # Count by format
                     formats = {}
                     for m in completed:
-                        fmt = m.get('export_format', 'unknown')
+                        fmt = m.get("export_format", "unknown")
                         if fmt not in formats:
                             formats[fmt] = 0
                         formats[fmt] += 1
-                    stats['exports_by_format'] = formats
+                    stats["exports_by_format"] = formats
 
             return stats
 
@@ -234,7 +239,7 @@ class ExportPerformanceMonitor:
                             continue
 
             # Sort by duration (descending)
-            exports.sort(key=lambda x: x.get('total_duration_seconds', 0), reverse=True)
+            exports.sort(key=lambda x: x.get("total_duration_seconds", 0), reverse=True)
             return exports[:limit]
 
         except Exception as e:

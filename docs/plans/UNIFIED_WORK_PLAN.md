@@ -227,7 +227,7 @@
 >   - Incremental testing workflow now functional
 >
 > **Technical Details**:
-> - **Commits**: 
+> - **Commits**:
 >   - a7c4a2104: test(async-export): Fix background task database session
 >   - af53d1d40: feat(async-export): Add async export with background processing
 >   - 304bac817: fix(test-runner): Fix -RetestFailed flag initialization order
