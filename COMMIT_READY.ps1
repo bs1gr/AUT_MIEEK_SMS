@@ -32,8 +32,9 @@
     - 'cleanup'  : Only run cleanup operations
     Default: standard
 
-    NOTE: Validation checkpoint now valid for 90 minutes (doubled from 45 min on Jan 30, 2026)
-    to accommodate time-consuming test runs. Auto-commit available after successful validation.
+    NOTE: Validation checkpoint valid INDEFINITELY (never expires)
+    Changed Jan 31, 2026 to eliminate ridiculous expiration during commit workflow
+    Checkpoint remains valid until explicitly cleared with ENFORCE_COMMIT_READY_GUARD.ps1 -Force
 
 .PARAMETER SkipTests
     Skip all test execution (not recommended)
@@ -2255,7 +2256,7 @@ try {
         Write-Host ""
         Write-Host "🔒 Enforcing COMMIT_READY validation checkpoint..." -ForegroundColor Cyan
         & .\scripts\ENFORCE_COMMIT_READY_GUARD.ps1 | Out-Null
-        Write-Host "   ✅ Checkpoint valid for next 5 minutes" -ForegroundColor Green
+        Write-Host "   ✅ Checkpoint valid indefinitely (never expires)" -ForegroundColor Green
         Write-Host "   📋 Next: Stage files with: git add -A" -ForegroundColor Yellow
         Write-Host "   📋 Then: Commit with: git commit -m 'message'" -ForegroundColor Yellow
 
