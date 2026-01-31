@@ -8,8 +8,7 @@ Uses in-memory queue pattern with background processing.
 import logging
 import os
 from datetime import datetime, timezone
-from io import BytesIO
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 from enum import Enum
 
 from openpyxl import Workbook
@@ -18,13 +17,13 @@ from openpyxl.utils import get_column_letter
 from sqlalchemy.orm import Session
 
 from backend.models import Student, Course, Grade, ExportJob
-from backend.db import get_session as get_db
 
 logger = logging.getLogger(__name__)
 
 
 class ExportStatus(str, Enum):
     """Export job status states."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -49,11 +48,7 @@ class AsyncExportService:
         return os.path.join(self.exports_dir, f"export_{export_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}")
 
     def generate_students_excel(
-        self,
-        db: Session,
-        export_job_id: int,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10000
+        self, db: Session, export_job_id: int, filters: Optional[Dict[str, Any]] = None, limit: int = 10000
     ) -> tuple[bool, Optional[str], str]:
         """Generate Excel export of students.
 
@@ -128,11 +123,7 @@ class AsyncExportService:
             return False, None, str(e)
 
     def generate_courses_excel(
-        self,
-        db: Session,
-        export_job_id: int,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10000
+        self, db: Session, export_job_id: int, filters: Optional[Dict[str, Any]] = None, limit: int = 10000
     ) -> tuple[bool, Optional[str], str]:
         """Generate Excel export of courses."""
         try:
@@ -193,11 +184,7 @@ class AsyncExportService:
             return False, None, str(e)
 
     def generate_grades_excel(
-        self,
-        db: Session,
-        export_job_id: int,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10000
+        self, db: Session, export_job_id: int, filters: Optional[Dict[str, Any]] = None, limit: int = 10000
     ) -> tuple[bool, Optional[str], str]:
         """Generate Excel export of grades."""
         try:
@@ -258,11 +245,7 @@ class AsyncExportService:
             return False, None, str(e)
 
     def process_export_task(
-        self,
-        export_job_id: int,
-        export_type: str,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 10000
+        self, export_job_id: int, export_type: str, filters: Optional[Dict[str, Any]] = None, limit: int = 10000
     ) -> tuple[bool, Optional[str], str]:
         """Process export task in background.
 
@@ -270,6 +253,7 @@ class AsyncExportService:
         """
         # Create fresh session for background task
         from backend.db import SessionLocal
+
         db = SessionLocal()
 
         try:
