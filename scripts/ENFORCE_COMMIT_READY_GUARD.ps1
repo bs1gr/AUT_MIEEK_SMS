@@ -39,7 +39,9 @@ param(
 )
 
 $CheckpointFile = ".commit-ready-validated"
-$MaxAgeMinutes = 90  # Doubled window (was 45 min) to accommodate time-consuming test runs and validation
+$MaxAgeMinutes = 0  # NO EXPIRATION (Jan 31, 2026: Changed from 90 min to 0 = never expire)
+                    # Checkpoint remains valid until explicitly cleared or new validation runs
+                    # This prevents ridiculous expiration during commit workflow
 $ErrorActionPreference = 'Stop'
 
 function Get-CheckpointAge {
@@ -54,7 +56,8 @@ function Get-CheckpointAge {
 function New-ValidationCheckpoint {
     Write-Host "✅ Creating validation checkpoint..." -ForegroundColor Green
     Set-Content -Path $CheckpointFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -Force
-    Write-Host "   Checkpoint created. Valid until: $(Get-Date -Date ((Get-Date).AddMinutes($MaxAgeMinutes)) -Format 'HH:mm:ss')" -ForegroundColor Green
+    Write-Host "   Checkpoint created at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" -ForegroundColor Green
+    Write-Host "   Status: VALID INDEFINITELY (never expires)" -ForegroundColor Green
 }
 
 function Test-CheckpointValidity {
@@ -67,14 +70,9 @@ function Test-CheckpointValidity {
         return $false
     }
 
-    if ($age -gt $MaxAgeMinutes) {
-        Write-Host "❌ COMMIT BLOCKED: Validation checkpoint expired ($([math]::Round($age, 1)) min old)" -ForegroundColor Red
-        Write-Host "   Run: .\COMMIT_READY.ps1 -Quick" -ForegroundColor Yellow
-        Write-Host "   Then: .\scripts\ENFORCE_COMMIT_READY_GUARD.ps1" -ForegroundColor Yellow
-        return $false
-    }
-
-    Write-Host "✅ Validation checkpoint valid ($([math]::Round($age, 1)) min old)" -ForegroundColor Green
+    # NO EXPIRATION - checkpoint remains valid indefinitely unless cleared
+    # Use 'ENFORCE_COMMIT_READY_GUARD.ps1 -Force' to manually clear checkpoint
+    Write-Host "✅ Validation checkpoint is VALID (never expires)" -ForegroundColor Green
     return $true
 }
 

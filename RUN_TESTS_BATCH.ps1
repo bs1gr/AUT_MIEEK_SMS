@@ -1,24 +1,50 @@
 #!/usr/bin/env pwsh
 <#
 .SYNOPSIS
-    Run pytest tests in batches to avoid system freezes
+    Run pytest tests in batches to avoid system freezes with incremental failure tracking
 .DESCRIPTION
-    Splits test execution into smaller batches to reduce memory/CPU load
+    Splits test execution into smaller batches to reduce memory/CPU load.
+    
+    NEW FEATURES (Jan 31, 2026):
+    - Incremental Testing: Failed test files are saved to .test-failures
+    - Use -RetestFailed flag to re-run only previously failed tests
+    - Eliminates need to re-run entire test suite after failures
+    
 .PARAMETER BatchSize
     Number of test files per batch (default: 5)
 .PARAMETER Verbose
     Show detailed output
 .PARAMETER FastFail
     Stop on first failure
+.PARAMETER RetestFailed
+    Only re-run test files that failed in previous run
+    (Requires .test-failures file from previous run)
+.PARAMETER FailureFile
+    Path to file tracking failed tests (default: .test-failures)
+    
+.EXAMPLE
+    .\RUN_TESTS_BATCH.ps1
+    # Run all tests in batches
+    
 .EXAMPLE
     .\RUN_TESTS_BATCH.ps1 -BatchSize 10
+    # Run with larger batch size
+    
+.EXAMPLE
     .\RUN_TESTS_BATCH.ps1 -Verbose
+    # Run with detailed output
+    
+.EXAMPLE
+    .\RUN_TESTS_BATCH.ps1 -RetestFailed
+    # Re-run only previously failed tests (must run after a failure first)
 #>
 
 param(
     [int]$BatchSize = 3,
     [switch]$Verbose,
-    [switch]$FastFail
+    [switch]$FastFail,
+    [switch]$RetestFailed,
+    [string]$FailureFile = ".test-failures"
 )
 
 $ErrorActionPreference = "Stop"
@@ -56,6 +82,19 @@ $env:SMS_TEST_RUNNER = "batch"
 Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
 Write-Host "║   Batch Test Runner (SMS v1.17.2)     ║" -ForegroundColor Cyan
 Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
+
+# NEW: Check for failed tests if -RetestFailed flag provided
+if ($RetestFailed -and (Test-Path $FailureFile)) {
+    Write-Info "🔄 RETEST MODE: Running only previously failed tests"
+    Write-Info "Reading failed tests from: $FailureFile"
+    $failedTestFiles = Get-Content $FailureFile -ErrorAction SilentlyContinue | Where-Object { $_ -and -not $_.StartsWith("#") }
+    if ($failedTestFiles) {
+        Write-Info "Found $($failedTestFiles.Count) failed test file(s) to retest"
+        # Filter testFiles to only include those that failed
+        $testFiles = $testFiles | Where-Object { $_.Name -in $failedTestFiles }
+        Write-Success "Filtered to $($testFiles.Count) test files for re-execution`n"
+    }
+}
 
 # Verify we're in the right directory or find it
 $projectRoot = $PSScriptRoot
@@ -236,10 +275,33 @@ Write-Host ""
 # Exit code
 if ($failedCount -eq 0 -and $failedFiles.Count -eq 0) {
     Write-Success "All tests passed! 🎉"
+    # Clear failure file since all tests passed
+    if (Test-Path $FailureFile) {
+        Remove-Item $FailureFile -Force
+    }
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     exit 0
 } else {
     Write-Error "Some tests failed"
+    
+    # NEW: Save failed test files for future --retest-failed runs
+    if ($failedFiles.Count -gt 0) {
+        Write-Info "`n💾 Saving failed test files for re-testing..."
+        Write-Info "   To retest only failed files, run:"
+        Write-Host "   .\RUN_TESTS_BATCH.ps1 -RetestFailed" -ForegroundColor Yellow
+        
+        # Save failed files with comment header
+        $failureContent = @(
+            "# Failed test files (generated $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))"
+            "# To retest only these files, run: .\RUN_TESTS_BATCH.ps1 -RetestFailed"
+            "# To clear this file, run: Remove-Item $FailureFile"
+            ""
+        ) + $failedFiles
+        
+        Set-Content -Path $FailureFile -Value $failureContent -Force
+        Write-Success "Failed files saved to: $FailureFile ($($failedFiles.Count) files)"
+    }
+    
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     exit 1
 }
