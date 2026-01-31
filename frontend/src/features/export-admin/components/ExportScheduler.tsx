@@ -123,15 +123,27 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Form Toggle Button */}
+      {!showForm && (
+        <Button
+          onClick={() => setShowForm(true)}
+          size="lg"
+          className="w-full gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white transition-colors duration-200 shadow-md hover:shadow-lg"
+        >
+          <Plus className="h-4 w-4" />
+          {t('actions.create')}
+        </Button>
+      )}
+
       {/* Form Section */}
       {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('schedule.createTitle')}</CardTitle>
-            <CardDescription>{t('schedule.createDescription')}</CardDescription>
+        <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg animate-in slide-in-from-top-4 duration-300">
+          <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800">
+            <CardTitle className="text-lg text-slate-900 dark:text-white">{t('schedule.createTitle')}</CardTitle>
+            <CardDescription className="text-slate-600 dark:text-slate-400">{t('schedule.createDescription')}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 {/* Schedule Name */}
@@ -140,62 +152,68 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('schedule.name')}</FormLabel>
+                      <FormLabel className="text-slate-700 dark:text-slate-300 font-medium">{t('schedule.name')}</FormLabel>
                       <FormControl>
-                        <Input placeholder={t('schedule.namePlaceholder')} {...field} />
+                        <Input 
+                          placeholder={t('schedule.namePlaceholder')}
+                          {...field}
+                          className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Export Type */}
-                <FormField
-                  control={form.control}
-                  name="export_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('schedule.type')}</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="students">{t('type.students')}</SelectItem>
-                          <SelectItem value="courses">{t('type.courses')}</SelectItem>
-                          <SelectItem value="grades">{t('type.grades')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {/* Export Type */}
+                  <FormField
+                    control={form.control}
+                    name="export_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700 dark:text-slate-300 font-medium">{t('schedule.type')}</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-blue-500">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                            <SelectItem value="students" className="text-slate-900 dark:text-white">{t('type.students')}</SelectItem>
+                            <SelectItem value="courses" className="text-slate-900 dark:text-white">{t('type.courses')}</SelectItem>
+                            <SelectItem value="grades" className="text-slate-900 dark:text-white">{t('type.grades')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                {/* Export Format */}
-                <FormField
-                  control={form.control}
-                  name="export_format"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('schedule.format')}</FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="excel">{t('format.excel')}</SelectItem>
-                          <SelectItem value="csv">{t('format.csv')}</SelectItem>
-                          <SelectItem value="pdf">{t('format.pdf')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                  {/* Export Format */}
+                  <FormField
+                    control={form.control}
+                    name="export_format"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-700 dark:text-slate-300 font-medium">{t('schedule.format')}</FormLabel>
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-blue-500">
+                              <SelectValue />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                            <SelectItem value="excel" className="text-slate-900 dark:text-white">{t('format.excel')}</SelectItem>
+                            <SelectItem value="csv" className="text-slate-900 dark:text-white">{t('format.csv')}</SelectItem>
+                            <SelectItem value="pdf" className="text-slate-900 dark:text-white">{t('format.pdf')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
                 {/* Frequency */}
                 <FormField
@@ -203,23 +221,23 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                   name="frequency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('schedule.frequency')}</FormLabel>
+                      <FormLabel className="text-slate-700 dark:text-slate-300 font-medium">{t('schedule.frequency')}</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
-                          <SelectTrigger>
+                          <SelectTrigger className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-blue-500">
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="HOURLY">{t('frequency.hourly')}</SelectItem>
-                          <SelectItem value="DAILY">{t('frequency.daily')}</SelectItem>
-                          <SelectItem value="WEEKLY">{t('frequency.weekly')}</SelectItem>
-                          <SelectItem value="MONTHLY">{t('frequency.monthly')}</SelectItem>
-                          <SelectItem value="CUSTOM">{t('frequency.custom')}</SelectItem>
+                        <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+                          <SelectItem value="HOURLY" className="text-slate-900 dark:text-white">{t('frequency.hourly')}</SelectItem>
+                          <SelectItem value="DAILY" className="text-slate-900 dark:text-white">{t('frequency.daily')}</SelectItem>
+                          <SelectItem value="WEEKLY" className="text-slate-900 dark:text-white">{t('frequency.weekly')}</SelectItem>
+                          <SelectItem value="MONTHLY" className="text-slate-900 dark:text-white">{t('frequency.monthly')}</SelectItem>
+                          <SelectItem value="CUSTOM" className="text-slate-900 dark:text-white">{t('frequency.custom')}</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>{t('schedule.frequencyHelp')}</FormDescription>
-                      <FormMessage />
+                      <FormDescription className="text-slate-600 dark:text-slate-400 text-xs">{t('schedule.frequencyHelp')}</FormDescription>
+                      <FormMessage className="text-red-600 dark:text-red-400" />
                     </FormItem>
                   )}
                 />
@@ -230,29 +248,38 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                     control={form.control}
                     name="cron_expression"
                     render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('schedule.cron')}</FormLabel>
+                      <FormItem className="animate-in fade-in duration-200">
+                        <FormLabel className="text-slate-700 dark:text-slate-300 font-medium">{t('schedule.cron')}</FormLabel>
                         <FormControl>
                           <Input
                             placeholder={t('schedule.cronPlaceholder')}
                             {...field}
                             value={field.value || ''}
+                            className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
                           />
                         </FormControl>
-                        <FormDescription>{t('schedule.cronHelp')}</FormDescription>
-                        <FormMessage />
+                        <FormDescription className="text-slate-600 dark:text-slate-400 text-xs">{t('schedule.cronHelp')}</FormDescription>
+                        <FormMessage className="text-red-600 dark:text-red-400" />
                       </FormItem>
                     )}
                   />
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-4">
+                <div className="flex gap-3 pt-4 border-t border-slate-200 dark:border-slate-700">
                   <Button
                     type="submit"
                     disabled={createScheduleMutation.isPending}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
                   >
-                    {createScheduleMutation.isPending ? t('actions.creating') : t('actions.create')}
+                    {createScheduleMutation.isPending ? (
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        {t('actions.creating')}
+                      </div>
+                    ) : (
+                      t('actions.create')
+                    )}
                   </Button>
                   <Button
                     type="button"
@@ -261,6 +288,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                       setShowForm(false);
                       form.reset();
                     }}
+                    className="flex-1 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
                   >
                     {t('actions.cancel')}
                   </Button>
@@ -272,11 +300,18 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
       )}
 
       {/* Schedules List */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">{t('schedule.activeSchedules')}</h3>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-200 dark:border-slate-700">
+          <div>
+            <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white">{t('schedule.activeSchedules')}</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('schedule.scheduleCount', { count: schedules.length })}</p>
+          </div>
           {!showForm && (
-            <Button onClick={() => setShowForm(true)} size="sm" className="gap-2">
+            <Button 
+              onClick={() => setShowForm(true)} 
+              size="sm" 
+              className="gap-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-600 text-white font-medium transition-colors duration-200 shadow-md hover:shadow-lg"
+            >
               <Plus className="h-4 w-4" />
               {t('schedule.new')}
             </Button>
@@ -284,68 +319,106 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
         </div>
 
         {schedules.length === 0 ? (
-          <Card className="p-8 text-center">
-            <Clock className="mx-auto h-8 w-8 text-muted-foreground" />
-            <p className="mt-4 text-muted-foreground">{t('schedule.noSchedules')}</p>
+          <Card className="p-8 text-center border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+            <Clock className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-600" />
+            <p className="mt-4 text-slate-600 dark:text-slate-400 font-medium">{t('schedule.noSchedules')}</p>
+            <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">{t('schedule.noSchedulesHint')}</p>
           </Card>
         ) : (
           <div className="grid gap-4">
             {schedules.map((schedule) => (
-              <Card key={schedule.id} className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <h4 className="font-semibold">{schedule.name}</h4>
-                      <Badge variant={schedule.is_active ? 'default' : 'secondary'}>
-                        {schedule.is_active ? t('schedule.active') : t('schedule.inactive')}
-                      </Badge>
-                      <Badge variant="outline" className="capitalize">
-                        {t(`type.${schedule.export_type}`)}
-                      </Badge>
-                      <Badge variant="outline" className="uppercase">
-                        {schedule.export_format}
-                      </Badge>
+              <Card 
+                key={schedule.id} 
+                className="p-5 sm:p-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:shadow-lg transition-shadow duration-200"
+              >
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    {/* Schedule Header */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-3">
+                      <h4 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white truncate">{schedule.name}</h4>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge 
+                          variant={schedule.is_active ? 'default' : 'secondary'}
+                          className={schedule.is_active 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200' 
+                            : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                          }
+                        >
+                          {schedule.is_active ? t('schedule.active') : t('schedule.inactive')}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 capitalize"
+                        >
+                          {t(`type.${schedule.export_type}`)}
+                        </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className="bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-300 uppercase text-xs"
+                        >
+                          {schedule.export_format}
+                        </Badge>
+                      </div>
                     </div>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      {t('schedule.frequency')}: {getFrequencyDisplay(schedule.frequency)}
-                      {schedule.cron_expression && ` (${schedule.cron_expression})`}
-                    </p>
-                    {schedule.last_run_at && (
-                      <p className="text-xs text-muted-foreground">
-                        {t('schedule.lastRun')}: {format(new Date(schedule.last_run_at), 'PPpp')}
+
+                    {/* Schedule Details */}
+                    <div className="space-y-2 text-sm">
+                      <p className="text-slate-600 dark:text-slate-400">
+                        <span className="font-medium text-slate-700 dark:text-slate-300">{t('schedule.frequency')}:</span> {getFrequencyDisplay(schedule.frequency)}
+                        {schedule.cron_expression && (
+                          <span className="ml-2 font-mono text-xs text-slate-500 dark:text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-1 rounded">
+                            {schedule.cron_expression}
+                          </span>
+                        )}
                       </p>
-                    )}
-                    {schedule.next_run_at && (
-                      <p className="text-xs text-muted-foreground">
-                        {t('schedule.nextRun')}: {format(new Date(schedule.next_run_at), 'PPpp')}
-                      </p>
-                    )}
+                      {schedule.last_run_at && (
+                        <p className="text-slate-500 dark:text-slate-400 text-xs">
+                          <span className="font-medium text-slate-600 dark:text-slate-300">{t('schedule.lastRun')}:</span> {format(new Date(schedule.last_run_at), 'PPpp')}
+                        </p>
+                      )}
+                      {schedule.next_run_at && (
+                        <p className="text-slate-500 dark:text-slate-400 text-xs">
+                          <span className="font-medium text-slate-600 dark:text-slate-300">{t('schedule.nextRun')}:</span> {format(new Date(schedule.next_run_at), 'PPpp')}
+                        </p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Actions */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreHorizontal className="h-4 w-4" />
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
+                      >
+                        <MoreHorizontal className="h-5 w-5" />
+                        <span className="sr-only">{t('actions.menu')}</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleToggle(schedule)}>
+                    <DropdownMenuContent 
+                      align="end"
+                      className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700"
+                    >
+                      <DropdownMenuItem 
+                        onClick={() => handleToggle(schedule)}
+                        className="text-slate-700 dark:text-slate-300 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700"
+                      >
                         {schedule.is_active ? (
                           <>
                             <Pause className="mr-2 h-4 w-4" />
-                            {t('schedule.pause')}
+                            <span>{t('schedule.pause')}</span>
                           </>
                         ) : (
                           <>
                             <Play className="mr-2 h-4 w-4" />
-                            {t('schedule.resume')}
+                            <span>{t('schedule.resume')}</span>
                           </>
                         )}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDelete(schedule.id)}
-                        className="text-destructive"
+                        className="text-red-600 dark:text-red-400 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         {t('actions.delete')}

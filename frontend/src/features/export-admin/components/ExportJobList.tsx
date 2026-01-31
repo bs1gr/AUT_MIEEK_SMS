@@ -120,128 +120,152 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
   // Loading state
   if (isLoading) {
     return (
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full" />
-        ))}
+      <div className="space-y-4 bg-white dark:bg-slate-800 p-6 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-12 w-full bg-slate-200 dark:bg-slate-700 rounded" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Filters */}
-      <div className="flex gap-4">
-        <Input
-          placeholder={t('search')}
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Filters Section */}
+      <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+        <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-4">{t('filters')}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="col-span-1 sm:col-span-2 lg:col-span-2">
+            <Input
+              placeholder={t('search')}
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder-slate-500 dark:placeholder-slate-400 focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200"
+            />
+          </div>
 
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder={t('filterType')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('all')}</SelectItem>
-            <SelectItem value="students">{t('type.students')}</SelectItem>
-            <SelectItem value="courses">{t('type.courses')}</SelectItem>
-            <SelectItem value="grades">{t('type.grades')}</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200">
+              <SelectValue placeholder={t('filterType')} />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+              <SelectItem value="all" className="text-slate-900 dark:text-white">{t('all')}</SelectItem>
+              <SelectItem value="students" className="text-slate-900 dark:text-white">{t('type.students')}</SelectItem>
+              <SelectItem value="courses" className="text-slate-900 dark:text-white">{t('type.courses')}</SelectItem>
+              <SelectItem value="grades" className="text-slate-900 dark:text-white">{t('type.grades')}</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40">
-            <SelectValue placeholder={t('filterStatus')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('all')}</SelectItem>
-            <SelectItem value="completed">{t('status.completed')}</SelectItem>
-            <SelectItem value="processing">{t('status.processing')}</SelectItem>
-            <SelectItem value="pending">{t('status.pending')}</SelectItem>
-            <SelectItem value="failed">{t('status.failed')}</SelectItem>
-          </SelectContent>
-        </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="bg-slate-50 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white focus:border-blue-500 focus:ring-blue-500 transition-colors duration-200">
+              <SelectValue placeholder={t('filterStatus')} />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
+              <SelectItem value="all" className="text-slate-900 dark:text-white">{t('all')}</SelectItem>
+              <SelectItem value="completed" className="text-slate-900 dark:text-white">{t('status.completed')}</SelectItem>
+              <SelectItem value="processing" className="text-slate-900 dark:text-white">{t('status.processing')}</SelectItem>
+              <SelectItem value="pending" className="text-slate-900 dark:text-white">{t('status.pending')}</SelectItem>
+              <SelectItem value="failed" className="text-slate-900 dark:text-white">{t('status.failed')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="rounded-md border">
+      {/* Table Section */}
+      <div className="overflow-x-auto bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('columns.id')}</TableHead>
-              <TableHead>{t('columns.type')}</TableHead>
-              <TableHead>{t('columns.format')}</TableHead>
-              <TableHead>{t('columns.status')}</TableHead>
-              <TableHead>{t('columns.progress')}</TableHead>
-              <TableHead>{t('columns.size')}</TableHead>
-              <TableHead>{t('columns.duration')}</TableHead>
-              <TableHead>{t('columns.created')}</TableHead>
-              <TableHead>{t('columns.actions')}</TableHead>
+          <TableHeader className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+            <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-700">
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide">{t('columns.id')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide">{t('columns.type')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide">{t('columns.format')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide">{t('columns.status')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide">{t('columns.progress')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide hidden lg:table-cell">{t('columns.size')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide hidden md:table-cell">{t('columns.duration')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide hidden sm:table-cell">{t('columns.created')}</TableHead>
+              <TableHead className="text-slate-700 dark:text-slate-300 font-semibold text-xs uppercase tracking-wide text-right pr-2">{t('columns.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredJobs.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={9} className="text-center text-muted-foreground">
-                  {t('noJobs')}
+              <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-700">
+                <TableCell colSpan={9} className="text-center py-8 text-slate-500 dark:text-slate-400">
+                  <p className="font-medium">{t('noJobs')}</p>
                 </TableCell>
               </TableRow>
             ) : (
               filteredJobs.map((job) => (
-                <TableRow key={job.id}>
-                  <TableCell className="font-mono text-sm">{job.id.substring(0, 8)}</TableCell>
-                  <TableCell className="capitalize">{t(`type.${job.export_type}`)}</TableCell>
-                  <TableCell className="uppercase">{t(`format.${job.export_format}`)}</TableCell>
+                <TableRow 
+                  key={job.id}
+                  className="hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 transition-colors duration-150"
+                >
+                  <TableCell className="font-mono text-xs text-slate-700 dark:text-slate-300 font-medium">{job.id.substring(0, 8)}</TableCell>
+                  <TableCell className="capitalize text-slate-700 dark:text-slate-300 font-medium">{t(`type.${job.export_type}`)}</TableCell>
+                  <TableCell className="uppercase text-slate-700 dark:text-slate-300 font-medium tracking-wide">{t(`format.${job.export_format}`)}</TableCell>
                   <TableCell>{getStatusBadge(job.status)}</TableCell>
                   <TableCell>
-                    <div className="w-20">
-                      <div className="h-2 w-full rounded-full bg-secondary">
+                    <div className="w-24 space-y-1">
+                      <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-600 overflow-hidden">
                         <div
-                          className="h-full rounded-full bg-primary transition-all"
+                          className="h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300 rounded-full"
                           style={{ width: `${job.progress_percent}%` }}
                         />
                       </div>
-                      <span className="text-xs text-muted-foreground">{job.progress_percent}%</span>
+                      <span className="text-xs text-slate-600 dark:text-slate-400 font-medium">{job.progress_percent}%</span>
                     </div>
                   </TableCell>
-                  <TableCell>{formatFileSize(job.file_size_bytes)}</TableCell>
-                  <TableCell>
-                    {job.duration_seconds
-                      ? `${job.duration_seconds.toFixed(2)}${t('units.secondsShort')}`
-                      : '-'}
+                  <TableCell className="text-slate-700 dark:text-slate-300 hidden lg:table-cell text-sm">{formatFileSize(job.file_size_bytes)}</TableCell>
+                  <TableCell className="text-slate-700 dark:text-slate-300 hidden md:table-cell text-sm">
+                    {job.duration_seconds ? `${job.duration_seconds.toFixed(2)}${t('units.secondsShort')}` : '-'}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-sm text-slate-600 dark:text-slate-400 hidden sm:table-cell">
                     {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-right pr-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-150 h-8 w-8 p-0"
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onJobSelected?.(job)}>
+                      <DropdownMenuContent 
+                        align="end"
+                        className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
+                      >
+                        <DropdownMenuItem 
+                          onClick={() => onJobSelected?.(job)}
+                          className="text-slate-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700 cursor-pointer"
+                        >
                           <Eye className="mr-2 h-4 w-4" />
                           {t('actions.view')}
                         </DropdownMenuItem>
                         {job.status === 'completed' && (
-                          <DropdownMenuItem onClick={() => handleDownload(job)}>
+                          <DropdownMenuItem 
+                            onClick={() => handleDownload(job)}
+                            className="text-slate-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700 cursor-pointer"
+                          >
                             <Download className="mr-2 h-4 w-4" />
                             {t('actions.download')}
                           </DropdownMenuItem>
                         )}
                         {(job.status === 'completed' || job.status === 'failed') && (
-                          <DropdownMenuItem onClick={() => handleRerun(job)}>
+                          <DropdownMenuItem 
+                            onClick={() => handleRerun(job)}
+                            className="text-slate-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700 cursor-pointer"
+                          >
                             <RotateCw className="mr-2 h-4 w-4" />
                             {t('actions.rerun')}
                           </DropdownMenuItem>
                         )}
                         <DropdownMenuItem
                           onClick={() => handleDelete(job.id)}
-                          className="text-destructive"
+                          className="text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-900/20 cursor-pointer"
                         >
                           <Trash2 className="mr-2 h-4 w-4" />
                           {t('actions.delete')}
@@ -258,8 +282,13 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
 
       {/* Pagination info */}
       {jobsData?.data && (
-        <div className="text-sm text-muted-foreground">
-          {t('showing')} {filteredJobs.length} {t('of')} {jobsData.data.total}
+        <div className="flex items-center justify-between bg-white dark:bg-slate-800 p-4 rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="text-sm text-slate-600 dark:text-slate-400">
+            {t('showing')} <span className="font-semibold text-slate-900 dark:text-white">{filteredJobs.length}</span> {t('of')} <span className="font-semibold text-slate-900 dark:text-white">{jobsData.data.total}</span>
+          </div>
+          <div className="text-xs text-slate-500 dark:text-slate-500">
+            {jobsLoading && 'Loading...'}
+          </div>
         </div>
       )}
     </div>
