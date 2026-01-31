@@ -96,7 +96,7 @@ After restarting, check:
 2. **API health check**:
 
    ```powershell
-   curl http://localhost:8080/api/v1/health
+   curl http://localhost:8080/health
    ```
 
 3. **Auth endpoint**:

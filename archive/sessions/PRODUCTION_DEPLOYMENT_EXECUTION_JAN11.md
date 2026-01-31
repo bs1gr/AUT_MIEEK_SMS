@@ -63,7 +63,7 @@
 7. [ ] Run staging smoke tests (5 tests)
 
 **Smoke Tests**:
-- [ ] Health endpoint `/api/v1/health` responding
+- [ ] Health endpoint `/health` responding
 - [ ] Database connectivity verified
 - [ ] Authentication functional
 - [ ] RBAC permissions working
@@ -207,7 +207,7 @@ restore-backup-script
 docker-compose -f docker-compose.prod.yml up -d v1.15.1
 
 # Verify operational
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 ```
 
 ### Detailed Rollback (15 minutes)

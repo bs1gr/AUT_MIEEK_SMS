@@ -32,7 +32,7 @@ docker-compose ps
 # Should show: all containers in "Up" state
 
 # TEST HEALTH
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 # Should return: {"status": "healthy", ...}
 
 # RUN SMOKE TESTS
@@ -154,7 +154,7 @@ docker-compose down
 docker-compose up -d
 
 # Health check
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 
 # Database access
 docker-compose exec postgres psql -U sms_user -d student_management

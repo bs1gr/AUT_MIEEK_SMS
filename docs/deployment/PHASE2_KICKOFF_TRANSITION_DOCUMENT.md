@@ -297,7 +297,7 @@ MAR 10+    ✅ $11.15.2 Released
 
 **09:30 AM**: Dev Environment Verification (30 min)
 - All devs verify: code pulls, tests run, no errors
-- Confirm API endpoint access at http://localhost:8080/api/v1/health
+- Confirm API endpoint access at http://localhost:8080/health
 - Confirm frontend at http://localhost:8080
 
 **10:00 AM**: Start Week 1 Tasks

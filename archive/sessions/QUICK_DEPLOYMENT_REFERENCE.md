@@ -28,7 +28,7 @@ cd frontend
 npm run dev -- --port 5173
 
 # Test health
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 # Expected: 200 OK
 ```
 
@@ -41,7 +41,7 @@ curl http://localhost:8080/api/v1/health
 ```powershell
 # Quick smoke tests
 $tests = @{
-    "Health Endpoint" = "http://localhost:8080/api/v1/health"
+    "Health Endpoint" = "http://localhost:8080/health"
     "Database" = "http://localhost:8080/api/v1/students?skip=0&limit=1"
 }
 
@@ -116,7 +116,7 @@ docker-compose -f docker-compose.prod.yml up -d
 Start-Sleep -Seconds 20
 
 # Verify deployment
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 # Expected: 200 OK with version 1.15.2
 ```
 
@@ -134,7 +134,7 @@ curl http://localhost:8080/api/v1/health
 Write-Host "Running post-deployment verification..."
 
 # Test 1: Health
-$h = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health"
+$h = Invoke-WebRequest -Uri "http://localhost:8080/health"
 Write-Host "✅ Health: $($h.StatusCode)"
 
 # Test 2: Database
@@ -171,7 +171,7 @@ while ((Get-Date) -lt $endTime) {
     $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
 
     try {
-        $response = Invoke-WebRequest -Uri "http://localhost:8080/api/v1/health" -TimeoutSec 5
+        $response = Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 5
         "$ts - HEALTHY ($($response.StatusCode))" | Tee-Object -FilePath $monitoringLog -Append
     } catch {
         "$ts - ERROR: $_" | Tee-Object -FilePath $monitoringLog -Append
@@ -204,7 +204,7 @@ docker-compose -f docker-compose.prod.yml up -d
 Start-Sleep -Seconds 20
 
 # VERIFY
-curl http://localhost:8080/api/v1/health
+curl http://localhost:8080/health
 Write-Host "✅ Rollback complete - v1.15.1 restored"
 ```
 
