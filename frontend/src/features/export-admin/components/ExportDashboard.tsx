@@ -77,9 +77,9 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
             {t('description')}
           </p>
         </div>
-        <Button 
-          onClick={handleRefresh} 
-          variant="outline" 
+        <Button
+          onClick={handleRefresh}
+          variant="outline"
           size="lg"
           className="w-full sm:w-auto gap-2 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200"
         >
@@ -152,44 +152,44 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
       </div>
 
       {/* Tabs Navigation */}
-      <Tabs 
-        value={activeTab} 
+      <Tabs
+        value={activeTab}
         onValueChange={(value) => setActiveTab(value as TabValue)}
         className="w-full space-y-6"
       >
         <div className="relative">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1 bg-slate-200 dark:bg-slate-700 p-1 rounded-lg border border-slate-300 dark:border-slate-600">
-            <TabsTrigger 
+            <TabsTrigger
               value="jobs"
               className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm"
             >
               {t('tabs.jobs')}
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="schedules"
               className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm"
             >
               {t('tabs.schedules')}
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="metrics"
               className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm"
             >
               {t('tabs.metrics')}
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="analytics"
               className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm"
             >
               {t('tabs.analytics')}
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="email"
               className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm"
             >
               {t('tabs.email')}
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="settings"
               className="data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-slate-900 dark:data-[state=active]:text-white data-[state=active]:shadow-sm transition-all duration-200 text-xs sm:text-sm"
             >

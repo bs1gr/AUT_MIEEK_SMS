@@ -197,7 +197,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
               </TableRow>
             ) : (
               filteredJobs.map((job) => (
-                <TableRow 
+                <TableRow
                   key={job.id}
                   className="hover:bg-slate-50 dark:hover:bg-slate-700/50 border-b border-slate-200 dark:border-slate-700 transition-colors duration-150"
                 >
@@ -226,19 +226,19 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                   <TableCell className="text-right pr-2">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           className="hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-150 h-8 w-8 p-0"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent 
+                      <DropdownMenuContent
                         align="end"
                         className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                       >
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => onJobSelected?.(job)}
                           className="text-slate-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700 cursor-pointer"
                         >
@@ -246,7 +246,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                           {t('actions.view')}
                         </DropdownMenuItem>
                         {job.status === 'completed' && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleDownload(job)}
                             className="text-slate-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700 cursor-pointer"
                           >
@@ -255,7 +255,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                           </DropdownMenuItem>
                         )}
                         {(job.status === 'completed' || job.status === 'failed') && (
-                          <DropdownMenuItem 
+                          <DropdownMenuItem
                             onClick={() => handleRerun(job)}
                             className="text-slate-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700 cursor-pointer"
                           >
@@ -287,7 +287,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
             {t('showing')} <span className="font-semibold text-slate-900 dark:text-white">{filteredJobs.length}</span> {t('of')} <span className="font-semibold text-slate-900 dark:text-white">{jobsData.data.total}</span>
           </div>
           <div className="text-xs text-slate-500 dark:text-slate-500">
-            {jobsLoading && 'Loading...'}
+            {isLoading && 'Loading...'}
           </div>
         </div>
       )}
