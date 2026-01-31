@@ -79,30 +79,42 @@ def test_login_lockout_after_failed_attempts(client, monkeypatch):
     monkeypatch.setattr(settings, "AUTH_ENABLED", True, raising=False)
     monkeypatch.setattr(settings, "AUTH_MODE", "strict", raising=False)
 
+    prev_attempts = settings.AUTH_LOGIN_MAX_ATTEMPTS
+    prev_lockout = settings.AUTH_LOGIN_LOCKOUT_SECONDS
+    prev_window = settings.AUTH_LOGIN_TRACKING_WINDOW_SECONDS
+    settings.AUTH_LOGIN_MAX_ATTEMPTS = 5
+    settings.AUTH_LOGIN_LOCKOUT_SECONDS = 300
+    settings.AUTH_LOGIN_TRACKING_WINDOW_SECONDS = 300
+
     payload = {
         "email": "lock@example.com",  # pragma: allowlist secret
         "password": "LockPass1!",  # pragma: allowlist secret
         "full_name": "Lock User",
     }
-    assert _post_with_csrf(client, "/api/v1/auth/register", payload).status_code == 200
+    try:
+        assert _post_with_csrf(client, "/api/v1/auth/register", payload).status_code == 200
 
-    for _ in range(4):
+        for _ in range(4):
+            resp = _post_with_csrf(
+                client,
+                "/api/v1/auth/login",
+                {"email": payload["email"], "password": "badPass!1"},
+            )
+            assert resp.status_code == 400
+
         resp = _post_with_csrf(
             client,
             "/api/v1/auth/login",
             {"email": payload["email"], "password": "badPass!1"},
         )
-        assert resp.status_code == 400
-
-    resp = _post_with_csrf(
-        client,
-        "/api/v1/auth/login",
-        {"email": payload["email"], "password": "badPass!1"},
-    )
-    assert resp.status_code == 429
-    body = resp.json()
-    assert get_error_code(body) in {"HTTP_429", ErrorCode.AUTH_ACCOUNT_LOCKED.value}
-    assert "Retry-After" in resp.headers
+        assert resp.status_code == 429
+        body = resp.json()
+        assert get_error_code(body) in {"HTTP_429", ErrorCode.AUTH_ACCOUNT_LOCKED.value}
+        assert "Retry-After" in resp.headers
+    finally:
+        settings.AUTH_LOGIN_MAX_ATTEMPTS = prev_attempts
+        settings.AUTH_LOGIN_LOCKOUT_SECONDS = prev_lockout
+        settings.AUTH_LOGIN_TRACKING_WINDOW_SECONDS = prev_window
 
 
 def test_login_recovers_after_lockout_window(client, monkeypatch):
