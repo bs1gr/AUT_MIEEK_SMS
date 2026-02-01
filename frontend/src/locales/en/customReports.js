@@ -56,7 +56,7 @@ export default {
   filterOperator: 'Operator',
   filterValue: 'Value',
   removeFilter: 'Remove Filter',
-  
+
   // Filter operators
   operator_equals: 'Equals',
   operator_not_equals: 'Not Equals',

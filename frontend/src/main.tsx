@@ -26,6 +26,9 @@ import {
   ImportExportPage,
   AnalyticsPage,
   SearchPage,
+  ReportBuilderPage,
+  ReportListPage,
+  ReportTemplateBrowserPage,
   preloadCriticalRoutes,
 } from './routes';
 
@@ -61,6 +64,11 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/operations" element={<OperationsPage />} />
               <Route path="/power" element={<PowerPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
+              {/* Reports: Custom report builder and management */}
+              <Route path="/reports" element={<ReportListPage />} />
+              <Route path="/reports/builder" element={<ReportBuilderPage />} />
+              <Route path="/reports/builder/:id" element={<ReportBuilderPage />} />
+              <Route path="/reports/templates" element={<ReportTemplateBrowserPage />} />
               {/* Admin: Permissions management */}
               <Route element={<RequireAdmin />}>
                 <Route path="/admin/permissions" element={<AdminPermissionsPage />} />

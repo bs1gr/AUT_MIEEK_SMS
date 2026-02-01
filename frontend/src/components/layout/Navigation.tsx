@@ -2,7 +2,18 @@ import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
 
 // 'system' replaces 'power' - module moved to features/operations in v1.17.5+
-export type NavigationView = 'dashboard' | 'students' | 'courses' | 'attendance' | 'grading' | 'calendar' | 'operations' | 'system' | 'search';
+export type NavigationView =
+  | 'dashboard'
+  | 'students'
+  | 'courses'
+  | 'attendance'
+  | 'grading'
+  | 'calendar'
+  | 'operations'
+  | 'system'
+  | 'search'
+  | 'analytics'
+  | 'reports';
 
 export interface NavigationTab {
   key: NavigationView;

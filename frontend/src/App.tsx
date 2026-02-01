@@ -28,13 +28,15 @@ interface NavigationTabConfig {
 const NAV_TAB_CONFIG: NavigationTabConfig[] = [
   { key: 'dashboard', labelKey: 'dashboard', path: '/dashboard' },
   { key: 'analytics', labelKey: 'analytics', path: '/analytics' },
+  { key: 'search', labelKey: 'searchTab', path: '/search' },
   { key: 'attendance', labelKey: 'attendance', path: '/attendance' },
   { key: 'grading', labelKey: 'grades', path: '/grading' },
   { key: 'students', labelKey: 'students', path: '/students' },
   { key: 'courses', labelKey: 'courses', path: '/courses' },
   { key: 'calendar', labelKey: 'calendar', path: '/calendar' },
+  { key: 'reports', labelKey: 'customReports:reports', path: '/reports' },
   { key: 'operations', labelKey: 'utilsTab', path: '/operations' },
-  { key: 'power', labelKey: 'powerTab', path: '/power' },
+  { key: 'system', labelKey: 'powerTab', path: '/power' },
 ];
 
 // Create a client
