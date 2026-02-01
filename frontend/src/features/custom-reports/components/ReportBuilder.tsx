@@ -193,12 +193,15 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       // Transform frontend config to backend schema format
       const backendConfig: any = {
         name: config.name,
-        description: config.description || undefined,
+        description: config.description || null,
         report_type: config.entity_type,
         fields: config.selected_fields.reduce((acc, field) => {
           acc[field] = true;
           return acc;
         }, {} as Record<string, boolean>),
+        filters: config.filters.length > 0 ? config.filters : null,
+        aggregations: null,
+        sort_by: config.sorting_rules.length > 0 ? config.sorting_rules : null,
         export_format: config.output_format,
         include_charts: true,
         schedule_enabled: false,
@@ -207,14 +210,6 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         email_recipients: null,
         email_enabled: false,
       };
-
-      // Only add optional fields if they have values
-      if (config.filters.length > 0) {
-        backendConfig.filters = config.filters;
-      }
-      if (config.sorting_rules.length > 0) {
-        backendConfig.sort_by = config.sorting_rules;
-      }
 
       console.log('[ReportBuilder] Transformed config:', backendConfig);
 
