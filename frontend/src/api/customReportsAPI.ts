@@ -197,6 +197,22 @@ export const customReportsAPI = {
       console.error('[customReportsAPI] Error creating report:', axiosError);
       console.error('[customReportsAPI] Response status:', axiosError.response?.status);
       console.error('[customReportsAPI] Response data:', axiosError.response?.data);
+      
+      // Log detailed validation errors
+      if (axiosError.response?.status === 422 && axiosError.response?.data) {
+        const responseData = axiosError.response.data;
+        console.error('[customReportsAPI] 🔴 VALIDATION ERROR DETAILS:');
+        console.error('  Full response:', JSON.stringify(responseData, null, 2));
+        
+        // Try to extract Pydantic validation errors
+        if (responseData.detail) {
+          console.error('  Detail:', responseData.detail);
+        }
+        if (responseData.errors) {
+          console.error('  Errors:', responseData.errors);
+        }
+      }
+      
       throw extractAPIError(
         (error as { response?: AxiosResponse }).response
       );
