@@ -170,7 +170,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
                     value={filter.operator}
                     onChange={(e) => handleOperatorChange(index, e.target.value)}
                     className="w-32 px-2 py-1 text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    aria-label={t('search.filterOperator')}
+                    aria-label={t('filterOperator', { ns: 'search' })}
                   >
                     {operators.map((op) => (
                       <option key={op.value} value={op.value}>
@@ -191,7 +191,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
                           handleValueChange(index, [e.target.value, max]);
                         }}
                         className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        aria-label={t('search.filterValue')}
+                        aria-label={t('filterValue', { ns: 'search' })}
                       />
                       <span className="text-gray-500">-</span>
                       <input
@@ -203,17 +203,17 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
                           handleValueChange(index, [min, e.target.value]);
                         }}
                         className="w-16 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                        aria-label={t('search.filterValue')}
+                        aria-label={t('filterValue', { ns: 'search' })}
                       />
                     </div>
                   ) : (
                     <input
                       type="text"
-                      placeholder={t('search.filterValue')}
+                      placeholder={t('filterValue', { ns: 'search' })}
                       value={filter.value as string}
                       onChange={(e) => handleValueChange(index, e.target.value)}
                       className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      aria-label={t('search.filterValue')}
+                      aria-label={t('filterValue', { ns: 'search' })}
                     />
                   )}
 
@@ -221,7 +221,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
                   <button
                     onClick={() => handleRemoveFilter(index)}
                     className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                    aria-label={t('search.removeFilter')}
+                    aria-label={t('removeFilter', { ns: 'search' })}
                   >
                     <Trash2 size={18} />
                   </button>
@@ -236,13 +236,13 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
               onClick={handleReset}
               className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
             >
-              {t('search.resetFilters')}
+              {t('resetFilters', { ns: 'search' })}
             </button>
             <button
               onClick={handleApply}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
             >
-              {t('search.applyFilters')}
+              {t('applyFilters', { ns: 'search' })}
             </button>
           </div>
         </div>

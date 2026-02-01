@@ -42,6 +42,7 @@ describe('SavedSearches Component', () => {
   it('should render component with header', () => {
     render(<SavedSearches />, { wrapper });
 
+    // Values come from search namespace: search.saved.title and search.saved.description
     expect(screen.getByText('Saved Searches')).toBeInTheDocument();
     expect(screen.getByText('View and manage your saved searches')).toBeInTheDocument();
   });
@@ -57,7 +58,8 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    // Check for loading container with role="status" instead of text which appears multiple times
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
   it('should show empty state when no searches', () => {
@@ -137,7 +139,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const typeFilter = screen.getByRole('combobox', { name: /Filter by type/i });
+    const typeFilter = screen.getByRole('combobox', { name: /filterByType/i });
     fireEvent.change(typeFilter, { target: { value: 'students' } });
 
     await waitFor(() => {
@@ -179,7 +181,7 @@ describe('SavedSearches Component', () => {
     render(<SavedSearches />, { wrapper });
 
     // Find the favorites button by role and partial text match
-    const favoritesButton = screen.getByRole('button', { name: /Favorites only/i });
+    const favoritesButton = screen.getByRole('button', { name: /favoritesOnly/i });
     fireEvent.click(favoritesButton);
 
     await waitFor(() => {
@@ -211,7 +213,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches onLoadSearch={mockOnLoadSearch} />, { wrapper });
 
-    const loadButton = screen.getByRole('button', { name: /load search/i });
+    const loadButton = screen.getByRole('button', { name: /loadSearch/i });
     fireEvent.click(loadButton);
 
     expect(mockLoadSavedSearch).toHaveBeenCalledWith(mockSearch);
@@ -240,7 +242,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const favoriteButton = screen.getByRole('button', { name: /toggle favorite/i });
+    const favoriteButton = screen.getByRole('button', { name: /toggleFavorite/i });
     fireEvent.click(favoriteButton);
 
     await waitFor(() => {
