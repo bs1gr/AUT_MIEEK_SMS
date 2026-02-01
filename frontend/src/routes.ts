@@ -54,6 +54,19 @@ export const PowerPage = lazy(() =>
   import(/* webpackChunkName: "system" */ './features/operations').then(m => ({ default: m.SystemPage }))
 );
 
+// Custom Reports pages (Phase 6 - Reporting Enhancements)
+export const ReportBuilderPage = lazy(() =>
+  import(/* webpackChunkName: "reports-builder" */ './features/custom-reports').then(m => ({ default: m.ReportBuilderPage }))
+);
+
+export const ReportListPage = lazy(() =>
+  import(/* webpackChunkName: "reports-list" */ './features/custom-reports').then(m => ({ default: m.ReportListPage }))
+);
+
+export const ReportTemplateBrowserPage = lazy(() =>
+  import(/* webpackChunkName: "reports-templates" */ './features/custom-reports').then(m => ({ default: m.ReportTemplateBrowserPage }))
+);
+
 // Admin/RBAC page moved to admin feature module (v1.17.5+)
 export const AdminPermissionsPage = lazy(() =>
   import(/* webpackChunkName: "admin-permissions" */ './features/admin').then(m => ({ default: m.PermissionsPage }))
@@ -92,5 +105,8 @@ export default {
   PowerPage,
   AdminPermissionsPage,
   SearchPage,
+  ReportBuilderPage,
+  ReportListPage,
+  ReportTemplateBrowserPage,
   preloadCriticalRoutes,
 };

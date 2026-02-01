@@ -56,7 +56,7 @@ export default {
   filterOperator: 'Τελεστής',
   filterValue: 'Τιμή',
   removeFilter: 'Αφαίρεση Φίλτρου',
-  
+
   // Filter operators
   operator_equals: 'Ίσο',
   operator_not_equals: 'Όχι Ίσο',

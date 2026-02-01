@@ -24,6 +24,9 @@ import {
   PowerPage,
   AdminPermissionsPage,
   SearchPage,
+  ReportBuilderPage,
+  ReportListPage,
+  ReportTemplateBrowserPage,
   preloadCriticalRoutes,
 } from './routes';
 
@@ -58,6 +61,11 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/operations" element={<OperationsPage />} />
               <Route path="/power" element={<PowerPage />} />
+              {/* Reports: Custom report builder and management */}
+              <Route path="/reports" element={<ReportListPage />} />
+              <Route path="/reports/builder" element={<ReportBuilderPage />} />
+              <Route path="/reports/builder/:id" element={<ReportBuilderPage />} />
+              <Route path="/reports/templates" element={<ReportTemplateBrowserPage />} />
               {/* Admin: Permissions management */}
               <Route element={<RequireAdmin />}>
                 <Route path="/admin/permissions" element={<AdminPermissionsPage />} />

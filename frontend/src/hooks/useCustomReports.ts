@@ -2,8 +2,8 @@
  * React Query hooks for Custom Reports API (Phase 6)
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tantml:react-query';
-import { customReportsAPI, reportTemplatesAPI } from '@/api/customReportsAPI.js';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { customReportsAPI, reportTemplatesAPI } from '@/api/customReportsAPI';
 import { useNotifications } from './useNotifications';
 
 // ==================== QUERY KEYS ====================
