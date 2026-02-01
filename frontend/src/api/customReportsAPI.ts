@@ -144,11 +144,13 @@ export const customReportsAPI = {
   getAll: async (options: { status?: string; skip?: number; limit?: number } = {}) => {
     try {
       const params = new URLSearchParams();
-      if (options.status) params.append('status', options.status);
+      if (options.status) params.append('report_type', options.status);
       if (options.skip !== undefined) params.append('skip', String(options.skip));
       if (options.limit !== undefined) params.append('limit', String(options.limit));
 
-      const response = await apiClient.get(`/custom-reports/reports/?${params.toString()}`);
+      const queryString = params.toString();
+      const url = queryString ? `/?${queryString}` : '/';
+      const response = await apiClient.get(`/custom-reports${url}`);
       return extractAPIResponseData(response) as CustomReport[];
     } catch (error) {
       console.error('[customReportsAPI] Error fetching reports:', error);
@@ -163,7 +165,7 @@ export const customReportsAPI = {
    */
   getById: async (id: number) => {
     try {
-      const response = await apiClient.get(`/custom-reports/reports/${id}`);
+      const response = await apiClient.get(`/custom-reports/${id}`);
       return extractAPIResponseData(response) as CustomReport;
     } catch (error) {
       console.error(`[customReportsAPI] Error fetching report ${id}:`, error);
@@ -178,7 +180,7 @@ export const customReportsAPI = {
    */
   create: async (reportData: Partial<CustomReport>) => {
     try {
-      const response = await apiClient.post('/custom-reports/reports/', reportData);
+      const response = await apiClient.post('/custom-reports/', reportData);
       return extractAPIResponseData(response) as CustomReport;
     } catch (error) {
       console.error('[customReportsAPI] Error creating report:', error);
@@ -193,7 +195,7 @@ export const customReportsAPI = {
    */
   update: async (id: number, updates: Partial<CustomReport>) => {
     try {
-      const response = await apiClient.put(`/custom-reports/reports/${id}`, updates);
+      const response = await apiClient.put(`/custom-reports/${id}`, updates);
       return extractAPIResponseData(response) as CustomReport;
     } catch (error) {
       console.error(`[customReportsAPI] Error updating report ${id}:`, error);
@@ -224,7 +226,7 @@ export const customReportsAPI = {
   generate: async (id: number) => {
     try {
       const response = await apiClient.post(`/custom-reports/reports/${id}/generate`);
-      return extractAPIResponseData(response) as { job_id: string; status: string };
+      return extractAPIResponseData(response) as { job_id: status: string };
     } catch (error) {
       console.error(`[customReportsAPI] Error generating report ${id}:`, error);
       throw extractAPIError(
@@ -238,7 +240,7 @@ export const customReportsAPI = {
    */
   getGeneratedReports: async (id: number) => {
     try {
-      const response = await apiClient.get(`/custom-reports/reports/${id}/generated`);
+      const response = await apiClient.get(`/custom-reports/${id}/generated`);
       return extractAPIResponseData(response) as GeneratedReport[];
     } catch (error) {
       console.error(`[customReportsAPI] Error fetching generated reports for ${id}:`, error);
@@ -254,7 +256,7 @@ export const customReportsAPI = {
   download: async (reportId: number, generatedId: number) => {
     try {
       const response = await apiClient.get(
-        `/custom-reports/reports/${reportId}/generated/${generatedId}/download`,
+        `/custom-reports/${reportId}/generated/${generatedId}/download`,
         { responseType: 'blob' }
       );
       return response.data; // Blob doesn't need unwrapping
@@ -271,7 +273,7 @@ export const customReportsAPI = {
    */
   getStatistics: async () => {
     try {
-      const response = await apiClient.get('/custom-reports/reports/statistics');
+      const response = await apiClient.get('/custom-reports/statistics');
       return extractAPIResponseData(response) as Record<string, unknown>;
     } catch (error) {
       console.error('[customReportsAPI] Error fetching statistics:', error);
