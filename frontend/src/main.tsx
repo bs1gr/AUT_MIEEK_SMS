@@ -59,13 +59,13 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/grading" element={<GradingPage />} />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/calendar" element={<CalendarPage />} />
-              <Route path="/operations" element={<OperationsPage />} />
               <Route path="/power" element={<PowerPage />} />
-              {/* Reports: Custom report builder and management */}
-              <Route path="/reports" element={<ReportListPage />} />
-              <Route path="/reports/builder" element={<ReportBuilderPage />} />
-              <Route path="/reports/builder/:id" element={<ReportBuilderPage />} />
-              <Route path="/reports/templates" element={<ReportTemplateBrowserPage />} />
+              {/* Operations: System utilities and custom report builder */}
+              <Route element={<OperationsPage />} path="/operations" />
+              <Route path="/operations/reports" element={<ReportListPage />} />
+              <Route path="/operations/reports/builder" element={<ReportBuilderPage />} />
+              <Route path="/operations/reports/builder/:id" element={<ReportBuilderPage />} />
+              <Route path="/operations/reports/templates" element={<ReportTemplateBrowserPage />} />
               {/* Admin: Permissions management */}
               <Route element={<RequireAdmin />}>
                 <Route path="/admin/permissions" element={<AdminPermissionsPage />} />

@@ -32,6 +32,8 @@ export default {
   calendar: 'Calendar',
   searchTab: 'Search',
   utilsTab: 'Utils',
+  operations: 'Operations',
+  reports: 'Reports',
   maintenance: 'Maintenance',
    export: 'Export',
    help: 'Help',

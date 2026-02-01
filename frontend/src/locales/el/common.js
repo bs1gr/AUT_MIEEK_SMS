@@ -32,6 +32,8 @@ export default {
   calendar: 'Ημερολόγιο',
   searchTab: 'Αναζήτηση',
   utilsTab: 'Εργαλεία',
+  operations: 'Λειτουργίες',
+  reports: 'Αναφορές',
   maintenance: 'Συντήρηση',
   export: 'Εξαγωγή',
   help: 'Βοήθεια',
