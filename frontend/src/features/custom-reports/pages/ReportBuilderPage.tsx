@@ -20,7 +20,7 @@ export const ReportBuilderPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/reports')}
+              onClick={() => navigate('/operations/reports')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               title={t('back', { ns: 'common' })}
             >
@@ -39,8 +39,8 @@ export const ReportBuilderPage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <ReportBuilder
           reportId={id ? parseInt(id) : undefined}
-          onCancel={() => navigate('/reports')}
-          onSuccess={() => navigate('/reports')}
+          onCancel={() => navigate('/operations/reports')}
+          onSuccess={() => navigate('/operations/reports')}
         />
       </div>
     </div>

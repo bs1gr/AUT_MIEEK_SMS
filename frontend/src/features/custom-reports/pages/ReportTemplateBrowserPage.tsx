@@ -24,7 +24,7 @@ export const ReportTemplateBrowserPage: React.FC = () => {
 
   const handleUseTemplate = (template: Template) => {
     // Navigate to builder with template data pre-filled
-    navigate('/reports/builder', {
+    navigate('/operations/reports/builder', {
       state: {
         templateData: {
           name: `${template.name} - Copy`,
@@ -58,7 +58,7 @@ export const ReportTemplateBrowserPage: React.FC = () => {
         <ReportTemplateList
           onUseTemplate={handleUseTemplate}
           onEditTemplate={(templateId) => {
-            navigate(`/reports/builder?template=${templateId}`);
+            navigate(`/operations/reports/builder?template=${templateId}`);
           }}
         />
       </div>
