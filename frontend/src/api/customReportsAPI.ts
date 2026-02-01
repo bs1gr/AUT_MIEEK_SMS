@@ -189,10 +189,14 @@ export const customReportsAPI = {
    */
   create: async (reportData: Partial<CustomReport>) => {
     try {
+      console.log('[customReportsAPI] Creating report with data:', reportData);
       const response = await apiClient.post('/custom-reports/', reportData);
       return extractAPIResponseData(response) as CustomReport;
     } catch (error) {
-      console.error('[customReportsAPI] Error creating report:', error);
+      const axiosError = error as any;
+      console.error('[customReportsAPI] Error creating report:', axiosError);
+      console.error('[customReportsAPI] Response status:', axiosError.response?.status);
+      console.error('[customReportsAPI] Response data:', axiosError.response?.data);
       throw extractAPIError(
         (error as { response?: AxiosResponse }).response
       );

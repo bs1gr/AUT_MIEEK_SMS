@@ -212,6 +212,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         backendConfig.sort_by = config.sorting_rules;
       }
 
+      console.log('[ReportBuilder] Transformed config:', backendConfig);
+
       if (reportId) {
         await updateMutation.mutateAsync({
           id: reportId,
