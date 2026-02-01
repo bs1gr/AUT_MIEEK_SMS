@@ -413,4 +413,3 @@ ORDER BY query_start;
 **Review Schedule**: Quarterly (next review: May 1, 2026)
 **Version History**:
 - v1.0 (Feb 1, 2026): Initial production runbook
-

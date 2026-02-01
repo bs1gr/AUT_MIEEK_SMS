@@ -72,4 +72,3 @@ This release focuses on improving the visibility and usability of the MIEEK Dark
 ---
 
 **Status**: ✅ Production Ready | **Release Date**: January 29, 2026 | **Tested On**: Windows 10/11, Python 3.13.9, Node 20.x
-

@@ -199,7 +199,11 @@ class ReportScheduler:
         try:
             schedule_enabled = cast(Any, Report.schedule_enabled)
             deleted_at = cast(Any, Report.deleted_at)
-            report = db.query(Report).filter(Report.id == report_id, schedule_enabled.is_(True), deleted_at.is_(None)).first()
+            report = (
+                db.query(Report)
+                .filter(Report.id == report_id, schedule_enabled.is_(True), deleted_at.is_(None))
+                .first()
+            )
             if not report:
                 return
 

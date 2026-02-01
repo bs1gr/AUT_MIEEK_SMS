@@ -337,4 +337,3 @@ c649edb2b fix(security): Address Dependabot and CodeQL security alerts
 - ✅ Future development (clean base)
 
 **$11.17.6 is officially released and deployed to GitHub.**
-

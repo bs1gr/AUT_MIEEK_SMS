@@ -484,4 +484,3 @@ All templates should be translated to Greek (Ελληνικά) for bilingual sup
 **Document Version**: 1.0
 **Last Updated**: January 30, 2026
 **Training Coordinator**: SMS Implementation Team
-

@@ -75,4 +75,3 @@ If critical issues are found:
 1. Revert frontend build to previous version (`$11.18.0`).
 2. Revert backend code if database schema issues arise (none expected for this release).
 3. Flush caches.
-

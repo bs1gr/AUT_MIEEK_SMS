@@ -24,7 +24,7 @@
 **✅ Frontend Foundation** (Days 5-6):
 - Bilingual translations (200+ keys: EN/EL)
 - API integration layer (customReportsAPI.ts)
-- React Query hooks (useCustomReports.ts) 
+- React Query hooks (useCustomReports.ts)
 - Type-safe JSDoc definitions
 - Proper error handling & notifications
 - **Result**: Foundation ready for UI build
