@@ -181,6 +181,13 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
   const handleSave = async () => {
     if (!validateConfig()) {
+      console.log('[ReportBuilder] Validation failed:', errors);
+      // Show error toast
+      const toast = document.createElement('div');
+      toast.textContent = '❌ Please fill in all required fields';
+      toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
       return;
     }
 
@@ -216,10 +223,23 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         });
       } else {
         const result = await createMutation.mutateAsync(backendConfig);
+        console.log('[ReportBuilder] Report created successfully:', result);
+        // Show success toast
+        const toast = document.createElement('div');
+        toast.textContent = '✅ Report saved successfully!';
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
         onSuccess?.(result.id);
       }
     } catch (error) {
       console.error('Error saving report:', error);
+      // Show error toast
+      const toast = document.createElement('div');
+      toast.textContent = `❌ Error: ${(error as any)?.message || 'Failed to save report'}`;
+      toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
     }
   };
 
