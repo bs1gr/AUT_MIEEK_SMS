@@ -178,7 +178,7 @@ Before launching, confirm:
 ```powershell
 .\DOCKER.ps1 -UpdateClean
 ```
-**Time**: 5-10 minutes  
+**Time**: 5-10 minutes
 **Result**: Fresh deployment with backup
 
 ### Option 3: Dry-Run / Staging
@@ -199,7 +199,7 @@ docker-compose -f docker/docker-compose.yml up
 
 ✅ All tests passing (1991/1991 - 100%)
 ✅ All code quality checks passing
-✅ All security validations passing  
+✅ All security validations passing
 ✅ Phase 6 fully functional
 ✅ OPTIONAL-001 scheduler validated
 ✅ Documentation complete

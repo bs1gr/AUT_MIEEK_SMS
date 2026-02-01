@@ -154,6 +154,20 @@ export default {
   createdAt: 'Created At',
   size: 'File Size',
 
+  // Generated reports section
+  generatedReportsTitle: 'Generated Reports:',
+  noGeneratedReports: 'No generated reports yet',
+  loading: 'Loading...',
+  generatedLabel: 'Generated',
+  generatedNow: 'Generated just now',
+  download: 'Download',
+  downloadTooltip: 'Download generated report file',
+  deleteGeneratedTooltip: 'Delete generated report',
+  error: 'Error',
+  processing: 'Processing...',
+  completed: 'Completed',
+  failed: 'Failed',
+
   // Status
   status_draft: 'Draft',
   status_pending: 'Pending',
@@ -174,7 +188,9 @@ export default {
   reportCreated: 'Report created successfully',
   reportUpdated: 'Report updated successfully',
   reportDeleted: 'Report deleted successfully',
+  generatedReportDeleted: 'Generated report deleted successfully',
   generationStarted: 'Report generation started',
+  generationStartedWithJob: 'Report generation started (Job ID: {{jobId}})',
   generationComplete: 'Report generated successfully',
   generationFailed: 'Report generation failed',
   noReports: 'No reports found',

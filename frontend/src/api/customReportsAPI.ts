@@ -54,11 +54,12 @@ export interface GeneratedReport {
   id: number;
   report_id: number;
   file_path: string;
-  file_size: number;
+  file_name: string;
+  file_size_bytes?: number;
   status: string;
   error_message: string | null;
   generated_at: string;
-  generation_metadata: Record<string, unknown>;
+  generation_metadata?: Record<string, unknown>;
 }
 
 // ==================== TEMPLATES API ====================
@@ -291,11 +292,21 @@ export const customReportsAPI = {
    */
   download: async (reportId: number, generatedId: number) => {
     try {
+      // Fetch the list of generated reports to get the correct filename
+      const generatedList = await apiClient.get(
+        `/custom-reports/${reportId}/generated?limit=500`
+      );
+      const reports = extractAPIResponseData(generatedList) as GeneratedReport[];
+      const targetReport = reports.find(r => r.id === generatedId);
+      const filename = targetReport?.file_name || `report_${generatedId}.pdf`;
+
+      // Then fetch the actual file
       const response = await apiClient.get(
         `/custom-reports/${reportId}/generated/${generatedId}/download`,
         { responseType: 'blob' }
       );
-      return response.data; // Blob doesn't need unwrapping
+
+      return { blob: response.data, filename };
     } catch (error) {
       console.error(`[customReportsAPI] Error downloading report ${generatedId}:`, error);
       throw extractAPIError(

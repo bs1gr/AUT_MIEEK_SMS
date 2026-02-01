@@ -279,6 +279,7 @@ class CustomReportService:
             except Exception as e:
                 # Log error but continue with database deletion
                 import logging
+
                 logging.error(f"Failed to delete file {report_instance.file_path}: {str(e)}")
 
         # Delete database record
