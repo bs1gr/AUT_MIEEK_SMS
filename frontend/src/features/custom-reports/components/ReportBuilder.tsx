@@ -1,0 +1,405 @@
+/**
+ * ReportBuilder Component - Main Report Configuration UI
+ * Drag-and-drop field selection with filters and sorting
+ */
+
+import React, { useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Trash2, Save, X, ChevronDown } from 'lucide-react';
+import { useCreateReport, useUpdateReport } from '@/hooks/useCustomReports';
+import FieldSelector from './FieldSelector';
+import FilterBuilder from './FilterBuilder';
+import SortBuilder from './SortBuilder';
+
+interface ReportBuilderProps {
+  reportId?: number;
+  initialData?: any;
+  onSuccess?: (reportId: number) => void;
+  onCancel?: () => void;
+}
+
+interface ReportConfig {
+  name: string;
+  description: string;
+  entity_type: string;
+  output_format: string;
+  selected_fields: string[];
+  filters: any[];
+  sorting_rules: any[];
+}
+
+const ENTITY_TYPES = [
+  { value: 'students', label: 'entity_students' },
+  { value: 'courses', label: 'entity_courses' },
+  { value: 'grades', label: 'entity_grades' },
+  { value: 'attendance', label: 'entity_attendance' },
+  { value: 'enrollments', label: 'entity_enrollments' },
+];
+
+const OUTPUT_FORMATS = [
+  { value: 'pdf', label: 'format_pdf' },
+  { value: 'excel', label: 'format_excel' },
+  { value: 'csv', label: 'format_csv' },
+];
+
+const ENTITY_FIELDS: Record<string, string[]> = {
+  students: [
+    'id', 'first_name', 'last_name', 'email', 'phone',
+    'enrollment_date', 'is_active', 'school_id'
+  ],
+  courses: [
+    'id', 'course_code', 'name', 'description', 'credits',
+    'semester', 'instructor', 'capacity'
+  ],
+  grades: [
+    'id', 'student_id', 'course_id', 'grade', 'points',
+    'date_assigned', 'notes'
+  ],
+  attendance: [
+    'id', 'student_id', 'course_id', 'date', 'status',
+    'notes'
+  ],
+  enrollments: [
+    'id', 'student_id', 'course_id', 'enrollment_date',
+    'status', 'grade'
+  ],
+};
+
+export const ReportBuilder: React.FC<ReportBuilderProps> = ({
+  reportId,
+  initialData,
+  onSuccess,
+  onCancel,
+}) => {
+  const { t } = useTranslation();
+  const createMutation = useCreateReport();
+  const updateMutation = useUpdateReport();
+
+  const [config, setConfig] = useState<ReportConfig>(
+    initialData || {
+      name: '',
+      description: '',
+      entity_type: 'students',
+      output_format: 'pdf',
+      selected_fields: [],
+      filters: [],
+      sorting_rules: [],
+    }
+  );
+
+  const [activeStep, setActiveStep] = useState<
+    'config' | 'fields' | 'filters' | 'sorting' | 'preview'
+  >('config');
+
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const availableFields = ENTITY_FIELDS[config.entity_type] || [];
+
+  const handleConfigChange = useCallback(
+    (key: keyof ReportConfig, value: any) => {
+      setConfig((prev) => ({ ...prev, [key]: value }));
+      if (errors[key]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[key];
+          return newErrors;
+        });
+      }
+    },
+    [errors]
+  );
+
+  const handleFieldsChange = useCallback((fields: string[]) => {
+    setConfig((prev) => ({ ...prev, selected_fields: fields }));
+  }, []);
+
+  const handleFiltersChange = useCallback((filters: any[]) => {
+    setConfig((prev) => ({ ...prev, filters }));
+  }, []);
+
+  const handleSortingChange = useCallback((sorting: any[]) => {
+    setConfig((prev) => ({ ...prev, sorting_rules: sorting }));
+  }, []);
+
+  const validateConfig = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (!config.name.trim()) {
+      newErrors.name = 'customReports:nameRequired';
+    }
+    if (!config.entity_type) {
+      newErrors.entity_type = 'customReports:entityRequired';
+    }
+    if (!config.output_format) {
+      newErrors.output_format = 'customReports:formatRequired';
+    }
+    if (config.selected_fields.length === 0) {
+      newErrors.selected_fields = 'customReports:fieldsRequired';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validateConfig()) {
+      return;
+    }
+
+    try {
+      if (reportId) {
+        await updateMutation.mutateAsync({
+          id: reportId,
+          updates: config,
+        });
+      } else {
+        const result = await createMutation.mutateAsync(config);
+        onSuccess?.(result.id);
+      }
+    } catch (error) {
+      console.error('Error saving report:', error);
+    }
+  };
+
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+
+  return (
+    <div className="flex flex-col h-full bg-gray-50">
+      {/* Header */}
+      <div className="flex items-center justify-between bg-white border-b p-6">
+        <h1 className="text-2xl font-bold text-gray-900">
+          {reportId ? t('customReports:reportBuilder') : t('customReports:createNew')}
+        </h1>
+        <button
+          onClick={onCancel}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <X size={24} />
+        </button>
+      </div>
+
+      {/* Stepper */}
+      <div className="bg-white border-b">
+        <div className="flex gap-4 px-6 py-4 overflow-x-auto">
+          {[
+            { key: 'config', label: 'reportConfiguration' },
+            { key: 'fields', label: 'dataSelection' },
+            { key: 'filters', label: 'filtersAndSorting' },
+            { key: 'preview', label: 'previewAndGenerate' },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setActiveStep(key as typeof activeStep)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeStep === key
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {t(`customReports:${label}`)}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {activeStep === 'config' && (
+          <div className="max-w-2xl space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('customReports:reportName')} *
+              </label>
+              <input
+                type="text"
+                value={config.name}
+                onChange={(e) => handleConfigChange('name', e.target.value)}
+                className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                  errors.name ? 'border-red-500' : 'border-gray-300'
+                }`}
+                placeholder={t('customReports:reportName')}
+              />
+              {errors.name && (
+                <p className="mt-1 text-sm text-red-500">{t(errors.name)}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {t('customReports:reportDescription')}
+              </label>
+              <textarea
+                value={config.description}
+                onChange={(e) => handleConfigChange('description', e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                rows={3}
+                placeholder={t('customReports:reportDescription')}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('customReports:entityType')} *
+                </label>
+                <select
+                  value={config.entity_type}
+                  onChange={(e) => handleConfigChange('entity_type', e.target.value)}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                    errors.entity_type ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  {ENTITY_TYPES.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {t(`customReports:${label}`)}
+                    </option>
+                  ))}
+                </select>
+                {errors.entity_type && (
+                  <p className="mt-1 text-sm text-red-500">{t(errors.entity_type)}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('customReports:outputFormat')} *
+                </label>
+                <select
+                  value={config.output_format}
+                  onChange={(e) => handleConfigChange('output_format', e.target.value)}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                    errors.output_format ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                >
+                  {OUTPUT_FORMATS.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {t(`customReports:${label}`)}
+                    </option>
+                  ))}
+                </select>
+                {errors.output_format && (
+                  <p className="mt-1 text-sm text-red-500">{t(errors.output_format)}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeStep === 'fields' && (
+          <FieldSelector
+            availableFields={availableFields}
+            selectedFields={config.selected_fields}
+            onChange={handleFieldsChange}
+          />
+        )}
+
+        {activeStep === 'filters' && (
+          <div className="space-y-6">
+            <div>
+              <h2 className="text-lg font-semibold mb-4">
+                {t('customReports:filtersAndSorting')}
+              </h2>
+              <FilterBuilder
+                fields={availableFields}
+                filters={config.filters}
+                onChange={handleFiltersChange}
+              />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold mb-4 mt-8">
+                {t('customReports:sortBy')}
+              </h2>
+              <SortBuilder
+                fields={availableFields}
+                sorting={config.sorting_rules}
+                onChange={handleSortingChange}
+              />
+            </div>
+          </div>
+        )}
+
+        {activeStep === 'preview' && (
+          <div className="bg-white rounded-lg border p-6 max-w-2xl">
+            <h2 className="text-lg font-semibold mb-4">Preview</h2>
+            <div className="space-y-4 text-sm">
+              <div>
+                <span className="font-medium">Name:</span> {config.name}
+              </div>
+              <div>
+                <span className="font-medium">Description:</span> {config.description || 'N/A'}
+              </div>
+              <div>
+                <span className="font-medium">Entity Type:</span>{' '}
+                {t(`customReports:entity_${config.entity_type}`)}
+              </div>
+              <div>
+                <span className="font-medium">Output Format:</span>{' '}
+                {t(`customReports:format_${config.output_format}`)}
+              </div>
+              <div>
+                <span className="font-medium">Fields ({config.selected_fields.length}):</span>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {config.selected_fields.map((field) => (
+                    <span
+                      key={field}
+                      className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded"
+                    >
+                      {field}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className="font-medium">Filters: </span>
+                {config.filters.length > 0 ? `${config.filters.length} filter(s)` : 'None'}
+              </div>
+              <div>
+                <span className="font-medium">Sorting: </span>
+                {config.sorting_rules.length > 0 ? `${config.sorting_rules.length} rule(s)` : 'None'}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="bg-white border-t p-6 flex gap-4 justify-end">
+        <button
+          onClick={onCancel}
+          className="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          {t('common.cancel')}
+        </button>
+
+        {activeStep !== 'preview' && (
+          <button
+            onClick={() => {
+              const steps: typeof activeStep[] = ['config', 'fields', 'filters', 'preview'];
+              const currentIndex = steps.indexOf(activeStep);
+              if (currentIndex < steps.length - 1) {
+                setActiveStep(steps[currentIndex + 1]);
+              }
+            }}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
+          >
+            {t('common.next')}
+            <ChevronDown size={18} className="rotate-[-90deg]" />
+          </button>
+        )}
+
+        {activeStep === 'preview' && (
+          <button
+            onClick={handleSave}
+            disabled={isLoading}
+            className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+          >
+            <Save size={18} />
+            {isLoading ? t('customReports:generating') : t('common.save')}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ReportBuilder;
