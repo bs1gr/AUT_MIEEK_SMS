@@ -40,6 +40,10 @@ ci-diagnose-*.zip
 trivy-*.json
 trivy-results.*
 
+# Generated test files (exports & reports from Phase 6)
+backend/exports/
+backend/reports/
+
 # Databases & backups
 *.db
 data/*.db
