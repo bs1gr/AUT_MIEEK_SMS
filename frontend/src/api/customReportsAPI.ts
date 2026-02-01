@@ -13,13 +13,16 @@ export interface ReportTemplate {
   id: number;
   name: string;
   description: string;
-  entity_type: string; // Entity type (students, courses, grades, etc.)
-  selected_fields: string[];
-  filters: Record<string, unknown>[];
-  sorting_rules: Record<string, unknown>[];
-  is_public: boolean;
-  is_favorite: boolean;
-  created_by_user_id: number;
+  category: string;
+  report_type: string; // matches backend
+  fields: Record<string, any>; // matches backend: dict format
+  filters?: Record<string, any>;
+  aggregations?: Record<string, any>;
+  sort_by?: Record<string, any>;
+  default_export_format: string;
+  default_include_charts: boolean;
+  is_system: boolean;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -28,17 +31,23 @@ export interface CustomReport {
   id: number;
   name: string;
   description: string;
-  entity_type: string;
-  selected_fields: string[];
-  filters: Record<string, unknown>[];
-  sorting_rules: Record<string, unknown>[];
-  output_format: 'pdf' | 'excel' | 'csv';
-  schedule_config: string | null; // JSON string for scheduling
-  email_recipients: string[];
-  owner_id: number;
-  status: string;
+  report_type: string; // matches backend: student, course, grade, attendance, custom
+  template_id?: number;
+  fields: Record<string, any>; // matches backend: dict format
+  filters?: Record<string, any>;
+  aggregations?: Record<string, any>;
+  sort_by?: Record<string, any>;
+  export_format: 'pdf' | 'excel' | 'csv'; // matches backend field name
+  include_charts: boolean;
+  schedule_enabled: boolean;
+  schedule_frequency?: string;
+  schedule_cron?: string;
+  email_recipients?: string[];
+  email_enabled: boolean;
+  user_id: number;
   created_at: string;
   updated_at: string;
+  deleted_at?: string;
 }
 
 export interface GeneratedReport {

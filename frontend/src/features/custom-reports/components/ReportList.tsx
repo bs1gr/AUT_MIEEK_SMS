@@ -165,12 +165,12 @@ export const ReportList: React.FC<ReportListProps> = ({
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                    {t(`customReports:entity_${report.entity_type}`)}
+                    {t(`customReports:entity_${report.report_type}`)}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
-                    {report.output_format.toUpperCase()}
+                    {report.export_format.toUpperCase()}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-xs text-gray-600">
