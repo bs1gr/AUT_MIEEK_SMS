@@ -4,7 +4,8 @@
  */
 
 import type { AxiosResponse } from 'axios';
-import { apiClient, extractAPIResponseData, extractAPIError } from './api';
+import apiClient from './api';
+import { extractAPIResponseData, extractAPIError } from './api';
 
 // ==================== TYPE DEFINITIONS ====================
 
