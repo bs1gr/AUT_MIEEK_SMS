@@ -4,7 +4,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customReportsAPI, reportTemplatesAPI } from '@/api/customReportsAPI';
-import { useNotifications } from './useNotifications';
 
 // ==================== QUERY KEYS ====================
 
@@ -47,16 +46,11 @@ export function useReportTemplate(id: number) {
  */
 export function useCreateTemplate() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotifications();
 
   return useMutation({
     mutationFn: reportTemplatesAPI.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.templates() });
-      showSuccess('customReports:templateCreated');
-    },
-    onError: () => {
-      showError('customReports:errorSaving');
     },
   });
 }
@@ -66,7 +60,6 @@ export function useCreateTemplate() {
  */
 export function useUpdateTemplate() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotifications();
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: number; updates: any }) =>
@@ -74,10 +67,6 @@ export function useUpdateTemplate() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.template(variables.id) });
       queryClient.invalidateQueries({ queryKey: customReportKeys.templates() });
-      showSuccess('customReports:templateUpdated');
-    },
-    onError: () => {
-      showError('customReports:errorSaving');
     },
   });
 }
@@ -87,16 +76,11 @@ export function useUpdateTemplate() {
  */
 export function useDeleteTemplate() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotifications();
 
   return useMutation({
     mutationFn: reportTemplatesAPI.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.templates() });
-      showSuccess('customReports:templateDeleted');
-    },
-    onError: () => {
-      showError('customReports:errorDeleting');
     },
   });
 }
@@ -130,16 +114,11 @@ export function useCustomReport(id: number) {
  */
 export function useCreateReport() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotifications();
 
   return useMutation({
     mutationFn: customReportsAPI.create,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.reports() });
-      showSuccess('customReports:reportCreated');
-    },
-    onError: () => {
-      showError('customReports:errorSaving');
     },
   });
 }
@@ -149,7 +128,6 @@ export function useCreateReport() {
  */
 export function useUpdateReport() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotifications();
 
   return useMutation({
     mutationFn: ({ id, updates }: { id: number; updates: any }) =>
@@ -157,10 +135,6 @@ export function useUpdateReport() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.report(variables.id) });
       queryClient.invalidateQueries({ queryKey: customReportKeys.reports() });
-      showSuccess('customReports:reportUpdated');
-    },
-    onError: () => {
-      showError('customReports:errorSaving');
     },
   });
 }
@@ -170,16 +144,11 @@ export function useUpdateReport() {
  */
 export function useDeleteReport() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotifications();
 
   return useMutation({
     mutationFn: customReportsAPI.delete,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.reports() });
-      showSuccess('customReports:reportDeleted');
-    },
-    onError: () => {
-      showError('customReports:errorDeleting');
     },
   });
 }
@@ -189,16 +158,11 @@ export function useDeleteReport() {
  */
 export function useGenerateReport() {
   const queryClient = useQueryClient();
-  const { showSuccess, showError } = useNotifications();
 
   return useMutation({
     mutationFn: customReportsAPI.generate,
     onSuccess: (_, reportId) => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(reportId) });
-      showSuccess('customReports:generationStarted');
-    },
-    onError: () => {
-      showError('customReports:errorGenerating');
     },
   });
 }
@@ -219,8 +183,6 @@ export function useGeneratedReports(reportId: number) {
  * Download generated report
  */
 export function useDownloadReport() {
-  const { showError } = useNotifications();
-
   return useMutation({
     mutationFn: ({ reportId, generatedId }: { reportId: number; generatedId: number }) =>
       customReportsAPI.download(reportId, generatedId),
@@ -234,9 +196,6 @@ export function useDownloadReport() {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-    },
-    onError: () => {
-      showError('customReports:errorGenerating');
     },
   });
 }
