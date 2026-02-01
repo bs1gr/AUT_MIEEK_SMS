@@ -6,6 +6,10 @@ export default {
   myReports: 'My Reports',
   templates: 'Report Templates',
   generatedReports: 'Generated Reports',
+  reports: 'Reports',
+  createReport: 'Create Report',
+  reportsDescription: 'Create, manage, and generate custom reports for your institution.',
+  templatesDescription: 'Browse pre-built templates or create your own reusable reports.',
 
   // Navigation
   createNew: 'Create New Report',
@@ -19,6 +23,18 @@ export default {
   fieldsAndColumns: 'Fields & Columns',
   filtersAndSorting: 'Filters & Sorting',
   previewAndGenerate: 'Preview & Generate',
+  previewTitle: 'Preview',
+  previewName: 'Name',
+  previewDescription: 'Description',
+  previewEntityType: 'Entity Type',
+  previewOutputFormat: 'Output Format',
+  previewFields: 'Fields',
+  previewFilters: 'Filters',
+  previewSorting: 'Sorting',
+  previewNone: 'None',
+  previewNotAvailable: 'N/A',
+  previewFiltersCount: '{{count}} filter(s)',
+  previewSortingCount: '{{count}} rule(s)',
 
   // Report properties
   reportName: 'Report Name',
@@ -84,6 +100,9 @@ export default {
   standardTemplates: 'Standard Templates',
   myTemplates: 'My Templates',
   sharedTemplates: 'Shared Templates',
+  noStandardTemplates: 'No standard templates available',
+  searchTemplates: 'Search templates...',
+  allEntityTypes: 'All entity types',
 
   // Pre-built templates (10 standard)
   template_student_roster: 'Student Roster',

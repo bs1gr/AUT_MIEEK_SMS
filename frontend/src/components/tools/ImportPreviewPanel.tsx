@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 
 import { importAPI } from '@/api/api';
-import { useLanguage } from '@/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 type PreviewItem = {
   row_number: number;
@@ -28,7 +28,7 @@ type ImportPreviewPanelProps = {
 };
 
 const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPanelProps) => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [importType, setImportType] = useState<'students' | 'courses'>('students');
   const [allowUpdates, setAllowUpdates] = useState(false);
   const [skipDuplicates, setSkipDuplicates] = useState(true);
@@ -58,7 +58,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
       onPreviewComplete?.(data as PreviewResponse);
     } catch (err: unknown) {
       const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(msg || t('importPreviewError'));
+      setError(msg || t('importPreviewError', { ns: 'export' }));
     } finally {
       setIsLoading(false);
     }
@@ -69,12 +69,12 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
     const summary = result.summary || {};
     return (
       <div className="grid gap-3 sm:grid-cols-3">
-        <SummaryCard label={t('previewTotalRows')} value={result.total_rows} tone="neutral" />
-        <SummaryCard label={t('previewCreates')} value={summary.create ?? 0} tone="success" />
-        <SummaryCard label={t('previewUpdates')} value={summary.update ?? 0} tone="info" />
-        <SummaryCard label={t('previewSkips')} value={summary.skip ?? 0} tone="muted" />
-        <SummaryCard label={t('previewWarnings')} value={result.rows_with_warnings} tone="warning" />
-        <SummaryCard label={t('previewErrors')} value={result.rows_with_errors} tone="danger" />
+        <SummaryCard label={t('previewTotalRows', { ns: 'export' })} value={result.total_rows} tone="neutral" />
+        <SummaryCard label={t('previewCreates', { ns: 'export' })} value={summary.create ?? 0} tone="success" />
+        <SummaryCard label={t('previewUpdates', { ns: 'export' })} value={summary.update ?? 0} tone="info" />
+        <SummaryCard label={t('previewSkips', { ns: 'export' })} value={summary.skip ?? 0} tone="muted" />
+        <SummaryCard label={t('previewWarnings', { ns: 'export' })} value={result.rows_with_warnings} tone="warning" />
+        <SummaryCard label={t('previewErrors', { ns: 'export' })} value={result.rows_with_errors} tone="danger" />
       </div>
     );
   };
@@ -88,10 +88,10 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
           <thead className="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
             <tr>
               <th className="px-3 py-2">#</th>
-              <th className="px-3 py-2">{t('previewAction')}</th>
-              <th className="px-3 py-2">{t('previewStatus')}</th>
-              <th className="px-3 py-2">{t('previewIssues')}</th>
-              <th className="px-3 py-2">{t('previewData')}</th>
+              <th className="px-3 py-2">{t('previewAction', { ns: 'export' })}</th>
+              <th className="px-3 py-2">{t('previewStatus', { ns: 'export' })}</th>
+              <th className="px-3 py-2">{t('previewIssues', { ns: 'export' })}</th>
+              <th className="px-3 py-2">{t('previewData', { ns: 'export' })}</th>
             </tr>
           </thead>
           <tbody>
@@ -108,7 +108,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                       ))}
                     </ul>
                   ) : (
-                    <span className="text-emerald-600">{t('previewNoIssues')}</span>
+                    <span className="text-emerald-600">{t('previewNoIssues', { ns: 'export' })}</span>
                   )}
                 </td>
                 <td className="px-3 py-2 text-slate-700">
@@ -122,7 +122,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
         </table>
         {result.items.length > items.length && (
           <div className="border-t border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
-            {t('previewTruncated', { count: result.items.length - items.length })}
+            {t('previewTruncated', { ns: 'export', count: result.items.length - items.length })}
           </div>
         )}
       </div>
@@ -132,8 +132,8 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div className="mb-3 text-lg font-semibold text-slate-900">{t('importPreviewTitle')}</div>
-        <p className="text-sm text-slate-600">{t('importPreviewDescription')}</p>
+        <div className="mb-3 text-lg font-semibold text-slate-900">{t('importPreviewTitle', { ns: 'export' })}</div>
+        <p className="text-sm text-slate-600">{t('importPreviewDescription', { ns: 'export' })}</p>
 
         <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
           <div className="flex flex-wrap gap-3">
@@ -145,7 +145,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={importType === 'students'}
                 onChange={() => setImportType('students')}
               />
-              {t('importTypeStudents')}
+              {t('importTypeStudents', { ns: 'export' })}
             </label>
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
@@ -155,7 +155,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={importType === 'courses'}
                 onChange={() => setImportType('courses')}
               />
-              {t('importTypeCourses')}
+              {t('importTypeCourses', { ns: 'export' })}
             </label>
           </div>
 
@@ -166,7 +166,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={allowUpdates}
                 onChange={(e) => setAllowUpdates(e.target.checked)}
               />
-              {t('allowUpdates')}
+              {t('allowUpdates', { ns: 'export' })}
             </label>
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input
@@ -174,33 +174,33 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 checked={skipDuplicates}
                 onChange={(e) => setSkipDuplicates(e.target.checked)}
               />
-              {t('skipDuplicates')}
+              {t('skipDuplicates', { ns: 'export' })}
             </label>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
-              <label className="text-sm font-semibold text-slate-700">{t('uploadFiles')}</label>
+              <label className="text-sm font-semibold text-slate-700">{t('uploadFiles', { ns: 'export' })}</label>
               <input
                 ref={fileInputRef}
                 type="file"
                 multiple
                 accept=".json,.csv"
-                aria-label={t('uploadFiles')}
+                aria-label={t('uploadFiles', { ns: 'export' })}
                 className="mt-1 block w-full text-sm text-slate-700"
               />
-              <p className="text-xs text-slate-500">{t('uploadHint')}</p>
+              <p className="text-xs text-slate-500">{t('uploadHint', { ns: 'export' })}</p>
             </div>
             <div>
-              <label className="text-sm font-semibold text-slate-700">{t('pasteJson')}</label>
+              <label className="text-sm font-semibold text-slate-700">{t('pasteJson', { ns: 'export' })}</label>
               <textarea
                 className="mt-1 w-full rounded border border-slate-200 p-2 text-sm text-slate-700"
                 rows={4}
                 value={jsonText}
                 onChange={(e) => setJsonText(e.target.value)}
-                placeholder={t('pasteJsonPlaceholder')}
+                placeholder={t('pasteJsonPlaceholder', { ns: 'export' })}
               />
-              <p className="text-xs text-slate-500">{t('pasteJsonHint')}</p>
+              <p className="text-xs text-slate-500">{t('pasteJsonHint', { ns: 'export' })}</p>
             </div>
           </div>
 
@@ -209,7 +209,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
             className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             disabled={isLoading}
           >
-            {isLoading ? t('previewing') : t('runPreview')}
+            {isLoading ? t('previewing', { ns: 'export' }) : t('runPreview', { ns: 'export' })}
           </button>
           {error && <p className="text-sm text-red-600">{error}</p>}
         </form>
@@ -244,14 +244,14 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                   }
                 } catch (err: unknown) {
                   const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-                  setError(msg || t('importError'));
+                  setError(msg || t('importError', { ns: 'export' }));
                 } finally {
                   setIsExecuting(false);
                 }
               }}
               disabled={isExecuting || result.rows_with_errors > 0}
             >
-              {isExecuting ? '⏳ ' : '✓ '}{t('export.confirmAndImport')}
+              {isExecuting ? '⏳ ' : '✓ '}{t('confirmAndImport', { ns: 'export' })}
             </button>
             <button
               type="button"
@@ -265,7 +265,7 @@ const ImportPreviewPanel = ({ onPreviewComplete, onJobCreated }: ImportPreviewPa
                 setJsonText('');
               }}
             >
-              {t('export.cancel')}
+              {t('cancel', { ns: 'export' })}
             </button>
           </div>
         </div>

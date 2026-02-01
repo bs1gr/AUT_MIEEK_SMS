@@ -196,12 +196,12 @@ export const useSearch = (
           };
         });
       } catch (error: Error | unknown) {
-        let errorMessage = t('search.errorSearching');
+        let errorMessage = t('errorSearching', { ns: 'search' });
         if (error instanceof Error) {
           errorMessage = error.message;
         } else if (typeof error === 'object' && error !== null && 'response' in error) {
           const apiError = error as unknown as { response?: { data?: { error?: { message?: string } } } };
-          errorMessage = apiError?.response?.data?.error?.message || t('search.errorSearching');
+          errorMessage = apiError?.response?.data?.error?.message || t('errorSearching', { ns: 'search' });
         }
 
         setState(prev => ({
@@ -253,7 +253,7 @@ export const useSearch = (
           isLoading: false
         }));
       } catch (error) {
-        const message = error instanceof Error ? error.message : t('search.errorSearching');
+        const message = error instanceof Error ? error.message : t('errorSearching', { ns: 'search' });
         setState(prev => ({
           ...prev,
           suggestions: [],
@@ -383,12 +383,12 @@ export const useSearch = (
           };
         });
       } catch (error: Error | unknown) {
-        let errorMessage = t('search.errorSearching');
+        let errorMessage = t('errorSearching', { ns: 'search' });
         if (error instanceof Error) {
           errorMessage = error.message;
         } else if (typeof error === 'object' && error !== null && 'response' in error) {
           const apiError = error as unknown as { response?: { data?: { error?: { message?: string } } } };
-          errorMessage = apiError?.response?.data?.error?.message || t('search.errorSearching');
+          errorMessage = apiError?.response?.data?.error?.message || t('errorSearching', { ns: 'search' });
         }
 
         setState(prev => ({

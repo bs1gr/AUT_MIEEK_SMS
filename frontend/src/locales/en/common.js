@@ -77,6 +77,9 @@ export default {
   back: 'Back',
   next: 'Next',
   previous: 'Previous',
+  info: 'Info',
+  reset: 'Reset',
+  home: 'Home',
   // Authentication Basics
   email: 'Email',
   password: 'Password',

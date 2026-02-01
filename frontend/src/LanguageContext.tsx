@@ -65,7 +65,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     'reports',
     'feedback',
     'analytics',
-    'errors'
+    'errors',
+    'customReports',
+    'messages'
   ];
 
   const t = (key: string, options?: Record<string, unknown>): string => {

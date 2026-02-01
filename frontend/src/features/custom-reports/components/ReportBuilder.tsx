@@ -125,16 +125,16 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (!config.name.trim()) {
-      newErrors.name = 'customReports:nameRequired';
+      newErrors.name = 'nameRequired';
     }
     if (!config.entity_type) {
-      newErrors.entity_type = 'customReports:entityRequired';
+      newErrors.entity_type = 'entityRequired';
     }
     if (!config.output_format) {
-      newErrors.output_format = 'customReports:formatRequired';
+      newErrors.output_format = 'formatRequired';
     }
     if (config.selected_fields.length === 0) {
-      newErrors.selected_fields = 'customReports:fieldsRequired';
+      newErrors.selected_fields = 'fieldsRequired';
     }
 
     setErrors(newErrors);
@@ -168,7 +168,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between bg-white border-b p-6">
         <h1 className="text-2xl font-bold text-gray-900">
-          {reportId ? t('customReports:reportBuilder') : t('customReports:createNew')}
+          {reportId ? t('reportBuilder', { ns: 'customReports' }) : t('createNew', { ns: 'customReports' })}
         </h1>
         <button
           onClick={onCancel}
@@ -196,7 +196,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
             >
-              {t(`customReports:${label}`)}
+              {t(label, { ns: 'customReports' })}
             </button>
           ))}
         </div>
@@ -208,7 +208,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           <div className="max-w-2xl space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('customReports:reportName')} *
+                {t('reportName', { ns: 'customReports' })} *
               </label>
               <input
                 type="text"
@@ -217,30 +217,30 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                   errors.name ? 'border-red-500' : 'border-gray-300'
                 }`}
-                placeholder={t('customReports:reportName')}
+                placeholder={t('reportName', { ns: 'customReports' })}
               />
               {errors.name && (
-                <p className="mt-1 text-sm text-red-500">{t(errors.name)}</p>
+                <p className="mt-1 text-sm text-red-500">{t(errors.name, { ns: 'customReports' })}</p>
               )}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {t('customReports:reportDescription')}
+                {t('reportDescription', { ns: 'customReports' })}
               </label>
               <textarea
                 value={config.description}
                 onChange={(e) => handleConfigChange('description', e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 rows={3}
-                placeholder={t('customReports:reportDescription')}
+                placeholder={t('reportDescription', { ns: 'customReports' })}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('customReports:entityType')} *
+                  {t('entityType', { ns: 'customReports' })} *
                 </label>
                 <select
                   value={config.entity_type}
@@ -251,18 +251,18 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 >
                   {ENTITY_TYPES.map(({ value, label }) => (
                     <option key={value} value={value}>
-                      {t(`customReports:${label}`)}
+                      {t(label, { ns: 'customReports' })}
                     </option>
                   ))}
                 </select>
                 {errors.entity_type && (
-                  <p className="mt-1 text-sm text-red-500">{t(errors.entity_type)}</p>
+                  <p className="mt-1 text-sm text-red-500">{t(errors.entity_type, { ns: 'customReports' })}</p>
                 )}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('customReports:outputFormat')} *
+                  {t('outputFormat', { ns: 'customReports' })} *
                 </label>
                 <select
                   value={config.output_format}
@@ -273,12 +273,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 >
                   {OUTPUT_FORMATS.map(({ value, label }) => (
                     <option key={value} value={value}>
-                      {t(`customReports:${label}`)}
+                      {t(label, { ns: 'customReports' })}
                     </option>
                   ))}
                 </select>
                 {errors.output_format && (
-                  <p className="mt-1 text-sm text-red-500">{t(errors.output_format)}</p>
+                  <p className="mt-1 text-sm text-red-500">{t(errors.output_format, { ns: 'customReports' })}</p>
                 )}
               </div>
             </div>
@@ -297,7 +297,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           <div className="space-y-6">
             <div>
               <h2 className="text-lg font-semibold mb-4">
-                {t('customReports:filtersAndSorting')}
+                {t('filtersAndSorting', { ns: 'customReports' })}
               </h2>
               <FilterBuilder
                 fields={availableFields}
@@ -307,7 +307,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
             </div>
             <div>
               <h2 className="text-lg font-semibold mb-4 mt-8">
-                {t('customReports:sortBy')}
+                {t('sortBy', { ns: 'customReports' })}
               </h2>
               <SortBuilder
                 fields={availableFields}
@@ -320,24 +320,24 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
         {activeStep === 'preview' && (
           <div className="bg-white rounded-lg border p-6 max-w-2xl">
-            <h2 className="text-lg font-semibold mb-4">Preview</h2>
+            <h2 className="text-lg font-semibold mb-4">{t('previewTitle', { ns: 'customReports' })}</h2>
             <div className="space-y-4 text-sm">
               <div>
-                <span className="font-medium">Name:</span> {config.name}
+                <span className="font-medium">{t('previewName', { ns: 'customReports' })}:</span> {config.name}
               </div>
               <div>
-                <span className="font-medium">Description:</span> {config.description || 'N/A'}
+                <span className="font-medium">{t('previewDescription', { ns: 'customReports' })}:</span> {config.description || t('previewNotAvailable', { ns: 'customReports' })}
               </div>
               <div>
-                <span className="font-medium">Entity Type:</span>{' '}
-                {t(`customReports:entity_${config.entity_type}`)}
+                <span className="font-medium">{t('previewEntityType', { ns: 'customReports' })}:</span>{' '}
+                {t(`entity_${config.entity_type}`, { ns: 'customReports' })}
               </div>
               <div>
-                <span className="font-medium">Output Format:</span>{' '}
-                {t(`customReports:format_${config.output_format}`)}
+                <span className="font-medium">{t('previewOutputFormat', { ns: 'customReports' })}:</span>{' '}
+                {t(`format_${config.output_format}`, { ns: 'customReports' })}
               </div>
               <div>
-                <span className="font-medium">Fields ({config.selected_fields.length}):</span>
+                <span className="font-medium">{t('previewFields', { ns: 'customReports' })} ({config.selected_fields.length}):</span>
                 <div className="mt-2 flex flex-wrap gap-2">
                   {config.selected_fields.map((field) => (
                     <span
@@ -350,12 +350,16 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 </div>
               </div>
               <div>
-                <span className="font-medium">Filters: </span>
-                {config.filters.length > 0 ? `${config.filters.length} filter(s)` : 'None'}
+                <span className="font-medium">{t('previewFilters', { ns: 'customReports' })}: </span>
+                {config.filters.length > 0
+                  ? t('previewFiltersCount', { ns: 'customReports', count: config.filters.length })
+                  : t('previewNone', { ns: 'customReports' })}
               </div>
               <div>
-                <span className="font-medium">Sorting: </span>
-                {config.sorting_rules.length > 0 ? `${config.sorting_rules.length} rule(s)` : 'None'}
+                <span className="font-medium">{t('previewSorting', { ns: 'customReports' })}: </span>
+                {config.sorting_rules.length > 0
+                  ? t('previewSortingCount', { ns: 'customReports', count: config.sorting_rules.length })
+                  : t('previewNone', { ns: 'customReports' })}
               </div>
             </div>
           </div>
@@ -368,7 +372,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           onClick={onCancel}
           className="px-6 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
         >
-          {t('common.cancel')}
+          {t('cancel', { ns: 'common' })}
         </button>
 
         {activeStep !== 'preview' && (
@@ -382,7 +386,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
             }}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
-            {t('common.next')}
+            {t('next', { ns: 'common' })}
             <ChevronDown size={18} className="rotate-[-90deg]" />
           </button>
         )}
@@ -394,7 +398,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
             className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             <Save size={18} />
-            {isLoading ? t('customReports:generating') : t('common.save')}
+            {isLoading ? t('generating', { ns: 'customReports' }) : t('save', { ns: 'common' })}
           </button>
         )}
       </div>

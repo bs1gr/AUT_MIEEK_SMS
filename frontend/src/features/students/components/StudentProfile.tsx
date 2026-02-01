@@ -2,8 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
 import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
-import { useLanguage } from '@/LanguageContext';
 import { GradeBreakdownModal } from '@/features/grading';
 import StudentPerformanceReport from '@/components/StudentPerformanceReport';
 import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
@@ -17,7 +17,7 @@ interface StudentProfileProps {
 }
 
 const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [student, setStudent] = useState<Student | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
@@ -81,7 +81,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       }
     } catch (error) {
       console.error('Failed to load student data:', error);
-      setError(t('failedToLoadStudentData'));
+      setError(t('failedToLoadStudentData', { ns: 'students' }));
       // Set empty arrays to prevent errors
       setGrades([]);
       setAttendance([]);
@@ -190,7 +190,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
             onClick={onBack}
             className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors"
           >
-            {t('backToStudents')}
+            {t('backToStudents', { ns: 'students' })}
           </button>
         </div>
       </div>
@@ -200,7 +200,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   if (!student) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center">
-        <p className="text-indigo-700 font-semibold drop-shadow-sm">{t('studentNotFound')}</p>
+        <p className="text-indigo-700 font-semibold drop-shadow-sm">{t('studentNotFound', { ns: 'students' })}</p>
       </div>
     );
   }
@@ -218,7 +218,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           className="mb-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-600 transition-colors font-semibold drop-shadow-sm"
         >
           <ArrowLeft size={20} />
-          <span>{t('backToStudents')}</span>
+          <span>{t('backToStudents', { ns: 'students' })}</span>
         </button>
 
         {/* Profile Header */}
@@ -233,7 +233,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 <h1 className="text-3xl font-bold text-indigo-800 drop-shadow-sm">
                   {student.first_name} {student.last_name}
                 </h1>
-                <p className="text-indigo-700 mt-1 font-semibold drop-shadow-sm">{t('studentID')} {student.student_id}</p>
+                <p className="text-indigo-700 mt-1 font-semibold drop-shadow-sm">{t('studentID', { ns: 'students' })} {student.student_id}</p>
               </div>
             </div>
 
@@ -244,7 +244,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               </div>
               <div className="flex items-center space-x-3 text-indigo-700">
                 <Calendar size={20} />
-                <span>{t('enrolled')} {student.enrollment_date}</span>
+                <span>{t('enrolled', { ns: 'students' })} {student.enrollment_date}</span>
               </div>
               <div className="md:col-span-4 mt-4">
                 <button
@@ -253,25 +253,25 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                   className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
                 >
                   <FileText size={20} />
-                  <span>{t('reports.studentPerformanceReport')}</span>
+                  <span>{t('studentPerformanceReport', { ns: 'reports' })}</span>
                 </button>
               </div>
               {student.study_year && (
                 <div className="flex items-center space-x-3 text-indigo-700">
                   <Award size={20} className="text-indigo-600" />
-                  <span className="font-semibold text-indigo-700">{t('year')} {student.study_year}</span>
+                  <span className="font-semibold text-indigo-700">{t('year', { ns: 'common' })} {student.study_year}</span>
                 </div>
               )}
               <div className="flex items-center space-x-3">
                 {student.is_active ? (
                   <>
                     <CheckCircle size={20} className="text-green-600" style={{ color: '#22c55e' }} strokeWidth={2.5} />
-                    <span className="text-green-600 font-semibold">{t('active')}</span>
+                    <span className="text-green-600 font-semibold">{t('active', { ns: 'common' })}</span>
                   </>
                 ) : (
                   <>
                     <XCircle size={20} className="text-red-600" style={{ color: '#ef4444' }} strokeWidth={2.5} />
-                    <span className="text-red-600 font-semibold">{t('inactive')}</span>
+                    <span className="text-red-600 font-semibold">{t('inactive', { ns: 'common' })}</span>
                   </>
                 )}
               </div>
@@ -284,37 +284,37 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <TrendingUp size={24} />
-              <span className="text-xs opacity-75">{t('overall')}</span>
+              <span className="text-xs opacity-75">{t('overall', { ns: 'common' })}</span>
             </div>
             <p className="text-4xl font-bold">{stats.gpa}</p>
-            <p className="text-sm opacity-90">{t('gpaOutOf')}</p>
+            <p className="text-sm opacity-90">{t('gpaOutOf', { ns: 'students' })}</p>
           </div>
 
           <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <Award size={24} />
-              <span className="text-xs opacity-75">{t('average')}</span>
+              <span className="text-xs opacity-75">{t('average', { ns: 'common' })}</span>
             </div>
             <p className="text-4xl font-bold">{stats.avgGrade}%</p>
-            <p className="text-sm opacity-90">{stats.totalGrades} {t('assignments')}</p>
+            <p className="text-sm opacity-90">{stats.totalGrades} {t('assignments', { ns: 'common' })}</p>
           </div>
 
           <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <CheckCircle size={24} />
-              <span className="text-xs opacity-75">{t('attendance')}</span>
+              <span className="text-xs opacity-75">{t('attendance', { ns: 'common' })}</span>
             </div>
             <p className="text-4xl font-bold">{stats.attendanceRate}%</p>
-            <p className="text-sm opacity-90">{stats.totalClasses} {t('classes')}</p>
+            <p className="text-sm opacity-90">{stats.totalClasses} {t('classes', { ns: 'common' })}</p>
           </div>
 
           <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-2xl shadow-lg p-6 text-white">
             <div className="flex items-center justify-between mb-2">
               <Star size={24} />
-              <span className="text-xs opacity-75">{t('highlights')}</span>
+              <span className="text-xs opacity-75">{t('highlights', { ns: 'students' })}</span>
             </div>
             <p className="text-4xl font-bold">{highlights.length}</p>
-            <p className="text-sm opacity-90">{t('totalAchievements')}</p>
+            <p className="text-sm opacity-90">{t('totalAchievements', { ns: 'students' })}</p>
           </div>
         </div>
 
@@ -323,7 +323,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
               <BookOpen size={24} className="text-indigo-600" />
-              <span>{t('gradeDistribution')}</span>
+              <span>{t('gradeDistribution', { ns: 'students' })}</span>
             </h3>
 
             <div className="space-y-4">
@@ -336,8 +336,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                   <React.Fragment key={grade}>
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="font-semibold text-gray-700">{t('grade')} {grade}</span>
-                        <span className="text-gray-600">{count} {t('assignments')} ({percentage.toFixed(0)}%)</span>
+                        <span className="font-semibold text-gray-700">{t('grade', { ns: 'grades' })} {grade}</span>
+                        <span className="text-gray-600">{count} {t('assignments', { ns: 'common' })} ({percentage.toFixed(0)}%)</span>
                       </div>
                       <div className="mt-1 text-xs text-gray-600">{percentage.toFixed(0)}%</div>
                     </div>
@@ -354,11 +354,11 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
               <Star size={24} className="text-yellow-500" />
-              <span>{t('recentHighlights')}</span>
+              <span>{t('recentHighlights', { ns: 'students' })}</span>
             </h3>
 
             {highlights.length === 0 ? (
-              <p className="text-gray-500 text-center py-8">{t('noHighlights')}</p>
+              <p className="text-gray-500 text-center py-8">{t('noHighlights', { ns: 'students' })}</p>
             ) : (
               <div className="space-y-4">
                 {highlights.slice(0, 5).map((highlight, idx) => (
@@ -397,9 +397,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
         {/* Enrolled Courses & Actions */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-4">{t('enrolledCourses')}</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-4">{t('enrolledCourses', { ns: 'students' })}</h3>
           {enrollments.length === 0 ? (
-            <p className="text-gray-500">{t('noEnrollments')}</p>
+            <p className="text-gray-500">{t('noEnrollments', { ns: 'students' })}</p>
           ) : (
             <div className="space-y-2">
               {enrollments.map((e, idx) => {
@@ -409,14 +409,14 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                     <div className="flex items-center justify-between p-3 rounded border">
                       <div>
                         <div className="font-semibold text-gray-800">{course ? `${course.course_code} — ${course.course_name}` : `Course #${e.course_id}`}</div>
-                        <div className="text-xs text-gray-500">{t('enrolled')}: {e.enrolled_at || '-'}</div>
+                        <div className="text-xs text-gray-500">{t('enrolled', { ns: 'students' })}: {e.enrolled_at || '-'}</div>
                       </div>
                       <div>
                         <button
                           className="px-3 py-2 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
                           onClick={() => { setBreakdownCourseId(e.course_id); setShowBreakdown(true); }}
                       >
-                        {t('viewBreakdown')}
+                        {t('viewBreakdown', { ns: 'common' })}
                       </button>
                     </div>
                   </div>
@@ -432,20 +432,20 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
         {/* Recent Grades */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
-          <h3 className="text-xl font-bold text-gray-800 mb-6">{t('recentGrades')}</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-6">{t('recentGrades', { ns: 'dashboard' })}</h3>
 
           {grades.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">{t('noGradesRecorded')}</p>
+            <p className="text-gray-500 text-center py-8">{t('noGradesRecorded', { ns: 'grades' })}</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">{t('assignmentHeader')}</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">{t('scoreHeader')}</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">{t('percentageHeader')}</th>
-                    <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">{t('gradeHeader')}</th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">{t('dateHeader')}</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">{t('assignmentHeader', { ns: 'dashboard' })}</th>
+                    <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">{t('scoreHeader', { ns: 'dashboard' })}</th>
+                    <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">{t('percentageHeader', { ns: 'dashboard' })}</th>
+                    <th className="px-6 py-3 text-center text-sm font-semibold text-gray-700">{t('gradeHeader', { ns: 'dashboard' })}</th>
+                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">{t('dateHeader', { ns: 'dashboard' })}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -481,16 +481,16 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         {/* Attendance Overview */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6">
-            <h3 className="text-xl font-bold text-gray-800">{t('attendanceOverview')}</h3>
+            <h3 className="text-xl font-bold text-gray-800">{t('attendanceOverview', { ns: 'dashboard' })}</h3>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600" htmlFor="attendance-course-filter">{t('filterByCourse')}</label>
+              <label className="text-sm text-gray-600" htmlFor="attendance-course-filter">{t('filterByCourse', { ns: 'dashboard' })}</label>
               <select
                 id="attendance-course-filter"
                 className="border rounded px-3 py-2 text-sm"
                 value={attendanceCourseFilter ?? ''}
                 onChange={(e) => setAttendanceCourseFilter(e.target.value ? Number(e.target.value) : null)}
               >
-                <option value="">{t('allCourses')}</option>
+                <option value="">{t('allCourses', { ns: 'dashboard' })}</option>
                 {enrollments.map((enr) => {
                   const c = coursesById[enr.course_id];
                   const label = c ? `${c.course_code} — ${c.course_name}` : `Course #${enr.course_id}`;
@@ -519,7 +519,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
                   return (
                     <div key={status} className={`bg-gradient-to-br ${colors[status]} rounded-xl shadow p-4 text-white`}>
-                      <p className="text-sm opacity-90">{t(status.toLowerCase())}</p>
+                      <p className="text-sm opacity-90">{t(status.toLowerCase(), { ns: 'reports' })}</p>
                       <p className="text-3xl font-bold mt-2">{count}</p>
                       <p className="text-sm opacity-90 mt-1">{percentage}%</p>
                     </div>

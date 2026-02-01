@@ -83,13 +83,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const getSearchTypeLabel = () => {
     switch (searchType) {
       case 'students':
-        return t('students.title');
+        return t('title', { ns: 'students' });
       case 'courses':
-        return t('courses.title');
+        return t('title', { ns: 'courses' });
       case 'grades':
-        return t('grades.title');
+        return t('title', { ns: 'grades' });
       default:
-        return t('common.search');
+        return t('search', { ns: 'common' });
     }
   };
 
@@ -111,18 +111,18 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           value={searchType}
           onChange={(e) => handleSearchTypeChange(e.target.value as any)}
           className="hidden sm:block px-2 py-2 text-sm font-medium text-gray-700 bg-transparent border-r border-gray-200 focus:outline-none cursor-pointer"
-          aria-label={t('common.searchType')}
+          aria-label={t('searchType', { ns: 'common' })}
         >
-          <option value="students">{t('students.title')}</option>
-          <option value="courses">{t('courses.title')}</option>
-          <option value="grades">{t('grades.title')}</option>
+          <option value="students">{t('title', { ns: 'students' })}</option>
+          <option value="courses">{t('title', { ns: 'courses' })}</option>
+          <option value="grades">{t('title', { ns: 'grades' })}</option>
         </select>
 
         {/* Input Field */}
         <input
           ref={inputRef}
           type="text"
-          placeholder={t('common.searchPlaceholder') || `${t('common.search')} ${getSearchTypeLabel()}...`}
+          placeholder={t('searchPlaceholder', { ns: 'common' }) || `${t('search', { ns: 'common' })} ${getSearchTypeLabel()}...`}
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
@@ -136,7 +136,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
             }
           }}
           className="flex-1 px-3 py-2 text-sm text-gray-900 bg-transparent focus:outline-none"
-          aria-label={t('common.search')}
+          aria-label={t('search', { ns: 'common' })}
           aria-expanded={isOpen}
           aria-controls="search-results"
         />
@@ -146,7 +146,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           <button
             onClick={handleClear}
             className="pr-3 text-gray-400 hover:text-gray-600 transition-colors"
-            aria-label={t('common.clear')}
+            aria-label={t('clear', { ns: 'common' })}
           >
             <X size={18} />
           </button>
@@ -171,7 +171,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {/* Loading indicator inside dropdown */}
           {isLoading && (
             <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b flex items-center gap-2">
-              {t('common.results')}
+              {t('results', { ns: 'common' })}
               <div className="animate-spin">
                 <Search size={14} className="text-blue-500" />
               </div>
@@ -182,7 +182,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {searchQuery && searchResults.length > 0 && (
             <div>
               <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase bg-gray-50 border-b sticky top-0">
-                {t('common.results')} ({searchResults.length})
+                {t('results', { ns: 'common' })} ({searchResults.length})
               </div>
               <ul className="py-1">
                 {searchResults.map((result: SearchResult) => (
@@ -212,7 +212,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
           {/* No Results Message */}
           {searchQuery && searchResults.length === 0 && !isLoading && (
             <div className="px-3 py-4 text-center text-sm text-gray-500">
-              {t('common.noResults')}
+              {t('noResults', { ns: 'common' })}
             </div>
           )}
 

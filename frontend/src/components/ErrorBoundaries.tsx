@@ -79,12 +79,12 @@ class SectionErrorBoundaryCore extends Component<SectionErrorBoundaryCoreProps, 
       // Default fallback UI
       return (
         <div className="p-8 border-2 border-dashed border-rose-200 rounded-md bg-rose-50 text-center">
-          <div className="text-2xl mb-2">{this.props.t('errors.iconWarning') || '⚠️'}</div>
+          <div className="text-2xl mb-2">{this.props.t('iconWarning', { ns: 'errors' }) || '⚠️'}</div>
           <h3 className="text-lg font-semibold text-rose-800 mb-2">
-            {this.props.t('errors.sectionError') || `Error in ${section || 'this section'}`}
+            {this.props.t('sectionError', { ns: 'errors' }) || `Error in ${section || 'this section'}`}
           </h3>
           <p className="text-sm text-rose-700 mb-4">
-            {this.props.t('errors.sectionErrorDesc') || 'This section encountered an error, but the rest of the app is still working.'}
+            {this.props.t('sectionErrorDesc', { ns: 'errors' }) || 'This section encountered an error, but the rest of the app is still working.'}
           </p>
           <button
             onClick={this.handleRetry}
@@ -178,12 +178,12 @@ class AsyncErrorBoundaryCore extends Component<AsyncErrorBoundaryCoreProps, Asyn
 
       return (
         <div className="p-6 border border-amber-200 rounded-md bg-amber-50 text-center">
-          <div className="text-2xl mb-2">{this.props.t('errors.iconRetry') || '🔄'}</div>
+          <div className="text-2xl mb-2">{this.props.t('iconRetry', { ns: 'errors' }) || '🔄'}</div>
           <h4 className="text-base font-semibold text-amber-800 mb-2">
-            {this.props.t('errors.loadError') || `Failed to load ${operation || 'data'}`}
+            {this.props.t('loadError', { ns: 'errors' }) || `Failed to load ${operation || 'data'}`}
           </h4>
           <p className="text-sm text-amber-700 mb-4">
-            {error?.message || this.props.t('errors.genericError') || 'Something went wrong'}
+            {error?.message || this.props.t('genericError', { ns: 'errors' }) || 'Something went wrong'}
           </p>
           <button
             onClick={this.handleRetry}
@@ -191,8 +191,8 @@ class AsyncErrorBoundaryCore extends Component<AsyncErrorBoundaryCoreProps, Asyn
             className={"px-4 py-2 text-sm font-medium text-white rounded-md transition-all " + (isRetrying ? 'bg-amber-600 opacity-60 cursor-not-allowed' : 'bg-amber-500 hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-400')}
           >
             {isRetrying
-              ? (this.props.t('common.retrying') || 'Retrying...')
-              : (this.props.t('common.retry') || 'Retry')}
+              ? (this.props.t('retrying', { ns: 'common' }) || 'Retrying...')
+              : (this.props.t('retry', { ns: 'common' }) || 'Retry')}
           </button>
         </div>
       );

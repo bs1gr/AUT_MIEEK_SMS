@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useLanguage } from '../LanguageContext';
+import { useTranslation } from 'react-i18next';
 import Modal from './ui/Modal';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -11,7 +11,7 @@ interface UserFeedbackModalProps {
 }
 
 const UserFeedbackModal = ({ isOpen, onClose, onSubmit }: UserFeedbackModalProps) => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [feedback, setFeedback] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -25,10 +25,10 @@ const UserFeedbackModal = ({ isOpen, onClose, onSubmit }: UserFeedbackModalProps
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('feedback.title')}>
-      <form onSubmit={handleSubmit} className="space-y-4" aria-label={t('feedback.title')}>
+    <Modal isOpen={isOpen} onClose={onClose} title={t('title', { ns: 'feedback' })}>
+      <form onSubmit={handleSubmit} className="space-y-4" aria-label={t('title', { ns: 'feedback' })}>
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-200" htmlFor="user-feedback-textarea">
-          {t('feedback.prompt')}
+          {t('prompt', { ns: 'feedback' })}
         </label>
         <Textarea
           id="user-feedback-textarea"
@@ -37,15 +37,15 @@ const UserFeedbackModal = ({ isOpen, onClose, onSubmit }: UserFeedbackModalProps
           rows={4}
           required
           className="w-full mt-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-y"
-          placeholder={t('feedback.placeholder')}
+          placeholder={t('placeholder', { ns: 'feedback' })}
           aria-required="true"
         />
         <div className="flex justify-end gap-2 mt-4">
           <Button type="button" onClick={onClose} variant="secondary">
-            {t('common.cancel')}
+            {t('cancel', { ns: 'common' })}
           </Button>
           <Button type="submit" disabled={submitting || !feedback.trim()} aria-busy={submitting}>
-            {submitting ? t('common.sending') : t('feedback.submit')}
+            {submitting ? t('sending', { ns: 'common' }) : t('submit', { ns: 'feedback' })}
           </Button>
         </div>
       </form>

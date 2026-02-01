@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useLanguage } from '@/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import LoginWidget from '@/components/auth/LoginWidget';
 import RegisterWidget from '@/components/auth/RegisterWidget';
@@ -16,7 +16,7 @@ const AuthPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { t } = useLanguage();
+  const { t } = useTranslation();
 
   const redirectPath = useMemo(() => {
     const state = location.state as LocationState | undefined;
@@ -40,12 +40,12 @@ const AuthPage = () => {
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 py-10">
       {/* Add page-ready indicator for E2E tests */}
-      <div data-testid="auth-page-loaded" className="hidden">{t('common.loaded')}</div>
+      <div data-testid="auth-page-loaded" className="hidden">{t('loaded', { ns: 'common' })}</div>
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle className="text-2xl font-semibold">{t('auth.loginTitle')}</CardTitle>
-          <CardDescription>{t('auth.loginDescription')}</CardDescription>
+          <CardTitle className="text-2xl font-semibold">{t('loginTitle', { ns: 'auth' })}</CardTitle>
+          <CardDescription>{t('loginDescription', { ns: 'auth' })}</CardDescription>
         </CardHeader>
         <CardContent>
           <LoginWidget variant="inline" onLoginSuccess={handleAuthSuccess} />

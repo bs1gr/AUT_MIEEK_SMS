@@ -33,24 +33,24 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
     switch (searchType) {
       case 'students':
         return [
-          { value: 'first_name', label: t('students.firstName') },
-          { value: 'last_name', label: t('students.lastName') },
-          { value: 'email', label: t('students.email') },
-          { value: 'enrollment_number', label: t('students.enrollmentNumber') },
-          { value: 'is_active', label: t('students.status') },
+          { value: 'first_name', label: t('firstName', { ns: 'students' }) },
+          { value: 'last_name', label: t('lastName', { ns: 'students' }) },
+          { value: 'email', label: t('email', { ns: 'students' }) },
+          { value: 'enrollment_number', label: t('enrollmentNumber', { ns: 'students' }) },
+          { value: 'is_active', label: t('status', { ns: 'students' }) },
         ];
       case 'courses':
         return [
-          { value: 'course_name', label: t('courses.courseName') },
-          { value: 'course_code', label: t('courses.courseCode') },
-          { value: 'credits', label: t('courses.credits') },
+          { value: 'course_name', label: t('courseName', { ns: 'courses' }) },
+          { value: 'course_code', label: t('courseCode', { ns: 'courses' }) },
+          { value: 'credits', label: t('credits', { ns: 'courses' }) },
         ];
       case 'grades':
         return [
-          { value: 'student_id', label: t('students.student') },
-          { value: 'course_id', label: t('courses.course') },
-          { value: 'grade_value', label: t('grades.grade') },
-          { value: 'exam_date', label: t('grades.examDate') },
+          { value: 'student_id', label: t('title', { ns: 'students' }) },
+          { value: 'course_id', label: t('title', { ns: 'courses' }) },
+          { value: 'grade_value', label: t('grade', { ns: 'grades' }) },
+          { value: 'exam_date', label: t('examDate', { ns: 'grades' }) },
         ];
       default:
         return [];
@@ -59,12 +59,12 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
 
   // Define operators
   const operators = useMemo(() => [
-    { value: 'equals', label: t('search.equals') },
-    { value: 'contains', label: t('search.contains') },
-    { value: 'starts_with', label: t('search.startsWith') },
-    { value: 'greater_than', label: t('search.greaterThan') },
-    { value: 'less_than', label: t('search.lessThan') },
-    { value: 'between', label: t('search.between') },
+    { value: 'equals', label: t('equals', { ns: 'search' }) },
+    { value: 'contains', label: t('contains', { ns: 'search' }) },
+    { value: 'starts_with', label: t('startsWith', { ns: 'search' }) },
+    { value: 'greater_than', label: t('greaterThan', { ns: 'search' }) },
+    { value: 'less_than', label: t('lessThan', { ns: 'search' }) },
+    { value: 'between', label: t('between', { ns: 'search' }) },
   ], [t]);
 
   const handleAddFilter = () => {
@@ -121,7 +121,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
         className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
       >
         <Filter size={18} className="text-gray-600" />
-        <span className="text-sm font-medium text-gray-700">{t('search.advancedFilters')}</span>
+        <span className="text-sm font-medium text-gray-700">{t('advancedFilters', { ns: 'search' })}</span>
         {filters.length > 0 && (
           <span className="ml-auto bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded-full">
             {filters.length}
@@ -138,13 +138,13 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
             className="w-full flex items-center justify-center gap-2 px-3 py-2 mb-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors"
           >
             <Plus size={18} />
-            <span className="text-sm font-medium">{t('search.addFilter')}</span>
+            <span className="text-sm font-medium">{t('addFilter', { ns: 'search' })}</span>
           </button>
 
           {/* Filters List */}
           <div className="space-y-3 mb-4 max-h-96 overflow-y-auto">
             {effectiveFilters.length === 0 ? (
-              <p className="text-sm text-gray-500 italic">{t('search.noFiltersApplied')}</p>
+              <p className="text-sm text-gray-500 italic">{t('noFiltersApplied', { ns: 'search' })}</p>
             ) : (
               effectiveFilters.map((filter, index) => (
                 <div
@@ -156,7 +156,7 @@ export const AdvancedFilters: React.FC<AdvancedFiltersProps> = React.memo(({
                     value={filter.field}
                     onChange={(e) => handleFieldChange(index, e.target.value)}
                     className="flex-1 px-2 py-1 text-sm border border-gray-300 rounded bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                    aria-label={t('search.filterField')}
+                    aria-label={t('filterField', { ns: 'search' })}
                   >
                     {availableFields.map((field) => (
                       <option key={field.value} value={field.value}>

@@ -6,6 +6,10 @@ export default {
   myReports: 'Οι Αναφορές Μου',
   templates: 'Πρότυπα Αναφορών',
   generatedReports: 'Δημιουργημένες Αναφορές',
+  reports: 'Αναφορές',
+  createReport: 'Δημιουργία Αναφοράς',
+  reportsDescription: 'Δημιουργήστε, διαχειριστείτε και παραγάγετε προσαρμοσμένες αναφορές για το ίδρυμά σας.',
+  templatesDescription: 'Περιηγηθείτε σε έτοιμα πρότυπα ή δημιουργήστε τα δικά σας επαναχρησιμοποιούμενα.',
 
   // Navigation
   createNew: 'Δημιουργία Νέας Αναφοράς',
@@ -19,6 +23,18 @@ export default {
   fieldsAndColumns: 'Πεδία & Στήλες',
   filtersAndSorting: 'Φίλτρα & Ταξινόμηση',
   previewAndGenerate: 'Προεπισκόπηση & Δημιουργία',
+  previewTitle: 'Προεπισκόπηση',
+  previewName: 'Όνομα',
+  previewDescription: 'Περιγραφή',
+  previewEntityType: 'Τύπος Οντότητας',
+  previewOutputFormat: 'Μορφή Εξόδου',
+  previewFields: 'Πεδία',
+  previewFilters: 'Φίλτρα',
+  previewSorting: 'Ταξινόμηση',
+  previewNone: 'Κανένα',
+  previewNotAvailable: 'N/A',
+  previewFiltersCount: '{{count}} φίλτρο(α)',
+  previewSortingCount: '{{count}} κανόνας(ες)',
 
   // Report properties
   reportName: 'Όνομα Αναφοράς',
@@ -84,6 +100,9 @@ export default {
   standardTemplates: 'Τυπικά Πρότυπα',
   myTemplates: 'Τα Πρότυπά Μου',
   sharedTemplates: 'Κοινόχρηστα Πρότυπα',
+  noStandardTemplates: 'Δεν υπάρχουν διαθέσιμα τυπικά πρότυπα',
+  searchTemplates: 'Αναζήτηση προτύπων...',
+  allEntityTypes: 'Όλοι οι τύποι οντοτήτων',
 
   // Pre-built templates (10 standard)
   template_student_roster: 'Κατάλογος Μαθητών',
