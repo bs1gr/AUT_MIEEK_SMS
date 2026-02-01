@@ -192,6 +192,25 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     }
 
     try {
+      // Transform sorting_rules array to sort_by dict
+      const sortByDict = config.sorting_rules.length > 0 
+        ? config.sorting_rules.reduce((acc: Record<string, string>, rule: any) => {
+            acc[rule.field] = rule.order || 'asc';
+            return acc;
+          }, {})
+        : null;
+
+      // Transform filters array to filters dict if needed
+      const filtersDict = config.filters.length > 0 
+        ? config.filters.reduce((acc: Record<string, any>, filter: any) => {
+            acc[filter.field] = {
+              operator: filter.operator,
+              value: filter.value
+            };
+            return acc;
+          }, {})
+        : null;
+
       // Transform frontend config to backend schema format
       const backendConfig: any = {
         name: config.name,
@@ -202,9 +221,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           acc[field] = true;
           return acc;
         }, {} as Record<string, boolean>),
-        filters: config.filters.length > 0 ? config.filters : null,
+        filters: filtersDict,
         aggregations: null,
-        sort_by: config.sorting_rules.length > 0 ? config.sorting_rules : null,
+        sort_by: sortByDict,
         export_format: config.output_format,
         include_charts: true,
         schedule_enabled: false,
