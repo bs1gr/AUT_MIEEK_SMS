@@ -540,6 +540,53 @@ async def update_generated_report(
         )
 
 
+@router.delete(
+    "/{report_id}/generated/{generated_report_id}",
+    summary="Delete a generated report",
+)
+async def delete_generated_report(
+    request: Request,
+    report_id: int,
+    generated_report_id: int,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user),
+) -> dict:
+    """Delete a generated report and its file."""
+    try:
+        service = CustomReportService(db)
+        
+        # Check if user owns this report
+        report = service.get_report(report_id, current_user.id)
+        if not report:
+            return error_response(
+                code="NOT_FOUND",
+                message="Report not found",
+                request_id=request.state.request_id,
+            )
+        
+        # Delete generated report
+        success = service.delete_generated_report(report_id, generated_report_id, current_user.id)
+        if not success:
+            return error_response(
+                code="NOT_FOUND",
+                message="Generated report not found",
+                request_id=request.state.request_id,
+            )
+        
+        return success_response(
+            data={"message": "Generated report deleted successfully"},
+            request_id=request.state.request_id,
+        )
+    except Exception as e:
+        logger.error(f"Error deleting generated report {generated_report_id}: {str(e)}")
+        return error_response(
+            code="DELETE_ERROR",
+            message="Failed to delete generated report",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
+        )
+
+
 @router.get(
     "/{report_id}/generated/{generated_report_id}/download",
     summary="Download generated report file",
@@ -554,7 +601,7 @@ async def download_generated_report(
     """Download a generated report file."""
     try:
         service = CustomReportService(db)
-        
+
         # Verify the user has permission to download this report
         report = service.get_report(report_id, current_user.id)
         if not report:
@@ -563,7 +610,7 @@ async def download_generated_report(
                 message="Report not found",
                 request_id=request.state.request_id,
             )
-        
+
         # Get the generated report
         generated = service.get_generated_report(report_id, generated_report_id, current_user.id)
         if not generated:
@@ -572,7 +619,7 @@ async def download_generated_report(
                 message="Generated report not found",
                 request_id=request.state.request_id,
             )
-        
+
         # Check if file exists
         if not generated.file_path or not os.path.exists(generated.file_path):
             return error_response(
@@ -580,7 +627,7 @@ async def download_generated_report(
                 message="Report file no longer exists",
                 request_id=request.state.request_id,
             )
-        
+
         # Return the file
         file_name = os.path.basename(generated.file_path)
         return FileResponse(

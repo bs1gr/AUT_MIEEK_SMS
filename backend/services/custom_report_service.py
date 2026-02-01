@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, cast
 import logging
+import os
 
 from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
@@ -264,6 +265,26 @@ class CustomReportService:
         self.db.commit()
         self.db.refresh(report_instance)
         return report_instance
+
+    def delete_generated_report(self, report_id: int, report_instance_id: int, user_id: int) -> bool:
+        """Delete a generated report record."""
+        report_instance = self.get_generated_report(report_id, report_instance_id, user_id)
+        if not report_instance:
+            return False
+
+        # Delete file from disk if it exists
+        if report_instance.file_path and os.path.exists(report_instance.file_path):
+            try:
+                os.remove(report_instance.file_path)
+            except Exception as e:
+                # Log error but continue with database deletion
+                import logging
+                logging.error(f"Failed to delete file {report_instance.file_path}: {str(e)}")
+
+        # Delete database record
+        self.db.delete(report_instance)
+        self.db.commit()
+        return True
 
     # ==========================================================================
     # STATISTICS
