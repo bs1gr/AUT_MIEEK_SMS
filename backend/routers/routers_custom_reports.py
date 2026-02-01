@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, cast
 import logging
 
-from fastapi import APIRouter, Depends, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
 from sqlalchemy.orm import Session
 
 from backend.dependencies import get_db
@@ -34,6 +34,7 @@ from backend.schemas.custom_reports import (
     ReportTemplateResponse,
     ReportTemplateUpdate,
 )
+from backend.services.custom_report_generation_service import CustomReportGenerationService
 from backend.services.custom_report_service import CustomReportService
 
 logger = logging.getLogger(__name__)
@@ -416,6 +417,7 @@ async def generate_report(
     request: Request,
     report_id: int,
     body: ReportGenerationRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
 ) -> APIResponse[Dict[str, Any]]:
@@ -443,6 +445,14 @@ async def generate_report(
         generated = service.create_generated_report(report_id, current_user.id, create_data)
 
         generated_id = int(cast(int, generated.id))
+        background_tasks.add_task(
+            CustomReportGenerationService.run_generation_task,
+            report_id,
+            generated_id,
+            current_user.id,
+            export_format,
+            bool(body.include_charts if body.include_charts is not None else report.include_charts),
+        )
         response = ReportGenerationResponse(
             generated_report_id=generated_id,
             status=str(generated.status),
@@ -536,6 +546,7 @@ async def update_generated_report(
 async def bulk_generate_reports(
     request: Request,
     body: BulkReportGenerationRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
 ) -> APIResponse[Dict[str, Any]]:
@@ -563,6 +574,14 @@ async def bulk_generate_reports(
             )
             generated = service.create_generated_report(report_id, current_user.id, create_data)
             generated_ids.append(int(cast(int, generated.id)))
+            background_tasks.add_task(
+                CustomReportGenerationService.run_generation_task,
+                report_id,
+                int(cast(int, generated.id)),
+                current_user.id,
+                export_format,
+                bool(report.include_charts),
+            )
 
         response = BulkReportGenerationResponse(
             total_requested=len(body.report_ids),
