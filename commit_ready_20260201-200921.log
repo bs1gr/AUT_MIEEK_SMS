@@ -3,7 +3,7 @@ PowerShell transcript start
 Start time: 20260201200921
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name: 
+Configuration Name:
 Machine: REC (Microsoft Windows NT 10.0.26300.0)
 Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
 Process ID: 41356

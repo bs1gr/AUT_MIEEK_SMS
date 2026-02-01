@@ -345,4 +345,3 @@ Sample Courses (4):
 **Document Version**: 1.0
 **Last Updated**: January 31, 2026
 **Status**: FINAL - Ready for Sign-Off
-

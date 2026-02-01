@@ -121,4 +121,3 @@ Get summary:
 - `backend/security/permissions.py` — permission helpers and resolution logic
 - `backend/routers/routers_rbac.py` — admin RBAC endpoints
 - `backend/run_migrations.py` — programmatic Alembic runner
-

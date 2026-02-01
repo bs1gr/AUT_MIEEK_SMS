@@ -8,7 +8,7 @@ tracking generated report instances.
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 import logging
 
 from sqlalchemy import func, desc
@@ -131,10 +131,13 @@ class CustomReportService:
         if report.schedule_enabled:
             scheduler = get_report_scheduler()
             next_run = scheduler.schedule_report(report)
-            report.next_run_at = next_run or ReportScheduler.compute_next_run_at(
-                report.schedule_frequency,
-                report.schedule_cron,
-            )
+            if next_run:
+                report.next_run_at = next_run  # type: ignore[assignment]
+            else:
+                report.next_run_at = ReportScheduler.compute_next_run_at(  # type: ignore[assignment]
+                    cast(Optional[str], report.schedule_frequency),
+                    cast(Optional[str], report.schedule_cron),
+                )
             self.db.commit()
         return report
 
@@ -177,15 +180,18 @@ class CustomReportService:
         scheduler = get_report_scheduler()
         if report.schedule_enabled:
             next_run = scheduler.schedule_report(report)
-            report.next_run_at = next_run or ReportScheduler.compute_next_run_at(
-                report.schedule_frequency,
-                report.schedule_cron,
-                report.last_run_at,
-            )
+            if next_run:
+                report.next_run_at = next_run  # type: ignore[assignment]
+            else:
+                report.next_run_at = ReportScheduler.compute_next_run_at(  # type: ignore[assignment]
+                    cast(Optional[str], report.schedule_frequency),
+                    cast(Optional[str], report.schedule_cron),
+                    cast(Optional[datetime], report.last_run_at),
+                )
             self.db.commit()
         else:
-            report.next_run_at = None
-            scheduler.cancel_report(report.id)
+            report.next_run_at = None  # type: ignore[assignment]
+            scheduler.cancel_report(cast(int, report.id))
             self.db.commit()
         return report
 

@@ -674,4 +674,3 @@ By end of training, students should be able to:
 **Training Dates**: February 5, 2026 (multiple sessions)
 **Session Times**: [TBD - to be scheduled]
 **Attendees**: All enrolled students
-

@@ -344,4 +344,3 @@ The SMS interface supports both languages. You can switch between English and Gr
 **Training Coordinator**: SMS Implementation Team
 
 **Questions?** Contact training@mieek.edu.cy
-

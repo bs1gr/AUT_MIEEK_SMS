@@ -359,4 +359,3 @@ By the end of this training, users will be able to:
 **Status**: ✅ Ready for delivery
 **Last Updated**: January 30, 2026
 **Next Review**: February 5, 2026 (post-training)
-

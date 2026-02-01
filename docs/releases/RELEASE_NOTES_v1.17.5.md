@@ -117,4 +117,3 @@ For questions or issues with this release:
 **Changelog**: See `CHANGELOG.md` for detailed commit history
 **Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS
 **Release Tag**: $11.17.6
-
