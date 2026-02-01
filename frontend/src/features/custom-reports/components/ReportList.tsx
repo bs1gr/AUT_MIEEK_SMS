@@ -15,6 +15,8 @@ interface ReportListProps {
 
 export const ReportList: React.FC<ReportListProps> = ({
   onEditReport,
+  // onViewReport is reserved for future use when viewing generated reports
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onViewReport,
 }) => {
   const { t } = useTranslation();

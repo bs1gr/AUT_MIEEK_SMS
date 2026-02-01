@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, ChevronLeft, GripVertical, X } from 'lucide-react';
+import { ChevronRight, GripVertical, Trash2 } from 'lucide-react';
 
 interface FieldSelectorProps {
   availableFields: string[];
