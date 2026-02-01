@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { ShieldCheck } from 'lucide-react';
+import { useLocation, Link } from 'react-router-dom';
+import { ShieldCheck, FileText } from 'lucide-react';
 
 import { useLanguage } from '@/LanguageContext';
 import ExportCenter from '@/components/tools/ExportCenter';
@@ -65,6 +65,7 @@ const OperationsView = (_props: OperationsViewProps) => {
     { key: 'exports', label: t('exportTabLabel') || 'Export' },
     { key: 'imports', label: t('importsTabLabel') || 'Imports' },
     { key: 'settings', label: t('settingsTabLabel') || 'Settings' },
+    { key: 'reports', label: t('reports') || 'Reports' },
     { key: 'help', label: t('helpTitle') || 'Help' },
   ];
 
@@ -162,6 +163,39 @@ const OperationsView = (_props: OperationsViewProps) => {
 
               <div className="mt-4">
                 <JobProgressMonitor jobId={trackedJobId} />
+              </div>
+            </div>
+          </div>
+        )}
+        {effectiveTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-indigo-50 to-slate-50 p-6">
+              <div className="mb-4 flex items-center gap-3">
+                <FileText className="h-6 w-6 text-indigo-600" />
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">{t('customReports') || 'Custom Reports'}</h2>
+                  <p className="text-sm text-slate-600">{t('customReports:helpDragFields') || 'Create and manage custom reports with advanced filtering and formatting options'}</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link
+                  to="/operations/reports"
+                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                >
+                  {t('customReports:viewAll') || 'View All Reports'}
+                </Link>
+                <Link
+                  to="/operations/reports/builder"
+                  className="inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                >
+                  {t('customReports:createNew') || 'Create New Report'}
+                </Link>
+                <Link
+                  to="/operations/reports/templates"
+                  className="inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                >
+                  {t('customReports:templates') || 'Browse Templates'}
+                </Link>
               </div>
             </div>
           </div>
