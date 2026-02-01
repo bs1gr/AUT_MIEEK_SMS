@@ -238,10 +238,17 @@ export const customReportsAPI = {
    */
   generate: async (id: number) => {
     try {
-      const response = await apiClient.post(`/custom-reports/${id}/generate`);
+      const response = await apiClient.post(`/custom-reports/${id}/generate`, {
+        export_format: null,
+        include_charts: null,
+        email_recipients: null,
+      });
+      console.log(`[customReportsAPI] Report ${id} generation started:`, response);
       return extractAPIResponseData(response) as { job_id: string; status: string };
     } catch (error) {
-      console.error(`[customReportsAPI] Error generating report ${id}:`, error);
+      const axiosError = error as any;
+      console.error(`[customReportsAPI] Error generating report ${id}:`, axiosError);
+      console.error('[customReportsAPI] Response data:', axiosError.response?.data);
       throw extractAPIError(
         (error as { response?: AxiosResponse }).response
       );
