@@ -638,16 +638,14 @@ class ImportJob(Base):
     file_name = Column(String(255), nullable=False)
     file_type = Column(String(10), nullable=False)  # csv, xlsx
     import_type = Column(String(50), nullable=False)  # students, courses, grades
-    status = Column(
-        String(50), nullable=False, default="pending", index=True
-    )  # pending, validated, processing, completed, failed
+    status = Column(String(50), nullable=False, default="pending")  # pending, validated, processing, completed, failed
     total_rows = Column(Integer, nullable=False)
     successful_rows = Column(Integer, default=0)
     failed_rows = Column(Integer, default=0)
     validation_errors = Column(JSON, nullable=True)  # {row_number: [error1, error2]}
     file_path = Column(String(500), nullable=True)  # Path to uploaded file
     imported_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
@@ -673,10 +671,10 @@ class ImportRow(Base):
     __tablename__ = "import_rows"
 
     id = Column(Integer, primary_key=True, index=True)
-    import_job_id = Column(Integer, ForeignKey("import_jobs.id", ondelete="CASCADE"), nullable=False, index=True)
+    import_job_id = Column(Integer, ForeignKey("import_jobs.id", ondelete="CASCADE"), nullable=False)
     row_number = Column(Integer, nullable=False)
     original_data = Column(JSON, nullable=False)  # Original row data from file
-    status = Column(String(50), nullable=False, default="pending", index=True)  # pending, valid, error, committed
+    status = Column(String(50), nullable=False, default="pending")  # pending, valid, error, committed
     error_messages = Column(JSON, nullable=True)  # [error1, error2, ...]
     target_id = Column(Integer, nullable=True)  # ID of created/updated record
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
@@ -705,7 +703,7 @@ class ExportJob(Base):
     export_type = Column(String(50), nullable=False)  # students, courses, grades, attendance, dashboard
     file_format = Column(String(10), nullable=False)  # csv, xlsx, pdf
     file_path = Column(String(500), nullable=True)  # Path to generated file
-    status = Column(String(50), nullable=False, default="pending", index=True)  # pending, processing, completed, failed
+    status = Column(String(50), nullable=False, default="pending")  # pending, processing, completed, failed
     total_records = Column(Integer, default=0)
     progress_percent = Column(Integer, nullable=True)  # 0-100 for tracking export generation progress
     filters = Column(JSON, nullable=True)  # {status: active, course_id: 5}
@@ -713,7 +711,7 @@ class ExportJob(Base):
     schedule_frequency = Column(String(50), nullable=True)  # weekly, monthly, daily
     scheduled_at = Column(DateTime(timezone=True), nullable=True)
     created_by = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
@@ -738,7 +736,7 @@ class ImportExportHistory(Base):
     __tablename__ = "import_export_history"
 
     id = Column(Integer, primary_key=True, index=True)
-    operation_type = Column(String(50), nullable=False, index=True)  # import, export
+    operation_type = Column(String(50), nullable=False)  # import, export
     resource_type = Column(String(50), nullable=False, index=True)  # students, courses, grades, attendance
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     job_id = Column(Integer, nullable=True)  # ID of associated ImportJob or ExportJob
@@ -807,7 +805,7 @@ class Report(SoftDeleteMixin, Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     name = Column(String(200), nullable=False, index=True)
     description = Column(Text, nullable=True)
-    report_type = Column(String(50), nullable=False, index=True)  # student, course, grade, attendance, custom
+    report_type = Column(String(50), nullable=False)  # student, course, grade, attendance, custom
     template_id = Column(Integer, ForeignKey("report_templates.id", ondelete="SET NULL"), nullable=True)
 
     # Report configuration
@@ -821,10 +819,10 @@ class Report(SoftDeleteMixin, Base):
     include_charts = Column(Boolean, default=True)
 
     # Scheduling (optional)
-    schedule_enabled = Column(Boolean, default=False, index=True)
+    schedule_enabled = Column(Boolean, default=False)
     schedule_frequency = Column(String(20), nullable=True)  # daily, weekly, monthly, custom
     schedule_cron = Column(String(100), nullable=True)  # Cron expression for custom schedules
-    next_run_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    next_run_at = Column(DateTime(timezone=True), nullable=True)
     last_run_at = Column(DateTime(timezone=True), nullable=True)
 
     # Email delivery
@@ -870,8 +868,8 @@ class ReportTemplate(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(200), nullable=False, index=True, unique=True)
     description = Column(Text, nullable=True)
-    category = Column(String(50), nullable=False, index=True)  # academic, administrative, statistical
-    report_type = Column(String(50), nullable=False, index=True)
+    category = Column(String(50), nullable=False)  # academic, administrative, statistical
+    report_type = Column(String(50), nullable=False)
 
     # Template configuration (same structure as Report)
     fields = Column(JSON, nullable=False)
@@ -885,7 +883,7 @@ class ReportTemplate(Base):
 
     # Template metadata
     is_system = Column(Boolean, default=True)  # System template vs user-created
-    is_active = Column(Boolean, default=True, index=True)
+    is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at = Column(
         DateTime(timezone=True),
@@ -924,7 +922,7 @@ class GeneratedReport(Base):
     export_format = Column(String(20), nullable=False)  # pdf, excel, csv
 
     # Status tracking
-    status = Column(String(20), default="pending", index=True)  # pending, generating, completed, failed
+    status = Column(String(20), default="pending")  # pending, generating, completed, failed
     error_message = Column(Text, nullable=True)
 
     # Performance metrics
@@ -937,8 +935,8 @@ class GeneratedReport(Base):
     email_error = Column(Text, nullable=True)
 
     # Metadata
-    generated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
-    expires_at = Column(DateTime(timezone=True), nullable=True, index=True)  # Automatic cleanup date
+    generated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    expires_at = Column(DateTime(timezone=True), nullable=True)  # Automatic cleanup date
 
     # Relationships
     report: ClassVar[Any] = relationship("Report", back_populates="generated_reports")

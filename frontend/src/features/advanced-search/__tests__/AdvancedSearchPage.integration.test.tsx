@@ -191,4 +191,3 @@ describe('AdvancedSearchPage Integration Tests', () => {
     expect(retryButton).toBeInTheDocument();
   });
 });
-

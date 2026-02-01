@@ -461,7 +461,8 @@ async def get_export_job(
             created_by=job.created_by,
             created_at=job.created_at,
             completed_at=job.completed_at,
-        )
+        ),
+        request_id=request.state.request_id,
     )
 
 

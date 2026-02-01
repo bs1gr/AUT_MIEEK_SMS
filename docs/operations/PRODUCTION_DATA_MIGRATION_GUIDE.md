@@ -124,7 +124,7 @@ SELECT COUNT(*) FROM courses;
 
 # Check for orphaned data
 docker exec -i docker-postgres-1 psql -U sms_user -d student_management -c "
-SELECT 
+SELECT
   (SELECT COUNT(*) FROM enrollments) AS enrollments,
   (SELECT COUNT(*) FROM grades) AS grades,
   (SELECT COUNT(*) FROM attendances) AS attendances;
@@ -241,7 +241,7 @@ python -m scripts.import_attendance --file ../data/attendance.csv --execute
 ```powershell
 # Check imported counts
 docker exec -i docker-postgres-1 psql -U sms_user -d student_management -c "
-SELECT 
+SELECT
   (SELECT COUNT(*) FROM users WHERE role = 'student') AS students,
   (SELECT COUNT(*) FROM users WHERE role = 'teacher') AS teachers,
   (SELECT COUNT(*) FROM users WHERE role = 'admin') AS admins,
@@ -380,7 +380,7 @@ docker logs docker-backend-1 | Select-String "ERROR" | Select-Object -Last 100
 
 ```sql
 -- Check database size
-SELECT 
+SELECT
   pg_size_pretty(pg_database_size('student_management')) AS db_size,
   pg_size_pretty(pg_total_relation_size('users')) AS users_size,
   pg_size_pretty(pg_total_relation_size('courses')) AS courses_size,

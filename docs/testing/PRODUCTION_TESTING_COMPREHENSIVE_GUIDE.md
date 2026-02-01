@@ -395,7 +395,7 @@ Approved By: ________________  Date: ________________
    ```powershell
    # Login as student, get token
    $studentToken = (curl -X POST "http://localhost:8080/api/v1/auth/login" -H "Content-Type: application/json" -d '{"email":"student1@school.edu","password":"StudentPass123!"}' | ConvertFrom-Json).access_token
-   
+
    # Try to access admin endpoint
    curl -X GET "http://localhost:8080/api/v1/users/" -H "Authorization: Bearer $studentToken"
    ```
@@ -416,7 +416,7 @@ Approved By: ________________  Date: ________________
    ```powershell
    # Login as teacher
    $teacherToken = (curl -X POST "http://localhost:8080/api/v1/auth/login" -H "Content-Type: application/json" -d '{"email":"teacher1@school.edu","password":"TeacherPass123!"}' | ConvertFrom-Json).access_token
-   
+
    # Try to modify settings
    curl -X PUT "http://localhost:8080/api/v1/settings/system_name" -H "Authorization: Bearer $teacherToken" -d '{"value":"Hacked"}'
    ```

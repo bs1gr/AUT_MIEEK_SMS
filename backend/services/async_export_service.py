@@ -9,7 +9,7 @@ Supports multiple export formats: Excel (XLSX), CSV, and PDF.
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from enum import Enum
 import csv
 
@@ -21,7 +21,7 @@ from sqlalchemy.orm import Session
 try:
     from reportlab.lib.pagesizes import letter
     from reportlab.lib import colors
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Flowable
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import inch
 
@@ -479,7 +479,7 @@ class AsyncExportService:
             # Create PDF file
             file_path = self.get_export_path(export_job_id, "pdf")
             doc = SimpleDocTemplate(file_path, pagesize=letter)
-            elements = []
+            elements: List[Flowable] = []
             styles = getSampleStyleSheet()
 
             # Add title
@@ -566,7 +566,7 @@ class AsyncExportService:
             # Create PDF file
             file_path = self.get_export_path(export_job_id, "pdf")
             doc = SimpleDocTemplate(file_path, pagesize=letter)
-            elements = []
+            elements: List[Flowable] = []
             styles = getSampleStyleSheet()
 
             # Add title
@@ -655,7 +655,7 @@ class AsyncExportService:
             # Create PDF file
             file_path = self.get_export_path(export_job_id, "pdf")
             doc = SimpleDocTemplate(file_path, pagesize=letter)
-            elements = []
+            elements: List[Flowable] = []
             styles = getSampleStyleSheet()
 
             # Add title
