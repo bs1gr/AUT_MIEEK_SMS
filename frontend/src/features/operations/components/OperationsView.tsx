@@ -173,7 +173,7 @@ const OperationsView = (_props: OperationsViewProps) => {
               <div className="mb-4 flex items-center gap-3">
                 <FileText className="h-6 w-6 text-indigo-600" />
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">{t('customReports') || 'Custom Reports'}</h2>
+                  <h2 className="text-lg font-semibold text-slate-900">{t('customReports:customReports') || 'Custom Reports'}</h2>
                   <p className="text-sm text-slate-600">{t('customReports:helpDragFields') || 'Create and manage custom reports with advanced filtering and formatting options'}</p>
                 </div>
               </div>
