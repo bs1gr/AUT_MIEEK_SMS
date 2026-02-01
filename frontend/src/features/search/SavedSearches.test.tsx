@@ -139,7 +139,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const typeFilter = screen.getByRole('combobox', { name: /filterByType/i });
+    const typeFilter = screen.getByRole('combobox', { name: /filter by type/i });
     fireEvent.change(typeFilter, { target: { value: 'students' } });
 
     await waitFor(() => {
@@ -181,7 +181,7 @@ describe('SavedSearches Component', () => {
     render(<SavedSearches />, { wrapper });
 
     // Find the favorites button by role and partial text match
-    const favoritesButton = screen.getByRole('button', { name: /favoritesOnly/i });
+    const favoritesButton = screen.getByRole('button', { name: /favorites only/i });
     fireEvent.click(favoritesButton);
 
     await waitFor(() => {
@@ -213,7 +213,7 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches onLoadSearch={mockOnLoadSearch} />, { wrapper });
 
-    const loadButton = screen.getByRole('button', { name: /loadSearch/i });
+    const loadButton = screen.getByRole('button', { name: /load search/i });
     fireEvent.click(loadButton);
 
     expect(mockLoadSavedSearch).toHaveBeenCalledWith(mockSearch);
@@ -242,8 +242,8 @@ describe('SavedSearches Component', () => {
 
     render(<SavedSearches />, { wrapper });
 
-    const favoriteButton = screen.getByRole('button', { name: /toggleFavorite/i });
-    fireEvent.click(favoriteButton);
+    const favoriteButtons = screen.getAllByRole('button', { name: /toggle favorite/i });
+    fireEvent.click(favoriteButtons[0]);
 
     await waitFor(() => {
       expect(mockToggleFavorite).toHaveBeenCalledWith(1);
