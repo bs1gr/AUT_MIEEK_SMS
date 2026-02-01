@@ -161,8 +161,39 @@ export function useGenerateReport() {
 
   return useMutation({
     mutationFn: customReportsAPI.generate,
-    onSuccess: (_, reportId) => {
+    onSuccess: (data, reportId) => {
+      console.log('[useGenerateReport] Report generation started:', { reportId, data });
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(reportId) });
+      // Show success feedback
+      if (typeof window !== 'undefined') {
+        console.log(`✅ Report ${reportId} generation queued successfully`);
+        // Try to show browser alert if no other notification system
+        try {
+          const toast = document.createElement('div');
+          toast.textContent = `Report generation started (Job ID: ${data?.job_id || 'processing'})`;
+          toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 5000);
+        } catch (e) {
+          console.error('Could not show toast:', e);
+        }
+      }
+    },
+    onError: (error: any, reportId) => {
+      console.error('[useGenerateReport] Error generating report:', { reportId, error });
+      const message = error?.message || 'Failed to generate report';
+      // Show error feedback
+      if (typeof window !== 'undefined') {
+        try {
+          const toast = document.createElement('div');
+          toast.textContent = `❌ Error: ${message}`;
+          toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 5000);
+        } catch (e) {
+          console.error('Could not show error toast:', e);
+        }
+      }
     },
   });
 }
