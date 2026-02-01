@@ -131,10 +131,12 @@ class CustomReportGenerationService:
 
     def _build_report_rows(self, report: Report) -> Tuple[List[List[Any]], List[str]]:
         model, query = self._build_query(report)
-        filters_dict = dict(report.filters) if report.filters else {}  # type: ignore[arg-type]
-        sort_dict = dict(report.sort_by) if report.sort_by else {}  # type: ignore[arg-type]
-        query = self._apply_filters(query, model, filters_dict)
-        query = self._apply_sort(query, model, sort_dict)
+        # Handle filters as a list of filter objects or dict
+        filters_list = report.filters or []  # type: ignore[assignment]
+        sort_list = report.sort_by or []  # type: ignore[assignment]
+
+        query = self._apply_filters(query, model, filters_list)
+        query = self._apply_sort(query, model, sort_list)
 
         columns = self._normalize_columns(str(report.report_type), report.fields)  # type: ignore[arg-type]
         headers = [label for _, label in columns]
@@ -175,34 +177,117 @@ class CustomReportGenerationService:
 
         raise ValueError(f"Unsupported report type: {report.report_type}")
 
-    def _apply_filters(self, query, model, filters: Dict[str, Any]):  # type: ignore[no-untyped-def]
-        for key, value in filters.items():
-            if value is None:
-                continue
+    def _apply_filters(self, query, model, filters: Any) -> Any:  # type: ignore[no-untyped-def]
+        """Apply filters to the query. Handles multiple filter formats."""
+        if not filters:
+            return query
 
-            if key.endswith("_from"):
-                attr_name = key[: -len("_from")]
-                if hasattr(model, attr_name):
-                    query = query.filter(getattr(model, attr_name) >= value)  # type: ignore[operator]
-                continue
+        # Convert list of filter objects to proper queries
+        if isinstance(filters, list):
+            for filter_obj in filters:
+                if not isinstance(filter_obj, dict):
+                    continue
 
-            if key.endswith("_to"):
-                attr_name = key[: -len("_to")]
-                if hasattr(model, attr_name):
-                    query = query.filter(getattr(model, attr_name) <= value)  # type: ignore[operator]
-                continue
+                field = filter_obj.get("field")
+                operator = filter_obj.get("operator", "equals")
+                value = filter_obj.get("value")
 
-            if hasattr(model, key):
-                query = query.filter(getattr(model, key) == value)  # type: ignore[operator]
+                if not field or not hasattr(model, field):
+                    continue
+
+                column = getattr(model, field)
+
+                # Apply operator-specific logic
+                if operator == "equals":
+                    query = query.filter(column == value)  # type: ignore[operator]
+                elif operator == "not_equals":
+                    query = query.filter(column != value)  # type: ignore[operator]
+                elif operator == "contains":
+                    query = query.filter(column.ilike(f"%{value}%"))  # type: ignore[operator]
+                elif operator == "not_contains":
+                    query = query.filter(~column.ilike(f"%{value}%"))  # type: ignore[operator]
+                elif operator == "greater_than" or operator == "gt":
+                    query = query.filter(column > value)  # type: ignore[operator]
+                elif operator == "less_than" or operator == "lt":
+                    query = query.filter(column < value)  # type: ignore[operator]
+                elif operator == "greater_than_or_equal":
+                    query = query.filter(column >= value)  # type: ignore[operator]
+                elif operator == "less_than_or_equal":
+                    query = query.filter(column <= value)  # type: ignore[operator]
+                elif operator == "in":
+                    if isinstance(value, (list, tuple)):
+                        query = query.filter(column.in_(value))  # type: ignore[operator]
+                elif operator == "between":
+                    if isinstance(value, dict) and "from" in value and "to" in value:
+                        query = query.filter(column.between(value["from"], value["to"]))  # type: ignore[operator]
+
+        # Nested dict format: {"grade": {"operator": "less_than", "value": 60}}
+        elif isinstance(filters, dict):
+            for field_name, filter_spec in filters.items():
+                # If value is a dict with operator/value, it's the new format
+                if isinstance(filter_spec, dict) and "operator" in filter_spec and "value" in filter_spec:
+                    operator = filter_spec.get("operator", "equals")
+                    value = filter_spec.get("value")
+
+                    if not hasattr(model, field_name):
+                        continue
+
+                    column = getattr(model, field_name)
+
+                    # Apply operator-specific logic
+                    if operator == "equals":
+                        query = query.filter(column == value)  # type: ignore[operator]
+                    elif operator == "not_equals":
+                        query = query.filter(column != value)  # type: ignore[operator]
+                    elif operator == "contains":
+                        query = query.filter(column.ilike(f"%{value}%"))  # type: ignore[operator]
+                    elif operator == "not_contains":
+                        query = query.filter(~column.ilike(f"%{value}%"))  # type: ignore[operator]
+                    elif operator == "greater_than" or operator == "gt":
+                        query = query.filter(column > value)  # type: ignore[operator]
+                    elif operator == "less_than" or operator == "lt":
+                        query = query.filter(column < value)  # type: ignore[operator]
+                    elif operator == "greater_than_or_equal":
+                        query = query.filter(column >= value)  # type: ignore[operator]
+                    elif operator == "less_than_or_equal":
+                        query = query.filter(column <= value)  # type: ignore[operator]
+                    elif operator == "in":
+                        if isinstance(value, (list, tuple)):
+                            query = query.filter(column.in_(value))  # type: ignore[operator]
+                    elif operator == "between":
+                        if isinstance(value, dict) and "from" in value and "to" in value:
+                            query = query.filter(column.between(value["from"], value["to"]))  # type: ignore[operator]
+                # Legacy simple format: {"field_name": value}
+                else:
+                    if hasattr(model, field_name):
+                        column = getattr(model, field_name)
+                        query = query.filter(column == filter_spec)  # type: ignore[operator]
 
         return query
 
-    def _apply_sort(self, query, model, sort_by: Dict[str, Any]):  # type: ignore[no-untyped-def]
-        field = sort_by.get("field") if isinstance(sort_by, dict) else None
-        direction = str(sort_by.get("direction", "asc")).lower() if isinstance(sort_by, dict) else "asc"
-        if field and hasattr(model, field):
-            column = getattr(model, field)
-            query = query.order_by(column.desc() if direction == "desc" else column.asc())  # type: ignore[operator]
+    def _apply_sort(self, query, model, sort_by: Any) -> Any:  # type: ignore[no-untyped-def]
+        """Apply sorting to the query. Handles both list and dict formats."""
+        # Handle list of sort objects
+        if isinstance(sort_by, list):
+            for sort_obj in sort_by:
+                if not isinstance(sort_obj, dict):
+                    continue
+
+                field = sort_obj.get("field")
+                order = str(sort_obj.get("order", "asc")).lower()
+
+                if field and hasattr(model, field):
+                    column = getattr(model, field)
+                    query = query.order_by(column.desc() if order == "desc" else column.asc())  # type: ignore[operator]
+
+        # Legacy dict format support
+        elif isinstance(sort_by, dict):
+            field = sort_by.get("field") if isinstance(sort_by, dict) else None
+            direction = str(sort_by.get("direction", "asc")).lower() if isinstance(sort_by, dict) else "asc"
+            if field and hasattr(model, field):
+                column = getattr(model, field)
+                query = query.order_by(column.desc() if direction == "desc" else column.asc())  # type: ignore[operator]
+
         return query
 
     def _normalize_columns(self, report_type: str, fields: Any) -> List[Tuple[str, str]]:  # type: ignore[no-untyped-def]
@@ -243,6 +328,9 @@ class CustomReportGenerationService:
         return key.replace("_", " ").replace(".", " ").title()
 
     def _resolve_field(self, record: Any, field: str) -> Any:
+        """Resolve a field value from a record, handling relationships and nested fields."""
+
+        # Special handling for computed fields
         if field == "student_name":
             student = getattr(record, "student", None)
             if student:
@@ -267,6 +355,7 @@ class CustomReportGenerationService:
                 return record.course_name
             return ""
 
+        # Handle nested dot notation
         if "." in field:
             value = record
             for part in field.split("."):
@@ -275,10 +364,33 @@ class CustomReportGenerationService:
                     return ""
             return value
 
-        value = getattr(record, field, "")
-        if isinstance(value, (datetime, date)):
-            return value.isoformat()
-        return value
+        # Try to get directly from record
+        if hasattr(record, field):
+            value = getattr(record, field, "")
+            if isinstance(value, (datetime, date)):
+                return value.isoformat()
+            return value
+
+        # For Grade records, try to resolve from related models
+        # e.g., first_name -> student.first_name, last_name -> student.last_name
+        if hasattr(record, "student"):
+            student = getattr(record, "student", None)
+            if student and hasattr(student, field):
+                value = getattr(student, field, "")
+                if isinstance(value, (datetime, date)):
+                    return value.isoformat()
+                return value
+
+        # Try Course relationship
+        if hasattr(record, "course"):
+            course = getattr(record, "course", None)
+            if course and hasattr(course, field):
+                value = getattr(course, field, "")
+                if isinstance(value, (datetime, date)):
+                    return value.isoformat()
+                return value
+
+        return ""
 
     def _export_report(self, rows: List[List[Any]], headers: List[str], export_format: str, file_name: str) -> str:  # type: ignore[override]
         format_lower = (export_format or "pdf").lower()

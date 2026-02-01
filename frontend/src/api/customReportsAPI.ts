@@ -15,16 +15,10 @@ export interface ReportTemplate {
   description: string;
   category: string;
   report_type: string; // matches backend
-  fields: Record<string, any>; // matches backend: dict format
-  filters?: Record<string, any>;
-  aggregations?: Record<string, any>;
-  sort_by?: Record<string, any>;
-  default_export_format: string;
-  default_include_charts: boolean;
-  is_system: boolean;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  fields: string[] | Record<string, any>; // backend returns both formats
+  filters?: any[] | Record<string, any>; // array or dict format
+  aggregations?: any[] | Record<string, any>;
+  sort_by?: any[] | Record<string, any>; // array or dict format
 }
 
 export interface CustomReport {
@@ -68,13 +62,16 @@ export const reportTemplatesAPI = {
   /**
    * Get all templates
    */
-  getAll: async (options: { is_public?: boolean; entity_type?: string } = {}) => {
+  getAll: async (options: { category?: string; report_type?: string; is_active?: boolean } = {}) => {
     try {
       const params = new URLSearchParams();
-      if (options.is_public !== undefined) params.append('is_public', String(options.is_public));
-      if (options.entity_type) params.append('entity_type', options.entity_type);
+      if (options.category) params.append('category', options.category);
+      if (options.report_type) params.append('report_type', options.report_type);
+      if (options.is_active !== undefined) params.append('is_active', String(options.is_active));
 
-      const response = await apiClient.get(`/custom-reports/templates/?${params.toString()}`);
+      const queryString = params.toString();
+      const url = `/custom-reports/templates${queryString ? `?${queryString}` : ''}`;
+      const response = await apiClient.get(url);
       return extractAPIResponseData(response) as ReportTemplate[];
     } catch (error) {
       console.error('[customReportsAPI] Error fetching templates:', error);

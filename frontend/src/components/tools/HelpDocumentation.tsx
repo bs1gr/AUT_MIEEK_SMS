@@ -350,6 +350,74 @@ const HelpDocumentation = () => {
       ]
     },
     {
+      id: 'custom-reports',
+      title: t('helpCustomReports'),
+      icon: Book,
+      color: 'text-indigo-600',
+      items: [
+        {
+          question: t('helpWhatAreCustomReports'),
+          answer: t('helpCustomReportsAnswer')
+        },
+        {
+          question: t('helpHowToCreateReport'),
+          answer: t('helpCreateReportAnswer')
+        },
+        {
+          question: t('helpWhatIsReportBuilder'),
+          answer: t('helpReportBuilderAnswer')
+        },
+        {
+          question: t('helpHowToEditReport'),
+          answer: t('helpEditReportAnswer')
+        },
+        {
+          question: t('helpHowToGenerateReport'),
+          answer: t('helpGenerateReportAnswer')
+        },
+        {
+          question: t('helpWhatAreTemplates'),
+          answer: t('helpTemplatesAnswer')
+        },
+        {
+          question: t('helpHowToUseTemplate'),
+          answer: t('helpUseTemplateAnswer')
+        },
+        {
+          question: t('helpHowToCreateTemplate'),
+          answer: t('helpCreateTemplateAnswer')
+        },
+        {
+          question: t('helpHowToShareTemplate'),
+          answer: t('helpShareTemplateAnswer')
+        },
+        {
+          question: t('helpWhatIsDataSourceTile'),
+          answer: t('helpDataSourceTileAnswer')
+        },
+        {
+          question: t('helpWhatIsOutputFormatTile'),
+          answer: t('helpOutputFormatTileAnswer')
+        },
+        {
+          question: t('helpWhatFiltersAvailable'),
+          answer: t('helpFiltersAvailableAnswer')
+        },
+        {
+          question: t('helpHowManySortRules'),
+          answer: t('helpSortRulesAnswer')
+        },
+        {
+          question: t('helpCanIDuplicateReport'),
+          answer: t('helpDuplicateReportAnswer')
+        },
+        {
+          question: t('helpWhereAreGeneratedReports'),
+          answer: t('helpGeneratedReportsAnswer')
+        }
+      ]
+    },
+    {
       id: 'utils',
       title: t('helpUtilsOperations'),
       icon: MessageCircle,

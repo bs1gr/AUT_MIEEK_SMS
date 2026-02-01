@@ -6,7 +6,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, ChevronDown, ChevronUp } from 'lucide-react';
-import { useCreateReport, useUpdateReport } from '@/hooks/useCustomReports';
+import { useCreateReport, useCustomReport, useUpdateReport } from '@/hooks/useCustomReports';
 import FieldSelector from './FieldSelector';
 import FilterBuilder from './FilterBuilder';
 import SortBuilder from './SortBuilder';
@@ -22,10 +22,15 @@ interface ReportConfig {
   name: string;
   description: string;
   entity_type: string;
+  report_type?: string; // from template
   output_format: string;
+  default_export_format?: string; // from template
   selected_fields: string[];
+  fields?: string[] | Record<string, any>; // from template
   filters: any[];
   sorting_rules: any[];
+  sort_by?: any[]; // from template
+  default_include_charts?: boolean;
 }
 
 const ENTITY_TYPES = [
@@ -69,6 +74,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   const { t } = useTranslation();
   const createMutation = useCreateReport();
   const updateMutation = useUpdateReport();
+  const { data: reportData } = useCustomReport(reportId ?? 0);
 
   // Generate a unique key for session storage based on reportId
   const storageKey = `report-builder-${reportId || 'new'}`;
@@ -86,19 +92,96 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       }
     }
 
-    // Fall back to initialData or default
-    return (
-      initialData || {
-        name: '',
-        description: '',
-        entity_type: 'student',
-        output_format: 'pdf',
-        selected_fields: [],
-        filters: [],
-        sorting_rules: [],
-      }
-    );
+    // Normalize initialData from template format to internal format
+    if (initialData) {
+      const normalized = {
+        name: initialData.name || '',
+        description: initialData.description || '',
+        entity_type: initialData.report_type || initialData.entity_type || 'student',
+        output_format: initialData.default_export_format || initialData.output_format || 'pdf',
+        selected_fields: Array.isArray(initialData.fields)
+          ? initialData.fields
+          : (initialData.selected_fields || []),
+        filters: initialData.filters || [],
+        sorting_rules: initialData.sort_by || initialData.sorting_rules || [],
+      };
+      return normalized;
+    }
+
+    // Fall back to default
+    return {
+      name: '',
+      description: '',
+      entity_type: 'student',
+      output_format: 'pdf',
+      selected_fields: [],
+      filters: [],
+      sorting_rules: [],
+    };
   });
+
+  // Normalize backend report data to builder config
+  const normalizeReportData = useCallback((report: any): ReportConfig => {
+    const fields = Array.isArray(report?.fields)
+      ? report.fields
+      : report?.fields && typeof report.fields === 'object'
+        ? Object.keys(report.fields).filter((key) => report.fields[key])
+        : [];
+
+    const filters = Array.isArray(report?.filters)
+      ? report.filters
+      : report?.filters && typeof report.filters === 'object'
+        ? Object.entries(report.filters).map(([field, value]) => ({
+            field,
+            operator: value?.operator || 'equals',
+            value: value?.value ?? value,
+          }))
+        : [];
+
+    const sortingRules = Array.isArray(report?.sort_by)
+      ? report.sort_by
+      : report?.sort_by && typeof report.sort_by === 'object'
+        ? Object.entries(report.sort_by).map(([field, order]) => ({
+            field,
+            order: order || 'asc',
+          }))
+        : [];
+
+    return {
+      name: report?.name || '',
+      description: report?.description || '',
+      entity_type: report?.report_type || 'student',
+      output_format: report?.export_format || 'pdf',
+      selected_fields: fields,
+      filters,
+      sorting_rules: sortingRules,
+    };
+  }, []);
+
+  // Load report data when editing
+  useEffect(() => {
+    if (reportId && reportData) {
+      setConfig(normalizeReportData(reportData));
+    }
+  }, [reportId, reportData, normalizeReportData]);
+
+  // Load template data when creating from template
+  useEffect(() => {
+    if (!reportId && initialData) {
+      const normalized = {
+        name: initialData.name || '',
+        description: initialData.description || '',
+        entity_type: initialData.report_type || initialData.entity_type || 'student',
+        output_format: initialData.default_export_format || initialData.output_format || 'pdf',
+        selected_fields: Array.isArray(initialData.fields)
+          ? initialData.fields
+          : (initialData.selected_fields || []),
+        filters: initialData.filters || [],
+        sorting_rules: initialData.sort_by || initialData.sorting_rules || [],
+      };
+      setConfig(normalized);
+    }
+  }, [initialData, reportId]);
 
   // Persist config to session storage whenever it changes
   useEffect(() => {
@@ -240,6 +323,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           id: reportId,
           updates: backendConfig,
         });
+        const toast = document.createElement('div');
+        toast.textContent = `✅ ${t('customReports:reportUpdated')}`;
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+        onSuccess?.(reportId);
       } else {
         const result = await createMutation.mutateAsync(backendConfig);
         console.log('[ReportBuilder] Report created successfully:', result);
