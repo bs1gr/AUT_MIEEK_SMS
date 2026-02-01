@@ -35,7 +35,7 @@ export const useSearchFacets = () => {
 
         setFacets(resolvedFacets);
       } catch (err) {
-        const message = err instanceof Error ? err.message : t('search.errorSearching');
+        const message = err instanceof Error ? err.message : t('errorSearching', { ns: 'search' });
         setError(message);
         setFacets(null);
       } finally {

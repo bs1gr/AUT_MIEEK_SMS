@@ -31,21 +31,21 @@ const StudentRow = memo(({ student, onEdit, onDelete, onView }: StudentRowProps)
           <button
             onClick={() => onView(student.id)}
             className="text-blue-600 hover:text-blue-900"
-            aria-label={t('common.view')}
+            aria-label={t('view', { ns: 'common' })}
           >
             <Eye size={18} />
           </button>
           <button
             onClick={() => onEdit(student)}
             className="text-indigo-600 hover:text-indigo-900"
-            aria-label={t('common.edit')}
+            aria-label={t('edit', { ns: 'common' })}
           >
             <Edit size={18} />
           </button>
           <button
             onClick={() => onDelete(student.id)}
             className="text-red-600 hover:text-red-900"
-            aria-label={t('common.delete')}
+            aria-label={t('delete', { ns: 'common' })}
           >
             <Trash2 size={18} />
           </button>

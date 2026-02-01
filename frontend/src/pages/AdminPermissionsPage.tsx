@@ -64,7 +64,7 @@ type ToastType = 'success' | 'error' | 'info';
 type ToastState = { message: string; type: ToastType } | null;
 
 export default function AdminPermissionsPage() {
-  const { t } = useTranslation('rbac');
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedResource, setSelectedResource] = useState<string>('all');
   const [grantMode, setGrantMode] = useState<'user' | 'role'>('role');
@@ -128,9 +128,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setSelectedPermission('');
       setTargetId('');
-      showToast(t('permissionGrantedSuccess'), 'success');
+      showToast(t('permissionGrantedSuccess', { ns: 'rbac' }), 'success');
     },
-    onError: () => showToast(t('permissionGrantedError'), 'error'),
+    onError: () => showToast(t('permissionGrantedError', { ns: 'rbac' }), 'error'),
   });
 
   const grantUserPermission = useMutation({
@@ -145,9 +145,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setSelectedPermission('');
       setTargetId('');
-      showToast(t('permissionGrantedSuccess'), 'success');
+      showToast(t('permissionGrantedSuccess', { ns: 'rbac' }), 'success');
     },
-    onError: () => showToast(t('permissionGrantedError'), 'error'),
+    onError: () => showToast(t('permissionGrantedError', { ns: 'rbac' }), 'error'),
   });
 
   const revokeRolePermission = useMutation({
@@ -162,9 +162,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setRevokePermission('');
       setRevokeTargetId('');
-      showToast(t('permissionRevokedSuccess'), 'success');
+      showToast(t('permissionRevokedSuccess', { ns: 'rbac' }), 'success');
     },
-    onError: () => showToast(t('permissionRevokedError'), 'error'),
+    onError: () => showToast(t('permissionRevokedError', { ns: 'rbac' }), 'error'),
   });
 
   const revokeUserPermission = useMutation({
@@ -179,9 +179,9 @@ export default function AdminPermissionsPage() {
       queryClient.invalidateQueries({ queryKey: ['permissions'] });
       setRevokePermission('');
       setRevokeTargetId('');
-      showToast(t('permissionRevokedSuccess'), 'success');
+      showToast(t('permissionRevokedSuccess', { ns: 'rbac' }), 'success');
     },
-    onError: () => showToast(t('permissionRevokedError'), 'error'),
+    onError: () => showToast(t('permissionRevokedError', { ns: 'rbac' }), 'error'),
   });
 
   const userPermissionsQuery = useQuery<UserPermissionsResponse, Error>({
@@ -227,7 +227,7 @@ export default function AdminPermissionsPage() {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-700">
-          {t('errors.generic') || 'An error occurred while loading permissions.'}
+          {t('generic', { ns: 'errors' }) || 'An error occurred while loading permissions.'}
         </div>
       </div>
     );
@@ -243,37 +243,37 @@ export default function AdminPermissionsPage() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
-          {t('configuration')}
+          {t('configuration', { ns: 'rbac' })}
         </h2>
         <p className="text-sm text-gray-600 dark:text-gray-300">
-          {t('rolePermissionMappings')}
+          {t('rolePermissionMappings', { ns: 'rbac' })}
         </p>
       </div>
 
       {/* Grant Permission Section */}
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-          {t('grantPermission')}
+          {t('grantPermission', { ns: 'rbac' })}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('grantTo')}
+              {t('grantTo', { ns: 'rbac' })}
             </label>
             <select
               value={grantMode}
               onChange={(e) => setGrantMode(e.target.value as 'user' | 'role')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <option value="role">{t('role')}</option>
-              <option value="user">{t('user')}</option>
+              <option value="role">{t('role', { ns: 'rbac' })}</option>
+              <option value="user">{t('user', { ns: 'rbac' })}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {grantMode === 'role' ? t('selectRole') : t('userId')}
+              {grantMode === 'role' ? t('selectRole', { ns: 'rbac' }) : t('userId', { ns: 'rbac' })}
             </label>
             {grantMode === 'role' ? (
               <select
@@ -281,7 +281,7 @@ export default function AdminPermissionsPage() {
                 onChange={(e) => setTargetId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
-                <option value="">{t('selectRole')}</option>
+                <option value="">{t('selectRole', { ns: 'rbac' })}</option>
                 {roles?.map((role) => (
                   <option key={role.id} value={role.name}>
                     {role.name}
@@ -293,7 +293,7 @@ export default function AdminPermissionsPage() {
                 type="number"
                 value={targetId}
                 onChange={(e) => setTargetId(e.target.value)}
-                placeholder={t('enterUserId')}
+                placeholder={t('enterUserId', { ns: 'rbac' })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             )}
@@ -301,14 +301,14 @@ export default function AdminPermissionsPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('selectPermission')}
+              {t('selectPermission', { ns: 'rbac' })}
             </label>
             <select
               value={selectedPermission}
               onChange={(e) => setSelectedPermission(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <option value="">{t('selectPermission')}</option>
+              <option value="">{t('selectPermission', { ns: 'rbac' })}</option>
               {permissions.map((perm) => (
                 <option key={perm.id} value={perm.key}>
                   {perm.key}
@@ -328,7 +328,7 @@ export default function AdminPermissionsPage() {
               }
               className="w-full px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('grant')}
+              {t('grant', { ns: 'rbac' })}
             </button>
           </div>
         </div>
@@ -337,27 +337,27 @@ export default function AdminPermissionsPage() {
       {/* Revoke Permission Section */}
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 space-y-4">
         <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-          {t('revokePermission')}
+          {t('revokePermission', { ns: 'rbac' })}
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('grantTo')}
+              {t('grantTo', { ns: 'rbac' })}
             </label>
             <select
               value={revokeMode}
               onChange={(e) => setRevokeMode(e.target.value as 'user' | 'role')}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <option value="role">{t('role')}</option>
-              <option value="user">{t('user')}</option>
+              <option value="role">{t('role', { ns: 'rbac' })}</option>
+              <option value="user">{t('user', { ns: 'rbac' })}</option>
             </select>
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {revokeMode === 'role' ? t('selectRole') : t('userId')}
+              {revokeMode === 'role' ? t('selectRole', { ns: 'rbac' }) : t('userId', { ns: 'rbac' })}
             </label>
             {revokeMode === 'role' ? (
               <select
@@ -365,7 +365,7 @@ export default function AdminPermissionsPage() {
                 onChange={(e) => setRevokeTargetId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               >
-                <option value="">{t('selectRole')}</option>
+                <option value="">{t('selectRole', { ns: 'rbac' })}</option>
                 {roles?.map((role) => (
                   <option key={role.id} value={role.name}>
                     {role.name}
@@ -377,7 +377,7 @@ export default function AdminPermissionsPage() {
                 type="number"
                 value={revokeTargetId}
                 onChange={(e) => setRevokeTargetId(e.target.value)}
-                placeholder={t('enterUserId')}
+                placeholder={t('enterUserId', { ns: 'rbac' })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             )}
@@ -385,14 +385,14 @@ export default function AdminPermissionsPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {t('selectPermission')}
+              {t('selectPermission', { ns: 'rbac' })}
             </label>
             <select
               value={revokePermission}
               onChange={(e) => setRevokePermission(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              <option value="">{t('selectPermission')}</option>
+              <option value="">{t('selectPermission', { ns: 'rbac' })}</option>
               {permissions.map((perm) => (
                 <option key={perm.id} value={perm.key}>
                   {perm.key}
@@ -412,7 +412,7 @@ export default function AdminPermissionsPage() {
               }
               className="w-full px-4 py-2 bg-rose-600 text-white rounded-md hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('revoke')}
+              {t('revoke', { ns: 'rbac' })}
             </button>
           </div>
         </div>
@@ -423,20 +423,20 @@ export default function AdminPermissionsPage() {
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-              {t('permissionAudit')}
+              {t('permissionAudit', { ns: 'rbac' })}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-300">{t('permissionAuditDesc')}</p>
+            <p className="text-sm text-gray-600 dark:text-gray-300">{t('permissionAuditDesc', { ns: 'rbac' })}</p>
           </div>
           {permissionStats && (
             <div className="flex gap-2 flex-wrap text-sm">
               <span className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100">
-                {t('totalPermissions', { count: permissionStats.total_permissions })}
+                {t('totalPermissions', { ns: 'rbac', count: permissionStats.total_permissions })}
               </span>
               <span className="px-2 py-1 rounded bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100">
-                {t('activePermissions', { count: permissionStats.active_permissions })}
+                {t('activePermissions', { ns: 'rbac', count: permissionStats.active_permissions })}
               </span>
               <span className="px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
-                {t('inactivePermissions', { count: permissionStats.inactive_permissions })}
+                {t('inactivePermissions', { ns: 'rbac', count: permissionStats.inactive_permissions })}
               </span>
             </div>
           )}
@@ -473,13 +473,13 @@ export default function AdminPermissionsPage() {
           <div className="flex flex-col md:flex-row md:items-end md:gap-3 gap-2">
             <div className="flex-1">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {t('userPermissionLookup')}
+                {t('userPermissionLookup', { ns: 'rbac' })}
               </label>
               <input
                 type="number"
                 value={auditUserId}
                 onChange={(e) => setAuditUserId(e.target.value)}
-                placeholder={t('enterUserId')}
+                placeholder={t('enterUserId', { ns: 'rbac' })}
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               />
             </div>
@@ -488,20 +488,20 @@ export default function AdminPermissionsPage() {
               disabled={!auditUserId || userPermissionsQuery.isPending}
               className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t('viewPermissions')}
+              {t('viewPermissions', { ns: 'rbac' })}
             </button>
           </div>
 
           {userPermissionsQuery.isFetching && (
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
-              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" aria-label={t('common.loading') || 'Loading'} />
-              <span>{t('common.loading') || 'Loading...'}</span>
+              <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-indigo-600 border-t-transparent" aria-label={t('loading', { ns: 'common' }) || 'Loading'} />
+              <span>{t('loading', { ns: 'common' }) || 'Loading...'}</span>
             </div>
           )}
 
           {userPermissionsQuery.isError && (
             <div className="text-sm text-red-600 dark:text-red-400">
-              {t('userPermissionError')}
+              {t('userPermissionError', { ns: 'rbac' })}
             </div>
           )}
 
@@ -518,10 +518,10 @@ export default function AdminPermissionsPage() {
 
               <div>
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">
-                  {t('directPermissions')}
+                  {t('directPermissions', { ns: 'rbac' })}
                 </h4>
                 {userPermissionsQuery.data.direct_permissions.length === 0 ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('noData', { ns: 'common' })}</p>
                 ) : (
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                     {userPermissionsQuery.data.direct_permissions.map((perm: UserPermissionDetail) => (
@@ -529,7 +529,7 @@ export default function AdminPermissionsPage() {
                         <span className="font-medium">{perm.permission_key}</span>
                         {perm.expires_at && (
                           <span className="text-xs px-2 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-100">
-                            {t('expiresAt', { date: perm.expires_at })}
+                            {t('expiresAt', { ns: 'rbac', date: perm.expires_at })}
                           </span>
                         )}
                       </li>
@@ -540,10 +540,10 @@ export default function AdminPermissionsPage() {
 
               <div>
                 <h4 className="font-semibold text-gray-800 dark:text-gray-200 text-sm mb-1">
-                  {t('rolePermissions')}
+                  {t('rolePermissions', { ns: 'rbac' })}
                 </h4>
                 {userPermissionsQuery.data.role_permissions.length === 0 ? (
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('common.noData')}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{t('noData', { ns: 'common' })}</p>
                 ) : (
                   <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
                     {userPermissionsQuery.data.role_permissions.map((perm: RolePermissionDetail) => (
@@ -566,14 +566,14 @@ export default function AdminPermissionsPage() {
       <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            {t('permission', { count: filteredPermissions.length })}
+            {t('permission', { ns: 'rbac', count: filteredPermissions.length })}
           </h3>
           <select
             value={selectedResource}
             onChange={(e) => setSelectedResource(e.target.value)}
             className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-sm"
           >
-            <option value="all">{t('common.all')}</option>
+            <option value="all">{t('all', { ns: 'common' })}</option>
             {resources.map((resource) => (
               <option key={resource} value={resource}>
                 {resource}
@@ -585,7 +585,7 @@ export default function AdminPermissionsPage() {
         <div className="p-4">
           {filteredPermissions.length === 0 ? (
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              {t('common.noData') || 'No permissions found.'}
+              {t('noData', { ns: 'common' }) || 'No permissions found.'}
             </p>
           ) : (
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -597,7 +597,7 @@ export default function AdminPermissionsPage() {
                         <p className="font-medium text-gray-800 dark:text-gray-200">{perm.key}</p>
                         {!perm.is_active && (
                           <span className="px-2 py-0.5 text-xs rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
-                            {t('common.inactive')}
+                            {t('inactive', { ns: 'common' })}
                           </span>
                         )}
                       </div>

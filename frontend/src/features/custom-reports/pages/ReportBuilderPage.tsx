@@ -22,14 +22,14 @@ export const ReportBuilderPage: React.FC = () => {
             <button
               onClick={() => navigate('/reports')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              title={t('common.back')}
+              title={t('back', { ns: 'common' })}
             >
               <ChevronLeft size={24} />
             </button>
             <h1 className="text-2xl font-bold text-gray-900">
               {id
-                ? t('customReports:editReport')
-                : t('customReports:createReport')}
+                ? t('editReport', { ns: 'customReports' })
+                : t('createReport', { ns: 'customReports' })}
             </h1>
           </div>
         </div>

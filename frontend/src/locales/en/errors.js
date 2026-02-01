@@ -41,6 +41,7 @@ export default {
   jobCreationFailed: 'Failed to create background job. Please try again later.',
   databaseError: 'A database error occurred. Please try again or contact support if the problem persists.',
   internalError: 'An unexpected error occurred. Our team has been notified. Please try again later.',
+  unknown: 'Unknown error',
 
   // Generic error titles
   errorTitle: 'Error',

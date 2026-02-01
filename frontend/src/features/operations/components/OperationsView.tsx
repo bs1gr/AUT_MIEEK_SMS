@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ShieldCheck, FileText } from 'lucide-react';
 
-import { useLanguage } from '@/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
 import ImportPreviewPanel from '@/components/tools/ImportPreviewPanel';
@@ -32,7 +32,7 @@ const normalizeTab = (tab?: LegacyOperationsTabKey): OperationsTabKey | null => 
 const DEFAULT_TAB: OperationsTabKey = 'exports';
 
 const OperationsView = (_props: OperationsViewProps) => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState<OperationsTabKey>(() => {
     const state = (location.state ?? {}) as OperationsLocationState;
@@ -62,15 +62,15 @@ const OperationsView = (_props: OperationsViewProps) => {
   const effectiveTab = forcedTab ?? activeTab;
 
   const tabItems: Array<{ key: OperationsTabKey; label: string }> = [
-    { key: 'exports', label: t('exportTabLabel') || 'Export' },
-    { key: 'imports', label: t('importsTabLabel') || 'Imports' },
-    { key: 'settings', label: t('settingsTabLabel') || 'Settings' },
-    { key: 'reports', label: t('customReports:reports') || 'Reports' },
-    { key: 'help', label: t('helpTitle') || 'Help' },
+    { key: 'exports', label: t('exportTabLabel', { ns: 'export' }) || 'Export' },
+    { key: 'imports', label: t('importsTabLabel', { ns: 'export' }) || 'Imports' },
+    { key: 'settings', label: t('settingsTabLabel', { ns: 'export' }) || 'Settings' },
+    { key: 'reports', label: t('reports', { ns: 'customReports' }) || 'Reports' },
+    { key: 'help', label: t('helpTitle', { ns: 'help' }) || 'Help' },
   ];
 
-  const headerTitle = t('utils.utilitiesTitle');
-  const headerSubtitle = t('utils.utilitiesSubtitle');
+  const headerTitle = t('utilitiesTitle', { ns: 'utils' });
+  const headerSubtitle = t('utilitiesSubtitle', { ns: 'utils' });
 
   return (
     <div className="space-y-6">
@@ -83,7 +83,7 @@ const OperationsView = (_props: OperationsViewProps) => {
           </div>
           <span className="inline-flex items-center gap-2 self-start rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-indigo-600">
             <ShieldCheck size={16} aria-hidden="true" />
-            {t('utils.utilitiesBadge')}
+            {t('utilitiesBadge', { ns: 'utils' })}
           </span>
         </div>
       </header>
@@ -135,12 +135,12 @@ const OperationsView = (_props: OperationsViewProps) => {
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <div className="text-lg font-semibold text-slate-900">{t('jobMonitorTitle')}</div>
-                  <p className="text-sm text-slate-600">{t('jobMonitorHelper')}</p>
+                  <div className="text-lg font-semibold text-slate-900">{t('jobMonitorTitle', { ns: 'export' })}</div>
+                  <p className="text-sm text-slate-600">{t('jobMonitorHelper', { ns: 'export' })}</p>
                 </div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                   <label className="text-sm text-slate-700" htmlFor="job-id-input">
-                    {t('jobMonitorInputLabel')}
+                    {t('jobMonitorInputLabel', { ns: 'export' })}
                   </label>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
                     <input
@@ -155,7 +155,7 @@ const OperationsView = (_props: OperationsViewProps) => {
                       className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                       onClick={() => setTrackedJobId(jobIdInput.trim() || null)}
                     >
-                      {t('jobMonitorStart')}
+                      {t('jobMonitorStart', { ns: 'export' })}
                     </button>
                   </div>
                 </div>
@@ -173,8 +173,8 @@ const OperationsView = (_props: OperationsViewProps) => {
               <div className="mb-6 flex items-center gap-3">
                 <FileText className="h-6 w-6 text-indigo-600" />
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">{t('customReports:customReports')}</h2>
-                  <p className="text-sm text-slate-600">{t('customReports:helpDragFields')}</p>
+                  <h2 className="text-lg font-semibold text-slate-900">{t('customReports', { ns: 'customReports' })}</h2>
+                  <p className="text-sm text-slate-600">{t('helpDragFields', { ns: 'customReports' })}</p>
                 </div>
               </div>
 
@@ -187,9 +187,9 @@ const OperationsView = (_props: OperationsViewProps) => {
                 >
                   <div className="mb-2 flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">📋</div>
-                    <h3 className="font-semibold text-slate-900">{t('customReports:viewAll')}</h3>
+                    <h3 className="font-semibold text-slate-900">{t('viewAll', { ns: 'customReports' })}</h3>
                   </div>
-                  <p className="text-xs text-slate-600">{t('customReports:myReports')}</p>
+                  <p className="text-xs text-slate-600">{t('myReports', { ns: 'customReports' })}</p>
                 </Link>
 
                 {/* Create New Report */}
@@ -199,9 +199,9 @@ const OperationsView = (_props: OperationsViewProps) => {
                 >
                   <div className="mb-2 flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">✏️</div>
-                    <h3 className="font-semibold text-slate-900">{t('customReports:createNew')}</h3>
+                    <h3 className="font-semibold text-slate-900">{t('createNew', { ns: 'customReports' })}</h3>
                   </div>
-                  <p className="text-xs text-slate-600">{t('customReports:reportBuilder')}</p>
+                  <p className="text-xs text-slate-600">{t('reportBuilder', { ns: 'customReports' })}</p>
                 </Link>
 
                 {/* Browse Templates */}
@@ -211,54 +211,54 @@ const OperationsView = (_props: OperationsViewProps) => {
                 >
                   <div className="mb-2 flex items-center gap-2">
                     <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">📚</div>
-                    <h3 className="font-semibold text-slate-900">{t('customReports:templates')}</h3>
+                    <h3 className="font-semibold text-slate-900">{t('templates', { ns: 'customReports' })}</h3>
                   </div>
-                  <p className="text-xs text-slate-600">{t('customReports:standardTemplates')}</p>
+                  <p className="text-xs text-slate-600">{t('standardTemplates', { ns: 'customReports' })}</p>
                 </Link>
               </div>
 
               {/* Report Types Submenu */}
               <div className="mt-8 border-t border-slate-200 pt-6">
-                <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('customReports:entityType')}</h3>
+                <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('entityType', { ns: 'customReports' })}</h3>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                   <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
                     <div className="text-lg font-bold text-indigo-600">👥</div>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_students')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('entity_students', { ns: 'customReports' })}</p>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
                     <div className="text-lg font-bold text-indigo-600">📚</div>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_courses')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('entity_courses', { ns: 'customReports' })}</p>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
                     <div className="text-lg font-bold text-indigo-600">⭐</div>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_grades')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('entity_grades', { ns: 'customReports' })}</p>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
                     <div className="text-lg font-bold text-indigo-600">✅</div>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_attendance')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('entity_attendance', { ns: 'customReports' })}</p>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
                     <div className="text-lg font-bold text-indigo-600">📊</div>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_enrollments')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('entity_enrollments', { ns: 'customReports' })}</p>
                   </div>
                 </div>
               </div>
 
               {/* Output Formats Submenu */}
               <div className="mt-8 border-t border-slate-200 pt-6">
-                <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('customReports:outputFormat')}</h3>
+                <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('outputFormat', { ns: 'customReports' })}</h3>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
                     <p className="text-lg font-bold text-indigo-600">📄</p>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:format_pdf')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('format_pdf', { ns: 'customReports' })}</p>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
                     <p className="text-lg font-bold text-indigo-600">📊</p>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:format_excel')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('format_excel', { ns: 'customReports' })}</p>
                   </div>
                   <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
                     <p className="text-lg font-bold text-indigo-600">📋</p>
-                    <p className="text-xs font-medium text-slate-700">{t('customReports:format_csv')}</p>
+                    <p className="text-xs font-medium text-slate-700">{t('format_csv', { ns: 'customReports' })}</p>
                   </div>
                 </div>
               </div>

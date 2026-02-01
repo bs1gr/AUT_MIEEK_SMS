@@ -34,7 +34,9 @@ i18n
         help: translationNamespaces.en.help,
         reports: translationNamespaces.en.reports,
         feedback: translationNamespaces.en.feedback,
-        analytics: translationNamespaces.en.analytics
+        analytics: translationNamespaces.en.analytics,
+        messages: translationNamespaces.en.messages,
+        customReports: translationNamespaces.en.customReports
       },
       el: {
         translation: translations.el,
@@ -55,10 +57,12 @@ i18n
         help: translationNamespaces.el.help,
         reports: translationNamespaces.el.reports,
         feedback: translationNamespaces.el.feedback,
-        analytics: translationNamespaces.el.analytics
+        analytics: translationNamespaces.el.analytics,
+        messages: translationNamespaces.el.messages,
+        customReports: translationNamespaces.el.customReports
       }
     },
-    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics'],
+    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'messages', 'customReports'],
     defaultNS: 'translation',
     lng: isTestEnvironment ? 'en' : undefined,
     fallbackLng: 'en',

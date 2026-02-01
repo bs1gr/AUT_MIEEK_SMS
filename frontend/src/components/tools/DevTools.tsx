@@ -43,7 +43,7 @@ export default function DevTools() {
   };
 
   const resetDatabase = async () => {
-    if (!confirm(t('devtools.resetConfirm') || '⚠️ This will delete ALL data and recreate empty tables. Continue?')) return;
+    if (!confirm(t('resetConfirm', { ns: 'devtools' }) || '⚠️ This will delete ALL data and recreate empty tables. Continue?')) return;
 
     setLoading(true);
     try {
@@ -54,13 +54,13 @@ export default function DevTools() {
       });
 
       if (response.ok) {
-          showMessage(t('devtools.resetSuccess'));
+          showMessage(t('resetSuccess', { ns: 'devtools' }));
       } else {
-          showMessage(t('devtools.resetError'));
+          showMessage(t('resetError', { ns: 'devtools' }));
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
-      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
+      showMessage(`❌ ${t('error', { ns: 'devtools' })}: ${msg}`);
     }
     setLoading(false);
   };
@@ -74,19 +74,19 @@ export default function DevTools() {
 
       if (response.ok) {
         const data = await response.json();
-        showMessage(`${t('devtools.backupSuccess')}${data?.backup_file ? `: ${data.backup_file}` : ''}`);
+        showMessage(`${t('backupSuccess', { ns: 'devtools' })}${data?.backup_file ? `: ${data.backup_file}` : ''}`);
       } else {
-        showMessage(t('devtools.backupError'));
+        showMessage(t('backupError', { ns: 'devtools' }));
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
-      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
+      showMessage(`❌ ${t('error', { ns: 'devtools' })}: ${msg}`);
     }
     setLoading(false);
   };
 
   const addSampleData = async () => {
-    if (!confirm(t('devtools.sampleDataConfirm'))) return;
+    if (!confirm(t('sampleDataConfirm', { ns: 'devtools' }))) return;
 
     setLoading(true);
     try {
@@ -96,13 +96,13 @@ export default function DevTools() {
       });
 
       if (response.ok) {
-        showMessage(t('devtools.sampleDataSuccess'));
+        showMessage(t('sampleDataSuccess', { ns: 'devtools' }));
       } else {
-        showMessage(t('devtools.sampleDataError'));
+        showMessage(t('sampleDataError', { ns: 'devtools' }));
       }
     } catch (error: unknown) {
       const msg = error instanceof Error ? error.message : String(error);
-      showMessage(`❌ ${t('devtools.error')}: ${msg}`);
+      showMessage(`❌ ${t('error', { ns: 'devtools' })}: ${msg}`);
     }
     setLoading(false);
   };
@@ -115,18 +115,18 @@ export default function DevTools() {
 
       if (response.ok) {
         const students = data?.statistics?.students ?? data?.students_count ?? '—';
-        showMessage(`✅ ${t('devtools.systemHealthy')} | DB: ${data.database || data.db} | ${t('students')}: ${students}`);
+        showMessage(`✅ ${t('systemHealthy', { ns: 'devtools' })} | DB: ${data.database || data.db} | ${t('title', { ns: 'students' })}: ${students}`);
       } else {
-        showMessage(t('devtools.healthCheckFailed'));
+        showMessage(t('healthCheckFailed', { ns: 'devtools' }));
       }
     } catch {
-      showMessage(t('devtools.cannotConnect'));
+      showMessage(t('cannotConnect', { ns: 'devtools' }));
     }
     setLoading(false);
   };
 
   const shutdownBackend = async () => {
-    if (!confirm(t('devtools.shutdownConfirm'))) return;
+    if (!confirm(t('shutdownConfirm', { ns: 'devtools' }))) return;
 
     setLoading(true);
     try {
@@ -135,12 +135,12 @@ export default function DevTools() {
       });
 
       if (response.ok) {
-        showMessage(t('devtools.shutdownSuccess'));
+        showMessage(t('shutdownSuccess', { ns: 'devtools' }));
       } else {
-        showMessage(t('devtools.shutdownError'));
+        showMessage(t('shutdownError', { ns: 'devtools' }));
       }
     } catch {
-      showMessage(t('devtools.shutdownInitiated'));
+      showMessage(t('shutdownInitiated', { ns: 'devtools' }));
     }
     setLoading(false);
   };
@@ -153,8 +153,8 @@ export default function DevTools() {
           <div className="flex items-center gap-4 mb-4">
             <Settings className="w-10 h-10 text-purple-400" />
             <div>
-              <h1 className="text-4xl font-bold text-white">{t('devtools.title')}</h1>
-              <p className="text-purple-200">{t('devtools.subtitle')}</p>
+              <h1 className="text-4xl font-bold text-white">{t('title', { ns: 'devtools' })}</h1>
+              <p className="text-purple-200">{t('subtitle', { ns: 'devtools' })}</p>
             </div>
           </div>
 
@@ -169,7 +169,7 @@ export default function DevTools() {
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
             <CheckCircle className="w-6 h-6 text-green-400" />
-            {t('devtools.systemStatus') || 'System Status'}
+            {t('systemStatus', { ns: 'devtools' }) || 'System Status'}
           </h2>
           <button
             onClick={checkHealth}
@@ -177,17 +177,17 @@ export default function DevTools() {
             className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-            {t('devtools.checkHealth') || 'Check System Health'}
+            {t('checkHealth', { ns: 'devtools' }) || 'Check System Health'}
           </button>
 
           <div className="mt-6 grid grid-cols-2 gap-4 text-sm">
             <div className="bg-white/5 p-4 rounded-lg">
-              <div className="text-purple-300">{t('devtools.backend') || 'Backend'}</div>
-              <div className="text-white font-mono">{t('devtools.backendHost')}</div>
+              <div className="text-purple-300">{t('backend', { ns: 'devtools' }) || 'Backend'}</div>
+              <div className="text-white font-mono">{t('backendHost', { ns: 'devtools' })}</div>
             </div>
             <div className="bg-white/5 p-4 rounded-lg">
-              <div className="text-purple-300">{t('devtools.frontend') || 'Frontend'}</div>
-              <div className="text-white font-mono">{t('devtools.frontendHost')}</div>
+              <div className="text-purple-300">{t('frontend', { ns: 'devtools' }) || 'Frontend'}</div>
+              <div className="text-white font-mono">{t('frontendHost', { ns: 'devtools' })}</div>
             </div>
           </div>
         </div>
@@ -196,7 +196,7 @@ export default function DevTools() {
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-white/20">
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
             <Database className="w-6 h-6 text-blue-400" />
-            {t('devtools.databaseManagement') || 'Database Management'}
+            {t('databaseManagement', { ns: 'devtools' }) || 'Database Management'}
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -207,8 +207,8 @@ export default function DevTools() {
               className="p-6 bg-gradient-to-br from-blue-500 to-cyan-600 text-white rounded-xl hover:from-blue-600 hover:to-cyan-700 transition-all disabled:opacity-50 group"
             >
               <Download className="w-8 h-8 mb-3 group-hover:scale-110 transition-transform" />
-              <div className="text-lg font-bold">{t('devtools.backupDatabase') || 'Backup Database'}</div>
-              <div className="text-sm text-blue-100 mt-2">{t('devtools.backupDesc') || 'Download complete backup'}</div>
+              <div className="text-lg font-bold">{t('backupDatabase', { ns: 'devtools' }) || 'Backup Database'}</div>
+              <div className="text-sm text-blue-100 mt-2">{t('backupDesc', { ns: 'devtools' }) || 'Download complete backup'}</div>
             </button>
 
             {/* Reset */}
@@ -218,8 +218,8 @@ export default function DevTools() {
               className="p-6 bg-gradient-to-br from-red-500 to-pink-600 text-white rounded-xl hover:from-red-600 hover:to-pink-700 transition-all disabled:opacity-50 group"
             >
               <Trash2 className="w-8 h-8 mb-3 group-hover:scale-110 transition-transform" />
-              <div className="text-lg font-bold">{t('devtools.resetDatabase') || 'Reset Database'}</div>
-              <div className="text-sm text-red-100 mt-2">{t('devtools.resetDesc') || 'Delete all data & recreate'}</div>
+              <div className="text-lg font-bold">{t('resetDatabase', { ns: 'devtools' }) || 'Reset Database'}</div>
+              <div className="text-sm text-red-100 mt-2">{t('resetDesc', { ns: 'devtools' }) || 'Delete all data & recreate'}</div>
             </button>
 
             {/* Sample Data */}
@@ -229,8 +229,8 @@ export default function DevTools() {
               className="p-6 bg-gradient-to-br from-purple-500 to-indigo-600 text-white rounded-xl hover:from-purple-600 hover:to-indigo-700 transition-all disabled:opacity-50 group"
             >
               <Upload className="w-8 h-8 mb-3 group-hover:scale-110 transition-transform" />
-              <div className="text-lg font-bold">{t('devtools.addSampleData') || 'Add Sample Data'}</div>
-              <div className="text-sm text-purple-100 mt-2">{t('devtools.sampleDataDesc') || 'Populate with test data'}</div>
+              <div className="text-lg font-bold">{t('addSampleData', { ns: 'devtools' }) || 'Add Sample Data'}</div>
+              <div className="text-sm text-purple-100 mt-2">{t('sampleDataDesc', { ns: 'devtools' }) || 'Populate with test data'}</div>
             </button>
           </div>
         </div>
@@ -239,18 +239,18 @@ export default function DevTools() {
         <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-white/20 border-red-500/50">
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
             <Power className="w-6 h-6 text-red-400" />
-            {t('devtools.shutdown') || 'Shutdown & Quit'}
+            {t('shutdown', { ns: 'devtools' }) || 'Shutdown & Quit'}
           </h2>
 
           <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-4">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
               <div className="text-sm text-red-200">
-                <p className="font-semibold mb-2">{t('devtools.shutdownWarning') || 'Warning: This will stop all servers'}</p>
+                <p className="font-semibold mb-2">{t('shutdownWarning', { ns: 'devtools' }) || 'Warning: This will stop all servers'}</p>
                 <ul className="space-y-1 ml-4 list-disc">
-                  <li>{t('devtools.shutdownStep1') || 'Backend will stop immediately'}</li>
-                  <li>{t('devtools.shutdownStep2') || 'Frontend must be stopped manually (Ctrl+C in terminal)'}</li>
-                  <li>{t('devtools.shutdownStep3') || 'All unsaved changes will be lost'}</li>
+                  <li>{t('shutdownStep1', { ns: 'devtools' }) || 'Backend will stop immediately'}</li>
+                  <li>{t('shutdownStep2', { ns: 'devtools' }) || 'Frontend must be stopped manually (Ctrl+C in terminal)'}</li>
+                  <li>{t('shutdownStep3', { ns: 'devtools' }) || 'All unsaved changes will be lost'}</li>
                 </ul>
               </div>
             </div>
@@ -262,13 +262,13 @@ export default function DevTools() {
             className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all disabled:opacity-50 flex items-center gap-2"
           >
             <Power className="w-5 h-5" />
-            {t('devtools.shutdownBackend') || 'Shutdown Backend Server'}
+            {t('shutdownBackend', { ns: 'devtools' }) || 'Shutdown Backend Server'}
           </button>
 
           <div className="mt-4 p-4 bg-white/5 rounded-lg">
-            <p className="text-sm text-purple-200 mb-2 font-semibold">{t('devtools.toStopFrontend') || 'To stop Frontend:'}</p>
+            <p className="text-sm text-purple-200 mb-2 font-semibold">{t('toStopFrontend', { ns: 'devtools' }) || 'To stop Frontend:'}</p>
             <code className="text-xs text-green-300 bg-black/30 px-3 py-2 rounded block">
-              {t('devtools.frontendStopCmd') || 'Press Ctrl+C in the terminal where frontend is running'}
+              {t('frontendStopCmd', { ns: 'devtools' }) || 'Press Ctrl+C in the terminal where frontend is running'}
             </code>
           </div>
         </div>
@@ -276,26 +276,26 @@ export default function DevTools() {
         {/* Info Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-3">🚀 {t('devtools.quickLinks') || 'Quick Links'}</h3>
+            <h3 className="text-xl font-bold text-white mb-3">🚀 {t('quickLinks', { ns: 'devtools' }) || 'Quick Links'}</h3>
             <div className="space-y-2 text-purple-200">
               <a href="/docs" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
-                → {t('devtools.apiDocs') || 'API Documentation'}
+                → {t('apiDocs', { ns: 'devtools' }) || 'API Documentation'}
               </a>
               <a href="/redoc" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
-                → {t('devtools.apiRedoc') || 'API ReDoc'}
+                → {t('apiRedoc', { ns: 'devtools' }) || 'API ReDoc'}
               </a>
               <a href="/health" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
-                → {t('devtools.healthEndpoint') || 'Health Check Endpoint'}
+                → {t('healthEndpoint', { ns: 'devtools' }) || 'Health Check Endpoint'}
               </a>
             </div>
           </div>
 
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-            <h3 className="text-xl font-bold text-white mb-3">{t('devtools.safetyHeading')}</h3>
+            <h3 className="text-xl font-bold text-white mb-3">{t('safetyHeading', { ns: 'devtools' })}</h3>
             <ul className="space-y-2 text-purple-200 text-sm">
-              <li>{t('bullet')} {t('devtools.tip1')}</li>
-              <li>{t('bullet')} {t('devtools.tip2')}</li>
-              <li>{t('bullet')} {t('devtools.tip3')}</li>
+              <li>{t('bullet')} {t('tip1', { ns: 'devtools' })}</li>
+              <li>{t('bullet')} {t('tip2', { ns: 'devtools' })}</li>
+              <li>{t('bullet')} {t('tip3', { ns: 'devtools' })}</li>
               <li>{t('bullet')} {t('devtools.tip4')}</li>
             </ul>
           </div>

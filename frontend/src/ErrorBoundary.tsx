@@ -88,10 +88,10 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
             {/* Error Message */}
             <div className="text-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 mb-2">
-                {t('errors.unknown') || 'Something went wrong'}
+                {t('unknown', { ns: 'errors' }) || 'Something went wrong'}
               </h2>
               <p className="text-sm text-gray-600">
-                {t('messages.pleaseWait') || 'We encountered an unexpected error. You can try reloading the page or return to the home page.'}
+                {t('pleaseWait', { ns: 'messages' }) || 'We encountered an unexpected error. You can try reloading the page or return to the home page.'}
               </p>
             </div>
 
@@ -101,7 +101,7 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
                 onClick={this.toggleDetails}
                 className="w-full px-4 py-3 bg-gray-50 border-0 cursor-pointer flex items-center justify-between text-sm font-medium text-gray-700"
               >
-                <span>{t('common.info') || 'Error Details'}</span>
+                <span>{t('info', { ns: 'common' }) || 'Error Details'}</span>
                 <svg
                   className={"w-5 h-5 transition-transform " + (showDetails ? 'rotate-180' : 'rotate-0')}
                   fill="none"
@@ -115,7 +115,7 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
               {showDetails && (
                 <div className="p-4 bg-gray-50 border-t border-gray-200">
                   <div className="text-xs font-mono text-rose-600 mb-3 p-3 bg-white rounded border border-rose-50 overflow-x-auto">
-                    {error?.toString() || t('errors.unknown')}
+                    {error?.toString() || t('unknown', { ns: 'errors' })}
                   </div>
 
                   {errorInfo?.componentStack && (
@@ -133,21 +133,21 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
                 onClick={this.handleReset}
                 className="px-4 py-2 bg-sky-600 text-white rounded-md text-sm font-medium transition-colors shadow-sm hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-400"
               >
-                {t('common.reset') || 'Try Again'}
+                {t('reset', { ns: 'common' }) || 'Try Again'}
               </button>
 
               <button
                 onClick={this.handleGoHome}
                 className="px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-md text-sm font-medium transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-300"
               >
-                {t('common.home') || 'Go Home'}
+                {t('home', { ns: 'common' }) || 'Go Home'}
               </button>
             </div>
 
             {/* Development Mode Warning */}
             {import.meta.env.DEV && (
               <div className="mt-6 p-3 bg-amber-50 rounded-md text-xs text-amber-800 text-center">
-                {t('messages.devModeCheckConsole') || '🔧 Development mode: Check console for detailed error logs'}
+                {t('devModeCheckConsole', { ns: 'messages' }) || '🔧 Development mode: Check console for detailed error logs'}
               </div>
             )}
           </div>

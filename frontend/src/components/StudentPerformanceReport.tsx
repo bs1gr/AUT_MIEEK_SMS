@@ -135,7 +135,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
       const response = await reportsAPI.generateStudentReport(reportRequest);
       setReport(response.data);
     } catch (error: unknown) {
-      setError(getErrorMessage(error, t('reports.error') || 'Error generating report'));
+      setError(getErrorMessage(error, t('error', { ns: 'reports' }) || 'Error generating report'));
     } finally {
       setLoading(false);
     }
@@ -175,7 +175,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error: unknown) {
-      setError(getErrorMessage(error, t('reports.downloadError') || 'Download failed'));
+      setError(getErrorMessage(error, t('downloadError', { ns: 'reports' }) || 'Download failed'));
     } finally {
       setLoading(false);
     }
@@ -218,7 +218,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
       <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <h2 className="text-2xl font-bold text-gray-800">{t('reports.studentPerformanceReport')}</h2>
+          <h2 className="text-2xl font-bold text-gray-800">{t('studentPerformanceReport', { ns: 'reports' })}</h2>
           {onClose && (
             <button
               onClick={onClose}
@@ -233,24 +233,24 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
           {/* Configuration Panel */}
           {!report && (
             <div className="space-y-4 bg-gray-50 p-4 rounded-lg mb-6">
-              <h3 className="text-lg font-semibold mb-3">{t('reports.configuration')}</h3>
+              <h3 className="text-lg font-semibold mb-3">{t('configuration', { ns: 'reports' })}</h3>
 
               {/* Period Selection */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  {t('reports.period')}
+                  {t('period', { ns: 'reports' })}
                 </label>
                 <select
                   value={config.period}
                   onChange={(e) => handleConfigChange('period', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  title={t('reports.period')}
+                  title={t('period', { ns: 'reports' })}
                 >
-                  <option value="week">{t('reports.period_week')}</option>
-                  <option value="month">{t('reports.period_month')}</option>
-                  <option value="semester">{t('reports.period_semester')}</option>
-                  <option value="year">{t('reports.period_year')}</option>
-                  <option value="custom">{t('reports.period_custom')}</option>
+                  <option value="week">{t('period_week', { ns: 'reports' })}</option>
+                  <option value="month">{t('period_month', { ns: 'reports' })}</option>
+                  <option value="semester">{t('period_semester', { ns: 'reports' })}</option>
+                  <option value="year">{t('period_year', { ns: 'reports' })}</option>
+                  <option value="custom">{t('period_custom', { ns: 'reports' })}</option>
                 </select>
               </div>
 
@@ -259,26 +259,26 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('reports.startDate')}
+                      {t('startDate', { ns: 'reports' })}
                     </label>
                     <input
                       type="date"
                       value={config.startDate || ''}
                       onChange={(e) => handleConfigChange('startDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      title={t('reports.startDate')}
+                      title={t('startDate', { ns: 'reports' })}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {t('reports.endDate')}
+                      {t('endDate', { ns: 'reports' })}
                     </label>
                     <input
                       type="date"
                       value={config.endDate || ''}
                       onChange={(e) => handleConfigChange('endDate', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      title={t('reports.endDate')}
+                      title={t('endDate', { ns: 'reports' })}
                     />
                   </div>
                 </div>
@@ -287,7 +287,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               {/* Include Options */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t('reports.includeData')}
+                  {t('includeData', { ns: 'reports' })}
                 </label>
                 <div className="space-y-1">
                   <label className="flex items-center">
@@ -297,7 +297,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       onChange={(e) => handleConfigChange('includeAttendance', e.target.checked)}
                       className="mr-2"
                     />
-                    {t('reports.includeAttendance')}
+                    {t('includeAttendance', { ns: 'reports' })}
                   </label>
                   <label className="flex items-center">
                     <input
@@ -306,7 +306,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       onChange={(e) => handleConfigChange('includeGrades', e.target.checked)}
                       className="mr-2"
                     />
-                    {t('reports.includeGrades')}
+                    {t('includeGrades', { ns: 'reports' })}
                   </label>
                   <label className="flex items-center">
                     <input
@@ -315,7 +315,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       onChange={(e) => handleConfigChange('includePerformance', e.target.checked)}
                       className="mr-2"
                     />
-                    {t('reports.includePerformance')}
+                    {t('includePerformance', { ns: 'reports' })}
                   </label>
                   <label className="flex items-center">
                     <input
@@ -324,7 +324,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       onChange={(e) => handleConfigChange('includeHighlights', e.target.checked)}
                       className="mr-2"
                     />
-                    {t('reports.includeHighlights')}
+                    {t('includeHighlights', { ns: 'reports' })}
                   </label>
                 </div>
               </div>
@@ -335,7 +335,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                 disabled={loading}
                 className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
               >
-                {loading ? t('reports.generating') : t('reports.generate')}
+                {loading ? t('generating', { ns: 'reports' }) : t('generate', { ns: 'reports' })}
               </button>
 
               {/* Download Buttons */}
@@ -370,19 +370,19 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                 <h3 className="text-lg font-semibold mb-2">{report.student_name}</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
-                    <span className="text-gray-600">{t('reports.email')}:</span>
+                    <span className="text-gray-600">{t('email', { ns: 'reports' })}:</span>
                     <p className="font-medium">{report.student_email}</p>
                   </div>
                   <div>
-                    <span className="text-gray-600">{t('reports.period')}:</span>
+                    <span className="text-gray-600">{t('period', { ns: 'reports' })}:</span>
                     <p className="font-medium">{report.report_period}</p>
                   </div>
                   <div>
-                    <span className="text-gray-600">{t('reports.startDate')}:</span>
+                    <span className="text-gray-600">{t('startDate', { ns: 'reports' })}:</span>
                     <p className="font-medium">{report.start_date}</p>
                   </div>
                   <div>
-                    <span className="text-gray-600">{t('reports.endDate')}:</span>
+                    <span className="text-gray-600">{t('endDate', { ns: 'reports' })}:</span>
                     <p className="font-medium">{report.end_date}</p>
                   </div>
                 </div>
@@ -391,28 +391,28 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               {/* Overall Attendance */}
               {report.overall_attendance && (
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">{t('reports.attendanceSummary')}</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t('attendanceSummary', { ns: 'reports' })}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-600">{t('reports.attendanceRate')}:</span>
+                      <span className="text-gray-600">{t('attendanceRate', { ns: 'reports' })}:</span>
                       <span className={`font-bold ${getAttendanceColor(report.overall_attendance.attendance_rate)}`}>
                         {report.overall_attendance.attendance_rate}%
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('reports.totalDays')}:</span>
+                      <span className="text-gray-600">{t('totalDays', { ns: 'reports' })}:</span>
                       <span>{report.overall_attendance.total_days}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('reports.present')}:</span>
+                      <span className="text-gray-600">{t('present', { ns: 'reports' })}:</span>
                       <span className="text-green-600">{report.overall_attendance.present}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('reports.absent')}:</span>
+                      <span className="text-gray-600">{t('absent', { ns: 'reports' })}:</span>
                       <span className="text-red-600">{report.overall_attendance.absent}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('reports.unexcusedAbsences')}:</span>
+                      <span className="text-gray-600">{t('unexcusedAbsences', { ns: 'reports' })}:</span>
                       <span className="text-red-600 font-medium">{report.overall_attendance.unexcused_absences}</span>
                     </div>
                   </div>
@@ -422,31 +422,31 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               {/* Overall Grades */}
               {report.overall_grades && (
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-3">{t('reports.gradesSummary')}</h3>
+                  <h3 className="text-lg font-semibold mb-3">{t('gradesSummary', { ns: 'reports' })}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-600">{t('reports.averageGrade')}:</span>
+                      <span className="text-gray-600">{t('averageGrade', { ns: 'reports' })}:</span>
                       <span className={`font-bold ${getGradeColor(report.overall_grades.average_percentage)}`}>
                         {report.overall_grades.average_percentage}%
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('reports.totalAssignments')}:</span>
+                      <span className="text-gray-600">{t('totalAssignments', { ns: 'reports' })}:</span>
                       <span>{report.overall_grades.total_assignments}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('reports.highestGrade')}:</span>
+                      <span className="text-gray-600">{t('highestGrade', { ns: 'reports' })}:</span>
                       <span className="text-green-600">{report.overall_grades.highest_grade}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('reports.lowestGrade')}:</span>
+                      <span className="text-gray-600">{t('lowestGrade', { ns: 'reports' })}:</span>
                       <span className="text-red-600">{report.overall_grades.lowest_grade}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span className="text-gray-600">{t('reports.trend')}:</span>
+                      <span className="text-gray-600">{t('trend', { ns: 'reports' })}:</span>
                       <div className="flex items-center gap-1">
                         {getTrendIcon(report.overall_grades.grade_trend)}
-                        <span>{t(`reports.trend_${report.overall_grades.grade_trend}`)}</span>
+                        <span>{t(`trend_${report.overall_grades.grade_trend}`, { ns: 'reports' })}</span>
                       </div>
                     </div>
                   </div>
@@ -456,7 +456,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               {/* Course Breakdown */}
               {report.courses && report.courses.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">{t('reports.courseBreakdown')}</h3>
+                  <h3 className="text-lg font-semibold">{t('courseBreakdown', { ns: 'reports' })}</h3>
                   {report.courses.map((course, idx) => (
                     <div key={idx} className="bg-white border border-gray-200 rounded-lg p-4">
                       <h4 className="font-semibold mb-2">
@@ -466,9 +466,10 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       {/* Course Attendance */}
                       {course.attendance && (
                         <div className="mb-2">
-                          <p className="text-sm text-gray-600">{t('reports.attendance')}:</p>
+                          <p className="text-sm text-gray-600">{t('attendance', { ns: 'reports' })}:</p>
                           <p className={`text-sm font-medium ${getAttendanceColor(course.attendance.attendance_rate)}`}>
-                            {t('reports.attendanceRateValue', {
+                            {t('attendanceRateValue', {
+                              ns: 'reports',
                               rate: course.attendance.attendance_rate,
                               present: course.attendance.present,
                               total: course.attendance.total_days,
@@ -480,7 +481,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       {/* Course Grades */}
                       {course.grades && (
                         <div className="mb-2">
-                          <p className="text-sm text-gray-600">{t('reports.grades')}:</p>
+                          <p className="text-sm text-gray-600">{t('grades', { ns: 'reports' })}:</p>
                           <p className={`text-sm font-medium ${getGradeColor(course.grades.average_percentage)}`}>
                             {course.grades.average_percentage}% {getTrendIcon(course.grades.grade_trend)}
                           </p>
@@ -490,7 +491,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       {/* Performance Categories */}
                       {course.performance_categories && course.performance_categories.length > 0 && (
                         <div>
-                          <p className="text-sm text-gray-600 mb-1">{t('reports.performanceCategories')}:</p>
+                          <p className="text-sm text-gray-600 mb-1">{t('performanceCategories', { ns: 'reports' })}:</p>
                           <div className="space-y-1">
                             {course.performance_categories.map((perf, perfIdx) => (
                               <div key={perfIdx} className="text-sm">
@@ -509,7 +510,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               {/* Recommendations */}
               {report.recommendations && report.recommendations.length > 0 && (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-2">{t('reports.recommendations')}</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('recommendations', { ns: 'reports' })}</h3>
                   <ul className="list-disc list-inside space-y-1 text-sm">
                     {report.recommendations.map((rec, idx) => (
                       <li key={idx}>{rec}</li>
@@ -521,7 +522,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               {/* Highlights */}
               {report.highlights && report.highlights.length > 0 && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-2">{t('reports.highlights')}</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('highlights', { ns: 'reports' })}</h3>
                   <div className="space-y-2">
                     {report.highlights.map((highlight, idx) => (
                       <div key={idx} className="text-sm">
@@ -542,20 +543,20 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                   onClick={() => window.print()}
                   className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
                 >
-                  {t('reports.print')}
+                  {t('print', { ns: 'reports' })}
                 </button>
                 <button
                   onClick={() => setReport(null)}
                   className="flex-1 bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700 transition-colors"
                 >
-                  {t('reports.newReport')}
+                  {t('newReport', { ns: 'reports' })}
                 </button>
                 {onClose && (
                   <button
                     onClick={onClose}
                     className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
                   >
-                    {t('common.close')}
+                    {t('close', { ns: 'common' })}
                   </button>
                 )}
               </div>

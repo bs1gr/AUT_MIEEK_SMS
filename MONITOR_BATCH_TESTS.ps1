@@ -4,7 +4,7 @@
     Monitor batch test results in real-time or view existing results
 .DESCRIPTION
     Tails the latest batch test log file, or displays a summary of all batch runs
-    
+
 .PARAMETER Follow
     Follow/tail the log file in real-time (like `tail -f`)
 .PARAMETER Latest
@@ -78,15 +78,15 @@ if ($List) {
 if ($Summary) {
     Write-Host "`n📊 Batch Test Summary:" -ForegroundColor Cyan
     Write-Host ""
-    
+
     foreach ($log in $batchLogs | Select-Object -First 10) {
         Write-Host "  $($log.Name)" -ForegroundColor Gray
         Write-Host "    Modified: $($log.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor DarkGray
-        
+
         # Extract summary line from log
         $content = Get-Content $log.FullName -ErrorAction SilentlyContinue
         $summaryLine = $content | Select-String -Pattern "✓|✗" | Select-Object -Last 5
-        
+
         if ($summaryLine) {
             Write-Host "    Summary:" -ForegroundColor Gray
             foreach ($line in $summaryLine) {
@@ -108,7 +108,7 @@ if ($Follow) {
     Write-Host "📝 Following test log (Ctrl+C to exit):" -ForegroundColor Cyan
     Write-Host "   $($latestLog.FullName)" -ForegroundColor Gray
     Write-Host ""
-    
+
     # Follow the file
     Get-Content $latestLog.FullName -Wait -Tail 100 | ForEach-Object {
         # Color certain patterns
@@ -128,9 +128,9 @@ if ($Follow) {
     Write-Host "   $($latestLog.FullName)" -ForegroundColor Gray
     Write-Host "   Modified: $($latestLog.LastWriteTime.ToString('yyyy-MM-dd HH:mm:ss'))" -ForegroundColor DarkGray
     Write-Host ""
-    
+
     $content = Get-Content $latestLog.FullName -ErrorAction SilentlyContinue
-    
+
     # Show last 50 lines
     $content | Select-Object -Last 50 | ForEach-Object {
         # Color output
@@ -146,7 +146,7 @@ if ($Follow) {
             Write-Host $_
         }
     }
-    
+
     Write-Host ""
     Write-Host "💡 Tip: Use -Follow to tail in real-time, or -List to see all logs" -ForegroundColor Gray
 }

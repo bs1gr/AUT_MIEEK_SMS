@@ -43,7 +43,7 @@ const StudentsView: React.FC = () => {
   };
 
   const handleDelete = (id: number) => {
-    if (window.confirm(t('students.confirmDelete'))) {
+    if (window.confirm(t('confirmDelete', { ns: 'students' }))) {
       // TODO: Implement delete via mutation
       console.log('Delete student:', id);
       refetch();
@@ -58,13 +58,13 @@ const StudentsView: React.FC = () => {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">{t('students.title')}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('title', { ns: 'students' })}</h1>
         <button
           onClick={() => setIsFormOpen(true)}
           className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={20} />
-          <span>{t('students.addStudent')}</span>
+          <span>{t('addStudent', { ns: 'students' })}</span>
         </button>
       </div>
 
@@ -94,7 +94,7 @@ const StudentsView: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-bold mb-4">
-              {editingStudent ? t('students.editStudent') : t('students.addStudent')}
+              {editingStudent ? t('editStudent', { ns: 'students' }) : t('addStudent', { ns: 'students' })}
             </h2>
             <StudentForm
               initialData={editingStudent || undefined}
