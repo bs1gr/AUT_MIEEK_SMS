@@ -280,31 +280,31 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
     <tr className="bg-blue-50">
       <td colSpan={6} className="px-6 py-4">
         <div className="space-y-3">
-          <h4 className="font-semibold text-sm text-gray-700">Generated Reports:</h4>
-          {isLoading && <p className="text-xs text-gray-500">Loading...</p>}
+          <h4 className="font-semibold text-sm text-gray-700">{t('customReports:generatedReportsTitle')}</h4>
+          {isLoading && <p className="text-xs text-gray-500">{t('customReports:loading')}</p>}
           {!isLoading && (!generatedReports || generatedReports.length === 0) && (
-            <p className="text-xs text-gray-500">No generated reports yet</p>
+            <p className="text-xs text-gray-500">{t('customReports:noGeneratedReports')}</p>
           )}
           {!isLoading && generatedReports && generatedReports.length > 0 && (
             <div className="space-y-2">
               {generatedReports.map((generated: any) => {
-                // Safe date parsing
-                const createdDate = generated.created_at ? new Date(generated.created_at) : null;
-                const isValidDate = createdDate && !isNaN(createdDate.getTime());
+                // Safe date parsing - use generated_at field
+                const generatedDate = generated.generated_at ? new Date(generated.generated_at) : null;
+                const isValidDate = generatedDate && !isNaN(generatedDate.getTime());
 
                 return (
                   <div key={generated.id} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
                     <div className="text-xs flex-1">
                       <p className="font-medium text-gray-900">
                         {isValidDate
-                          ? `Generated ${formatDistanceToNow(createdDate, { addSuffix: true })}`
-                          : 'Generated (date unknown)'}
+                          ? `${t('customReports:generatedLabel')} ${formatDistanceToNow(generatedDate, { addSuffix: true })}`
+                          : t('customReports:generatedNow')}
                       </p>
                       <p className="text-gray-600">
-                        Status: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>
+                        {t('customReports:status')}: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>
                       </p>
                       {generated.error_message && (
-                        <p className="text-red-600 font-semibold">Error: {generated.error_message}</p>
+                        <p className="text-red-600 font-semibold">{t('customReports:error')}: {generated.error_message}</p>
                       )}
                       {generated.file_path && (
                         <p className="text-gray-500">{generated.file_path.split('/').pop()}</p>
@@ -315,23 +315,24 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
                         <button
                           onClick={() => downloadMutation.mutate({ reportId, generatedId: generated.id })}
                           className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
+                          title={t('customReports:downloadTooltip')}
                         >
                           <Download size={12} />
-                          Download
+                          {t('customReports:download')}
                         </button>
                       )}
                       <button
                         onClick={() => deleteMutation.mutate({ reportId, generatedId: generated.id })}
                         className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors flex items-center gap-1"
-                        title="Delete generated report"
+                        title={t('customReports:deleteGeneratedTooltip')}
                       >
                         <Trash2 size={12} />
                       </button>
                       {generated.status === 'processing' && (
-                        <span className="text-xs text-orange-600 font-medium">Processing...</span>
+                        <span className="text-xs text-orange-600 font-medium">{t('customReports:processing')}</span>
                       )}
                       {generated.status === 'failed' && (
-                        <span className="text-xs text-red-600 font-medium">Failed</span>
+                        <span className="text-xs text-red-600 font-medium">{t('customReports:failed')}</span>
                       )}
                     </div>
                   </div>

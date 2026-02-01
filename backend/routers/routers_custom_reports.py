@@ -554,7 +554,7 @@ async def delete_generated_report(
     """Delete a generated report and its file."""
     try:
         service = CustomReportService(db)
-        
+
         # Check if user owns this report
         report = service.get_report(report_id, current_user.id)
         if not report:
@@ -563,7 +563,7 @@ async def delete_generated_report(
                 message="Report not found",
                 request_id=request.state.request_id,
             )
-        
+
         # Delete generated report
         success = service.delete_generated_report(report_id, generated_report_id, current_user.id)
         if not success:
@@ -572,7 +572,7 @@ async def delete_generated_report(
                 message="Generated report not found",
                 request_id=request.state.request_id,
             )
-        
+
         return success_response(
             data={"message": "Generated report deleted successfully"},
             request_id=request.state.request_id,
