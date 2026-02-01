@@ -232,6 +232,50 @@ export function useDownloadReport() {
 }
 
 /**
+ * Delete generated report
+ */
+export function useDeleteGeneratedReport() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ reportId, generatedId }: { reportId: number; generatedId: number }) =>
+      customReportsAPI.deleteGenerated(reportId, generatedId),
+    onSuccess: (data, variables) => {
+      console.log('[useDeleteGeneratedReport] Generated report deleted:', { variables, data });
+      queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
+      // Show success feedback
+      if (typeof window !== 'undefined') {
+        try {
+          const toast = document.createElement('div');
+          toast.textContent = '✅ Generated report deleted successfully';
+          toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 4000);
+        } catch (e) {
+          console.error('Could not show toast:', e);
+        }
+      }
+    },
+    onError: (error: any, variables) => {
+      console.error('[useDeleteGeneratedReport] Error deleting generated report:', { variables, error });
+      const message = error?.message || 'Failed to delete generated report';
+      // Show error feedback
+      if (typeof window !== 'undefined') {
+        try {
+          const toast = document.createElement('div');
+          toast.textContent = `❌ Error: ${message}`;
+          toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 5000);
+        } catch (e) {
+          console.error('Could not show error toast:', e);
+        }
+      }
+    },
+  });
+}
+
+/**
  * Fetch report statistics
  */
 export function useReportStatistics() {

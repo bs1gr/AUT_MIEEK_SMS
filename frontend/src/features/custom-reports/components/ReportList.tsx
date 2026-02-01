@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Copy, Share2, Download, Play, MoreVertical, ChevronDown } from 'lucide-react';
-import { useCustomReports, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport } from '@/hooks/useCustomReports';
+import { useCustomReports, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport, useDeleteGeneratedReport } from '@/hooks/useCustomReports';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ReportListProps {
@@ -273,6 +273,7 @@ interface GeneratedReportsRowProps {
 
 const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, downloadMutation }) => {
   const { data: generatedReports, isLoading } = useGeneratedReports(reportId);
+  const deleteMutation = useDeleteGeneratedReport();
   const { t } = useTranslation();
 
   return (
@@ -309,21 +310,30 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
                         <p className="text-gray-500">{generated.file_path.split('/').pop()}</p>
                       )}
                     </div>
-                    {generated.status === 'completed' && generated.file_path && (
+                    <div className="flex items-center gap-2">
+                      {generated.status === 'completed' && generated.file_path && (
+                        <button
+                          onClick={() => downloadMutation.mutate({ reportId, generatedId: generated.id })}
+                          className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
+                        >
+                          <Download size={12} />
+                          Download
+                        </button>
+                      )}
                       <button
-                        onClick={() => downloadMutation.mutate({ reportId, generatedId: generated.id })}
-                        className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
+                        onClick={() => deleteMutation.mutate({ reportId, generatedId: generated.id })}
+                        className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors flex items-center gap-1"
+                        title="Delete generated report"
                       >
-                        <Download size={12} />
-                        Download
+                        <Trash2 size={12} />
                       </button>
-                    )}
-                    {generated.status === 'processing' && (
-                      <span className="text-xs text-orange-600 font-medium">Processing...</span>
-                    )}
-                    {generated.status === 'failed' && (
-                      <span className="text-xs text-red-600 font-medium">Failed</span>
-                    )}
+                      {generated.status === 'processing' && (
+                        <span className="text-xs text-orange-600 font-medium">Processing...</span>
+                      )}
+                      {generated.status === 'failed' && (
+                        <span className="text-xs text-red-600 font-medium">Failed</span>
+                      )}
+                    </div>
                   </div>
                 );
               })}

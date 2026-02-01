@@ -305,6 +305,23 @@ export const customReportsAPI = {
   },
 
   /**
+   * Delete generated report
+   */
+  deleteGenerated: async (reportId: number, generatedId: number) => {
+    try {
+      const response = await apiClient.delete(
+        `/custom-reports/${reportId}/generated/${generatedId}`
+      );
+      return extractAPIResponseData(response);
+    } catch (error) {
+      console.error(`[customReportsAPI] Error deleting generated report ${generatedId}:`, error);
+      throw extractAPIError(
+        (error as { response?: AxiosResponse }).response
+      );
+    }
+  },
+
+  /**
    * Get report statistics
    */
   getStatistics: async () => {
