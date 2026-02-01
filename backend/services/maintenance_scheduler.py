@@ -12,6 +12,7 @@ from backend.db import SessionLocal
 from backend.services.import_export_service import ImportExportService
 from backend.services.export_performance_monitor import get_export_performance_monitor
 from backend.services.export_scheduler import get_export_scheduler
+from backend.services.report_scheduler import get_report_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,7 @@ class MaintenanceScheduler:
     def __init__(self):
         self.import_export_service = ImportExportService()
         self.export_scheduler = get_export_scheduler()
+        self.report_scheduler = get_report_scheduler()
 
     def cleanup_old_exports(self, days_old: int = 30, delete_files: bool = True):
         """Clean up old export jobs.
@@ -109,10 +111,32 @@ class MaintenanceScheduler:
         else:
             logger.warning("Export scheduler not available (APScheduler not installed)")
 
+    def start_report_scheduler(self):
+        """Start the report scheduler and schedule enabled reports."""
+        if not self.report_scheduler.is_available():
+            logger.warning("Report scheduler not available (APScheduler not installed)")
+            return
+
+        self.report_scheduler.start()
+
+        db = SessionLocal()
+        try:
+            self.report_scheduler.schedule_all_reports(db)
+            logger.info("Report scheduler started and reports scheduled")
+        except Exception as e:
+            logger.error(f"Failed to schedule reports: {e}")
+        finally:
+            db.close()
+
     def stop_export_scheduler(self):
         """Stop the export scheduler."""
         self.export_scheduler.stop()
         logger.info("Export scheduler stopped")
+
+    def stop_report_scheduler(self):
+        """Stop the report scheduler."""
+        self.report_scheduler.stop()
+        logger.info("Report scheduler stopped")
 
     def schedule_cleanup_task(self, frequency: str = "daily"):
         """Schedule automatic export cleanup.

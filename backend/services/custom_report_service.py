@@ -23,6 +23,7 @@ from backend.schemas.custom_reports import (
     ReportTemplateCreate,
     ReportTemplateUpdate,
 )
+from backend.services.report_scheduler import ReportScheduler, get_report_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -127,6 +128,14 @@ class CustomReportService:
         self.db.add(report)
         self.db.commit()
         self.db.refresh(report)
+        if report.schedule_enabled:
+            scheduler = get_report_scheduler()
+            next_run = scheduler.schedule_report(report)
+            report.next_run_at = next_run or ReportScheduler.compute_next_run_at(
+                report.schedule_frequency,
+                report.schedule_cron,
+            )
+            self.db.commit()
         return report
 
     def get_report(self, report_id: int, user_id: int) -> Optional[Report]:
@@ -165,6 +174,19 @@ class CustomReportService:
 
         self.db.commit()
         self.db.refresh(report)
+        scheduler = get_report_scheduler()
+        if report.schedule_enabled:
+            next_run = scheduler.schedule_report(report)
+            report.next_run_at = next_run or ReportScheduler.compute_next_run_at(
+                report.schedule_frequency,
+                report.schedule_cron,
+                report.last_run_at,
+            )
+            self.db.commit()
+        else:
+            report.next_run_at = None
+            scheduler.cancel_report(report.id)
+            self.db.commit()
         return report
 
     def delete_report(self, report_id: int, user_id: int, hard_delete: bool = False) -> bool:
