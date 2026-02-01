@@ -191,21 +191,26 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
     try {
       // Transform frontend config to backend schema format
-      const backendConfig = {
+      const backendConfig: any = {
         name: config.name,
-        description: config.description,
-        report_type: config.entity_type, // Map entity_type to report_type
+        description: config.description || undefined,
+        report_type: config.entity_type,
         fields: config.selected_fields.reduce((acc, field) => {
-          acc[field] = true; // Convert array to dict format
+          acc[field] = true;
           return acc;
         }, {} as Record<string, boolean>),
-        filters: config.filters.length > 0 ? config.filters : undefined,
-        aggregations: undefined, // No aggregations in frontend UI yet
-        sort_by: config.sorting_rules.length > 0 ? config.sorting_rules : undefined,
         export_format: config.output_format,
-        include_charts: true, // Default value
-        schedule_enabled: false, // Default value
+        include_charts: true,
+        schedule_enabled: false,
       };
+
+      // Only add optional fields if they have values
+      if (config.filters.length > 0) {
+        backendConfig.filters = config.filters;
+      }
+      if (config.sorting_rules.length > 0) {
+        backendConfig.sort_by = config.sorting_rules;
+      }
 
       if (reportId) {
         await updateMutation.mutateAsync({
