@@ -229,5 +229,7 @@ export default {
   noFiltersApplied: 'No filters applied',
   filterField: 'Filter Field',
   filterOperator: 'Filter Operator',
-  filterValue: 'Filter Value'
+  filterValue: 'Filter Value',
+  resetFilters: 'Reset Filters',
+  applyFilters: 'Apply Filters'
 };
