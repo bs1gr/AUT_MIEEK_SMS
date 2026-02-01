@@ -46,7 +46,7 @@ class TestReportSchedulerTriggers:
     def test_compute_next_run_at_daily(self):
         """Test daily report scheduled for 2:00 AM UTC."""
         next_run = ReportScheduler.compute_next_run_at("daily", None, None)
-        
+
         # Should fire at 2:00 AM UTC
         assert next_run is not None
         assert next_run.hour == 2
@@ -58,7 +58,7 @@ class TestReportSchedulerTriggers:
         """Test hourly report scheduled for 1 hour from now."""
         now = datetime.now(timezone.utc)
         next_run = ReportScheduler.compute_next_run_at("hourly", None, None)
-        
+
         # Should be approximately 1 hour from now
         assert next_run is not None
         delta = (next_run - now).total_seconds()
@@ -69,7 +69,7 @@ class TestReportSchedulerTriggers:
     def test_compute_next_run_at_weekly(self):
         """Test weekly report scheduled for Monday 2:00 AM UTC."""
         next_run = ReportScheduler.compute_next_run_at("weekly", None, None)
-        
+
         # Should fire on Monday (weekday 0) at 2:00 AM UTC
         assert next_run is not None
         assert next_run.weekday() == 0  # Monday
@@ -80,7 +80,7 @@ class TestReportSchedulerTriggers:
     def test_compute_next_run_at_monthly(self):
         """Test monthly report scheduled for 1st at 2:00 AM UTC."""
         next_run = ReportScheduler.compute_next_run_at("monthly", None, None)
-        
+
         # Should fire on 1st of month at 2:00 AM UTC
         assert next_run is not None
         assert next_run.day == 1
@@ -95,7 +95,7 @@ class TestReportSchedulerEdgeCases:
         """Test invalid frequency is handled gracefully."""
         if not APSCHEDULER_AVAILABLE:
             pytest.skip("APScheduler not installed")
-        
+
         next_run = ReportScheduler.compute_next_run_at("invalid_frequency", None, None)
         assert next_run is None
 
@@ -103,7 +103,7 @@ class TestReportSchedulerEdgeCases:
         """Test canceling non-existent report doesn't raise error."""
         scheduler = ReportScheduler()
         scheduler.start()
-        
+
         try:
             # Should not raise error even if job doesn't exist
             scheduler.cancel_report(9999)
@@ -114,7 +114,7 @@ class TestReportSchedulerEdgeCases:
         """Test all computed next run times are in UTC."""
         if not APSCHEDULER_AVAILABLE:
             pytest.skip("APScheduler not installed")
-        
+
         for frequency in ["hourly", "daily", "weekly", "monthly"]:
             next_run = ReportScheduler.compute_next_run_at(frequency, None, None)
             if next_run:
