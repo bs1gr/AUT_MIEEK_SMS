@@ -90,7 +90,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         console.error('Failed to restore report config from session storage:', e);
       }
     }
-    
+
     // Fall back to initialData or default
     return (
       initialData || {
