@@ -44,17 +44,51 @@ param(
     [switch]$Verbose,
     [switch]$FastFail,
     [switch]$RetestFailed,
-    [string]$FailureFile = ".test-failures"
+    [string]$FailureFile = ".test-failures",
+    [string]$LogFile = "test-results/backend_batch_run_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
 )
 
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 
-# Color functions
-function Write-Success { param($msg) Write-Host "✓ $msg" -ForegroundColor Green }
-function Write-Info { param($msg) Write-Host "ℹ $msg" -ForegroundColor Cyan }
-function Write-Warning { param($msg) Write-Host "⚠ $msg" -ForegroundColor Yellow }
-function Write-Error { param($msg) Write-Host "✗ $msg" -ForegroundColor Red }
+# Ensure test-results directory exists
+$testResultsDir = "test-results"
+if (-not (Test-Path $testResultsDir)) {
+    New-Item -ItemType Directory -Path $testResultsDir -Force | Out-Null
+}
+
+# Create log file
+$logPath = Join-Path (Get-Location) $LogFile
+$logStream = $null
+$logLocked = $false
+
+# Function to write to both console and log file
+function Write-Log {
+    param($msg, [ConsoleColor]$Color = [Console]::ForegroundColor, [switch]$NoNewline)
+    
+    Write-Host $msg -ForegroundColor $Color -NoNewline:$NoNewline
+    
+    # Also write to log file (strip color codes)
+    $plainMsg = $msg -replace '\e\[[0-9;]*m', ''
+    
+    try {
+        Add-Content -Path $logPath -Value $plainMsg -NoNewline:$NoNewline -ErrorAction SilentlyContinue
+    } catch {
+        # Silently fail if we can't write to log
+    }
+}
+
+# Color functions - now use Write-Log
+function Write-Success { param($msg) Write-Log "✓ $msg" Green; Write-Log "`n" Green }
+function Write-Info { param($msg) Write-Log "ℹ $msg" Cyan; Write-Log "`n" Cyan }
+function Write-Warning { param($msg) Write-Log "⚠ $msg" Yellow; Write-Log "`n" Yellow }
+function Write-ErrorMsg { param($msg) Write-Log "✗ $msg" Red; Write-Log "`n" Red }
+
+# Legacy error function wrapper
+function Write-Error { 
+    param($msg) 
+    Write-ErrorMsg $msg
+}
 
 function Restore-TestEnv {
     param($prevAllow, $prevRunner)
@@ -79,9 +113,10 @@ $previousRunner = $env:SMS_TEST_RUNNER
 $env:SMS_ALLOW_DIRECT_PYTEST = "1"
 $env:SMS_TEST_RUNNER = "batch"
 
-Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║   Batch Test Runner (SMS v1.17.2)     ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
+Write-Log "`n╔════════════════════════════════════════╗`n" Cyan
+Write-Log "║   Batch Test Runner (SMS v1.17.2)     ║`n" Cyan
+Write-Log "╚════════════════════════════════════════╝`n`n" Cyan
+Write-Log "📝 Logging to: $logPath`n`n" Cyan
 
 # Verify we're in the right directory or find it
 $projectRoot = $PSScriptRoot
@@ -163,13 +198,13 @@ $failedFiles = @()
 foreach ($batch in $batches) {
     $batchCount++
 
-    Write-Host "`n┌─────────────────────────────────────────┐" -ForegroundColor Yellow
-    Write-Host "│ Batch $batchCount of $totalBatches (Files: $($batch.Count))" -ForegroundColor Yellow
-    Write-Host "└─────────────────────────────────────────┘" -ForegroundColor Yellow
+    Write-Log "`n┌─────────────────────────────────────────┐`n" Yellow
+    Write-Log "│ Batch $batchCount of $totalBatches (Files: $($batch.Count))`n" Yellow
+    Write-Log "└─────────────────────────────────────────┘`n" Yellow
 
     # Show files in this batch
     foreach ($file in $batch) {
-        Write-Host "  • $($file.Name)" -ForegroundColor Gray
+        Write-Log "  • $($file.Name)`n" Gray
     }
 
     # Build pytest command with full paths
@@ -221,7 +256,8 @@ foreach ($batch in $batches) {
         $skipped = [int]$matches[1]
     }
 
-    # Display output
+    # Display output (both console and log)
+    Write-Log $outputStr White
     Write-Host $outputStr
 
     # Batch result
@@ -229,7 +265,7 @@ foreach ($batch in $batches) {
         Write-Success "Batch $batchCount completed successfully in $([math]::Round($batchDuration.TotalSeconds, 1))s"
     } else {
         $failedFiles += $batch.Name
-        Write-Error "Batch $batchCount failed in $([math]::Round($batchDuration.TotalSeconds, 1))s"
+        Write-ErrorMsg "Batch $batchCount failed in $([math]::Round($batchDuration.TotalSeconds, 1))s"
 
         if ($FastFail) {
             Write-Warning "FastFail enabled - stopping execution"
@@ -239,50 +275,51 @@ foreach ($batch in $batches) {
 
     # Small delay between batches to let system breathe
     if ($batchCount -lt $totalBatches) {
-        Write-Host "  Waiting 2 seconds before next batch..." -ForegroundColor DarkGray
-        Start-Sleep -Seconds 2
+        Write-Log "  Waiting 2 seconds before next batch...`n" DarkGray
     }
 }
 
 $duration = ((Get-Date) - $startTime).TotalSeconds
 
 # Final summary
-Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║          TEST EXECUTION SUMMARY        ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════╝" -ForegroundColor Cyan
+Write-Log "`n╔════════════════════════════════════════╗`n" Cyan
+Write-Log "║          TEST EXECUTION SUMMARY        ║`n" Cyan
+Write-Log "╚════════════════════════════════════════╝`n`n" Cyan
 
-Write-Host "`nBatches:" -ForegroundColor White
-Write-Host "  Total:   $totalBatches" -ForegroundColor Gray
+Write-Log "Batches:`n" White
+Write-Log "  Total:   $totalBatches`n" Gray
 Write-Success "  Completed: $batchCount"
 
-Write-Host "`nTests:" -ForegroundColor White
+Write-Log "Tests:`n" White
 $totalTests = $passedCount + $failedCount
-Write-Host "  Total:   $totalTests" -ForegroundColor Gray
+Write-Log "  Total:   $totalTests`n" Gray
 if ($passedCount -gt 0) {
     Write-Success "  Passed:  $passedCount"
 }
 if ($failedCount -gt 0) {
-    Write-Error "  Failed:  $failedCount"
+    Write-ErrorMsg "  Failed:  $failedCount"
 }
 if ($failedFiles.Count -gt 0) {
-    Write-Error "  Failed Batches: $($failedFiles.Count)"
+    Write-ErrorMsg "  Failed Batches: $($failedFiles.Count)"
 }
 
-Write-Host "`nDuration: $([math]::Round($duration, 1))s" -ForegroundColor Gray
-
-Write-Host ""
+Write-Log "Duration: $([math]::Round($duration, 1))s`n`n" Gray
+Write-Log "📝 Full log saved to: $logPath`n" Cyan
 
 # Exit code
 if ($failedCount -eq 0 -and $failedFiles.Count -eq 0) {
     Write-Success "All tests passed! 🎉"
+    Write-Log "✓ All tests passed! 🎉`n" Green
     # Clear failure file since all tests passed
     if (Test-Path $FailureFile) {
         Remove-Item $FailureFile -Force
     }
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
+    Write-Log "`n✓ Test log completed: $logPath`n" Green
     exit 0
 } else {
-    Write-Error "Some tests failed"
+    Write-ErrorMsg "Some tests failed"
+    Write-Log "✗ Some tests failed`n" Red
 
     # NEW: Save failed test files for future --retest-failed runs
     if ($failedFiles.Count -gt 0) {
@@ -303,5 +340,6 @@ if ($failedCount -eq 0 -and $failedFiles.Count -eq 0) {
     }
 
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
+    Write-Log "`n✗ Test log completed: $logPath`n" Red
     exit 1
 }
