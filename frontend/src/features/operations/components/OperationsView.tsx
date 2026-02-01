@@ -170,32 +170,97 @@ const OperationsView = (_props: OperationsViewProps) => {
         {effectiveTab === 'reports' && (
           <div className="space-y-6">
             <div className="rounded-lg border border-slate-200 bg-gradient-to-br from-indigo-50 to-slate-50 p-6">
-              <div className="mb-4 flex items-center gap-3">
+              <div className="mb-6 flex items-center gap-3">
                 <FileText className="h-6 w-6 text-indigo-600" />
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">{t('customReports:customReports') || 'Custom Reports'}</h2>
-                  <p className="text-sm text-slate-600">{t('customReports:helpDragFields') || 'Create and manage custom reports with advanced filtering and formatting options'}</p>
+                  <h2 className="text-lg font-semibold text-slate-900">{t('customReports:customReports')}</h2>
+                  <p className="text-sm text-slate-600">{t('customReports:helpDragFields')}</p>
                 </div>
               </div>
-              <div className="flex flex-col gap-3 sm:flex-row">
+
+              {/* Reports Menu Grid */}
+              <div className="grid gap-4 sm:grid-cols-3">
+                {/* View All Reports */}
                 <Link
                   to="/operations/reports"
-                  className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                 >
-                  {t('customReports:viewAll') || 'View All Reports'}
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">📋</div>
+                    <h3 className="font-semibold text-slate-900">{t('customReports:viewAll')}</h3>
+                  </div>
+                  <p className="text-xs text-slate-600">{t('customReports:myReports')}</p>
                 </Link>
+
+                {/* Create New Report */}
                 <Link
                   to="/operations/reports/builder"
-                  className="inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                 >
-                  {t('customReports:createNew') || 'Create New Report'}
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">✏️</div>
+                    <h3 className="font-semibold text-slate-900">{t('customReports:createNew')}</h3>
+                  </div>
+                  <p className="text-xs text-slate-600">{t('customReports:reportBuilder')}</p>
                 </Link>
+
+                {/* Browse Templates */}
                 <Link
                   to="/operations/reports/templates"
-                  className="inline-flex items-center justify-center rounded-lg border border-indigo-200 bg-white px-4 py-2 text-sm font-semibold text-indigo-600 shadow-sm transition hover:bg-indigo-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                 >
-                  {t('customReports:templates') || 'Browse Templates'}
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">📚</div>
+                    <h3 className="font-semibold text-slate-900">{t('customReports:templates')}</h3>
+                  </div>
+                  <p className="text-xs text-slate-600">{t('customReports:standardTemplates')}</p>
                 </Link>
+              </div>
+
+              {/* Report Types Submenu */}
+              <div className="mt-8 border-t border-slate-200 pt-6">
+                <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('customReports:entityType')}</h3>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                    <div className="text-lg font-bold text-indigo-600">👥</div>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_students')}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                    <div className="text-lg font-bold text-indigo-600">📚</div>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_courses')}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                    <div className="text-lg font-bold text-indigo-600">⭐</div>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_grades')}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                    <div className="text-lg font-bold text-indigo-600">✅</div>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_attendance')}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                    <div className="text-lg font-bold text-indigo-600">📊</div>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:entity_enrollments')}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Output Formats Submenu */}
+              <div className="mt-8 border-t border-slate-200 pt-6">
+                <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('customReports:outputFormat')}</h3>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
+                    <p className="text-lg font-bold text-indigo-600">📄</p>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:format_pdf')}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
+                    <p className="text-lg font-bold text-indigo-600">📊</p>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:format_excel')}</p>
+                  </div>
+                  <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
+                    <p className="text-lg font-bold text-indigo-600">📋</p>
+                    <p className="text-xs font-medium text-slate-700">{t('customReports:format_csv')}</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
