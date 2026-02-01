@@ -290,18 +290,21 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
                 // Safe date parsing
                 const createdDate = generated.created_at ? new Date(generated.created_at) : null;
                 const isValidDate = createdDate && !isNaN(createdDate.getTime());
-                
+
                 return (
                   <div key={generated.id} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
-                    <div className="text-xs">
+                    <div className="text-xs flex-1">
                       <p className="font-medium text-gray-900">
-                        {isValidDate 
+                        {isValidDate
                           ? `Generated ${formatDistanceToNow(createdDate, { addSuffix: true })}`
                           : 'Generated (date unknown)'}
                       </p>
                       <p className="text-gray-600">
                         Status: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>
                       </p>
+                      {generated.error_message && (
+                        <p className="text-red-600 font-semibold">Error: {generated.error_message}</p>
+                      )}
                       {generated.file_path && (
                         <p className="text-gray-500">{generated.file_path.split('/').pop()}</p>
                       )}
