@@ -190,13 +190,30 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     }
 
     try {
+      // Transform frontend config to backend schema format
+      const backendConfig = {
+        name: config.name,
+        description: config.description,
+        report_type: config.entity_type, // Map entity_type to report_type
+        fields: config.selected_fields.reduce((acc, field) => {
+          acc[field] = true; // Convert array to dict format
+          return acc;
+        }, {} as Record<string, boolean>),
+        filters: config.filters.length > 0 ? config.filters : undefined,
+        aggregations: undefined, // No aggregations in frontend UI yet
+        sort_by: config.sorting_rules.length > 0 ? config.sorting_rules : undefined,
+        export_format: config.output_format,
+        include_charts: true, // Default value
+        schedule_enabled: false, // Default value
+      };
+
       if (reportId) {
         await updateMutation.mutateAsync({
           id: reportId,
-          updates: config,
+          updates: backendConfig,
         });
       } else {
-        const result = await createMutation.mutateAsync(config);
+        const result = await createMutation.mutateAsync(backendConfig);
         onSuccess?.(result.id);
       }
     } catch (error) {
