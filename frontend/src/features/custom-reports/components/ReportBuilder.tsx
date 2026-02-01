@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Save, X, ChevronDown } from 'lucide-react';
+import { Save, X, ChevronDown } from 'lucide-react';
 import { useCreateReport, useUpdateReport } from '@/hooks/useCustomReports';
 import FieldSelector from './FieldSelector';
 import FilterBuilder from './FilterBuilder';

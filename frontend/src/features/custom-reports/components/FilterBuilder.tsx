@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, X, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 interface Filter {
   field: string;
