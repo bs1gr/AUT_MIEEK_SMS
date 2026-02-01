@@ -29,11 +29,10 @@ interface ReportConfig {
 }
 
 const ENTITY_TYPES = [
-  { value: 'students', label: 'entity_students' },
-  { value: 'courses', label: 'entity_courses' },
-  { value: 'grades', label: 'entity_grades' },
+  { value: 'student', label: 'entity_students' },
+  { value: 'course', label: 'entity_courses' },
+  { value: 'grade', label: 'entity_grades' },
   { value: 'attendance', label: 'entity_attendance' },
-  { value: 'enrollments', label: 'entity_enrollments' },
 ];
 
 const OUTPUT_FORMATS = [
@@ -43,25 +42,21 @@ const OUTPUT_FORMATS = [
 ];
 
 const ENTITY_FIELDS: Record<string, string[]> = {
-  students: [
+  student: [
     'id', 'first_name', 'last_name', 'email', 'phone',
     'enrollment_date', 'is_active', 'school_id'
   ],
-  courses: [
+  course: [
     'id', 'course_code', 'name', 'description', 'credits',
     'semester', 'instructor', 'capacity'
   ],
-  grades: [
+  grade: [
     'id', 'student_id', 'course_id', 'grade', 'points',
     'date_assigned', 'notes'
   ],
   attendance: [
     'id', 'student_id', 'course_id', 'date', 'status',
     'notes'
-  ],
-  enrollments: [
-    'id', 'student_id', 'course_id', 'enrollment_date',
-    'status', 'grade'
   ],
 };
 
@@ -96,7 +91,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       initialData || {
         name: '',
         description: '',
-        entity_type: 'students',
+        entity_type: 'student',
         output_format: 'pdf',
         selected_fields: [],
         filters: [],
