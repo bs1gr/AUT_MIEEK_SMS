@@ -193,7 +193,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
     try {
       // Transform sorting_rules array to sort_by dict
-      const sortByDict = config.sorting_rules.length > 0 
+      const sortByDict = config.sorting_rules.length > 0
         ? config.sorting_rules.reduce((acc: Record<string, string>, rule: any) => {
             acc[rule.field] = rule.order || 'asc';
             return acc;
@@ -201,7 +201,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         : null;
 
       // Transform filters array to filters dict if needed
-      const filtersDict = config.filters.length > 0 
+      const filtersDict = config.filters.length > 0
         ? config.filters.reduce((acc: Record<string, any>, filter: any) => {
             acc[filter.field] = {
               operator: filter.operator,
