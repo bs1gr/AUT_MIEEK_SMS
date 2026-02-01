@@ -210,7 +210,7 @@ export const customReportsAPI = {
    */
   delete: async (id: number) => {
     try {
-      const response = await apiClient.delete(`/custom-reports/reports/${id}`);
+      const response = await apiClient.delete(`/custom-reports/${id}`);
       return extractAPIResponseData(response);
     } catch (error) {
       console.error(`[customReportsAPI] Error deleting report ${id}:`, error);
@@ -225,8 +225,8 @@ export const customReportsAPI = {
    */
   generate: async (id: number) => {
     try {
-      const response = await apiClient.post(`/custom-reports/reports/${id}/generate`);
-      return extractAPIResponseData(response) as { job_id: status: string };
+      const response = await apiClient.post(`/custom-reports/${id}/generate`);
+      return extractAPIResponseData(response) as { job_id: string; status: string };
     } catch (error) {
       console.error(`[customReportsAPI] Error generating report ${id}:`, error);
       throw extractAPIError(
