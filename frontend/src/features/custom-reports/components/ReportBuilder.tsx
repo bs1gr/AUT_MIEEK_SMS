@@ -202,6 +202,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         export_format: config.output_format,
         include_charts: true,
         schedule_enabled: false,
+        schedule_frequency: null,
+        schedule_cron: null,
+        email_recipients: null,
+        email_enabled: false,
       };
 
       // Only add optional fields if they have values
