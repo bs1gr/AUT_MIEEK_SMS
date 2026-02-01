@@ -42,14 +42,14 @@ describe('AdvancedFilters Component', () => {
   it('should render filter button', () => {
     render(<AdvancedFilters />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     expect(button).toBeInTheDocument();
   });
 
   it('should expand filter panel when button is clicked', () => {
     render(<AdvancedFilters />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     expect(screen.getByText(/search.noFiltersApplied/i)).toBeInTheDocument();
@@ -93,7 +93,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const fieldSelect = screen.getAllByRole('combobox')[0];
@@ -117,7 +117,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const addButton = screen.getByRole('button', { name: /search.addFilter/i });
@@ -144,7 +144,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const deleteButtons = screen.getAllByRole('button');
@@ -172,7 +172,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const selects = screen.getAllByRole('combobox');
@@ -201,7 +201,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters onApply={mockOnApply} />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const applyButton = screen.getByRole('button', { name: /search.applyFilters/i });
@@ -230,7 +230,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters onReset={mockOnReset} />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const resetButton = screen.getByRole('button', { name: /search.resetFilters/i });
@@ -255,7 +255,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters searchType="courses" />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const addButton = screen.getByRole('button', { name: /search.addFilter/i });
@@ -283,7 +283,7 @@ describe('AdvancedFilters Component', () => {
 
     render(<AdvancedFilters />, { wrapper });
 
-    const button = screen.getByRole('button', { name: /search.advancedFilters/i });
+    const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
     const inputs = screen.getAllByRole('textbox');

@@ -80,6 +80,7 @@ export default {
   info: 'Info',
   reset: 'Reset',
   home: 'Home',
+  results: 'results',
   // Authentication Basics
   email: 'Email',
   password: 'Password',

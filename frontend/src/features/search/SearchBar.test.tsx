@@ -51,14 +51,14 @@ describe('SearchBar Component', () => {
   it('should render search input', () => {
     render(<SearchBar />, { wrapper });
 
-    const input = screen.getByRole('textbox', { name: /common.search/i });
+    const input = screen.getByRole('textbox', { name: /search/i });
     expect(input).toBeInTheDocument();
   });
 
   it('should render search type selector on desktop', () => {
     render(<SearchBar />, { wrapper });
 
-    const selector = screen.getByRole('combobox', { name: /common.searchType/i });
+    const selector = screen.getByRole('combobox', { name: /searchType/i });
     expect(selector).toBeInTheDocument();
   });
 
@@ -143,7 +143,7 @@ describe('SearchBar Component', () => {
     fireEvent.focus(input);
 
     await waitFor(() => {
-      expect(screen.getByText('common.results')).toBeInTheDocument();
+      expect(screen.getByText('results')).toBeInTheDocument();
     });
   });
 
@@ -174,7 +174,7 @@ describe('SearchBar Component', () => {
 
     rerender(<SearchBar />);
 
-    const clearButton = screen.getByRole('button', { name: /common.clear/i });
+    const clearButton = screen.getByRole('button', { name: /clear/i });
     expect(clearButton).toBeInTheDocument();
   });
 

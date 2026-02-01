@@ -106,10 +106,10 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
       {/* Header */}
       <div className="mb-4">
         <h2 className="text-xl font-semibold text-gray-900 mb-2">
-          {t('title', { ns: 'saved' })}
+          {t('saved.title', { ns: 'search' })}
         </h2>
         <p className="text-sm text-gray-600">
-          {t('description', { ns: 'saved' })}
+          {t('saved.description', { ns: 'search' })}
         </p>
       </div>
 
@@ -120,7 +120,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as 'all' | 'students' | 'courses' | 'grades')}
           className="px-3 py-2 text-sm border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-          aria-label={t('filterByType', { ns: 'saved' })}
+          aria-label={t('saved.filterByType', { ns: 'search' })}
         >
           <option value="all">{t('all', { ns: 'common' })}</option>
           <option value="students">{t('title', { ns: 'students' })}</option>
@@ -138,7 +138,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
           }`}
         >
           <HeartIcon size={16} className={showFavoritesOnly ? 'fill-current' : ''} />
-          <span>{t('favoritesOnly', { ns: 'saved' })}</span>
+          <span>{t('saved.favoritesOnly', { ns: 'search' })}</span>
         </button>
       </div>
 
@@ -221,7 +221,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                         ? 'text-red-500 bg-red-50 hover:bg-red-100'
                         : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
                     }`}
-                    aria-label={t('toggleFavorite', { ns: 'saved' })}
+                    aria-label={t('saved.toggleFavorite', { ns: 'search' })}
                   >
                     <HeartIcon
                       size={18}
@@ -233,7 +233,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
                   <button
                     onClick={() => handleLoadSearch(search)}
                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                    aria-label={t('loadSearch', { ns: 'saved' })}
+                    aria-label={t('saved.loadSearch', { ns: 'search' })}
                   >
                     <Search size={18} />
                   </button>
