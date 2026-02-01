@@ -33,7 +33,7 @@ export default {
   searchTab: 'Αναζήτηση',
   utilsTab: 'Εργαλεία',
   operations: 'Λειτουργίες',
-  reports: 'Αναφορές',
+  reportsTab: 'Αναφορές',
   maintenance: 'Συντήρηση',
   export: 'Εξαγωγή',
   help: 'Βοήθεια',

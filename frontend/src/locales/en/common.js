@@ -33,7 +33,7 @@ export default {
   searchTab: 'Search',
   utilsTab: 'Utils',
   operations: 'Operations',
-  reports: 'Reports',
+  reportsTab: 'Reports',
   maintenance: 'Maintenance',
    export: 'Export',
    help: 'Help',
