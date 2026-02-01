@@ -1,7 +1,7 @@
 # RBAC Guide (Roles & Permissions)
 
 Last Updated: 2025-12-28
-Version: 1.17.5
+Version: 1.17.6
 
 This guide explains how roles and fine‑grained permissions work in the Student Management System, how defaults are seeded, and how to manage RBAC via the admin API.
 
@@ -121,3 +121,4 @@ Get summary:
 - `backend/security/permissions.py` — permission helpers and resolution logic
 - `backend/routers/routers_rbac.py` — admin RBAC endpoints
 - `backend/run_migrations.py` — programmatic Alembic runner
+

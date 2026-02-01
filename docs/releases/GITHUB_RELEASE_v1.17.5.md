@@ -1,8 +1,8 @@
-# GitHub Release Draft - v1.17.5
+# GitHub Release Draft - $11.17.6
 
 **Title**: Version 1.17.5 - MIEEK Dark Theme Refinements
 
-**Tag**: v1.17.5
+**Tag**: $11.17.6
 
 **Release Description**:
 
@@ -65,10 +65,11 @@ This release focuses on improving the visibility and usability of the MIEEK Dark
 
 ### 📚 Documentation
 
-- 📖 Full Release Notes: [RELEASE_NOTES_v1.17.5.md](docs/releases/RELEASE_NOTES_v1.17.5.md)
+- 📖 Full Release Notes: [RELEASE_NOTES_$11.17.6.md](docs/releases/RELEASE_NOTES_$11.17.6.md)
 - 📋 CHANGELOG: [CHANGELOG.md](CHANGELOG.md)
 - 📝 Work Plan: [docs/plans/UNIFIED_WORK_PLAN.md](docs/plans/UNIFIED_WORK_PLAN.md)
 
 ---
 
 **Status**: ✅ Production Ready | **Release Date**: January 29, 2026 | **Tested On**: Windows 10/11, Python 3.13.9, Node 20.x
+

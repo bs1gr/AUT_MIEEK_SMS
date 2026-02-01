@@ -1,5 +1,5 @@
 # Production User Training Program
-## SMS v1.17.6 - Phase 5 Go-Live Training
+## SMS $11.17.6 - Phase 5 Go-Live Training
 
 **Document Version**: 1.0
 **Training Date**: TBD (Target: Early February 2026)
@@ -359,3 +359,4 @@ By the end of this training, users will be able to:
 **Status**: ✅ Ready for delivery
 **Last Updated**: January 30, 2026
 **Next Review**: February 5, 2026 (post-training)
+

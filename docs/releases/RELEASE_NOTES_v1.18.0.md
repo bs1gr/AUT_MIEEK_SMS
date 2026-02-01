@@ -1,7 +1,7 @@
-# Release Notes v1.18.0 - PWA & Mobile Experience
+# Release Notes $11.17.6 - PWA & Mobile Experience
 
 **Date:** January 22, 2026
-**Version:** v1.18.0
+**Version:** $11.17.6
 **Focus:** Progressive Web App (PWA), Offline Support, Mobile UX
 
 ## 🚀 Key Highlights
@@ -48,3 +48,4 @@ This release transforms the Student Management System into a fully installable P
 ---
 **Contributors:** Development Team
 **Signed-off by:** QA Lead
+

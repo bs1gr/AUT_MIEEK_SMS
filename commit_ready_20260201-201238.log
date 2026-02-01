@@ -1,0 +1,189 @@
+**********************
+PowerShell transcript start
+Start time: 20260201201238
+Username: REC\Vasilis
+RunAs User: REC\Vasilis
+Configuration Name: 
+Machine: REC (Microsoft Windows NT 10.0.26300.0)
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+Process ID: 16724
+PSVersion: 7.5.4
+PSEdition: Core
+GitCommitId: 7.5.4
+OS: Microsoft Windows 10.0.26300
+Platform: Win32NT
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1, 6.0, 7.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+WSManStackVersion: 3.0
+**********************
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.6
+--------------------------------------------------------------
+
+Mode: standard
+Started: 2026-02-01 20:12:38
+Log file: D:\SMS\student-management-system\commit_ready_20260201-201238.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+✅ Synchronized version in CHANGELOG.md
+✅ Synchronized version in ACTION_SUMMARY_JAN31.md
+✅ Synchronized version in GREEK_LOCALIZATION_STRATEGY.md
+✅ Synchronized version in PHASE4_ISSUE147_PREPARATION_GUIDE.md
+✅ Synchronized version in PHASE4_PR150_REVIEW_SUMMARY.md
+✅ Synchronized version in PHASE4_STEP7-9_IMPLEMENTATION_GUIDE.md
+✅ Synchronized version in SESSION_JAN25_PHASE4_PR150_STATUS.md
+✅ Synchronized version in PHASE5_BASELINE_METRICS_FEB1_2026.md
+✅ Synchronized version in PHASE5_DAY2_COMPLETION.md
+✅ Synchronized version in PHASE5_DEPLOYMENT_STATUS_FEB1_2026.md
+✅ Synchronized version in PHASE5_GO_LIVE_COMPLETE_FEB1_2026.md
+✅ Synchronized version in PHASE5_GOLIVE_SUMMARY_JAN31.md
+✅ Synchronized version in PHASE5_MONITORING_COMPLETE_FEB1_2026.md
+✅ Synchronized version in PHASE5_PRODUCTION_DEPLOYMENT_COMPLETE.md
+✅ Synchronized version in PHASE5_PRODUCTION_VALIDATION_FEB1_2026.md
+✅ Synchronized version in PHASE5_WEEK1_COMPLETE_FEB1_2026.md
+✅ Synchronized version in PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.17.6.md
+✅ Synchronized version in PRODUCTION_GO_LIVE_CHECKLIST.md
+✅ Synchronized version in PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md
+✅ Synchronized version in PRODUCTION_MONITORING_CHECKLIST.md
+✅ Synchronized version in TROUBLESHOOTING_GUIDE.md
+✅ Synchronized version in GOLIVE_QUICK_REFERENCE.md
+✅ Synchronized version in PHASE5_COMPLETION_OVERVIEW.md
+✅ Synchronized version in PHASE5_DOCUMENT_INDEX.md
+✅ Synchronized version in PHASE5_READY_FOR_GOLIVE_CHECKLIST.md
+✅ Synchronized version in DEPLOYMENT_REPORT_v1.12.8.md
+✅ Synchronized version in EXPORT_ENHANCEMENTS_COMPLETION_SUMMARY.md
+✅ Synchronized version in PHASE4_CONTINUATION_GUIDE.md
+✅ Synchronized version in SESSION_CONTINUATION_SUMMARY_JAN25_EVENING.md
+✅ Synchronized version in ANALYSIS_DOCUMENTATION_INDEX_JAN23.md
+✅ Synchronized version in CI_CD_FINAL_ASSESSMENT_JAN20.md
+✅ Synchronized version in COMPREHENSIVE_ANALYSIS_JAN23.md
+✅ Synchronized version in CRITICAL_FIX_PLAN_JAN23.md
+✅ Synchronized version in IMPLEMENTATION_CHECKLIST_JAN23.md
+✅ Synchronized version in MERGE_DECISION_PR150.md
+✅ Synchronized version in MERGE_PREPARATION_ISSUE147.md
+✅ Synchronized version in GRAFANA_DASHBOARDS_SETUP.md
+✅ Synchronized version in PRODUCTION_ANALYSIS_OPTIMIZATION_REPORT.md
+✅ Synchronized version in PRODUCTION_DATA_MIGRATION_GUIDE.md
+✅ Synchronized version in PRODUCTION_OPERATIONS_RUNBOOK.md
+✅ Synchronized version in PHASE6_ADMIN_DASHBOARD_PROPOSAL.md
+✅ Synchronized version in PHASE6_FEATURE_SELECTION.md
+✅ Synchronized version in PHASE6_OPTIONS_ANALYSIS.md
+✅ Synchronized version in PHASE6_REPORTING_IMPLEMENTATION_PLAN.md
+✅ Synchronized version in UNIFIED_WORK_PLAN_ARCHIVE_PHASE4_PHASE5.md
+✅ Synchronized version in UNIFIED_WORK_PLAN.md
+✅ Synchronized version in COMPLETE_RELEASE_DEPLOYMENT_REPORT_JAN29_2026.md
+✅ Synchronized version in DEPLOYMENT_CHECKLIST_v1.17.3.md
+✅ Synchronized version in DEPLOYMENT_CHECKLIST_v1.17.5.md
+✅ Synchronized version in DEPLOYMENT_CHECKLIST_v1.18.0.md
+✅ Synchronized version in GITHUB_RELEASE_v1.17.4.md
+✅ Synchronized version in GITHUB_RELEASE_v1.17.5.md
+✅ Synchronized version in PERFORMANCE_BENCHMARK_RESULTS_v1.17.3.md
+✅ Synchronized version in PERFORMANCE_BENCHMARK_RESULTS_v1.18.0.md
+✅ Synchronized version in RELEASE_MANIFEST_v1.17.3.md
+✅ Synchronized version in RELEASE_MANIFEST_v1.18.0.md
+✅ Synchronized version in RELEASE_NOTES_v1.17.3.md
+✅ Synchronized version in RELEASE_NOTES_v1.17.4.md
+✅ Synchronized version in RELEASE_NOTES_v1.17.5.md
+✅ Synchronized version in RELEASE_NOTES_v1.17.6.md
+✅ Synchronized version in RELEASE_NOTES_v1.18.0.md
+✅ Synchronized version in RELEASE_PREPARATION_v1.17.6.md
+✅ Synchronized version in RELEASE_SUMMARY_v1.17.5.md
+✅ Synchronized version in v1.17.6_DEPLOYMENT_VERIFIED.md
+✅ Synchronized version in v1.17.6_RELEASE_SUMMARY.md
+✅ Synchronized version in RELEASE_v1.12.8_COMPLETE.md
+✅ Synchronized version in ANALYSIS_COMPLETION_SUMMARY_JAN23.md
+✅ Synchronized version in PR150_MERGE_COMPLETE_SUMMARY.md
+✅ Synchronized version in RELEASE_v1.15.0_SUMMARY.md
+✅ Synchronized version in ROOT_CAUSE_ANALYSIS_REPORT_JAN23.md
+✅ Synchronized version in SECURITY_AUDIT_FIX_PLAN_JAN31.md
+✅ Synchronized version in SECURITY_CI_CD_REVIEW_SUMMARY_JAN31.md
+✅ Synchronized version in SECURITY_FIXES_JAN29_2026.md
+✅ Synchronized version in PRODUCTION_TESTING_COMPREHENSIVE_GUIDE.md
+✅ Synchronized version in ADMIN_TRAINING_SLIDES.md
+✅ Synchronized version in EMAIL_TEMPLATES.md
+✅ Synchronized version in PRE_READING_MATERIALS.md
+✅ Synchronized version in PRODUCTION_USER_TRAINING_PROGRAM_EL.md
+✅ Synchronized version in PRODUCTION_USER_TRAINING_PROGRAM.md
+✅ Synchronized version in STUDENT_TRAINING_SLIDES.md
+✅ Synchronized version in TEACHER_TRAINING_SLIDES.md
+✅ Synchronized version in TRAINING_CREDENTIALS.md
+✅ Synchronized version in TRAINING_DELIVERY_CHECKLIST.md
+✅ Synchronized version in RBAC_GUIDE.md
+✅ Documentation and script version references synchronized
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+ℹ️  Using version from VERSION file: 1.17.6
+ℹ️  Target version: 1.17.6
+ℹ️  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+✅ VERSION file: 1.17.6 (correct)
+✅ Backend main.py docstring: 1.17.6 (correct)
+✅ Frontend package.json: 1.17.6 (correct)
+✅ User guide version: 1.17.6 (correct)
+✅ Developer guide version: 1.17.6 (correct)
+✅ Documentation index version: 1.17.6 (correct)
+✅ COMMIT_READY.ps1 version: 1.17.6 (correct)
+✅ INSTALLER_BUILDER.ps1 version: 1.17.6 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+✅ Version verification completed successfully!
+✅ All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ Version format valid: 1.17.6
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+ℹ️  Installing runtime requirements (pip) from requirements.txt
+ℹ️  Installing dev requirements (pip)
+✅ Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+✅ conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running pre-commit hooks on staged files...
+PS>TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+**********************
+PowerShell transcript end
+End time: 20260201201254
+**********************

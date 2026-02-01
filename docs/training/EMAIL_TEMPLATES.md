@@ -1,5 +1,5 @@
 # Training Invitation Email Templates
-## SMS v1.17.6 - Phase 5 Training
+## SMS $11.17.6 - Phase 5 Training
 ## For Training Coordinators
 
 **Purpose**: Email templates for inviting participants to training sessions
@@ -484,3 +484,4 @@ All templates should be translated to Greek (Ελληνικά) for bilingual sup
 **Document Version**: 1.0
 **Last Updated**: January 30, 2026
 **Training Coordinator**: SMS Implementation Team
+

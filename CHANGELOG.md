@@ -11,7 +11,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.5] - 2026-01-29
 
 ### ⚠️ BREAKING CHANGES
-- None - fully backward compatible with v1.17.4
+- None - fully backward compatible with $11.17.6
 
 ### Features
 - **theme**: MIEEK Dark theme visual refinements with improved input contrast
@@ -25,7 +25,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.4] - 2026-01-26
 
 ### ⚠️ BREAKING CHANGES
-- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release($11.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 ### Features
 - **search-results**: Add SearchResults component with entity-specific cards and tests
@@ -67,7 +67,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Return 403 for authorization failures; improve auth patching in tests
 - SavedSearch endpoints - enforce auth with optional_require_role('*')
 - CI/CD environment variables and E2E test blocking (Jan 24, 2026)
-- Correct version format from \.18.0 to v1.18.0 across documentation (Policy 2 compliance)
+- Correct version format from \.18.0 to $11.17.6 across documentation (Policy 2 compliance)
 - Remove redundant Base import redefinition in conftest.py
 - Add resilience to conftest teardown and explicit schema dependency
 - **frontend**: TypeScript Part 2 - fix remaining 15 errors
@@ -107,7 +107,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - silence MyPy Column assignment noise in import/export service
 - Comprehensive MyPy type error resolution in import_export_service
 - Resolve MyPy type errors in search and import/export services
-- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.2)
+- Raise markdown lint threshold to 8100 (temporary workaround for $11.17.6)
 - Update documentation versions to 1.17.2 (CI version consistency check)
 - Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
 - Resolve remaining ESLint violations (unused vars, types, quote escaping)
@@ -125,7 +125,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Correct version format validator path and PowerShell substitution bugs
 - Resolve all MyPy type errors (28 errors fixed)
 - Resolve linting errors (5 errors total)
-- Update all version references to v1.17.1 (9 files + package-lock.json)
+- Update all version references to $11.17.6 (9 files + package-lock.json)
 - Add missing RBAC schema exports; test audit documentation
 
 ### Security
@@ -156,7 +156,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - CI/CD setup automation & complete implementation guides
 - Update work plan with CI/CD fixes completion (Jan 24, 2026)
 - Update UNIFIED_WORK_PLAN.md with all 4 pending tasks completion status
-- release notes and changelog for v1.17.3
+- release notes and changelog for $11.17.6
 - Update UNIFIED_WORK_PLAN with BATCH 4-6 completion
 - update work plan with Jan 22 CI verification
 - Fix markdown lint errors and streamline work plan >> >> - Fix README.md line length (reference-style link) >> - Fix frontend/README.md line length (split description) >> - Streamline UNIFIED_WORK_PLAN.md (3309 έΗΤ 153 lines, 95% reduction) >> - Archive historical records to UNIFIED_WORK_PLAN_ARCHIVE_JAN21.md >> - All markdown files pass markdownlint-cli2
@@ -183,19 +183,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Update work plan with frontend lint parsing error fixes (Jan 18)
 - Add Phase 6 final status report with completion verification
 - Add Phase 6 completion summary with infrastructure fixes and performance baseline
-- Fix version confusion - v1.18.0 is STABLE (not REMEDIATION)
+- Fix version confusion - $11.17.6 is STABLE (not REMEDIATION)
 - add user guide and mark feature #127 complete
 - Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
 - Add production validation documentation and test utilities
 - Terminal encoding fix - cleared corrupted PSReadLine history
-- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.1 released
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - $11.17.6 released
 - Update Phase 3 planning and release documentation
 - Add audit session summary with key findings and status
 - Document lesson learned implementation - verification before claims
 - Add critical lesson - verify test results before claiming success (Jan 12 incident)
 - Add comprehensive audit report and root cause analysis
 - Add action summary for CI fix and release complete
-- Add complete summary - CI fix and v1.18.0 release
+- Add complete summary - CI fix and $11.17.6 release
 
 ### Tests
 - **searchbar**: Fix all 20 SearchBar component tests - async, fireEvent, timeout improvements
@@ -218,7 +218,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **tests**: add RUN_FRONTEND_TESTS_SUMMARY.ps1 to capture vitest output and write summary to test-results/frontend
 - **archive**: move displaced site.webmanifest to archive/displaced-files-jan2026 with README for traceability
 - Archive 39 obsolete/deprecated scripts and test files
-- update README to reflect v1.18.0 release and fix auth header attachment
+- update README to reflect $11.17.6 release and fix auth header attachment
 - **release**: bump version to 1.17.3 and update docs
 - BATCH 3 - Database migration for SavedSearch table
 - improve .gitignore with import/export artifact patterns
@@ -256,7 +256,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.3] - 2026-01-22
 
 ### ⚠️ BREAKING CHANGES
-- release(v1.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release($11.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 ### Features
 - BATCH 6 - Frontend SavedSearches Component
@@ -2796,3 +2796,4 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
+

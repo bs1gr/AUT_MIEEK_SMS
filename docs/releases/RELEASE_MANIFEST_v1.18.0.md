@@ -1,4 +1,4 @@
-# Release Manifest v1.18.0
+# Release Manifest $11.17.6
 
 **Version:** 1.17.3
 **Date:** January 22, 2026
@@ -18,3 +18,4 @@
 ## Verification Hashes
 
 (To be populated after build)
+

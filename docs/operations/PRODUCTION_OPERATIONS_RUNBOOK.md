@@ -2,7 +2,7 @@
 
 **Version**: 1.0
 **Last Updated**: February 1, 2026
-**System Version**: v1.17.6
+**System Version**: $11.17.6
 **Status**: Production Live
 
 ---
@@ -413,3 +413,4 @@ ORDER BY query_start;
 **Review Schedule**: Quarterly (next review: May 1, 2026)
 **Version History**:
 - v1.0 (Feb 1, 2026): Initial production runbook
+
