@@ -65,12 +65,12 @@ $logLocked = $false
 # Function to write to both console and log file
 function Write-Log {
     param($msg, [ConsoleColor]$Color = [Console]::ForegroundColor, [switch]$NoNewline)
-    
+
     Write-Host $msg -ForegroundColor $Color -NoNewline:$NoNewline
-    
+
     # Also write to log file (strip color codes)
     $plainMsg = $msg -replace '\e\[[0-9;]*m', ''
-    
+
     try {
         Add-Content -Path $logPath -Value $plainMsg -NoNewline:$NoNewline -ErrorAction SilentlyContinue
     } catch {
@@ -85,8 +85,8 @@ function Write-Warning { param($msg) Write-Log "⚠ $msg" Yellow; Write-Log "`n"
 function Write-ErrorMsg { param($msg) Write-Log "✗ $msg" Red; Write-Log "`n" Red }
 
 # Legacy error function wrapper
-function Write-Error { 
-    param($msg) 
+function Write-Error {
+    param($msg)
     Write-ErrorMsg $msg
 }
 
@@ -256,9 +256,8 @@ foreach ($batch in $batches) {
         $skipped = [int]$matches[1]
     }
 
-    # Display output (both console and log)
+    # Display output (Write-Log handles both console and file)
     Write-Log $outputStr White
-    Write-Host $outputStr
 
     # Batch result
     if ($exitCode -eq 0) {
