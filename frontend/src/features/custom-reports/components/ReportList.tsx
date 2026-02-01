@@ -9,11 +9,13 @@ import { useCustomReports, useDeleteReport, useGenerateReport } from '@/hooks/us
 import { formatDistanceToNow } from 'date-fns';
 
 interface ReportListProps {
+  onCreateReport?: () => void;
   onEditReport?: (reportId: number) => void;
   onViewReport?: (reportId: number) => void;
 }
 
 export const ReportList: React.FC<ReportListProps> = ({
+  onCreateReport,
   onEditReport,
   // onViewReport is reserved for future use when viewing generated reports
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -46,7 +48,11 @@ export const ReportList: React.FC<ReportListProps> = ({
     return (
       <div className="bg-gray-50 rounded-lg border-2 border-dashed p-12 text-center">
         <p className="text-gray-600 mb-4">{t('customReports:emptyReports')}</p>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+        <button
+          type="button"
+          onClick={onCreateReport}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+        >
           {t('customReports:createFirstReport')}
         </button>
       </div>

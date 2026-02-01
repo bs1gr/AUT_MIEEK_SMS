@@ -26,7 +26,7 @@ export const ReportListPage: React.FC = () => {
             </p>
           </div>
           <button
-            onClick={() => navigate('/reports/builder')}
+            onClick={() => navigate('/operations/reports/builder')}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium"
           >
             <Plus size={20} />
@@ -38,10 +38,11 @@ export const ReportListPage: React.FC = () => {
       {/* Content */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <ReportList
-          onEditReport={(reportId) => navigate(`/reports/builder/${reportId}`)}
+          onCreateReport={() => navigate('/operations/reports/builder')}
+          onEditReport={(reportId) => navigate(`/operations/reports/builder/${reportId}`)}
           onViewReport={(reportId) => {
             // Navigate to generated reports view for this report
-            navigate(`/reports/${reportId}/generated`);
+            navigate(`/operations/reports/${reportId}/generated`);
           }}
         />
       </div>

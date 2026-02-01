@@ -3,9 +3,9 @@
  * Drag-and-drop field selection with filters and sorting
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save, X, ChevronDown } from 'lucide-react';
+import { Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCreateReport, useUpdateReport } from '@/hooks/useCustomReports';
 import FieldSelector from './FieldSelector';
 import FilterBuilder from './FilterBuilder';
@@ -75,17 +75,60 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   const createMutation = useCreateReport();
   const updateMutation = useUpdateReport();
 
-  const [config, setConfig] = useState<ReportConfig>(
-    initialData || {
-      name: '',
-      description: '',
-      entity_type: 'students',
-      output_format: 'pdf',
-      selected_fields: [],
-      filters: [],
-      sorting_rules: [],
+  // Generate a unique key for session storage based on reportId
+  const storageKey = `report-builder-${reportId || 'new'}`;
+
+  const [config, setConfig] = useState<ReportConfig>(() => {
+    // Try to restore from session storage first
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = sessionStorage.getItem(storageKey);
+        if (stored) {
+          return JSON.parse(stored);
+        }
+      } catch (e) {
+        console.error('Failed to restore report config from session storage:', e);
+      }
     }
-  );
+    
+    // Fall back to initialData or default
+    return (
+      initialData || {
+        name: '',
+        description: '',
+        entity_type: 'students',
+        output_format: 'pdf',
+        selected_fields: [],
+        filters: [],
+        sorting_rules: [],
+      }
+    );
+  });
+
+  // Persist config to session storage whenever it changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(config));
+      } catch (e) {
+        console.error('Failed to save report config to session storage:', e);
+      }
+    }
+  }, [config, storageKey]);
+
+  // Clear storage on unmount if success
+  useEffect(() => {
+    return () => {
+      // Only clear if we're not editing (i.e., it was a new report)
+      if (!reportId && typeof window !== 'undefined') {
+        try {
+          sessionStorage.removeItem(storageKey);
+        } catch (e) {
+          console.error('Failed to clear report config from session storage:', e);
+        }
+      }
+    };
+  }, [reportId, storageKey]);
 
   const [activeStep, setActiveStep] = useState<
     'config' | 'fields' | 'filters' | 'sorting' | 'preview'
@@ -167,15 +210,18 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <div className="flex items-center justify-between bg-white border-b p-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {reportId ? t('reportBuilder', { ns: 'customReports' }) : t('createNew', { ns: 'customReports' })}
-        </h1>
-        <button
-          onClick={onCancel}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-        >
-          <X size={24} />
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onCancel}
+            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+            title={t('back', { ns: 'common' })}
+          >
+            <ChevronUp size={24} className="rotate-90" />
+          </button>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {reportId ? t('reportBuilder', { ns: 'customReports' }) : t('createNew', { ns: 'customReports' })}
+          </h1>
+        </div>
       </div>
 
       {/* Stepper */}
