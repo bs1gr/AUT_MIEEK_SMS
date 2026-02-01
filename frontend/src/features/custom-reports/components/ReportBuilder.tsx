@@ -195,6 +195,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         name: config.name,
         description: config.description || null,
         report_type: config.entity_type,
+        template_id: null,
         fields: config.selected_fields.reduce((acc, field) => {
           acc[field] = true;
           return acc;
