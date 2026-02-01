@@ -10,8 +10,10 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, cast
 import logging
+import os
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from backend.dependencies import get_db
@@ -533,6 +535,64 @@ async def update_generated_report(
         return error_response(
             code="UPDATE_ERROR",
             message="Failed to update generated report",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
+        )
+
+
+@router.get(
+    "/{report_id}/generated/{generated_report_id}/download",
+    summary="Download generated report file",
+)
+async def download_generated_report(
+    request: Request,
+    report_id: int,
+    generated_report_id: int,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user),
+) -> FileResponse:
+    """Download a generated report file."""
+    try:
+        service = CustomReportService(db)
+        
+        # Verify the user has permission to download this report
+        report = service.get_report(report_id, current_user.id)
+        if not report:
+            return error_response(
+                code="NOT_FOUND",
+                message="Report not found",
+                request_id=request.state.request_id,
+            )
+        
+        # Get the generated report
+        generated = service.get_generated_report(report_id, generated_report_id, current_user.id)
+        if not generated:
+            return error_response(
+                code="NOT_FOUND",
+                message="Generated report not found",
+                request_id=request.state.request_id,
+            )
+        
+        # Check if file exists
+        if not generated.file_path or not os.path.exists(generated.file_path):
+            return error_response(
+                code="FILE_NOT_FOUND",
+                message="Report file no longer exists",
+                request_id=request.state.request_id,
+            )
+        
+        # Return the file
+        file_name = os.path.basename(generated.file_path)
+        return FileResponse(
+            path=generated.file_path,
+            filename=file_name,
+            media_type="application/octet-stream",
+        )
+    except Exception as e:
+        logger.error(f"Error downloading generated report {generated_report_id}: {str(e)}")
+        return error_response(
+            code="DOWNLOAD_ERROR",
+            message="Failed to download report",
             details={"error": str(e)},
             request_id=request.state.request_id,
         )
