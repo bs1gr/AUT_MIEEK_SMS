@@ -84,6 +84,12 @@ class CustomReportBase(BaseModel):
     export_format: str = Field("pdf", description="Export format (pdf, excel, csv)")
     include_charts: bool = Field(True, description="Include charts in export")
 
+    @field_validator("export_format")
+    @classmethod
+    def normalize_export_format(cls, v: str) -> str:
+        """Normalize export format to lowercase."""
+        return v.lower() if v else "pdf"
+
 
 class CustomReportCreate(CustomReportBase):
     """Schema for creating a new custom report."""
@@ -93,6 +99,12 @@ class CustomReportCreate(CustomReportBase):
     schedule_cron: Optional[str] = Field(None, description="Cron expression for custom schedules")
     email_recipients: Optional[List[str]] = Field(None, description="Email recipients for scheduled reports")
     email_enabled: bool = Field(False, description="Enable email delivery")
+
+    @field_validator("export_format")
+    @classmethod
+    def validate_export_format(cls, v: str) -> str:
+        """Normalize export format to lowercase."""
+        return v.lower() if v else "pdf"
 
     @field_validator("schedule_cron")
     @classmethod
@@ -137,6 +149,12 @@ class CustomReportUpdate(BaseModel):
     schedule_cron: Optional[str] = None
     email_recipients: Optional[List[str]] = None
     email_enabled: Optional[bool] = None
+
+    @field_validator("export_format")
+    @classmethod
+    def validate_export_format(cls, v: Optional[str]) -> Optional[str]:
+        """Normalize export format to lowercase."""
+        return v.lower() if v else None
 
 
 class CustomReportResponse(CustomReportBase):

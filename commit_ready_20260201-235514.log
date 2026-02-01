@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20260201210647
+Start time: 20260201235514
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name:
+Configuration Name: 
 Machine: REC (Microsoft Windows NT 10.0.26300.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File .\COMMIT_READY.ps1 -Quick
-Process ID: 8840
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -noexit -command try { . "c:\Users\Vasilis\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\workbench\contrib\terminal\common\scripts\shellIntegration.ps1" } catch {}
+Process ID: 34504
 PSVersion: 7.5.4
 PSEdition: Core
 GitCommitId: 7.5.4
@@ -23,8 +23,8 @@ WSManStackVersion: 3.0
 --------------------------------------------------------------
 
 Mode: quick
-Started: 2026-02-01 21:06:47
-Log file: D:\SMS\student-management-system\commit_ready_20260201-210647.log
+Started: 2026-02-01 23:55:14
+Log file: D:\SMS\student-management-system\commit_ready_20260201-235514.log
 
 
 ╔══════════════════════════════════════════════════════════════╗
@@ -114,8 +114,7 @@ Failed:             0
  Backend: MyPy Type Checking
 ─────────────────────────────────────────────────
 ℹ️  Running mypy...
-❌ Backend type checking failed
-backend\services\custom_report_service.py:134: error: Incompatible types in assignment (expression has type "datetime | None", variable has type "Column[DateTime]")  [assignment] backend\services\custom_report_service.py:135: error: Argument 1 to "compute_next_run_at" of "ReportScheduler" has incompatible type "Column[String]"; expected "str | None"  [arg-type] backend\services\custom_report_service.py:136: error: Argument 2 to "compute_next_run_at" of "ReportScheduler" has incompatible type "Column[String]"; expected "str | None"  [arg-type] backend\services\custom_report_service.py:180: error: Incompatible types in assignment (expression has type "datetime | None", variable has type "Column[DateTime]")  [assignment] backend\services\custom_report_service.py:181: error: Argument 1 to "compute_next_run_at" of "ReportScheduler" has incompatible type "Column[String]"; expected "str | None"  [arg-type] backend\services\custom_report_service.py:182: error: Argument 2 to "compute_next_run_at" of "ReportScheduler" has incompatible type "Column[String]"; expected "str | None"  [arg-type] backend\services\custom_report_service.py:183: error: Argument 3 to "compute_next_run_at" of "ReportScheduler" has incompatible type "Column[DateTime]"; expected "datetime | None"  [arg-type] backend\services\custom_report_service.py:187: error: Incompatible types in assignment (expression has type "None", variable has type "Column[DateTime]")  [assignment] backend\services\custom_report_service.py:188: error: Argument 1 to "cancel_report" of "ReportScheduler" has incompatible type "Column[Integer]"; expected "int"  [arg-type] Found 9 errors in 1 file (checked 175 source files)
+✅ Backend type checking passed
 
 ─────────────────────────────────────────────────
  Frontend: ESLint
@@ -159,7 +158,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ╔════════════════════════════════════════╗
 ║   Batch Test Runner (SMS v1.17.2)     ║
 ╚════════════════════════════════════════╝
-📝 Logging to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260201_210754.txt
+📝 Logging to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260201_235727.txt
 ℹ Scanning for test files...
 
 ✓ Found 93 test files
@@ -178,7 +177,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ....................................................................     [100%]
-✓ Batch 1 completed successfully in 11.7s
+✓ Batch 1 completed successfully in 12s
 
   Waiting 2 seconds before next batch...
 
@@ -193,7 +192,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 .........................................                                [100%]
-✓ Batch 2 completed successfully in 6.6s
+✓ Batch 2 completed successfully in 6.7s
 
   Waiting 2 seconds before next batch...
 
@@ -223,7 +222,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ...........................                                              [100%]
-✓ Batch 4 completed successfully in 10.9s
+✓ Batch 4 completed successfully in 10.7s
 
   Waiting 2 seconds before next batch...
 
@@ -253,7 +252,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ...................                                                      [100%]
-✓ Batch 6 completed successfully in 5.3s
+✓ Batch 6 completed successfully in 5s
 
   Waiting 2 seconds before next batch...
 
@@ -268,7 +267,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ............................................                             [100%]
-✓ Batch 7 completed successfully in 5.3s
+✓ Batch 7 completed successfully in 5.1s
 
   Waiting 2 seconds before next batch...
 
@@ -283,7 +282,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ..............................                                           [100%]
-✓ Batch 8 completed successfully in 6.6s
+✓ Batch 8 completed successfully in 6.2s
 
   Waiting 2 seconds before next batch...
 
@@ -298,7 +297,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ................................                                         [100%]
-✓ Batch 9 completed successfully in 6.8s
+✓ Batch 9 completed successfully in 6.4s
 
   Waiting 2 seconds before next batch...
 
@@ -313,7 +312,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ..............................                                           [100%]
-✓ Batch 10 completed successfully in 7.8s
+✓ Batch 10 completed successfully in 7.7s
 
   Waiting 2 seconds before next batch...
 
@@ -330,7 +329,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ...s...                                                                  [100%]
 =========================== short test summary info ===========================
 SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
-✓ Batch 11 completed successfully in 5s
+✓ Batch 11 completed successfully in 5.1s
 
   Waiting 2 seconds before next batch...
 
@@ -345,7 +344,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
 ℹ Running tests...
 
 ....................................................                     [100%]
-✓ Batch 12 completed successfully in 5.9s
+✓ Batch 12 completed successfully in 6s
 
   Waiting 2 seconds before next batch...
 
@@ -360,7 +359,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
 ℹ Running tests...
 
 ..............................                                           [100%]
-✓ Batch 13 completed successfully in 4.8s
+✓ Batch 13 completed successfully in 5.1s
 
   Waiting 2 seconds before next batch...
 
@@ -421,7 +420,7 @@ SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC ex
 SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
 SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
-✓ Batch 14 completed successfully in 6.3s
+✓ Batch 14 completed successfully in 6.7s
 
   Waiting 2 seconds before next batch...
 
@@ -436,7 +435,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
 ℹ Running tests...
 
 ..................................                                       [100%]
-✓ Batch 15 completed successfully in 9.2s
+✓ Batch 15 completed successfully in 9.6s
 
   Waiting 2 seconds before next batch...
 
@@ -451,7 +450,7 @@ SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC ex
 ℹ Running tests...
 
 .....................................                                    [100%]
-✓ Batch 16 completed successfully in 22.2s
+✓ Batch 16 completed successfully in 26.8s
 
   Waiting 2 seconds before next batch...
 
@@ -473,7 +472,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-✓ Batch 17 completed successfully in 6.6s
+✓ Batch 17 completed successfully in 8.3s
 
   Waiting 2 seconds before next batch...
 
@@ -488,7 +487,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
 ℹ Running tests...
 
 ...................................                                      [100%]
-✓ Batch 18 completed successfully in 5.6s
+✓ Batch 18 completed successfully in 6.2s
 
   Waiting 2 seconds before next batch...
 
@@ -505,7 +504,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
 SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
 SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
 SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
-✓ Batch 19 completed successfully in 2.3s
+✓ Batch 19 completed successfully in 2.8s
 
 
 ╔════════════════════════════════════════╗
@@ -517,13 +516,13 @@ Batches:
 
 Tests:
   Total:   0
-Duration: 140.2s
-📝 Full log saved to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260201_210754.txt
+Duration: 147.5s
+📝 Full log saved to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260201_235727.txt
 ✓ All tests passed! 🎉
 
 ✓ All tests passed! 🎉
 
-✓ Test log completed: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260201_210754.txt
+✓ Test log completed: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260201_235727.txt
 ✅ Backend tests passed
 
 ─────────────────────────────────────────────────
@@ -569,7 +568,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ─────────────────────────────────────────────────
  Legacy Artifacts Cleanup
 ─────────────────────────────────────────────────
-ℹ️  Total space freed: 3.96 MB
+ℹ️  Total space freed: 3.97 MB
 
 ╔══════════════════════════════════════════════════════════════╗
 ║  Phase 5: Documentation and Git Status                        ║
@@ -588,12 +587,14 @@ stderr | src/i18n/__tests__/translations.test.ts
  Git Status
 ─────────────────────────────────────────────────
 ℹ️  Uncommitted changes detected:
- M .test-failures  M CHANGELOG.md  M PHASE6_COMPLETION_REPORT.md  M backend/services/report_scheduler.py  M commit_ready_20260201-200208.log  M commit_ready_20260201-200921.log  M commit_ready_20260201-201238.log  M docs/ACTION_SUMMARY_JAN31.md  M docs/GREEK_LOCALIZATION_STRATEGY.md  M docs/PHASE4_ISSUE147_PREPARATION_GUIDE.md  M docs/PHASE4_PR150_REVIEW_SUMMARY.md  M docs/PHASE4_STEP7-9_IMPLEMENTATION_GUIDE.md  M docs/deployment/PHASE5_BASELINE_METRICS_FEB1_2026.md  M docs/deployment/PHASE5_DAY2_COMPLETION.md  M docs/deployment/PHASE5_PRODUCTION_DEPLOYMENT_COMPLETE.md  M docs/deployment/PHASE5_WEEK1_COMPLETE_FEB1_2026.md  M docs/deployment/PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.17.6.md  M docs/deployment/PRODUCTION_GO_LIVE_CHECKLIST.md  M docs/deployment/PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md  M docs/deployment/PRODUCTION_MONITORING_CHECKLIST.md  M docs/deployment/TROUBLESHOOTING_GUIDE.md  M docs/deployment/phase5/GOLIVE_QUICK_REFERENCE.md  M docs/deployment/phase5/PHASE5_COMPLETION_OVERVIEW.md  M docs/deployment/phase5/PHASE5_DOCUMENT_INDEX.md  M docs/deployment/phase5/PHASE5_READY_FOR_GOLIVE_CHECKLIST.md  M docs/deployment/reports/DEPLOYMENT_REPORT_v1.12.8.md  M docs/development/EXPORT_ENHANCEMENTS_COMPLETION_SUMMARY.md  M docs/development/PHASE4_CONTINUATION_GUIDE.md  M docs/misc/MERGE_PREPARATION_ISSUE147.md  M docs/monitoring/GRAFANA_DASHBOARDS_SETUP.md  M docs/operations/PRODUCTION_ANALYSIS_OPTIMIZATION_REPORT.md  M docs/operations/PRODUCTION_DATA_MIGRATION_GUIDE.md  M docs/operations/PRODUCTION_OPERATIONS_RUNBOOK.md  M docs/plans/PHASE6_ADMIN_DASHBOARD_PROPOSAL.md  M docs/plans/PHASE6_FEATURE_SELECTION.md  M docs/plans/PHASE6_OPTIONS_ANALYSIS.md  M docs/plans/PHASE6_REPORTING_IMPLEMENTATION_PLAN.md  M docs/plans/UNIFIED_WORK_PLAN.md  M docs/plans/UNIFIED_WORK_PLAN_ARCHIVE_PHASE4_PHASE5.md  M docs/releases/COMPLETE_RELEASE_DEPLOYMENT_REPORT_JAN29_2026.md  M docs/releases/DEPLOYMENT_CHECKLIST_v1.17.3.md  M docs/releases/DEPLOYMENT_CHECKLIST_v1.17.5.md  M docs/releases/DEPLOYMENT_CHECKLIST_v1.18.0.md  M docs/releases/GITHUB_RELEASE_v1.17.4.md  M docs/releases/GITHUB_RELEASE_v1.17.5.md  M docs/releases/PERFORMANCE_BENCHMARK_RESULTS_v1.17.3.md  M docs/releases/PERFORMANCE_BENCHMARK_RESULTS_v1.18.0.md  M docs/releases/RELEASE_MANIFEST_v1.17.3.md  M docs/releases/RELEASE_MANIFEST_v1.18.0.md  M docs/releases/RELEASE_NOTES_v1.17.3.md  M docs/releases/RELEASE_NOTES_v1.17.4.md  M docs/releases/RELEASE_NOTES_v1.17.5.md  M docs/releases/RELEASE_NOTES_v1.17.6.md  M docs/releases/RELEASE_NOTES_v1.18.0.md  M docs/releases/RELEASE_PREPARATION_v1.17.6.md  M docs/releases/RELEASE_SUMMARY_v1.17.5.md  M docs/releases/reports/RELEASE_v1.12.8_COMPLETE.md  M docs/releases/v1.17.6_DEPLOYMENT_VERIFIED.md  M docs/releases/v1.17.6_RELEASE_SUMMARY.md  M docs/reports/2026-01/PR150_MERGE_COMPLETE_SUMMARY.md  M docs/reports/2026-01/RELEASE_v1.15.0_SUMMARY.md  M docs/security/SECURITY_AUDIT_FIX_PLAN_JAN31.md  M docs/security/SECURITY_CI_CD_REVIEW_SUMMARY_JAN31.md  M docs/testing/PRODUCTION_TESTING_COMPREHENSIVE_GUIDE.md  M docs/training/ADMIN_TRAINING_SLIDES.md  M docs/training/EMAIL_TEMPLATES.md  M docs/training/PRE_READING_MATERIALS.md  M docs/training/PRODUCTION_USER_TRAINING_PROGRAM.md  M docs/training/PRODUCTION_USER_TRAINING_PROGRAM_EL.md  M docs/training/STUDENT_TRAINING_SLIDES.md  M docs/training/TEACHER_TRAINING_SLIDES.md  M docs/training/TRAINING_CREDENTIALS.md  M docs/training/TRAINING_DELIVERY_CHECKLIST.md  M docs/user/RBAC_GUIDE.md ?? commit_ready_20260201-210647.log
+ M DEPLOYMENT_READY.md  M backend/routers/routers_custom_reports.py  M backend/schemas/custom_reports.py  M backend/services/custom_report_service.py  M commit_ready_20260201-210647.log  M frontend/src/api/customReportsAPI.ts  M frontend/src/features/custom-reports/components/ReportBuilder.tsx  M frontend/src/hooks/useCustomReports.ts  M frontend/src/locales/el.js  M frontend/src/locales/el/customReports.js  M frontend/src/locales/en.js  M frontend/src/locales/en/customReports.js ?? commit_ready_20260201-235514.log
 
 ─────────────────────────────────────────────────
  Root Documentation Whitelist
 ─────────────────────────────────────────────────
-❌ Found 1 unclassified Markdown file(s) in repo root
+❌ Found 3 unclassified Markdown file(s) in repo root
+   • DEPLOYMENT_PREPARATION_v1.17.6.md
+   • DEPLOYMENT_READY.md
    • PHASE6_COMPLETION_REPORT.md
 ℹ️  Run .\\WORKSPACE_CLEANUP.ps1 -Mode standard to auto-organize, or move to docs/ manually
 
@@ -602,14 +603,14 @@ stderr | src/i18n/__tests__/translations.test.ts
 ╚══════════════════════════════════════════════════════════════╝
 
 Mode: quick
-Duration: 214.6s
+Duration: 289.1s
 
 Code Quality:
   ✅ Docs & Version Sync
   ✅ Version Consistency
   ✅ Version Format
   ✅ Backend Ruff
-  ❌ Backend MyPy
+  ✅ Backend MyPy
   ✅ Frontend ESLint
   ✅ Markdown Lint
   ✅ TypeScript
@@ -635,5 +636,5 @@ Cleanup:
 = * 60
 **********************
 PowerShell transcript end
-End time: 20260201211021
+End time: 20260202000003
 **********************

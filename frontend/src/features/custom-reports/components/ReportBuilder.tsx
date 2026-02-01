@@ -245,7 +245,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         console.log('[ReportBuilder] Report created successfully:', result);
         // Show success toast
         const toast = document.createElement('div');
-        toast.textContent = '✅ Report saved successfully!';
+        toast.textContent = `✅ ${t('customReports:reportCreated')}`;
         toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 5000);
@@ -255,7 +255,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       console.error('Error saving report:', error);
       // Show error toast
       const toast = document.createElement('div');
-      toast.textContent = `❌ Error: ${(error as any)?.message || 'Failed to save report'}`;
+      const errorMsg = (error as any)?.message || 'Failed to save report';
+      toast.textContent = `❌ ${t('customReports:error')}: ${errorMsg}`;
       toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
       document.body.appendChild(toast);
       setTimeout(() => toast.remove(), 5000);

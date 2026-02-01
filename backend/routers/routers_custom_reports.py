@@ -433,9 +433,13 @@ async def generate_report(
                 request_id=request.state.request_id,
             )
 
-        export_format = str(body.export_format or report.export_format)
+        export_format = str(body.export_format or report.export_format).lower()
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        file_name = f"report_{report_id}_{timestamp}.{export_format}"
+        # Normalize file extension to lowercase
+        ext = export_format.lower() if export_format else "pdf"
+        if ext == "excel":
+            ext = "xlsx"
+        file_name = f"report_{report_id}_{timestamp}.{ext}"
 
         create_data = GeneratedReportCreate(
             report_id=report_id,
@@ -628,13 +632,42 @@ async def download_generated_report(
                 request_id=request.state.request_id,
             )
 
-        # Return the file
-        file_name = os.path.basename(generated.file_path)
-        return FileResponse(
+        # Determine file extension from actual file path (more reliable than DB field)
+        actual_ext = os.path.splitext(generated.file_path)[1].lower()
+
+        # Map file extension to media type
+        ext_to_media = {
+            ".xlsx": ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+            ".csv": ("csv", "text/csv"),
+            ".pdf": ("pdf", "application/pdf"),
+        }
+
+        # Get format info from actual file extension
+        if actual_ext in ext_to_media:
+            ext, media_type = ext_to_media[actual_ext]
+        else:
+            # Fallback to database export_format if file extension unknown
+            export_format = str(generated.export_format).lower() if generated.export_format else "pdf"
+            format_mapping = {
+                "excel": ("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+                "csv": ("csv", "text/csv"),
+                "pdf": ("pdf", "application/pdf"),
+            }
+            ext, media_type = format_mapping.get(export_format, ("pdf", "application/pdf"))
+
+        # Create correct filename with proper extension
+        base_name = os.path.splitext(os.path.basename(generated.file_path))[0]
+        file_name = f"{base_name}.{ext}"
+
+        # Return FileResponse with explicit Content-Disposition header
+        response = FileResponse(
             path=generated.file_path,
             filename=file_name,
-            media_type="application/octet-stream",
+            media_type=media_type,
         )
+        # Explicitly set Content-Disposition to ensure correct filename
+        response.headers["Content-Disposition"] = f'attachment; filename="{file_name}"'
+        return response
     except Exception as e:
         logger.error(f"Error downloading generated report {generated_report_id}: {str(e)}")
         return error_response(

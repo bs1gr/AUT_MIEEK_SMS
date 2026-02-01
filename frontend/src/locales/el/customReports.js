@@ -154,6 +154,20 @@ export default {
   createdAt: 'Ημερομηνία Δημιουργίας',
   size: 'Μέγεθος Αρχείου',
 
+  // Generated reports section
+  generatedReportsTitle: 'Δημιουργημένες Αναφορές:',
+  noGeneratedReports: 'Δεν υπάρχουν ακόμα δημιουργημένες αναφορές',
+  loading: 'Φόρτωση...',
+  generatedLabel: 'Δημιουργήθηκε',
+  generatedNow: 'Δημιουργήθηκε μόλις τώρα',
+  download: 'Λήψη',
+  downloadTooltip: 'Λήψη αρχείου αναφοράς',
+  deleteGeneratedTooltip: 'Διαγραφή δημιουργημένης αναφοράς',
+  error: 'Σφάλμα',
+  processing: 'Επεξεργασία...',
+  completed: 'Ολοκληρώθηκε',
+  failed: 'Αποτυχία',
+
   // Status
   status_draft: 'Πρόχειρο',
   status_pending: 'Σε Αναμονή',
@@ -174,7 +188,9 @@ export default {
   reportCreated: 'Η αναφορά δημιουργήθηκε επιτυχώς',
   reportUpdated: 'Η αναφορά ενημερώθηκε επιτυχώς',
   reportDeleted: 'Η αναφορά διαγράφηκε επιτυχώς',
-  generationStarted: 'Η δημιουργία αναφοράς ξεκίνησε',
+  generatedReportDeleted: 'Η δημιουργημένη αναφορά διαγράφηκε επιτυχώς',
+  generationStarted: 'Η δημιουργία της αναφοράς ξεκίνησε',
+  generationStartedWithJob: 'Η δημιουργία της αναφοράς ξεκίνησε (ID Εργασίας: {{jobId}})',
   generationComplete: 'Η αναφορά δημιουργήθηκε επιτυχώς',
   generationFailed: 'Η δημιουργία αναφοράς απέτυχε',
   noReports: 'Δεν βρέθηκαν αναφορές',

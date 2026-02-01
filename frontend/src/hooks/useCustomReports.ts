@@ -4,6 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customReportsAPI, reportTemplatesAPI } from '@/api/customReportsAPI';
+import i18n from '@/i18n';
 
 // ==================== QUERY KEYS ====================
 
@@ -170,7 +171,7 @@ export function useGenerateReport() {
         // Try to show browser alert if no other notification system
         try {
           const toast = document.createElement('div');
-          toast.textContent = `Report generation started (Job ID: ${data?.job_id || 'processing'})`;
+          toast.textContent = i18n.t('customReports:generationStartedWithJob', { jobId: data?.job_id || 'processing' });
           toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 5000);
@@ -181,12 +182,12 @@ export function useGenerateReport() {
     },
     onError: (error: any, reportId) => {
       console.error('[useGenerateReport] Error generating report:', { reportId, error });
-      const message = error?.message || 'Failed to generate report';
+      const message = error?.message || i18n.t('customReports:generationFailed');
       // Show error feedback
       if (typeof window !== 'undefined') {
         try {
           const toast = document.createElement('div');
-          toast.textContent = `❌ Error: ${message}`;
+          toast.textContent = `❌ ${i18n.t('customReports:error')}: ${message}`;
           toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 5000);
@@ -217,12 +218,15 @@ export function useDownloadReport() {
   return useMutation({
     mutationFn: ({ reportId, generatedId }: { reportId: number; generatedId: number }) =>
       customReportsAPI.download(reportId, generatedId),
-    onSuccess: (blob, variables) => {
+    onSuccess: (response, variables) => {
+      // Extract blob and filename from response
+      const { blob, filename } = response;
+
       // Create download link
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `report_${variables.generatedId}.pdf`; // Default, could be improved
+      link.download = filename; // Use filename from server
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -247,7 +251,7 @@ export function useDeleteGeneratedReport() {
       if (typeof window !== 'undefined') {
         try {
           const toast = document.createElement('div');
-          toast.textContent = '✅ Generated report deleted successfully';
+          toast.textContent = `✅ ${i18n.t('customReports:generatedReportDeleted')}`;
           toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 4000);
@@ -258,12 +262,12 @@ export function useDeleteGeneratedReport() {
     },
     onError: (error: any, variables) => {
       console.error('[useDeleteGeneratedReport] Error deleting generated report:', { variables, error });
-      const message = error?.message || 'Failed to delete generated report';
+      const message = error?.message || i18n.t('customReports:generationFailed');
       // Show error feedback
       if (typeof window !== 'undefined') {
         try {
           const toast = document.createElement('div');
-          toast.textContent = `❌ Error: ${message}`;
+          toast.textContent = `❌ ${i18n.t('customReports:error')}: ${message}`;
           toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 5000);
