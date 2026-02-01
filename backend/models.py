@@ -793,6 +793,171 @@ class SavedSearch(SoftDeleteMixin, Base):
         return f"<SavedSearch(id={self.id}, user_id={self.user_id}, name={self.name}, type={self.search_type})>"
 
 
+class Report(SoftDeleteMixin, Base):
+    """Custom report definitions with scheduling and export options.
+
+    Stores user-defined report configurations including fields, filters,
+    aggregations, and scheduling settings. Supports scheduled generation
+    and email delivery.
+    """
+
+    __tablename__ = "reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    name = Column(String(200), nullable=False, index=True)
+    description = Column(Text, nullable=True)
+    report_type = Column(String(50), nullable=False, index=True)  # student, course, grade, attendance, custom
+    template_id = Column(Integer, ForeignKey("report_templates.id", ondelete="SET NULL"), nullable=True)
+
+    # Report configuration
+    fields = Column(JSON, nullable=False)  # Selected fields to include
+    filters = Column(JSON, nullable=True)  # Filter criteria
+    aggregations = Column(JSON, nullable=True)  # Sum, avg, count, etc.
+    sort_by = Column(JSON, nullable=True)  # Sorting configuration
+
+    # Export settings
+    export_format = Column(String(20), default="pdf")  # pdf, excel, csv
+    include_charts = Column(Boolean, default=True)
+
+    # Scheduling (optional)
+    schedule_enabled = Column(Boolean, default=False, index=True)
+    schedule_frequency = Column(String(20), nullable=True)  # daily, weekly, monthly, custom
+    schedule_cron = Column(String(100), nullable=True)  # Cron expression for custom schedules
+    next_run_at = Column(DateTime(timezone=True), nullable=True, index=True)
+    last_run_at = Column(DateTime(timezone=True), nullable=True)
+
+    # Email delivery
+    email_recipients = Column(JSON, nullable=True)  # List of email addresses
+    email_enabled = Column(Boolean, default=False)
+
+    # Metadata
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    # Relationships
+    user: ClassVar[Any] = relationship("User")
+    template: ClassVar[Any] = relationship("ReportTemplate", foreign_keys=[template_id])
+    generated_reports: ClassVar[Any] = relationship(
+        "GeneratedReport", back_populates="report", cascade="all, delete-orphan"
+    )
+
+    __table_args__ = (
+        Index("ix_reports_user_id", "user_id"),
+        Index("ix_reports_report_type", "report_type"),
+        Index("ix_reports_schedule_enabled", "schedule_enabled"),
+        Index("ix_reports_next_run_at", "next_run_at"),
+    )
+
+    def __repr__(self):
+        return f"<Report(id={self.id}, user_id={self.user_id}, name={self.name}, type={self.report_type})>"
+
+
+class ReportTemplate(Base):
+    """Pre-built report templates for common use cases.
+
+    Provides pre-configured report definitions that users can use directly
+    or customize. Includes standard reports like student roster, grade
+    distribution, attendance summary, etc.
+    """
+
+    __tablename__ = "report_templates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False, index=True, unique=True)
+    description = Column(Text, nullable=True)
+    category = Column(String(50), nullable=False, index=True)  # academic, administrative, statistical
+    report_type = Column(String(50), nullable=False, index=True)
+
+    # Template configuration (same structure as Report)
+    fields = Column(JSON, nullable=False)
+    filters = Column(JSON, nullable=True)
+    aggregations = Column(JSON, nullable=True)
+    sort_by = Column(JSON, nullable=True)
+
+    # Default export settings
+    default_export_format = Column(String(20), default="pdf")
+    default_include_charts = Column(Boolean, default=True)
+
+    # Template metadata
+    is_system = Column(Boolean, default=True)  # System template vs user-created
+    is_active = Column(Boolean, default=True, index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        Index("ix_report_templates_category", "category"),
+        Index("ix_report_templates_report_type", "report_type"),
+        Index("ix_report_templates_is_active", "is_active"),
+    )
+
+    def __repr__(self):
+        return f"<ReportTemplate(id={self.id}, name={self.name}, category={self.category})>"
+
+
+class GeneratedReport(Base):
+    """Stores generated report files and metadata.
+
+    Tracks all generated report instances, including file paths,
+    generation status, and performance metrics. Enables report history
+    and archival.
+    """
+
+    __tablename__ = "generated_reports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(Integer, ForeignKey("reports.id", ondelete="CASCADE"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+
+    # Generation details
+    file_path = Column(String(500), nullable=True)  # Relative path to generated file
+    file_name = Column(String(255), nullable=False)
+    file_size_bytes = Column(Integer, nullable=True)
+    export_format = Column(String(20), nullable=False)  # pdf, excel, csv
+
+    # Status tracking
+    status = Column(String(20), default="pending", index=True)  # pending, generating, completed, failed
+    error_message = Column(Text, nullable=True)
+
+    # Performance metrics
+    record_count = Column(Integer, nullable=True)  # Number of records in report
+    generation_duration_seconds = Column(Float, nullable=True)
+
+    # Email delivery
+    email_sent = Column(Boolean, default=False)
+    email_sent_at = Column(DateTime(timezone=True), nullable=True)
+    email_error = Column(Text, nullable=True)
+
+    # Metadata
+    generated_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=True, index=True)  # Automatic cleanup date
+
+    # Relationships
+    report: ClassVar[Any] = relationship("Report", back_populates="generated_reports")
+    user: ClassVar[Any] = relationship("User")
+
+    __table_args__ = (
+        Index("ix_generated_reports_report_id", "report_id"),
+        Index("ix_generated_reports_user_id", "user_id"),
+        Index("ix_generated_reports_status", "status"),
+        Index("ix_generated_reports_generated_at", "generated_at"),
+        Index("ix_generated_reports_expires_at", "expires_at"),
+    )
+
+    def __repr__(self):
+        return (
+            f"<GeneratedReport(id={self.id}, report_id={self.report_id}, status={self.status}, file={self.file_name})>"
+        )
+
+
 def init_db(db_url: str = "sqlite:///student_management.db"):
     """
     Initialize the database engine with performance optimizations.

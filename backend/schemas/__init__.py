@@ -198,6 +198,22 @@ from .reports import (
 from .reports import (
     StudentPerformanceReport as StudentPerformanceReport,
 )
+from .custom_reports import (
+    BulkReportGenerationRequest as BulkReportGenerationRequest,
+    BulkReportGenerationResponse as BulkReportGenerationResponse,
+    CustomReportCreate as CustomReportCreate,
+    CustomReportResponse as CustomReportResponse,
+    CustomReportUpdate as CustomReportUpdate,
+    GeneratedReportCreate as GeneratedReportCreate,
+    GeneratedReportResponse as GeneratedReportResponse,
+    GeneratedReportUpdate as GeneratedReportUpdate,
+    ReportGenerationRequest as ReportGenerationRequest,
+    ReportGenerationResponse as ReportGenerationResponse,
+    ReportStatistics as ReportStatistics,
+    ReportTemplateCreate as ReportTemplateCreate,
+    ReportTemplateResponse as ReportTemplateResponse,
+    ReportTemplateUpdate as ReportTemplateUpdate,
+)
 from .response import APIResponse as APIResponse
 from .response import ErrorDetail as ErrorDetail
 from .response import PaginatedData as PaginatedData

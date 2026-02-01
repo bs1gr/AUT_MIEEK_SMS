@@ -96,6 +96,7 @@ def register_routers(app: FastAPI) -> None:
     _try_add("backend.routers.routers_sessions", "Sessions")
     _try_add("backend.routers.routers_diagnostics", "Diagnostics")
     _try_add("backend.routers.routers_reports", "Reports")
+    _try_add("backend.routers.routers_custom_reports", "Custom Reports")
     _try_add("backend.routers.routers_jobs", "Jobs")
     _try_add("backend.routers.routers_audit", "Audit")
     _try_add("backend.routers.routers_rbac", "RBAC")
