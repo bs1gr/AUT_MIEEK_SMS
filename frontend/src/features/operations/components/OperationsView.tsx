@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useSearchParams, Link } from 'react-router-dom';
 import { ShieldCheck, FileText } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
@@ -34,13 +34,28 @@ const DEFAULT_TAB: OperationsTabKey = 'exports';
 const OperationsView = (_props: OperationsViewProps) => {
   const { t } = useTranslation();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<OperationsTabKey>(() => {
+    // Check query parameter first (e.g., /operations?tab=reports)
+    const tabParam = searchParams.get('tab');
+    if (tabParam && isValidTab(tabParam)) {
+      return tabParam;
+    }
+    // Fall back to navigation state
     const state = (location.state ?? {}) as OperationsLocationState;
     return normalizeTab(state.tab) ?? DEFAULT_TAB;
   });
   const [toast, setToast] = useState<ToastState | null>(null);
   const [jobIdInput, setJobIdInput] = useState('');
   const [trackedJobId, setTrackedJobId] = useState<string | null>(null);
+
+  // Update active tab when query parameter changes
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && isValidTab(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
 
   // handleToast previously forwarded to children; not needed here
 
@@ -68,6 +83,15 @@ const OperationsView = (_props: OperationsViewProps) => {
     { key: 'reports', label: t('reports', { ns: 'customReports' }) || 'Reports' },
     { key: 'help', label: t('helpTitle', { ns: 'help' }) || 'Help' },
   ];
+
+  const buildTemplateLink = (params: { report_type?: string; format?: string; query?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params.report_type) queryParams.set('report_type', params.report_type);
+    if (params.format) queryParams.set('format', params.format);
+    if (params.query) queryParams.set('query', params.query);
+    const queryString = queryParams.toString();
+    return `/operations/reports/templates${queryString ? `?${queryString}` : ''}`;
+  };
 
   const headerTitle = t('utilitiesTitle', { ns: 'utils' });
   const headerSubtitle = t('utilitiesSubtitle', { ns: 'utils' });
@@ -221,26 +245,41 @@ const OperationsView = (_props: OperationsViewProps) => {
               <div className="mt-8 border-t border-slate-200 pt-6">
                 <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('entityType', { ns: 'customReports' })}</h3>
                 <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                  <Link
+                    to={buildTemplateLink({ report_type: 'student' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
+                  >
                     <div className="text-lg font-bold text-indigo-600">👥</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_students', { ns: 'customReports' })}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                  </Link>
+                  <Link
+                    to={buildTemplateLink({ report_type: 'course' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
+                  >
                     <div className="text-lg font-bold text-indigo-600">📚</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_courses', { ns: 'customReports' })}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                  </Link>
+                  <Link
+                    to={buildTemplateLink({ report_type: 'grade' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
+                  >
                     <div className="text-lg font-bold text-indigo-600">⭐</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_grades', { ns: 'customReports' })}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                  </Link>
+                  <Link
+                    to={buildTemplateLink({ report_type: 'attendance' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
+                  >
                     <div className="text-lg font-bold text-indigo-600">✅</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_attendance', { ns: 'customReports' })}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 text-center hover:bg-slate-50">
+                  </Link>
+                  <Link
+                    to={buildTemplateLink({ report_type: 'student', query: 'enrollment' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
+                  >
                     <div className="text-lg font-bold text-indigo-600">📊</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_enrollments', { ns: 'customReports' })}</p>
-                  </div>
+                  </Link>
                 </div>
               </div>
 
@@ -248,18 +287,27 @@ const OperationsView = (_props: OperationsViewProps) => {
               <div className="mt-8 border-t border-slate-200 pt-6">
                 <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('outputFormat', { ns: 'customReports' })}</h3>
                 <div className="grid gap-3 sm:grid-cols-3">
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
+                  <Link
+                    to={buildTemplateLink({ format: 'pdf' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 transition hover:bg-slate-50"
+                  >
                     <p className="text-lg font-bold text-indigo-600">📄</p>
                     <p className="text-xs font-medium text-slate-700">{t('format_pdf', { ns: 'customReports' })}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
+                  </Link>
+                  <Link
+                    to={buildTemplateLink({ format: 'excel' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 transition hover:bg-slate-50"
+                  >
                     <p className="text-lg font-bold text-indigo-600">📊</p>
                     <p className="text-xs font-medium text-slate-700">{t('format_excel', { ns: 'customReports' })}</p>
-                  </div>
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 hover:bg-slate-50">
+                  </Link>
+                  <Link
+                    to={buildTemplateLink({ format: 'csv' })}
+                    className="rounded-lg border border-slate-200 bg-white p-3 transition hover:bg-slate-50"
+                  >
                     <p className="text-lg font-bold text-indigo-600">📋</p>
                     <p className="text-xs font-medium text-slate-700">{t('format_csv', { ns: 'customReports' })}</p>
-                  </div>
+                  </Link>
                 </div>
               </div>
             </div>

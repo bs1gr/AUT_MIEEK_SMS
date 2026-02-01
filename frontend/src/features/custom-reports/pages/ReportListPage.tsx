@@ -5,7 +5,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Plus } from 'lucide-react';
+import { Plus, ChevronLeft } from 'lucide-react';
 import { ReportList } from '../components/ReportList';
 
 export const ReportListPage: React.FC = () => {
@@ -16,22 +16,33 @@ export const ReportListPage: React.FC = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 py-6 flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
-              {t('customReports:myReports')}
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {t('customReports:reportsDescription')}
-            </p>
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <button
+              onClick={() => navigate('/operations?tab=reports')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title={t('back', { ns: 'common' })}
+            >
+              <ChevronLeft size={24} />
+            </button>
           </div>
-          <button
-            onClick={() => navigate('/operations/reports/builder')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium"
-          >
-            <Plus size={20} />
-            {t('customReports:createReport')}
-          </button>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                {t('customReports:myReports')}
+              </h1>
+              <p className="text-sm text-gray-600 mt-1">
+                {t('customReports:reportsDescription')}
+              </p>
+            </div>
+            <button
+              onClick={() => navigate('/operations/reports/builder')}
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium"
+            >
+              <Plus size={20} />
+              {t('customReports:createReport')}
+            </button>
+          </div>
         </div>
       </div>
 

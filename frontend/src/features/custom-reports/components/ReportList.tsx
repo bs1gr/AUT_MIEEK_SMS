@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit2, Copy, Share2, Download, Play, MoreVertical, ChevronDown } from 'lucide-react';
-import { useCustomReports, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport, useDeleteGeneratedReport } from '@/hooks/useCustomReports';
+import { useCustomReports, useCreateTemplate, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport, useDeleteGeneratedReport } from '@/hooks/useCustomReports';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ReportListProps {
@@ -23,6 +23,7 @@ export const ReportList: React.FC<ReportListProps> = ({
 }) => {
   const { t } = useTranslation();
   const { data: reports, isLoading, error } = useCustomReports();
+  const createTemplateMutation = useCreateTemplate();
   const deleteMutation = useDeleteReport();
   const generateMutation = useGenerateReport();
   const downloadMutation = useDownloadReport();
@@ -84,6 +85,38 @@ export const ReportList: React.FC<ReportListProps> = ({
   const handleDuplicateReport = (report: any) => {
     // This would open the report builder with pre-filled data
     onEditReport?.(report.id);
+  };
+
+  const handleSaveAsTemplate = (report: any) => {
+    const defaultName = report?.name ? `${report.name} Template` : '';
+    const name = window.prompt(t('customReports:templateNamePrompt'), defaultName);
+    if (!name) {
+      return;
+    }
+
+    const templateData = {
+      name,
+      description: report?.description || null,
+      category: 'academic',
+      report_type: report?.report_type,
+      fields: report?.fields || {},
+      filters: report?.filters || null,
+      aggregations: report?.aggregations || null,
+      sort_by: report?.sort_by || null,
+      default_export_format: report?.export_format || 'pdf',
+      default_include_charts: report?.include_charts ?? true,
+      is_system: false,
+    };
+
+    createTemplateMutation.mutate(templateData, {
+      onSuccess: () => {
+        const toast = document.createElement('div');
+        toast.textContent = `✅ ${t('customReports:templateSaved')}`;
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 4000);
+      },
+    });
   };
 
   return (
@@ -235,6 +268,13 @@ export const ReportList: React.FC<ReportListProps> = ({
                             <Share2 size={14} />
                             {t('customReports:share')}
                           </button>
+                            <button
+                              onClick={() => handleSaveAsTemplate(report)}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
+                            >
+                              <Copy size={14} />
+                              {t('customReports:saveAsTemplate')}
+                            </button>
                           <button className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t">
                             <Download size={14} />
                             {t('customReports:export')}

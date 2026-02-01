@@ -4,14 +4,18 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { ReportBuilder } from '../components/ReportBuilder';
 
 export const ReportBuilderPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams<{ id?: string }>();
+
+  // Extract template data from navigation state
+  const templateData = (location.state as any)?.templateData;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -20,7 +24,7 @@ export const ReportBuilderPage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
-              onClick={() => navigate('/operations/reports')}
+              onClick={() => navigate('/operations?tab=reports')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               title={t('back', { ns: 'common' })}
             >
@@ -39,8 +43,9 @@ export const ReportBuilderPage: React.FC = () => {
       <div className="max-w-5xl mx-auto px-4 py-8">
         <ReportBuilder
           reportId={id ? parseInt(id) : undefined}
-          onCancel={() => navigate('/operations/reports')}
-          onSuccess={() => navigate('/operations/reports')}
+          initialData={templateData}
+          onCancel={() => navigate('/operations?tab=reports')}
+          onSuccess={() => navigate('/operations?tab=reports')}
         />
       </div>
     </div>

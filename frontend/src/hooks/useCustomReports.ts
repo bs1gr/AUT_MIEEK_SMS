@@ -23,7 +23,7 @@ export const customReportKeys = {
 /**
  * Fetch all report templates
  */
-export function useReportTemplates(options?: { is_public?: boolean; entity_type?: string }) {
+export function useReportTemplates(options?: { category?: string; report_type?: string; is_active?: boolean }) {
   return useQuery({
     queryKey: [...customReportKeys.templates(), options],
     queryFn: () => reportTemplatesAPI.getAll(options || {}),

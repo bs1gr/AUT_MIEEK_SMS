@@ -4,36 +4,33 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 import { ReportTemplateList } from '../components/ReportTemplateList';
-
-interface Template {
-  id: number;
-  name: string;
-  description: string;
-  entity_type: string;
-  fields: any[];
-  filters: any[];
-  sorting: any[];
-  output_format: string;
-}
+import type { ReportTemplate } from '@/api/customReportsAPI';
 
 export const ReportTemplateBrowserPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const handleUseTemplate = (template: Template) => {
+  const initialEntityType = searchParams.get('report_type') || undefined;
+  const initialFormat = searchParams.get('format') || undefined;
+  const initialQuery = searchParams.get('query') || undefined;
+
+  const handleUseTemplate = (template: ReportTemplate) => {
     // Navigate to builder with template data pre-filled
     navigate('/operations/reports/builder', {
       state: {
         templateData: {
           name: `${template.name} - Copy`,
           description: template.description,
-          entity_type: template.entity_type,
+          report_type: template.report_type,
           fields: template.fields,
           filters: template.filters,
-          sorting: template.sorting,
-          output_format: template.output_format,
+          sort_by: template.sort_by,
+          default_export_format: template.default_export_format,
+          default_include_charts: template.default_include_charts,
         },
       },
     });
@@ -44,6 +41,15 @@ export const ReportTemplateBrowserPage: React.FC = () => {
       {/* Header */}
       <div className="bg-white border-b sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-4 mb-4">
+            <button
+              onClick={() => navigate('/operations?tab=reports')}
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title={t('back', { ns: 'common' })}
+            >
+              <ChevronLeft size={24} />
+            </button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">
             {t('customReports:templates')}
           </h1>
@@ -60,6 +66,9 @@ export const ReportTemplateBrowserPage: React.FC = () => {
           onEditTemplate={(templateId) => {
             navigate(`/operations/reports/builder?template=${templateId}`);
           }}
+          initialEntityType={initialEntityType}
+          initialFormat={initialFormat}
+          initialQuery={initialQuery}
         />
       </div>
     </div>
