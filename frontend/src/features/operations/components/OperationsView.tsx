@@ -65,7 +65,7 @@ const OperationsView = (_props: OperationsViewProps) => {
     { key: 'exports', label: t('exportTabLabel') || 'Export' },
     { key: 'imports', label: t('importsTabLabel') || 'Imports' },
     { key: 'settings', label: t('settingsTabLabel') || 'Settings' },
-    { key: 'reports', label: t('reports') || 'Reports' },
+    { key: 'reports', label: t('customReports:reports') || 'Reports' },
     { key: 'help', label: t('helpTitle') || 'Help' },
   ];
 
