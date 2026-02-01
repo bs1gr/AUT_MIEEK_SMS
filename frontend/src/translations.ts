@@ -47,6 +47,8 @@ import searchEn from './locales/en/search.js';
 import searchEl from './locales/el/search.js';
 import analyticsEn from './locales/en/analytics.js';
 import analyticsEl from './locales/el/analytics.js';
+import customReportsEn from './locales/en/customReports.js';
+import customReportsEl from './locales/el/customReports.js';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -84,7 +86,8 @@ export const translationNamespaces = {
     feedback: feedbackEn,
     errors: errorsEn,
     search: searchEn,
-    analytics: analyticsEn
+    analytics: analyticsEn,
+    customReports: customReportsEn
   },
 
   el: {
@@ -105,7 +108,8 @@ export const translationNamespaces = {
     feedback: feedbackEl,
     errors: errorsEl,
     search: searchEl,
-    analytics: analyticsEl
+    analytics: analyticsEl,
+    customReports: customReportsEl
   }
 };
 
