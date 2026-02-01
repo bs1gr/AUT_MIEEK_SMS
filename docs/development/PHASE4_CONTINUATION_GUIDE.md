@@ -13,13 +13,13 @@
 ### Completed Work
 
 ✅ **Phase 4 Issue #145: Backend Full-Text Search API**
-- Status: Complete (merged in v1.18.0)
+- Status: Complete (merged in $11.17.6)
 - Deliverable: Full-text search endpoint with filters, sorting, pagination
 - Tests: 100% coverage with unit and integration tests
 - Performance: < 500ms for typical queries
 
 ✅ **Phase 4 Issue #146: Saved Searches CRUD**
-- Status: Complete (merged in v1.18.0)
+- Status: Complete (merged in $11.17.6)
 - Deliverable: SavedSearch model, service layer, API endpoints
 - Features: CRUD operations, favorites, statistics
 - Tests: Comprehensive test coverage
@@ -325,3 +325,4 @@ See [`docs/AGENT_POLICY_ENFORCEMENT.md`](../AGENT_POLICY_ENFORCEMENT.md) for com
 **Document Status**: ✅ Complete & Ready for Phase 1
 **Next Steps**: Stakeholder review → Phase 1 implementation kickoff
 **Last Updated**: January 25, 2026, 15:32 UTC+2
+

@@ -1,5 +1,5 @@
 # Pre-Reading Materials - SMS Training
-## Student Management System v1.17.6
+## Student Management System $11.17.6
 ## ΜΙΕΕΚ Cyprus Technical College
 
 **Target Audience**: Administrators, Teachers, and Students
@@ -344,3 +344,4 @@ The SMS interface supports both languages. You can switch between English and Gr
 **Training Coordinator**: SMS Implementation Team
 
 **Questions?** Contact training@mieek.edu.cy
+

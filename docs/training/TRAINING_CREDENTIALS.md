@@ -1,5 +1,5 @@
 # Training Environment Credentials
-## SMS v1.17.6 - Phase 5 Training
+## SMS $11.17.6 - Phase 5 Training
 
 **CONFIDENTIAL - FOR TRAINER USE ONLY**
 **Generated**: 2026-01-30 23:56:16
@@ -71,3 +71,4 @@
 ---
 
 **END OF CREDENTIALS**
+

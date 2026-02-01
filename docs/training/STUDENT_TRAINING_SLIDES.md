@@ -1,5 +1,5 @@
 # Student Training Slides
-## SMS v1.17.6 - Your Academic Information Portal
+## SMS $11.17.6 - Your Academic Information Portal
 
 **Duration**: 1.5 hours
 **Audience**: All Students (500+ in multiple sessions)
@@ -674,3 +674,4 @@ By end of training, students should be able to:
 **Training Dates**: February 5, 2026 (multiple sessions)
 **Session Times**: [TBD - to be scheduled]
 **Attendees**: All enrolled students
+

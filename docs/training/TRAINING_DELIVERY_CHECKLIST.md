@@ -1,5 +1,5 @@
 # Training Delivery Checklist - Phase 5 Go-Live
-## SMS v1.17.6 Production User Training
+## SMS $11.17.6 Production User Training
 
 **Version**: 1.0
 **Date**: January 30, 2026
@@ -355,3 +355,4 @@
 ---
 
 **END OF CHECKLIST**
+

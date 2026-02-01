@@ -1,5 +1,5 @@
 # Administrator Training Slides
-## SMS v1.17.6 - Production System
+## SMS $11.17.6 - Production System
 
 **Duration**: 4 hours
 **Audience**: System Administrators (2-3 people)
@@ -13,7 +13,7 @@
 **Title**: "Welcome to SMS Administration"
 
 **Content**:
-- Project overview: Student Management System v1.17.6
+- Project overview: Student Management System $11.17.6
 - Today's learning objectives
 - Training schedule (4 hours total)
 - Q&A ground rules
@@ -546,3 +546,4 @@ By end of training, admins should be able to:
 **Training Date**: February 3, 2026
 **Attendees**: [Names to be recorded]
 **Next Review**: February 4, 2026
+

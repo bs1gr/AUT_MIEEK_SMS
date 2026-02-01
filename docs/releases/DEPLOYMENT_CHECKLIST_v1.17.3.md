@@ -1,7 +1,7 @@
-# Deployment Checklist v1.18.0
+# Deployment Checklist $11.17.6
 
 **Release Date:** January 22, 2026
-**Version:** v1.18.0
+**Version:** $11.17.6
 **Focus:** Frontend Performance, Security, Resilience
 
 ## 📋 Pre-Deployment Verification
@@ -75,3 +75,4 @@ If critical issues are found:
 1. Revert frontend build to previous version (`$11.18.0`).
 2. Revert backend code if database schema issues arise (none expected for this release).
 3. Flush caches.
+

@@ -1,5 +1,5 @@
 # Teacher Training Slides
-## SMS v1.17.6 - Classroom & Grade Management
+## SMS $11.17.6 - Classroom & Grade Management
 
 **Duration**: 3 hours
 **Audience**: Teachers and Instructors (15-20 people)
@@ -588,3 +588,4 @@ By end of training, teachers should be able to:
 **Training Date**: February 4, 2026
 **Attendees**: [Names to be recorded]
 **Next Review**: February 5, 2026
+
