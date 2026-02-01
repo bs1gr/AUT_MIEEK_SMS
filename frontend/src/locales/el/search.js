@@ -229,5 +229,7 @@ export default {
   noFiltersApplied: 'Δεν έχουν εφαρμοστεί φίλτρα',
   filterField: 'Πεδίο Φίλτρου',
   filterOperator: 'Τελεστής Φίλτρου',
-  filterValue: 'Τιμή Φίλτρου'
+  filterValue: 'Τιμή Φίλτρου',
+  resetFilters: 'Επαναφορά Φίλτρων',
+  applyFilters: 'Εφαρμογή Φίλτρων'
 };

@@ -52,7 +52,7 @@ describe('AdvancedFilters Component', () => {
     const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
-    expect(screen.getByText(/search.noFiltersApplied/i)).toBeInTheDocument();
+    expect(screen.getByText(/noFiltersApplied/i)).toBeInTheDocument();
   });
 
   it('should display filter count badge when filters exist', () => {
@@ -120,7 +120,7 @@ describe('AdvancedFilters Component', () => {
     const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
-    const addButton = screen.getByRole('button', { name: /search.addFilter/i });
+    const addButton = screen.getByRole('button', { name: /addFilter/i });
     fireEvent.click(addButton);
 
     expect(mockAddFilter).toHaveBeenCalled();
@@ -204,7 +204,7 @@ describe('AdvancedFilters Component', () => {
     const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
-    const applyButton = screen.getByRole('button', { name: /search.applyFilters/i });
+    const applyButton = screen.getByRole('button', { name: /applyFilters/i });
     fireEvent.click(applyButton);
 
     expect(mockOnApply).toHaveBeenCalledWith(mockFilters);
@@ -233,7 +233,7 @@ describe('AdvancedFilters Component', () => {
     const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
-    const resetButton = screen.getByRole('button', { name: /search.resetFilters/i });
+    const resetButton = screen.getByRole('button', { name: /resetFilters/i });
     fireEvent.click(resetButton);
 
     expect(mockClearSearch).toHaveBeenCalled();
@@ -258,11 +258,13 @@ describe('AdvancedFilters Component', () => {
     const button = screen.getByRole('button', { name: /advancedFilters/i });
     fireEvent.click(button);
 
-    const addButton = screen.getByRole('button', { name: /search.addFilter/i });
+    const addButton = screen.getByRole('button', { name: /addFilter/i });
     fireEvent.click(addButton);
 
     // After adding filter, check that course-specific fields are available
-    expect(screen.getByDisplayValue(/courses.courseName|courses.courseCode|courses.credits/i)).toBeDefined();
+    const select = screen.getByLabelText(/filterField/i);
+    expect(select).toBeDefined();
+    expect(select.querySelector('option[value="course_name"]')).toBeTruthy();
   });
 
   it('should handle between operator with two inputs', () => {
