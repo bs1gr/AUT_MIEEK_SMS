@@ -286,36 +286,44 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
           )}
           {!isLoading && generatedReports && generatedReports.length > 0 && (
             <div className="space-y-2">
-              {generatedReports.map((generated: any) => (
-                <div key={generated.id} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
-                  <div className="text-xs">
-                    <p className="font-medium text-gray-900">
-                      Generated {formatDistanceToNow(new Date(generated.created_at), { addSuffix: true })}
-                    </p>
-                    <p className="text-gray-600">
-                      Status: <span className="font-semibold">{generated.status.toUpperCase()}</span>
-                    </p>
-                    {generated.file_path && (
-                      <p className="text-gray-500">{generated.file_path.split('/').pop()}</p>
+              {generatedReports.map((generated: any) => {
+                // Safe date parsing
+                const createdDate = generated.created_at ? new Date(generated.created_at) : null;
+                const isValidDate = createdDate && !isNaN(createdDate.getTime());
+                
+                return (
+                  <div key={generated.id} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
+                    <div className="text-xs">
+                      <p className="font-medium text-gray-900">
+                        {isValidDate 
+                          ? `Generated ${formatDistanceToNow(createdDate, { addSuffix: true })}`
+                          : 'Generated (date unknown)'}
+                      </p>
+                      <p className="text-gray-600">
+                        Status: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>
+                      </p>
+                      {generated.file_path && (
+                        <p className="text-gray-500">{generated.file_path.split('/').pop()}</p>
+                      )}
+                    </div>
+                    {generated.status === 'completed' && generated.file_path && (
+                      <button
+                        onClick={() => downloadMutation.mutate({ reportId, generatedId: generated.id })}
+                        className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
+                      >
+                        <Download size={12} />
+                        Download
+                      </button>
+                    )}
+                    {generated.status === 'processing' && (
+                      <span className="text-xs text-orange-600 font-medium">Processing...</span>
+                    )}
+                    {generated.status === 'failed' && (
+                      <span className="text-xs text-red-600 font-medium">Failed</span>
                     )}
                   </div>
-                  {generated.status === 'completed' && generated.file_path && (
-                    <button
-                      onClick={() => downloadMutation.mutate({ reportId, generatedId: generated.id })}
-                      className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
-                    >
-                      <Download size={12} />
-                      Download
-                    </button>
-                  )}
-                  {generated.status === 'processing' && (
-                    <span className="text-xs text-orange-600 font-medium">Processing...</span>
-                  )}
-                  {generated.status === 'failed' && (
-                    <span className="text-xs text-red-600 font-medium">Failed</span>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
