@@ -278,6 +278,31 @@ async def list_custom_reports(
 
 
 @router.get(
+    "/statistics",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Report statistics",
+)
+async def get_report_statistics(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(get_current_user),
+) -> APIResponse[Dict[str, Any]]:
+    try:
+        service = CustomReportService(db)
+        stats = service.get_report_statistics(current_user.id)
+        response = ReportStatistics(**stats)
+        return success_response(response.model_dump(), request_id=request.state.request_id)
+    except Exception as e:
+        logger.error(f"Error getting report statistics: {str(e)}")
+        return error_response(
+            code="STATS_ERROR",
+            message="Failed to get report statistics",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
+        )
+
+
+@router.get(
     "/{report_id}",
     response_model=APIResponse[Dict[str, Any]],
     summary="Get custom report",
@@ -552,31 +577,6 @@ async def bulk_generate_reports(
         return error_response(
             code="BULK_ERROR",
             message="Failed to generate reports",
-            details={"error": str(e)},
-            request_id=request.state.request_id,
-        )
-
-
-@router.get(
-    "/statistics",
-    response_model=APIResponse[Dict[str, Any]],
-    summary="Report statistics",
-)
-async def get_report_statistics(
-    request: Request,
-    db: Session = Depends(get_db),
-    current_user: Any = Depends(get_current_user),
-) -> APIResponse[Dict[str, Any]]:
-    try:
-        service = CustomReportService(db)
-        stats = service.get_report_statistics(current_user.id)
-        response = ReportStatistics(**stats)
-        return success_response(response.model_dump(), request_id=request.state.request_id)
-    except Exception as e:
-        logger.error(f"Error getting report statistics: {str(e)}")
-        return error_response(
-            code="STATS_ERROR",
-            message="Failed to get report statistics",
             details={"error": str(e)},
             request_id=request.state.request_id,
         )

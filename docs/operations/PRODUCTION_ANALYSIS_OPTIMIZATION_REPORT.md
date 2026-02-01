@@ -115,7 +115,7 @@ Comprehensive analysis of production system performance, identifying optimizatio
 **Analysis**: Check for missing indexes on frequently queried columns
 ```sql
 -- Check index usage
-SELECT 
+SELECT
   schemaname, tablename, indexname, idx_scan, idx_tup_read, idx_tup_fetch
 FROM pg_stat_user_indexes
 WHERE idx_scan = 0 AND schemaname = 'public'
@@ -197,15 +197,15 @@ def cache_response(expire=300):
         async def wrapper(*args, **kwargs):
             # Generate cache key from endpoint + params
             cache_key = f"{func.__name__}:{str(args)}:{str(kwargs)}"
-            
+
             # Check cache
             cached = redis_client.get(cache_key)
             if cached:
                 return json.loads(cached)
-            
+
             # Execute function
             result = await func(*args, **kwargs)
-            
+
             # Store in cache
             redis_client.setex(cache_key, expire, json.dumps(result))
             return result

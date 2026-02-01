@@ -150,7 +150,7 @@ class ExportPerformanceMonitor:
         Returns:
             Dictionary with performance statistics
         """
-        stats = {
+        stats: Dict[str, Any] = {
             "period_days": days,
             "export_type": export_type,
             "total_exports": 0,

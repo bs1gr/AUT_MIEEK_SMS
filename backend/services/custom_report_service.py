@@ -242,11 +242,7 @@ class CustomReportService:
     # ==========================================================================
 
     def get_report_statistics(self, user_id: int) -> Dict[str, Any]:
-        total_reports = (
-            self.db.query(Report)
-            .filter(Report.user_id == user_id, Report.deleted_at.is_(None))
-            .count()
-        )
+        total_reports = self.db.query(Report).filter(Report.user_id == user_id, Report.deleted_at.is_(None)).count()
         active_scheduled = (
             self.db.query(Report)
             .filter(

@@ -34,7 +34,7 @@ curl -s "http://localhost:8080/health" | ConvertFrom-Json
 **Step 3: Performance Metrics**
 - Navigate to: http://localhost:3000 (Grafana)
 - Check "System Overview" dashboard
-- **Expected**: 
+- **Expected**:
   - Response time p95 < 500ms
   - Error rate < 2%
   - CPU < 80%

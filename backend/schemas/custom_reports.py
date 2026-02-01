@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # Report Template Schemas
 # ============================================================================
 
+
 class ReportTemplateBase(BaseModel):
     """Base schema for report templates."""
 
@@ -68,6 +69,7 @@ class ReportTemplateResponse(ReportTemplateBase):
 # Custom Report Schemas
 # ============================================================================
 
+
 class CustomReportBase(BaseModel):
     """Base schema for custom reports."""
 
@@ -109,7 +111,8 @@ class CustomReportCreate(CustomReportBase):
         """Validate email format."""
         if v:
             import re
-            email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+
+            email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             for email in v:
                 if not re.match(email_regex, email):
                     raise ValueError(f"Invalid email address: {email}")
@@ -158,6 +161,7 @@ class CustomReportResponse(CustomReportBase):
 # ============================================================================
 # Generated Report Schemas
 # ============================================================================
+
 
 class GeneratedReportBase(BaseModel):
     """Base schema for generated reports."""
@@ -216,6 +220,7 @@ class GeneratedReportResponse(GeneratedReportBase):
 # Report Generation Request Schemas
 # ============================================================================
 
+
 class ReportGenerationRequest(BaseModel):
     """Schema for triggering report generation."""
 
@@ -245,6 +250,7 @@ class ReportGenerationResponse(BaseModel):
 # Report Statistics Schemas
 # ============================================================================
 
+
 class ReportStatistics(BaseModel):
     """Schema for report usage statistics."""
 
@@ -260,6 +266,7 @@ class ReportStatistics(BaseModel):
 # ============================================================================
 # Bulk Operation Schemas
 # ============================================================================
+
 
 class BulkReportGenerationRequest(BaseModel):
     """Schema for bulk report generation."""

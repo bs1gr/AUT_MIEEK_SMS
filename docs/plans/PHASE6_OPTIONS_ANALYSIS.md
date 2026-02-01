@@ -397,9 +397,9 @@ Implement WebSocket-based real-time notifications for grade updates, announcemen
 
 **Tier 2 (High Value - Recommend Next)**:
 3. **Calendar Integration** (2-3 weeks)
-   - Why: Convenience feature, low risk, fast delivery
-   - Impact: Students use existing calendar apps
-   - Dependencies: None
+- Why: Convenience feature, low risk, fast delivery
+- Impact: Students use existing calendar apps
+- Dependencies: None
 
 4. **Mobile PWA Enhancement** (3-4 weeks)
    - Why: Mobile-first experience critical for adoption
@@ -408,9 +408,9 @@ Implement WebSocket-based real-time notifications for grade updates, announcemen
 
 **Tier 3 (Strategic - Longer Term)**:
 5. **ML Predictive Analytics** (4-6 weeks)
-   - Why: Highest business value but requires data
-   - Impact: Proactive student support, competitive advantage
-   - Dependencies: Historical data (2+ semesters)
+- Why: Highest business value but requires data
+- Impact: Proactive student support, competitive advantage
+- Dependencies: Historical data (2+ semesters)
 
 ### By Resource Availability
 
