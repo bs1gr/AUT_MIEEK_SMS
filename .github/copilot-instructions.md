@@ -225,7 +225,76 @@ Version format violations are **AUTOMATICALLY BLOCKED** by multiple layers:
 
 ---
 
-### Policy 3: Database - Alembic Migrations ONLY
+### Policy 3: Linting & Formatting - ALWAYS Fix Before Commit (MANDATORY)
+
+**🚨 CI/CD ENFORCED: Code quality gates block commits with violations**
+
+**❌ FORBIDDEN:**
+- Committing code with linting errors
+- Submitting PRs with formatting issues
+- Skipping auto-fix steps
+- Allowing CI/CD to fail on code quality
+
+**✅ REQUIRED - Before EVERY commit:**
+
+```powershell
+# Step 1: Auto-fix all linting issues
+python -m ruff check backend/ frontend/scripts/ --fix
+
+# Step 2: Verify linting is clean
+python -m ruff check backend/ frontend/scripts/
+# Should output: "All checks passed!"
+
+# Step 3: Format frontend code
+npm --prefix frontend run format
+
+# Step 4: Run COMMIT_READY validation
+.\COMMIT_READY.ps1 -Quick
+
+# Step 5: Only then commit
+git add <files>
+git commit -m "semantic: message"
+```
+
+**Why This Exists:**
+- CI/CD pipeline enforces code quality standards
+- GitHub Actions blocks merge if linting fails
+- Production deployments require clean code
+- Prevents wasted time on code review feedback
+- Maintains consistent code style across team
+
+**Enforcement:**
+- ✅ Ruff: Auto-fixes Python issues (unused imports, line length, etc.)
+- ✅ Prettier: Auto-formats frontend code
+- ✅ ESLint: Enforces JavaScript/TypeScript rules
+- ✅ Pre-commit hooks: Validate before commit
+- ✅ GitHub Actions CI/CD: Blocks merge on failure
+- ✅ COMMIT_READY.ps1: Mandatory gate before commit
+
+**Common Auto-Fixes:**
+```powershell
+# All these are fixed automatically by: python -m ruff check --fix
+
+Unused imports                    → Removed
+Trailing whitespace              → Cleaned
+Line too long                     → Wrapped
+Unused variables                  → Removed
+F-string formatting               → Corrected
+Import sorting                    → Organized
+Type hint syntax                  → Fixed
+```
+
+**Real Example (Today):**
+```
+Before:  5 linting errors (4 unused imports, 1 unused variable)
+Action:  python -m ruff check --fix && manual fix
+Result:  0 errors - all clean
+Commit:  ✅ aafffa04b - style(linting): fix unused imports and variables
+```
+
+---
+
+### Policy 4: Database - Alembic Migrations ONLY
 
 **❌ FORBIDDEN:**
 ```python
@@ -245,7 +314,7 @@ alembic upgrade head
 
 ---
 
-### Policy 4: Frontend - i18n ALWAYS Required
+### Policy 5: Frontend - i18n ALWAYS Required
 
 **❌ FORBIDDEN:**
 ```tsx
@@ -268,7 +337,7 @@ function MyComponent() {
 
 ---
 
-### Policy 5: Pre-Commit - Validation ALWAYS Required
+### Policy 6: Pre-Commit - Validation ALWAYS Required
 
 **❌ FORBIDDEN:**
 - Committing without running pre-commit checks

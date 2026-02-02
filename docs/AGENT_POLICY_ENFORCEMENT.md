@@ -332,7 +332,97 @@ function MyComponent() {
 
 ---
 
-### Policy 6: Documentation - Audit Before Creating
+### Policy 6: Linting & Formatting - ALWAYS Fix Before Commit
+
+**❌ FORBIDDEN:**
+- Committing code with linting errors
+- Submitting PRs with formatting issues
+- Skipping auto-fix steps due to time pressure
+- Allowing CI/CD to fail on code quality issues
+
+**✅ REQUIRED - Before EVERY commit:**
+
+**Step 1: Auto-fix linting issues**
+```powershell
+# Fix all Python linting issues (Ruff)
+python -m ruff check backend/ frontend/scripts/ --fix
+
+# Check for remaining issues
+python -m ruff check backend/ frontend/scripts/
+# Should output: "All checks passed!"
+
+# Fix frontend formatting (Prettier)
+npm --prefix frontend run format
+
+# Type check (optional but recommended)
+npx tsc --noEmit --skipLibCheck
+```
+
+**Step 2: Run pre-commit validation**
+```powershell
+# Always run COMMIT_READY before committing
+.\COMMIT_READY.ps1 -Quick         # Minimum validation (2-3 min)
+# Only proceed if all checks pass
+
+# If COMMIT_READY fails:
+# 1. Read the error output carefully
+# 2. Fix the identified issues
+# 3. Re-run COMMIT_READY until it passes
+# 4. ONLY THEN commit
+```
+
+**Step 3: Commit with confidence**
+```powershell
+# After COMMIT_READY passes, commit safely
+git add <files>
+git commit -m "semantic: message"
+```
+
+**Common Issues & Fixes:**
+
+| Issue | Command | Result |
+|-------|---------|--------|
+| Unused imports | `python -m ruff check --fix` | Auto-removed |
+| Trailing spaces | `python -m ruff check --fix` | Auto-cleaned |
+| Line length | `python -m ruff check --fix` | Auto-fixed |
+| Formatting | `npm run format` (frontend) | Auto-formatted |
+| Type errors | `npx tsc --noEmit` | Display to fix manually |
+| Test failures | `.\RUN_TESTS_BATCH.ps1` | Read output and fix |
+
+**Why This Exists:**
+- CI/CD pipeline enforces code quality standards
+- Pre-commit hooks will block commits with linting errors
+- Production deployments require clean code
+- Saves hours of back-and-forth on code review
+- Prevents failed CI/CD runs that block deployments
+- Maintains consistent code style across team
+- Documented in: `docs/development/GIT_WORKFLOW.md`, `.github/workflows/`
+
+**Enforcement:** 
+- ✅ Pre-commit hooks auto-validate before commit
+- ✅ Ruff linter on Python files
+- ✅ Prettier on frontend files
+- ✅ ESLint on JavaScript/TypeScript
+- ✅ GitHub Actions CI/CD (blocks merge if failed)
+- ✅ COMMIT_READY.ps1 mandatory gate
+
+**Real Example - Today's Session:**
+```
+Before: 5 linting errors found
+  - 4 unused imports
+  - 1 unused variable
+
+Action: python -m ruff check --fix
+Result: Auto-fixed 4 issues
+        Manually fixed 1 issue
+        All checks passed!
+
+Commit: ✅ aafffa04b - style(linting): fix unused imports and variables
+```
+
+---
+
+### Policy 7: Documentation - Audit Before Creating
 
 **❌ FORBIDDEN:**
 - Creating docs without checking existing structure
@@ -355,7 +445,7 @@ function MyComponent() {
 
 ---
 
-### Policy 7: Work Verification - ALWAYS Check Uncommitted & Pending Tasks First
+### Policy 8: Work Verification - ALWAYS Check Uncommitted & Pending Tasks First
 
 **❌ FORBIDDEN:**
 - Starting new work without checking git status
@@ -399,7 +489,7 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 
 ---
 
-### Policy 8: State Snapshot - MANDATORY at Session Start and Before Claims
+### Policy 9: State Snapshot - MANDATORY at Session Start and Before Claims
 
 **Purpose:** Preserve evidence and prevent data/context loss under rate limits or long sessions by recording the current workspace state and validation artifacts.
 
@@ -412,7 +502,7 @@ git commit -m "WIP: feature description"  # OK for checkpoint
 ```powershell
 # Option A (recommended): COMMIT_READY quick validation with snapshot
 
-.\u005CCOMMIT_READY.ps1 -Quick -Snapshot
+.\COMMIT_READY.ps1 -Quick -Snapshot
 
 # Option B: VS Code Task
 
@@ -422,7 +512,8 @@ Tasks: Run Task → "Record State Snapshot"
 
 pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.ps1
 
-```text
+```
+
 **What Gets Recorded (artifacts/state):**
 - Version checks (VERSION vs frontend/package.json)
 - Git branch, commit, remotes, concise change list
@@ -436,6 +527,22 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 - CI/CD and pre-commit reviews require snapshot artifacts for claims
 - Missing snapshots will block "success" statements in reviews
 - Agents must reference the latest snapshot when summarizing work
+
+---
+
+### Policy 10: Session Start Instruction Review - MANDATORY for ALL Agents
+
+**✅ REQUIRED (every session, no exceptions):**
+1. Read `.github/copilot-instructions.md` and this document **at the start of every session**.
+2. Explicitly confirm compliance before doing any work.
+3. **Multi-agent requirement:** The primary agent must ensure **every subagent** is instructed to read and follow these policies before they begin tasks.
+
+**Why This Exists:**
+- Prevents policy drift across sessions
+- Ensures consistent behavior across multiple agents
+- Avoids repeated mistakes when context changes
+
+**Enforcement:** Any work started without this review is considered non-compliant.
 
 ---
 
@@ -509,9 +616,11 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 | Task | Correct Command | Forbidden |
 |------|----------------|-----------|
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
+| **Fix linting** | `python -m ruff check --fix` | Commit with linting errors |
+| **Format code** | `npm run format` (frontend) | Commit unformatted code |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
-| **Check version** | Read `VERSION` file (1.17.2) | Invent version numbers |
-| **Use version** | **ONLY `v1.x.x`** ($11.17.2) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
+| **Check version** | Read `VERSION` file (1.17.6) | Invent version numbers |
+| **Use version** | **ONLY `v1.x.x`** (v1.17.6) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |
