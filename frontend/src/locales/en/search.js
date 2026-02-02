@@ -78,6 +78,8 @@ export default {
     credits: 'Credits',
     gradeMin: 'Min Grade',
     gradeMax: 'Max Grade',
+    gradeDateFrom: 'Date from',
+    gradeDateTo: 'Date to',
     passed: 'Passed',
     studentId: 'Student ID',
     courseId: 'Course ID',
@@ -85,7 +87,10 @@ export default {
   },
   filters: {
     title: 'Filters',
-    custom: 'Custom Filters'
+    custom: 'Custom Filters',
+    byDateFrom: 'From',
+    byDateTo: 'To',
+    gradeDateHint: 'Use the date range above to filter historical grades.'
   },
   sort: {
     label: 'Sort by',

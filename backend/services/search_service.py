@@ -10,6 +10,7 @@ Version: 1.0.0
 """
 
 from typing import Optional, List, Dict, Any
+from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
 import logging
@@ -170,6 +171,7 @@ class SearchService:
         - grade_max: Maximum grade value
         - student_id: Filter by specific student
         - course_id: Filter by specific course
+        - date_from/date_to or date_assigned_from/date_assigned_to: Grade date range (YYYY-MM-DD)
 
         Args:
             query: Optional text search (student name or course name)
@@ -221,6 +223,22 @@ class SearchService:
 
             if "course_id" in filters and filters["course_id"] is not None:
                 grade_query = grade_query.filter(Grade.course_id == filters["course_id"])
+
+            date_from_value = filters.get("date_assigned_from", filters.get("date_from"))
+            if date_from_value:
+                try:
+                    date_from = datetime.strptime(str(date_from_value), "%Y-%m-%d").date()
+                    grade_query = grade_query.filter(Grade.date_assigned >= date_from)
+                except (ValueError, TypeError):
+                    pass
+
+            date_to_value = filters.get("date_assigned_to", filters.get("date_to"))
+            if date_to_value:
+                try:
+                    date_to = datetime.strptime(str(date_to_value), "%Y-%m-%d").date()
+                    grade_query = grade_query.filter(Grade.date_assigned <= date_to)
+                except (ValueError, TypeError):
+                    pass
 
             # Apply pagination and execute
             grades = grade_query.limit(limit).offset(offset).all()
@@ -436,6 +454,22 @@ class SearchService:
                 query = query.filter(Grade.grade >= passing_threshold)
             else:
                 query = query.filter(Grade.grade < passing_threshold)
+
+        date_from_value = filters.get("date_assigned_from", filters.get("date_from"))
+        if date_from_value:
+            try:
+                date_from = datetime.strptime(str(date_from_value), "%Y-%m-%d").date()
+                query = query.filter(Grade.date_assigned >= date_from)
+            except (ValueError, TypeError):
+                pass
+
+        date_to_value = filters.get("date_assigned_to", filters.get("date_to"))
+        if date_to_value:
+            try:
+                date_to = datetime.strptime(str(date_to_value), "%Y-%m-%d").date()
+                query = query.filter(Grade.date_assigned <= date_to)
+            except (ValueError, TypeError):
+                pass
 
         grades = query.limit(limit).offset(offset).all()
 
