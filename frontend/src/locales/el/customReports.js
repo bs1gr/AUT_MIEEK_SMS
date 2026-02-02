@@ -169,6 +169,28 @@ export default {
   template_chronic_absenteeism: 'Μερική Παρουσία',
   template_chronic_absenteeism_desc: 'Μαθητές με πολλαπλές απουσίες που απαιτούν προσοχή.',
 
+  // CSV Export Templates
+  template_student_roster_csv: 'Κατάλογος Μαθητών - Εξαγωγή CSV',
+  template_student_roster_csv_desc: 'Πλήρης κατάλογος μαθητών σε μορφή CSV για εισαγωγή/εξαγωγή δεδομένων',
+  template_course_grades_csv: 'Βαθμοί Μαθημάτων - Εξαγωγή CSV',
+  template_course_grades_csv_desc: 'Όλοι οι βαθμοί ανά μάθημα σε μορφή CSV',
+  template_attendance_csv: 'Αρχεία Παρουσιών - Εξαγωγή CSV',
+  template_attendance_csv_desc: 'Πλήρη αρχεία παρουσιών σε μορφή CSV',
+  template_enrollment_csv: 'Εγγραφές Μαθημάτων - Εξαγωγή CSV',
+  template_enrollment_csv_desc: 'Λεπτομέρειες εγγραφής μαθημάτων σε μορφή CSV',
+
+  // Detailed Analytics Templates
+  template_system_overview_analytics: 'Επισκόπηση Συστήματος - Λεπτομερή Ανάλυση',
+  template_system_overview_analytics_desc: 'Περιεκτικές στατιστικές συστήματος συμπεριλαμβανομένων μαθητών, μαθημάτων, εγγραφών και απόδοσης',
+  template_performance_by_year: 'Ανάλυση Απόδοσης - Κατά Έτος Σπουδών',
+  template_performance_by_year_desc: 'Απόδοση μαθητών χωρισμένη κατά έτος σπουδών με μετρήσεις GPA και παρουσιών',
+  template_top_performers_gpa: 'Κορυφαίες Επιδόσεις - Ανάλυση GPA',
+  template_top_performers_gpa_desc: 'Κορυφαίοι μαθητές κατά GPA με λεπτομέρειες μαθημάτων και παρουσιών',
+  template_enrollment_analytics: 'Ανάλυση Εγγραφών - Κατά Εξάμηνο',
+  template_enrollment_analytics_desc: 'Τάσεις εγγραφών ανά εξάμηνο και κατανομή μαθημάτων',
+  template_grade_distribution: 'Ανάλυση Κατανομής Βαθμών',
+  template_grade_distribution_desc: 'Στατιστική ανάλυση της κατανομής βαθμών σε όλα τα μαθήματα και μαθητές',
+
   // Generation
   generateReport: 'Δημιουργία Αναφοράς',
   generating: 'Δημιουργία...',
