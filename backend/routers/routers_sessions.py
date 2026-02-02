@@ -5,7 +5,7 @@ Provides endpoints to export/import complete semester/session data packages.
 
 import json
 import logging
-import re
+import string
 from datetime import datetime
 from io import BytesIO
 from typing import Any, Dict, List, Optional
@@ -27,6 +27,27 @@ router = APIRouter(
     tags=["Sessions"],
     responses={404: {"description": "Not found"}},
 )
+
+
+_ALLOWED_BACKUP_CHARS = set(string.ascii_letters + string.digits + "._-")
+_MAX_BACKUP_FILENAME_LENGTH = 128
+
+
+def is_safe_backup_filename(filename: str) -> bool:
+    """Return True if filename is a safe, simple .db filename (no paths)."""
+    if not filename or not filename.endswith(".db"):
+        return False
+
+    if len(filename) > _MAX_BACKUP_FILENAME_LENGTH:
+        return False
+
+    if ".." in filename or "/" in filename or "\\" in filename:
+        return False
+
+    if any(ch not in _ALLOWED_BACKUP_CHARS for ch in filename):
+        return False
+
+    return True
 
 
 # Validation helpers
@@ -675,14 +696,7 @@ async def rollback_import(request: Request, backup_filename: str):
         from backend.config import settings
 
         # Validate backup filename (security check - prevent path traversal)
-        # lgtm [py/polynomial-regex]: Regex pattern is simple and safe - only matches alphanumeric, dots, dashes, underscores
-        if (
-            not backup_filename.endswith(".db")
-            or ".." in backup_filename
-            or "/" in backup_filename
-            or "\\" in backup_filename
-            or not re.fullmatch(r"[A-Za-z0-9._-]+\.db", backup_filename)
-        ):
+        if not is_safe_backup_filename(backup_filename):
             raise http_error(
                 400,
                 ErrorCode.IMPORT_INVALID_REQUEST,

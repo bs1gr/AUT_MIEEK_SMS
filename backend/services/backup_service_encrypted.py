@@ -12,7 +12,6 @@ Features:
 """
 
 import json
-import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -22,6 +21,9 @@ from backend.services.encryption_service import EncryptionService
 
 class BackupServiceEncrypted:
     """Backup service with encryption support."""
+
+    _ALLOWED_BACKUP_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
+    _MAX_BACKUP_NAME_LENGTH = 128
 
     def __init__(self, backup_dir: Optional[Path] = None, enable_encryption: bool = True):
         """
@@ -44,6 +46,9 @@ class BackupServiceEncrypted:
         if not name:
             raise ValueError("Backup name is required")
 
+        if len(name) > BackupServiceEncrypted._MAX_BACKUP_NAME_LENGTH:
+            raise ValueError("Backup name is too long")
+
         # Disallow absolute paths and traversal segments
         if Path(name).is_absolute():
             raise ValueError("Backup name cannot be an absolute path")
@@ -54,11 +59,36 @@ class BackupServiceEncrypted:
         if Path(name).name != name:
             raise ValueError("Backup name cannot contain path separators")
 
-        # Allow only a conservative set of characters
-        if not re.fullmatch(r"[A-Za-z0-9._-]+", name):
+        # Allow only a conservative set of characters (avoid regex backtracking)
+        if any(ch not in BackupServiceEncrypted._ALLOWED_BACKUP_CHARS for ch in name):
             raise ValueError("Backup name contains invalid characters")
 
         return name
+
+    def _resolve_backup_path(self, backup_name: str, suffix: str, base_dir: Optional[Path] = None) -> Path:
+        """Resolve a backup path safely within the allowed directory."""
+        base_dir = base_dir or self.backup_dir
+        resolved_base = base_dir.resolve()
+        candidate = (resolved_base / f"{backup_name}{suffix}").resolve()
+
+        try:
+            candidate.relative_to(resolved_base)
+        except (ValueError, OSError):
+            raise ValueError("Backup path outside allowed directory")
+
+        return candidate
+
+    def _validate_output_path(self, output_path: Path) -> Path:
+        """Ensure output path resolves inside backup directory to prevent traversal."""
+        resolved_output = output_path.resolve()
+        resolved_backup_dir = self.backup_dir.resolve()
+
+        try:
+            resolved_output.relative_to(resolved_backup_dir)
+        except (ValueError, OSError):
+            raise ValueError("Output path outside allowed directory")
+
+        return resolved_output
 
     def create_encrypted_backup(
         self,
@@ -88,7 +118,7 @@ class BackupServiceEncrypted:
             backup_name = self._validate_backup_name(backup_name)
 
         # Create encrypted backup
-        backup_path = self.backup_dir / f"{backup_name}.enc"
+        backup_path = self._resolve_backup_path(backup_name, ".enc")
 
         # Prepare metadata
         if metadata is None:
@@ -111,7 +141,7 @@ class BackupServiceEncrypted:
         )
 
         # Save metadata
-        metadata_path = self.metadata_dir / f"{backup_name}.json"
+        metadata_path = self._resolve_backup_path(backup_name, ".json", base_dir=self.metadata_dir)
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
 
@@ -149,37 +179,18 @@ class BackupServiceEncrypted:
         backup_name = self._validate_backup_name(backup_name)
 
         # Build path using validated name only
-        safe_backup_filename = f"{backup_name}.enc"
-        backup_path = self.backup_dir / safe_backup_filename
-
-        # Additional safety: Ensure resolved path is within backup_dir
-        try:
-            resolved_backup = backup_path.resolve()
-            resolved_backup_dir = self.backup_dir.resolve()
-            resolved_backup.relative_to(resolved_backup_dir)
-        except (ValueError, OSError):
-            raise ValueError(f"Backup path outside allowed directory: {backup_name}")
-
-        # CodeQL [python/path-injection] - backup_path is sanitized via _validate_backup_name and directory constraint
-        backup_path = resolved_backup
+        backup_path = self._resolve_backup_path(backup_name, ".enc")
 
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")
 
         # Validate output_path to ensure it can be safely written
-        # Security: Prevent path traversal attacks by validating the path
-        try:
-            resolved_output = output_path.resolve()
-            # Validate path doesn't contain suspicious patterns
-            if ".." in str(resolved_output):
-                raise ValueError("Path traversal detected (..)")
-        except (ValueError, OSError) as e:
-            raise ValueError(f"Invalid output path: {e}")
+        resolved_output = self._validate_output_path(output_path)
 
-        # Ensure parent directories exist so restore can succeed anywhere the caller specifies
+        # Ensure parent directories exist so restore can succeed within backup dir
         resolved_output.parent.mkdir(parents=True, exist_ok=True)
 
-        # lgtm [py/path-injection]: output_path is validated above to prevent path traversal
+        # lgtm [py/path-injection]: output_path is validated via directory bounds checks
         # CodeQL [python/path-injection] - paths are sanitized via validation and resolution
         sanitized_output = resolved_output
 
@@ -254,8 +265,8 @@ class BackupServiceEncrypted:
             Dictionary with deletion information
         """
         backup_name = self._validate_backup_name(backup_name)
-        backup_path = self.backup_dir / f"{backup_name}.enc"
-        metadata_path = self.metadata_dir / f"{backup_name}.json"
+        backup_path = self._resolve_backup_path(backup_name, ".enc")
+        metadata_path = self._resolve_backup_path(backup_name, ".json", base_dir=self.metadata_dir)
 
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")
@@ -284,7 +295,7 @@ class BackupServiceEncrypted:
             Dictionary with verification results
         """
         backup_name = self._validate_backup_name(backup_name)
-        backup_path = self.backup_dir / f"{backup_name}.enc"
+        backup_path = self._resolve_backup_path(backup_name, ".enc")
 
         if not backup_path.exists():
             raise FileNotFoundError(f"Backup not found: {backup_path}")
