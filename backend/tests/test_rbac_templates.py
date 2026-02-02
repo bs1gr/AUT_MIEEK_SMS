@@ -57,36 +57,28 @@ def test_001_permission_check_allows_authorized_user(db):
     assert has_permission(user, "students:view", db) is True
 
 
-def test_002_permission_check_denies_unauthorized_user(db):
+def test_002_permission_check_denies_unauthorized_user(db, monkeypatch):
     """User without permission should be denied."""
-    # Create user without any permissions (override default role)
-    user = User(email="unauthorized@test.com", hashed_password="dummy", is_active=True)
-    user.role = None  # Override model default
+    # Create user with 'none' role (not in default permissions list)
+    user = User(email="unauthorized@test.com", hashed_password="dummy", is_active=True, role="none")
     db.add(user)
     db.commit()
     db.refresh(user)
 
     # Test permission check (force permissive mode)
-    import backend.config
-    original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
-    backend.config.settings.AUTH_MODE = "permissive"
-
-    try:
-        assert has_permission(user, "students:edit", db) is False
-    finally:
-        backend.config.settings.AUTH_MODE = original_auth
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+    assert has_permission(user, "students:edit", db) is False
 
 
-def test_003_permission_check_denies_inactive_permission(db):
+def test_003_permission_check_denies_inactive_permission(db, monkeypatch):
     """Inactive permission should not grant access."""
     # Create inactive permission
     perm = create_permission(db, "students:delete", is_active=False)
     db.add(perm)
     db.flush()
 
-    # Create user and grant the inactive permission
-    user = User(email="user@test.com", hashed_password="dummy", is_active=True)
-    user.role = None  # Override model default
+    # Create user with 'none' role and grant the inactive permission
+    user = User(email="user@test.com", hashed_password="dummy", is_active=True, role="none")
     db.add(user)
     db.flush()
 
@@ -95,14 +87,8 @@ def test_003_permission_check_denies_inactive_permission(db):
     db.commit()
 
     # Force permissive mode
-    import backend.config
-    original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
-    backend.config.settings.AUTH_MODE = "permissive"
-
-    try:
-        assert has_permission(user, "students:delete", db) is False
-    finally:
-        backend.config.settings.AUTH_MODE = original_auth
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+    assert has_permission(user, "students:delete", db) is False
 
 
 def test_004_permission_check_denies_expired_permission(db):
@@ -331,15 +317,14 @@ def test_012_require_permission_allows_authorized_user(client, db):
     assert response.json()["status"] == "ok"
 
 
-def test_013_require_permission_denies_unauthorized_user(client, clean_db):
+def test_013_require_permission_denies_unauthorized_user(clean_db, monkeypatch):
     """Decorator returns 403 when permission missing."""
     from fastapi import APIRouter, Request
     from backend.rbac import require_permission
     from backend.db import get_session
 
     # Create user WITHOUT permission
-    user = User(email="denied@test.com", hashed_password="dummy", is_active=True)
-    user.role = None  # Override model default
+    user = User(email="denied@test.com", hashed_password="dummy", is_active=True, role="none")
     clean_db.add(user)
     clean_db.commit()
     clean_db.refresh(user)
@@ -355,25 +340,27 @@ def test_013_require_permission_denies_unauthorized_user(client, clean_db):
     # Add to app
     from backend.app_factory import create_app
     app = create_app()
+
+    # Override get_session to use test database
+    def override_get_session():
+        yield clean_db
+    app.dependency_overrides[get_session] = override_get_session
+
     app.include_router(router)
 
-    # Test with unauthorized user token (force permissive mode)
-    import backend.config
-    original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
-    backend.config.settings.AUTH_MODE = "permissive"
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
 
-    try:
-        from backend.routers.routers_auth import create_access_token
-        token = create_access_token(subject=user.email, role=user.role)
+    from backend.routers.routers_auth import create_access_token
+    token = create_access_token(subject=user.email, role=user.role)
 
-        from starlette.testclient import TestClient
-        test_client = TestClient(app)
-        response = test_client.get("/protected-endpoint", headers={"Authorization": f"Bearer {token}"})
+    from starlette.testclient import TestClient
+    test_client = TestClient(app)
+    response = test_client.get("/protected-endpoint", headers={"Authorization": f"Bearer {token}"})
 
-        assert response.status_code == 403
-        assert "Permission denied" in response.json()["detail"]
-    finally:
-        backend.config.settings.AUTH_MODE = original_auth
+    assert response.status_code == 403
+    data = response.json()
+    assert "error" in data
+    assert "admin" in data["error"]["message"].lower() or "permission" in data["error"]["message"].lower()
 
 
 @pytest.mark.skip(reason="Request ID logging not yet implemented in decorator")
@@ -519,15 +506,14 @@ def test_030_seed_script_restores_missing_role_permission(db):
 # ============================================================================
 
 
-def test_031_permission_denied_returns_standard_error_payload(client, clean_db):
+def test_031_permission_denied_returns_standard_error_payload(client, clean_db, monkeypatch):
     """API should return standardized error payload on 403 permission denial."""
     from fastapi import APIRouter, Request
     from backend.rbac import require_permission
     from backend.db import get_session
 
-    # Create user without permission
-    user = User(email="noauth@test.com", hashed_password="dummy", is_active=True)
-    user.role = None  # Override model default
+    # Create user without permission (role='none' has no default perms)
+    user = User(email="noauth@test.com", hashed_password="dummy", is_active=True, role="none")
     clean_db.add(user)
     clean_db.commit()
     clean_db.refresh(user)
@@ -542,36 +528,39 @@ def test_031_permission_denied_returns_standard_error_payload(client, clean_db):
 
     from backend.app_factory import create_app
     app = create_app()
+
+    # Override get_session to use test database
+    def override_get_session():
+        yield clean_db
+    app.dependency_overrides[get_session] = override_get_session
+
     app.include_router(router)
 
     # Force permissive mode
-    import backend.config
-    original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
-    backend.config.settings.AUTH_MODE = "permissive"
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
 
-    try:
-        from backend.routers.routers_auth import create_access_token
-        token = create_access_token(subject=user.email, role=user.role)
+    from backend.routers.routers_auth import create_access_token
+    token = create_access_token(subject=user.email, role=user.role)
 
-        from starlette.testclient import TestClient
-        test_client = TestClient(app)
-        response = test_client.get("/api-test", headers={"Authorization": f"Bearer {token}"})
+    from starlette.testclient import TestClient
+    test_client = TestClient(app)
+    response = test_client.get("/api-test", headers={"Authorization": f"Bearer {token}"})
 
-        assert response.status_code == 403
-        data = response.json()
-        assert "detail" in data
-    finally:
-        backend.config.settings.AUTH_MODE = original_auth
+    assert response.status_code == 403
+    data = response.json()
+    # Check standardized error response format
+    assert "error" in data
+    assert data["success"] is False
+    assert "message" in data["error"]
 
 
-def test_032_permission_denied_includes_permission_name(client, clean_db):
+def test_032_permission_denied_includes_permission_name(client, clean_db, monkeypatch):
     """Error response should include the missing permission name."""
     from fastapi import APIRouter, Request
     from backend.rbac import require_permission
     from backend.db import get_session
 
-    user = User(email="user2@test.com", hashed_password="dummy", is_active=True)
-    user.role = None  # Override model default
+    user = User(email="user2@test.com", hashed_password="dummy", is_active=True, role="none")
     clean_db.add(user)
     clean_db.commit()
     clean_db.refresh(user)
@@ -585,25 +574,27 @@ def test_032_permission_denied_includes_permission_name(client, clean_db):
 
     from backend.app_factory import create_app
     app = create_app()
+
+    # Override get_session to use test database
+    def override_get_session():
+        yield clean_db
+    app.dependency_overrides[get_session] = override_get_session
+
     app.include_router(router)
 
-    import backend.config
-    original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
-    backend.config.settings.AUTH_MODE = "permissive"
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
 
-    try:
-        from backend.routers.routers_auth import create_access_token
-        token = create_access_token(subject=user.email, role=user.role)
+    from backend.routers.routers_auth import create_access_token
+    token = create_access_token(subject=user.email, role=user.role)
 
-        from starlette.testclient import TestClient
-        test_client = TestClient(app)
-        response = test_client.get("/check-perm", headers={"Authorization": f"Bearer {token}"})
+    from starlette.testclient import TestClient
+    test_client = TestClient(app)
+    response = test_client.get("/check-perm", headers={"Authorization": f"Bearer {token}"})
 
-        assert response.status_code == 403
-        detail = response.json()["detail"]
-        assert "special:access" in detail
-    finally:
-        backend.config.settings.AUTH_MODE = original_auth
+    assert response.status_code == 403
+    data = response.json()
+    assert "error" in data
+    assert "special:access" in data["error"]["message"]
 
 
 @pytest.mark.skip(reason="Request ID not yet in error meta")
@@ -765,10 +756,10 @@ def test_039_permission_lookup_handles_soft_deleted_user(db):
     assert isinstance(result, bool)
 
 
-def test_040_permission_lookup_ignores_inactive_role_permission(db):
-    """Inactive role-permission links should be ignored."""
-    # Create permission and role
-    perm = create_permission(db, "inactive:link")
+def test_040_permission_lookup_ignores_inactive_permissions(db, monkeypatch):
+    """Inactive permissions should not grant access even with role assignment."""
+    # Create INACTIVE permission and role
+    perm = create_permission(db, "inactive:link", is_active=False)
     db.add(perm)
     db.flush()
 
@@ -776,14 +767,13 @@ def test_040_permission_lookup_ignores_inactive_role_permission(db):
     db.add(role)
     db.flush()
 
-    # Create INACTIVE role-permission link
+    # Create role-permission link (permission itself is inactive)
     role_perm = RolePermission(role_id=role.id, permission_id=perm.id)
     db.add(role_perm)
     db.flush()
 
-    # Create user with role
-    user = User(email="inactive_test@test.com", hashed_password="dummy", is_active=True)
-    user.role = None  # Override model default
+    # Create user with 'none' role and assign RBAC role
+    user = User(email="inactive_test@test.com", hashed_password="dummy", is_active=True, role="none")
     db.add(user)
     db.flush()
 
@@ -792,15 +782,10 @@ def test_040_permission_lookup_ignores_inactive_role_permission(db):
     db.commit()
 
     # Force permissive mode
-    import backend.config
-    original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
-    backend.config.settings.AUTH_MODE = "permissive"
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
 
-    try:
-        # Should NOT have permission (link is inactive)
-        assert has_permission(user, "inactive:link", db) is False
-    finally:
-        backend.config.settings.AUTH_MODE = original_auth
+    # Should NOT have permission (permission.is_active=False)
+    assert has_permission(user, "inactive:link", db) is False
 
 
 def test_041_permission_lookup_considers_user_permission_expiry(db):
