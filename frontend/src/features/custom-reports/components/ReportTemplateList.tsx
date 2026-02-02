@@ -189,7 +189,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
               );
             }}
             onDelete={() => {
-              if (window.confirm(t(confirmDelete', { ns: 'customReports' }))) {
+              if (window.confirm(t('confirmDelete', { ns: 'customReports' }))) {
                 deleteMutation.mutate(template.id);
               }
             }}
@@ -272,15 +272,15 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
         <TabsContent value="standard" className="space-y-4">
           {renderTemplateGrid(
             standardTemplates,
-            t(noStandardTemplates', { ns: 'customReports' })
+            t('noStandardTemplates', { ns: 'customReports' })
           )}
         </TabsContent>
 
         <TabsContent value="my" className="space-y-4">
           {renderTemplateGrid(
             userTemplates,
-            t(noMyTemplates', { ns: 'customReports' }),
-            t(addTemplateFromReports', { ns: 'customReports' }),
+            t('noMyTemplates', { ns: 'customReports' }),
+            t('addTemplateFromReports', { ns: 'customReports' }),
             () => {
               window.location.href = '/operations/reports';
             }
@@ -290,8 +290,8 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
         <TabsContent value="shared" className="space-y-4">
           {renderTemplateGrid(
             sharedTemplates,
-            t(noSharedTemplates', { ns: 'customReports' }),
-            t(addTemplateFromReports', { ns: 'customReports' }),
+            t('noSharedTemplates', { ns: 'customReports' }),
+            t('addTemplateFromReports', { ns: 'customReports' }),
             () => {
               window.location.href = '/operations/reports';
             }
