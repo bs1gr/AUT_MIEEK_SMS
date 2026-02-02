@@ -69,6 +69,44 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
     titleKey: 'template_chronic_absenteeism',
     descKey: 'template_chronic_absenteeism_desc',
   },
+  // CSV Export Templates
+  'Student Roster - CSV Export': {
+    titleKey: 'template_student_roster_csv',
+    descKey: 'template_student_roster_csv_desc',
+  },
+  'Course Grades - CSV Export': {
+    titleKey: 'template_course_grades_csv',
+    descKey: 'template_course_grades_csv_desc',
+  },
+  'Attendance Records - CSV Export': {
+    titleKey: 'template_attendance_csv',
+    descKey: 'template_attendance_csv_desc',
+  },
+  'Course Enrollment - CSV Export': {
+    titleKey: 'template_enrollment_csv',
+    descKey: 'template_enrollment_csv_desc',
+  },
+  // Detailed Analytics Templates
+  'System Overview - Detailed Analytics': {
+    titleKey: 'template_system_overview_analytics',
+    descKey: 'template_system_overview_analytics_desc',
+  },
+  'Performance Analytics - By Study Year': {
+    titleKey: 'template_performance_by_year',
+    descKey: 'template_performance_by_year_desc',
+  },
+  'Top Performers - GPA Analytics': {
+    titleKey: 'template_top_performers_gpa',
+    descKey: 'template_top_performers_gpa_desc',
+  },
+  'Enrollment Analytics - By Semester': {
+    titleKey: 'template_enrollment_analytics',
+    descKey: 'template_enrollment_analytics_desc',
+  },
+  'Grade Distribution Analytics': {
+    titleKey: 'template_grade_distribution',
+    descKey: 'template_grade_distribution_desc',
+  },
 };
 
 type TemplateLike = Pick<ReportTemplate, 'name' | 'description' | 'is_system'>;

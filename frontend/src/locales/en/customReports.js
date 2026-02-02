@@ -171,6 +171,28 @@ export default {
   template_chronic_absenteeism: 'Partial Attendance',
   template_chronic_absenteeism_desc: 'Students with multiple absences requiring attention.',
 
+  // CSV Export Templates
+  template_student_roster_csv: 'Student Roster - CSV Export',
+  template_student_roster_csv_desc: 'Complete student roster in CSV format for data import/export',
+  template_course_grades_csv: 'Course Grades - CSV Export',
+  template_course_grades_csv_desc: 'All grades by course in CSV format',
+  template_attendance_csv: 'Attendance Records - CSV Export',
+  template_attendance_csv_desc: 'Complete attendance records in CSV format',
+  template_enrollment_csv: 'Course Enrollment - CSV Export',
+  template_enrollment_csv_desc: 'Course enrollment details in CSV format',
+
+  // Detailed Analytics Templates
+  template_system_overview_analytics: 'System Overview - Detailed Analytics',
+  template_system_overview_analytics_desc: 'Comprehensive system statistics including students, courses, enrollment and performance',
+  template_performance_by_year: 'Performance Analytics - By Study Year',
+  template_performance_by_year_desc: 'Student performance broken down by year of study with GPA and attendance metrics',
+  template_top_performers_gpa: 'Top Performers - GPA Analytics',
+  template_top_performers_gpa_desc: 'Top performing students by GPA with course and attendance details',
+  template_enrollment_analytics: 'Enrollment Analytics - By Semester',
+  template_enrollment_analytics_desc: 'Semester-based enrollment trends and course distribution',
+  template_grade_distribution: 'Grade Distribution Analytics',
+  template_grade_distribution_desc: 'Statistical analysis of grade distribution across courses and students',
+
   // Generation
   generateReport: 'Generate Report',
   generating: 'Generating...',
