@@ -166,9 +166,9 @@ export default {
   template_at_risk_students_low_grades_desc: 'Students with grades below 60 requiring academic intervention.',
   template_attendance_summary_all: 'Attendance Summary - All Students',
   template_attendance_summary_all_desc: 'Comprehensive attendance statistics for all students.',
-  template_perfect_attendance: 'Perfect Attendance',
+  template_perfect_attendance: 'Full Attendance',
   template_perfect_attendance_desc: 'Students with 100% attendance record.',
-  template_chronic_absenteeism: 'Chronic Absenteeism',
+  template_chronic_absenteeism: 'Partial Attendance',
   template_chronic_absenteeism_desc: 'Students with multiple absences requiring attention.',
 
   // Generation

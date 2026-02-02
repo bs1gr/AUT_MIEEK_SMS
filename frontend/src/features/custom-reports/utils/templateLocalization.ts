@@ -51,11 +51,11 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
     titleKey: 'template_attendance_summary_all',
     descKey: 'template_attendance_summary_all_desc',
   },
-  'Perfect Attendance': {
+  'Full Attendance': {
     titleKey: 'template_perfect_attendance',
     descKey: 'template_perfect_attendance_desc',
   },
-  'Chronic Absenteeism': {
+  'Partial Attendance': {
     titleKey: 'template_chronic_absenteeism',
     descKey: 'template_chronic_absenteeism_desc',
   },
