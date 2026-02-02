@@ -85,7 +85,6 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
   const [showPeriodBreakdown, setShowPeriodBreakdown] = useState(false);
   const todayStr = formatLocalDate(new Date());
-  const isHistoricalMode = Boolean(selectedDateStr && selectedDateStr !== todayStr);
 
   // Request deduplication - prevent concurrent duplicate requests
   const activeRequestsRef = useRef<Set<string>>(new Set());
@@ -102,6 +101,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     [dayNamesShort, language]
   );
   const selectedDateStr = useMemo(() => selectedDate ? formatLocalDate(selectedDate) : '', [selectedDate]);
+  const isHistoricalMode = Boolean(selectedDateStr && selectedDateStr !== todayStr);
   const fullDayNames = useMemo(() => ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], []);
 
   const getWeekdayIndex = (d: Date) => {
