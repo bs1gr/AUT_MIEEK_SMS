@@ -8,6 +8,10 @@ on:
   schedule:
     - cron: '0 2 * * *'  # Nightly at 02:00 UTC
 
+concurrency:
+  group: markdown-lint-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   markdown-lint:
     runs-on: ubuntu-latest
