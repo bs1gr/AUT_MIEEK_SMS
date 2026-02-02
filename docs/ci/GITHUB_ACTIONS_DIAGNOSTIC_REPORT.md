@@ -14,7 +14,7 @@ This diagnostic captures the **Dec 2025** state. Since then, multiple CI/CD fixe
 - **E2E tests**: added Playwright dependency install, DB migration + seed checks, backend health checks, and diagnostics before tests.
 - **CI/CD pipeline**: expanded environment setup and added more structured phases (lint → tests → smoke → build).
 
-✅ **Action taken:** workflow fixes are already merged.  
+✅ **Action taken:** workflow fixes are already merged.
 ⚠️ **Pending verification:** a new CI run should be used to validate green status (not executed in this session).
 
 ---
