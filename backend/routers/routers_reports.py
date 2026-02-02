@@ -681,7 +681,7 @@ async def download_student_performance_report(
     # Generate format-specific response
     if report_request.format == ReportFormat.PDF:
         try:
-            pdf_bytes = generate_pdf_report(report_data)
+            pdf_bytes = generate_pdf_report(report_data, report_request.language)
             filename = f"student_performance_{student.id}_{start_date}_{end_date}.pdf"
             return Response(
                 content=pdf_bytes,
@@ -695,7 +695,7 @@ async def download_student_performance_report(
             ) from e
 
     elif report_request.format == ReportFormat.CSV:
-        csv_string = generate_csv_report(report_data)
+        csv_string = generate_csv_report(report_data, report_request.language)
         filename = f"student_performance_{student.id}_{start_date}_{end_date}.csv"
         return Response(
             content=csv_string,

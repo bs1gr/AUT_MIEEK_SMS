@@ -26,7 +26,70 @@ except ImportError:
     Flowable = Any  # type: ignore
 
 
-def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
+# Translation dictionaries for report labels
+REPORT_LABELS = {
+    "en": {
+        "title": "Student Performance Report",
+        "student_name": "Student Name:",
+        "email": "Email:",
+        "report_period": "Report Period:",
+        "date_range": "Date Range:",
+        "generated": "Generated:",
+        "attendance_summary": "Attendance Summary",
+        "grades_summary": "Grades Summary",
+        "metric": "Metric",
+        "value": "Value",
+        "attendance_rate": "Attendance Rate",
+        "total_days": "Total Days",
+        "present": "Present",
+        "absent": "Absent",
+        "unexcused_absences": "Unexcused Absences",
+        "average_grade": "Average Grade",
+        "total_assignments": "Total Assignments",
+        "highest_grade": "Highest Grade",
+        "lowest_grade": "Lowest Grade",
+        "trend": "Trend",
+        "course_breakdown": "Course-by-Course Breakdown",
+        "course_code": "Course Code",
+        "course_title": "Course Title",
+        "recommendations": "Recommendations",
+    },
+    "el": {
+        "title": "Αναφορά Απόδοσης Μαθητή",
+        "student_name": "Όνομα Μαθητή:",
+        "email": "Email:",
+        "report_period": "Περίοδος Αναφοράς:",
+        "date_range": "Εύρος Ημερομηνιών:",
+        "generated": "Δημιουργήθηκε:",
+        "attendance_summary": "Σύνοψη Παρουσιών",
+        "grades_summary": "Σύνοψη Βαθμών",
+        "metric": "Μέτρο",
+        "value": "Τιμή",
+        "attendance_rate": "Ποσοστό Παρουσιών",
+        "total_days": "Συνολικές Ημέρες",
+        "present": "Παρών",
+        "absent": "Απών",
+        "unexcused_absences": "Αδικαιολόγητες Απουσίες",
+        "average_grade": "Μέσος Βαθμός",
+        "total_assignments": "Συνολικές Εργασίες",
+        "highest_grade": "Υψηλότερος Βαθμός",
+        "lowest_grade": "Χαμηλότερος Βαθμός",
+        "trend": "Τάση",
+        "course_breakdown": "Ανάλυση ανά Μάθημα",
+        "course_code": "Κωδικός Μαθήματος",
+        "course_title": "Τίτλος Μαθήματος",
+        "recommendations": "Συστάσεις",
+    }
+}
+
+
+def get_label(key: str, language: str = "en") -> str:
+    """Get translated label for given key and language."""
+    lang_dict = REPORT_LABELS.get(language, REPORT_LABELS["en"])
+    return lang_dict.get(key, key)
+
+
+def generate_pdf_report(report_data: Dict[str, Any], language: str = "en") -> bytes:
     """
     Generate PDF report from report data.
 
@@ -70,16 +133,16 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
     normal_style = styles["Normal"]
 
     # Title
-    elements.append(Paragraph("Student Performance Report", title_style))
+    elements.append(Paragraph(get_label("title", language), title_style))
     elements.append(Spacer(1, 0.2 * inch))
 
     # Student Information
     student_info_data = [
-        ["Student Name:", report_data.get("student_name", "N/A")],
-        ["Email:", report_data.get("student_email", "N/A")],
-        ["Report Period:", report_data.get("report_period", "N/A")],
-        ["Date Range:", f"{report_data.get('start_date', 'N/A')} to {report_data.get('end_date', 'N/A')}"],
-        ["Generated:", date.today().strftime("%Y-%m-%d")],
+        [get_label("student_name", language), report_data.get("student_name", "N/A")],
+        [get_label("email", language), report_data.get("student_email", "N/A")],
+        [get_label("report_period", language), report_data.get("report_period", "N/A")],
+        [get_label("date_range", language), f"{report_data.get('start_date', 'N/A')} to {report_data.get('end_date', 'N/A')}"],
+        [get_label("generated", language), date.today().strftime("%Y-%m-%d")],
     ]
 
     student_table = Table(student_info_data, colWidths=[2 * inch, 4 * inch])
@@ -102,15 +165,15 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
 
     # Overall Attendance Summary
     if report_data.get("overall_attendance"):
-        elements.append(Paragraph("Attendance Summary", heading_style))
+        elements.append(Paragraph(get_label("attendance_summary", language), heading_style))
         att = report_data["overall_attendance"]
         att_data = [
-            ["Metric", "Value"],
-            ["Attendance Rate", f"{att.get('attendance_rate', 0):.1f}%"],
-            ["Total Days", str(att.get("total_days", 0))],
-            ["Present", str(att.get("present", 0))],
-            ["Absent", str(att.get("absent", 0))],
-            ["Unexcused Absences", str(att.get("unexcused_absences", 0))],
+            [get_label("metric", language), get_label("value", language)],
+            [get_label("attendance_rate", language), f"{att.get('attendance_rate', 0):.1f}%"],
+            [get_label("total_days", language), str(att.get("total_days", 0))],
+            [get_label("present", language), str(att.get("present", 0))],
+            [get_label("absent", language), str(att.get("absent", 0))],
+            [get_label("unexcused_absences", language), str(att.get("unexcused_absences", 0))],
         ]
 
         att_table = Table(att_data, colWidths=[3 * inch, 3 * inch])
@@ -134,15 +197,15 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
 
     # Overall Grades Summary
     if report_data.get("overall_grades"):
-        elements.append(Paragraph("Grades Summary", heading_style))
+        elements.append(Paragraph(get_label("grades_summary", language), heading_style))
         grades = report_data["overall_grades"]
         grades_data = [
-            ["Metric", "Value"],
-            ["Average Grade", f"{grades.get('average_percentage', 0):.1f}%"],
-            ["Total Assignments", str(grades.get("total_assignments", 0))],
-            ["Highest Grade", f"{grades.get('highest_grade', 0):.1f}"],
-            ["Lowest Grade", f"{grades.get('lowest_grade', 0):.1f}"],
-            ["Trend", grades.get("grade_trend", "N/A").capitalize()],
+            [get_label("metric", language), get_label("value", language)],
+            [get_label("average_grade", language), f"{grades.get('average_percentage', 0):.1f}%"],
+            [get_label("total_assignments", language), str(grades.get("total_assignments", 0))],
+            [get_label("highest_grade", language), f"{grades.get('highest_grade', 0):.1f}"],
+            [get_label("lowest_grade", language), f"{grades.get('lowest_grade', 0):.1f}"],
+            [get_label("trend", language), grades.get("grade_trend", "N/A").capitalize()],
         ]
 
         grades_table = Table(grades_data, colWidths=[3 * inch, 3 * inch])
@@ -201,7 +264,7 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
 
     # Recommendations
     if report_data.get("recommendations"):
-        elements.append(Paragraph("Recommendations", heading_style))
+        elements.append(Paragraph(get_label("recommendations", language), heading_style))
         for rec in report_data["recommendations"]:
             elements.append(Paragraph(f"• {rec}", normal_style))
         elements.append(Spacer(1, 0.2 * inch))
@@ -224,12 +287,13 @@ def generate_pdf_report(report_data: Dict[str, Any]) -> bytes:
     return pdf_bytes
 
 
-def generate_csv_report(report_data: Dict[str, Any]) -> str:
+def generate_csv_report(report_data: Dict[str, Any], language: str = "en") -> str:
     """
     Generate CSV report from report data.
 
     Args:
         report_data: StudentPerformanceReport data as dict
+        language: Language for report output (en or el)
 
     Returns:
         CSV string
@@ -238,13 +302,13 @@ def generate_csv_report(report_data: Dict[str, Any]) -> str:
     writer = csv.writer(output)
 
     # Header
-    writer.writerow(["Student Performance Report"])
+    writer.writerow([get_label("title", language)])
     writer.writerow([])
 
     # Student Information
     writer.writerow(["Student Information"])
-    writer.writerow(["Name", report_data.get("student_name", "N/A")])
-    writer.writerow(["Email", report_data.get("student_email", "N/A")])
+    writer.writerow([get_label("student_name", language), report_data.get("student_name", "N/A")])
+    writer.writerow([get_label("email", language), report_data.get("student_email", "N/A")])
     writer.writerow(["Report Period", report_data.get("report_period", "N/A")])
     writer.writerow(["Start Date", report_data.get("start_date", "N/A")])
     writer.writerow(["End Date", report_data.get("end_date", "N/A")])

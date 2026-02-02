@@ -144,7 +144,8 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         include_grades: config.includeGrades,
         include_performance: config.includePerformance,
         include_highlights: config.includeHighlights,
-        format: config.format
+        format: config.format,
+        language: langContext.language
       };
       const response = await reportsAPI.generateStudentReport(reportRequest);
       setReport(response.data);
@@ -171,7 +172,8 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         include_grades: config.includeGrades,
         include_performance: config.includePerformance,
         include_highlights: config.includeHighlights,
-        format: format
+        format: format,
+        language: langContext.language
       };
       const response = await reportsAPI.downloadStudentReport(reportRequest);
 

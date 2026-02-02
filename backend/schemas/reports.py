@@ -43,6 +43,7 @@ class PerformanceReportRequest(BaseModel):
     include_attendance: bool = Field(True, description="Include attendance information")
     include_daily_performance: bool = Field(True, description="Include daily performance scores")
     include_highlights: bool = Field(True, description="Include semester highlights")
+    language: str = Field("en", description="Language for report output (en or el)")
 
 
 class PerformanceSummary(BaseModel):
