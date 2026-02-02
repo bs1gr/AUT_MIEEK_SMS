@@ -51,6 +51,9 @@ export default {
   entity_grades: 'Βαθμοί',
   entity_attendance: 'Παρουσίες',
   entity_enrollments: 'Εγγραφές',
+  entity_student: 'Μαθητής',
+  entity_course: 'Μάθημα',
+  entity_grade: 'Βαθμός',
 
   // Output formats
   format_pdf: 'Έγγραφο PDF',
@@ -64,8 +67,9 @@ export default {
   removeField: 'Αφαίρεση',
   reorderFields: 'Σύρετε για αναδιάταξη',
   fieldName: 'Όνομα Πεδίου',
-  fieldLabel: 'Προσαρμοσμένη Ετικέτα',
-
+  fieldLabel: 'Προσαρμοσμένη Ετικέτα',  noFields: 'Δεν υπάρχουν διαθέσιμα πεδία',
+  moveUp: 'Μετακίνηση Προς Τα Πάνω',
+  moveDown: 'Μετακίνηση Προς Τα Κάτω',
   // Filters
   addFilter: 'Προσθήκη Φίλτρου',
   filterField: 'Πεδίο',
@@ -87,6 +91,7 @@ export default {
   // Sorting
   sortBy: 'Ταξινόμηση Κατά',
   sortOrder: 'Σειρά',
+  sortingOrder: 'Σειρά Ταξινόμησης',
   ascending: 'Αύξουσα',
   descending: 'Φθίνουσα',
   addSort: 'Προσθήκη Κανόνα Ταξινόμησης',
@@ -135,6 +140,34 @@ export default {
   template_student_transcript_desc: 'Πλήρης ακαδημαϊκή βαθμολογία',
   template_attendance_alerts: 'Ειδοποιήσεις Παρουσιών',
   template_attendance_alerts_desc: 'Μαθητές με ανησυχητικά μοτίβα παρουσιών',
+
+  // Seeded system templates (backend)
+  template_student_roster_complete: 'Κατάλογος Μαθητών - Πλήρης',
+  template_student_roster_complete_desc: 'Πλήρης κατάλογος μαθητών με στοιχεία επικοινωνίας, ημερομηνίες εγγραφής και ακαδημαϊκή κατάσταση.',
+  template_active_students_basic: 'Ενεργοί Μαθητές - Βασικά Στοιχεία',
+  template_active_students_basic_desc: 'Γρήγορη λίστα ενεργών μαθητών με βασικά στοιχεία επικοινωνίας.',
+  template_students_by_year: 'Μαθητές ανά Έτος Σπουδών',
+  template_students_by_year_desc: 'Κατανομή μαθητών ανά έτος σπουδών με στατιστικά εγγραφών.',
+  template_new_enrollments: 'Νέες Εγγραφές - Τρέχον Εξάμηνο',
+  template_new_enrollments_desc: 'Πρόσφατες εγγραφές εντός των τελευταίων 90 ημερών.',
+  template_course_catalog: 'Κατάλογος Μαθημάτων - Όλα τα Μαθήματα',
+  template_course_catalog_desc: 'Πλήρης κατάλογος μαθημάτων με περιγραφές, πιστωτικές μονάδες και πρόγραμμα.',
+  template_active_courses_by_semester: 'Ενεργά Μαθήματα ανά Εξάμηνο',
+  template_active_courses_by_semester_desc: 'Ενεργά μαθήματα οργανωμένα ανά εξάμηνο.',
+  template_grade_distribution_all: 'Κατανομή Βαθμών - Όλα τα Μαθήματα',
+  template_grade_distribution_all_desc: 'Στατιστική ανάλυση κατανομής βαθμών σε όλα τα μαθήματα.',
+  template_student_transcript_complete: 'Αναλυτική Βαθμολογία Μαθητή - Πλήρης',
+  template_student_transcript_complete_desc: 'Πλήρης αναλυτική βαθμολογία με όλους τους βαθμούς ανά μάθημα και εξάμηνο.',
+  template_honor_roll_high_achievers: 'Πίνακας Αριστείας - Υψηλή Επίδοση',
+  template_honor_roll_high_achievers_desc: 'Μαθητές με μέσο όρο βαθμολογίας 85 ή υψηλότερο.',
+  template_at_risk_students_low_grades: 'Μαθητές σε Κίνδυνο - Χαμηλοί Βαθμοί',
+  template_at_risk_students_low_grades_desc: 'Μαθητές με βαθμούς κάτω από 60 που απαιτούν παρέμβαση.',
+  template_attendance_summary_all: 'Σύνοψη Παρουσιών - Όλοι οι Μαθητές',
+  template_attendance_summary_all_desc: 'Συνολικά στατιστικά παρουσιών για όλους τους μαθητές.',
+  template_perfect_attendance: 'Τέλεια Παρουσία',
+  template_perfect_attendance_desc: 'Μαθητές με 100% παρουσία.',
+  template_chronic_absenteeism: 'Χρόνια Απουσιολογία',
+  template_chronic_absenteeism_desc: 'Μαθητές με πολλαπλές απουσίες που απαιτούν προσοχή.',
 
   // Generation
   generateReport: 'Δημιουργία Αναφοράς',
@@ -235,6 +268,10 @@ export default {
   emptyTemplates: 'Δεν υπάρχουν πρότυπα που να ταιριάζουν στην αναζήτησή σας',
   emptyGenerated: 'Δεν έχουν δημιουργηθεί αναφορές ακόμα',
   createFirstReport: 'Δημιουργήστε την πρώτη σας αναφορά για να ξεκινήσετε',
+  importDefaults: 'Εισαγωγή Προεπιλεγμένων Προτύπων',
+  importing: 'Γίνεται εισαγωγή...',
+  templates_imported: 'Επιτυχής εισαγωγή {{count}} προτύπων',
+  import_failed: 'Αποτυχία εισαγωγής προτύπων',
 
   // Bulk operations
   selectAll: 'Επιλογή Όλων',
