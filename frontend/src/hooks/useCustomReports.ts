@@ -98,7 +98,7 @@ export function useImportDefaultTemplates() {
       console.log('[Import Success] Response data:', data);
 
       const importedCount = data?.imported_count ?? data?.data?.imported_count ?? 0;
-      
+
       // Show success toast with i18n translation
       try {
         const message = i18n.t('customReports:import_success', { count: importedCount });
@@ -111,14 +111,14 @@ export function useImportDefaultTemplates() {
       } catch (e) {
         console.error('[Import Toast Error] Could not show toast:', e);
       }
-      
+
       queryClient.invalidateQueries({ queryKey: customReportKeys.templates() });
     },
     onError: (error: any) => {
       console.error('[Import Error] Full error object:', error);
-      
+
       let errorMessage = i18n.t('customReports:import_failed');
-      
+
       if (error?.response?.data?.error?.message) {
         errorMessage = error.response.data.error.message;
       } else if (error?.message) {
@@ -126,7 +126,7 @@ export function useImportDefaultTemplates() {
       } else if (typeof error === 'string') {
         errorMessage = error;
       }
-      
+
       // Show error toast with i18n translation
       try {
         const message = `${i18n.t('customReports:import_error')}: ${errorMessage}`;

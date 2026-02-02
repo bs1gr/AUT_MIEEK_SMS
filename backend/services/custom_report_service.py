@@ -576,6 +576,8 @@ class CustomReportService:
         ]
 
         # Add templates to database, checking for duplicates
+        imported_count = 0
+        logger.info(f"Starting import of {len(default_templates)} default templates...")
         for template in default_templates:
             # Check if template with this name already exists
             existing = self.db.query(ReportTemplate).filter(
@@ -588,7 +590,8 @@ class CustomReportService:
             else:
                 self.db.add(template)
                 imported_count += 1
+                logger.debug(f"Adding template: '{template.name}' (category: {template.category}, type: {template.report_type})")
 
         self.db.commit()
-        logger.info(f"Successfully imported {imported_count} new default templates")
+        logger.info(f"Successfully imported {imported_count}/{len(default_templates)} templates. {len(default_templates) - imported_count} already existed.")
         return imported_count
