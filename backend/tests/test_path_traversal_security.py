@@ -8,11 +8,8 @@ common path traversal attack vectors (CVE-2024-XXXXX class vulnerabilities).
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 import pytest
-from fastapi.testclient import TestClient
-from httpx import Response
 
 from backend.services.backup_service_encrypted import BackupServiceEncrypted
 
@@ -66,7 +63,7 @@ class TestBackupServicePathTraversal:
         result = self.service._validate_output_path(safe_path)
         assert isinstance(result, Path)
         assert str(safe_path).split("/")[-1] in str(result)
-        
+
         # Safe absolute paths (without traversal)
         abs_path = self.backup_dir / "restore" / "backup.db"
         result = self.service._validate_output_path(abs_path)
@@ -266,7 +263,7 @@ class TestIntegrationPathValidation:
 
             # Malicious workflow should fail early
             with pytest.raises(ValueError):
-                bad_name = service._validate_backup_name("../../../etc/passwd")
+                service._validate_backup_name("../../../etc/passwd")
 
         finally:
             temp_dir.cleanup()

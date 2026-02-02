@@ -84,13 +84,13 @@ class BackupServiceEncrypted:
         # CodeQL: Explicit type narrowing and traversal prevention
         if not isinstance(output_path, (str, Path)):
             raise TypeError("Output path must be string or Path")
-        
+
         # Check for path traversal sequences BEFORE resolving (resolve() normalizes .. away)
         path_str = str(output_path)
         # Block: .., ~, and UNC paths (\\) that attempt traversal
         if '..' in path_str or path_str.startswith('~'):
             raise ValueError(f"Path traversal detected in output path: {path_str}")
-        
+
         resolved_output = Path(output_path).resolve()
 
         # Ensure parent directory exists or can be created
