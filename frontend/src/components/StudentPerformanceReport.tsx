@@ -98,12 +98,16 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
  */
 const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ studentId, onClose }) => {
   const langContext = useLanguage();
-  
+  console.log('StudentPerformanceReport mounted with language:', langContext.language);
+
   // Wrapper for translation that supports both namespace format and legacy format
   const t = (key: string, options?: { ns?: string; [key: string]: unknown }): string => {
     if (options?.ns) {
       // Convert to prefixed format: reports:key -> reports.key
-      return langContext.t(`${options.ns}.${key}`, { ...options, ns: undefined });
+      const fullKey = `${options.ns}.${key}`;
+      const result = langContext.t(fullKey, { ...options, ns: undefined });
+      console.log(`Translation: ${fullKey} [${langContext.language}] => ${result}`);
+      return result;
     }
     return langContext.t(key, options);
   };
