@@ -84,6 +84,8 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const [datesWithAttendance, setDatesWithAttendance] = useState<Set<string>>(new Set());
   const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
   const [showPeriodBreakdown, setShowPeriodBreakdown] = useState(false);
+  const todayStr = formatLocalDate(new Date());
+  const isHistoricalMode = Boolean(selectedDateStr && selectedDateStr !== todayStr);
 
   // Request deduplication - prevent concurrent duplicate requests
   const activeRequestsRef = useRef<Set<string>>(new Set());
@@ -111,6 +113,29 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const isResponseLike = (e: unknown): e is { response?: { status?: number } } => (
     typeof e === 'object' && e !== null && 'response' in e
   );
+
+  useEffect(() => {
+    const recallCourse = sessionStorage.getItem('attendance_recall_course');
+    const recallDate = sessionStorage.getItem('attendance_recall_date');
+
+    if (recallCourse) {
+      const courseId = Number(recallCourse);
+      if (Number.isFinite(courseId) && courseId > 0) {
+        setSelectedCourse(courseId);
+      }
+    }
+
+    if (recallDate) {
+      const parsed = new Date(recallDate);
+      if (!Number.isNaN(parsed.getTime())) {
+        setSelectedDate(parsed);
+        setCurrentMonth(new Date(parsed.getFullYear(), parsed.getMonth(), 1));
+      }
+    }
+
+    sessionStorage.removeItem('attendance_recall_course');
+    sessionStorage.removeItem('attendance_recall_date');
+  }, []);
 
 
   const getScheduleEntriesForDate = useCallback((course: Course, dateObj: Date): TeachingScheduleEntry[] => {
@@ -1035,6 +1060,12 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
           </div>
         )}
       </div>
+
+      {isHistoricalMode && (
+        <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded">
+          {t('historicalModeBanner') || 'Historical mode enabled'} — {selectedDateStr}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}

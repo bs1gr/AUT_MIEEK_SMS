@@ -4,6 +4,7 @@ import apiClient, { gradesAPI, enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { Student, Course, Grade, FinalGrade } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
+import { formatLocalDate } from '@/utils/date';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -72,6 +73,10 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
+  const [historyEnabled, setHistoryEnabled] = useState(false);
+  const [historyDate, setHistoryDate] = useState<string>('');
+  const todayStr = formatLocalDate(new Date());
+  const isHistoricalMode = Boolean(historyEnabled && historyDate && historyDate !== todayStr);
 
   // loadFinal is declared below and memoized with useCallback. Do not define a separate
   // non-memoized loadFinal here — keep the single useCallback instance to satisfy
@@ -155,7 +160,16 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       setGrades([]);
       if (!studentId) return;
       try {
-        const res = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
+        const params: Record<string, string | number | boolean | undefined> = {
+          student_id: studentId,
+          course_id: courseId || undefined,
+        };
+        if (historyEnabled && historyDate) {
+          params.start_date = historyDate;
+          params.end_date = historyDate;
+          params.use_submitted = true;
+        }
+        const res = await apiClient.get('/grades/', { params });
         // API returns paginated response with items array
         const gradesData = res.data?.items || (Array.isArray(res.data) ? res.data : []);
         setGrades(gradesData as Grade[]);
@@ -164,7 +178,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       }
     };
     loadGrades();
-  }, [studentId, courseId]);
+  }, [studentId, courseId, historyEnabled, historyDate]);
 
   // Normalize category for comparison (EN/EL & common variants)
   const normalizeCategory = (name?: string): 'midterm' | 'final' | 'other' => {
@@ -228,7 +242,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     }
   }, [category]);
 
-  const handleEditGrade = (grade: Grade) => {
+  const handleEditGrade = useCallback((grade: Grade) => {
     setEditingGradeId(grade.id);
     setStudentId(grade.student_id);
     setCourseId(grade.course_id);
@@ -237,9 +251,35 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     setGradeValue(String(grade.grade));
     setMaxGrade(String(grade.max_grade || 100));
     setWeight(String(grade.weight || 1));
+    if (grade.date_submitted || grade.date_assigned) {
+      setHistoryEnabled(true);
+      setHistoryDate(grade.date_submitted || grade.date_assigned || '');
+    }
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
+  }, []);
+
+  useEffect(() => {
+    const recallIdRaw = sessionStorage.getItem('grading_recall_grade_id');
+    if (!recallIdRaw) return;
+    const recallId = Number(recallIdRaw);
+    if (!Number.isFinite(recallId) || recallId <= 0) {
+      sessionStorage.removeItem('grading_recall_grade_id');
+      return;
+    }
+
+    const fetchRecall = async () => {
+      try {
+        const grade = await gradesAPI.getById(recallId);
+        if (grade && typeof grade === 'object') {
+          handleEditGrade(grade as Grade);
+        }
+      } finally {
+        sessionStorage.removeItem('grading_recall_grade_id');
+      }
+    };
+    fetchRecall();
+  }, [handleEditGrade]);
 
   const handleCancelEdit = () => {
     setEditingGradeId(null);
@@ -302,7 +342,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         grade: gv,
         max_grade: mg,
         weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
-        date_submitted: new Date().toISOString().split('T')[0],
+        date_submitted: historyEnabled && historyDate ? historyDate : formatLocalDate(new Date()),
         // optional fields not set: date_assigned, notes
       };
 
@@ -374,6 +414,41 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           {filteredCourses.map(c => (<option key={c.id} value={c.id}>{c.course_code} - {c.course_name}</option>))}
         </select>
         <button className="border rounded px-3 py-2" onClick={loadFinal}>{t('refreshFinal')}</button>
+      </div>
+
+      <div className="flex flex-col md:flex-row md:items-center gap-3 bg-white border rounded-xl p-4">
+        <label className="flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={historyEnabled}
+            onChange={(e) => {
+              const next = e.target.checked;
+              setHistoryEnabled(next);
+              if (next && !historyDate) {
+                setHistoryDate(todayStr);
+              }
+            }}
+          />
+          {t('historyToggle') || 'Historical mode'}
+        </label>
+        <div className="flex items-center gap-2">
+          <label className="text-sm text-gray-600" htmlFor="grading-history-date">
+            {t('historyDate') || 'History date'}
+          </label>
+          <input
+            id="grading-history-date"
+            type="date"
+            className="border rounded px-3 py-1.5 text-sm"
+            value={historyDate}
+            onChange={(e) => setHistoryDate(e.target.value)}
+            disabled={!historyEnabled}
+          />
+        </div>
+        {isHistoricalMode && (
+          <div className="ml-auto text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded">
+            {t('historicalModeBanner') || 'Historical mode enabled'} — {historyDate}
+          </div>
+        )}
       </div>
 
       <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3" data-testid="grade-form">

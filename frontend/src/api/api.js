@@ -559,6 +559,19 @@ export const gradesAPI = {
   },
 
   /**
+   * Get a grade by ID
+   * @param {number} gradeId - Grade ID
+   */
+  getById: async (gradeId) => {
+    try {
+      const response = await apiClient.get(`/grades/${gradeId}`);
+      return extractAPIResponseData(response);
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Get grades for a course
    * @param {number} courseId - Course ID
    */

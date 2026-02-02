@@ -22,6 +22,8 @@ interface StudentCardProps {
   onDelete: (id: number) => void;
   coursesMap: Map<number, Course>;
   onNavigateToCourse?: (courseId: number) => void;
+  onRecallGrade?: (gradeId: number, courseId: number) => void;
+  onRecallAttendance?: (courseId: number, date: string) => void;
   onViewProfile?: (studentId: number) => void;
 }
 
@@ -36,6 +38,8 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
   onDelete,
   coursesMap,
   onNavigateToCourse,
+  onRecallGrade,
+  onRecallAttendance,
   onViewProfile,
 }) => {
   const { t } = useLanguage();
@@ -76,6 +80,20 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
       total: stats.gradesList.length,
     };
   }, [stats?.gradesList]);
+
+  const sortedGrades = useMemo(() => {
+    if (!stats?.gradesList) return [];
+    return [...stats.gradesList].sort((a, b) => {
+      const aDate = a.date_submitted || a.date_assigned || '';
+      const bDate = b.date_submitted || b.date_assigned || '';
+      return bDate.localeCompare(aDate);
+    });
+  }, [stats?.gradesList]);
+
+  const sortedAttendance = useMemo(() => {
+    if (!stats?.attendanceList) return [];
+    return [...stats.attendanceList].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  }, [stats?.attendanceList]);
 
   const initials = `${student.first_name?.[0] || ''}${student.last_name?.[0] || ''}` || student.student_id?.toString() || '?';
 
@@ -201,6 +219,67 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
 
           {gradeDistribution && gradeDistribution.total > 0 && (
             <GradeDistribution data={gradeDistribution} />
+          )}
+
+          {(sortedGrades.length > 0 || sortedAttendance.length > 0) && (
+            <div className="border rounded-lg p-4 bg-white shadow-md">
+              <div className="font-semibold text-indigo-800 mb-3 drop-shadow-sm">
+                {t('historicalRecords') || 'Historical Records'}
+              </div>
+
+              {sortedGrades.length > 0 && (
+                <div className="mb-4">
+                  <div className="text-sm font-semibold text-gray-800 mb-2">{t('pastGrades') || 'Past Grades'}</div>
+                  <div className="space-y-2">
+                    {sortedGrades.slice(0, 10).map((grade) => (
+                      <div key={grade.id} className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 rounded px-3 py-2">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-800">{grade.assignment_name || t('assignment') || 'Assignment'}</div>
+                          <div className="text-[11px] text-gray-500">{grade.date_submitted || grade.date_assigned || '—'}</div>
+                        </div>
+                        <div className="text-right mr-3">
+                          <div className="font-semibold text-gray-800">{grade.grade}/{grade.max_grade}</div>
+                        </div>
+                        {onRecallGrade && (
+                          <button
+                            type="button"
+                            onClick={() => onRecallGrade(grade.id, grade.course_id)}
+                            className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold"
+                          >
+                            {t('recall') || 'Recall'}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {sortedAttendance.length > 0 && (
+                <div>
+                  <div className="text-sm font-semibold text-gray-800 mb-2">{t('pastAttendance') || 'Past Attendance'}</div>
+                  <div className="space-y-2">
+                    {sortedAttendance.slice(0, 10).map((record) => (
+                      <div key={record.id} className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 rounded px-3 py-2">
+                        <div className="flex-1">
+                          <div className="font-medium text-gray-800">{record.date || '—'}</div>
+                          <div className="text-[11px] text-gray-500">{record.status}</div>
+                        </div>
+                        {onRecallAttendance && record.course_id && record.date && (
+                          <button
+                            type="button"
+                            onClick={() => onRecallAttendance(record.course_id, record.date)}
+                            className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold"
+                          >
+                            {t('recall') || 'Recall'}
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           <NotesSection value={noteValue} onChange={onNoteChange} />

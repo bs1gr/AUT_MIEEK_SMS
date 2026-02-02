@@ -37,6 +37,10 @@ export default {
   viewProfile: 'View Profile',
   quickView: 'Quick View',
   fullProfile: 'Full Profile',
+  historicalRecords: 'Historical Records',
+  pastGrades: 'Past Grades',
+  pastAttendance: 'Past Attendance',
+  recall: 'Recall',
   // Student Form Placeholders
   studentIdPlaceholder: 'Student ID',
   firstNamePlaceholder: 'First Name',

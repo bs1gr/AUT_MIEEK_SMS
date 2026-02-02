@@ -37,6 +37,10 @@ export default {
   viewProfile: 'Προβολή Προφίλ',
   quickView: 'Γρήγορη Προβολή',
   fullProfile: 'Πλήρες Προφίλ',
+  historicalRecords: 'Ιστορικά Αρχεία',
+  pastGrades: 'Παρελθόντες Βαθμοί',
+  pastAttendance: 'Παρελθούσες Παρουσίες',
+  recall: 'Ανάκληση',
   // Φόρμα Σπουδαστή
   studentIdPlaceholder: 'Αριθμός Μητρώου',
   firstNamePlaceholder: 'Όνομα',
