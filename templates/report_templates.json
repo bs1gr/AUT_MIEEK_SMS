@@ -1,0 +1,418 @@
+[
+  {
+    "name": "Student Roster - Complete",
+    "description": "Complete student roster with all profile information including contact details, enrollment dates, and academic status.",
+    "category": "students",
+    "report_type": "student",
+    "fields": [
+      "student_id",
+      "first_name",
+      "last_name",
+      "email",
+      "mobile_phone",
+      "enrollment_date",
+      "study_year",
+      "is_active"
+    ],
+    "filters": [],
+    "aggregations": null,
+    "sort_by": [
+      {
+        "field": "last_name",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "excel",
+    "default_include_charts": false
+  },
+  {
+    "name": "Active Students - Basic Info",
+    "description": "Quick reference list of active students with basic contact information.",
+    "category": "students",
+    "report_type": "student",
+    "fields": [
+      "student_id",
+      "first_name",
+      "last_name",
+      "email",
+      "mobile_phone"
+    ],
+    "filters": [
+      {
+        "field": "is_active",
+        "operator": "equals",
+        "value": true
+      }
+    ],
+    "aggregations": null,
+    "sort_by": [
+      {
+        "field": "last_name",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "pdf",
+    "default_include_charts": false
+  },
+  {
+    "name": "Students by Study Year",
+    "description": "Student distribution organized by study year with enrollment statistics.",
+    "category": "students",
+    "report_type": "student",
+    "fields": [
+      "study_year",
+      "student_id",
+      "first_name",
+      "last_name",
+      "enrollment_date"
+    ],
+    "filters": [
+      {
+        "field": "is_active",
+        "operator": "equals",
+        "value": true
+      }
+    ],
+    "aggregations": [
+      {
+        "field": "student_id",
+        "function": "count",
+        "group_by": "study_year"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "study_year",
+        "order": "asc"
+      },
+      {
+        "field": "last_name",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "excel",
+    "default_include_charts": true
+  },
+  {
+    "name": "New Enrollments - Current Semester",
+    "description": "Recently enrolled students within the last 90 days.",
+    "category": "students",
+    "report_type": "student",
+    "fields": [
+      "enrollment_date",
+      "student_id",
+      "first_name",
+      "last_name",
+      "email",
+      "study_year"
+    ],
+    "filters": [
+      {
+        "field": "is_active",
+        "operator": "equals",
+        "value": true
+      },
+      {
+        "field": "enrollment_date",
+        "operator": "greater_than",
+        "value": "90_days_ago"
+      }
+    ],
+    "aggregations": null,
+    "sort_by": [
+      {
+        "field": "enrollment_date",
+        "order": "desc"
+      }
+    ],
+    "default_export_format": "pdf",
+    "default_include_charts": false
+  },
+  {
+    "name": "Course Catalog - All Courses",
+    "description": "Complete course catalog with descriptions, credit hours, and schedules.",
+    "category": "courses",
+    "report_type": "course",
+    "fields": [
+      "course_code",
+      "course_name",
+      "description",
+      "credits",
+      "semester",
+      "is_active"
+    ],
+    "filters": [],
+    "aggregations": null,
+    "sort_by": [
+      {
+        "field": "course_code",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "pdf",
+    "default_include_charts": false
+  },
+  {
+    "name": "Active Courses by Semester",
+    "description": "Currently active courses organized by semester.",
+    "category": "courses",
+    "report_type": "course",
+    "fields": [
+      "semester",
+      "course_code",
+      "course_name",
+      "credits",
+      "description"
+    ],
+    "filters": [
+      {
+        "field": "is_active",
+        "operator": "equals",
+        "value": true
+      }
+    ],
+    "aggregations": [
+      {
+        "field": "course_code",
+        "function": "count",
+        "group_by": "semester"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "semester",
+        "order": "asc"
+      },
+      {
+        "field": "course_code",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "excel",
+    "default_include_charts": true
+  },
+  {
+    "name": "Grade Distribution - All Courses",
+    "description": "Statistical analysis of grade distribution across all courses.",
+    "category": "grades",
+    "report_type": "grade",
+    "fields": [
+      "course_code",
+      "grade",
+      "date_assigned"
+    ],
+    "filters": [],
+    "aggregations": [
+      {
+        "field": "grade",
+        "function": "avg",
+        "group_by": "course_code"
+      },
+      {
+        "field": "grade",
+        "function": "count",
+        "group_by": "course_code"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "course_code",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "excel",
+    "default_include_charts": true
+  },
+  {
+    "name": "Student Transcript - Complete",
+    "description": "Complete academic transcript showing all grades by course and semester.",
+    "category": "grades",
+    "report_type": "grade",
+    "fields": [
+      "student_id",
+      "course_code",
+      "grade",
+      "date_assigned",
+      "notes"
+    ],
+    "filters": [],
+    "aggregations": [
+      {
+        "field": "grade",
+        "function": "avg",
+        "group_by": "student_id"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "date_assigned",
+        "order": "desc"
+      }
+    ],
+    "default_export_format": "pdf",
+    "default_include_charts": false
+  },
+  {
+    "name": "Honor Roll - High Achievers",
+    "description": "Students with grade averages of 85 or higher.",
+    "category": "grades",
+    "report_type": "grade",
+    "fields": [
+      "student_id",
+      "first_name",
+      "last_name",
+      "grade"
+    ],
+    "filters": [
+      {
+        "field": "grade",
+        "operator": "greater_than_or_equal",
+        "value": 85
+      }
+    ],
+    "aggregations": [
+      {
+        "field": "grade",
+        "function": "avg",
+        "group_by": "student_id"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "grade",
+        "order": "desc"
+      }
+    ],
+    "default_export_format": "pdf",
+    "default_include_charts": true
+  },
+  {
+    "name": "At-Risk Students - Low Grades",
+    "description": "Students with grades below 60 requiring academic intervention.",
+    "category": "grades",
+    "report_type": "grade",
+    "fields": [
+      "student_id",
+      "first_name",
+      "last_name",
+      "course_code",
+      "grade",
+      "date_assigned"
+    ],
+    "filters": [
+      {
+        "field": "grade",
+        "operator": "less_than",
+        "value": 60
+      }
+    ],
+    "aggregations": null,
+    "sort_by": [
+      {
+        "field": "grade",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "excel",
+    "default_include_charts": false
+  },
+  {
+    "name": "Attendance Summary - All Students",
+    "description": "Comprehensive attendance statistics for all students.",
+    "category": "attendance",
+    "report_type": "attendance",
+    "fields": [
+      "student_id",
+      "first_name",
+      "last_name",
+      "course_code",
+      "status",
+      "date"
+    ],
+    "filters": [],
+    "aggregations": [
+      {
+        "field": "status",
+        "function": "count",
+        "group_by": "student_id"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "date",
+        "order": "desc"
+      }
+    ],
+    "default_export_format": "excel",
+    "default_include_charts": true
+  },
+  {
+    "name": "Perfect Attendance",
+    "description": "Students with 100% attendance record.",
+    "category": "attendance",
+    "report_type": "attendance",
+    "fields": [
+      "student_id",
+      "first_name",
+      "last_name",
+      "course_code"
+    ],
+    "filters": [
+      {
+        "field": "status",
+        "operator": "equals",
+        "value": "present"
+      }
+    ],
+    "aggregations": [
+      {
+        "field": "status",
+        "function": "count",
+        "group_by": "student_id"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "last_name",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "pdf",
+    "default_include_charts": false
+  },
+  {
+    "name": "Chronic Absenteeism",
+    "description": "Students with multiple absences requiring attention.",
+    "category": "attendance",
+    "report_type": "attendance",
+    "fields": [
+      "student_id",
+      "first_name",
+      "last_name",
+      "course_code",
+      "date"
+    ],
+    "filters": [
+      {
+        "field": "status",
+        "operator": "equals",
+        "value": "absent"
+      }
+    ],
+    "aggregations": [
+      {
+        "field": "status",
+        "function": "count",
+        "group_by": "student_id"
+      }
+    ],
+    "sort_by": [
+      {
+        "field": "student_id",
+        "order": "asc"
+      }
+    ],
+    "default_export_format": "excel",
+    "default_include_charts": true
+  }
+]

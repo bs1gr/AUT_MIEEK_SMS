@@ -23,7 +23,7 @@ export const ReportTemplateBrowserPage: React.FC = () => {
     navigate('/operations/reports/builder', {
       state: {
         templateData: {
-          name: `${template.name} - Copy`,
+          name: template.name,
           description: template.description,
           report_type: template.report_type,
           fields: template.fields,
@@ -31,6 +31,10 @@ export const ReportTemplateBrowserPage: React.FC = () => {
           sort_by: template.sort_by,
           default_export_format: template.default_export_format,
           default_include_charts: template.default_include_charts,
+          is_system: template.is_system,
+          is_copy: true,
+          template_name: template.name,
+          template_description: template.description,
         },
       },
     });
