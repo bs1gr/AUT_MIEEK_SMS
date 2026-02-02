@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from './useSearch';
@@ -29,6 +29,45 @@ export const SearchView: React.FC = () => {
     setFilters,
   } = useSearch();
 
+  const [gradeDateFrom, setGradeDateFrom] = useState('');
+  const [gradeDateTo, setGradeDateTo] = useState('');
+
+  const applyGradeDateFilters = useCallback(
+    (currentFilters: { field: string; operator: string; value: unknown }[]) => {
+      const filtered = currentFilters.filter(
+        (filter) => !['date_from', 'date_to', 'date_assigned_from', 'date_assigned_to'].includes(filter.field)
+      );
+
+      if (searchType !== 'grades') {
+        return filtered;
+      }
+
+      if (gradeDateFrom) {
+        filtered.push({ field: 'date_from', operator: 'equals', value: gradeDateFrom });
+      }
+
+      if (gradeDateTo) {
+        filtered.push({ field: 'date_to', operator: 'equals', value: gradeDateTo });
+      }
+
+      return filtered;
+    },
+    [gradeDateFrom, gradeDateTo, searchType]
+  );
+
+  useEffect(() => {
+    if (searchType !== 'grades') {
+      if (gradeDateFrom || gradeDateTo) {
+        setGradeDateFrom('');
+        setGradeDateTo('');
+      }
+      setFilters((prev) => applyGradeDateFilters(prev));
+      return;
+    }
+
+    setFilters((prev) => applyGradeDateFilters(prev));
+  }, [searchType, gradeDateFrom, gradeDateTo, applyGradeDateFilters, setFilters]);
+
   const { data: facetsData, isLoading: loadingFacets } = useSearchFacets(searchQuery);
 
   const typeOptions = useMemo(
@@ -41,7 +80,10 @@ export const SearchView: React.FC = () => {
   );
 
   const handleFacetSelect = (facet: string, value: string) => {
-    setFilters([{ field: facet, operator: 'equals', value }]);
+    setFilters((prev) => applyGradeDateFilters([
+      ...prev.filter((filter) => filter.field !== facet),
+      { field: facet, operator: 'equals', value },
+    ]));
     setPage(0);
   };
 
@@ -119,6 +161,35 @@ export const SearchView: React.FC = () => {
             </select>
           </div>
 
+          {searchType === 'grades' && (
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="grade-date-from">
+                  {t('fields.gradeDateFrom', { defaultValue: 'Date from' })}
+                </label>
+                <input
+                  id="grade-date-from"
+                  type="date"
+                  value={gradeDateFrom}
+                  onChange={(event) => setGradeDateFrom(event.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700" htmlFor="grade-date-to">
+                  {t('fields.gradeDateTo', { defaultValue: 'Date to' })}
+                </label>
+                <input
+                  id="grade-date-to"
+                  type="date"
+                  value={gradeDateTo}
+                  onChange={(event) => setGradeDateTo(event.target.value)}
+                  className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-2 w-full md:w-1/2">
             <label className="text-sm font-medium text-gray-700" htmlFor="search-input">
               {t('queryLabel', { defaultValue: 'Search query' })}
@@ -160,11 +231,17 @@ export const SearchView: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-1">
-          <SearchFacets facets={facetsData?.facets} loading={loadingFacets} onSelect={handleFacetSelect} />
+          {searchType === 'grades' ? (
+            <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm text-sm text-gray-600">
+              {t('filters.gradeDateHint', { defaultValue: 'Use the date range above to filter historical grades.' })}
+            </div>
+          ) : (
+            <SearchFacets facets={facetsData?.facets} loading={loadingFacets} onSelect={handleFacetSelect} />
+          )}
         </div>
         <div className="lg:col-span-2 space-y-3">
           <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
-            <div className="flex items-center justify-between mb-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
               <div>
                 <h3 className="text-base font-semibold text-gray-800">
                   {t('resultsTitle', { defaultValue: 'Results' })}
@@ -173,6 +250,20 @@ export const SearchView: React.FC = () => {
                   {t('resultsSummary', { defaultValue: '{{count}} total results', count: totalResults })}
                 </p>
               </div>
+              {searchType === 'grades' && (gradeDateFrom || gradeDateTo) && (
+                <div className="flex flex-wrap gap-2">
+                  {gradeDateFrom && (
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                      {t('filters.byDateFrom', { defaultValue: 'From' })}: {gradeDateFrom}
+                    </span>
+                  )}
+                  {gradeDateTo && (
+                    <span className="px-2 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-100">
+                      {t('filters.byDateTo', { defaultValue: 'To' })}: {gradeDateTo}
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {error && (

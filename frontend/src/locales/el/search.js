@@ -87,6 +87,8 @@ export default {
     credits: 'Μονάδες',
     gradeMin: 'Ελάχιστος Βαθμός',
     gradeMax: 'Μέγιστος Βαθμός',
+    gradeDateFrom: 'Ημερομηνία από',
+    gradeDateTo: 'Ημερομηνία έως',
     passed: 'Επιτυχών',
     studentId: 'ID Σπουδαστή',
     courseId: 'ID Μαθήματος',
@@ -94,7 +96,10 @@ export default {
   },
   filters: {
     title: 'Φίλτρα',
-    custom: 'Προσαρμοσμένα Φίλτρα'
+    custom: 'Προσαρμοσμένα Φίλτρα',
+    byDateFrom: 'Από',
+    byDateTo: 'Έως',
+    gradeDateHint: 'Χρησιμοποιήστε το εύρος ημερομηνιών παραπάνω για φιλτράρισμα ιστορικών βαθμών.'
   },
   sort: {
     label: 'Ταξινόμηση κατά',

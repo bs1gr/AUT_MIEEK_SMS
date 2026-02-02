@@ -149,6 +149,8 @@ async def search_grades(
     grade_max: Optional[float] = Query(None, ge=0, le=100, description="Maximum grade"),
     student_id: Optional[int] = Query(None, description="Filter by student ID"),
     course_id: Optional[int] = Query(None, description="Filter by course ID"),
+    date_from: Optional[str] = Query(None, description="Filter by grade date (YYYY-MM-DD) from"),
+    date_to: Optional[str] = Query(None, description="Filter by grade date (YYYY-MM-DD) to"),
     limit: int = Query(20, ge=1, le=100, description="Results limit"),
     offset: int = Query(0, ge=0, description="Pagination offset"),
     db: Session = Depends(get_db),
@@ -162,6 +164,8 @@ async def search_grades(
     - `grade_max`: Maximum grade value (0-100)
     - `student_id`: Filter by specific student
     - `course_id`: Filter by specific course
+    - `date_from`: Grade date lower bound (YYYY-MM-DD)
+    - `date_to`: Grade date upper bound (YYYY-MM-DD)
     - `limit`: Results limit (1-100, default: 20)
     - `offset`: Pagination offset (default: 0)
 
@@ -178,7 +182,14 @@ async def search_grades(
     - Requires `grades:view` if AUTH_MODE=permissive or strict
     """
     try:
-        filters = {"grade_min": grade_min, "grade_max": grade_max, "student_id": student_id, "course_id": course_id}
+        filters = {
+            "grade_min": grade_min,
+            "grade_max": grade_max,
+            "student_id": student_id,
+            "course_id": course_id,
+            "date_from": date_from,
+            "date_to": date_to,
+        }
         search_service = SearchService(db)
         results = search_service.search_grades(query=q, filters=filters, limit=limit, offset=offset)
         return success_response(results, request_id=request.state.request_id)
