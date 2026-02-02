@@ -216,6 +216,34 @@ async def delete_report_template(
         )
 
 
+@router.post(
+    "/templates/import",
+    response_model=APIResponse[Dict[str, Any]],
+    summary="Import default templates",
+)
+async def import_default_templates(
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: Any = Depends(optional_require_role("admin")),
+) -> APIResponse[Dict[str, Any]]:
+    """Import pre-built default templates into the database."""
+    try:
+        service = CustomReportService(db)
+        imported_count = service.import_default_templates()
+        return success_response(
+            {"imported_count": imported_count, "message": f"Successfully imported {imported_count} default templates"},
+            request_id=request.state.request_id,
+        )
+    except Exception as e:
+        logger.error(f"Error importing default templates: {str(e)}")
+        return error_response(
+            code="IMPORT_ERROR",
+            message="Failed to import default templates",
+            details={"error": str(e)},
+            request_id=request.state.request_id,
+        )
+
+
 # ============================================================================
 # CUSTOM REPORT ENDPOINTS (USER)
 # ============================================================================
