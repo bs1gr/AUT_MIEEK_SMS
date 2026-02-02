@@ -582,7 +582,7 @@ class CustomReportService:
                 ReportTemplate.name == template.name,
                 ReportTemplate.is_system == True
             ).first()
-            
+
             if existing:
                 logger.debug(f"Template '{template.name}' already exists. Skipping.")
             else:
