@@ -85,5 +85,5 @@ export default {
   selectedDate: 'Επιλεγμένη ημερομηνία',
   autosavePending: 'Αλλαγές σε εκκρεμότητα...',
   saving: 'Αποθήκευση...',
-  historicalModeBanner: 'Ενεργή ιστορική λειτουργία',
+  historicalModeBanner: 'Ενεργή ανάκτηση ιστορικού',
 };
