@@ -222,14 +222,13 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         </button>
 
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 h-32"></div>
-          <div className="px-8 pb-8">
-            <div className="flex items-end space-x-6 -mt-16">
+        <div className="bg-white rounded-2xl shadow-lg mb-6">
+          <div className="px-8 py-8">
+            <div className="flex items-center space-x-6">
               <div className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-xl flex items-center justify-center text-white text-4xl font-bold border-4 border-white">
                 {student.first_name[0]}{student.last_name[0]}
               </div>
-              <div className="pb-4">
+              <div>
                 <h1 className="text-3xl font-bold text-indigo-800 drop-shadow-sm">
                   {student.first_name} {student.last_name}
                 </h1>

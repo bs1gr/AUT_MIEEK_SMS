@@ -13,14 +13,21 @@ export default {
   export: 'Εξαγωγή',
 
   // Configuration
+  configuration: 'Ρυθμίσεις',
   period: 'Περίοδος Αναφοράς',
   lastWeek: 'Τελευταία Εβδομάδα',
   lastMonth: 'Τελευταίος Μήνας',
   semester: 'Εξάμηνο',
   year: 'Ακαδημαϊκό Έτος',
   custom: 'Προσαρμοσμένη Περίοδος',
+  period_week: 'Εβδομάδα',
+  period_month: 'Μήνας',
+  period_semester: 'Εξάμηνο',
+  period_year: 'Έτος',
+  period_custom: 'Προσαρμοσμένο',
 
   // Include options
+  includeData: 'Συμπερίληψη Δεδομένων',
   includeGrades: 'Συμπερίληψη Βαθμών',
   includeAttendance: 'Συμπερίληψη Παρουσιών',
   includePerformance: 'Συμπερίληψη Απόδοσης',
