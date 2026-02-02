@@ -91,7 +91,6 @@ export function useDeleteTemplate() {
  */
 export function useImportDefaultTemplates() {
   const queryClient = useQueryClient();
-  const { i18n } = useTranslation();
 
   return useMutation({
     mutationFn: reportTemplatesAPI.importDefaults,
