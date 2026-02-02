@@ -51,6 +51,9 @@ export default {
   entity_grades: 'Grades',
   entity_attendance: 'Attendance',
   entity_enrollments: 'Enrollments',
+  entity_student: 'Student',
+  entity_course: 'Course',
+  entity_grade: 'Grade',
 
   // Output formats
   format_pdf: 'PDF Document',
@@ -65,6 +68,9 @@ export default {
   reorderFields: 'Drag to reorder',
   fieldName: 'Field Name',
   fieldLabel: 'Custom Label',
+  noFields: 'No fields available',
+  moveUp: 'Move Up',
+  moveDown: 'Move Down',
 
   // Filters
   addFilter: 'Add Filter',
@@ -87,6 +93,7 @@ export default {
   // Sorting
   sortBy: 'Sort By',
   sortOrder: 'Order',
+  sortingOrder: 'Sorting Order',
   ascending: 'Ascending',
   descending: 'Descending',
   addSort: 'Add Sort Rule',
@@ -135,6 +142,34 @@ export default {
   template_student_transcript_desc: 'Complete academic transcript',
   template_attendance_alerts: 'Attendance Alerts',
   template_attendance_alerts_desc: 'Students with concerning attendance patterns',
+
+  // Seeded system templates (backend)
+  template_student_roster_complete: 'Student Roster - Complete',
+  template_student_roster_complete_desc: 'Complete student roster with all profile information including contact details, enrollment dates, and academic status.',
+  template_active_students_basic: 'Active Students - Basic Info',
+  template_active_students_basic_desc: 'Quick reference list of active students with basic contact information.',
+  template_students_by_year: 'Students by Study Year',
+  template_students_by_year_desc: 'Student distribution organized by study year with enrollment statistics.',
+  template_new_enrollments: 'New Enrollments - Current Semester',
+  template_new_enrollments_desc: 'Recently enrolled students within the last 90 days.',
+  template_course_catalog: 'Course Catalog - All Courses',
+  template_course_catalog_desc: 'Complete course catalog with descriptions, credit hours, and schedules.',
+  template_active_courses_by_semester: 'Active Courses by Semester',
+  template_active_courses_by_semester_desc: 'Currently active courses organized by semester.',
+  template_grade_distribution_all: 'Grade Distribution - All Courses',
+  template_grade_distribution_all_desc: 'Statistical analysis of grade distribution across all courses.',
+  template_student_transcript_complete: 'Student Transcript - Complete',
+  template_student_transcript_complete_desc: 'Complete academic transcript showing all grades by course and semester.',
+  template_honor_roll_high_achievers: 'Honor Roll - High Achievers',
+  template_honor_roll_high_achievers_desc: 'Students with grade averages of 85 or higher.',
+  template_at_risk_students_low_grades: 'At-Risk Students - Low Grades',
+  template_at_risk_students_low_grades_desc: 'Students with grades below 60 requiring academic intervention.',
+  template_attendance_summary_all: 'Attendance Summary - All Students',
+  template_attendance_summary_all_desc: 'Comprehensive attendance statistics for all students.',
+  template_perfect_attendance: 'Perfect Attendance',
+  template_perfect_attendance_desc: 'Students with 100% attendance record.',
+  template_chronic_absenteeism: 'Chronic Absenteeism',
+  template_chronic_absenteeism_desc: 'Students with multiple absences requiring attention.',
 
   // Generation
   generateReport: 'Generate Report',
@@ -235,6 +270,10 @@ export default {
   emptyTemplates: 'No templates match your search',
   emptyGenerated: 'No reports have been generated yet',
   createFirstReport: 'Create your first report to get started',
+  importDefaults: 'Import Default Templates',
+  importing: 'Importing...',
+  templates_imported: 'Successfully imported {{count}} templates',
+  import_failed: 'Failed to import templates',
 
   // Bulk operations
   selectAll: 'Select All',
