@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../LanguageContext';
 // @ts-expect-error - JavaScript API file
 import { reportsAPI } from '../api/api';
 
@@ -97,7 +97,16 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
  * - Recommendations
  */
 const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ studentId, onClose }) => {
-  const { t } = useTranslation();
+  const langContext = useLanguage();
+  
+  // Wrapper for translation that supports both namespace format and legacy format
+  const t = (key: string, options?: { ns?: string; [key: string]: unknown }): string => {
+    if (options?.ns) {
+      // Convert to prefixed format: reports:key -> reports.key
+      return langContext.t(`${options.ns}.${key}`, { ...options, ns: undefined });
+    }
+    return langContext.t(key, options);
+  };
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -216,8 +225,8 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
   };
 
   const getReportPeriodLabel = (period: string) => {
-    const key = `period_${period}`;
-    const translated = t(key, { ns: 'reports' });
+    const key = `reports.period_${period}`;
+    const translated = t(key);
     return translated === key ? period : translated;
   };
 
@@ -547,13 +556,16 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
 
                         if (interpolationData) {
                           // Has interpolation data (e.g., course names)
+                          // For reports namespace, we pass the data to i18n context function
+                          const translated = t(`${ns}.${key}`, { courses: interpolationData });
                           return (
-                            <li key={idx}>{t(key, { ns, courses: interpolationData })}</li>
+                            <li key={idx}>{translated}</li>
                           );
                         } else {
-                          // Simple translation key
+                          // Simple translation key - use namespace.key format
+                          const translated = t(`${ns}.${key}`);
                           return (
-                            <li key={idx}>{t(key, { ns })}</li>
+                            <li key={idx}>{translated}</li>
                           );
                         }
                       }
