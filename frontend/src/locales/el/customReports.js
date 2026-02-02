@@ -108,6 +108,7 @@ export default {
   standardTemplates: 'Τυπικά Πρότυπα',
   csvExportTemplates: 'Πρότυπα Εξαγωγής CSV',
   analyticsTemplates: 'Πρότυπα Ανάλυσης',
+    viewAnalyticsTemplates: 'Περιηγηθείτε σε ενσωματωμένα πρότυπα ανάλυσης και δημιουργήστε προσαρμοσμένα ταμπλό',
   myTemplates: 'Τα Πρότυπά Μου',
   sharedTemplates: 'Κοινόχρηστα Πρότυπα',
   noStandardTemplates: 'Δεν υπάρχουν διαθέσιμα τυπικά πρότυπα',
