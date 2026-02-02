@@ -89,7 +89,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
               >
                 {OPERATORS.map(({ value, label }) => (
                   <option key={value} value={value}>
-                    {t(`customReports:${label}`)}
+                    {t(label, { ns: 'customReports' })}
                   </option>
                 ))}
               </select>
@@ -99,7 +99,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
                 value={filter.value}
                 onChange={(e) => handleUpdateFilter(index, 'value', e.target.value)}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded"
-                placeholder={t('customReports:filterValue')}
+                placeholder={t('filterValue', { ns: 'customReports' })}
               />
 
               <button
@@ -118,7 +118,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
         <div className="flex gap-3 items-end mb-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('customReports:filterField')}
+              {t('filterField', { ns: 'customReports' })}
             </label>
             <select
               value={newFilter.field}
@@ -135,7 +135,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
 
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('customReports:filterOperator')}
+              {t('filterOperator', { ns: 'customReports' })}
             </label>
             <select
               value={newFilter.operator}
@@ -152,7 +152,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
 
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('customReports:filterValue')}
+              {t('filterValue', { ns: 'customReports' })}
             </label>
             <input
               type="text"
@@ -169,11 +169,11 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
             className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
           >
             <Plus size={18} />
-            {t('customReports:addFilter')}
+            {t('addFilter', { ns: 'customReports' })}
           </button>
         </div>
 
-        <p className="text-xs text-gray-600">{t('customReports:helpFilters')}</p>
+        <p className="text-xs text-gray-600">{t('helpFilters', { ns: 'customReports' })}</p>
       </div>
     </div>
   );

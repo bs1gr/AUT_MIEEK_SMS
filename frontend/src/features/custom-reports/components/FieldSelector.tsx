@@ -82,11 +82,11 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
         {/* Available Fields */}
         <div className="bg-white rounded-lg border p-6">
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
-            {t('customReports:availableFields')}
+            {t('availableFields', { ns: 'customReports' })}
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {unselectedFields.length === 0 ? (
-              <p className="text-gray-500 text-sm">{t('customReports:noFields')}</p>
+              <p className="text-gray-500 text-sm">{t('noFields', { ns: 'customReports' })}</p>
             ) : (
               unselectedFields.map((field) => (
                 <button
@@ -108,7 +108,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
         {/* Selected Fields */}
         <div className="bg-white rounded-lg border p-6">
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
-            {t('customReports:selectedFields')} ({selectedFields.length})
+            {t('selectedFields', { ns: 'customReports' })} ({selectedFields.length})
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {selectedFields.length === 0 ? (
@@ -138,7 +138,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                       onClick={() => handleMoveUp(index)}
                       disabled={index === 0}
                       className="p-1 hover:bg-blue-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={t('customReports:moveUp')}
+                      title={t('moveUp', { ns: 'customReports' })}
                     >
                       <ChevronRight size={16} className="rotate-90" />
                     </button>
@@ -146,7 +146,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                       onClick={() => handleMoveDown(index)}
                       disabled={index === selectedFields.length - 1}
                       className="p-1 hover:bg-blue-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                      title={t('customReports:moveDown')}
+                      title={t('moveDown', { ns: 'customReports' })}
                     >
                       <ChevronRight size={16} className="rotate-[-90deg]" />
                     </button>
@@ -167,7 +167,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
 
       {/* Help Text */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <p className="text-sm text-blue-900">{t('customReports:helpDragFields')}</p>
+        <p className="text-sm text-blue-900">{t('helpDragFields', { ns: 'customReports' })}</p>
       </div>
     </div>
   );
