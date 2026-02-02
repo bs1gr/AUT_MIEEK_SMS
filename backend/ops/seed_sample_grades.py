@@ -26,42 +26,33 @@ def get_sample_grades() -> List[Dict[str, Any]]:
         {"student_id": 1, "course_id": 1, "grade": 92, "category": "exam", "days_ago": 30},
         {"student_id": 1, "course_id": 2, "grade": 88, "category": "exam", "days_ago": 25},
         {"student_id": 1, "course_id": 3, "grade": 95, "category": "project", "days_ago": 20},
-
         # Average students
         {"student_id": 2, "course_id": 1, "grade": 75, "category": "exam", "days_ago": 30},
         {"student_id": 2, "course_id": 2, "grade": 78, "category": "exam", "days_ago": 25},
         {"student_id": 2, "course_id": 3, "grade": 72, "category": "assignment", "days_ago": 20},
-
         # At-risk students (low grades)
         {"student_id": 3, "course_id": 1, "grade": 45, "category": "exam", "days_ago": 30},
         {"student_id": 3, "course_id": 2, "grade": 52, "category": "exam", "days_ago": 25},
         {"student_id": 3, "course_id": 3, "grade": 38, "category": "project", "days_ago": 20},
-
         {"student_id": 4, "course_id": 1, "grade": 55, "category": "exam", "days_ago": 28},
         {"student_id": 4, "course_id": 2, "grade": 48, "category": "exam", "days_ago": 22},
         {"student_id": 4, "course_id": 3, "grade": 58, "category": "assignment", "days_ago": 18},
-
         # Mid-range students
         {"student_id": 5, "course_id": 1, "grade": 82, "category": "exam", "days_ago": 29},
         {"student_id": 5, "course_id": 2, "grade": 85, "category": "exam", "days_ago": 24},
         {"student_id": 5, "course_id": 3, "grade": 80, "category": "project", "days_ago": 19},
-
         # More at-risk
         {"student_id": 6, "course_id": 1, "grade": 42, "category": "exam", "days_ago": 31},
         {"student_id": 6, "course_id": 2, "grade": 50, "category": "exam", "days_ago": 26},
-
         # Mixed performance
         {"student_id": 7, "course_id": 1, "grade": 68, "category": "exam", "days_ago": 27},
         {"student_id": 7, "course_id": 2, "grade": 71, "category": "exam", "days_ago": 23},
         {"student_id": 7, "course_id": 3, "grade": 75, "category": "project", "days_ago": 21},
-
         {"student_id": 8, "course_id": 1, "grade": 89, "category": "exam", "days_ago": 32},
         {"student_id": 8, "course_id": 2, "grade": 91, "category": "exam", "days_ago": 27},
-
         # Low achiever
         {"student_id": 9, "course_id": 1, "grade": 35, "category": "exam", "days_ago": 28},
         {"student_id": 9, "course_id": 3, "grade": 40, "category": "project", "days_ago": 19},
-
         # Good student
         {"student_id": 10, "course_id": 2, "grade": 87, "category": "exam", "days_ago": 26},
         {"student_id": 10, "course_id": 3, "grade": 90, "category": "assignment", "days_ago": 17},
@@ -98,27 +89,25 @@ def seed_sample_grades(db: Session) -> int:
         course_id = grade_data["course_id"]
 
         # Verify student and course exist
-        student = db.query(Student).filter(
-            Student.id == student_id,
-            Student.deleted_at.is_(None)
-        ).first()
+        student = db.query(Student).filter(Student.id == student_id, Student.deleted_at.is_(None)).first()
 
-        course = db.query(Course).filter(
-            Course.id == course_id,
-            Course.deleted_at.is_(None)
-        ).first()
+        course = db.query(Course).filter(Course.id == course_id, Course.deleted_at.is_(None)).first()
 
         if not student or not course:
             logger.warning(f"Skipping grade for student {student_id}, course {course_id} - not found")
             continue
 
         # Check if grade already exists
-        existing = db.query(Grade).filter(
-            Grade.student_id == student_id,
-            Grade.course_id == course_id,
-            Grade.assignment_name == "Sample Assignment",
-            Grade.deleted_at.is_(None)
-        ).first()
+        existing = (
+            db.query(Grade)
+            .filter(
+                Grade.student_id == student_id,
+                Grade.course_id == course_id,
+                Grade.assignment_name == "Sample Assignment",
+                Grade.deleted_at.is_(None),
+            )
+            .first()
+        )
 
         if existing:
             logger.debug(f"Grade already exists for student {student_id}, course {course_id}")
@@ -136,7 +125,7 @@ def seed_sample_grades(db: Session) -> int:
             weight=1.0,
             date_assigned=date_assigned,
             date_submitted=date_assigned + timedelta(days=1),
-            notes=f"Sample grade for testing ({grade_data['grade']}/100)"
+            notes=f"Sample grade for testing ({grade_data['grade']}/100)",
         )
 
         db.add(grade)
