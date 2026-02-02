@@ -19,12 +19,14 @@ export default {
   semester: 'Semester',
   year: 'Academic Year',
   custom: 'Custom Period',
-    configuration: 'Configuration',
-    period_week: 'Week',
-    period_month: 'Month',
-    period_semester: 'Semester',
-    period_year: 'Year',
-    period_custom: 'Custom',
+  configuration: 'Configuration',
+  period_week: 'Week',
+  period_month: 'Month',
+  period_semester: 'Semester',
+  period_year: 'Year',
+  period_custom: 'Custom',
+  startDate: 'Start Date',
+  endDate: 'End Date',
 
   // Include options
   includeData: 'Include Data',
@@ -42,6 +44,7 @@ export default {
   highlights: 'Highlights',
 
   // Attendance metrics
+  email: 'Email',
   attendanceRate: 'Attendance Rate',
   totalDays: 'Total Days',
   present: 'Present',
@@ -53,11 +56,15 @@ export default {
 
   // Grade metrics
   average: 'Average',
+  averageGrade: 'Average Grade',
   totalAssignments: 'Total Assignments',
   highest: 'Highest',
+  highestGrade: 'Highest Grade',
   lowest: 'Lowest',
+  lowestGrade: 'Lowest Grade',
   trend: 'Trend',
   grade: 'Grade',
+  grades: 'Grades',
   attendance: 'Attendance',
   absences: 'Absences',
 
@@ -70,6 +77,10 @@ export default {
   performanceCategories: 'Performance by Category',
   category: 'Category',
   averageScore: 'Average Score',
+
+  // Course notes
+  courseNotes: 'Course Notes',
+  courseNotesPlaceholder: 'Add notes for this course',
 
   // Recommendations
   rec_attendance_low: '⚠️ Attendance is below 75%. Regular attendance is crucial for academic success.',

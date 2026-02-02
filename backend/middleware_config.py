@@ -30,13 +30,18 @@ def register_middlewares(app):
     except Exception as e:
         logging.warning(f"ResponseStandardizationMiddleware registration failed: {e}")
     # CORS middleware
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.CORS_ORIGINS_LIST,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+    cors_kwargs = {
+        "allow_origins": settings.CORS_ORIGINS_LIST,
+        "allow_credentials": True,
+        "allow_methods": ["*"],
+        "allow_headers": ["*"],
+    }
+    # In native development, ensure localhost origins are always allowed.
+    # This guards against missing/overridden CORS_ORIGINS in local .env files.
+    if settings.SMS_EXECUTION_MODE.lower() == "native" or settings.SMS_ENV.lower() in {"development", "dev"}:
+        cors_kwargs["allow_origin_regex"] = r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
+
+    app.add_middleware(CORSMiddleware, **cors_kwargs)
 
     # Security headers middleware with cache control
     @app.middleware("http")

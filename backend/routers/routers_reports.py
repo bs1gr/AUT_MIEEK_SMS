@@ -598,8 +598,8 @@ async def download_student_performance_report(
     # Build course summaries (simplified version)
     for course in courses:
         course_data = {
-            "course_code": course.code,
-            "course_title": course.title,
+            "course_code": course.course_code,
+            "course_title": course.course_name,
             "attendance": None,
             "grades": None,
         }

@@ -25,6 +25,8 @@ export default {
   period_semester: 'Εξάμηνο',
   period_year: 'Έτος',
   period_custom: 'Προσαρμοσμένο',
+  startDate: 'Ημερομηνία Έναρξης',
+  endDate: 'Ημερομηνία Λήξης',
 
   // Include options
   includeData: 'Συμπερίληψη Δεδομένων',
@@ -42,6 +44,7 @@ export default {
   highlights: 'Επισημάνσεις',
 
   // Attendance metrics
+  email: 'Email',
   attendanceRate: 'Ποσοστό Παρουσιών',
   totalDays: 'Συνολικές Ημέρες',
   present: 'Παρών',
@@ -53,11 +56,15 @@ export default {
 
   // Grade metrics
   average: 'Μέσος Όρος',
+  averageGrade: 'Μέσος Βαθμός',
   totalAssignments: 'Συνολικές Εργασίες',
   highest: 'Υψηλότερος',
+  highestGrade: 'Υψηλότερος Βαθμός',
   lowest: 'Χαμηλότερος',
+  lowestGrade: 'Χαμηλότερος Βαθμός',
   trend: 'Τάση',
   grade: 'Βαθμός',
+  grades: 'Βαθμοί',
   attendance: 'Παρουσία',
   absences: 'Απουσίες',
 
@@ -70,6 +77,10 @@ export default {
   performanceCategories: 'Απόδοση ανά Κατηγορία',
   category: 'Κατηγορία',
   averageScore: 'Μέση Βαθμολογία',
+
+  // Course notes
+  courseNotes: 'Σημειώσεις Μαθήματος',
+  courseNotesPlaceholder: 'Προσθέστε σημειώσεις για αυτό το μάθημα',
 
   // Recommendations (Συστάσεις)
   rec_attendance_low: '⚠️ Η παρουσία είναι κάτω από 75%. Η τακτική παρουσία είναι κρίσιμη για την ακαδημαϊκή επιτυχία.',
