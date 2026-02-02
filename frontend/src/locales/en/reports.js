@@ -71,6 +71,17 @@ export default {
   category: 'Category',
   averageScore: 'Average Score',
 
+  // Recommendations
+  rec_attendance_low: '⚠️ Attendance is below 75%. Regular attendance is crucial for academic success.',
+  rec_attendance_medium: '✓ Attendance could be improved. Aim for 90%+ attendance rate.',
+  rec_grades_failing: '⚠️ Grades are below passing threshold. Consider scheduling tutoring sessions.',
+  rec_grades_needs_improvement: '✓ Grades need improvement. Review study habits and seek help in challenging subjects.',
+  rec_grades_excellent: '🌟 Excellent academic performance! Keep up the great work.',
+  rec_trend_declining: '⚠️ Grade trend is declining. Review recent assignments and identify areas needing improvement.',
+  rec_trend_improving: '✓ Grade trend is improving. Continue the positive momentum!',
+  rec_focus_courses: '📚 Focus on: {{courses}}. Consider extra study time or tutoring.',
+  rec_satisfactory: '✓ Overall performance is satisfactory. Continue maintaining good study habits.',
+
   // Messages
   error: 'Error generating report. Please try again.',
   noData: 'No data available for the selected period.',
