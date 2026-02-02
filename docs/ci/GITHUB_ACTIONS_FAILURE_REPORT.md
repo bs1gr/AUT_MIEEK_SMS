@@ -7,6 +7,19 @@
 
 ---
 
+## 📌 Update (Feb 2, 2026)
+
+This report is **historical**. The workflows described below have been updated since Dec 2025. The latest CI/CD configuration now includes:
+
+- **COMMIT_READY smoke** split into separate Ubuntu + Windows jobs with explicit dependency installs.
+- **E2E tests** hardened with Playwright dependency install, DB initialization, seed validation, and backend health checks.
+- **CI/CD pipeline** expanded with explicit environment setup, caching, and additional diagnostics.
+
+✅ **Action taken:** Workflow fixes are in place.  
+⚠️ **Pending verification:** A fresh CI run is required to confirm green status; no new CI run was executed in this session.
+
+---
+
 ## Summary
 
 Two critical workflows have failed on the most recent commit (`6941bbd`) with the message: "security: strengthen path traversal protection in backup operations"

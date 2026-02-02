@@ -6,6 +6,19 @@
 
 ---
 
+## 📌 Addendum (Feb 2, 2026)
+
+This diagnostic captures the **Dec 2025** state. Since then, multiple CI/CD fixes have been applied in the workflow definitions:
+
+- **COMMIT_READY smoke**: split Ubuntu/Windows jobs; added explicit dependency installs and log uploads.
+- **E2E tests**: added Playwright dependency install, DB migration + seed checks, backend health checks, and diagnostics before tests.
+- **CI/CD pipeline**: expanded environment setup and added more structured phases (lint → tests → smoke → build).
+
+✅ **Action taken:** workflow fixes are already merged.  
+⚠️ **Pending verification:** a new CI run should be used to validate green status (not executed in this session).
+
+---
+
 ## Executive Summary
 
 ### Critical Issues Found:
