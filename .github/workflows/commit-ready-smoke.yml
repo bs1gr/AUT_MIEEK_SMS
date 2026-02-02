@@ -6,9 +6,6 @@ name: COMMIT_READY Smoke (quick)
 on:
   pull_request:
     types: [opened, synchronize, reopened]
-  push:
-    branches:
-      - '**'
   workflow_dispatch:
 
 concurrency:

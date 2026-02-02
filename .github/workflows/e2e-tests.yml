@@ -11,13 +11,6 @@ on:
       - 'docs/**'
       - 'installer/**'
       - 'tools/**'
-  push:
-    branches: [main, develop]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - 'installer/**'
-      - 'tools/**'
   workflow_dispatch:
 
 concurrency:
