@@ -68,6 +68,29 @@ Student, Course, Grade, Base = _import_from_possible_locations("models", ["Stude
 router = APIRouter()
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent.parent
 
+_ALLOWED_RESTORE_CHARS = set("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789._-")
+_MAX_RESTORE_FILENAME_LENGTH = 128
+
+
+def _validate_restore_filename(output_filename: str) -> str:
+    """Validate a restore filename to prevent path traversal and unsafe characters."""
+    if not output_filename:
+        raise HTTPException(status_code=400, detail="Invalid output filename")
+
+    if len(output_filename) > _MAX_RESTORE_FILENAME_LENGTH:
+        raise HTTPException(status_code=400, detail="Output filename too long")
+
+    if ".." in output_filename or "/" in output_filename or "\\" in output_filename:
+        raise HTTPException(status_code=400, detail="Invalid output filename: path traversal characters not allowed")
+
+    if pathlib.Path(output_filename).name != output_filename:
+        raise HTTPException(status_code=400, detail="Invalid output filename: contains path components")
+
+    if any(ch not in _ALLOWED_RESTORE_CHARS for ch in output_filename):
+        raise HTTPException(status_code=400, detail="Invalid output filename: contains invalid characters")
+
+    return output_filename
+
 _server_start_time = time.time()
 
 
@@ -260,28 +283,14 @@ async def restore_encrypted_backup(
     """
     try:
         # Validate output_filename before path construction to prevent path traversal
-        if ".." in output_filename or "/" in output_filename or "\\" in output_filename:
-            raise HTTPException(status_code=400, detail="Invalid output filename")
+        safe_output_filename = _validate_restore_filename(output_filename)
 
         backup_root = pathlib.Path("backups").resolve()
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
-        # Validate output_filename before path construction to prevent path traversal
-        if ".." in output_filename or "\\" in output_filename or "/" in output_filename:
-            raise HTTPException(
-                status_code=400, detail="Invalid output filename: path traversal characters not allowed"
-            )
-
         # Create temporary output directory
         restore_dir = (backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}").resolve()
         restore_dir.mkdir(parents=True, exist_ok=True)
-        # Extract only the filename to prevent path traversal
-        safe_output_filename = pathlib.Path(output_filename).name
-        if safe_output_filename != output_filename:
-            raise HTTPException(status_code=400, detail="Invalid output filename: contains path components")
-        # Validate clean filename one more time before path operation
-        if ".." in safe_output_filename or safe_output_filename.startswith("/"):
-            raise HTTPException(status_code=400, detail="Invalid output filename: path traversal detected")
         output_path = (restore_dir / safe_output_filename).resolve()
 
         # Additional safety: Ensure resolved paths are within allowed directories

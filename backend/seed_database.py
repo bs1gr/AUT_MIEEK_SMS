@@ -17,7 +17,6 @@ import argparse
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Any
-import hashlib
 
 # Add backend to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -27,6 +26,7 @@ from sqlalchemy.orm import sessionmaker
 import yaml  # type: ignore[import-untyped]
 
 from models import User, Role, Student, Course, Grade, Attendance, Enrollment
+from security.password_hash import get_password_hash
 from dependencies import get_db_url
 
 # Sample data seeds
@@ -567,8 +567,8 @@ class DatabaseSeeder:
 
     def _hash_password(self, password: str) -> str:
         """Hash password (simplified for seeding)."""
-        # In production, use bcrypt or similar
-        return hashlib.sha256(password.encode()).hexdigest()
+        # Use the standard password hashing helper for consistency and security
+        return get_password_hash(password)
 
     def _print_summary(self):
         """Print summary of created data."""
