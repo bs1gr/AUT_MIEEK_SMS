@@ -580,18 +580,23 @@ class CustomReportService:
         logger.info(f"Starting import of {len(default_templates)} default templates...")
         for template in default_templates:
             # Check if template with this name already exists
-            existing = self.db.query(ReportTemplate).filter(
-                ReportTemplate.name == template.name,
-                ReportTemplate.is_system == True
-            ).first()
+            existing = (
+                self.db.query(ReportTemplate)
+                .filter(ReportTemplate.name == template.name, ReportTemplate.is_system.is_(True))
+                .first()
+            )
 
             if existing:
                 logger.debug(f"Template '{template.name}' already exists. Skipping.")
             else:
                 self.db.add(template)
                 imported_count += 1
-                logger.debug(f"Adding template: '{template.name}' (category: {template.category}, type: {template.report_type})")
+                logger.debug(
+                    f"Adding template: '{template.name}' (category: {template.category}, type: {template.report_type})"
+                )
 
         self.db.commit()
-        logger.info(f"Successfully imported {imported_count}/{len(default_templates)} templates. {len(default_templates) - imported_count} already existed.")
+        logger.info(
+            f"Successfully imported {imported_count}/{len(default_templates)} templates. {len(default_templates) - imported_count} already existed."
+        )
         return imported_count
