@@ -55,7 +55,17 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
     titleKey: 'template_perfect_attendance',
     descKey: 'template_perfect_attendance_desc',
   },
+  'Perfect Attendance': {
+    // Fallback for existing database entries
+    titleKey: 'template_perfect_attendance',
+    descKey: 'template_perfect_attendance_desc',
+  },
   'Partial Attendance': {
+    titleKey: 'template_chronic_absenteeism',
+    descKey: 'template_chronic_absenteeism_desc',
+  },
+  'Chronic Absenteeism': {
+    // Fallback for existing database entries
     titleKey: 'template_chronic_absenteeism',
     descKey: 'template_chronic_absenteeism_desc',
   },
