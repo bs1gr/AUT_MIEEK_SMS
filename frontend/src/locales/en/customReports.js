@@ -295,7 +295,9 @@ export default {
   importDefaults: 'Import Default Templates',
   importing: 'Importing...',
   templates_imported: 'Successfully imported {{count}} templates',
+  import_success: 'Successfully imported {{count}} default templates',
   import_failed: 'Failed to import templates',
+  import_error: 'Import error',
 
   // Bulk operations
   selectAll: 'Select All',

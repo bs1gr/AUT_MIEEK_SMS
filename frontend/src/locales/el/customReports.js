@@ -293,7 +293,9 @@ export default {
   importDefaults: 'Εισαγωγή Προεπιλεγμένων Προτύπων',
   importing: 'Γίνεται εισαγωγή...',
   templates_imported: 'Επιτυχής εισαγωγή {{count}} προτύπων',
+  import_success: 'Επιτυχής εισαγωγή {{count}} προεπιλεγμένων προτύπων',
   import_failed: 'Αποτυχία εισαγωγής προτύπων',
+  import_error: 'Σφάλμα εισαγωγής',
 
   // Bulk operations
   selectAll: 'Επιλογή Όλων',
