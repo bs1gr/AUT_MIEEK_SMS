@@ -43,7 +43,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p className="text-red-800 font-medium">{t(errorLoading', { ns: 'customReports' })}</p>
+        <p className="text-red-800 font-medium">{t('errorLoading', { ns: 'customReports' })}</p>
       </div>
     );
   }
@@ -51,14 +51,14 @@ export const ReportList: React.FC<ReportListProps> = ({
   if (!reports || reports.length === 0) {
     return (
       <div className="bg-gray-50 rounded-lg border-2 border-dashed p-12 text-center">
-        <p className="text-gray-600 mb-6">{t(emptyReports', { ns: 'customReports' })}</p>
+        <p className="text-gray-600 mb-6">{t('emptyReports', { ns: 'customReports' })}</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             type="button"
             onClick={onCreateReport}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            {t(createFirstReport', { ns: 'customReports' })}
+            {t('createFirstReport', { ns: 'customReports' })}
           </button>
           <button
             type="button"
@@ -67,7 +67,7 @@ export const ReportList: React.FC<ReportListProps> = ({
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-400 flex items-center gap-2 justify-center"
           >
             <Upload size={18} />
-            {importMutation.isPending ? t(importing', { ns: 'customReports' }) : t(importDefaults', { ns: 'customReports' })}
+            {importMutation.isPending ? t('importing', { ns: 'customReports' }) : t('importDefaults', { ns: 'customReports' })}
           </button>
         </div>
       </div>
@@ -85,7 +85,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   };
 
   const handleDeleteReport = (reportId: number) => {
-    if (window.confirm(t(confirmDelete', { ns: 'customReports' }))) {
+    if (window.confirm(t('confirmDelete', { ns: 'customReports' }))) {
       deleteMutation.mutate(reportId);
     }
   };
@@ -123,7 +123,7 @@ export const ReportList: React.FC<ReportListProps> = ({
     createTemplateMutation.mutate(templateData, {
       onSuccess: () => {
         const toast = document.createElement('div');
-        toast.textContent = `✅ ${t(templateSaved', { ns: 'customReports' })}`;
+        toast.textContent = `✅ ${t('templateSaved', { ns: 'customReports' })}`;
         toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 4000);
@@ -153,10 +153,10 @@ export const ReportList: React.FC<ReportListProps> = ({
           {selectedReports.length > 0 && (
             <>
               <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
-                {t(bulkExport', { ns: 'customReports' })}
+                {t('bulkExport', { ns: 'customReports' })}
               </button>
               <button className="px-4 py-2 text-red-700 hover:bg-red-50 rounded-lg transition-colors">
-                {t(bulkDelete', { ns: 'customReports' })}
+                {t('bulkDelete', { ns: 'customReports' })}
               </button>
             </>
           )}
@@ -177,19 +177,19 @@ export const ReportList: React.FC<ReportListProps> = ({
                 />
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                {t(reportName', { ns: 'customReports' })}
+                {t('reportName', { ns: 'customReports' })}
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                {t(entityType', { ns: 'customReports' })}
+                {t('entityType', { ns: 'customReports' })}
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                {t(outputFormat', { ns: 'customReports' })}
+                {t('outputFormat', { ns: 'customReports' })}
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                {t(createdAt', { ns: 'customReports' })}
+                {t('createdAt', { ns: 'customReports' })}
               </th>
               <th className="px-6 py-3 text-left font-semibold text-gray-700">
-                {t(actions', { ns: 'customReports' })}
+                {t('actions', { ns: 'customReports' })}
               </th>
             </tr>
           </thead>
@@ -229,7 +229,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                       <button
                         onClick={() => handleGenerateReport(report.id)}
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                        title={t(generateReport', { ns: 'customReports' })}
+                        title={t('generateReport', { ns: 'customReports' })}
                       >
                         <Play size={16} />
                       </button>
@@ -253,14 +253,14 @@ export const ReportList: React.FC<ReportListProps> = ({
                       <button
                         onClick={() => onEditReport?.(report.id)}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                        title={t(edit', { ns: 'customReports' })}
+                        title={t('edit', { ns: 'customReports' })}
                       >
                         <Edit2 size={16} />
                       </button>
                       <button
                         onClick={() => handleDuplicateReport(report)}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                        title={t(duplicate', { ns: 'customReports' })}
+                        title={t('duplicate', { ns: 'customReports' })}
                       >
                         <Copy size={16} />
                       </button>
@@ -278,25 +278,25 @@ export const ReportList: React.FC<ReportListProps> = ({
                           <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-48">
                             <button className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm">
                             <Share2 size={14} />
-                            {t(share', { ns: 'customReports' })}
+                            {t('share', { ns: 'customReports' })}
                           </button>
                             <button
                               onClick={() => handleSaveAsTemplate(report)}
                               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
                             >
                               <Copy size={14} />
-                              {t(saveAsTemplate', { ns: 'customReports' })}
+                              {t('saveAsTemplate', { ns: 'customReports' })}
                             </button>
                           <button className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t">
                             <Download size={14} />
-                            {t(export', { ns: 'customReports' })}
+                            {t('export', { ns: 'customReports' })}
                           </button>
                           <button
                             onClick={() => handleDeleteReport(report.id)}
                             className="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center gap-2 text-sm text-red-600 border-t"
                           >
                             <Trash2 size={14} />
-                            {t(delete', { ns: 'customReports' })}
+                            {t('delete', { ns: 'customReports' })}
                           </button>
                         </div>
                       )}
@@ -332,10 +332,10 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
     <tr className="bg-blue-50">
       <td colSpan={6} className="px-6 py-4">
         <div className="space-y-3">
-          <h4 className="font-semibold text-sm text-gray-700">{t(generatedReportsTitle', { ns: 'customReports' })}</h4>
-          {isLoading && <p className="text-xs text-gray-500">{t(loading', { ns: 'customReports' })}</p>}
+          <h4 className="font-semibold text-sm text-gray-700">{t('generatedReportsTitle', { ns: 'customReports' })}</h4>
+          {isLoading && <p className="text-xs text-gray-500">{t('loading', { ns: 'customReports' })}</p>}
           {!isLoading && (!generatedReports || generatedReports.length === 0) && (
-            <p className="text-xs text-gray-500">{t(noGeneratedReports', { ns: 'customReports' })}</p>
+            <p className="text-xs text-gray-500">{t('noGeneratedReports', { ns: 'customReports' })}</p>
           )}
           {!isLoading && generatedReports && generatedReports.length > 0 && (
             <div className="space-y-2">
@@ -349,14 +349,14 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
                     <div className="text-xs flex-1">
                       <p className="font-medium text-gray-900">
                         {isValidDate
-                          ? `${t(generatedLabel', { ns: 'customReports' })} ${formatDistanceToNow(generatedDate, { addSuffix: true })}`
+                          ? `${t('generatedLabel', { ns: 'customReports' })} ${formatDistanceToNow(generatedDate, { addSuffix: true })}`
                           : t(generatedNow', { ns: 'customReports' })}
                       </p>
                       <p className="text-gray-600">
-                        {t(status', { ns: 'customReports' })}: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>
+                        {t('status', { ns: 'customReports' })}: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>
                       </p>
                       {generated.error_message && (
-                        <p className="text-red-600 font-semibold">{t(error', { ns: 'customReports' })}: {generated.error_message}</p>
+                        <p className="text-red-600 font-semibold">{t('error', { ns: 'customReports' })}: {generated.error_message}</p>
                       )}
                       {generated.file_path && (
                         <p className="text-gray-500">{generated.file_path.split('/').pop()}</p>
@@ -367,24 +367,24 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
                         <button
                           onClick={() => downloadMutation.mutate({ reportId, generatedId: generated.id })}
                           className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700 transition-colors flex items-center gap-1"
-                          title={t(downloadTooltip', { ns: 'customReports' })}
+                          title={t('downloadTooltip', { ns: 'customReports' })}
                         >
                           <Download size={12} />
-                          {t(download', { ns: 'customReports' })}
+                          {t('download', { ns: 'customReports' })}
                         </button>
                       )}
                       <button
                         onClick={() => deleteMutation.mutate({ reportId, generatedId: generated.id })}
                         className="px-2 py-1 bg-red-600 text-white rounded text-xs hover:bg-red-700 transition-colors flex items-center gap-1"
-                        title={t(deleteGeneratedTooltip', { ns: 'customReports' })}
+                        title={t('deleteGeneratedTooltip', { ns: 'customReports' })}
                       >
                         <Trash2 size={12} />
                       </button>
                       {generated.status === 'processing' && (
-                        <span className="text-xs text-orange-600 font-medium">{t(processing', { ns: 'customReports' })}</span>
+                        <span className="text-xs text-orange-600 font-medium">{t('processing', { ns: 'customReports' })}</span>
                       )}
                       {generated.status === 'failed' && (
-                        <span className="text-xs text-red-600 font-medium">{t(failed', { ns: 'customReports' })}</span>
+                        <span className="text-xs text-red-600 font-medium">{t('failed', { ns: 'customReports' })}</span>
                       )}
                     </div>
                   </div>
@@ -399,4 +399,5 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
 };
 
 export default ReportList;
+
 
