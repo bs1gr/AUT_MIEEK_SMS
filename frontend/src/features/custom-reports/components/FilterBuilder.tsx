@@ -159,7 +159,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
               value={newFilter.value}
               onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
               className="w-full px-3 py-2 border border-gray-300 rounded"
-              placeholder={t('customReports:filterValue')}
+                placeholder={t('filterValue', { ns: 'customReports' })}
             />
           </div>
 
