@@ -88,7 +88,7 @@ class BackupServiceEncrypted:
         # Check for path traversal sequences BEFORE resolving (resolve() normalizes .. away)
         path_str = str(output_path)
         # Block: .., ~, and UNC paths (\\) that attempt traversal
-        if '..' in path_str or path_str.startswith('~'):
+        if ".." in path_str or path_str.startswith("~"):
             raise ValueError(f"Path traversal detected in output path: {path_str}")
 
         resolved_output = Path(output_path).resolve()

@@ -1,9 +1,9 @@
 # Path Traversal Prevention Strategy
 
-**Document Version**: 1.0  
-**Last Updated**: February 2, 2026  
-**Status**: ✅ Production Validated  
-**Security Level**: HIGH (Critical)  
+**Document Version**: 1.0
+**Last Updated**: February 2, 2026
+**Status**: ✅ Production Validated
+**Security Level**: HIGH (Critical)
 
 ---
 
@@ -51,31 +51,31 @@ This document describes the comprehensive path traversal prevention strategy imp
 ### Layer 1: Input Validation (First Defense)
 
 #### Backup Name Validation
-**File**: `backend/services/backup_service_encrypted.py`, lines 40-78  
+**File**: `backend/services/backup_service_encrypted.py`, lines 40-78
 **Function**: `_validate_backup_name(name: str) -> str`
 
 ```python
 def _validate_backup_name(self, name: str) -> str:
     """Validate backup name to prevent path traversal in filenames."""
-    
+
     # 1. Length check
     if len(name) > BackupServiceEncrypted._MAX_BACKUP_NAME_LENGTH:
         raise ValueError("Backup name is too long")
-    
+
     # 2. Path component check - CRITICAL
     if Path(name).is_absolute():
         raise ValueError("Backup name cannot be an absolute path")
     if ".." in name or "/" in name or "\\" in name:
         raise ValueError("Backup name contains invalid path characters")
-    
+
     # 3. Separator validation
     if Path(name).name != name:
         raise ValueError("Backup name cannot contain path separators")
-    
+
     # 4. Character whitelist
     if any(ch not in BackupServiceEncrypted._ALLOWED_BACKUP_CHARS for ch in name):
         raise ValueError("Backup name contains invalid characters")
-    
+
     return name
 ```
 
@@ -93,33 +93,33 @@ def _validate_backup_name(self, name: str) -> str:
 
 ---
 
-#### Output Path Validation  
-**File**: `backend/services/backup_service_encrypted.py`, lines 82-106  
+#### Output Path Validation
+**File**: `backend/services/backup_service_encrypted.py`, lines 82-106
 **Function**: `_validate_output_path(output_path: Path) -> Path`
 
 ```python
 def _validate_output_path(self, output_path: Path) -> Path:
     """Validate output path for safety."""
-    
+
     # 1. Type narrowing
     if not isinstance(output_path, (str, Path)):
         raise TypeError("Output path must be string or Path")
-    
+
     # 2. Pre-resolution traversal check (CRITICAL)
     path_str = str(output_path)
     if '..' in path_str or path_str.startswith('~'):
         raise ValueError(f"Path traversal detected: {path_str}")
-    
+
     # 3. Safe resolution
     resolved_output = Path(output_path).resolve()
-    
+
     # 4. Existence and writability check
     parent_dir = resolved_output.parent
     if not parent_dir.exists():
         parent_dir.mkdir(parents=True, exist_ok=True)
     if not os.access(parent_dir, os.W_OK):
         raise ValueError(f"Output directory not writable: {parent_dir}")
-    
+
     return resolved_output
 ```
 
@@ -147,7 +147,7 @@ if ".." in "/../../../etc/passwd":  # Caught immediately
 ### Layer 2: Path Bounds Checking (Second Defense)
 
 #### Directory-Relative Validation
-**File**: `backend/routers/routers_sessions.py`, lines 715-741  
+**File**: `backend/routers/routers_sessions.py`, lines 715-741
 **Pattern**: Use `Path.relative_to()` to confirm paths stay within allowed directories
 
 ```python
@@ -258,7 +258,7 @@ High severity - python/path-injection
 ## Testing Strategy
 
 ### Security Test Coverage
-**File**: `backend/tests/test_path_traversal_security.py`  
+**File**: `backend/tests/test_path_traversal_security.py`
 **Tests**: 32 comprehensive security tests
 
 #### Test Categories
@@ -277,7 +277,7 @@ test_all_traversal_vectors_rejected_in_backup_name()
 # Valid paths
 test_validate_output_path_accepts_safe_nested_paths()
 
-# Attack vectors  
+# Attack vectors
 test_validate_output_path_rejects_parent_traversal()
 test_validate_output_path_rejects_home_expansion()
 ```
@@ -382,16 +382,16 @@ When adding new path-based features:
        # 1. Check for traversal BEFORE resolve
        if ".." in user_input:
            raise ValueError("Path traversal")
-       
+
        # 2. Resolve path
        result = Path(user_input).resolve()
-       
+
        # 3. Check bounds if applicable
        try:
            result.relative_to(self.allowed_dir)
        except ValueError:
            raise ValueError("Outside allowed directory")
-       
+
        return result
    ```
 
@@ -494,6 +494,6 @@ curl "http://localhost:8000/api/v1/sessions/import?file=../../../secret"
 
 ---
 
-**Document Status**: ✅ COMPLETE  
-**Last Reviewed**: February 2, 2026  
+**Document Status**: ✅ COMPLETE
+**Last Reviewed**: February 2, 2026
 **Next Review**: May 2, 2026
