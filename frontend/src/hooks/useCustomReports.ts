@@ -86,6 +86,20 @@ export function useDeleteTemplate() {
   });
 }
 
+/**
+ * Import default templates mutation
+ */
+export function useImportDefaultTemplates() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: reportTemplatesAPI.importDefaults,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: customReportKeys.templates() });
+    },
+  });
+}
+
 // ==================== REPORTS HOOKS ====================
 
 /**

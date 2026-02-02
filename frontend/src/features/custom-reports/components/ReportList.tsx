@@ -399,5 +399,3 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
 };
 
 export default ReportList;
-
-

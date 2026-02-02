@@ -19,6 +19,12 @@ export interface ReportTemplate {
   filters?: any[] | Record<string, any>; // array or dict format
   aggregations?: any[] | Record<string, any>;
   sort_by?: any[] | Record<string, any>; // array or dict format
+  default_export_format?: string;
+  default_include_charts?: boolean;
+  is_system: boolean;
+  is_active?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface CustomReport {
@@ -135,6 +141,21 @@ export const reportTemplatesAPI = {
       return extractAPIResponseData(response);
     } catch (error) {
       console.error(`[customReportsAPI] Error deleting template ${id}:`, error);
+      throw extractAPIError(
+        (error as { response?: AxiosResponse }).response
+      );
+    }
+  },
+
+  /**
+   * Import default templates
+   */
+  importDefaults: async () => {
+    try {
+      const response = await apiClient.post('/custom-reports/templates/import');
+      return extractAPIResponseData(response) as Record<string, unknown>;
+    } catch (error) {
+      console.error('[customReportsAPI] Error importing default templates:', error);
       throw extractAPIError(
         (error as { response?: AxiosResponse }).response
       );

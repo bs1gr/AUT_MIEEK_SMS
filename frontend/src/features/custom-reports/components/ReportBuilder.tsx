@@ -7,9 +7,11 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCreateReport, useCustomReport, useUpdateReport } from '@/hooks/useCustomReports';
+import type { ReportTemplate } from '@/api/customReportsAPI';
 import FieldSelector from './FieldSelector';
 import FilterBuilder from './FilterBuilder';
 import SortBuilder from './SortBuilder';
+import { getLocalizedTemplateText } from '../utils/templateLocalization';
 
 interface ReportBuilderProps {
   reportId?: number;
@@ -31,6 +33,9 @@ interface ReportConfig {
   sorting_rules: any[];
   sort_by?: any[]; // from template
   default_include_charts?: boolean;
+  template_name?: string;
+  template_description?: string;
+  is_copy?: boolean;
 }
 
 const ENTITY_TYPES = [
@@ -94,16 +99,36 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
     // Normalize initialData from template format to internal format
     if (initialData) {
+      const templateMeta = initialData as ReportTemplate & {
+        template_name?: string;
+        template_description?: string;
+        is_copy?: boolean;
+      };
+      const templateForLocalization: ReportTemplate | null = templateMeta.is_system
+        ? {
+            ...templateMeta,
+            name: templateMeta.template_name || templateMeta.name,
+            description: templateMeta.template_description || templateMeta.description,
+          }
+        : null;
+      const templateText = templateForLocalization
+        ? getLocalizedTemplateText(templateForLocalization, t)
+        : null;
+      const baseName = templateText?.name || templateMeta.name || '';
+      const baseDescription = templateText?.description || templateMeta.description || '';
       const normalized = {
-        name: initialData.name || '',
-        description: initialData.description || '',
-        entity_type: initialData.report_type || initialData.entity_type || 'student',
-        output_format: initialData.default_export_format || initialData.output_format || 'pdf',
-        selected_fields: Array.isArray(initialData.fields)
-          ? initialData.fields
-          : (initialData.selected_fields || []),
-        filters: initialData.filters || [],
-        sorting_rules: initialData.sort_by || initialData.sorting_rules || [],
+        name: baseName,
+        description: baseDescription,
+        entity_type: templateMeta.report_type || templateMeta.entity_type || 'student',
+        output_format: templateMeta.default_export_format || templateMeta.output_format || 'pdf',
+        selected_fields: Array.isArray(templateMeta.fields)
+          ? templateMeta.fields
+          : (templateMeta.selected_fields || []),
+        filters: templateMeta.filters || [],
+        sorting_rules: templateMeta.sort_by || templateMeta.sorting_rules || [],
+        template_name: templateMeta.template_name || templateMeta.name,
+        template_description: templateMeta.template_description || templateMeta.description || '',
+        is_copy: templateMeta.is_copy,
       };
       return normalized;
     }
@@ -168,20 +193,64 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   // Load template data when creating from template
   useEffect(() => {
     if (!reportId && initialData) {
+      const templateMeta = initialData as ReportTemplate & {
+        template_name?: string;
+        template_description?: string;
+        is_copy?: boolean;
+      };
+      const templateForLocalization: ReportTemplate | null = templateMeta.is_system
+        ? {
+            ...templateMeta,
+            name: templateMeta.template_name || templateMeta.name,
+            description: templateMeta.template_description || templateMeta.description,
+          }
+        : null;
+      const templateText = templateForLocalization
+        ? getLocalizedTemplateText(templateForLocalization, t)
+        : null;
+      const baseName = templateText?.name || templateMeta.name || '';
+      const baseDescription = templateText?.description || templateMeta.description || '';
       const normalized = {
-        name: initialData.name || '',
-        description: initialData.description || '',
-        entity_type: initialData.report_type || initialData.entity_type || 'student',
-        output_format: initialData.default_export_format || initialData.output_format || 'pdf',
-        selected_fields: Array.isArray(initialData.fields)
-          ? initialData.fields
-          : (initialData.selected_fields || []),
-        filters: initialData.filters || [],
-        sorting_rules: initialData.sort_by || initialData.sorting_rules || [],
+        name: baseName,
+        description: baseDescription,
+        entity_type: templateMeta.report_type || templateMeta.entity_type || 'student',
+        output_format: templateMeta.default_export_format || templateMeta.output_format || 'pdf',
+        selected_fields: Array.isArray(templateMeta.fields)
+          ? templateMeta.fields
+          : (templateMeta.selected_fields || []),
+        filters: templateMeta.filters || [],
+        sorting_rules: templateMeta.sort_by || templateMeta.sorting_rules || [],
+        template_name: templateMeta.template_name || templateMeta.name,
+        template_description: templateMeta.template_description || templateMeta.description || '',
+        is_copy: templateMeta.is_copy,
       };
       setConfig(normalized);
     }
-  }, [initialData, reportId]);
+  }, [initialData, reportId, t]);
+
+  // Re-localize template name/description on language changes
+  useEffect(() => {
+    if (!config.template_name) {
+      return;
+    }
+
+    const templateForLocalization = {
+      name: config.template_name,
+      description: config.template_description || '',
+      is_system: true,
+    };
+
+    const templateText = getLocalizedTemplateText(templateForLocalization, t);
+    const localizedDescription = templateText.description || '';
+
+    if (config.name !== templateText.name || config.description !== localizedDescription) {
+      setConfig((prev) => ({
+        ...prev,
+        name: templateText.name,
+        description: localizedDescription,
+      }));
+    }
+  }, [config.template_name, config.template_description, config.name, config.description, config.entity_type, config.output_format, t]);
 
   // Persist config to session storage whenever it changes
   useEffect(() => {
