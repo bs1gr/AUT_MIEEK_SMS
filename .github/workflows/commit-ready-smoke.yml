@@ -9,6 +9,7 @@ on:
   push:
     branches:
       - '**'
+  workflow_dispatch:
 
 concurrency:
   group: commit-ready-smoke-${{ github.ref }}
