@@ -343,3 +343,156 @@ class CustomReportService:
             "average_generation_time_seconds": float(avg_duration) if avg_duration else None,
             "total_storage_bytes": int(total_storage) if total_storage else None,
         }
+
+    def import_default_templates(self) -> int:
+        """
+        Import pre-built default templates into the database.
+        Returns the count of templates imported.
+        """
+        # Check if templates already exist
+        existing_count = self.db.query(ReportTemplate).filter(ReportTemplate.is_system == True).count()
+        
+        if existing_count > 0:
+            logger.info(f"Default templates already exist ({existing_count} found). Skipping import.")
+            return 0
+        
+        default_templates = [
+            ReportTemplate(
+                name="Student Roster - Complete",
+                description="Comprehensive student roster with contact details",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "email", "phone", "enrollment_status"],
+                filters=[],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Active Students - Basic Info",
+                description="List of currently enrolled students with basic information",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "email"],
+                filters=[{"field": "enrollment_status", "operator": "equals", "value": "active"}],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Students by Study Year",
+                description="Students grouped by academic year",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "year_of_study"],
+                filters=[],
+                aggregations={"group_by": "year_of_study"},
+            ),
+            ReportTemplate(
+                name="New Enrollments - Current Semester",
+                description="Students enrolled in current semester",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "enrollment_date"],
+                filters=[],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Course Catalog - All Courses",
+                description="Complete list of all available courses",
+                category="standard",
+                report_type="course",
+                is_system=True,
+                fields=["id", "name", "code", "credits", "semester"],
+                filters=[],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Active Courses by Semester",
+                description="Courses offered in current semester",
+                category="standard",
+                report_type="course",
+                is_system=True,
+                fields=["id", "name", "code", "credits", "semester"],
+                filters=[{"field": "is_active", "operator": "equals", "value": True}],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Grade Distribution - All Courses",
+                description="Grade statistics across all courses",
+                category="standard",
+                report_type="grade",
+                is_system=True,
+                fields=["id", "student_id", "course_id", "grade_value"],
+                filters=[],
+                aggregations={"group_by": "course_id"},
+            ),
+            ReportTemplate(
+                name="Student Transcript - Complete",
+                description="Complete grade transcript for individual student",
+                category="standard",
+                report_type="grade",
+                is_system=True,
+                fields=["id", "course_id", "grade_value", "exam_date"],
+                filters=[],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Honor Roll - High Achievers",
+                description="Students with excellent grades",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "gpa"],
+                filters=[{"field": "gpa", "operator": "gte", "value": 3.5}],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="At-Risk Students - Low Grades",
+                description="Students with grades below 60 requiring academic intervention",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "gpa"],
+                filters=[{"field": "gpa", "operator": "lt", "value": 2.0}],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Attendance Summary - All Students",
+                description="Comprehensive attendance statistics for all students",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "attendance_rate"],
+                filters=[],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Full Attendance",
+                description="Students with 100% attendance record",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "attendance_rate"],
+                filters=[{"field": "attendance_rate", "operator": "equals", "value": 100}],
+                aggregations=None,
+            ),
+            ReportTemplate(
+                name="Partial Attendance",
+                description="Students with multiple absences requiring attention",
+                category="standard",
+                report_type="student",
+                is_system=True,
+                fields=["id", "first_name", "last_name", "attendance_rate"],
+                filters=[{"field": "attendance_rate", "operator": "lt", "value": 80}],
+                aggregations=None,
+            ),
+        ]
+        
+        # Add all templates to database
+        for template in default_templates:
+            self.db.add(template)
+        
+        self.db.commit()
+        logger.info(f"Successfully imported {len(default_templates)} default templates")
+        return len(default_templates)
