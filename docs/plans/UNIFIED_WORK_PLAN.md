@@ -32,6 +32,26 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 
 ---
 
+## 📝 New TODO: Historical Edit (Frontend CRUD)
+
+**Objective**: Add historical CRUD editing for past records across Grading, Attendance, and Student Performance views.
+
+**Routes & UX Targets**:
+1. **/grading**: Date-picker or History toggle to load past grades. Allow inline edit of historical grades.
+2. **/attendance**: Calendar selection for past dates; allow editing of historical attendance statuses.
+3. **/students**: View Performance should show historical grades + attendance with **Recall** buttons.
+
+**Core Behaviors**:
+- **Recall Mechanism**: Selecting a historical grade/attendance entry should populate existing forms for edit.
+- **Database Sync**: Save uses PUT/PATCH to update records (no duplicates).
+- **UI Feedback**: Show a **Historical Mode** banner when editing past data.
+
+**Implementation Notes**:
+- Use existing update endpoints for grades/attendance.
+- Refresh frontend state after save to reflect changes immediately.
+
+---
+
 ## 📊 Previous Phases Summary
 
 ### Phase 5: Production Deployment ✅ COMPLETE

@@ -188,6 +188,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
           grades: { count: grades.length, average: Number.isFinite(avg) ? avg.toFixed(1) : '0.0' },
           finalGrade,
           gradesList: grades,
+          attendanceList: attendance,
           courseSummary,
         },
       }));
@@ -215,6 +216,23 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       sessionStorage.setItem('grading_filter_course', courseId.toString());
     }
     navigate('/grading');
+  }, [navigate]);
+
+  const handleRecallGrade = useCallback((studentId: number, courseId: number, gradeId: number) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('grading_filter_student', studentId.toString());
+      sessionStorage.setItem('grading_filter_course', courseId.toString());
+      sessionStorage.setItem('grading_recall_grade_id', gradeId.toString());
+    }
+    navigate('/grading');
+  }, [navigate]);
+
+  const handleRecallAttendance = useCallback((courseId: number, date: string) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('attendance_recall_course', courseId.toString());
+      sessionStorage.setItem('attendance_recall_date', date);
+    }
+    navigate('/attendance');
   }, [navigate]);
 
   return (
@@ -268,6 +286,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                     onDelete={onDelete}
                     coursesMap={coursesMap}
                     onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                    onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
+                    onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
                     onViewProfile={onViewProfile}
                     data-testid={`student-card-${student.id}`}
                   />
@@ -296,6 +316,8 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   onDelete={onDelete}
                   coursesMap={coursesMap}
                   onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                  onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
+                  onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
                   onViewProfile={onViewProfile}
                 />
               ))}

@@ -85,4 +85,5 @@ export default {
   selectedDate: 'Selected date',
   autosavePending: 'Changes pending...',
   saving: 'Saving...',
+  historicalModeBanner: 'Historical mode enabled',
 };

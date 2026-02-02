@@ -1,4 +1,4 @@
-import type { Grade } from '@/types';
+import type { Attendance, Grade } from '@/types';
 
 export interface StudentStats {
   attendance: {
@@ -21,6 +21,7 @@ export interface StudentStats {
     totalCourses: number;
   };
   gradesList?: Grade[];
+  attendanceList?: Attendance[];
   courseSummary?: Array<{
     course_code: string;
     course_name: string;
