@@ -12,6 +12,7 @@ Features:
 """
 
 import json
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -79,14 +80,20 @@ class BackupServiceEncrypted:
         return candidate
 
     def _validate_output_path(self, output_path: Path) -> Path:
-        """Ensure output path resolves inside backup directory to prevent traversal."""
+        """Validate output path for safety (allow any writable location, not just backup_dir)."""
         resolved_output = output_path.resolve()
-        resolved_backup_dir = self.backup_dir.resolve()
 
-        try:
-            resolved_output.relative_to(resolved_backup_dir)
-        except (ValueError, OSError):
-            raise ValueError("Output path outside allowed directory")
+        # Ensure parent directory exists or can be created
+        parent_dir = resolved_output.parent
+        if not parent_dir.exists():
+            try:
+                parent_dir.mkdir(parents=True, exist_ok=True)
+            except (OSError, PermissionError) as e:
+                raise ValueError(f"Cannot create parent directory for output path: {e}")
+
+        # Ensure parent directory is writable
+        if parent_dir.exists() and not os.access(parent_dir, os.W_OK):
+            raise ValueError(f"Output directory is not writable: {parent_dir}")
 
         return resolved_output
 
