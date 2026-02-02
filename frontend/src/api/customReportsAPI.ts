@@ -152,8 +152,12 @@ export const reportTemplatesAPI = {
    */
   importDefaults: async () => {
     try {
+      console.log('[customReportsAPI] Calling POST /custom-reports/templates/import...');
       const response = await apiClient.post('/custom-reports/templates/import');
-      return extractAPIResponseData(response) as Record<string, unknown>;
+      console.log('[customReportsAPI] Import response:', response);
+      const data = extractAPIResponseData(response) as Record<string, unknown>;
+      console.log('[customReportsAPI] Extracted data:', data);
+      return data;
     } catch (error) {
       console.error('[customReportsAPI] Error importing default templates:', error);
       throw extractAPIError(

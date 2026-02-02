@@ -91,11 +91,54 @@ export function useDeleteTemplate() {
  */
 export function useImportDefaultTemplates() {
   const queryClient = useQueryClient();
+  const { i18n } = useTranslation();
 
   return useMutation({
     mutationFn: reportTemplatesAPI.importDefaults,
-    onSuccess: () => {
+    onSuccess: (data: any) => {
+      console.log('[Import Success] Response data:', data);
+
+      const importedCount = data?.imported_count ?? data?.data?.imported_count ?? 0;
+      const message = data?.message ?? data?.data?.message ?? `Imported ${importedCount} templates`;
+
+      // Show success toast
+      try {
+        const toast = document.createElement('div');
+        toast.textContent = `✅ ${message}`;
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: 500;';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+        console.log('[Import Toast] Success notification shown:', message);
+      } catch (e) {
+        console.error('[Import Toast Error] Could not show toast:', e);
+      }
+
       queryClient.invalidateQueries({ queryKey: customReportKeys.templates() });
+    },
+    onError: (error: any) => {
+      console.error('[Import Error] Full error object:', error);
+
+      let errorMessage = 'Failed to import templates';
+
+      if (error?.response?.data?.error?.message) {
+        errorMessage = error.response.data.error.message;
+      } else if (error?.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+
+      // Show error toast
+      try {
+        const toast = document.createElement('div');
+        toast.textContent = `❌ ${errorMessage}`;
+        toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: 500;';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+        console.log('[Import Toast] Error notification shown:', errorMessage);
+      } catch (e) {
+        console.error('[Import Toast Error] Could not show error toast:', e);
+      }
     },
   });
 }
