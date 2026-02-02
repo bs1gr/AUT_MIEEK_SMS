@@ -35,6 +35,13 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
   const [selectedEntityType, setSelectedEntityType] = useState<string | null>(initialEntityType || null);
   const [selectedFormat, setSelectedFormat] = useState<string | null>(initialFormat || null);
 
+  // Auto-switch to appropriate tab when format filter is selected
+  React.useEffect(() => {
+    if (selectedFormat?.toLowerCase() === 'csv') {
+      setActiveTab('csv');
+    }
+  }, [selectedFormat]);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-96">
