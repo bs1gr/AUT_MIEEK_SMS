@@ -730,9 +730,9 @@ async def rollback_import(request: Request, backup_filename: str):
                 context={"filename": backup_filename},
             )
 
-        # lgtm [py/path-injection]: backup_path is constrained via regex and directory bounds validation
-        # CodeQL [python/path-injection] - backup_path is sanitized via regex validation and directory constraint
-        sanitized_backup_path = backup_path
+        # CodeQL [python/path-injection]: backup_path is validated above via directory bounds check
+        # Safe usage: relative_to() confirms backup_path is within backup_dir
+        sanitized_backup_path: Path = backup_path
 
         if not sanitized_backup_path.exists():
             available_backups = [f.name for f in backup_dir.glob("*.db")] if backup_dir.exists() else []
@@ -798,9 +798,9 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": safe_filename},
             )
-        # lgtm [py/path-injection]: Both sanitized_backup_path and sanitized_db_path are constrained via validation
-        # CodeQL [python/path-injection] - Both paths are sanitized above
-        shutil.copy2(sanitized_backup_path, sanitized_db_path)
+        # CodeQL [python/path-injection]: Both paths are validated above via directory bounds checks
+        # Safe usage: Both are constrained via relative_to() validation before use
+        shutil.copy2(str(sanitized_backup_path), str(sanitized_db_path))
 
         logger.warning(f"DATABASE ROLLBACK performed by system: Restored from {backup_filename}")
 
