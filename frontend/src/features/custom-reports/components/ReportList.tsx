@@ -101,7 +101,7 @@ export const ReportList: React.FC<ReportListProps> = ({
 
   const handleSaveAsTemplate = (report: any) => {
     const defaultName = report?.name ? `${report.name} Template` : '';
-    const name = window.prompt(t(templateNamePrompt', { ns: 'customReports' }), defaultName);
+    const name = window.prompt(t('templateNamePrompt', { ns: 'customReports' }), defaultName);
     if (!name) {
       return;
     }
@@ -350,7 +350,7 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
                       <p className="font-medium text-gray-900">
                         {isValidDate
                           ? `${t('generatedLabel', { ns: 'customReports' })} ${formatDistanceToNow(generatedDate, { addSuffix: true })}`
-                          : t(generatedNow', { ns: 'customReports' })}
+                          : t('generatedNow', { ns: 'customReports' })}
                       </p>
                       <p className="text-gray-600">
                         {t('status', { ns: 'customReports' })}: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>
