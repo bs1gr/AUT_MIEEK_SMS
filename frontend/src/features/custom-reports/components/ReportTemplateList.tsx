@@ -180,6 +180,49 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
         </div>
       </div>
 
+      {/* Quick Access Tiles - Data Source & Output Format */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Data Source Tiles */}
+        <div className="bg-white rounded-lg border p-6 space-y-4">
+          <h3 className="font-semibold text-gray-900">{t('dataSources', { ns: 'customReports' })}</h3>
+          <div className="grid grid-cols-1 gap-3">
+            <button
+              onClick={() => setActiveTab('analytics')}
+              className="flex items-center gap-3 p-4 rounded-lg border-2 border-orange-200 hover:border-orange-400 hover:bg-orange-50 transition-all cursor-pointer group"
+            >
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center group-hover:bg-orange-200">
+                <span className="text-lg">📊</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium text-gray-900">{t('analyticsTemplates', { ns: 'customReports' })}</p>
+                <p className="text-sm text-gray-600">{t('analyticsTemplatesDescription', { ns: 'customReports' })}</p>
+              </div>
+              <span className="text-orange-600 font-semibold">→</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Output Format Tiles */}
+        <div className="bg-white rounded-lg border p-6 space-y-4">
+          <h3 className="font-semibold text-gray-900">{t('outputFormats', { ns: 'customReports' })}</h3>
+          <div className="grid grid-cols-1 gap-3">
+            <button
+              onClick={() => setSelectedFormat('csv')}
+              className="flex items-center gap-3 p-4 rounded-lg border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all cursor-pointer group"
+            >
+              <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center group-hover:bg-green-200">
+                <span className="text-lg">📄</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium text-gray-900">{t('csvExportTemplates', { ns: 'customReports' })}</p>
+                <p className="text-sm text-gray-600">{t('csvTemplatesDescription', { ns: 'customReports' })}</p>
+              </div>
+              <span className="text-green-600 font-semibold">→</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-white border rounded-lg p-1 flex gap-1 w-full justify-start overflow-x-auto">
