@@ -92,8 +92,8 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
                 onChange={(e) => handleUpdateSort(index, 'order', e.target.value as 'asc' | 'desc')}
                 className="px-3 py-2 border border-gray-300 rounded"
               >
-                <option value="asc">{t('customReports:ascending')}</option>
-                <option value="desc">{t('customReports:descending')}</option>
+                <option value="asc">{t('ascending', { ns: 'customReports' })}</option>
+                <option value="desc">{t('descending', { ns: 'customReports' })}</option>
               </select>
 
               <div className="flex gap-1">
@@ -101,7 +101,7 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
                   onClick={() => handleMoveUp(index)}
                   disabled={index === 0}
                   className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={t('customReports:moveUp')}
+                  title={t('moveUp', { ns: 'customReports' })}
                 >
                   ↑
                 </button>
@@ -109,7 +109,7 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
                   onClick={() => handleMoveDown(index)}
                   disabled={index === sorting.length - 1}
                   className="p-2 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-                  title={t('customReports:moveDown')}
+                  title={t('moveDown', { ns: 'customReports' })}
                 >
                   ↓
                 </button>
@@ -168,11 +168,11 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
             className="px-4 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
           >
             <Plus size={18} />
-            {t('customReports:addSort')}
+            {t('addSort', { ns: 'customReports' })}
           </button>
         </div>
 
-        <p className="text-xs text-gray-600">{t('customReports:helpSorting')}</p>
+        <p className="text-xs text-gray-600">{t('helpSorting', { ns: 'customReports' })}</p>
       </div>
     </div>
   );
