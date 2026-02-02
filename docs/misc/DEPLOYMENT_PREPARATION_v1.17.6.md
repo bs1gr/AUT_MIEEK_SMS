@@ -225,14 +225,14 @@ curl -X POST "http://localhost:8080/api/v1/custom-reports/generate" \
 ## 📖 Documentation
 
 **Pre-Deployment References**:
-- [README.md](./README.md) - Main project documentation
-- [DEPLOYMENT_GUIDE.md](./docs/deployment/DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
-- [DOCKER_OPERATIONS.md](./docs/deployment/DOCKER_OPERATIONS.md) - Docker operations reference
-- [PHASE6_COMPLETION_REPORT.md](./PHASE6_COMPLETION_REPORT.md) - Phase 6 completion details
+- [README.md](../../README.md) - Main project documentation
+- [DEPLOYMENT_GUIDE.md](../deployment/DEPLOYMENT_GUIDE.md) - Comprehensive deployment guide
+- [DOCKER_OPERATIONS.md](../deployment/DOCKER_OPERATIONS.md) - Docker operations reference
+- [PHASE6_COMPLETION_REPORT.md](../reports/2026-02/PHASE6_COMPLETION_REPORT.md) - Phase 6 completion details
 
 **Post-Deployment**:
-- [operations/MONITORING.md](./docs/operations/MONITORING.md) - Monitoring setup
-- [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md) - Post-deployment verification
+- [operations/MONITORING.md](../operations/MONITORING.md) - Monitoring setup
+- [DEPLOYMENT_CHECKLIST.md](../../DEPLOYMENT_CHECKLIST.md) - Post-deployment verification
 
 ---
 
@@ -286,7 +286,7 @@ When ready to deploy:
 
 1. Check logs: `docker logs <container_name>`
 2. Verify health: `curl http://localhost:8080/api/v1/health`
-3. Review: [docs/deployment/TROUBLESHOOTING_GUIDE.md](./docs/deployment/TROUBLESHOOTING_GUIDE.md)
+3. Review: [docs/deployment/TROUBLESHOOTING_GUIDE.md](../deployment/TROUBLESHOOTING_GUIDE.md)
 4. Reference: [DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)
 
 ---
