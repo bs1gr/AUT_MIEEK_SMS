@@ -47,7 +47,7 @@ def seed_e2e_data(force: bool = False):
         # Check if test users already exist
         existing_test_user = db.query(User).filter(User.email == "test@example.com").first()
         existing_admin_user = db.query(User).filter(User.email == "admin@example.com").first()
-        
+
         if existing_test_user and existing_admin_user:
             if force:
                 print("[WARN] Deleting existing test users for recreation...")
@@ -69,7 +69,7 @@ def seed_e2e_data(force: bool = False):
             is_active=True,
         )
         db.add(test_user)
-        
+
         # Create admin user (used by E2E tests: admin@example.com / YourSecurePassword123!)
         admin_user = User(
             email="admin@example.com",
@@ -179,10 +179,10 @@ def seed_e2e_data(force: bool = False):
         print("\n=== SEED DATA VALIDATION ===")
         # nosec B101 - CWE-312 pragma: E2E test data only, not production
         print("✅ Test users created:")
-        print(f"   - test@example.com (password: Test@Pass123)")
+        print("   - test@example.com (password: Test@Pass123)")
         print(f"     Role: {final_test_user.role if final_test_user else 'NOT FOUND'}")
         print(f"     Active: {final_test_user.is_active if final_test_user else 'NOT FOUND'}")
-        print(f"   - admin@example.com (password: YourSecurePassword123!)")
+        print("   - admin@example.com (password: YourSecurePassword123!)")
         print(f"     Role: {final_admin_user.role if final_admin_user else 'NOT FOUND'}")
         print(f"     Active: {final_admin_user.is_active if final_admin_user else 'NOT FOUND'}")
         print(f"\n✅ Students in database: {len(final_students)}")
