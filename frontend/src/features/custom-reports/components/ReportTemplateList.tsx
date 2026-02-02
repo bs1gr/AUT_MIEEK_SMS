@@ -51,7 +51,9 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
     );
   }
 
-  const standardTemplates = templates?.filter((t: ReportTemplate) => t.is_system) || [];
+  const standardTemplates = templates?.filter((t: ReportTemplate) => t.is_system && t.category !== 'export' && t.category !== 'analytics') || [];
+  const csvTemplates = templates?.filter((t: ReportTemplate) => t.is_system && t.category === 'export') || [];
+  const analyticsTemplates = templates?.filter((t: ReportTemplate) => t.is_system && t.category === 'analytics') || [];
   const sharedTemplates = templates?.filter((t: ReportTemplate) => !t.is_system && t.category === 'shared') || [];
   const userTemplates = templates?.filter((t: ReportTemplate) => !t.is_system && t.category !== 'shared') || [];
 
@@ -173,7 +175,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="bg-white border rounded-lg p-1 flex gap-1 w-full justify-start">
+        <TabsList className="bg-white border rounded-lg p-1 flex gap-1 w-full justify-start overflow-x-auto">
           <TabsTrigger
             value="standard"
             className="flex-1 px-4 py-3 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-blue-600 data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-blue-700"
@@ -181,8 +183,20 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
             {t('standardTemplates', { ns: 'customReports' })}
           </TabsTrigger>
           <TabsTrigger
-            value="my"
+            value="csv"
             className="flex-1 px-4 py-3 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-green-600 data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-green-700"
+          >
+            {t('csvExportTemplates', { ns: 'customReports' })}
+          </TabsTrigger>
+          <TabsTrigger
+            value="analytics"
+            className="flex-1 px-4 py-3 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-orange-600 data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-orange-700"
+          >
+            {t('analyticsTemplates', { ns: 'customReports' })}
+          </TabsTrigger>
+          <TabsTrigger
+            value="my"
+            className="flex-1 px-4 py-3 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-indigo-600 data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-indigo-700"
           >
             {t('myTemplates', { ns: 'customReports' })}
           </TabsTrigger>
@@ -198,6 +212,20 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
           {renderTemplateGrid(
             standardTemplates,
             t('noStandardTemplates', { ns: 'customReports' })
+          )}
+        </TabsContent>
+
+        <TabsContent value="csv" className="space-y-4">
+          {renderTemplateGrid(
+            csvTemplates,
+            t('noCsvTemplates', { ns: 'customReports' })
+          )}
+        </TabsContent>
+
+        <TabsContent value="analytics" className="space-y-4">
+          {renderTemplateGrid(
+            analyticsTemplates,
+            t('noAnalyticsTemplates', { ns: 'customReports' })
           )}
         </TabsContent>
 
