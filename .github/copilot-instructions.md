@@ -239,14 +239,18 @@ Version format violations are **AUTOMATICALLY BLOCKED** by multiple layers:
 
 ```powershell
 # Step 1: Auto-fix all linting issues
-python -m ruff check backend/ frontend/scripts/ --fix
+python -m ruff check backend/ --fix
+# If frontend/scripts exists:
+# python -m ruff check frontend/scripts/ --fix
 
 # Step 2: Verify linting is clean
-python -m ruff check backend/ frontend/scripts/
+python -m ruff check backend/
+# If frontend/scripts exists:
+# python -m ruff check frontend/scripts/
 # Should output: "All checks passed!"
 
-# Step 3: Format frontend code
-npm --prefix frontend run format
+# Step 3: Format frontend code (ESLint autofix)
+npm --prefix frontend run lint -- --fix
 
 # Step 4: Run COMMIT_READY validation
 .\COMMIT_READY.ps1 -Quick
@@ -355,7 +359,7 @@ function MyComponent() {
 
 ---
 
-### Policy 6: Documentation - Audit Before Creating
+### Policy 7: Documentation - Audit Before Creating
 
 **❌ FORBIDDEN:**
 - Creating docs without checking existing structure
@@ -372,7 +376,7 @@ function MyComponent() {
 
 ---
 
-### Policy 7: Work Verification - ALWAYS Check Uncommitted & Pending Tasks First
+### Policy 8: Work Verification - ALWAYS Check Uncommitted & Pending Tasks First
 
 **❌ FORBIDDEN:**
 - Starting new work without checking git status

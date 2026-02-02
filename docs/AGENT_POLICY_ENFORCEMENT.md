@@ -345,14 +345,18 @@ function MyComponent() {
 **Step 1: Auto-fix linting issues**
 ```powershell
 # Fix all Python linting issues (Ruff)
-python -m ruff check backend/ frontend/scripts/ --fix
+python -m ruff check backend/ --fix
+# If frontend/scripts exists:
+# python -m ruff check frontend/scripts/ --fix
 
 # Check for remaining issues
-python -m ruff check backend/ frontend/scripts/
+python -m ruff check backend/
+# If frontend/scripts exists:
+# python -m ruff check frontend/scripts/
 # Should output: "All checks passed!"
 
-# Fix frontend formatting (Prettier)
-npm --prefix frontend run format
+# Fix frontend lint/format (ESLint autofix)
+npm --prefix frontend run lint -- --fix
 
 # Type check (optional but recommended)
 npx tsc --noEmit --skipLibCheck
@@ -385,7 +389,7 @@ git commit -m "semantic: message"
 | Unused imports | `python -m ruff check --fix` | Auto-removed |
 | Trailing spaces | `python -m ruff check --fix` | Auto-cleaned |
 | Line length | `python -m ruff check --fix` | Auto-fixed |
-| Formatting | `npm run format` (frontend) | Auto-formatted |
+| Formatting | `npm --prefix frontend run lint -- --fix` | Auto-formatted |
 | Type errors | `npx tsc --noEmit` | Display to fix manually |
 | Test failures | `.\RUN_TESTS_BATCH.ps1` | Read output and fix |
 
@@ -398,7 +402,7 @@ git commit -m "semantic: message"
 - Maintains consistent code style across team
 - Documented in: `docs/development/GIT_WORKFLOW.md`, `.github/workflows/`
 
-**Enforcement:** 
+**Enforcement:**
 - ✅ Pre-commit hooks auto-validate before commit
 - ✅ Ruff linter on Python files
 - ✅ Prettier on frontend files
@@ -617,7 +621,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 |------|----------------|-----------|
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
 | **Fix linting** | `python -m ruff check --fix` | Commit with linting errors |
-| **Format code** | `npm run format` (frontend) | Commit unformatted code |
+| **Format code** | `npm --prefix frontend run lint -- --fix` | Commit unformatted code |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
 | **Check version** | Read `VERSION` file (1.17.6) | Invent version numbers |
 | **Use version** | **ONLY `v1.x.x`** (v1.17.6) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |

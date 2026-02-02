@@ -302,7 +302,7 @@ async def restore_encrypted_backup(
 
         # CodeQL [python/path-injection]: output_path is validated above via directory bounds check
         # Safe usage: relative_to() confirms output_path is within restore_dir
-        sanitized_output_path: Path = output_path
+        sanitized_output_path: pathlib.Path = output_path
 
         # Decrypt and restore backup
         restore_info = backup_service.restore_encrypted_backup(
