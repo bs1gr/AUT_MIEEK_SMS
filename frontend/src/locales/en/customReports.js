@@ -110,6 +110,7 @@ export default {
   standardTemplates: 'Standard Templates',
   csvExportTemplates: 'CSV Export Templates',
   analyticsTemplates: 'Analytics Templates',
+    viewAnalyticsTemplates: 'Browse built-in analytics templates and create custom dashboards',
   myTemplates: 'My Templates',
   sharedTemplates: 'Shared Templates',
   noStandardTemplates: 'No standard templates available',

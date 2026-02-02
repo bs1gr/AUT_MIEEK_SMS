@@ -310,6 +310,22 @@ const OperationsView = (_props: OperationsViewProps) => {
                   </Link>
                 </div>
               </div>
+
+              {/* Analytics Templates */}
+              <div className="mt-8 border-t border-slate-200 pt-6">
+                <h3 className="mb-4 text-sm font-semibold text-slate-900 uppercase tracking-wide">{t('analyticsTemplates', { ns: 'customReports' })}</h3>
+                <Link
+                  to={`/operations/reports/templates?tab=analytics`}
+                  className="inline-flex items-center gap-3 rounded-lg border-2 border-orange-200 bg-white px-6 py-4 transition hover:border-orange-400 hover:bg-orange-50"
+                >
+                  <p className="text-2xl">📊</p>
+                  <div className="text-left">
+                    <p className="font-semibold text-slate-900">{t('analyticsTemplates', { ns: 'customReports' })}</p>
+                    <p className="text-xs text-slate-600">{t('viewAnalyticsTemplates', { ns: 'customReports' })}</p>
+                  </div>
+                  <span className="ml-auto text-orange-600 font-semibold">→</span>
+                </Link>
+              </div>
             </div>
           </div>
         )}
