@@ -19,8 +19,15 @@ export default {
   semester: 'Semester',
   year: 'Academic Year',
   custom: 'Custom Period',
+    configuration: 'Configuration',
+    period_week: 'Week',
+    period_month: 'Month',
+    period_semester: 'Semester',
+    period_year: 'Year',
+    period_custom: 'Custom',
 
   // Include options
+  includeData: 'Include Data',
   includeGrades: 'Include Grades',
   includeAttendance: 'Include Attendance',
   includePerformance: 'Include Performance',

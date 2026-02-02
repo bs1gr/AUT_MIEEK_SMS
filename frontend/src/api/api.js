@@ -903,8 +903,8 @@ export const reportsAPI = {
    */
   generateStudentReport: async (reportRequest) => {
     try {
-      const response = await api.post('/reports/student-performance', reportRequest);
-      return response.data;
+      const response = await apiClient.post('/reports/student-performance', reportRequest);
+      return response;
     } catch (error) {
       throw error;
     }
@@ -916,8 +916,8 @@ export const reportsAPI = {
    */
   getAvailableFormats: async () => {
     try {
-      const response = await api.get('/reports/formats');
-      return response.data;
+      const response = await apiClient.get('/reports/formats');
+      return response;
     } catch (error) {
       throw error;
     }
@@ -929,8 +929,8 @@ export const reportsAPI = {
    */
   getAvailablePeriods: async () => {
     try {
-      const response = await api.get('/reports/periods');
-      return response.data;
+      const response = await apiClient.get('/reports/periods');
+      return response;
     } catch (error) {
       throw error;
     }
@@ -943,7 +943,7 @@ export const reportsAPI = {
    */
   downloadStudentReport: async (reportRequest) => {
     try {
-      const response = await api.post('/reports/student-performance/download', reportRequest, {
+      const response = await apiClient.post('/reports/student-performance/download', reportRequest, {
         responseType: 'blob'
       });
       return response;
