@@ -44,12 +44,15 @@ def seed_e2e_data(force: bool = False):
     db = SessionLocal()
 
     try:
-        # Check if test user already exists
-        existing_user = db.query(User).filter(User.email == "test@example.com").first()
-        if existing_user:
+        # Check if test users already exist
+        existing_test_user = db.query(User).filter(User.email == "test@example.com").first()
+        existing_admin_user = db.query(User).filter(User.email == "admin@example.com").first()
+        
+        if existing_test_user and existing_admin_user:
             if force:
-                print("[WARN] Deleting existing test user for recreation...")
-                db.delete(existing_user)
+                print("[WARN] Deleting existing test users for recreation...")
+                db.delete(existing_test_user)
+                db.delete(existing_admin_user)
                 db.commit()
             else:
                 print("[OK] Test data already exists, skipping seed")
@@ -57,7 +60,7 @@ def seed_e2e_data(force: bool = False):
 
         print("Seeding E2E test data...")
 
-        # Create test user
+        # Create test user (used by some tests)
         test_user = User(
             email="test@example.com",
             full_name="Test User",
@@ -66,6 +69,16 @@ def seed_e2e_data(force: bool = False):
             is_active=True,
         )
         db.add(test_user)
+        
+        # Create admin user (used by E2E tests: admin@example.com / YourSecurePassword123!)
+        admin_user = User(
+            email="admin@example.com",
+            full_name="Admin User",
+            hashed_password=get_password_hash("YourSecurePassword123!"),  # E2E test password
+            role="admin",
+            is_active=True,
+        )
+        db.add(admin_user)
         db.flush()
 
         # Create test students
@@ -156,7 +169,8 @@ def seed_e2e_data(force: bool = False):
         db.commit()
 
         # Validate seeded data
-        final_user = db.query(User).filter(User.email == "test@example.com").first()
+        final_test_user = db.query(User).filter(User.email == "test@example.com").first()
+        final_admin_user = db.query(User).filter(User.email == "admin@example.com").first()
         final_students = db.query(Student).all()
         final_courses = db.query(Course).all()
         final_enrollments = db.query(CourseEnrollment).all()
@@ -164,10 +178,13 @@ def seed_e2e_data(force: bool = False):
         print("[OK] E2E test data seeded successfully")
         print("\n=== SEED DATA VALIDATION ===")
         # nosec B101 - CWE-312 pragma: E2E test data only, not production
-        print("✅ Test user created: test@example.com (password: Test@Pass123)")
-        print(f"   - Role: {final_user.role if final_user else 'NOT FOUND'}")
-        print(f"   - Active: {final_user.is_active if final_user else 'NOT FOUND'}")
-        print(f"   - Has password hash: {bool(final_user.hashed_password) if final_user else False}")
+        print("✅ Test users created:")
+        print(f"   - test@example.com (password: Test@Pass123)")
+        print(f"     Role: {final_test_user.role if final_test_user else 'NOT FOUND'}")
+        print(f"     Active: {final_test_user.is_active if final_test_user else 'NOT FOUND'}")
+        print(f"   - admin@example.com (password: YourSecurePassword123!)")
+        print(f"     Role: {final_admin_user.role if final_admin_user else 'NOT FOUND'}")
+        print(f"     Active: {final_admin_user.is_active if final_admin_user else 'NOT FOUND'}")
         print(f"\n✅ Students in database: {len(final_students)}")
         for s in final_students[:5]:  # Show first 5
             print(f"   - {s.student_id}: {s.first_name} {s.last_name} ({s.email})")
@@ -179,8 +196,8 @@ def seed_e2e_data(force: bool = False):
         print("\n=== END VALIDATION ===\n")
 
         # Verification checks
-        if not final_user:
-            raise RuntimeError("CRITICAL: Test user was not created!")
+        if not final_test_user or not final_admin_user:
+            raise RuntimeError("CRITICAL: Test users were not created!")
         if len(final_students) == 0:
             raise RuntimeError("CRITICAL: No students were created!")
         if len(final_courses) == 0:
