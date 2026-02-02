@@ -45,7 +45,7 @@ def test_001_permission_check_allows_authorized_user(db):
     db.flush()
 
     # Create user and grant permission
-    user = User(email="authorized@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="authorized@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -59,10 +59,12 @@ def test_001_permission_check_allows_authorized_user(db):
 
 def test_002_permission_check_denies_unauthorized_user(db):
     """User without permission should be denied."""
-    # Create user without any permissions (no role)
-    user = User(email="unauthorized@test.com", hashed_password="dummy", is_active=True, role=None)
+    # Create user without any permissions (override default role)
+    user = User(email="unauthorized@test.com", hashed_password="dummy", is_active=True)
+    user.role = None  # Override model default
     db.add(user)
     db.commit()
+    db.refresh(user)
 
     # Test permission check (force permissive mode)
     import backend.config
@@ -78,12 +80,13 @@ def test_002_permission_check_denies_unauthorized_user(db):
 def test_003_permission_check_denies_inactive_permission(db):
     """Inactive permission should not grant access."""
     # Create inactive permission
-    perm = create_permission(db, "students:delete")
+    perm = create_permission(db, "students:delete", is_active=False)
     db.add(perm)
     db.flush()
 
     # Create user and grant the inactive permission
     user = User(email="user@test.com", hashed_password="dummy", is_active=True)
+    user.role = None  # Override model default
     db.add(user)
     db.flush()
 
@@ -110,7 +113,7 @@ def test_004_permission_check_denies_expired_permission(db):
     db.flush()
 
     # Create user with expired permission
-    user = User(email="expired@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="expired@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -141,7 +144,7 @@ def test_005_permission_check_respects_future_start(db):
     db.flush()
 
     # Create user with future-dated permission
-    user = User(email="future@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="future@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -168,16 +171,16 @@ def test_006_role_permission_resolution(db):
     db.flush()
 
     # Create role and link permission
-    role = Role(key="analyst", name="Analyst")
+    role = Role(name="analyst", description="Analyst")
     db.add(role)
     db.flush()
 
-    role_perm = RolePermission(role_id=role.id, permission_id=perm.id, is_active=True)
+    role_perm = RolePermission(role_id=role.id, permission_id=perm.id)
     db.add(role_perm)
     db.flush()
 
     # Create user and assign role
-    user = User(email="analyst@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="analyst@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -197,16 +200,16 @@ def test_007_user_permission_overrides_role_revocation(db):
     db.flush()
 
     # Create role with permission
-    role = Role(key="exporter", name="Exporter")
+    role = Role(name="exporter", description="Exporter")
     db.add(role)
     db.flush()
 
-    role_perm = RolePermission(role_id=role.id, permission_id=perm.id, is_active=True)
+    role_perm = RolePermission(role_id=role.id, permission_id=perm.id)
     db.add(role_perm)
     db.flush()
 
     # Create user with both role AND direct permission
-    user = User(email="hybrid@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="hybrid@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -216,7 +219,7 @@ def test_007_user_permission_overrides_role_revocation(db):
     db.commit()
 
     # Revoke role permission (but keep direct permission)
-    role_perm.is_active = False
+    db.delete(role_perm)
     db.commit()
 
     # User should still have permission via direct grant
@@ -231,7 +234,7 @@ def test_008_revoked_user_permission_blocks_access(db):
     db.flush()
 
     # Create user with permission
-    user = User(email="revoked@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="revoked@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -328,16 +331,18 @@ def test_012_require_permission_allows_authorized_user(client, db):
     assert response.json()["status"] == "ok"
 
 
-def test_013_require_permission_denies_unauthorized_user(client, db):
+def test_013_require_permission_denies_unauthorized_user(client, clean_db):
     """Decorator returns 403 when permission missing."""
     from fastapi import APIRouter, Request
     from backend.rbac import require_permission
     from backend.db import get_session
 
     # Create user WITHOUT permission
-    user = User(email="denied@test.com", hashed_password="dummy", is_active=True, role="guest")
-    db.add(user)
-    db.commit()
+    user = User(email="denied@test.com", hashed_password="dummy", is_active=True)
+    user.role = None  # Override model default
+    clean_db.add(user)
+    clean_db.commit()
+    clean_db.refresh(user)
 
     # Create test router with decorated endpoint
     router = APIRouter()
@@ -514,7 +519,7 @@ def test_030_seed_script_restores_missing_role_permission(db):
 # ============================================================================
 
 
-def test_031_permission_denied_returns_standard_error_payload(client, db):
+def test_031_permission_denied_returns_standard_error_payload(client, clean_db):
     """API should return standardized error payload on 403 permission denial."""
     from fastapi import APIRouter, Request
     from backend.rbac import require_permission
@@ -522,8 +527,10 @@ def test_031_permission_denied_returns_standard_error_payload(client, db):
 
     # Create user without permission
     user = User(email="noauth@test.com", hashed_password="dummy", is_active=True)
-    db.add(user)
-    db.commit()
+    user.role = None  # Override model default
+    clean_db.add(user)
+    clean_db.commit()
+    clean_db.refresh(user)
 
     # Create protected endpoint
     router = APIRouter()
@@ -557,15 +564,17 @@ def test_031_permission_denied_returns_standard_error_payload(client, db):
         backend.config.settings.AUTH_MODE = original_auth
 
 
-def test_032_permission_denied_includes_permission_name(client, db):
+def test_032_permission_denied_includes_permission_name(client, clean_db):
     """Error response should include the missing permission name."""
     from fastapi import APIRouter, Request
     from backend.rbac import require_permission
     from backend.db import get_session
 
     user = User(email="user2@test.com", hashed_password="dummy", is_active=True)
-    db.add(user)
-    db.commit()
+    user.role = None  # Override model default
+    clean_db.add(user)
+    clean_db.commit()
+    clean_db.refresh(user)
 
     router = APIRouter()
 
@@ -629,7 +638,7 @@ def test_036_permission_revocation_does_not_affect_other_permissions(db):
     db.flush()
 
     # Create user with both permissions
-    user = User(email="multi@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="multi@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -666,7 +675,7 @@ def test_036_permission_revocation_does_not_affect_other_permissions(db):
 
 def test_037_permission_lookup_handles_unknown_permission(db):
     """Unknown permission key should safely return False without raising."""
-    user = User(email="unknown@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="unknown@test.com", hashed_password="dummy")
     db.add(user)
     db.commit()
 
@@ -689,16 +698,17 @@ def test_038_permission_lookup_handles_soft_deleted_role(db):
     db.add(perm)
     db.flush()
 
-    role = Role(key="soft_role", name="Soft Role")
+    role = Role(name="soft_role", description="Soft Role")
     db.add(role)
     db.flush()
 
-    role_perm = RolePermission(role_id=role.id, permission_id=perm.id, is_active=True)
+    role_perm = RolePermission(role_id=role.id, permission_id=perm.id)
     db.add(role_perm)
     db.flush()
 
     # Create user with role
     user = User(email="soft_role@test.com", hashed_password="dummy", is_active=True)
+    user.role = None  # Override model default
     db.add(user)
     db.flush()
 
@@ -737,7 +747,7 @@ def test_039_permission_lookup_handles_soft_deleted_user(db):
     db.flush()
 
     # Create user
-    user = User(email="deleted_user@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="deleted_user@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -762,17 +772,18 @@ def test_040_permission_lookup_ignores_inactive_role_permission(db):
     db.add(perm)
     db.flush()
 
-    role = Role(key="test_role", name="Test Role")
+    role = Role(name="test_role", description="Test Role")
     db.add(role)
     db.flush()
 
     # Create INACTIVE role-permission link
-    role_perm = RolePermission(role_id=role.id, permission_id=perm.id, is_active=False)
+    role_perm = RolePermission(role_id=role.id, permission_id=perm.id)
     db.add(role_perm)
     db.flush()
 
     # Create user with role
-    user = User(email="inactive_link@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="inactive_test@test.com", hashed_password="dummy", is_active=True)
+    user.role = None  # Override model default
     db.add(user)
     db.flush()
 
@@ -799,7 +810,7 @@ def test_041_permission_lookup_considers_user_permission_expiry(db):
     db.add(perm)
     db.flush()
 
-    user = User(email="expiry_test@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="expiry_test@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -828,19 +839,19 @@ def test_043_permission_lookup_handles_multiple_roles(db):
     db.flush()
 
     # Create two roles
-    role1 = Role(key="role1", name="Role 1")
-    role2 = Role(key="role2", name="Role 2")
+    role1 = Role(name="role1", description="Role 1")
+    role2 = Role(name="role2", description="Role 2")
     db.add_all([role1, role2])
     db.flush()
 
     # Link permissions to roles
-    role_perm1 = RolePermission(role_id=role1.id, permission_id=perm1.id, is_active=True)
-    role_perm2 = RolePermission(role_id=role2.id, permission_id=perm2.id, is_active=True)
+    role_perm1 = RolePermission(role_id=role1.id, permission_id=perm1.id)
+    role_perm2 = RolePermission(role_id=role2.id, permission_id=perm2.id)
     db.add_all([role_perm1, role_perm2])
     db.flush()
 
     # Create user with BOTH roles
-    user = User(email="multi_role@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="multi_role@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -862,18 +873,18 @@ def test_044_permission_lookup_handles_duplicate_permissions(db):
     db.flush()
 
     # Create two roles with SAME permission
-    role1 = Role(key="dup_role1", name="Dup Role 1")
-    role2 = Role(key="dup_role2", name="Dup Role 2")
+    role1 = Role(name="dup_role1", description="Dup Role 1")
+    role2 = Role(name="dup_role2", description="Dup Role 2")
     db.add_all([role1, role2])
     db.flush()
 
-    role_perm1 = RolePermission(role_id=role1.id, permission_id=perm.id, is_active=True)
-    role_perm2 = RolePermission(role_id=role2.id, permission_id=perm.id, is_active=True)
+    role_perm1 = RolePermission(role_id=role1.id, permission_id=perm.id)
+    role_perm2 = RolePermission(role_id=role2.id, permission_id=perm.id)
     db.add_all([role_perm1, role_perm2])
     db.flush()
 
     # User with both roles
-    user = User(email="dup_perm@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="dup_perm@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
@@ -896,7 +907,7 @@ def test_045_permission_lookup_handles_cross_domain_permissions(db):
     db.flush()
 
     # User with all three permissions
-    user = User(email="cross_domain@test.com", hashed_password="dummy", is_active=True)
+    user = User(email="cross_domain@test.com", hashed_password="dummy")
     db.add(user)
     db.flush()
 
