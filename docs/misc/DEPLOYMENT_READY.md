@@ -130,17 +130,17 @@ curl http://localhost:8080/api/v1/custom-reports/templates
    - Verification procedures
    - Troubleshooting guide
 
-2. **[PHASE6_COMPLETION_REPORT.md](./PHASE6_COMPLETION_REPORT.md)**
+2. **[PHASE6_COMPLETION_REPORT.md](../reports/2026-02/PHASE6_COMPLETION_REPORT.md)**
    - Phase 6 feature summary
    - Metrics and deliverables
    - Scheduler validation results
 
-3. **[docs/PHASE6_SESSION_SUMMARY_FEB1.md](./docs/PHASE6_SESSION_SUMMARY_FEB1.md)**
+3. **[docs/PHASE6_SESSION_SUMMARY_FEB1.md](../PHASE6_SESSION_SUMMARY_FEB1.md)**
    - Detailed session progress
    - All completed tasks
    - Integration verification
 
-4. **[docs/ACTIVE_WORK_STATUS.md](./docs/ACTIVE_WORK_STATUS.md)**
+4. **[docs/ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md)**
    - Current status tracking
    - OPTIONAL-001 validation results
 
