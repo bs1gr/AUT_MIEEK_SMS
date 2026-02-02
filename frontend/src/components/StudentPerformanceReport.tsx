@@ -101,6 +101,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [courseNotes, setCourseNotes] = useState<Record<string, string>>({});
 
   // Report configuration
   const [config, setConfig] = useState<ReportConfig>({
@@ -134,6 +135,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
       };
       const response = await reportsAPI.generateStudentReport(reportRequest);
       setReport(response.data);
+      setCourseNotes({});
     } catch (error: unknown) {
       setError(getErrorMessage(error, t('error', { ns: 'reports' }) || 'Error generating report'));
     } finally {
@@ -211,6 +213,12 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
     if (percentage >= 75) return 'text-blue-600';
     if (percentage >= 60) return 'text-yellow-600';
     return 'text-red-600';
+  };
+
+  const getReportPeriodLabel = (period: string) => {
+    const key = `period_${period}`;
+    const translated = t(key, { ns: 'reports' });
+    return translated === key ? period : translated;
   };
 
   return (
@@ -375,7 +383,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                   </div>
                   <div>
                     <span className="text-gray-600">{t('period', { ns: 'reports' })}:</span>
-                    <p className="font-medium">{report.report_period}</p>
+                    <p className="font-medium">{getReportPeriodLabel(report.report_period)}</p>
                   </div>
                   <div>
                     <span className="text-gray-600">{t('startDate', { ns: 'reports' })}:</span>
@@ -425,21 +433,21 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                   <h3 className="text-lg font-semibold mb-3">{t('gradesSummary', { ns: 'reports' })}</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                     <div>
-                      <span className="text-gray-600">{t('averageGrade', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('averageGrade', { ns: 'reports' })}:</span>
                       <span className={`font-bold ${getGradeColor(report.overall_grades.average_percentage)}`}>
                         {report.overall_grades.average_percentage}%
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('totalAssignments', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('totalAssignments', { ns: 'reports' })}:</span>
                       <span>{report.overall_grades.total_assignments}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('highestGrade', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('highestGrade', { ns: 'reports' })}:</span>
                       <span className="text-green-600">{report.overall_grades.highest_grade}</span>
                     </div>
                     <div>
-                      <span className="text-gray-600">{t('lowestGrade', { ns: 'reports' })}:</span>
+                      <span className="text-gray-600 mr-1">{t('lowestGrade', { ns: 'reports' })}:</span>
                       <span className="text-red-600">{report.overall_grades.lowest_grade}</span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -462,6 +470,24 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                       <h4 className="font-semibold mb-2">
                         {course.course_code}: {course.course_title}
                       </h4>
+
+                      <div className="mb-3">
+                        <label className="block text-sm text-gray-600 mb-1">
+                          {t('courseNotes', { ns: 'reports' })}
+                        </label>
+                        <textarea
+                          value={courseNotes[course.course_code] ?? ''}
+                          onChange={(e) =>
+                            setCourseNotes(prev => ({
+                              ...prev,
+                              [course.course_code]: e.target.value
+                            }))
+                          }
+                          placeholder={t('courseNotesPlaceholder', { ns: 'reports' })}
+                          rows={2}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
 
                       {/* Course Attendance */}
                       {course.attendance && (

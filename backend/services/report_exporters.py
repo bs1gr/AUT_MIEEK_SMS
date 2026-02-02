@@ -279,15 +279,17 @@ def generate_csv_report(report_data: Dict[str, Any]) -> str:
         writer.writerow(["Course Code", "Course Title", "Attendance Rate", "Average Grade", "Grade Trend"])
 
         for course in report_data["courses"]:
-            att_rate = course.get("attendance", {}).get("attendance_rate", "N/A")
+            attendance = course.get("attendance") or {}
+            att_rate = attendance.get("attendance_rate", "N/A")
             if att_rate != "N/A":
                 att_rate = f"{att_rate:.1f}"
 
-            avg_grade = course.get("grades", {}).get("average_percentage", "N/A")
+            grades = course.get("grades") or {}
+            avg_grade = grades.get("average_percentage", "N/A")
             if avg_grade != "N/A":
                 avg_grade = f"{avg_grade:.1f}"
 
-            trend = course.get("grades", {}).get("grade_trend", "N/A")
+            trend = grades.get("grade_trend", "N/A")
 
             writer.writerow([course["course_code"], course["course_title"], att_rate, avg_grade, trend])
         writer.writerow([])
