@@ -164,9 +164,9 @@ export default {
   template_at_risk_students_low_grades_desc: 'Μαθητές με βαθμούς κάτω από 60 που απαιτούν παρέμβαση.',
   template_attendance_summary_all: 'Σύνοψη Παρουσιών - Όλοι οι Μαθητές',
   template_attendance_summary_all_desc: 'Συνολικά στατιστικά παρουσιών για όλους τους μαθητές.',
-  template_perfect_attendance: 'Τέλεια Παρουσία',
+  template_perfect_attendance: 'Πλήρη Παρουσία',
   template_perfect_attendance_desc: 'Μαθητές με 100% παρουσία.',
-  template_chronic_absenteeism: 'Χρόνια Απουσιολογία',
+  template_chronic_absenteeism: 'Μερική Παρουσία',
   template_chronic_absenteeism_desc: 'Μαθητές με πολλαπλές απουσίες που απαιτούν προσοχή.',
 
   // Generation
