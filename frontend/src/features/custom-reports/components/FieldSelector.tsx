@@ -112,7 +112,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
           </h3>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {selectedFields.length === 0 ? (
-              <p className="text-gray-500 text-sm">{t('customReports:helpDragFields')}</p>
+              <p className="text-gray-500 text-sm">{t('helpDragFields', { ns: 'customReports' })}</p>
             ) : (
               selectedFields.map((field, index) => (
                 <div

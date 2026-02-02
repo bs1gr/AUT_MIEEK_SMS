@@ -131,7 +131,7 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
         <div className="flex gap-3 items-end mb-4">
           <div className="flex-1">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('customReports:sortBy')}
+              {t('sortBy', { ns: 'customReports' })}
             </label>
             <select
               value={newSort.field}
@@ -150,15 +150,15 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              {t('customReports:sortOrder')}
+              {t('sortOrder', { ns: 'customReports' })}
             </label>
             <select
               value={newSort.order}
               onChange={(e) => setNewSort({ ...newSort, order: e.target.value as 'asc' | 'desc' })}
               className="px-3 py-2 border border-gray-300 rounded"
             >
-              <option value="asc">{t('customReports:ascending')}</option>
-              <option value="desc">{t('customReports:descending')}</option>
+                <option value="asc">{t('ascending', { ns: 'customReports' })}</option>
+                <option value="desc">{t('descending', { ns: 'customReports' })}</option>
             </select>
           </div>
 

@@ -17,6 +17,83 @@ interface ReportTemplateListProps {
   initialQuery?: string;
 }
 
+const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; descKey: string }> = {
+  'Student Roster - Complete': {
+    titleKey: 'template_student_roster_complete',
+    descKey: 'template_student_roster_complete_desc',
+  },
+  'Active Students - Basic Info': {
+    titleKey: 'template_active_students_basic',
+    descKey: 'template_active_students_basic_desc',
+  },
+  'Students by Study Year': {
+    titleKey: 'template_students_by_year',
+    descKey: 'template_students_by_year_desc',
+  },
+  'New Enrollments - Current Semester': {
+    titleKey: 'template_new_enrollments',
+    descKey: 'template_new_enrollments_desc',
+  },
+  'Course Catalog - All Courses': {
+    titleKey: 'template_course_catalog',
+    descKey: 'template_course_catalog_desc',
+  },
+  'Active Courses by Semester': {
+    titleKey: 'template_active_courses_by_semester',
+    descKey: 'template_active_courses_by_semester_desc',
+  },
+  'Grade Distribution - All Courses': {
+    titleKey: 'template_grade_distribution_all',
+    descKey: 'template_grade_distribution_all_desc',
+  },
+  'Student Transcript - Complete': {
+    titleKey: 'template_student_transcript_complete',
+    descKey: 'template_student_transcript_complete_desc',
+  },
+  'Honor Roll - High Achievers': {
+    titleKey: 'template_honor_roll_high_achievers',
+    descKey: 'template_honor_roll_high_achievers_desc',
+  },
+  'At-Risk Students - Low Grades': {
+    titleKey: 'template_at_risk_students_low_grades',
+    descKey: 'template_at_risk_students_low_grades_desc',
+  },
+  'Attendance Summary - All Students': {
+    titleKey: 'template_attendance_summary_all',
+    descKey: 'template_attendance_summary_all_desc',
+  },
+  'Perfect Attendance': {
+    titleKey: 'template_perfect_attendance',
+    descKey: 'template_perfect_attendance_desc',
+  },
+  'Chronic Absenteeism': {
+    titleKey: 'template_chronic_absenteeism',
+    descKey: 'template_chronic_absenteeism_desc',
+  },
+};
+
+const getLocalizedTemplateText = (template: ReportTemplate, t: (key: string, options?: Record<string, unknown>) => string) => {
+  if (!template.is_system) {
+    return {
+      name: template.name,
+      description: template.description || '',
+    };
+  }
+
+  const mapping = SYSTEM_TEMPLATE_TRANSLATIONS[template.name];
+  if (!mapping) {
+    return {
+      name: template.name,
+      description: template.description || '',
+    };
+  }
+
+  return {
+    name: t(`customReports:${mapping.titleKey}`, { defaultValue: template.name }),
+    description: t(`customReports:${mapping.descKey}`, { defaultValue: template.description || '' }),
+  };
+};
+
 export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
   onUseTemplate,
   onEditTemplate,
@@ -44,7 +121,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
   if (error) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
-        <p className="text-red-800 font-medium">{t('customReports:errorLoading')}</p>
+        <p className="text-red-800 font-medium">{t(errorLoading', { ns: 'customReports' })}</p>
       </div>
     );
   }
@@ -55,9 +132,10 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
 
   const filterTemplates = (items: ReportTemplate[]) => {
     return items.filter((item) => {
+      const localized = getLocalizedTemplateText(item, t);
       const matchesSearch =
-        item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.description?.toLowerCase().includes(searchQuery.toLowerCase());
+        localized.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        localized.description.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesEntity = !selectedEntityType || item.report_type === selectedEntityType;
       const templateFormat = item.default_export_format?.toLowerCase();
       const matchesFormat = !selectedFormat || templateFormat === selectedFormat.toLowerCase();
@@ -102,7 +180,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
                 {
                   onSuccess: () => {
                     const toast = document.createElement('div');
-                    toast.textContent = `✅ ${t('customReports:templateShared')}`;
+                    toast.textContent = `✅ ${t(templateShared', { ns: 'customReports' })}`;
                     toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
                     document.body.appendChild(toast);
                     setTimeout(() => toast.remove(), 4000);
@@ -111,7 +189,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
               );
             }}
             onDelete={() => {
-              if (window.confirm(t('customReports:confirmDelete'))) {
+              if (window.confirm(t(confirmDelete', { ns: 'customReports' }))) {
                 deleteMutation.mutate(template.id);
               }
             }}
@@ -135,7 +213,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
-              placeholder={t('customReports:searchTemplates')}
+              placeholder={t(searchTemplates', { ns: 'customReports' })}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -147,7 +225,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
             onChange={(e) => setSelectedEntityType(e.target.value || null)}
             className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">{t('customReports:allEntityTypes')}</option>
+            <option value="">{t(allEntityTypes', { ns: 'customReports' })}</option>
             {entityTypes.map((type) => (
               <option key={type} value={type}>
                 {t(`customReports:entity_${type}`)}
@@ -160,10 +238,10 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
             onChange={(e) => setSelectedFormat(e.target.value || null)}
             className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">{t('customReports:allFormats')}</option>
-            <option value="pdf">{t('customReports:format_pdf')}</option>
-            <option value="excel">{t('customReports:format_excel')}</option>
-            <option value="csv">{t('customReports:format_csv')}</option>
+            <option value="">{t(allFormats', { ns: 'customReports' })}</option>
+            <option value="pdf">{t(format_pdf', { ns: 'customReports' })}</option>
+            <option value="excel">{t(format_excel', { ns: 'customReports' })}</option>
+            <option value="csv">{t(format_csv', { ns: 'customReports' })}</option>
           </select>
         </div>
       </div>
@@ -175,34 +253,34 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
             value="standard"
             className="flex-1 px-4 py-3 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-blue-600 data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-blue-700"
           >
-            {t('customReports:standardTemplates')}
+            {t(standardTemplates', { ns: 'customReports' })}
           </TabsTrigger>
           <TabsTrigger
             value="my"
             className="flex-1 px-4 py-3 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-green-600 data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-green-700"
           >
-            {t('customReports:myTemplates')}
+            {t(myTemplates', { ns: 'customReports' })}
           </TabsTrigger>
           <TabsTrigger
             value="shared"
             className="flex-1 px-4 py-3 rounded-md text-sm font-medium transition-colors data-[state=active]:bg-purple-600 data-[state=active]:text-white hover:bg-gray-100 data-[state=active]:hover:bg-purple-700"
           >
-            {t('customReports:sharedTemplates')}
+            {t(sharedTemplates', { ns: 'customReports' })}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="standard" className="space-y-4">
           {renderTemplateGrid(
             standardTemplates,
-            t('customReports:noStandardTemplates')
+            t(noStandardTemplates', { ns: 'customReports' })
           )}
         </TabsContent>
 
         <TabsContent value="my" className="space-y-4">
           {renderTemplateGrid(
             userTemplates,
-            t('customReports:noMyTemplates'),
-            t('customReports:addTemplateFromReports'),
+            t(noMyTemplates', { ns: 'customReports' }),
+            t(addTemplateFromReports', { ns: 'customReports' }),
             () => {
               window.location.href = '/operations/reports';
             }
@@ -212,8 +290,8 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
         <TabsContent value="shared" className="space-y-4">
           {renderTemplateGrid(
             sharedTemplates,
-            t('customReports:noSharedTemplates'),
-            t('customReports:addTemplateFromReports'),
+            t(noSharedTemplates', { ns: 'customReports' }),
+            t(addTemplateFromReports', { ns: 'customReports' }),
             () => {
               window.location.href = '/operations/reports';
             }
@@ -246,14 +324,15 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const [isFavorite, setIsFavorite] = useState(false); // No is_favorite field in backend yet
+  const localized = getLocalizedTemplateText(template, t);
 
   return (
     <div className="bg-white rounded-lg border hover:border-blue-500 hover:shadow-lg transition-all p-4 space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h3 className="font-semibold text-gray-900 mb-1">{template.name}</h3>
-          <p className="text-sm text-gray-600 line-clamp-2">{template.description}</p>
+          <h3 className="font-semibold text-gray-900 mb-1">{localized.name}</h3>
+          <p className="text-sm text-gray-600 line-clamp-2">{localized.description}</p>
         </div>
         <button
           onClick={() => setIsFavorite(!isFavorite)}
@@ -276,17 +355,17 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
           {template.default_export_format?.toUpperCase() || 'PDF'}
         </span>
         <span className="text-xs text-gray-500">
-          {t('customReports:fields', { count: Array.isArray(template.fields) ? template.fields.length : 0 })}
+          {t('fields', { ns: 'customReports', count: Array.isArray(template.fields) ? template.fields.length : 0 })}
         </span>
       </div>
 
       {/* Preview Info */}
       <div className="bg-gray-50 rounded p-3 space-y-1 text-xs text-gray-600">
         <p>
-          <span className="font-medium">{t('customReports:filters')}:</span> {Array.isArray(template.filters) ? template.filters.length : 0}
+          <span className="font-medium">{t(filters', { ns: 'customReports' })}:</span> {Array.isArray(template.filters) ? template.filters.length : 0}
         </p>
         <p>
-          <span className="font-medium">{t('customReports:sortRules')}:</span> {Array.isArray(template.sort_by) ? template.sort_by.length : 0}
+          <span className="font-medium">{t(sortRules', { ns: 'customReports' })}:</span> {Array.isArray(template.sort_by) ? template.sort_by.length : 0}
         </p>
       </div>
 
@@ -296,7 +375,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
           onClick={onUseTemplate}
           className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
         >
-          {t('customReports:useTemplate')}
+          {t(useTemplate', { ns: 'customReports' })}
         </button>
 
         {isUserTemplate && (
@@ -304,21 +383,21 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
             <button
               onClick={onEdit}
               className="px-3 py-2 text-gray-700 border rounded-lg hover:bg-gray-50 transition-colors"
-              title={t('customReports:edit')}
+              title={t(edit', { ns: 'customReports' })}
             >
               <Copy size={16} />
             </button>
             <button
               onClick={onShare}
               className="px-3 py-2 text-gray-700 border rounded-lg hover:bg-gray-50 transition-colors"
-              title={t('customReports:share')}
+              title={t(share', { ns: 'customReports' })}
             >
               <Share2 size={16} />
             </button>
             <button
               onClick={onDelete}
               className="px-3 py-2 text-red-700 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-              title={t('customReports:delete')}
+              title={t(delete', { ns: 'customReports' })}
             >
               <Trash2 size={16} />
             </button>
@@ -330,3 +409,4 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
 };
 
 export default ReportTemplateList;
+
