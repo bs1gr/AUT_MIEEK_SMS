@@ -26,7 +26,7 @@ def create_permission(db, key: str, is_active: bool = True) -> Permission:
         resource=resource,
         action=action,
         description=f"{action.title()} {resource.title()}",
-        is_active=is_active
+        is_active=is_active,
     )
     db.add(perm)
     return perm
@@ -105,14 +105,13 @@ def test_004_permission_check_denies_expired_permission(db):
 
     # Permission expired 1 day ago
     expired_at = datetime.now(timezone.utc) - timedelta(days=1)
-    user_perm = UserPermission(
-        user_id=user.id, permission_id=perm.id, expires_at=expired_at
-    )
+    user_perm = UserPermission(user_id=user.id, permission_id=perm.id, expires_at=expired_at)
     db.add(user_perm)
     db.commit()
 
     # Force permissive mode
     import backend.config
+
     original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
     backend.config.settings.AUTH_MODE = "permissive"
 
@@ -237,6 +236,7 @@ def test_008_revoked_user_permission_blocks_access(db):
 
     # Force permissive mode
     import backend.config
+
     original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
     backend.config.settings.AUTH_MODE = "permissive"
 
@@ -302,14 +302,17 @@ def test_012_require_permission_allows_authorized_user(client, db):
 
     # Add to app
     from backend.app_factory import create_app
+
     app = create_app()
     app.include_router(router)
 
     # Test with authorized user token
     from backend.routers.routers_auth import create_access_token
+
     token = create_access_token(subject=user.email, role=user.role)
 
     from starlette.testclient import TestClient
+
     test_client = TestClient(app)
     response = test_client.get("/test-endpoint", headers={"Authorization": f"Bearer {token}"})
 
@@ -339,11 +342,13 @@ def test_013_require_permission_denies_unauthorized_user(clean_db, monkeypatch):
 
     # Add to app
     from backend.app_factory import create_app
+
     app = create_app()
 
     # Override get_session to use test database
     def override_get_session():
         yield clean_db
+
     app.dependency_overrides[get_session] = override_get_session
 
     app.include_router(router)
@@ -351,9 +356,11 @@ def test_013_require_permission_denies_unauthorized_user(clean_db, monkeypatch):
     monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
 
     from backend.routers.routers_auth import create_access_token
+
     token = create_access_token(subject=user.email, role=user.role)
 
     from starlette.testclient import TestClient
+
     test_client = TestClient(app)
     response = test_client.get("/protected-endpoint", headers={"Authorization": f"Bearer {token}"})
 
@@ -527,11 +534,13 @@ def test_031_permission_denied_returns_standard_error_payload(client, clean_db, 
         return {"data": "secret"}
 
     from backend.app_factory import create_app
+
     app = create_app()
 
     # Override get_session to use test database
     def override_get_session():
         yield clean_db
+
     app.dependency_overrides[get_session] = override_get_session
 
     app.include_router(router)
@@ -540,9 +549,11 @@ def test_031_permission_denied_returns_standard_error_payload(client, clean_db, 
     monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
 
     from backend.routers.routers_auth import create_access_token
+
     token = create_access_token(subject=user.email, role=user.role)
 
     from starlette.testclient import TestClient
+
     test_client = TestClient(app)
     response = test_client.get("/api-test", headers={"Authorization": f"Bearer {token}"})
 
@@ -573,11 +584,13 @@ def test_032_permission_denied_includes_permission_name(client, clean_db, monkey
         return {"ok": True}
 
     from backend.app_factory import create_app
+
     app = create_app()
 
     # Override get_session to use test database
     def override_get_session():
         yield clean_db
+
     app.dependency_overrides[get_session] = override_get_session
 
     app.include_router(router)
@@ -585,9 +598,11 @@ def test_032_permission_denied_includes_permission_name(client, clean_db, monkey
     monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
 
     from backend.routers.routers_auth import create_access_token
+
     token = create_access_token(subject=user.email, role=user.role)
 
     from starlette.testclient import TestClient
+
     test_client = TestClient(app)
     response = test_client.get("/check-perm", headers={"Authorization": f"Bearer {token}"})
 
@@ -648,6 +663,7 @@ def test_036_permission_revocation_does_not_affect_other_permissions(db):
 
     # Force permissive mode
     import backend.config
+
     original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
     backend.config.settings.AUTH_MODE = "permissive"
 
@@ -672,6 +688,7 @@ def test_037_permission_lookup_handles_unknown_permission(db):
 
     # Force permissive mode
     import backend.config
+
     original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
     backend.config.settings.AUTH_MODE = "permissive"
 
@@ -716,6 +733,7 @@ def test_038_permission_lookup_handles_soft_deleted_role(db):
 
     # Force permissive mode
     import backend.config
+
     original_auth = getattr(backend.config.settings, "AUTH_MODE", "disabled")
     backend.config.settings.AUTH_MODE = "permissive"
 
@@ -906,6 +924,3 @@ def test_045_permission_lookup_handles_cross_domain_permissions(db):
     assert has_permission(user, "students:manage", db) is True
     assert has_permission(user, "courses:manage", db) is True
     assert has_permission(user, "grades:manage", db) is True
-
-
-

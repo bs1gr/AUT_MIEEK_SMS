@@ -320,6 +320,7 @@ def clean_db(db):
     """Fixture for tests that need a clean database with initialized schema."""
     # Create all tables for client tests that create new app instances
     from backend.models import Base
+
     Base.metadata.create_all(bind=engine)
     return db
 

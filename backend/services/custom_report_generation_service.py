@@ -132,8 +132,8 @@ class CustomReportGenerationService:
     def _build_report_rows(self, report: Report) -> Tuple[List[List[Any]], List[str]]:
         model, query = self._build_query(report)
         # Handle filters as a list of filter objects or dict
-        filters_list = report.filters or []  # type: ignore[assignment]
-        sort_list = report.sort_by or []  # type: ignore[assignment]
+        filters_list: list = report.filters or []  # type: ignore[assignment]
+        sort_list: list = report.sort_by or []  # type: ignore[assignment]
 
         query = self._apply_filters(query, model, filters_list)
         query = self._apply_sort(query, model, sort_list)
