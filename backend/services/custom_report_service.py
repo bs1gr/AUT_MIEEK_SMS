@@ -347,15 +347,9 @@ class CustomReportService:
     def import_default_templates(self) -> int:
         """
         Import pre-built default templates into the database.
+        Adds missing templates and skips existing ones.
         Returns the count of templates imported.
         """
-        # Check if templates already exist
-        existing_count = self.db.query(ReportTemplate).filter(ReportTemplate.is_system == True).count()
-
-        if existing_count > 0:
-            logger.info(f"Default templates already exist ({existing_count} found). Skipping import.")
-            return 0
-
         default_templates = [
             ReportTemplate(
                 name="Student Roster - Complete",
@@ -581,10 +575,20 @@ class CustomReportService:
             ),
         ]
 
-        # Add all templates to database
+        # Add templates to database, checking for duplicates
         for template in default_templates:
-            self.db.add(template)
+            # Check if template with this name already exists
+            existing = self.db.query(ReportTemplate).filter(
+                ReportTemplate.name == template.name,
+                ReportTemplate.is_system == True
+            ).first()
+            
+            if existing:
+                logger.debug(f"Template '{template.name}' already exists. Skipping.")
+            else:
+                self.db.add(template)
+                imported_count += 1
 
         self.db.commit()
-        logger.info(f"Successfully imported {len(default_templates)} default templates")
-        return len(default_templates)
+        logger.info(f"Successfully imported {imported_count} new default templates")
+        return imported_count
