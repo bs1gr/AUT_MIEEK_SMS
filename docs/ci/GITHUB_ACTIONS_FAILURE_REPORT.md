@@ -15,7 +15,7 @@ This report is **historical**. The workflows described below have been updated s
 - **E2E tests** hardened with Playwright dependency install, DB initialization, seed validation, and backend health checks.
 - **CI/CD pipeline** expanded with explicit environment setup, caching, and additional diagnostics.
 
-✅ **Action taken:** Workflow fixes are in place.  
+✅ **Action taken:** Workflow fixes are in place.
 ⚠️ **Pending verification:** A fresh CI run is required to confirm green status; no new CI run was executed in this session.
 
 ---
