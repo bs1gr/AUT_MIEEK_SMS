@@ -95,7 +95,12 @@ def _calculate_trend(values: List[float]) -> str:
 
 
 def _generate_recommendations(report_data: dict) -> List[str]:
-    """Generate recommendations based on report data."""
+    """
+    Generate recommendations based on report data.
+
+    Returns translation keys prefixed with 'reports:rec_' for frontend i18n.
+    Special handling for course-specific recommendations with interpolation.
+    """
     recommendations = []
 
     # Check attendance
@@ -108,9 +113,9 @@ def _generate_recommendations(report_data: dict) -> List[str]:
             else attendance.get("attendance_rate", 100)
         )
         if attendance_rate < 75:
-            recommendations.append("⚠️ Attendance is below 75%. Regular attendance is crucial for academic success.")
+            recommendations.append("reports:rec_attendance_low")
         elif attendance_rate < 85:
-            recommendations.append("✓ Attendance could be improved. Aim for 90%+ attendance rate.")
+            recommendations.append("reports:rec_attendance_medium")
 
     # Check grades
     if report_data.get("overall_grades"):
@@ -124,20 +129,16 @@ def _generate_recommendations(report_data: dict) -> List[str]:
         trend = grades.grade_trend if hasattr(grades, "grade_trend") else grades.get("grade_trend", "stable")
 
         if avg_percentage < 60:
-            recommendations.append("⚠️ Grades are below passing threshold. Consider scheduling tutoring sessions.")
+            recommendations.append("reports:rec_grades_failing")
         elif avg_percentage < 70:
-            recommendations.append(
-                "✓ Grades need improvement. Review study habits and seek help in challenging subjects."
-            )
+            recommendations.append("reports:rec_grades_needs_improvement")
         elif avg_percentage >= 90:
-            recommendations.append("🌟 Excellent academic performance! Keep up the great work.")
+            recommendations.append("reports:rec_grades_excellent")
 
         if trend == "declining":
-            recommendations.append(
-                "⚠️ Grade trend is declining. Review recent assignments and identify areas needing improvement."
-            )
+            recommendations.append("reports:rec_trend_declining")
         elif trend == "improving":
-            recommendations.append("✓ Grade trend is improving. Continue the positive momentum!")
+            recommendations.append("reports:rec_trend_improving")
 
     # Check course-specific issues
     courses_data = report_data.get("courses", [])
@@ -152,11 +153,12 @@ def _generate_recommendations(report_data: dict) -> List[str]:
         for c in struggling_courses[:3]:
             course_name = c.course_name if hasattr(c, "course_name") else c.get("course_name", "Unknown")
             course_names.append(course_name)
-        recommendations.append(f"📚 Focus on: {', '.join(course_names)}. Consider extra study time or tutoring.")
+        # Return key with interpolation data separated by ||
+        recommendations.append(f"reports:rec_focus_courses||{', '.join(course_names)}")
 
     # If no issues found
     if not recommendations:
-        recommendations.append("✓ Overall performance is satisfactory. Continue maintaining good study habits.")
+        recommendations.append("reports:rec_satisfactory")
 
     return recommendations
 

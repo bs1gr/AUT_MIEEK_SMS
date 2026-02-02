@@ -512,9 +512,28 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <h3 className="text-lg font-semibold mb-2">{t('recommendations', { ns: 'reports' })}</h3>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    {report.recommendations.map((rec, idx) => (
-                      <li key={idx}>{rec}</li>
-                    ))}
+                    {report.recommendations.map((rec, idx) => {
+                      // Handle translation keys from backend
+                      // Format: "namespace:key" or "namespace:key||interpolationData"
+                      if (rec.includes(':')) {
+                        const [nsKey, interpolationData] = rec.split('||');
+                        const [ns, key] = nsKey.split(':');
+
+                        if (interpolationData) {
+                          // Has interpolation data (e.g., course names)
+                          return (
+                            <li key={idx}>{t(key, { ns, courses: interpolationData })}</li>
+                          );
+                        } else {
+                          // Simple translation key
+                          return (
+                            <li key={idx}>{t(key, { ns })}</li>
+                          );
+                        }
+                      }
+                      // Fallback for old format (hardcoded text)
+                      return <li key={idx}>{rec}</li>;
+                    })}
                   </ul>
                 </div>
               )}
