@@ -38,6 +38,7 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 - ✅ **Always backup data** (before any changes) - zero data loss risk
 - ✅ **Metadata file** (`install_metadata.txt`) - tracks installation history
 - ✅ **Better Docker handling** - container/volume preserved during upgrades
+- ✅ **Upgrade cleanup** - removes old files and containers while preserving data/settings
 - ✅ **Simpler dialogs** - clearer user experience
 
 **Files Modified**:
