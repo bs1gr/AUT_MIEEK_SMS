@@ -20,112 +20,122 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Create core tables from SQLAlchemy models (initial schema)
-    op.create_table(
-        "students",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("first_name", sa.String(length=100), nullable=False),
-        sa.Column("last_name", sa.String(length=100), nullable=False),
-        sa.Column("email", sa.String(length=255), nullable=False, unique=True),
-        sa.Column("student_id", sa.String(length=50), nullable=False, unique=True),
-        sa.Column("enrollment_date", sa.Date(), nullable=True),
-        sa.Column("is_active", sa.Boolean(), nullable=True),
-        sa.Column("father_name", sa.String(length=100), nullable=True),
-        sa.Column("mobile_phone", sa.String(length=30), nullable=True),
-        sa.Column("phone", sa.String(length=30), nullable=True),
-        sa.Column("health_issue", sa.Text(), nullable=True),
-        sa.Column("note", sa.Text(), nullable=True),
-        sa.Column("study_year", sa.Integer(), nullable=True),
-    )
-    op.create_index("idx_student_active_email", "students", ["is_active", "email"])
+    # Check if table exists before creating (idempotent)
+    ctx = op.get_context()
+    inspector = sa.inspect(ctx.bind)
 
-    op.create_table(
-        "courses",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("course_code", sa.String(length=20), nullable=False, unique=True),
-        sa.Column("course_name", sa.String(length=200), nullable=False),
-        sa.Column("semester", sa.String(length=50), nullable=False),
-        sa.Column("credits", sa.Integer(), nullable=True),
-        sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("evaluation_rules", sa.JSON(), nullable=True),
-        # absence_penalty added in a later migration (3f2b1a9c0d7e)
-        sa.Column("hours_per_week", sa.Float(), nullable=True),
-        sa.Column("teaching_schedule", sa.JSON(), nullable=True),
-    )
+    if "students" not in inspector.get_table_names():
+        op.create_table(
+            "students",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("first_name", sa.String(length=100), nullable=False),
+            sa.Column("last_name", sa.String(length=100), nullable=False),
+            sa.Column("email", sa.String(length=255), nullable=False, unique=True),
+            sa.Column("student_id", sa.String(length=50), nullable=False, unique=True),
+            sa.Column("enrollment_date", sa.Date(), nullable=True),
+            sa.Column("is_active", sa.Boolean(), nullable=True),
+            sa.Column("father_name", sa.String(length=100), nullable=True),
+            sa.Column("mobile_phone", sa.String(length=30), nullable=True),
+            sa.Column("phone", sa.String(length=30), nullable=True),
+            sa.Column("health_issue", sa.Text(), nullable=True),
+            sa.Column("note", sa.Text(), nullable=True),
+            sa.Column("study_year", sa.Integer(), nullable=True),
+        )
+        op.create_index("idx_student_active_email", "students", ["is_active", "email"])
 
-    op.create_table(
-        "attendances",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
-        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
-        sa.Column("date", sa.Date(), nullable=False),
-        sa.Column("status", sa.String(length=20), nullable=False),
-        sa.Column("period_number", sa.Integer(), nullable=True),
-        sa.Column("notes", sa.Text(), nullable=True),
-    )
-    op.create_index("idx_attendance_student_date", "attendances", ["student_id", "date"])
-    op.create_index("idx_attendance_course_date", "attendances", ["course_id", "date"])
+    if "courses" not in inspector.get_table_names():
+        op.create_table(
+            "courses",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("course_code", sa.String(length=20), nullable=False, unique=True),
+            sa.Column("course_name", sa.String(length=200), nullable=False),
+            sa.Column("semester", sa.String(length=50), nullable=False),
+            sa.Column("credits", sa.Integer(), nullable=True),
+            sa.Column("description", sa.Text(), nullable=True),
+            sa.Column("evaluation_rules", sa.JSON(), nullable=True),
+            sa.Column("hours_per_week", sa.Float(), nullable=True),
+            sa.Column("teaching_schedule", sa.JSON(), nullable=True),
+        )
 
-    op.create_table(
-        "course_enrollments",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
-        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
-        sa.Column("enrolled_at", sa.Date(), nullable=True),
-    )
-    op.create_index(
-        "idx_enrollment_student_course",
-        "course_enrollments",
-        ["student_id", "course_id"],
-        unique=True,
-    )
+    if "attendances" not in inspector.get_table_names():
+        op.create_table(
+            "attendances",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+            sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
+            sa.Column("date", sa.Date(), nullable=False),
+            sa.Column("status", sa.String(length=20), nullable=False),
+            sa.Column("period_number", sa.Integer(), nullable=True),
+            sa.Column("notes", sa.Text(), nullable=True),
+        )
+        op.create_index("idx_attendance_student_date", "attendances", ["student_id", "date"])
+        op.create_index("idx_attendance_course_date", "attendances", ["course_id", "date"])
 
-    op.create_table(
-        "daily_performances",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
-        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
-        sa.Column("date", sa.Date(), nullable=False),
-        sa.Column("category", sa.String(length=100), nullable=False),
-        sa.Column("score", sa.Float(), nullable=False),
-        sa.Column("max_score", sa.Float(), nullable=True),
-        sa.Column("notes", sa.Text(), nullable=True),
-    )
-    op.create_index(
-        "idx_performance_student_course",
-        "daily_performances",
-        ["student_id", "course_id"],
-    )
-    op.create_index("idx_performance_student_date", "daily_performances", ["student_id", "date"])
+    if "course_enrollments" not in inspector.get_table_names():
+        op.create_table(
+            "course_enrollments",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+            sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
+            sa.Column("enrolled_at", sa.Date(), nullable=True),
+        )
+        op.create_index(
+            "idx_enrollment_student_course",
+            "course_enrollments",
+            ["student_id", "course_id"],
+            unique=True,
+        )
 
-    op.create_table(
-        "grades",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
-        sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
-        sa.Column("assignment_name", sa.String(length=200), nullable=False),
-        sa.Column("category", sa.String(length=100), nullable=True),
-        sa.Column("grade", sa.Float(), nullable=False),
-        sa.Column("max_grade", sa.Float(), nullable=True),
-        sa.Column("weight", sa.Float(), nullable=True),
-        sa.Column("date_assigned", sa.Date(), nullable=True),
-        sa.Column("date_submitted", sa.Date(), nullable=True),
-        sa.Column("notes", sa.Text(), nullable=True),
-    )
-    op.create_index("idx_grade_student_course", "grades", ["student_id", "course_id"])
-    op.create_index("idx_grade_student_category", "grades", ["student_id", "category"])
+    if "daily_performances" not in inspector.get_table_names():
+        op.create_table(
+            "daily_performances",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+            sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
+            sa.Column("date", sa.Date(), nullable=False),
+            sa.Column("category", sa.String(length=100), nullable=False),
+            sa.Column("score", sa.Float(), nullable=False),
+            sa.Column("max_score", sa.Float(), nullable=True),
+            sa.Column("notes", sa.Text(), nullable=True),
+        )
+        op.create_index(
+            "idx_performance_student_course",
+            "daily_performances",
+            ["student_id", "course_id"],
+        )
+        op.create_index("idx_performance_student_date", "daily_performances", ["student_id", "date"])
 
-    op.create_table(
-        "highlights",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
-        sa.Column("semester", sa.String(length=50), nullable=False),
-        sa.Column("rating", sa.Integer(), nullable=True),
-        sa.Column("category", sa.String(length=100), nullable=True),
-        sa.Column("highlight_text", sa.Text(), nullable=False),
-        sa.Column("date_created", sa.Date(), nullable=True),
-        sa.Column("is_positive", sa.Boolean(), nullable=True),
-    )
-    op.create_index("idx_highlight_student_semester", "highlights", ["student_id", "semester"])
+    if "grades" not in inspector.get_table_names():
+        op.create_table(
+            "grades",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+            sa.Column("course_id", sa.Integer(), sa.ForeignKey("courses.id"), nullable=False),
+            sa.Column("assignment_name", sa.String(length=200), nullable=False),
+            sa.Column("category", sa.String(length=100), nullable=True),
+            sa.Column("grade", sa.Float(), nullable=False),
+            sa.Column("max_grade", sa.Float(), nullable=True),
+            sa.Column("weight", sa.Float(), nullable=True),
+            sa.Column("date_assigned", sa.Date(), nullable=True),
+            sa.Column("date_submitted", sa.Date(), nullable=True),
+            sa.Column("notes", sa.Text(), nullable=True),
+        )
+        op.create_index("idx_grade_student_course", "grades", ["student_id", "course_id"])
+        op.create_index("idx_grade_student_category", "grades", ["student_id", "category"])
+
+    if "highlights" not in inspector.get_table_names():
+        op.create_table(
+            "highlights",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("student_id", sa.Integer(), sa.ForeignKey("students.id"), nullable=False),
+            sa.Column("semester", sa.String(length=50), nullable=False),
+            sa.Column("rating", sa.Integer(), nullable=True),
+            sa.Column("category", sa.String(length=100), nullable=True),
+            sa.Column("highlight_text", sa.Text(), nullable=False),
+            sa.Column("date_created", sa.Date(), nullable=True),
+            sa.Column("is_positive", sa.Boolean(), nullable=True),
+        )
+        op.create_index("idx_highlight_student_semester", "highlights", ["student_id", "semester"])
 
 
 def downgrade() -> None:

@@ -54,6 +54,7 @@ dependencies = [
     "aioredis==2.0.1",
     "python-socketio[aiohttp]==5.14.0",
     "python-engineio==4.13.0",
+    "apscheduler>=3.11.0",
     "pandas>=2.0.0",
     "protobuf>=6.0.0",  # CVE-2026-0994 fixed in 6.x, protobuf 6.33.5+
 ]
