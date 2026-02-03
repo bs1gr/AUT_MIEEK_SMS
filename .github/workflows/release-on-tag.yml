@@ -60,8 +60,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const tag = '${{ steps.get_tag.outputs.tag_name }}';
-            const bodyJson = '${{ steps.prepare.outputs.body }}';
-            const body = JSON.parse(bodyJson);
+            const bodyJson = ${{ steps.prepare.outputs.body }};
+            const body = bodyJson;
             try {
               // Try to fetch existing release
               const release = await github.rest.repos.getReleaseByTag({
