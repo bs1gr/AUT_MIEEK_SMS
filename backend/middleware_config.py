@@ -3,6 +3,7 @@ import os
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from backend.config import settings
 from backend.middleware.response_standardization import ResponseStandardizationMiddleware
@@ -12,6 +13,12 @@ from backend.security import install_csrf_protection
 
 
 def register_middlewares(app):
+    # TrustedHostMiddleware - must come BEFORE other middleware to properly handle forwarded headers
+    # This allows the backend to understand it's behind a reverse proxy and use X-Forwarded-* headers
+    if settings.SMS_EXECUTION_MODE.lower() == "docker":
+        # In Docker, allow traffic from nginx reverse proxy
+        app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "backend", "*"])
+    
     # Request ID tracking middleware
     try:
         app.add_middleware(RequestIDMiddleware)
@@ -39,6 +46,9 @@ def register_middlewares(app):
     # In native development, ensure localhost origins are always allowed.
     # This guards against missing/overridden CORS_ORIGINS in local .env files.
     if settings.SMS_EXECUTION_MODE.lower() == "native" or settings.SMS_ENV.lower() in {"development", "dev"}:
+        cors_kwargs["allow_origin_regex"] = r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
+    # In Docker, allow localhost:8080 (frontend container origin)
+    elif settings.SMS_EXECUTION_MODE.lower() == "docker":
         cors_kwargs["allow_origin_regex"] = r"^http://(localhost|127\.0\.0\.1)(:\d+)?$"
 
     app.add_middleware(CORSMiddleware, **cors_kwargs)
