@@ -11,7 +11,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
-import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
+import { formatLocalDate, formatDateGreek, inferWeekStartsOnMonday } from '@/utils/date';
 import type { Course, Student, TeachingScheduleEntry } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
@@ -1063,7 +1063,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
       {isHistoricalMode && (
         <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded">
-          {t('historicalModeBanner') || 'Historical mode enabled'} — {selectedDateStr}
+          {t('historicalModeBanner') || 'Historical mode enabled'} — {formatDateGreek(selectedDateStr)}
         </div>
       )}
 
