@@ -1,15 +1,15 @@
-# Release Notes - $11.17.6
+# Release Notes - v1.17.7
 
 **Release Date**: February 3, 2026
 **Version**: 1.17.7
 **Status**: ✅ READY FOR DEPLOYMENT
-**Previous Release**: $11.17.6 (January 29, 2026)
+**Previous Release**: v1.17.6 (January 29, 2026)
 
 ---
 
 ## 🎯 Overview
 
-**$11.17.6** is a maintenance and enhancement release focused on internationalization improvements, Docker deployment reliability, and historical data editing capabilities. This release builds upon the stable $11.17.6 foundation with critical fixes for Greek locale support, deployment reliability, and feature enhancements for educators.
+**v1.17.7** is a maintenance and enhancement release focused on internationalization improvements, Docker deployment reliability, and historical data editing capabilities. This release builds upon the stable v1.17.6 foundation with critical fixes for Greek locale support, deployment reliability, and feature enhancements for educators.
 
 ---
 
@@ -113,7 +113,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Commits** | 15+ commits since $11.17.6 |
+| **Total Commits** | 15+ commits since v1.17.6 |
 | **Files Changed** | 12+ files modified |
 | **Bug Fixes** | 5+ fixes implemented |
 | **New Features** | 3 enhancements |
@@ -190,7 +190,7 @@
 
 - **No security vulnerabilities introduced**
 - All existing security measures maintained
-- Path traversal protections verified (from $11.17.6)
+    - Path traversal protections verified (from v1.17.6)
 - CORS security improvements in Docker deployment
 - Pre-commit security validation passed
 
@@ -217,7 +217,7 @@
 
 ### Phase 6: Reporting Enhancements ✅ COMPLETE
 - All reporting features deployed and production-ready
-- $11.17.6 initial release + historical editing enhancements in $11.17.6
+- v1.17.6 initial release + historical editing enhancements in v1.17.7
 
 ### Historical Data Editing ✅ ENHANCED
 - Recall buttons now available in StudentPerformanceReport
