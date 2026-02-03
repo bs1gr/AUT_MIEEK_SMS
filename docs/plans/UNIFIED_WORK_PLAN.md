@@ -1,11 +1,11 @@
 # Unified Work Plan - Student Management System
 
 **Version**: 1.17.6
-**Last Updated**: February 3, 2026 (CI/CD Merge Complete)
-**Status**: ✅ $11.17.6 PRODUCTION LIVE - CI/CD QUEUE RECOVERY COMPLETE
+**Last Updated**: February 3, 2026 (Native Backend Fixes Complete)
+**Status**: ✅ PRODUCTION LIVE - NATIVE BACKEND STARTUP ISSUES RESOLVED
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Branch**: `main`
-**Latest Commit**: 4b0ae75b8 - Merged CI improvements (dispatch triggers + trigger scope + queue note)
+**Latest Commit**: da5526462 - fix(native-backend): resolve websocket, apscheduler, and migration issues
 
 ---
 
@@ -27,8 +27,8 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 | **E2E Tests** | ✅ 100% | 19+ critical tests |
 | **Version** | ✅ OK | 1.17.6 across all files |
 | **Production** | ✅ LIVE | System operational since Feb 1 |
-| **Git Status** | ✅ COMMITTED | Commit aafffa04b - Linting fixes + Path traversal security (Feb 3) |
-| **Phase Status** | ✅ CI/CD RECOVERED | 3 branches merged (dispatch + scope + queue note), 742/742 tests pass, all validations pass |
+| **Git Status** | ✅ COMMITTED | Commit da5526462 - Native backend fixes + WebSocket + APScheduler + Idempotent migrations (Feb 3) |
+| **Phase Status** | ✅ READY | Backend startup warnings resolved, ready for deployment
 
 ---
 
@@ -60,6 +60,42 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 - ✅ Tests: 742+ backend, 1249+ frontend, all passing
 - ✅ Git status: Clean after merges
 - ✅ Remote sync: All changes pushed to origin/main (commit 4b0ae75b8)
+
+---
+
+## 🔧 Native Backend Fixes (Feb 3, 2026)
+
+**Status**: ✅ **COMPLETE** - All 3 startup warnings resolved
+
+**Issues Fixed**:
+
+1. ✅ **WebSocket AsyncServer Mounting Error**
+   - Issue: `'AsyncServer' object has no attribute 'asgi_app'`
+   - Fix: Wrapped AsyncServer in ASGIApp before mounting to FastAPI
+   - Result: WebSocket now successfully mounts at `/socket.io`
+
+2. ✅ **APScheduler Not Installed Warning**
+   - Issue: Export and report schedulers unavailable
+   - Fix: Added `apscheduler>=3.11.0` to pyproject.toml dependencies
+   - Result: Schedulers now available when dependency installed
+
+3. ✅ **Alembic Table Already Exists Error**
+   - Issue: `sqlite3.OperationalError: table students already exists`
+   - Fix: Made baseline migration idempotent with existence checks
+   - Result: Migrations skip table creation if already exists (no errors on reruns)
+
+**Verification**:
+- ✅ All 19 backend test batches passing (742 tests, 150s)
+- ✅ All code quality checks passed (9/9)
+- ✅ COMMIT_READY validation: PASS
+- ✅ Git commit: da5526462 (pushed to origin/main)
+
+**Commit Message**:
+```
+fix(native-backend): resolve websocket, apscheduler, and migration issues
+
+Fixes three startup warnings and enables scheduler features.
+```
 
 ---
 
