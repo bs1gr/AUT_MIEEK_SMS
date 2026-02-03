@@ -44,11 +44,13 @@ jobs:
           echo "Debug: TAG after trim = '${TAG}'"
           NOTES_FILE=".github/RELEASE_NOTES_${TAG}.md"
           if [ -f "$NOTES_FILE" ]; then
-            echo "body<<EOF" >> $GITHUB_OUTPUT
-            cat "$NOTES_FILE" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
+            # Read file and properly escape for JSON
+            BODY=$(cat "$NOTES_FILE" | jq -R -s '.')
+            echo "body=${BODY}" >> $GITHUB_OUTPUT
           else
-            echo "body=Release ${TAG}" >> $GITHUB_OUTPUT
+            # Use jq to create properly escaped JSON string
+            BODY=$(echo "Release ${TAG}" | jq -R '.')
+            echo "body=${BODY}" >> $GITHUB_OUTPUT
           fi
 
       - name: Create release (or update if exists)
@@ -58,7 +60,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const tag = '${{ steps.get_tag.outputs.tag_name }}';
-            const body = `${{ steps.prepare.outputs.body }}`;
+            const bodyJson = '${{ steps.prepare.outputs.body }}';
+            const body = JSON.parse(bodyJson);
             try {
               // Try to fetch existing release
               const release = await github.rest.repos.getReleaseByTag({
