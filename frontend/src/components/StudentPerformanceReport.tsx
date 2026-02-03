@@ -506,26 +506,50 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
 
                       {/* Course Attendance */}
                       {course.attendance && (
-                        <div className="mb-2">
-                          <p className="text-sm text-gray-600">{t('attendance', { ns: 'reports' })}:</p>
-                          <p className={`text-sm font-medium ${getAttendanceColor(course.attendance.attendance_rate)}`}>
-                            {t('attendanceRateValue', {
-                              ns: 'reports',
-                              rate: course.attendance.attendance_rate,
-                              present: course.attendance.present,
-                              total: course.attendance.total_days,
-                            })}
-                          </p>
+                        <div className="mb-2 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-gray-600">{t('attendance', { ns: 'reports' })}:</p>
+                            <p className={`text-sm font-medium ${getAttendanceColor(course.attendance.attendance_rate)}`}>
+                              {t('attendanceRateValue', {
+                                ns: 'reports',
+                                rate: course.attendance.attendance_rate,
+                                present: course.attendance.present,
+                                total: course.attendance.total_days,
+                              })}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              sessionStorage.setItem('attendance_recall_course', course.course_code);
+                              if (config.startDate) sessionStorage.setItem('attendance_recall_date', config.startDate);
+                              window.location.hash = '#/attendance';
+                            }}
+                            className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                          >
+                            {t('edit', { ns: 'common' }) || 'Edit'}
+                          </button>
                         </div>
                       )}
 
                       {/* Course Grades */}
                       {course.grades && (
-                        <div className="mb-2">
+                        <div className="mb-2 flex items-center justify-between">
+                          <div>
                           <p className="text-sm text-gray-600">{t('grades', { ns: 'reports' })}:</p>
                           <p className={`text-sm font-medium ${getGradeColor(course.grades.average_percentage)}`}>
                             {course.grades.average_percentage}% {getTrendIcon(course.grades.grade_trend)}
                           </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              sessionStorage.setItem('grading_filter_course', course.course_code);
+                              if (config.startDate) sessionStorage.setItem('grading_history_date', config.startDate);
+                              window.location.hash = '#/grading';
+                            }}
+                            className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
+                          >
+                            {t('edit', { ns: 'common' }) || 'Edit'}
+                          </button>
                         </div>
                       )}
 
