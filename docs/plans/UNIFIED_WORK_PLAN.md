@@ -65,23 +65,36 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 
 | **Phase Status** | ✅ PATH TRAVERSAL SECURITY COMPLETE | 14 vulnerabilities fixed, 11 tests added |
 
-## 📝 New TODO: Historical Edit (Frontend CRUD)
+## ✅ Phase 6 Enhancement: Historical Edit (Frontend CRUD) - COMPLETE
 
 **Objective**: Add historical CRUD editing for past records across Grading, Attendance, and Student Performance views.
 
-**Routes & UX Targets**:
-1. **/grading**: Date-picker or History toggle to load past grades. Allow inline edit of historical grades.
-2. **/attendance**: Calendar selection for past dates; allow editing of historical attendance statuses.
-3. **/students**: View Performance should show historical grades + attendance with **Recall** buttons.
+**Implementation Summary (Feb 3, 2026)**:
+- ✅ **StudentPerformanceReport Enhancement**: Added Recall Edit buttons to both Attendance and Grades sections
+  - Buttons set sessionStorage keys and navigate to respective views
+  - Existing Recall mechanisms in GradingView and AttendanceView auto-populate forms with historical record data
+  - Uses SPA hash routing for navigation (#/attendance, #/grading)
+  - Passes optional date range from report config into views
 
-**Core Behaviors**:
-- **Recall Mechanism**: Selecting a historical grade/attendance entry should populate existing forms for edit.
-- **Database Sync**: Save uses PUT/PATCH to update records (no duplicates).
-- **UI Feedback**: Show a **Historical Mode** banner when editing past data.
+**Features Verified**:
+1. ✅ **/grading**: Historical mode with date-picker loads past grades. Edit buttons in performance report trigger GradingView.
+2. ✅ **/attendance**: Calendar selection for past dates. Edit buttons in performance report trigger AttendanceView.
+3. ✅ **/students**: Performance Report now shows historical grades + attendance with **Recall** buttons.
 
-**Implementation Notes**:
-- Use existing update endpoints for grades/attendance.
-- Refresh frontend state after save to reflect changes immediately.
+**Core Behaviors Implemented**:
+- ✅ **Recall Mechanism**: Buttons in performance report populate sessionStorage, existing Recall logic fetches and populates forms.
+- ✅ **Database Sync**: PUT endpoints on grades/attendance handle updates (no duplicates - updates existing records by ID).
+- ✅ **UI Feedback**: Historical Mode banner already displays in GradingView and AttendanceView when in historical mode.
+
+**Testing & Validation**:
+- ✅ Frontend tests: 1813/1813 passing (includes StudentPerformanceReport tests)
+- ✅ Backend tests: 742/742 passing (grades/attendance endpoints verified)
+- ✅ Linting: 0 errors (pre-existing warnings are codebase-wide patterns)
+- ✅ Git commit: dfeace3a4 - "feat(historical-edit): Add Recall buttons to StudentPerformanceReport for editing past records"
+
+**Next Steps**: 
+- User may proceed to next feature or continue refinement as needed
+- All historical CRUD workflows are now functional and production-ready
 
 ---
 
