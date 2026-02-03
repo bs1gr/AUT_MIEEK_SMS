@@ -233,13 +233,13 @@
 ## 📋 Known Limitations
 
 - None new in this release
-- All known issues from $11.17.6 continue to be tracked
+- All known issues from v1.17.6 continue to be tracked
 
 ---
 
 ## 🔄 Migration Guide
 
-### From $11.17.6 to $11.17.6
+### From v1.17.6 to v1.17.7
 
 **No database migrations required** - This is a backward-compatible release.
 
