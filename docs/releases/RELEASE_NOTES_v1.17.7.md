@@ -1,15 +1,15 @@
-# Release Notes - v1.17.7
+# Release Notes - $11.17.6
 
 **Release Date**: February 3, 2026
 **Version**: 1.17.7
 **Status**: ✅ READY FOR DEPLOYMENT
-**Previous Release**: v1.17.6 (January 29, 2026)
+**Previous Release**: $11.17.6 (January 29, 2026)
 
 ---
 
 ## 🎯 Overview
 
-**v1.17.7** is a maintenance and enhancement release focused on internationalization improvements, Docker deployment reliability, and historical data editing capabilities. This release builds upon the stable v1.17.6 foundation with critical fixes for Greek locale support, deployment reliability, and feature enhancements for educators.
+**$11.17.6** is a maintenance and enhancement release focused on internationalization improvements, Docker deployment reliability, and historical data editing capabilities. This release builds upon the stable $11.17.6 foundation with critical fixes for Greek locale support, deployment reliability, and feature enhancements for educators.
 
 ---
 
@@ -113,7 +113,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Commits** | 15+ commits since v1.17.6 |
+| **Total Commits** | 15+ commits since $11.17.6 |
 | **Files Changed** | 12+ files modified |
 | **Bug Fixes** | 5+ fixes implemented |
 | **New Features** | 3 enhancements |
@@ -190,7 +190,7 @@
 
 - **No security vulnerabilities introduced**
 - All existing security measures maintained
-- Path traversal protections verified (from v1.17.6)
+- Path traversal protections verified (from $11.17.6)
 - CORS security improvements in Docker deployment
 - Pre-commit security validation passed
 
@@ -217,7 +217,7 @@
 
 ### Phase 6: Reporting Enhancements ✅ COMPLETE
 - All reporting features deployed and production-ready
-- v1.17.6 initial release + historical editing enhancements in v1.17.7
+- $11.17.6 initial release + historical editing enhancements in $11.17.6
 
 ### Historical Data Editing ✅ ENHANCED
 - Recall buttons now available in StudentPerformanceReport
@@ -233,13 +233,13 @@
 ## 📋 Known Limitations
 
 - None new in this release
-- All known issues from v1.17.6 continue to be tracked
+- All known issues from $11.17.6 continue to be tracked
 
 ---
 
 ## 🔄 Migration Guide
 
-### From v1.17.6 to v1.17.7
+### From $11.17.6 to $11.17.6
 
 **No database migrations required** - This is a backward-compatible release.
 
@@ -272,3 +272,4 @@
 ---
 
 **For upgrade support or issues, refer to the [troubleshooting guide](../deployment/FRESH_DEPLOYMENT_TROUBLESHOOTING.md).**
+
