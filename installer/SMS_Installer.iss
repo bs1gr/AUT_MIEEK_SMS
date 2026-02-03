@@ -158,7 +158,7 @@ Source: "..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Dev documentation - only for dev environment
 Source: "..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
-Source: "..\DOCUMENTATION_INDEX.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\docs\DOCUMENTATION_INDEX.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Check: IsDevInstall
 
 ; Example env files - only for dev environment
 Source: "..\backend\.env.example"; DestDir: "{app}\backend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
@@ -388,12 +388,9 @@ begin
   if AppExistsOnDisk(DefaultPath) then
   begin
     OutPath := DefaultPath;
-    // Try to read version from VERSION file
+    // Try to detect version from VERSION file
     if FileExists(DefaultPath + '\VERSION') then
-    begin
-      if not LoadStringFromFile(DefaultPath + '\VERSION', OutVersion) then
-        OutVersion := 'Unknown';
-    end
+      OutVersion := 'detected'
     else
       OutVersion := 'Unknown';
     Log('Found installation at default path: ' + DefaultPath);
@@ -631,7 +628,7 @@ begin
   Result := '';
   NeedsRestart := False;
 
-  Log('PrepareToInstall: IsUpgrade = ' + BoolToStr(IsUpgrade));
+  Log('PrepareToInstall: IsUpgrade = ' + Format('%d', [Integer(IsUpgrade)]));
   Log('PrepareToInstall: PreviousInstallPath = ' + PreviousInstallPath);
   Log('PrepareToInstall: PreviousVersion = ' + PreviousVersion);
 
