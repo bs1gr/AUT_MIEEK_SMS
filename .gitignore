@@ -205,6 +205,8 @@ tmp_*.md
 SESSION_*.md
 README_SESSION*.md
 *_JAN*.md
+# EXCEPTION: Keep installer documentation (critical for deployment)
+!installer/INSTALLER_*.md
 *_FEB*.md
 *_MAR*.md
 *_APR*.md
