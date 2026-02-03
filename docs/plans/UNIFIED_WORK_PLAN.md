@@ -20,6 +20,55 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 
 ---
 
+## 🔧 CRITICAL INSTALLER FIXES - IN PROGRESS (Feb 3, 2026)
+
+**Status**: ✅ IMPLEMENTATION COMPLETE - Ready for Testing
+
+**Issue**: Windows installer creates parallel installations instead of upgrading in-place, causing duplicate folders, Docker containers, and data management issues
+
+**Root Causes Fixed**:
+1. ✅ Installation directory detection was weak - users could select different paths
+2. ✅ Data backup only happened with optional task - not reliable
+3. ✅ Docker resources not version-tracked - multiple containers/volumes
+4. ✅ Uninstall aggressive - no detection of multiple instances
+
+**Solutions Implemented**:
+- ✅ **Force single directory** (`DisableDirPage=yes`) - no parallel installs possible
+- ✅ **Robust detection** (registry HKLM/HKCU + filesystem) - catches all existing installations
+- ✅ **Always backup data** (before any changes) - zero data loss risk
+- ✅ **Metadata file** (`install_metadata.txt`) - tracks installation history
+- ✅ **Better Docker handling** - container/volume preserved during upgrades
+- ✅ **Simpler dialogs** - clearer user experience
+
+**Files Modified**:
+- `installer/SMS_Installer.iss` - Core installer script (550+ lines of new/updated code)
+- `installer/INSTALLER_UPGRADE_FIX_ANALYSIS.md` - Detailed analysis and implementation plan
+- `installer/INSTALLER_FIXES_APPLIED_FEB3.md` - Complete documentation with testing checklist
+
+**Git Commits**:
+- c6f3704f1 - fix(installer): resolve parallel installations, enforce in-place upgrades
+- 6960c5e18 - docs(installer): add upgrade fix documentation and whitelist
+- a172c24da - docs(installer): force add critical upgrade fix documentation
+
+**Next Steps**:
+1. ⏳ Build new installer (v1.17.7)
+2. ⏳ Test all scenarios (fresh install, upgrades, downgrades, Docker, uninstall)
+3. ⏳ Sign installer with certificate
+4. ⏳ Release to GitHub
+5. ⏳ Update deployment documentation
+
+**Testing Required**:
+- [ ] Fresh install (no existing version)
+- [ ] Upgrade same version (v1.17.7 → v1.17.7 repair)
+- [ ] Upgrade from v1.17.6 → v1.17.7
+- [ ] Docker running during upgrade
+- [ ] Docker stopped during upgrade
+- [ ] Uninstall with data preservation
+- [ ] Backup integrity check
+- [ ] Metadata file creation verification
+
+---
+
 ## 🎯 Current Status
 
 | Component | Status | Metric |
@@ -38,15 +87,16 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 
 ## ✅ v1.17.7 Release Publication (Feb 3, 2026) - COMPLETE & VERIFIED
 
-**Status**: ✅ **GITHUB RELEASE PUBLISHED & VERIFIED** - Production Ready
+**Status**: ✅ **GITHUB RELEASE PUBLISHED & VERIFIED** - Production Ready with Installer
 
-**Release Created Successfully** (Feb 3, 2026 - 12:03 UTC):
+**Release Created Successfully** (Feb 3, 2026 - 12:03-13:25 UTC):
 - ✅ Release now exists at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7
 - ✅ Tagged as "Latest" release (not draft)
 - ✅ Full release notes body (274 lines comprehensive documentation)
 - ✅ All content properly rendered (Greek characters, code blocks, tables)
+- ✅ **Installer artifact attached**: `SMS_Installer_1.17.7.exe` (6.46 MB)
 
-**CI/CD Workflow Fixes Applied** (Required 3 iterations):
+**CI/CD Workflow Fixes Applied** (Required 4 iterations):
 1. ✅ **Fixed invalid version format** (8 instances of `$11.17.6` → `v1.17.7`/`v1.17.6`)
    - Commit: 7d8a12bf5 - Initial version format fixes
    - Commit: 48bbec569 - Remaining version format instances
@@ -56,8 +106,18 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
    - Commit: 767f20fbf - Fixed JSON variable assignment
    - Commit: 736e67ebd - **FINAL FIX**: Base64 encoding for safe content passing (SUCCESS!)
 
+3. ✅ **Fixed version consistency for installer build**
+   - Commit: 47f157596 - Updated VERSION file to 1.17.7
+   - Commit: e64a05a31 - Updated frontend/package.json to 1.17.7
+   - Result: Installer now builds as SMS_Installer_1.17.7.exe
+
 **Root Cause Analysis** (What Was Broken):
-- Problem: Release notes markdown contains backticks, dollar signs followed by numbers, curly braces
+- Problem 1: Release notes markdown contained backticks, dollar signs followed by numbers, curly braces
+- Original approach: Embedded markdown directly into JavaScript template literal (broke syntax parser)
+- First attempt: jq JSON encoding (didn't solve shell variable expansion issues)
+- Solution 1: Base64 encoding (safely passes any content through GitHub Actions variables) ✅
+- Problem 2: VERSION file not updated to match release tag
+- Solution 2: Updated VERSION and package.json to 1.17.7 for installer build ✅
 - Original approach: Embedded markdown directly into JavaScript template literal (broke syntax parser)
 - First attempt: jq JSON encoding (didn't solve shell variable expansion issues)
 - Final solution: Base64 encoding (safely passes any content through GitHub Actions variables)
