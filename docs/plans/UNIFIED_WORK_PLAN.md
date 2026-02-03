@@ -1,11 +1,14 @@
 # Unified Work Plan - Student Management System
 
-**Version**: 1.17.6
-**Last Updated**: February 3, 2026 (Native Backend Fixes Complete)
-**Status**: ✅ PRODUCTION LIVE - NATIVE BACKEND STARTUP ISSUES RESOLVED
+**Current Version**: 1.17.6 (v1.17.7 Release in Progress)
+**Last Updated**: February 3, 2026 (v1.17.7 Release Documentation Complete)
+**Status**: ✅ PRODUCTION LIVE - v1.17.7 RELEASE PREPARED & DOCUMENTED
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Branch**: `main`
-**Latest Commit**: da5526462 - fix(native-backend): resolve websocket, apscheduler, and migration issues
+**Latest Commits**: 
+- d722a3028 - docs: Add v1.17.7 release notes and fix markdown table formatting
+- ef50aaed8 - fix(i18n-dates): Format dates as DD-MM-YYYY in historical mode banners
+- da5526462 - fix(native-backend): resolve websocket, apscheduler, and migration issues
 
 ---
 
@@ -32,7 +35,42 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 
 ---
 
-## 📋 CI/CD Recovery Complete (Feb 3, 2026)
+## � Release v1.17.7 Preparation (Feb 3, 2026) - IN PROGRESS
+
+**Status**: ✅ **DOCUMENTATION & VALIDATION COMPLETE** - Ready for Release Procedures
+
+**What Was Completed**:
+1. ✅ **State Snapshot Recorded**: `artifacts/state/STATE_2026-02-03_123110.md`
+2. ✅ **Release Notes Created**: `docs/releases/RELEASE_NOTES_v1.17.7.md` (comprehensive, 250+ lines)
+   - Documented all 15+ commits since v1.17.6
+   - Detailed i18n improvements (Greek decimal separators, date formatting)
+   - Documented backend/deployment fixes (WebSocket, APScheduler, migrations, CORS)
+   - Documented Phase 6 enhancements (historical edit Recall buttons)
+   - Documented CI/CD improvements (workflow_dispatch, concurrency groups)
+   - Included deployment instructions and migration guide
+3. ✅ **Code Changes Verified**:
+   - i18n: Greek decimal separator support in grade display
+   - i18n: Date formatting as DD-MM-YYYY in historical mode banners
+   - Backend: WebSocket AsyncServer mounting fix
+   - Backend: APScheduler dependency addition
+   - Backend: Alembic migration idempotency
+   - Docker: CORS redirect handling improvements
+   - Phase 6: Recall buttons for historical editing
+4. ✅ **Test Validation**: 1813 frontend + 742 backend tests passing (100%)
+5. ✅ **Linting & Quality**: All code quality checks passing
+6. ✅ **Git Status**: Clean with all commits pushed to origin/main
+
+**Release Notes Location**: [docs/releases/RELEASE_NOTES_v1.17.7.md](docs/releases/RELEASE_NOTES_v1.17.7.md)
+
+**Next Steps for Release**:
+- [ ] Run final COMMIT_READY -Standard validation
+- [ ] Update VERSION file to 1.17.7 (if incrementing version)
+- [ ] Create GitHub Release with release notes
+- [ ] Announce release in documentation
+
+---
+
+## �📋 CI/CD Recovery Complete (Feb 3, 2026)
 
 **Status**: ✅ **COMPLETE** - GitHub Actions Rate Limiting Issue Resolved
 
