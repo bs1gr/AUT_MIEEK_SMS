@@ -1,8 +1,8 @@
-# GitHub Release Draft - v1.17.7
+# GitHub Release Draft - $11.17.6
 
-**Release Title**: v1.17.7 - Internationalization & Deployment Reliability Improvements
+**Release Title**: $11.17.6 - Internationalization & Deployment Reliability Improvements
 
-**Release Tag**: v1.17.7
+**Release Tag**: $11.17.6
 
 **Release Date**: February 3, 2026
 
@@ -10,9 +10,9 @@
 
 ## 📝 Release Description
 
-**v1.17.7** is a maintenance and enhancement release focused on internationalization improvements for Greek locale support, Docker deployment reliability enhancements, and historical data editing capabilities.
+**$11.17.6** is a maintenance and enhancement release focused on internationalization improvements for Greek locale support, Docker deployment reliability enhancements, and historical data editing capabilities.
 
-This release builds upon the stable v1.17.6 foundation with critical fixes for Greek language users, improved deployment reliability, and feature enhancements for educators.
+This release builds upon the stable $11.17.6 foundation with critical fixes for Greek language users, improved deployment reliability, and feature enhancements for educators.
 
 ---
 
@@ -43,7 +43,7 @@ This release builds upon the stable v1.17.6 foundation with critical fixes for G
 
 | Metric | Value |
 |--------|-------|
-| **Total Commits** | 15+ commits since v1.17.6 |
+| **Total Commits** | 15+ commits since $11.17.6 |
 | **Files Changed** | 12+ files |
 | **Bug Fixes** | 5+ implemented |
 | **New Features** | 3 enhancements |
@@ -99,7 +99,7 @@ This release builds upon the stable v1.17.6 foundation with critical fixes for G
 
 ## 📚 Documentation
 
-- **Release Notes**: [docs/releases/RELEASE_NOTES_v1.17.7.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/releases/RELEASE_NOTES_v1.17.7.md)
+- **Release Notes**: [docs/releases/RELEASE_NOTES_$11.17.6.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/releases/RELEASE_NOTES_$11.17.6.md)
 - **Work Plan**: [docs/plans/UNIFIED_WORK_PLAN.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/plans/UNIFIED_WORK_PLAN.md)
 - **Deployment Guide**: [docs/deployment/DOCKER_OPERATIONS.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/deployment/DOCKER_OPERATIONS.md)
 
@@ -129,10 +129,10 @@ pip install -r requirements.txt              # For APScheduler
 
 ## 📋 Related Commits
 
-Since v1.17.6, the following major commits were included:
+Since $11.17.6, the following major commits were included:
 
-- `380c46abf` - docs(plan): Update work plan - v1.17.7 release preparation complete
-- `d722a3028` - docs: Add v1.17.7 release notes and fix markdown table formatting
+- `380c46abf` - docs(plan): Update work plan - $11.17.6 release preparation complete
+- `d722a3028` - docs: Add $11.17.6 release notes and fix markdown table formatting
 - `ef50aaed8` - fix(i18n-dates): Format dates as DD-MM-YYYY in historical mode banners for Greek locale compatibility
 - `fe3a053d0` - fix(docker): Improve nginx redirect rewriting to handle all redirect sources
 - `d39daa932` - fix(docker): Fix nginx redirect rewriting for proper CORS handling
@@ -142,7 +142,7 @@ Since v1.17.6, the following major commits were included:
 - `bd0e56961` - ci: Add workflow_dispatch to unblock manual CI reruns
 - `2ee01638a` - ci: Limit heavy workflows to PRs/schedule
 
-[View all commits since v1.17.6](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.6...v1.17.7)
+[View all commits since $11.17.6](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.6...$11.17.6)
 
 ---
 
@@ -162,3 +162,4 @@ Since v1.17.6, the following major commits were included:
 ---
 
 **For questions or issues, refer to [DOCUMENTATION_INDEX.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/DOCUMENTATION_INDEX.md) or contact project maintainers.**
+
