@@ -134,7 +134,8 @@ Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesu
 Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,playwright.config.ts"
 Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\scripts\*"; DestDir: "{app}\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.py,*.sh"
+; DEPLOYMENT OPTIMIZATION: Scripts folder excluded - only backup-database.sh needed (99% size reduction)
+Source: "..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsProductionInstall
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Main scripts - Docker-only scripts always installed
@@ -230,6 +231,12 @@ var
 function IsDevInstall: Boolean;
 begin
   Result := False; // Production installer only supports Docker-only
+end;
+
+// Function to check if this is a production install (always true)
+function IsProductionInstall: Boolean;
+begin
+  Result := True; // Production installer - always include production files
 end;
 
 // Function to check if this is a Docker install (always true for production)
@@ -913,11 +920,11 @@ begin
       // CRITICAL FIX: DO NOT restore .env files from old backup!
       // The new installation includes fresh .env files with correct configuration.
       // Restoring old .env files causes 400 Bad Request errors due to stale credentials.
-      
+
       Log('[SKIPPED] .env restoration - using fresh .env files from new installation');
       Log('  Reason: Old .env files contain stale credentials that cause login failures');
       Log('  Action: New .env files from v1.17.7 installation will be used');
-      
+
       // Only restore user data (not configuration files)
 
       if FileExists(UpgradeBackupPath + '\config\lang.txt') then

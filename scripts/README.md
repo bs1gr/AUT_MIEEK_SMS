@@ -1,7 +1,22 @@
 # Scripts Directory
 
-.
-.\NATIVE.ps1 -Start           # Start both backend + frontend
+---
+
+## ⚠️ DEPLOYMENT NOTICE
+
+**For Production Deployment**: Only **1 script** from this folder is used at runtime:
+- ✅ `backup-database.sh` - Database backup automation (Docker Compose production)
+
+**All other scripts** (99%+) are development/build tools and **NOT needed** in production:
+- ❌ Testing scripts (RUN_TESTS_BATCH.ps1, etc.)
+- ❌ Pre-commit tools (COMMIT_READY.ps1, etc.)
+- ❌ Build scripts (INSTALLER_BUILDER.ps1, etc.)
+- ❌ CI/CD automation (ci/ folder)
+- ❌ Development utilities (dev/ folder)
+
+**See**: [SCRIPTS_DEPLOYMENT_ANALYSIS.md](../SCRIPTS_DEPLOYMENT_ANALYSIS.md) for detailed breakdown.
+
+---
 
 This directory contains management scripts for the Student Management System.
 
