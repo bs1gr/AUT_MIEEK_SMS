@@ -224,6 +224,7 @@ var
   PreviousVersion: String;
   PreviousInstallPath: String;
   IsUpgrade: Boolean;
+  UpgradeBackupPath: String;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -347,6 +348,59 @@ function AppExistsOnDisk(Path: String): Boolean;
 begin
   // Check if key app files exist at the path
   Result := (Path <> '') and (FileExists(Path + '\docker_manager.bat') or FileExists(Path + '\DOCKER.ps1'));
+end;
+
+function PreserveDirName(DirName: String): Boolean;
+begin
+  Result := (DirName = 'data') or (DirName = 'backups') or (DirName = 'logs') or (DirName = 'config');
+end;
+
+function PreserveFileName(FileName: String): Boolean;
+begin
+  Result := (FileName = '.env');
+end;
+
+procedure RemoveOldInstanceFiles(BasePath: String);
+var
+  FindRec: TFindRec;
+  ItemPath: String;
+begin
+  if BasePath = '' then
+    Exit;
+
+  if FindFirst(BasePath + '\*', FindRec) then
+  begin
+    try
+      repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
+        begin
+          ItemPath := BasePath + '\' + FindRec.Name;
+          if FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0 then
+          begin
+            if not PreserveDirName(FindRec.Name) then
+            begin
+              Log('Removing old directory: ' + ItemPath);
+              DelTree(ItemPath, True, True, True);
+            end
+            else
+              Log('Preserving directory: ' + ItemPath);
+          end
+          else
+          begin
+            if not PreserveFileName(FindRec.Name) then
+            begin
+              Log('Removing old file: ' + ItemPath);
+              DeleteFile(ItemPath);
+            end
+            else
+              Log('Preserving file: ' + ItemPath);
+          end;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
 end;
 
 function DetectExistingInstallation(var OutPath: String; var OutVersion: String): Boolean;
@@ -640,6 +694,8 @@ begin
   begin
     Log('Stopping Docker container sms-app...');
     Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Log('Removing Docker container sms-app...');
+    Exec('cmd', '/c docker rm sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   end;
 
   // UPGRADE: Backup all data before any changes
@@ -648,6 +704,7 @@ begin
     Log('Upgrade detected - backing up existing data...');
     BackupTimestamp := GetDateTimeString('yyyy-mm-dd_hhmmss', '-', ':');
     BackupPath := PreviousInstallPath + '\backups\pre_upgrade_' + BackupTimestamp;
+    UpgradeBackupPath := BackupPath;
 
     Log('Backup destination: ' + BackupPath);
 
@@ -700,6 +757,9 @@ begin
     end;
 
     Log('Backup completed at: ' + BackupPath);
+
+    Log('Removing old instance files while preserving data and settings...');
+    RemoveOldInstanceFiles(PreviousInstallPath);
   end;
 
   // Create/update installation metadata file
@@ -786,6 +846,34 @@ begin
   end
   else if CurStep = ssPostInstall then
   begin
+    if IsUpgrade and (UpgradeBackupPath <> '') then
+    begin
+      Log('Restoring preserved settings from backup: ' + UpgradeBackupPath);
+
+      if FileExists(UpgradeBackupPath + '\config\backend.env') then
+      begin
+        ForceDirectories(ExpandConstant('{app}\backend'));
+        FileCopy(UpgradeBackupPath + '\config\backend.env', ExpandConstant('{app}\backend\.env'), False);
+      end;
+
+      if FileExists(UpgradeBackupPath + '\config\frontend.env') then
+      begin
+        ForceDirectories(ExpandConstant('{app}\frontend'));
+        FileCopy(UpgradeBackupPath + '\config\frontend.env', ExpandConstant('{app}\frontend\.env'), False);
+      end;
+
+      if FileExists(UpgradeBackupPath + '\config\.env') then
+      begin
+        FileCopy(UpgradeBackupPath + '\config\.env', ExpandConstant('{app}\.env'), False);
+      end;
+
+      if FileExists(UpgradeBackupPath + '\config\lang.txt') then
+      begin
+        ForceDirectories(ExpandConstant('{app}\config'));
+        FileCopy(UpgradeBackupPath + '\config\lang.txt', ExpandConstant('{app}\config\lang.txt'), False);
+      end;
+    end;
+
     // Rename the uninstaller to include version number
     OldUninstaller := ExpandConstant('{app}\unins000.exe');
     NewUninstaller := ExpandConstant('{app}\unins{#MyAppVersion}.exe');
