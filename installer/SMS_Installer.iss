@@ -403,6 +403,32 @@ begin
   end;
 end;
 
+procedure CleanOldUninstallers(BasePath: String);
+begin
+  // Delete all uninstaller files and registry entries
+  Log('Cleaning old uninstaller files...');
+  DeleteFile(BasePath + '\unins000.exe');
+  DeleteFile(BasePath + '\unins000.dat');
+  DeleteFile(BasePath + '\unins000.msg');
+  // Clean any old versioned uninstallers
+  DeleteFile(BasePath + '\unins1.12.3.exe');
+  DeleteFile(BasePath + '\unins1.12.3.dat');
+  DeleteFile(BasePath + '\unins1.17.6.exe');
+  DeleteFile(BasePath + '\unins1.17.6.dat');
+  Log('Old uninstaller files deleted');
+end;
+
+procedure CleanOldDockerImages;
+var
+  ResultCode: Integer;
+begin
+  Log('Cleaning old Docker images...');
+  // Remove old sms-fullstack images (keep only latest)
+  Exec('cmd', '/c docker rmi sms-fullstack:1.12.3 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rmi sms-fullstack:1.17.6 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Log('Old Docker images removed');
+end;
+
 function DetectExistingInstallation(var OutPath: String; var OutVersion: String): Boolean;
 var
   RegPath, RegistryVersion: String;
@@ -758,8 +784,17 @@ begin
 
     Log('Backup completed at: ' + BackupPath);
 
-    Log('Removing old instance files while preserving data and settings...');
+    // CRITICAL: Remove old instance files BEFORE restoring from backup
+    Log('Removing old instance files (backend/frontend/docker/scripts)...');
     RemoveOldInstanceFiles(PreviousInstallPath);
+    
+    // Clean old uninstaller files
+    CleanOldUninstallers(PreviousInstallPath);
+    
+    // Clean old Docker images to prevent conflicts
+    CleanOldDockerImages;
+    
+    Log('Old instance cleanup complete - ready for fresh install of new version');
   end;
 
   // Create/update installation metadata file
@@ -850,25 +885,40 @@ begin
     begin
       Log('Restoring preserved settings from backup: ' + UpgradeBackupPath);
 
+      // CRITICAL: Delete old .env files BEFORE restoration (force fresh install of settings)
+      Log('Removing old configuration files to ensure clean upgrade...');
+      DeleteFile(ExpandConstant('{app}\backend\.env'));
+      DeleteFile(ExpandConstant('{app}\frontend\.env'));
+      DeleteFile(ExpandConstant('{app}\.env'));
+
+      // NOW restore from backup (will get fresh/clean settings)
       if FileExists(UpgradeBackupPath + '\config\backend.env') then
       begin
+        Log('Restoring backend.env from backup...');
         ForceDirectories(ExpandConstant('{app}\backend'));
         FileCopy(UpgradeBackupPath + '\config\backend.env', ExpandConstant('{app}\backend\.env'), False);
+      end
+      else
+      begin
+        Log('Warning: backend.env not found in backup - will use defaults');
       end;
 
       if FileExists(UpgradeBackupPath + '\config\frontend.env') then
       begin
+        Log('Restoring frontend.env from backup...');
         ForceDirectories(ExpandConstant('{app}\frontend'));
         FileCopy(UpgradeBackupPath + '\config\frontend.env', ExpandConstant('{app}\frontend\.env'), False);
       end;
 
       if FileExists(UpgradeBackupPath + '\config\.env') then
       begin
+        Log('Restoring root .env from backup...');
         FileCopy(UpgradeBackupPath + '\config\.env', ExpandConstant('{app}\.env'), False);
       end;
 
       if FileExists(UpgradeBackupPath + '\config\lang.txt') then
       begin
+        Log('Restoring language config from backup...');
         ForceDirectories(ExpandConstant('{app}\config'));
         FileCopy(UpgradeBackupPath + '\config\lang.txt', ExpandConstant('{app}\config\lang.txt'), False);
       end;
