@@ -411,7 +411,7 @@ var
   Deleted: Integer;
 begin
   Log('Cleaning old uninstaller files from: ' + BasePath);
-  
+
   SetArrayLength(Patterns, 8);
   Patterns[0] := BasePath + '\unins000.exe';
   Patterns[1] := BasePath + '\unins000.dat';
@@ -421,7 +421,7 @@ begin
   Patterns[5] := BasePath + '\unins1.17.6.exe';
   Patterns[6] := BasePath + '\unins1.17.6.dat';
   Patterns[7] := BasePath + '\unins1.17.7.exe';
-  
+
   Deleted := 0;
   for i := 0 to GetArrayLength(Patterns) - 1 do
   begin
@@ -439,7 +439,7 @@ begin
       end;
     end;
   end;
-  
+
   Log('Uninstaller cleanup complete: ' + IntToStr(Deleted) + ' files deleted');
 end;
 
@@ -908,60 +908,17 @@ begin
   begin
     if IsUpgrade and (UpgradeBackupPath <> '') then
     begin
-      Log('Restoring preserved settings from backup: ' + UpgradeBackupPath);
+      Log('Post-install upgrade handling - preserving user data only');
 
-      // CRITICAL: Delete old .env files BEFORE restoration (force fresh install of settings)
-      Log('Removing old configuration files to ensure clean upgrade...');
+      // CRITICAL FIX: DO NOT restore .env files from old backup!
+      // The new installation includes fresh .env files with correct configuration.
+      // Restoring old .env files causes 400 Bad Request errors due to stale credentials.
       
-      // Attempt to delete with logging of success/failure
-      if FileExists(ExpandConstant('{app}\backend\.env')) then
-      begin
-        if DeleteFile(ExpandConstant('{app}\backend\.env')) then
-          Log('  [OK] Deleted old backend/.env')
-        else
-          Log('  [WARN] Failed to delete backend/.env (may be locked)');
-      end;
+      Log('[SKIPPED] .env restoration - using fresh .env files from new installation');
+      Log('  Reason: Old .env files contain stale credentials that cause login failures');
+      Log('  Action: New .env files from v1.17.7 installation will be used');
       
-      if FileExists(ExpandConstant('{app}\frontend\.env')) then
-      begin
-        if DeleteFile(ExpandConstant('{app}\frontend\.env')) then
-          Log('  [OK] Deleted old frontend/.env')
-        else
-          Log('  [WARN] Failed to delete frontend/.env (may be locked)');
-      end;
-      
-      if FileExists(ExpandConstant('{app}\.env')) then
-      begin
-        if DeleteFile(ExpandConstant('{app}\.env')) then
-          Log('  [OK] Deleted old root .env')
-        else
-          Log('  [WARN] Failed to delete root .env (may be locked)');
-      end;
-
-      // NOW restore from backup (will get fresh/clean settings)
-      if FileExists(UpgradeBackupPath + '\config\backend.env') then
-      begin
-        Log('Restoring backend.env from backup...');
-        ForceDirectories(ExpandConstant('{app}\backend'));
-        FileCopy(UpgradeBackupPath + '\config\backend.env', ExpandConstant('{app}\backend\.env'), False);
-      end
-      else
-      begin
-        Log('Warning: backend.env not found in backup - will use defaults');
-      end;
-
-      if FileExists(UpgradeBackupPath + '\config\frontend.env') then
-      begin
-        Log('Restoring frontend.env from backup...');
-        ForceDirectories(ExpandConstant('{app}\frontend'));
-        FileCopy(UpgradeBackupPath + '\config\frontend.env', ExpandConstant('{app}\frontend\.env'), False);
-      end;
-
-      if FileExists(UpgradeBackupPath + '\config\.env') then
-      begin
-        Log('Restoring root .env from backup...');
-        FileCopy(UpgradeBackupPath + '\config\.env', ExpandConstant('{app}\.env'), False);
-      end;
+      // Only restore user data (not configuration files)
 
       if FileExists(UpgradeBackupPath + '\config\lang.txt') then
       begin
@@ -976,11 +933,11 @@ begin
     NewUninstaller := ExpandConstant('{app}\unins{#MyAppVersion}.exe');
 
     Log('Uninstaller post-install: Old=' + OldUninstaller + ', New=' + NewUninstaller);
-    
+
     if FileExists(OldUninstaller) then
     begin
       Log('  Old uninstaller found, attempting rename...');
-      
+
       // First try to delete any existing new uninstaller (from previous runs)
       if FileExists(NewUninstaller) then
       begin
@@ -988,7 +945,7 @@ begin
         if not DeleteFile(NewUninstaller) then
           Log('  [WARN] Could not remove old new uninstaller');
       end;
-      
+
       // Now try to rename
       if RenameFile(OldUninstaller, NewUninstaller) then
       begin
