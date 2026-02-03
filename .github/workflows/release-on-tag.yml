@@ -44,14 +44,13 @@ jobs:
           echo "Debug: TAG after trim = '${TAG}'"
           NOTES_FILE=".github/RELEASE_NOTES_${TAG}.md"
           if [ -f "$NOTES_FILE" ]; then
-            # Read file and properly escape for JSON
-            BODY=$(cat "$NOTES_FILE" | jq -R -s '.')
-            echo "body=${BODY}" >> $GITHUB_OUTPUT
+            BODY=$(cat "$NOTES_FILE")
           else
-            # Use jq to create properly escaped JSON string
-            BODY=$(echo "Release ${TAG}" | jq -R '.')
-            echo "body=${BODY}" >> $GITHUB_OUTPUT
+            BODY="Release ${TAG}"
           fi
+          # Encode body as base64 to safely pass through GitHub Actions
+          BODY_B64=$(echo -n "$BODY" | base64 -w 0)
+          echo "body_b64=${BODY_B64}" >> $GITHUB_OUTPUT
 
       - name: Create release (or update if exists)
         id: create_release
@@ -60,8 +59,8 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const tag = '${{ steps.get_tag.outputs.tag_name }}';
-            const bodyJson = ${{ steps.prepare.outputs.body }};
-            const body = bodyJson;
+            // Decode base64 body
+            const body = Buffer.from('${{ steps.prepare.outputs.body_b64 }}', 'base64').toString('utf-8');
             try {
               // Try to fetch existing release
               const release = await github.rest.repos.getReleaseByTag({
