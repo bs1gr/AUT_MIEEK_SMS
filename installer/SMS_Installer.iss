@@ -404,18 +404,43 @@ begin
 end;
 
 procedure CleanOldUninstallers(BasePath: String);
+var
+  FilePath: String;
+  Patterns: array of String;
+  i: Integer;
+  Deleted: Integer;
 begin
-  // Delete all uninstaller files and registry entries
-  Log('Cleaning old uninstaller files...');
-  DeleteFile(BasePath + '\unins000.exe');
-  DeleteFile(BasePath + '\unins000.dat');
-  DeleteFile(BasePath + '\unins000.msg');
-  // Clean any old versioned uninstallers
-  DeleteFile(BasePath + '\unins1.12.3.exe');
-  DeleteFile(BasePath + '\unins1.12.3.dat');
-  DeleteFile(BasePath + '\unins1.17.6.exe');
-  DeleteFile(BasePath + '\unins1.17.6.dat');
-  Log('Old uninstaller files deleted');
+  Log('Cleaning old uninstaller files from: ' + BasePath);
+  
+  SetArrayLength(Patterns, 8);
+  Patterns[0] := BasePath + '\unins000.exe';
+  Patterns[1] := BasePath + '\unins000.dat';
+  Patterns[2] := BasePath + '\unins000.msg';
+  Patterns[3] := BasePath + '\unins1.12.3.exe';
+  Patterns[4] := BasePath + '\unins1.12.3.dat';
+  Patterns[5] := BasePath + '\unins1.17.6.exe';
+  Patterns[6] := BasePath + '\unins1.17.6.dat';
+  Patterns[7] := BasePath + '\unins1.17.7.exe';
+  
+  Deleted := 0;
+  for i := 0 to GetArrayLength(Patterns) - 1 do
+  begin
+    FilePath := Patterns[i];
+    if FileExists(FilePath) then
+    begin
+      if DeleteFile(FilePath) then
+      begin
+        Log('  [OK] Deleted: ' + FilePath);
+        Deleted := Deleted + 1;
+      end
+      else
+      begin
+        Log('  [WARN] Could not delete (locked): ' + FilePath);
+      end;
+    end;
+  end;
+  
+  Log('Uninstaller cleanup complete: ' + IntToStr(Deleted) + ' files deleted');
 end;
 
 procedure CleanOldDockerImages;
@@ -787,13 +812,13 @@ begin
     // CRITICAL: Remove old instance files BEFORE restoring from backup
     Log('Removing old instance files (backend/frontend/docker/scripts)...');
     RemoveOldInstanceFiles(PreviousInstallPath);
-    
+
     // Clean old uninstaller files
     CleanOldUninstallers(PreviousInstallPath);
-    
+
     // Clean old Docker images to prevent conflicts
     CleanOldDockerImages;
-    
+
     Log('Old instance cleanup complete - ready for fresh install of new version');
   end;
 
@@ -887,9 +912,31 @@ begin
 
       // CRITICAL: Delete old .env files BEFORE restoration (force fresh install of settings)
       Log('Removing old configuration files to ensure clean upgrade...');
-      DeleteFile(ExpandConstant('{app}\backend\.env'));
-      DeleteFile(ExpandConstant('{app}\frontend\.env'));
-      DeleteFile(ExpandConstant('{app}\.env'));
+      
+      // Attempt to delete with logging of success/failure
+      if FileExists(ExpandConstant('{app}\backend\.env')) then
+      begin
+        if DeleteFile(ExpandConstant('{app}\backend\.env')) then
+          Log('  [OK] Deleted old backend/.env')
+        else
+          Log('  [WARN] Failed to delete backend/.env (may be locked)');
+      end;
+      
+      if FileExists(ExpandConstant('{app}\frontend\.env')) then
+      begin
+        if DeleteFile(ExpandConstant('{app}\frontend\.env')) then
+          Log('  [OK] Deleted old frontend/.env')
+        else
+          Log('  [WARN] Failed to delete frontend/.env (may be locked)');
+      end;
+      
+      if FileExists(ExpandConstant('{app}\.env')) then
+      begin
+        if DeleteFile(ExpandConstant('{app}\.env')) then
+          Log('  [OK] Deleted old root .env')
+        else
+          Log('  [WARN] Failed to delete root .env (may be locked)');
+      end;
 
       // NOW restore from backup (will get fresh/clean settings)
       if FileExists(UpgradeBackupPath + '\config\backend.env') then
@@ -928,11 +975,24 @@ begin
     OldUninstaller := ExpandConstant('{app}\unins000.exe');
     NewUninstaller := ExpandConstant('{app}\unins{#MyAppVersion}.exe');
 
-    if FileExists(OldUninstaller) and not FileExists(NewUninstaller) then
+    Log('Uninstaller post-install: Old=' + OldUninstaller + ', New=' + NewUninstaller);
+    
+    if FileExists(OldUninstaller) then
     begin
-      Log('Renaming uninstaller from unins000.exe to unins{#MyAppVersion}.exe');
+      Log('  Old uninstaller found, attempting rename...');
+      
+      // First try to delete any existing new uninstaller (from previous runs)
+      if FileExists(NewUninstaller) then
+      begin
+        Log('  Removing previous new uninstaller: ' + NewUninstaller);
+        if not DeleteFile(NewUninstaller) then
+          Log('  [WARN] Could not remove old new uninstaller');
+      end;
+      
+      // Now try to rename
       if RenameFile(OldUninstaller, NewUninstaller) then
       begin
+        Log('  [OK] Uninstaller renamed successfully');
         // Update the uninstall registry entry to point to the renamed file
         RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
           'UninstallString', '"' + NewUninstaller + '"');
@@ -942,12 +1002,16 @@ begin
           'UninstallString', '"' + NewUninstaller + '"');
         RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
           'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
-        Log('Uninstaller renamed successfully and registry updated');
+        Log('  Registry entries updated successfully');
       end
       else
       begin
-        Log('Failed to rename uninstaller file');
+        Log('  [WARN] Could not rename uninstaller (may be locked by system)');
       end;
+    end
+    else
+    begin
+      Log('  Old uninstaller not found at: ' + OldUninstaller);
     end;
   end;
 end;
