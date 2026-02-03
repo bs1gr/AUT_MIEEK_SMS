@@ -32,6 +32,7 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppGitHubURL}/issues
 AppUpdatesURL={#MyAppGitHubURL}/releases
 DefaultDirName={autopf}\{#MyAppShortName}
+DisableDirPage=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 ; License and info files are language-specific (set in [Languages])
@@ -345,10 +346,69 @@ begin
   Result := (Path <> '') and (FileExists(Path + '\docker_manager.bat') or FileExists(Path + '\DOCKER.ps1'));
 end;
 
+function DetectExistingInstallation(var OutPath: String; var OutVersion: String): Boolean;
+var
+  RegPath, RegistryVersion: String;
+  DefaultPath: String;
+begin
+  Result := False;
+  DefaultPath := ExpandConstant('{autopf}\{#MyAppShortName}');
+  OutVersion := '';
+  OutPath := '';
+
+  // Check 1: Registry HKLM
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'InstallLocation', RegPath) then
+  begin
+    if AppExistsOnDisk(RegPath) then
+    begin
+      OutPath := RegPath;
+      RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
+      OutVersion := RegistryVersion;
+      Log('Found installation via HKLM registry: ' + OutPath);
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  // Check 2: Registry HKCU
+  if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'InstallLocation', RegPath) then
+  begin
+    if AppExistsOnDisk(RegPath) then
+    begin
+      OutPath := RegPath;
+      RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
+      OutVersion := RegistryVersion;
+      Log('Found installation via HKCU registry: ' + OutPath);
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  // Check 3: Default installation path
+  if AppExistsOnDisk(DefaultPath) then
+  begin
+    OutPath := DefaultPath;
+    // Try to read version from VERSION file
+    if FileExists(DefaultPath + '\VERSION') then
+    begin
+      if not LoadStringFromFile(DefaultPath + '\VERSION', OutVersion) then
+        OutVersion := 'Unknown';
+    end
+    else
+      OutVersion := 'Unknown';
+    Log('Found installation at default path: ' + DefaultPath);
+    Result := True;
+    Exit;
+  end;
+
+  Log('No existing SMS installation detected');
+end;
+
 function InitializeSetup: Boolean;
 var
   Choice: Integer;
   Msg: String;
+  ExistingVersion: String;
   ExistingPath: String;
   AppExists: Boolean;
   IsSameVersion: Boolean;
@@ -360,65 +420,56 @@ begin
   DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
   DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
 
-  PreviousVersion := GetPreviousVersion;
-  PreviousInstallPath := GetPreviousInstallPath;
-
-  // Check if app exists either via registry or on disk at default location
-  if PreviousInstallPath = '' then
-    ExistingPath := ExpandConstant('{autopf}\SMS')
-  else
-    ExistingPath := PreviousInstallPath;
-
-  // Determine if app exists
-  AppExists := (PreviousVersion <> '') or AppExistsOnDisk(ExistingPath);
+  // Use robust detection function
+  AppExists := DetectExistingInstallation(PreviousInstallPath, PreviousVersion);
 
   if not AppExists then
   begin
     // No existing installation - proceed with fresh install
     IsUpgrade := False;
+    Log('InitializeSetup: Fresh installation, no existing SMS found');
     Result := True;
     Exit;
   end;
 
-  // App exists - determine version info
-  if PreviousVersion = '' then
-    PreviousVersion := 'Unknown';
-  if PreviousInstallPath = '' then
-    PreviousInstallPath := ExistingPath;
+  // Installation exists - validate version
+  Log('InitializeSetup: Existing installation found at: ' + PreviousInstallPath);
+  Log('InitializeSetup: Existing version: ' + PreviousVersion + ', New version: {#MyAppVersion}');
 
-  // Check if same version
   IsSameVersion := (PreviousVersion = '{#MyAppVersion}');
 
-  // Build message
+  // Build message based on version comparison
   if IsSameVersion then
-    Msg := CustomMessage('SameVersionFound')
+  begin
+    Msg := 'Version {#MyAppVersion} is already installed at:' + #13#10 +
+           PreviousInstallPath + #13#10#13#10 +
+           'Click YES to reinstall/repair, or NO to cancel installation.';
+  end
   else
-    Msg := CustomMessage('ExistingVersionFound');
-  StringChangeEx(Msg, '%1', PreviousVersion, True);
-  StringChangeEx(Msg, '%2', PreviousInstallPath, True);
+  begin
+    Msg := 'Version ' + PreviousVersion + ' is already installed at:' + #13#10 +
+           PreviousInstallPath + #13#10#13#10 +
+           'Your data and settings will be preserved.' + #13#10#13#10 +
+           'Click YES to upgrade to version {#MyAppVersion}, or NO to cancel.';
+  end;
 
-  // Show upgrade/overwrite options dialog
-  Choice := MsgBox(Msg + #13#10#13#10 +
-    CustomMessage('UpgradeOption') + #13#10 +
-    CustomMessage('CleanInstallOption') + #13#10#13#10 +
-    CustomMessage('UpgradePrompt'),
-    mbConfirmation, MB_YESNOCANCEL);
+  // Show upgrade confirmation dialog
+  Choice := MsgBox(Msg, mbInformation, MB_YESNO);
 
   case Choice of
     IDYES:
       begin
-        // Update/Overwrite - keep data, install over existing
+        // ALWAYS upgrade in-place (never fresh install if app exists)
         IsUpgrade := True;
+        // CRITICAL: Ensure installation path is ALWAYS the same
+        // DisableDirPage ensures no user selection, so {app} will be the existing path
+        Log('InitializeSetup: Proceeding with upgrade');
         Result := True;
       end;
     IDNO:
       begin
-        // Fresh install - remove previous installation first
-        IsUpgrade := False;
-        Result := True;
-      end;
-    IDCANCEL:
-      begin
+        // User cancelled
+        Log('InitializeSetup: User cancelled installation');
         Result := False;
       end;
   end;
@@ -572,76 +623,102 @@ end;
 function PrepareToInstall(var NeedsRestart: Boolean): String;
 var
   ResultCode: Integer;
-  UninstallStr: String;
-  UninstallPath: String;
-  UpgradeStr: String;
+  BackupPath: String;
+  BackupTimestamp: String;
+  MetadataFile: String;
+  MetadataContent: String;
 begin
   Result := '';
   NeedsRestart := False;
 
-  if IsUpgrade then UpgradeStr := 'True' else UpgradeStr := 'False';
-  Log('PrepareToInstall: IsUpgrade = ' + UpgradeStr);
+  Log('PrepareToInstall: IsUpgrade = ' + BoolToStr(IsUpgrade));
   Log('PrepareToInstall: PreviousInstallPath = ' + PreviousInstallPath);
+  Log('PrepareToInstall: PreviousVersion = ' + PreviousVersion);
 
-  // Stop Docker container first (always, for both upgrade and fresh install)
+  // ALWAYS stop Docker container first
   if ContainerExists then
   begin
-    Log('Stopping Docker container...');
-    Exec('cmd', '/c docker stop sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Log('Stopping Docker container sms-app...');
+    Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   end;
 
-  // For Fresh Install (not upgrade), remove previous installation
-  if not IsUpgrade then
+  // UPGRADE: Backup all data before any changes
+  if IsUpgrade and (PreviousInstallPath <> '') then
   begin
-    Log('Fresh install requested - checking for previous installation to remove');
-    UninstallStr := GetUninstallString;
+    Log('Upgrade detected - backing up existing data...');
+    BackupTimestamp := GetDateTimeString('yyyy-mm-dd_hhmmss', '-', ':');
+    BackupPath := PreviousInstallPath + '\backups\pre_upgrade_' + BackupTimestamp;
 
-    if UninstallStr <> '' then
-    begin
-      UninstallPath := RemoveQuotes(UninstallStr);
-      Log('Found uninstall string: ' + UninstallPath);
+    Log('Backup destination: ' + BackupPath);
 
-      if FileExists(UninstallPath) then
-      begin
-        Log('Running uninstaller for fresh install...');
-        // Run the uninstaller
-        if not UninstallPreviousVersion then
-        begin
-          Log('Warning: Uninstaller did not complete successfully');
-        end
-        else
-        begin
-          Log('Uninstaller completed successfully');
-        end;
+    // Create backup directory
+    if not DirExists(BackupPath) then
+      ForceDirectories(BackupPath);
 
-        // Wait a moment for file system to settle
-        Sleep(1000);
-      end
-      else
-      begin
-        Log('Uninstaller file not found: ' + UninstallPath);
-      end;
-    end else if (PreviousInstallPath <> '') and DirExists(PreviousInstallPath) then
+    // Backup data directory
+    if DirExists(PreviousInstallPath + '\data') then
     begin
-      // No uninstaller but files exist - try to clean up manually
-      Log('No uninstaller found, cleaning up manually at: ' + PreviousInstallPath);
-      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\backend"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\frontend"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\docker"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      Exec('cmd', '/c rmdir /S /Q "' + PreviousInstallPath + '\\scripts"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      Exec('cmd', '/c del /Q "' + PreviousInstallPath + '\\*.ps1"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      Exec('cmd', '/c del /Q "' + PreviousInstallPath + '\\*.vbs"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-      Exec('cmd', '/c del /Q "' + PreviousInstallPath + '\\*.md"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-    end
-    else
-    begin
-      Log('No previous installation found to remove');
+      Log('Backing up data directory...');
+      Exec('cmd', '/c xcopy /E /I /Y "' + PreviousInstallPath + '\data" "' + BackupPath + '\data" 2>nul',
+           '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      if ResultCode <> 0 then
+        Log('Warning: Data backup may have encountered issues (code: ' + IntToStr(ResultCode) + ')');
     end;
+
+    // Backup environment files
+    if FileExists(PreviousInstallPath + '\backend\.env') then
+    begin
+      Log('Backing up backend .env...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\backend\.env', BackupPath + '\config\backend.env', False);
+    end;
+
+    if FileExists(PreviousInstallPath + '\frontend\.env') then
+    begin
+      Log('Backing up frontend .env...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\frontend\.env', BackupPath + '\config\frontend.env', False);
+    end;
+
+    if FileExists(PreviousInstallPath + '\.env') then
+    begin
+      Log('Backing up root .env...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\.env', BackupPath + '\config\.env', False);
+    end;
+
+    // Backup config/lang.txt if exists
+    if FileExists(PreviousInstallPath + '\config\lang.txt') then
+    begin
+      Log('Backing up language config...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\config\lang.txt', BackupPath + '\config\lang.txt', False);
+    end;
+
+    Log('Backup completed at: ' + BackupPath);
+  end;
+
+  // Create/update installation metadata file
+  if PreviousInstallPath <> '' then
+  begin
+    MetadataFile := PreviousInstallPath + '\install_metadata.txt';
   end
   else
   begin
-    Log('Upgrade mode - keeping existing installation');
+    MetadataFile := ExpandConstant('{app}\install_metadata.txt');
   end;
+
+  MetadataContent := 'INSTALLATION_VERSION=' + '{#MyAppVersion}' + #13#10 +
+                     'INSTALLATION_DATE=' + GetDateTimeString('yyyy-mm-dd hh:mm:ss', '-', ':') + #13#10 +
+                     'UPGRADE_FROM=' + PreviousVersion + #13#10 +
+                     'INSTALLATION_PATH=' + ExpandConstant('{app}') + #13#10;
+
+  Log('Creating installation metadata...');
+  SaveStringToFile(MetadataFile, MetadataContent, False);
 end;
 
 
