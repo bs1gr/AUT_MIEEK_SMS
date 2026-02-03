@@ -1,23 +1,167 @@
-# SMS Installer - Critical Upgrade Issue Resolution (Feb 3, 2026)
+# SMS Installer - Critical 400 Error Fix (Feb 3, 2026)
 
-**Status**: ✅ **IMPLEMENTATION COMPLETE - READY FOR TESTING & DEPLOYMENT**
-**Priority**: 🔴 **CRITICAL** - Production deployment issue
-**Session Date**: February 3, 2026
-**Commits**: 3 (c6f3704f1, 6960c5e18, a172c24da)
+**Status**: ✅ **FIXED AND DEPLOYED** (commits e196120cc + a0241cff1)
+**Priority**: 🔴 **CRITICAL** - Prevents all upgrades from working
+**Session Date**: February 3, 2026 23:15
+**Installer**: SMS_Installer_1.17.7.exe (rebuilt with fix)
 
 ---
 
-## Executive Summary
+## 🚨 CRITICAL FIX: Backwards .env Restoration Logic
 
-The SMS Windows installer had a **critical flaw** that caused **parallel installations** instead of safe in-place upgrades. This resulted in:
+### Root Cause Discovery
 
-- Multiple SMS folders (SMS, SMS-1.17.6, SMS-1.17.7, etc.)
-- Multiple Docker containers and volumes
-- Data duplication and confusion
-- Uninstall failures breaking other instances
-- Poor user experience and support burden
+The installer had **backwards logic** for .env file handling:
 
-### What Was Fixed
+**WRONG BEHAVIOR (Before Fix):**
+1. Backup OLD .env files (dated 16/12/2025) during PrepareToInstall()
+2. Install FRESH .env files with new installation
+3. **Delete FRESH .env files** in CurStepChanged(ssPostInstall)
+4. **Restore OLD .env files from backup** (overwriting fresh ones)
+5. Result: 400 Bad Request error (old credentials don't work with new backend)
+
+**CORRECT BEHAVIOR (After Fix):**
+1. Backup OLD .env files (for safety only)
+2. Install FRESH .env files with new installation
+3. **Keep FRESH .env files** (no deletion)
+4. **Skip restoration** of old .env files
+5. Result: Login works (fresh credentials match new backend)
+
+### Why This Caused 400 Errors
+
+- .env files contain system credentials (SECRET_KEY, DB paths, JWT tokens)
+- Old credentials from 16/12/2025 don't work with v1.17.7 backend
+- Backend rejects all requests with 400 Bad Request
+- User cannot login despite correct username/password
+
+---
+
+## ✅ The Fix (Commit e196120cc)
+
+**File Modified**: `installer/SMS_Installer.iss`  
+**Lines Changed**: Removed 57 lines of .env deletion/restoration logic  
+**Lines Added**: 7 lines of logging explaining why restoration is skipped
+
+**Code Change:**
+```pascal
+// BEFORE (BROKEN):
+DeleteFile(ExpandConstant('{app}\backend\.env'));
+DeleteFile(ExpandConstant('{app}\frontend\.env'));
+DeleteFile(ExpandConstant('{app}\.env'));
+
+if FileExists(UpgradeBackupPath + '\config\backend.env') then
+begin
+  FileCopy(UpgradeBackupPath + '\config\backend.env', 
+           ExpandConstant('{app}\backend\.env'), False);
+end;
+// ... (54 more lines of .env restoration)
+
+// AFTER (FIXED):
+Log('[SKIPPED] .env restoration - using fresh .env files from new installation');
+Log('  Reason: Old .env files contain stale credentials that cause login failures');
+Log('  Action: New .env files from v1.17.7 installation will be used');
+
+// Only restore user data (lang.txt), not system credentials (.env)
+```
+
+---
+
+## 📥 Download New Installer
+
+**Location**: `dist/SMS_Installer_1.17.7.exe`  
+**Size**: 8.01 MB  
+**Build Time**: February 3, 2026, 23:15:43  
+**Git Commits**: e196120cc (fix) + a0241cff1 (docs)
+
+**⚠️ CRITICAL**: You MUST use the installer built after 23:15 on Feb 3, 2026
+
+---
+
+## 🧪 Testing Instructions
+
+### Verify Installer Version
+```powershell
+Get-Item ".\SMS_Installer_1.17.7.exe" | Select-Object Length, LastWriteTime
+
+# Expected:
+# Length    LastWriteTime
+# ------    -------------
+# 8396288   02/03/2026 23:15:43
+
+# ❌ FAIL if timestamp shows earlier than 23:15
+```
+
+### Test Upgrade
+1. Run `SMS_Installer_1.17.7.exe`
+2. Complete installation
+3. Check .env file timestamps:
+   ```powershell
+   Get-ChildItem "C:\Program Files\SMS\" -Filter "*.env" -Recurse | 
+     Select-Object FullName, LastWriteTime
+   
+   # Expected: All files dated 02/03/2026 or later
+   # ❌ FAIL if any file shows 16/12/2025
+   ```
+4. Test login at http://localhost:8080
+5. **Expected**: Login succeeds (no 400 error)
+
+---
+
+## ✅ Expected Results
+
+After installing the **NEW** installer:
+
+- ✅ .env files dated **TODAY** (not 16/12/2025)
+- ✅ Login works without 400 error
+- ✅ Dashboard loads properly
+- ✅ Old Docker images removed
+- ✅ Old uninstaller files removed (or locked but harmless)
+
+---
+
+## 🚨 Emergency Recovery
+
+**If upgrade still fails:**
+
+### Option 1: Emergency Cleanup Script
+```powershell
+.\scripts\EMERGENCY_FIX_400_ERROR.ps1
+.\SMS_Installer_1.17.7.exe  # Reinstall
+```
+
+### Option 2: Manual Cleanup
+```powershell
+docker stop sms-app; docker rm sms-app
+Remove-Item "C:\Program Files\SMS\*.env" -Force -Recurse
+docker rmi sms-fullstack:1.12.3 -f
+docker rmi sms-fullstack:1.17.6 -f
+.\SMS_Installer_1.17.7.exe  # Reinstall
+```
+
+### Option 3: Fresh Install
+```powershell
+Start-Process "C:\Program Files\SMS\unins1.17.7.exe" -Wait
+.\SMS_Installer_1.17.7.exe  # Clean install
+```
+
+---
+
+## 📚 Documentation
+
+**Comprehensive Guide**: [installer/INSTALLER_CRITICAL_FIX_400_ERROR.md](installer/INSTALLER_CRITICAL_FIX_400_ERROR.md)
+
+**Covers:**
+- Root cause analysis (why .env restoration was backwards)
+- Fix explanation (what was changed and why)
+- Testing instructions (how to verify fix works)
+- Emergency recovery procedures
+- Git commit timeline
+
+---
+
+## Executive Summary (Previous Parallel Installation Fixes)
+
+**ALSO INCLUDED IN THIS BUILD:**
 
 **6 critical enhancements** have been implemented to ensure:
 
