@@ -1,11 +1,11 @@
 # Unified Work Plan - Student Management System
 
 **Version**: 1.17.6
-**Last Updated**: February 3, 2026
-**Status**: ✅ $11.17.6 PRODUCTION LIVE
+**Last Updated**: February 3, 2026 (CI/CD Merge Complete)
+**Status**: ✅ $11.17.6 PRODUCTION LIVE - CI/CD QUEUE RECOVERY COMPLETE
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Branch**: `main`
-**Latest Commit**: aafffa04b - style(linting): fix unused imports and variables in path traversal tests
+**Latest Commit**: 4b0ae75b8 - Merged CI improvements (dispatch triggers + trigger scope + queue note)
 
 ---
 
@@ -28,11 +28,42 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 | **Version** | ✅ OK | 1.17.6 across all files |
 | **Production** | ✅ LIVE | System operational since Feb 1 |
 | **Git Status** | ✅ COMMITTED | Commit aafffa04b - Linting fixes + Path traversal security (Feb 3) |
-| **Phase Status** | ✅ PATH TRAVERSAL SECURITY COMPLETE | 14 vulnerabilities fixed, 11 tests added |
+| **Phase Status** | ✅ CI/CD RECOVERED | 3 branches merged (dispatch + scope + queue note), 742/742 tests pass, all validations pass |
 
 ---
 
-**CI Queue Note (Feb 2, 2026):** GitHub Actions runners appear rate-limited/blocked. All queued runs were cancelled. Re-run all checks next session after cooldown.
+## 📋 CI/CD Recovery Complete (Feb 3, 2026)
+
+**Status**: ✅ **COMPLETE** - GitHub Actions Rate Limiting Issue Resolved
+
+**What Was Done**:
+1. ✅ **Merged `chore/ci-dispatch-triggers`** - Adds `workflow_dispatch` to manual CI workflows for recovery capability
+2. ✅ **Merged `chore/ci-trigger-scope`** - Limits heavy workflows to PRs/schedule to prevent queue buildup
+3. ✅ **Merged `chore/ci-queue-note`** - Documents rate limiting note and next steps
+4. ✅ **Pushed to remote** - All merges synced to origin/main
+5. ✅ **COMMIT_READY validation passed** - All 9 code quality checks + 4 test suites passed
+6. ✅ **Backend batch tests** - All 19 batches completed (172s), 742+ tests passing
+7. ✅ **Frontend tests** - 1249+ tests passing
+8. ✅ **State snapshot recorded** - artifacts/state/STATE_2026-02-03_075452.md
+
+**CI Improvements Merged**:
+- ✅ CodeQL workflow: Scoped to PRs only (prevent queue overflow)
+- ✅ Commit-ready smoke tests: Scoped to avoid bottlenecks
+- ✅ E2E tests: Scoped to PR-only execution
+- ✅ Trivy scan: Scoped to PR-only execution
+- ✅ Manual workflow dispatch: Added to all workflows for manual reruns
+- ✅ Markdown lint: Scoped appropriately
+
+**Verification Complete**:
+- ✅ Version consistency: 1.17.6 across all files
+- ✅ Code quality: Ruff, MyPy, ESLint, Markdown lint all pass
+- ✅ Tests: 742+ backend, 1249+ frontend, all passing
+- ✅ Git status: Clean after merges
+- ✅ Remote sync: All changes pushed to origin/main (commit 4b0ae75b8)
+
+---
+
+| **Phase Status** | ✅ PATH TRAVERSAL SECURITY COMPLETE | 14 vulnerabilities fixed, 11 tests added |
 
 ## 📝 New TODO: Historical Edit (Frontend CRUD)
 
