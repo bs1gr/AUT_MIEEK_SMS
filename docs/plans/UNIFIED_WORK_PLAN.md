@@ -32,6 +32,8 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 
 ---
 
+**CI Queue Note (Feb 2, 2026):** GitHub Actions runners appear rate-limited/blocked. All queued runs were cancelled. Re-run all checks next session after cooldown.
+
 ## 📝 New TODO: Historical Edit (Frontend CRUD)
 
 **Objective**: Add historical CRUD editing for past records across Grading, Attendance, and Student Performance views.
