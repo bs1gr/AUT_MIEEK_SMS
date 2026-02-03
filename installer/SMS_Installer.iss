@@ -156,6 +156,9 @@ Source: "..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
 
+; Environment file template - needed for DOCKER.ps1 to create .env on first run
+Source: "..\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
+
 ; Dev documentation - only for dev environment
 Source: "..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
 Source: "..\docs\DOCUMENTATION_INDEX.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Check: IsDevInstall
