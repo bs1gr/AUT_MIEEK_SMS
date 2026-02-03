@@ -4,7 +4,7 @@ import apiClient, { gradesAPI, enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { Student, Course, Grade, FinalGrade } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
-import { formatLocalDate } from '@/utils/date';
+import { formatLocalDate, formatDateGreek } from '@/utils/date';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -446,7 +446,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         </div>
         {isHistoricalMode && (
           <div className="ml-auto text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded">
-            {t('historicalModeBanner') || 'Historical mode enabled'} — {historyDate}
+            {t('historicalModeBanner') || 'Historical mode enabled'} — {formatDateGreek(historyDate)}
           </div>
         )}
       </div>
