@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { useLanguage } from '../LanguageContext';
-// @ts-expect-error - JavaScript API file
-import { reportsAPI } from '../api/api';
+// import { reportsAPI } from '@/api/api';  // TODO: reportsAPI not yet implemented
+
+// Placeholder for reportsAPI until reports feature is fully implemented
+const reportsAPI = {
+  generateStudentReport: async (req: any) => {
+    throw new Error('Student report generation not yet implemented');
+  },
+  downloadStudentReport: async (req: any) => {
+    throw new Error('Student report download not yet implemented');
+  }
+};
 
 // TypeScript interfaces for report data
 interface AttendanceSummary {
