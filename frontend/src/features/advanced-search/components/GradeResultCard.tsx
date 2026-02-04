@@ -90,7 +90,7 @@ export const GradeResultCard: React.FC<GradeResultCardProps> = ({
             <span className="text-2xl font-semibold text-gray-700">
               {grade.points}
               <span className="text-sm text-gray-500 ml-1">
-                / 100 {t('grades.points')}
+                {t('grades.divider')} 100 {t('grades.points')}
               </span>
             </span>
           </div>

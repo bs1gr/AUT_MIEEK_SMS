@@ -145,6 +145,8 @@ export default {
   jobMonitorHelper: 'Track long-running imports or exports by job ID.',
   jobMonitorInputLabel: 'Job ID to track',
   jobMonitorStart: 'Start monitoring',
+  milliseconds: 'ms',
+  seconds: 's',
   confirmAndImport: 'Confirm & Import',
   cancel: 'Cancel',
   importError: 'Import failed'

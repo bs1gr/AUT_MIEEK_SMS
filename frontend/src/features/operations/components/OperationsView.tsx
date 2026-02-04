@@ -222,7 +222,7 @@ const OperationsView = (_props: OperationsViewProps) => {
                   className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">✏️</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold" aria-label={t('icon.edit')}>{t('icon.editEmoji')}</div>
                     <h3 className="font-semibold text-slate-900">{t('createNew', { ns: 'customReports' })}</h3>
                   </div>
                   <p className="text-xs text-slate-600">{t('reportBuilder', { ns: 'customReports' })}</p>

@@ -182,6 +182,10 @@ export default {
     genericError: 'Something went wrong',
     iconRetry: '🔄'
   },
+  icon: {
+    edit: 'Edit',
+    editEmoji: '✏️'
+  },
   messages: {
     pleaseWait: 'Please wait...',
     devModeCheckConsole: '🔧 Development mode: Check console for detailed error logs',

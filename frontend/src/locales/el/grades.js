@@ -103,6 +103,7 @@ export default {
   basedOn: 'Βασισμένο σε',
   totalBeforePenalty: 'Σύνολο (πριν την ποινή)',
   outOf100: '0-100',
+  divider: '/',
   // Edit/Delete
   editGrade: 'Επεξεργασία Βαθμού',
   confirmDeleteGrade: 'Είστε σίγουροι ότι θέλετε να διαγράψετε αυτόν τον βαθμό;',
