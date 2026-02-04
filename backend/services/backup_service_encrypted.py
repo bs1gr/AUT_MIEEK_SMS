@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from backend.security.path_validation import validate_filename, validate_path
 from backend.services.encryption_service import EncryptionService
 
 
@@ -80,18 +81,18 @@ class BackupServiceEncrypted:
         return candidate
 
     def _validate_output_path(self, output_path: Path) -> Path:
-        """Validate output path for safety (allow any writable location, not just backup_dir)."""
-        # CodeQL: Explicit type narrowing and traversal prevention
+        """Validate output path for safety using centralized path validation."""
         if not isinstance(output_path, (str, Path)):
             raise TypeError("Output path must be string or Path")
 
-        # Check for path traversal sequences BEFORE resolving (resolve() normalizes .. away)
-        path_str = str(output_path)
-        # Block: .., ~, and UNC paths (\\) that attempt traversal
-        if ".." in path_str or path_str.startswith("~"):
-            raise ValueError(f"Path traversal detected in output path: {path_str}")
-
+        # Resolve path first
         resolved_output = Path(output_path).resolve()
+
+        # Validate path is within backup directory using centralized validation
+        try:
+            validate_path(self.backup_dir, resolved_output)
+        except ValueError as e:
+            raise ValueError(f"Path traversal detected in output path: {e}")
 
         # Ensure parent directory exists or can be created
         parent_dir = resolved_output.parent
@@ -203,13 +204,13 @@ class BackupServiceEncrypted:
             raise FileNotFoundError(f"Backup not found: {backup_path}")
 
         # Validate output_path to ensure it can be safely written
+        # _validate_output_path uses backend.security.path_validation.validate_path()
         resolved_output = self._validate_output_path(output_path)
 
         # Ensure parent directories exist so restore can succeed within backup dir
         resolved_output.parent.mkdir(parents=True, exist_ok=True)
 
-        # CodeQL [python/path-injection]: output_path is validated via _validate_output_path
-        # Safe usage: _validate_output_path performs traversal checks and type narrowing
+        # Path validated with backend.security.path_validation.validate_path()
         sanitized_output: Path = resolved_output
 
         # Decrypt and restore using validated paths
