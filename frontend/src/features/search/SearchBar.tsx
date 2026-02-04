@@ -97,6 +97,19 @@ export const SearchBar: React.FC<SearchBarProps> = ({
     return (savedSearches || []).filter((s: SavedSearch) => s.is_favorite);
   };
 
+  const getResultLabel = (result: SearchResult) => {
+    if (result.name) return result.name;
+    if (result.display_name) return result.display_name;
+    const fullName = [result.first_name, result.last_name].filter(Boolean).join(' ');
+    return fullName || '';
+  };
+
+  const getMetadataEmail = (metadata?: Record<string, unknown>) => {
+    if (!metadata) return undefined;
+    const email = metadata.email;
+    return typeof email === 'string' ? email : undefined;
+  };
+
   return (
     <div ref={containerRef} className={`relative w-full ${className}`}>
       {/* Search Input Container */}
@@ -109,7 +122,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
         {/* Search Type Selector (Mobile: Hidden) */}
         <select
           value={searchType}
-          onChange={(e) => handleSearchTypeChange(e.target.value as any)}
+          onChange={(e) => handleSearchTypeChange(e.target.value as 'students' | 'courses' | 'grades')}
           className="hidden sm:block px-2 py-2 text-sm font-medium text-gray-700 bg-transparent border-r border-gray-200 focus:outline-none cursor-pointer"
           aria-label={t('searchType', { ns: 'common' })}
         >
@@ -192,15 +205,15 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                       className="w-full px-3 py-2 text-sm text-left text-gray-900 hover:bg-blue-50 transition-colors flex items-center justify-between"
                     >
                       <span className="flex-1 truncate">
-                        {String((result as any).name || '')}
-                        {(result as any).metadata?.email && (
+                        {getResultLabel(result)}
+                        {getMetadataEmail(result.metadata) && (
                           <span className="ml-2 text-xs text-gray-500">
-                            ({(result as any).metadata.email})
+                            ({getMetadataEmail(result.metadata)})
                           </span>
                         )}
                       </span>
                       <span className="ml-2 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                        {String((result as any).type || '')}
+                        {result.type}
                       </span>
                     </button>
                   </li>

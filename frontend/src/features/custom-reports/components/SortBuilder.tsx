@@ -42,7 +42,11 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
     onChange(sorting.filter((_, i) => i !== index));
   };
 
-  const handleUpdateSort = (index: number, key: keyof SortRule, value: any) => {
+  const handleUpdateSort = <K extends keyof SortRule>(
+    index: number,
+    key: K,
+    value: SortRule[K]
+  ) => {
     const updated = [...sorting];
     updated[index] = { ...updated[index], [key]: value };
     onChange(updated);

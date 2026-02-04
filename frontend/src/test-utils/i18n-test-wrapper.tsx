@@ -34,25 +34,25 @@ testI18n
     resources: {
         en: {
           translation: {
-            ...(studentsEn as any),
-            ...(coursesEn as any),
-            ...(gradesEn as any),
-            ...(commonEn as any),
+            ...studentsEn,
+            ...coursesEn,
+            ...gradesEn,
+            ...commonEn,
           },
-          common: commonEn as any,
-          search: searchEn as any,
-                  rbac: rbacEn as any,
+          common: commonEn,
+          search: searchEn,
+          rbac: rbacEn,
         },
         el: {
           translation: {
-            ...(studentsEl as any),
-            ...(coursesEl as any),
-            ...(gradesEl as any),
-            ...(commonEl as any),
+            ...studentsEl,
+            ...coursesEl,
+            ...gradesEl,
+            ...commonEl,
           },
-          common: commonEl as any,
-          search: searchEl as any,
-                  rbac: rbacEl as any,
+          common: commonEl,
+          search: searchEl,
+          rbac: rbacEl,
         }
     },
     interpolation: {

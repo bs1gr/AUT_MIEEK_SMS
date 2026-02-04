@@ -1,9 +1,42 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { AdvancedFilters } from './AdvancedFilters';
 import * as useSearchModule from './useSearch';
+
+type UseSearchReturn = ReturnType<typeof useSearchModule.useSearch>;
+
+const baseUseSearchReturn: UseSearchReturn = {
+  searchQuery: '',
+  setSearchQuery: vi.fn(),
+  searchType: 'students',
+  setSearchType: vi.fn(),
+  filters: [],
+  setFilters: vi.fn(),
+  debouncedQuery: '',
+  page: 0,
+  setPage: vi.fn(),
+  limit: 20,
+  setLimit: vi.fn(),
+  sort: { field: 'relevance', direction: 'desc' },
+  setSort: vi.fn(),
+  searchResults: [],
+  totalResults: 0,
+  hasMore: false,
+  isLoading: false,
+  error: null,
+  savedSearches: [],
+  loadingSavedSearches: false,
+  createSavedSearch: vi.fn(),
+  deleteSavedSearch: vi.fn(),
+  toggleFavoriteSavedSearch: vi.fn(),
+  loadSavedSearch: vi.fn(),
+  addFilter: vi.fn(),
+  removeFilter: vi.fn(),
+  updateFilter: vi.fn(),
+  clearSearch: vi.fn(),
+};
 
 // Mock translations
 vi.mock('react-i18next', () => ({
@@ -14,17 +47,7 @@ vi.mock('react-i18next', () => ({
 
 // Mock the useSearch hook
 vi.mock('./useSearch', () => ({
-  useSearch: vi.fn(() => ({
-    searchQuery: '',
-    setSearchQuery: vi.fn(),
-    searchType: 'students',
-    setSearchType: vi.fn(),
-    filters: [],
-    addFilter: vi.fn(),
-    removeFilter: vi.fn(),
-    updateFilter: vi.fn(),
-    clearSearch: vi.fn(),
-  })),
+  useSearch: vi.fn(() => baseUseSearchReturn),
 }));
 
 describe('AdvancedFilters Component', () => {
@@ -57,19 +80,12 @@ describe('AdvancedFilters Component', () => {
 
   it('should display filter count badge when filters exist', () => {
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
+      ...baseUseSearchReturn,
       filters: [
         { field: 'first_name', operator: 'contains', value: 'john' },
         { field: 'email', operator: 'equals', value: 'john@example.com' },
       ],
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<AdvancedFilters />, { wrapper });
 
@@ -78,18 +94,11 @@ describe('AdvancedFilters Component', () => {
 
   it('should display all filters when expanded', () => {
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
+      ...baseUseSearchReturn,
       filters: [
         { field: 'first_name', operator: 'contains', value: 'john' },
       ],
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<AdvancedFilters />, { wrapper });
 
@@ -104,16 +113,10 @@ describe('AdvancedFilters Component', () => {
   it('should call addFilter when add button is clicked', () => {
     const mockAddFilter = vi.fn();
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
+      ...baseUseSearchReturn,
       filters: [],
       addFilter: mockAddFilter,
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<AdvancedFilters />, { wrapper });
 
@@ -129,18 +132,12 @@ describe('AdvancedFilters Component', () => {
   it('should call removeFilter when delete button is clicked', () => {
     const mockRemoveFilter = vi.fn();
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
+      ...baseUseSearchReturn,
       filters: [
         { field: 'first_name', operator: 'contains', value: 'john' },
       ],
-      addFilter: vi.fn(),
       removeFilter: mockRemoveFilter,
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<AdvancedFilters />, { wrapper });
 
@@ -157,18 +154,12 @@ describe('AdvancedFilters Component', () => {
   it('should call updateFilter when field is changed', () => {
     const mockUpdateFilter = vi.fn();
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
+      ...baseUseSearchReturn,
       filters: [
         { field: 'first_name', operator: 'contains', value: 'john' },
       ],
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
       updateFilter: mockUpdateFilter,
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<AdvancedFilters />, { wrapper });
 
@@ -188,16 +179,9 @@ describe('AdvancedFilters Component', () => {
     ];
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
-      filters: mockFilters as any,
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+      ...baseUseSearchReturn,
+      filters: mockFilters,
+    });
 
     render(<AdvancedFilters onApply={mockOnApply} />, { wrapper });
 
@@ -215,18 +199,12 @@ describe('AdvancedFilters Component', () => {
     const mockClearSearch = vi.fn();
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
+      ...baseUseSearchReturn,
       filters: [
         { field: 'first_name', operator: 'contains', value: 'john' },
       ],
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
       clearSearch: mockClearSearch,
-    } as any);
+    });
 
     render(<AdvancedFilters onReset={mockOnReset} />, { wrapper });
 
@@ -242,16 +220,10 @@ describe('AdvancedFilters Component', () => {
 
   it('should display different fields for different search types', () => {
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
+      ...baseUseSearchReturn,
       searchType: 'courses',
-      setSearchType: vi.fn(),
       filters: [],
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<AdvancedFilters searchType="courses" />, { wrapper });
 
@@ -270,18 +242,12 @@ describe('AdvancedFilters Component', () => {
   it('should handle between operator with two inputs', () => {
     const mockUpdateFilter = vi.fn();
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
+      ...baseUseSearchReturn,
       filters: [
         { field: 'created_at', operator: 'between', value: ['2026-01-01', '2026-01-31'] },
       ],
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
       updateFilter: mockUpdateFilter,
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<AdvancedFilters />, { wrapper });
 

@@ -4,7 +4,39 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode } from 'react';
 import { SearchBar } from './SearchBar';
 import * as useSearchModule from './useSearch';
-import * as i18n from 'react-i18next';
+
+type UseSearchReturn = ReturnType<typeof useSearchModule.useSearch>;
+
+const baseUseSearchReturn: UseSearchReturn = {
+  searchQuery: '',
+  setSearchQuery: vi.fn(),
+  searchType: 'students',
+  setSearchType: vi.fn(),
+  filters: [],
+  setFilters: vi.fn(),
+  debouncedQuery: '',
+  page: 0,
+  setPage: vi.fn(),
+  limit: 20,
+  setLimit: vi.fn(),
+  sort: { field: 'relevance', direction: 'desc' },
+  setSort: vi.fn(),
+  searchResults: [],
+  totalResults: 0,
+  hasMore: false,
+  isLoading: false,
+  error: null,
+  savedSearches: [],
+  loadingSavedSearches: false,
+  createSavedSearch: vi.fn(),
+  deleteSavedSearch: vi.fn(),
+  toggleFavoriteSavedSearch: vi.fn(),
+  loadSavedSearch: vi.fn(),
+  addFilter: vi.fn(),
+  removeFilter: vi.fn(),
+  updateFilter: vi.fn(),
+  clearSearch: vi.fn(),
+};
 
 // Mock translations
 vi.mock('react-i18next', () => ({
@@ -15,25 +47,7 @@ vi.mock('react-i18next', () => ({
 
 // Mock the useSearch hook
 vi.mock('./useSearch', () => ({
-  useSearch: vi.fn(() => ({
-    searchQuery: '',
-    setSearchQuery: vi.fn(),
-    searchType: 'students',
-    setSearchType: vi.fn(),
-    searchResults: [],
-    isLoading: false,
-    error: null,
-    savedSearches: [],
-    loadingSavedSearches: false,
-    createSavedSearch: vi.fn(),
-    deleteSavedSearch: vi.fn(),
-    toggleFavoriteSavedSearch: vi.fn(),
-    loadSavedSearch: vi.fn(),
-    addFilter: vi.fn(),
-    removeFilter: vi.fn(),
-    updateFilter: vi.fn(),
-    clearSearch: vi.fn(),
-  })),
+  useSearch: vi.fn(() => baseUseSearchReturn),
 }));
 
 describe('SearchBar Component', () => {
@@ -69,26 +83,13 @@ describe('SearchBar Component', () => {
     ];
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       searchQuery: 'john',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
       debouncedQuery: 'john',
       searchResults: mockSearchResults,
       totalResults: 1,
       isLoading: false,
-      error: null,
-      savedSearches: [],
-      loadingSavedSearches: false,
-      createSavedSearch: vi.fn(),
-      deleteSavedSearch: vi.fn(),
-      toggleFavoriteSavedSearch: vi.fn(),
-      loadSavedSearch: vi.fn(),
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SearchBar onSelectResult={mockOnSelectResult} />, { wrapper });
 
@@ -116,26 +117,13 @@ describe('SearchBar Component', () => {
 
   it('should show loading indicator when searching', async () => {
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       searchQuery: 'john',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
       debouncedQuery: 'john',
       searchResults: [],
       totalResults: 0,
       isLoading: true,
-      error: null,
-      savedSearches: [],
-      loadingSavedSearches: false,
-      createSavedSearch: vi.fn(),
-      deleteSavedSearch: vi.fn(),
-      toggleFavoriteSavedSearch: vi.fn(),
-      loadSavedSearch: vi.fn(),
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SearchBar />, { wrapper });
 
@@ -151,26 +139,10 @@ describe('SearchBar Component', () => {
     const { rerender } = render(<SearchBar />, { wrapper });
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       searchQuery: 'test',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
       debouncedQuery: 'test',
-      searchResults: [],
-      totalResults: 0,
-      isLoading: false,
-      error: null,
-      savedSearches: [],
-      loadingSavedSearches: false,
-      createSavedSearch: vi.fn(),
-      deleteSavedSearch: vi.fn(),
-      toggleFavoriteSavedSearch: vi.fn(),
-      loadSavedSearch: vi.fn(),
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     rerender(<SearchBar />);
 
@@ -192,26 +164,9 @@ describe('SearchBar Component', () => {
     ];
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
-      searchQuery: '',
-      setSearchQuery: vi.fn(),
-      searchType: 'students',
-      setSearchType: vi.fn(),
-      debouncedQuery: '',
-      searchResults: [],
-      totalResults: 0,
-      isLoading: false,
-      error: null,
+      ...baseUseSearchReturn,
       savedSearches: mockSavedSearches,
-      loadingSavedSearches: false,
-      createSavedSearch: vi.fn(),
-      deleteSavedSearch: vi.fn(),
-      toggleFavoriteSavedSearch: vi.fn(),
-      loadSavedSearch: vi.fn(),
-      addFilter: vi.fn(),
-      removeFilter: vi.fn(),
-      updateFilter: vi.fn(),
-      clearSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SearchBar />, { wrapper });
 

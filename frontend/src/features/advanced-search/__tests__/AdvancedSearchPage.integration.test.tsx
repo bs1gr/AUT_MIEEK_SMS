@@ -13,61 +13,97 @@ import { BrowserRouter } from 'react-router-dom';
 import { AdvancedSearchPage } from '../AdvancedSearchPage';
 import * as useSearchModule from '../hooks/useSearch';
 import * as useSearchHistoryModule from '../hooks/useSearchHistory';
+import type { SearchQuery, SearchResultData } from '../types/search';
 import i18n from '@/i18n';
 
-// Mock data matching actual type structures from fixtures.ts
-const mockSearchState = {
+type UseSearchReturn = ReturnType<typeof useSearchModule.useSearch>;
+type UseSearchHistoryReturn = ReturnType<typeof useSearchHistoryModule.useSearchHistory>;
+
+const mockResultsData: SearchResultData = {
+  items: [
+    {
+      id: 1,
+      type: 'student',
+      first_name: 'John',
+      last_name: 'Doe',
+      email: 'john.doe@example.com',
+      student_id: 'STU001',
+      status: 'active',
+      enrollment_type: 'full_time',
+      courses: ['CS101', 'CS102'],
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-25T00:00:00Z',
+      relevance_score: 0.95,
+    },
+  ],
+  total: 1,
+  page: 1,
+  page_size: 20,
+  facets: {
+    status: [
+      { value: 'active', count: 10 },
+      { value: 'inactive', count: 5 },
+    ],
+    enrollment_type: [
+      { value: 'full_time', count: 8 },
+      { value: 'part_time', count: 7 },
+    ],
+  },
+};
+
+const emptyResults: SearchResultData = {
+  items: [],
+  total: 0,
+  page: 1,
+  page_size: 20,
+  facets: {},
+};
+
+const mockSearchState: UseSearchReturn = {
   state: {
     query: 'test',
-    entityType: 'students' as const,
+    entityType: 'students',
     filters: [],
-    sort_by: 'relevance' as const,
+    sortBy: 'relevance',
+    sortOrder: 'asc',
+    currentPage: 1,
+    pageSize: 20,
     selectedFacets: {},
   },
-  results: {
-    items: [
-      {
-        id: 1,
-        type: 'student' as const,
-        first_name: 'John',
-        last_name: 'Doe',
-        email: 'john.doe@example.com',
-        student_id: 'STU001',
-        status: 'active' as const,
-        enrollment_type: 'full_time',
-        courses: ['CS101', 'CS102'],
-        created_at: '2025-01-01T00:00:00Z',
-        updated_at: '2025-01-25T00:00:00Z',
-        relevance_score: 0.95,
-      },
-    ],
-    total: 1,
-    facets: {
-      status: [
-        { value: 'active', count: 10 },
-        { value: 'inactive', count: 5 },
-      ],
-      enrollment_type: [
-        { value: 'full_time', count: 8 },
-        { value: 'part_time', count: 7 },
-      ],
-    },
-  },
+  results: mockResultsData,
   isLoading: false,
+  isError: false,
   error: null,
   setQuery: vi.fn(),
   setEntityType: vi.fn(),
+  addFilter: vi.fn(),
+  removeFilter: vi.fn(),
   setFilters: vi.fn(),
+  clearFilters: vi.fn(),
+  setSort: vi.fn(),
   setSortBy: vi.fn(),
-  refetch: vi.fn(),
+  setCurrentPage: vi.fn(),
+  setPageSize: vi.fn(),
   toggleFacet: vi.fn(),
   clearFacet: vi.fn(),
+  buildSearchQuery: vi.fn((): SearchQuery => ({
+    q: 'test',
+    filters: [],
+    page: 1,
+    page_size: 20,
+  })),
+  refetch: vi.fn(),
+  totalResults: 1,
+  totalPages: 1,
+  hasNextPage: false,
+  hasPreviousPage: false,
 };
 
-const mockUseSearchHistory = {
+const mockUseSearchHistory: UseSearchHistoryReturn = {
   entries: [],
   addEntry: vi.fn(),
-  clearHistory: vi.fn(),
+  removeEntry: vi.fn(),
+  clearAll: vi.fn(),
 };
 
 const renderWithProviders = (component: React.ReactElement) => {
@@ -94,8 +130,8 @@ describe('AdvancedSearchPage Integration Tests', () => {
   });
 
   it('renders main page layout with search components', () => {
-    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(mockSearchState as any);
-    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory as any);
+    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(mockSearchState);
+    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory);
 
     renderWithProviders(<AdvancedSearchPage />);
 
@@ -107,20 +143,19 @@ describe('AdvancedSearchPage Integration Tests', () => {
   });
 
   it('displays search results when query returns data', () => {
-    const mockWithResults = {
+    const mockWithResults: UseSearchReturn = {
       ...mockSearchState,
-      isLoading: false,
-      error: null,
       results: {
+        ...mockResultsData,
         items: [
           {
             id: 1,
-            type: 'student' as const,
+            type: 'student',
             first_name: 'John',
             last_name: 'Doe',
             email: 'john.doe@example.com',
             student_id: 'STU001',
-            status: 'active' as const,
+            status: 'active',
             enrollment_type: 'full_time',
             courses: ['CS101', 'CS102'],
             created_at: '2025-01-01T00:00:00Z',
@@ -129,14 +164,16 @@ describe('AdvancedSearchPage Integration Tests', () => {
           },
         ],
         total: 1,
+        page: 1,
+        page_size: 20,
         facets: {
           status: [{ value: 'active', count: 10 }],
         },
       },
     };
 
-    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(mockWithResults as any);
-    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory as any);
+    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(mockWithResults);
+    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory);
 
     renderWithProviders(<AdvancedSearchPage />);
 
@@ -145,8 +182,8 @@ describe('AdvancedSearchPage Integration Tests', () => {
   });
 
   it('shows faceted navigation with counts', () => {
-    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(mockSearchState as any);
-    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory as any);
+    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(mockSearchState);
+    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory);
 
     renderWithProviders(<AdvancedSearchPage />);
 
@@ -155,14 +192,14 @@ describe('AdvancedSearchPage Integration Tests', () => {
   });
 
   it('shows loading state when searching', () => {
-    const loadingState = {
+    const loadingState: UseSearchReturn = {
       ...mockSearchState,
       isLoading: true,
-      results: { items: [], total: 0, facets: {} },
+      results: emptyResults,
     };
 
-    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(loadingState as any);
-    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory as any);
+    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(loadingState);
+    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory);
 
     renderWithProviders(<AdvancedSearchPage />);
 
@@ -172,14 +209,14 @@ describe('AdvancedSearchPage Integration Tests', () => {
   });
 
   it('displays error state with retry button', () => {
-    const errorState = {
+    const errorState: UseSearchReturn = {
       ...mockSearchState,
       error: new Error('Search failed'),
-      results: { items: [], total: 0, facets: {} },
+      results: emptyResults,
     };
 
-    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(errorState as any);
-    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory as any);
+    vi.spyOn(useSearchModule, 'useSearch').mockReturnValue(errorState);
+    vi.spyOn(useSearchHistoryModule, 'useSearchHistory').mockReturnValue(mockUseSearchHistory);
 
     renderWithProviders(<AdvancedSearchPage />);
 

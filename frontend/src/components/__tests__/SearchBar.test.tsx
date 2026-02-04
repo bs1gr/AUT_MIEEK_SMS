@@ -15,6 +15,7 @@
  * Version: 1.0.0
  */
 
+import type { ComponentProps } from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -50,7 +51,12 @@ const mockUseSearchReturn = {
   statistics: { total_students: 100, total_courses: 50, total_grades: 500 }
 };
 
-const renderSearchBar = (props = {}, mockReturn?: any) => {
+type SearchBarProps = ComponentProps<typeof SearchBar>;
+
+const renderSearchBar = (
+  props: Partial<SearchBarProps> = {},
+  mockReturn?: typeof mockUseSearchReturn
+) => {
   // Only set default mock if not already configured by test
   if (mockReturn) {
     mockUseSearch.mockReturnValue(mockReturn);

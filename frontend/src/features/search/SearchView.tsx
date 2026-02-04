@@ -97,7 +97,7 @@ export const SearchView: React.FC = () => {
     setPage(0);
   };
 
-  const handleResultClick = (result: any) => {
+  const handleResultClick = (result: SearchResult) => {
     // Navigate to the appropriate detail page based on result type
     switch (result.type) {
       case 'student':
@@ -124,18 +124,19 @@ export const SearchView: React.FC = () => {
     }).toLowerCase();
   }, [searchType, t]);
 
-  const renderResultPrimary = (result: any) => {
-    if (result.display_name) return result.display_name;
-    if (result.first_name || result.last_name) {
+  const renderResultPrimary = (result: SearchResult) => {
+    if ('display_name' in result && result.display_name) return result.display_name;
+    if ('first_name' in result && 'last_name' in result && (result.first_name || result.last_name)) {
       return `${result.first_name || ''} ${result.last_name || ''}`.trim();
     }
-    return result.name || t('unknown');
+    if ('name' in result && result.name) return result.name;
+    return t('unknown');
   };
 
-  const renderResultSecondary = (result: any) => {
-    if (result.email) return result.email;
-    if (result.course_code) return result.course_code;
-    if (result.course_name) return result.course_name;
+  const renderResultSecondary = (result: SearchResult) => {
+    if ('email' in result && result.email) return result.email;
+    if ('course_code' in result && result.course_code) return result.course_code;
+    if ('course_name' in result && result.course_name) return result.course_name;
     return result.type;
   };
 
@@ -150,7 +151,7 @@ export const SearchView: React.FC = () => {
             <select
               id="search-type"
               value={searchType}
-              onChange={(e) => setSearchType(e.target.value as any)}
+              onChange={(e) => setSearchType(e.target.value as 'students' | 'courses' | 'grades')}
               className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {typeOptions.map((option) => (

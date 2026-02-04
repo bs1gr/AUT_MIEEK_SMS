@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import apiClient, { extractAPIResponseData as _extractAPIResponseData } from '../api/api';
 
 // Safe extractor: falls back to response.data when extractAPIResponseData is unavailable in tests
-const safeExtractAPIResponseData = (response: any) => {
+const safeExtractAPIResponseData = (response: unknown) => {
   try {
     return typeof _extractAPIResponseData === 'function'
       ? _extractAPIResponseData(response)

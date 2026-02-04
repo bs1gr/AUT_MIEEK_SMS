@@ -16,10 +16,16 @@ type FacetDefinition = {
   max?: number;
 };
 
+type FacetSelection =
+  | string
+  | { min?: number; max?: number }
+  | { start?: string; end?: string }
+  | null;
+
 interface SearchFacetsProps {
   facets?: FacetDefinition[];
   loading?: boolean;
-  onSelect?: (facet: string, value: any) => void;
+  onSelect?: (facet: string, value: FacetSelection) => void;
   className?: string;
 }
 

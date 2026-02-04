@@ -24,9 +24,10 @@ vi.mock('./useSearchFacets', () => ({
 }));
 vi.mock('@/api/api');
 
+type UseSearchReturn = ReturnType<typeof searchHooks.useSearch>;
+
 describe('Search Integration Tests - Full Workflow', () => {
   let queryClient: QueryClient;
-  const mockApiClient = apiModule.apiClient as any;
 
   beforeEach(() => {
     queryClient = new QueryClient({
@@ -54,12 +55,13 @@ describe('Search Integration Tests - Full Workflow', () => {
     return renderWithProviders(<SearchView />);
   };
 
-  const mockUseSearch = (overrides?: any) => {
-    const defaultMock = {
+  const mockUseSearch = (overrides?: Partial<UseSearchReturn>) => {
+    const defaultMock: UseSearchReturn = {
       searchQuery: '',
       setSearchQuery: vi.fn(),
       searchType: 'students' as const,
       setSearchType: vi.fn(),
+      debouncedQuery: '',
       filters: [],
       setFilters: vi.fn(),
       searchResults: [],
@@ -81,10 +83,11 @@ describe('Search Integration Tests - Full Workflow', () => {
       loadSavedSearch: vi.fn(),
       addFilter: vi.fn(),
       removeFilter: vi.fn(),
+      updateFilter: vi.fn(),
       clearSearch: vi.fn(),
       ...overrides,
     };
-    vi.mocked(searchHooks.useSearch).mockReturnValue(defaultMock as any);
+    vi.mocked(searchHooks.useSearch).mockReturnValue(defaultMock);
   };
 
   it('completes full search workflow: search > filter > save', async () => {

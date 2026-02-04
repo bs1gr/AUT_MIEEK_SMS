@@ -61,6 +61,14 @@ export interface SearchSortState {
   direction: 'asc' | 'desc';
 }
 
+type SearchResultsPayload = {
+  results: SearchResult[];
+  total: number;
+  has_more?: boolean;
+  limit?: number;
+  offset?: number;
+};
+
 /**
  * Custom hook for managing search functionality
  */
@@ -153,8 +161,9 @@ export const useSearch = () => {
         if (Array.isArray(extracted)) {
           return extracted;
         }
-        if (Array.isArray((response as any)?.data)) {
-          return (response as any).data as SavedSearch[];
+        const responseData = (response as { data?: unknown }).data;
+        if (Array.isArray(responseData)) {
+          return responseData as SavedSearch[];
         }
         return [];
       } catch (err) {
@@ -272,9 +281,9 @@ export const useSearch = () => {
     setSort,
 
     // Search results
-    searchResults: (searchResults as any)?.results || [],
-    totalResults: (searchResults as any)?.total || 0,
-    hasMore: (searchResults as any)?.has_more ?? false,
+    searchResults: (searchResults as SearchResultsPayload | undefined)?.results || [],
+    totalResults: (searchResults as SearchResultsPayload | undefined)?.total || 0,
+    hasMore: (searchResults as SearchResultsPayload | undefined)?.has_more ?? false,
     isLoading,
     error,
 

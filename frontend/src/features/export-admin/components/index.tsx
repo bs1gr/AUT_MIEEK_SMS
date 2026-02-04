@@ -22,9 +22,19 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import type {
+  ExportMetricsChartProps,
+  EmailConfigPanelProps,
+  ExportSettingsPanelProps,
+  ExportDetailModalProps,
+  ExportMetrics,
+  FormatMetrics,
+  FilterBuilderProps,
+  ScheduleBuilderProps,
+} from '../types/export';
 
 // ===== ExportMetricsChart.tsx =====
-export const ExportMetricsChart: React.FC<any> = ({ metrics }) => {
+export const ExportMetricsChart: React.FC<ExportMetricsChartProps> = ({ metrics }) => {
   const { t } = useTranslation('exportAdmin');
 
   if (!metrics?.trend_data) return null;
@@ -97,9 +107,9 @@ export const ExportMetricsChart: React.FC<any> = ({ metrics }) => {
 };
 
 // ===== EmailConfigPanel.tsx =====
-export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
+export const EmailConfigPanel: React.FC<EmailConfigPanelProps> = ({ config, onSave, onTest }) => {
   const { t } = useTranslation('exportAdmin');
-  const [formData, setFormData] = React.useState(config || {});
+  const [formData, setFormData] = React.useState(config);
   const [isSaving, setIsSaving] = React.useState(false);
   const [isTesting, setIsTesting] = React.useState(false);
 
@@ -244,9 +254,9 @@ export const EmailConfigPanel: React.FC<any> = ({ config, onSave, onTest }) => {
 };
 
 // ===== ExportSettingsPanel.tsx =====
-export const ExportSettingsPanel: React.FC<any> = ({ settings, onSave }) => {
+export const ExportSettingsPanel: React.FC<ExportSettingsPanelProps> = ({ settings, onSave }) => {
   const { t } = useTranslation('exportAdmin');
-  const [formData, setFormData] = React.useState(settings || {});
+  const [formData, setFormData] = React.useState(settings);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const handleSave = async () => {
@@ -347,7 +357,7 @@ export const ExportSettingsPanel: React.FC<any> = ({ settings, onSave }) => {
 };
 
 // ===== ExportDetailModal.tsx =====
-export const ExportDetailModal: React.FC<any> = ({ open, onClose, export: exp }) => {
+export const ExportDetailModal: React.FC<ExportDetailModalProps> = ({ open, onClose, export: exp }) => {
   const { t } = useTranslation('exportAdmin');
 
   if (!open) return null;
@@ -484,7 +494,7 @@ export const ExportDetailModal: React.FC<any> = ({ open, onClose, export: exp })
 };
 
 // ===== PerformanceAnalytics.tsx =====
-export const PerformanceAnalytics: React.FC<any> = ({ metrics, onPeriodChange }) => {
+export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metrics, onPeriodChange }) => {
   const { t } = useTranslation('exportAdmin');
 
   if (!metrics) return null;
@@ -525,12 +535,12 @@ export const PerformanceAnalytics: React.FC<any> = ({ metrics, onPeriodChange })
           </CardHeader>
           <CardContent>
             <div className="grid gap-4 md:grid-cols-3">
-              {Object.entries(metrics.by_format).map(([format, data]: any) => (
+              {Object.entries(metrics.by_format).map(([format, data]) => (
                 <div key={format} className="rounded-lg border p-4">
                   <p className="text-sm font-medium capitalize">{format}</p>
-                  <p className="text-2xl font-bold">{data.count}</p>
+                  <p className="text-2xl font-bold">{(data as FormatMetrics).count}</p>
                   <p className="text-xs text-muted-foreground">
-                    {data.success_rate?.toFixed(1)}% {t('success')}
+                    {(data as FormatMetrics).success_rate?.toFixed(1)}% {t('success')}
                   </p>
                 </div>
               ))}
@@ -543,7 +553,7 @@ export const PerformanceAnalytics: React.FC<any> = ({ metrics, onPeriodChange })
 };
 
 // ===== FilterBuilder.tsx =====
-export const FilterBuilder: React.FC<any> = ({ entityType, value, onChange }) => {
+export const FilterBuilder: React.FC<FilterBuilderProps> = ({ entityType, value, onChange }) => {
   const { t } = useTranslation('exportAdmin');
 
   return (
@@ -559,7 +569,7 @@ export const FilterBuilder: React.FC<any> = ({ entityType, value, onChange }) =>
 };
 
 // ===== ScheduleBuilder.tsx =====
-export const ScheduleBuilder: React.FC<any> = ({ frequency, cronExpression, onChange }) => {
+export const ScheduleBuilder: React.FC<ScheduleBuilderProps> = ({ frequency, cronExpression, onChange }) => {
   const { t } = useTranslation('exportAdmin');
 
   return (

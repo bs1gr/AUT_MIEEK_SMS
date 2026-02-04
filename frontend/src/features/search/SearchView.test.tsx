@@ -7,20 +7,22 @@ import { vi, describe, it, expect, beforeEach } from 'vitest';
 import SearchView from './SearchView';
 import * as searchHooks from './useSearch';
 
+import { SortConfig } from './useSearch';
+
 // Mock the hooks
 vi.mock('./useSearch');
 vi.mock('./useSearchFacets');
 vi.mock('./SearchSortControls', () => ({
-  default: ({ sort, onChange }: any) => (
+  default: ({ sort, onChange }: { sort: SortConfig; onChange: (sort: SortConfig) => void }) => (
     <div data-testid="sort-controls">
       <button onClick={() => onChange({ field: 'name', direction: 'asc' })}>Sort</button>
     </div>
   ),
 }));
 vi.mock('./SearchFacets', () => ({
-  default: ({ facets, onSelect }: any) => (
+  default: ({ facets, onSelect }: { facets?: Array<{ field: string; label: string; type: string }>; onSelect: (field: string, value: string) => void }) => (
     <div data-testid="facets">
-      {facets?.map((f: any) => (
+      {facets?.map((f) => (
         <button key={f.field} onClick={() => onSelect(f.field, 'test')}>
           {f.label}
         </button>
@@ -29,7 +31,7 @@ vi.mock('./SearchFacets', () => ({
   ),
 }));
 vi.mock('./SearchPagination', () => ({
-  default: ({ onPageChange }: any) => (
+  default: ({ onPageChange }: { onPageChange: (page: number) => void }) => (
     <div data-testid="pagination">
       <button onClick={() => onPageChange(1)}>Next</button>
     </div>
@@ -79,10 +81,10 @@ describe('SearchView Component', () => {
       setFilters: vi.fn(),
       ...overrides,
     };
-    vi.mocked(searchHooks.useSearch).mockReturnValue(defaultMock as any);
+    vi.mocked(searchHooks.useSearch).mockReturnValue(defaultMock);
   };
 
-  const renderComponent = (props: any = {}) => {
+  const renderComponent = (props: Record<string, unknown> = {}) => {
     return renderWithI18n(
       <MemoryRouter>
         <QueryClientProvider client={queryClient}>

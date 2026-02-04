@@ -7,15 +7,42 @@ import { ReactNode } from 'react';
 import { SavedSearches } from './SavedSearches';
 import * as useSearchModule from './useSearch';
 
+type UseSearchReturn = ReturnType<typeof useSearchModule.useSearch>;
+
+const baseUseSearchReturn: UseSearchReturn = {
+  searchQuery: '',
+  setSearchQuery: vi.fn(),
+  searchType: 'students',
+  setSearchType: vi.fn(),
+  filters: [],
+  setFilters: vi.fn(),
+  debouncedQuery: '',
+  page: 0,
+  setPage: vi.fn(),
+  limit: 20,
+  setLimit: vi.fn(),
+  sort: { field: 'relevance', direction: 'desc' },
+  setSort: vi.fn(),
+  searchResults: [],
+  totalResults: 0,
+  hasMore: false,
+  isLoading: false,
+  error: null,
+  savedSearches: [],
+  loadingSavedSearches: false,
+  createSavedSearch: vi.fn(),
+  deleteSavedSearch: vi.fn(),
+  toggleFavoriteSavedSearch: vi.fn(),
+  loadSavedSearch: vi.fn(),
+  addFilter: vi.fn(),
+  removeFilter: vi.fn(),
+  updateFilter: vi.fn(),
+  clearSearch: vi.fn(),
+};
+
 // Mock the useSearch hook
 vi.mock('./useSearch', () => ({
-  useSearch: vi.fn(() => ({
-    savedSearches: [],
-    loadingSavedSearches: false,
-    deleteSavedSearch: vi.fn(),
-    toggleFavoriteSavedSearch: vi.fn(),
-    loadSavedSearch: vi.fn(),
-  })),
+  useSearch: vi.fn(() => baseUseSearchReturn),
 }));
 
 describe('SavedSearches Component', () => {
@@ -25,12 +52,13 @@ describe('SavedSearches Component', () => {
     queryClient = new QueryClient();
     vi.clearAllMocks();
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: [],
       loadingSavedSearches: false,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
   });
 
   const wrapper = ({ children }: { children: ReactNode }) => (
@@ -49,12 +77,13 @@ describe('SavedSearches Component', () => {
 
   it('should show loading state', () => {
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: [],
       loadingSavedSearches: true,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SavedSearches />, { wrapper });
 
@@ -93,12 +122,13 @@ describe('SavedSearches Component', () => {
     ];
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: mockSearches,
       loadingSavedSearches: false,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SavedSearches />, { wrapper });
 
@@ -130,12 +160,13 @@ describe('SavedSearches Component', () => {
     ];
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: mockSearches,
       loadingSavedSearches: false,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SavedSearches />, { wrapper });
 
@@ -171,12 +202,13 @@ describe('SavedSearches Component', () => {
     ];
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: mockSearches,
       loadingSavedSearches: false,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SavedSearches />, { wrapper });
 
@@ -204,12 +236,13 @@ describe('SavedSearches Component', () => {
     };
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: [mockSearch],
       loadingSavedSearches: false,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: mockLoadSavedSearch,
-    } as any);
+    });
 
     render(<SavedSearches onLoadSearch={mockOnLoadSearch} />, { wrapper });
 
@@ -233,12 +266,13 @@ describe('SavedSearches Component', () => {
     };
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: [mockSearch],
       loadingSavedSearches: false,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: mockToggleFavorite,
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SavedSearches />, { wrapper });
 
@@ -263,12 +297,13 @@ describe('SavedSearches Component', () => {
     };
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: [mockSearch],
       loadingSavedSearches: false,
       deleteSavedSearch: mockDeleteSavedSearch,
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
 
     // Mock window.confirm
     global.confirm = vi.fn(() => true);
@@ -306,12 +341,13 @@ describe('SavedSearches Component', () => {
     ];
 
     vi.mocked(useSearchModule.useSearch).mockReturnValue({
+      ...baseUseSearchReturn,
       savedSearches: mockSearches,
       loadingSavedSearches: false,
       deleteSavedSearch: vi.fn(),
       toggleFavoriteSavedSearch: vi.fn(),
       loadSavedSearch: vi.fn(),
-    } as any);
+    });
 
     render(<SavedSearches />, { wrapper });
 

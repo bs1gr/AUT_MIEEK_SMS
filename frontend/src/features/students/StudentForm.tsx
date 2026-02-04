@@ -49,7 +49,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, onSubmit, onCanc
             type="text"
             required
             value={formData.first_name}
-            onChange={e => setFormData((prev: any) => ({ ...prev, first_name: e.target.value }))}
+            onChange={e => setFormData((prev) => ({ ...prev, first_name: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -62,7 +62,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, onSubmit, onCanc
             type="text"
             required
             value={formData.last_name}
-            onChange={e => setFormData((prev: any) => ({ ...prev, last_name: e.target.value }))}
+            onChange={e => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -75,7 +75,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, onSubmit, onCanc
             type="email"
             required
             value={formData.email}
-            onChange={e => setFormData((prev: any) => ({ ...prev, email: e.target.value }))}
+            onChange={e => setFormData((prev) => ({ ...prev, email: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>

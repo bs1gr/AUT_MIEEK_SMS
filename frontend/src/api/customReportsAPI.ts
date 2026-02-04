@@ -9,16 +9,21 @@ import { extractAPIResponseData, extractAPIError } from './api';
 
 // ==================== TYPE DEFINITIONS ====================
 
+type UnknownRecord = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
 export interface ReportTemplate {
   id: number;
   name: string;
   description: string;
   category: string;
   report_type: string; // matches backend
-  fields: string[] | Record<string, any>; // backend returns both formats
-  filters?: any[] | Record<string, any>; // array or dict format
-  aggregations?: any[] | Record<string, any>;
-  sort_by?: any[] | Record<string, any>; // array or dict format
+  fields: string[] | UnknownRecord; // backend returns both formats
+  filters?: UnknownRecord[] | UnknownRecord; // array or dict format
+  aggregations?: UnknownRecord[] | UnknownRecord;
+  sort_by?: UnknownRecord[] | UnknownRecord; // array or dict format
   default_export_format?: string;
   default_include_charts?: boolean;
   is_system: boolean;
@@ -33,10 +38,10 @@ export interface CustomReport {
   description: string;
   report_type: string; // matches backend: student, course, grade, attendance, custom
   template_id?: number;
-  fields: Record<string, any>; // matches backend: dict format
-  filters?: Record<string, any>;
-  aggregations?: Record<string, any>;
-  sort_by?: Record<string, any>;
+  fields: UnknownRecord; // matches backend: dict format
+  filters?: UnknownRecord;
+  aggregations?: UnknownRecord;
+  sort_by?: UnknownRecord;
   export_format: 'pdf' | 'excel' | 'csv'; // matches backend field name
   include_charts: boolean;
   schedule_enabled: boolean;
@@ -216,7 +221,7 @@ export const customReportsAPI = {
       const response = await apiClient.post('/custom-reports/', reportData);
       return extractAPIResponseData(response) as CustomReport;
     } catch (error) {
-      const axiosError = error as any;
+      const axiosError = error as { response?: AxiosResponse<unknown>; message?: string };
       console.error('[customReportsAPI] Error creating report:', axiosError);
       console.error('[customReportsAPI] Response status:', axiosError.response?.status);
       console.error('[customReportsAPI] Response data:', axiosError.response?.data);
@@ -228,11 +233,13 @@ export const customReportsAPI = {
         console.error('  Full response:', JSON.stringify(responseData, null, 2));
 
         // Try to extract Pydantic validation errors
-        if (responseData.detail) {
-          console.error('  Detail:', responseData.detail);
-        }
-        if (responseData.errors) {
-          console.error('  Errors:', responseData.errors);
+        if (isRecord(responseData)) {
+          if ('detail' in responseData) {
+            console.error('  Detail:', responseData.detail);
+          }
+          if ('errors' in responseData) {
+            console.error('  Errors:', responseData.errors);
+          }
         }
       }
 
@@ -285,7 +292,7 @@ export const customReportsAPI = {
 
       return extractAPIResponseData(response) as { job_id: string; status: string };
     } catch (error) {
-      const axiosError = error as any;
+      const axiosError = error as { response?: AxiosResponse<unknown>; message?: string };
       console.error(`[customReportsAPI] Error generating report ${id}:`, axiosError);
       console.error('[customReportsAPI] Response data:', axiosError.response?.data);
       throw extractAPIError(

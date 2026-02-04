@@ -12,6 +12,7 @@ import {
   CourseSearchResult,
   GradeSearchResult,
   FilterCondition,
+  FilterOperator,
 } from '../types/search';
 
 /**
@@ -135,11 +136,11 @@ export const createMockSearchResult = <T,>(
  */
 export const createMockFilter = (
   field: string,
-  operator: string = 'equals',
+  operator: FilterOperator = 'equals',
   value: string | number = 'test'
 ): FilterCondition => ({
   field,
-  operator: operator as any,
+  operator,
   value,
 });
 

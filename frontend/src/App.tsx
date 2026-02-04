@@ -92,12 +92,17 @@ function AppLayout({ children }: AppLayoutProps) {
   );
 
   const isAuthenticated = Boolean(user);
+
+  const navigationKeys = useMemo(
+    () => new Set(navigationTabs.map((tab) => tab.key)),
+    [navigationTabs]
+  );
+
   // Get active view from location
   const getActiveView = (): NavigationView => {
     const pathSegment = location.pathname.split('/')[1] || 'dashboard';
-    const normalizedPath = pathSegment || 'dashboard';
-    const match = NAV_TAB_CONFIG.find((tab) => tab.path.replace(/^\//, '') === normalizedPath);
-    return match?.key ?? 'dashboard';
+    const key = pathSegment as NavigationView;
+    return navigationKeys.has(key) ? key : 'dashboard';
   };
 
   // Scroll to top on route change
