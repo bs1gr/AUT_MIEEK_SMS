@@ -293,12 +293,10 @@ describe('useSearch Hook', () => {
       expect(result.current.results).toEqual(mockResults1);
 
       // Load more (loadMore is not async, but search is)
-      await act(async () => {
-        result.current.loadMore('John');
-        // Wait for the async search to complete
-        await waitFor(() => {
-          expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThan(1);
-        });
+      result.current.loadMore('John');
+      // Wait for the async search to complete
+      await waitFor(() => {
+        expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThan(1);
       });
 
       // Should append new results
@@ -315,17 +313,13 @@ describe('useSearch Hook', () => {
       const { result } = renderHook(() => useSearch('grades'));
 
       // Initial filter
-      await act(async () => {
-        await result.current.advancedFilter({ grade_min: 80 });
-      });
+      await result.current.advancedFilter({ grade_min: 80 });
 
       // Load more results
-      await act(async () => {
-        result.current.loadMore();
-        // Wait for the async advancedFilter to complete
-        await waitFor(() => {
-          expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThan(1);
-        });
+      result.current.loadMore();
+      // Wait for the async advancedFilter to complete
+      await waitFor(() => {
+        expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThan(1);
       });
 
       // Should make at least two API calls (statistics may add one extra GET)

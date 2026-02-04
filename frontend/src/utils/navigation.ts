@@ -22,8 +22,7 @@ export function safeNavigate(url: string | URL | undefined | null): void {
       // Fallback setter in case assign is unavailable (should be rare)
       window.location.href = href;
     }
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('Navigation blocked:', err);
+  } catch (_err) {
+    // Silent catch - navigation blocked by browser
   }
 }
