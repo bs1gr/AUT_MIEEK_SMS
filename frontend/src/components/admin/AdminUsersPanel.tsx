@@ -15,7 +15,7 @@ import {
 
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { adminUsersAPI, rbacAPI, type RBACSummary } from '@/api/api';
+import { adminUsersAPI, rbacAPI } from '@/api/api';
 import type { CreateUserPayload, UpdateUserPayload, UserAccount, UserRole } from '@/types';
 import type { ToastState } from '@/features/operations/components/DevToolsPanel';
 

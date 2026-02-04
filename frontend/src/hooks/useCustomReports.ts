@@ -95,7 +95,7 @@ export function useImportDefaultTemplates() {
   return useMutation({
     mutationFn: reportTemplatesAPI.importDefaults,
     onSuccess: (data: any) => {
-      console.log('[Import Success] Response data:', data);
+
 
       const importedCount = data?.imported_count ?? data?.data?.imported_count ?? 0;
 
@@ -107,7 +107,7 @@ export function useImportDefaultTemplates() {
         toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: 500;';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 5000);
-        console.log('[Import Toast] Success notification shown:', message);
+
       } catch (e) {
         console.error('[Import Toast Error] Could not show toast:', e);
       }
@@ -135,7 +135,7 @@ export function useImportDefaultTemplates() {
         toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1); font-weight: 500;';
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 5000);
-        console.log('[Import Toast] Error notification shown:', message);
+
       } catch (e) {
         console.error('[Import Toast Error] Could not show error toast:', e);
       }
@@ -220,11 +220,11 @@ export function useGenerateReport() {
   return useMutation({
     mutationFn: customReportsAPI.generate,
     onSuccess: (data, reportId) => {
-      console.log('[useGenerateReport] Report generation started:', { reportId, data });
+
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(reportId) });
       // Show success feedback
       if (typeof window !== 'undefined') {
-        console.log(`✅ Report ${reportId} generation queued successfully`);
+
         // Try to show browser alert if no other notification system
         try {
           const toast = document.createElement('div');
@@ -302,7 +302,7 @@ export function useDeleteGeneratedReport() {
     mutationFn: ({ reportId, generatedId }: { reportId: number; generatedId: number }) =>
       customReportsAPI.deleteGenerated(reportId, generatedId),
     onSuccess: (data, variables) => {
-      console.log('[useDeleteGeneratedReport] Generated report deleted:', { variables, data });
+
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
       // Show success feedback
       if (typeof window !== 'undefined') {

@@ -8,9 +8,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useSearch, useSavedSearches } from './hooks/useSearch';
+import { useSearch } from './hooks/useSearch';
 import SearchBar from './components/SearchBar';
-import AdvancedFilters from './components/AdvancedFilters';
+// import AdvancedFilters from './components/AdvancedFilters'; // Not used in current implementation
 import { AdvancedQueryBuilder } from './components/AdvancedQueryBuilder';
 import { SearchResults } from './components/SearchResults';
 import { SearchResultItem } from './types/search';

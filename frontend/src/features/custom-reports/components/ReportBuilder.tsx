@@ -341,7 +341,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
   const handleSave = async () => {
     if (!validateConfig()) {
-      console.log('[ReportBuilder] Validation failed:', errors);
+
       // Show error toast
       const toast = document.createElement('div');
       toast.textContent = '❌ Please fill in all required fields';
@@ -393,7 +393,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         email_enabled: false,
       };
 
-      console.log('[ReportBuilder] Transformed config:', backendConfig);
+
 
       if (reportId) {
         await updateMutation.mutateAsync({
@@ -408,7 +408,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         onSuccess?.(reportId);
       } else {
         const result = await createMutation.mutateAsync(backendConfig);
-        console.log('[ReportBuilder] Report created successfully:', result);
+
         // Show success toast
         const toast = document.createElement('div');
         toast.textContent = `✅ ${t('reportCreated', { ns: 'customReports' })}`;
