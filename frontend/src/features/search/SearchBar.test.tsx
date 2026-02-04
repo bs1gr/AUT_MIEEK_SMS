@@ -104,7 +104,7 @@ describe('SearchBar Component', () => {
 
   it('should call onSearchTypeChange when search type changes', async () => {
     const mockOnSearchTypeChange = vi.fn();
-    const { rerender } = render(
+    const { _rerender } = render(
       <SearchBar onSearchTypeChange={mockOnSearchTypeChange} />,
       { wrapper }
     );

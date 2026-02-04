@@ -1,4 +1,4 @@
-import { screen, waitFor, within, render, RenderOptions } from '@testing-library/react';
+import { screen, _waitFor, _within, render, RenderOptions } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import { MemoryRouter } from 'react-router-dom';
 import testI18n from '@/test-utils/i18n-test-wrapper';
@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import SearchView from './SearchView';
 import * as searchHooks from './useSearch';
-import * as apiModule from '@/api/api';
+import * as _apiModule from '@/api/api';
 
 // Mock modules
 vi.mock('./useSearch');
@@ -315,7 +315,7 @@ describe('Search Integration Tests - Full Workflow', () => {
   });
 
   it('handles facet count updates dynamically', () => {
-    const mockFacets = [
+    const _mockFacets = [
       {
         field: 'status',
         label: 'Status',

@@ -283,7 +283,7 @@ describe('useSearch Hook', () => {
         .mockResolvedValueOnce({ data: mockResults1 })
         .mockResolvedValueOnce({ data: mockResults2 });
 
-      const { result, rerender } = renderHook(() => useSearch('students'));
+      const { result, _rerender } = renderHook(() => useSearch('students'));
 
       // Initial search
       await act(async () => {

@@ -8,7 +8,7 @@ import { useSearch } from './useSearch';
 import * as apiModule from '@/api/api';
 
 // Mock the API
-const mockPost = vi.fn();
+const _mockPost = vi.fn();
 vi.mock('@/api/api', () => {
   const mockPost = vi.fn();
   return {
