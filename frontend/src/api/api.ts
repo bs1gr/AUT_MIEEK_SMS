@@ -53,6 +53,27 @@ import type {
 
 export type JobStatus = 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 
+// ==================== RBAC TYPES ====================
+export interface Role {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export interface Permission {
+  id: number;
+  name: string;
+  key?: string;
+  description?: string;
+}
+
+export interface RBACSummary {
+  roles: Role[];
+  permissions: Permission[];
+  role_permissions: Array<{ role_id: number; permission_id: number }>;
+  user_roles: Array<{ user_id: number; role_id: number }>;
+}
+
 export interface ImportPreviewItem {
   row_number: number;
   action: string;
@@ -236,6 +257,18 @@ export function __test_forceOriginalBase(url: string) {
   (apiClient.defaults as unknown as { baseURL?: string }).baseURL = url;
 }
 
+/**
+ * Generic helper to unwrap APIResponse wrapper format
+ * Handles both wrapped {success, data, error} and direct responses
+ */
+function unwrapResponse<T>(response: unknown): T {
+  const wrapped = response as unknown as { success?: boolean; data?: T; error?: unknown };
+  if (wrapped && typeof wrapped === 'object' && 'data' in wrapped && wrapped.data !== undefined) {
+    return wrapped.data as T;
+  }
+  return response as T;
+}
+
 // ==================== STUDENTS API ====================
 
 export const studentsAPI = {
@@ -248,23 +281,23 @@ export const studentsAPI = {
   },
 
   getById: async (id: number): Promise<Student> => {
-    const response = await apiClient.get<Student>(`/students/${id}`);
-    return response.data;
+    const response = await apiClient.get(`/students/${id}`);
+    return unwrapResponse<Student>(response.data);
   },
 
   create: async (data: StudentFormData): Promise<Student> => {
-    const response = await apiClient.post<Student>('/students/', data);
-    return response.data;
+    const response = await apiClient.post('/students/', data);
+    return unwrapResponse<Student>(response.data);
   },
 
   update: async (id: number, data: Partial<StudentFormData>): Promise<Student> => {
-    const response = await apiClient.put<Student>(`/students/${id}`, data);
-    return response.data;
+    const response = await apiClient.put(`/students/${id}`, data);
+    return unwrapResponse<Student>(response.data);
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
-    const response = await apiClient.delete<{ message: string }>(`/students/${id}`);
-    return response.data;
+    const response = await apiClient.delete(`/students/${id}`);
+    return unwrapResponse<{ message: string }>(response.data);
   },
 
   search: async (query: string): Promise<Student[]> => {
@@ -301,23 +334,23 @@ export const coursesAPI = {
   },
 
   getById: async (id: number): Promise<Course> => {
-    const response = await apiClient.get<Course>(`/courses/${id}`);
-    return response.data;
+    const response = await apiClient.get(`/courses/${id}`);
+    return unwrapResponse<Course>(response.data);
   },
 
   create: async (data: CourseFormData): Promise<Course> => {
-    const response = await apiClient.post<Course>('/courses/', data);
-    return response.data;
+    const response = await apiClient.post('/courses/', data);
+    return unwrapResponse<Course>(response.data);
   },
 
   update: async (id: number, data: Partial<CourseFormData>): Promise<Course> => {
-    const response = await apiClient.put<Course>(`/courses/${id}`, data);
-    return response.data;
+    const response = await apiClient.put(`/courses/${id}`, data);
+    return unwrapResponse<Course>(response.data);
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
-    const response = await apiClient.delete<{ message: string }>(`/courses/${id}`);
-    return response.data;
+    const response = await apiClient.delete(`/courses/${id}`);
+    return unwrapResponse<{ message: string }>(response.data);
   },
 };
 
@@ -325,42 +358,44 @@ export const coursesAPI = {
 
 export const attendanceAPI = {
   getAll: async (skip = 0, limit = 100): Promise<PaginatedResponse<Attendance>> => {
-    const response = await apiClient.get<PaginatedResponse<Attendance>>('/attendance/', {
+    const response = await apiClient.get('/attendance/', {
       params: { skip, limit }
     });
-    return response.data;
+    return unwrapResponse<PaginatedResponse<Attendance>>(response.data);
   },
 
   getById: async (id: number): Promise<Attendance> => {
-    const response = await apiClient.get<Attendance>(`/attendance/${id}`);
-    return response.data;
+    const response = await apiClient.get(`/attendance/${id}`);
+    return unwrapResponse<Attendance>(response.data);
   },
 
   create: async (data: AttendanceFormData): Promise<Attendance> => {
-    const response = await apiClient.post<Attendance>('/attendance/', data);
-    return response.data;
+    const response = await apiClient.post('/attendance/', data);
+    return unwrapResponse<Attendance>(response.data);
   },
 
   update: async (id: number, data: Partial<AttendanceFormData>): Promise<Attendance> => {
-    const response = await apiClient.put<Attendance>(`/attendance/${id}`, data);
-    return response.data;
+    const response = await apiClient.put(`/attendance/${id}`, data);
+    return unwrapResponse<Attendance>(response.data);
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
-    const response = await apiClient.delete<{ message: string }>(`/attendance/${id}`);
-    return response.data;
+    const response = await apiClient.delete(`/attendance/${id}`);
+    return unwrapResponse<{ message: string }>(response.data);
   },
 
   getByStudentAndCourse: async (studentId: number, courseId: number): Promise<Attendance[]> => {
-    const response = await apiClient.get<Attendance[]>(`/attendance/`, {
+    const response = await apiClient.get(`/attendance/`, {
       params: { student_id: studentId, course_id: courseId }
     });
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Attendance>(data);
   },
 
   getByStudent: async (studentId: number): Promise<Attendance[]> => {
-    const response = await apiClient.get<Attendance[]>(`/attendance/student/${studentId}`);
-    return response.data;
+    const response = await apiClient.get(`/attendance/student/${studentId}`);
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Attendance>(data);
   },
 
   getByCourse: async (courseId: number): Promise<Attendance[]> => {
@@ -384,44 +419,47 @@ export const gradesAPI = {
     const response = await apiClient.get<PaginatedResponse<Grade>>('/grades/', {
       params: { skip, limit }
     });
-    return response.data;
+    return unwrapResponse<PaginatedResponse<Grade>>(response.data);
   },
 
   getById: async (id: number): Promise<Grade> => {
     const response = await apiClient.get<Grade>(`/grades/${id}`);
-    return response.data;
+    return unwrapResponse<Grade>(response.data);
   },
 
   create: async (data: GradeFormData): Promise<Grade> => {
     const response = await apiClient.post<Grade>('/grades/', data);
-    return response.data;
+    return unwrapResponse<Grade>(response.data);
   },
 
   update: async (id: number, data: Partial<GradeFormData>): Promise<Grade> => {
     const response = await apiClient.put<Grade>(`/grades/${id}`, data);
-    return response.data;
+    return unwrapResponse<Grade>(response.data);
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
     const response = await apiClient.delete<{ message: string }>(`/grades/${id}`);
-    return response.data;
+    return unwrapResponse<{ message: string }>(response.data);
   },
 
   getByStudentAndCourse: async (studentId: number, courseId: number): Promise<Grade[]> => {
     const response = await apiClient.get<Grade[]>(`/grades/`, {
       params: { student_id: studentId, course_id: courseId }
     });
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Grade>(data);
   },
 
   getByStudent: async (studentId: number): Promise<Grade[]> => {
     const response = await apiClient.get<Grade[]>(`/grades/student/${studentId}`);
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Grade>(data);
   },
 
   getByCourse: async (courseId: number): Promise<Grade[]> => {
     const response = await apiClient.get<Grade[]>(`/grades/course/${courseId}`);
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Grade>(data);
   },
 
   // Calculate weighted average for a student in a specific course
@@ -445,32 +483,33 @@ export const highlightsAPI = {
     const response = await apiClient.get<PaginatedResponse<Highlight>>('/highlights/', {
       params: { skip, limit }
     });
-    return response.data;
+    return unwrapResponse<PaginatedResponse<Highlight>>(response.data);
   },
 
   getById: async (id: number): Promise<Highlight> => {
     const response = await apiClient.get<Highlight>(`/highlights/${id}`);
-    return response.data;
+    return unwrapResponse<Highlight>(response.data);
   },
 
   create: async (data: Omit<Highlight, 'id'>): Promise<Highlight> => {
     const response = await apiClient.post<Highlight>('/highlights/', data);
-    return response.data;
+    return unwrapResponse<Highlight>(response.data);
   },
 
   update: async (id: number, data: Partial<Highlight>): Promise<Highlight> => {
     const response = await apiClient.put<Highlight>(`/highlights/${id}`, data);
-    return response.data;
+    return unwrapResponse<Highlight>(response.data);
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
     const response = await apiClient.delete<{ message: string }>(`/highlights/${id}`);
-    return response.data;
+    return unwrapResponse<{ message: string }>(response.data);
   },
 
   getByStudent: async (studentId: number): Promise<Highlight[]> => {
     const response = await apiClient.get<Highlight[]>(`/highlights/student/${studentId}`);
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Highlight>(data);
   },
 
   getBySemester: async (studentId: number, semester: string): Promise<Highlight[]> => {
@@ -486,19 +525,19 @@ export const analyticsAPI = {
     const response = await apiClient.get<FinalGrade>(
       `/analytics/student/${studentId}/course/${courseId}/final-grade`
     );
-    return response.data;
+    return unwrapResponse<FinalGrade>(response.data);
   },
 
   getAllCoursesSummary: async (studentId: number): Promise<unknown> => {
     const response = await apiClient.get<unknown>(
       `/analytics/student/${studentId}/all-courses-summary`
     );
-    return response.data;
+    return unwrapResponse<unknown>(response.data);
   },
 
   getStudentSummary: async (studentId: number): Promise<unknown> => {
     const response = await apiClient.get<unknown>(`/analytics/student/${studentId}/summary`);
-    return response.data;
+    return unwrapResponse<unknown>(response.data);
   },
 
   // Convenience helpers used by frontend analytics tests
@@ -584,27 +623,30 @@ export const enrollmentsAPI = {
       `/enrollments/course/${courseId}`,
       { student_ids: studentIds }
     );
-    return response.data;
+    return unwrapResponse<EnrollmentResponse>(response.data);
   },
   // Mirror the runtime JS API surface - provide several convenience helpers used across the UI
   getAll: async (skip = 0, limit = 100): Promise<PaginatedResponse<CourseEnrollment>> => {
     const response = await apiClient.get<PaginatedResponse<CourseEnrollment>>('/enrollments/', { params: { skip, limit } });
-    return response.data;
+    return unwrapResponse<PaginatedResponse<CourseEnrollment>>(response.data);
   },
 
   getByCourse: async (courseId: number): Promise<CourseEnrollment[]> => {
     const response = await apiClient.get<CourseEnrollment[]>(`/enrollments/course/${courseId}`);
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<CourseEnrollment>(data);
   },
 
   getByStudent: async (studentId: number): Promise<CourseEnrollment[]> => {
     const response = await apiClient.get<CourseEnrollment[]>(`/enrollments/student/${studentId}`);
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<CourseEnrollment>(data);
   },
 
   getEnrolledStudents: async (courseId: number): Promise<Student[]> => {
     const response = await apiClient.get<Student[]>(`/enrollments/course/${courseId}/students`);
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<Student>(data);
   },
 
   // Unenroll a student from a course
@@ -622,7 +664,7 @@ export const importAPI = {
     const response = await apiClient.post<ImportResponse>('/imports/students', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return unwrapResponse<ImportResponse>(response.data);
   },
 
   importCourses: async (file: File): Promise<ImportResponse> => {
@@ -631,7 +673,7 @@ export const importAPI = {
     const response = await apiClient.post<ImportResponse>('/imports/courses', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return unwrapResponse<ImportResponse>(response.data);
   },
 
   uploadFile: async (file: File | File[], type: 'courses' | 'students'): Promise<ImportResponse> => {
@@ -644,7 +686,7 @@ export const importAPI = {
     const response = await apiClient.post<ImportResponse>('/imports/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return unwrapResponse<ImportResponse>(response.data);
   },
 
   preview: async ({
@@ -673,7 +715,7 @@ export const importAPI = {
     const response = await apiClient.post<ImportPreviewResponse>('/imports/preview', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data;
+    return unwrapResponse<ImportPreviewResponse>(response.data);
   },
 
   execute: async ({
@@ -702,7 +744,7 @@ export const importAPI = {
     const response = await apiClient.post<ImportJobResponse>('/imports/execute', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
-    return response.data;
+    return unwrapResponse<ImportJobResponse>(response.data);
   },
 };
 
@@ -711,12 +753,14 @@ export const importAPI = {
 export const jobsAPI = {
   get: async (jobId: string): Promise<JobDetail> => {
     const response = await apiClient.get<JobDetail>(`/jobs/${jobId}`);
-    return response.data;
+    return unwrapResponse<JobDetail>(response.data);
   },
 
   list: async (): Promise<JobDetail[] | PaginatedResponse<JobDetail>> => {
     const response = await apiClient.get<JobDetail[] | PaginatedResponse<JobDetail>>('/jobs');
-    return response.data;
+    const data = response.data as unknown;
+    const unwrapped = unwrapResponse<JobDetail[] | PaginatedResponse<JobDetail>>(data);
+    return normalizeResponseToArray<JobDetail>(unwrapped);
   },
 };
 
@@ -725,7 +769,8 @@ export const jobsAPI = {
 export const sessionAPI = {
   listSemesters: async (): Promise<string[]> => {
     const response = await apiClient.get<string[]>('/sessions/semesters');
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<string>(data);
   },
 
   exportSession: async (semester: string): Promise<Blob> => {
@@ -733,7 +778,7 @@ export const sessionAPI = {
       params: { semester },
       responseType: 'blob'
     });
-    return response.data;
+    return unwrapResponse<Blob>(response.data);
   },
 
   importSession: async (file: File, mergeStrategy: 'update' | 'skip' = 'update', dryRun = false): Promise<ImportResponse> => {
@@ -743,17 +788,18 @@ export const sessionAPI = {
       params: { merge_strategy: mergeStrategy, dry_run: dryRun },
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return unwrapResponse<ImportResponse>(response.data);
   },
 
   listBackups: async (): Promise<unknown[]> => {
     const response = await apiClient.get('/sessions/backups');
-    return response.data;
+    const data = response.data as unknown;
+    return normalizeResponseToArray<unknown>(data);
   },
 
   rollbackImport: async (backupFilename: string): Promise<unknown> => {
     const response = await apiClient.post('/sessions/rollback', null, { params: { backup_filename: backupFilename } });
-    return response.data;
+    return unwrapResponse<unknown>(response.data);
   },
 };
 
@@ -762,7 +808,7 @@ export const sessionAPI = {
 export const adminOpsAPI = {
   createBackup: async (): Promise<{ message: string; backup_path?: string; backup_size?: number }> => {
     const response = await apiClient.post<{ message: string; backup_path?: string; backup_size?: number }>('/adminops/backup');
-    return response.data;
+    return unwrapResponse<{ message: string; backup_path?: string; backup_size?: number }>(response.data);
   },
 
   restoreBackup: async (file: File): Promise<{ message: string; restored_from?: string }> => {
@@ -771,7 +817,7 @@ export const adminOpsAPI = {
     const response = await apiClient.post<{ message: string; restored_from?: string }>('/adminops/restore', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-    return response.data;
+    return unwrapResponse<{ message: string; restored_from?: string }>(response.data);
   },
 
   clearDatabase: async (scope: 'all' | 'data_only' = 'all'): Promise<{ message: string }> => {
@@ -779,12 +825,12 @@ export const adminOpsAPI = {
       confirm: true,
       scope,
     });
-    return response.data;
+    return unwrapResponse<{ message: string }>(response.data);
   },
 
   generateSampleData: async (): Promise<{ message: string }> => {
     const response = await apiClient.post<{ message: string }>('/adminops/generate-sample-data');
-    return response.data;
+    return unwrapResponse<{ message: string }>(response.data);
   },
 };
 
@@ -792,18 +838,19 @@ export const adminOpsAPI = {
 
 export const adminUsersAPI = {
   list: async (): Promise<UserAccount[]> => {
-    const response = await apiClient.get<UserAccount[]>('/admin/users');
-    return response.data;
+    const response = await apiClient.get('/admin/users');
+    const data = response.data as unknown;
+    return normalizeResponseToArray<UserAccount>(data);
   },
 
   create: async (payload: CreateUserPayload): Promise<UserAccount> => {
-    const response = await apiClient.post<UserAccount>('/admin/users', payload);
-    return response.data;
+    const response = await apiClient.post('/admin/users', payload);
+    return unwrapResponse<UserAccount>(response.data);
   },
 
   update: async (userId: number, payload: UpdateUserPayload): Promise<UserAccount> => {
-    const response = await apiClient.patch<UserAccount>(`/admin/users/${userId}`, payload);
-    return response.data;
+    const response = await apiClient.patch(`/admin/users/${userId}`, payload);
+    return unwrapResponse<UserAccount>(response.data);
   },
 
   delete: async (userId: number): Promise<void> => {
@@ -819,12 +866,50 @@ export const adminUsersAPI = {
       current_password: currentPassword,
       new_password: newPassword,
     });
-    return response.data as { status: string; access_token?: string; token_type?: string };
+    return unwrapResponse<{ status: string; access_token?: string; token_type?: string }>(response.data);
   },
 
   getCurrentUser: async (): Promise<UserAccount> => {
-    const response = await apiClient.get<UserAccount>('/auth/me');
-    return response.data;
+    const response = await apiClient.get('/auth/me');
+    return unwrapResponse<UserAccount>(response.data);
+  },
+};
+
+// ==================== RBAC API ====================
+
+export const rbacAPI = {
+  getSummary: async (): Promise<RBACSummary> => {
+    const response = await apiClient.get('/admin/rbac/summary');
+    return unwrapResponse<RBACSummary>(response.data);
+  },
+
+  ensureDefaults: async (): Promise<{ status: string }> => {
+    const response = await apiClient.post<{ status: string }>('/admin/rbac/ensure-defaults');
+    return unwrapResponse<{ status: string }>(response.data);
+  },
+
+  assignRole: async (userId: number, roleName: string): Promise<{ status: string }> => {
+    const response = await apiClient.post('/admin/rbac/assign-role', {
+      user_id: userId,
+      role_name: roleName
+    });
+    return unwrapResponse<{ status: string }>(response.data);
+  },
+
+  grantPermission: async (roleName: string, permissionName: string): Promise<{ status: string }> => {
+    const response = await apiClient.post('/admin/rbac/grant-permission', {
+      role_name: roleName,
+      permission_name: permissionName
+    });
+    return unwrapResponse<{ status: string }>(response.data);
+  },
+
+  revokeRole: async (userId: number, roleName: string): Promise<{ status: string }> => {
+    const response = await apiClient.post('/admin/rbac/revoke-role', {
+      user_id: userId,
+      role_name: roleName
+    });
+    return unwrapResponse<{ status: string }>(response.data);
   },
 };
 
