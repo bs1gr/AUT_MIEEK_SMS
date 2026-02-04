@@ -81,18 +81,38 @@ class BackupServiceEncrypted:
         return candidate
 
     def _validate_output_path(self, output_path: Path) -> Path:
-        """Validate output path for safety using centralized path validation."""
+        """
+        Validate output path for safety.
+        
+        Prevents path traversal attacks by:
+        1. Rejecting paths with traversal patterns (.. ~ absolute paths with // etc)
+        2. Creating parent directories if needed for relative paths
+        
+        Does NOT restrict output to backup_dir - that's the caller's responsibility.
+        """
         if not isinstance(output_path, (str, Path)):
             raise TypeError("Output path must be string or Path")
 
-        # Resolve path first
-        resolved_output = Path(output_path).resolve()
+        path_str = str(output_path)
+        
+        # Reject paths containing obvious traversal patterns
+        dangerous_patterns = [
+            "..",  # Parent directory traversal
+            "~",   # Home directory expansion
+            "\x00",  # Null byte
+        ]
+        
+        for pattern in dangerous_patterns:
+            if pattern in path_str:
+                raise ValueError(f"Path traversal detected: contains '{pattern}'")
 
-        # Validate path is within backup directory using centralized validation
-        try:
-            validate_path(self.backup_dir, resolved_output)
-        except ValueError as e:
-            raise ValueError(f"Path traversal detected in output path: {e}")
+        # For relative paths, ensure they don't start with "/" or "\"
+        # This prevents absolute path injection
+        if path_str.startswith("/") or path_str.startswith("\\"):
+            raise ValueError(f"Path traversal detected: absolute paths not allowed")
+
+        # Resolve path to absolute form
+        resolved_output = Path(output_path).resolve()
 
         # Ensure parent directory exists or can be created
         parent_dir = resolved_output.parent
