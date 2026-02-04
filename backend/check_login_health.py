@@ -10,18 +10,28 @@ Exit codes:
 
 import sys
 from time import sleep
+from typing import Dict, Any
 
 import requests
 
 
-def check_login_health(base_url="http://127.0.0.1:8000", max_retries=3):
-    """Check that login endpoint works with test credentials."""
+def check_login_health(base_url: str = "http://127.0.0.1:8000", max_retries: int = 3) -> bool:
+    """Check that login endpoint works with test credentials.
+
+    Args:
+        base_url: API base URL to check
+        max_retries: Number of retry attempts
+
+    Returns:
+        True if login succeeds, False otherwise
+    """
 
     print(f"Checking login health at {base_url}...")
 
     login_url = f"{base_url}/api/v1/auth/login"
     # E2E test user seeded by backend/seed_e2e_data.py
-    test_credentials = {"email": "test@example.com", "password": "Test@Pass123"}
+    # pragma: allowlist secret - test fixture credentials only
+    test_credentials: Dict[str, str] = {"email": "test@example.com", "password": "Test@Pass123"}
 
     for attempt in range(1, max_retries + 1):
         try:
