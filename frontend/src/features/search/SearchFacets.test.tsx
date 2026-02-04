@@ -1,4 +1,4 @@
-import { screen, fireEvent } from '@testing-library/react';
+import { screen, _fireEvent } from '@testing-library/react';
 import { renderWithI18n } from '../../test-utils/i18n-test-wrapper';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect } from 'vitest';

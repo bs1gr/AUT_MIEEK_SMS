@@ -1,4 +1,4 @@
-import { screen, waitFor, fireEvent } from '@testing-library/react';
+import { screen, _waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
@@ -13,7 +13,7 @@ import { SortConfig } from './useSearch';
 vi.mock('./useSearch');
 vi.mock('./useSearchFacets');
 vi.mock('./SearchSortControls', () => ({
-  default: ({ sort, onChange }: { sort: SortConfig; onChange: (sort: SortConfig) => void }) => (
+  default: ({ _sort, onChange }: { _sort: SortConfig; onChange: (_sort: SortConfig) => void }) => (
     <div data-testid="sort-controls">
       <button onClick={() => onChange({ field: 'name', direction: 'asc' })}>Sort</button>
     </div>

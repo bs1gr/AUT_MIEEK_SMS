@@ -85,7 +85,7 @@ describe('usePerformanceMonitor hook', () => {
         usePerformanceMonitor('TestComponent')
       );
 
-      const initialRenderCount = result.current.renderCount;
+      const _initialRenderCount = result.current.renderCount;
 
       rerender();
 

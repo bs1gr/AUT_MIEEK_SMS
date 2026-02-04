@@ -42,7 +42,7 @@ const StudentsView: React.FC = () => {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (_id: number) => {
     if (window.confirm(t('confirmDelete', { ns: 'students' }))) {
       // TODO: Implement delete via mutation
 
@@ -98,7 +98,7 @@ const StudentsView: React.FC = () => {
             </h2>
             <StudentForm
               initialData={editingStudent || undefined}
-              onSubmit={async (data) => {
+              onSubmit={async (_data) => {
                 if (editingStudent) {
                   // TODO: Implement update via mutation
 

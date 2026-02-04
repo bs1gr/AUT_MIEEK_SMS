@@ -27,7 +27,6 @@ import type {
   EmailConfigPanelProps,
   ExportSettingsPanelProps,
   ExportDetailModalProps,
-  ExportMetrics,
   FormatMetrics,
   FilterBuilderProps,
   ScheduleBuilderProps,
@@ -494,7 +493,7 @@ export const ExportDetailModal: React.FC<ExportDetailModalProps> = ({ open, onCl
 };
 
 // ===== PerformanceAnalytics.tsx =====
-export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metrics, onPeriodChange }) => {
+export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metrics, _onPeriodChange }) => {
   const { t } = useTranslation('exportAdmin');
 
   if (!metrics) return null;
@@ -553,7 +552,7 @@ export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metric
 };
 
 // ===== FilterBuilder.tsx =====
-export const FilterBuilder: React.FC<FilterBuilderProps> = ({ entityType, value, onChange }) => {
+export const FilterBuilder: React.FC<FilterBuilderProps> = ({ _entityType, _value, _onChange }) => {
   const { t } = useTranslation('exportAdmin');
 
   return (
@@ -569,7 +568,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({ entityType, value,
 };
 
 // ===== ScheduleBuilder.tsx =====
-export const ScheduleBuilder: React.FC<ScheduleBuilderProps> = ({ frequency, cronExpression, onChange }) => {
+export const ScheduleBuilder: React.FC<ScheduleBuilderProps> = ({ _frequency, _cronExpression, _onChange }) => {
   const { t } = useTranslation('exportAdmin');
 
   return (
