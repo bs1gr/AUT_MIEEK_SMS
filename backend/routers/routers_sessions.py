@@ -19,6 +19,7 @@ from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
 from backend.rbac import require_permission
+from backend.security.path_validation import validate_filename, validate_path
 
 logger = logging.getLogger(__name__)
 
@@ -704,34 +705,35 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": backup_filename},
             )
-
-    backup_dir = Path("backups").resolve()
+        backup_dir = Path("backups").resolve()
+        # Validate filename using centralized path validation
+        try:
+            validate_filename(backup_filename, allowed_extensions=[".db", ".enc", ".backup"])
+        except ValueError as e:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                f"Invalid backup filename: {str(e)}",
+                request,
+                context={"filename": backup_filename},
+            )
         # Extract only the filename to prevent any path traversal
         safe_filename = Path(backup_filename).name
-        if safe_filename != backup_filename:
-            raise http_error(
-                400,
-                ErrorCode.IMPORT_INVALID_REQUEST,
-                "Invalid backup filename: contains path components",
-                request,
-                context={"filename": backup_filename},
-            )
         backup_path = (backup_dir / safe_filename).resolve()
 
-        # Additional safety: Ensure resolved path is within backup_dir
+        # Validate path is within backup_dir using centralized validation
         try:
-            backup_path.relative_to(backup_dir)
-        except ValueError:
+            validate_path(backup_dir, backup_path)
+        except ValueError as e:
             raise http_error(
                 400,
                 ErrorCode.IMPORT_INVALID_REQUEST,
-                "Backup path outside allowed directory",
+                f"Backup path outside allowed directory: {str(e)}",
                 request,
                 context={"filename": backup_filename},
             )
 
-        # CodeQL [python/path-injection]: backup_path is validated above via directory bounds check
-        # Safe usage: relative_to() confirms backup_path is within backup_dir
+        # Path validated with backend.security.path_validation.validate_path()
         sanitized_backup_path: Path = backup_path
 
         if not sanitized_backup_path.exists():
@@ -789,7 +791,7 @@ async def rollback_import(request: Request, backup_filename: str):
             logger.info("Created pre-rollback backup", extra={"backup_file": pre_rollback_backup.name})
 
         # Perform rollback: Replace current DB with backup
-        # Verify backup_path exists and is within backup_dir before copying
+        # Both paths validated above with validate_path() - safe to use
         if not sanitized_backup_path.exists():
             raise http_error(
                 404,
@@ -798,8 +800,7 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": safe_filename},
             )
-        # CodeQL [python/path-injection]: Both paths are validated above via directory bounds checks
-        # Safe usage: Both are constrained via relative_to() validation before use
+        # Paths validated with backend.security.path_validation.validate_path()
         shutil.copy2(str(sanitized_backup_path), str(sanitized_db_path))
 
         logger.warning(f"DATABASE ROLLBACK performed by system: Restored from {backup_filename}")

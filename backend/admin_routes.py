@@ -32,10 +32,12 @@ from sqlalchemy.orm import Session
 try:
     # Prefer package import when available
     from backend.control_auth import require_control_admin
+    from backend.security.path_validation import validate_filename, validate_path
     from backend.services.backup_service_encrypted import BackupServiceEncrypted
 except Exception:
     # Fallback for tests or alternate import paths
     from control_auth import require_control_admin  # type: ignore
+    from security.path_validation import validate_filename, validate_path  # type: ignore
     from services.backup_service_encrypted import BackupServiceEncrypted  # type: ignore
 
 
@@ -294,14 +296,13 @@ async def restore_encrypted_backup(
         restore_dir.mkdir(parents=True, exist_ok=True)
         output_path = (restore_dir / safe_output_filename).resolve()
 
-        # Additional safety: Ensure resolved paths are within allowed directories
+        # Validate path is within allowed directory using centralized validation
         try:
-            output_path.relative_to(restore_dir)
-        except (ValueError, OSError):
-            raise HTTPException(status_code=400, detail="Output path outside allowed directory")
+            validate_path(restore_dir, output_path)
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"Output path outside allowed directory: {str(e)}")
 
-        # CodeQL [python/path-injection]: output_path is validated above via directory bounds check
-        # Safe usage: relative_to() confirms output_path is within restore_dir
+        # Path validated with backend.security.path_validation.validate_path()
         sanitized_output_path: pathlib.Path = output_path
 
         # Decrypt and restore backup
