@@ -5,34 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useApiMutation, useApiQuery } from '@/hooks/useApiWithRecovery';
-import apiClient from '@/api/api';
+import { rbacAPI, type Role, type RBACSummary } from '@/api/api';
 import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
-
-interface Role {
-  id: number;
-  name: string;
-  description?: string;
-}
-
-interface Permission {
-  id: number;
-  name: string;
-  description?: string;
-}
-
-interface User {
-  id: number;
-  email: string;
-  full_name?: string;
-  role: string;
-}
-
-interface RBACSummary {
-  roles: Role[];
-  permissions: Permission[];
-  role_permissions: Array<{ role_id: number; permission_id: number }>;
-  user_roles: Array<{ user_id: number; role_id: number }>;
-}
 
 export const RBACPanel: React.FC = () => {
   const { t } = useLanguage();
@@ -127,24 +101,31 @@ export const RBACPanel: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [userId, setUserId] = useState<number | null>(null);
   const [roleName, setRoleName] = useState('');
-  const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [selectedPermission, setSelectedPermission] = useState<string | null>(null);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);  // Store role name
+  const [selectedPermission, setSelectedPermission] = useState<string | null>(null);  // Store permission key
   const { data: rbacData, isLoading: isSummaryLoading, refetch: refetchSummary } = useApiQuery<RBACSummary>(
     ['rbac-summary'],
-    () => apiClient.get('/admin/rbac/summary').then(r => r.data),
+    () => rbacAPI.getSummary(),
     { enabled: activeTab === 'overview' || activeTab === 'users' }
   );
 
-  // Fetch users list
-  const { data: usersData } = useApiQuery<{ items: User[] }>(
-    ['users-list'],
-    () => apiClient.get('/users/').then(r => r.data),
-    { enabled: activeTab === 'users' }
-  );
+  // Derive users from RBAC summary (user_roles contains all user IDs)
+  const usersData = useMemo(() => {
+    if (!rbacData?.user_roles) return [];
+    // Extract unique user IDs from user_roles
+    const userIds = Array.from(new Set(rbacData.user_roles.map(ur => ur.user_id)));
+    // Create user objects with minimal info (just IDs, names will be derived from RBAC data)
+    return userIds.map(id => ({
+      id,
+      email: `user_${id}@system`,
+      full_name: `User ${id}`,
+      role: 'user'
+    }));
+  }, [rbacData?.user_roles]);
 
   // Ensure defaults mutation
   const ensureDefaultsMutation = useApiMutation<{ status: string }, Error, Record<string, never>>(
-    () => apiClient.post<{ status: string }>('/admin/rbac/ensure-defaults').then((r) => r.data),
+    () => rbacAPI.ensureDefaults(),
     {
       onSuccess: () => {
         refetchSummary();
@@ -154,7 +135,7 @@ export const RBACPanel: React.FC = () => {
 
   // Assign role mutation
   const assignRoleMutation = useApiMutation<{ status: string }, Error, { user_id: number; role_name: string }>(
-    (data) => apiClient.post<{ status: string }>('/admin/rbac/assign-role', data).then((r) => r.data),
+    async (data) => rbacAPI.assignRole(data.user_id, data.role_name),
     {
       onSuccess: () => {
         setUserId(null);
@@ -166,7 +147,7 @@ export const RBACPanel: React.FC = () => {
 
   // Grant permission mutation
   const grantPermissionMutation = useApiMutation<{ status: string }, Error, { role_name: string; permission_name: string }>(
-    (data) => apiClient.post<{ status: string }>('/admin/rbac/grant-permission', data).then((r) => r.data),
+    async (data) => rbacAPI.grantPermission(data.role_name, data.permission_name),
     {
       onSuccess: () => {
         setSelectedRole(null);
@@ -182,15 +163,44 @@ export const RBACPanel: React.FC = () => {
 
   const handleAssignRole = async () => {
     if (!userId || !roleName) return;
-    await assignRoleMutation.mutate({ user_id: userId, role_name: roleName });
+
+    try {
+      // Find ALL current roles for the user and revoke them ALL first
+      const userRoleMappings = rbacData?.user_roles?.filter(ur => ur.user_id === userId) || [];
+
+      console.log(`User ${userId} currently has ${userRoleMappings.length} roles`);
+
+      // Revoke ALL existing roles (even if one matches the new role)
+      for (const mapping of userRoleMappings) {
+        const currentRole = rbacData?.roles?.find(r => r.id === mapping.role_id);
+        if (currentRole) {
+          try {
+            console.log(`Attempting to revoke role ${currentRole.name} from user ${userId}`);
+            const revokeResponse = await rbacAPI.revokeRole(userId, currentRole.name);
+            console.log(`Revoke response for ${currentRole.name}:`, revokeResponse);
+          } catch (err: any) {
+            console.error(`Failed to revoke role ${currentRole.name}:`, err?.response?.data || err.message);
+            // If it's the "last admin" error, stop
+            if (err?.response?.data?.error?.message?.includes('last admin')) {
+              alert('Cannot remove last admin role');
+              return;
+            }
+          }
+        }
+      }
+
+      // Now assign the new role (will be the only role)
+      console.log(`Assigning role ${roleName} to user ${userId}`);
+      await assignRoleMutation.mutate({ user_id: userId, role_name: roleName });
+    } catch (error) {
+      console.error('Error in handleAssignRole:', error);
+      alert('Failed to assign role');
+    }
   };
 
   const handleGrantPermission = async () => {
-    if (!selectedRole || !selectedPermission || !rbacData) return;
-    const role = rbacData.roles.find((r) => r.id === selectedRole);
-    const perm = rbacData.permissions.find((p) => p.id === selectedPermission);
-    if (!role || !perm) return;
-    await grantPermissionMutation.mutate({ role_name: role.name, permission_name: perm.name });
+    if (!selectedRole || !selectedPermission) return;
+    await grantPermissionMutation.mutate({ role_name: selectedRole, permission_name: selectedPermission });
   };
 
   const tabs = [
@@ -302,11 +312,11 @@ export const RBACPanel: React.FC = () => {
           {activeTab === 'users' && usersData && rbacData && (
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">{t('rbac.userRoleMappings', { count: usersData.items.length })}</CardTitle>
+                <CardTitle className="text-sm">{t('rbac.userRoleMappings', { count: usersData.length })}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2 max-h-96 overflow-y-auto">
-                  {usersData.items.map((user) => {
+                  {usersData.map((user) => {
                     const userRoles = rbacData.user_roles
                       .filter((ur) => ur.user_id === user.id)
                       .map((ur) => rbacData.roles.find((r) => r.id === ur.role_id))
@@ -414,13 +424,13 @@ export const RBACPanel: React.FC = () => {
                   <select
                     id="grant-role-select"
                     value={selectedRole || ''}
-                    onChange={(e) => setSelectedRole(e.target.value ? parseInt(e.target.value) : null)}
+                    onChange={(e) => setSelectedRole(e.target.value || null)}
                     className="w-full p-2 border rounded"
                     aria-label="Select role to grant permission"
                   >
                     <option value="">{t('rbac.selectRole')}</option>
                     {rbacData?.roles.map((role) => (
-                      <option key={role.id} value={role.id}>
+                      <option key={role.id} value={role.name}>
                         {t(`controlPanel.roles.${role.name}`) || role.name}
                       </option>
                     ))}
@@ -431,14 +441,14 @@ export const RBACPanel: React.FC = () => {
                   <select
                     id="permission-select"
                     value={selectedPermission || ''}
-                    onChange={(e) => setSelectedPermission(e.target.value ? parseInt(e.target.value) : null)}
+                    onChange={(e) => setSelectedPermission(e.target.value || null)}
                     className="w-full p-2 border rounded"
                     aria-label="Select permission to grant"
                   >
                     <option value="">{t('rbac.selectPermission')}</option>
                     {rbacData?.permissions.map((perm) => (
-                      <option key={perm.id} value={perm.id}>
-                        {translatePermission(perm.name)}
+                      <option key={perm.id} value={perm.key || perm.name}>
+                        {translatePermission(perm.key || perm.name)}
                       </option>
                     ))}
                   </select>

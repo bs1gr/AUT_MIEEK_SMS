@@ -15,7 +15,7 @@ import {
 
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { adminUsersAPI } from '@/api/api';
+import { adminUsersAPI, rbacAPI, type RBACSummary } from '@/api/api';
 import type { CreateUserPayload, UpdateUserPayload, UserAccount, UserRole } from '@/types';
 import type { ToastState } from '@/features/operations/components/DevToolsPanel';
 
@@ -71,8 +71,25 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
     setLoading(true);
     setAccessDenied(false);
     try {
-      const data = await adminUsersAPI.list();
-      setUsers(data);
+      // Fetch both users and RBAC summary to get actual roles
+      const [usersData, rbacData] = await Promise.all([
+        adminUsersAPI.list(),
+        rbacAPI.getSummary(),
+      ]);
+
+      // Merge RBAC roles into user objects
+      const usersWithRoles = usersData.map(user => {
+        const userRoleMapping = rbacData?.user_roles?.find(ur => ur.user_id === user.id);
+        if (userRoleMapping) {
+          const actualRole = rbacData?.roles?.find(r => r.id === userRoleMapping.role_id);
+          if (actualRole) {
+            return { ...user, role: actualRole.name as UserRole };
+          }
+        }
+        return user;
+      });
+
+      setUsers(usersWithRoles);
       setAccessDenied(false);
     } catch (error: unknown) {
       console.error('Failed to load users', error);
