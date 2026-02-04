@@ -32,6 +32,16 @@ export const formatLocalDate = (input: Date | string): string => {
   return `${year}-${month}-${day}`;
 };
 
+/**
+ * Format a date string (YYYY-MM-DD) to Greek format (DD/MM/YYYY)
+ */
+export const formatDateGreek = (dateStr: string): string => {
+  if (!dateStr) return '';
+  const parts = dateStr.split('-');
+  if (parts.length !== 3) return dateStr;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+};
+
 const normalizeLabel = (label: string) => label.trim().toLowerCase();
 const MONDAY_PREFIXES = ['mon', 'monday', 'mo', 'lun', 'lunes', 'lu', 'δε', 'δευ'];
 const SUNDAY_PREFIXES = ['sun', 'sunday', 'su', 'κυ', 'κυρ'];
