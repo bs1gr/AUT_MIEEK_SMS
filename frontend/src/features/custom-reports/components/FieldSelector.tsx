@@ -124,6 +124,14 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                   className={`px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between group cursor-move transition-colors ${
                     draggedField === field ? 'opacity-50 bg-blue-100' : ''
                   }`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Delete' || e.key === 'Backspace') {
+                      // Allow keyboard deletion if needed
+                    }
+                  }}
+                  aria-label={`${t('field', { ns: 'customReports' })}: ${field}`}
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <GripVertical

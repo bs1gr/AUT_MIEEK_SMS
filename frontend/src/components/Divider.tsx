@@ -34,7 +34,6 @@ export const Divider: React.FC<DividerProps> = ({
 
   return (
     <hr
-      role="separator"
       aria-orientation="horizontal"
       className={`border-0 border-t border-gray-300 dark:border-gray-600 ${marginTop} ${marginBottom} ${className}`}
       style={{ paddingTop: '1px' }}

@@ -282,6 +282,13 @@ export const SearchBar: React.FC<SearchBarProps> = ({
                       : 'hover:bg-gray-100'
                   }`}
                   onClick={() => handleHistorySelect(item)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleHistorySelect(item);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="option"
                   onMouseEnter={() => setHighlightedIndex(index)}
                   role="option"
                   aria-selected={index === highlightedIndex}
