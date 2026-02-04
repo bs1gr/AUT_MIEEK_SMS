@@ -182,6 +182,10 @@ export default {
     genericError: 'Κάτι πήγε στραβά',
     iconRetry: '🔄'
   },
+  icon: {
+    edit: 'Επεξεργασία',
+    editEmoji: '✏️'
+  },
   messages: {
     pleaseWait: 'Παρακαλώ περιμένετε...',
     devModeCheckConsole: '🔧 Λειτουργία ανάπτυξης: Ελέγξτε το console για λεπτομερή καταγραφή σφαλμάτων',

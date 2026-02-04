@@ -426,7 +426,7 @@ export const ExportDetailModal: React.FC<ExportDetailModalProps> = ({ open, onCl
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{t('detail.duration')}</p>
                 <p className="text-base font-medium text-slate-900 dark:text-white">
-                  {Math.round(exp.duration_seconds * 1000)} ms
+                  {Math.round(exp.duration_seconds * 1000)} {t('detail.milliseconds')}
                 </p>
               </div>
             )}
@@ -506,7 +506,7 @@ export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metric
             <CardTitle className="text-sm">{t('analytics.avgDuration')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.average_duration_seconds?.toFixed(2)}s</div>
+            <div className="text-2xl font-bold">{metrics.average_duration_seconds?.toFixed(2)}{t('detail.seconds')}</div>
           </CardContent>
         </Card>
         <Card>

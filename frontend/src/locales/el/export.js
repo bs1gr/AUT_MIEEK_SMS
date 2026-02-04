@@ -145,6 +145,8 @@ export default {
   jobMonitorHelper: 'Παρακολουθήστε εισαγωγές ή εξαγωγές μεγάλης διάρκειας μέσω ID εργασίας.',
   jobMonitorInputLabel: 'ID εργασίας για παρακολούθηση',
   jobMonitorStart: 'Έναρξη παρακολούθησης',
+  milliseconds: 'ms',
+  seconds: 's',
   confirmAndImport: 'Επιβεβαίωση & Εισαγωγή',
   cancel: 'Ακύρωση',
   importError: 'Η εισαγωγή απέτυχε'

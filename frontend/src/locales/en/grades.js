@@ -103,6 +103,7 @@ export default {
   basedOn: 'Based on',
   totalBeforePenalty: 'Total (before penalty)',
   outOf100: '0-100',
+  divider: '/',
   // Edit/Delete
   editGrade: 'Edit Grade',
   confirmDeleteGrade: 'Are you sure you want to delete this grade?',
