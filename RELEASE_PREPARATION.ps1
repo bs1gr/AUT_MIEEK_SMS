@@ -3,6 +3,51 @@
 
 <#
 .SYNOPSIS
+    ⚠️ DEPRECATED - Use RELEASE_READY.ps1 instead
+
+.DESCRIPTION
+    This script has been deprecated as of February 2026.
+
+    All functionality has been consolidated into RELEASE_READY.ps1
+    which now provides the complete release workflow:
+    - Pre-release validation (this script's functionality)
+    - Version updates
+    - Installer build
+    - Commit and tag creation
+    - Push to remote
+
+    Use: .\RELEASE_READY.ps1 -ReleaseVersion "X.X.X" -TagRelease
+
+    This script is kept for reference only and will be removed in future versions.
+
+.NOTES
+    Deprecated: February 4, 2026
+    Replacement: RELEASE_READY.ps1 (single source of truth)
+#>
+
+Write-Host ""
+Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Yellow
+Write-Host "║   ⚠️  DEPRECATED SCRIPT                                    ║" -ForegroundColor Yellow
+Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "This script (RELEASE_PREPARATION.ps1) has been DEPRECATED." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Please use RELEASE_READY.ps1 instead:" -ForegroundColor Cyan
+Write-Host "  .\RELEASE_READY.ps1 -ReleaseVersion `"X.X.X`" -TagRelease" -ForegroundColor Gray
+Write-Host ""
+Write-Host "RELEASE_READY.ps1 now includes:" -ForegroundColor Cyan
+Write-Host "  ✓ All validation from this script" -ForegroundColor Green
+Write-Host "  ✓ Version updates" -ForegroundColor Green
+Write-Host "  ✓ Installer build" -ForegroundColor Green
+Write-Host "  ✓ Commit and push" -ForegroundColor Green
+Write-Host ""
+Write-Host "Continuing with deprecated script in 5 seconds..." -ForegroundColor Yellow
+Write-Host "Press Ctrl+C to cancel" -ForegroundColor Gray
+Start-Sleep -Seconds 5
+Write-Host ""
+
+<#
+.SYNOPSIS
     Automated release preparation script - runs all prerequisites before release.
 
 .DESCRIPTION
