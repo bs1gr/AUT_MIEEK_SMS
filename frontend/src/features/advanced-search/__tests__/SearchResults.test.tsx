@@ -29,7 +29,7 @@ import {
 
 describe('SearchResults', () => {
   const mockOnSortChange = vi.fn();
-  const mockOnResultClick = vi.fn();
+  const _mockOnResultClick = vi.fn();
   const mockOnRetry = vi.fn();
 
   beforeEach(() => {

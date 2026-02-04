@@ -4,10 +4,10 @@ import { useLanguage } from '../LanguageContext';
 
 // Placeholder for reportsAPI until reports feature is fully implemented
 const reportsAPI = {
-  generateStudentReport: async (req: any) => {
+  generateStudentReport: async (_req: any) => {
     throw new Error('Student report generation not yet implemented');
   },
-  downloadStudentReport: async (req: any) => {
+  downloadStudentReport: async (_req: any) => {
     throw new Error('Student report download not yet implemented');
   }
 };
@@ -107,7 +107,7 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
  */
 const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ studentId, onClose }) => {
   const langContext = useLanguage();
-  console.log('StudentPerformanceReport mounted with language:', langContext.language);
+
 
   // Wrapper for translation that supports both namespace format and legacy format
   const t = (key: string, options?: { ns?: string; [key: string]: unknown }): string => {
@@ -115,7 +115,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
       // Convert to prefixed format: reports:key -> reports.key
       const fullKey = `${options.ns}.${key}`;
       const result = langContext.t(fullKey, { ...options, ns: undefined });
-      console.log(`Translation: ${fullKey} [${langContext.language}] => ${result}`);
+
       return result;
     }
     return langContext.t(key, options);

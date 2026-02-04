@@ -152,11 +152,11 @@ export const reportTemplatesAPI = {
    */
   importDefaults: async () => {
     try {
-      console.log('[customReportsAPI] Calling POST /custom-reports/templates/import...');
+
       const response = await apiClient.post('/custom-reports/templates/import');
-      console.log('[customReportsAPI] Import response:', response);
+
       const data = extractAPIResponseData(response) as Record<string, unknown>;
-      console.log('[customReportsAPI] Extracted data:', data);
+
       return data;
     } catch (error) {
       console.error('[customReportsAPI] Error importing default templates:', error);
@@ -212,7 +212,7 @@ export const customReportsAPI = {
    */
   create: async (reportData: Partial<CustomReport>) => {
     try {
-      console.log('[customReportsAPI] Creating report with data:', reportData);
+
       const response = await apiClient.post('/custom-reports/', reportData);
       return extractAPIResponseData(response) as CustomReport;
     } catch (error) {
@@ -282,7 +282,7 @@ export const customReportsAPI = {
         include_charts: null,
         email_recipients: null,
       });
-      console.log(`[customReportsAPI] Report ${id} generation started:`, response);
+
       return extractAPIResponseData(response) as { job_id: string; status: string };
     } catch (error) {
       const axiosError = error as any;

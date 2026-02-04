@@ -45,7 +45,7 @@ const StudentsView: React.FC = () => {
   const handleDelete = (id: number) => {
     if (window.confirm(t('confirmDelete', { ns: 'students' }))) {
       // TODO: Implement delete via mutation
-      console.log('Delete student:', id);
+
       refetch();
     }
   };
@@ -101,10 +101,10 @@ const StudentsView: React.FC = () => {
               onSubmit={async (data) => {
                 if (editingStudent) {
                   // TODO: Implement update via mutation
-                  console.log('Update student:', editingStudent.id, data);
+
                 } else {
                   // TODO: Implement create via mutation
-                  console.log('Create student:', data);
+
                 }
                 handleCloseForm();
                 refetch();

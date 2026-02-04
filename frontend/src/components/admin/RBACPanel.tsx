@@ -168,16 +168,16 @@ export const RBACPanel: React.FC = () => {
       // Find ALL current roles for the user and revoke them ALL first
       const userRoleMappings = rbacData?.user_roles?.filter(ur => ur.user_id === userId) || [];
 
-      console.log(`User ${userId} currently has ${userRoleMappings.length} roles`);
+
 
       // Revoke ALL existing roles (even if one matches the new role)
       for (const mapping of userRoleMappings) {
         const currentRole = rbacData?.roles?.find(r => r.id === mapping.role_id);
         if (currentRole) {
           try {
-            console.log(`Attempting to revoke role ${currentRole.name} from user ${userId}`);
-            const revokeResponse = await rbacAPI.revokeRole(userId, currentRole.name);
-            console.log(`Revoke response for ${currentRole.name}:`, revokeResponse);
+
+            const _revokeResponse = await rbacAPI.revokeRole(userId, currentRole.name);
+
           } catch (err: any) {
             console.error(`Failed to revoke role ${currentRole.name}:`, err?.response?.data || err.message);
             // If it's the "last admin" error, stop
@@ -190,7 +190,7 @@ export const RBACPanel: React.FC = () => {
       }
 
       // Now assign the new role (will be the only role)
-      console.log(`Assigning role ${roleName} to user ${userId}`);
+
       await assignRoleMutation.mutate({ user_id: userId, role_name: roleName });
     } catch (error) {
       console.error('Error in handleAssignRole:', error);

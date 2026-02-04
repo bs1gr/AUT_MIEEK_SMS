@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar as CalendarIcon, Clock, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
-import { Divider } from '@/components/Divider';
+// import { Divider } from '@/components/Divider'; // Not used in current implementation
 import type { OperationsLocationState } from '@/features/operations/types';
 import type { Course as CourseType, TeachingScheduleEntry } from '@/types';
 
