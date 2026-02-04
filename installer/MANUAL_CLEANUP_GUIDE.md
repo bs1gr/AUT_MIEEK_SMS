@@ -101,7 +101,7 @@ docker images sms-fullstack
 
 ✅ **Data preserved**:
 ```powershell
-Get-ChildItem "C:\Program Files\SMS\data" 
+Get-ChildItem "C:\Program Files\SMS\data"
 Get-ChildItem "C:\Program Files\SMS\backups"
 # Should show contents (database, backups)
 ```

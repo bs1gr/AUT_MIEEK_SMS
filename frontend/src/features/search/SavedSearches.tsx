@@ -50,8 +50,10 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   });
 
   // Mutation for toggling favorite
-  const toggleFavoriteMutation = useMutation({
-    mutationFn: (id: number) => toggleFavoriteSavedSearch(id),
+  const toggleFavoriteMutation = useMutation<void, Error, number>({
+    mutationFn: async (id: number) => {
+      await toggleFavoriteSavedSearch(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['saved-searches'] });
     },

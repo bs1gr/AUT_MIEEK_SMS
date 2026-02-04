@@ -387,4 +387,3 @@ DATA_DIR=./data
 ---
 
 **Next Step**: Implement Phase 1 changes to installer script
-

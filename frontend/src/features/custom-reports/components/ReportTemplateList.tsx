@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Star, Copy, Trash2, Search, Share2 } from 'lucide-react';
+import { Star, Copy, Trash2, Search, Heart } from 'lucide-react';
 import { useReportTemplates, useDeleteTemplate, useUpdateTemplate } from '@/hooks/useCustomReports';
 import type { ReportTemplate } from '@/api/customReportsAPI';
 import { getLocalizedTemplateText } from '../utils/templateLocalization';
@@ -352,7 +352,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
               className="px-3 py-2 text-gray-700 border rounded-lg hover:bg-gray-50 transition-colors"
               title={t('share', { ns: 'customReports' })}
             >
-              <Share2 size={16} />
+              <Heart size={16} className="mr-2" />
             </button>
             <button
               onClick={onDelete}

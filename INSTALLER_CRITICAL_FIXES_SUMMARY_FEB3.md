@@ -38,8 +38,8 @@ The installer had **backwards logic** for .env file handling:
 
 ## ✅ The Fix (Commit e196120cc)
 
-**File Modified**: `installer/SMS_Installer.iss`  
-**Lines Changed**: Removed 57 lines of .env deletion/restoration logic  
+**File Modified**: `installer/SMS_Installer.iss`
+**Lines Changed**: Removed 57 lines of .env deletion/restoration logic
 **Lines Added**: 7 lines of logging explaining why restoration is skipped
 
 **Code Change:**
@@ -51,7 +51,7 @@ DeleteFile(ExpandConstant('{app}\.env'));
 
 if FileExists(UpgradeBackupPath + '\config\backend.env') then
 begin
-  FileCopy(UpgradeBackupPath + '\config\backend.env', 
+  FileCopy(UpgradeBackupPath + '\config\backend.env',
            ExpandConstant('{app}\backend\.env'), False);
 end;
 // ... (54 more lines of .env restoration)
@@ -68,9 +68,9 @@ Log('  Action: New .env files from v1.17.7 installation will be used');
 
 ## 📥 Download New Installer
 
-**Location**: `dist/SMS_Installer_1.17.7.exe`  
-**Size**: 8.01 MB  
-**Build Time**: February 3, 2026, 23:15:43  
+**Location**: `dist/SMS_Installer_1.17.7.exe`
+**Size**: 8.01 MB
+**Build Time**: February 3, 2026, 23:15:43
 **Git Commits**: e196120cc (fix) + a0241cff1 (docs)
 
 **⚠️ CRITICAL**: You MUST use the installer built after 23:15 on Feb 3, 2026
@@ -96,9 +96,9 @@ Get-Item ".\SMS_Installer_1.17.7.exe" | Select-Object Length, LastWriteTime
 2. Complete installation
 3. Check .env file timestamps:
    ```powershell
-   Get-ChildItem "C:\Program Files\SMS\" -Filter "*.env" -Recurse | 
+   Get-ChildItem "C:\Program Files\SMS\" -Filter "*.env" -Recurse |
      Select-Object FullName, LastWriteTime
-   
+
    # Expected: All files dated 02/03/2026 or later
    # ❌ FAIL if any file shows 16/12/2025
    ```
@@ -787,4 +787,3 @@ Changes:
 
 **Document Status**: ✅ COMPLETE - Ready for deployment decision
 **Last Updated**: February 3, 2026, 13:45 UTC
-

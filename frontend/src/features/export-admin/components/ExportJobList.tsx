@@ -23,14 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Download, RotateCw, Trash2, Eye, MoreHorizontal } from 'lucide-react';
+import { Download, Trash2, Eye, RefreshCw } from 'lucide-react';
 import { useExportJobs, useDeleteExport, useDownloadExport, useRerunExport } from '../hooks/useExportAdmin';
 import { ExportJobListProps, ExportJob } from '../types/export';
 import { formatDistanceToNow } from 'date-fns';
@@ -46,7 +46,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // API calls
-  const { data: jobsData, isLoading, error } = useExportJobs({
+  const { data: jobsData, isLoading, error: _error } = useExportJobs({
     skip: 0,
     limit: 50,
     sort_by: 'created_at',
@@ -231,7 +231,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                           size="sm"
                           className="hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors duration-150 h-8 w-8 p-0"
                         >
-                          <MoreHorizontal className="h-4 w-4" />
+                        <Download className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
@@ -259,7 +259,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                             onClick={() => handleRerun(job)}
                             className="text-slate-900 dark:text-white focus:bg-slate-100 dark:focus:bg-slate-700 cursor-pointer"
                           >
-                            <RotateCw className="mr-2 h-4 w-4" />
+                            <RefreshCw className="mr-2 h-4 w-4" />
                             {t('actions.rerun')}
                           </DropdownMenuItem>
                         )}

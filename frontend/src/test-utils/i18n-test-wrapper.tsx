@@ -28,31 +28,31 @@ const testI18n = i18n.createInstance();
 testI18n
   .use(initReactI18next)
   .init({
-    lng: 'en',
+    language: 'en',
     fallbackLng: 'en',
     debug: false,
     resources: {
         en: {
           translation: {
-            ...studentsEn,
-            ...coursesEn,
-            ...gradesEn,
-            ...commonEn,
+            ...(studentsEn as any),
+            ...(coursesEn as any),
+            ...(gradesEn as any),
+            ...(commonEn as any),
           },
-          common: commonEn,
-          search: searchEn,
-                  rbac: rbacEn,
+          common: commonEn as any,
+          search: searchEn as any,
+                  rbac: rbacEn as any,
         },
         el: {
           translation: {
-            ...studentsEl,
-            ...coursesEl,
-            ...gradesEl,
-            ...commonEl,
+            ...(studentsEl as any),
+            ...(coursesEl as any),
+            ...(gradesEl as any),
+            ...(commonEl as any),
           },
-          common: commonEl,
-          search: searchEl,
-                  rbac: rbacEl,
+          common: commonEl as any,
+          search: searchEl as any,
+                  rbac: rbacEl as any,
         }
     },
     interpolation: {

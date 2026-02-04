@@ -1,12 +1,12 @@
 **********************
 PowerShell transcript start
-Start time: 20260202190724
+Start time: 20260204134833
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name:
+Configuration Name: 
 Machine: REC (Microsoft Windows NT 10.0.26300.0)
-Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File D:\SMS\student-management-system\COMMIT_READY.ps1 -Quick
-Process ID: 22980
+Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File d:\SMS\student-management-system\COMMIT_READY.ps1 -Quick
+Process ID: 38768
 PSVersion: 7.5.4
 PSEdition: Core
 GitCommitId: 7.5.4
@@ -19,12 +19,12 @@ WSManStackVersion: 3.0
 **********************
 --------------------------------------------------------------
  COMMIT READY - Pre-Commit Verification
- Student Management System v1.17.6
+ Student Management System v1.17.7
 --------------------------------------------------------------
 
 Mode: quick
-Started: 2026-02-02 19:07:24
-Log file: D:\SMS\student-management-system\commit_ready_20260202-190724.log
+Started: 2026-02-04 13:48:33
+Log file: D:\SMS\student-management-system\commit_ready_20260204-134833.log
 
 
 ╔══════════════════════════════════════════════════════════════╗
@@ -43,21 +43,21 @@ Log file: D:\SMS\student-management-system\commit_ready_20260202-190724.log
  + ======================================================================
 SMS Version Verification Tool
 ======================================================================
-ℹ️  Using version from VERSION file: 1.17.6
-ℹ️  Target version: 1.17.6
+ℹ️  Using version from VERSION file: 1.17.7
+ℹ️  Target version: 1.17.7
 ℹ️  Mode: CHECK ONLY
 
  + ======================================================================
 Checking Version References
 ======================================================================
-✅ VERSION file: 1.17.6 (correct)
-✅ Backend main.py docstring: 1.17.6 (correct)
-✅ Frontend package.json: 1.17.6 (correct)
-✅ User guide version: 1.17.6 (correct)
-✅ Developer guide version: 1.17.6 (correct)
-✅ Documentation index version: 1.17.6 (correct)
-✅ COMMIT_READY.ps1 version: 1.17.6 (correct)
-✅ INSTALLER_BUILDER.ps1 version: 1.17.6 (correct)
+✅ VERSION file: 1.17.7 (correct)
+✅ Backend main.py docstring: 1.17.7 (correct)
+✅ Frontend package.json: 1.17.7 (correct)
+✅ User guide version: 1.17.7 (correct)
+✅ Developer guide version: 1.17.7 (correct)
+✅ Documentation index version: 1.17.7 (correct)
+✅ COMMIT_READY.ps1 version: 1.17.7 (correct)
+✅ INSTALLER_BUILDER.ps1 version: 1.17.7 (correct)
 
  + ======================================================================
 Verification Summary
@@ -75,7 +75,7 @@ Failed:             0
 ║  Phase 0.5: Version Format Enforcement                        ║
 ╚══════════════════════════════════════════════════════════════╝
 
-✅ Version format valid: 1.17.6
+✅ Version format valid: 1.17.7
 
 ─────────────────────────────────────────────────
  Backend: Ensure Python Dependencies
@@ -158,7 +158,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ╔════════════════════════════════════════╗
 ║   Batch Test Runner (SMS v1.17.2)     ║
 ╚════════════════════════════════════════╝
-📝 Logging to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260202_190837.txt
+📝 Logging to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260204_134936.txt
 ℹ Scanning for test files...
 
 ✓ Found 94 test files
@@ -177,7 +177,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ....................................................................     [100%]
-✓ Batch 1 completed successfully in 9.8s
+✓ Batch 1 completed successfully in 12.4s
 
   Waiting 2 seconds before next batch...
 
@@ -192,7 +192,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 .........................................                                [100%]
-✓ Batch 2 completed successfully in 7.1s
+✓ Batch 2 completed successfully in 6.4s
 
   Waiting 2 seconds before next batch...
 
@@ -222,7 +222,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ...........................                                              [100%]
-✓ Batch 4 completed successfully in 11s
+✓ Batch 4 completed successfully in 10.5s
 
   Waiting 2 seconds before next batch...
 
@@ -237,7 +237,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ...............................                                          [100%]
-✓ Batch 5 completed successfully in 6s
+✓ Batch 5 completed successfully in 5.5s
 
   Waiting 2 seconds before next batch...
 
@@ -252,7 +252,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ...................                                                      [100%]
-✓ Batch 6 completed successfully in 5.4s
+✓ Batch 6 completed successfully in 4.5s
 
   Waiting 2 seconds before next batch...
 
@@ -267,7 +267,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ............................................                             [100%]
-✓ Batch 7 completed successfully in 5.3s
+✓ Batch 7 completed successfully in 4.7s
 
   Waiting 2 seconds before next batch...
 
@@ -282,7 +282,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ..............................                                           [100%]
-✓ Batch 8 completed successfully in 6.5s
+✓ Batch 8 completed successfully in 6s
 
   Waiting 2 seconds before next batch...
 
@@ -297,7 +297,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ................................                                         [100%]
-✓ Batch 9 completed successfully in 6.8s
+✓ Batch 9 completed successfully in 6.1s
 
   Waiting 2 seconds before next batch...
 
@@ -312,7 +312,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ℹ Running tests...
 
 ..............................                                           [100%]
-✓ Batch 10 completed successfully in 8s
+✓ Batch 10 completed successfully in 7.3s
 
   Waiting 2 seconds before next batch...
 
@@ -329,7 +329,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ...s...                                                                  [100%]
 =========================== short test summary info ===========================
 SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
-✓ Batch 11 completed successfully in 5.1s
+✓ Batch 11 completed successfully in 4.6s
 
   Waiting 2 seconds before next batch...
 
@@ -344,7 +344,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
 ℹ Running tests...
 
 ....................................................                     [100%]
-✓ Batch 12 completed successfully in 6.4s
+✓ Batch 12 completed successfully in 5.8s
 
   Waiting 2 seconds before next batch...
 
@@ -359,7 +359,7 @@ SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set R
 ℹ Running tests...
 
 .......................................................                  [100%]
-✓ Batch 13 completed successfully in 5.1s
+✓ Batch 13 completed successfully in 5s
 
   Waiting 2 seconds before next batch...
 
@@ -396,7 +396,7 @@ SKIPPED [1] tests\test_rbac_templates.py:615: Request ID not yet in error meta
 SKIPPED [1] tests\test_rbac_templates.py:626: Token permission propagation needs JWT integration testing
 SKIPPED [1] tests\test_rbac_templates.py:632: Token revocation on refresh not implemented
 SKIPPED [1] tests\test_rbac_templates.py:830: Role permission expiry not implemented in RolePermission model
-✓ Batch 14 completed successfully in 7.5s
+✓ Batch 14 completed successfully in 6.9s
 
   Waiting 2 seconds before next batch...
 
@@ -411,7 +411,7 @@ SKIPPED [1] tests\test_rbac_templates.py:830: Role permission expiry not impleme
 ℹ Running tests...
 
 .................................                                        [100%]
-✓ Batch 15 completed successfully in 9.8s
+✓ Batch 15 completed successfully in 9s
 
   Waiting 2 seconds before next batch...
 
@@ -448,7 +448,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-✓ Batch 17 completed successfully in 36.5s
+✓ Batch 17 completed successfully in 30.7s
 
   Waiting 2 seconds before next batch...
 
@@ -463,7 +463,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
 ℹ Running tests...
 
 .........................................................                [100%]
-✓ Batch 18 completed successfully in 5.7s
+✓ Batch 18 completed successfully in 4.9s
 
   Waiting 2 seconds before next batch...
 
@@ -481,7 +481,7 @@ tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
 SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
 SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
 SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
-✓ Batch 19 completed successfully in 4.9s
+✓ Batch 19 completed successfully in 4.4s
 
 
 ╔════════════════════════════════════════╗
@@ -493,13 +493,13 @@ Batches:
 
 Tests:
   Total:   0
-Duration: 155.5s
-📝 Full log saved to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260202_190837.txt
+Duration: 143.3s
+📝 Full log saved to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260204_134936.txt
 ✓ All tests passed! 🎉
 
 ✓ All tests passed! 🎉
 
-✓ Test log completed: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260202_190837.txt
+✓ Test log completed: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260204_134936.txt
 ✅ Backend tests passed
 
 ─────────────────────────────────────────────────
@@ -536,7 +536,6 @@ stderr | src/i18n/__tests__/translations.test.ts
 ─────────────────────────────────────────────────
  Build Artifacts Cleanup
 ─────────────────────────────────────────────────
-✅ Removed dist
 
 ─────────────────────────────────────────────────
  Temporary Files Cleanup
@@ -546,7 +545,7 @@ stderr | src/i18n/__tests__/translations.test.ts
 ─────────────────────────────────────────────────
  Legacy Artifacts Cleanup
 ─────────────────────────────────────────────────
-ℹ️  Total space freed: 7.18 MB
+ℹ️  Total space freed: 4.08 MB
 
 ╔══════════════════════════════════════════════════════════════╗
 ║  Phase 5: Documentation and Git Status                        ║
@@ -565,19 +564,29 @@ stderr | src/i18n/__tests__/translations.test.ts
  Git Status
 ─────────────────────────────────────────────────
 ℹ️  Uncommitted changes detected:
- M backend/services/report_exporters.py ?? commit_ready_20260202-190724.log
+ M .github/RELEASE_NOTES_v1.17.7.md  D .test-failures  M DEPLOYMENT_READINESS_FINAL_CONFIRMATION.md  M EMERGENCY_FIX_400_ERROR.ps1  M INSTALLATION_FIX_COMPLETE.md  M INSTALLER_CRITICAL_FIXES_SUMMARY_FEB3.md  M INSTALLER_LOCKED_FILES_FIX.md  M RELEASE_v1.17.7_COMPLETION_SUMMARY.md  M SCRIPTS_DEPLOYMENT_ANALYSIS.md  M backend/admin_routes.py  M backend/check_login_health.py  M backend/lifespan.py  M backend/middleware_config.py  M backend/routers/routers_rbac.py  M backend/services/backup_service_encrypted.py  M commit_ready_20260202-190724.log  M commit_ready_20260202-192811.log  M commit_ready_20260202-201338.log  M docs/AGENT_POLICY_ENFORCEMENT.md  M docs/misc/DEPLOYMENT_PREPARATION_v1.17.6.md  M docs/misc/DEPLOYMENT_READY.md  M docs/releases/CI_CD_AUDIT_SUMMARY_v1.17.7.md  M docs/releases/CI_CD_RELEASE_WORKFLOW_AUDIT_v1.17.7.md  M docs/releases/GITHUB_RELEASE_v1.17.7.md  M docs/releases/RELEASE_NOTES_v1.17.7.md  M docs/releases/v1.17.7_RELEASE_FIX_ACTION_PLAN.md  M docs/releases/v1.17.7_RELEASE_FIX_EXECUTION_REPORT.md  M frontend/src/api/search-client.ts  M frontend/src/features/custom-reports/components/ReportBuilder.tsx  M frontend/src/features/custom-reports/components/ReportList.tsx  M frontend/src/features/custom-reports/components/ReportTemplateList.tsx  M frontend/src/features/custom-reports/components/SortBuilder.tsx  M frontend/src/features/export-admin/components/ExportDashboard.tsx  M frontend/src/features/export-admin/components/ExportJobList.tsx  M frontend/src/features/export-admin/components/ExportScheduler.tsx  M frontend/src/features/export-admin/components/index.tsx  M frontend/src/features/export-admin/hooks/useExportAdmin.ts  M frontend/src/features/grading/components/GradingView.tsx  M frontend/src/features/importExport/ExportDialog.tsx  M frontend/src/features/search/SavedSearches.tsx  M frontend/src/features/search/SearchBar.tsx  M frontend/src/features/search/SearchView.tsx  M frontend/src/features/search/useSearch.ts  M frontend/src/hooks/useCustomReports.ts  M frontend/src/test-utils/i18n-test-wrapper.tsx  M frontend/tests/e2e/search_advanced.spec.ts  M installer/INSTALLER_CRITICAL_FIX_400_ERROR.md  M installer/INSTALLER_FIXES_APPLIED_FEB3.md  M installer/INSTALLER_UPGRADE_FIX_ANALYSIS.md  M installer/MANUAL_CLEANUP_GUIDE.md  M installer/installer_complete_el.txt  M installer/installer_welcome_el.txt ?? CodeQL-Security-Findings-Feb4.txt ?? commit_ready_20260204-134442.log ?? commit_ready_20260204-134833.log
 
 ─────────────────────────────────────────────────
  Root Documentation Whitelist
 ─────────────────────────────────────────────────
-✅ Root documentation whitelist satisfied
+❌ Found 9 unclassified Markdown file(s) in repo root
+   • DEPLOYMENT_READINESS_FINAL_CONFIRMATION.md
+   • INSTALLATION_FIX_COMPLETE.md
+   • INSTALLER_CRITICAL_FIXES_SUMMARY_FEB3.md
+   • INSTALLER_LOCKED_FILES_FIX.md
+   • RELEASE_SCRIPT_CONSOLIDATION.md
+   • RELEASE_v1.17.7_COMPLETION_SUMMARY.md
+   • SCRIPTS_DEPLOYMENT_ANALYSIS.md
+   • SECURITY_FIXES_FEB4_2026.md
+   • SESSION_COMPLETION_REPORT_FEB3.md
+ℹ️  Run .\\WORKSPACE_CLEANUP.ps1 -Mode standard to auto-organize, or move to docs/ manually
 
 ╔══════════════════════════════════════════════════════════════╗
 ║  Execution Summary                                            ║
 ╚══════════════════════════════════════════════════════════════╝
 
 Mode: quick
-Duration: 235s
+Duration: 212.2s
 
 Code Quality:
   ✅ Docs & Version Sync
@@ -606,42 +615,9 @@ Cleanup:
   ✅ Temp Files (15 files removed)
 
 = * 60
-[OK] ALL CHECKS PASSED - READY TO COMMIT
+[FAIL] SOME CHECKS FAILED - REVIEW AND FIX
 = * 60
-
-╔══════════════════════════════════════════════════════════════╗
-║  Commit Message Generation                                    ║
-╚══════════════════════════════════════════════════════════════╝
-
-chore: pre-commit validation complete
-
-Status: ✅ PASSED
-Version: 1.17.6
-Duration: 235s
-Mode: quick
-
-Code Quality:
-   • Linting: 9/9 checks passed
-   • Tests: 4/4 suites passed
-   • Cleanup: 4 operations completed
-All systems verified and ready for commit.
-
- + = * 60
-NEXT STEPS:
-= * 60
-✅ VALIDATION PASSED - Ready to commit!
-
-Option 1 - AUTOMATIC (NEW):
-  .\scripts\AUTO_COMMIT_AFTER_READY.ps1
-
-Option 2 - MANUAL:
-  1. Review changes: git status
-  2. Stage changes: git add .
-  3. Commit: git commit -m '<message above>'
-  4. Push: git push origin main
-
-Note: Validation checkpoint valid for 90 minutes (extended on Jan 30, 2026)
 **********************
 PowerShell transcript end
-End time: 20260202191119
+End time: 20260204135205
 **********************

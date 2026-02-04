@@ -15,9 +15,6 @@ import {
   Line,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
-  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -27,7 +24,7 @@ import {
 } from 'recharts';
 
 // ===== ExportMetricsChart.tsx =====
-export const ExportMetricsChart: React.FC<any> = ({ metrics, period, onPeriodChange }) => {
+export const ExportMetricsChart: React.FC<any> = ({ metrics }) => {
   const { t } = useTranslation('exportAdmin');
 
   if (!metrics?.trend_data) return null;

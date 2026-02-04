@@ -75,7 +75,7 @@ Write-Host "`n[PHASE 3] Removing old uninstaller files..." -ForegroundColor Yell
 if (Test-Path $installPath) {
     # Patterns to delete
     $patterns = @("unins000.*", "unins1.12.3.*", "unins1.17.6.*", "unins1.17.5.*")
-    
+
     foreach ($pattern in $patterns) {
         Get-ChildItem "$installPath" -Filter $pattern -Force -ErrorAction SilentlyContinue | ForEach-Object {
             try {
@@ -106,7 +106,7 @@ if (Test-Path $installPath) {
             Write-Host "  ✗ Failed to delete: $($_.Name)" -ForegroundColor Red
         }
     }
-    
+
     # Delete old .env files from backend directory
     $backendPath = "$installPath\backend"
     if (Test-Path $backendPath) {
@@ -140,9 +140,9 @@ if (Test-Path $installPath) {
     } else {
         Write-Host "  ✓ No old uninstaller files found" -ForegroundColor Green
     }
-    
+
     # Check for old .env files
-    $envFiles = Get-ChildItem "$installPath" -Filter ".env*" -Force -ErrorAction SilentlyContinue | 
+    $envFiles = Get-ChildItem "$installPath" -Filter ".env*" -Force -ErrorAction SilentlyContinue |
                 Where-Object { $_.LastWriteTime -lt (Get-Date).AddDays(-1) }
     if ($envFiles) {
         Write-Host "  ✗ Old .env files still present:" -ForegroundColor Red

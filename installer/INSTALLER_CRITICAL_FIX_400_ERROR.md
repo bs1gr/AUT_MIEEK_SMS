@@ -1,8 +1,8 @@
 # CRITICAL FIX: Installer 400 Bad Request Error Resolution
 
-**Date**: February 3, 2026  
-**Version**: v1.17.7  
-**Status**: ✅ FIXED (commit e196120cc)  
+**Date**: February 3, 2026
+**Version**: v1.17.7
+**Status**: ✅ FIXED (commit e196120cc)
 **Severity**: CRITICAL - Prevented all upgrades from working
 
 ---
@@ -45,8 +45,8 @@ The installer had **backwards logic** for handling .env files during upgrades:
 
 ### What Was Changed
 
-**File**: `installer/SMS_Installer.iss`  
-**Commit**: e196120cc  
+**File**: `installer/SMS_Installer.iss`
+**Commit**: e196120cc
 **Lines Modified**: CurStepChanged(ssPostInstall) section
 
 **BEFORE (BROKEN):**
@@ -59,7 +59,7 @@ DeleteFile(ExpandConstant('{app}\.env'));
 // Restore old .env files from backup (WRONG!)
 if FileExists(UpgradeBackupPath + '\config\backend.env') then
 begin
-  FileCopy(UpgradeBackupPath + '\config\backend.env', 
+  FileCopy(UpgradeBackupPath + '\config\backend.env',
            ExpandConstant('{app}\backend\.env'), False);
 end;
 // ... (57 lines of .env restoration logic)
@@ -118,7 +118,7 @@ Get-Item ".\SMS_Installer_1.17.7.exe" | Select-Object Name, Length, LastWriteTim
 **Step 3: Verify Fresh .env Files**
 ```powershell
 # Check .env file timestamps - should be TODAY's date
-Get-ChildItem "C:\Program Files\SMS\" -Filter "*.env" -Recurse | 
+Get-ChildItem "C:\Program Files\SMS\" -Filter "*.env" -Recurse |
   Select-Object FullName, LastWriteTime
 
 # Expected: All .env files dated 02/03/2026 or later
@@ -152,8 +152,8 @@ docker images | Select-String "sms-fullstack"
 
 ### 1. Docker Image Cleanup (Commit d19e13e78)
 
-**What**: Added `CleanOldDockerImages()` procedure  
-**Why**: Prevents conflicts between multiple image versions  
+**What**: Added `CleanOldDockerImages()` procedure
+**Why**: Prevents conflicts between multiple image versions
 **Result**: Old images (1.12.3, 1.17.6) automatically removed
 
 ```pascal
@@ -167,8 +167,8 @@ end;
 
 ### 2. Uninstaller File Cleanup (Commit d02296106)
 
-**What**: Added `CleanOldUninstallers()` procedure with error logging  
-**Why**: Old uninstaller files remained visible in installation directory  
+**What**: Added `CleanOldUninstallers()` procedure with error logging
+**Why**: Old uninstaller files remained visible in installation directory
 **Result**: Attempts to delete old uninstaller files, logs warnings if locked
 
 ```pascal
@@ -180,7 +180,7 @@ begin
   Patterns[1] := 'unins000.dat';
   Patterns[2] := 'unins1.12.3.exe';
   // ... (8 patterns total)
-  
+
   for i := 0 to GetArrayLength(Patterns) - 1 do
   begin
     if DeleteFile(FilePath) then
@@ -193,8 +193,8 @@ end;
 
 ### 3. Emergency Cleanup Script (Commit ad5dcae86)
 
-**What**: Created `scripts/EMERGENCY_FIX_400_ERROR.ps1`  
-**Why**: Allows manual cleanup if installer fails  
+**What**: Created `scripts/EMERGENCY_FIX_400_ERROR.ps1`
+**Why**: Allows manual cleanup if installer fails
 **Result**: Can remove locked files manually
 
 **Usage**:

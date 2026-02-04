@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { useSearch } from './useSearch';
+import { useSearch, type SearchResult, type FilterCriteria } from './useSearch';
 import { useSearchFacets } from './useSearchFacets';
 import SearchSortControls from './SearchSortControls';
 import SearchPagination from './SearchPagination';
@@ -33,7 +33,7 @@ export const SearchView: React.FC = () => {
   const [gradeDateTo, setGradeDateTo] = useState('');
 
   const applyGradeDateFilters = useCallback(
-    (currentFilters: { field: string; operator: string; value: unknown }[]) => {
+    (currentFilters: FilterCriteria[]): FilterCriteria[] => {
       const filtered = currentFilters.filter(
         (filter) => !['date_from', 'date_to', 'date_assigned_from', 'date_assigned_to'].includes(filter.field)
       );
@@ -43,11 +43,11 @@ export const SearchView: React.FC = () => {
       }
 
       if (gradeDateFrom) {
-        filtered.push({ field: 'date_from', operator: 'equals', value: gradeDateFrom });
+        filtered.push({ field: 'date_from', operator: 'equals' as const, value: gradeDateFrom });
       }
 
       if (gradeDateTo) {
-        filtered.push({ field: 'date_to', operator: 'equals', value: gradeDateTo });
+        filtered.push({ field: 'date_to', operator: 'equals' as const, value: gradeDateTo });
       }
 
       return filtered;
@@ -82,7 +82,7 @@ export const SearchView: React.FC = () => {
   const handleFacetSelect = (facet: string, value: string) => {
     setFilters((prev) => applyGradeDateFilters([
       ...prev.filter((filter) => filter.field !== facet),
-      { field: facet, operator: 'equals', value },
+      { field: facet, operator: 'equals' as const, value },
     ]));
     setPage(0);
   };
@@ -279,7 +279,7 @@ export const SearchView: React.FC = () => {
             )}
 
             <ul className="divide-y divide-gray-100">
-              {searchResults.map((result, index) => (
+              {searchResults.map((result: SearchResult, index: number) => (
                 <li key={`${result.type}-${result.id}-${index}`} className="py-3">
                   <div className="flex items-start justify-between">
                     <div>

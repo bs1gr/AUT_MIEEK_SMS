@@ -162,4 +162,3 @@ Since $11.17.6, the following major commits were included:
 ---
 
 **For questions or issues, refer to [DOCUMENTATION_INDEX.md](https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/DOCUMENTATION_INDEX.md) or contact project maintainers.**
-

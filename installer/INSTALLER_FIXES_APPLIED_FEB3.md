@@ -83,7 +83,7 @@ Pre-upgrade backup created at:
 **What's Backed Up**:
 - ✅ `{app}\data\*` - User database and all artifacts
 - ✅ `backend\.env` - Backend configuration
-- ✅ `frontend\.env` - Frontend configuration  
+- ✅ `frontend\.env` - Frontend configuration
 - ✅ Root `.env` - Docker environment
 - ✅ `config\lang.txt` - Language preference
 
@@ -468,4 +468,3 @@ docker logs sms-app
 5. Publish release notes
 
 **Timeline**: Ready for production release after testing
-

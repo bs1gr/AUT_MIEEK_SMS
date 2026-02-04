@@ -1,6 +1,6 @@
 # Scripts Folder Deployment Analysis
 
-**Date**: February 3, 2026  
+**Date**: February 3, 2026
 **Purpose**: Determine which scripts are needed for production deployment vs. development
 
 ---
@@ -243,7 +243,7 @@ scripts/
 1. ✅ **Document** in `scripts/README.md`:
    ```markdown
    ## Deployment Notice
-   
+
    **For Production**: Only `backup-database.sh` is used in deployment.
    All other scripts are development/build tools and NOT needed at runtime.
    ```

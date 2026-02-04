@@ -33,13 +33,13 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
 
     switch (exportJob.status) {
       case 'pending':
-        return t('importExport.status.pending', 'Pending...');
+        return t('importExport.status.pending');
       case 'processing':
-        return t('importExport.status.processing', 'Processing...');
+        return t('importExport.status.processing');
       case 'completed':
-        return t('importExport.status.completed', `Completed: ${exportJob.total_records} records`);
+        return t('importExport.status.completed', { count: exportJob.total_records });
       case 'failed':
-        return t('importExport.status.failed', 'Export failed');
+        return t('importExport.status.failed');
       default:
         return exportJob.status;
     }
@@ -67,7 +67,7 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
             <div>
               <div style={{ marginBottom: 16 }}>
                 <label style={{ display: 'block', marginBottom: 8 }}>
-                  {t('importExport.exportType', 'Export Type')}
+                  {t('importExport.exportType')}
                 </label>
                 <select
                   value={exportType}
@@ -75,9 +75,9 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
                   disabled={isCreating}
                   style={{ width: '100%', padding: 8 }}
                 >
-                  <option value="students">{t('importExport.students', 'Students')}</option>
-                  <option value="courses">{t('importExport.courses', 'Courses')}</option>
-                  <option value="grades">{t('importExport.grades', 'Grades')}</option>
+                  <option value="students">{t('importExport.students')}</option>
+                  <option value="courses">{t('importExport.courses')}</option>
+                  <option value="grades">{t('importExport.grades')}</option>
                 </select>
               </div>
 
@@ -97,7 +97,7 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
                   }}
                   data-testid="start-export-btn"
                 >
-                  {isCreating ? t('common.loading', 'Loading...') : t('importExport.startExport', 'Start Export')}
+                  {isCreating ? t('common.loading') : t('importExport.startExport')}
                 </button>
                 <button
                   onClick={() => setOpen(false)}
@@ -123,10 +123,10 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
                 marginBottom: 16,
               }}>
                 <div style={{ fontWeight: 'bold', marginBottom: 8 }}>
-                  {t('importExport.jobId', 'Job ID')}: {exportJob.id}
+                  {t('importExport.jobId')}: {exportJob.id}
                 </div>
                 <div style={{ marginBottom: 8 }}>
-                  {t('importExport.status', 'Status')}: <span style={{
+                  {t('importExport.status')}: <span style={{
                     fontWeight: 'bold',
                     color: exportJob.status === 'completed' ? '#10b981' :
                            exportJob.status === 'failed' ? '#ef4444' : '#f59e0b'
@@ -136,7 +136,7 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
                 </div>
                 {isPolling && (
                   <div style={{ fontSize: 12, color: '#666' }}>
-                    {t('importExport.pollingStatus', 'Polling for updates...')}
+                    {t('importExport.pollingStatus')}
                   </div>
                 )}
               </div>
@@ -156,7 +156,7 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
                     }}
                     data-testid="download-export-btn"
                   >
-                    {t('importExport.download', 'Download')}
+                    {t('importExport.download')}
                   </button>
                 )}
                 {!isComplete && !isFailed && (
@@ -173,7 +173,7 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
                     }}
                     data-testid="cancel-export-btn"
                   >
-                    {t('importExport.cancel', 'Cancel')}
+                    {t('importExport.cancel')}
                   </button>
                 )}
                 <button

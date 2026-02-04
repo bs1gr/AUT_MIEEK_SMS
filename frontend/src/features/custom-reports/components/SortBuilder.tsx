@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, GripVertical } from 'lucide-react';
+import { Plus, Trash2, ChevronUp } from 'lucide-react';
 
 interface SortRule {
   field: string;
@@ -71,7 +71,7 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
         <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
           {sorting.map((rule, index) => (
             <div key={index} className="flex gap-3 items-center bg-white p-3 rounded border group">
-              <GripVertical size={18} className="text-gray-400 cursor-grab" />
+              <ChevronUp size={18} className="text-gray-400 cursor-grab" />
 
               <select
                 value={rule.field}

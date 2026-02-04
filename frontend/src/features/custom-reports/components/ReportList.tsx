@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2, Edit2, Copy, Share2, Download, Play, MoreVertical, ChevronDown, Upload } from 'lucide-react';
+import { Trash2, Edit, Copy, Download, RefreshCw, ChevronDown, Upload } from 'lucide-react';
 import { useCustomReports, useCreateTemplate, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport, useDeleteGeneratedReport, useImportDefaultTemplates } from '@/hooks/useCustomReports';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -17,9 +17,6 @@ interface ReportListProps {
 export const ReportList: React.FC<ReportListProps> = ({
   onCreateReport,
   onEditReport,
-  // onViewReport is reserved for future use when viewing generated reports
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onViewReport,
 }) => {
   const { t } = useTranslation();
   const { data: reports, isLoading, error } = useCustomReports();
@@ -231,7 +228,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                         className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                         title={t('generateReport', { ns: 'customReports' })}
                       >
-                        <Play size={16} />
+                        <RefreshCw size={16} />
                       </button>
                       <button
                         onClick={() => {
@@ -255,7 +252,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
                         title={t('edit', { ns: 'customReports' })}
                       >
-                        <Edit2 size={16} />
+                        <Edit size={16} />
                       </button>
                       <button
                         onClick={() => handleDuplicateReport(report)}
@@ -271,13 +268,13 @@ export const ReportList: React.FC<ReportListProps> = ({
                           onClick={() => setExpandedMenu(expandedMenu === report.id ? null : report.id)}
                           className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
                         >
-                          <MoreVertical size={16} />
+                          <ChevronDown size={16} />
                         </button>
 
                         {expandedMenu === report.id && (
                           <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-48">
                             <button className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm">
-                            <Share2 size={14} />
+                            <Copy size={14} />
                             {t('share', { ns: 'customReports' })}
                           </button>
                             <button

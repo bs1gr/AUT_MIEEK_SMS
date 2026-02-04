@@ -1,7 +1,7 @@
 # 🔧 SMS v1.17.7 - CRITICAL FIX: Locked Files Handling
 
-**Date**: February 3, 2026 (23:05 UTC)  
-**Status**: ✅ ENHANCED INSTALLER READY  
+**Date**: February 3, 2026 (23:05 UTC)
+**Status**: ✅ ENHANCED INSTALLER READY
 **Issue Fixed**: Old .env files and uninstallers not removed due to file locking
 
 ---
@@ -15,7 +15,7 @@ Remove-Item: Access to the path 'C:\Program Files\SMS\unins000.dat' is denied.
 Remove-Item: Access to the path 'C:\Program Files\SMS\.env' is denied.
 ```
 
-**Root Cause**: 
+**Root Cause**:
 - Files were locked by running processes or Windows file system
 - The installer's `DeleteFile()` calls were silently failing
 - Without error checking, failures went undetected
@@ -97,7 +97,7 @@ begin
   // Delete any existing new uninstaller first
   if FileExists(NewUninstaller) then
     DeleteFile(NewUninstaller);
-  
+
   // Now rename
   if RenameFile(OldUninstaller, NewUninstaller) then
     Log('  [OK] Uninstaller renamed successfully')
@@ -196,7 +196,7 @@ end;
 
 **Message**:
 ```
-fix(installer): improve error handling for locked files in .env deletion 
+fix(installer): improve error handling for locked files in .env deletion
 and uninstaller cleanup
 
 - CleanOldUninstallers(): Now uses array iteration with individual logging
@@ -249,8 +249,7 @@ and uninstaller cleanup
 
 ---
 
-**Status**: ✅ **READY FOR PRODUCTION**  
-**Next Release**: v1.17.7 (installer with enhanced error handling)  
-**Installation Time**: ~2-5 minutes  
+**Status**: ✅ **READY FOR PRODUCTION**
+**Next Release**: v1.17.7 (installer with enhanced error handling)
+**Installation Time**: ~2-5 minutes
 **Test on**: Separate PC first if possible
-

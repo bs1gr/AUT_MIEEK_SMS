@@ -10,7 +10,7 @@ Exit codes:
 
 import sys
 from time import sleep
-from typing import Dict, Any
+from typing import Dict
 
 import requests
 

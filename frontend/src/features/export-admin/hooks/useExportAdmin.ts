@@ -4,7 +4,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/api/api';
+import apiClient from '@/api/api';
 import {
   ExportJob,
   CreateExportRequest,
