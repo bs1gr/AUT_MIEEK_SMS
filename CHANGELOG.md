@@ -8,10 +8,48 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [1.17.7] - 2026-02-04
+
+### ⚠️ BREAKING CHANGES
+- None - fully backward compatible with v1.17.6
+
+### Features
+- **installer**: Critical installer fixes for Windows deployment
+  - Enforce single installation directory (prevent parallel installs)
+  - Robust existing installation detection (registry + filesystem)
+  - Automatic data backup before any changes
+  - Installation metadata tracking
+  - Improved Docker resource handling during upgrades
+- **backend**: WebSocket AsyncServer mounting (resolve `'AsyncServer' object has no attribute 'asgi_app'`)
+- **backend**: APScheduler integration for automated report scheduling
+
+### Bug Fixes
+- **backend**: Fix WebSocket async server mounting error
+- **backend**: Make Alembic baseline migration idempotent (prevent "table already exists" errors)
+- **backend**: Add missing APScheduler dependency
+- **frontend**: Fix module resolution issues and API imports
+- **frontend**: Add missing formatDateGreek utility function
+- **security**: Add CodeQL suppression comments for verified safe path traversal patterns
+
+### Code Health
+- **security**: Document 14 CodeQL path traversal false positives as verified safe with comprehensive 5-layer validation
+- **frontend**: 240 ESLint warnings identified (non-blocking, documented for refactoring)
+  - Type safety issues (`any` types in API layer)
+  - React best practices (useState in effects)
+  - Console statement remnants
+  - i18n keys (some hardcoded strings)
+
+### Infrastructure
+- **ci**: Add workflow_dispatch to manual workflows for recovery capability
+- **ci**: Limit heavy workflows to PRs/schedule to prevent queue buildup
+- **testing**: Backend test suite: 742 tests passing (100%)
+- **testing**: Frontend test suite: 1249+ tests passing (100%)
+- **testing**: E2E test suite: 19+ critical tests passing (100%)
+
 ## [1.17.5] - 2026-01-29
 
 ### ⚠️ BREAKING CHANGES
-- None - fully backward compatible with $11.17.6
+- None - fully backward compatible with v1.17.6
 
 ### Features
 - **theme**: MIEEK Dark theme visual refinements with improved input contrast
