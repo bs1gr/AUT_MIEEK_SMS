@@ -45,7 +45,7 @@ import {
   useDeleteSchedule,
   useToggleSchedule,
 } from '../hooks/useExportAdmin';
-import { ExportSchedulerProps, ScheduleFrequency, CreateScheduleRequest } from '../types/export';
+import { ExportSchedulerProps, ScheduleFrequency, CreateScheduleRequest, ExportSchedule } from '../types/export';
 import { format } from 'date-fns';
 
 const ExportScheduler: React.FC<ExportSchedulerProps> = ({
@@ -101,7 +101,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
     }
   };
 
-  const handleToggle = async (schedule: any) => {
+  const handleToggle = async (schedule: ExportSchedule) => {
     await toggleScheduleMutation.mutateAsync({
       scheduleId: schedule.id,
       isActive: !schedule.is_active,

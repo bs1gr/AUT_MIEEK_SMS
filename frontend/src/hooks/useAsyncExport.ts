@@ -26,7 +26,7 @@ export interface ExportJob {
 export interface CreateExportRequest {
   export_type: 'students' | 'courses' | 'grades';
   file_format: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   limit?: number;
 }
 

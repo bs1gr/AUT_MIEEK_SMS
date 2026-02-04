@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit, Copy, Download, RefreshCw, ChevronDown, Upload } from 'lucide-react';
 import { useCustomReports, useCreateTemplate, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport, useDeleteGeneratedReport, useImportDefaultTemplates } from '@/hooks/useCustomReports';
+import type { CustomReport, GeneratedReport, ReportTemplate } from '@/api/customReportsAPI';
 import { formatDistanceToNow } from 'date-fns';
 
 interface ReportListProps {
@@ -72,7 +73,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   }
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedReports(checked ? reports.map((r: any) => r.id) : []);
+    setSelectedReports(checked ? reports.map((r: CustomReport) => r.id) : []);
   };
 
   const handleSelectReport = (reportId: number, checked: boolean) => {
@@ -91,19 +92,19 @@ export const ReportList: React.FC<ReportListProps> = ({
     generateMutation.mutate(reportId);
   };
 
-  const handleDuplicateReport = (report: any) => {
+  const handleDuplicateReport = (report: CustomReport) => {
     // This would open the report builder with pre-filled data
     onEditReport?.(report.id);
   };
 
-  const handleSaveAsTemplate = (report: any) => {
+  const handleSaveAsTemplate = (report: CustomReport) => {
     const defaultName = report?.name ? `${report.name} Template` : '';
     const name = window.prompt(t('templateNamePrompt', { ns: 'customReports' }), defaultName);
     if (!name) {
       return;
     }
 
-    const templateData = {
+    const templateData: Partial<ReportTemplate> = {
       name,
       description: report?.description || null,
       category: 'academic',
@@ -191,7 +192,7 @@ export const ReportList: React.FC<ReportListProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y">
-            {reports.map((report: any) => (
+            {reports.map((report) => (
               <React.Fragment key={report.id}>
                 <tr className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4">
@@ -317,7 +318,7 @@ export const ReportList: React.FC<ReportListProps> = ({
 // Generated Reports Row Component
 interface GeneratedReportsRowProps {
   reportId: number;
-  downloadMutation: any;
+  downloadMutation: ReturnType<typeof useDownloadReport>;
 }
 
 const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, downloadMutation }) => {
@@ -336,7 +337,7 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
           )}
           {!isLoading && generatedReports && generatedReports.length > 0 && (
             <div className="space-y-2">
-              {generatedReports.map((generated: any) => {
+              {generatedReports.map((generated: GeneratedReport) => {
                 // Safe date parsing - use generated_at field
                 const generatedDate = generated.generated_at ? new Date(generated.generated_at) : null;
                 const isValidDate = generatedDate && !isNaN(generatedDate.getTime());

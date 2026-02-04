@@ -15,10 +15,39 @@ import { getLocalizedTemplateText } from '../utils/templateLocalization';
 
 interface ReportBuilderProps {
   reportId?: number;
-  initialData?: any;
+  initialData?: unknown;
   onSuccess?: (reportId: number) => void;
   onCancel?: () => void;
 }
+
+type FilterRule = {
+  field: string;
+  operator?: string;
+  value?: unknown;
+};
+
+type SortingRule = {
+  field: string;
+  order?: string;
+};
+
+type BackendReportPayload = {
+  name: string;
+  description: string | null;
+  report_type: string;
+  template_id: number | null;
+  fields: Record<string, boolean>;
+  filters: Record<string, { operator?: string; value?: unknown }> | null;
+  aggregations: null;
+  sort_by: Record<string, string> | null;
+  export_format: string;
+  include_charts: boolean;
+  schedule_enabled: boolean;
+  schedule_frequency: null;
+  schedule_cron: null;
+  email_recipients: null;
+  email_enabled: boolean;
+};
 
 interface ReportConfig {
   name: string;
@@ -28,15 +57,28 @@ interface ReportConfig {
   output_format: string;
   default_export_format?: string; // from template
   selected_fields: string[];
-  fields?: string[] | Record<string, any>; // from template
-  filters: any[];
-  sorting_rules: any[];
-  sort_by?: any[]; // from template
+  fields?: string[] | Record<string, unknown>; // from template
+  filters: FilterRule[];
+  sorting_rules: SortingRule[];
+  sort_by?: SortingRule[]; // from template
   default_include_charts?: boolean;
   template_name?: string;
   template_description?: string;
   is_copy?: boolean;
 }
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (isRecord(error) && typeof error.message === 'string') {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return fallback;
+};
 
 const ENTITY_TYPES = [
   { value: 'student', label: 'entity_students' },
@@ -106,7 +148,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         entity_type?: string;
         output_format?: string;
         selected_fields?: string[];
-        sorting_rules?: any[];
+        sorting_rules?: SortingRule[];
       };
       const templateForLocalization: ReportTemplate | null = templateMeta.is_system
         ? {
@@ -150,37 +192,42 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   });
 
   // Normalize backend report data to builder config
-  const normalizeReportData = useCallback((report: any): ReportConfig => {
-    const fields = Array.isArray(report?.fields)
-      ? report.fields
-      : report?.fields && typeof report.fields === 'object'
-        ? Object.keys(report.fields).filter((key) => report.fields[key])
+  const normalizeReportData = useCallback((report: unknown): ReportConfig => {
+    const reportRecord = isRecord(report) ? report : {};
+    const reportFields = reportRecord.fields;
+    const reportFilters = reportRecord.filters;
+    const reportSortBy = reportRecord.sort_by;
+
+    const fields = Array.isArray(reportFields)
+      ? reportFields
+      : reportFields && typeof reportFields === 'object'
+        ? Object.keys(reportFields).filter((key) => (reportFields as Record<string, boolean>)[key])
         : [];
 
-    const filters = Array.isArray(report?.filters)
-      ? report.filters
-      : report?.filters && typeof report.filters === 'object'
-        ? Object.entries(report.filters).map(([field, value]: [string, any]) => ({
+    const filters = Array.isArray(reportFilters)
+      ? reportFilters
+      : reportFilters && typeof reportFilters === 'object'
+        ? Object.entries(reportFilters).map(([field, value]) => ({
             field,
-            operator: (value as any)?.operator || 'equals',
-            value: (value as any)?.value ?? value,
+            operator: isRecord(value) ? (value.operator as string) || 'equals' : 'equals',
+            value: isRecord(value) ? value.value ?? value : value,
           }))
         : [];
 
-    const sortingRules = Array.isArray(report?.sort_by)
-      ? report.sort_by
-      : report?.sort_by && typeof report.sort_by === 'object'
-        ? Object.entries(report.sort_by).map(([field, order]) => ({
+    const sortingRules = Array.isArray(reportSortBy)
+      ? reportSortBy
+      : reportSortBy && typeof reportSortBy === 'object'
+        ? Object.entries(reportSortBy).map(([field, order]) => ({
             field,
             order: order || 'asc',
           }))
         : [];
 
     return {
-      name: report?.name || '',
-      description: report?.description || '',
-      entity_type: report?.report_type || 'student',
-      output_format: report?.export_format || 'pdf',
+      name: (reportRecord.name as string) || '',
+      description: (reportRecord.description as string) || '',
+      entity_type: (reportRecord.report_type as string) || 'student',
+      output_format: (reportRecord.export_format as string) || 'pdf',
       selected_fields: fields,
       filters,
       sorting_rules: sortingRules,
@@ -204,7 +251,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         entity_type?: string;
         output_format?: string;
         selected_fields?: string[];
-        sorting_rules?: any[];
+        sorting_rules?: SortingRule[];
       };
       const templateForLocalization: ReportTemplate | null = templateMeta.is_system
         ? {
@@ -294,7 +341,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   const availableFields = ENTITY_FIELDS[config.entity_type] || [];
 
   const handleConfigChange = useCallback(
-    (key: keyof ReportConfig, value: any) => {
+    <T extends keyof ReportConfig>(key: T, value: ReportConfig[T]) => {
       setConfig((prev) => ({ ...prev, [key]: value }));
       if (errors[key]) {
         setErrors((prev) => {
@@ -311,11 +358,11 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     setConfig((prev) => ({ ...prev, selected_fields: fields }));
   }, []);
 
-  const handleFiltersChange = useCallback((filters: any[]) => {
+  const handleFiltersChange = useCallback((filters: FilterRule[]) => {
     setConfig((prev) => ({ ...prev, filters }));
   }, []);
 
-  const handleSortingChange = useCallback((sorting: any[]) => {
+  const handleSortingChange = useCallback((sorting: SortingRule[]) => {
     setConfig((prev) => ({ ...prev, sorting_rules: sorting }));
   }, []);
 
@@ -354,7 +401,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     try {
       // Transform sorting_rules array to sort_by dict
       const sortByDict = config.sorting_rules.length > 0
-        ? config.sorting_rules.reduce((acc: Record<string, string>, rule: any) => {
+        ? config.sorting_rules.reduce((acc: Record<string, string>, rule) => {
             acc[rule.field] = rule.order || 'asc';
             return acc;
           }, {})
@@ -362,7 +409,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
       // Transform filters array to filters dict if needed
       const filtersDict = config.filters.length > 0
-        ? config.filters.reduce((acc: Record<string, any>, filter: any) => {
+        ? config.filters.reduce((acc: Record<string, { operator?: string; value?: unknown }>, filter) => {
             acc[filter.field] = {
               operator: filter.operator,
               value: filter.value
@@ -372,7 +419,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         : null;
 
       // Transform frontend config to backend schema format
-      const backendConfig: any = {
+      const backendConfig: BackendReportPayload = {
         name: config.name,
         description: config.description || null,
         report_type: config.entity_type,
@@ -421,7 +468,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       console.error('Error saving report:', error);
       // Show error toast
       const toast = document.createElement('div');
-      const errorMsg = (error as any)?.message || 'Failed to save report';
+      const errorMsg = getErrorMessage(error, 'Failed to save report');
       toast.textContent = `❌ ${t('error', { ns: 'customReports' })}: ${errorMsg}`;
       toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
       document.body.appendChild(toast);

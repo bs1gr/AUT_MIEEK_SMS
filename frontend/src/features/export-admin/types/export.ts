@@ -16,14 +16,14 @@ export interface ExportJob {
   created_at: string;
   updated_at: string;
   error_message?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   record_count?: number;
 }
 
 export interface CreateExportRequest {
   export_type: 'students' | 'courses' | 'grades';
   export_format?: 'excel' | 'csv' | 'pdf';
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   limit?: number;
 }
 
@@ -37,7 +37,7 @@ export interface ExportSchedule {
   export_format: 'excel' | 'csv' | 'pdf';
   frequency: ScheduleFrequency;
   cron_expression?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   is_active: boolean;
   last_run_at?: string;
   next_run_at?: string;
@@ -51,7 +51,7 @@ export interface CreateScheduleRequest {
   export_format?: 'excel' | 'csv' | 'pdf';
   frequency: ScheduleFrequency;
   cron_expression?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
 }
 
 // Metrics Types
@@ -118,9 +118,9 @@ export interface EmailConfig {
 export interface FilterCondition {
   field: string;
   operator: FilterOperator;
-  value?: any;
-  value_min?: any;
-  value_max?: any;
+  value?: unknown;
+  value_min?: unknown;
+  value_max?: unknown;
 }
 
 export type FilterOperator = 'equals' | 'contains' | 'startsWith' | 'greaterThan' | 'lessThan' | 'between' | 'isEmpty' | 'isNotEmpty';
@@ -147,7 +147,7 @@ export interface APIResponse<T> {
   error?: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
   meta?: {
     request_id?: string;
@@ -192,8 +192,8 @@ export interface ExportSettingsPanelProps {
 
 export interface FilterBuilderProps {
   entityType: 'students' | 'courses' | 'grades';
-  value?: Record<string, any>;
-  onChange?: (filters: Record<string, any>) => void;
+  value?: Record<string, unknown>;
+  onChange?: (filters: Record<string, unknown>) => void;
 }
 
 export interface ScheduleBuilderProps {

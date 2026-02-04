@@ -15,7 +15,7 @@ export const ReportBuilderPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
 
   // Extract template data from navigation state
-  const templateData = (location.state as any)?.templateData;
+  const templateData = (location.state as { templateData?: unknown } | null)?.templateData;
 
   return (
     <div className="min-h-screen bg-gray-50">

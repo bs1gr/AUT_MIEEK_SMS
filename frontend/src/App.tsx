@@ -45,9 +45,15 @@ const AppLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
     [t]
   );
 
-  const getActiveView = () => {
+  const navigationKeys = useMemo(
+    () => new Set(navigationTabs.map((tab) => tab.key)),
+    [navigationTabs]
+  );
+
+  const getActiveView = (): NavigationTab['key'] => {
     const pathSegment = location.pathname.split('/')[1] || 'dashboard';
-    return (pathSegment as any) || 'dashboard';
+    const key = pathSegment as NavigationTab['key'];
+    return navigationKeys.has(key) ? key : 'dashboard';
   };
 
   const handleLogout = async () => {

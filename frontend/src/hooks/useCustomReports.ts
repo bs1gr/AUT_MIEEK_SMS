@@ -4,9 +4,34 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customReportsAPI, reportTemplatesAPI } from '@/api/customReportsAPI';
+import type { CustomReport, ReportTemplate } from '@/api/customReportsAPI';
 import i18n from '@/i18n';
 
 // ==================== QUERY KEYS ====================
+
+type ImportDefaultsResponse = {
+  imported_count?: number;
+  data?: { imported_count?: number };
+};
+
+type ErrorWithResponse = {
+  response?: { data?: { error?: { message?: string } } };
+  message?: string;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  const typedError = error as ErrorWithResponse;
+  if (typedError?.response?.data?.error?.message) {
+    return typedError.response.data.error.message;
+  }
+  if (typedError?.message) {
+    return typedError.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return fallback;
+};
 
 export const customReportKeys = {
   all: ['customReports'] as const,
@@ -63,7 +88,7 @@ export function useUpdateTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: any }) =>
+    mutationFn: ({ id, updates }: { id: number; updates: Partial<ReportTemplate> }) =>
       reportTemplatesAPI.update(id, updates),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.template(variables.id) });
@@ -94,7 +119,7 @@ export function useImportDefaultTemplates() {
 
   return useMutation({
     mutationFn: reportTemplatesAPI.importDefaults,
-    onSuccess: (data: any) => {
+    onSuccess: (data: ImportDefaultsResponse) => {
 
 
       const importedCount = data?.imported_count ?? data?.data?.imported_count ?? 0;
@@ -114,18 +139,10 @@ export function useImportDefaultTemplates() {
 
       queryClient.invalidateQueries({ queryKey: customReportKeys.templates() });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error('[Import Error] Full error object:', error);
 
-      let errorMessage = i18n.t('customReports:import_failed');
-
-      if (error?.response?.data?.error?.message) {
-        errorMessage = error.response.data.error.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
+      const errorMessage = getErrorMessage(error, i18n.t('customReports:import_failed'));
 
       // Show error toast with i18n translation
       try {
@@ -188,7 +205,7 @@ export function useUpdateReport() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, updates }: { id: number; updates: any }) =>
+    mutationFn: ({ id, updates }: { id: number; updates: Partial<CustomReport> }) =>
       customReportsAPI.update(id, updates),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.report(variables.id) });
@@ -219,7 +236,7 @@ export function useGenerateReport() {
 
   return useMutation({
     mutationFn: customReportsAPI.generate,
-    onSuccess: (data, reportId) => {
+    onSuccess: (data: { job_id?: string }, reportId) => {
 
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(reportId) });
       // Show success feedback
@@ -237,9 +254,9 @@ export function useGenerateReport() {
         }
       }
     },
-    onError: (error: any, reportId) => {
+    onError: (error: unknown, reportId) => {
       console.error('[useGenerateReport] Error generating report:', { reportId, error });
-      const message = error?.message || i18n.t('customReports:generationFailed');
+      const message = getErrorMessage(error, i18n.t('customReports:generationFailed'));
       // Show error feedback
       if (typeof window !== 'undefined') {
         try {
@@ -317,9 +334,9 @@ export function useDeleteGeneratedReport() {
         }
       }
     },
-    onError: (error: any, variables) => {
+    onError: (error: unknown, variables) => {
       console.error('[useDeleteGeneratedReport] Error deleting generated report:', { variables, error });
-      const message = error?.message || i18n.t('customReports:generationFailed');
+      const message = getErrorMessage(error, i18n.t('customReports:generationFailed'));
       // Show error feedback
       if (typeof window !== 'undefined') {
         try {

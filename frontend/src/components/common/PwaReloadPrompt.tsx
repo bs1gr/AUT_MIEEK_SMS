@@ -10,7 +10,7 @@ const PwaReloadPrompt: React.FC = () => {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(r: any) {
+    onRegistered(r?: ServiceWorkerRegistration) {
       if (r) {
         // Check for updates every hour
         setInterval(() => {
@@ -18,7 +18,7 @@ const PwaReloadPrompt: React.FC = () => {
         }, 60 * 60 * 1000);
       }
     },
-    onRegisterError(error: any) {
+    onRegisterError(error: Error) {
       console.error('SW registration error', error);
     },
   });

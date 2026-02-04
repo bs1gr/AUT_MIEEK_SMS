@@ -31,7 +31,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { isRateLimited, call } = useRateLimit(1000); // 1 second cooldown
 
-  const searchState = useSearch() || {} as any;
+  const searchState = useSearch();
 
   const {
     savedSearches = [],

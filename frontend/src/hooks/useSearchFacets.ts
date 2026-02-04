@@ -31,7 +31,7 @@ export const useSearchFacets = () => {
         });
 
         const data = extractAPIResponseData(response) as { facets?: SearchFacetsData } | SearchFacetsData | undefined;
-        const resolvedFacets = (data && 'facets' in (data as any) ? (data as any).facets : data) || null;
+        const resolvedFacets = (data && typeof data === 'object' && 'facets' in data ? data.facets : data) || null;
 
         setFacets(resolvedFacets);
       } catch (err) {

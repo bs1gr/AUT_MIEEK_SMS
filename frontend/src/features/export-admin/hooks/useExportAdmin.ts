@@ -221,7 +221,7 @@ export const useExportPerformanceStats = () => {
   return useQuery({
     queryKey: ['exportPerformanceStats'],
     queryFn: async () => {
-      const response = await apiClient.get<APIResponse<any>>(
+      const response = await apiClient.get<APIResponse<Record<string, unknown>>>(
         `${API_BASE}/metrics/performance/stats`
       );
       return response.data;

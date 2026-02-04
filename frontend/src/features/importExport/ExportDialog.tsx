@@ -4,10 +4,12 @@ import { useAsyncExport } from '@/hooks/useAsyncExport';
 
 type ExportDialogProps = object;
 
+type ExportType = 'students' | 'courses' | 'grades';
+
 const ExportDialog: React.FC<ExportDialogProps> = () => {
   const { t } = useLanguage();
   const [open, setOpen] = useState(false);
-  const [exportType, setExportType] = useState<'students' | 'courses' | 'grades'>('students');
+  const [exportType, setExportType] = useState<ExportType>('students');
 
   const {
     exportJob,
@@ -71,7 +73,7 @@ const ExportDialog: React.FC<ExportDialogProps> = () => {
                 </label>
                 <select
                   value={exportType}
-                  onChange={(e) => setExportType(e.target.value as any)}
+                  onChange={(e) => setExportType(e.target.value as ExportType)}
                   disabled={isCreating}
                   style={{ width: '100%', padding: 8 }}
                 >

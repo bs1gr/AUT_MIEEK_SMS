@@ -20,7 +20,7 @@ vi.mock('@/api/api', () => {
 
 describe('useSearchFacets Hook', () => {
   let queryClient: QueryClient;
-  let mockApiClient: any;
+  let mockApiClient: typeof apiModule.default;
 
   beforeEach(() => {
     // Get the mocked module
@@ -251,7 +251,7 @@ describe('useSearchFacets Hook', () => {
   });
 
   it('provides loading state during fetch', async () => {
-    let resolveGet: any;
+    let resolveGet: (value: unknown) => void;
     const getPromise = new Promise((resolve) => {
       resolveGet = resolve;
     });

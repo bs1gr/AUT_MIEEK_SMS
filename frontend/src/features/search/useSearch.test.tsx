@@ -21,7 +21,7 @@ vi.mock('@/api/api', () => {
 
 describe('useSearch Hook', () => {
   let queryClient: QueryClient;
-  let mockApiClient: any;
+  let mockApiClient: typeof apiModule.default;
 
   beforeEach(() => {
       // Get the mocked module

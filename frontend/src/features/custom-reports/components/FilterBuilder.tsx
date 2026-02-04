@@ -57,7 +57,11 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
     onChange(filters.filter((_, i) => i !== index));
   };
 
-  const handleUpdateFilter = (index: number, key: keyof Filter, value: any) => {
+  const handleUpdateFilter = <K extends keyof Filter>(
+    index: number,
+    key: K,
+    value: Filter[K]
+  ) => {
     const updated = [...filters];
     updated[index] = { ...updated[index], [key]: value };
     onChange(updated);

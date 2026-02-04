@@ -178,10 +178,11 @@ export const RBACPanel: React.FC = () => {
 
             const _revokeResponse = await rbacAPI.revokeRole(userId, currentRole.name);
 
-          } catch (err: any) {
-            console.error(`Failed to revoke role ${currentRole.name}:`, err?.response?.data || err.message);
+          } catch (err: unknown) {
+            const typedError = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
+            console.error(`Failed to revoke role ${currentRole.name}:`, typedError?.response?.data || typedError?.message);
             // If it's the "last admin" error, stop
-            if (err?.response?.data?.error?.message?.includes('last admin')) {
+            if (typedError?.response?.data?.error?.message?.includes('last admin')) {
               alert('Cannot remove last admin role');
               return;
             }

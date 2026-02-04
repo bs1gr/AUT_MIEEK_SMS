@@ -85,7 +85,7 @@ const StudentsView: React.FC = () => {
           students={students || []}
           onEdit={handleEdit}
           onDelete={handleDelete}
-          onView={(id: any) => navigate(`/students/${id}`)}
+          onView={(id: number) => navigate(`/students/${id}`)}
           height={600}
         />
       )}

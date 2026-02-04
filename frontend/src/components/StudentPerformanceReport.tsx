@@ -2,12 +2,28 @@ import { useState } from 'react';
 import { useLanguage } from '../LanguageContext';
 // import { reportsAPI } from '@/api/api';  // TODO: reportsAPI not yet implemented
 
+type ReportRequest = {
+  student_id: number;
+  period: string;
+  start_date: string | null;
+  end_date: string | null;
+  course_ids?: number[];
+  include_attendance: boolean;
+  include_grades: boolean;
+  include_performance: boolean;
+  include_highlights: boolean;
+  format: string;
+  language: string;
+};
+
+type ReportApiResponse<T> = { data: T };
+
 // Placeholder for reportsAPI until reports feature is fully implemented
 const reportsAPI = {
-  generateStudentReport: async (_req: any) => {
+  generateStudentReport: async (_req: ReportRequest): Promise<ReportApiResponse<ReportData>> => {
     throw new Error('Student report generation not yet implemented');
   },
-  downloadStudentReport: async (_req: any) => {
+  downloadStudentReport: async (_req: ReportRequest): Promise<ReportApiResponse<BlobPart>> => {
     throw new Error('Student report download not yet implemented');
   }
 };
