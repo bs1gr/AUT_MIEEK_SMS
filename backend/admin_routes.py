@@ -296,13 +296,14 @@ async def restore_encrypted_backup(
         restore_dir.mkdir(parents=True, exist_ok=True)
         output_path = (restore_dir / safe_output_filename).resolve()
 
+        # CodeQL [python/path-injection]: Safe - validate_path() performs comprehensive validation
         # Validate path is within allowed directory using centralized validation
         try:
             validate_path(restore_dir, output_path)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Output path outside allowed directory: {str(e)}")
 
-        # Path validated with backend.security.path_validation.validate_path()
+        # Path validated by validate_path() which ensures path stays within restore_dir
         sanitized_output_path: pathlib.Path = output_path
 
         # Decrypt and restore backup

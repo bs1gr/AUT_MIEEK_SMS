@@ -718,10 +718,14 @@ async def rollback_import(request: Request, backup_filename: str):
                 context={"filename": backup_filename},
             )
         # Extract only the filename to prevent any path traversal
+        # CodeQL [python/path-injection]: Safe - backup_filename is validated above via validate_filename()
+        # and is_safe_backup_filename(), then only .name (filename component) is used
         safe_filename = Path(backup_filename).name
         backup_path = (backup_dir / safe_filename).resolve()
 
         # Validate path is within backup_dir using centralized validation
+        # CodeQL [python/path-injection]: Safe - backup_path is validated by validate_path() which
+        # confirms path is within backup_dir and rejects directory traversal patterns
         try:
             validate_path(backup_dir, backup_path)
         except ValueError as e:
@@ -775,7 +779,8 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
             )
 
-        # CodeQL [python/path-injection] - db_path comes from trusted config, not user input
+        # CodeQL [python/path-injection]: Safe - db_path originates from settings.DATABASE_URL
+        # (trusted config), has traversal pattern checks (..), and path resolution validation
         sanitized_db_path = db_path
 
         # Create backup of current state before rollback (safety)
@@ -800,7 +805,9 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": safe_filename},
             )
-        # Paths validated with backend.security.path_validation.validate_path()
+        # CodeQL [python/path-injection]: Safe - both paths are validated:
+        # sanitized_backup_path via validate_path() within backup_dir
+        # sanitized_db_path from trusted config with validation checks
         shutil.copy2(str(sanitized_backup_path), str(sanitized_db_path))
 
         logger.warning(f"DATABASE ROLLBACK performed by system: Restored from {backup_filename}")
