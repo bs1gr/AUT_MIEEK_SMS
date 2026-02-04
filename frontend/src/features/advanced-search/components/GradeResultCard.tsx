@@ -57,7 +57,7 @@ export const GradeResultCard: React.FC<GradeResultCardProps> = ({
     <div
       className={`border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer ${className}`}
       onClick={onClick}
-      role="listitem"
+      role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
