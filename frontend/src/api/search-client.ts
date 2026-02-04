@@ -5,7 +5,7 @@
  * API methods for interacting with backend search endpoints.
  */
 
-import { apiClient } from '@/api/api';
+import apiClient from '@/api/api';
 import {
   SearchQuery,
   SearchResult,
@@ -13,7 +13,7 @@ import {
   StudentSearchResult,
   CourseSearchResult,
   GradeSearchResult,
-} from './types/search';
+} from '@/features/advanced-search/types/search';
 
 /**
  * Advanced search API client

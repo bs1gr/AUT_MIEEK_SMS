@@ -103,6 +103,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         template_name?: string;
         template_description?: string;
         is_copy?: boolean;
+        entity_type?: string;
+        output_format?: string;
+        selected_fields?: string[];
+        sorting_rules?: any[];
       };
       const templateForLocalization: ReportTemplate | null = templateMeta.is_system
         ? {
@@ -116,16 +120,16 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         : null;
       const baseName = templateText?.name || templateMeta.name || '';
       const baseDescription = templateText?.description || templateMeta.description || '';
-      const normalized = {
+      const normalized: ReportConfig = {
         name: baseName,
         description: baseDescription,
-        entity_type: templateMeta.report_type || templateMeta.entity_type || 'student',
-        output_format: templateMeta.default_export_format || templateMeta.output_format || 'pdf',
+        entity_type: (templateMeta.report_type || templateMeta.entity_type || 'student') as string,
+        output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as string,
         selected_fields: Array.isArray(templateMeta.fields)
           ? templateMeta.fields
           : (templateMeta.selected_fields || []),
-        filters: templateMeta.filters || [],
-        sorting_rules: templateMeta.sort_by || templateMeta.sorting_rules || [],
+        filters: Array.isArray(templateMeta.filters) ? templateMeta.filters : (templateMeta.filters ? [templateMeta.filters] : []),
+        sorting_rules: Array.isArray(templateMeta.sort_by) ? templateMeta.sort_by : (templateMeta.sorting_rules || []),
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
         is_copy: templateMeta.is_copy,
@@ -156,10 +160,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     const filters = Array.isArray(report?.filters)
       ? report.filters
       : report?.filters && typeof report.filters === 'object'
-        ? Object.entries(report.filters).map(([field, value]) => ({
+        ? Object.entries(report.filters).map(([field, value]: [string, any]) => ({
             field,
-            operator: value?.operator || 'equals',
-            value: value?.value ?? value,
+            operator: (value as any)?.operator || 'equals',
+            value: (value as any)?.value ?? value,
           }))
         : [];
 
@@ -197,6 +201,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         template_name?: string;
         template_description?: string;
         is_copy?: boolean;
+        entity_type?: string;
+        output_format?: string;
+        selected_fields?: string[];
+        sorting_rules?: any[];
       };
       const templateForLocalization: ReportTemplate | null = templateMeta.is_system
         ? {
@@ -210,16 +218,16 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         : null;
       const baseName = templateText?.name || templateMeta.name || '';
       const baseDescription = templateText?.description || templateMeta.description || '';
-      const normalized = {
+      const normalized: ReportConfig = {
         name: baseName,
         description: baseDescription,
-        entity_type: templateMeta.report_type || templateMeta.entity_type || 'student',
-        output_format: templateMeta.default_export_format || templateMeta.output_format || 'pdf',
+        entity_type: (templateMeta.report_type || templateMeta.entity_type || 'student') as string,
+        output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as string,
         selected_fields: Array.isArray(templateMeta.fields)
           ? templateMeta.fields
           : (templateMeta.selected_fields || []),
-        filters: templateMeta.filters || [],
-        sorting_rules: templateMeta.sort_by || templateMeta.sorting_rules || [],
+        filters: Array.isArray(templateMeta.filters) ? templateMeta.filters : (templateMeta.filters ? [templateMeta.filters] : []),
+        sorting_rules: Array.isArray(templateMeta.sort_by) ? templateMeta.sort_by : (templateMeta.sorting_rules || []),
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
         is_copy: templateMeta.is_copy,
@@ -278,7 +286,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   }, [reportId, storageKey]);
 
   const [activeStep, setActiveStep] = useState<
-    'config' | 'fields' | 'filters' | 'sorting' | 'preview'
+    'config' | 'fields' | 'filters' | 'preview'
   >('config');
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -641,10 +649,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         {activeStep !== 'preview' && (
           <button
             onClick={() => {
-              const steps: typeof activeStep[] = ['config', 'fields', 'filters', 'preview'];
+              const steps: ('config' | 'fields' | 'filters' | 'preview')[] = ['config', 'fields', 'filters', 'preview'];
               const currentIndex = steps.indexOf(activeStep);
               if (currentIndex < steps.length - 1) {
-                setActiveStep(steps[currentIndex + 1]);
+                setActiveStep(steps[currentIndex + 1] as typeof activeStep);
               }
             }}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"

@@ -32,12 +32,12 @@ from sqlalchemy.orm import Session
 try:
     # Prefer package import when available
     from backend.control_auth import require_control_admin
-    from backend.security.path_validation import validate_filename, validate_path
+    from backend.security.path_validation import validate_path
     from backend.services.backup_service_encrypted import BackupServiceEncrypted
 except Exception:
     # Fallback for tests or alternate import paths
     from control_auth import require_control_admin  # type: ignore
-    from security.path_validation import validate_filename, validate_path  # type: ignore
+    from security.path_validation import validate_path  # type: ignore
     from services.backup_service_encrypted import BackupServiceEncrypted  # type: ignore
 
 

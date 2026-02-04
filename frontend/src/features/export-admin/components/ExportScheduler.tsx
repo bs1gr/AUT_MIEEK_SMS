@@ -38,7 +38,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Clock, Plus, Trash2, Edit2, MoreHorizontal, Play, Pause } from 'lucide-react';
+import { Clock, Plus, Trash2 } from 'lucide-react';
 import {
   useExportSchedules,
   useCreateSchedule,
@@ -55,7 +55,6 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
 }) => {
   const { t } = useTranslation('exportAdmin');
   const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form setup
   const form = useForm<CreateScheduleRequest>({
@@ -68,7 +67,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
   });
 
   // API calls
-  const { data: schedulesData, isLoading } = useExportSchedules();
+  const { data: schedulesData, isLoading: _isLoading } = useExportSchedules();
   const createScheduleMutation = useCreateSchedule();
   const deleteScheduleMutation = useDeleteSchedule();
   const toggleScheduleMutation = useToggleSchedule();
@@ -392,7 +391,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                         size="sm"
                         className="text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors duration-200"
                       >
-                        <MoreHorizontal className="h-5 w-5" />
+                        <Plus className="h-5 w-5" />
                         <span className="sr-only">{t('actions.menu')}</span>
                       </Button>
                     </DropdownMenuTrigger>
@@ -406,12 +405,12 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                       >
                         {schedule.is_active ? (
                           <>
-                            <Pause className="mr-2 h-4 w-4" />
+                            <Clock className="mr-2 h-4 w-4" />
                             <span>{t('schedule.pause')}</span>
                           </>
                         ) : (
                           <>
-                            <Play className="mr-2 h-4 w-4" />
+                            <Clock className="mr-2 h-4 w-4" />
                             <span>{t('schedule.resume')}</span>
                           </>
                         )}

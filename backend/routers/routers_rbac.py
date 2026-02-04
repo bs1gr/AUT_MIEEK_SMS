@@ -358,6 +358,179 @@ async def bulk_grant_permission(
 logger = logging.getLogger(__name__)
 
 
+def _seed_defaults(db: Session, request: Request | None = None) -> None:
+    audit_logger = get_audit_logger(db)
+
+    def _log(**kwargs):
+        if request:
+            audit_logger.log_from_request(request, **kwargs)
+
+    # Ensure roles
+    role_names = {
+        "admin": "System administrator",
+        "teacher": "Teacher",
+        "guest": "Guest (read-only)",
+        "viewer": "Viewer (read-only)",
+    }
+    name_to_role: dict[str, models.Role] = {}
+    for name, desc in role_names.items():
+        r = db.query(models.Role).filter(models.Role.name == name).first()
+        if not r:
+            r = models.Role(name=name, description=desc)
+            db.add(r)
+            db.commit()
+            db.refresh(r)
+            _log(
+                action=AuditAction.ROLE_CHANGE,
+                resource=AuditResource.USER,
+                resource_id=None,
+                details={"role": name, "description": desc, "operation": "create_role"},
+            )
+        name_to_role[name] = r
+
+    # Ensure permissions (using new Permission schema: key, resource, action)
+    perm_defs = [
+        ("*:*", "*", "*", "All permissions (admin wildcard)"),
+        ("students:view", "students", "view", "View all student records"),
+        ("students:create", "students", "create", "Create student records"),
+        ("students:edit", "students", "edit", "Update student records"),
+        ("students:delete", "students", "delete", "Delete student records"),
+        ("courses:view", "courses", "view", "View all courses"),
+        ("courses:create", "courses", "create", "Create courses"),
+        ("courses:edit", "courses", "edit", "Update courses"),
+        ("courses:delete", "courses", "delete", "Delete courses"),
+        ("grades:view", "grades", "view", "View grades for all students"),
+        ("grades:edit", "grades", "edit", "Assign or update grades"),
+        ("grades:delete", "grades", "delete", "Delete grade records"),
+        ("attendance:view", "attendance", "view", "View attendance records"),
+        ("attendance:edit", "attendance", "edit", "Record or update attendance"),
+        ("attendance:delete", "attendance", "delete", "Delete attendance records"),
+        ("enrollments:view", "enrollments", "view", "View enrollments"),
+        ("enrollments:manage", "enrollments", "manage", "Create/update/delete enrollments"),
+        ("reports:view", "reports", "view", "View and generate reports"),
+        ("analytics:view", "analytics", "view", "View analytics dashboards"),
+        ("users:view", "users", "view", "View user list"),
+        ("users:manage", "users", "manage", "Create/update/delete users and roles"),
+        ("permissions:view", "permissions", "view", "View permissions and roles"),
+        ("permissions:manage", "permissions", "manage", "Assign or revoke permissions"),
+        ("audit:view", "audit", "view", "View audit logs"),
+        ("system:import", "system", "import", "Import data"),
+        ("system:export", "system", "export", "Export data"),
+        ("notifications:manage", "notifications", "manage", "Send broadcast notifications"),
+        ("adminops:backup", "adminops", "backup", "Create backups"),
+        ("adminops:restore", "adminops", "restore", "Restore database"),
+        ("adminops:clear", "adminops", "clear", "Clear database content"),
+        ("imports:preview", "imports", "preview", "Preview data import"),
+        ("imports:execute", "imports", "execute", "Execute data import"),
+        ("exports:generate", "exports", "generate", "Generate data export"),
+        ("exports:download", "exports", "download", "Download exported data"),
+        ("students.self:read", "students.self", "read", "Student: view own profile"),
+        ("grades.self:read", "grades.self", "read", "Student: view own grades"),
+        ("attendance.self:read", "attendance.self", "read", "Student: view own attendance"),
+    ]
+    name_to_perm: dict[str, models.Permission] = {}
+    for pkey, presource, paction, pdesc in perm_defs:
+        p = db.query(models.Permission).filter(models.Permission.key == pkey).first()
+        if not p:
+            p = models.Permission(key=pkey, resource=presource, action=paction, description=pdesc)
+            db.add(p)
+            db.commit()
+            db.refresh(p)
+            _log(
+                action=AuditAction.PERMISSION_GRANT,
+                resource=AuditResource.USER,
+                resource_id=None,
+                details={"permission": pkey, "operation": "create_permission", "description": pdesc},
+            )
+        elif not p.description:
+            p.description = pdesc
+            db.commit()
+        name_to_perm[pkey] = p
+
+    # Grants
+    def grant(role_name: str, perm_name: str):
+        role = name_to_role[role_name]
+        perm = name_to_perm[perm_name]
+        existing = (
+            db.query(models.RolePermission)
+            .filter(models.RolePermission.role_id == role.id, models.RolePermission.permission_id == perm.id)
+            .first()
+        )
+        if not existing:
+            db.add(models.RolePermission(role_id=role.id, permission_id=perm.id))
+            db.commit()
+            _log(
+                action=AuditAction.PERMISSION_GRANT,
+                resource=AuditResource.USER,
+                resource_id=None,
+                details={"role": role_name, "permission": perm_name, "operation": "grant_permission"},
+            )
+
+    # Admin wildcard
+    grant("admin", "*:*")
+
+    teacher_perms = [
+        "students:view",
+        "students:edit",
+        "courses:view",
+        "grades:view",
+        "grades:edit",
+        "attendance:view",
+        "attendance:edit",
+        "enrollments:view",
+        "enrollments:manage",
+        "reports:view",
+        "analytics:view",
+        "system:export",
+        "notifications:manage",
+    ]
+    for pn in teacher_perms:
+        grant("teacher", pn)
+
+    viewer_perms = [
+        "students:view",
+        "courses:view",
+        "grades:view",
+        "attendance:view",
+        "reports:view",
+        "analytics:view",
+    ]
+    for pn in viewer_perms:
+        grant("guest", pn)
+        grant("viewer", pn)
+
+    # Backfill UserRole from legacy User.role (admin/teacher/guest only)
+    users = db.query(models.User).all()
+    for u in users:
+        legacy = (getattr(u, "role", None) or "").strip().lower()
+        if legacy in name_to_role and legacy != "student":
+            role_obj = name_to_role[legacy]
+            exists = (
+                db.query(models.UserRole)
+                .filter(models.UserRole.user_id == u.id, models.UserRole.role_id == role_obj.id)
+                .first()
+            )
+            if not exists:
+                db.add(models.UserRole(user_id=u.id, role_id=role_obj.id))
+                db.commit()
+
+
+def ensure_defaults_startup(session_factory) -> bool:
+    session = session_factory()
+    try:
+        role_count = session.query(models.Role).count()
+        perm_count = session.query(models.Permission).count()
+        if role_count == 0 or perm_count == 0:
+            _seed_defaults(session, None)
+            return True
+        return False
+    except Exception as exc:
+        logger.warning("⚠️  RBAC defaults seeding skipped: %s", exc, exc_info=True)
+        return False
+    finally:
+        session.close()
+
+
 @router.post("/ensure-defaults", status_code=status.HTTP_200_OK)
 @require_permission("permissions:manage")
 async def ensure_defaults(
@@ -371,160 +544,8 @@ async def ensure_defaults(
     - Teacher gets permissive academic operations; student gets self-* reads
     - Assign User.role -> UserRole when applicable
     """
-    audit_logger = get_audit_logger(db)
     try:
-        # Ensure roles
-        role_names = {
-            "admin": "System administrator",
-            "teacher": "Teacher",
-            "guest": "Guest (read-only)",
-            "viewer": "Viewer (read-only)",
-        }
-        name_to_role: dict[str, models.Role] = {}
-        for name, desc in role_names.items():
-            r = db.query(models.Role).filter(models.Role.name == name).first()
-            if not r:
-                r = models.Role(name=name, description=desc)
-                db.add(r)
-                db.commit()
-                db.refresh(r)
-                audit_logger.log_from_request(
-                    request,
-                    action=AuditAction.ROLE_CHANGE,
-                    resource=AuditResource.USER,
-                    resource_id=None,
-                    details={"role": name, "description": desc, "operation": "create_role"},
-                )
-            name_to_role[name] = r
-
-        # Ensure permissions (using new Permission schema: key, resource, action)
-        perm_defs = [
-            ("*:*", "*", "*", "All permissions (admin wildcard)"),
-            ("students:view", "students", "view", "View all student records"),
-            ("students:create", "students", "create", "Create student records"),
-            ("students:edit", "students", "edit", "Update student records"),
-            ("students:delete", "students", "delete", "Delete student records"),
-            ("courses:view", "courses", "view", "View all courses"),
-            ("courses:create", "courses", "create", "Create courses"),
-            ("courses:edit", "courses", "edit", "Update courses"),
-            ("courses:delete", "courses", "delete", "Delete courses"),
-            ("grades:view", "grades", "view", "View grades for all students"),
-            ("grades:edit", "grades", "edit", "Assign or update grades"),
-            ("grades:delete", "grades", "delete", "Delete grade records"),
-            ("attendance:view", "attendance", "view", "View attendance records"),
-            ("attendance:edit", "attendance", "edit", "Record or update attendance"),
-            ("attendance:delete", "attendance", "delete", "Delete attendance records"),
-            ("enrollments:view", "enrollments", "view", "View enrollments"),
-            ("enrollments:manage", "enrollments", "manage", "Create/update/delete enrollments"),
-            ("reports:view", "reports", "view", "View and generate reports"),
-            ("analytics:view", "analytics", "view", "View analytics dashboards"),
-            ("users:view", "users", "view", "View user list"),
-            ("users:manage", "users", "manage", "Create/update/delete users and roles"),
-            ("permissions:view", "permissions", "view", "View permissions and roles"),
-            ("permissions:manage", "permissions", "manage", "Assign or revoke permissions"),
-            ("audit:view", "audit", "view", "View audit logs"),
-            ("system:import", "system", "import", "Import data"),
-            ("system:export", "system", "export", "Export data"),
-            ("notifications:manage", "notifications", "manage", "Send broadcast notifications"),
-            ("adminops:backup", "adminops", "backup", "Create backups"),
-            ("adminops:restore", "adminops", "restore", "Restore database"),
-            ("adminops:clear", "adminops", "clear", "Clear database content"),
-            ("imports:preview", "imports", "preview", "Preview data import"),
-            ("imports:execute", "imports", "execute", "Execute data import"),
-            ("exports:generate", "exports", "generate", "Generate data export"),
-            ("exports:download", "exports", "download", "Download exported data"),
-            ("students.self:read", "students.self", "read", "Student: view own profile"),
-            ("grades.self:read", "grades.self", "read", "Student: view own grades"),
-            ("attendance.self:read", "attendance.self", "read", "Student: view own attendance"),
-        ]
-        name_to_perm: dict[str, models.Permission] = {}
-        for pkey, presource, paction, pdesc in perm_defs:
-            p = db.query(models.Permission).filter(models.Permission.key == pkey).first()
-            if not p:
-                p = models.Permission(key=pkey, resource=presource, action=paction, description=pdesc)
-                db.add(p)
-                db.commit()
-                db.refresh(p)
-                audit_logger.log_from_request(
-                    request,
-                    action=AuditAction.PERMISSION_GRANT,
-                    resource=AuditResource.USER,
-                    resource_id=None,
-                    details={"permission": pkey, "operation": "create_permission", "description": pdesc},
-                )
-            elif not p.description:
-                p.description = pdesc
-                db.commit()
-            name_to_perm[pkey] = p
-
-        # Grants
-        def grant(role_name: str, perm_name: str):
-            role = name_to_role[role_name]
-            perm = name_to_perm[perm_name]
-            existing = (
-                db.query(models.RolePermission)
-                .filter(models.RolePermission.role_id == role.id, models.RolePermission.permission_id == perm.id)
-                .first()
-            )
-            if not existing:
-                db.add(models.RolePermission(role_id=role.id, permission_id=perm.id))
-                db.commit()
-                audit_logger.log_from_request(
-                    request,
-                    action=AuditAction.PERMISSION_GRANT,
-                    resource=AuditResource.USER,
-                    resource_id=None,
-                    details={"role": role_name, "permission": perm_name, "operation": "grant_permission"},
-                )
-
-        # Admin wildcard
-        grant("admin", "*:*")
-
-        teacher_perms = [
-            "students:view",
-            "students:edit",
-            "courses:view",
-            "grades:view",
-            "grades:edit",
-            "attendance:view",
-            "attendance:edit",
-            "enrollments:view",
-            "enrollments:manage",
-            "reports:view",
-            "analytics:view",
-            "system:export",
-            "notifications:manage",
-        ]
-        for pn in teacher_perms:
-            grant("teacher", pn)
-
-        viewer_perms = [
-            "students:view",
-            "courses:view",
-            "grades:view",
-            "attendance:view",
-            "reports:view",
-            "analytics:view",
-        ]
-        for pn in viewer_perms:
-            grant("guest", pn)
-            grant("viewer", pn)
-
-        # Backfill UserRole from legacy User.role (admin/teacher/guest only)
-        users = db.query(models.User).all()
-        for u in users:
-            legacy = (getattr(u, "role", None) or "").strip().lower()
-            if legacy in name_to_role and legacy != "student":
-                role_obj = name_to_role[legacy]
-                exists = (
-                    db.query(models.UserRole)
-                    .filter(models.UserRole.user_id == u.id, models.UserRole.role_id == role_obj.id)
-                    .first()
-                )
-                if not exists:
-                    db.add(models.UserRole(user_id=u.id, role_id=role_obj.id))
-                    db.commit()
-
+        _seed_defaults(db, request)
         return {"status": "ok"}
     except HTTPException:
         raise

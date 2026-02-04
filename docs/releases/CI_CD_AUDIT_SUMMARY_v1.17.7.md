@@ -1,8 +1,8 @@
 # v1.17.7 Release CI/CD Audit & Fix - Complete Summary
 
-**Date**: February 3, 2026  
-**Status**: ✅ AUDIT COMPLETE, FIX INITIATED, MONITORING IN PROGRESS  
-**Objective**: Diagnose incomplete GitHub release and establish unified CI/CD workflow  
+**Date**: February 3, 2026
+**Status**: ✅ AUDIT COMPLETE, FIX INITIATED, MONITORING IN PROGRESS
+**Objective**: Diagnose incomplete GitHub release and establish unified CI/CD workflow
 
 ---
 
@@ -218,12 +218,12 @@ GitHub release v1.17.7 will have:
 ✅ **Correct approach** → Use `git tag push` → Triggers `release-on-tag.yml` automatically
 
 ### Path Mismatch Issue
-❌ **Problem**: Release notes in `docs/releases/RELEASE_NOTES_v1.17.7.md`  
-❌ **CI/CD Expects**: `.github/RELEASE_NOTES_v1.17.7.md`  
+❌ **Problem**: Release notes in `docs/releases/RELEASE_NOTES_v1.17.7.md`
+❌ **CI/CD Expects**: `.github/RELEASE_NOTES_v1.17.7.md`
 ✅ **Solution**: Copy file to `.github/` directory (now both locations have it)
 
 ### Workflow Coordination
-❌ **Before**: Manual command → No workflows triggered → No assets  
+❌ **Before**: Manual command → No workflows triggered → No assets
 ✅ **After**: Git tag push → `release-on-tag.yml` → Coordinates all downstream workflows:
 - Installer build (Windows runner)
 - Docker publishing
@@ -299,7 +299,7 @@ GitHub release v1.17.7 will have:
    ```powershell
    # Complete verification:
    gh release view v1.17.7 --json body,assets,isDraft,createdAt,publishedAt
-   
+
    # Expected:
    # - body: [276-line comprehensive release notes]
    # - assets: [{SMS_Setup_v1.17.7.exe}, ...]

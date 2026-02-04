@@ -138,7 +138,7 @@ export const useSearch = () => {
     },
     enabled: Boolean(debouncedQuery || filters.length > 0),
     staleTime: 30000, // 30 seconds
-    keepPreviousData: true,
+    placeholderData: (previousData) => previousData,
   });
 
   /**
@@ -272,9 +272,9 @@ export const useSearch = () => {
     setSort,
 
     // Search results
-    searchResults: searchResults?.results || [],
-    totalResults: searchResults?.total || 0,
-    hasMore: searchResults?.has_more ?? false,
+    searchResults: (searchResults as any)?.results || [],
+    totalResults: (searchResults as any)?.total || 0,
+    hasMore: (searchResults as any)?.has_more ?? false,
     isLoading,
     error,
 

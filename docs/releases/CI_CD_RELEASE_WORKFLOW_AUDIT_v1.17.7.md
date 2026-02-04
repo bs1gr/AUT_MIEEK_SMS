@@ -17,7 +17,7 @@ The GitHub release v1.17.7 was created but **published incomplete**:
 
 **Root Cause**: Manual `gh CLI` command bypassed entire CI/CD pipeline automation.
 
-**Action Required**: 
+**Action Required**:
 1. Fix path misalignment in `.github/workflows/release-on-tag.yml`
 2. Copy release notes to `.github/` directory (CI/CD expects this location)
 3. Delete incomplete manual release
@@ -158,7 +158,7 @@ Manual `gh CLI` command creates release directly without:
 1. Workflow trigger: `on: release: [published, created, edited]`
    - Requires release event to fire
    - Manual `gh CLI` command does NOT fire release event in GitHub Actions
-   
+
 2. Alternative trigger: `workflow_dispatch`
    - Requires manual input (tag)
    - Was not used
@@ -383,7 +383,7 @@ Steps:
   3. Read release notes from .github/RELEASE_NOTES_v1.17.7.md ✅ (fixed path)
   4. Create GitHub release with comprehensive body
   5. Output release_id and tag for downstream jobs
-Output: 
+Output:
   - release_id
   - tag
   - release_created (boolean)
@@ -574,7 +574,7 @@ NOTES_FILE="docs/releases/RELEASE_NOTES_${TAG}.md"
 - Requires workflow update
 - ⚠️ Not recommended for immediate fix
 
-### 2. `.github/RELEASE_NOTES_v1.17.7.md` 
+### 2. `.github/RELEASE_NOTES_v1.17.7.md`
 
 **Status**: NEEDS TO BE CREATED
 

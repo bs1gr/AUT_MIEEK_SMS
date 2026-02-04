@@ -7,9 +7,9 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Download, RefreshCw, Plus } from 'lucide-react';
+import { RefreshCw, Plus } from 'lucide-react';
 
 // Import child components
 import ExportJobList from './ExportJobList';
@@ -40,7 +40,7 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
   const [showDetailModal, setShowDetailModal] = useState(false);
 
   // API hooks
-  const { data: jobsData, isLoading: jobsLoading, error: jobsError } = useExportJobs({
+  const { data: jobsData, isLoading: _jobsLoading, error: _jobsError } = useExportJobs({
     skip: 0,
     limit: 10,
     sort_by: 'created_at',
@@ -90,7 +90,7 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
       </div>
 
       {/* Error Alert */}
-      {jobsError && (
+      {_jobsError && (
         <Alert variant="destructive" className="border-red-300 dark:border-red-700 bg-red-50 dark:bg-red-900/20">
           <AlertDescription className="text-red-800 dark:text-red-200">
             {t('errors.loadFailed')}

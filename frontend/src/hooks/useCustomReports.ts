@@ -275,7 +275,7 @@ export function useDownloadReport() {
   return useMutation({
     mutationFn: ({ reportId, generatedId }: { reportId: number; generatedId: number }) =>
       customReportsAPI.download(reportId, generatedId),
-    onSuccess: (response, variables) => {
+    onSuccess: (response) => {
       // Extract blob and filename from response
       const { blob, filename } = response;
 

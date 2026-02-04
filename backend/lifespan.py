@@ -9,6 +9,7 @@ from backend.config import settings
 from backend.db import SessionLocal, engine
 from backend.db.query_profiler import profiler
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
+from backend.routers.routers_rbac import ensure_defaults_startup
 from backend.scripts.migrate.runner import run_migrations
 from backend.websocket_background_tasks import start_background_tasks, stop_background_tasks
 
@@ -51,6 +52,12 @@ def get_lifespan():
 
             def _migrate_bg():
                 run_migrations(False)
+                try:
+                    seeded = ensure_defaults_startup(SessionLocal)
+                    if seeded:
+                        logging.getLogger(__name__).info("✅ RBAC defaults seeded on startup")
+                except Exception as e:
+                    logging.getLogger(__name__).warning(f"⚠️  RBAC defaults seeding skipped: {e}")
 
             threading.Thread(target=_migrate_bg, daemon=True, name="migrations-bg").start()
 

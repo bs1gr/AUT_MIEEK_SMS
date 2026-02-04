@@ -237,4 +237,3 @@ docker-compose -f docker/docker-compose.yml up
 **Status**: ✅ **READY FOR PRODUCTION DEPLOYMENT**
 
 **🚀 Ready to launch when you give the go-ahead!**
-

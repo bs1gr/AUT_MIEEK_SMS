@@ -18,7 +18,7 @@ def register_middlewares(app):
     if settings.SMS_EXECUTION_MODE.lower() == "docker":
         # In Docker, allow traffic from nginx reverse proxy
         app.add_middleware(TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "backend", "*"])
-    
+
     # Request ID tracking middleware
     try:
         app.add_middleware(RequestIDMiddleware)

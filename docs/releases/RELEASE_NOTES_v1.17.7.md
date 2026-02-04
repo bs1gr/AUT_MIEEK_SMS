@@ -35,7 +35,7 @@
   - Grading View historical mode banner
   - Attendance View historical mode banner
 - **Impact**: Consistent, locale-appropriate date display
-- **Files**: 
+- **Files**:
   - `frontend/src/features/grading/components/GradingView.tsx`
   - `frontend/src/features/attendance/components/AttendanceView.tsx`
 
@@ -190,7 +190,7 @@
 
 - **No security vulnerabilities introduced**
 - All existing security measures maintained
-    - Path traversal protections verified (from v1.17.6)
+  - Path traversal protections verified (from v1.17.6)
 - CORS security improvements in Docker deployment
 - Pre-commit security validation passed
 
@@ -272,4 +272,3 @@
 ---
 
 **For upgrade support or issues, refer to the [troubleshooting guide](../deployment/FRESH_DEPLOYMENT_TROUBLESHOOTING.md).**
-
