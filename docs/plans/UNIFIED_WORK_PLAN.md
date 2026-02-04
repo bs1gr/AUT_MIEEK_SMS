@@ -86,6 +86,59 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 
 ---
 
+## 📝 Pending Code Health Issues (Maintenance Priority)
+
+**Status**: ⏳ BACKLOG - Code health issues identified but not blocking features
+
+### Issue 1: CI ESLint Warnings - Pre-existing Code Quality Issues
+**Severity**: 🔵 LOW - Warnings only, no functional impact
+**Scope**: 240 ESLint warnings in frontend codebase
+**Files Affected**:
+- ReportBuilder.tsx (18+ warnings: setState in effects, console.logs, any types)
+- ExportAdminPanel.tsx (15+ warnings: literal strings, unused vars)
+- SearchView/SearchBar (20+ warnings: setState in effects, any types)
+- OperationsView.tsx (5+ warnings: setState in effect)
+- Other components (150+ warnings: mostly `any` types, console statements)
+
+**Root Cause**:
+- Pre-existing code patterns from Phase 3, 4, and 6 feature implementations
+- React best practices: setState in effects should be avoided for performance
+- Type safety: Missing proper TypeScript types (using `any` as fallback)
+- Debugging remnants: console.log/info statements left in production code
+- i18n: Some hardcoded strings in UI elements
+
+**Impact**:
+- ✅ No functional impact - system works correctly
+- ✅ No security issues
+- ✅ No test failures
+- ⚠️ CI pipeline shows warnings as informational
+- ⚠️ Code maintainability reduced slightly
+
+**Resolution Options**:
+- **Option 1 (Quickest)**: Suppress warnings in CI (treat as non-blocking)
+  - Modify `.eslintignore` to allow specific warning-heavy files
+  - Update GitHub Actions workflow to not fail on warnings
+  - **Effort**: 30 min | **Impact**: Cleaner CI display
+  
+- **Option 2 (Best Practice)**: Refactoring PR
+  - Create dedicated maintenance PR for code quality
+  - Fix useState in effects → useCallback/useMemo patterns
+  - Replace `any` types with proper TypeScript interfaces
+  - Remove console statements or restrict to warn/error
+  - Add missing i18n keys
+  - **Effort**: 4-6 hours | **Impact**: Cleaner codebase, better performance
+
+- **Option 3 (Current)**: Accept and track
+  - Document as known code health issue
+  - Address in next maintenance window
+  - **Impact**: Allows feature development to proceed unblocked
+
+**Recommendation**: Implement Option 2 in next maintenance cycle (1-2 weeks) as separate PR, not blocking current feature delivery
+
+**Tracked By**: This section of UNIFIED_WORK_PLAN.md
+
+---
+
 ## ✅ v1.17.7 Release Publication (Feb 3, 2026) - COMPLETE & VERIFIED
 
 **Status**: ✅ **GITHUB RELEASE PUBLISHED & VERIFIED** - Production Ready with Installer
@@ -815,6 +868,6 @@ Fixes three startup warnings and enables scheduler features.
 
 ---
 
-**Last Updated**: February 1, 2026 14:00 UTC
-**Status**: ✅ Production Live ($11.17.6) - Phase 6 Days 4-5 Active
-**Next Milestone**: Complete report generation service integration
+**Last Updated**: February 4, 2026 22:45 UTC
+**Status**: ✅ Production Live (v1.17.7) - RBAC fixes complete, Dev proxy implemented
+**Next Milestone**: Code health maintenance (ESLint warnings) - optional refactoring
