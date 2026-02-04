@@ -1,0 +1,7 @@
+# Failed test files (generated 2026-02-04 10:53:12)
+# To retest only these files, run: .\RUN_TESTS_BATCH.ps1 -RetestFailed
+# To clear this file, run: Remove-Item .test-failures
+
+test_password_rehash.py
+test_path_traversal_security.py
+test_performance_monitor.py
