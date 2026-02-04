@@ -877,40 +877,46 @@ export const adminUsersAPI = {
 
 // ==================== RBAC API ====================
 
+export async function getRBACSSummary(): Promise<RBACSummary> {
+  const response = await apiClient.get('/admin/rbac/summary');
+  return unwrapResponse<RBACSummary>(response.data);
+}
+
+export async function ensureRBACDefaults(): Promise<{ status: string }> {
+  const response = await apiClient.post<{ status: string }>('/admin/rbac/ensure-defaults');
+  return unwrapResponse<{ status: string }>(response.data);
+}
+
+export async function assignRBACRole(userId: number, roleName: string): Promise<{ status: string }> {
+  const response = await apiClient.post('/admin/rbac/assign-role', {
+    user_id: userId,
+    role_name: roleName
+  });
+  return unwrapResponse<{ status: string }>(response.data);
+}
+
+export async function grantRBACPermission(roleName: string, permissionName: string): Promise<{ status: string }> {
+  const response = await apiClient.post('/admin/rbac/grant-permission', {
+    role_name: roleName,
+    permission_name: permissionName
+  });
+  return unwrapResponse<{ status: string }>(response.data);
+}
+
+export async function revokeRBACRole(userId: number, roleName: string): Promise<{ status: string }> {
+  const response = await apiClient.post('/admin/rbac/revoke-role', {
+    user_id: userId,
+    role_name: roleName
+  });
+  return unwrapResponse<{ status: string }>(response.data);
+}
+
 export const rbacAPI = {
-  getSummary: async (): Promise<RBACSummary> => {
-    const response = await apiClient.get('/admin/rbac/summary');
-    return unwrapResponse<RBACSummary>(response.data);
-  },
-
-  ensureDefaults: async (): Promise<{ status: string }> => {
-    const response = await apiClient.post<{ status: string }>('/admin/rbac/ensure-defaults');
-    return unwrapResponse<{ status: string }>(response.data);
-  },
-
-  assignRole: async (userId: number, roleName: string): Promise<{ status: string }> => {
-    const response = await apiClient.post('/admin/rbac/assign-role', {
-      user_id: userId,
-      role_name: roleName
-    });
-    return unwrapResponse<{ status: string }>(response.data);
-  },
-
-  grantPermission: async (roleName: string, permissionName: string): Promise<{ status: string }> => {
-    const response = await apiClient.post('/admin/rbac/grant-permission', {
-      role_name: roleName,
-      permission_name: permissionName
-    });
-    return unwrapResponse<{ status: string }>(response.data);
-  },
-
-  revokeRole: async (userId: number, roleName: string): Promise<{ status: string }> => {
-    const response = await apiClient.post('/admin/rbac/revoke-role', {
-      user_id: userId,
-      role_name: roleName
-    });
-    return unwrapResponse<{ status: string }>(response.data);
-  },
+  getSummary: getRBACSSummary,
+  ensureDefaults: ensureRBACDefaults,
+  assignRole: assignRBACRole,
+  grantPermission: grantRBACPermission,
+  revokeRole: revokeRBACRole,
 };
 
 // ==================== HEALTH CHECK ====================
