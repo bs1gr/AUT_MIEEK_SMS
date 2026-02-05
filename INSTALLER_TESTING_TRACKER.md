@@ -1,10 +1,10 @@
 # Installer Testing Tracker - v1.17.7
 
-**Created**: February 5, 2026  
-**Installer Version**: 1.17.7  
-**Installer Location**: [GitHub Release v1.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7)  
-**File**: `SMS_Installer_1.17.7.exe` (6.46 MB)  
-**Status**: ⏳ READY FOR TESTING  
+**Created**: February 5, 2026
+**Installer Version**: 1.17.7
+**Installer Location**: [GitHub Release v1.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7)
+**File**: `SMS_Installer_1.17.7.exe` (6.46 MB)
+**Status**: ⏳ READY FOR TESTING
 
 ---
 
@@ -172,6 +172,6 @@
 
 ---
 
-**Last Updated**: February 5, 2026 (Created)  
-**Next Update**: After first test scenario completion  
+**Last Updated**: February 5, 2026 (Created)
+**Next Update**: After first test scenario completion
 **Status**: Ready for testing execution
