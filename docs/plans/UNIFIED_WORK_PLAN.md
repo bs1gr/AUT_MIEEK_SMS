@@ -15,8 +15,8 @@
 
 ## 🔧 CURRENT PHASE: MAINTENANCE & STABILITY (Started Feb 5, 2026)
 
-**Selected Option**: A - Maintenance & Stability  
-**Tracking Document**: [INSTALLER_TESTING_TRACKER.md](../../INSTALLER_TESTING_TRACKER.md)  
+**Selected Option**: A - Maintenance & Stability
+**Tracking Document**: [INSTALLER_TESTING_TRACKER.md](../../INSTALLER_TESTING_TRACKER.md)
 **Duration**: 2-4 weeks (flexible based on feedback)
 
 **Activities**:
