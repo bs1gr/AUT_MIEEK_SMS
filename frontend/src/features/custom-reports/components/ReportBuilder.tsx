@@ -234,15 +234,15 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     };
   }, []);
 
-  // Load report data when editing
+  // Handle effect cleanup - consolidate data loading effects
   useEffect(() => {
+    // Load report data when editing
     if (reportId && reportData) {
       setConfig(normalizeReportData(reportData));
+      return;
     }
-  }, [reportId, reportData, normalizeReportData]);
 
-  // Load template data when creating from template
-  useEffect(() => {
+    // Load template data when creating from template
     if (!reportId && initialData) {
       const templateMeta = initialData as ReportTemplate & {
         template_name?: string;
@@ -281,7 +281,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       };
       setConfig(normalized);
     }
-  }, [initialData, reportId, t]);
+  }, [reportId, reportData, normalizeReportData, initialData, t]);
 
   // Re-localize template name/description on language changes
   useEffect(() => {
@@ -298,14 +298,21 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     const templateText = getLocalizedTemplateText(templateForLocalization, t);
     const localizedDescription = templateText.description || '';
 
+    // Only update if localized text differs from current config
     if (config.name !== templateText.name || config.description !== localizedDescription) {
-      setConfig((prev) => ({
-        ...prev,
-        name: templateText.name,
-        description: localizedDescription,
-      }));
+      setConfig((prev) => {
+        // Ensure we only update name/description, preserving other config
+        if (prev.name === templateText.name && prev.description === localizedDescription) {
+          return prev;
+        }
+        return {
+          ...prev,
+          name: templateText.name,
+          description: localizedDescription,
+        };
+      });
     }
-  }, [config.template_name, config.template_description, config.name, config.description, config.entity_type, config.output_format, t]);
+  }, [config.template_name, config.template_description, config.name, config.description, t]);
 
   // Persist config to session storage whenever it changes
   useEffect(() => {

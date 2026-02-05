@@ -27,11 +27,7 @@ function saveHistory(entries: SearchHistoryEntry[]) {
 }
 
 export const useSearchHistory = () => {
-  const [entries, setEntries] = useState<SearchHistoryEntry[]>([]);
-
-  useEffect(() => {
-    setEntries(loadHistory());
-  }, []);
+  const [entries, setEntries] = useState<SearchHistoryEntry[]>(() => loadHistory());
 
   const addEntry = useCallback((query: string, entity_type?: string) => {
     const id = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;

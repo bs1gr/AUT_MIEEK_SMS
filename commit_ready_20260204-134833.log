@@ -3,7 +3,7 @@ PowerShell transcript start
 Start time: 20260204134833
 Username: REC\Vasilis
 RunAs User: REC\Vasilis
-Configuration Name: 
+Configuration Name:
 Machine: REC (Microsoft Windows NT 10.0.26300.0)
 Host Application: C:\Program Files\PowerShell\7\pwsh.dll -NoProfile -ExecutionPolicy Bypass -File d:\SMS\student-management-system\COMMIT_READY.ps1 -Quick
 Process ID: 38768

@@ -270,7 +270,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
 
     const fetchRecall = async () => {
       try {
-        const grade = await gradesAPI.getById(recallId);
+        const grade = gradesAPI.getById(recallId);
         if (grade && typeof grade === 'object') {
           handleEditGrade(grade as Grade);
         }

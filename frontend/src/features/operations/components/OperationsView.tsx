@@ -49,16 +49,7 @@ const OperationsView = (_props: OperationsViewProps) => {
   const [jobIdInput, setJobIdInput] = useState('');
   const [trackedJobId, setTrackedJobId] = useState<string | null>(null);
 
-  // Update active tab when query parameter changes
-  useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (tabParam && isValidTab(tabParam)) {
-      setActiveTab(tabParam);
-    }
-  }, [searchParams]);
-
-  // handleToast previously forwarded to children; not needed here
-
+  // Toast auto-close effect
   useEffect(() => {
     if (!toast) return undefined;
     const timeoutId = window.setTimeout(() => setToast(null), 4000);
