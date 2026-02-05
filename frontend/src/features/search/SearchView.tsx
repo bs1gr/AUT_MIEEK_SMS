@@ -61,10 +61,7 @@ export const SearchView: React.FC = () => {
         setGradeDateFrom('');
         setGradeDateTo('');
       }
-      setFilters((prev) => applyGradeDateFilters(prev));
-      return;
     }
-
     setFilters((prev) => applyGradeDateFilters(prev));
   }, [searchType, gradeDateFrom, gradeDateTo, applyGradeDateFilters, setFilters]);
 

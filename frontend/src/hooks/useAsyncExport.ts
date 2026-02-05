@@ -8,7 +8,7 @@
  * - Error handling and retry logic
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import apiClient from '../api/api';
 
@@ -76,16 +76,13 @@ export const useAsyncExport = () => {
     staleTime: 0, // Always refetch
   });
 
-  // Update local state when polling returns new data
-  useEffect(() => {
-    if (statusData) {
-      setExportJob(statusData);
-    }
-  }, [statusData]);
+  // Use polled data if available, fall back to initial exportJob
+  const currentExportJob = statusData || exportJob;
 
   // Download completed export
   const downloadExport = useCallback(async () => {
-    if (!exportJob?.id || exportJob.status !== 'completed') {
+    const job = currentExportJob;
+    if (!job?.id || job.status !== 'completed') {
       console.error('Export not ready for download');
       return;
     }
@@ -93,7 +90,7 @@ export const useAsyncExport = () => {
     try {
       // Fetch file
       const response = await apiClient.get(
-        `/import-export/exports/${exportJob.id}/download`,
+        `/import-export/exports/${job.id}/download`,
         { responseType: 'blob' }
       );
 
@@ -101,7 +98,7 @@ export const useAsyncExport = () => {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${exportJob.export_type}_export_${exportJob.id}.${exportJob.file_format}`);
+      link.setAttribute('download', `${job.export_type}_export_${job.id}.${job.file_format}`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
@@ -109,7 +106,7 @@ export const useAsyncExport = () => {
     } catch (error) {
       console.error('Failed to download export:', error);
     }
-  }, [exportJob]);
+  }, [currentExportJob]);
 
   // Cancel export job
   const cancelExport = useCallback(async () => {

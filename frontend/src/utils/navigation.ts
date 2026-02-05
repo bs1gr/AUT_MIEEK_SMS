@@ -22,7 +22,7 @@ export function safeNavigate(url: string | URL | undefined | null): void {
       // Fallback setter in case assign is unavailable (should be rare)
       window.location.href = href;
     }
-  } catch (_err) {
+  } catch {
     // Silent catch - navigation blocked by browser
   }
 }
