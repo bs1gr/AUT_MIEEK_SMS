@@ -208,7 +208,7 @@ Key Checks Completed:
 - Priority 2 (Edge Cases): 0/3 completed (0%)
 - Priority 3 (Validation): 0/3 completed (0%)
 
-**Time Invested**: 0 hours
+**Time Invested So Far**: 0 hours
 
 **Issues Found**: 0 total
 - Critical: 0
@@ -264,10 +264,15 @@ Key Checks Completed:
 4. **Update this tracker**: Mark status, duration, notes
 5. **Continue to next scenario**: Follow priority order
 
-**Estimated Total Time**: 2-3 hours for all 8 scenarios
+**What Requires Your Action**:
+- 🔨 Manual installer testing (download & run exe)
+- 📝 Document findings in tracker
+- 🎯 Prioritize features for next phase based on feedback
+
+**Estimated Total Time**: 2-3 hours for all 8 scenarios (when owner decides to execute)
 
 ---
 
 **Last Updated**: February 5, 2026 (Created)
-**Next Update**: After first test scenario completion
-**Status**: Ready for testing execution
+**Next Update**: When first scenario is completed
+**Status**: Ready for owner to begin testing when decided

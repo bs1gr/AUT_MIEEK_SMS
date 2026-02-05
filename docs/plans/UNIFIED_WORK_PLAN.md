@@ -17,7 +17,7 @@
 
 **Selected Option**: A - Maintenance & Stability
 **Tracking Document**: [INSTALLER_TESTING_TRACKER.md](../../INSTALLER_TESTING_TRACKER.md)
-**Duration**: 2-4 weeks (flexible based on feedback)
+**Duration**: Owner decides timeline
 **Infrastructure Readiness**: ✅ COMPLETE (Feb 5, 2026)
 
 **Activities**:
@@ -25,15 +25,15 @@
 2. ✅ Testing tracker created & enhanced
 3. ✅ **Monitoring framework deployed** (Feb 5) - [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 4. ✅ **Feature roadmap planning framework prepared** (Feb 5) - [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
-5. ⏳ **IN PROGRESS**: Installer testing (8 scenarios, 2-3 hours manual)
+5. ⏳ **IN PROGRESS**: Installer testing (8 scenarios, 2-3 hours total when owner executes)
 6. ⏳ Production monitoring (v1.17.7 stability)
 7. ⏳ User feedback collection
-8. ⏳ Plan next feature release based on findings
+8. ⏳ Plan next feature based on findings
 
 **Infrastructure Ready**:
 - 📊 **Stability Monitoring Dashboard**: Weekly health checks, monthly deep dives, alert thresholds
 - 📋 **Test Documentation Templates**: Enhanced test result logging with detail checkpoints per scenario
-- 🗺️ **Feature Roadmap Framework**: 5 candidate features with effort/value analysis, decision matrix, timeline options
+- 🗺️ **Feature Roadmap Framework**: 5 candidate features with effort/value analysis, decision matrix, implementation approaches
 
 **Quick Start**:
 - Download installer from [GitHub Release v1.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7)

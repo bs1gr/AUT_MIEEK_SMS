@@ -23,14 +23,15 @@ This document provides structure for planning the next feature release based on:
 
 Each future phase follows this proven pattern:
 
-**Phase Timeline**: 2-4 weeks
 **Work Breakdown**:
-- Days 1-2: Requirement analysis & technical design
-- Days 3-5: Backend implementation & API layer
-- Days 6-7: Frontend foundation (translations, hooks, API integration)
-- Days 8-10: Frontend UI components & pages
-- Day 11: Integration testing & bug fixes
-- Day 12: Documentation & production release
+- Requirement analysis & technical design
+- Backend implementation & API layer
+- Frontend foundation (translations, hooks, API integration)
+- Frontend UI components & pages
+- Integration testing & bug fixes
+- Documentation & production release
+
+**Duration**: Owner commits time when phase begins
 
 **Quality Gates**:
 - ✅ All backend tests passing (740+)
@@ -64,7 +65,7 @@ Each future phase follows this proven pattern:
 - Email deliverability concerns
 - Unsubscribe management complexity
 
-**Estimated Effort**: 1 week (including testing, documentation)
+**Effort**: 4-6 hours (including testing, documentation)
 
 ---
 
@@ -88,12 +89,12 @@ Each future phase follows this proven pattern:
 - 7 warnings already acceptable
 - Lower priority than features
 
-**Estimated Effort**: 1 week (including type migration testing)
+**Effort**: 4-6 hours (including type migration testing)
 
 ---
 
 ### Candidate 3: Advanced Analytics Dashboard
-**Effort**: 2-3 weeks (new feature)  
+**Effort**: 40-60 hours (new feature, spans multiple sessions)  
 **Dependencies**: Report system (complete)  
 **Features**:
 - Time-series metrics visualization
@@ -116,8 +117,8 @@ Each future phase follows this proven pattern:
 ---
 
 ### Candidate 4: Multi-Language Support Enhancement
-**Effort**: 1-2 weeks  
-**Dependencies**: Current i18n framework  
+**Effort**: 20-40 hours
+**Dependencies**: Current i18n framework
 **Features**:
 - Add French (FR) or other language
 - RTL language support (Arabic, Hebrew)
@@ -133,13 +134,13 @@ Each future phase follows this proven pattern:
 - Testing across locales complex
 - Limited immediate ROI
 
-**Estimated Effort**: 2 weeks (implementation + QA)
+**Effort**: 20-40 hours (implementation + QA)
 
 ---
 
 ### Candidate 5: User Profile & Preferences
-**Effort**: 1-2 weeks  
-**Dependencies**: RBAC (ready)  
+**Effort**: 20-40 hours
+**Dependencies**: RBAC (ready)
 **Features**:
 - User preferences (theme, language, notifications)
 - Profile customization
@@ -154,9 +155,6 @@ Each future phase follows this proven pattern:
 **Cons**:
 - Limited business value
 - Lower priority
-
-**Estimated Effort**: 2 weeks (including GDPR export)
-
 ---
 
 ---
@@ -200,46 +198,49 @@ Use this to prioritize candidates:
 
 | Feature | Effort | Value | Risk | Owner Priority |
 |---------|--------|-------|------|----------------|
-| Email Delivery | 1 week | Medium | Low | TBD |
-| ESLint Cleanup | 1 week | Low | None | Optional |
-| Analytics | 3 weeks | High | Medium | TBD |
-| Multi-Language | 2 weeks | Medium | Low | TBD |
-| User Preferences | 2 weeks | Low | Low | TBD |
+| Email Delivery | 4-6 hrs | Medium | Low | TBD |
+| ESLint Cleanup | 4-6 hrs | Low | None | Optional |
+| Analytics | 40-60 hrs | High | Medium | TBD |
+| Multi-Language | 20-40 hrs | Medium | Low | TBD |
+| User Preferences | 20-40 hrs | Low | Low | TBD |
 
 ---
 
-## 🗺️ Proposed Timeline Options
+## 🗺️ Implementation Approaches
 
-### Option A: Single Feature Focus
-**Duration**: 4-5 weeks
-1. Week 1-2: Maintenance phase completion (installer testing)
-2. Week 3-4: Single feature implementation (Email OR Analytics)
-3. Week 5: Testing & release
+### Approach A: Single Feature Focus
+**Scope**: Complete installer testing, then implement one feature (Email OR Analytics)
 
-**Rationale**: Clear focus, complete feature per release
+**Steps**:
+1. Complete maintenance phase (installer testing)
+2. Implement selected feature (4-6 hrs to 40-60 hrs depending on feature)
+3. Testing & release when owner decides ready
 
----
-
-### Option B: Multiple Small Features
-**Duration**: 6-7 weeks
-1. Week 1-2: Maintenance phase completion
-2. Week 3: Email Delivery (1 week)
-3. Week 4: User Preferences (1 week)
-4. Week 5: ESLint Cleanup (1 week)
-5. Week 6-7: Testing & release
-
-**Rationale**: Ship multiple smaller improvements faster
+**Rationale**: Clear focus, one complete feature per release
 
 ---
 
-### Option C: Large Feature + Refactoring
-**Duration**: 7-8 weeks
-1. Week 1-2: Maintenance phase completion
-2. Week 3-5: Analytics Dashboard (3 weeks)
-3. Week 6: ESLint Cleanup (1 week)
-4. Week 7-8: Testing & release
+### Approach B: Multiple Small Features  
+**Scope**: Complete installer testing, then implement several small improvements
 
-**Rationale**: Significant enhancement + maintenance
+**Options**:
+- Email Delivery (4-6 hrs)
+- User Preferences (20-40 hrs)
+- ESLint Cleanup (4-6 hrs)
+- Combine any of these
+
+**Rationale**: Ship multiple smaller improvements when owner prioritizes
+
+---
+
+### Approach C: Large Feature + Refactoring
+**Scope**: Complete installer testing, then tackle bigger feature with quality improvements
+
+**Options**:
+- Analytics Dashboard (40-60 hrs) + ESLint Cleanup (4-6 hrs)
+- Other combinations owner selects
+
+**Rationale**: Significant enhancement paired with maintenance work
 
 ---
 
@@ -252,15 +253,13 @@ Use this to prioritize candidates:
 
 **Installer Testing Completed?**: [ ] Yes [ ] No - Date: ___________
 **Major Issues Found?**: [ ] Yes [ ] No - Description: ___________
-**Production Stability Confirmed?**: [ ] Yes [ ] No
-**User Feedback Summary**: ___________
-
-**Selected Features for Next Release**:
-1. _____________ (Effort: ____, Priority: ____)
+**Production Stability ConfirImplementation**:
+1. _____________ (Effort: ____, Priority: ____) 
 2. _____________ (Effort: ____, Priority: ____)
 3. _____________ (Effort: ____, Priority: ____)
 
-**Selected Timeline Option**: [ ] A [ ] B [ ] C - Rationale: ___________
+**Selected Approach**: [ ] A (Single Feature) [ ] B (Multiple Small) [ ] C (Large + Refactor)
+**RationalOption**: [ ] A [ ] B [ ] C - Rationale: ___________
 
 **Start Date**: ___________
 **Target Release Date**: ___________
@@ -277,6 +276,6 @@ Use this to prioritize candidates:
 
 ---
 
-**Created**: February 5, 2026  
-**Framework**: Ready for input  
+**Created**: February 5, owner input  
+**Status**: Awaiting owner decisions on installer testing results and feature priorities
 **Status**: Awaiting owner guidance after maintenance phase completion
