@@ -3,7 +3,7 @@
 **Created**: February 5, 2026
 **Installer Version**: 1.17.7
 **Installer Location**: [GitHub Release v1.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7)
-**File**: `SMS_Installer_1.17.7.exe` (6.46 MB)
+**File**: `SMS_Installer_1.17.7.exe` (≈7.95 MB, Feb 5 rebuild)
 **Status**: ⏳ READY FOR TESTING
 
 ---
@@ -108,11 +108,20 @@ When you find an issue, copy this template and fill it in:
 
 ### Issues Found During Testing
 
-<!-- Add issues here as they are discovered -->
+#### Issue #1: Control Panel uninstall failed (missing `.dat` companion)
+- **Status**: ✅ Fixed (Feb 5, 2026)
+- **Summary**: Earlier builds renamed only `unins000.exe`, leaving `unins000.dat/.msg` behind and causing the Control Panel uninstaller to fail with "file not found". The installer now renames all three files to `unins{version}.*` and updates the registry accordingly.
+- **Verification**: After every install/upgrade, confirm `C:\Program Files\SMS\unins1.17.7.exe/.dat/.msg` exist before running Scenario 6.
+- **Fallback**: Manual uninstaller (`UNINSTALL_SMS_MANUALLY.ps1`) remains available but should no longer be required for standard flows.
+
+#### Issue #2: Docker Manager logs shortcut crashed (PowerShell parser error)
+- **Status**: ✅ Fixed (Feb 5, 2026)
+- **Summary**: Option 5 (View Logs) used the CMD `||` operator inside PowerShell, triggering `InvalidEndOfLine`. The shortcut now shells into PowerShell 7 and checks `$LASTEXITCODE`, printing "Container not running or not found" if logs are unavailable.
+- **Verification**: From the Docker Manager menu run option 5. No parser errors should appear; logs or the fallback message should be displayed.
 
 #### Discovered Issues List
 
-*None reported yet - testing in progress*
+*Fixes above deployed; continue logging any new findings here.*
 
 ---
 
@@ -124,7 +133,7 @@ For each scenario you complete, add details below:
 **Status**: ⬜ Not Started
 **Date Started**: -
 **Date Completed**: -
-**Tester Notes**: 
+**Tester Notes**:
 
 Key Checks Completed:
 - [ ] Installer launched without errors
@@ -139,7 +148,7 @@ Key Checks Completed:
 - [ ] Login works with default credentials
 - [ ] Application UI responsive and usable
 
-**Issues Found**: 
+**Issues Found**:
 - None / [List issues with their numbers]
 
 **Duration**: _____ minutes
@@ -151,7 +160,7 @@ Key Checks Completed:
 **Status**: ⬜ Not Started
 **Date Started**: -
 **Date Completed**: -
-**Tester Notes**: 
+**Tester Notes**:
 
 Key Checks Completed:
 - [ ] Existing installation detected correctly
@@ -166,7 +175,7 @@ Key Checks Completed:
 - [ ] User data preserved
 - [ ] Application works with upgraded data
 
-**Issues Found**: 
+**Issues Found**:
 - None / [List issues with their numbers]
 
 **Duration**: _____ minutes
@@ -175,10 +184,10 @@ Key Checks Completed:
 ---
 
 ### Scenario 4: Docker Running During Upgrade
-**Status**: ⬜ Not Started  
+**Status**: ⬜ Not Started
 **Date Started**: -
 **Date Completed**: -
-**Tester Notes**: 
+**Tester Notes**:
 
 Key Checks Completed:
 - [ ] Docker containers verified running before upgrade
@@ -189,7 +198,7 @@ Key Checks Completed:
 - [ ] Docker containers restarted post-upgrade
 - [ ] System functional after upgrade
 
-**Issues Found**: 
+**Issues Found**:
 - None / [List issues with their numbers]
 
 **Duration**: _____ minutes

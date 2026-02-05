@@ -15,6 +15,8 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 - Automatic data backup before changes
 - Installation metadata tracking
 - Improved Docker resource handling
+- Version-aware uninstaller rename (EXE/DAT/MSG stay in sync for Control Panel uninstall)
+- Docker Manager shortcut auto-elevates reliably and its "View Logs" option now prints logs/fallback without PowerShell parser errors
 
 ---
 
@@ -214,6 +216,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 1. Run uninstaller:
    - Option A: Control Panel → "Uninstall a program" → Select SMS → Uninstall
    - Option B: `C:\Program Files\SMS\unins1.17.7.exe`
+   - Before uninstalling, confirm `unins1.17.7.exe`, `unins1.17.7.dat`, and `unins1.17.7.msg` all exist in `C:\Program Files\SMS\`. If any file is missing, note it in the tracker before proceeding.
 
 2. Verify uninstall dialog:
    - [ ] Dialog asks: "Do you want to preserve user data?"
@@ -396,6 +399,10 @@ Write-Host "`n✅ Automated validation complete"
 **Issue**: Installer requires Docker Desktop on Windows
 **Workaround**: Users can skip Docker installation and use native mode
 **Note**: Production deployment requires Docker
+
+### Recent Fixes (Feb 5, 2026)
+- **Uninstaller companion files**: Installer now renames `.dat` and `.msg` along with the EXE, so Control Panel uninstalls no longer fail with "file not found" errors.
+- **Docker Manager View Logs**: Shortcut leverages PowerShell 7 and `$LASTEXITCODE` to display logs or a friendly "container not running" message—no more parser exceptions.
 
 ---
 
