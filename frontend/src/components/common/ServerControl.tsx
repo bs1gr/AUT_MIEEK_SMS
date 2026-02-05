@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { RotateCw, Activity, AlertCircle, CheckCircle, Server, Monitor } from 'lucide-react';
+import { RotateCw, Activity, AlertCircle, CheckCircle, Server } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
 import { getHealthStatus, CONTROL_API_BASE, type HealthStatus } from '../../api/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -30,6 +30,8 @@ const CONTROL_RESTART_ENDPOINT = `${CONTROL_API_BASE.replace(/\/$/, '')}/restart
 const FRONTEND_PROTOCOL = FALLBACK_PROTOCOL || 'http:';
 const FRONTEND_PORT = FALLBACK_PORT || (FRONTEND_PROTOCOL === 'https:' ? '443' : '80');
 
+type ServiceState = 'online' | 'offline' | 'checking';
+
 interface ServerStatus {
   backend: 'online' | 'offline' | 'checking';
   frontend: 'online' | 'offline' | 'checking';
@@ -38,7 +40,20 @@ interface ServerStatus {
   error?: string;
 }
 
-const ServerControl: React.FC = () => {
+export interface ServerStatusSummary {
+  backend: ServiceState;
+  frontend: ServiceState;
+  docker: 'online' | 'offline' | 'unknown';
+  environment: string | null;
+  lastCheckedAt: string | null;
+  uptime?: number;
+}
+
+interface ServerControlProps {
+  onStatusSummary?: (summary: ServerStatusSummary) => void;
+}
+
+const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
   // ...existing code...
   const { t } = useLanguage();
   const { user } = useAuth();
@@ -50,7 +65,6 @@ const ServerControl: React.FC = () => {
   });
   const [currentUptime, setCurrentUptime] = useState<number>(0);
   const [isRestarting, setIsRestarting] = useState(false);
-  const [showDetails, setShowDetails] = useState<boolean>(false);
   const [healthData, setHealthData] = useState<HealthStatus | null>(null);
   const [autoRefresh, setAutoRefresh] = useState<boolean>(false);
   const [intervalMs, setIntervalMs] = useState<number>(5000);
@@ -77,6 +91,49 @@ const ServerControl: React.FC = () => {
     }
     return null;
   }, [user]);
+
+  const derivedDockerStatus = useMemo<'online' | 'offline' | 'unknown'>(() => {
+    const normalize = (value?: string | null) => {
+      if (!value) return undefined;
+      const lower = value.toLowerCase();
+      if (['online', 'ready', 'running', 'healthy', 'active'].includes(lower)) return 'online';
+      if (['offline', 'stopped', 'error', 'unhealthy', 'not running'].includes(lower)) return 'offline';
+      return undefined;
+    };
+
+    const direct = normalize(typeof healthData?.docker === 'string' ? healthData.docker : undefined);
+    if (direct) return direct;
+
+    const env = typeof healthData?.environment === 'string' ? healthData.environment.toLowerCase() : undefined;
+    if (env === 'docker') return 'online';
+    if (env === 'native') return 'offline';
+
+    const dockerCheck = (healthData?.checks as Record<string, unknown> | undefined)?.['docker'];
+    if (dockerCheck && typeof dockerCheck === 'object') {
+      const status = normalize((dockerCheck as { status?: string | null }).status ?? undefined);
+      if (status) return status;
+      const details = (dockerCheck as { details?: { running?: boolean } | null }).details;
+      if (details && typeof details === 'object') {
+        const running = (details as { running?: boolean }).running;
+        if (running === true) return 'online';
+        if (running === false) return 'offline';
+      }
+    }
+
+    return 'unknown';
+  }, [healthData]);
+
+  useEffect(() => {
+    if (!onStatusSummary) return;
+    onStatusSummary({
+      backend: status.backend,
+      frontend: status.frontend,
+      docker: derivedDockerStatus,
+      environment: healthData?.environment ?? null,
+      lastCheckedAt,
+      uptime: status.uptime,
+    });
+  }, [onStatusSummary, status.backend, status.frontend, status.uptime, derivedDockerStatus, healthData?.environment, lastCheckedAt]);
 
   // Splash/loading state (must be after status is declared)
   const isLoading = status.backend === 'checking' || status.frontend === 'checking';
@@ -186,12 +243,12 @@ const ServerControl: React.FC = () => {
 
   // Auto-refresh for health details
   useEffect(() => {
-    if (!autoRefresh || !showDetails) return;
+    if (!autoRefresh) return;
     const id = setInterval(() => {
       checkStatus();
     }, Math.max(2000, intervalMs));
     return () => clearInterval(id);
-  }, [autoRefresh, intervalMs, showDetails, checkStatus]);
+  }, [autoRefresh, intervalMs, checkStatus]);
 
   useEffect(() => {
     checkStatus();
@@ -298,16 +355,6 @@ const ServerControl: React.FC = () => {
     }
   };
 
-  const getStatusColor = (service: 'backend' | 'frontend') => {
-    const serviceStatus = status[service];
-    switch (serviceStatus) {
-      case 'online': return 'text-green-500';
-      case 'offline': return 'text-red-500';
-      case 'checking': return 'text-yellow-500';
-      default: return 'text-gray-500';
-    }
-  };
-
   const getStatusIcon = (service: 'backend' | 'frontend') => {
     const serviceStatus = status[service];
     switch (serviceStatus) {
@@ -357,310 +404,234 @@ const ServerControl: React.FC = () => {
     );
   }
 
-  const serverButtonInner = (
-    <>
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Backend Status */}
-        <div className="flex items-center space-x-2">
-          <Server size={14} className="text-gray-500" />
-          <div className={getStatusColor('backend')}>{getStatusIcon('backend')}</div>
-          <span className="text-xs font-medium text-gray-700">{t('utils.backend')}</span>
-        </div>
+  const formatServiceState = (value: ServiceState) => {
+    if (value === 'online') return t('system.statusOnline');
+    if (value === 'offline') return t('system.statusOffline');
+    return t('system.statusChecking');
+  };
 
-        {/* Frontend Status */}
-        <div className="flex items-center space-x-2">
-          <Monitor size={14} className="text-gray-500" />
-          <div className="text-green-500">
-            <CheckCircle size={14} />
-          </div>
-          <span className="text-xs font-medium text-gray-700">{t('utils.frontend')}</span>
-          <span className="text-xs font-mono text-gray-500 ml-2">{t('active')}</span>
-        </div>
+  const statusChipTone = (state: ServiceState | 'unknown') => {
+    switch (state) {
+      case 'online':
+        return 'bg-emerald-500/20 border-emerald-300/40 text-emerald-50';
+      case 'offline':
+        return 'bg-rose-500/20 border-rose-300/40 text-rose-50';
+      case 'checking':
+      case 'unknown':
+      default:
+        return 'bg-amber-500/20 border-amber-300/40 text-amber-50';
+    }
+  };
 
-        {/* Docker Status */}
-        <div className="flex items-center space-x-2">
-          <Server size={14} className="text-gray-500" />
-          <div className={healthData?.docker === 'online' ? 'text-green-500' : healthData?.docker === 'offline' ? 'text-red-500' : 'text-gray-500'}>
-            {healthData?.docker === 'online' ? <CheckCircle size={14} /> : healthData?.docker === 'offline' ? <AlertCircle size={14} /> : <Activity size={14} />}
-          </div>
-          <span className="text-xs font-medium text-gray-700">{t('docker')}</span>
-          <span className="text-xs font-mono text-gray-500 ml-2">
-            {healthData?.docker === 'online' ? t('ready') : healthData?.docker === 'offline' ? t('notRunning') : t('unknown')}
-          </span>
-        </div>
+  const renderActiveEndpointGrid = () => {
+    const frontendPort = FRONTEND_PORT;
+    const rawIps: string[] = Array.isArray(healthData?.network?.ips) ? healthData.network.ips : [];
 
-        {/* Environment Info */}
-        {healthData?.environment && (
-          <div className="flex items-center space-x-2 px-2 py-1 bg-indigo-50 rounded">
-            <span className="text-xs font-medium text-indigo-700">{t('runningIn')}:</span>
-            <span className="text-xs font-semibold text-indigo-900">
-              {healthData.environment === 'docker' ? t('dockerContainer') : t('nativeMode')}
-            </span>
-          </div>
-        )}
+    const activeIps = rawIps.filter((ip) => {
+      if (!ip || typeof ip !== 'string') return false;
+      if (ip === 'localhost' || ip === '127.0.0.1') return true;
+      if (typeof window !== 'undefined' && ip === window.location.hostname) return true;
+      if (ip.startsWith('169.254.')) return false;
+      return true;
+    });
+
+    const uniqueIps = new Set<string>(activeIps);
+    if (typeof window !== 'undefined' && window.location.hostname && !uniqueIps.has(window.location.hostname)) {
+      uniqueIps.add(window.location.hostname);
+    }
+
+    const ips = Array.from(uniqueIps);
+    if (!ips.length) {
+      return <div className="text-xs text-gray-600">{t('noActiveIps')}</div>;
+    }
+
+    return (
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+        {ips.map((ip) => {
+          const isIpv6 = ip.includes(':');
+          const ipForUrl = isIpv6 && !ip.startsWith('[') ? `[${ip}]` : ip;
+          const backendPortSegment = BACKEND_PORT ? `:${BACKEND_PORT}` : '';
+          const frontendPortSegment = frontendPort ? `:${frontendPort}` : '';
+          const backendBase = `${BACKEND_PROTOCOL}//${ipForUrl}${backendPortSegment}`;
+          const frontendBase = `${FRONTEND_PROTOCOL}//${ipForUrl}${frontendPortSegment}`;
+          const ipDisplay = isIpv6 ? `[${ip}]` : ip;
+          const backendDisplayLine = backendPortSegment ? `${ipDisplay}${backendPortSegment}` : ipDisplay;
+
+          return (
+            <div key={ip} className="text-xs">
+              <div className="font-mono text-gray-700 mb-1">{backendDisplayLine}</div>
+              <div className="flex flex-wrap gap-2">
+                <a className="text-indigo-600 hover:underline" href={`${backendBase}/`} target="_blank" rel="noopener noreferrer">{`${t('utils.backend')} (${BACKEND_PORT})`}</a>
+                <span className="text-gray-400">|</span>
+                <a className="text-indigo-600 hover:underline" href={`${backendBase}/docs`} target="_blank" rel="noopener noreferrer">{`${t('utils.apiDocs')} (${BACKEND_PORT})`}</a>
+                <a className="text-indigo-600 hover:underline" href={`${backendBase}/redoc`} target="_blank" rel="noopener noreferrer">{`${t('utils.apiRedoc')} (${BACKEND_PORT})`}</a>
+                <a className="text-indigo-600 hover:underline" href={`${backendBase}/health`} target="_blank" rel="noopener noreferrer">{`${t('utils.healthEndpoint')} (${BACKEND_PORT})`}</a>
+                <span className="text-gray-400">|</span>
+                <a className="text-emerald-700 hover:underline" href={`${frontendBase}/`} target="_blank" rel="noopener noreferrer">{`${t('utils.frontend')} (${frontendPort})`}</a>
+              </div>
+            </div>
+          );
+        })}
       </div>
+    );
+  };
 
-      {/* Overall Status & (optional) restart controls */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-gray-700">{getOverallStatus()}</span>
-          {restartSupported && (
-            <button
-              onClick={(event) => { event.stopPropagation(); handleRestart(); }}
-              disabled={isRestarting || !restartSupported}
-              className="flex items-center gap-1 px-2 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-              title={t('restart')}
-            >
-              <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
-              <span>{t('restart')}</span>
-            </button>
-          )}
-        </div>
-
-        {status.backend === 'online' && currentUptime > 0 && (
-          <span className="text-xs text-gray-500">
-{t('uptime')}: {t('controlPanel.uptimeFormatShort', { h: Math.floor(currentUptime / 3600), m: Math.floor((currentUptime % 3600) / 60), s: currentUptime % 60 })}
-          </span>
-        )}
-
-        {status.error && (
-          <span className="text-xs text-red-500 truncate max-w-32" title={typeof status.error === 'string' ? status.error : JSON.stringify(status.error)}>
-            {t('error') || 'Error'}: {typeof status.error === 'string' ? status.error.substring(0, 20) : String(status.error).substring(0, 20)}...
-          </span>
-        )}
-      </div>
-    </>
-  );
+  const frontendHostLabel = typeof window !== 'undefined'
+    ? `${window.location.hostname}:${window.location.port || '5173'}`
+    : t('unknown');
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Enhanced Server Status Display */}
-      {showDetails ? (
-        <div
-          className="flex flex-col gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
-          role="button"
-          tabIndex={0}
-          aria-expanded="true"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              setShowDetails((s) => !s);
-              if (!healthData) checkStatus();
-            }
-          }}
-          title={t('toggleDetailsRefresh')}
-        >
-          {serverButtonInner}
-        </div>
-      ) : (
-        <div
-          className="flex flex-col gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => { setShowDetails((s) => !s); if (!healthData) checkStatus(); }}
-          role="button"
-          tabIndex={0}
-          aria-expanded="false"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              setShowDetails((s) => !s);
-              if (!healthData) checkStatus();
-            }
-          }}
-          title={t('toggleDetailsRefresh')}
-        >
-          {serverButtonInner}
-        </div>
-      )}
-
-      {/* Detailed System Health (toggle) */}
-      {showDetails && (
-        <div className="border rounded-xl overflow-hidden">
-          <div className="px-4 py-3 text-white bg-slate-700">
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap items-center gap-3 justify-between">
-                <div className="font-semibold">{t('systemHealth')}</div>
-                <div className="flex flex-wrap items-center gap-3 text-xs">
-                  {identityLabel && (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1 text-white/90" data-testid="server-control-identity">
-                      <span>{t('signedInAs')}</span>
-                      <span className="font-semibold text-white">{identityLabel}</span>
-                    </span>
-                  )}
-                  <div className="flex items-center gap-2 text-white/90">
-                    {healthData?.version ? <span>{t('controlPanel.versionShort', { version: healthData.version })}</span> : null}
-                    {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
-                    {lastCheckedAt ? <span>({t('checkedAt')} {lastCheckedAt})</span> : null}
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-4">
-                {/* LEDs */}
-                <div className="flex items-center gap-2">
-                  <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-300 shadow-[0_0_6px_rgba(16,185,129,0.9)]"></span>
-                  <span className="text-white/90 text-xs">{t('utils.frontend')}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={
-                      'inline-block w-2.5 h-2.5 rounded-full ' +
-                      (healthData?.status === 'healthy'
-                        ? 'bg-emerald-300 shadow-[0_0_6px_rgba(16,185,129,0.9)]'
-                        : status.backend === 'checking'
-                        ? 'bg-amber-300 shadow-[0_0_6px_rgba(245,158,11,0.9)]'
-                        : 'bg-rose-300 shadow-[0_0_6px_rgba(244,63,94,0.9)]')
-                    }
-                  ></span>
-                  <span className="text-white/90 text-xs">{t('utils.backend')}</span>
-                </div>
-                {/* Environment Badge */}
-                {healthData?.environment && (
-                  <div className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded">
-                    <span className="text-white/90 text-xs font-semibold">
-                      {healthData.environment === 'docker' ? t('environmentDocker') : t('environmentNative')}
-                    </span>
-                  </div>
-                )}
-                {/* Controls */}
-                <div className="ml-auto flex items-center gap-3">
-                  <label className="inline-flex items-center gap-1 text-xs text-white/90">
-                    <input
-                      type="checkbox"
-                      checked={autoRefresh}
-                      onChange={(e) => setAutoRefresh(e.target.checked)}
-                      aria-label={t('toggleAutoRefresh')}
-                    />
-                    {t('autoRefresh')}
-                  </label>
-                  <select
-                    value={String(intervalMs)}
-                    onChange={(e) => setIntervalMs(parseInt(e.target.value, 10))}
-                    className="bg-white/20 text-white rounded px-2 py-1 text-xs"
-                    aria-label={t('autoRefreshInterval')}
-                    disabled={!autoRefresh}
-                  >
-                    <option className="text-black" value="3000">{t('controlPanel.timeoutSeconds', { s: 3 })}</option>
-                    <option className="text-black" value="5000">{t('controlPanel.timeoutSeconds', { s: 5 })}</option>
-                    <option className="text-black" value="10000">{t('controlPanel.timeoutSeconds', { s: 10 })}</option>
-                    <option className="text-black" value="30000">{t('controlPanel.timeoutSeconds', { s: 30 })}</option>
-                  </select>
-                </div>
+    <div className="border rounded-xl overflow-hidden">
+      <div className="px-4 py-3 text-white bg-slate-700">
+        <div className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center gap-3 justify-between">
+            <div className="font-semibold">{t('systemHealth')}</div>
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              {identityLabel && (
+                <span className="inline-flex items-center gap-1 rounded-md bg-white/15 px-2 py-1 text-white/90" data-testid="server-control-identity">
+                  <span>{t('signedInAs')}</span>
+                  <span className="font-semibold text-white">{identityLabel}</span>
+                </span>
+              )}
+              <div className="flex items-center gap-2 text-white/90">
+                {healthData?.version ? <span>{t('controlPanel.versionShort', { version: healthData.version })}</span> : null}
+                {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
+                {lastCheckedAt ? <span>({t('checkedAt')} {lastCheckedAt})</span> : null}
               </div>
             </div>
           </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 bg-white">
-            {/* Prominent Uptime Widget */}
-            {status.backend === 'online' && currentUptime > 0 && (
-              <div className="rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6 md:col-span-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-semibold text-indigo-900 mb-2">{t('uptime')}</div>
-                    <div className="text-4xl font-bold text-indigo-600">
-                      {t('controlPanel.uptimeFormatShort', {
-                        h: Math.floor(currentUptime / 3600),
-                        m: Math.floor((currentUptime % 3600) / 60),
-                        s: currentUptime % 60,
-                      })}
-                    </div>
-                  </div>
-                  <div className="text-6xl opacity-20">{t('timerEmoji')}</div>
-                </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${statusChipTone(status.backend)}`}>
+              {getStatusIcon('backend')}
+              <span>{t('utils.backend')}</span>
+              <span className="font-semibold">{formatServiceState(status.backend)}</span>
+            </div>
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${statusChipTone(status.frontend)}`}>
+              {getStatusIcon('frontend')}
+              <span>{t('utils.frontend')}</span>
+              <span className="font-semibold">{formatServiceState(status.frontend)}</span>
+            </div>
+            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium ${statusChipTone(derivedDockerStatus)}`}>
+              <Server size={14} />
+              <span>{t('docker')}</span>
+              <span className="font-semibold">
+                {derivedDockerStatus === 'online'
+                  ? (healthData?.environment === 'docker' ? t('environmentDocker') : t('system.statusOnline'))
+                  : derivedDockerStatus === 'offline'
+                    ? t('system.statusOffline')
+                    : t('system.statusChecking')}
+              </span>
+            </div>
+            {healthData?.environment && (
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white/90">
+                <span>{t('runningIn')}:</span>
+                <span>{healthData.environment === 'docker' ? t('dockerContainer') : t('nativeMode')}</span>
               </div>
             )}
-
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{t('database')}</div>
-              <div className="text-sm font-semibold">{healthData?.database || healthData?.db || t('unknown')}</div>
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-3 py-1 text-xs font-semibold text-white/90">
+              <span>{getOverallStatus()}</span>
+              {status.backend === 'online' && currentUptime > 0 && (
+                <span className="text-white/70">
+                  • {t('controlPanel.uptimeFormatShort', {
+                    h: Math.floor(currentUptime / 3600),
+                    m: Math.floor((currentUptime % 3600) / 60),
+                    s: currentUptime % 60,
+                  })}
+                </span>
+              )}
             </div>
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{t('students')}</div>
-              <div className="text-sm font-semibold">{healthData?.statistics?.students ?? healthData?.students_count ?? t('na')}</div>
-            </div>
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{t('courses')}</div>
-              <div className="text-sm font-semibold">{healthData?.statistics?.courses ?? healthData?.courses_count ?? t('na')}</div>
-            </div>
-            <div className="rounded-lg border p-3">
-              <div className="text-xs text-gray-500">{t('utils.frontend')}</div>
-              <div className="text-sm font-semibold">{window.location.hostname}:{window.location.port || '5173'}</div>
-            </div>
-
-            {/* Available Endpoints - Only Active IPs */}
-            <div className="rounded-lg border p-3 md:col-span-3">
-              <div className="text-sm font-semibold mb-2">{t('availableEndpoints')}</div>
-              {(() => {
-                const frontendPort = FRONTEND_PORT;
-                const rawIps: string[] = Array.isArray(healthData?.network?.ips) ? healthData.network.ips : [];
-
-                // Filter for active IPs: localhost, current hostname, and non-169.254 (APIPA) addresses
-                const activeIps = rawIps.filter(ip => {
-                  if (!ip || typeof ip !== 'string') return false;
-                  // Keep localhost
-                  if (ip === 'localhost' || ip === '127.0.0.1') return true;
-                  // Keep current hostname
-                  if (ip === window.location.hostname) return true;
-                  // Filter out APIPA addresses (169.254.x.x)
-                  if (ip.startsWith('169.254.')) return false;
-                  // Keep all other IPs (likely active network interfaces)
-                  return true;
-                });
-
-                // Remove duplicates and add current host if not present
-                const set = new Set<string>(activeIps);
-                if (window.location.hostname && !set.has(window.location.hostname)) {
-                  set.add(window.location.hostname);
-                }
-
-                const ips = Array.from(set);
-                if (!ips.length) return <div className="text-xs text-gray-600">{t('noActiveIps')}</div>;
-
-                return (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {ips.map((ip) => {
-                      const ipForUrl = ip.includes(':') && !ip.startsWith('[') ? `[${ip}]` : ip; // bracket IPv6
-                      const backendPortSegment = BACKEND_PORT ? `:${BACKEND_PORT}` : '';
-                      const frontendPortSegment = frontendPort ? `:${frontendPort}` : '';
-                      const backendBase = `${BACKEND_PROTOCOL}//${ipForUrl}${backendPortSegment}`;
-                      const frontendBase = `${FRONTEND_PROTOCOL}//${ipForUrl}${frontendPortSegment}`;
-                      const ipDisplay = ip.includes(':') ? `[${ip}]` : ip;
-                      const backendDisplayLine = backendPortSegment ? `${ipDisplay}${backendPortSegment}` : ipDisplay;
-                      return (
-                        <div key={ip} className="text-xs">
-                          <div className="font-mono text-gray-700 mb-1">{backendDisplayLine}</div>
-                          <div className="flex flex-wrap gap-2">
-                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/`} target="_blank" rel="noopener noreferrer">{`${t('utils.backend')} (${BACKEND_PORT})`}</a>
-                            <span className="text-gray-400">|</span>
-                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/docs`} target="_blank" rel="noopener noreferrer">{`${t('utils.apiDocs')} (${BACKEND_PORT})`}</a>
-                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/redoc`} target="_blank" rel="noopener noreferrer">{`${t('utils.apiRedoc')} (${BACKEND_PORT})`}</a>
-                            <a className="text-indigo-600 hover:underline" href={`${backendBase}/health`} target="_blank" rel="noopener noreferrer">{`${t('utils.healthEndpoint')} (${BACKEND_PORT})`}</a>
-                            <span className="text-gray-400">|</span>
-                            <a className="text-emerald-700 hover:underline" href={`${frontendBase}/`} target="_blank" rel="noopener noreferrer">{`${t('utils.frontend')} (${frontendPort})`}</a>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
-            </div>
-
-            {/* Copyright Footer */}
-            <div className="rounded-lg border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 p-4 md:col-span-3">
-              <div className="text-center space-y-1">
-                <div className="text-sm font-semibold text-indigo-900">
-                  {t('footerTitle')}
-                </div>
-                <div className="text-xs text-indigo-700">
-                  {t('footerDeveloper')}
-                </div>
-                <div className="text-xs text-indigo-600">
-                  {t('footerCopyright')}
-                </div>
-              </div>
+            <div className="ml-auto flex flex-wrap items-center gap-3">
+              {restartSupported && (
+                <button
+                  onClick={handleRestart}
+                  disabled={isRestarting}
+                  className="inline-flex items-center gap-1 rounded-full bg-blue-500 px-3 py-1 text-xs font-semibold text-white shadow hover:bg-blue-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  title={t('restart')}
+                >
+                  <RotateCw size={14} className={isRestarting ? 'animate-spin' : ''} />
+                  <span>{t('restart')}</span>
+                </button>
+              )}
+              <label className="inline-flex items-center gap-1 text-xs text-white/90">
+                <input
+                  type="checkbox"
+                  checked={autoRefresh}
+                  onChange={(e) => setAutoRefresh(e.target.checked)}
+                  aria-label={t('toggleAutoRefresh')}
+                />
+                {t('autoRefresh')}
+              </label>
+              <select
+                value={String(intervalMs)}
+                onChange={(e) => setIntervalMs(parseInt(e.target.value, 10))}
+                className="bg-white/20 text-white rounded px-2 py-1 text-xs"
+                aria-label={t('autoRefreshInterval')}
+                disabled={!autoRefresh}
+              >
+                <option className="text-black" value="3000">{t('controlPanel.timeoutSeconds', { s: 3 })}</option>
+                <option className="text-black" value="5000">{t('controlPanel.timeoutSeconds', { s: 5 })}</option>
+                <option className="text-black" value="10000">{t('controlPanel.timeoutSeconds', { s: 10 })}</option>
+                <option className="text-black" value="30000">{t('controlPanel.timeoutSeconds', { s: 30 })}</option>
+              </select>
             </div>
           </div>
+          {status.error && (
+            <div className="text-xs text-rose-200">
+              {t('error') || 'Error'}: {typeof status.error === 'string' ? status.error : JSON.stringify(status.error)}
+            </div>
+          )}
         </div>
-      )}
+      </div>
+
+      <div className="grid gap-4 bg-white p-4 md:grid-cols-3">
+        {status.backend === 'online' && currentUptime > 0 && (
+          <div className="md:col-span-3 rounded-xl border-2 border-indigo-200 bg-gradient-to-br from-indigo-50 to-purple-50 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="mb-2 text-sm font-semibold text-indigo-900">{t('uptime')}</div>
+                <div className="text-4xl font-bold text-indigo-600">
+                  {t('controlPanel.uptimeFormatShort', {
+                    h: Math.floor(currentUptime / 3600),
+                    m: Math.floor((currentUptime % 3600) / 60),
+                    s: currentUptime % 60,
+                  })}
+                </div>
+              </div>
+              <div className="text-6xl opacity-20">{t('timerEmoji')}</div>
+            </div>
+          </div>
+        )}
+
+        <div className="rounded-lg border p-3">
+          <div className="text-xs text-gray-500">{t('database')}</div>
+          <div className="text-sm font-semibold">{healthData?.database || healthData?.db || t('unknown')}</div>
+        </div>
+        <div className="rounded-lg border p-3">
+          <div className="text-xs text-gray-500">{t('students')}</div>
+          <div className="text-sm font-semibold">{healthData?.statistics?.students ?? healthData?.students_count ?? t('na')}</div>
+        </div>
+        <div className="rounded-lg border p-3">
+          <div className="text-xs text-gray-500">{t('courses')}</div>
+          <div className="text-sm font-semibold">{healthData?.statistics?.courses ?? healthData?.courses_count ?? t('na')}</div>
+        </div>
+        <div className="rounded-lg border p-3">
+          <div className="text-xs text-gray-500">{t('utils.frontend')}</div>
+          <div className="text-sm font-semibold">{frontendHostLabel}</div>
+        </div>
+
+        <div className="md:col-span-3 rounded-lg border p-3">
+          <div className="mb-2 text-sm font-semibold">{t('availableEndpoints')}</div>
+          {renderActiveEndpointGrid()}
+        </div>
+
+        <div className="md:col-span-3 rounded-lg border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 p-4">
+          <div className="space-y-1 text-center">
+            <div className="text-sm font-semibold text-indigo-900">{t('footerTitle')}</div>
+            <div className="text-xs text-indigo-700">{t('footerDeveloper')}</div>
+            <div className="text-xs text-indigo-600">{t('footerCopyright')}</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
