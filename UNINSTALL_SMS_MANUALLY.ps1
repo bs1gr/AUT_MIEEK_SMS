@@ -19,7 +19,19 @@ if (-not $isAdmin) {
 Write-Host "Stopping SMS Docker container..." -ForegroundColor Yellow
 docker stop sms-app 2>$null
 docker rm sms-app 2>$null
-Write-Host "✓ Docker container stopped" -ForegroundColor Green
+Write-Host "✓ Docker container stopped and removed" -ForegroundColor Green
+
+# Ask if user wants to remove Docker image as well
+Write-Host ""
+$removeImage = Read-Host "Do you want to remove the Docker image as well? (y/N)"
+if ($removeImage -eq 'y' -or $removeImage -eq 'Y') {
+    Write-Host "Removing Docker image..." -ForegroundColor Yellow
+    docker rmi sms-fullstack 2>$null
+    Write-Host "✓ Docker image removed" -ForegroundColor Green
+    Write-Host "Note: This will free up ~500MB-1GB disk space" -ForegroundColor Cyan
+} else {
+    Write-Host "✓ Docker image kept (can be reused for reinstall)" -ForegroundColor Gray
+}
 
 # Remove application folder
 $appFolder = 'C:\Program Files\SMS'

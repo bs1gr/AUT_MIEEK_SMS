@@ -999,12 +999,31 @@ function InitializeUninstall: Boolean;
 var
   ResultCode: Integer;
   DeleteUserData: Integer;
+  DeleteDockerImage: Integer;
 begin
   Result := True;
 
   // Stop container before uninstall
   Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Exec('cmd', '/c docker rm sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  // Ask user if they want to delete Docker image
+  DeleteDockerImage := MsgBox(
+    'Do you want to remove the Docker image?' + #13#10 + #13#10 +
+    'The Docker image is ~500MB-1GB and can be reused if you reinstall.' + #13#10 + #13#10 +
+    'Click YES to remove the image and free up disk space.' + #13#10 +
+    'Click NO to keep the image for faster reinstallation.',
+    mbConfirmation, MB_YESNO);
+
+  if DeleteDockerImage = IDYES then
+  begin
+    Log('User chose to delete Docker image');
+    Exec('cmd', '/c docker rmi sms-fullstack 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end
+  else
+  begin
+    Log('User chose to keep Docker image');
+  end;
 
   // Ask user if they want to delete user data
   DeleteUserData := MsgBox(
@@ -1028,9 +1047,11 @@ begin
     DeleteFile(ExpandConstant('{app}\.env'));
     DeleteFile(ExpandConstant('{app}\backend\.env'));
     DeleteFile(ExpandConstant('{app}\frontend\.env'));
-  end;
-
+  end
+  else
+  begin
     Log('User chose to keep user data');
+  end;
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
