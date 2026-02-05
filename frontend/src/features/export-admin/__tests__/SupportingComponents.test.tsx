@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, _waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { ReactElement } from 'react';
@@ -128,13 +128,17 @@ describe('EmailConfigPanel', () => {
   });
 
   it('renders email configuration title', () => {
-    renderWithProviders(<EmailConfigPanel />);
+    renderWithProviders(
+      <EmailConfigPanel config={{ smtp_host: '', smtp_port: 587, smtp_user: '', smtp_password: '', from_email: '', from_name: '' }} onSave={async () => {}} onTest={async () => {}} />
+    );
 
     expect(screen.getByText('Email Configuration')).toBeInTheDocument();
   });
 
   it('renders all SMTP form fields', () => {
-    renderWithProviders(<EmailConfigPanel />);
+    renderWithProviders(
+      <EmailConfigPanel config={{ smtp_host: '', smtp_port: 587, smtp_user: '', smtp_password: '', from_email: '', from_name: '' }} onSave={async () => {}} onTest={async () => {}} />
+    );
 
     expect(screen.getByPlaceholderText('smtp.example.com')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('587')).toBeInTheDocument();
@@ -145,7 +149,9 @@ describe('EmailConfigPanel', () => {
   });
 
   it('renders save and test buttons', () => {
-    renderWithProviders(<EmailConfigPanel />);
+    renderWithProviders(
+      <EmailConfigPanel config={{ smtp_host: '', smtp_port: 587, smtp_user: '', smtp_password: '', from_email: '', from_name: '' }} onSave={async () => {}} onTest={async () => {}} />
+    );
 
     expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /test connection/i })).toBeInTheDocument();
@@ -153,7 +159,9 @@ describe('EmailConfigPanel', () => {
 
   it('allows input in form fields', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<EmailConfigPanel />);
+    renderWithProviders(
+      <EmailConfigPanel config={{ smtp_host: '', smtp_port: 587, smtp_user: '', smtp_password: '', from_email: '', from_name: '' }} onSave={async () => {}} onTest={async () => {}} />
+    );
 
     const hostInput = screen.getByPlaceholderText('smtp.example.com');
     await user.type(hostInput, 'smtp.gmail.com');
@@ -168,13 +176,17 @@ describe('ExportSettingsPanel', () => {
   });
 
   it('renders settings title', () => {
-    renderWithProviders(<ExportSettingsPanel />);
+    renderWithProviders(
+      <ExportSettingsPanel settings={{ default_format: 'excel', max_file_size_mb: 100, retention_days: 30, auto_delete_old_exports: true }} onSave={async () => {}} />
+    );
 
     expect(screen.getByText('Export Settings')).toBeInTheDocument();
   });
 
   it('renders all settings fields with hints', () => {
-    renderWithProviders(<ExportSettingsPanel />);
+    renderWithProviders(
+      <ExportSettingsPanel settings={{ default_format: 'excel', max_file_size_mb: 100, retention_days: 30, auto_delete_old_exports: true }} onSave={async () => {}} />
+    );
 
     const inputs = screen.getAllByRole('spinbutton');
     expect(inputs).toHaveLength(4);
@@ -188,14 +200,18 @@ describe('ExportSettingsPanel', () => {
   });
 
   it('renders save settings button', () => {
-    renderWithProviders(<ExportSettingsPanel />);
+    renderWithProviders(
+      <ExportSettingsPanel settings={{ default_format: 'excel', max_file_size_mb: 100, retention_days: 30, auto_delete_old_exports: true }} onSave={async () => {}} />
+    );
 
     expect(screen.getByRole('button', { name: /save/i })).toBeInTheDocument();
   });
 
   it('accepts numeric input in settings fields', async () => {
     const user = userEvent.setup();
-    renderWithProviders(<ExportSettingsPanel />);
+    renderWithProviders(
+      <ExportSettingsPanel settings={{ default_format: 'excel', max_file_size_mb: 100, retention_days: 30, auto_delete_old_exports: true }} onSave={async () => {}} />
+    );
 
     const retentionInput = screen.getAllByRole('spinbutton')[0];
     await user.clear(retentionInput);
