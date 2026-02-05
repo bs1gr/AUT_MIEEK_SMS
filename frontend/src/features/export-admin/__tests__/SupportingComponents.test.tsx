@@ -62,6 +62,7 @@ i18n.init({
           format: 'Format',
           fileSize: 'File Size',
           duration: 'Duration',
+          seconds: 's',
           created: 'Created',
           updated: 'Updated',
           error: 'Error',
