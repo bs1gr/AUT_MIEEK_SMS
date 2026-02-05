@@ -11,7 +11,7 @@ import i18n from 'i18next';
 import { I18nextProvider } from 'react-i18next';
 import ExportScheduler from '../components/ExportScheduler';
 import { ExportSchedule } from '../types/export';
-import { _useCreateSchedule, _useExportSchedules } from '../hooks/useExportAdmin';
+import { useCreateSchedule, useExportSchedules } from '../hooks/useExportAdmin';
 
 // Initialize i18n for tests
 i18n.init({
