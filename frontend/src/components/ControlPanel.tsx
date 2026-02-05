@@ -17,7 +17,7 @@ import {
   Activity,
   ChevronDown
 } from 'lucide-react';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
 import Toast from './ui/Toast';
 import DevToolsPanel, { type ToastState } from '@/features/operations/components/DevToolsPanel';
@@ -26,6 +26,7 @@ import { RBACPanel } from '@/components/admin/RBACPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
 import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
+import apiClient, { CONTROL_API_BASE } from '@/api/api';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -126,10 +127,8 @@ interface OperationStatus {
  * runs directly on the host, not inside Docker containers.
  */
 
-const API_BASE = window.location.origin;
 // Canonical unified Control API base (backend mounts control router without /api/v1 prefix)
-const CONTROL_API = `${API_BASE}/control/api`;
-// Removed unused LEGACY_CONTROL_API constant
+const CONTROL_API = CONTROL_API_BASE.replace(/\/$/, '');
 
 interface ControlPanelProps {
   showTitle?: boolean;
@@ -198,7 +197,7 @@ function formatUptime(seconds: number): string {
   // Fetch status
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await axios.get(`${CONTROL_API}/status`);
+      const response = await apiClient.get(`${CONTROL_API}/status`);
       setStatus(response.data);
       if (response.data.process_start_time) {
         updateUptime(response.data.process_start_time);
@@ -219,7 +218,7 @@ function formatUptime(seconds: number): string {
   const fetchDiagnostics = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${CONTROL_API}/diagnostics`);
+      const response = await apiClient.get(`${CONTROL_API}/diagnostics`);
       // Ensure response.data is an array before setting
       if (Array.isArray(response.data)) {
         setDiagnostics(response.data);
@@ -238,7 +237,7 @@ function formatUptime(seconds: number): string {
   // Fetch ports
   const fetchPorts = useCallback(async () => {
     try {
-      const response = await axios.get(`${CONTROL_API}/ports`);
+      const response = await apiClient.get(`${CONTROL_API}/ports`);
       // Ensure response.data is an array before setting
       if (Array.isArray(response.data)) {
         setPorts(response.data);
@@ -256,7 +255,7 @@ function formatUptime(seconds: number): string {
   const fetchEnvironment = useCallback(async (includePackages = false): Promise<void> => {
     try {
       const url = includePackages ? `${CONTROL_API}/environment?include_packages=true` : `${CONTROL_API}/environment`;
-      const response = await axios.get(url);
+      const response = await apiClient.get(url);
       setEnvironment(response.data);
     } catch (error) {
       console.error('Failed to fetch environment:', error);
@@ -266,7 +265,7 @@ function formatUptime(seconds: number): string {
   // Fetch logs
   const fetchLogs = useCallback(async (): Promise<void> => {
     try {
-      const response = await axios.get(`${CONTROL_API}/logs/backend?lines=50`);
+      const response = await apiClient.get(`${CONTROL_API}/logs/backend?lines=50`);
       setLogs(response.data.logs || []);
     } catch (error) {
       console.error('Failed to fetch logs:', error);
@@ -278,7 +277,7 @@ function formatUptime(seconds: number): string {
     try {
       setLoading(true);
       setOperationStatus({ type: 'info', message: t('executing') });
-      const response = await axios.post(`${CONTROL_API}/operations/${endpoint}`);
+      const response = await apiClient.post(`${CONTROL_API}/operations/${endpoint}`);
 
       if (response.data.success) {
         setOperationStatus({ type: 'success', message: successMessage });
@@ -306,7 +305,7 @@ function formatUptime(seconds: number): string {
     try {
       setLoading(true);
       setOperationStatus({ type: 'info', message: t('executing') });
-      const response = await axios.post(`${CONTROL_API}${path}`);
+      const response = await apiClient.post(`${CONTROL_API}${path}`);
       if (response.data.success) {
         setOperationStatus({ type: 'success', message: successMessage });
       } else {
@@ -376,58 +375,95 @@ function formatUptime(seconds: number): string {
 
   const isEmbedded = variant === 'embedded';
   const containerClass = isEmbedded
-    ? 'bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100'
+    ? 'w-full overflow-hidden text-slate-900 dark:text-gray-100'
     : 'min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100';
+  const cardBaseClass = isEmbedded
+    ? 'rounded-2xl border border-slate-200 bg-white shadow-sm'
+    : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg';
+  const headerClass = isEmbedded
+    ? `${cardBaseClass} px-6 py-5`
+    : 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4';
+  const modeBannerClass = isEmbedded
+    ? 'mt-4 px-4 py-3 rounded-xl border border-indigo-100 bg-indigo-50 flex items-start gap-3 text-indigo-900'
+    : 'mt-4 px-4 py-3 bg-blue-900/20 border border-blue-700/50 rounded-lg flex items-center gap-3';
+  const tabBarWrapperClass = isEmbedded
+    ? 'pt-4'
+    : 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700';
+  const tabNavContainerClass = isEmbedded ? 'px-0' : 'px-6';
+  const tabListClass = isEmbedded ? 'flex flex-wrap gap-2' : 'flex gap-1';
+  const tabButtonClass = (tabId: string) => (
+    isEmbedded
+      ? `inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-indigo-500 ${
+          activeTab === tabId
+            ? 'bg-indigo-600 text-white shadow-sm'
+            : 'border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+        }`
+      : `flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
+          activeTab === tabId
+            ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
+            : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
+        }`
+  );
+  const mainClass = isEmbedded ? 'space-y-6' : 'p-6 max-w-7xl mx-auto';
 
   return (
     <div className={containerClass}>
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <header className={headerClass}>
+        <div className={isEmbedded ? 'flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between' : 'flex items-center justify-between'}>
           <div className="flex items-center gap-3">
             {showTitle ? (
               <>
-                <Settings className="text-indigo-400" size={28} />
+                <Settings className="text-indigo-500" size={isEmbedded ? 26 : 28} />
                 <div>
-                  <h1 className="text-xl font-bold">{t('title')}</h1>
-                  <p className="text-sm text-gray-400">{t('subtitle')}</p>
+                  <h1 className="text-xl font-bold text-slate-900">{t('title')}</h1>
+                  <p className="text-sm text-slate-500">{t('subtitle')}</p>
                 </div>
               </>
             ) : (
-              <Settings className="text-indigo-400" size={24} aria-hidden="true" />
+              <Settings className="text-indigo-500" size={24} aria-hidden="true" />
             )}
           </div>
 
-          {/* Uptime display */}
-          {uptime && !isEmbedded && (
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-300">
-              <span className="font-semibold">{t('uptime') || 'Uptime'}:</span>
-              <span className="font-mono">{uptime}</span>
-            </div>
-          )}
+          <div className={isEmbedded ? 'flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4' : 'flex items-center gap-3'}>
+            {uptime && (
+              <div className={isEmbedded ? 'flex items-center gap-2 text-xs text-slate-500' : 'flex items-center gap-2 text-xs text-gray-500 dark:text-gray-300'}>
+                <span className="font-semibold">{t('uptime') || 'Uptime'}:</span>
+                <span className="font-mono text-slate-700">{uptime}</span>
+              </div>
+            )}
 
-          {operationStatus && (
-            <div className={`px-4 py-2 rounded-lg border ${
-              operationStatus.type === 'success' ? 'bg-green-900/30 border-green-700 text-green-400' :
-              operationStatus.type === 'error' ? 'bg-red-900/30 border-red-700 text-red-400' :
-              operationStatus.type === 'warning' ? 'bg-yellow-900/30 border-yellow-700 text-yellow-400' :
-              'bg-blue-900/30 border-blue-700 text-blue-400'
-            }`}>
-              {operationStatus.message}
-            </div>
-          )}
+            {operationStatus && (
+              <div className={
+                isEmbedded
+                  ? `inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold ${
+                      operationStatus.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
+                      operationStatus.type === 'error' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
+                      operationStatus.type === 'warning' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                      'bg-slate-50 text-slate-700 border border-slate-200'
+                    }`
+                  : `px-4 py-2 rounded-lg border ${
+                      operationStatus.type === 'success' ? 'bg-green-900/30 border-green-700 text-green-400' :
+                      operationStatus.type === 'error' ? 'bg-red-900/30 border-red-700 text-red-400' :
+                      operationStatus.type === 'warning' ? 'bg-yellow-900/30 border-yellow-700 text-yellow-400' :
+                      'bg-blue-900/30 border-blue-700 text-blue-400'
+                    }`
+              }>
+                {operationStatus.message}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Mode Indicator Banner */}
         {environment?.environment_mode === 'docker' && (
-          <div className="mt-4 px-4 py-3 bg-blue-900/20 border border-blue-700/50 rounded-lg flex items-center gap-3">
-            <Container size={20} className="text-blue-400" />
+          <div className={modeBannerClass}>
+            <Container size={20} className={isEmbedded ? 'text-indigo-500' : 'text-blue-400'} />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-blue-300">
+              <p className={isEmbedded ? 'text-sm font-semibold text-indigo-900' : 'text-sm font-semibold text-blue-300'}>
                 {t('runningIn')}: {t('dockerContainer')}
               </p>
-              <p className="text-xs text-blue-400 mt-1">
+              <p className={isEmbedded ? 'text-xs text-indigo-700 mt-1' : 'text-xs text-blue-400 mt-1'}>
                 {t('nativeOpsHidden')}
               </p>
             </div>
@@ -436,9 +472,9 @@ function formatUptime(seconds: number): string {
       </header>
 
       {/* Tabs */}
-  <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="px-6">
-          <nav className="flex gap-1">
+      <div className={tabBarWrapperClass}>
+        <div className={tabNavContainerClass}>
+          <nav className={tabListClass}>
             {[
               { id: 'operations', label: t('operations'), icon: Terminal },
               { id: 'updates', label: t('updates') || 'Updates', icon: Download },
@@ -454,11 +490,7 @@ function formatUptime(seconds: number): string {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-4 py-3 border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-indigo-500 text-indigo-400 bg-gray-900/50'
-                      : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
-                  }`}
+                  className={tabButtonClass(tab.id)}
                 >
                   <Icon size={18} />
                   {tab.label}
@@ -470,50 +502,44 @@ function formatUptime(seconds: number): string {
       </div>
 
       {/* Content */}
-      <main className={isEmbedded ? 'p-6' : 'p-6 max-w-7xl mx-auto'}>
+      <main className={mainClass}>
         {/* Dashboard tab removed as redundant */}
 
         {/* Operations Tab */}
         {activeTab === 'operations' && (
           <div className="space-y-6">
             {environment?.environment_mode === 'docker' && (
-              <div className="bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-700/50 rounded-lg p-6">
+              <div className={`${isEmbedded ? 'rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 to-blue-50 text-slate-700' : 'bg-gradient-to-r from-blue-900/20 to-indigo-900/20 border border-blue-700/50 rounded-lg text-blue-200'} p-6`}>
                 <div className="flex items-start gap-4">
-                  <Container size={24} className="text-blue-400 flex-shrink-0 mt-1" />
+                  <Container size={24} className={isEmbedded ? 'text-indigo-500 flex-shrink-0 mt-1' : 'text-blue-400 flex-shrink-0 mt-1'} />
                   <div className="flex-1">
-                    <h2 className="text-lg font-semibold text-blue-300 mb-2">{t('dockerContainer')}</h2>
-                    <p className="text-sm text-blue-200 mb-4">
+                    <h2 className={`text-lg font-semibold mb-2 ${isEmbedded ? 'text-slate-900' : 'text-blue-300'}`}>{t('dockerContainer')}</h2>
+                    <p className={`text-sm mb-4 ${isEmbedded ? 'text-slate-700' : 'text-blue-200'}`}>
                       {t('operationsRequireHost')}
                     </p>
 
-                    {/* Commands in a clean grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
-                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">{t('containerManagement')}</div>
-                        <code className="text-xs text-green-400 font-mono block">{t('dockerQuickCommand')}</code>
-                        <code className="text-xs text-red-400 font-mono block mt-1">{t('dockerStopCommand')}</code>
-                        <code className="text-xs text-yellow-400 font-mono block mt-1">{t('dockerRestartCommand')}</code>
-                      </div>
-                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">{t('monitoring')}</div>
-                        <code className="text-xs text-blue-400 font-mono block">{t('dockerStatusCommand')}</code>
-                        <code className="text-xs text-purple-400 font-mono block mt-1">{t('dockerLogsCommand')}</code>
-                        <code className="text-xs text-cyan-400 font-mono block mt-1">{t('dockerHelpCommand')}</code>
-                      </div>
-                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">{t('buildSetup')}</div>
-                        <code className="text-xs text-orange-400 font-mono block">{t('dockerComposeBuildCommand')}</code>
-                        <code className="text-xs text-cyan-400 font-mono block mt-1">{t('smartSetupCommand')}</code>
-                      </div>
-                      <div className="bg-gray-900/50 rounded p-3 border border-gray-700">
-                        <div className="text-xs text-gray-400 mb-1">{t('hiddenOperations')}</div>
-                        <div className="text-xs text-gray-300 mt-1">• {t('hiddenOperationsList.dependencyInstallation')}</div>
-                        <div className="text-xs text-gray-300">• {t('hiddenOperationsList.containerLifecycle')}</div>
-                        <div className="text-xs text-gray-300">• {t('hiddenOperationsList.volumeManagement')}</div>
-                      </div>
+                      {[
+                        { title: t('containerManagement'), lines: [t('dockerQuickCommand'), t('dockerStopCommand'), t('dockerRestartCommand')] },
+                        { title: t('monitoring'), lines: [t('dockerStatusCommand'), t('dockerLogsCommand'), t('dockerHelpCommand')] },
+                        { title: t('buildSetup'), lines: [t('dockerComposeBuildCommand'), t('smartSetupCommand')] },
+                        { title: t('hiddenOperations'), lines: [t('hiddenOperationsList.dependencyInstallation'), t('hiddenOperationsList.containerLifecycle'), t('hiddenOperationsList.volumeManagement')] }
+                      ].map((block, index) => (
+                        <div
+                          key={block.title}
+                          className={isEmbedded ? 'rounded-xl border border-slate-200 bg-white/70 p-3 text-slate-600' : 'bg-gray-900/50 rounded p-3 border border-gray-700'}
+                        >
+                          <div className="text-xs font-semibold text-slate-500 mb-1">{block.title}</div>
+                          {block.lines.map((line, lineIndex) => (
+                            <div key={`${block.title}-${lineIndex}`} className="text-xs font-mono text-slate-700">
+                              {index < 2 ? <code>{line}</code> : `• ${line}`}
+                            </div>
+                          ))}
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="flex items-start gap-2 text-xs text-blue-300 bg-blue-900/20 rounded p-3 border border-blue-800/30">
+                    <div className={isEmbedded ? 'flex items-start gap-2 text-xs text-slate-700 bg-white/70 rounded-xl p-3 border border-slate-200' : 'flex items-start gap-2 text-xs text-blue-300 bg-blue-900/20 rounded p-3 border border-blue-800/30'}>
                       <span className="text-lg">💡</span>
                       <p>
                         <strong>{t('whyLabel')}</strong> {t('whyExplanation')}
@@ -528,7 +554,7 @@ function formatUptime(seconds: number): string {
 
             {/* Native Operations - Hidden in Docker mode */}
             {environment?.environment_mode !== 'docker' && (
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div className={`${cardBaseClass} p-6`}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Package size={20} />
                 {t('nativeOperations')}
@@ -587,7 +613,7 @@ function formatUptime(seconds: number): string {
 
             {/* Docker operations - Hidden in Docker mode */}
             {environment?.environment_mode !== 'docker' && (
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div className={`${cardBaseClass} p-6`}>
               <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Container size={20} />
                 {t('dockerOperations')}
@@ -649,7 +675,7 @@ function formatUptime(seconds: number): string {
             </div>
 
             {diagnostics.map((diag, index) => (
-              <div key={index} className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div key={index} className={`${cardBaseClass} p-4`}>
                 <div className="flex items-start gap-3">
                   {getDiagnosticIcon(diag.status)}
                   <div className="flex-1">
@@ -694,7 +720,7 @@ function formatUptime(seconds: number): string {
               </button>
             </div>
 
-                <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+                <div className={`${cardBaseClass} overflow-hidden`}>
               <table className="w-full">
                 <thead className="bg-gray-100 dark:bg-gray-700">
                   <tr>
@@ -741,7 +767,7 @@ function formatUptime(seconds: number): string {
               </button>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 font-mono text-xs overflow-x-auto max-h-[600px] overflow-y-auto">
+            <div className={`${isEmbedded ? 'rounded-2xl border border-slate-200 bg-slate-50' : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg'} p-4 font-mono text-xs overflow-x-auto max-h-[600px] overflow-y-auto`}>
               {logs.length === 0 ? (
                 <p className="text-gray-500">{t('noLogsAvailable')}</p>
               ) : (
@@ -794,7 +820,7 @@ function formatUptime(seconds: number): string {
               </button>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
+            <div className={`${cardBaseClass} p-6`}>
               <div className="space-y-4">
                 {environment.environment_mode === 'docker' && (
                   <div className="text-xs text-blue-300 bg-blue-900/20 border border-blue-700/50 rounded-md px-3 py-2">
@@ -973,7 +999,11 @@ function formatUptime(seconds: number): string {
               </button>
               {expandDevTools && (
                 <div className="p-6">
-                  <DevToolsPanel variant="embedded" onToast={handleToast} />
+                  <DevToolsPanel
+                    variant="embedded"
+                    showOperationsMonitorSummary={false}
+                    onToast={handleToast}
+                  />
                 </div>
               )}
             </div>
