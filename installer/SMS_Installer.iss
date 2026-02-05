@@ -201,7 +201,7 @@ Name: "{group}\Manual Uninstaller (for broken installations)"; Filename: "pwsh.e
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 ; Desktop shortcut (optional) - Docker Manager with elevated privileges
-Name: "{autodesktop}\{#MyAppName}"; Filename: "cmd.exe"; Parameters: "/c ""{app}\docker_manager.bat"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon; Flags: runminimized
+Name: "{autodesktop}\{#MyAppName}"; Filename: "cmd.exe"; Parameters: "/c ""{app}\docker_manager.bat"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon
 
 
 [Run]
