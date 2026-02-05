@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { SearchHistoryEntry } from '@/features/advanced-search/types/search';
 
 const STORAGE_KEY = 'sms.search.history';
