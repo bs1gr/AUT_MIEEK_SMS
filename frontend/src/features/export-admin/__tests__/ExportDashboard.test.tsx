@@ -84,6 +84,11 @@ vi.mock('../hooks/useExportAdmin', () => ({
     isLoading: false,
     error: null,
   })),
+  useExportJob: vi.fn(() => ({
+    data: { id: 'job-1', status: 'completed', created_at: '2024-01-01' },
+    isLoading: false,
+    error: null,
+  })),
   useExportMetrics: vi.fn(() => ({
     data: {
       success_rate_percent: 95.5,

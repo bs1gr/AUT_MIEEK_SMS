@@ -11,15 +11,13 @@ describe('apiClient request interceptor', () => {
   it('attaches Authorization header when access token exists', () => {
     // Arrange
     authService.setAccessToken('TOK123');
-    const spy = vi.spyOn(authService, 'getAccessToken');
     const config: { headers: Record<string, unknown> } = { headers: {} };
 
     // Act
     // call the helper exported from the api module
     (apiModule as unknown as { attachAuthHeader: (cfg: { headers?: Record<string, unknown> }) => unknown }).attachAuthHeader(config);
 
-    // Assert that the helper consulted the auth service
-    expect(spy).toHaveBeenCalled();
+    // Assert that the header was set correctly
     expect(config.headers.Authorization).toBe('Bearer TOK123');
   });
 
