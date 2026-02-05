@@ -412,6 +412,27 @@ begin
   end;
 end;
 
+procedure LogAndRenameUninstallerSidecar(const OldPath, NewPath, LabelName: String);
+begin
+  if FileExists(OldPath) then
+  begin
+    Log('  Attempting to rename ' + LabelName + ': ' + OldPath + ' -> ' + NewPath);
+    if FileExists(NewPath) then
+    begin
+      Log('    Removing previous ' + LabelName + ' at new path');
+      if not DeleteFile(NewPath) then
+        Log('    [WARN] Could not remove existing ' + LabelName + ' at new path');
+    end;
+
+    if RenameFile(OldPath, NewPath) then
+      Log('    [OK] ' + LabelName + ' renamed successfully')
+    else
+      Log('    [WARN] Could not rename ' + LabelName + ' (likely locked by system)');
+  end
+  else
+    Log('  ' + LabelName + ' not found at expected path: ' + OldPath);
+end;
+
 procedure CleanOldUninstallers(BasePath: String);
 var
   FilePath: String;
@@ -879,6 +900,8 @@ var
   ResultCode: Integer;
   PowerShellExe: String;
   OldUninstaller, NewUninstaller: String;
+  OldUninstallerDat, NewUninstallerDat: String;
+  OldUninstallerMsg, NewUninstallerMsg: String;
 begin
   if CurStep = ssInstall then
   begin
@@ -940,6 +963,10 @@ begin
     // Rename the uninstaller to include version number
     OldUninstaller := ExpandConstant('{app}\unins000.exe');
     NewUninstaller := ExpandConstant('{app}\unins{#MyAppVersion}.exe');
+    OldUninstallerDat := ExpandConstant('{app}\unins000.dat');
+    NewUninstallerDat := ExpandConstant('{app}\unins{#MyAppVersion}.dat');
+    OldUninstallerMsg := ExpandConstant('{app}\unins000.msg');
+    NewUninstallerMsg := ExpandConstant('{app}\unins{#MyAppVersion}.msg');
 
     Log('Uninstaller post-install: Old=' + OldUninstaller + ', New=' + NewUninstaller);
 
@@ -959,6 +986,9 @@ begin
       if RenameFile(OldUninstaller, NewUninstaller) then
       begin
         Log('  [OK] Uninstaller renamed successfully');
+        // Keep companion files (.dat/.msg) aligned with the executable name
+        LogAndRenameUninstallerSidecar(OldUninstallerDat, NewUninstallerDat, 'Uninstaller DAT');
+        LogAndRenameUninstallerSidecar(OldUninstallerMsg, NewUninstallerMsg, 'Uninstaller MSG');
         // Update the uninstall registry entry to point to the renamed file
         RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
           'UninstallString', '"' + NewUninstaller + '"');

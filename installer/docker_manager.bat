@@ -15,7 +15,12 @@ net session >nul 2>&1
 if %errorlevel% neq 0 (
     echo.
     echo Elevating to Administrator...
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath 'cmd.exe' -ArgumentList '/c """"%~f0""""' -Verb RunAs""
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath '%~f0' -Verb RunAs -WorkingDirectory '%~dp0'"
+    if errorlevel 1 (
+        echo.
+        echo Failed to request elevation. Please right-click this shortcut and choose "Run as administrator".
+        pause
+    )
     exit /b
 )
 
@@ -141,7 +146,7 @@ goto menu
 echo.
 echo Container logs (last 50 lines):
 echo.
-call powershell -NoProfile -ExecutionPolicy Bypass -Command "docker logs --tail 50 sms-app 2>nul || echo 'Container not running or not found'"
+call "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "docker logs --tail 50 sms-app; if ($LASTEXITCODE -ne 0) { Write-Host 'Container not running or not found' }"
 echo.
 pause
 goto menu
