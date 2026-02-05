@@ -141,6 +141,7 @@ Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recur
 ; Main scripts - Docker-only scripts always installed
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "docker_manager.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -196,6 +197,7 @@ Type: files; Name: "{app}\config\lang.txt"
 ; Start Menu - Docker Manager with proper container control
 Name: "{group}\{#MyAppName}"; Filename: "{app}\docker_manager.bat"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Flags: runminimized
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
+Name: "{group}\Manual Uninstaller (for broken installations)"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\UNINSTALL_SMS_MANUALLY.ps1"""; WorkingDir: "{app}"; IconFilename: "{sys}\shell32.dll"; IconIndex: 31; Comment: "Remove SMS if standard uninstall fails"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 ; Desktop shortcut (optional) - Docker Manager with elevated privileges
