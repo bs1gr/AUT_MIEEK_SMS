@@ -131,12 +131,21 @@ Stop and investigate if:
 
 ### Entry Template
 
-**Entry Date: [Date]**
+Copy this for each check you perform:
+
+**Entry Date: [Actual date check was performed]**
 - Version: 1.17.7
 - Test Status: [Passing/Issues Found/Action Needed]
-- Notes: [Observations, system behavior, user feedback]
-- Issues Found: [Critical/High/Medium/Low or None]
-- Actions Taken: [What was done in response]
+- Tests Run: [Which checks: Git/Version/Tests/Build/Linting - copy from section above]
+- Tests Passed: [Y/N - any failures?]
+- Notes: [What you observed, user feedback, system behavior]
+- Issues Found: [List any problems discovered, or "None"]
+- Actions Taken: [What you did in response, or "None needed"]
+- Time Invested: [Approx minutes spent on this check]
+
+### Completed Entries
+
+*No entries yet - waiting for owner to run checks*
 
 ---
 
