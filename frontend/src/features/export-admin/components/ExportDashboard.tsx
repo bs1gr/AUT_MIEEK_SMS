@@ -25,6 +25,7 @@ import {
 // Import hooks
 import {
   useExportJobs,
+  useExportJob,
   useExportMetrics,
   useRefreshExports,
   useExportSchedules,
@@ -47,6 +48,7 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
     sort_order: 'desc',
   });
 
+  const { data: selectedJobData } = useExportJob(selectedJobId);
   const { data: schedulesData } = useExportSchedules();
   const { data: metricsData } = useExportMetrics(7);
 
@@ -289,7 +291,11 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
               {t('emailConfiguration')}
             </p>
           </div>
-          <EmailConfigPanel onSave={handleRefresh} onTest={async () => {}} />
+          <EmailConfigPanel 
+            config={{ smtp_host: '', smtp_port: 587, smtp_user: '', smtp_password: '', from_email: '', from_name: '' }}
+            onSave={handleRefresh} 
+            onTest={async () => {}} 
+          />
         </TabsContent>
 
         {/* Settings Tab */}
@@ -300,13 +306,17 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
               {t('exportSettings')}
             </p>
           </div>
-          <ExportSettingsPanel onSave={handleRefresh} />
+          <ExportSettingsPanel 
+            settings={{ default_format: 'excel', max_file_size_mb: 100, retention_days: 30, auto_delete_old_exports: true }}
+            onSave={handleRefresh} 
+          />
         </TabsContent>
       </Tabs>
 
       {/* Detail Modal */}
-      {selectedJobId && (
+      {selectedJobId && selectedJobData?.data && (
         <ExportDetailModal
+          export={selectedJobData.data}
           open={showDetailModal}
           onClose={() => {
             setShowDetailModal(false);
