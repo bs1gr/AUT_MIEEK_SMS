@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, _waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import React, { ReactElement } from 'react';
@@ -37,6 +37,21 @@ vi.mock('../hooks/useExportAdmin', () => ({
         ],
         total: 1,
       },
+    },
+    isLoading: false,
+    error: null,
+  })),
+  useExportJob: vi.fn(() => ({
+    data: {
+      id: 'job-1',
+      export_type: 'students',
+      export_format: 'excel',
+      status: 'completed',
+      created_at: '2026-01-31T10:00:00Z',
+      progress_percent: 100,
+      file_size_bytes: 1048576,
+      duration_seconds: 1.5,
+      file_path: '/exports/students-1.xlsx',
     },
     isLoading: false,
     error: null,
