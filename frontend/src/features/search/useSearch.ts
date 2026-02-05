@@ -90,6 +90,11 @@ export const useSearch = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Reset pagination when query, filters, or type change
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedQuery, filters, searchType]);
+
   /**
    * Fetch search results based on current query and filters
    */
