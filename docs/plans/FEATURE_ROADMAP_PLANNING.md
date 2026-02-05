@@ -1,0 +1,282 @@
+# Feature Roadmap Planning - v1.17.7+ Maintenance Phase
+
+**Created**: February 5, 2026  
+**Planning Period**: Post v1.17.7 Release  
+**Status**: Framework prepared for owner input  
+**Owner**: Solo Developer decision-making  
+
+---
+
+## 📋 Roadmap Planning Framework
+
+This document provides structure for planning the next feature release based on:
+1. ✅ Completed installer testing results
+2. ✅ Production stability monitoring
+3. ✅ User feedback collection
+4. ✅ Code health assessment
+
+---
+
+## 🔄 Phase Planning Template
+
+### Phase Structure
+
+Each future phase follows this proven pattern:
+
+**Phase Timeline**: 2-4 weeks
+**Work Breakdown**:
+- Days 1-2: Requirement analysis & technical design
+- Days 3-5: Backend implementation & API layer
+- Days 6-7: Frontend foundation (translations, hooks, API integration)
+- Days 8-10: Frontend UI components & pages
+- Day 11: Integration testing & bug fixes
+- Day 12: Documentation & production release
+
+**Quality Gates**:
+- ✅ All backend tests passing (740+)
+- ✅ All frontend tests passing (1800+)
+- ✅ Zero linting errors (or acceptable documented warnings)
+- ✅ E2E tests for critical workflows
+- ✅ Complete translations (EN/EL)
+- ✅ Documentation complete
+
+---
+
+## 🎯 Potential Next Features (To Be Prioritized)
+
+### Candidate 1: Email Report Delivery (OPTIONAL-002)
+**Effort**: 4-6 hours  
+**Dependencies**: APScheduler (complete)  
+**Features**:
+- Email recipients per report
+- Template customization
+- Delivery tracking
+- Unsubscribe management
+
+**Pros**:
+- Builds on existing scheduler
+- High user value
+- Moderate complexity
+- Clear requirements
+
+**Cons**:
+- SMTP configuration required
+- Email deliverability concerns
+- Unsubscribe management complexity
+
+**Estimated Effort**: 1 week (including testing, documentation)
+
+---
+
+### Candidate 2: ESLint Code Health Refactoring
+**Effort**: 4-6 hours  
+**Dependencies**: None  
+**Features**:
+- Fix 161 `any` types → proper TypeScript
+- Remove 23 console.log statements
+- Fix React hook patterns
+- Add missing i18n keys
+
+**Pros**:
+- Improves code maintainability
+- Zero breaking changes
+- Well-defined scope
+- Can be done incrementally
+
+**Cons**:
+- No user-facing value
+- 7 warnings already acceptable
+- Lower priority than features
+
+**Estimated Effort**: 1 week (including type migration testing)
+
+---
+
+### Candidate 3: Advanced Analytics Dashboard
+**Effort**: 2-3 weeks (new feature)  
+**Dependencies**: Report system (complete)  
+**Features**:
+- Time-series metrics visualization
+- Custom dashboard creation
+- KPI tracking
+- Export to reports
+
+**Pros**:
+- High user value
+- Builds on reports
+- Differentiates product
+
+**Cons**:
+- Significant complexity
+- New charting library
+- Database performance tuning needed
+
+**Estimated Effort**: 3 weeks (backend + frontend + testing)
+
+---
+
+### Candidate 4: Multi-Language Support Enhancement
+**Effort**: 1-2 weeks  
+**Dependencies**: Current i18n framework  
+**Features**:
+- Add French (FR) or other language
+- RTL language support (Arabic, Hebrew)
+- Locale-specific formats (dates, numbers)
+
+**Pros**:
+- Expands market reach
+- Uses existing framework
+- Modular implementation
+
+**Cons**:
+- Translation resources needed
+- Testing across locales complex
+- Limited immediate ROI
+
+**Estimated Effort**: 2 weeks (implementation + QA)
+
+---
+
+### Candidate 5: User Profile & Preferences
+**Effort**: 1-2 weeks  
+**Dependencies**: RBAC (ready)  
+**Features**:
+- User preferences (theme, language, notifications)
+- Profile customization
+- Notification settings
+- Data export (GDPR)
+
+**Pros**:
+- Quick to implement
+- Improves UX
+- Compliance feature (GDPR)
+
+**Cons**:
+- Limited business value
+- Lower priority
+
+**Estimated Effort**: 2 weeks (including GDPR export)
+
+---
+
+---
+
+## 🔍 Input Gathering Checklist
+
+Before finalizing roadmap for next phase, collect:
+
+### Installer Testing Results
+- [ ] All 8 scenarios tested and documented
+  - Fresh install successful?
+  - Upgrades preserve data?
+  - Docker handling correct?
+  - Uninstall clean?
+- [ ] Issues found: Document severity and type
+- [ ] User feedback: What broke? What worked well?
+
+### Production Monitoring
+- [ ] System stable for 2+ weeks?
+- [ ] Any crashes or errors detected?
+- [ ] Performance metrics within targets?
+- [ ] User adoption metrics (logins, features used)?
+
+### User Feedback
+- [ ] Most requested features?
+- [ ] Pain points experienced?
+- [ ] Feature wishlist gathered?
+- [ ] Support tickets analyzed?
+
+### Code Health
+- [ ] Critical technical debt identified?
+- [ ] Performance bottlenecks found?
+- [ ] Security improvements needed?
+- [ ] Refactoring opportunities?
+
+---
+
+## 📊 Decision Matrix
+
+Use this to prioritize candidates:
+
+| Feature | Effort | Value | Risk | Owner Priority |
+|---------|--------|-------|------|----------------|
+| Email Delivery | 1 week | Medium | Low | TBD |
+| ESLint Cleanup | 1 week | Low | None | Optional |
+| Analytics | 3 weeks | High | Medium | TBD |
+| Multi-Language | 2 weeks | Medium | Low | TBD |
+| User Preferences | 2 weeks | Low | Low | TBD |
+
+---
+
+## 🗺️ Proposed Timeline Options
+
+### Option A: Single Feature Focus
+**Duration**: 4-5 weeks
+1. Week 1-2: Maintenance phase completion (installer testing)
+2. Week 3-4: Single feature implementation (Email OR Analytics)
+3. Week 5: Testing & release
+
+**Rationale**: Clear focus, complete feature per release
+
+---
+
+### Option B: Multiple Small Features
+**Duration**: 6-7 weeks
+1. Week 1-2: Maintenance phase completion
+2. Week 3: Email Delivery (1 week)
+3. Week 4: User Preferences (1 week)
+4. Week 5: ESLint Cleanup (1 week)
+5. Week 6-7: Testing & release
+
+**Rationale**: Ship multiple smaller improvements faster
+
+---
+
+### Option C: Large Feature + Refactoring
+**Duration**: 7-8 weeks
+1. Week 1-2: Maintenance phase completion
+2. Week 3-5: Analytics Dashboard (3 weeks)
+3. Week 6: ESLint Cleanup (1 week)
+4. Week 7-8: Testing & release
+
+**Rationale**: Significant enhancement + maintenance
+
+---
+
+## 📝 Owner Decision Fields
+
+**Fill in after completing maintenance phase**:
+
+```markdown
+## Owner Decision (To be completed after installer testing Feb 5-19, 2026)
+
+**Installer Testing Completed?**: [ ] Yes [ ] No - Date: ___________
+**Major Issues Found?**: [ ] Yes [ ] No - Description: ___________
+**Production Stability Confirmed?**: [ ] Yes [ ] No
+**User Feedback Summary**: ___________
+
+**Selected Features for Next Release**:
+1. _____________ (Effort: ____, Priority: ____)
+2. _____________ (Effort: ____, Priority: ____)
+3. _____________ (Effort: ____, Priority: ____)
+
+**Selected Timeline Option**: [ ] A [ ] B [ ] C - Rationale: ___________
+
+**Start Date**: ___________
+**Target Release Date**: ___________
+```
+
+---
+
+## 🔗 Related Documents
+
+- **Work Plan**: [docs/plans/UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md)
+- **Installer Testing**: [INSTALLER_TESTING_TRACKER.md](../INSTALLER_TESTING_TRACKER.md)
+- **Stability Monitoring**: [monitoring/STABILITY_MONITORING.md](../monitoring/STABILITY_MONITORING.md)
+- **Phase 6 Reference**: [docs/plans/UNIFIED_WORK_PLAN_ARCHIVE_PHASE4_PHASE5.md](../plans/UNIFIED_WORK_PLAN_ARCHIVE_PHASE4_PHASE5.md)
+
+---
+
+**Created**: February 5, 2026  
+**Framework**: Ready for input  
+**Status**: Awaiting owner guidance after maintenance phase completion
