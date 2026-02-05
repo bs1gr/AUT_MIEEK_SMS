@@ -1,4 +1,4 @@
-﻿; ============================================================================
+; ============================================================================
 ; Student Management System - Inno Setup Installer Script
 ; Version: 1.9.8 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
@@ -971,11 +971,24 @@ begin
       else
       begin
         Log('  [WARN] Could not rename uninstaller (may be locked by system)');
+        // Fallback: Update registry to point to unins000.exe
+        Log('  Fallback: Using unins000.exe for uninstaller registry entries');
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'UninstallString', '"' + OldUninstaller + '"');
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
       end;
     end
     else
     begin
       Log('  Old uninstaller not found at: ' + OldUninstaller);
+      Log('  [WARN] Inno Setup may not have created the uninstaller executable');
+      Log('  Attempting to ensure uninstaller registry entries are set...');
+      // Ensure registry entries point to unins000.exe even if file doesn''t exist (will be created later)
+      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        'UninstallString', '"' + OldUninstaller + '"');
+      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
     end;
   end;
 end;

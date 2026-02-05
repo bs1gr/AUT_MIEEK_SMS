@@ -4,6 +4,7 @@ REM Version: 1.14.2
 REM This script provides a user-friendly way to manage the SMS Docker container from a desktop shortcut
 REM Supports: Start, Stop, and opening the web application
 
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 set "SCRIPT_DIR=%~dp0"
