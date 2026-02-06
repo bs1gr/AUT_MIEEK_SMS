@@ -10,7 +10,7 @@ import RequireAdmin from '@/components/auth/RequireAdmin';
 
 // Import route components and preload utility
 import { Suspense } from 'react';
-import Spinner from './components/ui/Spinner';
+import SkeletonLoader from './components/common/SkeletonLoader';
 import {
   AuthPage,
   DashboardPage,
@@ -47,7 +47,7 @@ ReactDOM.createRoot(rootElement).render(
   <BrowserRouter>
     <AuthProvider>
       <App>
-        <Suspense fallback={<Spinner />}>
+        <Suspense fallback={<div className="p-6"><SkeletonLoader rows={6} /></div>}>
           <Routes>
             <Route path="/" element={<AuthPage />} />
             <Route element={<RequireAuth />}>

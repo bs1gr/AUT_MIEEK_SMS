@@ -149,18 +149,18 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
 
       {isExpanded && (
         <div className="mt-4 space-y-6" role="region" aria-labelledby={`student-details-${student.id}`}>
-          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white shadow-lg" id={`student-details-${student.id}`}>
+          <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-xl p-6 text-slate-900 shadow-lg border border-slate-200" id={`student-details-${student.id}`}>
             <div className="flex items-center space-x-4">
-              <div className="w-20 h-20 bg-white/20 rounded-xl flex items-center justify-center text-3xl font-bold border-2 border-white/30" aria-hidden="true">
+              <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center text-3xl font-bold border-2 border-slate-200 text-slate-900" aria-hidden="true">
                 {initials}
               </div>
               <div>
                 <h3 className="text-2xl font-bold">{student.first_name} {student.last_name}</h3>
-                <p className="text-white/80">{t('studentID')}: {student.student_id}</p>
-                <div className="flex items-center space-x-4 mt-2 text-sm">
+                <p className="text-slate-600">{t('studentID')}: {student.student_id}</p>
+                <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
                   {student.email && <span>📧 {student.email}</span>}
                   {student.study_year && <span>📚 {t('year')} {student.study_year}</span>}
-                  <span className={student.is_active ? 'text-green-300' : 'text-red-300'}>
+                  <span className={student.is_active ? 'text-emerald-600' : 'text-red-600'}>
                     {student.is_active ? '✓ ' + t('active') : '✗ ' + t('inactive')}
                   </span>
                 </div>

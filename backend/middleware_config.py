@@ -57,13 +57,16 @@ def register_middlewares(app):
     @app.middleware("http")
     async def add_security_headers(request, call_next):
         response = await call_next(request)
+        try:
+            path = getattr(request, "scope", {}).get("path") or getattr(getattr(request, "url", None), "path", "")
+        except Exception:
+            path = ""
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), interest-cohort=()"
 
         # Cache control for different content types
-        path = request.url.path
         if path.startswith("/assets/"):
             # Static assets with hashes in filenames - cache for 1 year
             response.headers["Cache-Control"] = "public, max-age=31536000, immutable"

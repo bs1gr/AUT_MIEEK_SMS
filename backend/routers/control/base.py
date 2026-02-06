@@ -11,7 +11,7 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel
 
 from .common import (
@@ -97,7 +97,7 @@ class EnvironmentInfo(BaseModel):
 
 
 @router.get("/status", response_model=SystemStatus)
-async def get_system_status(request: Request):
+async def get_system_status(request: Request, response: Response):
     from .common import get_frontend_port
 
     cached = _cache_get("status", ttl_seconds=5)
@@ -141,12 +141,13 @@ async def get_system_status(request: Request):
         timestamp=datetime.now().isoformat(),
         process_start_time=process_start_time,
     )
+    response.headers["Cache-Control"] = "private, max-age=5"
     _cache_set("status", status)
     return status
 
 
 @router.get("/diagnostics", response_model=List[DiagnosticResult])
-async def run_diagnostics():
+async def run_diagnostics(response: Response):
     cached = _cache_get("diagnostics", ttl_seconds=30)
     if cached:
         return cached
@@ -338,17 +339,19 @@ async def run_diagnostics():
                 )
             )
 
+    response.headers["Cache-Control"] = "private, max-age=30"
     _cache_set("diagnostics", results)
     return results
 
 
 @router.get("/ports", response_model=List[PortInfo])
-async def check_ports():
+async def check_ports(response: Response):
     cached = _cache_get("ports", ttl_seconds=10)
     if cached:
         return cached
 
     ports_to_check = BACKEND_PORTS + FRONTEND_PORTS
+
     async def check_one(port: int) -> PortInfo:
         in_use = await asyncio.to_thread(is_port_open, port)
         proc_info = await asyncio.to_thread(get_process_on_port, port) if in_use else None
@@ -360,12 +363,13 @@ async def check_ports():
         )
 
     results = list(await asyncio.gather(*(check_one(port) for port in ports_to_check)))
+    response.headers["Cache-Control"] = "private, max-age=10"
     _cache_set("ports", results)
     return results
 
 
 @router.get("/environment", response_model=EnvironmentInfo)
-async def get_environment_info(include_packages: bool = False):
+async def get_environment_info(response: Response, include_packages: bool = False):
     cache_key = "environment:packages" if include_packages else "environment"
     cached = _cache_get(cache_key, ttl_seconds=60 if include_packages else 20)
     if cached:
@@ -470,6 +474,7 @@ async def get_environment_info(include_packages: bool = False):
         environment_mode=env_mode,
         python_packages=packages,
     )
+    response.headers["Cache-Control"] = "private, max-age=60" if include_packages else "private, max-age=20"
     _cache_set(cache_key, info)
     return info
 

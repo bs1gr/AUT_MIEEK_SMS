@@ -548,6 +548,14 @@ async def login(
         raise
     except Exception as exc:
         logger.exception("Unhandled exception during login")
+        if str(getattr(settings, "SMS_ENV", "")).lower() in {"development", "dev", "local"}:
+            raise http_error(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Login failed",
+                request,
+                context={"error": str(exc)},
+            ) from exc
         raise internal_server_error("Login failed", request) from exc
 
 

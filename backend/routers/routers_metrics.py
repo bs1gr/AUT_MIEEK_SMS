@@ -6,9 +6,11 @@ Provides endpoints for business intelligence and metrics reporting.
 Part of Phase 1 v1.15.0 - Improvement #5 (Business Metrics Dashboard)
 """
 
+import time
+from threading import Lock
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from sqlalchemy.orm import Session
 
 from backend.db import get_session
@@ -25,12 +27,33 @@ from backend.services.metrics_service import MetricsService
 
 router = APIRouter(prefix="/metrics", tags=["metrics"])
 
+_METRICS_CACHE: dict[str, tuple[float, object]] = {}
+_METRICS_CACHE_LOCK = Lock()
+
+
+def _metrics_cache_get(key: str, ttl_seconds: float) -> Optional[object]:
+    now = time.monotonic()
+    with _METRICS_CACHE_LOCK:
+        entry = _METRICS_CACHE.get(key)
+    if not entry:
+        return None
+    ts, value = entry
+    if now - ts > ttl_seconds:
+        return None
+    return value
+
+
+def _metrics_cache_set(key: str, value: object) -> None:
+    with _METRICS_CACHE_LOCK:
+        _METRICS_CACHE[key] = (time.monotonic(), value)
+
 
 @router.get("/students", response_model=StudentMetrics)
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
 async def get_student_metrics(
     request: Request,
+    response: Response,
     semester: Optional[str] = None,
     db: Session = Depends(get_session),
 ) -> StudentMetrics:
@@ -57,8 +80,16 @@ async def get_student_metrics(
         }
         ```
     """
+    cache_key = f"students:{semester or 'all'}"
+    cached = _metrics_cache_get(cache_key, ttl_seconds=30)
+    if cached:
+        response.headers["Cache-Control"] = "private, max-age=30"
+        return cached  # type: ignore[return-value]
     service = MetricsService(db)
-    return service.get_student_metrics(semester=semester)
+    result = service.get_student_metrics(semester=semester)
+    _metrics_cache_set(cache_key, result)
+    response.headers["Cache-Control"] = "private, max-age=30"
+    return result
 
 
 @router.get("/courses", response_model=CourseMetrics)
@@ -66,6 +97,7 @@ async def get_student_metrics(
 @require_permission("reports:generate")
 async def get_course_metrics(
     request: Request,
+    response: Response,
     db: Session = Depends(get_session),
 ) -> CourseMetrics:
     """
@@ -90,8 +122,15 @@ async def get_course_metrics(
         }
         ```
     """
+    cached = _metrics_cache_get("courses", ttl_seconds=30)
+    if cached:
+        response.headers["Cache-Control"] = "private, max-age=30"
+        return cached  # type: ignore[return-value]
     service = MetricsService(db)
-    return service.get_course_metrics()
+    result = service.get_course_metrics()
+    _metrics_cache_set("courses", result)
+    response.headers["Cache-Control"] = "private, max-age=30"
+    return result
 
 
 @router.get("/grades", response_model=GradeMetrics)
@@ -99,6 +138,7 @@ async def get_course_metrics(
 @require_permission("reports:generate")
 async def get_grade_metrics(
     request: Request,
+    response: Response,
     db: Session = Depends(get_session),
 ) -> GradeMetrics:
     """
@@ -130,8 +170,15 @@ async def get_grade_metrics(
         }
         ```
     """
+    cached = _metrics_cache_get("grades", ttl_seconds=30)
+    if cached:
+        response.headers["Cache-Control"] = "private, max-age=30"
+        return cached  # type: ignore[return-value]
     service = MetricsService(db)
-    return service.get_grade_metrics()
+    result = service.get_grade_metrics()
+    _metrics_cache_set("grades", result)
+    response.headers["Cache-Control"] = "private, max-age=30"
+    return result
 
 
 @router.get("/attendance", response_model=AttendanceMetrics)
@@ -139,6 +186,7 @@ async def get_grade_metrics(
 @require_permission("reports:generate")
 async def get_attendance_metrics(
     request: Request,
+    response: Response,
     db: Session = Depends(get_session),
 ) -> AttendanceMetrics:
     """
@@ -164,8 +212,15 @@ async def get_attendance_metrics(
         }
         ```
     """
+    cached = _metrics_cache_get("attendance", ttl_seconds=30)
+    if cached:
+        response.headers["Cache-Control"] = "private, max-age=30"
+        return cached  # type: ignore[return-value]
     service = MetricsService(db)
-    return service.get_attendance_metrics()
+    result = service.get_attendance_metrics()
+    _metrics_cache_set("attendance", result)
+    response.headers["Cache-Control"] = "private, max-age=30"
+    return result
 
 
 @router.get("/dashboard", response_model=DashboardMetrics)
@@ -173,6 +228,7 @@ async def get_attendance_metrics(
 @require_permission("reports:generate")
 async def get_dashboard_metrics(
     request: Request,
+    response: Response,
     db: Session = Depends(get_session),
 ) -> DashboardMetrics:
     """
@@ -200,5 +256,12 @@ async def get_dashboard_metrics(
         }
         ```
     """
+    cached = _metrics_cache_get("dashboard", ttl_seconds=15)
+    if cached:
+        response.headers["Cache-Control"] = "private, max-age=15"
+        return cached  # type: ignore[return-value]
     service = MetricsService(db)
-    return service.get_dashboard_metrics()
+    result = service.get_dashboard_metrics()
+    _metrics_cache_set("dashboard", result)
+    response.headers["Cache-Control"] = "private, max-age=15"
+    return result

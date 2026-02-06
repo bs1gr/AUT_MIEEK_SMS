@@ -56,15 +56,15 @@ export const PowerPage = lazy(() =>
 
 // Custom Reports pages (Phase 6 - Reporting Enhancements)
 export const ReportBuilderPage = lazy(() =>
-  import(/* webpackChunkName: "reports-builder" */ './features/custom-reports').then(m => ({ default: m.ReportBuilderPage }))
+  import(/* webpackChunkName: "reports-builder" */ './features/custom-reports/pages/ReportBuilderPage')
 );
 
 export const ReportListPage = lazy(() =>
-  import(/* webpackChunkName: "reports-list" */ './features/custom-reports').then(m => ({ default: m.ReportListPage }))
+  import(/* webpackChunkName: "reports-list" */ './features/custom-reports/pages/ReportListPage')
 );
 
 export const ReportTemplateBrowserPage = lazy(() =>
-  import(/* webpackChunkName: "reports-templates" */ './features/custom-reports').then(m => ({ default: m.ReportTemplateBrowserPage }))
+  import(/* webpackChunkName: "reports-templates" */ './features/custom-reports/pages/ReportTemplateBrowserPage')
 );
 
 // Admin/RBAC page moved to admin feature module (v1.17.5+)
