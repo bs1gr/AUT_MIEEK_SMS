@@ -104,8 +104,8 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
     descKey: 'template_enrollment_analytics_desc',
   },
   'Grade Distribution Analytics': {
-    titleKey: 'template_grade_distribution',
-    descKey: 'template_grade_distribution_desc',
+    titleKey: 'template_grade_distribution_analytics',
+    descKey: 'template_grade_distribution_analytics_desc',
   },
 };
 

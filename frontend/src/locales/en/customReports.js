@@ -195,8 +195,8 @@ export default {
   template_top_performers_gpa_desc: 'Top performing students by GPA with course and attendance details',
   template_enrollment_analytics: 'Enrollment Analytics - By Semester',
   template_enrollment_analytics_desc: 'Semester-based enrollment trends and course distribution',
-  template_grade_distribution: 'Grade Distribution Analytics',
-  template_grade_distribution_desc: 'Statistical analysis of grade distribution across courses and students',
+  template_grade_distribution_analytics: 'Grade Distribution Analytics',
+  template_grade_distribution_analytics_desc: 'Statistical analysis of grade distribution across courses and students',
 
   // Generation
   generateReport: 'Generate Report',
@@ -206,6 +206,8 @@ export default {
   viewReport: 'View Report',
   emailReport: 'Email Report',
   scheduleReport: 'Schedule Report',
+  generateWithEmail: 'Generate & Email',
+  generateWithoutEmail: 'Generate without email',
 
   // Schedule options
   runOnce: 'Run Once',
@@ -292,16 +294,13 @@ export default {
   helpSorting: 'Define how results should be ordered',
   helpSchedule: 'Optionally schedule this report to run automatically',
   helpEmail: 'Enter email addresses to send the report to (comma-separated)',
+  emailRecipientsPrompt: 'Enter email recipients (comma-separated):',
+  emailRecipientsRequired: 'Please enter at least one email address',
 
   // Empty states
   emptyReports: 'You haven\'t created any reports yet',
   emptyTemplates: 'No templates match your search',
   emptyGenerated: 'No reports have been generated yet',
-  noStandardTemplates: 'No standard templates available',
-  noCsvTemplates: 'No CSV export templates available',
-  noAnalyticsTemplates: 'No analytics templates available',
-  noMyTemplates: 'You haven\'t created any templates yet',
-  noSharedTemplates: 'No templates have been shared with you',
   createFirstReport: 'Create your first report to get started',
   importDefaults: 'Import Default Templates',
   importing: 'Importing...',

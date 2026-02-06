@@ -193,8 +193,8 @@ export default {
   template_top_performers_gpa_desc: 'Κορυφαίοι μαθητές κατά GPA με λεπτομέρειες μαθημάτων και παρουσιών',
   template_enrollment_analytics: 'Ανάλυση Εγγραφών - Κατά Εξάμηνο',
   template_enrollment_analytics_desc: 'Τάσεις εγγραφών ανά εξάμηνο και κατανομή μαθημάτων',
-  template_grade_distribution: 'Ανάλυση Κατανομής Βαθμών',
-  template_grade_distribution_desc: 'Στατιστική ανάλυση της κατανομής βαθμών σε όλα τα μαθήματα και μαθητές',
+  template_grade_distribution_analytics: 'Ανάλυση Κατανομής Βαθμών',
+  template_grade_distribution_analytics_desc: 'Στατιστική ανάλυση της κατανομής βαθμών σε όλα τα μαθήματα και μαθητές',
 
   // Generation
   generateReport: 'Δημιουργία Αναφοράς',
@@ -204,6 +204,8 @@ export default {
   viewReport: 'Προβολή Αναφοράς',
   emailReport: 'Αποστολή με Email',
   scheduleReport: 'Προγραμματισμός Αναφοράς',
+  generateWithEmail: 'Δημιουργία & Email',
+  generateWithoutEmail: 'Δημιουργία χωρίς email',
 
   // Schedule options
   runOnce: 'Εκτέλεση Μία Φορά',
@@ -290,6 +292,8 @@ export default {
   helpSorting: 'Καθορίστε πώς θα ταξινομηθούν τα αποτελέσματα',
   helpSchedule: 'Προαιρετικά προγραμματίστε αυτήν την αναφορά να εκτελείται αυτόματα',
   helpEmail: 'Εισάγετε διευθύνσεις email για αποστολή της αναφοράς (διαχωρισμένες με κόμμα)',
+  emailRecipientsPrompt: 'Εισάγετε παραλήπτες email (διαχωρισμένους με κόμμα):',
+  emailRecipientsRequired: 'Παρακαλώ εισάγετε τουλάχιστον μία διεύθυνση email',
 
   // Empty states
   emptyReports: 'Δεν έχετε δημιουργήσει καμία αναφορά ακόμα',
