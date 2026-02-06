@@ -240,8 +240,11 @@ export const SearchView: React.FC = () => {
         <div className="lg:col-span-2 space-y-3">
           <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-3">
-              <div>
-                <h3 className="text-base font-semibold text-gray-800">
+              <div className="space-y-1">
+                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
+                  {t('findings') || 'Findings'}
+                </p>
+                <h3 className="text-base font-semibold text-slate-900">
                   {t('resultsTitle', { defaultValue: 'Results' })}
                 </h3>
                 <p className="text-sm text-gray-500">

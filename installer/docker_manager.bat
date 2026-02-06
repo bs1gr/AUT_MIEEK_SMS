@@ -92,8 +92,8 @@ if %errorlevel% equ 0 (
     echo Container started successfully. Waiting for service to be ready...
     timeout /t 5 /nobreak
     echo.
-    echo Opening web application...
-    start http://localhost:8080
+    echo Web interface should open automatically (handled by DOCKER.ps1).
+    echo If the browser does not appear, select option 6 to open it manually.
 ) else (
     echo.
     echo Failed to start container. Check logs for details.
@@ -125,8 +125,8 @@ if %errorlevel% equ 0 (
     echo Container restarted successfully.
     echo.
     timeout /t 5 /nobreak
-    echo Opening web application...
-    start http://localhost:8080
+    echo Web interface should open automatically (handled by DOCKER.ps1).
+    echo If the browser does not appear, select option 6 to open it manually.
 ) else (
     echo Failed to restart container.
 )

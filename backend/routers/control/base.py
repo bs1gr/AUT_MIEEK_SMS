@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from pathlib import Path
+from threading import Lock
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Request
@@ -26,6 +29,27 @@ from .common import (
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+# Lightweight in-memory cache to keep control endpoints responsive
+_CONTROL_CACHE: Dict[str, tuple[float, Any]] = {}
+_CONTROL_CACHE_LOCK = Lock()
+
+
+def _cache_get(key: str, ttl_seconds: float) -> Optional[Any]:
+    now = time.monotonic()
+    with _CONTROL_CACHE_LOCK:
+        entry = _CONTROL_CACHE.get(key)
+    if not entry:
+        return None
+    ts, value = entry
+    if now - ts > ttl_seconds:
+        return None
+    return value
+
+
+def _cache_set(key: str, value: Any) -> None:
+    with _CONTROL_CACHE_LOCK:
+        _CONTROL_CACHE[key] = (time.monotonic(), value)
 
 
 class SystemStatus(BaseModel):
@@ -76,20 +100,27 @@ class EnvironmentInfo(BaseModel):
 async def get_system_status(request: Request):
     from .common import get_frontend_port
 
-    frontend_port = get_frontend_port()
-    docker_running = check_docker_running()
+    cached = _cache_get("status", ttl_seconds=5)
+    if cached:
+        return cached
 
-    # DB ping
-    db_ok = False
-    try:
-        from backend.db import engine
+    async def check_db() -> bool:
+        try:
+            from backend.db import engine
 
-        with engine.connect():
-            db_ok = True
-    except Exception:
-        pass
+            with engine.connect():
+                return True
+        except Exception:
+            return False
 
-    node_installed, node_version = check_node_installed()
+    frontend_port, docker_running, db_ok, node_info = await asyncio.gather(
+        asyncio.to_thread(get_frontend_port),
+        asyncio.to_thread(check_docker_running),
+        check_db(),
+        asyncio.to_thread(check_node_installed),
+    )
+
+    node_installed, node_version = node_info
 
     process_start_time = None
     try:
@@ -99,7 +130,7 @@ async def get_system_status(request: Request):
     except Exception:
         pass
 
-    return SystemStatus(
+    status = SystemStatus(
         backend=True,
         frontend=frontend_port is not None,
         frontend_port=frontend_port,
@@ -110,10 +141,16 @@ async def get_system_status(request: Request):
         timestamp=datetime.now().isoformat(),
         process_start_time=process_start_time,
     )
+    _cache_set("status", status)
+    return status
 
 
 @router.get("/diagnostics", response_model=List[DiagnosticResult])
 async def run_diagnostics():
+    cached = _cache_get("diagnostics", ttl_seconds=30)
+    if cached:
+        return cached
+
     results: List[DiagnosticResult] = []
     in_docker = in_docker_container()
 
@@ -301,33 +338,47 @@ async def run_diagnostics():
                 )
             )
 
+    _cache_set("diagnostics", results)
     return results
 
 
 @router.get("/ports", response_model=List[PortInfo])
 async def check_ports():
+    cached = _cache_get("ports", ttl_seconds=10)
+    if cached:
+        return cached
+
     ports_to_check = BACKEND_PORTS + FRONTEND_PORTS
-    results: List[PortInfo] = []
-    for port in ports_to_check:
-        in_use = is_port_open(port)
-        proc_info = get_process_on_port(port) if in_use else None
-        results.append(
-            PortInfo(
-                port=port,
-                in_use=in_use,
-                process_name=proc_info.get("name") if proc_info else None,
-                process_id=proc_info.get("pid") if proc_info else None,
-            )
+    async def check_one(port: int) -> PortInfo:
+        in_use = await asyncio.to_thread(is_port_open, port)
+        proc_info = await asyncio.to_thread(get_process_on_port, port) if in_use else None
+        return PortInfo(
+            port=port,
+            in_use=in_use,
+            process_name=proc_info.get("name") if proc_info else None,
+            process_id=proc_info.get("pid") if proc_info else None,
         )
+
+    results = list(await asyncio.gather(*(check_one(port) for port in ports_to_check)))
+    _cache_set("ports", results)
     return results
 
 
 @router.get("/environment", response_model=EnvironmentInfo)
 async def get_environment_info(include_packages: bool = False):
-    node_ok, node_version = check_node_installed()
-    npm_ok, npm_version = check_npm_installed()
-    docker_version = check_docker_version()
+    cache_key = "environment:packages" if include_packages else "environment"
+    cached = _cache_get(cache_key, ttl_seconds=60 if include_packages else 20)
+    if cached:
+        return cached
+
+    node_info, npm_info, docker_version = await asyncio.gather(
+        asyncio.to_thread(check_node_installed),
+        asyncio.to_thread(check_npm_installed),
+        asyncio.to_thread(check_docker_version),
+    )
     docker_version = docker_version or os.environ.get("HOST_DOCKER_VERSION")
+    node_ok, node_version = node_info
+    npm_ok, npm_version = npm_info
 
     venv_active = hasattr(sys, "real_prefix") or (hasattr(sys, "base_prefix") and sys.base_prefix != sys.prefix)
 
@@ -335,7 +386,9 @@ async def get_environment_info(include_packages: bool = False):
     if node_ok:
         from .common import run_command
 
-        success, stdout, _ = run_command(["where" if sys.platform == "win32" else "which", "node"])
+        success, stdout, _ = await asyncio.to_thread(
+            run_command, ["where" if sys.platform == "win32" else "which", "node"]
+        )
         if success:
             node_path = stdout.strip().split("\n")[0]
 
@@ -373,11 +426,11 @@ async def get_environment_info(include_packages: bool = False):
     try:
         from .common import run_command
 
-        ok, out, _ = run_command(["git", "describe", "--tags", "--always", "--dirty"], timeout=5)
+        ok, out, _ = await asyncio.to_thread(run_command, ["git", "describe", "--tags", "--always", "--dirty"], 5)
         if ok:
             git_revision = out.strip()
         else:
-            ok2, out2, _ = run_command(["git", "rev-parse", "--short", "HEAD"], timeout=5)
+            ok2, out2, _ = await asyncio.to_thread(run_command, ["git", "rev-parse", "--short", "HEAD"], 5)
             if ok2:
                 git_revision = out2.strip()
     except Exception:
@@ -400,7 +453,7 @@ async def get_environment_info(include_packages: bool = False):
                 continue
         packages = pkgs or None
 
-    return EnvironmentInfo(
+    info = EnvironmentInfo(
         python_path=sys.executable,
         python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         node_path=node_path,
@@ -417,6 +470,8 @@ async def get_environment_info(include_packages: bool = False):
         environment_mode=env_mode,
         python_packages=packages,
     )
+    _cache_set(cache_key, info)
+    return info
 
 
 @router.get("/troubleshoot", response_model=List[DiagnosticResult])

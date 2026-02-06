@@ -120,6 +120,7 @@ export default {
   limitOption: '{{count}} per page',
   typeLabel: 'Type',
   queryLabel: 'Query',
+  findings: 'Findings',
   resultsTitle: 'Results',
   resultsSummary: '{{count}} total results',
   noResults: 'No results found',

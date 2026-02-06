@@ -2,6 +2,8 @@ export default {
   // Grades
   gradesTitle: 'Grade Management',
   enterGradesAutomatically: 'Enter grades with automatic calculation',
+  // Add/Edit Grade Section
+  gradeEntry: 'Grade Entry',
   addGrade: 'Add Grade',
   addNewGrade: 'Add New Grade',
   selectStudent: 'Select Student',
@@ -39,6 +41,9 @@ export default {
   assignments: 'assignments',
   letterGrade: 'Letter Grade',
   currentStanding: 'Current standing',
+  summary: 'Summary',
+  records: 'Records',
+  structure: 'Structure',
   gradeHistory: 'Grade History',
   noGradesRecorded: 'No grades recorded yet',
   historyToggle: 'Historical mode',

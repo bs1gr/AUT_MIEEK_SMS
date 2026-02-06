@@ -1,3 +1,26 @@
+-
+### Scenario 2: Repair v1.17.7 → v1.17.7
+**Status**: ⚠ Partial
+**Date Started**: Feb 5, 2026
+**Date Completed**: Feb 5, 2026
+**Tester Notes**: Running the installer again detected the existing v1.17.7 instance and immediately proceeded into a reinstall/repair flow. There was no explicit "Remove" option in the dialog, so uninstall could not be invoked from this path. Post-install backup directory received a new timestamped folder, but it did not include the database or `.env` copies as expected.
+
+Key Checks Completed:
+- [x] Installer detected existing v1.17.7 install
+- [x] Repair/reinstall completed without errors
+- [x] Backup folder created with timestamped name
+- [ ] Dialog offered Modify/Repair/Remove choices (missing "Remove")
+- [ ] Backup contains database dump or `.env` snapshots (not present)
+- [x] Application files refreshed and Docker data preserved
+- [x] Metadata updated with repair timestamp
+
+**Issues Found**:
+- Issue #4: Repair dialog lacks "Remove" option and backup folder misses db/.env contents
+
+**Duration**: ≈15 minutes
+**Notes**:
+- Need to confirm Inno configuration supports displaying the full Modify/Repair/Remove wizard page
+- Investigate why backup routine skipped db/.env copies during repair
 # Installer Testing Tracker - v1.17.7
 
 **Created**: February 5, 2026
@@ -33,14 +56,14 @@
 
 | # | Scenario | Status | Date | Duration | Notes | Issues Found |
 |---|----------|--------|------|----------|-------|--------------|
-| 1 | **Fresh Install** | ⬜ Not Started | - | - | No prior version | - |
+| 1 | **Fresh Install** | ⚠ Partial | Feb 5, 2026 | ≈20m | Welcome screen stuck to Greek locale; rest OK | Issue #3 |
 | 3 | **Upgrade v1.17.6 → v1.17.7** | ⬜ Not Started | - | - | In-place upgrade test | - |
 
 ### Priority 2: Edge Cases (Execute After Priority 1)
 
 | # | Scenario | Status | Date | Duration | Notes | Issues Found |
 |---|----------|--------|------|----------|-------|--------------|
-| 2 | **Repair v1.17.7** | ⬜ Not Started | - | - | Same version repair | - |
+| 2 | **Repair v1.17.7** | ⚠ Partial | Feb 5, 2026 | ≈15m | Repair succeeded but no "Remove" option and backup missing .env/db files | Issue #4 |
 | 4 | **Docker Running Upgrade** | ⬜ Not Started | - | - | Graceful container handling | - |
 | 5 | **Docker Stopped Upgrade** | ⬜ Not Started | - | - | Standard upgrade flow | - |
 
@@ -123,6 +146,34 @@ When you find an issue, copy this template and fill it in:
 
 *Fixes above deployed; continue logging any new findings here.*
 
+#### Issue #3: Welcome screen stuck on Greek locale
+- **Scenario**: 1 (Fresh install)
+- **Observed**: On a Greek-language Windows environment, the installer welcome screen rendered only in Greek even though the user attempted to select English. There was no option to switch back during the session.
+- **Expected**: Language selector should respect the chosen language (and at least default to English when explicitly selected) regardless of OS locale.
+- **Severity**: Low (usability / localization correctness)
+- **Environment**: Windows 10 (system locale Greek), installer build Feb 5, 2026
+- **Workaround**: None during the session (must proceed in Greek)
+- **Impact**: Non-Greek-speaking users on Greek-configured machines cannot read the welcome/license text.
+- **Status**: 🟡 Fix implemented (Feb 5, 2026) — `ShowLanguageDialog` is now forced to `yes`, so the installer always prompts for the preferred language regardless of OS locale. Pending validation during the next Scenario 1 run.
+
+#### Issue #4: Repair flow missing Remove option and backup contents
+- **Scenario**: 2 (Repair v1.17.7)
+- **Observed**: Re-running the installer detected the existing version and immediately offered a repair path without presenting the expected Modify/Repair/Remove choice. The generated backup folder contained only subset files (no database or `.env` copies).
+- **Expected**: Inno Setup maintenance page should show Modify/Repair/Remove (or equivalent) and the backup routine should include database plus `.env` files as documented.
+- **Severity**: Medium (repair/uninstall UX + potential data loss if backups incomplete)
+- **Environment**: Same Windows build as Scenario 1, installer build Feb 5, 2026
+- **Workaround**: Use Control Panel uninstall for removal; manually back up `.env` if needed.
+- **Status**: ✅ Owner accepted (Feb 5, 2026) — Since the reinstall path successfully repairs the installation, the missing maintenance page options are acceptable for now. Backup completeness will be revisited only if future tests show data loss.
+
+#### Issue #5: Docker Manager option 1 opens two browser tabs
+- **Scenario**: Post-install smoke test via `docker_manager.bat`
+- **Observed**: Choosing menu option `1` (“Start SMS Docker container”) starts the container correctly but launches the default browser twice, producing two tabs pointing to the same URL.
+- **Expected**: After the container starts, only a single tab/window should be opened to the app URL.
+- **Severity**: Low (minor UX annoyance)
+- **Environment**: Same machine as Scenarios 1-2, Docker Desktop running, Feb 5 installer build.
+- **Workaround**: Close the duplicate tab manually.
+- **Status**: ✅ Verified (Feb 5, 2026) — Smoke test confirmed only a single browser tab opens after option 1; relying on `DOCKER.ps1` resolved the duplicate tab.
+
 ---
 
 ## 📋 Test Result Details
@@ -130,29 +181,31 @@ When you find an issue, copy this template and fill it in:
 For each scenario you complete, add details below:
 
 ### Scenario 1: Fresh Install
-**Status**: ⬜ Not Started
-**Date Started**: -
-**Date Completed**: -
-**Tester Notes**:
+**Status**: ⚠ Partial
+**Date Started**: Feb 5, 2026
+**Date Completed**: Feb 5, 2026
+**Tester Notes**: Install completed successfully on a Greek-locale Windows build. All shortcuts/files/Docker assets were created and the app served via http://localhost:8080. However, the welcome screen rendered only in Greek even when English was expected, so localization toggle appears locked to system language.
 
 Key Checks Completed:
-- [ ] Installer launched without errors
-- [ ] Installation directory selected correctly
-- [ ] Application installed to correct location
-- [ ] Desktop shortcut created
-- [ ] Start menu entry added
-- [ ] First run (wizard/setup) works
-- [ ] Backend service started (port 8000)
-- [ ] Frontend (port 5173 or built-in server) started
-- [ ] Database populated with initial data
-- [ ] Login works with default credentials
-- [ ] Application UI responsive and usable
+- [x] Installer launched without errors
+- [x] Installation directory selected correctly
+- [x] Application installed to correct location
+- [x] Desktop shortcut created
+- [x] Start menu entry added
+- [x] First run (wizard/setup) works
+- [x] Backend service started (port 8000)
+- [x] Frontend (port 5173 or built-in server) started / Docker route responding (8080)
+- [x] Database populated with initial data
+- [ ] Login works with default credentials (not explicitly tested)
+- [ ] Application UI responsive and usable (beyond landing page)
 
 **Issues Found**:
-- None / [List issues with their numbers]
+- Issue #3: Welcome screen locked to Greek locale even when English is selected
 
-**Duration**: _____ minutes
+**Duration**: ≈20 minutes
 **Notes**:
+- Metadata file present with `InstallationType: Fresh`, correct version/date stamps
+- Docker Desktop + containers provisioned successfully
 
 ---
 
@@ -174,6 +227,8 @@ Key Checks Completed:
 - [ ] Old version removed
 - [ ] User data preserved
 - [ ] Application works with upgraded data
+- [ ] **Legacy detector validation**: Remove (or temporarily rename) the HKLM/HKCU uninstall entries so only legacy launchers (e.g., `SMS Toggle.bat/.cmd`, `docker_manager.bat`, or `VERSION`) remain in `C:\Program Files\SMS`, then rerun the installer and confirm it still finds the installation path and shows the correct version before proceeding. This ensures the hardened filesystem-based detection works as designed.
+  > Tip: Back up the uninstall keys first (`reg export ...`) and restore them afterward (`reg import ...`). Detailed commands live in the testing guide scenario steps.
 
 **Issues Found**:
 - None / [List issues with their numbers]
@@ -210,20 +265,22 @@ Key Checks Completed:
 
 ## 📊 Testing Progress Summary
 
-**Overall Progress**: 0/8 scenarios completed (0%)
+**Overall Progress**: 0/8 scenarios fully passed (2 partial, 6 not started)
+
+**Testing Status (Feb 5, 2026)**: Phase terminated early at owner's request. Additional scenarios cannot be verified on the current workstation, so manual installer testing is paused until a suitable environment is available.
 
 **By Priority**:
-- Priority 1 (Critical): 0/2 completed (0%)
-- Priority 2 (Edge Cases): 0/3 completed (0%)
-- Priority 3 (Validation): 0/3 completed (0%)
+- Priority 1 (Critical): 0/2 completed (2 partial)
+- Priority 2 (Edge Cases): 0/3 completed (1 partial)
+- Priority 3 (Validation): 0/3 completed (0 started)
 
-**Time Invested So Far**: 0 hours
+**Time Invested So Far**: ≈35 minutes (Scenarios 1-2)
 
-**Issues Found**: 0 total
+**Issues Found**: 2 new (total tracked: 4)
 - Critical: 0
 - High: 0
-- Medium: 0
-- Low: 0
+- Medium: 1 (Issue #4)
+- Low: 1 (Issue #3)
 
 ---
 

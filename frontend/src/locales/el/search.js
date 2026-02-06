@@ -120,6 +120,7 @@ export default {
   limitOption: '{{count}} ανά σελίδα',
   typeLabel: 'Τύπος',
   queryLabel: 'Ερώτημα',
+  findings: 'Ευρήματα',
   resultsTitle: 'Αποτελέσματα',
   resultsSummary: '{{count}} συνολικά αποτελέσματα',
   noResults: 'Δεν βρέθηκαν αποτελέσματα',

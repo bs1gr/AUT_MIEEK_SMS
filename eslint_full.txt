@@ -137,4 +137,3 @@ D:\SMS\student-management-system\frontend\src\utils\navigation.ts
   25:12  warning  '_err' is defined but never used  @typescript-eslint/no-unused-vars
 
 έεΨ 10 problems (1 error, 9 warnings)
-

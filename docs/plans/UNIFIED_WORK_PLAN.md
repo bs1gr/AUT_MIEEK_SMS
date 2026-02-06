@@ -25,8 +25,8 @@
 2. ✅ Testing tracker created & enhanced
 3. ✅ **Monitoring framework deployed** (Feb 5) - [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 4. ✅ **Feature roadmap planning framework prepared** (Feb 5) - [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
-5. ⏳ **IN PROGRESS**: Installer testing (8 scenarios, 2-3 hours total when owner executes)
-6. ⏳ Production monitoring (v1.17.7 stability)
+5. ⏸️ **PAUSED**: Installer testing (owner terminated phase on Feb 5 due to unavailable environment; resumes once verification hardware is ready)
+6. 🔄 **IN PROGRESS**: Production monitoring (Feb 5 health-check entry logged in `monitoring/STABILITY_MONITORING.md`)
 7. ⏳ User feedback collection
 8. ⏳ Plan next feature based on findings
 
@@ -42,6 +42,13 @@
 - Start with **Scenario 1: Fresh Install** (10-15 min)
 - Monitor stability: [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 - Plan next phase: [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
+
+### Installer Testing Progress (Feb 5, 2026)
+- **Scenario 1 (Fresh Install)**: ⚠ Partial — original Issue #3 (language stuck to Greek) now has a code fix by forcing `ShowLanguageDialog=yes`; pending re-test to confirm the welcome screen honors the selected language.
+- **Scenario 2 (Repair v1.17.7)**: ⚠ Partial — the reinstall flow repairs the installation successfully, so Issue #4 (missing maintenance choices / limited backup contents) is accepted for now unless future testing shows data loss.
+- **Post-install smoke**: **Issue #5** (duplicate browser tab) is resolved—option 1 now opens a single tab after the smoke test confirmed the updated `docker_manager.bat` behavior.
+- **Status Update (Feb 5, 2026)**: Owner halted further installer testing after Scenario 2 due to environment constraints. The Maintenance & Stability phase remains on pause until a machine that can run Scenarios 3-8 is available.
+- **Next Actions**: Investigate language selector defaulting to OS locale, confirm Inno maintenance page configuration, and audit backup routine to ensure db/`.env` assets copy during repair. Remaining scenarios (3-8) still pending.
 
 ---
 
@@ -192,6 +199,7 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 **Solutions Implemented**:
 - ✅ **Force single directory** (`DisableDirPage=yes`) - no parallel installs possible
 - ✅ **Robust detection** (registry HKLM/HKCU + filesystem) - catches all existing installations
+- ✅ **Legacy detector hardening (Feb 6, 2026)** - recognizes pre-`docker_manager` installs (old "SMS Toggle" builds) and reads precise version from the existing `VERSION` file when registry info is missing
 - ✅ **Always backup data** (before any changes) - zero data loss risk
 - ✅ **Metadata file** (`install_metadata.txt`) - tracks installation history
 - ✅ **Better Docker handling** - container/volume preserved during upgrades
