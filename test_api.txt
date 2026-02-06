@@ -18,14 +18,14 @@ stderr | src/api/__tests__/api.request.interceptor.test.ts
 Using Vite dev proxy for localhost API (CORS-safe): /api/v1
 
 stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > attaches Authorization header when access token exists
-[API] No token available for: 
+[API] No token available for:
 
 stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > does nothing when no token present
-[API] No token available for: 
+[API] No token available for:
 
 stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > is resilient if headers missing or getter throws
-[API] No token available for: 
-[API] No token available for: 
+[API] No token available for:
+[API] No token available for:
 
  [31mέζψ[39m src/api/__tests__/api.request.interceptor.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 6[2mms[22m[39m
 [31m     [31m├Ω[31m attaches Authorization header when access token exists[39m[32m 4[2mms[22m[39m
@@ -37,7 +37,7 @@ stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request i
  FAIL  src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > attaches Authorization header when access token exists
 AssertionError: expected "getAccessToken" to be called at least once
  έζψ src/api/__tests__/api.request.interceptor.test.ts:16:17
-     14| 
+     14|
      15|     // Assert that the helper consulted the auth service
      16|     expect(spy).toHaveBeenCalled();
        |                 ^

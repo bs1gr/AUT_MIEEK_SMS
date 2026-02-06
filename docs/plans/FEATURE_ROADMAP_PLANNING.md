@@ -1,9 +1,19 @@
 # Feature Roadmap Planning - v1.17.7+ Maintenance Phase
 
-**Created**: February 5, 2026  
-**Planning Period**: Post v1.17.7 Release  
-**Status**: Framework prepared for owner input  
-**Owner**: Solo Developer decision-making  
+**Created**: February 5, 2026
+**Planning Period**: Post v1.17.7 Release
+**Status**: Framework prepared for owner input
+**Owner**: Solo Developer decision-making
+
+---
+
+## 🆕 Maintenance Updates (Feb 5, 2026)
+
+- ✅ **Legacy installer detection hardening complete** – `AppExistsOnDisk` now recognizes historical launchers ("SMS Toggle" `.bat/.cmd`, metadata files, Docker compose) and reads the exact version from `VERSION`, ensuring all upgrades remain in-place. Rebuilt installer (`SMS_Installer_1.17.7.exe`, 7.95 MB) passes smoke tests.
+- ✅ **Stability monitoring log initialized** – First entry recorded on Feb 5 documenting the installer rebuild, version audit, and smoke test so ongoing health checks now have a baseline.
+- ⏳ **Manual installer scenarios still pending** – Tracker lists 8 scenarios ready for execution once the owner allocates 2‑3 hours; results will directly influence which roadmap candidate to pursue next.
+
+These notes keep the roadmap aligned with current maintenance progress while the owner prepares to select the next feature focus.
 
 ---
 
@@ -46,8 +56,8 @@ Each future phase follows this proven pattern:
 ## 🎯 Potential Next Features (To Be Prioritized)
 
 ### Candidate 1: Email Report Delivery (OPTIONAL-002)
-**Effort**: 4-6 hours  
-**Dependencies**: APScheduler (complete)  
+**Effort**: 4-6 hours
+**Dependencies**: APScheduler (complete)
 **Features**:
 - Email recipients per report
 - Template customization
@@ -70,8 +80,8 @@ Each future phase follows this proven pattern:
 ---
 
 ### Candidate 2: ESLint Code Health Refactoring
-**Effort**: 4-6 hours  
-**Dependencies**: None  
+**Effort**: 4-6 hours
+**Dependencies**: None
 **Features**:
 - Fix 161 `any` types → proper TypeScript
 - Remove 23 console.log statements
@@ -94,8 +104,8 @@ Each future phase follows this proven pattern:
 ---
 
 ### Candidate 3: Advanced Analytics Dashboard
-**Effort**: 40-60 hours (new feature, spans multiple sessions)  
-**Dependencies**: Report system (complete)  
+**Effort**: 40-60 hours (new feature, spans multiple sessions)
+**Dependencies**: Report system (complete)
 **Features**:
 - Time-series metrics visualization
 - Custom dashboard creation
@@ -220,7 +230,7 @@ Use this to prioritize candidates:
 
 ---
 
-### Approach B: Multiple Small Features  
+### Approach B: Multiple Small Features
 **Scope**: Complete installer testing, then implement several small improvements
 
 **Options**:
@@ -254,7 +264,7 @@ Use this to prioritize candidates:
 **Installer Testing Completed?**: [ ] Yes [ ] No - Date: ___________
 **Major Issues Found?**: [ ] Yes [ ] No - Description: ___________
 **Production Stability ConfirImplementation**:
-1. _____________ (Effort: ____, Priority: ____) 
+1. _____________ (Effort: ____, Priority: ____)
 2. _____________ (Effort: ____, Priority: ____)
 3. _____________ (Effort: ____, Priority: ____)
 
@@ -276,6 +286,6 @@ Use this to prioritize candidates:
 
 ---
 
-**Created**: February 5, owner input  
+**Created**: February 5, owner input
 **Status**: Awaiting owner decisions on installer testing results and feature priorities
 **Status**: Awaiting owner guidance after maintenance phase completion

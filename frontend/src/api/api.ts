@@ -141,6 +141,21 @@ if (USE_DEV_PROXY) {
   console.warn('Using Vite dev proxy for localhost API (CORS-safe): /api/v1');
 }
 
+// Canonical Control API base (backend mounts control router without /api/v1 prefix)
+export const CONTROL_API_BASE = (() => {
+  try {
+    const root = (API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
+    if (!root || root.startsWith('/')) {
+      const prefix = root.replace(/\/$/, '');
+      const basePath = `${prefix || ''}/control/api`;
+      return basePath.replace(/\/\/+/g, '/');
+    }
+    return `${root}/control/api`;
+  } catch {
+    return '/control/api';
+  }
+})();
+
 // Create axios instance with default config
 const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -148,6 +163,15 @@ const apiClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 seconds timeout
+});
+
+// Control API client (avoid /api/v1 prefixing for /control/api routes)
+export const controlApiClient: AxiosInstance = axios.create({
+  baseURL: CONTROL_API_BASE,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  timeout: 30000,
 });
 
 // Request interceptor
@@ -317,21 +341,6 @@ export const studentsAPI = {
     return response.data;
   },
 };
-
-// Canonical Control API base (backend mounts control router without /api/v1 prefix)
-export const CONTROL_API_BASE = (() => {
-  try {
-    const root = (API_BASE_URL || '').replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
-    if (!root || root.startsWith('/')) {
-      const prefix = root.replace(/\/$/, '');
-      const base = `${prefix || ''}/control/api`;
-      return base.replace(/\/\/+/g, '/');
-    }
-    return `${root}/control/api`;
-  } catch {
-    return '/control/api';
-  }
-})();
 
 // ==================== COURSES API ====================
 

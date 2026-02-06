@@ -1,4 +1,5 @@
 export default {
+  powerPageTitle: 'System Management',
   heroTitle: 'System Operations Center',
   heroSubtitle: 'Monitor health metrics, confirm Docker mode, and launch administrative tools from a single location.',
   quickActions: 'Quick actions',

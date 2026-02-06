@@ -2,6 +2,8 @@ export default {
   // Βαθμοί
   gradesTitle: 'Διαχείριση Βαθμών',
   enterGradesAutomatically: 'Εισαγωγή βαθμών με αυτόματο υπολογισμό',
+  // Προσθήκη/Επεξεργασία Βαθμού
+  gradeEntry: 'Εισαγωγή Βαθμού',
   addGrade: 'Προσθήκη Βαθμού',
   addNewGrade: 'Προσθήκη Νέου Βαθμού',
   selectStudent: 'Επιλογή Σπουδαστή',
@@ -39,6 +41,9 @@ export default {
   assignments: 'εργασίες',
   letterGrade: 'Βαθμός με Γράμμα',
   currentStanding: 'Τρέχουσα κατάσταση',
+  summary: 'Σύνοψη',
+  records: 'Αρχεία',
+  structure: 'Δομή',
   gradeHistory: 'Ιστορικό Βαθμών',
   noGradesRecorded: 'Δεν έχουν καταγραφεί βαθμοί ακόμη',
   historyToggle: 'Ανάκτηση ιστορικού',

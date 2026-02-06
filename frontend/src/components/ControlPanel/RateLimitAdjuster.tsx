@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { AlertTriangle, RotateCw, Save } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import axios from 'axios';
+import { isAxiosError } from 'axios';
 import Toast from '@/components/ui/Toast';
-import { CONTROL_API_BASE } from '@/api/api';
+import apiClient, { CONTROL_API_BASE } from '@/api/api';
 
 interface RateLimitSettings {
   read: number;
@@ -43,7 +43,9 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
   const loadSettings = useCallback(async () => {
     try {
-      const response = await axios.get(`${CONTROL_API_BASE}/rate-limits`);
+      const response = await apiClient.get('/rate-limits', {
+        baseURL: CONTROL_API_BASE,
+      });
 
       const data = response.data;
       setSettings(data.current);
@@ -74,14 +76,16 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
     setSaving(true);
     try {
-      await axios.post(`${CONTROL_API_BASE}/rate-limits/bulk-update`, {
+      await apiClient.post('/rate-limits/bulk-update', {
         limits: changes,
+      }, {
+        baseURL: CONTROL_API_BASE,
       });
 
       await loadSettings();
       showToast('Rate limits updated successfully', 'success');
     } catch (err: unknown) {
-      const errorMsg = axios.isAxiosError(err)
+      const errorMsg = isAxiosError(err)
         ? err.response?.data?.detail || `Failed to save: ${err.response?.status}`
         : err instanceof Error
         ? err.message
@@ -97,12 +101,14 @@ export default function RateLimitAdjuster({ onToast }: RateLimitAdjusterProps) {
 
     setSaving(true);
     try {
-      await axios.post(`${CONTROL_API_BASE}/rate-limits/reset`);
+      await apiClient.post('/rate-limits/reset', null, {
+        baseURL: CONTROL_API_BASE,
+      });
 
       await loadSettings();
       showToast('Rate limits reset to defaults', 'success');
     } catch (err: unknown) {
-      const errorMsg = axios.isAxiosError(err)
+      const errorMsg = isAxiosError(err)
         ? err.response?.data?.detail || `Failed to reset: ${err.response?.status}`
         : err instanceof Error
         ? err.message

@@ -26,7 +26,7 @@ import { RBACPanel } from '@/components/admin/RBACPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
 import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
-import apiClient, { CONTROL_API_BASE } from '@/api/api';
+import apiClient, { CONTROL_API_BASE, controlApiClient } from '@/api/api';
 
 // TypeScript interfaces
 interface SystemStatus {
@@ -197,7 +197,7 @@ function formatUptime(seconds: number): string {
   // Fetch status
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await apiClient.get(`${CONTROL_API}/status`);
+      const response = await controlApiClient.get('/status');
       setStatus(response.data);
       if (response.data.process_start_time) {
         updateUptime(response.data.process_start_time);
@@ -218,7 +218,7 @@ function formatUptime(seconds: number): string {
   const fetchDiagnostics = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get(`${CONTROL_API}/diagnostics`);
+      const response = await controlApiClient.get('/diagnostics');
       // Ensure response.data is an array before setting
       if (Array.isArray(response.data)) {
         setDiagnostics(response.data);
@@ -237,7 +237,7 @@ function formatUptime(seconds: number): string {
   // Fetch ports
   const fetchPorts = useCallback(async () => {
     try {
-      const response = await apiClient.get(`${CONTROL_API}/ports`);
+      const response = await controlApiClient.get('/ports');
       // Ensure response.data is an array before setting
       if (Array.isArray(response.data)) {
         setPorts(response.data);
@@ -254,8 +254,8 @@ function formatUptime(seconds: number): string {
   // Fetch environment
   const fetchEnvironment = useCallback(async (includePackages = false): Promise<void> => {
     try {
-      const url = includePackages ? `${CONTROL_API}/environment?include_packages=true` : `${CONTROL_API}/environment`;
-      const response = await apiClient.get(url);
+      const url = includePackages ? '/environment?include_packages=true' : '/environment';
+      const response = await controlApiClient.get(url);
       setEnvironment(response.data);
     } catch (error) {
       console.error('Failed to fetch environment:', error);
@@ -265,7 +265,7 @@ function formatUptime(seconds: number): string {
   // Fetch logs
   const fetchLogs = useCallback(async (): Promise<void> => {
     try {
-      const response = await apiClient.get(`${CONTROL_API}/logs/backend?lines=50`);
+      const response = await controlApiClient.get('/logs/backend?lines=50');
       setLogs(response.data.logs || []);
     } catch (error) {
       console.error('Failed to fetch logs:', error);
@@ -277,7 +277,7 @@ function formatUptime(seconds: number): string {
     try {
       setLoading(true);
       setOperationStatus({ type: 'info', message: t('executing') });
-      const response = await apiClient.post(`${CONTROL_API}/operations/${endpoint}`);
+      const response = await controlApiClient.post(`/operations/${endpoint}`);
 
       if (response.data.success) {
         setOperationStatus({ type: 'success', message: successMessage });
@@ -305,7 +305,7 @@ function formatUptime(seconds: number): string {
     try {
       setLoading(true);
       setOperationStatus({ type: 'info', message: t('executing') });
-      const response = await apiClient.post(`${CONTROL_API}${path}`);
+      const response = await controlApiClient.post(path);
       if (response.data.success) {
         setOperationStatus({ type: 'success', message: successMessage });
       } else {
@@ -333,9 +333,6 @@ function formatUptime(seconds: number): string {
   // Initial load
   useEffect(() => {
     fetchStatus();
-    fetchDiagnostics();
-    fetchPorts();
-    fetchEnvironment();
 
     // Auto-refresh status
     const interval = setInterval(fetchStatus, 5000);
@@ -356,7 +353,20 @@ function formatUptime(seconds: number): string {
     if (activeTab === 'logs' && logs.length === 0) {
       fetchLogs();
     }
-  }, [activeTab, diagnostics.length, ports.length, logs.length, fetchDiagnostics, fetchPorts, fetchLogs]);
+    if (activeTab === 'environment' && !environment) {
+      fetchEnvironment();
+    }
+  }, [
+    activeTab,
+    diagnostics.length,
+    ports.length,
+    logs.length,
+    environment,
+    fetchDiagnostics,
+    fetchPorts,
+    fetchLogs,
+    fetchEnvironment,
+  ]);
 
   // Removed unused getStatusBadge for linter compliance
 
@@ -375,19 +385,19 @@ function formatUptime(seconds: number): string {
 
   const isEmbedded = variant === 'embedded';
   const containerClass = isEmbedded
-    ? 'w-full overflow-hidden text-slate-900 dark:text-gray-100'
+    ? 'w-full overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl text-slate-900 dark:text-gray-100'
     : 'min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100';
   const cardBaseClass = isEmbedded
     ? 'rounded-2xl border border-slate-200 bg-white shadow-sm'
     : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg';
   const headerClass = isEmbedded
-    ? `${cardBaseClass} px-6 py-5`
+    ? 'px-6 py-5 border-b border-slate-100 bg-white'
     : 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4';
   const modeBannerClass = isEmbedded
     ? 'mt-4 px-4 py-3 rounded-xl border border-indigo-100 bg-indigo-50 flex items-start gap-3 text-indigo-900'
     : 'mt-4 px-4 py-3 bg-blue-900/20 border border-blue-700/50 rounded-lg flex items-center gap-3';
   const tabBarWrapperClass = isEmbedded
-    ? 'pt-4'
+    ? 'px-6 pt-4 border-b border-slate-100 bg-white'
     : 'bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700';
   const tabNavContainerClass = isEmbedded ? 'px-0' : 'px-6';
   const tabListClass = isEmbedded ? 'flex flex-wrap gap-2' : 'flex gap-1';
@@ -404,7 +414,7 @@ function formatUptime(seconds: number): string {
             : 'border-transparent text-gray-400 hover:text-gray-300 hover:bg-gray-700/50'
         }`
   );
-  const mainClass = isEmbedded ? 'space-y-6' : 'p-6 max-w-7xl mx-auto';
+  const mainClass = isEmbedded ? 'space-y-6 px-6 py-6 bg-white' : 'p-6 max-w-7xl mx-auto';
 
   return (
     <div className={containerClass}>
@@ -415,14 +425,14 @@ function formatUptime(seconds: number): string {
           <div className="flex items-center gap-3">
             {showTitle ? (
               <>
-                <Settings className="text-indigo-500" size={isEmbedded ? 26 : 28} />
+                <Settings className="text-slate-900" size={isEmbedded ? 26 : 28} />
                 <div>
                   <h1 className="text-xl font-bold text-slate-900">{t('title')}</h1>
                   <p className="text-sm text-slate-500">{t('subtitle')}</p>
                 </div>
               </>
             ) : (
-              <Settings className="text-indigo-500" size={24} aria-hidden="true" />
+              <Settings className="text-slate-900" size={24} aria-hidden="true" />
             )}
           </div>
 
@@ -922,12 +932,15 @@ function formatUptime(seconds: number): string {
 
         {activeTab === 'maintenance' && (
           <div className="space-y-6">
-            <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 border border-purple-700/50 rounded-lg p-6">
-              <h2 className="text-lg font-semibold mb-2 flex items-center gap-2 text-purple-300">
+            <div className="rounded-lg p-6 space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
+                {t('maintenance') || 'Maintenance'}
+              </p>
+              <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-900">
                 <Shield size={20} />
                 {t('maintenanceTitle') || 'Maintenance Suite'}
               </h2>
-              <p className="text-sm text-purple-200 mb-2">{t('maintenanceSubtitle') || 'System administration, user management, backups, and database maintenance all in one place.'}</p>
+              <p className="text-sm text-slate-600 max-w-3xl">{t('maintenanceSubtitle') || 'System administration, user management, backups, and database maintenance all in one place.'}</p>
             </div>
 
             {/* Admin Users Panel - Collapsible */}

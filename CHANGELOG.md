@@ -8,6 +8,23 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [Unreleased]
+
+### Performance
+- **control api**: Add caching + concurrency for status/diagnostics/ports/environment to reduce latency.
+- **control api**: Defer heavy control calls to tab activation; increase control API timeout to prevent premature failures.
+
+### Bug Fixes
+- **control panel**: Correct control API base routing in native dev (use /control/api via dedicated client).
+- **devserver**: Proxy /control to backend in Vite to support native mode control endpoints.
+- **ui**: Fix JSX structure in GradingView and align label styling across Control Panel, Search, and Grading.
+
+### Localization
+- **i18n**: Add EN/EL translations for grading section labels and search findings label.
+
+### Chores
+- **misc**: Maintenance updates across installer/docs/test artifacts tracked in repo.
+
 ## [1.17.7] - 2026-02-04
 
 ### ⚠️ BREAKING CHANGES

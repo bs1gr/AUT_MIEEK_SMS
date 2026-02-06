@@ -27,14 +27,14 @@ stderr | src/api/__tests__/api.request.interceptor.test.ts
 Using Vite dev proxy for localhost API (CORS-safe): /api/v1
 
 stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > attaches Authorization header when access token exists
-[API] Attaching auth header for: 
+[API] Attaching auth header for:
 
 stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > does nothing when no token present
-[API] No token available for: 
+[API] No token available for:
 
 stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > is resilient if headers missing or getter throws
-[API] No token available for: 
-[API] No token available for: 
+[API] No token available for:
+[API] No token available for:
 
  [31mέζψ[39m src/api/__tests__/api.request.interceptor.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 8[2mms[22m[39m
 [31m     [31m├Ω[31m attaches Authorization header when access token exists[39m[32m 5[2mms[22m[39m
@@ -182,7 +182,7 @@ stderr | src/components/__tests__/SearchBar.test.tsx
  FAIL  src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > attaches Authorization header when access token exists
 AssertionError: expected "getAccessToken" to be called at least once
  έζψ src/api/__tests__/api.request.interceptor.test.ts:18:15
-     16| 
+     16|
      17|   // Assert that the helper consulted the auth service
      18|   expect(spy).toHaveBeenCalled();
        |               ^
@@ -271,7 +271,7 @@ Ignored nodes: comments, script, style
               class="text-base font-semibold text-gray-900 truncate"
             >
               John
-               
+
               Doe
             </h3>
             <span
@@ -353,7 +353,7 @@ Ignored nodes: comments, script, style
                 Courses
                 :
               </span>
-               
+
               <span
                 class="text-gray-700"
               >
@@ -365,7 +365,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.95
           </div>
         </div>
@@ -379,11 +379,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:306:25
     304|     );
-    305| 
+    305|
     306|     const card = screen.getByRole('listitem');
        |                         ^
     307|     fireEvent.click(card);
-    308| 
+    308|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[2/20]έΟψ
 
@@ -467,7 +467,7 @@ Ignored nodes: comments, script, style
               class="text-base font-semibold text-gray-900 truncate"
             >
               John
-               
+
               Doe
             </h3>
             <span
@@ -549,7 +549,7 @@ Ignored nodes: comments, script, style
                 Courses
                 :
               </span>
-               
+
               <span
                 class="text-gray-700"
               >
@@ -561,7 +561,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.95
           </div>
         </div>
@@ -575,11 +575,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:317:25
     315|     );
-    316| 
+    316|
     317|     const card = screen.getByRole('listitem');
        |                         ^
     318|     fireEvent.keyDown(card, { key: 'Enter' });
-    319| 
+    319|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[3/20]έΟψ
 
@@ -663,7 +663,7 @@ Ignored nodes: comments, script, style
               class="text-base font-semibold text-gray-900 truncate"
             >
               John
-               
+
               Doe
             </h3>
             <span
@@ -745,7 +745,7 @@ Ignored nodes: comments, script, style
                 Courses
                 :
               </span>
-               
+
               <span
                 class="text-gray-700"
               >
@@ -757,7 +757,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.95
           </div>
         </div>
@@ -771,11 +771,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:328:25
     326|     );
-    327| 
+    327|
     328|     const card = screen.getByRole('listitem');
        |                         ^
     329|     fireEvent.keyDown(card, { key: ' ' });
-    330| 
+    330|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[4/20]έΟψ
 
@@ -915,7 +915,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.90
           </div>
         </div>
@@ -929,11 +929,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:401:25
     399|     );
-    400| 
+    400|
     401|     const card = screen.getByRole('listitem');
        |                         ^
     402|     fireEvent.click(card);
-    403| 
+    403|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[5/20]έΟψ
 
@@ -1009,7 +1009,7 @@ Ignored nodes: comments, script, style
                 class="text-sm text-gray-500 ml-1"
               >
                 grades.divider
-                 100 
+                 100
                 points
               </span>
             </span>
@@ -1080,7 +1080,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.92
           </div>
         </div>
@@ -1094,11 +1094,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:470:25
     468|     );
-    469| 
+    469|
     470|     const card = screen.getByRole('listitem');
        |                         ^
     471|     fireEvent.click(card);
-    472| 
+    472|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[6/20]έΟψ
 
@@ -1266,7 +1266,7 @@ Ignored nodes: comments, script, style
                 class="text-xs text-muted-foreground"
               >
                 96.2
-                % 
+                %
                 success
               </p>
             </div>
@@ -1287,7 +1287,7 @@ Ignored nodes: comments, script, style
                 class="text-xs text-muted-foreground"
               >
                 94.1
-                % 
+                %
                 success
               </p>
             </div>
@@ -1308,7 +1308,7 @@ Ignored nodes: comments, script, style
                 class="text-xs text-muted-foreground"
               >
                 92.4
-                % 
+                %
                 success
               </p>
             </div>
@@ -1324,7 +1324,7 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/export-admin/__tests__/SupportingComponents.test.tsx:312:19
     310|     renderWithProviders(<PerformanceAnalytics metrics={mockMetrics} />έΑο
-    311| 
+    311|
     312|     expect(screen.getByText('120.50s')).toBeInTheDocument();
        |                   ^
     313|     expect(screen.getByText('95.7%')).toBeInTheDocument();

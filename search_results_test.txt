@@ -135,7 +135,7 @@ Ignored nodes: comments, script, style
               class="text-base font-semibold text-gray-900 truncate"
             >
               John
-               
+
               Doe
             </h3>
             <span
@@ -217,7 +217,7 @@ Ignored nodes: comments, script, style
                 Courses
                 :
               </span>
-               
+
               <span
                 class="text-gray-700"
               >
@@ -229,7 +229,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.95
           </div>
         </div>
@@ -243,11 +243,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:306:25
     304|     );
-    305| 
+    305|
     306|     const card = screen.getByRole('listitem');
        |                         ^
     307|     fireEvent.click(card);
-    308| 
+    308|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[1/5]έΟψ
 
@@ -331,7 +331,7 @@ Ignored nodes: comments, script, style
               class="text-base font-semibold text-gray-900 truncate"
             >
               John
-               
+
               Doe
             </h3>
             <span
@@ -413,7 +413,7 @@ Ignored nodes: comments, script, style
                 Courses
                 :
               </span>
-               
+
               <span
                 class="text-gray-700"
               >
@@ -425,7 +425,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.95
           </div>
         </div>
@@ -439,11 +439,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:317:25
     315|     );
-    316| 
+    316|
     317|     const card = screen.getByRole('listitem');
        |                         ^
     318|     fireEvent.keyDown(card, { key: 'Enter' });
-    319| 
+    319|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[2/5]έΟψ
 
@@ -527,7 +527,7 @@ Ignored nodes: comments, script, style
               class="text-base font-semibold text-gray-900 truncate"
             >
               John
-               
+
               Doe
             </h3>
             <span
@@ -609,7 +609,7 @@ Ignored nodes: comments, script, style
                 Courses
                 :
               </span>
-               
+
               <span
                 class="text-gray-700"
               >
@@ -621,7 +621,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.95
           </div>
         </div>
@@ -635,11 +635,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:328:25
     326|     );
-    327| 
+    327|
     328|     const card = screen.getByRole('listitem');
        |                         ^
     329|     fireEvent.keyDown(card, { key: ' ' });
-    330| 
+    330|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[3/5]έΟψ
 
@@ -779,7 +779,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.90
           </div>
         </div>
@@ -793,11 +793,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:401:25
     399|     );
-    400| 
+    400|
     401|     const card = screen.getByRole('listitem');
        |                         ^
     402|     fireEvent.click(card);
-    403| 
+    403|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[4/5]έΟψ
 
@@ -873,7 +873,7 @@ Ignored nodes: comments, script, style
                 class="text-sm text-gray-500 ml-1"
               >
                 grades.divider
-                 100 
+                 100
                 points
               </span>
             </span>
@@ -944,7 +944,7 @@ Ignored nodes: comments, script, style
             class="mt-2 text-xs text-gray-400"
           >
             Relevance
-            : 
+            :
             0.92
           </div>
         </div>
@@ -958,11 +958,11 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:470:25
     468|     );
-    469| 
+    469|
     470|     const card = screen.getByRole('listitem');
        |                         ^
     471|     fireEvent.click(card);
-    472| 
+    472|
 
 έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[5/5]έΟψ
 

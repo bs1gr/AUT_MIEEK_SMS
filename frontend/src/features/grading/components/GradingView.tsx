@@ -452,19 +452,24 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       </div>
 
       <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3" data-testid="grade-form">
-        <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">
-            {editingGradeId ? t('editGrade') || 'Edit Grade' : t('addGrade')}
-          </h3>
-          {editingGradeId && (
-            <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="text-sm text-gray-600 hover:text-gray-800 underline"
-            >
-              {t('cancel') || 'Cancel'}
-            </button>
-          )}
+        <div className="space-y-2">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
+            {t('gradeEntry') || 'Grade Entry'}
+          </p>
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-semibold text-slate-900">
+              {editingGradeId ? t('editGrade') || 'Edit Grade' : t('addGrade')}
+            </h3>
+            {editingGradeId && (
+              <button
+                type="button"
+                onClick={handleCancelEdit}
+                className="text-sm text-gray-600 hover:text-gray-800 underline"
+              >
+                {t('cancel') || 'Cancel'}
+              </button>
+            )}
+          </div>
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -521,7 +526,12 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       </form>
 
       <div className="bg-white border rounded-xl p-4">
-        <h3 className="text-lg font-semibold mb-2">{t('finalGradeSummary')}</h3>
+        <div className="space-y-2 mb-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
+            {t('summary') || 'Summary'}
+          </p>
+          <h3 className="text-lg font-semibold text-slate-900">{t('finalGradeSummary')}</h3>
+        </div>
         {!studentId || !courseId ? (
           <p className="text-sm text-gray-500">{t('selectStudentAndCourse')}</p>
         ) : finalSummary ? (
@@ -556,7 +566,12 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       {/* Evaluation Rules Overview */}
       {selectedCourse && evaluationRules.length > 0 && (
         <div className="bg-white border rounded-xl p-4">
-          <h3 className="text-lg font-semibold mb-2">{t('evaluationStructure')}</h3>
+          <div className="space-y-2 mb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
+              {t('structure') || 'Structure'}
+            </p>
+            <h3 className="text-lg font-semibold text-slate-900">{t('evaluationStructure')}</h3>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {evaluationRules.map((r, i: number) => (
               <div key={i} className="border rounded p-3">
@@ -572,7 +587,12 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       {/* Grade History */}
       {studentId && courseId && (
         <div className="bg-white border rounded-xl p-4">
-          <h3 className="text-lg font-semibold mb-2">{t('gradeHistory')}</h3>
+          <div className="space-y-2 mb-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
+              {t('records') || 'Records'}
+            </p>
+            <h3 className="text-lg font-semibold text-slate-900">{t('gradeHistory')}</h3>
+          </div>
           {grades.length === 0 ? (
             <p className="text-sm text-gray-500">{t('noGradesRecorded')}</p>
           ) : (

@@ -48,6 +48,7 @@ type ClearScope = 'all' | 'data_only';
 export interface DevToolsPanelProps {
   variant?: DevToolsVariant;
   onToast: (toast: ToastState) => void;
+  showOperationsMonitorSummary?: boolean;
 }
 
 const metaEnv = import.meta.env as Partial<Record<string, string | undefined>>;
@@ -108,7 +109,7 @@ const statusTone = (status?: HealthStatus['status']) => {
 
 const UPTIME_STORAGE_KEY = 'sms.operations.healthUptime';
 
-const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) => {
+const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorSummary = true }: DevToolsPanelProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -581,7 +582,8 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
 
   return (
     <section className="space-y-6">
-      <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
+      {showOperationsMonitorSummary && (
+        <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm bg-white dark:bg-gray-800">
         <div className={`px-4 py-3 text-white ${statusTone(health?.status)}`}>
           <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -775,6 +777,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast }: DevToolsPanelProps) 
           </div>
         </div>
       </div>
+      )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className={theme.card}>

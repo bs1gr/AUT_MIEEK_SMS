@@ -194,7 +194,7 @@ Ignored nodes: comments, script, style
                 class="text-xs text-muted-foreground"
               >
                 96.2
-                % 
+                %
                 success
               </p>
             </div>
@@ -215,7 +215,7 @@ Ignored nodes: comments, script, style
                 class="text-xs text-muted-foreground"
               >
                 94.1
-                % 
+                %
                 success
               </p>
             </div>
@@ -236,7 +236,7 @@ Ignored nodes: comments, script, style
                 class="text-xs text-muted-foreground"
               >
                 92.4
-                % 
+                %
                 success
               </p>
             </div>
@@ -252,7 +252,7 @@ Ignored nodes: comments, script, style
  έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
  έζψ src/features/export-admin/__tests__/SupportingComponents.test.tsx:312:19
     310|     renderWithProviders(<PerformanceAnalytics metrics={mockMetrics} />έΑο
-    311| 
+    311|
     312|     expect(screen.getByText('120.50s')).toBeInTheDocument();
        |                   ^
     313|     expect(screen.getByText('95.7%')).toBeInTheDocument();

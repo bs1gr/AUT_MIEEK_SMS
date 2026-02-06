@@ -284,4 +284,3 @@ D:\SMS\student-management-system\frontend\src\utils\navigation.ts
 
 έεΨ 50 problems (0 errors, 50 warnings)
   0 errors and 2 warnings potentially fixable with the `--fix` option.
-

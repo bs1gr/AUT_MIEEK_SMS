@@ -108,6 +108,20 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
    - [ ] Installer detects existing v1.17.6
    - [ ] Displays upgrade message: "Upgrading from v1.17.6 to v1.17.7"
    - [ ] **NO option to change installation directory** (enforced in-place upgrade)
+   - [ ] **Legacy detector validation** (only once per environment):
+     1. Back up the uninstall registry keys so they can be restored afterward:
+        ```powershell
+        reg export HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789} "$env:TEMP\sms_installer_hklm.reg"
+        reg export HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789} "$env:TEMP\sms_installer_hkcu.reg"
+        ```
+     2. Delete (or rename) both uninstall keys so only the filesystem artifacts remain:
+        ```powershell
+        reg delete HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789} /f
+        reg delete HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789} /f
+        ```
+     3. Ensure legacy launcher files still exist (e.g., `C:\Program Files\SMS\SMS Toggle.bat`, `SMS Toggle.cmd`, `docker_manager.bat`, and the `VERSION` file).
+     4. Run the installer again and confirm it still locates the installation path, shows the correct detected version, and proceeds with the upgrade. This validates the hardened `AppExistsOnDisk` detector that now looks for historical files plus the `VERSION` file instead of relying solely on registry data.
+     5. After the validation, restore the registry keys if desired using the exported `.reg` files: double-click each exported file or run `reg import` on them.
 
 4. Verify automatic backup:
    - [ ] Backup created automatically (no user prompt)
@@ -127,6 +141,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
    - [ ] Shows "CurrentVersion: 1.17.7"
    - [ ] Shows "LastAction: Upgrade"
    - [ ] Installation directory unchanged
+   - [ ] If the registry entries were removed for the legacy detector test, confirm the metadata still reports the previous and current versions correctly (it now reads directly from the existing `VERSION` file when the registry is empty).
 
 **Expected Result**: ✅ Seamless in-place upgrade with zero data loss
 

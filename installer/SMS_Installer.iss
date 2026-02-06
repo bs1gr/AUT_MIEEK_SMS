@@ -49,7 +49,7 @@ MinVersion=10.0
 UninstallDisplayIcon={app}\favicon.ico
 UninstallFilesDir={app}
 UninstallDisplayName={#MyAppName} {#MyAppVersion}
-ShowLanguageDialog=auto
+ShowLanguageDialog=yes
 DisableWelcomePage=no
 ; Version info for Windows (shows in Properties and UAC dialogs)
 VersionInfoVersion={#MyAppVersion}
@@ -127,6 +127,7 @@ greek.InstallDevEnvironmentDesc=Προσθήκη Node.js, Python και αρχε
 Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{cm:Prerequisites}"; Check: not IsDockerInstalled
+
 
 [Files]
 ; Core application files - backend/frontend ALWAYS needed for Docker build
@@ -354,9 +355,50 @@ begin
 end;
 
 function AppExistsOnDisk(Path: String): Boolean;
+var
+  Indicators: array of String;
+  i: Integer;
 begin
-  // Check if key app files exist at the path
-  Result := (Path <> '') and (FileExists(Path + '\docker_manager.bat') or FileExists(Path + '\DOCKER.ps1'));
+  Result := False;
+
+  if (Path = '') or not DirExists(Path) then
+    Exit;
+
+  SetArrayLength(Indicators, 8);
+  Indicators[0] := Path + '\VERSION';
+  Indicators[1] := Path + '\docker_manager.bat';
+  Indicators[2] := Path + '\docker_manager.cmd';
+  Indicators[3] := Path + '\SMS Toggle.bat';
+  Indicators[4] := Path + '\SMS Toggle.cmd';
+  Indicators[5] := Path + '\DOCKER.ps1';
+  Indicators[6] := Path + '\UNINSTALL_SMS_MANUALLY.ps1';
+  Indicators[7] := Path + '\docker\docker-compose.yml';
+
+  for i := 0 to GetArrayLength(Indicators) - 1 do
+  begin
+    if FileExists(Indicators[i]) then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
+function ReadVersionFromDirectory(BasePath: String): String;
+var
+  VersionData: AnsiString;
+begin
+  Result := '';
+
+  if FileExists(BasePath + '\VERSION') then
+  begin
+    if LoadStringFromFile(BasePath + '\VERSION', VersionData) then
+    begin
+      Result := Trim(String(VersionData));
+      if Result = '' then
+        Result := 'Unknown';
+    end;
+  end;
 end;
 
 function PreserveDirName(DirName: String): Boolean;
@@ -502,7 +544,9 @@ begin
       OutPath := RegPath;
       RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
       OutVersion := RegistryVersion;
-      Log('Found installation via HKLM registry: ' + OutPath);
+      if OutVersion = '' then
+        OutVersion := ReadVersionFromDirectory(OutPath);
+      Log(Format('Found installation via HKLM registry: %s (version: %s)', [OutPath, OutVersion]));
       Result := True;
       Exit;
     end;
@@ -516,7 +560,9 @@ begin
       OutPath := RegPath;
       RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
       OutVersion := RegistryVersion;
-      Log('Found installation via HKCU registry: ' + OutPath);
+      if OutVersion = '' then
+        OutVersion := ReadVersionFromDirectory(OutPath);
+      Log(Format('Found installation via HKCU registry: %s (version: %s)', [OutPath, OutVersion]));
       Result := True;
       Exit;
     end;
@@ -526,12 +572,10 @@ begin
   if AppExistsOnDisk(DefaultPath) then
   begin
     OutPath := DefaultPath;
-    // Try to detect version from VERSION file
-    if FileExists(DefaultPath + '\VERSION') then
-      OutVersion := 'detected'
-    else
+    OutVersion := ReadVersionFromDirectory(DefaultPath);
+    if OutVersion = '' then
       OutVersion := 'Unknown';
-    Log('Found installation at default path: ' + DefaultPath);
+    Log(Format('Found installation at default path: %s (version: %s)', [DefaultPath, OutVersion]));
     Result := True;
     Exit;
   end;
