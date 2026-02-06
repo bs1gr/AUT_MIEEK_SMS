@@ -147,6 +147,8 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [showRuntimeDetails, setShowRuntimeDetails] = useState<boolean>(false);
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [tabLoading, setTabLoading] = useState<Record<string, boolean>>({});
+  const [tabUpdatedAt, setTabUpdatedAt] = useState<Record<string, string>>({});
   const [operationStatus, setOperationStatus] = useState<OperationStatus | null>(null);
   // Maintenance panel collapse states (closed by default)
   const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(false);
@@ -155,6 +157,26 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [uptime, setUptime] = useState<string>('');
   const uptimeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
+
+  const controlCacheRef = useRef(new Map<string, { ts: number; data: unknown }>());
+  const getCachedControl = useCallback((key: string, ttlMs: number) => {
+    const entry = controlCacheRef.current.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.ts > ttlMs) return null;
+    return entry.data;
+  }, []);
+
+  const setCachedControl = useCallback((key: string, data: unknown) => {
+    controlCacheRef.current.set(key, { ts: Date.now(), data });
+  }, []);
+
+  const setTabLoadingState = useCallback((key: string, value: boolean) => {
+    setTabLoading((prev) => ({ ...prev, [key]: value }));
+  }, []);
+
+  const setTabUpdated = useCallback((key: string) => {
+    setTabUpdatedAt((prev) => ({ ...prev, [key]: new Date().toISOString() }));
+  }, []);
 
   const handleToast = useCallback((state: ToastState) => {
     setToast(state);
@@ -197,8 +219,17 @@ function formatUptime(seconds: number): string {
   // Fetch status
   const fetchStatus = useCallback(async () => {
     try {
+      const cached = getCachedControl('status', 5000) as SystemStatus | null;
+      if (cached) {
+        setStatus(cached);
+        if (cached.process_start_time) {
+          updateUptime(cached.process_start_time);
+        }
+        return;
+      }
       const response = await controlApiClient.get('/status');
       setStatus(response.data);
+      setCachedControl('status', response.data);
       if (response.data.process_start_time) {
         updateUptime(response.data.process_start_time);
         // Clear previous timer
@@ -212,65 +243,107 @@ function formatUptime(seconds: number): string {
     } catch (error) {
       console.error('Failed to fetch status:', error);
     }
-  }, [updateUptime]);
+  }, [getCachedControl, setCachedControl, updateUptime]);
 
   // Fetch diagnostics
   const fetchDiagnostics = useCallback(async () => {
     try {
-      setLoading(true);
+      const cached = getCachedControl('diagnostics', 30000) as DiagnosticItem[] | null;
+      if (cached) {
+        setDiagnostics(cached);
+        setTabUpdated('diagnostics');
+        return;
+      }
+      setTabLoadingState('diagnostics', true);
       const response = await controlApiClient.get('/diagnostics');
       // Ensure response.data is an array before setting
       if (Array.isArray(response.data)) {
         setDiagnostics(response.data);
+        setCachedControl('diagnostics', response.data);
       } else {
         console.error('Diagnostics response is not an array:', response.data);
         setDiagnostics([]);
       }
+      setTabUpdated('diagnostics');
     } catch (error) {
       console.error('Failed to fetch diagnostics:', error);
       setDiagnostics([]);
     } finally {
-      setLoading(false);
+      setTabLoadingState('diagnostics', false);
     }
-  }, []);
+  }, [getCachedControl, setCachedControl, setTabLoadingState, setTabUpdated]);
 
   // Fetch ports
   const fetchPorts = useCallback(async () => {
     try {
+      const cached = getCachedControl('ports', 10000) as PortInfo[] | null;
+      if (cached) {
+        setPorts(cached);
+        setTabUpdated('ports');
+        return;
+      }
+      setTabLoadingState('ports', true);
       const response = await controlApiClient.get('/ports');
       // Ensure response.data is an array before setting
       if (Array.isArray(response.data)) {
         setPorts(response.data);
+        setCachedControl('ports', response.data);
       } else {
         console.error('Ports response is not an array:', response.data);
         setPorts([]);
       }
+      setTabUpdated('ports');
     } catch (error) {
       console.error('Failed to fetch ports:', error);
       setPorts([]);
+    } finally {
+      setTabLoadingState('ports', false);
     }
-  }, []);
+  }, [getCachedControl, setCachedControl, setTabLoadingState, setTabUpdated]);
 
   // Fetch environment
   const fetchEnvironment = useCallback(async (includePackages = false): Promise<void> => {
     try {
+      const cacheKey = includePackages ? 'environment:packages' : 'environment';
+      const cached = getCachedControl(cacheKey, includePackages ? 60000 : 20000) as EnvironmentInfo | null;
+      if (cached) {
+        setEnvironment(cached);
+        setTabUpdated('environment');
+        return;
+      }
+      setTabLoadingState('environment', true);
       const url = includePackages ? '/environment?include_packages=true' : '/environment';
       const response = await controlApiClient.get(url);
       setEnvironment(response.data);
+      setCachedControl(cacheKey, response.data);
+      setTabUpdated('environment');
     } catch (error) {
       console.error('Failed to fetch environment:', error);
+    } finally {
+      setTabLoadingState('environment', false);
     }
-  }, []);
+  }, [getCachedControl, setCachedControl, setTabLoadingState, setTabUpdated]);
 
   // Fetch logs
   const fetchLogs = useCallback(async (): Promise<void> => {
     try {
+      const cached = getCachedControl('logs', 10000) as string[] | null;
+      if (cached) {
+        setLogs(cached);
+        setTabUpdated('logs');
+        return;
+      }
+      setTabLoadingState('logs', true);
       const response = await controlApiClient.get('/logs/backend?lines=50');
       setLogs(response.data.logs || []);
+      setCachedControl('logs', response.data.logs || []);
+      setTabUpdated('logs');
     } catch (error) {
       console.error('Failed to fetch logs:', error);
+    } finally {
+      setTabLoadingState('logs', false);
     }
-  }, []);
+  }, [getCachedControl, setCachedControl, setTabLoadingState, setTabUpdated]);
 
   // Generic operation handler
   const runOperation = useCallback(async (endpoint: string, successMessage: string): Promise<void> => {
@@ -723,43 +796,60 @@ function formatUptime(seconds: number): string {
               <h2 className="text-lg font-semibold">{t('portsTitle')}</h2>
               <button
                 onClick={fetchPorts}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                disabled={tabLoading.ports}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
               >
                 <RefreshCw size={16} />
                 {t('refresh')}
               </button>
             </div>
 
-                <div className={`${cardBaseClass} overflow-hidden`}>
-              <table className="w-full">
-                <thead className="bg-gray-100 dark:bg-gray-700">
-                  <tr>
-                        <th className="px-4 py-3 text-left text-sm font-medium">{t('port')}</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">{t('status')}</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">{t('process')}</th>
-                        <th className="px-4 py-3 text-left text-sm font-medium">{t('pid')}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {ports.map((port) => (
-                    <tr key={port.port} className="hover:bg-gray-700/50">
-                      <td className="px-4 py-3 font-mono">{port.port}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full ${
-                          port.in_use
-                            ? 'bg-green-900/30 text-green-400'
-                            : 'bg-gray-700 text-gray-400'
-                        }`}>
-                          {port.in_use ? t('inUse') : t('available')}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm">{port.process_name || '-'}</td>
-                      <td className="px-4 py-3 font-mono text-sm">{port.process_id || '-'}</td>
+            {tabUpdatedAt.ports && (
+              <p className="text-xs text-gray-500">
+                {t('lastUpdated') || 'Last updated'}: {new Date(tabUpdatedAt.ports).toLocaleTimeString()}
+              </p>
+            )}
+
+            {tabLoading.ports && ports.length === 0 ? (
+              <div className={`${cardBaseClass} p-4 text-center text-gray-400`}>
+                {t('loading') || 'Loading'}...
+              </div>
+            ) : ports.length === 0 ? (
+              <div className={`${cardBaseClass} p-4 text-center text-gray-400`}>
+                {t('noPortsAvailable') || 'No ports available'}
+              </div>
+            ) : (
+              <div className={`${cardBaseClass} overflow-hidden`}>
+                <table className="w-full">
+                  <thead className="bg-gray-100 dark:bg-gray-700">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-sm font-medium">{t('port')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">{t('status')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">{t('process')}</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium">{t('pid')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-gray-700">
+                    {ports.map((port) => (
+                      <tr key={port.port} className="hover:bg-gray-700/50">
+                        <td className="px-4 py-3 font-mono">{port.port}</td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs rounded-full ${
+                            port.in_use
+                              ? 'bg-green-900/30 text-green-400'
+                              : 'bg-gray-700 text-gray-400'
+                          }`}>
+                            {port.in_use ? t('inUse') : t('available')}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-sm">{port.process_name || '-'}</td>
+                        <td className="px-4 py-3 font-mono text-sm">{port.process_id || '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         )}
 
@@ -770,15 +860,24 @@ function formatUptime(seconds: number): string {
               <h2 className="text-lg font-semibold">{t('logsTitle')}</h2>
               <button
                 onClick={fetchLogs}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors"
+                disabled={tabLoading.logs}
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors"
               >
                 <RefreshCw size={16} />
                 {t('refresh')}
               </button>
             </div>
 
+            {tabUpdatedAt.logs && (
+              <p className="text-xs text-gray-500">
+                {t('lastUpdated') || 'Last updated'}: {new Date(tabUpdatedAt.logs).toLocaleTimeString()}
+              </p>
+            )}
+
             <div className={`${isEmbedded ? 'rounded-2xl border border-slate-200 bg-slate-50' : 'bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg'} p-4 font-mono text-xs overflow-x-auto max-h-[600px] overflow-y-auto`}>
-              {logs.length === 0 ? (
+              {tabLoading.logs && logs.length === 0 ? (
+                <p className="text-gray-500">{t('loading') || 'Loading'}...</p>
+              ) : logs.length === 0 ? (
                 <p className="text-gray-500">{t('noLogsAvailable')}</p>
               ) : (
                 logs.map((log, index) => {
@@ -811,7 +910,7 @@ function formatUptime(seconds: number): string {
         )}
 
         {/* Environment Tab */}
-        {activeTab === 'environment' && environment && (
+        {activeTab === 'environment' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold">{t('environmentTitle')}</h2>
@@ -819,17 +918,36 @@ function formatUptime(seconds: number): string {
                 onClick={async () => {
                   const next = !showRuntimeDetails;
                   setShowRuntimeDetails(next);
-                  if (next && !environment.python_packages) {
+                  if (next && !environment?.python_packages) {
                     // fetch extended details on demand
                     await fetchEnvironment(true);
                   }
                 }}
-                className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-md border border-gray-600"
+                disabled={tabLoading.environment}
+                className="flex items-center gap-2 px-3 py-2 text-sm bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600/60 rounded-md border border-gray-600"
               >
                 {showRuntimeDetails ? t('hideRuntimeDetails') : t('showRuntimeDetails')}
               </button>
             </div>
 
+            {tabUpdatedAt.environment && (
+              <p className="text-xs text-gray-500">
+                {t('lastUpdated') || 'Last updated'}: {new Date(tabUpdatedAt.environment).toLocaleTimeString()}
+              </p>
+            )}
+
+            {tabLoading.environment && !environment && (
+              <div className={`${cardBaseClass} p-6 text-sm text-gray-500`}>
+                {t('loading') || 'Loading'}...
+              </div>
+            )}
+
+            {!tabLoading.environment && !environment && (
+              <div className={`${cardBaseClass} p-6 text-sm text-gray-500`}>
+                {t('noEnvironmentData') || 'No environment data available'}
+              </div>
+            )}
+            {environment && (
             <div className={`${cardBaseClass} p-6`}>
               <div className="space-y-4">
                 {environment.environment_mode === 'docker' && (
@@ -902,23 +1020,23 @@ function formatUptime(seconds: number): string {
                             </tr>
                           </thead>
                           <tbody>
-                              {environment.python_packages.map((pkg: unknown) => {
-                                if (typeof pkg === 'string') {
-                                  // some health payloads return package entries as strings
-                                  return (
-                                    <tr key={pkg}>
-                                      <td className="py-1 pr-4 font-mono" colSpan={2}>{pkg}</td>
-                                    </tr>
-                                  );
-                                }
-                                const { name, version } = pkg as { name?: string; version?: string };
+                            {environment.python_packages.map((pkg: unknown) => {
+                              if (typeof pkg === 'string') {
+                                // some health payloads return package entries as strings
                                 return (
-                                  <tr key={name || JSON.stringify(pkg)}>
-                                    <td className="py-1 pr-4 font-mono">{name}</td>
-                                    <td className="py-1 font-mono">{version}</td>
+                                  <tr key={pkg}>
+                                    <td className="py-1 pr-4 font-mono" colSpan={2}>{pkg}</td>
                                   </tr>
                                 );
-                              })}
+                              }
+                              const { name, version } = pkg as { name?: string; version?: string };
+                              return (
+                                <tr key={name || JSON.stringify(pkg)}>
+                                  <td className="py-1 pr-4 font-mono">{name}</td>
+                                  <td className="py-1 font-mono">{version}</td>
+                                </tr>
+                              );
+                            })}
                           </tbody>
                         </table>
                       </div>
@@ -927,6 +1045,7 @@ function formatUptime(seconds: number): string {
                 </div>
               </div>
             </div>
+          )}
           </div>
         )}
 

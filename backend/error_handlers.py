@@ -115,11 +115,24 @@ def register_error_handlers(app):
 
         logger.exception("Unhandled application error", exc_info=exc)
 
+        details = None
+        try:
+            from backend.config import settings
+
+            if str(getattr(settings, "SMS_ENV", "")).lower() in {"development", "dev", "local"}:
+                details = {
+                    "error": str(exc),
+                    "type": exc.__class__.__name__,
+                }
+        except Exception:
+            details = None
+
         # Create standardized error response
         response = error_response(
             code="INTERNAL_SERVER_ERROR",
             message="An unexpected error occurred",
             request_id=request_id,
+            details=details,
             path=str(request.url.path) if hasattr(request, "url") else None,
         )
 

@@ -165,6 +165,38 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 10000, // 10 seconds timeout
 });
 
+// Simple in-memory cache for GET requests (rarely-changing endpoints)
+type ApiCacheEntry = { ts: number; data: unknown };
+const apiCache = new Map<string, ApiCacheEntry>();
+
+function buildCacheKey(url: string, config?: AxiosRequestConfig): string {
+  const params = config?.params ? JSON.stringify(config.params) : '';
+  return `${url}::${params}`;
+}
+
+export function invalidateApiCache(prefix: string): void {
+  for (const key of apiCache.keys()) {
+    if (key.startsWith(prefix)) {
+      apiCache.delete(key);
+    }
+  }
+}
+
+export async function cachedGet<T>(
+  url: string,
+  config?: AxiosRequestConfig,
+  ttlMs: number = 10000
+): Promise<T> {
+  const key = buildCacheKey(url, config);
+  const cached = apiCache.get(key);
+  if (cached && Date.now() - cached.ts <= ttlMs) {
+    return cached.data as T;
+  }
+  const response = await apiClient.get<T>(url, config);
+  apiCache.set(key, { ts: Date.now(), data: response.data as unknown });
+  return response.data as T;
+}
+
 // Control API client (avoid /api/v1 prefixing for /control/api routes)
 export const controlApiClient: AxiosInstance = axios.create({
   baseURL: CONTROL_API_BASE,
@@ -239,7 +271,9 @@ apiClient.interceptors.response.use(
             return axios(originalRequest);
           }
           return Promise.reject(error);
-        }).catch(() => Promise.reject(error));
+        }).catch(() => {
+          return Promise.reject(error);
+        });
       }
 
       // Log other response errors with safe property access
@@ -309,8 +343,7 @@ export const studentsAPI = {
   // Historically getAll normalized results to return an array of Student.
   // Keep that behaviour for backward compatibility with tests and callers.
   getAll: async (skip = 0, limit = 100): Promise<Student[]> => {
-    const response = await apiClient.get('/students/', { params: { skip, limit } });
-    const data = response.data as unknown;
+    const data = await cachedGet<unknown>('/students/', { params: { skip, limit } }, 10000);
     return normalizeResponseToArray<Student>(data);
   },
 
@@ -321,16 +354,19 @@ export const studentsAPI = {
 
   create: async (data: StudentFormData): Promise<Student> => {
     const response = await apiClient.post('/students/', data);
+    invalidateApiCache('/students/');
     return unwrapResponse<Student>(response.data);
   },
 
   update: async (id: number, data: Partial<StudentFormData>): Promise<Student> => {
     const response = await apiClient.put(`/students/${id}`, data);
+    invalidateApiCache('/students/');
     return unwrapResponse<Student>(response.data);
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
     const response = await apiClient.delete(`/students/${id}`);
+    invalidateApiCache('/students/');
     return unwrapResponse<{ message: string }>(response.data);
   },
 
@@ -347,8 +383,7 @@ export const studentsAPI = {
 export const coursesAPI = {
   // Return array (normalized) to stay compatible with the legacy JS client behaviour
   getAll: async (skip = 0, limit = 100): Promise<Course[]> => {
-    const response = await apiClient.get('/courses/', { params: { skip, limit } });
-    const data = response.data as unknown;
+    const data = await cachedGet<unknown>('/courses/', { params: { skip, limit } }, 10000);
     return normalizeResponseToArray<Course>(data);
   },
 
@@ -359,16 +394,19 @@ export const coursesAPI = {
 
   create: async (data: CourseFormData): Promise<Course> => {
     const response = await apiClient.post('/courses/', data);
+    invalidateApiCache('/courses/');
     return unwrapResponse<Course>(response.data);
   },
 
   update: async (id: number, data: Partial<CourseFormData>): Promise<Course> => {
     const response = await apiClient.put(`/courses/${id}`, data);
+    invalidateApiCache('/courses/');
     return unwrapResponse<Course>(response.data);
   },
 
   delete: async (id: number): Promise<{ message: string }> => {
     const response = await apiClient.delete(`/courses/${id}`);
+    invalidateApiCache('/courses/');
     return unwrapResponse<{ message: string }>(response.data);
   },
 };
