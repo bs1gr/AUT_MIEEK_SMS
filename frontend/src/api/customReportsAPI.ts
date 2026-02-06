@@ -58,13 +58,33 @@ export interface CustomReport {
 export interface GeneratedReport {
   id: number;
   report_id: number;
+  export_format?: 'pdf' | 'excel' | 'csv';
   file_path: string;
   file_name: string;
   file_size_bytes?: number;
   status: string;
   error_message: string | null;
+  record_count?: number;
+  generation_duration_seconds?: number;
+  email_sent?: boolean;
+  email_sent_at?: string | null;
+  email_error?: string | null;
   generated_at: string;
   generation_metadata?: Record<string, unknown>;
+}
+
+export interface GenerateReportRequest {
+  export_format?: 'pdf' | 'excel' | 'csv' | null;
+  include_charts?: boolean | null;
+  email_recipients?: string[] | null;
+  email_enabled?: boolean | null;
+}
+
+export interface GenerateReportResponse {
+  generated_report_id: number;
+  status: string;
+  message: string;
+  estimated_duration_seconds?: number | null;
 }
 
 // ==================== TEMPLATES API ====================
@@ -261,15 +281,16 @@ export const customReportsAPI = {
   /**
    * Generate report
    */
-  generate: async (id: number) => {
+  generate: async (id: number, options: GenerateReportRequest = {}) => {
     try {
       const response = await apiClient.post(`/custom-reports/${id}/generate`, {
-        export_format: null,
-        include_charts: null,
-        email_recipients: null,
+        export_format: options.export_format ?? null,
+        include_charts: options.include_charts ?? null,
+        email_recipients: options.email_recipients ?? null,
+        email_enabled: options.email_enabled ?? null,
       });
 
-      return extractAPIResponseData(response.data) as { job_id: string; status: string };
+      return extractAPIResponseData(response.data) as GenerateReportResponse;
     } catch (error) {
       const axiosError = error as { response?: AxiosResponse<unknown>; message?: string };
       console.error(`[customReportsAPI] Error generating report ${id}:`, axiosError);

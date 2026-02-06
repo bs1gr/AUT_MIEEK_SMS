@@ -4,7 +4,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { customReportsAPI, reportTemplatesAPI } from '@/api/customReportsAPI';
-import type { CustomReport, ReportTemplate } from '@/api/customReportsAPI';
+import type { CustomReport, GenerateReportRequest, GenerateReportResponse, ReportTemplate } from '@/api/customReportsAPI';
 import i18n from '@/i18n';
 
 // ==================== QUERY KEYS ====================
@@ -235,17 +235,17 @@ export function useGenerateReport() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: customReportsAPI.generate,
-    onSuccess: (data: { job_id?: string }, reportId) => {
-
-      queryClient.invalidateQueries({ queryKey: customReportKeys.generated(reportId) });
+    mutationFn: ({ reportId, options }: { reportId: number; options?: GenerateReportRequest }) =>
+      customReportsAPI.generate(reportId, options),
+    onSuccess: (data: GenerateReportResponse, variables) => {
+      queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
       // Show success feedback
       if (typeof window !== 'undefined') {
 
         // Try to show browser alert if no other notification system
         try {
           const toast = document.createElement('div');
-          toast.textContent = i18n.t('customReports:generationStartedWithJob', { jobId: data?.job_id || 'processing' });
+          toast.textContent = i18n.t('customReports:generationStartedWithId', { id: data?.generated_report_id || 'processing' });
           toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
           document.body.appendChild(toast);
           setTimeout(() => toast.remove(), 5000);
@@ -254,8 +254,8 @@ export function useGenerateReport() {
         }
       }
     },
-    onError: (error: unknown, reportId) => {
-      console.error('[useGenerateReport] Error generating report:', { reportId, error });
+    onError: (error: unknown, variables) => {
+      console.error('[useGenerateReport] Error generating report:', { reportId: variables.reportId, error });
       const message = getErrorMessage(error, i18n.t('customReports:generationFailed'));
       // Show error feedback
       if (typeof window !== 'undefined') {
