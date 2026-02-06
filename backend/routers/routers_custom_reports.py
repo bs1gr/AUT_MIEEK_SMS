@@ -479,6 +479,9 @@ async def generate_report(
         generated = service.create_generated_report(report_id, current_user.id, create_data)
 
         generated_id = int(cast(int, generated.id))
+        email_enabled = body.email_enabled
+        if email_enabled is None and body.email_recipients:
+            email_enabled = True
         background_tasks.add_task(
             CustomReportGenerationService.run_generation_task,
             report_id,
@@ -486,6 +489,8 @@ async def generate_report(
             current_user.id,
             export_format,
             bool(body.include_charts if body.include_charts is not None else report.include_charts),
+            body.email_recipients,
+            email_enabled,
         )
         response = ReportGenerationResponse(
             generated_report_id=generated_id,
@@ -749,6 +754,8 @@ async def bulk_generate_reports(
                 current_user.id,
                 export_format,
                 bool(report.include_charts),
+                None,
+                None,
             )
 
         response = BulkReportGenerationResponse(

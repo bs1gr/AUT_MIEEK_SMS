@@ -228,6 +228,8 @@ class ReportScheduler:
                 int(cast(int, report.user_id)),
                 export_format,
                 bool(report.include_charts),
+                None,
+                None,
             )
 
             db.refresh(report)

@@ -121,17 +121,23 @@ DEV_EASE
 
 Note: CI, pytest and production runs must remain strict — do not enable DEV_EASE in CI or in running services.
 
-SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM_EMAIL
+SMTP_HOST / SMTP_PORT / SMTP_USER / SMTP_PASSWORD / SMTP_FROM
 
 - Type: string / integer / string / string / string
 - Default: unset / 587 / unset / unset / unset
-- Purpose: Configures SMTP for email notifications. `SMTP_HOST` is required to enable email sending. `SMTP_PORT` defaults to 587 (TLS). `SMTP_USER` and `SMTP_PASSWORD` are required if SMTP server needs authentication. `SMTP_FROM_EMAIL` is the sender email address. When not configured, email notifications are logged but not sent.
+- Purpose: Configures SMTP for email notifications. `SMTP_HOST` is required to enable email sending. `SMTP_PORT` defaults to 587 (TLS). `SMTP_USER` and `SMTP_PASSWORD` are required if SMTP server needs authentication. `SMTP_FROM` is the sender email address. When not configured, email notifications are logged but not sent.
 
 SMTP_USE_TLS
 
 - Type: boolean ("1"/"0")
 - Default: `1`
 - Purpose: When set, initiates STARTTLS on the SMTP connection. Set to `0` for direct TLS connections (port 465) or non-encrypted connections (port 25).
+
+SMTP_ATTACHMENT_MAX_MB
+
+- Type: integer
+- Default: `10`
+- Purpose: Maximum size (in MB) for report attachments sent via SMTP. Files larger than this limit are omitted and a download note is included instead.
 
 REDIS_ENABLED / REDIS_URL
 

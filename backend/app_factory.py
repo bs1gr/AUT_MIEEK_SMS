@@ -413,6 +413,13 @@ if ('serviceWorker' in navigator) {
                     for pref in EXCLUDE_PREFIXES:
                         if p.startswith(pref):
                             return JSONResponse({"detail": "Not Found"}, status_code=404)
+                    # Serve root-level static files (e.g., workbox-*.js) if present in dist
+                    static_path = SPA_DIST_DIR / p
+                    if static_path.exists() and static_path.is_file():
+                        import mimetypes
+
+                        media_type, _ = mimetypes.guess_type(str(static_path))
+                        return FileResponse(str(static_path), media_type=media_type or "application/octet-stream")
                     if SPA_INDEX_FILE and SPA_INDEX_FILE.exists():
                         return FileResponse(str(SPA_INDEX_FILE))
                 return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)

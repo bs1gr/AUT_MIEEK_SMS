@@ -245,6 +245,7 @@ class ReportGenerationRequest(BaseModel):
     export_format: Optional[str] = Field(None, description="Override default export format")
     include_charts: Optional[bool] = Field(None, description="Override chart inclusion")
     email_recipients: Optional[List[str]] = Field(None, description="Override email recipients")
+    email_enabled: Optional[bool] = Field(None, description="Override email delivery toggle")
 
     @field_validator("export_format")
     @classmethod
@@ -252,6 +253,18 @@ class ReportGenerationRequest(BaseModel):
         """Validate export format."""
         if v and v not in ("pdf", "excel", "csv"):
             raise ValueError("Export format must be pdf, excel, or csv")
+        return v
+
+    @field_validator("email_recipients")
+    @classmethod
+    def validate_email_recipients(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if v:
+            import re
+
+            email_regex = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+            for email in v:
+                if not re.match(email_regex, email):
+                    raise ValueError(f"Invalid email address: {email}")
         return v
 
 
