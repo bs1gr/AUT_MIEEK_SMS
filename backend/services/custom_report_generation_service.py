@@ -31,7 +31,9 @@ except ImportError:
     REPORTLAB_AVAILABLE = False
     Flowable = Any  # type: ignore
 
+from backend.config import settings
 from backend.models import Attendance, Course, GeneratedReport, Grade, Report, Student
+from backend.services.email_notification_service import EmailNotificationService
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +53,8 @@ class CustomReportGenerationService:
         user_id: int,
         export_format: str,
         include_charts: bool,
+        email_recipients: Optional[List[str]] = None,
+        email_enabled: Optional[bool] = None,
     ) -> None:
         """Background task entrypoint with isolated DB session."""
         from backend.db import SessionLocal
@@ -58,7 +62,15 @@ class CustomReportGenerationService:
         db = SessionLocal()
         try:
             service = CustomReportGenerationService(db)
-            service.generate_report(report_id, generated_report_id, user_id, export_format, include_charts)
+            service.generate_report(
+                report_id,
+                generated_report_id,
+                user_id,
+                export_format,
+                include_charts,
+                email_recipients=email_recipients,
+                email_enabled=email_enabled,
+            )
         finally:
             db.close()
 
@@ -69,6 +81,8 @@ class CustomReportGenerationService:
         user_id: int,
         export_format: str,
         include_charts: bool,
+        email_recipients: Optional[List[str]] = None,
+        email_enabled: Optional[bool] = None,
     ) -> None:
         """Generate a report file and update the GeneratedReport record."""
         start_time = time.perf_counter()
@@ -98,9 +112,81 @@ class CustomReportGenerationService:
 
             report.last_run_at = datetime.now(timezone.utc)  # type: ignore[assignment]
             self.db.commit()
+
+            self._send_report_email(
+                report=report,
+                generated=generated,
+                export_format=export_format,
+                email_recipients=email_recipients,
+                email_enabled=email_enabled,
+            )
         except Exception as exc:
             logger.error("Report generation failed: %s", exc, exc_info=True)
             self._mark_failed(generated, str(exc))
+
+    def _send_report_email(
+        self,
+        report: Report,
+        generated: GeneratedReport,
+        export_format: str,
+        email_recipients: Optional[List[str]] = None,
+        email_enabled: Optional[bool] = None,
+    ) -> None:
+        recipients = email_recipients if email_recipients is not None else report.email_recipients
+        if isinstance(recipients, str):
+            recipients = [recipients]
+        if not recipients:
+            return
+
+        send_enabled = email_enabled if email_enabled is not None else bool(report.email_enabled)
+        if not send_enabled:
+            return
+
+        if not EmailNotificationService.is_enabled():
+            logger.warning("Email delivery skipped: SMTP not configured")
+            return
+
+        file_path = str(generated.file_path or "")
+        attachment_paths: list[str] = []
+        attachment_note: Optional[str] = None
+        max_mb = int(getattr(settings, "SMTP_ATTACHMENT_MAX_MB", 10) or 10)
+        max_bytes = max_mb * 1024 * 1024
+
+        if file_path and os.path.exists(file_path):
+            try:
+                file_size = os.path.getsize(file_path)
+                if file_size <= max_bytes:
+                    attachment_paths = [file_path]
+                else:
+                    attachment_note = (
+                        f"Attachment not included because the file exceeds {max_mb} MB. "
+                        "You can download it from the reports page."
+                    )
+            except Exception as exc:
+                logger.warning("Failed to prepare attachment: %s", exc)
+        else:
+            attachment_note = "Attachment not found on disk. You can download it from the reports page."
+
+        generated_at = generated.generated_at.isoformat() if generated.generated_at else ""
+        success_count, failed = EmailNotificationService.send_report_ready(
+            recipients=recipients,
+            report_name=str(report.name),
+            export_format=export_format,
+            record_count=int(generated.record_count) if generated.record_count is not None else None,
+            generated_at=generated_at,
+            attachment_paths=attachment_paths or None,
+            attachment_note=attachment_note,
+        )
+
+        if failed:
+            generated.email_sent = False  # type: ignore[assignment]
+            generated.email_error = f"Failed to send to: {', '.join(failed)}"  # type: ignore[assignment]
+        else:
+            generated.email_sent = True  # type: ignore[assignment]
+            generated.email_error = None  # type: ignore[assignment]
+        if success_count > 0:
+            generated.email_sent_at = datetime.now(timezone.utc)  # type: ignore[assignment]
+        self.db.commit()
 
     def _get_report(self, report_id: int, user_id: int) -> Optional[Report]:
         return (

@@ -4,10 +4,14 @@ Supports both HTML and plain text templates with variable substitution.
 """
 
 import logging
+import mimetypes
+import os
 import smtplib
+from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
+from email import encoders
+from typing import Iterable, Optional
 
 from backend.config import settings
 
@@ -242,6 +246,58 @@ class EmailTemplates:
 
         return subject, html_body
 
+    @staticmethod
+    def report_ready(
+        report_name: str,
+        export_format: str,
+        record_count: Optional[int],
+        generated_at: str,
+        attachment_note: Optional[str] = None,
+    ) -> tuple[str, str]:
+        """Report-ready notification template.
+
+        Args:
+            report_name: Name of the report
+            export_format: Export format (pdf, excel, csv)
+            record_count: Number of records included
+            generated_at: Timestamp of generation
+            attachment_note: Optional note about attachment availability
+
+        Returns:
+            Tuple of (subject, html_body)
+        """
+        subject = f"📄 Report Ready: {report_name}"
+        record_text = f"{record_count:,}" if isinstance(record_count, int) else "N/A"
+        note_html = f"<p><em>{attachment_note}</em></p>" if attachment_note else ""
+
+        html_body = f"""
+        <html>
+            <body style="font-family: Arial, sans-serif; color: #333;">
+                <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <h2>Your report is ready</h2>
+
+                    <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                        <p style="margin: 10px 0;"><strong>Report:</strong> {report_name}</p>
+                        <p style="margin: 10px 0;"><strong>Format:</strong> {export_format.upper()}</p>
+                        <p style="margin: 10px 0;"><strong>Records:</strong> {record_text}</p>
+                        <p style="margin: 10px 0;"><strong>Generated at:</strong> {generated_at}</p>
+                    </div>
+
+                    {note_html}
+
+                    <p>Log in to the system to view report history or regenerate as needed.</p>
+
+                    <hr style="margin: 30px 0;">
+                    <p style="font-size: 12px; color: #666;">
+                        This is an automated notification. Please do not reply to this email.
+                    </p>
+                </div>
+            </body>
+        </html>
+        """
+
+        return subject, html_body
+
 
 class EmailNotificationService:
     """Service for sending email notifications."""
@@ -257,6 +313,7 @@ class EmailNotificationService:
         subject: str,
         html_body: str,
         text_body: Optional[str] = None,
+        attachments: Optional[Iterable[str]] = None,
     ) -> bool:
         """Send an email via SMTP.
 
@@ -281,18 +338,39 @@ class EmailNotificationService:
 
         try:
             # Create message
-            msg = MIMEMultipart("alternative")
+            msg = MIMEMultipart("mixed")
             msg["Subject"] = subject
             msg["From"] = settings.SMTP_FROM
             msg["To"] = to_email
 
-            # Add plain text version
+            # Add plain text + HTML versions in an alternative part
+            alt = MIMEMultipart("alternative")
             if not text_body:
                 text_body = html_body.replace("<br>", "\n").replace("</p>", "\n")
-            msg.attach(MIMEText(text_body, "plain"))
+            alt.attach(MIMEText(text_body, "plain"))
+            alt.attach(MIMEText(html_body, "html"))
+            msg.attach(alt)
 
-            # Add HTML version
-            msg.attach(MIMEText(html_body, "html"))
+            # Attach files (if any)
+            if attachments:
+                for path in attachments:
+                    try:
+                        content_type, encoding = mimetypes.guess_type(path)
+                        if content_type is None or encoding is not None:
+                            content_type = "application/octet-stream"
+                        maintype, subtype = content_type.split("/", 1)
+
+                        with open(path, "rb") as file_handle:
+                            part = MIMEBase(maintype, subtype)
+                            part.set_payload(file_handle.read())
+                        encoders.encode_base64(part)
+                        part.add_header(
+                            "Content-Disposition",
+                            f'attachment; filename="{os.path.basename(path)}"',
+                        )
+                        msg.attach(part)
+                    except Exception as exc:
+                        logger.warning("Failed to attach file %s: %s", path, exc)
 
             # Send via SMTP
             smtp_port = getattr(settings, "SMTP_PORT", 587)
@@ -420,3 +498,41 @@ class EmailNotificationService:
         """
         subject, html_body = EmailTemplates.system_message(title, message)
         return EmailNotificationService.send_email(to_email, subject, html_body)
+
+    @staticmethod
+    def send_report_ready(
+        recipients: Iterable[str],
+        report_name: str,
+        export_format: str,
+        record_count: Optional[int],
+        generated_at: str,
+        attachment_paths: Optional[Iterable[str]] = None,
+        attachment_note: Optional[str] = None,
+    ) -> tuple[int, list[str]]:
+        """Send report-ready email to multiple recipients.
+
+        Returns:
+            Tuple of (success_count, failed_recipients)
+        """
+        subject, html_body = EmailTemplates.report_ready(
+            report_name,
+            export_format,
+            record_count,
+            generated_at,
+            attachment_note=attachment_note,
+        )
+
+        success_count = 0
+        failed: list[str] = []
+        for email in recipients:
+            if EmailNotificationService.send_email(
+                email,
+                subject,
+                html_body,
+                attachments=attachment_paths,
+            ):
+                success_count += 1
+            else:
+                failed.append(email)
+
+        return success_count, failed

@@ -2,9 +2,9 @@
 
 ## Current State of All Work in Progress (Phase 6 Completed)
 
-**Updated**: 2026-02-01 21:20 UTC
+**Updated**: 2026-02-06 23:05 UTC
 **Updated By**: GitHub Copilot
-**Next Review**: Next agent session or when an optional enhancement starts
+**Next Review**: Next agent session or when OPTIONAL-002 is validated
 
 > **HOW TO USE THIS FILE**: Read this first when picking up work. Update status as you go. This is the single source of truth for what's happening.
 
@@ -14,7 +14,7 @@
 
 | Item | Value |
 |------|-------|
-| **Project Version** | 1.17.6 (production live) |
+| **Project Version** | 1.17.7 (production live) |
 | **Release Target** | N/A (current release is live) |
 | **Target Release Date** | N/A |
 | **Active Phase** | Phase 6 Complete (Reporting Enhancements) |
@@ -132,11 +132,11 @@
 
 ### OPTIONAL-002: Email Delivery for Reports
 
-- **Status**: 🟥 **NOT STARTED**
+- **Status**: 🟦 **IN PROGRESS**
 - **Priority**: 🟡 **MEDIUM**
 - **Owner**: Solo Developer
-- **Notes**: Optional enhancement listed in `UNIFIED_WORK_PLAN.md`.
-- **Next Action**: Decide provider (SMTP vs API) and security constraints.
+- **Notes**: SMTP-based delivery in progress (attachments + size guardrails).
+- **Next Action**: Run backend batch tests and log results.
 
 ---
 
@@ -174,12 +174,12 @@
 ### Current Status Summary
 
 ✅ Phase 6 complete and merged to `main`
-🟡 Optional enhancements available (owner choice)
+🟦 OPTIONAL-002 in progress (email report delivery)
 
 ### Next Action
 
 1. Review `UNIFIED_WORK_PLAN.md` optional enhancements.
-2. Pick one enhancement to implement (default: APScheduler scheduling).
+2. Continue OPTIONAL-002 email delivery tasks.
 3. Update this file with status + next action.
 
 ---
@@ -208,13 +208,20 @@ Update this file with:
 Example:
 
 ```text
-UPDATED: 2026-02-01 21:20 UTC by GitHub Copilot
-WORKED ON: OPTIONAL-001 (report scheduling)
+UPDATED: 2026-02-06 23:05 UTC by GitHub Copilot
+WORKED ON: OPTIONAL-002 (email report delivery)
 STATUS: IN PROGRESS
-NEXT: Validate scheduling and run targeted tests
+PROGRESS: SMTP delivery flow wired into report generation, attachment handling added
+NEXT: Run backend batch tests and review results
 COMMIT: (pending)
 
-```# Active Work Status - Single Source of Truth
+```
+
+---
+
+## 🗃️ Archive (Legacy Jan 2026 Status)
+
+# Active Work Status - Single Source of Truth
 
 ## Current State of All Work in Progress (1.15.0 Release Cycle)
 

@@ -269,6 +269,7 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: str | None = None
     SMTP_FROM: str | None = None
     SMTP_USE_TLS: bool = True
+    SMTP_ATTACHMENT_MAX_MB: int = 10
 
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:

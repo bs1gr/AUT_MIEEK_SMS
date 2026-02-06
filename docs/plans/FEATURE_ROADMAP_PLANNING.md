@@ -7,11 +7,11 @@
 
 ---
 
-## 🆕 Maintenance Updates (Feb 5, 2026)
+## 🆕 Maintenance Updates (Feb 5-6, 2026)
 
 - ✅ **Legacy installer detection hardening complete** – `AppExistsOnDisk` now recognizes historical launchers ("SMS Toggle" `.bat/.cmd`, metadata files, Docker compose) and reads the exact version from `VERSION`, ensuring all upgrades remain in-place. Rebuilt installer (`SMS_Installer_1.17.7.exe`, 7.95 MB) passes smoke tests.
 - ✅ **Stability monitoring log initialized** – First entry recorded on Feb 5 documenting the installer rebuild, version audit, and smoke test so ongoing health checks now have a baseline.
-- ⏳ **Manual installer scenarios still pending** – Tracker lists 8 scenarios ready for execution once the owner allocates 2‑3 hours; results will directly influence which roadmap candidate to pursue next.
+- 📦 **Installer scenarios archived for now** – Owner deferred remaining scenarios (3–8); installer testing is not required at this time.
 
 These notes keep the roadmap aligned with current maintenance progress while the owner prepares to select the next feature focus.
 
@@ -256,20 +256,20 @@ Use this to prioritize candidates:
 
 ## 📝 Owner Decision Fields
 
-**Fill in after completing maintenance phase**:
+**Owner Update (Feb 6, 2026)**:
 
 ```markdown
-## Owner Decision (To be completed after installer testing Feb 5-19, 2026)
+## Owner Decision (Feb 6, 2026)
 
-**Installer Testing Completed?**: [ ] Yes [ ] No - Date: ___________
-**Major Issues Found?**: [ ] Yes [ ] No - Description: ___________
-**Production Stability ConfirImplementation**:
-1. _____________ (Effort: ____, Priority: ____)
-2. _____________ (Effort: ____, Priority: ____)
-3. _____________ (Effort: ____, Priority: ____)
+**Installer Testing Completed?**: [ ] Yes [x] No (Archived/Deferred)
+**Major Issues Found?**: [ ] Yes [x] No - Description: N/A (deferred)
+**Production Stability Confirmed?**: [x] Yes (fullstack install validated)
 
-**Selected Approach**: [ ] A (Single Feature) [ ] B (Multiple Small) [ ] C (Large + Refactor)
-**RationalOption**: [ ] A [ ] B [ ] C - Rationale: ___________
+**Selected Implementation**:
+1. Email Report Delivery (OPTIONAL-002) (Effort: 4-6 hrs, Priority: High)
+
+**Selected Approach**: [x] A (Single Feature) [ ] B (Multiple Small) [ ] C (Large + Refactor)
+**Rationale**: Fast, user-visible value; leverages existing scheduler; low risk.
 
 **Start Date**: ___________
 **Target Release Date**: ___________
