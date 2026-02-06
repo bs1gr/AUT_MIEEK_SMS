@@ -83,7 +83,7 @@ export const reportTemplatesAPI = {
       const queryString = params.toString();
       const url = `/custom-reports/templates${queryString ? `?${queryString}` : ''}`;
       const response = await apiClient.get(url);
-      return extractAPIResponseData(response) as ReportTemplate[];
+      return extractAPIResponseData(response.data) as ReportTemplate[];
     } catch (error) {
       console.error('[customReportsAPI] Error fetching templates:', error);
       throw extractAPIError(
@@ -98,7 +98,7 @@ export const reportTemplatesAPI = {
   getById: async (id: number) => {
     try {
       const response = await apiClient.get(`/custom-reports/templates/${id}`);
-      return extractAPIResponseData(response) as ReportTemplate;
+      return extractAPIResponseData(response.data) as ReportTemplate;
     } catch (error) {
       console.error(`[customReportsAPI] Error fetching template ${id}:`, error);
       throw extractAPIError(
@@ -112,8 +112,8 @@ export const reportTemplatesAPI = {
    */
   create: async (templateData: Partial<ReportTemplate>) => {
     try {
-      const response = await apiClient.post('/custom-reports/templates/', templateData);
-      return extractAPIResponseData(response) as ReportTemplate;
+      const response = await apiClient.post('/custom-reports/templates', templateData);
+      return extractAPIResponseData(response.data) as ReportTemplate;
     } catch (error) {
       console.error('[customReportsAPI] Error creating template:', error);
       throw extractAPIError(
@@ -128,7 +128,7 @@ export const reportTemplatesAPI = {
   update: async (id: number, updates: Partial<ReportTemplate>) => {
     try {
       const response = await apiClient.put(`/custom-reports/templates/${id}`, updates);
-      return extractAPIResponseData(response) as ReportTemplate;
+      return extractAPIResponseData(response.data) as ReportTemplate;
     } catch (error) {
       console.error(`[customReportsAPI] Error updating template ${id}:`, error);
       throw extractAPIError(
@@ -143,7 +143,7 @@ export const reportTemplatesAPI = {
   delete: async (id: number) => {
     try {
       const response = await apiClient.delete(`/custom-reports/templates/${id}`);
-      return extractAPIResponseData(response);
+      return extractAPIResponseData(response.data);
     } catch (error) {
       console.error(`[customReportsAPI] Error deleting template ${id}:`, error);
       throw extractAPIError(
@@ -160,7 +160,7 @@ export const reportTemplatesAPI = {
 
       const response = await apiClient.post('/custom-reports/templates/import');
 
-      const data = extractAPIResponseData(response) as Record<string, unknown>;
+      const data = extractAPIResponseData(response.data) as Record<string, unknown>;
 
       return data;
     } catch (error) {
@@ -186,9 +186,9 @@ export const customReportsAPI = {
       if (options.limit !== undefined) params.append('limit', String(options.limit));
 
       const queryString = params.toString();
-      const url = queryString ? `/?${queryString}` : '/';
-      const response = await apiClient.get(`/custom-reports${url}`);
-      return extractAPIResponseData(response) as CustomReport[];
+      const url = queryString ? `/custom-reports?${queryString}` : '/custom-reports';
+      const response = await apiClient.get(url);
+      return extractAPIResponseData(response.data) as CustomReport[];
     } catch (error) {
       console.error('[customReportsAPI] Error fetching reports:', error);
       throw extractAPIError(
@@ -203,7 +203,7 @@ export const customReportsAPI = {
   getById: async (id: number) => {
     try {
       const response = await apiClient.get(`/custom-reports/${id}`);
-      return extractAPIResponseData(response) as CustomReport;
+      return extractAPIResponseData(response.data) as CustomReport;
     } catch (error) {
       console.error(`[customReportsAPI] Error fetching report ${id}:`, error);
       throw extractAPIError(
@@ -218,31 +218,10 @@ export const customReportsAPI = {
   create: async (reportData: Partial<CustomReport>) => {
     try {
 
-      const response = await apiClient.post('/custom-reports/', reportData);
-      return extractAPIResponseData(response) as CustomReport;
+      const response = await apiClient.post('/custom-reports', reportData);
+      return extractAPIResponseData(response.data) as CustomReport;
     } catch (error) {
-      const axiosError = error as { response?: AxiosResponse<unknown>; message?: string };
-      console.error('[customReportsAPI] Error creating report:', axiosError);
-      console.error('[customReportsAPI] Response status:', axiosError.response?.status);
-      console.error('[customReportsAPI] Response data:', axiosError.response?.data);
-
-      // Log detailed validation errors
-      if (axiosError.response?.status === 422 && axiosError.response?.data) {
-        const responseData = axiosError.response.data;
-        console.error('[customReportsAPI] 🔴 VALIDATION ERROR DETAILS:');
-        console.error('  Full response:', JSON.stringify(responseData, null, 2));
-
-        // Try to extract Pydantic validation errors
-        if (isRecord(responseData)) {
-          if ('detail' in responseData) {
-            console.error('  Detail:', responseData.detail);
-          }
-          if ('errors' in responseData) {
-            console.error('  Errors:', responseData.errors);
-          }
-        }
-      }
-
+      console.error('[customReportsAPI] Error fetching reports:', error);
       throw extractAPIError(
         (error as { response?: AxiosResponse }).response
       );
@@ -255,7 +234,7 @@ export const customReportsAPI = {
   update: async (id: number, updates: Partial<CustomReport>) => {
     try {
       const response = await apiClient.put(`/custom-reports/${id}`, updates);
-      return extractAPIResponseData(response) as CustomReport;
+      return extractAPIResponseData(response.data) as CustomReport;
     } catch (error) {
       console.error(`[customReportsAPI] Error updating report ${id}:`, error);
       throw extractAPIError(
@@ -270,7 +249,7 @@ export const customReportsAPI = {
   delete: async (id: number) => {
     try {
       const response = await apiClient.delete(`/custom-reports/${id}`);
-      return extractAPIResponseData(response);
+      return extractAPIResponseData(response.data);
     } catch (error) {
       console.error(`[customReportsAPI] Error deleting report ${id}:`, error);
       throw extractAPIError(
@@ -290,7 +269,7 @@ export const customReportsAPI = {
         email_recipients: null,
       });
 
-      return extractAPIResponseData(response) as { job_id: string; status: string };
+      return extractAPIResponseData(response.data) as { job_id: string; status: string };
     } catch (error) {
       const axiosError = error as { response?: AxiosResponse<unknown>; message?: string };
       console.error(`[customReportsAPI] Error generating report ${id}:`, axiosError);
@@ -307,7 +286,7 @@ export const customReportsAPI = {
   getGeneratedReports: async (id: number) => {
     try {
       const response = await apiClient.get(`/custom-reports/${id}/generated`);
-      return extractAPIResponseData(response) as GeneratedReport[];
+      return extractAPIResponseData(response.data) as GeneratedReport[];
     } catch (error) {
       console.error(`[customReportsAPI] Error fetching generated reports for ${id}:`, error);
       throw extractAPIError(
@@ -352,7 +331,7 @@ export const customReportsAPI = {
       const response = await apiClient.delete(
         `/custom-reports/${reportId}/generated/${generatedId}`
       );
-      return extractAPIResponseData(response);
+      return extractAPIResponseData(response.data);
     } catch (error) {
       console.error(`[customReportsAPI] Error deleting generated report ${generatedId}:`, error);
       throw extractAPIError(
@@ -367,7 +346,7 @@ export const customReportsAPI = {
   getStatistics: async () => {
     try {
       const response = await apiClient.get('/custom-reports/statistics');
-      return extractAPIResponseData(response) as Record<string, unknown>;
+      return extractAPIResponseData(response.data) as Record<string, unknown>;
     } catch (error) {
       console.error('[customReportsAPI] Error fetching statistics:', error);
       throw extractAPIError(

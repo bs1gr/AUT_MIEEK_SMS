@@ -62,6 +62,7 @@ import axios from 'axios';
 import {
   studentsAPI,
   coursesAPI,
+  invalidateApiCache,
   checkAPIHealth,
   getHealthStatus,
   adminOpsAPI,
@@ -118,14 +119,17 @@ describe('API client - interceptors and utilities', () => {
     // items
     (axios as unknown as { __instance: { get: MockFn } }).__instance.get.mockResolvedValueOnce({ data: { items: [ { id: 1 }, { id: 2 } ] } } as unknown);
     expect(await studentsAPI.getAll()).toEqual([{ id: 1 }, { id: 2 }]);
+    invalidateApiCache('/students/');
 
     // plain array
     (axios as unknown as { __instance: { get: MockFn } }).__instance.get.mockResolvedValueOnce({ data: [ { id: 3 } ] } as unknown);
     expect(await studentsAPI.getAll()).toEqual([{ id: 3 }]);
+    invalidateApiCache('/students/');
 
     // results
     (axios as unknown as { __instance: { get: MockFn } }).__instance.get.mockResolvedValueOnce({ data: { results: [ { id: 4 } ] } } as unknown);
     expect(await studentsAPI.getAll()).toEqual([{ id: 4 }]);
+    invalidateApiCache('/students/');
 
     // fallback to []
     (axios as unknown as { __instance: { get: MockFn } }).__instance.get.mockResolvedValueOnce({ data: { foo: 'bar' } } as unknown);

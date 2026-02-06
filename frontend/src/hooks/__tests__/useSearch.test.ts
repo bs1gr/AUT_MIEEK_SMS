@@ -279,9 +279,16 @@ describe('useSearch Hook', () => {
       const mockResults1 = [{ id: 1, first_name: 'John' }];
       const mockResults2 = [{ id: 2, first_name: 'Jane' }];
 
-      vi.mocked(apiClient.get)
-        .mockResolvedValueOnce({ data: mockResults1 })
-        .mockResolvedValueOnce({ data: mockResults2 });
+      vi.mocked(apiClient.get).mockImplementation((url: unknown) => {
+        const urlString = String(url);
+        if (urlString.includes('/search/statistics')) {
+          return Promise.resolve({ data: { total_students: 0, total_courses: 0, total_grades: 0 } });
+        }
+        if (urlString.includes('offset=20')) {
+          return Promise.resolve({ data: mockResults2 });
+        }
+        return Promise.resolve({ data: mockResults1 });
+      });
 
       const { result, _rerender } = renderHook(() => useSearch('students'));
 
@@ -293,14 +300,13 @@ describe('useSearch Hook', () => {
       expect(result.current.results).toEqual(mockResults1);
 
       // Load more (loadMore is not async, but search is)
-      result.current.loadMore('John');
-      // Wait for the async search to complete
-      await waitFor(() => {
-        expect(vi.mocked(apiClient.get).mock.calls.length).toBeGreaterThan(1);
+      await act(async () => {
+        result.current.loadMore('John');
       });
-
-      // Should append new results
-      expect(result.current.results.length).toBeGreaterThan(1);
+      // Wait for the async search to complete and state to update
+      await waitFor(() => {
+        expect(result.current.results.length).toBeGreaterThan(1);
+      });
     });
 
     it('should load more results for filters', async () => {
