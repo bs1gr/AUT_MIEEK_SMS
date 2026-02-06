@@ -12,7 +12,6 @@ import { formatDistanceToNow } from 'date-fns';
 interface ReportListProps {
   onCreateReport?: () => void;
   onEditReport?: (reportId: number) => void;
-  onViewReport?: (reportId: number) => void;
 }
 
 export const ReportList: React.FC<ReportListProps> = ({
@@ -29,6 +28,19 @@ export const ReportList: React.FC<ReportListProps> = ({
   const [selectedReports, setSelectedReports] = useState<number[]>([]);
   const [expandedMenu, setExpandedMenu] = useState<number | null>(null);
   const [expandedReports, setExpandedReports] = useState<Set<number>>(new Set());
+
+  const showToast = (message: string, variant: 'success' | 'error' = 'success') => {
+    try {
+      const toast = document.createElement('div');
+      const background = variant === 'error' ? '#ef4444' : '#10b981';
+      toast.textContent = message;
+      toast.style.cssText = `position: fixed; bottom: 20px; right: 20px; background: ${background}; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    } catch (e) {
+      console.error('Could not show toast:', e);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -83,13 +95,42 @@ export const ReportList: React.FC<ReportListProps> = ({
   };
 
   const handleDeleteReport = (reportId: number) => {
-    if (window.confirm(t('confirmDelete', { ns: 'customReports' }))) {
+    if (globalThis.confirm(t('confirmDelete', { ns: 'customReports' }))) {
       deleteMutation.mutate(reportId);
     }
   };
 
   const handleGenerateReport = (reportId: number) => {
     generateMutation.mutate({ reportId });
+  };
+
+  const handleGenerateReportNoEmail = (reportId: number) => {
+    generateMutation.mutate({ reportId, options: { email_enabled: false } });
+  };
+
+  const handleGenerateReportWithEmail = (reportId: number) => {
+    const promptText = t('emailRecipientsPrompt', { ns: 'customReports' });
+    const rawInput = globalThis.prompt(promptText, '');
+    if (rawInput === null) {
+      return;
+    }
+    const recipients = rawInput
+      .split(',')
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+
+    if (recipients.length === 0) {
+      showToast(t('emailRecipientsRequired', { ns: 'customReports' }), 'error');
+      return;
+    }
+
+    generateMutation.mutate({
+      reportId,
+      options: {
+        email_recipients: recipients,
+        email_enabled: true,
+      },
+    });
   };
 
   const handleDuplicateReport = (report: CustomReport) => {
@@ -99,7 +140,7 @@ export const ReportList: React.FC<ReportListProps> = ({
 
   const handleSaveAsTemplate = (report: CustomReport) => {
     const defaultName = report?.name ? `${report.name} Template` : '';
-    const name = window.prompt(t('templateNamePrompt', { ns: 'customReports' }), defaultName);
+    const name = globalThis.prompt(t('templateNamePrompt', { ns: 'customReports' }), defaultName);
     if (!name) {
       return;
     }
@@ -274,6 +315,20 @@ export const ReportList: React.FC<ReportListProps> = ({
 
                         {expandedMenu === report.id && (
                           <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-48">
+                            <button
+                              onClick={() => handleGenerateReportNoEmail(report.id)}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm"
+                            >
+                              <RefreshCw size={14} />
+                              {t('generateWithoutEmail', { ns: 'customReports' })}
+                            </button>
+                            <button
+                              onClick={() => handleGenerateReportWithEmail(report.id)}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
+                            >
+                              <RefreshCw size={14} />
+                              {t('generateWithEmail', { ns: 'customReports' })}
+                            </button>
                             <button className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm">
                             <Copy size={14} />
                             {t('share', { ns: 'customReports' })}
@@ -340,7 +395,7 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
               {generatedReports.map((generated: GeneratedReport) => {
                 // Safe date parsing - use generated_at field
                 const generatedDate = generated.generated_at ? new Date(generated.generated_at) : null;
-                const isValidDate = generatedDate && !isNaN(generatedDate.getTime());
+                const isValidDate = generatedDate && !Number.isNaN(generatedDate.getTime());
 
                 return (
                   <div key={generated.id} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
