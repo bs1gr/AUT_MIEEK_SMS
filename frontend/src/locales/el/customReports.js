@@ -35,6 +35,9 @@ export default {
   previewNotAvailable: 'N/A',
   previewFiltersCount: '{{count}} φίλτρο(α)',
   previewSortingCount: '{{count}} κανόνας(ες)',
+  previewEmailDelivery: 'Αποστολή μέσω Email',
+  previewEmailEnabled: 'Ενεργό ({{recipients}})',
+  previewEmailDisabled: 'Ανενεργό',
 
   // Report properties
   reportName: 'Όνομα Αναφοράς',
@@ -44,6 +47,8 @@ export default {
   outputFormat: 'Μορφή Εξόδου',
   schedule: 'Προγραμματισμός',
   emailRecipients: 'Παραλήπτες Email',
+  enableEmailDelivery: 'Ενεργοποίηση αποστολής email',
+  emailRecipientsPlaceholder: 'name@example.com, name2@example.com',
 
   // Entity types
   entity_students: 'Μαθητές',

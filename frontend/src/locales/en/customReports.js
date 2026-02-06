@@ -35,6 +35,9 @@ export default {
   previewNotAvailable: 'N/A',
   previewFiltersCount: '{{count}} filter(s)',
   previewSortingCount: '{{count}} rule(s)',
+  previewEmailDelivery: 'Email Delivery',
+  previewEmailEnabled: 'Enabled ({{recipients}})',
+  previewEmailDisabled: 'Disabled',
 
   // Report properties
   reportName: 'Report Name',
@@ -44,6 +47,8 @@ export default {
   outputFormat: 'Output Format',
   schedule: 'Schedule',
   emailRecipients: 'Email Recipients',
+  enableEmailDelivery: 'Enable email delivery',
+  emailRecipientsPlaceholder: 'name@example.com, name2@example.com',
 
   // Entity types
   entity_students: 'Students',
