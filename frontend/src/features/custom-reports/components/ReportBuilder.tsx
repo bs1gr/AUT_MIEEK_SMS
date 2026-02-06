@@ -45,7 +45,7 @@ type BackendReportPayload = {
   schedule_enabled: boolean;
   schedule_frequency: null;
   schedule_cron: null;
-  email_recipients: null;
+  email_recipients: string[] | null;
   email_enabled: boolean;
 };
 
@@ -65,6 +65,8 @@ interface ReportConfig {
   template_name?: string;
   template_description?: string;
   is_copy?: boolean;
+  email_enabled: boolean;
+  email_recipients: string;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -175,6 +177,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
         is_copy: templateMeta.is_copy,
+        email_enabled: false,
+        email_recipients: '',
       };
       return normalized;
     }
@@ -188,6 +192,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       selected_fields: [],
       filters: [],
       sorting_rules: [],
+      email_enabled: false,
+      email_recipients: '',
     };
   });
 
@@ -231,6 +237,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       selected_fields: fields,
       filters,
       sorting_rules: sortingRules,
+      email_enabled: Boolean(reportRecord.email_enabled),
+      email_recipients: Array.isArray(reportRecord.email_recipients)
+        ? reportRecord.email_recipients.join(', ')
+        : '',
     };
   }, []);
 
@@ -278,6 +288,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
         is_copy: templateMeta.is_copy,
+        email_enabled: false,
+        email_recipients: '',
       };
       setConfig(normalized);
     }
@@ -388,6 +400,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     if (config.selected_fields.length === 0) {
       newErrors.selected_fields = 'fieldsRequired';
     }
+    if (config.email_enabled && !config.email_recipients.trim()) {
+      newErrors.email_recipients = 'emailRecipientsRequired';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -425,6 +440,11 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           }, {})
         : null;
 
+      const emailRecipients = config.email_recipients
+        .split(',')
+        .map((recipient) => recipient.trim())
+        .filter((recipient) => recipient.length > 0);
+
       // Transform frontend config to backend schema format
       const backendConfig: BackendReportPayload = {
         name: config.name,
@@ -443,8 +463,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         schedule_enabled: false,
         schedule_frequency: null,
         schedule_cron: null,
-        email_recipients: null,
-        email_enabled: false,
+        email_recipients: config.email_enabled ? emailRecipients : null,
+        email_enabled: config.email_enabled,
       };
 
 
@@ -561,6 +581,43 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 placeholder={t('reportDescription', { ns: 'customReports' })}
               />
             </div>
+
+            <div>
+              <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={config.email_enabled}
+                  onChange={(e) => handleConfigChange('email_enabled', e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                {t('enableEmailDelivery', { ns: 'customReports' })}
+              </label>
+              <p className="mt-1 text-sm text-gray-500">
+                {t('helpEmail', { ns: 'customReports' })}
+              </p>
+            </div>
+
+            {config.email_enabled && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {t('emailRecipients', { ns: 'customReports' })} *
+                </label>
+                <input
+                  type="text"
+                  value={config.email_recipients}
+                  onChange={(e) => handleConfigChange('email_recipients', e.target.value)}
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
+                    errors.email_recipients ? 'border-red-500' : 'border-gray-300'
+                  }`}
+                  placeholder={t('emailRecipientsPlaceholder', { ns: 'customReports' })}
+                />
+                {errors.email_recipients && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {t(errors.email_recipients, { ns: 'customReports' })}
+                  </p>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-6">
               <div>
@@ -685,6 +742,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 {config.sorting_rules.length > 0
                   ? t('previewSortingCount', { ns: 'customReports', count: config.sorting_rules.length })
                   : t('previewNone', { ns: 'customReports' })}
+              </div>
+              <div>
+                <span className="font-medium">{t('previewEmailDelivery', { ns: 'customReports' })}: </span>
+                {config.email_enabled
+                  ? t('previewEmailEnabled', { ns: 'customReports', recipients: config.email_recipients })
+                  : t('previewEmailDisabled', { ns: 'customReports' })}
               </div>
             </div>
           </div>
