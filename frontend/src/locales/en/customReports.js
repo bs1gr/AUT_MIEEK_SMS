@@ -228,6 +228,7 @@ export default {
 
   // Generated reports section
   generatedReportsTitle: 'Generated Reports:',
+  viewGeneratedReports: 'View generated reports',
   noGeneratedReports: 'No generated reports yet',
   loading: 'Loading...',
   generatedLabel: 'Generated',
@@ -262,7 +263,7 @@ export default {
   reportDeleted: 'Report deleted successfully',
   generatedReportDeleted: 'Generated report deleted successfully',
   generationStarted: 'Report generation started',
-  generationStartedWithJob: 'Report generation started (Job ID: {{jobId}})',
+  generationStartedWithId: 'Report generation started (ID: {{id}})',
   generationComplete: 'Report generated successfully',
   generationFailed: 'Report generation failed',
   noReports: 'No reports found',

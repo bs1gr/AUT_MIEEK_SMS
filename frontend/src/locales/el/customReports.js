@@ -226,6 +226,7 @@ export default {
 
   // Generated reports section
   generatedReportsTitle: 'Δημιουργημένες Αναφορές:',
+  viewGeneratedReports: 'Προβολή δημιουργημένων αναφορών',
   noGeneratedReports: 'Δεν υπάρχουν ακόμα δημιουργημένες αναφορές',
   loading: 'Φόρτωση...',
   generatedLabel: 'Δημιουργήθηκε',
@@ -260,7 +261,7 @@ export default {
   reportDeleted: 'Η αναφορά διαγράφηκε επιτυχώς',
   generatedReportDeleted: 'Η δημιουργημένη αναφορά διαγράφηκε επιτυχώς',
   generationStarted: 'Η δημιουργία της αναφοράς ξεκίνησε',
-  generationStartedWithJob: 'Η δημιουργία της αναφοράς ξεκίνησε (ID Εργασίας: {{jobId}})',
+  generationStartedWithId: 'Η δημιουργία της αναφοράς ξεκίνησε (ID: {{id}})',
   generationComplete: 'Η αναφορά δημιουργήθηκε επιτυχώς',
   generationFailed: 'Η δημιουργία αναφοράς απέτυχε',
   noReports: 'Δεν βρέθηκαν αναφορές',

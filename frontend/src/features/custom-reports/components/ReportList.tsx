@@ -89,7 +89,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   };
 
   const handleGenerateReport = (reportId: number) => {
-    generateMutation.mutate(reportId);
+    generateMutation.mutate({ reportId });
   };
 
   const handleDuplicateReport = (report: CustomReport) => {
@@ -244,7 +244,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                           });
                         }}
                         className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
-                        title="View generated reports"
+                        title={t('viewGeneratedReports', { ns: 'customReports' })}
                       >
                         <ChevronDown size={16} className={`transition-transform ${expandedReports.has(report.id) ? 'rotate-180' : ''}`} />
                       </button>
