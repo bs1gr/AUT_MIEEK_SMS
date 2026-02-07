@@ -1,0 +1,225 @@
+[2026-01-30 16:39:40] 🚀 Starting database backup process...
+[2026-01-30 16:39:40] Database: student_management @ postgres:5432
+[2026-01-30 16:39:40] 🔍 Verifying database connection...
+[2026-01-30 16:39:40] ✅ Database connection verified
+[2026-01-30 16:39:40] 💾 Starting backup of database: student_management
+[2026-01-30 16:39:40] ✅ Backup created: /backups/backup_student_management_20260130_163940.sql.gz
+[2026-01-30 16:39:40] 📦 Backup size: 4.0K
+[2026-01-30 16:39:40] 🔍 Verifying backup integrity...
+[2026-01-30 16:39:40] ✅ Backup integrity verified
+[2026-01-30 16:39:40] 📝 Metadata file created: /backups/backup_student_management_20260130_163940.meta
+[2026-01-30 16:39:40] 🧹 Cleaning up backups older than 30 days...
+[2026-01-30 16:39:43] ℹ️ No old backups to delete
+[2026-01-30 16:39:43] ✅ Backup process completed successfully
+[2026-01-30 16:39:43] ========================================
+[2026-01-30 23:46:41] 🚀 Starting database backup process...
+[2026-01-30 23:46:41] Database: student_management @ postgres:5432
+[2026-01-30 23:46:41] 🔍 Verifying database connection...
+[2026-01-30 23:46:42] ✅ Database connection verified
+[2026-01-30 23:46:42] 💾 Starting backup of database: student_management
+[2026-01-30 23:46:42] ✅ Backup created: /backups/backup_student_management_20260130_234641.sql.gz
+[2026-01-30 23:46:42] 📦 Backup size: 4.0K
+[2026-01-30 23:46:42] 🔍 Verifying backup integrity...
+[2026-01-30 23:46:42] ✅ Backup integrity verified
+[2026-01-30 23:46:42] 📝 Metadata file created: /backups/backup_student_management_20260130_234641.meta
+[2026-01-30 23:46:42] 🧹 Cleaning up backups older than 30 days...
+[2026-01-30 23:46:55] ℹ️ No old backups to delete
+[2026-01-30 23:46:55] ✅ Backup process completed successfully
+[2026-01-30 23:46:55] ========================================
+[2026-01-31 08:03:43] 🚀 Starting database backup process...
+[2026-01-31 08:03:43] Database: student_management @ postgres:5432
+[2026-01-31 08:03:43] 🔍 Verifying database connection...
+[2026-01-31 08:03:43] ✅ Database connection verified
+[2026-01-31 08:03:43] 💾 Starting backup of database: student_management
+[2026-01-31 08:03:43] ✅ Backup created: /backups/backup_student_management_20260131_080343.sql.gz
+[2026-01-31 08:03:43] 📦 Backup size: 4.0K
+[2026-01-31 08:03:43] 🔍 Verifying backup integrity...
+[2026-01-31 08:03:43] ✅ Backup integrity verified
+[2026-01-31 08:03:43] 📝 Metadata file created: /backups/backup_student_management_20260131_080343.meta
+[2026-01-31 08:03:43] 🧹 Cleaning up backups older than 30 days...
+[2026-01-31 08:03:46] ℹ️ No old backups to delete
+[2026-01-31 08:03:46] ✅ Backup process completed successfully
+[2026-01-31 08:03:46] ========================================
+[2026-01-31 08:38:32] 🚀 Starting database backup process...
+[2026-01-31 08:38:32] Database: student_management @ postgres:5432
+[2026-01-31 08:38:32] 🔍 Verifying database connection...
+[2026-01-31 08:38:32] ✅ Database connection verified
+[2026-01-31 08:38:32] 💾 Starting backup of database: student_management
+[2026-01-31 08:38:33] ✅ Backup created: /backups/backup_student_management_20260131_083832.sql.gz
+[2026-01-31 08:38:33] 📦 Backup size: 4.0K
+[2026-01-31 08:38:33] 🔍 Verifying backup integrity...
+[2026-01-31 08:38:33] ✅ Backup integrity verified
+[2026-01-31 08:38:33] 📝 Metadata file created: /backups/backup_student_management_20260131_083832.meta
+[2026-01-31 08:38:33] 🧹 Cleaning up backups older than 30 days...
+[2026-01-31 08:38:35] ℹ️ No old backups to delete
+[2026-01-31 08:38:35] ✅ Backup process completed successfully
+[2026-01-31 08:38:35] ========================================
+[2026-01-31 08:49:01] 🚀 Starting database backup process...
+[2026-01-31 08:49:01] Database: student_management @ postgres:5432
+[2026-01-31 08:49:01] 🔍 Verifying database connection...
+[2026-01-31 08:49:01] ✅ Database connection verified
+[2026-01-31 08:49:01] 💾 Starting backup of database: student_management
+[2026-01-31 08:49:01] ✅ Backup created: /backups/backup_student_management_20260131_084901.sql.gz
+[2026-01-31 08:49:01] 📦 Backup size: 4.0K
+[2026-01-31 08:49:01] 🔍 Verifying backup integrity...
+[2026-01-31 08:49:01] ✅ Backup integrity verified
+[2026-01-31 08:49:01] 📝 Metadata file created: /backups/backup_student_management_20260131_084901.meta
+[2026-01-31 08:49:01] 🧹 Cleaning up backups older than 30 days...
+[2026-01-31 08:49:06] ℹ️ No old backups to delete
+[2026-01-31 08:49:06] ✅ Backup process completed successfully
+[2026-01-31 08:49:06] ========================================
+[2026-01-31 08:59:43] 🚀 Starting database backup process...
+[2026-01-31 08:59:43] Database: student_management @ postgres:5432
+[2026-01-31 08:59:43] 🔍 Verifying database connection...
+[2026-01-31 08:59:43] ✅ Database connection verified
+[2026-01-31 08:59:43] 💾 Starting backup of database: student_management
+[2026-01-31 08:59:43] ✅ Backup created: /backups/backup_student_management_20260131_085943.sql.gz
+[2026-01-31 08:59:43] 📦 Backup size: 4.0K
+[2026-01-31 08:59:43] 🔍 Verifying backup integrity...
+[2026-01-31 08:59:43] ✅ Backup integrity verified
+[2026-01-31 08:59:43] 📝 Metadata file created: /backups/backup_student_management_20260131_085943.meta
+[2026-01-31 08:59:43] 🧹 Cleaning up backups older than 30 days...
+[2026-01-31 08:59:45] ℹ️ No old backups to delete
+[2026-01-31 08:59:45] ✅ Backup process completed successfully
+[2026-01-31 08:59:45] ========================================
+[2026-02-01 08:15:44] 🚀 Starting database backup process...
+[2026-02-01 08:15:44] Database: student_management @ postgres:5432
+[2026-02-01 08:15:44] 🔍 Verifying database connection...
+[2026-02-01 08:15:44] ❌ BACKUP FAILED: Cannot connect to database at postgres:5432
+[2026-02-03 06:44:22] 🚀 Starting database backup process...
+[2026-02-03 06:44:22] Database: student_management @ postgres:5432
+[2026-02-03 06:44:22] 🔍 Verifying database connection...
+[2026-02-03 06:44:22] ✅ Database connection verified
+[2026-02-03 06:44:22] 💾 Starting backup of database: student_management
+[2026-02-03 06:44:22] ✅ Backup created: /backups/backup_student_management_20260203_064422.sql.gz
+[2026-02-03 06:44:22] 📦 Backup size: 4.0K
+[2026-02-03 06:44:22] 🔍 Verifying backup integrity...
+[2026-02-03 06:44:22] ✅ Backup integrity verified
+[2026-02-03 06:44:22] 📝 Metadata file created: /backups/backup_student_management_20260203_064422.meta
+[2026-02-03 06:44:22] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 06:44:25] ℹ️ No old backups to delete
+[2026-02-03 06:44:25] ✅ Backup process completed successfully
+[2026-02-03 06:44:25] ========================================
+[2026-02-03 06:46:15] 🚀 Starting database backup process...
+[2026-02-03 06:46:15] Database: student_management @ postgres:5432
+[2026-02-03 06:46:15] 🔍 Verifying database connection...
+[2026-02-03 06:46:15] ✅ Database connection verified
+[2026-02-03 06:46:15] 💾 Starting backup of database: student_management
+[2026-02-03 06:46:15] ✅ Backup created: /backups/backup_student_management_20260203_064615.sql.gz
+[2026-02-03 06:46:15] 📦 Backup size: 4.0K
+[2026-02-03 06:46:15] 🔍 Verifying backup integrity...
+[2026-02-03 06:46:15] ✅ Backup integrity verified
+[2026-02-03 06:46:15] 📝 Metadata file created: /backups/backup_student_management_20260203_064615.meta
+[2026-02-03 06:46:15] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 06:46:17] ℹ️ No old backups to delete
+[2026-02-03 06:46:17] ✅ Backup process completed successfully
+[2026-02-03 06:46:17] ========================================
+[2026-02-03 06:56:22] 🚀 Starting database backup process...
+[2026-02-03 06:56:22] Database: student_management @ postgres:5432
+[2026-02-03 06:56:22] 🔍 Verifying database connection...
+[2026-02-03 06:56:22] ✅ Database connection verified
+[2026-02-03 06:56:22] 💾 Starting backup of database: student_management
+[2026-02-03 06:56:23] ✅ Backup created: /backups/backup_student_management_20260203_065622.sql.gz
+[2026-02-03 06:56:23] 📦 Backup size: 4.0K
+[2026-02-03 06:56:23] 🔍 Verifying backup integrity...
+[2026-02-03 06:56:23] ✅ Backup integrity verified
+[2026-02-03 06:56:23] 📝 Metadata file created: /backups/backup_student_management_20260203_065622.meta
+[2026-02-03 06:56:23] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 06:56:26] ℹ️ No old backups to delete
+[2026-02-03 06:56:26] ✅ Backup process completed successfully
+[2026-02-03 06:56:26] ========================================
+[2026-02-03 07:55:22] 🚀 Starting database backup process...
+[2026-02-03 07:55:22] Database: student_management @ postgres:5432
+[2026-02-03 07:55:22] 🔍 Verifying database connection...
+[2026-02-03 07:55:22] ✅ Database connection verified
+[2026-02-03 07:55:22] 💾 Starting backup of database: student_management
+[2026-02-03 07:55:22] ✅ Backup created: /backups/backup_student_management_20260203_075522.sql.gz
+[2026-02-03 07:55:22] 📦 Backup size: 4.0K
+[2026-02-03 07:55:22] 🔍 Verifying backup integrity...
+[2026-02-03 07:55:22] ✅ Backup integrity verified
+[2026-02-03 07:55:22] 📝 Metadata file created: /backups/backup_student_management_20260203_075522.meta
+[2026-02-03 07:55:22] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 07:55:25] ℹ️ No old backups to delete
+[2026-02-03 07:55:25] ✅ Backup process completed successfully
+[2026-02-03 07:55:25] ========================================
+[2026-02-03 08:01:43] 🚀 Starting database backup process...
+[2026-02-03 08:01:43] Database: student_management @ postgres:5432
+[2026-02-03 08:01:43] 🔍 Verifying database connection...
+[2026-02-03 08:01:43] ✅ Database connection verified
+[2026-02-03 08:01:43] 💾 Starting backup of database: student_management
+[2026-02-03 08:01:43] ✅ Backup created: /backups/backup_student_management_20260203_080143.sql.gz
+[2026-02-03 08:01:43] 📦 Backup size: 4.0K
+[2026-02-03 08:01:43] 🔍 Verifying backup integrity...
+[2026-02-03 08:01:43] ✅ Backup integrity verified
+[2026-02-03 08:01:43] 📝 Metadata file created: /backups/backup_student_management_20260203_080143.meta
+[2026-02-03 08:01:43] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 08:01:45] ℹ️ No old backups to delete
+[2026-02-03 08:01:45] ✅ Backup process completed successfully
+[2026-02-03 08:01:45] ========================================
+[2026-02-03 08:10:14] 🚀 Starting database backup process...
+[2026-02-03 08:10:14] Database: student_management @ postgres:5432
+[2026-02-03 08:10:14] 🔍 Verifying database connection...
+[2026-02-03 08:10:14] ✅ Database connection verified
+[2026-02-03 08:10:14] 💾 Starting backup of database: student_management
+[2026-02-03 08:10:14] ✅ Backup created: /backups/backup_student_management_20260203_081014.sql.gz
+[2026-02-03 08:10:14] 📦 Backup size: 4.0K
+[2026-02-03 08:10:14] 🔍 Verifying backup integrity...
+[2026-02-03 08:10:14] ✅ Backup integrity verified
+[2026-02-03 08:10:14] 📝 Metadata file created: /backups/backup_student_management_20260203_081014.meta
+[2026-02-03 08:10:14] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 08:10:17] ℹ️ No old backups to delete
+[2026-02-03 08:10:17] ✅ Backup process completed successfully
+[2026-02-03 08:10:17] ========================================
+[2026-02-03 08:46:28] 🚀 Starting database backup process...
+[2026-02-03 08:46:28] Database: student_management @ postgres:5432
+[2026-02-03 08:46:28] 🔍 Verifying database connection...
+[2026-02-03 08:46:28] ✅ Database connection verified
+[2026-02-03 08:46:28] 💾 Starting backup of database: student_management
+[2026-02-03 08:46:29] ✅ Backup created: /backups/backup_student_management_20260203_084628.sql.gz
+[2026-02-03 08:46:29] 📦 Backup size: 4.0K
+[2026-02-03 08:46:29] 🔍 Verifying backup integrity...
+[2026-02-03 08:46:29] ✅ Backup integrity verified
+[2026-02-03 08:46:29] 📝 Metadata file created: /backups/backup_student_management_20260203_084628.meta
+[2026-02-03 08:46:29] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 08:46:31] ℹ️ No old backups to delete
+[2026-02-03 08:46:31] ✅ Backup process completed successfully
+[2026-02-03 08:46:31] ========================================
+[2026-02-03 10:28:07] 🚀 Starting database backup process...
+[2026-02-03 10:28:07] Database: student_management @ postgres:5432
+[2026-02-03 10:28:07] 🔍 Verifying database connection...
+[2026-02-03 10:28:07] ✅ Database connection verified
+[2026-02-03 10:28:07] 💾 Starting backup of database: student_management
+[2026-02-03 10:28:07] ✅ Backup created: /backups/backup_student_management_20260203_102807.sql.gz
+[2026-02-03 10:28:07] 📦 Backup size: 4.0K
+[2026-02-03 10:28:07] 🔍 Verifying backup integrity...
+[2026-02-03 10:28:07] ✅ Backup integrity verified
+[2026-02-03 10:28:07] 📝 Metadata file created: /backups/backup_student_management_20260203_102807.meta
+[2026-02-03 10:28:07] 🧹 Cleaning up backups older than 30 days...
+[2026-02-03 10:28:10] ℹ️ No old backups to delete
+[2026-02-03 10:28:10] ✅ Backup process completed successfully
+[2026-02-03 10:28:10] ========================================
+[2026-02-06 19:28:04] 🚀 Starting database backup process...
+[2026-02-06 19:28:04] Database: student_management @ postgres:5432
+[2026-02-06 19:28:04] 🔍 Verifying database connection...
+[2026-02-06 19:28:04] ✅ Database connection verified
+[2026-02-06 19:28:04] 💾 Starting backup of database: student_management
+[2026-02-06 19:28:04] ✅ Backup created: /backups/backup_student_management_20260206_192804.sql.gz
+[2026-02-06 19:28:04] 📦 Backup size: 0
+[2026-02-06 19:28:04] 🔍 Verifying backup integrity...
+[2026-02-06 19:28:04] ✅ Backup integrity verified
+[2026-02-06 19:28:04] 📝 Metadata file created: /backups/backup_student_management_20260206_192804.meta
+[2026-02-06 19:28:04] 🧹 Cleaning up backups older than 30 days...
+[2026-02-06 19:28:08] ℹ️ No old backups to delete
+[2026-02-06 19:28:08] ✅ Backup process completed successfully
+[2026-02-06 19:28:08] ========================================
+[2026-02-06 19:34:28] 🚀 Starting database backup process...
+[2026-02-06 19:34:28] Database: student_management @ postgres:5432
+[2026-02-06 19:34:28] 🔍 Verifying database connection...
+[2026-02-06 19:34:28] ✅ Database connection verified
+[2026-02-06 19:34:28] 💾 Starting backup of database: student_management
+[2026-02-06 19:34:28] ✅ Backup created: /backups/backup_student_management_20260206_193428.sql.gz
+[2026-02-06 19:34:28] 📦 Backup size: 4.0K
+[2026-02-06 19:34:28] 🔍 Verifying backup integrity...
+[2026-02-06 19:34:28] ✅ Backup integrity verified
+[2026-02-06 19:34:28] 📝 Metadata file created: /backups/backup_student_management_20260206_193428.meta
+[2026-02-06 19:34:28] 🧹 Cleaning up backups older than 30 days...
