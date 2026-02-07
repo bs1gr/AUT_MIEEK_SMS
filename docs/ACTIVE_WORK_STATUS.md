@@ -2,7 +2,7 @@
 
 ## Current State of All Work in Progress (Phase 6 Completed)
 
-**Updated**: 2026-02-06 23:05 UTC
+**Updated**: 2026-02-07 10:43 UTC
 **Updated By**: GitHub Copilot
 **Next Review**: Next agent session or when OPTIONAL-002 is validated
 
@@ -29,6 +29,8 @@
 |-------|--------|-----------|---------|
 | **Scheduler Unit Tests** | ✅ **10/10 PASSING** | 2026-02-01 21:45 | Core scheduler functionality verified |
 | **Backend Integration** | ✅ **VERIFIED** | 2026-02-01 21:40 | App factory, imports, lifecycles all working |
+| **Backend Batch Tests** | ✅ **PASSING** | 2026-02-07 10:23 | 32/32 batches complete; log: `test-results/backend_batch_run_20260207_102314.txt` |
+| **Report Email Tests** | ✅ **PASSING** | 2026-02-07 10:41 | `backend/tests/test_custom_report_generation_service.py` (3 tests) |
 | **Frontend Tests** | ✅ **PASSING** | 2026-02-01 | 1249/1249 (Vitest) |
 | **E2E Tests** | ✅ **PASSING** | 2026-02-01 | 19+ critical tests |
 | **Lint/Format** | ✅ **PASSING** | 2026-02-01 | CI/CD pipeline green |
@@ -136,7 +138,8 @@
 - **Priority**: 🟡 **MEDIUM**
 - **Owner**: Solo Developer
 - **Notes**: SMTP-based delivery in progress (attachments + size guardrails).
-- **Next Action**: Run backend batch tests and log results.
+- **Progress**: Added email delivery unit tests (attachments + size guardrails). Backend batch tests completed (32/32). Log: `test-results/backend_batch_run_20260207_102314.txt`.
+- **Next Action**: Verify end-to-end SMTP delivery in a dev environment once SMTP creds are available; add any integration tests needed.
 
 ---
 
