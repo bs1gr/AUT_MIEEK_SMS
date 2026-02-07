@@ -104,6 +104,7 @@ param(
     [switch]$AutoTagAndPush,
     [switch]$ReleaseFlow,
     [switch]$NonInteractive,
+    [switch]$ScopeToChanges,
     [switch]$Help,
     # Legacy switches for backward compatibility
     [switch]$Quick,
@@ -136,6 +137,7 @@ Options:
     -AutoTagAndPush      Auto-tag and push after checks
     -ReleaseFlow         One-shot release: audit, bump, commit, push, tag
     -NonInteractive      Run non-interactively (for CI)
+    -ScopeToChanges      Prefer running tests only for changed test files
     -Help, -h            Show this help message and exit
 
 Examples:
@@ -281,6 +283,32 @@ function Test-CommandAvailable {
     catch {
         return $false
     }
+}
+
+function Get-ChangedFiles {
+    if (-not (Test-CommandAvailable "git")) {
+        return @()
+    }
+
+    $files = @()
+    try {
+        $files = git diff --name-only --cached 2>$null
+    } catch {}
+
+    if (-not $files -or $files.Count -eq 0) {
+        try {
+            $files = git diff --name-only 2>$null
+        } catch {}
+    }
+
+    try {
+        $untracked = git ls-files --others --exclude-standard 2>$null
+        if ($untracked) {
+            $files = @($files + $untracked)
+        }
+    } catch {}
+
+    return @($files | Where-Object { $_ -and $_.Trim() -ne "" } | Sort-Object -Unique)
 }
 
 # PHASE 0: PRE-COMMIT HOOK VALIDATION (must come after utility functions)
@@ -1379,7 +1407,19 @@ function Invoke-TestSuite {
         # Check if batch runner is available
         $batchRunnerAvailable = Test-Path "$SCRIPT_DIR\RUN_TESTS_BATCH.ps1"
 
-        if ($batchRunnerAvailable -and -not $Target) {
+        $scopeQuick = ($Mode -eq 'quick') -or $ScopeToChanges
+        $changedFiles = if ($scopeQuick) { Get-ChangedFiles } else { @() }
+        $changedBackendTests = @()
+        if ($scopeQuick -and $changedFiles.Count -gt 0) {
+            $changedBackendTests = $changedFiles | Where-Object { $_ -match '^backend/tests/.+test_.*\.py$' -or $_ -match '^backend/tests/.+/test_.*\.py$' }
+        }
+
+        if ($scopeQuick -and $changedBackendTests.Count -gt 0 -and -not $Target) {
+            Write-Info "Quick scope enabled: running changed backend tests only"
+            $testPaths = $changedBackendTests | ForEach-Object { Join-Path $SCRIPT_DIR $_ }
+            $output = python -m pytest $testPaths -x -m "not slow" -q --tb=short 2>&1
+        }
+        elseif ($batchRunnerAvailable -and -not $Target) {
             Write-Info "Using batch test runner (prevents system freeze)..."
             if ($Mode -eq 'quick') {
                 # Quick mode: smaller batches, fast-fail
@@ -1422,7 +1462,19 @@ function Invoke-TestSuite {
     try {
         Push-Location $FRONTEND_DIR
 
-        if ($Mode -eq 'quick') {
+        $scopeQuick = ($Mode -eq 'quick') -or $ScopeToChanges
+        $changedFiles = if ($scopeQuick) { Get-ChangedFiles } else { @() }
+        $changedFrontendTests = @()
+        if ($scopeQuick -and $changedFiles.Count -gt 0) {
+            $changedFrontendTests = $changedFiles | Where-Object { $_ -match '^frontend/src/.+\.(test|spec)\.(ts|tsx|js|jsx)$' -or $_ -match '^frontend/src/.+/__tests__/.+\.(ts|tsx|js|jsx)$' }
+        }
+
+        if ($scopeQuick -and $changedFrontendTests.Count -gt 0) {
+            Write-Info "Quick scope enabled: running changed frontend tests only"
+            $testPaths = $changedFrontendTests | ForEach-Object { Join-Path $SCRIPT_DIR $_ }
+            $output = npm run test -- run $testPaths --reporter=dot --bail 1 2>&1
+        }
+        elseif ($Mode -eq 'quick') {
             Write-Info "Running fast frontend tests only..."
             $output = npm run test -- run --reporter=dot --bail 1 2>&1
         } else {
