@@ -1,0 +1,389 @@
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.6
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-02-02 11:07:37
+Log file: D:\SMS\student-management-system\commit_ready_20260202-110737.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+??  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+??  Using version from VERSION file: 1.17.6
+??  Target version: 1.17.6
+??  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+? VERSION file: 1.17.6 (correct)
+? Backend main.py docstring: 1.17.6 (correct)
+? Frontend package.json: 1.17.6 (correct)
+? User guide version: 1.17.6 (correct)
+? Developer guide version: 1.17.6 (correct)
+? Documentation index version: 1.17.6 (correct)
+? COMMIT_READY.ps1 version: 1.17.6 (correct)
+? INSTALLER_BUILDER.ps1 version: 1.17.6 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+? Version verification completed successfully!
+? All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+? Version format valid: 1.17.6
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+??  Installing runtime requirements (pip) from requirements.txt
+??  Installing dev requirements (pip)
+? Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+? conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running pre-commit hooks on staged files...
+? Pre-commit hooks passed (files auto-fixed).
+??  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+??  Running ruff check...
+? Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+??  Running mypy...
+? Backend type checking passed
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+??  Running ESLint...
+? Frontend linting passed
+
+─────────────────────────────────────────────────
+ Repository: Markdown Lint
+─────────────────────────────────────────────────
+??  Running markdownlint with auto-fix...
+? Markdown linting passed
+
+─────────────────────────────────────────────────
+ Frontend: TypeScript Type Checking
+─────────────────────────────────────────────────
+??  Skipping TypeScript type checking in quick mode (temporary)
+? TypeScript type checking passed
+
+─────────────────────────────────────────────────
+ Translation Integrity Check
+─────────────────────────────────────────────────
+??  Checking translation key parity...
+? Translation integrity verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 2: Test Suite Execution                                ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: pytest
+─────────────────────────────────────────────────
+??  Using in-memory SQLite for local tests (DATABASE_URL not set)
+??  Using strict auth mode for local tests (AUTH_MODE not set)
+??  Using batch test runner (prevents system freeze)...
+
+╔════════════════════════════════════════╗
+
+║   Batch Test Runner (SMS v1.17.2)     ║
+
+╚════════════════════════════════════════╝
+
+
+?? Logging to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260202_110854.txt
+
+
+? Scanning for test files...
+
+
+? Found 93 test files
+
+
+? Split into 19 batches (5 files per batch)
+
+
+
+
+┌─────────────────────────────────────────┐
+
+│ Batch 1 of 19 (Files: 5)
+
+└─────────────────────────────────────────┘
+
+   test_admin_backup_encryption.py
+
+   test_admin_bootstrap.py
+
+   test_analytics_router.py
+
+   test_analytics_service.py
+
+   test_attendance_router.py
+
+? Running tests...
+
+
+....................................................................     [100%]
+? Batch 1 completed successfully in 11s
+
+
+  Waiting 2 seconds before next batch...
+
+
+┌─────────────────────────────────────────┐
+
+│ Batch 2 of 19 (Files: 5)
+
+└─────────────────────────────────────────┘
+
+   test_audit_router.py
+
+   test_audit.py
+
+   test_auth_flow.py
+
+   test_auth_refresh.py
+
+   test_auth_router.py
+
+? Running tests...
+
+
+.........................................                                [100%]
+? Batch 2 completed successfully in 7.5s
+
+
+  Waiting 2 seconds before next batch...
+
+
+┌─────────────────────────────────────────┐
+
+│ Batch 3 of 19 (Files: 5)
+
+└─────────────────────────────────────────┘
+
+   test_auto_import_courses.py
+
+   test_backup_encryption.py
+
+   test_change_password.py
+
+   test_config_module.py
+
+   test_config_settings.py
+
+? Running tests...
+
+
+...................F...............................                      [100%]
+================================== FAILURES ===================================
+D:\SMS\student-management-system\backend\services\backup_service_encrypted.py:89: ValueError: Output path outside allowed directory
+=========================== short test summary info ===========================
+FAILED tests/test_backup_encryption.py::TestBackupServiceEncrypted::test_restore_encrypted_backup
+? Batch 3 failed in 5.8s
+
+
+? FastFail enabled - stopping execution
+
+
+
+╔════════════════════════════════════════╗
+
+║          TEST EXECUTION SUMMARY        ║
+
+╚════════════════════════════════════════╝
+
+
+Batches:
+
+  Total:   19
+
+?   Completed: 3
+
+
+Tests:
+
+  Total:   0
+
+?   Failed Batches: 5
+
+
+Duration: 24.3s
+
+
+?? Full log saved to: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260202_110854.txt
+
+? Some tests failed
+
+
+? Some tests failed
+
+? 
+?? Saving failed test files for re-testing...
+
+
+?    To retest only failed files, run:
+
+
+   .\RUN_TESTS_BATCH.ps1 -RetestFailed
+? Failed files saved to: .test-failures (5 files)
+
+
+
+? Test log completed: D:\SMS\student-management-system\backend\test-results\backend_batch_run_20260202_110854.txt
+
+? Backend tests failed
+
+
+─────────────────────────────────────────────────
+ Frontend: Vitest
+─────────────────────────────────────────────────
+??  Running fast frontend tests only...
+? Frontend tests passed
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Git Remote Synchronization                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Updating remote references...
+? Git remote is synchronized (or local is ahead)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Automated Cleanup                                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Python Cache Cleanup
+─────────────────────────────────────────────────
+? Removed 13 Python cache items
+
+─────────────────────────────────────────────────
+ Node.js Cache Cleanup
+─────────────────────────────────────────────────
+??  Node cache already clean
+
+─────────────────────────────────────────────────
+ Build Artifacts Cleanup
+─────────────────────────────────────────────────
+
+─────────────────────────────────────────────────
+ Temporary Files Cleanup
+─────────────────────────────────────────────────
+? Removed 13 temporary files
+
+─────────────────────────────────────────────────
+ Legacy Artifacts Cleanup
+─────────────────────────────────────────────────
+??  Total space freed: 2.17 MB
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 5: Documentation and Git Status                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Key Documentation Check
+─────────────────────────────────────────────────
+? README.md exists
+? CHANGELOG.md exists
+? docs/DOCUMENTATION_INDEX.md exists
+? DOCUMENTATION_INDEX.md found in docs/ (acceptable)
+
+─────────────────────────────────────────────────
+ Git Status
+─────────────────────────────────────────────────
+??  Uncommitted changes detected:
+ M backend/admin_routes.py  M backend/data/imports/1_courses.csv  M backend/data/imports/1_grades.csv  M backend/data/imports/1_students.csv  M docs/ci/GITHUB_ACTIONS_DIAGNOSTIC_REPORT.md  M docs/ci/GITHUB_ACTIONS_FAILURE_REPORT.md ?? backend/.test-failures ?? commit_ready_20260202-110737.log
+
+─────────────────────────────────────────────────
+ Root Documentation Whitelist
+─────────────────────────────────────────────────
+? Root documentation whitelist satisfied
+
+╔══════════════════════════════════════════════════════════════╗
+║  Execution Summary                                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Mode: quick
+Duration: 108.6s
+
+Code Quality:
+  ? Docs & Version Sync
+  ? Version Consistency
+  ? Version Format
+  ? Backend Ruff
+  ? Backend MyPy
+  ? Frontend ESLint
+  ? Markdown Lint
+  ? TypeScript
+  ? Translation Integrity
+
+Tests:
+  ? Backend Dependencies
+  ? Conftest Config
+  ? Backend pytest
+  ? Frontend Vitest
+
+Health Checks:
+  ? Git Remote
+
+Cleanup:
+  ? Python Cache (13 items)
+  ? Node Cache (Already clean)
+  ? Build Artifacts
+  ? Temp Files (13 files removed)
+
+= * 60
+[FAIL] SOME CHECKS FAILED - REVIEW AND FIX
+= * 60
