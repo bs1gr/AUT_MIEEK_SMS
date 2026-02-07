@@ -1,0 +1,23 @@
+2026-01-11 11:51:40,450 - entrypoint - INFO - entrypoint: starting migration check
+2026-01-11 11:51:40,450 - entrypoint - INFO - Runtime context: environment=production (source=env:SMS_ENV), docker=True, ci=False
+[run_migrations] ENTER
+2026-01-11 11:51:40,882 - backend.run_migrations - INFO - [run_migrations] ENTER
+============================================================
+DATABASE MIGRATION CHECK
+============================================================
+Backend directory: /app/backend
+Using DATABASE_URL: sqlite:///data/student_management.db
+[run_migrations] upgrade(head) failed: Multiple head revisions are present for given argument 'head'; please specify a specific target revision, '<branchname>@head' to narrow to a specific head, or 'heads' for all heads
+[run_migrations] Attempting upgrade to 'heads'
+
+OK: Database migrations applied successfully
+============================================================
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+[run_migrations] ENTER
+[run_migrations] upgrade(head) failed: Multiple head revisions are present for given argument 'head'; please specify a specific target revision, '<branchname>@head' to narrow to a specific head, or 'heads' for all heads
+[run_migrations] Attempting upgrade to 'heads'
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
