@@ -1,0 +1,77 @@
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+2026-01-11 11:41:48,572 - entrypoint - INFO - entrypoint: starting migration check
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Running upgrade  -> 0b65fa8f5f95, baseline
+INFO  [alembic.runtime.migration] Running upgrade 0b65fa8f5f95 -> 3f2b1a9c0d7e, add absence_penalty to courses
+INFO  [alembic.runtime.migration] Running upgrade 3f2b1a9c0d7e -> 9a1d2b3c4d56, add users table
+INFO  [alembic.runtime.migration] Running upgrade 9a1d2b3c4d56 -> 7b2d3c4e5f67, add attendance composite index for performance
+INFO  [alembic.runtime.migration] Running upgrade 9a1d2b3c4d56 -> 039d0af51aab, Use timezone-aware datetime for User timestamps
+INFO  [alembic.runtime.migration] Running upgrade 039d0af51aab -> 6d2e9d1b4f77, add deleted_at columns for soft delete support
+INFO  [alembic.runtime.migration] Running upgrade 6d2e9d1b4f77, 7b2d3c4e5f67 -> merge_20251110_01, Merge multiple Alembic heads into a single head
+INFO  [alembic.runtime.migration] Running upgrade 039d0af51aab -> ab12cd34ef56, add refresh tokens table
+INFO  [alembic.runtime.migration] Running upgrade ab12cd34ef56, merge_20251110_01 -> 18865e982265, merge ab12 and merge_20251110_01 heads
+INFO  [alembic.runtime.migration] Running upgrade 18865e982265 -> ffedcba12345, add refresh_tokens table (canonical autogen)
+INFO  [alembic.runtime.migration] Running upgrade 18865e982265 -> 5b71c5a90e3d, add login lockout fields
+INFO  [alembic.runtime.migration] Running upgrade 18865e982265 -> 2b4c64f9fbba, add grade date indexes and ensure attendance composite index
+INFO  [alembic.runtime.migration] Running upgrade 2b4c64f9fbba, 5b71c5a90e3d, ffedcba12345 -> 00c146dcf611, merge migration heads 2025-11-16
+INFO  [alembic.runtime.migration] Running upgrade 00c146dcf611 -> 8e1a2c3b4d5e, add rbac tables
+INFO  [alembic.runtime.migration] Running upgrade 00c146dcf611 -> d377f961aa1f, Add password_change_required field to users table
+2026-01-11 11:41:48,572 - entrypoint - INFO - Runtime context: environment=production (source=env:SMS_ENV), docker=True, ci=False
+[run_migrations] ENTER
+2026-01-11 11:41:49,245 - backend.run_migrations - INFO - [run_migrations] ENTER
+INFO  [alembic.runtime.migration] Running upgrade d377f961aa1f -> aabbccdd2025, Add notification and notification_preference tables for real-time notifications
+============================================================
+INFO  [alembic.runtime.migration] Running upgrade d377f961aa1f -> a1b2c3d4e5f6, add students fulltext index (PostgreSQL)
+INFO  [alembic.runtime.migration] Running upgrade a1b2c3d4e5f6 -> 36c455e672ec, Add AuditLog model for audit logging
+DATABASE MIGRATION CHECK
+INFO  [alembic.runtime.migration] Running upgrade 36c455e672ec, 8e1a2c3b4d5e -> 26b579f2176d, Merge heads before RBAC migration
+============================================================
+Backend directory: /app/backend
+Using DATABASE_URL: sqlite:///data/student_management.db
+[run_migrations] upgrade(head) failed: Multiple head revisions are present for given argument 'head'; please specify a specific target revision, '<branchname>@head' to narrow to a specific head, or 'heads' for all heads
+INFO  [alembic.runtime.migration] Running upgrade 26b579f2176d -> 4f5c5aa3de07, Add permissions and roles_permissions tables for fine-grained RBAC
+INFO  [alembic.runtime.migration] Running upgrade 4f5c5aa3de07, aabbccdd2025 -> 99perms_notifs_merge, Merge permissions and notifications migration heads
+INFO  [alembic.runtime.migration] Running upgrade 99perms_notifs_merge -> d37fb9f4bd49, Update RBAC: enhance Permission model and add UserPermission
+[run_migrations] Attempting upgrade to 'heads'
+INFO  [alembic.runtime.migration] Running upgrade d37fb9f4bd49 -> b6c5a7170d93, add RBAC created_at columns
+INFO  [alembic.runtime.migration] Running upgrade d37fb9f4bd49 -> b41c2a7f1c90, Extend audit log with change metadata and request id
+
+OK: Database migrations applied successfully
+============================================================
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+⚠️  SQLite detected in production mode. SQLite limitations:
+[run_migrations] ENTER
+[run_migrations] upgrade(head) failed: Multiple head revisions are present for given argument 'head'; please specify a specific target revision, '<branchname>@head' to narrow to a specific head, or 'heads' for all heads
+[run_migrations] Attempting upgrade to 'heads'
+✅ Admin user created: admin@example.com
+[run_migrations] DEBUG: About to log Alembic migrations applied successfully
+[run_migrations] DEBUG: Logged Alembic migrations applied successfully
+[run_migrations] EXIT OK
+   • Poor concurrency (write locks entire database)
+   • No network access (single machine only)
+   • Limited to ~1TB database size
+   • Not recommended for multi-user production deployments
+   ➜ Consider PostgreSQL for production use (see docs/development/ARCHITECTURE.md)
+2026-01-11 11:41:51,791 - backend.logging_config - INFO - [-] - Logging initialized
+2026-01-11 11:41:51,792 - backend.security.csrf - INFO - [-] - CSRF protection disabled via settings; skipping installation
+2026-01-11 11:41:51,872 - backend.router_registry - INFO - [-] - Admin router registered successfully
+2026-01-11 11:41:52,047 - backend.router_registry - INFO - [-] - Auth router registered successfully
+2026-01-11 11:41:52,744 - backend.router_registry - INFO - [-] - Registered routers: Students, Admin, Courses, Grades, Attendance, Analytics, DailyPerformance, Export, Enrollments, Imports, Highlights, AdminOps, Sessions, Diagnostics, Reports, Jobs, Audit, RBAC, Permissions Management, Metrics, Feedback, Notifications, Control
+2026-01-11 11:41:52,773 - backend.middleware.prometheus_metrics - INFO - [-] - Prometheus metrics instrumentation completed
+2026-01-11 11:41:52,773 - backend.middleware.prometheus_metrics - INFO - [-] - Metrics endpoint will be manually added in main.py (instrumentator.expose has issues)
+2026-01-11 11:41:52,775 - backend.app_factory - INFO - [-] - SERVE_FRONTEND enabled: Serving SPA from 'frontend/dist' with 404 fallback.
+2026-01-11 11:41:52,775 - backend.app_factory - INFO - [-] - ✅ /metrics endpoint registered
+2026-01-11 11:41:52,775 - backend.app_factory - INFO - [-] - FastAPI application created successfully (version=1.15.2)
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+2026-01-11 11:41:52,776 - backend.lifespan - INFO - [-] - ✅ Query profiler registered
+2026-01-11 11:41:52,777 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
+2026-01-11 11:41:52,777 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
+INFO  [alembic.runtime.migration] Context impl SQLiteImpl.
+INFO  [alembic.runtime.migration] Will assume non-transactional DDL.
