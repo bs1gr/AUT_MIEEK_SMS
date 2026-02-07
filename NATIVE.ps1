@@ -284,6 +284,50 @@ function Stop-ProcessFromPidFile {
     }
 }
 
+function Stop-ProcessByPort {
+    param(
+        [int]$Port,
+        [string]$Name
+    )
+
+    try {
+        $listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+        if (-not $listener) {
+            return $true
+        }
+
+        $pid = $listener.OwningProcess
+        if (-not $pid -or $pid -le 0) {
+            Write-Warning "$($Name): Port $Port is listening but PID is unavailable"
+            return $false
+        }
+
+        $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+        if (-not $process) {
+            Write-Warning "$($Name): Port $Port is in use by PID $pid, but process not found"
+            return $false
+        }
+
+        Write-Info "$($Name): Stopping process on port $Port (PID $pid)..."
+        try {
+            Stop-Process -Id $pid -ErrorAction Stop
+        } catch {
+            Write-Warning "$($Name): Forcing termination on port $Port..."
+            Stop-Process -Id $pid -Force -ErrorAction Stop
+        }
+
+        try {
+            Wait-Process -Id $pid -Timeout 10 -ErrorAction SilentlyContinue
+        } catch {}
+
+        Write-Success "$Name stopped (port $Port)"
+        return $true
+    } catch {
+        Write-Warning "$($Name): Failed to stop process on port $Port - $_"
+        return $false
+    }
+}
+
 # ============================================================================
 # COMMAND HANDLERS
 # ============================================================================
@@ -825,6 +869,14 @@ function Stop-All {
 
     $backendStopped = Stop-ProcessFromPidFile -PidFile $BACKEND_PID_FILE -Name "Backend"
     $frontendStopped = Stop-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE -Name "Frontend"
+
+    if (Test-PortInUse -Port $BACKEND_PORT) {
+        $backendStopped = (Stop-ProcessByPort -Port $BACKEND_PORT -Name "Backend") -and $backendStopped
+    }
+
+    if (Test-PortInUse -Port $FRONTEND_PORT) {
+        $frontendStopped = (Stop-ProcessByPort -Port $FRONTEND_PORT -Name "Frontend") -and $frontendStopped
+    }
 
     if ($backendStopped -and $frontendStopped) {
         Write-Host ""
