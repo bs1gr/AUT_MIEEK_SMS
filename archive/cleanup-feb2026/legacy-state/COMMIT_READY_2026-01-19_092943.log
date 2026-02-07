@@ -1,0 +1,562 @@
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.2
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-01-19 09:29:44
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+ℹ️  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+ℹ️  Using version from VERSION file: 1.17.2
+ℹ️  Target version: 1.17.2
+ℹ️  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+✅ VERSION file: 1.17.2 (correct)
+✅ Backend main.py docstring: 1.17.2 (correct)
+✅ Frontend package.json: 1.17.2 (correct)
+✅ User guide version: 1.17.2 (correct)
+✅ Developer guide version: 1.17.2 (correct)
+✅ Documentation index version: 1.17.2 (correct)
+✅ COMMIT_READY.ps1 version: 1.17.2 (correct)
+✅ INSTALLER_BUILDER.ps1 version: 1.17.2 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+✅ Version verification completed successfully!
+✅ All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ Version format valid: 1.17.2
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+ℹ️  Installing runtime requirements (pip) from requirements.txt
+ℹ️  Installing dev requirements (pip)
+✅ Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+✅ conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running pre-commit hooks on staged files...
+✅ Pre-commit hooks passed (files auto-fixed).
+ℹ️  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+ℹ️  Running ruff check...
+✅ Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+ℹ️  Running mypy...
+✅ Backend type checking passed
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+ℹ️  Running ESLint...
+✅ Frontend linting passed
+
+─────────────────────────────────────────────────
+ Repository: Markdown Lint
+─────────────────────────────────────────────────
+ℹ️  Running markdownlint with auto-fix...
+✅ Markdown linting passed
+
+─────────────────────────────────────────────────
+ Frontend: TypeScript Type Checking
+─────────────────────────────────────────────────
+ℹ️  Skipping TypeScript type checking in quick mode (temporary)
+✅ TypeScript type checking passed
+
+─────────────────────────────────────────────────
+ Translation Integrity Check
+─────────────────────────────────────────────────
+ℹ️  Checking translation key parity...
+✅ Translation integrity verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 2: Test Suite Execution                                ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: pytest
+─────────────────────────────────────────────────
+ℹ️  Using batch test runner (prevents system freeze)...
+
+╔════════════════════════════════════════╗
+║   Batch Test Runner (SMS v1.18.0)     ║
+╚════════════════════════════════════════╝
+
+ℹ Scanning for test files...
+✓ Found 87 test files
+ℹ Split into 18 batches (5 files per batch)
+
+
+┌─────────────────────────────────────────┐
+│ Batch 1 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_admin_backup_encryption.py
+  • test_admin_bootstrap.py
+  • test_analytics_router.py
+  • test_analytics_service.py
+  • test_attendance_router.py
+ℹ Running tests...
+....................................................................     [100%]
+✓ Batch 1 completed successfully in 12.4s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 2 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_audit_router.py
+  • test_audit.py
+  • test_auth_flow.py
+  • test_auth_refresh.py
+  • test_auth_router.py
+ℹ Running tests...
+.........................................                                [100%]
+✓ Batch 2 completed successfully in 6.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 3 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_auto_import_courses.py
+  • test_backup_encryption.py
+  • test_change_password.py
+  • test_config_module.py
+  • test_config_settings.py
+ℹ Running tests...
+...................................................                      [100%]
+✓ Batch 3 completed successfully in 4.9s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 4 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_control_endpoints.py
+  • test_control_environment.py
+  • test_control_jwt_integration.py
+  • test_control_maintenance.py
+  • test_control_path_traversal.py
+ℹ Running tests...
+...........................                                              [100%]
+✓ Batch 4 completed successfully in 10.1s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 5 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_control_start_branches.py
+  • test_course_rule_normalization.py
+  • test_courses_router.py
+  • test_csrf_flow.py
+  • test_csv_import.py
+ℹ Running tests...
+...............................                                          [100%]
+✓ Batch 5 completed successfully in 5.5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 6 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_daily_performance_router.py
+  • test_database_upload.py
+  • test_db_utils.py
+  • test_edge_cases.py
+  • test_enrollments_router.py
+ℹ Running tests...
+................................................                         [100%]
+✓ Batch 6 completed successfully in 5.5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 7 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_environment_detection.py
+  • test_environment_module.py
+  • test_exception_handlers.py
+  • test_export_analytics.py
+  • test_grade_calculation_fix.py
+ℹ Running tests...
+...................                                                      [100%]
+✓ Batch 7 completed successfully in 5.5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 8 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_grade_calculation_integration.py
+  • test_grade_calculation.py
+  • test_grades_router.py
+  • test_gzip_middleware.py
+  • test_health_checks.py
+ℹ Running tests...
+...............................                                          [100%]
+✓ Batch 8 completed successfully in 5.4s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 9 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_health.py
+  • test_import_export.py
+  • test_import_resolver_cov.py
+  • test_import_resolver.py
+  • test_imports_integration.py
+ℹ Running tests...
+..............................                                           [100%]
+✓ Batch 9 completed successfully in 9.1s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 10 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_imports_soft_delete.py
+  • test_imports_upload.py
+  • test_integration_smoke.py
+  • test_jwt_smoke.py
+  • test_list_routes.py
+ℹ Running tests...
+.....s..                                                                 [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
+✓ Batch 10 completed successfully in 4.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 11 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_logging_config_cov.py
+  • test_logging_config.py
+  • test_metrics_simple.py
+  • test_metrics.py
+  • test_models_relationships.py
+ℹ Running tests...
+..................                                                       [100%]
+✓ Batch 11 completed successfully in 4.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 12 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_notifications_router.py
+  • test_password_rehash.py
+  • test_performance_monitor.py
+  • test_permissions_api.py
+  • test_rate_limit_enforcement.py
+ℹ Running tests...
+..........................................................               [100%]
+✓ Batch 12 completed successfully in 6.4s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 13 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_rate_limiting.py
+  • test_rbac_enforcement.py
+  • test_rbac_router.py
+  • test_rbac_templates.py
+  • test_rbac.py
+ℹ Running tests...
+............sssssssssssssssssssssssssssssssssssssssssssss..........      [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rbac_templates.py:13: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:19: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:25: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:31: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:37: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:43: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:49: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:55: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:61: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:67: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:73: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:79: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:85: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:91: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:97: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:103: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:109: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:115: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:121: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:127: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:133: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:139: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:145: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:151: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:157: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:163: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:169: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:175: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:181: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:187: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:193: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:199: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:205: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:211: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:217: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:223: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:229: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:235: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:241: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:247: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:253: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+✓ Batch 13 completed successfully in 5.8s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 14 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_register_role_enforcement.py
+  • test_reports_router.py
+  • test_request_id_middleware.py
+  • test_request_id.py
+  • test_response_cache_middleware.py
+ℹ Running tests...
+...........................                                              [100%]
+✓ Batch 14 completed successfully in 9.5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 15 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_response_schemas.py
+  • test_routers_imports.py
+  • test_run_migrations_repo_root.py
+  • test_run_migrations_unit.py
+  • test_run_migrations.py
+ℹ Running tests...
+................................FE....                                   [100%]
+=================================== ERRORS ====================================
+___________ ERROR at teardown of test_run_migrations_creates_tables ___________
+E   pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+    DATABASE_URL
+      Value error, Invalid database path in DATABASE_URL: Database path must be within an allowed directory.
+    Database path: C:\Users\Vasilis\AppData\Local\Temp\pytest-of-Vasilis\pytest-2672\test_run_migrations_creates_ta0\test_migrations.db
+    Allowed roots: D:\SMS\student-management-system [type=value_error, input_value='sqlite:///C:\\Users\\Vas...ta0\\test_migrations.db', input_type=str]
+        For further information visit https://errors.pydantic.dev/2.12/v/value_error
+---------------------------- Captured stderr setup ----------------------------
+INFO  [root] Successfully patched settings for test execution
+----------------------------- Captured log setup ------------------------------
+INFO     root:conftest.py:241 Successfully patched settings for test execution
+================================== FAILURES ===================================
+C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\pydantic_settings\main.py:193: pydantic_core._pydantic_core.ValidationError: 1 validation error for Settings
+=========================== short test summary info ===========================
+ERROR tests/test_run_migrations.py::test_run_migrations_creates_tables - pyda...
+FAILED tests/test_run_migrations.py::test_run_migrations_creates_tables - pyd...
+✗ Batch 15 failed in 3.2s
+⚠ FastFail enabled - stopping execution
+
+╔════════════════════════════════════════╗
+║          TEST EXECUTION SUMMARY        ║
+╚════════════════════════════════════════╝
+
+Batches:
+  Total:   18
+✓   Completed: 15
+
+Tests:
+  Total:   0
+✗   Failed Batches: 5
+
+Duration: 127.2s
+
+✗ Some tests failed
+❌ Backend tests failed
+
+
+─────────────────────────────────────────────────
+ Frontend: Vitest
+─────────────────────────────────────────────────
+ℹ️  Running fast frontend tests only...
+✅ Frontend tests passed
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Git Remote Synchronization                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Updating remote references...
+✅ Git remote is synchronized (or local is ahead)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Automated Cleanup                                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Python Cache Cleanup
+─────────────────────────────────────────────────
+✅ Removed 15 Python cache items
+
+─────────────────────────────────────────────────
+ Node.js Cache Cleanup
+─────────────────────────────────────────────────
+ℹ️  Node cache already clean
+
+─────────────────────────────────────────────────
+ Build Artifacts Cleanup
+─────────────────────────────────────────────────
+
+─────────────────────────────────────────────────
+ Temporary Files Cleanup
+─────────────────────────────────────────────────
+✅ Removed 15 temporary files
+
+─────────────────────────────────────────────────
+ Legacy Artifacts Cleanup
+─────────────────────────────────────────────────
+ℹ️  Total space freed: 3.07 MB
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 5: Documentation and Git Status                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Key Documentation Check
+─────────────────────────────────────────────────
+✅ README.md exists
+✅ CHANGELOG.md exists
+✅ docs/DOCUMENTATION_INDEX.md exists
+✅ DOCUMENTATION_INDEX.md found in docs/ (acceptable)
+
+─────────────────────────────────────────────────
+ Git Status
+─────────────────────────────────────────────────
+ℹ️  Uncommitted changes detected:
+ M .gitignore  M CHANGELOG.md  M backend/data/imports/1_courses.csv  M backend/data/imports/1_grades.csv  M backend/data/imports/1_students.csv  M docs/ACTIVE_WORK_STATUS.md  M docs/AGENT_POLICY_ENFORCEMENT.md  M docs/DOCUMENTATION_INDEX.md  M docs/VERSION_FORMAT_ENFORCEMENT_SUMMARY.md  M docs/VERSION_HISTORY.md  M docs/admin/PERMISSION_REFERENCE.md  M docs/plans/INSTALLER_IMPROVEMENTS_v1.12.3+.md  M docs/plans/PHASE2_CONSOLIDATED_PLAN.md  M docs/plans/PHASE3_GITHUB_ISSUES_PLAN.md  M docs/plans/PHASE3_ROADMAP.md  M docs/plans/PHASE4_ROADMAP.md  M docs/plans/REMAINING_ISSUES_PRIORITIZED.md  M docs/plans/UNIFIED_WORK_PLAN.md  M docs/releases/RELEASE_AUDIT_v1.12.1.md  M docs/releases/RELEASE_COMPLETE_v1.12.0.md  M docs/releases/RELEASE_NOTES_1.17.2.md  M docs/releases/RELEASE_NOTES_v1.11.2.md  M docs/releases/RELEASE_NOTES_v1.12.0.md  M docs/releases/RELEASE_NOTES_v1.12.2.md  M docs/releases/RELEASE_NOTES_v1.16.0.md  M docs/releases/RELEASE_NOTES_v1.17.0.md  M docs/releases/RELEASE_NOTES_v1.17.1.md  M docs/releases/RELEASE_PREPARATION_v1.12.0.md  M docs/releases/RELEASE_SUMMARY_v1.11.2.md ?? backend/data/exports/export_students_20260119092844.csv ?? backend/data/exports/export_students_20260119093147.csv
+
+─────────────────────────────────────────────────
+ Root Documentation Whitelist
+─────────────────────────────────────────────────
+❌ Found 40 unclassified Markdown file(s) in repo root
+   • BATCH6_COMPLETE_SUMMARY_JAN19.md
+   • BATCH6_COMPLETION_REPORT.md
+   • BATCH6_ESLINT_ANALYSIS.md
+   • BATCH6_FINAL_VALIDATION_JAN18.md
+   • BATCH6_PHASE2_DETAILED_PLAN.md
+   • BATCH6_PHASE4_PLANNING_JAN19.md
+   • BATCH6_SESSION_COMPLETE_JAN18.md
+   • BATCH6_SESSION_HANDOFF_JAN19.md
+   • BATCH6_TEST_MONITORING_JAN19.md
+   • CI_CD_ISSUES_FIX_PLAN_JAN18.md
+   • CI_DASHBOARD_JAN19.md
+   • CI_FAILURE_ANALYSIS_JAN19.md
+   • CI_FAILURE_INVESTIGATION_SUMMARY_JAN19.md
+   • CI_MONITORING_GUIDE_JAN19.md
+   • CI_REVIEW_JAN18.md
+   • CI_VALIDATION_IN_PROGRESS_JAN19.md
+   • CI_VALIDATION_MONITORING_JAN19.md
+   • CLEANUP_EXECUTIVE_SUMMARY.md
+   • CLEANUP_PHASE_STATUS_2026-01-18_173919.md
+   • CLEANUP_SESSION_JAN18_BATCH5_COMPLETE.md
+   • CLEANUP_SESSION_JAN18_FINAL.md
+   • CLEANUP_STATUS_JAN19.md
+   • CONTINUATION_GUIDE_SESSION3.md
+   • DAY2_CODE_QUALITY_ACTION.md
+   • DEPENDABOT_SECURITY_TRACKER.md
+   • FINAL_STATE_SNAPSHOT_JAN19.md
+   • GITHUB_ISSUES_CLEANUP_REVIEW.md
+   • MAINTENANCE_STATUS_JAN18.md
+   • PHASE2_EXECUTION_PLAN.md
+   • PHASE2_PROGRESS_JAN19.md
+   • PHASE2_SESSIONS_1-2_COMPLETE.md
+   • PHASE4_DECISION_NEEDED.md
+   • PHASE4_EXECUTION_KICKOFF.md
+   • REPOSITORY_CLEANUP_ACTION_PLAN.md
+   • REPOSITORY_CLEANUP_PHASE_CRITICAL.md
+   • SECURITY.md
+   • SESSION_COMPLETE_JAN18.md
+   • SESSION_HANDOFF_JAN19.md
+   • SESSION_MONITORING_SUMMARY_JAN19.md
+   • SESSION_SUMMARY_JAN19.md
+ℹ️  Run .\\WORKSPACE_CLEANUP.ps1 -Mode standard to auto-organize, or move to docs/ manually
+
+╔══════════════════════════════════════════════════════════════╗
+║  Execution Summary                                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Mode: quick
+Duration: 181.8s
+
+Code Quality:
+  ✅ Docs & Version Sync
+  ✅ Version Consistency
+  ✅ Version Format
+  ✅ Backend Ruff
+  ✅ Backend MyPy
+  ✅ Frontend ESLint
+  ✅ Markdown Lint
+  ✅ TypeScript
+  ✅ Translation Integrity
+
+Tests:
+  ✅ Backend Dependencies
+  ✅ Conftest Config
+  ❌ Backend pytest
+  ✅ Frontend Vitest
+
+Health Checks:
+  ✅ Git Remote
+
+Cleanup:
+  ✅ Python Cache (15 items)
+  ✅ Node Cache (Already clean)
+  ✅ Build Artifacts
+  ✅ Temp Files (15 files removed)
+
+= * 60
+[FAIL] SOME CHECKS FAILED - REVIEW AND FIX
+= * 60

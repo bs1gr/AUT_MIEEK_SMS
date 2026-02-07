@@ -1,0 +1,284 @@
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.18.0
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-01-24 00:26:16
+Log file: D:\SMS\student-management-system\commit_ready_20260124-002616.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+ℹ️  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+ℹ️  Using version from VERSION file: 1.18.0
+ℹ️  Target version: 1.18.0
+ℹ️  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+✅ VERSION file: 1.18.0 (correct)
+✅ Backend main.py docstring: 1.18.0 (correct)
+✅ Frontend package.json: 1.18.0 (correct)
+✅ User guide version: 1.18.0 (correct)
+✅ Developer guide version: 1.18.0 (correct)
+✅ Documentation index version: 1.18.0 (correct)
+✅ COMMIT_READY.ps1 version: 1.18.0 (correct)
+✅ INSTALLER_BUILDER.ps1 version: 1.18.0 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+✅ Version verification completed successfully!
+✅ All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+✅ Version format valid: 1.18.0
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+ℹ️  Installing runtime requirements (pip) from requirements.txt
+ℹ️  Installing dev requirements (pip)
+✅ Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+✅ conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+ℹ️  Running pre-commit hooks on staged files...
+✅ Pre-commit hooks passed (files auto-fixed).
+ℹ️  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+ℹ️  Running ruff check...
+✅ Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+ℹ️  Running mypy...
+✅ Backend type checking passed
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+ℹ️  Running ESLint...
+✅ Frontend linting passed
+
+─────────────────────────────────────────────────
+ Repository: Markdown Lint
+─────────────────────────────────────────────────
+ℹ️  Running markdownlint with auto-fix...
+✅ Markdown linting passed
+
+─────────────────────────────────────────────────
+ Frontend: TypeScript Type Checking
+─────────────────────────────────────────────────
+ℹ️  Skipping TypeScript type checking in quick mode (temporary)
+✅ TypeScript type checking passed
+
+─────────────────────────────────────────────────
+ Translation Integrity Check
+─────────────────────────────────────────────────
+ℹ️  Checking translation key parity...
+✅ Translation integrity verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 2: Test Suite Execution                                ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: pytest
+─────────────────────────────────────────────────
+ℹ️  Using in-memory SQLite for local tests (DATABASE_URL not set)
+ℹ️  Using strict auth mode for local tests (AUTH_MODE not set)
+ℹ️  Using batch test runner (prevents system freeze)...
+
+╔════════════════════════════════════════╗
+║   Batch Test Runner (SMS v1.17.2)     ║
+╚════════════════════════════════════════╝
+
+ℹ Scanning for test files...
+✓ Found 88 test files
+ℹ Split into 18 batches (5 files per batch)
+
+
+┌─────────────────────────────────────────┐
+│ Batch 1 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_admin_backup_encryption.py
+  • test_admin_bootstrap.py
+  • test_analytics_router.py
+  • test_analytics_service.py
+  • test_attendance_router.py
+ℹ Running tests...
+....................................................................     [100%]
+============================== warnings summary ===============================
+schemas\search.py:24
+  D:\SMS\student-management-system\backend\schemas\search.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StudentSearchResultSchema(BaseModel):
+
+schemas\search.py:40
+  D:\SMS\student-management-system\backend\schemas\search.py:40: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CourseSearchResultSchema(BaseModel):
+
+schemas\search.py:55
+  D:\SMS\student-management-system\backend\schemas\search.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GradeSearchResultSchema(BaseModel):
+
+schemas\search.py:159
+  D:\SMS\student-management-system\backend\schemas\search.py:159: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SavedSearchResponseSchema(BaseModel):
+
+schemas\search.py:177
+  D:\SMS\student-management-system\backend\schemas\search.py:177: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SavedSearchListResponseSchema(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+✓ Batch 1 completed successfully in 23.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 2 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_audit_router.py
+  • test_audit.py
+  • test_auth_flow.py
+  • test_auth_refresh.py
+  • test_auth_router.py
+ℹ Running tests...
+.........................................                                [100%]
+============================== warnings summary ===============================
+schemas\search.py:24
+  D:\SMS\student-management-system\backend\schemas\search.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StudentSearchResultSchema(BaseModel):
+
+schemas\search.py:40
+  D:\SMS\student-management-system\backend\schemas\search.py:40: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CourseSearchResultSchema(BaseModel):
+
+schemas\search.py:55
+  D:\SMS\student-management-system\backend\schemas\search.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GradeSearchResultSchema(BaseModel):
+
+schemas\search.py:159
+  D:\SMS\student-management-system\backend\schemas\search.py:159: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SavedSearchResponseSchema(BaseModel):
+
+schemas\search.py:177
+  D:\SMS\student-management-system\backend\schemas\search.py:177: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SavedSearchListResponseSchema(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+✓ Batch 2 completed successfully in 17.8s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 3 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_auto_import_courses.py
+  • test_backup_encryption.py
+  • test_change_password.py
+  • test_config_module.py
+  • test_config_settings.py
+ℹ Running tests...
+...................................................                      [100%]
+============================== warnings summary ===============================
+schemas\search.py:24
+  D:\SMS\student-management-system\backend\schemas\search.py:24: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class StudentSearchResultSchema(BaseModel):
+
+schemas\search.py:40
+  D:\SMS\student-management-system\backend\schemas\search.py:40: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class CourseSearchResultSchema(BaseModel):
+
+schemas\search.py:55
+  D:\SMS\student-management-system\backend\schemas\search.py:55: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class GradeSearchResultSchema(BaseModel):
+
+schemas\search.py:159
+  D:\SMS\student-management-system\backend\schemas\search.py:159: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SavedSearchResponseSchema(BaseModel):
+
+schemas\search.py:177
+  D:\SMS\student-management-system\backend\schemas\search.py:177: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class SavedSearchListResponseSchema(BaseModel):
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+✓ Batch 3 completed successfully in 12.2s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 4 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+  • test_control_endpoints.py
+  • test_control_environment.py
+  • test_control_jwt_integration.py
+  • test_control_maintenance.py
+  • test_control_path_traversal.py
+ℹ Running tests...
+
+✗ Batch 4 failed in 5.3s
+⚠ FastFail enabled - stopping execution
+
+╔════════════════════════════════════════╗
+║          TEST EXECUTION SUMMARY        ║
+╚════════════════════════════════════════╝
+
+Batches:
+  Total:   18
+✓   Completed: 4
+
+Tests:
+  Total:   0
+✗   Failed Batches: 5
+
+Duration: 65.4s
+
+✗ Some tests failed
+❌ Backend tests failed
+
+
+─────────────────────────────────────────────────
+ Frontend: Vitest
+─────────────────────────────────────────────────
+ℹ️  Running fast frontend tests only...

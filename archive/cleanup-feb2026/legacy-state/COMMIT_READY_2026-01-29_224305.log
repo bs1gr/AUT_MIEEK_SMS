@@ -1,0 +1,557 @@
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.5
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-01-29 22:43:06
+Log file: D:\SMS\student-management-system\commit_ready_20260129-224306.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+??  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+??  Using version from VERSION file: 1.17.5
+??  Target version: 1.17.5
+??  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+? VERSION file: 1.17.5 (correct)
+? Backend main.py docstring: 1.17.5 (correct)
+? Frontend package.json: 1.17.5 (correct)
+? User guide version: 1.17.5 (correct)
+? Developer guide version: 1.17.5 (correct)
+? Documentation index version: 1.17.5 (correct)
+? COMMIT_READY.ps1 version: 1.17.5 (correct)
+? INSTALLER_BUILDER.ps1 version: 1.17.5 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+? Version verification completed successfully!
+? All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+? Version format valid: 1.17.5
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+??  Installing runtime requirements (pip) from requirements.txt
+??  Installing dev requirements (pip)
+? Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+? conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running pre-commit hooks on staged files...
+? Pre-commit hooks passed (files auto-fixed).
+??  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+??  Running ruff check...
+? Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+??  Running mypy...
+? Backend type checking passed
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+??  Running ESLint...
+? Frontend linting failed
+ > student-management-frontend@1.17.5 lint > eslint "src/**/*.{ts,tsx}"   D:\SMS\student-management-system\frontend\src\App.tsx   50:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\components\Divider.tsx   36:5  warning  The element hr has an implicit role of separator. Defining this explicitly is redundant and should be avoided  jsx-a11y/no-redundant-roles  D:\SMS\student-management-system\frontend\src\components\__tests__\SearchBar.test.tsx   53:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\components\common\PwaReloadPrompt.tsx   13:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   21:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\advanced-search\AdvancedSearchPage.tsx   11:21  warning  'useSavedSearches' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   13:8   warning  'AdvancedFilters' is defined but never used. Allowed unused vars must match /^_/u   @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\features\advanced-search\__tests__\SearchResults.test.tsx   32:9  warning  'mockOnResultClick' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\features\advanced-search\__tests__\fixtures.ts   142:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\advanced-search\components\CourseResultCard.tsx   65:7  warning  `tabIndex` should only be declared on interactive elements  jsx-a11y/no-noninteractive-tabindex  D:\SMS\student-management-system\frontend\src\features\advanced-search\components\GradeResultCard.tsx   61:7   warning  `tabIndex` should only be declared on interactive elements                                                                               jsx-a11y/no-noninteractive-tabindex   92:60  warning  disallow literal string: <span className="text-sm text-gray-500 ml-1">                 / 100 {t('grades.points')}               </span>  i18next/no-literal-string  D:\SMS\student-management-system\frontend\src\features\advanced-search\components\SearchBar.tsx   277:17  warning  Visible, non-interactive elements with click handlers must have at least one keyboard listener  jsx-a11y/click-events-have-key-events  D:\SMS\student-management-system\frontend\src\features\advanced-search\components\StudentResultCard.tsx   59:7  warning  `tabIndex` should only be declared on interactive elements  jsx-a11y/no-noninteractive-tabindex  D:\SMS\student-management-system\frontend\src\features\advanced-search\hooks\useSearchHistory.ts   33:5  warning  Error: Calling setState synchronously within an effect can trigger cascading renders  Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes.  Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).  D:\SMS\student-management-system\frontend\src\features\advanced-search\hooks\useSearchHistory.ts:33:5   31 |   32 |   useEffect(() => { > 33 |     setEntries(loadHistory());      |     ^^^^^^^^^^ Avoid calling setState() directly within an effect   34 |   }, []);   35 |   36 |   const addEntry = useCallback((query: string, entity_type?: string) => {  react-hooks/set-state-in-effect  D:\SMS\student-management-system\frontend\src\features\calendar\components\CalendarView.tsx   5:10  warning  'Divider' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\features\search\AdvancedFilters.test.tsx     2:37  warning  'waitFor' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars    72:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any    92:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   116:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   143:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   171:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   195:31  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   200:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   229:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   254:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   282:10  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SavedSearches.test.tsx    33:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any    56:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any    99:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   136:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   177:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   210:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   239:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   269:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   312:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SavedSearches.tsx   173:15  error  Parsing error: JSX element 'div' has no corresponding closing tag  D:\SMS\student-management-system\frontend\src\features\search\SearchBar.test.tsx     7:13  warning  'i18n' is defined but never used. Allowed unused vars must match /^_/u               @typescript-eslint/no-unused-vars    91:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any   106:13  warning  'rerender' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   138:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any   173:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any   214:10  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchBar.tsx   112:69  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchFacets.test.tsx   1:18  warning  'fireEvent' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\features\search\SearchFacets.tsx   22:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchIntegration.test.tsx     1:18  warning  'waitFor' is defined but never used. Allowed unused vars must match /^_/u                 @typescript-eslint/no-unused-vars     1:27  warning  'within' is defined but never used. Allowed unused vars must match /^_/u                  @typescript-eslint/no-unused-vars    28:9   warning  'mockApiClient' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars    28:48  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any    54:38  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any    84:69  warning  Unexpected any. Specify a different type                                                  @typescript-eslint/no-explicit-any   312:11  warning  'mockFacets' is assigned a value but never used. Allowed unused vars must match /^_/u     @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\features\search\SearchView.test.tsx    1:18  warning  'waitFor' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   13:15  warning  'sort' is defined but never used. Allowed unused args must match /^_/u     @typescript-eslint/no-unused-vars   13:33  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   20:35  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   22:24  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   31:31  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   81:69  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any   84:35  warning  Unexpected any. Specify a different type                                   @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\SearchView.tsx    58:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any    85:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any    93:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   111:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\useSearch.test.tsx   11:7   warning  'mockPost' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   24:22  warning  Unexpected any. Specify a different type                                             @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\useSearch.ts    87:5   warning  Error: Calling setState synchronously within an effect can trigger cascading renders  Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following: * Update external systems with the latest state from React. * Subscribe for updates from some external system, calling setState in a callback function when external state changes.  Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).  D:\SMS\student-management-system\frontend\src\features\search\useSearch.ts:87:5   85 |   // Reset pagination when query, filters, or type change   86 |   useEffect(() => { > 87 |     setPage(0);      |     ^^^^^^^ Avoid calling setState() directly within an effect   88 |   }, [debouncedQuery, filters, searchType]);   89 |   90 |   /**  react-hooks/set-state-in-effect   156:40  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-explicit-any   157:31  warning  Unexpected any. Specify a different type                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\search\useSearchFacets.test.tsx    23:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   242:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\students\StudentForm.tsx   52:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   65:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   78:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\features\students\StudentsView.tsx    48:7   warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console    88:24  warning  Unexpected any. Specify a different type                                           @typescript-eslint/no-explicit-any   104:19  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console   107:19  warning  Unexpected console statement. Only these console methods are allowed: warn, error  no-console  D:\SMS\student-management-system\frontend\src\hooks\__tests__\useSearch.test.ts   286:23  warning  'rerender' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars   296:13  warning  Avoid wrapping Testing Library util calls in `act`                                   testing-library/no-unnecessary-act   323:13  warning  Avoid wrapping Testing Library util calls in `act`                                   testing-library/no-unnecessary-act  D:\SMS\student-management-system\frontend\src\hooks\usePerformanceMonitor.test.ts   88:13  warning  'initialRenderCount' is assigned a value but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars  D:\SMS\student-management-system\frontend\src\hooks\useSearch.ts   17:47  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\hooks\useSearchFacets.ts   34:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   34:78  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  D:\SMS\student-management-system\frontend\src\utils\navigation.ts   26:5  warning  Unused eslint-disable directive (no problems were reported from 'no-console')  D:\SMS\student-management-system\frontend\src\vite-env.d.ts    9:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any   10:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any  έεΨ 89 problems (1 error, 88 warnings)   0 errors and 1 warning potentially fixable with the `--fix` option. 
+
+─────────────────────────────────────────────────
+ Repository: Markdown Lint
+─────────────────────────────────────────────────
+??  Running markdownlint with auto-fix...
+? Markdown linting passed
+
+─────────────────────────────────────────────────
+ Frontend: TypeScript Type Checking
+─────────────────────────────────────────────────
+??  Skipping TypeScript type checking in quick mode (temporary)
+? TypeScript type checking passed
+
+─────────────────────────────────────────────────
+ Translation Integrity Check
+─────────────────────────────────────────────────
+??  Checking translation key parity...
+? Translation integrity verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 2: Test Suite Execution                                ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: pytest
+─────────────────────────────────────────────────
+??  Using in-memory SQLite for local tests (DATABASE_URL not set)
+??  Using strict auth mode for local tests (AUTH_MODE not set)
+??  Using batch test runner (prevents system freeze)...
+
+╔════════════════════════════════════════╗
+║   Batch Test Runner (SMS v1.17.2)     ║
+╚════════════════════════════════════════╝
+
+? Scanning for test files...
+? Found 88 test files
+? Split into 18 batches (5 files per batch)
+
+
+┌─────────────────────────────────────────┐
+│ Batch 1 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_admin_backup_encryption.py
+   test_admin_bootstrap.py
+   test_analytics_router.py
+   test_analytics_service.py
+   test_attendance_router.py
+? Running tests...
+....................................................................     [100%]
+? Batch 1 completed successfully in 17.5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 2 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_audit_router.py
+   test_audit.py
+   test_auth_flow.py
+   test_auth_refresh.py
+   test_auth_router.py
+? Running tests...
+.........................................                                [100%]
+? Batch 2 completed successfully in 6.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 3 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_auto_import_courses.py
+   test_backup_encryption.py
+   test_change_password.py
+   test_config_module.py
+   test_config_settings.py
+? Running tests...
+...................................................                      [100%]
+? Batch 3 completed successfully in 4.8s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 4 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_control_endpoints.py
+   test_control_environment.py
+   test_control_jwt_integration.py
+   test_control_maintenance.py
+   test_control_path_traversal.py
+? Running tests...
+...........................                                              [100%]
+? Batch 4 completed successfully in 10.9s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 5 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_control_start_branches.py
+   test_course_rule_normalization.py
+   test_courses_router.py
+   test_csrf_flow.py
+   test_csv_import.py
+? Running tests...
+...............................                                          [100%]
+? Batch 5 completed successfully in 5.5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 6 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_daily_performance_router.py
+   test_database_upload.py
+   test_db_utils.py
+   test_edge_cases.py
+   test_enrollments_router.py
+? Running tests...
+................................................                         [100%]
+? Batch 6 completed successfully in 5.1s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 7 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_environment_detection.py
+   test_environment_module.py
+   test_exception_handlers.py
+   test_export_analytics.py
+   test_grade_calculation_fix.py
+? Running tests...
+...................                                                      [100%]
+? Batch 7 completed successfully in 5.5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 8 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_grade_calculation_integration.py
+   test_grade_calculation.py
+   test_grades_router.py
+   test_gzip_middleware.py
+   test_health_checks.py
+? Running tests...
+...............................                                          [100%]
+? Batch 8 completed successfully in 5.2s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 9 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_health.py
+   test_import_export.py
+   test_import_resolver_cov.py
+   test_import_resolver.py
+   test_imports_integration.py
+? Running tests...
+..............................                                           [100%]
+? Batch 9 completed successfully in 8.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 10 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_imports_soft_delete.py
+   test_imports_upload.py
+   test_integration_smoke.py
+   test_jwt_smoke.py
+   test_list_routes.py
+? Running tests...
+.....s..                                                                 [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_integration_smoke.py:8: Integration tests disabled (set RUN_INTEGRATION=1)
+? Batch 10 completed successfully in 5s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 11 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_logging_config_cov.py
+   test_logging_config.py
+   test_metrics_simple.py
+   test_metrics.py
+   test_models_relationships.py
+? Running tests...
+..................                                                       [100%]
+? Batch 11 completed successfully in 4.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 12 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_notifications_router.py
+   test_password_rehash.py
+   test_performance_monitor.py
+   test_permissions_api.py
+   test_rate_limit_enforcement.py
+? Running tests...
+..........................................................               [100%]
+? Batch 12 completed successfully in 6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 13 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_rate_limiting.py
+   test_rbac_enforcement.py
+   test_rbac_router.py
+   test_rbac_templates.py
+   test_rbac.py
+? Running tests...
+............sssssssssssssssssssssssssssssssssssssssssssss..........      [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_rbac_templates.py:13: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:19: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:25: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:31: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:37: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:43: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:49: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:55: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:61: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:67: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:73: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:79: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:85: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:91: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:97: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:103: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:109: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:115: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:121: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:127: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:133: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:139: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:145: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:151: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:157: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:163: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:169: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:175: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:181: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:187: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:193: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:199: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:205: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:211: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:217: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:223: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:229: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:235: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:241: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:247: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:253: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:259: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:265: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:271: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+SKIPPED [1] tests\test_rbac_templates.py:277: TODO: Implement in Phase 2 RBAC execution (Week 1-2)
+? Batch 13 completed successfully in 8.7s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 14 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_register_role_enforcement.py
+   test_reports_router.py
+   test_request_id_middleware.py
+   test_request_id.py
+   test_response_cache_middleware.py
+? Running tests...
+...........................                                              [100%]
+? Batch 14 completed successfully in 9.6s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 15 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_response_schemas.py
+   test_routers_imports.py
+   test_run_migrations_repo_root.py
+   test_run_migrations_unit.py
+   test_run_migrations.py
+? Running tests...
+.....................................                                    [100%]
+? Batch 15 completed successfully in 18.4s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 16 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_saved_search_integration.py
+   test_schemas_students.py
+   test_search_api_endpoints.py
+   test_search_integration.py
+   test_search_service.py
+? Running tests...
+........................................................................ [ 51%]
+.....................................................................    [100%]
+============================== warnings summary ===============================
+tests/test_saved_search_integration.py::TestSavedSearchCRUD::test_update_saved_search
+  D:\SMS\student-management-system\backend\services\saved_search_service.py:189: PydanticDeprecatedSince20: The `dict` method is deprecated; use `model_dump` instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    update_dict = update_data.dict(exclude_unset=True)
+
+tests/test_search_api_endpoints.py::TestErrorHandling::test_invalid_json
+  C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\httpx\_models.py:408: DeprecationWarning: Use 'content=<...>' to upload raw bytes/text content.
+    headers, stream = encode_request(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+? Batch 16 completed successfully in 6.4s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 17 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_services_analytics.py
+   test_sessions_router.py
+   test_soft_delete_filtering.py
+   test_students_import.py
+   test_students_router.py
+? Running tests...
+...................................                                      [100%]
+? Batch 17 completed successfully in 5.3s
+  Waiting 2 seconds before next batch...
+
+┌─────────────────────────────────────────┐
+│ Batch 18 of 18 (Files: 3)
+└─────────────────────────────────────────┘
+   test_timing_middleware.py
+   test_version_consistency.py
+   test_websocket.py
+? Running tests...
+.......sss...................                                            [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_version_consistency.py:134: DOCUMENTATION_INDEX.md not found
+SKIPPED [1] tests\test_version_consistency.py:163: SMS_INSTALLER_WIZARD.ps1 not found
+SKIPPED [1] tests\test_version_consistency.py:178: SMS_UNINSTALLER_WIZARD.ps1 not found
+? Batch 18 completed successfully in 2.3s
+
+╔════════════════════════════════════════╗
+║          TEST EXECUTION SUMMARY        ║
+╚════════════════════════════════════════╝
+
+Batches:
+  Total:   18
+?   Completed: 18
+
+Tests:
+  Total:   0
+
+Duration: 170.4s
+
+? All tests passed! ??
+? Backend tests passed
+
+─────────────────────────────────────────────────
+ Frontend: Vitest
+─────────────────────────────────────────────────
+??  Running fast frontend tests only...
+? Frontend tests passed
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Git Remote Synchronization                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Updating remote references...
+? Git remote is synchronized (or local is ahead)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 4: Automated Cleanup                                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Python Cache Cleanup
+─────────────────────────────────────────────────
+? Removed 15 Python cache items
+
+─────────────────────────────────────────────────
+ Node.js Cache Cleanup
+─────────────────────────────────────────────────
+??  Node cache already clean
+
+─────────────────────────────────────────────────
+ Build Artifacts Cleanup
+─────────────────────────────────────────────────
+
+─────────────────────────────────────────────────
+ Temporary Files Cleanup
+─────────────────────────────────────────────────
+? Removed 15 temporary files
+
+─────────────────────────────────────────────────
+ Legacy Artifacts Cleanup
+─────────────────────────────────────────────────
+??  Total space freed: 3.61 MB
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 5: Documentation and Git Status                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Key Documentation Check
+─────────────────────────────────────────────────
+? README.md exists
+? CHANGELOG.md exists
+? docs/DOCUMENTATION_INDEX.md exists
+? DOCUMENTATION_INDEX.md found in docs/ (acceptable)
+
+─────────────────────────────────────────────────
+ Git Status
+─────────────────────────────────────────────────
+??  Uncommitted changes detected:
+D  commit_ready_20260128-114738.log M  docs/plans/UNIFIED_WORK_PLAN.md M  frontend/index.html M  frontend/src/App.tsx A  frontend/src/components/Divider.tsx M  frontend/src/components/layout/Navigation.tsx M  frontend/src/contexts/AppearanceThemeContext.tsx M  frontend/src/features/advanced-search/components/AdvancedFilters.tsx M  frontend/src/features/advanced-search/components/FacetedNavigation.tsx M  frontend/src/features/advanced-search/components/SearchHistorySidebar.tsx M  frontend/src/features/advanced-search/components/SearchResults.tsx M  frontend/src/features/attendance/components/AttendanceView.tsx M  frontend/src/features/attendance/components/EnhancedAttendanceCalendar.tsx M  frontend/src/features/calendar/components/CalendarView.tsx M  frontend/src/features/courses/components/CoursesView.tsx M  frontend/src/features/dashboard/components/EnhancedDashboardView.tsx M  frontend/src/features/operations/components/AppearanceThemeSelector.tsx M  frontend/src/features/search/SavedSearches.tsx M  frontend/src/features/students/components/StudentProfile.tsx MM frontend/src/index.css M  frontend/src/locales/el/controlPanel.js M  frontend/src/locales/en/controlPanel.js M  frontend/src/pages/OperationsPage.tsx ?? commit_ready_20260129-224306.log ?? docs/MIEEK_THEME_IMPLEMENTATION.md ?? docs/misc/DEFAULT_THEME_RENDERING_DETAILS.md ?? frontend/src/components/DIVIDER_EXAMPLES.md ?? scripts/verify-logout-styling.js ?? templates/theme_sample/
+
+─────────────────────────────────────────────────
+ Root Documentation Whitelist
+─────────────────────────────────────────────────
+? Root documentation whitelist satisfied
+
+╔══════════════════════════════════════════════════════════════╗
+║  Execution Summary                                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+Mode: quick
+Duration: 263.6s
+
+Code Quality:
+  ? Docs & Version Sync
+  ? Version Consistency
+  ? Version Format
+  ? Backend Ruff
+  ? Backend MyPy
+  ? Frontend ESLint
+  ? Markdown Lint
+  ? TypeScript
+  ? Translation Integrity
+
+Tests:
+  ? Backend Dependencies
+  ? Conftest Config
+  ? Backend pytest
+  ? Frontend Vitest
+
+Health Checks:
+  ? Git Remote
+
+Cleanup:
+  ? Python Cache (15 items)
+  ? Node Cache (Already clean)
+  ? Build Artifacts
+  ? Temp Files (15 files removed)
+
+= * 60
+[FAIL] SOME CHECKS FAILED - REVIEW AND FIX
+= * 60

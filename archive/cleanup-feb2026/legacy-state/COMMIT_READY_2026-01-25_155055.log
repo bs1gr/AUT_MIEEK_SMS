@@ -1,0 +1,154 @@
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.4
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-01-25 15:50:56
+Log file: D:\SMS\student-management-system\commit_ready_20260125-155056.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+??  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+??  Using version from VERSION file: 1.17.4
+??  Target version: 1.17.4
+??  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+? VERSION file: 1.17.4 (correct)
+? Backend main.py docstring: 1.17.4 (correct)
+? Frontend package.json: 1.17.4 (correct)
+? User guide version: 1.17.4 (correct)
+? Developer guide version: 1.17.4 (correct)
+? Documentation index version: 1.17.4 (correct)
+? COMMIT_READY.ps1 version: 1.17.4 (correct)
+? INSTALLER_BUILDER.ps1 version: 1.17.4 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+? Version verification completed successfully!
+? All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+? Version format valid: 1.17.4
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+??  Installing runtime requirements (pip) from requirements.txt
+??  Installing dev requirements (pip)
+? Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+? conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running pre-commit hooks on staged files...
+? Pre-commit hooks passed (files auto-fixed).
+??  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+??  Running ruff check...
+? Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+??  Running mypy...
+? Backend type checking passed
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+??  Running ESLint...
+? Frontend linting passed
+
+─────────────────────────────────────────────────
+ Repository: Markdown Lint
+─────────────────────────────────────────────────
+??  Running markdownlint with auto-fix...
+? Markdown linting failed (auto-fix attempted but issues remain)
+artifacts/state/STATE_2026-01-25_155140.md:12:7 error MD010/no-hard-tabs Hard tabs [Column: 7] artifacts/state/STATE_2026-01-25_155140.md:13:7 error MD010/no-hard-tabs Hard tabs [Column: 7]
+
+─────────────────────────────────────────────────
+ Frontend: TypeScript Type Checking
+─────────────────────────────────────────────────
+??  Skipping TypeScript type checking in quick mode (temporary)
+? TypeScript type checking passed
+
+─────────────────────────────────────────────────
+ Translation Integrity Check
+─────────────────────────────────────────────────
+??  Checking translation key parity...
+? Translation integrity verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 2: Test Suite Execution                                ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: pytest
+─────────────────────────────────────────────────
+??  Using in-memory SQLite for local tests (DATABASE_URL not set)
+??  Using strict auth mode for local tests (AUTH_MODE not set)
+??  Using batch test runner (prevents system freeze)...
+
+╔════════════════════════════════════════╗
+║   Batch Test Runner (SMS v1.17.2)     ║
+╚════════════════════════════════════════╝
+
+? Scanning for test files...
+? Found 88 test files
+? Split into 18 batches (5 files per batch)
+
+
+┌─────────────────────────────────────────┐
+│ Batch 1 of 18 (Files: 5)
+└─────────────────────────────────────────┘
+   test_admin_backup_encryption.py
+   test_admin_bootstrap.py
+   test_analytics_router.py
+   test_analytics_service.py
+   test_attendance_router.py
+? Running tests...
