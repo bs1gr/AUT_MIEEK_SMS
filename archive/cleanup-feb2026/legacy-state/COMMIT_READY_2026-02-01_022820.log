@@ -217,7 +217,7 @@ Tests:
 Duration: 2.2s
 
 ? Some tests failed
-? 
+?
 ?? Saving failed test files for re-testing...
 ?    To retest only failed files, run:
    .\RUN_TESTS_BATCH.ps1 -RetestFailed

@@ -1,0 +1,5 @@
+{
+  "message": "Analysis could not be processed for analysis ID 942698640",
+  "documentation_url": "https://docs.github.com/rest/code-scanning/code-scanning#get-a-code-scanning-analysis-for-a-repository",
+  "status": "422"
+}

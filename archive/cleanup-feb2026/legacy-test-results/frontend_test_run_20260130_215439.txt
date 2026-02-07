@@ -619,7 +619,7 @@ Failed to load course info 999 TypeError: fetch failed
     at D:/SMS/student-management-system/frontend/src/features/students/components/CourseGradeBreakdown.tsx:41:32
     at async Promise.all (index 0)
     at fetchMissingCourses (D:/SMS/student-management-system/frontend/src/features/students/components/CourseGradeBreakdown.tsx:38:32) {
-  [cause]: AggregateError: 
+  [cause]: AggregateError:
       at internalConnectMultiple (node:net:1122:18)
       at afterConnectMultiple (node:net:1689:7) {
     code: 'ECONNREFUSED',
@@ -1076,7 +1076,7 @@ stderr | src\utils\errorReporting.ts:82:17
 Failed to send error to backend: TypeError: fetch failed
     at node:internal/deps/undici/undici:13510:13
     at processTicksAndRejections (node:internal/process/task_queues:95:5) {
-  [cause]: AggregateError: 
+  [cause]: AggregateError:
       at internalConnectMultiple (node:net:1122:18)
       at afterConnectMultiple (node:net:1689:7) {
     code: 'ECONNREFUSED',
@@ -1088,7 +1088,7 @@ stderr | src\utils\errorReporting.ts:82:17
 Failed to send error to backend: TypeError: fetch failed
     at node:internal/deps/undici/undici:13510:13
     at processTicksAndRejections (node:internal/process/task_queues:95:5) {
-  [cause]: AggregateError: 
+  [cause]: AggregateError:
       at internalConnectMultiple (node:net:1122:18)
       at afterConnectMultiple (node:net:1689:7) {
     code: 'ECONNREFUSED',

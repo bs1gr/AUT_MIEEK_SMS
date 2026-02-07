@@ -799,7 +799,7 @@ Duration: 184.1s
 
 ✗ Some tests failed
 
-ℹ 
+ℹ
 💾 Saving failed test files for re-testing...
 
 
@@ -811,4 +811,3 @@ Duration: 184.1s
 
 
 ✗ Test log completed: D:\SMS\student-management-system\test-results\backend_batch_run_20260204_103435.txt
-

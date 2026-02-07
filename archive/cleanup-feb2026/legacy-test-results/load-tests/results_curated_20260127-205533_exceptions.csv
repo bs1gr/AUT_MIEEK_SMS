@@ -1,4 +1,4 @@
-Count,Message,Traceback,Nodes
+Count,Message,Traceback,Nodes
 3022,No tasks defined on CuratedUser. Use the @task decorator or set the 'tasks' attribute of the User (or mark it as abstract = True if you only intend to subclass it),"  File ""C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\locust\user\task.py"", line 350, in run
     self.schedule_task(self.get_next_task())
                        ~~~~~~~~~~~~~~~~~~^^
@@ -6,4 +6,4 @@ Count,Message,Traceback,Nodes
     raise Exception(
         f""No tasks defined on {self.user.__class__.__name__}{extra_message} Use the @task decorator or set the 'tasks' attribute of the User (or mark it as abstract = True if you only intend to subclass it)""
     )
-",local
+",local

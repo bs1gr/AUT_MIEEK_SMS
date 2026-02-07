@@ -20,9 +20,9 @@
 2026-01-24 01:00:54,286 - backend.performance_monitor - WARNING - [11e13167-3a45-41ba-b7a1-36e80bd02e6c] - Slow query detected (767.729 ms): SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_up...
 2026-01-24 01:00:54,286 - backend.db.query_profiler - WARNING - [11e13167-3a45-41ba-b7a1-36e80bd02e6c] - Slow query (0.768s): SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_passw...
 2026-01-24 01:00:54,286 - backend.db.query_profiler - WARNING - [11e13167-3a45-41ba-b7a1-36e80bd02e6c] - Slow query (0.768s): SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_passw...
-2026-01-24 01:00:56,125 - backend.performance_monitor - WARNING - [202e2415-c6ee-4555-b4e8-28a5e340af72] - Slow query detected (491.177 ms): SELECT permissions.id AS permissions_id, permissions."key" AS permissions_key, permissions.resource AS permissions_resource, permissions.action AS permissions_action, permissions.description AS permissions_description, permissions.is_active AS permissions_is_active, permissions.created_at AS permissions_created_at, permissions.updated_at AS permissions_updated_at 
+2026-01-24 01:00:56,125 - backend.performance_monitor - WARNING - [202e2415-c6ee-4555-b4e8-28a5e340af72] - Slow query detected (491.177 ms): SELECT permissions.id AS permissions_id, permissions."key" AS permissions_key, permissions.resource AS permissions_resource, permissions.action AS permissions_action, permissions.description AS permissions_description, permissions.is_active AS permissions_is_active, permissions.created_at AS permissions_created_at, permissions.updated_at AS permissions_updated_at
 FROM permissions
-2026-01-24 01:00:56,125 - backend.performance_monitor - WARNING - [202e2415-c6ee-4555-b4e8-28a5e340af72] - Slow query detected (491.177 ms): SELECT permissions.id AS permissions_id, permissions."key" AS permissions_key, permissions.resource AS permissions_resource, permissions.action AS permissions_action, permissions.description AS permissions_description, permissions.is_active AS permissions_is_active, permissions.created_at AS permissions_created_at, permissions.updated_at AS permissions_updated_at 
+2026-01-24 01:00:56,125 - backend.performance_monitor - WARNING - [202e2415-c6ee-4555-b4e8-28a5e340af72] - Slow query detected (491.177 ms): SELECT permissions.id AS permissions_id, permissions."key" AS permissions_key, permissions.resource AS permissions_resource, permissions.action AS permissions_action, permissions.description AS permissions_description, permissions.is_active AS permissions_is_active, permissions.created_at AS permissions_created_at, permissions.updated_at AS permissions_updated_at
 FROM permissions
 2026-01-24 01:00:56,125 - backend.db.query_profiler - WARNING - [202e2415-c6ee-4555-b4e8-28a5e340af72] - Slow query (0.492s): SELECT permissions.id AS permissions_id, permissions."key" AS permissions_key, permissions.resource ...
 2026-01-24 01:00:56,125 - backend.db.query_profiler - WARNING - [202e2415-c6ee-4555-b4e8-28a5e340af72] - Slow query (0.492s): SELECT permissions.id AS permissions_id, permissions."key" AS permissions_key, permissions.resource ...
@@ -1537,8 +1537,8 @@ FROM permissions
 2026-01-26 21:58:59,175 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
 2026-01-26 21:58:59,175 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
 2026-01-26 21:58:59,203 - admin.bootstrap - ERROR - [-] - ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -1645,8 +1645,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2412,8 +2412,8 @@ WHERE users.email = ?
 2026-01-27 22:48:59,648 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
 2026-01-27 22:48:59,649 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
 2026-01-27 22:48:59,676 - admin.bootstrap - ERROR - [-] - ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2520,8 +2520,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2544,8 +2544,8 @@ WHERE users.email = ?
 2026-01-27 22:52:05,165 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
 2026-01-27 22:52:05,165 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
 2026-01-27 22:52:05,192 - admin.bootstrap - ERROR - [-] - ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2652,8 +2652,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2676,8 +2676,8 @@ WHERE users.email = ?
 2026-01-27 22:53:53,826 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
 2026-01-27 22:53:53,826 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
 2026-01-27 22:53:53,852 - admin.bootstrap - ERROR - [-] - ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2784,8 +2784,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2808,8 +2808,8 @@ WHERE users.email = ?
 2026-01-27 22:53:56,508 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
 2026-01-27 22:53:56,508 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
 2026-01-27 22:53:56,536 - admin.bootstrap - ERROR - [-] - ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2916,8 +2916,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -2940,8 +2940,8 @@ WHERE users.email = ?
 2026-01-27 22:54:09,958 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
 2026-01-27 22:54:09,958 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
 2026-01-27 22:54:09,984 - admin.bootstrap - ERROR - [-] - ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -3048,8 +3048,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -3813,8 +3813,8 @@ WHERE users.email = ?
 2026-01-28 22:00:12,845 - admin.bootstrap - INFO - [-] - 🔧 Running admin bootstrap with credentials from environment...
 2026-01-28 22:00:12,845 - backend.scripts.migrate.runner - INFO - [-] - [run_migrations] ENTER
 2026-01-28 22:00:12,874 - admin.bootstrap - ERROR - [-] - ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -3921,15 +3921,15 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 2026-01-28 22:00:12,930 - admin.bootstrap - ERROR - [-] - ❌ Admin bootstrap failed: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -4043,8 +4043,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -5731,8 +5731,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: export_jobs
-[SQL: SELECT export_jobs.id AS export_jobs_id, export_jobs.export_type AS export_jobs_export_type, export_jobs.file_format AS export_jobs_file_format, export_jobs.file_path AS export_jobs_file_path, export_jobs.status AS export_jobs_status, export_jobs.total_records AS export_jobs_total_records, export_jobs.filters AS export_jobs_filters, export_jobs.scheduled AS export_jobs_scheduled, export_jobs.schedule_frequency AS export_jobs_schedule_frequency, export_jobs.scheduled_at AS export_jobs_scheduled_at, export_jobs.created_by AS export_jobs_created_by, export_jobs.created_at AS export_jobs_created_at, export_jobs.completed_at AS export_jobs_completed_at 
-FROM export_jobs 
+[SQL: SELECT export_jobs.id AS export_jobs_id, export_jobs.export_type AS export_jobs_export_type, export_jobs.file_format AS export_jobs_file_format, export_jobs.file_path AS export_jobs_file_path, export_jobs.status AS export_jobs_status, export_jobs.total_records AS export_jobs_total_records, export_jobs.filters AS export_jobs_filters, export_jobs.scheduled AS export_jobs_scheduled, export_jobs.schedule_frequency AS export_jobs_schedule_frequency, export_jobs.scheduled_at AS export_jobs_scheduled_at, export_jobs.created_by AS export_jobs_created_by, export_jobs.created_at AS export_jobs_created_at, export_jobs.completed_at AS export_jobs_completed_at
+FROM export_jobs
 WHERE export_jobs.id = ?
  LIMIT ? OFFSET ?]
 [parameters: (1, 1, 0)]
@@ -5914,8 +5914,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: export_jobs
-[SQL: SELECT export_jobs.id AS export_jobs_id, export_jobs.export_type AS export_jobs_export_type, export_jobs.file_format AS export_jobs_file_format, export_jobs.file_path AS export_jobs_file_path, export_jobs.status AS export_jobs_status, export_jobs.total_records AS export_jobs_total_records, export_jobs.filters AS export_jobs_filters, export_jobs.scheduled AS export_jobs_scheduled, export_jobs.schedule_frequency AS export_jobs_schedule_frequency, export_jobs.scheduled_at AS export_jobs_scheduled_at, export_jobs.created_by AS export_jobs_created_by, export_jobs.created_at AS export_jobs_created_at, export_jobs.completed_at AS export_jobs_completed_at 
-FROM export_jobs 
+[SQL: SELECT export_jobs.id AS export_jobs_id, export_jobs.export_type AS export_jobs_export_type, export_jobs.file_format AS export_jobs_file_format, export_jobs.file_path AS export_jobs_file_path, export_jobs.status AS export_jobs_status, export_jobs.total_records AS export_jobs_total_records, export_jobs.filters AS export_jobs_filters, export_jobs.scheduled AS export_jobs_scheduled, export_jobs.schedule_frequency AS export_jobs_schedule_frequency, export_jobs.scheduled_at AS export_jobs_scheduled_at, export_jobs.created_by AS export_jobs_created_by, export_jobs.created_at AS export_jobs_created_at, export_jobs.completed_at AS export_jobs_completed_at
+FROM export_jobs
 WHERE export_jobs.id = ?
  LIMIT ? OFFSET ?]
 [parameters: (1, 1, 0)]

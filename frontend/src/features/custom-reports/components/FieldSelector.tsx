@@ -4,7 +4,7 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, GripVertical, Trash2 } from 'lucide-react';
+import { ChevronRight, Trash2 } from 'lucide-react';
 
 interface FieldSelectorProps {
   availableFields: string[];
@@ -134,9 +134,10 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                   aria-label={`${t('field', { ns: 'customReports' })}: ${field}`}
                 >
                   <div className="flex items-center gap-3 flex-1">
-                    <GripVertical
-                      size={18}
-                      className="text-gray-400 group-hover:text-blue-600"
+                    <ChevronRight
+                      size={16}
+                      className="text-gray-400 group-hover:text-blue-600 rotate-90"
+                      aria-hidden="true"
                     />
                     <span className="font-medium text-gray-900">{field}</span>
                   </div>

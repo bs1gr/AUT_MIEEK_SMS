@@ -8,8 +8,8 @@ export default function DevTools() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
 
-  const t = (key: string): string => {
-    const translated = translationFunction(key);
+  const t = (key: string, options?: Record<string, unknown>): string => {
+    const translated = translationFunction(key, options);
     if (translated !== key) return translated;
 
     const fallbackTranslations: Record<string, string> = {
@@ -236,7 +236,7 @@ export default function DevTools() {
         </div>
 
         {/* Shutdown Section */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-white/20 border-red-500/50">
+        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-red-500/50">
           <h2 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
             <Power className="w-6 h-6 text-red-400" />
             {t('shutdown', { ns: 'devtools' }) || 'Shutdown & Quit'}

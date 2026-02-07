@@ -9,7 +9,7 @@ Supports multiple export formats: Excel (XLSX), CSV, and PDF.
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, cast
 from enum import Enum
 import csv
 
@@ -54,6 +54,12 @@ class AsyncExportService:
     def __init__(self):
         self.exports_dir = os.path.join(os.path.dirname(__file__), "..", "exports")
         os.makedirs(self.exports_dir, exist_ok=True)
+
+    @staticmethod
+    def _set_job_fields(export_job: ExportJob, **fields: Any) -> None:
+        job_any = cast(Any, export_job)
+        for key, value in fields.items():
+            setattr(job_any, key, value)
 
     def get_export_path(self, export_id: int, format: str) -> str:
         """Generate file path for export."""
@@ -111,7 +117,7 @@ class AsyncExportService:
                     progress = int((current_index / total_students) * 100)
                     export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
                     if export_job:
-                        export_job.progress_percent = progress
+                        self._set_job_fields(export_job, progress_percent=progress)
                         db.commit()
 
             # Adjust column widths
@@ -125,10 +131,13 @@ class AsyncExportService:
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(students)
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(students),
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             logger.info(f"Export {export_job_id} completed: {len(students)} students")
@@ -140,8 +149,11 @@ class AsyncExportService:
             # Update export job status
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return False, None, str(e)
@@ -187,7 +199,7 @@ class AsyncExportService:
                     progress = int((current_index / total_courses) * 100)
                     export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
                     if export_job:
-                        export_job.progress_percent = progress
+                        self._set_job_fields(export_job, progress_percent=progress)
                         db.commit()
 
             for col in range(1, len(headers) + 1):
@@ -198,10 +210,13 @@ class AsyncExportService:
 
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(courses)
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(courses),
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             logger.info(f"Export {export_job_id} completed: {len(courses)} courses")
@@ -212,8 +227,11 @@ class AsyncExportService:
 
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return False, None, str(e)
@@ -259,7 +277,7 @@ class AsyncExportService:
                     progress = int((current_index / total_grades) * 100)
                     export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
                     if export_job:
-                        export_job.progress_percent = progress
+                        self._set_job_fields(export_job, progress_percent=progress)
                         db.commit()
 
             for col in range(1, len(headers) + 1):
@@ -270,10 +288,13 @@ class AsyncExportService:
 
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(grades)
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(grades),
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             logger.info(f"Export {export_job_id} completed: {len(grades)} grades")
@@ -284,8 +305,11 @@ class AsyncExportService:
 
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return False, None, str(e)
@@ -331,11 +355,14 @@ class AsyncExportService:
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(students)
-                export_job.progress_percent = 100
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(students),
+                    progress_percent=100,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return True, file_path, "CSV export completed"
@@ -343,8 +370,11 @@ class AsyncExportService:
             logger.error(f"CSV export failed: {e}")
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.error_message = str(e)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    error_message=str(e),
+                )
                 db.commit()
             return False, None, str(e)
 
@@ -384,11 +414,14 @@ class AsyncExportService:
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(courses)
-                export_job.progress_percent = 100
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(courses),
+                    progress_percent=100,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return True, file_path, "CSV export completed"
@@ -396,8 +429,11 @@ class AsyncExportService:
             logger.error(f"CSV export failed: {e}")
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.error_message = str(e)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    error_message=str(e),
+                )
                 db.commit()
             return False, None, str(e)
 
@@ -435,11 +471,14 @@ class AsyncExportService:
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(grades)
-                export_job.progress_percent = 100
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(grades),
+                    progress_percent=100,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return True, file_path, "CSV export completed"
@@ -447,8 +486,11 @@ class AsyncExportService:
             logger.error(f"CSV export failed: {e}")
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.error_message = str(e)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    error_message=str(e),
+                )
                 db.commit()
             return False, None, str(e)
 
@@ -497,7 +539,13 @@ class AsyncExportService:
             table_data = [["ID", "First Name", "Last Name", "Email", "Status"]]
             for student in students:
                 table_data.append(
-                    [str(student.id), student.first_name, student.last_name, student.email, student.status]
+                    [
+                        str(student.id),
+                        str(student.first_name),
+                        str(student.last_name),
+                        str(student.email),
+                        str(student.status),
+                    ]
                 )
 
             # Create and style table
@@ -526,11 +574,14 @@ class AsyncExportService:
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(students)
-                export_job.progress_percent = 100
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(students),
+                    progress_percent=100,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return True, file_path, "PDF export completed"
@@ -538,8 +589,11 @@ class AsyncExportService:
             logger.error(f"PDF export failed: {e}")
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.error_message = str(e)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    error_message=str(e),
+                )
                 db.commit()
             return False, None, str(e)
 
@@ -585,10 +639,10 @@ class AsyncExportService:
             for course in courses:
                 table_data.append(
                     [
-                        course.course_code,
-                        course.course_name[:30],  # Truncate long names
-                        course.instructor_name or "N/A",
-                        course.status,
+                        str(course.course_code),
+                        str(course.course_name)[:30],  # Truncate long names
+                        str(course.instructor_name or "N/A"),
+                        str(course.status),
                     ]
                 )
 
@@ -618,11 +672,14 @@ class AsyncExportService:
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(courses)
-                export_job.progress_percent = 100
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(courses),
+                    progress_percent=100,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return True, file_path, "PDF export completed"
@@ -630,8 +687,11 @@ class AsyncExportService:
             logger.error(f"PDF export failed: {e}")
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.error_message = str(e)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    error_message=str(e),
+                )
                 db.commit()
             return False, None, str(e)
 
@@ -675,7 +735,12 @@ class AsyncExportService:
                 student_name = f"{grade.student.first_name} {grade.student.last_name}" if grade.student else "N/A"
                 course_code = grade.course.course_code if grade.course else "N/A"
                 table_data.append(
-                    [student_name[:25], course_code, grade.grade, str(grade.points) if grade.points else "N/A"]
+                    [
+                        str(student_name)[:25],
+                        str(course_code),
+                        str(grade.grade),
+                        str(grade.points) if grade.points else "N/A",
+                    ]
                 )
 
             # Create and style table
@@ -704,11 +769,14 @@ class AsyncExportService:
             # Update export job
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.COMPLETED
-                export_job.file_path = file_path
-                export_job.total_records = len(grades)
-                export_job.progress_percent = 100
-                export_job.completed_at = datetime.now(timezone.utc)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.COMPLETED,
+                    file_path=file_path,
+                    total_records=len(grades),
+                    progress_percent=100,
+                    completed_at=datetime.now(timezone.utc),
+                )
                 db.commit()
 
             return True, file_path, "PDF export completed"
@@ -716,8 +784,11 @@ class AsyncExportService:
             logger.error(f"PDF export failed: {e}")
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.FAILED
-                export_job.error_message = str(e)
+                self._set_job_fields(
+                    export_job,
+                    status=ExportStatus.FAILED,
+                    error_message=str(e),
+                )
                 db.commit()
             return False, None, str(e)
 
@@ -743,7 +814,7 @@ class AsyncExportService:
             # Update status to processing
             export_job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
             if export_job:
-                export_job.status = ExportStatus.PROCESSING
+                self._set_job_fields(export_job, status=ExportStatus.PROCESSING)
                 db.commit()
 
             # Route to appropriate generator based on format

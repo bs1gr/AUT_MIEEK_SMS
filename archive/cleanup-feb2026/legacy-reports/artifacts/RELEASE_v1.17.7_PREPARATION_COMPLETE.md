@@ -122,7 +122,7 @@ Release v1.17.7 preparation has been **completed successfully**. All mandatory d
 - Verification: ✅ All 1813 frontend tests passing
 
 **Greek Date Format Display**
-- Files: 
+- Files:
   - `frontend/src/features/grading/components/GradingView.tsx`
   - `frontend/src/features/attendance/components/AttendanceView.tsx`
 - Implementation: `formatDateGreek()` utility for `DD-MM-YYYY` display

@@ -783,4 +783,3 @@ Duration: 216.2s
 
 
 ✓ Test log completed: D:\SMS\student-management-system\test-results\backend_batch_run_20260203_154714.txt
-

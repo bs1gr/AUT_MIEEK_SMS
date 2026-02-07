@@ -303,12 +303,15 @@ class CustomReportService:
             .count()
         )
 
-        reports_by_type = dict(
+        reports_by_type_rows = (
             self.db.query(Report.report_type, func.count(Report.id))
             .filter(Report.user_id == user_id, Report.deleted_at.is_(None))
             .group_by(Report.report_type)
             .all()
         )
+        reports_by_type: Dict[str, int] = {
+            str(row[0]): int(row[1]) for row in reports_by_type_rows if row[0] is not None
+        }
 
         total_generated = self.db.query(GeneratedReport).filter(GeneratedReport.user_id == user_id).count()
 

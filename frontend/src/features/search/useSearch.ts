@@ -13,6 +13,7 @@ export interface SearchResult {
   email?: string;
   display_name?: string;
   type: 'student' | 'course' | 'grade';
+  student_id?: number;
   metadata?: Record<string, unknown>;
   course_name?: string;
   course_code?: string;

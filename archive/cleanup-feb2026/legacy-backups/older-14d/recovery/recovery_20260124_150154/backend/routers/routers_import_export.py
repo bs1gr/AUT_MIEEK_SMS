@@ -10,7 +10,16 @@ Endpoints for:
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    File,
+    BackgroundTasks,
+)
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
@@ -59,7 +68,9 @@ async def create_student_import(
 
         # Validate file type
         if not file.filename.lower().endswith((".csv", ".xlsx")):
-            raise HTTPException(status_code=400, detail="Only CSV and XLSX files are supported")
+            raise HTTPException(
+                status_code=400, detail="Only CSV and XLSX files are supported"
+            )
 
         # Create import job
         job = service.create_import_job(
@@ -99,7 +110,9 @@ async def create_student_import(
     except Exception as e:
         logger.error(f"Error creating import job: {str(e)}")
         return error_response(
-            "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
+            "INTERNAL_ERROR",
+            f"Failed to create import job: {str(e)}",
+            request_id=request.state.request_id,
         )
 
 
@@ -119,7 +132,9 @@ async def create_course_import(
     """
     try:
         if not file.filename or not file.filename.lower().endswith((".csv", ".xlsx")):
-            raise HTTPException(status_code=400, detail="Only CSV and XLSX files are supported")
+            raise HTTPException(
+                status_code=400, detail="Only CSV and XLSX files are supported"
+            )
 
         job = service.create_import_job(
             db=db,
@@ -157,7 +172,9 @@ async def create_course_import(
     except Exception as e:
         logger.error(f"Error creating course import: {str(e)}")
         return error_response(
-            "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
+            "INTERNAL_ERROR",
+            f"Failed to create import job: {str(e)}",
+            request_id=request.state.request_id,
         )
 
 
@@ -177,7 +194,9 @@ async def create_grade_import(
     """
     try:
         if not file.filename or not file.filename.lower().endswith((".csv", ".xlsx")):
-            raise HTTPException(status_code=400, detail="Only CSV and XLSX files are supported")
+            raise HTTPException(
+                status_code=400, detail="Only CSV and XLSX files are supported"
+            )
 
         job = service.create_import_job(
             db=db,
@@ -215,7 +234,9 @@ async def create_grade_import(
     except Exception as e:
         logger.error(f"Error creating grade import: {str(e)}")
         return error_response(
-            "INTERNAL_ERROR", f"Failed to create import job: {str(e)}", request_id=request.state.request_id
+            "INTERNAL_ERROR",
+            f"Failed to create import job: {str(e)}",
+            request_id=request.state.request_id,
         )
 
 
@@ -233,7 +254,11 @@ async def get_import_job(
     """
     job = db.query(ImportJob).filter(ImportJob.id == import_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", f"Import job {import_job_id} not found", request_id=request.state.request_id)
+        return error_response(
+            "NOT_FOUND",
+            f"Import job {import_job_id} not found",
+            request_id=request.state.request_id,
+        )
 
     return success_response(
         ImportJobResponse(
@@ -308,7 +333,9 @@ async def list_import_jobs(
     )
 
 
-@router.post("/imports/{import_job_id}/commit", response_model=APIResponse[ImportJobResponse])
+@router.post(
+    "/imports/{import_job_id}/commit", response_model=APIResponse[ImportJobResponse]
+)
 @require_permission("imports:create")
 async def commit_import_job(
     import_job_id: int,
@@ -323,7 +350,9 @@ async def commit_import_job(
     """
     job = db.query(ImportJob).filter(ImportJob.id == import_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", "Import job not found", request_id=request.state.request_id)
+        return error_response(
+            "NOT_FOUND", "Import job not found", request_id=request.state.request_id
+        )
 
     if job.status != "ready":
         return error_response(
@@ -410,7 +439,9 @@ async def create_export(
     except Exception as e:
         logger.error(f"Error creating export job: {str(e)}")
         return error_response(
-            "INTERNAL_ERROR", f"Failed to create export: {str(e)}", request_id=request.state.request_id
+            "INTERNAL_ERROR",
+            f"Failed to create export: {str(e)}",
+            request_id=request.state.request_id,
         )
 
 
@@ -428,7 +459,11 @@ async def get_export_job(
     """
     job = db.query(ExportJob).filter(ExportJob.id == export_job_id).first()
     if not job:
-        return error_response("NOT_FOUND", f"Export job {export_job_id} not found", request_id=request.state.request_id)
+        return error_response(
+            "NOT_FOUND",
+            f"Export job {export_job_id} not found",
+            request_id=request.state.request_id,
+        )
 
     return success_response(
         ExportJobResponse(

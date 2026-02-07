@@ -7,7 +7,9 @@ def test_create_student_import_job(client: TestClient, admin_headers: dict):
     file_content = b"first_name,last_name,email\nJohn,Doe,john@example.com"
     files = {"file": ("students.csv", file_content, "text/csv")}
 
-    response = client.post("/api/v1/import-export/imports/students", headers=admin_headers, files=files)
+    response = client.post(
+        "/api/v1/import-export/imports/students", headers=admin_headers, files=files
+    )
 
     # Debug: Print response on failure
     if response.status_code != 200:
@@ -28,7 +30,9 @@ def test_create_course_import_job(client: TestClient, admin_headers: dict):
     file_content = b"course_code,course_name\nCS101,Intro to CS"
     files = {"file": ("courses.csv", file_content, "text/csv")}
 
-    response = client.post("/api/v1/import-export/imports/courses", headers=admin_headers, files=files)
+    response = client.post(
+        "/api/v1/import-export/imports/courses", headers=admin_headers, files=files
+    )
 
     assert response.status_code == 200
     data = response.json()
@@ -41,7 +45,9 @@ def test_create_grade_import_job(client: TestClient, admin_headers: dict):
     file_content = b"student_id,course_code,grade\nS1,CS101,85"
     files = {"file": ("grades.csv", file_content, "text/csv")}
 
-    response = client.post("/api/v1/import-export/imports/grades", headers=admin_headers, files=files)
+    response = client.post(
+        "/api/v1/import-export/imports/grades", headers=admin_headers, files=files
+    )
 
     assert response.status_code == 200
     data = response.json()
@@ -61,7 +67,9 @@ def test_list_import_jobs(client: TestClient, admin_headers: dict):
 def test_create_export_job(client: TestClient, admin_headers: dict):
     """Test creating an export job."""
     payload = {"export_type": "students", "file_format": "csv", "filters": {}}
-    response = client.post("/api/v1/import-export/exports", headers=admin_headers, json=payload)
+    response = client.post(
+        "/api/v1/import-export/exports", headers=admin_headers, json=payload
+    )
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True

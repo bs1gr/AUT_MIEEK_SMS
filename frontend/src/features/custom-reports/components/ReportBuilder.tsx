@@ -22,30 +22,30 @@ interface ReportBuilderProps {
 
 type FilterRule = {
   field: string;
-  operator?: string;
-  value?: unknown;
+  operator: string;
+  value: string | number | string[];
 };
 
 type SortingRule = {
   field: string;
-  order?: string;
+  order: 'asc' | 'desc';
 };
 
 type BackendReportPayload = {
   name: string;
-  description: string | null;
+  description?: string;
   report_type: string;
-  template_id: number | null;
+  template_id?: number;
   fields: Record<string, boolean>;
-  filters: Record<string, { operator?: string; value?: unknown }> | null;
-  aggregations: null;
-  sort_by: Record<string, string> | null;
-  export_format: string;
+  filters?: Record<string, { operator?: string; value?: unknown }>;
+  aggregations?: Record<string, unknown>;
+  sort_by?: Record<string, string>;
+  export_format: 'pdf' | 'excel' | 'csv';
   include_charts: boolean;
   schedule_enabled: boolean;
-  schedule_frequency: null;
-  schedule_cron: null;
-  email_recipients: string[] | null;
+  schedule_frequency?: string;
+  schedule_cron?: string;
+  email_recipients?: string[];
   email_enabled: boolean;
 };
 
@@ -54,7 +54,7 @@ interface ReportConfig {
   description: string;
   entity_type: string;
   report_type?: string; // from template
-  output_format: string;
+  output_format: 'pdf' | 'excel' | 'csv';
   default_export_format?: string; // from template
   selected_fields: string[];
   fields?: string[] | Record<string, unknown>; // from template
@@ -71,6 +71,89 @@ interface ReportConfig {
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
+
+const normalizeFilterValue = (value: unknown): string | number | string[] => {
+  if (Array.isArray(value)) {
+    return value.map((entry) => String(entry));
+  }
+  if (typeof value === 'number' || typeof value === 'string') {
+    return value;
+  }
+  if (value === null || value === undefined) {
+    return '';
+  }
+  return String(value);
+};
+
+const normalizeFilterRule = (value: unknown): FilterRule | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const field = typeof value.field === 'string' ? value.field : '';
+  if (!field) {
+    return null;
+  }
+  const operator = typeof value.operator === 'string' ? value.operator : 'equals';
+  const normalizedValue = normalizeFilterValue(value.value);
+  return { field, operator, value: normalizedValue };
+};
+
+const normalizeTemplateFilters = (value: unknown): FilterRule[] => {
+  if (!value) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => normalizeFilterRule(entry))
+      .filter((entry): entry is FilterRule => entry !== null);
+  }
+  if (isRecord(value)) {
+    if ('field' in value) {
+      const rule = normalizeFilterRule(value);
+      return rule ? [rule] : [];
+    }
+    return Object.entries(value).map(([field, entry]) => {
+      const operator = isRecord(entry) && typeof entry.operator === 'string' ? entry.operator : 'equals';
+      const normalizedValue = isRecord(entry) ? normalizeFilterValue(entry.value ?? entry) : normalizeFilterValue(entry);
+      return { field, operator, value: normalizedValue };
+    });
+  }
+  return [];
+};
+
+const normalizeSortingRule = (value: unknown): SortingRule | null => {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const field = typeof value.field === 'string' ? value.field : '';
+  if (!field) {
+    return null;
+  }
+  const order = value.order === 'desc' ? 'desc' : 'asc';
+  return { field, order };
+};
+
+const normalizeTemplateSorting = (value: unknown): SortingRule[] => {
+  if (!value) {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => normalizeSortingRule(entry))
+      .filter((entry): entry is SortingRule => entry !== null);
+  }
+  if (isRecord(value)) {
+    if ('field' in value) {
+      const rule = normalizeSortingRule(value);
+      return rule ? [rule] : [];
+    }
+    return Object.entries(value).map(([field, order]) => ({
+      field,
+      order: order === 'desc' ? 'desc' : 'asc',
+    }));
+  }
+  return [];
+};
 
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (isRecord(error) && typeof error.message === 'string') {
@@ -168,12 +251,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         name: baseName,
         description: baseDescription,
         entity_type: (templateMeta.report_type || templateMeta.entity_type || 'student') as string,
-        output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as string,
+        output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as 'pdf' | 'excel' | 'csv',
         selected_fields: Array.isArray(templateMeta.fields)
           ? templateMeta.fields
           : (templateMeta.selected_fields || []),
-        filters: Array.isArray(templateMeta.filters) ? templateMeta.filters : (templateMeta.filters ? [templateMeta.filters] : []),
-        sorting_rules: Array.isArray(templateMeta.sort_by) ? templateMeta.sort_by : (templateMeta.sorting_rules || []),
+        filters: normalizeTemplateFilters(templateMeta.filters),
+        sorting_rules: normalizeTemplateSorting(templateMeta.sort_by ?? templateMeta.sorting_rules),
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
         is_copy: templateMeta.is_copy,
@@ -215,8 +298,8 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       : reportFilters && typeof reportFilters === 'object'
         ? Object.entries(reportFilters).map(([field, value]) => ({
             field,
-            operator: isRecord(value) ? (value.operator as string) || 'equals' : 'equals',
-            value: isRecord(value) ? value.value ?? value : value,
+            operator: isRecord(value) && typeof value.operator === 'string' ? value.operator : 'equals',
+            value: isRecord(value) ? normalizeFilterValue(value.value ?? value) : normalizeFilterValue(value),
           }))
         : [];
 
@@ -225,7 +308,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       : reportSortBy && typeof reportSortBy === 'object'
         ? Object.entries(reportSortBy).map(([field, order]) => ({
             field,
-            order: order || 'asc',
+            order: order === 'desc' ? 'desc' : 'asc',
           }))
         : [];
 
@@ -233,7 +316,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       name: (reportRecord.name as string) || '',
       description: (reportRecord.description as string) || '',
       entity_type: (reportRecord.report_type as string) || 'student',
-      output_format: (reportRecord.export_format as string) || 'pdf',
+      output_format: (reportRecord.export_format as 'pdf' | 'excel' | 'csv') || 'pdf',
       selected_fields: fields,
       filters,
       sorting_rules: sortingRules,
@@ -280,12 +363,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         name: baseName,
         description: baseDescription,
         entity_type: (templateMeta.report_type || templateMeta.entity_type || 'student') as string,
-        output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as string,
+        output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as 'pdf' | 'excel' | 'csv',
         selected_fields: Array.isArray(templateMeta.fields)
           ? templateMeta.fields
           : (templateMeta.selected_fields || []),
-        filters: Array.isArray(templateMeta.filters) ? templateMeta.filters : (templateMeta.filters ? [templateMeta.filters] : []),
-        sorting_rules: Array.isArray(templateMeta.sort_by) ? templateMeta.sort_by : (templateMeta.sorting_rules || []),
+        filters: normalizeTemplateFilters(templateMeta.filters),
+        sorting_rules: normalizeTemplateSorting(templateMeta.sort_by ?? templateMeta.sorting_rules),
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
         is_copy: templateMeta.is_copy,
@@ -450,22 +533,22 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       // Transform frontend config to backend schema format
       const backendConfig: BackendReportPayload = {
         name: config.name,
-        description: config.description || null,
+        description: config.description || undefined,
         report_type: config.entity_type,
-        template_id: null,
+        template_id: undefined,
         fields: config.selected_fields.reduce((acc, field) => {
           acc[field] = true;
           return acc;
         }, {} as Record<string, boolean>),
-        filters: filtersDict,
-        aggregations: null,
-        sort_by: sortByDict,
+        filters: filtersDict || undefined,
+        aggregations: undefined,
+        sort_by: sortByDict || undefined,
         export_format: config.output_format,
         include_charts: true,
         schedule_enabled: false,
-        schedule_frequency: null,
-        schedule_cron: null,
-        email_recipients: config.email_enabled ? emailRecipients : null,
+        schedule_frequency: undefined,
+        schedule_cron: undefined,
+        email_recipients: config.email_enabled ? emailRecipients : undefined,
         email_enabled: config.email_enabled,
       };
 
@@ -650,7 +733,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 </label>
                 <select
                   value={config.output_format}
-                  onChange={(e) => handleConfigChange('output_format', e.target.value)}
+                  onChange={(e) => handleConfigChange('output_format', e.target.value as 'pdf' | 'excel' | 'csv')}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
                     errors.output_format ? 'border-red-500' : 'border-gray-300'
                   }`}

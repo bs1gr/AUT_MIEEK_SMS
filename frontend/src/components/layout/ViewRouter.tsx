@@ -122,7 +122,7 @@ export default function ViewRouter({
           )}
 
           {/* Legacy support: 'system' view (formerly 'power') */}
-          {(activeView === 'system' || activeView === 'power') && renderPowerView && renderPowerView()}
+          {activeView === 'system' && renderPowerView && renderPowerView()}
         </Suspense>
       </motion.div>
     </AnimatePresence>

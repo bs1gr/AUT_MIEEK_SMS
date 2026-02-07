@@ -9516,4 +9516,3 @@ Total issues: 8480
 - Line 314: FENCE_LANG - Unlabeled code fence; suggest `text`
 - Line 510: MD032 - Missing blank line before list
 - Line 639: MD022 - Missing blank line after heading
-

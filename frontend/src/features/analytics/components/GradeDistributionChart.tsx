@@ -21,7 +21,7 @@ interface DistributionBucket {
   count: number;
 }
 
-interface GradeDistributionData {
+export interface GradeDistributionData {
   course?: {
     id: number;
     code: string;

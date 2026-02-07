@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { useVirtualScroll } from '@/hooks/useVirtualScroll';
 import StudentRow from '@/features/students/StudentRow';
 import { Student } from '@/types/student';
@@ -22,27 +22,28 @@ const VirtualStudentList: React.FC<VirtualStudentListProps> = ({
   height = 600
 }) => {
   const { t } = useTranslation();
-  const containerRef = useRef<HTMLDivElement>(null);
-
-  const { startIndex, endIndex, offsetY, totalHeight, onScroll } = useVirtualScroll({
+  const { virtualizer, parentRef } = useVirtualScroll({
+    itemCount: students.length,
     itemHeight: ITEM_HEIGHT,
-    containerHeight: height,
-    itemsCount: students.length,
   });
 
-  const visibleStudents = students.slice(startIndex, endIndex);
+  const virtualItems = virtualizer.getVirtualItems();
+  const totalHeight = virtualizer.getTotalSize();
+  const paddingTop = virtualItems.length > 0 ? virtualItems[0].start : 0;
+  const paddingBottom = virtualItems.length > 0
+    ? totalHeight - virtualItems[virtualItems.length - 1].end
+    : 0;
 
   return (
     <div
-      ref={containerRef}
+      ref={parentRef}
       className="overflow-auto border rounded-lg shadow-sm bg-white"
       style={{ height }}
-      onScroll={onScroll}
     >
       <div style={{ height: totalHeight, position: 'relative' }}>
         <table className="min-w-full divide-y divide-gray-200" style={{
           position: 'absolute',
-          top: offsetY,
+          top: 0,
           left: 0,
           width: '100%'
         }}>
@@ -55,15 +56,29 @@ const VirtualStudentList: React.FC<VirtualStudentListProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {visibleStudents.map((student) => (
-              <StudentRow
-                key={student.id}
-                student={student}
-                onEdit={onEdit}
-                onDelete={onDelete}
-                onView={onView}
-              />
-            ))}
+            {paddingTop > 0 && (
+              <tr aria-hidden="true">
+                <td colSpan={4} style={{ height: paddingTop }} />
+              </tr>
+            )}
+            {virtualItems.map((item) => {
+              const student = students[item.index];
+              if (!student) return null;
+              return (
+                <StudentRow
+                  key={student.id}
+                  student={student}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                  onView={onView}
+                />
+              );
+            })}
+            {paddingBottom > 0 && (
+              <tr aria-hidden="true">
+                <td colSpan={4} style={{ height: paddingBottom }} />
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

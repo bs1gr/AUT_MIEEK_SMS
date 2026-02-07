@@ -14,7 +14,7 @@ interface CourseAttendance {
   attendance_rate: number;
 }
 
-interface AttendanceData {
+export interface AttendanceData {
   student?: {
     id: number;
     first_name: string;

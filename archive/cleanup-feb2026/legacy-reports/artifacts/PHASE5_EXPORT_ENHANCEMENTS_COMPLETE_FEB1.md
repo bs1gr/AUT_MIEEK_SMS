@@ -316,9 +316,9 @@ async def lifespan(app: FastAPI):
     scheduler = get_maintenance_scheduler()
     scheduler.start_export_scheduler()
     scheduler.schedule_cleanup_task(frequency="daily")  # or "weekly", "monthly"
-    
+
     yield
-    
+
     # Shutdown
     scheduler.stop_export_scheduler()
 ```

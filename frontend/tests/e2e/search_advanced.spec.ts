@@ -61,8 +61,6 @@ test.describe('Search Feature E2E Tests', () => {
     await page.waitForSelector('li[role="listitem"]', { timeout: 3000 });
 
     // Step 2: Get initial results
-    const _initialFirstResult = await page.locator('li[role="listitem"]').first().textContent();
-
     // Step 3: Change sort order
     const sortSelect = page.locator('select').filter({ has: page.locator('option[value="name"]') });
     if (await sortSelect.isVisible()) {

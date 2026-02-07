@@ -318,8 +318,8 @@ export function useDeleteGeneratedReport() {
   return useMutation({
     mutationFn: ({ reportId, generatedId }: { reportId: number; generatedId: number }) =>
       customReportsAPI.deleteGenerated(reportId, generatedId),
-    onSuccess: (data, variables) => {
-
+    onSuccess: (_data, variables) => {
+      void _data;
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
       // Show success feedback
       if (typeof window !== 'undefined') {

@@ -101,5 +101,3 @@
   • test_attendance_router.py
 
 ℹ Running tests...
-
-

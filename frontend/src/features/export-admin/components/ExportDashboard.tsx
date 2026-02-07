@@ -292,8 +292,20 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
             </p>
           </div>
           <EmailConfigPanel
-            config={{ smtp_host: '', smtp_port: 587, smtp_user: '', smtp_password: '', from_email: '', from_name: '' }}
-            onSave={handleRefresh}
+            config={{
+              smtp_host: '',
+              smtp_port: 587,
+              smtp_username: '',
+              smtp_password: '',
+              from_email: '',
+              admin_emails: [],
+              notify_on_completion: true,
+              notify_on_failure: true,
+              notify_on_schedule_failure: true,
+            }}
+            onSave={async () => {
+              handleRefresh();
+            }}
             onTest={async () => {}}
           />
         </TabsContent>
@@ -307,8 +319,19 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
             </p>
           </div>
           <ExportSettingsPanel
-            settings={{ default_format: 'excel', max_file_size_mb: 100, retention_days: 30, auto_delete_old_exports: true }}
-            onSave={handleRefresh}
+            settings={{
+              retention_days: 30,
+              cleanup_enabled: true,
+              cleanup_schedule: '0 2 * * *',
+              max_concurrent_exports: 3,
+              export_timeout_seconds: 300,
+              max_records_per_export: 10000,
+              archive_enabled: false,
+              archive_after_days: 365,
+            }}
+            onSave={async () => {
+              handleRefresh();
+            }}
           />
         </TabsContent>
       </Tabs>

@@ -547,7 +547,7 @@ class ImportExportService:
             shutil.move(str(source_file), str(archive_file))
 
             # Update job record with new path
-            job.file_path = str(archive_file)
+            job.file_path = str(archive_file)  # type: ignore[assignment]
             db.commit()
 
             logger.info(f"Archived export job {job_id} to {archive_file}")

@@ -63,5 +63,3 @@
   • test_auth_router.py
 
 ℹ Running tests...
-
-
