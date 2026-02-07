@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.17.7 (v1.17.7 Release Published)
-**Last Updated**: February 7, 2026 (OPTIONAL-002 email delivery implemented)
+**Last Updated**: February 7, 2026 (Monitoring update + feedback collection prep)
 **Status**: ✅ PRODUCTION LIVE - v1.17.7 RELEASED | 🔧 MAINTENANCE PHASE - Installer Testing In Progress
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Installer testing + production monitoring)
@@ -28,7 +28,7 @@
 5. 📦 **ARCHIVED (for now)**: Installer testing (owner deferred; not required at this time)
 6. 🔄 **IN PROGRESS**: Production monitoring (Feb 5 health-check entry logged in `monitoring/STABILITY_MONITORING.md`)
 7. ✅ **COMPLETE**: OPTIONAL-002 email report delivery (SMTP integration for scheduled/on-demand reports)
-8. ⏳ User feedback collection
+8. 🔄 **IN PROGRESS**: User feedback collection (in-app feedback modal + `/api/v1/feedback` endpoint)
 9. ⏳ Plan next feature based on findings
 
 **Infrastructure Ready**:
