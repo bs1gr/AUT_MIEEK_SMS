@@ -32,14 +32,14 @@ scripts/
 This structure consolidates former root-level tools/ directory into
 \scripts/utils/\ for unified utility organization.
 
-**Current:** Both scripts/ and tools/ directories exist
+**Current:** scripts/utils/ is canonical; tools/ contains limited helpers only
 **Target:** All utilities under scripts/utils/
-**Backward Compat:** Old tools/ path still valid (imports aliased)
+**Backward Compat:** Legacy import-checker wrappers removed
 
 ## Files to Migrate (Phase 1)
 
-- [x] tools/check_imports.py → scripts/utils/validators/import_checker.py (stub redirect)
-- [x] tools/check_imports_requirements.py → scripts/utils/validators/ (stub redirect)
+- [x] tools/check_imports.py → scripts/utils/validators/import_checker.py (removed legacy stub)
+- [x] tools/check_imports_requirements.py → scripts/utils/validators/import_checker.py (removed legacy stub)
 - [x] tools/convert_*.py → scripts/utils/converters/
 - [x] tools/post_register.py → scripts/utils/
 - [x] tools/release.py → scripts/utils/

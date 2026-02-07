@@ -35,9 +35,8 @@ utils/
 
 **Purpose:** Validate Python import consistency across the project
 
-Legacy entry points in `tools/` are retained as lightweight wrappers that
-delegate to this consolidated script, so existing CI or local workflows calling
-`tools/check_imports_requirements.py` continue to function.
+Legacy entry points in `tools/` have been removed. Use the consolidated script
+directly in CI and local workflows.
 
 **Usage:**
 
@@ -109,11 +108,9 @@ migrated here with backward-compatible stubs left in `tools/`.
 
 ### Backward Compatibility
 
-During migration we kept backward compatibility via
-
-- Original root `tools/` directory maintained (deprecated)
-- Import aliases available for backward compatibility
-- Full deprecation period planned for v1.12.0+
+The legacy `tools/` entry points have been retired. Use
+`scripts/utils/validators/import_checker.py` for import validation going
+forward.
 
 ## Usage in Scripts
 

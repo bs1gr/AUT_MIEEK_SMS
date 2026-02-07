@@ -1,7 +1,7 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.17.7 (v1.17.7 Release Published)
-**Last Updated**: February 7, 2026 (Archived tmp test migrations database)
+**Last Updated**: February 7, 2026 (Consolidated deprecated scripts archive + removed legacy import wrapper)
 **Status**: ✅ PRODUCTION LIVE - v1.17.7 RELEASED | 🔧 MAINTENANCE PHASE - Installer Testing In Progress
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Installer testing + production monitoring)
@@ -62,6 +62,9 @@
 36. ✅ **COMPLETE**: Maintenance cleanup - archive backups older than 14 days
 37. ✅ **COMPLETE**: Maintenance cleanup - archive backup metadata older than 14 days
 38. ✅ **COMPLETE**: Maintenance cleanup - archive tmp test migrations database
+39. ✅ **COMPLETE**: Maintenance cleanup - remove legacy import checker wrapper and update references
+40. ✅ **COMPLETE**: Maintenance cleanup - consolidate deprecated-scripts-jan2026 into cleanup archive
+41. ✅ **COMPLETE**: Maintenance cleanup - archive stale pip-audit reports
 
 **Infrastructure Ready**:
 - 📊 **Stability Monitoring Dashboard**: Weekly health checks, monthly deep dives, alert thresholds

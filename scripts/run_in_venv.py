@@ -2,8 +2,8 @@
 """Create or reuse a repo-local venv and run a command with its python.
 
 Usage examples:
-  python scripts/run_in_venv.py -- tools/check_imports_requirements.py
-  python scripts/run_in_venv.py --install-deps -- tools/check_imports_requirements.py
+    python scripts/run_in_venv.py -- scripts/utils/validators/import_checker.py
+    python scripts/run_in_venv.py --install-deps -- scripts/utils/validators/import_checker.py --mode backend
 
 This keeps pre-commit hooks and local runs reproducible without requiring
 developers to manually create a venv. The script can optionally install the

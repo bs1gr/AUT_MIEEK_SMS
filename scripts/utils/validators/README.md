@@ -124,15 +124,11 @@ Add to `.pre-commit-config.yaml`:
 
 ### From Old Tools
 
-**Before:**
+**Before (legacy tools removed):**
 
-```bash
-python tools/check_imports.py
-python tools/check_imports_requirements.py
-python tools/test_import_backend_db.py
-```
+Legacy `tools/*.py` import-checker commands have been retired.
 
-**After:**
+**After (current):**
 
 ```bash
 python scripts/utils/validators/import_checker.py --mode all
@@ -140,22 +136,15 @@ python scripts/utils/validators/import_checker.py --mode all
 
 ### Backward Compatibility
 
-Old tools still available at original locations but marked deprecated. A thin
-compatibility wrapper is preserved for automation that still shells out to the
-historic paths:
+Legacy tool wrappers have been removed. Use the consolidated validator directly:
 
-- `tools/check_imports.py` → deprecated
-- `tools/check_imports_requirements.py` → legacy wrapper delegating to
-  `scripts/utils/validators/import_checker.py`
-- `tools/test_import_backend_db.py` → deprecated
-- `tools/test_pkg_import.py` → deprecated
+- `scripts/utils/validators/import_checker.py`
 
 To migrate:
 
-1. Update CI/CD references to use new path
-2. Update pre-commit hooks to use new validator
+1. Update CI/CD references to use the consolidated path
+2. Update pre-commit hooks to use the new validator
 3. Update local scripts and documentation
-4. Keep old tools until v1.12.0 for backward compatibility
 
 ## Adding New Validators
 
