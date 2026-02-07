@@ -57,7 +57,7 @@ export const GradeResultCard: React.FC<GradeResultCardProps> = ({
     <div
       className={`border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer ${className}`}
       onClick={onClick}
-      role="listitem"
+      role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -90,7 +90,7 @@ export const GradeResultCard: React.FC<GradeResultCardProps> = ({
             <span className="text-2xl font-semibold text-gray-700">
               {grade.points}
               <span className="text-sm text-gray-500 ml-1">
-                {t('grades.divider')} 100 {t('grades.points')}
+                {t('grades.outOf', { max: 100 })} {t('grades.points')}
               </span>
             </span>
           </div>

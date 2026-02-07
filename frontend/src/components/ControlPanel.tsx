@@ -26,7 +26,7 @@ import { RBACPanel } from '@/components/admin/RBACPanel';
 import { useAuth } from '@/contexts/AuthContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
 import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
-import apiClient, { CONTROL_API_BASE, controlApiClient } from '@/api/api';
+import { CONTROL_API_BASE, controlApiClient } from '@/api/api';
 
 // TypeScript interfaces
 interface SystemStatus {

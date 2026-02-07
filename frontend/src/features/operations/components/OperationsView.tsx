@@ -75,6 +75,21 @@ const OperationsView = (_props: OperationsViewProps) => {
     { key: 'help', label: t('helpTitle', { ns: 'help' }) || 'Help' },
   ];
 
+  const reportIcons = {
+    list: t('icons.list', { ns: 'customReports', defaultValue: '📋' }),
+    create: t('icons.create', { ns: 'customReports', defaultValue: '✏️' }),
+    templates: t('icons.templates', { ns: 'customReports', defaultValue: '📚' }),
+    students: t('icons.students', { ns: 'customReports', defaultValue: '👥' }),
+    courses: t('icons.courses', { ns: 'customReports', defaultValue: '📚' }),
+    grades: t('icons.grades', { ns: 'customReports', defaultValue: '⭐' }),
+    attendance: t('icons.attendance', { ns: 'customReports', defaultValue: '✅' }),
+    enrollments: t('icons.enrollments', { ns: 'customReports', defaultValue: '📊' }),
+    formatPdf: t('icons.formatPdf', { ns: 'customReports', defaultValue: '📄' }),
+    formatExcel: t('icons.formatExcel', { ns: 'customReports', defaultValue: '📊' }),
+    formatCsv: t('icons.formatCsv', { ns: 'customReports', defaultValue: '📋' }),
+    analytics: t('icons.analytics', { ns: 'customReports', defaultValue: '📊' }),
+  };
+
   const buildTemplateLink = (params: { report_type?: string; format?: string; query?: string }) => {
     const queryParams = new URLSearchParams();
     if (params.report_type) queryParams.set('report_type', params.report_type);
@@ -201,7 +216,7 @@ const OperationsView = (_props: OperationsViewProps) => {
                   className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">📋</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">{reportIcons.list}</div>
                     <h3 className="font-semibold text-slate-900">{t('viewAll', { ns: 'customReports' })}</h3>
                   </div>
                   <p className="text-xs text-slate-600">{t('myReports', { ns: 'customReports' })}</p>
@@ -213,7 +228,7 @@ const OperationsView = (_props: OperationsViewProps) => {
                   className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">✏️</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">{reportIcons.create}</div>
                     <h3 className="font-semibold text-slate-900">{t('createNew', { ns: 'customReports' })}</h3>
                   </div>
                   <p className="text-xs text-slate-600">{t('reportBuilder', { ns: 'customReports' })}</p>
@@ -225,7 +240,7 @@ const OperationsView = (_props: OperationsViewProps) => {
                   className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md"
                 >
                   <div className="mb-2 flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">📚</div>
+                    <div className="flex h-8 w-8 items-center justify-center rounded bg-indigo-100 text-indigo-600 font-bold">{reportIcons.templates}</div>
                     <h3 className="font-semibold text-slate-900">{t('templates', { ns: 'customReports' })}</h3>
                   </div>
                   <p className="text-xs text-slate-600">{t('standardTemplates', { ns: 'customReports' })}</p>
@@ -240,35 +255,35 @@ const OperationsView = (_props: OperationsViewProps) => {
                     to={buildTemplateLink({ report_type: 'student' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
                   >
-                    <div className="text-lg font-bold text-indigo-600">👥</div>
+                    <div className="text-lg font-bold text-indigo-600">{reportIcons.students}</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_students', { ns: 'customReports' })}</p>
                   </Link>
                   <Link
                     to={buildTemplateLink({ report_type: 'course' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
                   >
-                    <div className="text-lg font-bold text-indigo-600">📚</div>
+                    <div className="text-lg font-bold text-indigo-600">{reportIcons.courses}</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_courses', { ns: 'customReports' })}</p>
                   </Link>
                   <Link
                     to={buildTemplateLink({ report_type: 'grade' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
                   >
-                    <div className="text-lg font-bold text-indigo-600">⭐</div>
+                    <div className="text-lg font-bold text-indigo-600">{reportIcons.grades}</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_grades', { ns: 'customReports' })}</p>
                   </Link>
                   <Link
                     to={buildTemplateLink({ report_type: 'attendance' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
                   >
-                    <div className="text-lg font-bold text-indigo-600">✅</div>
+                    <div className="text-lg font-bold text-indigo-600">{reportIcons.attendance}</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_attendance', { ns: 'customReports' })}</p>
                   </Link>
                   <Link
                     to={buildTemplateLink({ report_type: 'student', query: 'enrollment' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 text-center transition hover:bg-slate-50"
                   >
-                    <div className="text-lg font-bold text-indigo-600">📊</div>
+                    <div className="text-lg font-bold text-indigo-600">{reportIcons.enrollments}</div>
                     <p className="text-xs font-medium text-slate-700">{t('entity_enrollments', { ns: 'customReports' })}</p>
                   </Link>
                 </div>
@@ -282,21 +297,21 @@ const OperationsView = (_props: OperationsViewProps) => {
                     to={buildTemplateLink({ format: 'pdf' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 transition hover:bg-slate-50"
                   >
-                    <p className="text-lg font-bold text-indigo-600">📄</p>
+                    <p className="text-lg font-bold text-indigo-600">{reportIcons.formatPdf}</p>
                     <p className="text-xs font-medium text-slate-700">{t('format_pdf', { ns: 'customReports' })}</p>
                   </Link>
                   <Link
                     to={buildTemplateLink({ format: 'excel' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 transition hover:bg-slate-50"
                   >
-                    <p className="text-lg font-bold text-indigo-600">📊</p>
+                    <p className="text-lg font-bold text-indigo-600">{reportIcons.formatExcel}</p>
                     <p className="text-xs font-medium text-slate-700">{t('format_excel', { ns: 'customReports' })}</p>
                   </Link>
                   <Link
                     to={buildTemplateLink({ format: 'csv' })}
                     className="rounded-lg border border-slate-200 bg-white p-3 transition hover:bg-slate-50"
                   >
-                    <p className="text-lg font-bold text-indigo-600">📋</p>
+                    <p className="text-lg font-bold text-indigo-600">{reportIcons.formatCsv}</p>
                     <p className="text-xs font-medium text-slate-700">{t('format_csv', { ns: 'customReports' })}</p>
                   </Link>
                 </div>
@@ -309,7 +324,7 @@ const OperationsView = (_props: OperationsViewProps) => {
                   to={`/operations/reports/templates?tab=analytics`}
                   className="inline-flex items-center gap-3 rounded-lg border-2 border-orange-200 bg-white px-6 py-4 transition hover:border-orange-400 hover:bg-orange-50"
                 >
-                  <p className="text-2xl">📊</p>
+                  <p className="text-2xl">{reportIcons.analytics}</p>
                   <div className="text-left">
                     <p className="font-semibold text-slate-900">{t('analyticsTemplates', { ns: 'customReports' })}</p>
                     <p className="text-xs text-slate-600">{t('viewAnalyticsTemplates', { ns: 'customReports' })}</p>

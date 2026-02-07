@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import ServerControl from '@/components/common/ServerControl';
 import ControlPanel from '@/components/ControlPanel';
 import { useLanguage } from '@/LanguageContext';
 import { useLocation } from 'react-router-dom';
-import { Activity, Settings } from 'lucide-react';
 
 /**
  * System administration page - consolidates system health monitoring,
@@ -47,24 +46,6 @@ export default function SystemPage() {
       // ignore
     }
   }, [location.search]);
-
-  const scrollToSection = useCallback((targetId: string) => {
-    if (typeof window === 'undefined') return;
-    const element = document.getElementById(targetId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, []);
-
-  const handleOpenSystemHealth = useCallback(() => {
-    setShowSystemHealth(true);
-    scrollToSection('system-health-card');
-  }, [scrollToSection]);
-
-  const handleOpenControlPanel = useCallback(() => {
-    setShowControlPanel(true);
-    scrollToSection('system-control-panel-card');
-  }, [scrollToSection]);
 
   return (
     <div className="space-y-10">
