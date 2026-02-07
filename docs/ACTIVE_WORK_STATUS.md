@@ -2,9 +2,9 @@
 
 ## Current State of All Work in Progress (Phase 6 Completed)
 
-**Updated**: 2026-02-07 10:43 UTC
+**Updated**: 2026-02-07 11:20 UTC
 **Updated By**: GitHub Copilot
-**Next Review**: Next agent session or when OPTIONAL-002 is validated
+**Next Review**: Next agent session
 
 > **HOW TO USE THIS FILE**: Read this first when picking up work. Update status as you go. This is the single source of truth for what's happening.
 
@@ -31,6 +31,7 @@
 | **Backend Integration** | ✅ **VERIFIED** | 2026-02-01 21:40 | App factory, imports, lifecycles all working |
 | **Backend Batch Tests** | ✅ **PASSING** | 2026-02-07 10:23 | 32/32 batches complete; log: `test-results/backend_batch_run_20260207_102314.txt` |
 | **Report Email Tests** | ✅ **PASSING** | 2026-02-07 10:41 | `backend/tests/test_custom_report_generation_service.py` (3 tests) |
+| **SMTP E2E Test** | ✅ **PASSING** | 2026-02-07 11:12 | Brevo SMTP verified (success_count=1); inbox confirmed |
 | **Frontend Tests** | ✅ **PASSING** | 2026-02-01 | 1249/1249 (Vitest) |
 | **E2E Tests** | ✅ **PASSING** | 2026-02-01 | 19+ critical tests |
 | **Lint/Format** | ✅ **PASSING** | 2026-02-01 | CI/CD pipeline green |
@@ -134,12 +135,12 @@
 
 ### OPTIONAL-002: Email Delivery for Reports
 
-- **Status**: 🟦 **IN PROGRESS**
+- **Status**: ✅ **COMPLETE**
 - **Priority**: 🟡 **MEDIUM**
 - **Owner**: Solo Developer
 - **Notes**: SMTP-based delivery in progress (attachments + size guardrails).
-- **Progress**: Added email delivery unit tests (attachments + size guardrails). Backend batch tests completed (32/32). Log: `test-results/backend_batch_run_20260207_102314.txt`.
-- **Next Action**: Verify end-to-end SMTP delivery in a dev environment once SMTP creds are available; add any integration tests needed.
+- **Progress**: Added email delivery unit tests (attachments + size guardrails). Backend batch tests completed (32/32). SMTP E2E verification passing (Brevo) and inbox confirmed.
+- **Next Action**: Optional: run UI workflow end-to-end if desired; otherwise monitor in production.
 
 ---
 
