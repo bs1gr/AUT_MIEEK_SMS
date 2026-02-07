@@ -294,6 +294,7 @@ async def restore_encrypted_backup(
         # Create temporary output directory
         restore_dir = (backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}").resolve()
         restore_dir.mkdir(parents=True, exist_ok=True)
+        # CodeQL [python/path-injection]: Safe - safe_output_filename validated and restore_dir is system-generated
         output_path = (restore_dir / safe_output_filename).resolve()
 
         # CodeQL [python/path-injection]: Safe - validate_path() performs comprehensive validation
@@ -308,11 +309,14 @@ async def restore_encrypted_backup(
 
         # Decrypt and restore backup
         restore_info = backup_service.restore_encrypted_backup(
-            backup_name=backup_name, output_path=sanitized_output_path
+            backup_name=backup_name,
+            output_path=sanitized_output_path,
+            allowed_base_dir=restore_dir,
         )
 
         # Return restored file
         # Use safe filename to prevent any issues
+        # CodeQL [python/path-injection]: Safe - sanitized_output_path validated via validate_path()
         return FileResponse(
             str(sanitized_output_path),
             media_type="application/x-sqlite3",

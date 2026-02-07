@@ -793,7 +793,9 @@ async def rollback_import(request: Request, backup_filename: str):
             # Safe filename: only contains safe characters, no user input
             safe_backup_name = f"pre_rollback_backup_{timestamp}.db"
             pre_rollback_backup = (backup_dir / safe_backup_name).resolve()
-            # CodeQL [python/path-injection] - pre_rollback_backup uses system-generated name, sanitized_db_path from config
+            # CodeQL [python/path-injection]: Safe - pre_rollback_backup is system-generated and constrained to backup_dir
+            validate_path(backup_dir, pre_rollback_backup)
+            # CodeQL [python/path-injection]: Safe - sanitized_db_path from trusted config, pre_rollback_backup validated
             shutil.copy2(sanitized_db_path, pre_rollback_backup)
             logger.info("Created pre-rollback backup", extra={"backup_file": pre_rollback_backup.name})
 
@@ -810,6 +812,7 @@ async def rollback_import(request: Request, backup_filename: str):
         # CodeQL [python/path-injection]: Safe - both paths are validated:
         # sanitized_backup_path via validate_path() within backup_dir
         # sanitized_db_path from trusted config with validation checks
+        # CodeQL [python/path-injection]: Safe - validated paths for backup and database restore
         shutil.copy2(str(sanitized_backup_path), str(sanitized_db_path))
 
         logger.warning(f"DATABASE ROLLBACK performed by system: Restored from {backup_filename}")
