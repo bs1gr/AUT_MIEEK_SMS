@@ -108,16 +108,24 @@ export const ReportList: React.FC<ReportListProps> = ({
     generateMutation.mutate({ reportId, options: { email_enabled: false } });
   };
 
-  const handleGenerateReportWithEmail = (reportId: number) => {
-    const promptText = t('emailRecipientsPrompt', { ns: 'customReports' });
-    const rawInput = globalThis.prompt(promptText, '');
-    if (rawInput === null) {
-      return;
+  const handleGenerateReportWithEmail = (report: CustomReport) => {
+    const existingRecipients = Array.isArray(report.email_recipients)
+      ? report.email_recipients
+      : [];
+
+    let recipients = existingRecipients;
+
+    if (recipients.length === 0) {
+      const promptText = t('emailRecipientsPrompt', { ns: 'customReports' });
+      const rawInput = globalThis.prompt(promptText, '');
+      if (rawInput === null) {
+        return;
+      }
+      recipients = rawInput
+        .split(',')
+        .map((value) => value.trim())
+        .filter((value) => value.length > 0);
     }
-    const recipients = rawInput
-      .split(',')
-      .map((value) => value.trim())
-      .filter((value) => value.length > 0);
 
     if (recipients.length === 0) {
       showToast(t('emailRecipientsRequired', { ns: 'customReports' }), 'error');
@@ -125,7 +133,7 @@ export const ReportList: React.FC<ReportListProps> = ({
     }
 
     generateMutation.mutate({
-      reportId,
+      reportId: report.id,
       options: {
         email_recipients: recipients,
         email_enabled: true,
@@ -323,7 +331,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                               {t('generateWithoutEmail', { ns: 'customReports' })}
                             </button>
                             <button
-                              onClick={() => handleGenerateReportWithEmail(report.id)}
+                              onClick={() => handleGenerateReportWithEmail(report)}
                               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
                             >
                               <RefreshCw size={14} />
