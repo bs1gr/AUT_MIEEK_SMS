@@ -248,6 +248,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   useEffect(() => {
     // Load report data when editing
     if (reportId && reportData) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setConfig(normalizeReportData(reportData));
       return;
     }
@@ -312,6 +313,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
     // Only update if localized text differs from current config
     if (config.name !== templateText.name || config.description !== localizedDescription) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setConfig((prev) => {
         // Ensure we only update name/description, preserving other config
         if (prev.name === templateText.name && prev.description === localizedDescription) {

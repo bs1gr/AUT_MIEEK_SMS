@@ -11,9 +11,6 @@ import { extractAPIResponseData, extractAPIError } from './api';
 
 type UnknownRecord = Record<string, unknown>;
 
-const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === 'object' && value !== null;
-
 export interface ReportTemplate {
   id: number;
   name: string;

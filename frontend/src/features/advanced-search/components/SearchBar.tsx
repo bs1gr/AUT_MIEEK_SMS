@@ -276,28 +276,25 @@ export const SearchBar: React.FC<SearchBarProps> = ({
               {searchHistory.slice(0, 5).map((item, index) => (
                 <li
                   key={`${item}-${index}`}
-                  className={`px-3 py-2 cursor-pointer transition-colors ${
-                    index === highlightedIndex
-                      ? 'bg-blue-500 text-white'
-                      : 'hover:bg-gray-100'
-                  }`}
-                  onClick={() => handleHistorySelect(item)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      handleHistorySelect(item);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="option"
                   onMouseEnter={() => setHighlightedIndex(index)}
-                  role="option"
-                  aria-selected={index === highlightedIndex}
-                  data-testid={`search-history-item-${index}`}
                 >
-                  <div className="flex items-center gap-2">
-                    <MagnifyingGlassIcon className="h-4 w-4" aria-hidden="true" />
-                    <span>{item}</span>
-                  </div>
+                  <button
+                    type="button"
+                    className={`w-full px-3 py-2 text-left transition-colors ${
+                      index === highlightedIndex
+                        ? 'bg-blue-500 text-white'
+                        : 'hover:bg-gray-100'
+                    }`}
+                    onClick={() => handleHistorySelect(item)}
+                    role="option"
+                    aria-selected={index === highlightedIndex}
+                    data-testid={`search-history-item-${index}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <MagnifyingGlassIcon className="h-4 w-4" aria-hidden="true" />
+                      <span>{item}</span>
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>

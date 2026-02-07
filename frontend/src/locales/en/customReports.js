@@ -17,6 +17,22 @@ export default {
   viewTemplates: 'Browse Templates',
   backToList: 'Back to Reports',
 
+  // Icons
+  icons: {
+    list: '📋',
+    create: '✏️',
+    templates: '📚',
+    students: '👥',
+    courses: '📚',
+    grades: '⭐',
+    attendance: '✅',
+    enrollments: '📊',
+    formatPdf: '📄',
+    formatExcel: '📊',
+    formatCsv: '📋',
+    analytics: '📊',
+  },
+
   // Builder sections
   reportConfiguration: 'Report Configuration',
   dataSelection: 'Data Selection',

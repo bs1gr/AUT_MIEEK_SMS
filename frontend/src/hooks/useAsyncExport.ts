@@ -118,7 +118,7 @@ export const useAsyncExport = () => {
     } catch (error) {
       console.error('Failed to cancel export:', error);
     }
-  }, [exportJob?.id]);
+  }, [exportJob]);
 
   return {
     exportJob,

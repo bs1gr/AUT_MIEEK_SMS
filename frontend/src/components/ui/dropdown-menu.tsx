@@ -76,17 +76,12 @@ export interface DropdownMenuItemProps {
 }
 
 export const DropdownMenuItem: React.FC<DropdownMenuItemProps> = ({ className, onClick, children }) => (
-  <div
+  <button
+    type="button"
     role="menuitem"
     className={className}
     onClick={onClick}
-    onKeyDown={(e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        onClick?.();
-      }
-    }}
-    tabIndex={0}
   >
     {children}
-  </div>
+  </button>
 );

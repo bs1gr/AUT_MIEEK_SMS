@@ -90,10 +90,6 @@ export const useSearch = () => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Reset pagination when query, filters, or type change
-  useEffect(() => {
-    setPage(0);
-  }, [debouncedQuery, filters, searchType]);
 
   /**
    * Fetch search results based on current query and filters
@@ -264,14 +260,29 @@ export const useSearch = () => {
     );
   }, []);
 
+  const setSearchQueryWithReset = useCallback((value: string) => {
+    setSearchQuery(value);
+    setPage(0);
+  }, []);
+
+  const setSearchTypeWithReset = useCallback((value: 'students' | 'courses' | 'grades') => {
+    setSearchType(value);
+    setPage(0);
+  }, []);
+
+  const setFiltersWithReset = useCallback((next: FilterCriteria[] | ((prev: FilterCriteria[]) => FilterCriteria[])) => {
+    setFilters((prev) => (typeof next === 'function' ? next(prev) : next));
+    setPage(0);
+  }, []);
+
   return {
     // State
     searchQuery,
-    setSearchQuery,
+    setSearchQuery: setSearchQueryWithReset,
     searchType,
-    setSearchType,
+    setSearchType: setSearchTypeWithReset,
     filters,
-    setFilters,
+    setFilters: setFiltersWithReset,
     debouncedQuery,
     page,
     setPage,

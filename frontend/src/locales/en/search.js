@@ -205,6 +205,7 @@ export default {
   },
   grades: {
     points: 'points',
+    outOf: '/ {{max}}',
     student: 'Student',
     course: 'Course'
   },

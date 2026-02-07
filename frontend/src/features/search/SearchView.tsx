@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useSearch, type SearchResult, type FilterCriteria } from './useSearch';
@@ -33,37 +33,32 @@ export const SearchView: React.FC = () => {
   const [gradeDateTo, setGradeDateTo] = useState('');
 
   const applyGradeDateFilters = useCallback(
-    (currentFilters: FilterCriteria[]): FilterCriteria[] => {
+    (
+      currentFilters: FilterCriteria[],
+      nextType: 'students' | 'courses' | 'grades',
+      nextDateFrom: string,
+      nextDateTo: string
+    ): FilterCriteria[] => {
       const filtered = currentFilters.filter(
         (filter) => !['date_from', 'date_to', 'date_assigned_from', 'date_assigned_to'].includes(filter.field)
       );
 
-      if (searchType !== 'grades') {
+      if (nextType !== 'grades') {
         return filtered;
       }
 
-      if (gradeDateFrom) {
-        filtered.push({ field: 'date_from', operator: 'equals' as const, value: gradeDateFrom });
+      if (nextDateFrom) {
+        filtered.push({ field: 'date_from', operator: 'equals' as const, value: nextDateFrom });
       }
 
-      if (gradeDateTo) {
-        filtered.push({ field: 'date_to', operator: 'equals' as const, value: gradeDateTo });
+      if (nextDateTo) {
+        filtered.push({ field: 'date_to', operator: 'equals' as const, value: nextDateTo });
       }
 
       return filtered;
     },
-    [gradeDateFrom, gradeDateTo, searchType]
+    []
   );
-
-  useEffect(() => {
-    if (searchType !== 'grades') {
-      if (gradeDateFrom || gradeDateTo) {
-        setGradeDateFrom('');
-        setGradeDateTo('');
-      }
-    }
-    setFilters((prev) => applyGradeDateFilters(prev));
-  }, [searchType, gradeDateFrom, gradeDateTo, applyGradeDateFilters, setFilters]);
 
   const { data: facetsData, isLoading: loadingFacets } = useSearchFacets(searchQuery);
 
@@ -80,8 +75,28 @@ export const SearchView: React.FC = () => {
     setFilters((prev) => applyGradeDateFilters([
       ...prev.filter((filter) => filter.field !== facet),
       { field: facet, operator: 'equals' as const, value },
-    ]));
+    ], searchType, gradeDateFrom, gradeDateTo));
     setPage(0);
+  };
+
+  const handleSearchTypeChange = (nextType: 'students' | 'courses' | 'grades') => {
+    setSearchType(nextType);
+    if (nextType !== 'grades') {
+      setGradeDateFrom('');
+      setGradeDateTo('');
+    }
+    setFilters((prev) => applyGradeDateFilters(prev, nextType, nextType === 'grades' ? gradeDateFrom : '', nextType === 'grades' ? gradeDateTo : ''));
+    setPage(0);
+  };
+
+  const handleGradeDateFromChange = (value: string) => {
+    setGradeDateFrom(value);
+    setFilters((prev) => applyGradeDateFilters(prev, searchType, value, gradeDateTo));
+  };
+
+  const handleGradeDateToChange = (value: string) => {
+    setGradeDateTo(value);
+    setFilters((prev) => applyGradeDateFilters(prev, searchType, gradeDateFrom, value));
   };
 
   const handlePageChange = (nextPage: number) => {
@@ -148,7 +163,7 @@ export const SearchView: React.FC = () => {
             <select
               id="search-type"
               value={searchType}
-              onChange={(e) => setSearchType(e.target.value as 'students' | 'courses' | 'grades')}
+              onChange={(e) => handleSearchTypeChange(e.target.value as 'students' | 'courses' | 'grades')}
               className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {typeOptions.map((option) => (
@@ -169,7 +184,7 @@ export const SearchView: React.FC = () => {
                   id="grade-date-from"
                   type="date"
                   value={gradeDateFrom}
-                  onChange={(event) => setGradeDateFrom(event.target.value)}
+                  onChange={(event) => handleGradeDateFromChange(event.target.value)}
                   className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -181,7 +196,7 @@ export const SearchView: React.FC = () => {
                   id="grade-date-to"
                   type="date"
                   value={gradeDateTo}
-                  onChange={(event) => setGradeDateTo(event.target.value)}
+                  onChange={(event) => handleGradeDateToChange(event.target.value)}
                   className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

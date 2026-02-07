@@ -17,6 +17,22 @@ export default {
   viewTemplates: 'Περιήγηση Προτύπων',
   backToList: 'Επιστροφή στις Αναφορές',
 
+  // Icons
+  icons: {
+    list: '📋',
+    create: '✏️',
+    templates: '📚',
+    students: '👥',
+    courses: '📚',
+    grades: '⭐',
+    attendance: '✅',
+    enrollments: '📊',
+    formatPdf: '📄',
+    formatExcel: '📊',
+    formatCsv: '📋',
+    analytics: '📊',
+  },
+
   // Builder sections
   reportConfiguration: 'Διαμόρφωση Αναφοράς',
   dataSelection: 'Επιλογή Δεδομένων',

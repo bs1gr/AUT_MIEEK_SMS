@@ -205,6 +205,7 @@ export default {
   },
   grades: {
     points: 'μόρια',
+    outOf: '/ {{max}}',
     student: 'Σπουδαστής',
     course: 'Μάθημα'
   },
