@@ -1,123 +1,134 @@
 
-> student-management-frontend@1.17.7 pretest
+> student-management-frontend@1.17.2 pretest
 > node ../tools/enforce-vitest-policy.cjs
 
 
-> student-management-frontend@1.17.7 test
+> student-management-frontend@1.17.2 test
 > vitest
 
 
 [1m[44m DEV [49m[22m [34mv4.0.16 [39m[90mD:/SMS/student-management-system/frontend[39m
 
-stderr | src/features/advanced-search/__tests__/SearchResults.test.tsx
-[i18n] Search translation keys loaded: 6 keys
+[90mstdout[2m | src/components/__tests__/AdvancedFilters.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-stderr | src/features/export-admin/__tests__/SupportingComponents.test.tsx
-[i18n] Search translation keys loaded: 6 keys
+[90mstdout[2m | src/features/students/components/AddStudentModal.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-stderr | src/api/__tests__/api.request.interceptor.test.ts
-[i18n] Search translation keys loaded: 6 keys
+[90mstdout[2m | src/features/students/components/EditStudentModal.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-stderr | src/features/export-admin/__tests__/ExportAdmin.integration.test.tsx
-[i18n] Search translation keys loaded: 6 keys
+[90mstdout[2m | src/features/courses/components/AddCourseModal.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-stderr | src/api/__tests__/api.request.interceptor.test.ts
-[API Client] VITE_API_URL env var: http://localhost:8000/api/v1
-[API Client] Using API_BASE_URL: /api/v1
-Using Vite dev proxy for localhost API (CORS-safe): /api/v1
+ [31m❯[39m src/components/__tests__/AdvancedFilters.test.tsx [2m([22m[2m41 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 2851[2mms[22m[39m
+       [32m✓[39m should render filter panel when open[32m 132[2mms[22m[39m
+       [32m✓[39m should hide filter panel when closed[32m 2[2mms[22m[39m
+       [32m✓[39m should render toggle button[32m 73[2mms[22m[39m
+       [32m✓[39m should apply custom className[32m 7[2mms[22m[39m
+       [32m✓[39m should render student filter fields[32m 6[2mms[22m[39m
+       [32m✓[39m should render student filter presets[32m 7[2mms[22m[39m
+       [32m✓[39m should allow entering first name[32m 106[2mms[22m[39m
+       [33m[2m✓[22m[39m should allow entering email [33m 326[2mms[22m[39m
+       [32m✓[39m should render course filter fields[32m 5[2mms[22m[39m
+       [32m✓[39m should render course filter presets[32m 5[2mms[22m[39m
+       [32m✓[39m should render credits filter[32m 3[2mms[22m[39m
+       [32m✓[39m should render grade filter fields[32m 7[2mms[22m[39m
+       [32m✓[39m should render grade filter presets[32m 4[2mms[22m[39m
+       [32m✓[39m should allow entering min grade[32m 87[2mms[22m[39m
+       [32m✓[39m should allow entering max grade[32m 109[2mms[22m[39m
+       [32m✓[39m should apply preset when clicked[32m 47[2mms[22m[39m
+[31m       [31m×[31m should populate fields when preset selected[39m[32m 66[2mms[22m[39m
+       [32m✓[39m should show preset buttons in visual group[32m 4[2mms[22m[39m
+       [32m✓[39m should have distinct presets per search type[32m 7[2mms[22m[39m
+       [32m✓[39m should render Apply button[32m 37[2mms[22m[39m
+       [32m✓[39m should render Reset button[32m 24[2mms[22m[39m
+[31m       [31m×[31m should call onApply when Apply clicked[39m[32m 79[2mms[22m[39m
+       [32m✓[39m should call onReset when Reset clicked[32m 78[2mms[22m[39m
+[31m       [31m×[31m should clear all fields when Reset clicked[39m[32m 175[2mms[22m[39m
+       [32m✓[39m should call onToggle when toggle clicked[32m 80[2mms[22m[39m
+       [32m✓[39m should show collapse/expand icon[32m 14[2mms[22m[39m
+       [32m✓[39m should have aria-expanded attribute[32m 89[2mms[22m[39m
+       [32m✓[39m should maintain field values[32m 153[2mms[22m[39m
+       [33m[2m✓[22m[39m should handle multiple field entries [33m 721[2mms[22m[39m
+       [32m✓[39m should validate numeric input for grade ranges[32m 95[2mms[22m[39m
+       [32m✓[39m should handle grade range validation (min <= max)[32m 187[2mms[22m[39m
+       [32m✓[39m should have proper labels for inputs[32m 7[2mms[22m[39m
+[31m       [31m×[31m should be keyboard navigable[39m[32m 41[2mms[22m[39m
+       [32m✓[39m should have role="region" for filter panel[32m 11[2mms[22m[39m
+       [32m✓[39m should announce filter type[32m 16[2mms[22m[39m
+       [32m✓[39m should render in mobile layout[32m 6[2mms[22m[39m
+       [32m✓[39m should stack fields vertically on mobile[32m 6[2mms[22m[39m
+       [32m✓[39m should show student-specific filters for students[32m 8[2mms[22m[39m
+       [32m✓[39m should show course-specific filters for courses[32m 4[2mms[22m[39m
+       [32m✓[39m should show grade-specific filters for grades[32m 3[2mms[22m[39m
+       [32m✓[39m should switch filters when search type changes[32m 10[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/SavedSearches.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > attaches Authorization header when access token exists
-[API] Attaching auth header for:
-
-stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > does nothing when no token present
-[API] No token available for:
-
-stderr | src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > is resilient if headers missing or getter throws
-[API] No token available for:
-[API] No token available for:
-
- [31mέζψ[39m src/api/__tests__/api.request.interceptor.test.ts [2m([22m[2m3 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 8[2mms[22m[39m
-[31m     [31m├Ω[31m attaches Authorization header when access token exists[39m[32m 5[2mms[22m[39m
-     [32mέεΥ[39m does nothing when no token present[32m 1[2mms[22m[39m
-     [32mέεΥ[39m is resilient if headers missing or getter throws[32m 1[2mms[22m[39m
- [31mέζψ[39m src/features/export-admin/__tests__/SupportingComponents.test.tsx [2m([22m[2m19 tests[22m[2m | [22m[31m9 failed[39m[2m)[22m[33m 623[2mms[22m[39m
-[31m     [31m├Ω[31m renders email configuration title[39m[32m 32[2mms[22m[39m
-[31m     [31m├Ω[31m renders all SMTP form fields[39m[32m 3[2mms[22m[39m
-[31m     [31m├Ω[31m renders save and test buttons[39m[32m 7[2mms[22m[39m
-[31m     [31m├Ω[31m allows input in form fields[39m[32m 5[2mms[22m[39m
-[31m     [31m├Ω[31m renders settings title[39m[32m 5[2mms[22m[39m
-[31m     [31m├Ω[31m renders all settings fields with hints[39m[32m 2[2mms[22m[39m
-[31m     [31m├Ω[31m renders save settings button[39m[32m 2[2mms[22m[39m
-[31m     [31m├Ω[31m accepts numeric input in settings fields[39m[32m 6[2mms[22m[39m
-     [32mέεΥ[39m renders modal when open with job data[32m 51[2mms[22m[39m
-     [32mέεΥ[39m displays job details correctly[32m 19[2mms[22m[39m
-     [32mέεΥ[39m displays progress bar with correct percentage[32m 5[2mms[22m[39m
-     [33m[2mέεΥ[22m[39m calls onClose when close button clicked [33m 416[2mms[22m[39m
-     [32mέεΥ[39m displays error section when job has error[32m 11[2mms[22m[39m
-     [32mέεΥ[39m does not render when isOpen is false[32m 1[2mms[22m[39m
-     [32mέεΥ[39m renders all metric cards[32m 15[2mms[22m[39m
-[31m     [31m├Ω[31m displays metric values correctly[39m[32m 15[2mms[22m[39m
-     [32mέεΥ[39m renders format breakdown section[32m 12[2mms[22m[39m
-     [32mέεΥ[39m renders chart container[32m 6[2mms[22m[39m
-     [32mέεΥ[39m displays duration trend chart[32m 3[2mms[22m[39m
-stderr | src/features/students/components/AddStudentModal.test.tsx
-[i18n] Search translation keys loaded: 6 keys
-
- [31mέζψ[39m src/features/advanced-search/__tests__/SearchResults.test.tsx [2m([22m[2m35 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[33m 2290[2mms[22m[39m
-       [32mέεΥ[39m renders loading skeleton when isLoading is true[32m 203[2mms[22m[39m
-       [32mέεΥ[39m displays loading aria-label[32m 10[2mms[22m[39m
-       [32mέεΥ[39m renders empty state when no results[32m 208[2mms[22m[39m
-       [32mέεΥ[39m displays empty state hint[32m 6[2mms[22m[39m
-       [32mέεΥ[39m renders error state when error exists[32m 71[2mms[22m[39m
-       [32mέεΥ[39m displays retry button when onRetry provided[32m 68[2mms[22m[39m
-       [32mέεΥ[39m does not display retry button when onRetry not provided[32m 3[2mms[22m[39m
-       [32mέεΥ[39m renders results count correctly (singular)[32m 13[2mms[22m[39m
-       [32mέεΥ[39m renders results count correctly (plural)[32m 9[2mms[22m[39m
-       [32mέεΥ[39m renders sort dropdown[32m 48[2mms[22m[39m
-       [32mέεΥ[39m calls onSortChange when sort changes[32m 40[2mms[22m[39m
-     [32mέεΥ[39m renders student name[32m 4[2mms[22m[39m
-     [32mέεΥ[39m renders student ID[32m 4[2mms[22m[39m
-     [32mέεΥ[39m renders email[32m 17[2mms[22m[39m
-     [32mέεΥ[39m renders status badge[32m 15[2mms[22m[39m
-     [32mέεΥ[39m renders enrollment type[32m 5[2mms[22m[39m
-     [32mέεΥ[39m renders courses list[32m 14[2mms[22m[39m
-     [32mέεΥ[39m truncates courses list when more than 3[32m 21[2mms[22m[39m
-[31m     [31m├Ω[31m calls onClick when card clicked[39m[33m 594[2mms[22m[39m
-[31m     [31m├Ω[31m calls onClick on Enter key[39m[32m 197[2mms[22m[39m
-[31m     [31m├Ω[31m calls onClick on Space key[39m[33m 342[2mms[22m[39m
-     [32mέεΥ[39m renders course code[32m 6[2mms[22m[39m
-     [32mέεΥ[39m renders course name[32m 3[2mms[22m[39m
-     [32mέεΥ[39m renders description[32m 3[2mms[22m[39m
-     [32mέεΥ[39m renders instructor[32m 6[2mms[22m[39m
-     [32mέεΥ[39m renders status badge[32m 2[2mms[22m[39m
-     [32mέεΥ[39m truncates long description[32m 3[2mms[22m[39m
-[31m     [31m├Ω[31m calls onClick when card clicked[39m[32m 193[2mms[22m[39m
-     [32mέεΥ[39m renders grade letter[32m 3[2mms[22m[39m
-     [32mέεΥ[39m renders points[32m 2[2mms[22m[39m
-     [32mέεΥ[39m renders student name[32m 2[2mms[22m[39m
-     [32mέεΥ[39m renders course code[32m 2[2mms[22m[39m
-     [32mέεΥ[39m applies correct color for A grade[32m 5[2mms[22m[39m
-     [32mέεΥ[39m applies correct color for B grade[32m 4[2mms[22m[39m
-[31m     [31m├Ω[31m calls onClick when card clicked[39m[32m 160[2mms[22m[39m
- [31mέζψ[39m src/features/export-admin/__tests__/ExportAdmin.integration.test.tsx [2m([22m[2m5 tests[22m[2m | [22m[31m5 failed[39m[2m)[22m[33m 495[2mms[22m[39m
-[31m     [31m├Ω[31m renders dashboard with jobs tab[39m[32m 139[2mms[22m[39m
-[31m     [31m├Ω[31m switches to schedules tab[39m[32m 105[2mms[22m[39m
-[31m     [31m├Ω[31m displays job details correctly[39m[32m 76[2mms[22m[39m
-[31m     [31m├Ω[31m allows deleting a job[39m[32m 95[2mms[22m[39m
-[31m     [31m├Ω[31m filters job list with search[39m[32m 80[2mms[22m[39m
-stderr | src/features/students/components/EditStudentModal.test.tsx
-[i18n] Search translation keys loaded: 6 keys
-
-stderr | src/features/courses/components/AddCourseModal.test.tsx
-[i18n] Search translation keys loaded: 6 keys
-
-stderr | src/components/__tests__/SavedSearches.test.tsx
-[i18n] Search translation keys loaded: 6 keys
-
+ [32m✓[39m src/features/courses/components/AddCourseModal.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[33m 5197[2mms[22m[39m
+       [33m[2m✓[22m[39m allows typing in course name field [33m 533[2mms[22m[39m
+       [33m[2m✓[22m[39m shows validation error for empty course code [33m 418[2mms[22m[39m
+       [33m[2m✓[22m[39m shows validation error for empty course name [33m 525[2mms[22m[39m
+       [33m[2m✓[22m[39m validates course code max length [33m 933[2mms[22m[39m
+       [33m[2m✓[22m[39m validates credits range (0-20) [33m 578[2mms[22m[39m
+       [33m[2m✓[22m[39m updates semester preview when custom text is entered [33m 314[2mms[22m[39m
 stderr | src/components/__tests__/SavedSearches.test.tsx > SavedSearches Component > Saving Searches > should limit to 10 saved searches per type
 Each child in a list should have a unique "key" prop.
 
 Check the render method of `SavedSearches`. See https://react.dev/link/warning-keys for more information.
+
+ [32m✓[39m src/features/students/components/EditStudentModal.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[33m 5913[2mms[22m[39m
+       [33m[2m✓[22m[39m allows editing all text fields [33m 345[2mms[22m[39m
+       [33m[2m✓[22m[39m shows validation error for invalid email format (schema validation) [33m 904[2mms[22m[39m
+       [33m[2m✓[22m[39m validates phone number max length [33m 531[2mms[22m[39m
+       [33m[2m✓[22m[39m converts email to lowercase on submission [33m 530[2mms[22m[39m
+       [33m[2m✓[22m[39m calls onUpdate with modified student data [33m 374[2mms[22m[39m
+       [33m[2m✓[22m[39m updates phone and mobile_phone together [33m 326[2mms[22m[39m
+       [33m[2m✓[22m[39m handles submission with all fields modified [33m 1002[2mms[22m[39m
+       [33m[2m✓[22m[39m handles special characters in name fields [33m 557[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/SearchBar.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/hooks/useApiWithRecovery.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiQuery > should retry failed queries with exponential backoff
+[ErrorRecovery] Scheduling retry 1/3 in 10ms
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiQuery > should retry failed queries with exponential backoff
+[ErrorRecovery] Scheduling retry 1/3 in 10ms
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiQuery > should reset error state on successful retry
+[ErrorRecovery] Scheduling retry 1/2 in 10ms
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiQuery > should use custom error recovery options
+[ErrorRecovery] Scheduling retry 1/1 in 20ms
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiMutation > should retry failed mutations
+[ErrorRecovery] Scheduling retry 1/2 in 100ms
+[ErrorRecovery] Manual retry triggered
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiMutation > should respect maxRetries for mutations
+[ErrorRecovery] Scheduling retry 1/2 in 100ms
+[ErrorRecovery] Manual retry triggered
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiMutation > should respect maxRetries for mutations
+[ErrorRecovery] Scheduling retry 1/2 in 100ms
+[ErrorRecovery] Manual retry triggered
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiMutation > should respect maxRetries for mutations
+[ErrorRecovery] Scheduling retry 1/2 in 100ms
+
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > useApiMutation > should use immediate strategy by default
+[ErrorRecovery] Manual retry triggered
 
 stderr | src/components/__tests__/SavedSearches.test.tsx > SavedSearches Component > Error Handling > should handle corrupted localStorage
 Error loading saved searches: SyntaxError: Unexpected token 'i', "invalid json" is not valid JSON
@@ -132,11 +143,6 @@ Error loading saved searches: SyntaxError: Unexpected token 'i', "invalid json" 
     at recursivelyTraversePassiveMountEffects (D:\SMS\student-management-system\frontend\node_modules\react-dom\cjs\react-dom-client.development.js:15439:11)
     at commitPassiveMountOnFiber (D:\SMS\student-management-system\frontend\node_modules\react-dom\cjs\react-dom-client.development.js:15718:11)
 
- [32mέεΥ[39m src/features/courses/components/AddCourseModal.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[33m 4683[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m allows typing in course name field [33m 560[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m validates course code max length [33m 834[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m validates credits range (0-20) [33m 587[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m updates semester preview when custom text is entered [33m 309[2mms[22m[39m
 stderr | src/components/__tests__/SavedSearches.test.tsx > SavedSearches Component > Error Handling > should show error message if save fails
 Error saving search: Error: Storage full
     at Object.<anonymous> (D:/SMS/student-management-system/frontend/src/components/__tests__/SavedSearches.test.tsx:551:15)
@@ -150,1193 +156,1033 @@ Error saving search: Error: Storage full
     at dispatchEventForPluginEventSystem (D:\SMS\student-management-system\frontend\node_modules\react-dom\cjs\react-dom-client.development.js:19320:7)
     at dispatchEvent (D:\SMS\student-management-system\frontend\node_modules\react-dom\cjs\react-dom-client.development.js:23585:11)
 
- [32mέεΥ[39m src/features/students/components/EditStudentModal.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[33m 5449[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m allows editing all text fields [33m 361[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m allows editing phone number [33m 305[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m shows validation error for invalid email format (schema validation) [33m 367[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m validates phone number max length [33m 482[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m converts email to lowercase on submission [33m 468[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m calls onUpdate with modified student data [33m 402[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m updates phone and mobile_phone together [33m 325[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m handles submission with all fields modified [33m 1022[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m handles special characters in name fields [33m 538[2mms[22m[39m
- [32mέεΥ[39m src/components/__tests__/SavedSearches.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 4421[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m should save search with custom name [33m 400[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m should prevent saving empty name [33m 327[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m should limit to 10 saved searches per type [33m 460[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m should display success message after save [33m 378[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m should save searches to localStorage [33m 373[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m should separate searches by search type [33m 791[2mms[22m[39m
-       [33m[2mέεΥ[22m[39m should allow saving first search [33m 355[2mms[22m[39m
-stderr | src/components/__tests__/AdvancedFilters.test.tsx
-[i18n] Search translation keys loaded: 6 keys
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > error recovery integration > should integrate with useErrorRecovery for queries
+[ErrorRecovery] Scheduling retry 1/3 in 10ms
 
-stderr | src/components/__tests__/SearchBar.test.tsx
-[i18n] Search translation keys loaded: 6 keys
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > error recovery integration > should integrate with useErrorRecovery for queries
+[ErrorRecovery] Scheduling retry 1/3 in 10ms
 
-[31mCancelling test run. Press CTRL+c again to exit forcefully.
-[39m
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > error recovery integration > should integrate with useErrorRecovery for mutations
+[ErrorRecovery] Scheduling retry 1/2 in 10ms
+[ErrorRecovery] Manual retry triggered
 
-έΟψέΟψέΟψέΟψέΟψέΟψ Failed Tests 20 έΟψέΟψέΟψέΟψέΟψέΟψέΟψ
+stderr | src/hooks/useApiWithRecovery.test.tsx > useApiWithRecovery > edge cases > should handle undefined response
+Query data cannot be undefined. Please make sure to return a value other than undefined from your query function. Affected query key: ["test"]
 
- FAIL  src/api/__tests__/api.request.interceptor.test.ts > apiClient request interceptor > attaches Authorization header when access token exists
-AssertionError: expected "getAccessToken" to be called at least once
- έζψ src/api/__tests__/api.request.interceptor.test.ts:18:15
-     16|
-     17|   // Assert that the helper consulted the auth service
-     18|   expect(spy).toHaveBeenCalled();
-       |               ^
-     19|   expect(config.headers.Authorization).toBe('Bearer TOK123');
-     20|   });
+ [32m✓[39m src/hooks/useApiWithRecovery.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 1721[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/SearchBar.test.tsx [2m([22m[2m27 tests[22m[2m)[22m[33m 2306[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/SavedSearches.test.tsx [2m([22m[2m25 tests[22m[2m)[22m[33m 4455[2mms[22m[39m
+       [33m[2m✓[22m[39m should save search with custom name [33m 407[2mms[22m[39m
+       [33m[2m✓[22m[39m should prevent saving empty name [33m 325[2mms[22m[39m
+       [33m[2m✓[22m[39m should limit to 10 saved searches per type [33m 393[2mms[22m[39m
+       [33m[2m✓[22m[39m should display success message after save [33m 377[2mms[22m[39m
+       [33m[2m✓[22m[39m should save searches to localStorage [33m 343[2mms[22m[39m
+       [33m[2m✓[22m[39m should separate searches by search type [33m 782[2mms[22m[39m
+       [33m[2m✓[22m[39m should allow saving first search [33m 358[2mms[22m[39m
+[90mstdout[2m | src/features/students/components/NotesSection.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[1/20]έΟψ
+[90mstdout[2m | src/features/operations/components/AppearanceThemeSelector.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
- FAIL  src/features/advanced-search/__tests__/SearchResults.test.tsx > StudentResultCard > calls onClick when card clicked
-TestingLibraryElementError: Unable to find an accessible element with the role "listitem"
+[90mstdout[2m | src/features/courses/components/EditCourseModal.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-Here are the accessible roles:
+ [32m✓[39m src/features/operations/components/AppearanceThemeSelector.test.tsx [2m([22m[2m23 tests[22m[2m)[22m[33m 1732[2mms[22m[39m
+       [33m[2m✓[22m[39m handles rapid theme changes [33m 357[2mms[22m[39m
+ [32m✓[39m src/features/courses/components/EditCourseModal.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 1529[2mms[22m[39m
+       [33m[2m✓[22m[39m allows editing course name [33m 421[2mms[22m[39m
+ [32m✓[39m src/features/students/components/NotesSection.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[33m 1704[2mms[22m[39m
+       [33m[2m✓[22m[39m handles unicode characters (Greek, emoji) [33m 310[2mms[22m[39m
+[90mstdout[2m | src/components/__tests__/NotificationCenter.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-  button:
+[90mstdout[2m | src/pages/__tests__/AdminPermissionsPage.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-  Name "Student: John Doe":
-  <div
-    aria-label="Student: John Doe"
-    class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-    role="button"
-    tabindex="0"
-  />
+[90mstdout[2m | src/hooks/useCoursesQuery.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-  --------------------------------------------------
-  heading:
+stderr | src/hooks/useCoursesQuery.test.ts > useCoursesQuery hooks > useCourses - basic fetching > sets error state on failure
+[useCourses] Error: Network fail Error: Network fail
+    at D:/SMS/student-management-system/frontend/src/hooks/useCoursesQuery.test.ts:116:21
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
 
-  Name "John Doe":
-  <h3
-    class="text-base font-semibold text-gray-900 truncate"
-  />
+ [32m✓[39m src/components/__tests__/NotificationCenter.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 1173[2mms[22m[39m
+ [32m✓[39m src/hooks/useCoursesQuery.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 813[2mms[22m[39m
+ [32m✓[39m src/pages/__tests__/AdminPermissionsPage.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 1065[2mms[22m[39m
+     [33m[2m✓[22m[39m allows granting, revoking, and auditing permissions [33m 852[2mms[22m[39m
+ [32m✓[39m src/features/students/components/AddStudentModal.test.tsx [2m([22m[2m26 tests[22m[2m)[22m[33m 15496[2mms[22m[39m
+       [33m[2m✓[22m[39m allows typing in all text fields [33m 909[2mms[22m[39m
+       [33m[2m✓[22m[39m allows typing in address textarea [33m 643[2mms[22m[39m
+       [33m[2m✓[22m[39m allows selecting dates [33m 340[2mms[22m[39m
+       [33m[2m✓[22m[39m shows validation error for invalid email (schema validation) [33m 824[2mms[22m[39m
+       [33m[2m✓[22m[39m shows validation error for invalid student ID pattern [33m 733[2mms[22m[39m
+       [33m[2m✓[22m[39m shows validation error for too long student ID [33m 1358[2mms[22m[39m
+       [33m[2m✓[22m[39m normalizes whitespace and lowercases email on submit [33m 942[2mms[22m[39m
+       [33m[2m✓[22m[39m converts email to lowercase [33m 718[2mms[22m[39m
+       [33m[2m✓[22m[39m calls onAdd with valid form data [33m 920[2mms[22m[39m
+       [33m[2m✓[22m[39m calls onClose after successful submission [33m 686[2mms[22m[39m
+       [33m[2m✓[22m[39m includes default values for optional backend fields [33m 686[2mms[22m[39m
+       [33m[2m✓[22m[39m handles submission with optional fields empty [33m 752[2mms[22m[39m
+       [33m[2m✓[22m[39m submits with all fields filled including optional [33m 1449[2mms[22m[39m
+       [33m[2m✓[22m[39m disables submit button during submission [33m 643[2mms[22m[39m
+       [33m[2m✓[22m[39m handles special characters in names [33m 971[2mms[22m[39m
+       [33m[2m✓[22m[39m handles very long phone numbers within limit [33m 1178[2mms[22m[39m
+       [33m[2m✓[22m[39m validates phone number max length [33m 1149[2mms[22m[39m
+[90mstdout[2m | src/components/notifications/__tests__/NotificationBell.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-  --------------------------------------------------
-  link:
+[90mstdout[2m | src/components/__tests__/NotificationBell.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-  Name "john.doe@example.com":
-  <a
-    class="hover:text-indigo-600 hover:underline"
-    href="mailto:john.doe@example.com"
-  />
+[90mstdout[2m | src/features/students/components/StudentCard.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
 
-  --------------------------------------------------
+[90mstdout[2m | src/components/notifications/__tests__/NotificationItem.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/components/notifications/__tests__/NotificationBell.test.tsx [2m([22m[2m19 tests[22m[2m)[22m[33m 787[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/NotificationBell.test.tsx [2m([22m[2m27 tests[22m[2m)[22m[33m 761[2mms[22m[39m
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+Not implemented: navigation to another Document
+ [32m✓[39m src/components/notifications/__tests__/NotificationItem.test.tsx [2m([22m[2m43 tests[22m[2m)[22m[33m 1098[2mms[22m[39m
+       [33m[2m✓[22m[39m should render mark as read button [33m 475[2mms[22m[39m
+ [32m✓[39m src/features/students/components/StudentCard.test.tsx [2m([22m[2m33 tests[22m[2m)[22m[33m 1103[2mms[22m[39m
+       [33m[2m✓[22m[39m shows action buttons [33m 342[2mms[22m[39m
+[90mstdout[2m | src/hooks/useStudentsQuery.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/hooks/useStudentsQuery.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/components/__tests__/SearchResults.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/features/analytics/hooks/__tests__/useAnalytics.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > returns initial state with loading true
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > returns initial state with loading true
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > handles error when fetching fails
+Error fetching performance: Error: Network error
+    at D:/SMS/student-management-system/frontend/src/features/analytics/hooks/__tests__/useAnalytics.test.ts:80:19
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+Error fetching trends: Error: Network error
+    at D:/SMS/student-management-system/frontend/src/features/analytics/hooks/__tests__/useAnalytics.test.ts:80:19
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+Error fetching attendance: Error: Network error
+    at D:/SMS/student-management-system/frontend/src/features/analytics/hooks/__tests__/useAnalytics.test.ts:80:19
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32m✓[39m src/hooks/useStudentsQuery.test.tsx [2m([22m[2m12 tests[22m[2m)[22m[33m 581[2mms[22m[39m
+ [32m✓[39m src/hooks/useStudentsQuery.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 567[2mms[22m[39m
+stderr | src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > provides refetch function
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > provides refetch function
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > provides refetch function
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/features/analytics/hooks/__tests__/useAnalytics.test.ts > useAnalytics Hook > handles partial data loading
+Error fetching trends: Error: Trends API down
+    at D:/SMS/student-management-system/frontend/src/features/analytics/hooks/__tests__/useAnalytics.test.ts:151:30
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+Error fetching attendance: Error: Attendance API down
+    at D:/SMS/student-management-system/frontend/src/features/analytics/hooks/__tests__/useAnalytics.test.ts:152:30
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32m✓[39m src/features/analytics/hooks/__tests__/useAnalytics.test.ts [2m([22m[2m8 tests[22m[2m)[22m[33m 497[2mms[22m[39m
+ [32m✓[39m src/components/__tests__/SearchResults.test.tsx [2m([22m[2m36 tests[22m[2m)[22m[33m 673[2mms[22m[39m
+[90mstdout[2m | src/hooks/__tests__/useSearch.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/components/notifications/__tests__/NotificationDropdown.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/ThemeContext.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/ThemeContext.test.tsx > ThemeContext > setTheme > updates state even if localStorage fails
+[ThemeProvider] Failed to save theme: Error: QuotaExceededError
+    at Proxy.<anonymous> (D:/SMS/student-management-system/frontend/src/ThemeContext.test.tsx:175:15)
+    at Proxy.setItem (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/spy/dist/index.js:285:34)
+    at Object.setThemeImmediate [as setTheme] (D:/SMS/student-management-system/frontend/src/ThemeContext.tsx:142:20)
+    at D:/SMS/student-management-system/frontend/src/ThemeContext.test.tsx:181:24
+    at D:\SMS\student-management-system\frontend\node_modules\@testing-library\react\dist\act-compat.js:47:24
+    at process.env.NODE_ENV.exports.act (D:\SMS\student-management-system\frontend\node_modules\react\cjs\react.development.js:814:22)
+    at D:\SMS\student-management-system\frontend\node_modules\@testing-library\react\dist\act-compat.js:46:25
+    at D:/SMS/student-management-system/frontend/src/ThemeContext.test.tsx:180:7
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+
+ [32m✓[39m src/hooks/__tests__/useSearch.test.ts [2m([22m[2m20 tests[22m[2m)[22m[33m 373[2mms[22m[39m
+ [32m✓[39m src/components/notifications/__tests__/NotificationDropdown.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[33m 334[2mms[22m[39m
+ [32m✓[39m src/ThemeContext.test.tsx [2m([22m[2m35 tests[22m[2m)[22m[33m 335[2mms[22m[39m
+[90mstdout[2m | src/features/students/components/CourseGradeBreakdown.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/students/components/CourseGradeBreakdown.test.tsx [2m([22m[2m24 tests[22m[2m)[22m[33m 451[2mms[22m[39m
+stderr | src\features\students\components\CourseGradeBreakdown.tsx:49:23
+Failed to load course info 999 TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at D:/SMS/student-management-system/frontend/src/features/students/components/CourseGradeBreakdown.tsx:41:32
+    at async Promise.all (index 0)
+    at fetchMissingCourses (D:/SMS/student-management-system/frontend/src/features/students/components/CourseGradeBreakdown.tsx:38:32) {
+  [cause]: Error: connect ECONNREFUSED 127.0.0.1:8000
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+    errno: -4078,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 8000
+  }
+}
+
+[90mstdout[2m | src/features/notifications/components/NotificationItem.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/hooks/__tests__/useNotifications.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/components/views/CoursesView.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/hooks/__tests__/useNotifications.test.ts > useNotifications Hook > fetchNotifications > should handle fetch errors
+Failed to fetch notifications: Error: Failed to fetch
+    at D:/SMS/student-management-system/frontend/src/hooks/__tests__/useNotifications.test.ts:123:21
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/features/notifications/components/NotificationItem.test.tsx > NotificationItem > should support keyboard navigation for mark as read button
+An update to NotificationItem inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ [32m✓[39m src/features/notifications/components/NotificationItem.test.tsx [2m([22m[2m8 tests[22m[2m)[22m[32m 245[2mms[22m[39m
+stderr | src/hooks/__tests__/useNotifications.test.ts > useNotifications Hook > markAsRead > should handle mark as read errors
+Failed to mark notification as read: Error: Failed to mark as read
+    at D:/SMS/student-management-system/frontend/src/hooks/__tests__/useNotifications.test.ts:253:21
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/hooks/__tests__/useNotifications.test.ts > useNotifications Hook > Error Handling > should set error state on API failure
+Failed to fetch notifications: Error: API Error
+    at D:/SMS/student-management-system/frontend/src/hooks/__tests__/useNotifications.test.ts:464:21
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32m✓[39m src/hooks/__tests__/useNotifications.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 303[2mms[22m[39m
+ [32m✓[39m src/components/views/CoursesView.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 311[2mms[22m[39m
+[90mstdout[2m | src/features/students/components/GradeDistribution.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/students/components/GradeDistribution.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[33m 415[2mms[22m[39m
+[90mstdout[2m | src/services/__tests__/notificationWebSocket.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Connection State > should report connected after successful connection
+[WebSocket] Connected to notifications server
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Connection State > should report not connected after disconnect
+[WebSocket] Connected to notifications server
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Connection State > should report not connected after disconnect
+[WebSocket] Disconnected
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Connection State > should report not connected after disconnect
+[WebSocket] Connection closed
+[WebSocket] Attempting to reconnect in 3000ms (attempt 1)
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > URL Construction > should construct correct WebSocket URL
+[WebSocket] Connected to notifications server
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > URL Construction > should encode special characters in token
+[WebSocket] Connected to notifications server
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Callbacks > should call onConnect callback
+[WebSocket] Connected to notifications server
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Callbacks > should call onDisconnect callback
+[WebSocket] Connected to notifications server
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Callbacks > should call onDisconnect callback
+[WebSocket] Disconnected
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Callbacks > should call onDisconnect callback
+[WebSocket] Connection closed
+[WebSocket] Attempting to reconnect in 3000ms (attempt 1)
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Error Handling > should handle disconnect when not connected
+[WebSocket] Disconnected
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Error Handling > should handle multiple disconnect calls
+[WebSocket] Connected to notifications server
+
+[90mstdout[2m | src/features/analytics/components/__tests__/AnalyticsDashboard.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Error Handling > should handle multiple disconnect calls
+[WebSocket] Disconnected
+[WebSocket] Disconnected
+[WebSocket] Disconnected
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Default Options > should use default callbacks if not provided
+[WebSocket] Connection closed
+[WebSocket] Attempting to reconnect in 3000ms (attempt 1)
+
+stderr | src/services/__tests__/notificationWebSocket.test.ts > NotificationWebSocketClient > Default Options > should use default callbacks if not provided
+[WebSocket] Connected to notifications server
+
+ [32m✓[39m src/services/__tests__/notificationWebSocket.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 244[2mms[22m[39m
+[90mstdout[2m | src/features/analytics/components/__tests__/CardComponents.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/analytics/components/__tests__/CardComponents.test.tsx [2m([22m[2m21 tests[22m[2m)[22m[32m 170[2mms[22m[39m
+ [32m✓[39m src/features/analytics/components/__tests__/AnalyticsDashboard.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[32m 208[2mms[22m[39m
+[90mstdout[2m | src/hooks/usePerformanceMonitor.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should log warning when render time exceeds threshold
+[Performance] TestComponent render #1 took 2850.00ms {
+  component: 'TestComponent',
+  duration: 2850,
+  renderCount: 1,
+  totalTime: '2850.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should include component name in warning message
+[Performance] MyTestComponent render #1 took 2850.00ms {
+  component: 'MyTestComponent',
+  duration: 2850,
+  renderCount: 1,
+  totalTime: '2850.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should include render count in warning object
+[Performance] TestComponent render #1 took 2850.00ms {
+  component: 'TestComponent',
+  duration: 2850,
+  renderCount: 1,
+  totalTime: '2850.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should track duration in warning object
+[Performance] TestComponent render #1 took 2850.00ms {
+  component: 'TestComponent',
+  duration: 2850,
+  renderCount: 1,
+  totalTime: '2850.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should send analytics event when available
+[Performance] TestComponent render #1 took 2850.00ms {
+  component: 'TestComponent',
+  duration: 2850,
+  renderCount: 1,
+  totalTime: '2850.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should not crash when analytics is not available
+[Performance] TestComponent render #1 took 2850.00ms {
+  component: 'TestComponent',
+  duration: 2850,
+  renderCount: 1,
+  totalTime: '2850.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should use default threshold of 100ms
+[Performance] TestComponent render #1 took 1919.00ms {
+  component: 'TestComponent',
+  duration: 1919,
+  renderCount: 1,
+  totalTime: '1919.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should handle multiple renders with different durations
+[Performance] TestComponent-Updated render #2 took 17767.72ms {
+  component: 'TestComponent-Updated',
+  duration: 17767.7173,
+  renderCount: 2,
+  totalTime: '22567.72'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > usePerformanceMonitor > should accumulate total time across multiple renders
+[Performance] TestComponent render #1 took 440.00ms {
+  component: 'TestComponent',
+  duration: 440,
+  renderCount: 1,
+  totalTime: '440.00'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > useApiPerformance > should use default threshold of 1000ms
+[API Performance] /api/students request took 1500.00ms {
+  endpoint: '/api/students',
+  duration: 1500,
+  name: 'https://example.com/api/students'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > useApiPerformance > should log warning for slow API requests
+[API Performance] /api/students request took 600.00ms {
+  endpoint: '/api/students',
+  duration: 600,
+  name: 'https://example.com/api/students'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > useApiPerformance > should send analytics event for slow API requests
+[API Performance] /api/students request took 600.00ms {
+  endpoint: '/api/students',
+  duration: 600,
+  name: 'https://example.com/api/students'
+}
+
+stderr | src/hooks/usePerformanceMonitor.test.ts > usePerformanceMonitor hook > useApiPerformance > should handle multiple entries in single observation
+[API Performance] /api/students request took 600.00ms {
+  endpoint: '/api/students',
+  duration: 600,
+  name: 'https://example.com/api/students/1'
+}
+[API Performance] /api/students request took 700.00ms {
+  endpoint: '/api/students',
+  duration: 700,
+  name: 'https://example.com/api/students/3'
+}
+
+ [32m✓[39m src/hooks/usePerformanceMonitor.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 68[2mms[22m[39m
+[90mstdout[2m | src/features/students/components/GradeStatistics.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/students/components/GradeStatistics.test.tsx [2m([22m[2m18 tests[22m[2m)[22m[32m 203[2mms[22m[39m
+[90mstdout[2m | src/utils/calendarUtils.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/hooks/useAutosave.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/hooks/useAutosave.test.ts > useAutosave hook > saveNow > should handle errors in saveNow
+[useAutosave] Save failed: Error: Save failed
+    at D:/SMS/student-management-system/frontend/src/hooks/useAutosave.test.ts:345:25
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/hooks/useAutosave.test.ts > useAutosave hook > callbacks > should call onError on save failure
+[useAutosave] Save failed: Error: Save failed
+    at D:/SMS/student-management-system/frontend/src/hooks/useAutosave.test.ts:463:25
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+stderr | src/hooks/useAutosave.test.ts > useAutosave hook > callbacks > should not call onSuccess if error occurs
+[useAutosave] Save failed: Error: Save failed
+    at D:/SMS/student-management-system/frontend/src/hooks/useAutosave.test.ts:483:50
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:145:11
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:915:26
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1209:10)
+    at file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:37
+    at Traces.$ (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/traces.U4xDYhzZ.js:115:27)
+    at trace (file:///D:/SMS/student-management-system/frontend/node_modules/vitest/dist/chunks/test.B8ej_ZHS.js:239:21)
+    at runTest (file:///D:/SMS/student-management-system/frontend/node_modules/@vitest/runner/dist/index.js:1653:12)
+
+ [32m✓[39m src/utils/calendarUtils.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 172[2mms[22m[39m
+ [32m✓[39m src/hooks/useAutosave.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+[90mstdout[2m | src/features/grading/components/GradeDisplay.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/grading/components/GradeDisplay.test.tsx [2m([22m[2m42 tests[22m[2m)[22m[32m 138[2mms[22m[39m
+[90mstdout[2m | src/features/grading/components/__tests__/GradingView.decimal.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/features/importExport/ImportWizard.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/features/students/components/AttendanceDetails.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/grading/components/__tests__/GradingView.decimal.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[32m 170[2mms[22m[39m
+ [32m✓[39m src/features/students/components/AttendanceDetails.test.tsx [2m([22m[2m22 tests[22m[2m)[22m[32m 116[2mms[22m[39m
+ [32m✓[39m src/features/importExport/ImportWizard.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 123[2mms[22m[39m
+[90mstdout[2m | src/hooks/useStudentModals.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/hooks/useStudentModals.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+[90mstdout[2m | src/hooks/useFormValidation.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/hooks/useFormValidation.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 59[2mms[22m[39m
+[90mstdout[2m | src/contexts/AuthContext.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/hooks/useVirtualScroll.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/hooks/useVirtualScroll.test.ts [2m([22m[2m42 tests[22m[2m)[22m[32m 56[2mms[22m[39m
+ [32m✓[39m src/contexts/AuthContext.test.tsx [2m([22m[2m19 tests[22m[2m)[22m[32m 86[2mms[22m[39m
+[90mstdout[2m | src/hooks/useCourseModals.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/hooks/useCourseModals.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 55[2mms[22m[39m
+[90mstdout[2m | src/features/importExport/ExportDialog.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/importExport/ExportDialog.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 71[2mms[22m[39m
+[90mstdout[2m | src/hooks/useModal.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/LanguageContext.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/hooks/useModal.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m src/LanguageContext.test.tsx [2m([22m[2m14 tests[22m[2m)[22m[32m 67[2mms[22m[39m
+[90mstdout[2m | src/hooks/useErrorRecovery.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > error handling > should handle errors correctly
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > retry strategies > should increment retry count with backoff strategy
+[ErrorRecovery] Scheduling retry 1/3 in 100ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > retry strategies > should respect maxRetries limit
+[ErrorRecovery] Scheduling retry 1/2 in 100ms
+[ErrorRecovery] Scheduling retry 2/2 in 200ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > exponential backoff calculation > should calculate correct exponential backoff delays
+[ErrorRecovery] Scheduling retry 1/4 in 1000ms
+[ErrorRecovery] Scheduling retry 2/4 in 2000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > manual retry > should reset on manual retry
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+[ErrorRecovery] Manual retry triggered
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > reset > should clear all state on reset
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > reset > should clear pending timeouts on reset
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > onError callback > should call onError callback when error occurs
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > onError callback > should provide retry function in onError callback
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > shouldRetry > should return true when conditions allow retry
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > shouldRetry > should return false when max retries exceeded
+[ErrorRecovery] Scheduling retry 1/1 in 100ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > edge cases > should handle rapid error handling
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > edge cases > should handle non-Error objects
+[ErrorRecovery] Scheduling retry 1/3 in 1000ms
+
+stderr | src/hooks/useErrorRecovery.test.ts > useErrorRecovery hook > edge cases > should cap exponential backoff to avoid extremely long delays
+[ErrorRecovery] Scheduling retry 1/10 in 1000ms
+[ErrorRecovery] Scheduling retry 2/10 in 2000ms
+
+ [32m✓[39m src/hooks/useErrorRecovery.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 68[2mms[22m[39m
+[90mstdout[2m | src/components/common/ServerControl.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/components/import-export/__tests__/ImportExportPage.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/schemas/course.schema.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/schemas/course.schema.test.ts [2m([22m[2m53 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m src/components/common/ServerControl.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 54[2mms[22m[39m
+[90mstdout[2m | src/i18n/__tests__/translations.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/i18n/__tests__/translations.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m src/components/import-export/__tests__/ImportExportPage.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 49[2mms[22m[39m
+[90mstdout[2m | src/features/importExport/HistoryTable.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/schemas/grade.schema.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/schemas/grade.schema.test.ts [2m([22m[2m60 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+ [32m✓[39m src/features/importExport/HistoryTable.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 43[2mms[22m[39m
+[90mstdout[2m | src/schemas/attendance.schema.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/schemas/attendance.schema.test.ts [2m([22m[2m53 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+[90mstdout[2m | src/api/__tests__/api.client.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/api/__tests__/api.client.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+stderr | src\utils\errorReporting.ts:82:17
+Failed to send error to backend: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  [cause]: Error: connect ECONNREFUSED 127.0.0.1:8000
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+    errno: -4078,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 8000
+  }
+}
+
+stderr | src\utils\errorReporting.ts:82:17
+Failed to send error to backend: TypeError: fetch failed
+    at node:internal/deps/undici/undici:13510:13
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  [cause]: Error: connect ECONNREFUSED 127.0.0.1:8000
+      at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1611:16) {
+    errno: -4078,
+    code: 'ECONNREFUSED',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 8000
+  }
+}
+
+[90mstdout[2m | src/contexts/AppearanceThemeContext.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/schemas/student.schema.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/schemas/student.schema.test.ts [2m([22m[2m48 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m src/contexts/AppearanceThemeContext.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+[90mstdout[2m | src/stores/useAttendanceStore.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/stores/useAttendanceStore.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+[90mstdout[2m | src/features/importExport/useImportExport.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/features/importExport/useImportExport.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
+[90mstdout[2m | src/stores/useGradesStore.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/stores/useCoursesStore.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/stores/useGradesStore.test.ts [2m([22m[2m32 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m src/stores/useCoursesStore.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+[90mstdout[2m | src/stores/useStudentsStore.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/stores/useStudentsStore.test.ts [2m([22m[2m34 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+[90mstdout[2m | src/utils/categoryLabels.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/utils/categoryLabels.test.ts [2m([22m[2m29 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+[90mstdout[2m | src/utils/date.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+[90mstdout[2m | src/utils/gradeUtils.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/utils/date.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m src/utils/gradeUtils.test.ts [2m([22m[2m32 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+[90mstdout[2m | src/typescriptBasics.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/typescriptBasics.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+[90mstdout[2m | src/utils/errorMessage.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/utils/errorMessage.test.ts [2m([22m[2m31 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+[90mstdout[2m | src/utils/__tests__/normalize.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/utils/__tests__/normalize.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+[90mstdout[2m | src/sanity.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/sanity.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+[90mstdout[2m | src/api/__tests__/api.fallback.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+stderr | src/api/__tests__/api.fallback.test.ts > API dynamic fallback > switches to relative base on preflight failure for absolute original base
+[api] Preflight failed for http://unreachable.invalid:9999/health. Falling back to relative '/api/v1'.
+
+ [32m✓[39m src/api/__tests__/api.fallback.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+[90mstdout[2m | src/api/__tests__/api.request.interceptor.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/api/__tests__/api.request.interceptor.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+[90mstdout[2m | src/utils/basicUtils.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/utils/basicUtils.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | src/services/__tests__/authService.test.ts
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/services/__tests__/authService.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+[90mstdout[2m | src/components/import-export/__tests__/ImportExportComponents.test.tsx
+[22m[39m[i18n] Initialized with English
+[i18n] Found search translation keys: []
+
+ [32m✓[39m src/components/import-export/__tests__/ImportExportComponents.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 2[2mms[22m[39m
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  src/components/__tests__/AdvancedFilters.test.tsx > AdvancedFilters Component > Filter Presets > should populate fields when preset selected
+TestingLibraryElementError: Unable to find an element with the placeholder text of: /min grade|grade min/i
 
 Ignored nodes: comments, script, style
 <body>
   <div>
     <div
-      aria-label="Student: John Doe"
-      class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-      role="button"
-      tabindex="0"
+      class="advanced-filters "
     >
-      <div
-        class="flex items-start gap-4"
+      <button
+        aria-expanded="false"
+        aria-label="Advanced Filters"
+        class="filter-toggle "
       >
-        <div
-          class="flex-shrink-0"
+        <svg
+          aria-hidden="true"
+          class="toggle-icon"
+          data-slot="icon"
+          fill="none"
+          role="img"
+          stroke="currentColor"
+          stroke-width="1.5"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
         >
-          <div
-            class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-6 w-6 text-indigo-600"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
-        <div
-          class="flex-1 min-w-0"
-        >
-          <div
-            class="flex items-center gap-2 mb-1"
-          >
-            <h3
-              class="text-base font-semibold text-gray-900 truncate"
-            >
-              John
-
-              Doe
-            </h3>
-            <span
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-            >
-              Active
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600 mb-2"
-          >
-            <span
-              class="font-mono"
-            >
-              STU001
-            </span>
-            <span
-              class="text-gray-400"
-            >
-              έΑλ
-            </span>
-            <span
-              class="text-gray-500"
-            >
-              full_time
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600 mb-2"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <a
-              class="hover:text-indigo-600 hover:underline"
-              href="mailto:john.doe@example.com"
-            >
-              john.doe@example.com
-            </a>
-          </div>
-          <div
-            class="flex items-start gap-2 text-sm text-gray-600"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <div
-              class="flex-1"
-            >
-              <span
-                class="text-gray-500"
-              >
-                Courses
-                :
-              </span>
-
-              <span
-                class="text-gray-700"
-              >
-                CS101, CS102
-              </span>
-            </div>
-          </div>
-          <div
-            class="mt-2 text-xs text-gray-400"
-          >
-            Relevance
-            :
-            0.95
-          </div>
-        </div>
-      </div>
+          <path
+            d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 0 1-.659 1.591l-5.432 5.432a2.25 2.25 0 0 0-.659 1.591v2.927a2.25 2.25 0 0 1-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 0 0-.659-1.591L3.659 7.409A2.25 2.25 0 0 1 3 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0 1 12 3Z"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        Advanced Filters
+      </button>
     </div>
   </div>
 </body>
- έζψ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:306:25
-    304|     );
-    305|
-    306|     const card = screen.getByRole('listitem');
-       |                         ^
-    307|     fireEvent.click(card);
-    308|
-
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[2/20]έΟψ
-
- FAIL  src/features/advanced-search/__tests__/SearchResults.test.tsx > StudentResultCard > calls onClick on Enter key
-TestingLibraryElementError: Unable to find an accessible element with the role "listitem"
-
-Here are the accessible roles:
-
-  button:
-
-  Name "Student: John Doe":
-  <div
-    aria-label="Student: John Doe"
-    class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-    role="button"
-    tabindex="0"
-  />
-
-  --------------------------------------------------
-  heading:
-
-  Name "John Doe":
-  <h3
-    class="text-base font-semibold text-gray-900 truncate"
-  />
-
-  --------------------------------------------------
-  link:
-
-  Name "john.doe@example.com":
-  <a
-    class="hover:text-indigo-600 hover:underline"
-    href="mailto:john.doe@example.com"
-  />
-
-  --------------------------------------------------
-
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      aria-label="Student: John Doe"
-      class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-      role="button"
-      tabindex="0"
-    >
-      <div
-        class="flex items-start gap-4"
-      >
-        <div
-          class="flex-shrink-0"
-        >
-          <div
-            class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-6 w-6 text-indigo-600"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
-        <div
-          class="flex-1 min-w-0"
-        >
-          <div
-            class="flex items-center gap-2 mb-1"
-          >
-            <h3
-              class="text-base font-semibold text-gray-900 truncate"
-            >
-              John
-
-              Doe
-            </h3>
-            <span
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-            >
-              Active
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600 mb-2"
-          >
-            <span
-              class="font-mono"
-            >
-              STU001
-            </span>
-            <span
-              class="text-gray-400"
-            >
-              έΑλ
-            </span>
-            <span
-              class="text-gray-500"
-            >
-              full_time
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600 mb-2"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <a
-              class="hover:text-indigo-600 hover:underline"
-              href="mailto:john.doe@example.com"
-            >
-              john.doe@example.com
-            </a>
-          </div>
-          <div
-            class="flex items-start gap-2 text-sm text-gray-600"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <div
-              class="flex-1"
-            >
-              <span
-                class="text-gray-500"
-              >
-                Courses
-                :
-              </span>
-
-              <span
-                class="text-gray-700"
-              >
-                CS101, CS102
-              </span>
-            </div>
-          </div>
-          <div
-            class="mt-2 text-xs text-gray-400"
-          >
-            Relevance
-            :
-            0.95
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
- έζψ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:317:25
-    315|     );
-    316|
-    317|     const card = screen.getByRole('listitem');
-       |                         ^
-    318|     fireEvent.keyDown(card, { key: 'Enter' });
-    319|
-
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[3/20]έΟψ
-
- FAIL  src/features/advanced-search/__tests__/SearchResults.test.tsx > StudentResultCard > calls onClick on Space key
-TestingLibraryElementError: Unable to find an accessible element with the role "listitem"
-
-Here are the accessible roles:
-
-  button:
-
-  Name "Student: John Doe":
-  <div
-    aria-label="Student: John Doe"
-    class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-    role="button"
-    tabindex="0"
-  />
-
-  --------------------------------------------------
-  heading:
-
-  Name "John Doe":
-  <h3
-    class="text-base font-semibold text-gray-900 truncate"
-  />
-
-  --------------------------------------------------
-  link:
-
-  Name "john.doe@example.com":
-  <a
-    class="hover:text-indigo-600 hover:underline"
-    href="mailto:john.doe@example.com"
-  />
-
-  --------------------------------------------------
-
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      aria-label="Student: John Doe"
-      class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-      role="button"
-      tabindex="0"
-    >
-      <div
-        class="flex items-start gap-4"
-      >
-        <div
-          class="flex-shrink-0"
-        >
-          <div
-            class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-6 w-6 text-indigo-600"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
-        <div
-          class="flex-1 min-w-0"
-        >
-          <div
-            class="flex items-center gap-2 mb-1"
-          >
-            <h3
-              class="text-base font-semibold text-gray-900 truncate"
-            >
-              John
-
-              Doe
-            </h3>
-            <span
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-            >
-              Active
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600 mb-2"
-          >
-            <span
-              class="font-mono"
-            >
-              STU001
-            </span>
-            <span
-              class="text-gray-400"
-            >
-              έΑλ
-            </span>
-            <span
-              class="text-gray-500"
-            >
-              full_time
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600 mb-2"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <a
-              class="hover:text-indigo-600 hover:underline"
-              href="mailto:john.doe@example.com"
-            >
-              john.doe@example.com
-            </a>
-          </div>
-          <div
-            class="flex items-start gap-2 text-sm text-gray-600"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <div
-              class="flex-1"
-            >
-              <span
-                class="text-gray-500"
-              >
-                Courses
-                :
-              </span>
-
-              <span
-                class="text-gray-700"
-              >
-                CS101, CS102
-              </span>
-            </div>
-          </div>
-          <div
-            class="mt-2 text-xs text-gray-400"
-          >
-            Relevance
-            :
-            0.95
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
- έζψ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:328:25
-    326|     );
-    327|
-    328|     const card = screen.getByRole('listitem');
-       |                         ^
-    329|     fireEvent.keyDown(card, { key: ' ' });
-    330|
-
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[4/20]έΟψ
-
- FAIL  src/features/advanced-search/__tests__/SearchResults.test.tsx > CourseResultCard > calls onClick when card clicked
-TestingLibraryElementError: Unable to find an accessible element with the role "listitem"
-
-Here are the accessible roles:
-
-  button:
-
-  Name "Course: CS101 - Introduction to Computer Science":
-  <div
-    aria-label="Course: CS101 - Introduction to Computer Science"
-    class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-    role="button"
-    tabindex="0"
-  />
-
-  --------------------------------------------------
-  heading:
-
-  Name "Introduction to Computer Science":
-  <h3
-    class="text-base font-semibold text-gray-900 truncate flex-1"
-  />
-
-  --------------------------------------------------
-  paragraph:
-
-  Name "":
-  <p
-    class="text-sm text-gray-600 mb-2 line-clamp-2"
-  />
-
-  --------------------------------------------------
-
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      aria-label="Course: CS101 - Introduction to Computer Science"
-      class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-      role="button"
-      tabindex="0"
-    >
-      <div
-        class="flex items-start gap-4"
-      >
-        <div
-          class="flex-shrink-0"
-        >
-          <div
-            class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-6 w-6 text-blue-600"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
-        <div
-          class="flex-1 min-w-0"
-        >
-          <div
-            class="flex items-center gap-2 mb-1"
-          >
-            <span
-              class="font-mono text-sm font-semibold text-indigo-600"
-            >
-              CS101
-            </span>
-            <span
-              class="text-gray-400"
-            >
-              έΑλ
-            </span>
-            <h3
-              class="text-base font-semibold text-gray-900 truncate flex-1"
-            >
-              Introduction to Computer Science
-            </h3>
-            <span
-              class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
-            >
-              Active
-            </span>
-          </div>
-          <p
-            class="text-sm text-gray-600 mb-2 line-clamp-2"
-          >
-            Learn the basics of computer science
-          </p>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              class="text-gray-500"
-            >
-              Instructor
-              :
-            </span>
-            <span
-              class="text-gray-700"
-            >
-              Prof. Smith
-            </span>
-          </div>
-          <div
-            class="mt-2 text-xs text-gray-400"
-          >
-            Relevance
-            :
-            0.90
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
- έζψ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:401:25
-    399|     );
-    400|
-    401|     const card = screen.getByRole('listitem');
-       |                         ^
-    402|     fireEvent.click(card);
-    403|
-
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[5/20]έΟψ
-
- FAIL  src/features/advanced-search/__tests__/SearchResults.test.tsx > GradeResultCard > calls onClick when card clicked
-TestingLibraryElementError: Unable to find an accessible element with the role "listitem"
-
-Here are the accessible roles:
-
-  button:
-
-  Name "Grade: John Doe - CS101 - A":
-  <div
-    aria-label="Grade: John Doe - CS101 - A"
-    class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-    role="button"
-    tabindex="0"
-  />
-
-  --------------------------------------------------
-
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      aria-label="Grade: John Doe - CS101 - A"
-      class="border border-gray-200 rounded-lg p-4 hover:border-indigo-500 hover:shadow-md transition-all cursor-pointer "
-      role="button"
-      tabindex="0"
-    >
-      <div
-        class="flex items-start gap-4"
-      >
-        <div
-          class="flex-shrink-0"
-        >
-          <div
-            class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-6 w-6 text-purple-600"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-          </div>
-        </div>
-        <div
-          class="flex-1 min-w-0"
-        >
-          <div
-            class="flex items-center gap-3 mb-2"
-          >
-            <span
-              class="inline-flex items-center px-3 py-1 rounded-md text-lg font-bold bg-green-100 text-green-800"
-            >
-              A
-            </span>
-            <span
-              class="text-2xl font-semibold text-gray-700"
-            >
-              95
-              <span
-                class="text-sm text-gray-500 ml-1"
-              >
-                grades.divider
-                 100
-                points
-              </span>
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600 mb-1"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              class="text-gray-500"
-            >
-              Student
-              :
-            </span>
-            <span
-              class="text-gray-700 font-medium"
-            >
-              John Doe
-            </span>
-          </div>
-          <div
-            class="flex items-center gap-2 text-sm text-gray-600"
-          >
-            <svg
-              aria-hidden="true"
-              class="h-4 w-4 text-gray-400"
-              data-slot="icon"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
-            <span
-              class="text-gray-500"
-            >
-              Course
-              :
-            </span>
-            <span
-              class="font-mono text-indigo-600 font-medium"
-            >
-              CS101
-            </span>
-          </div>
-          <div
-            class="mt-2 text-xs text-gray-400"
-          >
-            Relevance
-            :
-            0.92
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
- έζψ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- έζψ src/features/advanced-search/__tests__/SearchResults.test.tsx:470:25
-    468|     );
-    469|
-    470|     const card = screen.getByRole('listitem');
-       |                         ^
-    471|     fireEvent.click(card);
-    472|
-
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[6/20]έΟψ
-
- FAIL  src/features/export-admin/__tests__/ExportAdmin.integration.test.tsx > ExportAdmin integration > renders dashboard with jobs tab
- FAIL  src/features/export-admin/__tests__/ExportAdmin.integration.test.tsx > ExportAdmin integration > switches to schedules tab
- FAIL  src/features/export-admin/__tests__/ExportAdmin.integration.test.tsx > ExportAdmin integration > displays job details correctly
- FAIL  src/features/export-admin/__tests__/ExportAdmin.integration.test.tsx > ExportAdmin integration > allows deleting a job
- FAIL  src/features/export-admin/__tests__/ExportAdmin.integration.test.tsx > ExportAdmin integration > filters job list with search
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > EmailConfigPanel > renders email configuration title
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > EmailConfigPanel > renders all SMTP form fields
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > EmailConfigPanel > renders save and test buttons
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > EmailConfigPanel > allows input in form fields
-TypeError: Cannot read properties of undefined (reading 'smtp_host')
- έζψ EmailConfigPanel src/features/export-admin/components/index.tsx:147:31
-
- έζψ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:20
- έζψ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:22
- έζψ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:19
- έζψ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:18
- έζψ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:874:13
- έζψ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
- έζψ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
- έζψ renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:17450:11
- έζψ performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:16583:35
-
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[7/20]έΟψ
-
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > ExportSettingsPanel > renders settings title
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > ExportSettingsPanel > renders all settings fields with hints
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > ExportSettingsPanel > renders save settings button
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > ExportSettingsPanel > accepts numeric input in settings fields
-TypeError: Cannot read properties of undefined (reading 'retention_days')
- έζψ ExportSettingsPanel src/features/export-admin/components/index.tsx:284:31
-    282|             <Input
-    283|               type="number"
-    284|               value={formData.retention_days || 30}
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ src/components/__tests__/AdvancedFilters.test.tsx:267:31
+    265|
+    266|       // Filter fields should be populated
+    267|       const minGrade = screen.getByPlaceholderText(/min grade|grade mi…
        |                               ^
-    285|               onChange={(e) =>
-    286|                 setFormData({ ...formData, retention_days: parseInt(e.έΑο
- έζψ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:20
- έζψ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:22
- έζψ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:19
- έζψ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:18
- έζψ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:874:13
- έζψ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
- έζψ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
- έζψ renderRootSync node_modules/react-dom/cjs/react-dom-client.development.js:17450:11
- έζψ performWorkOnRoot node_modules/react-dom/cjs/react-dom-client.development.js:16583:35
+    268|       expect(minGrade.value).toBeTruthy();
+    269|     });
 
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[8/20]έΟψ
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
 
- FAIL  src/features/export-admin/__tests__/SupportingComponents.test.tsx > PerformanceAnalytics > displays metric values correctly
-TestingLibraryElementError: Unable to find an element with the text: 120.50s. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+ FAIL  src/components/__tests__/AdvancedFilters.test.tsx > AdvancedFilters Component > Apply/Reset > should call onApply when Apply clicked
+AssertionError: expected "vi.fn()" to be called at least once
+ ❯ src/components/__tests__/AdvancedFilters.test.tsx:329:23
+    327|       await user.click(applyButton);
+    328|
+    329|       expect(onApply).toHaveBeenCalled();
+       |                       ^
+    330|     });
+    331|
 
-Ignored nodes: comments, script, style
-<body>
-  <div>
-    <div
-      class="space-y-4"
-    >
-      <div
-        class="grid gap-4 md:grid-cols-3"
-      >
-        <div
-          class="rounded-xl border bg-card text-card-foreground shadow"
-        >
-          <div
-            class="flex flex-col space-y-1.5 p-6 pb-2"
-          >
-            <div
-              class="font-semibold tracking-tight text-sm"
-            >
-              Avg Duration
-            </div>
-          </div>
-          <div
-            class="p-6 pt-0"
-          >
-            <div
-              class="text-2xl font-bold"
-            >
-              120.50
-              detail.seconds
-            </div>
-          </div>
-        </div>
-        <div
-          class="rounded-xl border bg-card text-card-foreground shadow"
-        >
-          <div
-            class="flex flex-col space-y-1.5 p-6 pb-2"
-          >
-            <div
-              class="font-semibold tracking-tight text-sm"
-            >
-              Success Rate
-            </div>
-          </div>
-          <div
-            class="p-6 pt-0"
-          >
-            <div
-              class="text-2xl font-bold"
-            >
-              95.7
-              %
-            </div>
-          </div>
-        </div>
-        <div
-          class="rounded-xl border bg-card text-card-foreground shadow"
-        >
-          <div
-            class="flex flex-col space-y-1.5 p-6 pb-2"
-          >
-            <div
-              class="font-semibold tracking-tight text-sm"
-            >
-              Total Exports
-            </div>
-          </div>
-          <div
-            class="p-6 pt-0"
-          >
-            <div
-              class="text-2xl font-bold"
-            >
-              342
-            </div>
-          </div>
-        </div>
-      </div>
-      <div
-        class="rounded-xl border bg-card text-card-foreground shadow"
-      >
-        <div
-          class="flex flex-col space-y-1.5 p-6"
-        >
-          <div
-            class="font-semibold leading-none tracking-tight"
-          >
-            Export Format Breakdown
-          </div>
-        </div>
-        <div
-          class="p-6 pt-0"
-        >
-          <div
-            class="grid gap-4 md:grid-cols-3"
-          >
-            <div
-              class="rounded-lg border p-4"
-            >
-              <p
-                class="text-sm font-medium capitalize"
-              >
-                excel
-              </p>
-              <p
-                class="text-2xl font-bold"
-              >
-                180
-              </p>
-              <p
-                class="text-xs text-muted-foreground"
-              >
-                96.2
-                %
-                success
-              </p>
-            </div>
-            <div
-              class="rounded-lg border p-4"
-            >
-              <p
-                class="text-sm font-medium capitalize"
-              >
-                csv
-              </p>
-              <p
-                class="text-2xl font-bold"
-              >
-                120
-              </p>
-              <p
-                class="text-xs text-muted-foreground"
-              >
-                94.1
-                %
-                success
-              </p>
-            </div>
-            <div
-              class="rounded-lg border p-4"
-            >
-              <p
-                class="text-sm font-medium capitalize"
-              >
-                pdf
-              </p>
-              <p
-                class="text-2xl font-bold"
-              >
-                42
-              </p>
-              <p
-                class="text-xs text-muted-foreground"
-              >
-                92.4
-                %
-                success
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</body>
- έζψ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
- έζψ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
- έζψ src/features/export-admin/__tests__/SupportingComponents.test.tsx:312:19
-    310|     renderWithProviders(<PerformanceAnalytics metrics={mockMetrics} />έΑο
-    311|
-    312|     expect(screen.getByText('120.50s')).toBeInTheDocument();
-       |                   ^
-    313|     expect(screen.getByText('95.7%')).toBeInTheDocument();
-    314|     expect(screen.getByText('342')).toBeInTheDocument();
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
 
-έΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψέΟψ[9/20]έΟψ
+ FAIL  src/components/__tests__/AdvancedFilters.test.tsx > AdvancedFilters Component > Apply/Reset > should clear all fields when Reset clicked
+AssertionError: expected 'John' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ John
+
+ ❯ src/components/__tests__/AdvancedFilters.test.tsx:363:36
+    361|       await user.click(resetButton);
+    362|
+    363|       expect(firstNameInput.value).toBe('');
+       |                                    ^
+    364|     });
+    365|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  src/components/__tests__/AdvancedFilters.test.tsx > AdvancedFilters Component > Accessibility > should be keyboard navigable
+Error: expect(element).toHaveFocus()
+
+Expected element with focus:
+  <input
+  id="advanced-filter-students-first_name"
+  placeholder="First Name"
+  type="text"
+  value=""
+/>
+Received element with focus:
+  <input
+  id="advanced-filter-students-last_name"
+  placeholder="Last Name"
+  type="text"
+  value=""
+/>
+ ❯ src/components/__tests__/AdvancedFilters.test.tsx:467:9
+    465|       expect(
+    466|         screen.getByPlaceholderText(/first name/i)
+    467|       ).toHaveFocus();
+       |         ^
+    468|     });
+    469|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
 
 
-[2m Test Files [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m3 passed[39m[22m[90m (99)[39m
-[2m      Tests [22m [1m[31m20 failed[39m[22m[2m | [22m[1m[32m138 passed[39m[22m[90m (204)[39m
-[2m   Start at [22m 09:40:41
-[2m   Duration [22m 13.57s[2m (transform 3.04s, setup 4.11s, import 9.01s, tests 17.97s, environment 9.08s)[22m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m75 passed[39m[22m[90m (76)[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m1546 passed[39m[22m[90m (1550)[39m
+[2m   Start at [22m 22:15:54
+[2m   Duration [22m 41.31s[2m (transform 2.68s, setup 17.88s, import 15.67s, tests 57.47s, environment 59.07s)[22m
 
 [1m[41m FAIL [49m[22m [31mTests failed. Watching for file changes...[39m
        [2mpress [22m[1mh[22m[2m to show help[22m[2m, [22m[2mpress [22m[1mq[22m[2m to quit[22m
+[31mCancelling test run. Press CTRL+c again to exit forcefully.
+[39m
