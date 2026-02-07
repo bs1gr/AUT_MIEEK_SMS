@@ -13,14 +13,10 @@ interface AnalyticsError {
 }
 
 interface AnalyticsData {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  performance: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  trends: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  attendance: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  gradeDistribution: any;
+  performance: unknown | null;
+  trends: unknown | null;
+  attendance: unknown | null;
+  gradeDistribution: unknown | null;
   isLoading: boolean;
   error: AnalyticsError | null;
   refetch: () => Promise<void>;
