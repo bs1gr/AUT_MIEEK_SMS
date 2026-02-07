@@ -1,0 +1,58 @@
+name: Fetch code scanning SARIF
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to filter analyses (branch, tag, or SHA)"
+        required: false
+        default: "main"
+
+permissions:
+  contents: read
+  security-events: read
+
+jobs:
+  fetch:
+    name: Download SARIF from code scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download SARIF files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          GH_REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+
+          mkdir -p sarif
+
+          analyses_json=$(curl -sSL \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${GH_REPO}/code-scanning/analyses?ref=${GH_REF}&per_page=100")
+
+          analysis_ids=$(echo "${analyses_json}" | jq -r '.[] | select(.tool.name == "CodeQL") | .id')
+
+          if [ -z "${analysis_ids}" ]; then
+            echo "No CodeQL analyses found for ref: ${GH_REF}"
+            exit 1
+          fi
+
+          for analysis_id in ${analysis_ids}; do
+            echo "Downloading SARIF for analysis ${analysis_id}"
+            curl -sSL \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
+              -H "Accept: application/sarif+json" \
+              "https://api.github.com/repos/${GH_REPO}/code-scanning/analyses/${analysis_id}" \
+              -o "sarif/code-scanning-${analysis_id}.sarif"
+          done
+
+      - name: Upload SARIF artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-scanning-sarif
+          path: sarif/*.sarif
