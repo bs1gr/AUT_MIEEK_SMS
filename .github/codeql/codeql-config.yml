@@ -1,0 +1,10 @@
+name: "CodeQL config"
+paths-ignore:
+  - "archive/**"
+  - "load-testing/**"
+  - "code-scanning-sarif/**"
+  - "**/legacy-logs/**"
+  - "**/legacy-load-testing/**"
+  - "**/legacy-reports/**"
+  - "**/legacy-test-results/**"
+  - "**/legacy-state/**"
