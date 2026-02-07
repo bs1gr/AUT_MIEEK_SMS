@@ -10,7 +10,16 @@ Endpoints for:
 import logging
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, BackgroundTasks
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Query,
+    Request,
+    UploadFile,
+    File,
+    BackgroundTasks,
+)
 from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
@@ -69,7 +78,9 @@ async def create_student_import(
 
         # Validate file type
         if not file.filename.lower().endswith((".csv", ".xlsx")):
-            raise HTTPException(status_code=400, detail="Only CSV and XLSX files are supported")
+            raise HTTPException(
+                status_code=400, detail="Only CSV and XLSX files are supported"
+            )
 
         # Create import job
         job = get_service().create_import_job(
@@ -132,7 +143,9 @@ async def create_course_import(
     """
     try:
         if not file.filename or not file.filename.lower().endswith((".csv", ".xlsx")):
-            raise HTTPException(status_code=400, detail="Only CSV and XLSX files are supported")
+            raise HTTPException(
+                status_code=400, detail="Only CSV and XLSX files are supported"
+            )
 
         job = get_service().create_import_job(
             db=db,
@@ -193,7 +206,9 @@ async def create_grade_import(
     """
     try:
         if not file.filename or not file.filename.lower().endswith((".csv", ".xlsx")):
-            raise HTTPException(status_code=400, detail="Only CSV and XLSX files are supported")
+            raise HTTPException(
+                status_code=400, detail="Only CSV and XLSX files are supported"
+            )
 
         job = get_service().create_import_job(
             db=db,
@@ -332,7 +347,9 @@ async def list_import_jobs(
     )
 
 
-@router.post("/imports/{import_job_id}/commit", response_model=APIResponse[ImportJobResponse])
+@router.post(
+    "/imports/{import_job_id}/commit", response_model=APIResponse[ImportJobResponse]
+)
 @require_permission("imports:create")
 async def commit_import_job(
     request: Request,
@@ -355,7 +372,10 @@ async def commit_import_job(
         )
 
     if job.status != "ready":
-        return error_response("INVALID_STATE", f"Job is in '{job.status}' state, must be 'ready' to commit")
+        return error_response(
+            "INVALID_STATE",
+            f"Job is in '{job.status}' state, must be 'ready' to commit",
+        )
 
     # Trigger background processing
     background_tasks.add_task(get_service().commit_import_job, db, job.id)
@@ -581,6 +601,3 @@ async def get_import_export_history(
         },
         request_id=getattr(request.state, "request_id", "req_unknown"),
     )
-
-
-

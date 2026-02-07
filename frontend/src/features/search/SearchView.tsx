@@ -32,6 +32,12 @@ export const SearchView: React.FC = () => {
   const [gradeDateFrom, setGradeDateFrom] = useState('');
   const [gradeDateTo, setGradeDateTo] = useState('');
 
+  type FacetSelection =
+    | string
+    | { min?: number; max?: number }
+    | { start?: string; end?: string }
+    | null;
+
   const applyGradeDateFilters = useCallback(
     (
       currentFilters: FilterCriteria[],
@@ -71,11 +77,24 @@ export const SearchView: React.FC = () => {
     [t]
   );
 
-  const handleFacetSelect = (facet: string, value: string) => {
-    setFilters((prev) => applyGradeDateFilters([
-      ...prev.filter((filter) => filter.field !== facet),
-      { field: facet, operator: 'equals' as const, value },
-    ], searchType, gradeDateFrom, gradeDateTo));
+  const handleFacetSelect = (facet: string, value: FacetSelection) => {
+    setFilters((prev) => {
+      const filtered = prev.filter((filter) => filter.field !== facet);
+      if (value === null) {
+        return applyGradeDateFilters(filtered, searchType, gradeDateFrom, gradeDateTo);
+      }
+      if (typeof value === 'string') {
+        return applyGradeDateFilters([
+          ...filtered,
+          { field: facet, operator: 'equals' as const, value },
+        ], searchType, gradeDateFrom, gradeDateTo);
+      }
+
+      return applyGradeDateFilters([
+        ...filtered,
+        { field: facet, operator: 'between' as const, value },
+      ], searchType, gradeDateFrom, gradeDateTo);
+    });
     setPage(0);
   };
 

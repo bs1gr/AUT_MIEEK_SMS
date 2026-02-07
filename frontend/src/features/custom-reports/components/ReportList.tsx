@@ -155,13 +155,13 @@ export const ReportList: React.FC<ReportListProps> = ({
 
     const templateData: Partial<ReportTemplate> = {
       name,
-      description: report?.description || null,
+      description: report?.description || '',
       category: 'academic',
       report_type: report?.report_type,
       fields: report?.fields || {},
-      filters: report?.filters || null,
-      aggregations: report?.aggregations || null,
-      sort_by: report?.sort_by || null,
+      filters: report?.filters || undefined,
+      aggregations: report?.aggregations || undefined,
+      sort_by: report?.sort_by || undefined,
       default_export_format: report?.export_format || 'pdf',
       default_include_charts: report?.include_charts ?? true,
       is_system: false,

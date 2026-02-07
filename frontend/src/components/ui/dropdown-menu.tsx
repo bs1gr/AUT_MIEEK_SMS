@@ -23,7 +23,7 @@ export const DropdownMenu: React.FC<DropdownMenuProps> = ({ children }) => {
 
 export interface DropdownMenuTriggerProps {
   asChild?: boolean;
-  children: React.ReactElement;
+  children: React.ReactElement<{ onClick?: (event: React.MouseEvent) => void }>;
 }
 
 export const DropdownMenuTrigger: React.FC<DropdownMenuTriggerProps> = ({ asChild, children }) => {

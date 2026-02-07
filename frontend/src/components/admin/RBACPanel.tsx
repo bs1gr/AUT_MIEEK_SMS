@@ -170,7 +170,7 @@ export const RBACPanel: React.FC = () => {
         if (currentRole) {
           try {
 
-            const _revokeResponse = await rbacAPI.revokeRole(userId, currentRole.name);
+            await rbacAPI.revokeRole(userId, currentRole.name);
 
           } catch (err: unknown) {
             const typedError = err as { response?: { data?: { error?: { message?: string } } }; message?: string };

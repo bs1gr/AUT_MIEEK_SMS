@@ -327,9 +327,9 @@ export const useExportJobProgress = (jobId: string | null, pollInterval: number 
       return response.data;
     },
     enabled: !!jobId,
-    refetchInterval: (data) => {
-      // Stop polling when export is complete or failed
-      if (data?.data?.status === 'completed' || data?.data?.status === 'failed') {
+    refetchInterval: (query) => {
+      const status = query.state.data?.data?.status;
+      if (status === 'completed' || status === 'failed') {
         return false;
       }
       return pollInterval;

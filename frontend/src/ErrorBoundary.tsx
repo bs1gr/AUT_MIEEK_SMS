@@ -11,7 +11,7 @@ interface ErrorBoundaryState {
 
 interface ErrorBoundaryCoreProps {
   children: ReactNode;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   boundaryName?: string;
 }
 

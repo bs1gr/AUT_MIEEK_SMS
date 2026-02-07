@@ -493,7 +493,7 @@ export const ExportDetailModal: React.FC<ExportDetailModalProps> = ({ open, onCl
 };
 
 // ===== PerformanceAnalytics.tsx =====
-export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metrics, _onPeriodChange }) => {
+export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metrics }) => {
   const { t } = useTranslation('exportAdmin');
 
   if (!metrics) return null;
@@ -552,7 +552,7 @@ export const PerformanceAnalytics: React.FC<ExportMetricsChartProps> = ({ metric
 };
 
 // ===== FilterBuilder.tsx =====
-export const FilterBuilder: React.FC<FilterBuilderProps> = ({ _entityType, _value, _onChange }) => {
+export const FilterBuilder: React.FC<FilterBuilderProps> = () => {
   const { t } = useTranslation('exportAdmin');
 
   return (
@@ -568,7 +568,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({ _entityType, _valu
 };
 
 // ===== ScheduleBuilder.tsx =====
-export const ScheduleBuilder: React.FC<ScheduleBuilderProps> = ({ _frequency, _cronExpression, _onChange }) => {
+export const ScheduleBuilder: React.FC<ScheduleBuilderProps> = () => {
   const { t } = useTranslation('exportAdmin');
 
   return (

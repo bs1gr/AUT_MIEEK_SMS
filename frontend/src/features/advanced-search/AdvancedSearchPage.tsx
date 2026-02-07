@@ -110,7 +110,7 @@ export const AdvancedSearchPage: React.FC = () => {
                     }
                     refetch();
                   }}
-                  searchHistory={historyEntries}
+                  searchHistory={historyEntries.map((entry) => entry.query)}
                   showHistory={true}
                 />
               </div>
@@ -136,7 +136,7 @@ export const AdvancedSearchPage: React.FC = () => {
                 total={results?.total || 0}
                 isLoading={isLoading}
                 error={error ? error.message : null}
-                sortBy={state.sort_by}
+                sortBy={state.sortBy}
                 onSortChange={(sortBy) => setSortBy(sortBy)}
                 onResultClick={handleResultClick}
                 onRetry={() => refetch()}

@@ -13,14 +13,17 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import apiClient, { extractAPIResponseData as _extractAPIResponseData } from '../api/api';
 
+const hasData = (value: unknown): value is { data: unknown } =>
+  typeof value === 'object' && value !== null && 'data' in value;
+
 // Safe extractor: falls back to response.data when extractAPIResponseData is unavailable in tests
 const safeExtractAPIResponseData = (response: unknown) => {
   try {
     return typeof _extractAPIResponseData === 'function'
       ? _extractAPIResponseData(response)
-      : (response?.data ?? response);
+      : (hasData(response) ? response.data : response);
   } catch {
-    return response?.data ?? response;
+    return hasData(response) ? response.data : response;
   }
 };
 

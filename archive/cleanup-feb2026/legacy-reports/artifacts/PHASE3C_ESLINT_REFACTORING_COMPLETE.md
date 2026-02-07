@@ -24,7 +24,7 @@
 
 ### ✅ FULLY FIXED (6 files)
 
-1. **useSearchHistory.ts:33** 
+1. **useSearchHistory.ts:33**
    - Issue: `useState([])` + `useEffect(() => setEntries(loadHistory()))`
    - Fix: Lazy initialization `useState(() => loadHistory())`
    - Result: Eliminated warning

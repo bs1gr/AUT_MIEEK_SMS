@@ -6,7 +6,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-interface PerformanceData {
+export interface PerformanceData {
   student?: {
     id: number;
     first_name: string;

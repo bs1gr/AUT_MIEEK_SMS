@@ -22,7 +22,7 @@ interface TrendPoint {
   moving_average?: number;
 }
 
-interface TrendsData {
+export interface TrendsData {
   student?: {
     id: number;
     first_name: string;

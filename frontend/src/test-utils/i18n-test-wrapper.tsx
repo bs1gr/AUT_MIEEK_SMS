@@ -2,7 +2,7 @@
  * i18n Test Wrapper
  * Provides a properly initialized i18n instance for tests with actual translations
  */
-import { ReactElement } from 'react';
+import { ReactElement, ReactNode } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { I18nextProvider } from 'react-i18next';
 import i18n from 'i18next';
@@ -22,37 +22,53 @@ import gradesEl from '../locales/el/grades.js';
 import rbacEn from '../locales/en/rbac.js';
 import rbacEl from '../locales/el/rbac.js';
 
+const asNamespace = (value: unknown) =>
+  (value && typeof value === 'object' ? (value as Record<string, unknown>) : {});
+
+const enSearch = asNamespace(searchEn);
+const elSearch = asNamespace(searchEl);
+const enCommon = asNamespace(commonEn);
+const elCommon = asNamespace(commonEl);
+const enStudents = asNamespace(studentsEn);
+const elStudents = asNamespace(studentsEl);
+const enCourses = asNamespace(coursesEn);
+const elCourses = asNamespace(coursesEl);
+const enGrades = asNamespace(gradesEn);
+const elGrades = asNamespace(gradesEl);
+const enRbac = asNamespace(rbacEn);
+const elRbac = asNamespace(rbacEl);
+
 // Create a test-specific i18n instance
 const testI18n = i18n.createInstance();
 
 testI18n
   .use(initReactI18next)
   .init({
-    language: 'en',
+    lng: 'en',
     fallbackLng: 'en',
     debug: false,
     resources: {
         en: {
           translation: {
-            ...studentsEn,
-            ...coursesEn,
-            ...gradesEn,
-            ...commonEn,
+            ...enStudents,
+            ...enCourses,
+            ...enGrades,
+            ...enCommon,
           },
-          common: commonEn,
-          search: searchEn,
-          rbac: rbacEn,
+          common: enCommon,
+          search: enSearch,
+          rbac: enRbac,
         },
         el: {
           translation: {
-            ...studentsEl,
-            ...coursesEl,
-            ...gradesEl,
-            ...commonEl,
+            ...elStudents,
+            ...elCourses,
+            ...elGrades,
+            ...elCommon,
           },
-          common: commonEl,
-          search: searchEl,
-          rbac: rbacEl,
+          common: elCommon,
+          search: elSearch,
+          rbac: elRbac,
         }
     },
     interpolation: {
@@ -63,7 +79,7 @@ testI18n
 /**
  * Wrapper component that provides i18n context to test components
  */
-const I18nWrapper = ({ children }: { children: React.ReactNode }) => {
+const I18nWrapper = ({ children }: { children: ReactNode }) => {
   return <I18nextProvider i18n={testI18n}>{children}</I18nextProvider>;
 };
 

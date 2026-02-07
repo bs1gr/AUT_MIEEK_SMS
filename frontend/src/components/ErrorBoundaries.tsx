@@ -16,7 +16,7 @@ interface SectionErrorBoundaryState {
 
 interface SectionErrorBoundaryCoreProps {
   children: ReactNode;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   section?: string;
   fallback?: ReactNode | FallbackFunction;
 }
@@ -29,7 +29,7 @@ interface AsyncErrorBoundaryState {
 
 interface AsyncErrorBoundaryCoreProps {
   children: ReactNode;
-  t: (key: string) => string;
+  t: (key: string, options?: Record<string, unknown>) => string;
   operation?: string;
   onRetry?: () => Promise<void>;
   fallback?: ReactNode | AsyncFallbackFunction;

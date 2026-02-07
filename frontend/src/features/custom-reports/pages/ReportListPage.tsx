@@ -51,10 +51,6 @@ export const ReportListPage: React.FC = () => {
         <ReportList
           onCreateReport={() => navigate('/operations/reports/builder')}
           onEditReport={(reportId) => navigate(`/operations/reports/builder/${reportId}`)}
-          onViewReport={(reportId) => {
-            // Navigate to generated reports view for this report
-            navigate(`/operations/reports/${reportId}/generated`);
-          }}
         />
       </div>
     </div>

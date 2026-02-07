@@ -5950,8 +5950,8 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-E   [SQL: SELECT count(*) AS count_1 
-E   FROM (SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+E   [SQL: SELECT count(*) AS count_1
+E   FROM (SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
 E   FROM users) AS anon_1]
 E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
 _________ test_bootstrap_warns_when_auth_enabled_without_credentials __________
@@ -6001,8 +6001,8 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-E   [SQL: SELECT count(*) AS count_1 
-E   FROM (SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+E   [SQL: SELECT count(*) AS count_1
+E   FROM (SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
 E   FROM users) AS anon_1]
 E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
 ------------------------------ Captured log call ------------------------------
@@ -6048,24 +6048,24 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-E   [SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-E   FROM users 
+E   [SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+E   FROM users
 E   WHERE users.email = ?
 E    LIMIT ? OFFSET ?]
 E   [parameters: ('admin@example.com', 1, 0)]
 E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
 ---------------------------- Captured stdout call -----------------------------
 ❌ BOOTSTRAP ERROR: Failed to create admin user: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 ------------------------------ Captured log call ------------------------------
 ERROR    backend.scripts.admin.bootstrap:bootstrap.py:151 ❌ Bootstrap: failed to ensure default admin user admin@example.com: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -6172,8 +6172,8 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-FROM users 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+FROM users
 WHERE users.email = ?
  LIMIT ? OFFSET ?]
 [parameters: ('admin@example.com', 1, 0)]
@@ -6534,8 +6534,8 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: students
-E   [SQL: SELECT students.id AS students_id, students.first_name AS students_first_name, students.last_name AS students_last_name, students.email AS students_email, students.student_id AS students_student_id, students.enrollment_date AS students_enrollment_date, students.is_active AS students_is_active, students.father_name AS students_father_name, students.mobile_phone AS students_mobile_phone, students.phone AS students_phone, students.health_issue AS students_health_issue, students.note AS students_note, students.study_year AS students_study_year, students.deleted_at AS students_deleted_at 
-E   FROM students 
+E   [SQL: SELECT students.id AS students_id, students.first_name AS students_first_name, students.last_name AS students_last_name, students.email AS students_email, students.student_id AS students_student_id, students.enrollment_date AS students_enrollment_date, students.is_active AS students_is_active, students.father_name AS students_father_name, students.mobile_phone AS students_mobile_phone, students.phone AS students_phone, students.health_issue AS students_health_issue, students.note AS students_note, students.study_year AS students_study_year, students.deleted_at AS students_deleted_at
+E   FROM students
 E   WHERE students.id = ?
 E    LIMIT ? OFFSET ?]
 E   [parameters: (99999, 1, 0)]
@@ -6581,8 +6581,8 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: courses
-E   [SQL: SELECT courses.id AS courses_id, courses.course_code AS courses_course_code, courses.course_name AS courses_course_name, courses.semester AS courses_semester, courses.credits AS courses_credits, courses.description AS courses_description, courses.evaluation_rules AS courses_evaluation_rules, courses.absence_penalty AS courses_absence_penalty, courses.hours_per_week AS courses_hours_per_week, courses.teaching_schedule AS courses_teaching_schedule, courses.deleted_at AS courses_deleted_at 
-E   FROM courses 
+E   [SQL: SELECT courses.id AS courses_id, courses.course_code AS courses_course_code, courses.course_name AS courses_course_name, courses.semester AS courses_semester, courses.credits AS courses_credits, courses.description AS courses_description, courses.evaluation_rules AS courses_evaluation_rules, courses.absence_penalty AS courses_absence_penalty, courses.hours_per_week AS courses_hours_per_week, courses.teaching_schedule AS courses_teaching_schedule, courses.deleted_at AS courses_deleted_at
+E   FROM courses
 E   WHERE courses.id = ?
 E    LIMIT ? OFFSET ?]
 E   [parameters: (99999, 1, 0)]
@@ -7254,12 +7254,12 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-E   [SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+E   [SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
 E   FROM users ORDER BY users.role DESC, users.email ASC]
 E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
 ------------------------------ Captured log call ------------------------------
 ERROR    backend.request_id_middleware:request_id_middleware.py:78 Request failed: GET /api/v1/admin/users - Error: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
 FROM users ORDER BY users.role DESC, users.email ASC]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 Traceback (most recent call last):
@@ -7409,7 +7409,7 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
 FROM users ORDER BY users.role DESC, users.email ASC]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 ERROR    backend.error_handlers:error_handlers.py:116 Unhandled application error
@@ -7653,7 +7653,7 @@ Traceback (most recent call last):
     cursor.execute(statement, parameters)
     ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
 sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+[SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
 FROM users ORDER BY users.role DESC, users.email ASC]
 (Background on this error at: https://sqlalche.me/e/20/e3q8)
 ________________ TestMetricsService.test_metrics_with_no_data _________________
@@ -7701,7 +7701,7 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: students
-E   [SQL: SELECT count(students.id) AS count_1 
+E   [SQL: SELECT count(students.id) AS count_1
 E   FROM students]
 E   (Background on this error at: https://sqlalche.me/e/20/e3q8)
 ---------------------------- Captured stderr setup ----------------------------
@@ -8425,8 +8425,8 @@ C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlal
 C:\Users\Vasilis\AppData\Local\Programs\Python\Python313\Lib\site-packages\sqlalchemy\engine\default.py:951: in do_execute
     cursor.execute(statement, parameters)
 E   sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such table: users
-E   [SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
-E   FROM users 
+E   [SQL: SELECT users.id AS users_id, users.email AS users_email, users.hashed_password AS users_hashed_password, users.full_name AS users_full_name, users.role AS users_role, users.is_active AS users_is_active, users.password_change_required AS users_password_change_required, users.failed_login_attempts AS users_failed_login_attempts, users.last_failed_login_at AS users_last_failed_login_at, users.lockout_until AS users_lockout_until, users.created_at AS users_created_at, users.updated_at AS users_updated_at
+E   FROM users
 E   WHERE users.id = ?
 E    LIMIT ? OFFSET ?]
 E   [parameters: (9999, 1, 0)]

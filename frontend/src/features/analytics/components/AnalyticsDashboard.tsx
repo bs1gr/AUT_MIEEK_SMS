@@ -6,10 +6,10 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAnalytics } from "../hooks/useAnalytics";
-import { PerformanceCard } from "./PerformanceCard";
-import { TrendsChart } from "./TrendsChart";
-import { AttendanceCard } from "./AttendanceCard";
-import { GradeDistributionChart } from "./GradeDistributionChart";
+import { PerformanceCard, type PerformanceData } from "./PerformanceCard";
+import { TrendsChart, type TrendsData } from "./TrendsChart";
+import { AttendanceCard, type AttendanceData } from "./AttendanceCard";
+import { GradeDistributionChart, type GradeDistributionData } from "./GradeDistributionChart";
 import "../styles/analytics-dashboard.css";
 
 interface AnalyticsDashboardProps {
@@ -36,6 +36,11 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
     refetch,
   } = useAnalytics(studentId, courseId);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const performanceData = performance as PerformanceData | null;
+  const trendsData = trends as TrendsData | null;
+  const attendanceData = attendance as AttendanceData | null;
+  const gradeDistributionData = gradeDistribution as GradeDistributionData | null;
 
   // Handle refresh
   const handleRefresh = async () => {
@@ -70,30 +75,30 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
       {!isLoading && (
         <div className="dashboard-grid">
           {/* Performance Card */}
-          {performance && (
+          {performanceData && (
             <div className="dashboard-widget">
-              <PerformanceCard data={performance} />
+              <PerformanceCard data={performanceData} />
             </div>
           )}
 
           {/* Trends Chart */}
-          {trends && (
+          {trendsData && (
             <div className="dashboard-widget full-width">
-              <TrendsChart data={trends} />
+              <TrendsChart data={trendsData} />
             </div>
           )}
 
           {/* Attendance Card */}
-          {attendance && (
+          {attendanceData && (
             <div className="dashboard-widget">
-              <AttendanceCard data={attendance} />
+              <AttendanceCard data={attendanceData} />
             </div>
           )}
 
           {/* Grade Distribution */}
-          {gradeDistribution && (
+          {gradeDistributionData && (
             <div className="dashboard-widget">
-              <GradeDistributionChart data={gradeDistribution} />
+              <GradeDistributionChart data={gradeDistributionData} />
             </div>
           )}
         </div>

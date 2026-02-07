@@ -62,8 +62,12 @@ class ImportJobPreview(BaseModel):
     total_rows: int
     valid_rows: int
     error_rows: int
-    preview_data: List[ImportRowData] = Field(..., description="First N rows with status")
-    summary: str = Field(..., description="Human-readable summary (e.g., '95 valid, 5 invalid')")
+    preview_data: List[ImportRowData] = Field(
+        ..., description="First N rows with status"
+    )
+    summary: str = Field(
+        ..., description="Human-readable summary (e.g., '95 valid, 5 invalid')"
+    )
 
 
 class ImportJobCommitRequest(BaseModel):
@@ -84,9 +88,13 @@ class ImportJobRollbackRequest(BaseModel):
 class ExportJobCreate(BaseModel):
     """Request to create a new export job."""
 
-    export_type: str = Field(..., pattern="^(students|courses|grades|attendance|dashboard)$")
+    export_type: str = Field(
+        ..., pattern="^(students|courses|grades|attendance|dashboard)$"
+    )
     file_format: str = Field(..., pattern="^(csv|xlsx|pdf)$")
-    filters: Optional[dict[str, Any]] = Field(None, description="Optional filtering criteria")
+    filters: Optional[dict[str, Any]] = Field(
+        None, description="Optional filtering criteria"
+    )
     scheduled: bool = False
     schedule_frequency: Optional[str] = Field(None, pattern="^(daily|weekly|monthly)$")
 
