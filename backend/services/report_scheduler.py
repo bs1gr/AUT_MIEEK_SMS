@@ -228,8 +228,8 @@ class ReportScheduler:
                 int(cast(int, report.user_id)),
                 export_format,
                 bool(report.include_charts),
-                None,
-                None,
+                cast(Optional[list[str]], report.email_recipients),
+                bool(report.email_enabled),
             )
 
             db.refresh(report)
