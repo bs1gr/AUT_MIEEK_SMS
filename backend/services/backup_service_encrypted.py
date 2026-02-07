@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from backend.security.path_validation import validate_path
 from backend.services.encryption_service import EncryptionService
 
 
@@ -79,7 +80,7 @@ class BackupServiceEncrypted:
 
         return candidate
 
-    def _validate_output_path(self, output_path: Path) -> Path:
+    def _validate_output_path(self, output_path: Path, allowed_base_dir: Optional[Path] = None) -> Path:
         """
         Validate output path for safety.
 
@@ -87,7 +88,8 @@ class BackupServiceEncrypted:
         1. Rejecting paths with traversal patterns (.. ~ absolute paths with // etc)
         2. Creating parent directories if needed for relative paths
 
-        Does NOT restrict output to backup_dir - that's the caller's responsibility.
+        When allowed_base_dir is provided, ensures the resolved output path
+        stays within that directory to prevent directory traversal.
         """
         if not isinstance(output_path, (str, Path)):
             raise TypeError("Output path must be string or Path")
@@ -115,6 +117,14 @@ class BackupServiceEncrypted:
         # CodeQL [python/path-injection]: Safe - path already validated for traversal patterns
         # Resolve path to absolute form to prevent symlink attacks
         resolved_output = Path(output_path).resolve()
+
+        # Optional base directory containment check for stricter safety
+        if allowed_base_dir is not None:
+            try:
+                # CodeQL [python/path-injection]: Safe - validate_path enforces directory containment
+                validate_path(allowed_base_dir, resolved_output)
+            except ValueError as e:
+                raise ValueError(f"Output path outside allowed directory: {e}")
 
         # Ensure parent directory exists or can be created
         parent_dir = resolved_output.parent
@@ -158,6 +168,7 @@ class BackupServiceEncrypted:
             backup_name = self._validate_backup_name(backup_name)
 
         # Create encrypted backup
+        # CodeQL [python/path-injection]: Safe - backup_name validated and constrained in _resolve_backup_path()
         backup_path = self._resolve_backup_path(backup_name, ".enc")
 
         # Prepare metadata
@@ -206,6 +217,7 @@ class BackupServiceEncrypted:
         self,
         backup_name: str,
         output_path: Path,
+        allowed_base_dir: Optional[Path] = None,
     ) -> Dict:
         """
         Restore a file from an encrypted backup.
@@ -213,6 +225,7 @@ class BackupServiceEncrypted:
         Args:
             backup_name: Name of backup to restore
             output_path: Path to write restored file
+            allowed_base_dir: Optional base directory that output_path must remain within
 
         Returns:
             Dictionary with restoration information
@@ -221,6 +234,7 @@ class BackupServiceEncrypted:
         backup_name = self._validate_backup_name(backup_name)
 
         # Build path using validated name only
+        # CodeQL [python/path-injection]: Safe - backup_name validated and path constrained in _resolve_backup_path()
         backup_path = self._resolve_backup_path(backup_name, ".enc")
 
         if not backup_path.exists():
@@ -228,7 +242,7 @@ class BackupServiceEncrypted:
 
         # Validate output_path to ensure it can be safely written
         # _validate_output_path uses backend.security.path_validation.validate_path()
-        resolved_output = self._validate_output_path(output_path)
+        resolved_output = self._validate_output_path(output_path, allowed_base_dir=allowed_base_dir)
 
         # Ensure parent directories exist so restore can succeed within backup dir
         resolved_output.parent.mkdir(parents=True, exist_ok=True)
