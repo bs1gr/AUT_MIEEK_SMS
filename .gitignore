@@ -68,6 +68,8 @@ frontend_dev_error.log
 *dev_output.log
 *dev_error.log
 *.log.*
+commit_ready_*.log
+code-scanning-sarif/
 
 # Node / Frontend
 frontend/node_modules/
