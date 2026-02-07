@@ -1,0 +1,41 @@
+
+╔════════════════════════════════════════╗
+
+║   Batch Test Runner (SMS v1.17.2)     ║
+
+╚════════════════════════════════════════╝
+
+
+📝 Logging to: D:\SMS\student-management-system\test-results\backend_batch_run_20260205_092832.txt
+
+
+ℹ Scanning for test files...
+
+
+✓ Found 94 test files
+
+
+ℹ Split into 19 batches (5 files per batch)
+
+
+
+
+┌─────────────────────────────────────────┐
+
+│ Batch 1 of 19 (Files: 5)
+
+└─────────────────────────────────────────┘
+
+  • test_admin_backup_encryption.py
+
+  • test_admin_bootstrap.py
+
+  • test_analytics_router.py
+
+  • test_analytics_service.py
+
+  • test_attendance_router.py
+
+ℹ Running tests...
+
+
