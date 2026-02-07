@@ -1,0 +1,13 @@
+{
+  "database_url": "sqlite:///C:\\Users\\Vasilis\\AppData\\Local\\Temp\\pytest-of-Vasilis\\pytest-2814\\test_create_encrypted_backup_d0\\test.db",
+  "backup_method": "control_api",
+  "encryption_enabled": true,
+  "source_file": "test.db",
+  "backup_type": "encrypted_database",
+  "created_at": "2026-01-20T22:25:40.091091+00:00",
+  "version": "1.15.0",
+  "original_name": "test.db",
+  "original_size": 667648,
+  "encrypted_at": "2026-01-20T22:25:40.091362+00:00",
+  "algorithm": "AES-256-GCM"
+}
