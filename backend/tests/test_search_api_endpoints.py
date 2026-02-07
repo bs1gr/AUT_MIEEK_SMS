@@ -624,7 +624,7 @@ class TestErrorHandling:
 
     def test_invalid_json(self, client, admin_headers):
         """Should handle invalid JSON"""
-        response = client.post("/api/v1/search/students", data="invalid json", headers=admin_headers)
+        response = client.post("/api/v1/search/students", content="invalid json", headers=admin_headers)
 
         assert response.status_code in [400, 405, 422]
 
