@@ -1,0 +1,104 @@
+--------------------------------------------------------------
+ COMMIT READY - Pre-Commit Verification
+ Student Management System v1.17.6
+--------------------------------------------------------------
+
+Mode: quick
+Started: 2026-02-01 02:10:48
+Log file: D:\SMS\student-management-system\commit_ready_20260201-021048.log
+
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase A: Version Propagation & Docs Update                   ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Version sync to package.json skipped (use -SyncVersion or -AutoFix to enable)
+??  Docs update skipped (use -UpdateDocs or -AutoFix to enable)
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Version Consistency                                 ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running comprehensive version verification...
+
+ + ======================================================================
+SMS Version Verification Tool
+======================================================================
+??  Using version from VERSION file: 1.17.6
+??  Target version: 1.17.6
+??  Mode: CHECK ONLY
+
+ + ======================================================================
+Checking Version References
+======================================================================
+? VERSION file: 1.17.6 (correct)
+? Backend main.py docstring: 1.17.6 (correct)
+? Frontend package.json: 1.17.6 (correct)
+? User guide version: 1.17.6 (correct)
+? Developer guide version: 1.17.6 (correct)
+? Documentation index version: 1.17.6 (correct)
+? COMMIT_READY.ps1 version: 1.17.6 (correct)
+? INSTALLER_BUILDER.ps1 version: 1.17.6 (correct)
+
+ + ======================================================================
+Verification Summary
+======================================================================
+Total checks:       8
+Consistent:         8
+Inconsistent:       0
+Updated:            0
+Failed:             0
+
+? Version verification completed successfully!
+? All version references consistent across codebase
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0.5: Version Format Enforcement                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+? Version format valid: 1.17.6
+
+─────────────────────────────────────────────────
+ Backend: Ensure Python Dependencies
+─────────────────────────────────────────────────
+??  Installing runtime requirements (pip) from requirements.txt
+??  Installing dev requirements (pip)
+? Backend dependencies ensured
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Smoke Test - Conftest Config                        ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Checking D:\SMS\student-management-system\backend\tests\conftest.py for secure test settings...
+? conftest.py: AUTH_ENABLED=False verified
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 0: Pre-commit Hook Validation                          ║
+╚══════════════════════════════════════════════════════════════╝
+
+??  Running pre-commit hooks on staged files...
+? Pre-commit hooks passed (files auto-fixed).
+??  Some files were auto-formatted. Review changes with: git diff
+
+╔══════════════════════════════════════════════════════════════╗
+║  Phase 1: Code Quality & Linting                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+
+─────────────────────────────────────────────────
+ Backend: Ruff Linting
+─────────────────────────────────────────────────
+??  Running ruff check...
+? Backend linting passed
+
+─────────────────────────────────────────────────
+ Backend: MyPy Type Checking
+─────────────────────────────────────────────────
+??  Running mypy...
+? Backend type checking failed
+backend\services\export_performance_monitor.py:153: error: Need type annotation for "stats"  [var-annotated] backend\services\async_export_service.py:494: error: Argument 1 to "append" of "list" has incompatible type "Spacer"; expected "Paragraph"  [arg-type] backend\services\async_export_service.py:521: error: Argument 1 to "append" of "list" has incompatible type "Table"; expected "Paragraph"  [arg-type] backend\services\async_export_service.py:524: error: Argument 1 to "build" of "SimpleDocTemplate" has incompatible type "list[Paragraph]"; expected "list[Flowable]"  [arg-type] backend\services\async_export_service.py:524: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance backend\services\async_export_service.py:524: note: Consider using "Sequence" instead, which is covariant backend\services\async_export_service.py:581: error: Argument 1 to "append" of "list" has incompatible type "Spacer"; expected "Paragraph"  [arg-type] backend\services\async_export_service.py:613: error: Argument 1 to "append" of "list" has incompatible type "Table"; expected "Paragraph"  [arg-type] backend\services\async_export_service.py:616: error: Argument 1 to "build" of "SimpleDocTemplate" has incompatible type "list[Paragraph]"; expected "list[Flowable]"  [arg-type] backend\services\async_export_service.py:616: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance backend\services\async_export_service.py:616: note: Consider using "Sequence" instead, which is covariant backend\services\async_export_service.py:670: error: Argument 1 to "append" of "list" has incompatible type "Spacer"; expected "Paragraph"  [arg-type] backend\services\async_export_service.py:699: error: Argument 1 to "append" of "list" has incompatible type "Table"; expected "Paragraph"  [arg-type] backend\services\async_export_service.py:702: error: Argument 1 to "build" of "SimpleDocTemplate" has incompatible type "list[Paragraph]"; expected "list[Flowable]"  [arg-type] backend\services\async_export_service.py:702: note: "list" is invariant -- see https://mypy.readthedocs.io/en/stable/common_issues.html#variance backend\services\async_export_service.py:702: note: Consider using "Sequence" instead, which is covariant Found 10 errors in 2 files (checked 171 source files)
+
+─────────────────────────────────────────────────
+ Frontend: ESLint
+─────────────────────────────────────────────────
+??  Running ESLint...
