@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
-/* eslint-disable testing-library/no-await-sync-queries */
 import { studentsAPI } from '@/api/api';
 import { useStudentsStore } from '@/stores';
 import type { Student, StudentFormData } from '@/types';
@@ -25,7 +24,7 @@ export function useStudents(filters?: { search?: string; active?: boolean }) {
   return useQuery({
     queryKey: studentKeys.list(filters),
     queryFn: async () => {
-        setLoading(true);
+      setLoading(true);
       try {
       const students = await studentsAPI.getAll();
         // Apply filters client-side if needed
@@ -69,6 +68,7 @@ export function useStudent(id: number | null) {
   return useQuery({
     queryKey: studentKeys.detail(id!),
     queryFn: async () => {
+      // eslint-disable-next-line testing-library/no-await-sync-queries
       const student = await studentsAPI.getById(id!);
       selectStudent(student);
       return student;

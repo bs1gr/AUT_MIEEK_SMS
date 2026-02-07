@@ -1,4 +1,3 @@
-/* eslint-disable testing-library/no-await-sync-queries */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { coursesAPI } from '@/api/api';
@@ -71,6 +70,7 @@ export function useCourse(id: number | null) {
   return useQuery({
     queryKey: courseKeys.detail(id!),
     queryFn: async () => {
+      // eslint-disable-next-line testing-library/no-await-sync-queries
       const course = await coursesAPI.getById(id!);
       selectCourse(course);
       return course;
