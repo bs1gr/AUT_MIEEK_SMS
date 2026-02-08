@@ -65,11 +65,11 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/power" element={<PowerPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
-              {/* Reports: Custom report builder and management */}
-              <Route path="/reports" element={<ReportListPage />} />
-              <Route path="/reports/builder" element={<ReportBuilderPage />} />
-              <Route path="/reports/builder/:id" element={<ReportBuilderPage />} />
-              <Route path="/reports/templates" element={<ReportTemplateBrowserPage />} />
+              {/* Reports: legacy routes -> operations utilities */}
+              <Route path="/reports" element={<Navigate to="/operations/reports" replace />} />
+              <Route path="/reports/builder" element={<Navigate to="/operations/reports/builder" replace />} />
+              <Route path="/reports/builder/:id" element={<Navigate to="/operations/reports/builder" replace />} />
+              <Route path="/reports/templates" element={<Navigate to="/operations/reports/templates" replace />} />
               {/* Operations: System utilities and custom report builder */}
               <Route element={<OperationsPage />} path="/operations" />
               <Route path="/operations/reports" element={<ReportListPage />} />

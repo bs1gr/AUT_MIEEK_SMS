@@ -235,8 +235,14 @@ export function useGenerateReport() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ reportId, options }: { reportId: number; options?: GenerateReportRequest }) =>
-      customReportsAPI.generate(reportId, options),
+    mutationFn: ({ reportId, options }: { reportId: number; options?: GenerateReportRequest }) => {
+      const resolvedLang = i18n.resolvedLanguage || i18n.language || 'en';
+      const payload: GenerateReportRequest = {
+        ...options,
+        lang: options?.lang ?? resolvedLang,
+      };
+      return customReportsAPI.generate(reportId, payload);
+    },
     onSuccess: (data: GenerateReportResponse, variables) => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
       // Show success feedback

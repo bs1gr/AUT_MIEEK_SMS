@@ -75,6 +75,7 @@ export interface GenerateReportRequest {
   include_charts?: boolean | null;
   email_recipients?: string[] | null;
   email_enabled?: boolean | null;
+  lang?: string | null;
 }
 
 export interface GenerateReportResponse {
@@ -285,6 +286,7 @@ export const customReportsAPI = {
         include_charts: options.include_charts ?? null,
         email_recipients: options.email_recipients ?? null,
         email_enabled: options.email_enabled ?? null,
+        lang: options.lang ?? null,
       });
 
       return extractAPIResponseData(response.data) as GenerateReportResponse;
@@ -318,20 +320,13 @@ export const customReportsAPI = {
    */
   download: async (reportId: number, generatedId: number) => {
     try {
-      // Fetch the list of generated reports to get the correct filename
-      const generatedList = await apiClient.get(
-        `/custom-reports/${reportId}/generated?limit=500`
-      );
-      const reports = extractAPIResponseData(generatedList) as GeneratedReport[];
-      const targetReport = reports.find(r => r.id === generatedId);
-      const filename = targetReport?.file_name || `report_${generatedId}.pdf`;
-
-      // Then fetch the actual file
       const response = await apiClient.get(
         `/custom-reports/${reportId}/generated/${generatedId}/download`,
         { responseType: 'blob' }
       );
-
+      const disposition = response.headers?.['content-disposition'] as string | undefined;
+      const filenameMatch = disposition?.match(/filename="?([^";]+)"?/i);
+      const filename = filenameMatch?.[1] || `report_${generatedId}.pdf`;
       return { blob: response.data, filename };
     } catch (error) {
       console.error(`[customReportsAPI] Error downloading report ${generatedId}:`, error);

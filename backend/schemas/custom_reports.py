@@ -246,6 +246,7 @@ class ReportGenerationRequest(BaseModel):
     include_charts: Optional[bool] = Field(None, description="Override chart inclusion")
     email_recipients: Optional[List[str]] = Field(None, description="Override email recipients")
     email_enabled: Optional[bool] = Field(None, description="Override email delivery toggle")
+    lang: Optional[str] = Field(None, description="Locale for report export (en, el)")
 
     @field_validator("export_format")
     @classmethod
@@ -266,6 +267,18 @@ class ReportGenerationRequest(BaseModel):
                 if not re.match(email_regex, email):
                     raise ValueError(f"Invalid email address: {email}")
         return v
+
+    @field_validator("lang")
+    @classmethod
+    def validate_lang(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        lang = v.strip().lower()
+        if lang.startswith("el"):
+            return "el"
+        if lang.startswith("en"):
+            return "en"
+        raise ValueError("Language must be 'en' or 'el'")
 
 
 class ReportGenerationResponse(BaseModel):

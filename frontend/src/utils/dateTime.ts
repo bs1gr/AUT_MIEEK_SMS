@@ -71,6 +71,13 @@ const parseDateValue = (value: Date | string | number | null | undefined): Date 
   if (value instanceof Date) {
     return Number.isNaN(value.getTime()) ? null : value;
   }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    const hasTz = /[zZ]|[+-]\d{2}:?\d{2}$/.test(trimmed);
+    const normalized = hasTz ? trimmed : `${trimmed}Z`;
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
   const parsed = new Date(value);
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 };

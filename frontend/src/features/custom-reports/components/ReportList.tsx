@@ -26,6 +26,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   const generateMutation = useGenerateReport();
   const downloadMutation = useDownloadReport();
   const importMutation = useImportDefaultTemplates();
+  const [bulkDeleting, setBulkDeleting] = useState(false);
   const [selectedReports, setSelectedReports] = useState<number[]>([]);
   const [expandedMenu, setExpandedMenu] = useState<number | null>(null);
   const [expandedReports, setExpandedReports] = useState<Set<number>>(new Set());
@@ -98,6 +99,25 @@ export const ReportList: React.FC<ReportListProps> = ({
   const handleDeleteReport = (reportId: number) => {
     if (globalThis.confirm(t('confirmDelete', { ns: 'customReports' }))) {
       deleteMutation.mutate(reportId);
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedReports.length === 0 || bulkDeleting) {
+      return;
+    }
+    if (!globalThis.confirm(t('confirmDelete', { ns: 'customReports' }))) {
+      return;
+    }
+    setBulkDeleting(true);
+    try {
+      await Promise.all(selectedReports.map((reportId) => deleteMutation.mutateAsync(reportId)));
+      setSelectedReports([]);
+    } catch (e) {
+      console.error('[ReportList] Bulk delete failed:', e);
+      showToast(t('error', { ns: 'customReports' }), 'error');
+    } finally {
+      setBulkDeleting(false);
     }
   };
 
@@ -203,7 +223,12 @@ export const ReportList: React.FC<ReportListProps> = ({
               <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
                 {t('bulkExport', { ns: 'customReports' })}
               </button>
-              <button className="px-4 py-2 text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+              <button
+                type="button"
+                onClick={handleBulkDelete}
+                disabled={bulkDeleting}
+                className="px-4 py-2 text-red-700 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 {t('bulkDelete', { ns: 'customReports' })}
               </button>
             </>

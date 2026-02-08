@@ -12,8 +12,8 @@ from typing import Any, Dict, List, Optional, cast
 import logging
 import os
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response
+from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from backend.dependencies import get_db
@@ -51,6 +51,19 @@ router = APIRouter(
         500: {"description": "Internal server error"},
     },
 )
+
+
+def _get_report_lang(request: Request, body_lang: Optional[str] = None) -> str:
+    if body_lang:
+        normalized = body_lang.strip().lower()
+        if normalized.startswith("el"):
+            return "el"
+        if normalized.startswith("en"):
+            return "en"
+    accept = request.headers.get("accept-language", "").lower()
+    if "el" in accept:
+        return "el"
+    return "en"
 
 
 # ============================================================================
@@ -480,6 +493,7 @@ async def generate_report(
 
         generated_id = int(cast(int, generated.id))
         email_enabled = body.email_enabled
+        lang = _get_report_lang(request, body.lang)
         if email_enabled is None and body.email_recipients:
             email_enabled = True
         background_tasks.add_task(
@@ -491,6 +505,7 @@ async def generate_report(
             bool(body.include_charts if body.include_charts is not None else report.include_charts),
             body.email_recipients,
             email_enabled,
+            lang,
         )
         response = ReportGenerationResponse(
             generated_report_id=generated_id,
@@ -587,7 +602,7 @@ async def delete_generated_report(
     generated_report_id: int,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
-) -> dict:
+) -> Response:
     """Delete a generated report and its file."""
     try:
         service = CustomReportService(db)
@@ -595,19 +610,25 @@ async def delete_generated_report(
         # Check if user owns this report
         report = service.get_report(report_id, current_user.id)
         if not report:
-            return error_response(
-                code="NOT_FOUND",
-                message="Report not found",
-                request_id=request.state.request_id,
+            return JSONResponse(
+                status_code=404,
+                content=error_response(
+                    code="NOT_FOUND",
+                    message="Report not found",
+                    request_id=request.state.request_id,
+                ).model_dump(),
             )
 
         # Delete generated report
         success = service.delete_generated_report(report_id, generated_report_id, current_user.id)
         if not success:
-            return error_response(
-                code="NOT_FOUND",
-                message="Generated report not found",
-                request_id=request.state.request_id,
+            return JSONResponse(
+                status_code=404,
+                content=error_response(
+                    code="NOT_FOUND",
+                    message="Generated report not found",
+                    request_id=request.state.request_id,
+                ).model_dump(),
             )
 
         return success_response(
@@ -615,12 +636,20 @@ async def delete_generated_report(
             request_id=request.state.request_id,
         )
     except Exception as e:
-        logger.error(f"Error deleting generated report {generated_report_id}: {str(e)}")
-        return error_response(
-            code="DELETE_ERROR",
-            message="Failed to delete generated report",
-            details={"error": str(e)},
-            request_id=request.state.request_id,
+        logger.error(
+            "Error deleting generated report %s: %s",
+            generated_report_id,
+            str(e),
+            exc_info=True,
+        )
+        return JSONResponse(
+            status_code=500,
+            content=error_response(
+                code="DELETE_ERROR",
+                message="Failed to delete generated report",
+                details={"error": str(e)},
+                request_id=request.state.request_id,
+            ).model_dump(),
         )
 
 
@@ -634,7 +663,7 @@ async def download_generated_report(
     generated_report_id: int,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
-) -> FileResponse:
+) -> Response:
     """Download a generated report file."""
     try:
         service = CustomReportService(db)
@@ -642,31 +671,51 @@ async def download_generated_report(
         # Verify the user has permission to download this report
         report = service.get_report(report_id, current_user.id)
         if not report:
-            return error_response(
-                code="NOT_FOUND",
-                message="Report not found",
-                request_id=request.state.request_id,
+            return JSONResponse(
+                status_code=404,
+                content=error_response(
+                    code="NOT_FOUND",
+                    message="Report not found",
+                    request_id=request.state.request_id,
+                ).model_dump(),
             )
 
         # Get the generated report
         generated = service.get_generated_report(report_id, generated_report_id, current_user.id)
         if not generated:
-            return error_response(
-                code="NOT_FOUND",
-                message="Generated report not found",
-                request_id=request.state.request_id,
+            return JSONResponse(
+                status_code=404,
+                content=error_response(
+                    code="NOT_FOUND",
+                    message="Generated report not found",
+                    request_id=request.state.request_id,
+                ).model_dump(),
             )
 
         # Check if file exists
-        if not generated.file_path or not os.path.exists(generated.file_path):
-            return error_response(
-                code="FILE_NOT_FOUND",
-                message="Report file no longer exists",
-                request_id=request.state.request_id,
+        if not generated.file_path:
+            return JSONResponse(
+                status_code=404,
+                content=error_response(
+                    code="FILE_NOT_FOUND",
+                    message="Report file no longer exists",
+                    request_id=request.state.request_id,
+                ).model_dump(),
+            )
+
+        normalized_path = os.path.abspath(os.path.normpath(generated.file_path))
+        if not os.path.isfile(normalized_path):
+            return JSONResponse(
+                status_code=404,
+                content=error_response(
+                    code="FILE_NOT_FOUND",
+                    message="Report file no longer exists",
+                    request_id=request.state.request_id,
+                ).model_dump(),
             )
 
         # Determine file extension from actual file path (more reliable than DB field)
-        actual_ext = os.path.splitext(generated.file_path)[1].lower()
+        actual_ext = os.path.splitext(normalized_path)[1].lower()
 
         # Map file extension to media type
         ext_to_media = {
@@ -689,12 +738,12 @@ async def download_generated_report(
             ext, media_type = format_mapping.get(export_format, ("pdf", "application/pdf"))
 
         # Create correct filename with proper extension
-        base_name = os.path.splitext(os.path.basename(generated.file_path))[0]
+        base_name = os.path.splitext(os.path.basename(normalized_path))[0]
         file_name = f"{base_name}.{ext}"
 
         # Return FileResponse with explicit Content-Disposition header
         response = FileResponse(
-            path=generated.file_path,
+            path=normalized_path,
             filename=file_name,
             media_type=media_type,
         )
@@ -702,12 +751,20 @@ async def download_generated_report(
         response.headers["Content-Disposition"] = f'attachment; filename="{file_name}"'
         return response
     except Exception as e:
-        logger.error(f"Error downloading generated report {generated_report_id}: {str(e)}")
-        return error_response(
-            code="DOWNLOAD_ERROR",
-            message="Failed to download report",
-            details={"error": str(e)},
-            request_id=request.state.request_id,
+        logger.error(
+            "Error downloading generated report %s: %s",
+            generated_report_id,
+            str(e),
+            exc_info=True,
+        )
+        return JSONResponse(
+            status_code=500,
+            content=error_response(
+                code="DOWNLOAD_ERROR",
+                message="Failed to download report",
+                details={"error": str(e)},
+                request_id=request.state.request_id,
+            ).model_dump(),
         )
 
 
@@ -727,6 +784,7 @@ async def bulk_generate_reports(
         service = CustomReportService(db)
         generated_ids: List[int] = []
         errors: List[Dict[str, Any]] = []
+        lang = _get_report_lang(request)
 
         for report_id in body.report_ids:
             report = service.get_report(report_id, current_user.id)
@@ -756,6 +814,7 @@ async def bulk_generate_reports(
                 bool(report.include_charts),
                 None,
                 None,
+                lang,
             )
 
         response = BulkReportGenerationResponse(

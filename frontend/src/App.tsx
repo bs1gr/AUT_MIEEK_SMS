@@ -33,7 +33,6 @@ const NAV_TAB_CONFIG: NavigationTabConfig[] = [
   { key: 'students', labelKey: 'students', path: '/students' },
   { key: 'courses', labelKey: 'courses', path: '/courses' },
   { key: 'calendar', labelKey: 'calendar', path: '/calendar' },
-  { key: 'reports', labelKey: 'customReports:reports', path: '/reports' },
   { key: 'operations', labelKey: 'utilsTab', path: '/operations' },
   { key: 'system', labelKey: 'powerTab', path: '/power' },
 ];
