@@ -1049,8 +1049,6 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
             <div className="px-6 py-5">
               <p className="text-gray-600 mb-6">{t('generateComprehensive')}</p>
 
-              {/* DEBUG: Show number of students loaded */}
-              <div className="mb-2 text-xs text-gray-500">{t('loadedStudents', { count: students.length })}</div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {students.length === 0 ? (
                   <div className="col-span-2 text-center text-gray-400 py-8">{t('noStudentsFound')}</div>
