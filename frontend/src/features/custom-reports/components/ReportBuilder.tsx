@@ -180,20 +180,25 @@ const OUTPUT_FORMATS = [
 
 const ENTITY_FIELDS: Record<string, string[]> = {
   student: [
-    'id', 'first_name', 'last_name', 'email', 'phone',
-    'enrollment_date', 'is_active', 'school_id'
+    'id', 'student_id', 'first_name', 'last_name', 'email', 'mobile_phone', 'phone',
+    'father_name', 'enrollment_date', 'is_active', 'school_id', 'study_year', 'academic_year',
+    'year_of_study', 'class_division', 'health_issue', 'note', 'gpa', 'average_grade', 'attendance_rate',
+    'total_classes', 'attended', 'total_assignments', 'total_courses', 'passed_courses',
+    'failed_courses', 'total_credits', 'enrollment_status', 'trend'
   ],
   course: [
-    'id', 'course_code', 'name', 'description', 'credits',
-    'semester', 'instructor', 'capacity'
+    'id', 'course_code', 'course_name', 'name', 'description', 'credits',
+    'semester', 'hours_per_week', 'absence_penalty', 'is_active',
+    'enrollment_count', 'total_students', 'average_grade', 'attendance_rate'
   ],
   grade: [
-    'id', 'student_id', 'course_id', 'grade', 'points',
-    'date_assigned', 'notes'
+    'id', 'student_id', 'student_name', 'course_id', 'course_code', 'course_name',
+    'assignment_name', 'category', 'grade', 'grade_value', 'max_grade', 'percentage',
+    'weight', 'date_assigned', 'date_submitted', 'letter_grade', 'notes'
   ],
   attendance: [
-    'id', 'student_id', 'course_id', 'date', 'status',
-    'notes'
+    'id', 'student_id', 'student_name', 'course_id', 'course_code', 'course_name',
+    'date', 'status', 'period_number', 'notes'
   ],
 };
 
@@ -290,7 +295,11 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     const fields = Array.isArray(reportFields)
       ? reportFields
       : reportFields && typeof reportFields === 'object'
-        ? Object.keys(reportFields).filter((key) => (reportFields as Record<string, boolean>)[key])
+        ? Array.isArray((reportFields as Record<string, unknown>).columns)
+          ? ((reportFields as { columns: Array<{ key?: string; field?: string; name?: string }> }).columns
+              .map((col) => col.key || col.field || col.name)
+              .filter((value): value is string => Boolean(value)))
+          : Object.keys(reportFields).filter((key) => (reportFields as Record<string, boolean>)[key])
         : [];
 
     const filters = Array.isArray(reportFilters)
@@ -444,6 +453,11 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
   const availableFields = ENTITY_FIELDS[config.entity_type] || [];
 
+  const getFieldLabel = useCallback(
+    (field: string) => t(`field_${field}`, { ns: 'customReports', defaultValue: field }),
+    [t]
+  );
+
   const handleConfigChange = useCallback(
     <T extends keyof ReportConfig>(key: T, value: ReportConfig[T]) => {
       setConfig((prev) => ({ ...prev, [key]: value }));
@@ -536,10 +550,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         description: config.description || undefined,
         report_type: config.entity_type,
         template_id: undefined,
-        fields: config.selected_fields.reduce((acc, field) => {
-          acc[field] = true;
-          return acc;
-        }, {} as Record<string, boolean>),
+        fields: {
+          columns: config.selected_fields.map((field) => ({
+            key: field,
+            label: getFieldLabel(field),
+          })),
+        },
         filters: filtersDict || undefined,
         aggregations: undefined,
         sort_by: sortByDict || undefined,

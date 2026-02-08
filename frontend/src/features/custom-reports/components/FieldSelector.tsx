@@ -20,6 +20,9 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
   const { t } = useTranslation();
   const [draggedField, setDraggedField] = useState<string | null>(null);
 
+  const getFieldLabel = (field: string) =>
+    t(`field_${field}`, { ns: 'customReports', defaultValue: field });
+
   const unselectedFields = availableFields.filter(
     (field) => !selectedFields.includes(field)
   );
@@ -94,7 +97,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                   onClick={() => handleAddField(field)}
                   className="w-full text-left px-4 py-2 bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg transition-colors flex items-center justify-between group"
                 >
-                  <span className="font-medium text-gray-700">{field}</span>
+                  <span className="font-medium text-gray-700">{getFieldLabel(field)}</span>
                   <ChevronRight
                     size={18}
                     className="text-gray-400 group-hover:text-blue-600"
@@ -131,7 +134,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                       // Allow keyboard deletion if needed
                     }
                   }}
-                  aria-label={`${t('field', { ns: 'customReports' })}: ${field}`}
+                  aria-label={`${t('field', { ns: 'customReports' })}: ${getFieldLabel(field)}`}
                 >
                   <div className="flex items-center gap-3 flex-1">
                     <ChevronRight
@@ -139,7 +142,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
                       className="text-gray-400 group-hover:text-blue-600 rotate-90"
                       aria-hidden="true"
                     />
-                    <span className="font-medium text-gray-900">{field}</span>
+                    <span className="font-medium text-gray-900">{getFieldLabel(field)}</span>
                   </div>
 
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

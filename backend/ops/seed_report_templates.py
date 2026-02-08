@@ -212,6 +212,124 @@ def get_template_definitions() -> List[Dict[str, Any]]:
             "default_export_format": "excel",
             "default_include_charts": True,
         },
+        # =====================================================================
+        # ANALYTICS REPORTS
+        # =====================================================================
+        {
+            "name": "Student Performance - Detailed Analytics",
+            "description": "Detailed student performance metrics with GPA, attendance, credits, and pass/fail summary.",
+            "category": "analytics",
+            "report_type": "student",
+            "fields": [
+                "student_id",
+                "first_name",
+                "last_name",
+                "gpa",
+                "average_grade",
+                "attendance_rate",
+                "total_courses",
+                "passed_courses",
+                "failed_courses",
+                "total_credits",
+                "study_year",
+                "class_division",
+            ],
+            "filters": [],
+            "aggregations": None,
+            "sort_by": [{"field": "gpa", "order": "desc"}],
+            "default_export_format": "excel",
+            "default_include_charts": True,
+        },
+        {
+            "name": "Course Performance - Analytics",
+            "description": "Course-level analytics including enrollment, averages, attendance, and workload.",
+            "category": "analytics",
+            "report_type": "course",
+            "fields": [
+                "course_code",
+                "course_name",
+                "semester",
+                "credits",
+                "hours_per_week",
+                "enrollment_count",
+                "average_grade",
+                "attendance_rate",
+                "absence_penalty",
+                "is_active",
+            ],
+            "filters": [],
+            "aggregations": None,
+            "sort_by": [{"field": "average_grade", "order": "desc"}],
+            "default_export_format": "excel",
+            "default_include_charts": True,
+        },
+        {
+            "name": "Attendance Analytics - By Course",
+            "description": "Attendance records grouped by course with student presence details.",
+            "category": "analytics",
+            "report_type": "attendance",
+            "fields": [
+                "course_code",
+                "course_name",
+                "date",
+                "status",
+                "student_id",
+                "student_name",
+                "period_number",
+            ],
+            "filters": [],
+            "aggregations": None,
+            "sort_by": [{"field": "date", "order": "desc"}],
+            "default_export_format": "pdf",
+            "default_include_charts": False,
+        },
+        {
+            "name": "Grade Analytics - Weighted Overview",
+            "description": "Assignment-level grade analytics with weights, percentages, and letter grades.",
+            "category": "analytics",
+            "report_type": "grade",
+            "fields": [
+                "student_id",
+                "student_name",
+                "course_code",
+                "course_name",
+                "assignment_name",
+                "category",
+                "grade",
+                "max_grade",
+                "percentage",
+                "weight",
+                "letter_grade",
+                "date_assigned",
+            ],
+            "filters": [],
+            "aggregations": None,
+            "sort_by": [{"field": "date_assigned", "order": "desc"}],
+            "default_export_format": "excel",
+            "default_include_charts": True,
+        },
+        {
+            "name": "Student Engagement - Attendance & Grades",
+            "description": "Engagement snapshot combining attendance, grade averages, and workload metrics.",
+            "category": "analytics",
+            "report_type": "student",
+            "fields": [
+                "student_id",
+                "first_name",
+                "last_name",
+                "attendance_rate",
+                "average_grade",
+                "total_classes",
+                "total_assignments",
+                "total_courses",
+                "enrollment_status",
+            ],
+            "filters": [],
+            "aggregations": None,
+            "sort_by": [{"field": "attendance_rate", "order": "desc"}],
+            "default_export_format": "pdf",
+            "default_include_charts": False,
+        },
     ]
 
 
@@ -280,11 +398,12 @@ def main():
     # Change to backend directory so database path is relative to backend/
     os.chdir(backend_dir)
 
+    from backend.config import settings
     from backend.models import get_session, init_db
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
-    engine = init_db()
+    engine = init_db(settings.DATABASE_URL)
     db = get_session(engine)
 
     try:

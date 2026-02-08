@@ -107,6 +107,26 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
     titleKey: 'template_grade_distribution_analytics',
     descKey: 'template_grade_distribution_analytics_desc',
   },
+  'Student Performance - Detailed Analytics': {
+    titleKey: 'template_student_performance_detailed',
+    descKey: 'template_student_performance_detailed_desc',
+  },
+  'Course Performance - Analytics': {
+    titleKey: 'template_course_performance_analytics',
+    descKey: 'template_course_performance_analytics_desc',
+  },
+  'Attendance Analytics - By Course': {
+    titleKey: 'template_attendance_analytics_by_course',
+    descKey: 'template_attendance_analytics_by_course_desc',
+  },
+  'Grade Analytics - Weighted Overview': {
+    titleKey: 'template_grade_analytics_weighted',
+    descKey: 'template_grade_analytics_weighted_desc',
+  },
+  'Student Engagement - Attendance & Grades': {
+    titleKey: 'template_student_engagement',
+    descKey: 'template_student_engagement_desc',
+  },
 };
 
 type TemplateLike = Pick<ReportTemplate, 'name' | 'description' | 'is_system'>;
