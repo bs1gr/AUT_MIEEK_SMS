@@ -156,7 +156,9 @@ export const SearchView: React.FC = () => {
   }, [searchType, t]);
 
   const renderResultPrimary = (result: SearchResult) => {
+    if ('assignment_name' in result && result.assignment_name) return result.assignment_name;
     if ('display_name' in result && result.display_name) return result.display_name;
+    if ('student_name' in result && result.student_name) return result.student_name;
     if ('first_name' in result && 'last_name' in result && (result.first_name || result.last_name)) {
       return `${result.first_name || ''} ${result.last_name || ''}`.trim();
     }

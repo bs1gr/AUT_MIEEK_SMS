@@ -14,11 +14,13 @@ export interface SearchResult {
   display_name?: string;
   type: 'student' | 'course' | 'grade';
   student_id?: number;
+  student_name?: string;
   metadata?: Record<string, unknown>;
   course_name?: string;
   course_code?: string;
   credits?: number;
   grade_value?: number;
+  assignment_name?: string;
 }
 
 /**
@@ -127,7 +129,7 @@ export const useSearch = () => {
           has_more?: boolean;
           limit?: number;
           offset?: number;
-        }>(response);
+        }>(response.data);
 
         return {
           results: data?.results || [],

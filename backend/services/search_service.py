@@ -208,6 +208,7 @@ class SearchService:
                         func.lower(Student.first_name).ilike(query_lower),
                         func.lower(Student.last_name).ilike(query_lower),
                         func.lower(Course.course_name).ilike(query_lower),
+                        func.lower(Grade.assignment_name).ilike(query_lower),
                     )
                 )
 
@@ -228,7 +229,9 @@ class SearchService:
             if date_from_value:
                 try:
                     date_from = datetime.strptime(str(date_from_value), "%Y-%m-%d").date()
-                    grade_query = grade_query.filter(Grade.date_assigned >= date_from)
+                    grade_query = grade_query.filter(
+                        func.coalesce(Grade.date_assigned, Grade.date_submitted) >= date_from
+                    )
                 except (ValueError, TypeError):
                     pass
 
@@ -236,7 +239,9 @@ class SearchService:
             if date_to_value:
                 try:
                     date_to = datetime.strptime(str(date_to_value), "%Y-%m-%d").date()
-                    grade_query = grade_query.filter(Grade.date_assigned <= date_to)
+                    grade_query = grade_query.filter(
+                        func.coalesce(Grade.date_assigned, Grade.date_submitted) <= date_to
+                    )
                 except (ValueError, TypeError):
                     pass
 
@@ -251,6 +256,7 @@ class SearchService:
                     "student_name": f"{g.student.first_name} {g.student.last_name}",
                     "course_id": g.course_id,
                     "course_name": g.course.course_name,
+                    "assignment_name": g.assignment_name,
                     "grade": float(g.grade) if g.grade else None,
                     "type": "grade",
                 }
@@ -430,6 +436,7 @@ class SearchService:
                     func.lower(Student.first_name).ilike(query_lower),
                     func.lower(Student.last_name).ilike(query_lower),
                     func.lower(Course.course_name).ilike(query_lower),
+                    func.lower(Grade.assignment_name).ilike(query_lower),
                 )
             )
 
@@ -459,7 +466,7 @@ class SearchService:
         if date_from_value:
             try:
                 date_from = datetime.strptime(str(date_from_value), "%Y-%m-%d").date()
-                query = query.filter(Grade.date_assigned >= date_from)
+                query = query.filter(func.coalesce(Grade.date_assigned, Grade.date_submitted) >= date_from)
             except (ValueError, TypeError):
                 pass
 
@@ -467,7 +474,7 @@ class SearchService:
         if date_to_value:
             try:
                 date_to = datetime.strptime(str(date_to_value), "%Y-%m-%d").date()
-                query = query.filter(Grade.date_assigned <= date_to)
+                query = query.filter(func.coalesce(Grade.date_assigned, Grade.date_submitted) <= date_to)
             except (ValueError, TypeError):
                 pass
 
@@ -480,6 +487,7 @@ class SearchService:
                 "student_name": f"{g.student.first_name} {g.student.last_name}",
                 "course_id": g.course_id,
                 "course_name": g.course.course_name,
+                "assignment_name": g.assignment_name,
                 "grade": float(g.grade) if g.grade else None,
                 "passed": g.grade >= 50 if g.grade else False,
                 "type": "grade",
