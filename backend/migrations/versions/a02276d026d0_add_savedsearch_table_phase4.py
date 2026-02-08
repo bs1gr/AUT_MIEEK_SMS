@@ -32,31 +32,50 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Create SavedSearch table and indexes."""
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    existing_tables = set(inspector.get_table_names())
+
+    def _table_exists(table_name: str) -> bool:
+        return table_name in existing_tables
+
+    def _index_exists(table_name: str, index_name: str) -> bool:
+        indexes = {idx["name"] for idx in inspector.get_indexes(table_name)}
+        return index_name in indexes
+
     # Create the saved_searches table
-    op.create_table(
-        "saved_searches",
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("user_id", sa.Integer(), nullable=False),
-        sa.Column("name", sa.String(length=200), nullable=False),
-        sa.Column("description", sa.Text(), nullable=True),
-        sa.Column("search_type", sa.String(length=50), nullable=False),
-        sa.Column("query", sa.String(length=500), nullable=True),
-        sa.Column("filters", sa.JSON(), nullable=True),
-        sa.Column("is_favorite", sa.Boolean(), nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
-        sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
-        sa.PrimaryKeyConstraint("id"),
-    )
+    if not _table_exists("saved_searches"):
+        op.create_table(
+            "saved_searches",
+            sa.Column("id", sa.Integer(), nullable=False),
+            sa.Column("user_id", sa.Integer(), nullable=False),
+            sa.Column("name", sa.String(length=200), nullable=False),
+            sa.Column("description", sa.Text(), nullable=True),
+            sa.Column("search_type", sa.String(length=50), nullable=False),
+            sa.Column("query", sa.String(length=500), nullable=True),
+            sa.Column("filters", sa.JSON(), nullable=True),
+            sa.Column("is_favorite", sa.Boolean(), nullable=True),
+            sa.Column("created_at", sa.DateTime(timezone=True), nullable=True),
+            sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
+            sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
+            sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+            sa.PrimaryKeyConstraint("id"),
+        )
 
     # Create indexes for performance optimization
-    op.create_index("ix_saved_searches_user_id", "saved_searches", ["user_id"], unique=False)
-    op.create_index("ix_saved_searches_search_type", "saved_searches", ["search_type"], unique=False)
-    op.create_index("ix_saved_searches_is_favorite", "saved_searches", ["is_favorite"], unique=False)
-    op.create_index("ix_saved_searches_name", "saved_searches", ["name"], unique=False)
-    op.create_index("ix_saved_searches_created_at", "saved_searches", ["created_at"], unique=False)
-    op.create_index("ix_saved_searches_deleted_at", "saved_searches", ["deleted_at"], unique=False)
+    if _table_exists("saved_searches"):
+        if not _index_exists("saved_searches", "ix_saved_searches_user_id"):
+            op.create_index("ix_saved_searches_user_id", "saved_searches", ["user_id"], unique=False)
+        if not _index_exists("saved_searches", "ix_saved_searches_search_type"):
+            op.create_index("ix_saved_searches_search_type", "saved_searches", ["search_type"], unique=False)
+        if not _index_exists("saved_searches", "ix_saved_searches_is_favorite"):
+            op.create_index("ix_saved_searches_is_favorite", "saved_searches", ["is_favorite"], unique=False)
+        if not _index_exists("saved_searches", "ix_saved_searches_name"):
+            op.create_index("ix_saved_searches_name", "saved_searches", ["name"], unique=False)
+        if not _index_exists("saved_searches", "ix_saved_searches_created_at"):
+            op.create_index("ix_saved_searches_created_at", "saved_searches", ["created_at"], unique=False)
+        if not _index_exists("saved_searches", "ix_saved_searches_deleted_at"):
+            op.create_index("ix_saved_searches_deleted_at", "saved_searches", ["deleted_at"], unique=False)
 
 
 def downgrade() -> None:

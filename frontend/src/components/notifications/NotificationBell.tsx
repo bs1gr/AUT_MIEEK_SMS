@@ -7,6 +7,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationDropdown from './NotificationDropdown';
+import NotificationCenter from '../NotificationCenter';
 import './NotificationBell.css';
 
 export interface NotificationBellProps {
@@ -18,9 +19,10 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
   className = '',
   maxDisplayCount = 99,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('notifications');
   const { unreadCount, isConnected } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
+  const [showCenter, setShowCenter] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown when clicking outside
@@ -44,6 +46,14 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
     setIsOpen(!isOpen);
   };
 
+  const handleViewAll = () => {
+    setShowCenter(true);
+  };
+
+  const handleCloseCenter = () => {
+    setShowCenter(false);
+  };
+
   const displayCount = unreadCount > maxDisplayCount ? `${maxDisplayCount}+` : unreadCount;
   const hasUnread = unreadCount > 0;
 
@@ -52,8 +62,8 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
       <button
         className={`notification-bell-button ${hasUnread ? 'has-unread' : ''}`}
         onClick={toggleDropdown}
-        aria-label={t('notifications.bell.ariaLabel', { count: unreadCount })}
-        title={t('notifications.bell.title')}
+        aria-label={t('bell.ariaLabel', { count: unreadCount })}
+        title={t('bell.title')}
       >
         {/* Bell Icon (SVG) */}
         <svg
@@ -73,7 +83,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
 
         {/* Unread Count Badge */}
         {hasUnread && (
-          <span className="notification-bell-badge" aria-label={t('notifications.bell.unreadCount', { count: unreadCount })}>
+          <span className="notification-bell-badge" aria-label={t('bell.unreadCount', { count: unreadCount })}>
             {displayCount}
           </span>
         )}
@@ -82,8 +92,8 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
         {!isConnected && (
           <span
             className="notification-bell-offline"
-            title={t('notifications.bell.offline')}
-            aria-label={t('notifications.bell.offline')}
+            title={t('bell.offline')}
+            aria-label={t('bell.offline')}
           />
         )}
       </button>
@@ -93,8 +103,11 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
         <NotificationDropdown
           onClose={() => setIsOpen(false)}
           isOpen={isOpen}
+          onViewAll={handleViewAll}
         />
       )}
+
+      <NotificationCenter isOpen={showCenter} onClose={handleCloseCenter} />
     </div>
   );
 };

@@ -24,6 +24,8 @@ class StudentCreate(BaseModel):
     health_issue: Optional[str] = None
     note: Optional[str] = None
     study_year: Optional[int] = None
+    academic_year: Optional[str] = None
+    class_division: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -46,6 +48,8 @@ class StudentCreate(BaseModel):
             "note",
             "enrollment_date",
             "study_year",
+            "academic_year",
+            "class_division",
         ]
         for k in optional_keys:
             if k in values:
@@ -89,6 +93,21 @@ class StudentCreate(BaseModel):
             raise ValueError("study_year must be between 1 and 4")
         return v
 
+    @field_validator("academic_year")
+    @classmethod
+    def validate_academic_year(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        vv = v.strip().upper()
+        # Normalize Greek letters to Latin if provided
+        if vv == "Α":
+            vv = "A"
+        if vv == "Β":
+            vv = "B"
+        if vv not in {"A", "B"}:
+            raise ValueError("academic_year must be 'A' or 'B'")
+        return vv
+
     @field_validator("enrollment_date")
     @classmethod
     def validate_enrollment_date(cls, v: Optional[date]) -> Optional[date]:
@@ -113,6 +132,8 @@ class StudentUpdate(BaseModel):
     health_issue: Optional[str] = None
     note: Optional[str] = None
     study_year: Optional[int] = None
+    academic_year: Optional[str] = None
+    class_division: Optional[str] = None
 
     @classmethod
     def _none_if_empty(cls, v):
@@ -136,6 +157,8 @@ class StudentUpdate(BaseModel):
             "note",
             "enrollment_date",
             "study_year",
+            "academic_year",
+            "class_division",
         ]
         for k in optional_keys:
             if k in values:
@@ -157,6 +180,20 @@ class StudentUpdate(BaseModel):
         vv = v.strip()
         if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9\-_]{0,49}", vv):
             raise ValueError("Student ID must be alphanumeric and may include '-' or '_' (max 50 chars)")
+        return vv
+
+    @field_validator("academic_year")
+    @classmethod
+    def validate_academic_year(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return v
+        vv = v.strip().upper()
+        if vv == "Α":
+            vv = "A"
+        if vv == "Β":
+            vv = "B"
+        if vv not in {"A", "B"}:
+            raise ValueError("academic_year must be 'A' or 'B'")
         return vv
 
     @field_validator("mobile_phone", "phone")
@@ -202,5 +239,7 @@ class StudentResponse(BaseModel):
     health_issue: str | None
     note: str | None
     study_year: int | None
+    academic_year: str | None
+    class_division: str | None
 
     model_config = ConfigDict(from_attributes=True)

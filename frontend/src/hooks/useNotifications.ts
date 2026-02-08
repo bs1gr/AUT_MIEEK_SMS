@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import apiClient, { extractAPIResponseData } from '../api/api';
+import authService from '../services/authService';
 import type {
   Notification,
   NotificationListResponse,
@@ -16,6 +17,8 @@ import type {
 const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5;
+const MIN_FETCH_INTERVAL_MS = 3000;
+const RATE_LIMIT_COOLDOWN_MS = 60000;
 
 export function useNotifications(): UseNotificationsReturn {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -27,6 +30,39 @@ export function useNotifications(): UseNotificationsReturn {
   const socketRef = useRef<Socket | null>(null);
   const reconnectAttemptsRef = useRef(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastFetchAtRef = useRef(0);
+  const fetchInFlightRef = useRef(false);
+  const rateLimitUntilRef = useRef(0);
+
+  const hasAccessToken = () => {
+    if (authService.getAccessToken()) {
+      return true;
+    }
+    try {
+      return Boolean(localStorage.getItem('sms_access_token') || localStorage.getItem('access_token'));
+    } catch {
+      return false;
+    }
+  };
+  const getAccessToken = () => {
+    const token = authService.getAccessToken();
+    if (token) return token;
+    try {
+      return localStorage.getItem('sms_access_token') || localStorage.getItem('access_token');
+    } catch {
+      return null;
+    }
+  };
+  const getUserId = (): number | null => {
+    try {
+      const raw = localStorage.getItem('sms_user_v1');
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as { id?: number };
+      return typeof parsed.id === 'number' ? parsed.id : null;
+    } catch {
+      return null;
+    }
+  };
 
   /**
    * Fetch notifications from API
@@ -36,6 +72,22 @@ export function useNotifications(): UseNotificationsReturn {
     limit?: number;
     unread_only?: boolean;
   }) => {
+    if (!hasAccessToken()) {
+      setNotifications([]);
+      setUnreadCount(0);
+      return;
+    }
+    if (fetchInFlightRef.current) {
+      return;
+    }
+    const now = Date.now();
+    if (now < rateLimitUntilRef.current) {
+      return;
+    }
+    if (now - lastFetchAtRef.current < MIN_FETCH_INTERVAL_MS) {
+      return;
+    }
+    fetchInFlightRef.current = true;
     setIsLoading(true);
     setError(null);
 
@@ -45,23 +97,40 @@ export function useNotifications(): UseNotificationsReturn {
       if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString());
       if (params?.unread_only) queryParams.append('unread_only', 'true');
 
-      const response = await apiClient.get<NotificationListResponse>(
-        `/notifications?${queryParams.toString()}`
-      );
+      const token = getAccessToken();
+      const response = await apiClient.get<NotificationListResponse>('/notifications/', {
+        params: Object.fromEntries(queryParams.entries()),
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
 
       // Extract data from APIResponse wrapper
-      const data = extractAPIResponseData(response);
+      const data = extractAPIResponseData(response.data);
 
       if (data && typeof data === 'object') {
-        const typedData = data as unknown as { notifications?: unknown[]; unread_count?: number };
-        setNotifications((typedData.notifications as Notification[]) || []);
+        const typedData = data as unknown as {
+          items?: Notification[];
+          notifications?: Notification[];
+          unread_count?: number;
+        };
+        const items = typedData.items ?? typedData.notifications ?? [];
+        setNotifications(items);
         setUnreadCount(typedData.unread_count || 0);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch notifications';
       setError(new Error(errorMessage));
       console.error('Failed to fetch notifications:', err);
+      if (
+        typeof err === 'object' &&
+        err !== null &&
+        'response' in err &&
+        (err as { response?: { status?: number } }).response?.status === 429
+      ) {
+        rateLimitUntilRef.current = Date.now() + RATE_LIMIT_COOLDOWN_MS;
+      }
     } finally {
+      lastFetchAtRef.current = Date.now();
+      fetchInFlightRef.current = false;
       setIsLoading(false);
     }
   }, []);
@@ -70,9 +139,16 @@ export function useNotifications(): UseNotificationsReturn {
    * Refresh unread count from API
    */
   const refreshUnreadCount = useCallback(async () => {
+    if (!hasAccessToken()) {
+      setUnreadCount(0);
+      return;
+    }
     try {
-      const response = await apiClient.get<{ unread_count: number }>('/notifications/unread-count');
-      const data = extractAPIResponseData(response);
+      const token = getAccessToken();
+      const response = await apiClient.get<{ unread_count: number }>('/notifications/unread-count', {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+      const data = extractAPIResponseData(response.data);
 
       if (data && typeof data === 'object' && 'unread_count' in data) {
         setUnreadCount((data as unknown as { unread_count: number }).unread_count);
@@ -86,6 +162,9 @@ export function useNotifications(): UseNotificationsReturn {
    * Mark notification as read
    */
   const markAsRead = useCallback(async (notificationId: number) => {
+    if (!hasAccessToken()) {
+      return;
+    }
     try {
       await apiClient.post(`/notifications/${notificationId}/read`);
 
@@ -109,6 +188,9 @@ export function useNotifications(): UseNotificationsReturn {
    * Mark all notifications as read
    */
   const markAllAsRead = useCallback(async () => {
+    if (!hasAccessToken()) {
+      return;
+    }
     try {
       await apiClient.post('/notifications/read-all');
 
@@ -132,22 +214,27 @@ export function useNotifications(): UseNotificationsReturn {
    * Delete notification (soft delete)
    */
   const deleteNotification = useCallback(async (notificationId: number) => {
+    if (!hasAccessToken()) {
+      return;
+    }
     try {
       await apiClient.delete(`/notifications/${notificationId}`);
+      let wasUnread = false;
 
-      // Update local state
-      const notification = notifications.find(n => n.id === notificationId);
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      setNotifications(prev => {
+        const target = prev.find(n => n.id === notificationId);
+        wasUnread = Boolean(target && !target.is_read);
+        return prev.filter(n => n.id !== notificationId);
+      });
 
-      // Decrease unread count if notification was unread
-      if (notification && !notification.is_read) {
+      if (wasUnread) {
         setUnreadCount(prev => Math.max(0, prev - 1));
       }
     } catch (err) {
       console.error('Failed to delete notification:', err);
       throw err;
     }
-  }, [notifications]);
+  }, []);
 
   /**
    * Connect to WebSocket server
@@ -159,12 +246,19 @@ export function useNotifications(): UseNotificationsReturn {
     }
 
     try {
-      const token = localStorage.getItem('access_token');
+      const token = getAccessToken();
+      const userId = getUserId();
+
+      if (!token || !userId) {
+        setIsConnected(false);
+        return;
+      }
 
       socketRef.current = io(WEBSOCKET_URL, {
         path: '/socket.io/',
         auth: {
-          token: token || '',
+          token,
+          user_id: userId,
         },
         transports: ['websocket', 'polling'],
         reconnection: true,
@@ -179,9 +273,7 @@ export function useNotifications(): UseNotificationsReturn {
         setIsConnected(true);
         setError(null);
         reconnectAttemptsRef.current = 0;
-
-        // Refresh notifications on reconnect
-        fetchNotifications({ limit: 20 });
+        // Refresh unread count on reconnect
         refreshUnreadCount();
       });
 
@@ -236,11 +328,15 @@ export function useNotifications(): UseNotificationsReturn {
       socket.on('notification_deleted', (data: WebSocketMessage) => {
         if (data.data && typeof data.data === 'object' && 'notification_id' in data.data) {
           const notificationId = (data.data as { notification_id: number }).notification_id;
-          const notification = notifications.find(n => n.id === notificationId);
+          let wasUnread = false;
 
-          setNotifications(prev => prev.filter(n => n.id !== notificationId));
+          setNotifications(prev => {
+            const target = prev.find(n => n.id === notificationId);
+            wasUnread = Boolean(target && !target.is_read);
+            return prev.filter(n => n.id !== notificationId);
+          });
 
-          if (notification && !notification.is_read) {
+          if (wasUnread) {
             setUnreadCount(prev => Math.max(0, prev - 1));
           }
         }
@@ -259,7 +355,7 @@ export function useNotifications(): UseNotificationsReturn {
       console.error('Failed to connect to WebSocket:', err);
       setError(err instanceof Error ? err : new Error('WebSocket connection failed'));
     }
-  }, [fetchNotifications, refreshUnreadCount, notifications]);
+  }, [fetchNotifications, refreshUnreadCount]);
 
   /**
    * Disconnect from WebSocket server
@@ -280,8 +376,10 @@ export function useNotifications(): UseNotificationsReturn {
   // Auto-connect on mount (deferred) and disconnect on unmount
   useEffect(() => {
     const timeout = setTimeout(() => {
-      connect();
-      fetchNotifications({ limit: 20 });
+      if (hasAccessToken()) {
+        connect();
+        refreshUnreadCount();
+      }
     }, 0);
 
     return () => {

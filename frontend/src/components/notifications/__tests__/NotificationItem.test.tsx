@@ -20,6 +20,7 @@ vi.mock('../../../hooks/useNotifications', () => ({
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
+    i18n: { language: 'en' },
   }),
 }));
 
@@ -78,7 +79,7 @@ describe('NotificationItem Component', () => {
 
     it('should render notification type badge', () => {
       render(<NotificationItem notification={mockNotification} />);
-      const badge = screen.getByText('notifications.types.grade');
+      const badge = screen.getByText('types.grade');
       expect(badge).toBeInTheDocument();
     });
 
@@ -179,7 +180,7 @@ describe('NotificationItem Component', () => {
 
     it('should have correct notification type text', () => {
       render(<NotificationItem notification={mockNotification} />);
-      expect(screen.getByText('notifications.types.grade')).toBeInTheDocument();
+      expect(screen.getByText('types.grade')).toBeInTheDocument();
     });
 
     it('should apply correct class for different notification types', () => {
@@ -407,7 +408,7 @@ describe('NotificationItem Component', () => {
       it(`should render ${type} notification correctly`, () => {
         const notif = { ...mockNotification, notification_type: type };
         render(<NotificationItem notification={notif} />);
-        expect(screen.getByText(`notifications.types.${type}`)).toBeInTheDocument();
+        expect(screen.getByText(`types.${type}`)).toBeInTheDocument();
       });
     });
   });

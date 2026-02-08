@@ -115,7 +115,7 @@ describe('NotificationDropdown Component', () => {
       render(
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
-      expect(screen.getByText('notifications.dropdown.title')).toBeInTheDocument();
+      expect(screen.getByText('dropdown.title')).toBeInTheDocument();
     });
 
     it('should show "Mark all as read" button when unreadCount > 0', () => {
@@ -198,7 +198,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.getByText('notifications.dropdown.loading')).toBeInTheDocument();
+      expect(screen.getByText('dropdown.loading')).toBeInTheDocument();
     });
 
     it('should not show loading spinner when not loading', () => {
@@ -221,7 +221,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.queryByText('notifications.dropdown.loading')).not.toBeInTheDocument();
+      expect(screen.queryByText('dropdown.loading')).not.toBeInTheDocument();
     });
   });
 
@@ -246,7 +246,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.getByText('notifications.dropdown.empty')).toBeInTheDocument();
+      expect(screen.getByText('dropdown.empty')).toBeInTheDocument();
     });
 
     it('should not show empty state when notifications exist', () => {
@@ -254,7 +254,7 @@ describe('NotificationDropdown Component', () => {
         <NotificationDropdown isOpen={true} onClose={mockOnClose} />
       );
 
-      expect(screen.queryByText('notifications.dropdown.empty')).not.toBeInTheDocument();
+      expect(screen.queryByText('dropdown.empty')).not.toBeInTheDocument();
     });
   });
 
@@ -320,6 +320,15 @@ describe('NotificationDropdown Component', () => {
 
       const viewAllLink = screen.getByRole('link', { name: /dropdown.viewAll/i });
       expect(viewAllLink).toBeInTheDocument();
+    });
+
+    it('should show "View all" button when onViewAll is provided', () => {
+      render(
+        <NotificationDropdown isOpen={true} onClose={mockOnClose} onViewAll={vi.fn()} />
+      );
+
+      const viewAllButton = screen.getByRole('button', { name: /dropdown.viewAll/i });
+      expect(viewAllButton).toBeInTheDocument();
     });
 
     it('should not show "View all" link when no notifications', () => {

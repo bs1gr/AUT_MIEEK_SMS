@@ -45,6 +45,7 @@ from .common import (
     PaginationParams as PaginationParams,
 )
 from .courses import CourseCreate as CourseCreate
+from .analytics import AnalyticsLookupsResponse as AnalyticsLookupsResponse
 from .courses import CourseResponse as CourseResponse
 from .courses import CourseUpdate as CourseUpdate
 from .enrollments import (
@@ -169,9 +170,13 @@ from .reports import (
     AttendanceSummary as AttendanceSummary,
 )
 from .reports import (
-    BulkReportRequest as BulkReportRequest,
+    CourseSummary as CourseSummary,
 )
 from .reports import (
+    GradeSummary as GradeSummary,
+)
+from .reports import (
+    BulkReportRequest as BulkReportRequest,
 )
 from .reports import (
     HighlightSummary as HighlightSummary,

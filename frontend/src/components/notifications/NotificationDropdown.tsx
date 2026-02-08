@@ -13,14 +13,16 @@ export interface NotificationDropdownProps {
   onClose: () => void;
   isOpen: boolean;
   maxNotifications?: number;
+  onViewAll?: () => void;
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   onClose,
   isOpen,
   maxNotifications = 10,
+  onViewAll,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('notifications');
   const {
     notifications,
     unreadCount,
@@ -59,21 +61,21 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       className={`notification-dropdown ${isOpen ? 'open' : ''}`}
       ref={dropdownRef}
       role="region"
-      aria-label={t('notifications.dropdown.ariaLabel')}
+      aria-label={t('dropdown.ariaLabel')}
     >
       {/* Header */}
       <div className="notification-dropdown-header">
         <h3 className="notification-dropdown-title">
-          {t('notifications.dropdown.title')}
+          {t('dropdown.title')}
         </h3>
 
         {unreadCount > 0 && (
           <button
             className="notification-dropdown-mark-all"
             onClick={handleMarkAllAsRead}
-            aria-label={t('notifications.dropdown.markAllRead')}
+            aria-label={t('dropdown.markAllRead')}
           >
-            {t('notifications.dropdown.markAllRead')}
+            {t('dropdown.markAllRead')}
           </button>
         )}
       </div>
@@ -83,7 +85,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
         {isLoading && (
           <div className="notification-dropdown-loading">
             <div className="notification-loading-spinner" />
-            <p>{t('notifications.dropdown.loading')}</p>
+            <p>{t('dropdown.loading')}</p>
           </div>
         )}
 
@@ -103,7 +105,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 opacity="0.3"
               />
             </svg>
-            <p>{t('notifications.dropdown.empty')}</p>
+            <p>{t('dropdown.empty')}</p>
           </div>
         )}
 
@@ -122,13 +124,26 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       {/* Footer */}
       {hasNotifications && (
         <div className="notification-dropdown-footer">
-          <a
-            href="/notifications"
-            className="notification-dropdown-view-all"
-            onClick={onClose}
-          >
-            {t('notifications.dropdown.viewAll')}
-          </a>
+          {onViewAll ? (
+            <button
+              type="button"
+              className="notification-dropdown-view-all"
+              onClick={() => {
+                onClose();
+                onViewAll();
+              }}
+            >
+              {t('dropdown.viewAll')}
+            </button>
+          ) : (
+            <a
+              href="/notifications"
+              className="notification-dropdown-view-all"
+              onClick={onClose}
+            >
+              {t('dropdown.viewAll')}
+            </a>
+          )}
         </div>
       )}
     </div>

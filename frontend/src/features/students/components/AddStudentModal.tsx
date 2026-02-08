@@ -38,6 +38,8 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
       address: '',
       date_of_birth: '',
       enrollment_date: new Date().toISOString().split('T')[0],
+      academic_year: '',
+      class_division: '',
     },
   });
 
@@ -55,6 +57,8 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
       health_issue: '', // Not in form but backend accepts as optional
       note: '', // Not in form but backend accepts as optional
       study_year: 1, // Default to 1st year, backend accepts as optional
+      academic_year: data.academic_year,
+      class_division: data.class_division,
       enrollment_date: data.enrollment_date,
     };
     onAdd(studentData);
@@ -243,6 +247,50 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="academic_year"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('academicYear')}</FormLabel>
+                  <FormControl>
+                    <select
+                      className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                      aria-label={t('academicYear')}
+                      data-testid="academic-year-select"
+                      value={field.value || ''}
+                      onChange={(e) => field.onChange(e.target.value)}
+                    >
+                      <option value="">{t('pleaseSelect')}</option>
+                      <option value="A">{t('classA')}</option>
+                      <option value="B">{t('classB')}</option>
+                    </select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="class_division"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('classDivision')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('classDivisionPlaceholder')}
+                      aria-label={t('classDivision')}
+                      data-testid="class-division-input"
+                      {...field}
+                      value={field.value || ''}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end space-x-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>

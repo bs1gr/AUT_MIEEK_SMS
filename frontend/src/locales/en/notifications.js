@@ -39,6 +39,32 @@ export const notificationsEN = {
   websocketError: 'Notification connection error',
   notificationsCount: 'You have {count} notifications',
 
+  // Admin broadcast
+  admin: {
+    tabLabel: 'Notifications',
+    title: 'Send Notification',
+    description: 'Broadcast a message to all users, a role, or specific user IDs.',
+    typeLabel: 'Notification type',
+    targetLabel: 'Target audience',
+    targetAll: 'All users',
+    targetRole: 'Role',
+    targetUsers: 'Specific users',
+    roleLabel: 'Role',
+    userIdsLabel: 'User IDs',
+    userIdsPlaceholder: 'e.g., 12, 24, 57',
+    userIdsHelp: 'Comma-separated numeric user IDs.',
+    titleLabel: 'Title',
+    messageLabel: 'Message',
+    sendButton: 'Send notification',
+    sending: 'Sending...',
+    success: 'Notification broadcast sent.',
+    error: 'Failed to send notification.',
+    notAuthorized: 'Only admins with broadcast permission can send notifications.',
+    validationTitle: 'Title is required.',
+    validationMessage: 'Message is required.',
+    validationUsers: 'Enter at least one valid user ID.',
+  },
+
   // Bell component
   bell: {
     ariaLabel: 'Notifications',
@@ -61,6 +87,9 @@ export const notificationsEN = {
   item: {
     markAsRead: 'Mark as read',
     delete: 'Delete notification',
+    viewDetails: 'View details',
+    hideDetails: 'Hide details',
+    details: 'Details',
   },
 
   // Notification types

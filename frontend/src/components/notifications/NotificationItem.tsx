@@ -3,7 +3,7 @@
  * Individual notification card with actions
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../hooks/useNotifications';
 import type { Notification } from '../../types/notification';
@@ -15,8 +15,9 @@ export interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation('notifications');
   const { markAsRead, deleteNotification } = useNotifications();
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleMarkAsRead = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -49,7 +50,10 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
     // Navigate if URL provided
     if (notification.data?.url) {
       safeNavigate(notification.data.url as string);
+      return;
     }
+
+    setIsExpanded((prev) => !prev);
   };
 
   const getNotificationIcon = () => {
@@ -80,21 +84,47 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
   const getRelativeTime = (date: string) => {
     const now = new Date();
     const notificationDate = new Date(date);
-    const diffMs = now.getTime() - notificationDate.getTime();
+    const timeZone = 'Europe/Athens';
+    const locale = i18n?.language?.startsWith('el') ? 'el-GR' : 'en-US';
+
+    const getZonedTimestamp = (value: Date) => {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+      }).formatToParts(value);
+
+      const lookup = Object.fromEntries(parts.map((p) => [p.type, p.value]));
+      return Date.UTC(
+        Number(lookup.year),
+        Number(lookup.month) - 1,
+        Number(lookup.day),
+        Number(lookup.hour),
+        Number(lookup.minute),
+        Number(lookup.second)
+      );
+    };
+
+    const diffMs = getZonedTimestamp(now) - getZonedTimestamp(notificationDate);
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
     const diffDays = Math.floor(diffHours / 24);
 
     if (diffMins < 1) {
-      return t('notifications.time.justNow');
+      return t('time.justNow');
     } else if (diffMins < 60) {
-      return t('notifications.time.minutesAgo', { count: diffMins });
+      return t('time.minutesAgo', { count: diffMins });
     } else if (diffHours < 24) {
-      return t('notifications.time.hoursAgo', { count: diffHours });
+      return t('time.hoursAgo', { count: diffHours });
     } else if (diffDays < 7) {
-      return t('notifications.time.daysAgo', { count: diffDays });
+      return t('time.daysAgo', { count: diffDays });
     } else {
-      return notificationDate.toLocaleDateString('en-US');
+      return notificationDate.toLocaleDateString(locale, { timeZone });
     }
   };
 
@@ -113,6 +143,16 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
     <div
       className={`notification-item ${!notification.is_read ? 'unread' : ''} ${getPriorityClass()}`}
       onClick={handleClick}
+      onMouseEnter={() => {
+        if (notification.notification_type === 'announcement') {
+          setIsExpanded(true);
+        }
+      }}
+      onMouseLeave={() => {
+        if (notification.notification_type === 'announcement') {
+          setIsExpanded(false);
+        }
+      }}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -139,11 +179,13 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
           </span>
         </div>
 
-        <p className="notification-item-message">{notification.message}</p>
+        <p className={`notification-item-message ${isExpanded ? 'notification-item-message-expanded' : ''}`}>
+          {notification.message}
+        </p>
 
         {/* Type Badge */}
         <span className={`notification-item-type notification-type-${notification.notification_type}`}>
-          {t(`notifications.types.${notification.notification_type}`, {
+          {t(`types.${notification.notification_type}`, {
             defaultValue: notification.notification_type
           })}
         </span>
@@ -155,8 +197,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
           <button
             className="notification-item-action"
             onClick={handleMarkAsRead}
-            aria-label={`${t('notifications.item.markAsRead', { defaultValue: 'Mark as read' })} | Mark as read`}
-            title={`${t('notifications.item.markAsRead', { defaultValue: 'Mark as read' })} | Mark as read`}
+            aria-label={`${t('item.markAsRead', { defaultValue: 'Mark as read' })} | Mark as read`}
+            title={`${t('item.markAsRead', { defaultValue: 'Mark as read' })} | Mark as read`}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path
@@ -170,8 +212,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
         <button
           className="notification-item-action notification-item-delete"
           onClick={handleDelete}
-          aria-label={`${t('notifications.item.delete', { defaultValue: 'Delete notification' })} | Delete notification`}
-          title={`${t('notifications.item.delete', { defaultValue: 'Delete notification' })} | Delete notification`}
+          aria-label={`${t('item.delete', { defaultValue: 'Delete notification' })} | Delete notification`}
+          title={`${t('item.delete', { defaultValue: 'Delete notification' })} | Delete notification`}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
             <path

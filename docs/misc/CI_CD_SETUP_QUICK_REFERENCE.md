@@ -281,4 +281,3 @@ curl -I https://prod.example.com/health
 ---
 
 **Status**: Setup ready to begin | **Version**: 1.17.4 | **Date**: January 25, 2026
-

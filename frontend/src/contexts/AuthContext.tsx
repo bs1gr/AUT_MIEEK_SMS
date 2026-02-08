@@ -52,6 +52,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // keep authService in sync
     authService.setAccessToken(accessToken);
+    try {
+      const defaults = apiClient.defaults as unknown as { headers?: { common?: Record<string, string> } };
+      if (!defaults.headers) {
+        defaults.headers = { common: {} };
+      }
+      if (!defaults.headers.common) {
+        defaults.headers.common = {};
+      }
+      if (accessToken) {
+        defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+      } else {
+        delete defaults.headers.common.Authorization;
+      }
+    } catch {
+      // ignore
+    }
   }, [accessToken]);
 
   // Optional auto-login on mount (disabled by default). Intentionally run once on mount.
@@ -61,8 +77,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     autoLoginAttemptedRef.current = true;
 
-    // If user exists but no token, preserve user. Token restoration is handled by manual login.
+    // If user exists but no token, reset to logged-out state to avoid 401s.
     if (initialUserRef.current && !initialAccessTokenRef.current) {
+      setUser(null);
+      try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
       setIsInitializing(false);
       return;
     } else if (initialUserRef.current && initialAccessTokenRef.current) {

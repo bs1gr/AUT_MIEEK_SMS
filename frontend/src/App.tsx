@@ -27,7 +27,6 @@ interface NavigationTabConfig {
 
 const NAV_TAB_CONFIG: NavigationTabConfig[] = [
   { key: 'dashboard', labelKey: 'dashboard', path: '/dashboard' },
-  { key: 'analytics', labelKey: 'analytics', path: '/analytics' },
   { key: 'search', labelKey: 'searchTab', path: '/search' },
   { key: 'attendance', labelKey: 'attendance', path: '/attendance' },
   { key: 'grading', labelKey: 'grades', path: '/grading' },
@@ -59,7 +58,7 @@ function AppLayout({ children }: AppLayoutProps) {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isInitializing } = useAuth();
+  const { user, accessToken, isInitializing } = useAuth();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -91,7 +90,7 @@ function AppLayout({ children }: AppLayoutProps) {
     [t]
   );
 
-  const isAuthenticated = Boolean(user);
+  const isAuthenticated = Boolean(user || accessToken);
 
   const navigationKeys = useMemo(
     () => new Set(navigationTabs.map((tab) => tab.key)),
@@ -170,6 +169,7 @@ function AppLayout({ children }: AppLayoutProps) {
           )}
         </div>
         <div className="flex items-center gap-4">
+          {isAuthenticated && <NotificationBell />}
           <LanguageSwitcher />
         </div>
       </div>
@@ -182,7 +182,6 @@ function AppLayout({ children }: AppLayoutProps) {
             tabs={navigationTabs}
           />
           <div className="flex items-center gap-3 self-end lg:self-auto">
-            <NotificationBell />
             <LogoutButton />
           </div>
         </div>

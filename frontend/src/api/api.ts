@@ -228,7 +228,14 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
       return config;
     }
 
-    const token = authService.getAccessToken();
+    let token = authService.getAccessToken();
+    if (!token) {
+      try {
+        token = localStorage.getItem('sms_access_token') || localStorage.getItem('access_token');
+      } catch {
+        token = null;
+      }
+    }
     if (token) {
       console.warn('[API] Attaching auth header for:', url);
       if (config.headers instanceof AxiosHeaders) {
@@ -344,7 +351,8 @@ export const studentsAPI = {
   // Keep that behaviour for backward compatibility with tests and callers.
   getAll: async (skip = 0, limit = 100): Promise<Student[]> => {
     const data = await cachedGet<unknown>('/students/', { params: { skip, limit } }, 10000);
-    return normalizeResponseToArray<Student>(data);
+    const unwrapped = unwrapResponse<unknown>(data);
+    return normalizeResponseToArray<Student>(unwrapped);
   },
 
   getById: async (id: number): Promise<Student> => {
@@ -384,7 +392,8 @@ export const coursesAPI = {
   // Return array (normalized) to stay compatible with the legacy JS client behaviour
   getAll: async (skip = 0, limit = 100): Promise<Course[]> => {
     const data = await cachedGet<unknown>('/courses/', { params: { skip, limit } }, 10000);
-    return normalizeResponseToArray<Course>(data);
+    const unwrapped = unwrapResponse<unknown>(data);
+    return normalizeResponseToArray<Course>(unwrapped);
   },
 
   getById: async (id: number): Promise<Course> => {
@@ -1131,3 +1140,4 @@ export function extractAPIResponseData<T = unknown>(response: unknown, defaultVa
 }
 
 export default apiClient;
+export { apiClient };

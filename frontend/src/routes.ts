@@ -117,7 +117,5 @@ export default {
   ReportBuilderPage,
   ReportListPage,
   ReportTemplateBrowserPage,
-  AnalyticsPage,
-  AnalyticsPage,
   preloadCriticalRoutes,
 };

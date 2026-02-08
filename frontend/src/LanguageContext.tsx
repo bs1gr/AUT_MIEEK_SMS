@@ -65,6 +65,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     'reports',
     'feedback',
     'analytics',
+    'notifications',
     'errors',
     'customReports',
     'messages',

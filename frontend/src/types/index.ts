@@ -14,6 +14,8 @@ export interface Student {
   health_issue?: string;
   note?: string;
   study_year?: number;
+  academic_year?: string;
+  class_division?: string;
 }
 
 export interface Course {
@@ -170,6 +172,8 @@ export interface StudentFormData {
   health_issue?: string;
   note?: string;
   study_year?: number;
+  academic_year?: string;
+  class_division?: string;
 }
 
 export interface CourseFormData {

@@ -6,7 +6,7 @@
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import api from '../api/api';
+import api, { extractAPIResponseData } from '../api/api';
 
 interface Notification {
   id: number;
@@ -34,8 +34,9 @@ interface NotificationCenterProps {
  * Shows notification history and allows marking as read
  */
 export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation('notifications');
   const [skip, setSkip] = useState(0);
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const limit = 20;
 
   // Fetch notifications
@@ -45,7 +46,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
       const response = await api.get('/notifications/', {
         params: { skip, limit },
       });
-      return response.data;
+      return extractAPIResponseData<NotificationListResponse>(response.data);
     },
     enabled: isOpen,
   });
@@ -100,6 +101,18 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
     markAllAsReadMutation.mutate();
   }, [markAllAsReadMutation]);
 
+  const toggleExpanded = useCallback((notificationId: number) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(notificationId)) {
+        next.delete(notificationId);
+      } else {
+        next.add(notificationId);
+      }
+      return next;
+    });
+  }, []);
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'grade_update':
@@ -126,7 +139,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
       <div className="bg-white w-full sm:w-96 h-[600px] sm:h-screen sm:rounded-l-lg shadow-lg flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-semibold">{t('notifications.title')}</h2>
+          <h2 className="text-lg font-semibold">{t('title')}</h2>
           <div className="flex items-center gap-2">
             {data?.unread_count ? (
               <button
@@ -134,7 +147,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                 disabled={markAllAsReadMutation.isPending}
                 className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
               >
-                {t('notifications.markAllRead')}
+                {t('markAllRead')}
               </button>
             ) : null}
             <button
@@ -149,7 +162,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
         {/* Unread count */}
         {data?.unread_count ? (
           <div className="bg-blue-50 px-4 py-2 text-sm text-blue-700">
-            {t('notifications.unreadCount', { count: data.unread_count })}
+            {t('unreadCount', { count: data.unread_count })}
           </div>
         ) : null}
 
@@ -157,13 +170,13 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center h-full">
-              <div className="text-gray-500">{t('common.loading')}</div>
+              <div className="text-gray-500">{t('common:loading')}</div>
             </div>
           ) : data?.items?.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-gray-500 text-center">
                 <div className="text-4xl mb-2">🔔</div>
-                <p>{t('notifications.empty')}</p>
+                <p>{t('empty')}</p>
               </div>
             </div>
           ) : (
@@ -195,24 +208,54 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                           <span className="w-2 h-2 bg-blue-600 rounded-full flex-shrink-0 mt-1" />
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                      <p
+                        className={`text-sm text-gray-600 mt-1 ${
+                          expandedIds.has(notification.id) ? 'whitespace-pre-line' : 'line-clamp-2'
+                        }`}
+                      >
                         {notification.message}
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-gray-500">
-                          {new Date(notification.created_at).toLocaleString()}
+                          {new Date(notification.created_at).toLocaleString(
+                            i18n?.language?.startsWith('el') ? 'el-GR' : 'en-US',
+                            { timeZone: 'Europe/Athens' }
+                          )}
                         </span>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(notification.id);
-                          }}
-                          disabled={deleteNotificationMutation.isPending}
-                          className="text-xs text-red-600 hover:text-red-700 disabled:opacity-50"
-                        >
-                          {t('common.delete')}
-                        </button>
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleExpanded(notification.id);
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                          >
+                            {expandedIds.has(notification.id)
+                              ? t('item.hideDetails', { defaultValue: 'Hide details' })
+                              : t('item.viewDetails', { defaultValue: 'View details' })}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(notification.id);
+                            }}
+                            disabled={deleteNotificationMutation.isPending}
+                            className="text-xs text-red-600 hover:text-red-700 disabled:opacity-50"
+                          >
+                            {t('common:delete')}
+                          </button>
+                        </div>
                       </div>
+                      {expandedIds.has(notification.id) && notification.data && (
+                        <div className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
+                          <div className="font-semibold text-slate-700 mb-1">
+                            {t('item.details', { defaultValue: 'Details' })}
+                          </div>
+                          <pre className="whitespace-pre-wrap">
+                            {JSON.stringify(notification.data, null, 2)}
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

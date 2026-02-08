@@ -91,6 +91,8 @@ class Student(SoftDeleteMixin, Base):
     health_issue = Column(Text)
     note = Column(Text)
     study_year = Column(Integer)
+    academic_year = Column(String(2), index=True)
+    class_division = Column(String(50), index=True)
 
     # Relationships with cascade delete
     # These are runtime SQLAlchemy relationship() attributes. We avoid class-level

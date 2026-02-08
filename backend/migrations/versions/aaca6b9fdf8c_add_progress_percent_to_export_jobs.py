@@ -21,9 +21,17 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     # Add progress_percent column to export_jobs table
-    op.add_column("export_jobs", sa.Column("progress_percent", sa.Integer(), nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = {col["name"] for col in inspector.get_columns("export_jobs")}
+    if "progress_percent" not in columns:
+        op.add_column("export_jobs", sa.Column("progress_percent", sa.Integer(), nullable=True))
 
 
 def downgrade() -> None:
     # Remove progress_percent column from export_jobs table
-    op.drop_column("export_jobs", "progress_percent")
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = {col["name"] for col in inspector.get_columns("export_jobs")}
+    if "progress_percent" in columns:
+        op.drop_column("export_jobs", "progress_percent")

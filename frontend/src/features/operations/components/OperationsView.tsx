@@ -3,6 +3,7 @@ import { useLocation, useSearchParams, Link } from 'react-router-dom';
 import { ShieldCheck, FileText } from 'lucide-react';
 
 import { useTranslation } from 'react-i18next';
+import apiClient from '@/api/api';
 import ExportCenter from '@/components/tools/ExportCenter';
 import HelpDocumentation from '@/components/tools/HelpDocumentation';
 import ImportPreviewPanel from '@/components/tools/ImportPreviewPanel';
@@ -10,6 +11,7 @@ import JobProgressMonitor from '@/components/tools/JobProgressMonitor';
 import AppearanceThemeSelector from '@/features/operations/components/AppearanceThemeSelector';
 import Toast from '@/components/ui/Toast';
 import { type ToastState } from '@/features/operations/components/DevToolsPanel';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   OPERATIONS_TAB_KEYS,
   type LegacyOperationsTabKey,
@@ -48,6 +50,14 @@ const OperationsView = (_props: OperationsViewProps) => {
   const [toast, setToast] = useState<ToastState | null>(null);
   const [jobIdInput, setJobIdInput] = useState('');
   const [trackedJobId, setTrackedJobId] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [broadcastType, setBroadcastType] = useState('system');
+  const [broadcastTitle, setBroadcastTitle] = useState('');
+  const [broadcastMessage, setBroadcastMessage] = useState('');
+  const [broadcastTarget, setBroadcastTarget] = useState<'all' | 'role' | 'users'>('all');
+  const [broadcastRole, setBroadcastRole] = useState('teacher');
+  const [broadcastUserIds, setBroadcastUserIds] = useState('');
+  const [broadcastSending, setBroadcastSending] = useState(false);
 
   // Toast auto-close effect
   useEffect(() => {
@@ -72,8 +82,76 @@ const OperationsView = (_props: OperationsViewProps) => {
     { key: 'imports', label: t('importsTabLabel', { ns: 'export' }) || 'Imports' },
     { key: 'settings', label: t('settingsTabLabel', { ns: 'export' }) || 'Settings' },
     { key: 'reports', label: t('reports', { ns: 'customReports' }) || 'Reports' },
+    { key: 'notifications', label: t('admin.tabLabel', { ns: 'notifications' }) || 'Notifications' },
     { key: 'help', label: t('helpTitle', { ns: 'help' }) || 'Help' },
   ];
+
+  const isAdmin = user?.role === 'admin';
+
+  const notificationTypeOptions = useMemo(
+    () => [
+      { value: 'system', label: t('types.system', { ns: 'notifications' }) },
+      { value: 'announcement', label: t('types.announcement', { ns: 'notifications' }) },
+      { value: 'course', label: t('types.course', { ns: 'notifications' }) },
+      { value: 'grade', label: t('types.grade', { ns: 'notifications' }) },
+      { value: 'attendance', label: t('types.attendance', { ns: 'notifications' }) },
+      { value: 'enrollment', label: t('types.enrollment', { ns: 'notifications' }) },
+      { value: 'general', label: t('types.general', { ns: 'notifications' }) },
+    ],
+    [t]
+  );
+
+  const handleSendNotification = async () => {
+    if (!broadcastTitle.trim()) {
+      setToast({ message: t('admin.validationTitle', { ns: 'notifications' }), type: 'error' });
+      return;
+    }
+    if (!broadcastMessage.trim()) {
+      setToast({ message: t('admin.validationMessage', { ns: 'notifications' }), type: 'error' });
+      return;
+    }
+
+    let userIds: number[] | undefined;
+    let roleFilter: string | undefined;
+
+    if (broadcastTarget === 'role') {
+      roleFilter = broadcastRole;
+    } else if (broadcastTarget === 'users') {
+      const parsed = broadcastUserIds
+        .split(',')
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value) && value > 0);
+
+      if (!parsed.length) {
+        setToast({ message: t('admin.validationUsers', { ns: 'notifications' }), type: 'error' });
+        return;
+      }
+      userIds = parsed;
+    }
+
+    setBroadcastSending(true);
+    try {
+      await apiClient.post('/notifications/broadcast', {
+        notification_type: broadcastType,
+        title: broadcastTitle.trim(),
+        message: broadcastMessage.trim(),
+        user_ids: userIds,
+        role_filter: roleFilter,
+      });
+
+      setToast({ message: t('admin.success', { ns: 'notifications' }), type: 'success' });
+      setBroadcastTitle('');
+      setBroadcastMessage('');
+      setBroadcastUserIds('');
+    } catch (error) {
+      console.error('Failed to broadcast notification:', error);
+      setToast({ message: t('admin.error', { ns: 'notifications' }), type: 'error' });
+    } finally {
+      setBroadcastSending(false);
+    }
+  };
 
   const reportIcons = {
     list: t('icons.list', { ns: 'customReports', defaultValue: '📋' }),
@@ -336,6 +414,118 @@ const OperationsView = (_props: OperationsViewProps) => {
           </div>
         )}
         {effectiveTab === 'help' && <HelpDocumentation />}
+        {effectiveTab === 'notifications' && (
+          <div className="space-y-6">
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="space-y-2">
+                <h2 className="text-lg font-semibold text-slate-900">
+                  {t('admin.title', { ns: 'notifications' })}
+                </h2>
+                <p className="text-sm text-slate-600">{t('admin.description', { ns: 'notifications' })}</p>
+              </div>
+
+              {!isAdmin ? (
+                <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                  {t('admin.notAuthorized', { ns: 'notifications' })}
+                </div>
+              ) : (
+                <div className="mt-6 grid gap-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      <span>{t('admin.typeLabel', { ns: 'notifications' })}</span>
+                      <select
+                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        value={broadcastType}
+                        onChange={(event) => setBroadcastType(event.target.value)}
+                      >
+                        {notificationTypeOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      <span>{t('admin.targetLabel', { ns: 'notifications' })}</span>
+                      <select
+                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        value={broadcastTarget}
+                        onChange={(event) => setBroadcastTarget(event.target.value as 'all' | 'role' | 'users')}
+                      >
+                        <option value="all">{t('admin.targetAll', { ns: 'notifications' })}</option>
+                        <option value="role">{t('admin.targetRole', { ns: 'notifications' })}</option>
+                        <option value="users">{t('admin.targetUsers', { ns: 'notifications' })}</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  {broadcastTarget === 'role' && (
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      <span>{t('admin.roleLabel', { ns: 'notifications' })}</span>
+                      <select
+                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        value={broadcastRole}
+                        onChange={(event) => setBroadcastRole(event.target.value)}
+                      >
+                        <option value="admin">admin</option>
+                        <option value="teacher">teacher</option>
+                        <option value="student">student</option>
+                        <option value="viewer">viewer</option>
+                      </select>
+                    </label>
+                  )}
+
+                  {broadcastTarget === 'users' && (
+                    <label className="space-y-2 text-sm font-medium text-slate-700">
+                      <span>{t('admin.userIdsLabel', { ns: 'notifications' })}</span>
+                      <input
+                        type="text"
+                        className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                        placeholder={t('admin.userIdsPlaceholder', { ns: 'notifications' })}
+                        value={broadcastUserIds}
+                        onChange={(event) => setBroadcastUserIds(event.target.value)}
+                      />
+                      <p className="text-xs text-slate-500">{t('admin.userIdsHelp', { ns: 'notifications' })}</p>
+                    </label>
+                  )}
+
+                  <label className="space-y-2 text-sm font-medium text-slate-700">
+                    <span>{t('admin.titleLabel', { ns: 'notifications' })}</span>
+                    <input
+                      type="text"
+                      className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      value={broadcastTitle}
+                      onChange={(event) => setBroadcastTitle(event.target.value)}
+                    />
+                  </label>
+
+                  <label className="space-y-2 text-sm font-medium text-slate-700">
+                    <span>{t('admin.messageLabel', { ns: 'notifications' })}</span>
+                    <textarea
+                      className="min-h-[120px] w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                      value={broadcastMessage}
+                      onChange={(event) => setBroadcastMessage(event.target.value)}
+                    />
+                  </label>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70"
+                      onClick={handleSendNotification}
+                      disabled={broadcastSending}
+                    >
+                      {broadcastSending
+                        ? t('admin.sending', { ns: 'notifications' })
+                        : t('admin.sendButton', { ns: 'notifications' })}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
         {effectiveTab === 'settings' && (
           <div className="space-y-6">
             <AppearanceThemeSelector />

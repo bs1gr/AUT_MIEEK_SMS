@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/api/api';
+import { apiClient, extractAPIResponseData } from '@/api/api';
 
 /**
  * Analytics API Response Types
@@ -72,7 +72,7 @@ export function useDashboardSummary() {
     queryKey: ['analytics', 'dashboard'],
     queryFn: async () => {
       const response = await apiClient.get<DashboardSummary>('/analytics/dashboard');
-      return response;
+      return extractAPIResponseData<DashboardSummary>(response.data ?? response);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,

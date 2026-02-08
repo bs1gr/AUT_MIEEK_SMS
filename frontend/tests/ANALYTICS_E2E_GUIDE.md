@@ -157,7 +157,7 @@ Tests run with the browser window visible so you can watch the automation.
 ```
 Error: Timeout waiting for page to load
 ```
-**Solution**: 
+**Solution**:
 - Ensure backend is running: `.\NATIVE.ps1 -Start`
 - Check if frontend is serving on `http://localhost:5173`
 - Increase timeout: `npm run e2e -- --timeout=10000`
@@ -279,7 +279,7 @@ After E2E tests pass:
 
 ---
 
-**Test File**: `frontend/tests/analytics-dashboard.spec.ts`  
-**Created**: January 16, 2026  
-**Feature**: #125 Analytics Dashboard  
+**Test File**: `frontend/tests/analytics-dashboard.spec.ts`
+**Created**: January 16, 2026
+**Feature**: #125 Analytics Dashboard
 **Status**: Ready for testing ✅

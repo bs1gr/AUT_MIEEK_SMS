@@ -10,7 +10,6 @@ import {
   CheckCircle,
   Award,
   Target,
-  ArrowRight,
 } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { gpaToPercentage, formatAllGrades, getLetterGrade } from '@/utils/gradeUtils';
@@ -171,7 +170,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
   }, [topPerformers, rankingType]);
 
   const analyticsRef = useRef<HTMLDivElement>(null);
-  const [showMore, setShowMore] = useState(false);
+  const showMore = true;
   const [loading, setLoading] = useState(true);
   const [avgClassSize, setAvgClassSize] = useState<number>(0);
   const [activeCourseCount, setActiveCourseCount] = useState<number>(0);
@@ -217,19 +216,6 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
         .sort((a, b) => a.year - b.year),
     [yearBuckets]
   );
-
-  const handleToggleAnalytics = () => {
-    if (!showMore) {
-      setShowMore(true);
-      window.setTimeout(
-        () => analyticsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
-        80
-      );
-    } else {
-      setShowMore(false);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
 
   const loadEnrollmentStats = useCallback(async () => {
     if (courses.length === 0) {
@@ -413,16 +399,24 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           />
           <h2 className="text-3xl font-semibold text-slate-900">{t('dashboardTitle')}</h2>
         </div>
-        <button
-          type="button"
-          onClick={handleToggleAnalytics}
-          className="flex items-center gap-2 rounded-xl border border-indigo-200 bg-white px-4 py-2 text-indigo-600 transition-all hover:border-indigo-400 hover:text-indigo-700"
-        >
-          <span className="text-sm font-medium">
-            {showMore ? t('hideDetailedAnalytics') : t('viewDetailedAnalytics')}
-          </span>
-          <ArrowRight size={18} className={`transition-transform ${showMore ? 'rotate-90' : ''}`} />
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
+            <button
+              type="button"
+              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white"
+              aria-current="page"
+            >
+              {t('dashboardOverviewTab')}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/analytics')}
+              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:text-slate-900"
+            >
+              {t('dashboardAnalyticsTab')}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">

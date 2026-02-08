@@ -267,6 +267,43 @@ class StudentService:
             "errors": errors,
         }
 
+    def bulk_autofill_academic_year(self) -> Dict[str, Any]:
+        """Autofill academic_year based on study_year for missing entries.
+
+        Mapping: study_year 1 -> A, study_year 2 -> B. Leaves others unchanged.
+        """
+        updated = 0
+        skipped = 0
+
+        with transaction(self.db):
+            students = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None)).all()
+            for student in students:
+                current = (getattr(student, "academic_year", None) or "").strip()
+                if current:
+                    skipped += 1
+                    continue
+                if student.study_year == 1:
+                    student.academic_year = "A"  # type: ignore[assignment]
+                    updated += 1
+                elif student.study_year == 2:
+                    student.academic_year = "B"  # type: ignore[assignment]
+                    updated += 1
+                else:
+                    skipped += 1
+
+        self._log_audit(
+            action=AuditAction.UPDATE,
+            resource_id=None,
+            details={
+                "action": "bulk_autofill_academic_year",
+                "updated": updated,
+                "skipped": skipped,
+            },
+            new_values={"academic_year": "A/B"},
+        )
+
+        return {"updated": updated, "skipped": skipped}
+
     # ------------------------------------------------------------------
     # Helpers
     # ------------------------------------------------------------------
@@ -339,6 +376,8 @@ class StudentService:
             "health_issue": student.health_issue,
             "note": student.note,
             "study_year": student.study_year,
+            "academic_year": getattr(student, "academic_year", None),
+            "class_division": getattr(student, "class_division", None),
         }
 
     def _log_audit(

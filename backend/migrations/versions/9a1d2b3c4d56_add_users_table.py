@@ -26,37 +26,62 @@ __all__ = [
 ]
 
 
+def _table_exists(table_name: str) -> bool:
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    return table_name in inspector.get_table_names()
+
+
+def _index_exists(table_name: str, index_name: str) -> bool:
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    indexes = inspector.get_indexes(table_name)
+    return any(idx.get("name") == index_name for idx in indexes)
+
+
 def upgrade() -> None:
-    op.create_table(
-        "users",
-        sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
-        sa.Column("email", sa.String(length=255), nullable=False, unique=True),
-        sa.Column("hashed_password", sa.String(length=255), nullable=False),
-        sa.Column("full_name", sa.String(length=200), nullable=True),
-        sa.Column("role", sa.String(length=50), nullable=False, server_default="teacher"),
-        sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("TRUE")),
-        sa.Column(
-            "created_at",
-            sa.DateTime(),
-            nullable=False,
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(),
-            nullable=False,
-            server_default=sa.text("(CURRENT_TIMESTAMP)"),
-        ),
-    )
-    op.create_index("ix_users_email", "users", ["email"])
-    op.create_index("ix_users_role", "users", ["role"])
-    op.create_index("ix_users_is_active", "users", ["is_active"])
-    op.create_index("idx_users_email_role", "users", ["email", "role"])
+    if not _table_exists("users"):
+        op.create_table(
+            "users",
+            sa.Column("id", sa.Integer(), primary_key=True, nullable=False),
+            sa.Column("email", sa.String(length=255), nullable=False, unique=True),
+            sa.Column("hashed_password", sa.String(length=255), nullable=False),
+            sa.Column("full_name", sa.String(length=200), nullable=True),
+            sa.Column("role", sa.String(length=50), nullable=False, server_default="teacher"),
+            sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.text("TRUE")),
+            sa.Column(
+                "created_at",
+                sa.DateTime(),
+                nullable=False,
+                server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            ),
+            sa.Column(
+                "updated_at",
+                sa.DateTime(),
+                nullable=False,
+                server_default=sa.text("(CURRENT_TIMESTAMP)"),
+            ),
+        )
+
+    if not _index_exists("users", "ix_users_email"):
+        op.create_index("ix_users_email", "users", ["email"])
+    if not _index_exists("users", "ix_users_role"):
+        op.create_index("ix_users_role", "users", ["role"])
+    if not _index_exists("users", "ix_users_is_active"):
+        op.create_index("ix_users_is_active", "users", ["is_active"])
+    if not _index_exists("users", "idx_users_email_role"):
+        op.create_index("idx_users_email_role", "users", ["email", "role"])
 
 
 def downgrade() -> None:
-    op.drop_index("idx_users_email_role", table_name="users")
-    op.drop_index("ix_users_is_active", table_name="users")
-    op.drop_index("ix_users_role", table_name="users")
-    op.drop_index("ix_users_email", table_name="users")
+    if not _table_exists("users"):
+        return
+    if _index_exists("users", "idx_users_email_role"):
+        op.drop_index("idx_users_email_role", table_name="users")
+    if _index_exists("users", "ix_users_is_active"):
+        op.drop_index("ix_users_is_active", table_name="users")
+    if _index_exists("users", "ix_users_role"):
+        op.drop_index("ix_users_role", table_name="users")
+    if _index_exists("users", "ix_users_email"):
+        op.drop_index("ix_users_email", table_name="users")
     op.drop_table("users")

@@ -12,7 +12,11 @@ from sqlalchemy.orm import Session
 from backend.db import get_session as get_db
 from backend.errors import internal_server_error
 from backend.rate_limiting import RATE_LIMIT_READ, limiter
+from backend.models import Course, CourseEnrollment, Grade, Student
 from backend.rbac import require_permission
+from backend.schemas.analytics import AnalyticsLookupsResponse
+from backend.schemas.courses import CourseResponse
+from backend.schemas.students import StudentResponse
 from backend.services import AnalyticsService
 
 logger = logging.getLogger(__name__)
@@ -96,6 +100,127 @@ def get_dashboard(
     except Exception as exc:
         logger.error("Dashboard summary failed: %s", exc, exc_info=True)
         raise internal_server_error("Dashboard summary failed", request)
+
+
+@router.get("/lookups", response_model=AnalyticsLookupsResponse)
+@limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
+def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
+    """Return student/course lists for analytics selectors."""
+    try:
+        students_query = db.query(Student).order_by(Student.last_name.asc(), Student.first_name.asc())
+        if hasattr(Student, "deleted_at"):
+            students_query = students_query.filter(Student.deleted_at.is_(None))
+        students = students_query.all()
+
+        courses_query = db.query(Course).order_by(Course.course_name.asc())
+        if hasattr(Course, "deleted_at"):
+            courses_query = courses_query.filter(Course.deleted_at.is_(None))
+        courses = courses_query.all()
+
+        enrollment_query = db.query(CourseEnrollment)
+        if hasattr(CourseEnrollment, "deleted_at"):
+            enrollment_query = enrollment_query.filter(CourseEnrollment.deleted_at.is_(None))
+        enrollments = enrollment_query.all()
+
+        grade_query = db.query(Grade)
+        if hasattr(Grade, "deleted_at"):
+            grade_query = grade_query.filter(Grade.deleted_at.is_(None))
+        grades = grade_query.all()
+
+        student_by_id = {student.id: student for student in students}
+        course_by_id = {course.id: course for course in courses}
+
+        def _class_label(student: Student) -> str:
+            if getattr(student, "academic_year", None):
+                return str(student.academic_year)
+            if student.study_year in (1, 2):
+                return "A" if student.study_year == 1 else "B"
+            if student.study_year:
+                return f"Year {student.study_year}"
+            return "Unknown Class"
+
+        class_counts: dict[str, int] = {}
+        division_counts: dict[str, int] = {}
+        for student in students:
+            label = _class_label(student)
+            class_counts[label] = class_counts.get(label, 0) + 1
+            division_label = student.class_division or "Unassigned Division"
+            division_counts[division_label] = division_counts.get(division_label, 0) + 1
+
+        class_grade_totals: dict[str, dict[str, float]] = {}
+        course_grade_totals: dict[int, dict[str, float]] = {}
+        division_grade_totals: dict[str, dict[str, float]] = {}
+        for grade in grades:
+            if not grade.max_grade or grade.max_grade <= 0:
+                continue
+            percentage = (grade.grade / grade.max_grade) * 100
+
+            student = student_by_id.get(grade.student_id)
+            if student:
+                label = _class_label(student)
+                stats = class_grade_totals.setdefault(label, {"count": 0.0, "total": 0.0})
+                stats["count"] += 1
+                stats["total"] += percentage
+
+                division_label = student.class_division or "Unassigned Division"
+                division_stats = division_grade_totals.setdefault(division_label, {"count": 0.0, "total": 0.0})
+                division_stats["count"] += 1
+                division_stats["total"] += percentage
+
+            course_stats = course_grade_totals.setdefault(grade.course_id, {"count": 0.0, "total": 0.0})
+            course_stats["count"] += 1
+            course_stats["total"] += percentage
+
+        enrollment_counts: dict[int, int] = {}
+        for enrollment in enrollments:
+            enrollment_counts[enrollment.course_id] = enrollment_counts.get(enrollment.course_id, 0) + 1
+
+        class_averages = []
+        for label, count in class_counts.items():
+            stats = class_grade_totals.get(label, {"count": 0.0, "total": 0.0})
+            class_averages.append(
+                {
+                    "label": label,
+                    "count": count,
+                    "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
+                }
+            )
+        class_averages.sort(key=lambda item: item["count"], reverse=True)
+
+        division_averages = []
+        for label, count in division_counts.items():
+            stats = division_grade_totals.get(label, {"count": 0.0, "total": 0.0})
+            division_averages.append(
+                {
+                    "label": label,
+                    "count": count,
+                    "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
+                }
+            )
+        division_averages.sort(key=lambda item: item["count"], reverse=True)
+
+        course_averages = []
+        for course_id, course in course_by_id.items():
+            stats = course_grade_totals.get(course_id, {"count": 0.0, "total": 0.0})
+            course_averages.append(
+                {
+                    "label": course.course_name,
+                    "count": enrollment_counts.get(course_id, 0),
+                    "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
+                }
+            )
+        course_averages.sort(key=lambda item: item["count"], reverse=True)
+        return {
+            "students": [StudentResponse.model_validate(s) for s in students],
+            "courses": [CourseResponse.model_validate(c) for c in courses],
+            "class_averages": class_averages,
+            "course_averages": course_averages,
+            "division_averages": division_averages,
+        }
+    except Exception as exc:
+        logger.error("Analytics lookups failed: %s", exc, exc_info=True)
+        raise internal_server_error("Analytics lookups failed", request)
 
 
 @router.get("/student/{student_id}/performance")

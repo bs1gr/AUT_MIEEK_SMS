@@ -1,7 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
-import { useDashboardData, useStudentAnalytics } from '@/api/hooks/useAnalytics';
+import { useDashboardData } from '@/api/hooks/useAnalytics';
+import apiClient, {
+  extractAPIResponseData,
+  enrollmentsAPI,
+  gradesAPI,
+  attendanceAPI,
+  studentsAPI,
+  coursesAPI,
+} from '@/api/api';
+import type { Course, Student, CourseEnrollment, Grade, Attendance } from '@/types';
 import {
   PerformanceChart,
   GradeDistributionChart,
@@ -27,16 +36,16 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, unit }) => (
-  <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
+  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
     <div className="flex items-center gap-4">
-      <div className="flex items-center justify-center rounded-lg bg-indigo-100 p-3">
+      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100">
         <Icon size={24} className="text-indigo-600" />
       </div>
       <div>
-        <p className="text-sm font-medium text-gray-600">{label}</p>
-        <p className="mt-1 text-2xl font-semibold text-gray-900">
+        <p className="text-sm font-medium text-slate-500">{label}</p>
+        <p className="mt-2 text-2xl font-semibold text-slate-900">
           {value}
-          {unit && <span className="ml-1 text-sm text-gray-600">{unit}</span>}
+          {unit && <span className="ml-1 text-sm text-slate-500">{unit}</span>}
         </p>
       </div>
     </div>
@@ -47,75 +56,664 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, uni
  * Analytics Dashboard Page
  */
 export const AnalyticsDashboard: React.FC = () => {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
+  const [selectedDivision, setSelectedDivision] = useState<string>('');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [classAggregates, setClassAggregates] = useState<Array<{ label: string; count: number; average: number }>>([]);
+  const [courseAggregates, setCourseAggregates] = useState<Array<{ label: string; count: number; average: number }>>([]);
+  const [divisionAggregates, setDivisionAggregates] = useState<Array<{ label: string; count: number; average: number }>>([]);
+  const [analyticsGrades, setAnalyticsGrades] = useState<Grade[]>([]);
+  const [analyticsEnrollments, setAnalyticsEnrollments] = useState<CourseEnrollment[]>([]);
+  const [analyticsAttendance, setAnalyticsAttendance] = useState<Attendance[]>([]);
+  const [performanceData, setPerformanceData] = useState<PerformanceDataPoint[]>([]);
+  const [gradeDistributionData, setGradeDistributionData] = useState<GradeDistributionData[]>([]);
+  const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
+  const [trendData, setTrendData] = useState<TrendData[]>([]);
+  const [pieChartData, setPieChartData] = useState<PieChartData[]>([]);
 
   const { dashboard, isLoading, error, refetch } = useDashboardData();
 
-  // Generate mock data for visualization (will be replaced with actual API data)
-  const performanceData = useMemo<PerformanceDataPoint[]>(() => {
-    return [
-      { date: 'Jan 1', course: 'Math', grade: 85, trend: 85 },
-      { date: 'Jan 8', course: 'Math', grade: 87, trend: 86 },
-      { date: 'Jan 15', course: 'Math', grade: 90, trend: 87 },
-      { date: 'Jan 22', course: 'Math', grade: 88, trend: 88 },
-      { date: 'Jan 29', course: 'Math', grade: 92, trend: 89 },
-    ];
-  }, []);
+  useEffect(() => {
+    const loadLookups = async () => {
+      try {
+        let studentItems: Student[] = [];
+        let courseItems: Course[] = [];
+        let classAveragePayload: Array<{ label: string; count: number; average: number }> = [];
+        let courseAveragePayload: Array<{ label: string; count: number; average: number }> = [];
+        let divisionAveragePayload: Array<{ label: string; count: number; average: number }> = [];
 
-  const gradeDistributionData = useMemo<GradeDistributionData[]>(() => {
-    return [
-      { grade: 'A', count: 45, percentage: 30 },
-      { grade: 'B', count: 60, percentage: 40 },
-      { grade: 'C', count: 30, percentage: 20 },
-      { grade: 'D', count: 10, percentage: 7 },
-      { grade: 'F', count: 5, percentage: 3 },
-    ];
-  }, []);
+        try {
+          const lookupsResponse = await apiClient.get('/analytics/lookups');
+          const lookupsPayload = extractAPIResponseData<{
+            students?: Student[];
+            courses?: Course[];
+            class_averages?: Array<{ label: string; count: number; average: number }>;
+            course_averages?: Array<{ label: string; count: number; average: number }>;
+            division_averages?: Array<{ label: string; count: number; average: number }>;
+          }>(
+            lookupsResponse.data ?? lookupsResponse
+          );
+          studentItems = lookupsPayload.students ?? [];
+          courseItems = lookupsPayload.courses ?? [];
+          classAveragePayload = lookupsPayload.class_averages ?? [];
+          courseAveragePayload = lookupsPayload.course_averages ?? [];
+          divisionAveragePayload = lookupsPayload.division_averages ?? [];
+        } catch (err) {
+          console.warn('Analytics lookups endpoint failed, falling back to students/courses APIs:', err);
+          const [fallbackStudents, fallbackCourses] = await Promise.all([
+            studentsAPI.getAll(0, 1000),
+            coursesAPI.getAll(0, 1000),
+          ]);
+          studentItems = fallbackStudents;
+          courseItems = fallbackCourses;
+        }
 
-  const attendanceData = useMemo<AttendanceData[]>(() => {
-    return [
-      { course: 'Mathematics', rate: 95, present: 19, absent: 1 },
-      { course: 'English', rate: 90, present: 18, absent: 2 },
-      { course: 'Science', rate: 88, present: 17, absent: 3 },
-      { course: 'History', rate: 92, present: 18, absent: 2 },
-    ];
-  }, []);
+        setStudents(studentItems);
+        setCourses(courseItems);
 
-  const trendData = useMemo<TrendData[]>(() => {
-    return [
-      { week: 1, average: 80 },
-      { week: 2, average: 82 },
-      { week: 3, average: 84 },
-      { week: 4, average: 86 },
-      { week: 5, average: 88 },
-      { week: 6, average: 87 },
-      { week: 7, average: 89 },
-      { week: 8, average: 91 },
-    ];
-  }, []);
+        const totalStudents = studentItems.length;
+        const activeCount = studentItems.filter((s) => s.is_active !== false).length;
+        const inactiveCount = Math.max(0, totalStudents - activeCount);
 
-  const pieChartData = useMemo<PieChartData[]>(() => {
-    return [
-      { name: language === 'el' ? 'Ενεργοί' : 'Active', value: 142 },
-      { name: language === 'el' ? 'Αδρανείς' : 'Inactive', value: 8 },
+        setPieChartData([
+          { name: t('active'), value: activeCount },
+          { name: t('inactive'), value: inactiveCount },
+        ]);
+
+        if (!selectedStudent && studentItems.length > 0) {
+          setSelectedStudent(studentItems[0].id);
+        }
+        if (!selectedCourse && courseItems.length > 0) {
+          setSelectedCourse(courseItems[0].id);
+        }
+
+        let enrollmentItems: CourseEnrollment[] = [];
+        let gradeItems: Grade[] = [];
+        let attendanceItems: Attendance[] = [];
+
+        try {
+          const enrollmentsRes = await enrollmentsAPI.getAll(0, 5000);
+          enrollmentItems = enrollmentsRes.items ?? [];
+        } catch (err) {
+          console.warn('Analytics enrollments lookup failed:', err);
+        }
+
+        try {
+          const gradesRes = await gradesAPI.getAll(0, 5000);
+          gradeItems = gradesRes.items ?? [];
+        } catch (err) {
+          console.warn('Analytics grades lookup failed:', err);
+        }
+
+        try {
+          const attendanceRes = await attendanceAPI.getAll(0, 5000);
+          attendanceItems = attendanceRes.items ?? [];
+        } catch (err) {
+          console.warn('Analytics attendance lookup failed:', err);
+        }
+
+        setAnalyticsEnrollments(enrollmentItems);
+        setAnalyticsGrades(gradeItems);
+        setAnalyticsAttendance(attendanceItems);
+
+        if (classAveragePayload.length > 0) {
+          setClassAggregates(classAveragePayload);
+        } else {
+          const studentById = new Map<number, Student>();
+          studentItems.forEach((student) => {
+            studentById.set(student.id, student);
+          });
+
+          const classBuckets = new Map<string, { count: number; total: number }>();
+          studentItems.forEach((student) => {
+            const yearValue = Number(student.study_year);
+            const label = student.academic_year
+              ? student.academic_year
+              : yearValue === 1
+                ? 'A'
+                : yearValue === 2
+                  ? 'B'
+                  : Number.isFinite(yearValue) && yearValue > 0
+                    ? `${t('analytics.classYearLabel')} ${yearValue}`
+                    : t('analytics.classUnknownLabel');
+            const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
+            classBuckets.set(label, { ...existing, count: existing.count + 1 });
+          });
+
+          gradeItems.forEach((grade) => {
+            if (!grade.max_grade || grade.max_grade <= 0) return;
+            const student = studentById.get(grade.student_id);
+            if (!student) return;
+            const yearValue = Number(student.study_year);
+            const label = student.academic_year
+              ? student.academic_year
+              : yearValue === 1
+                ? 'A'
+                : yearValue === 2
+                  ? 'B'
+                  : Number.isFinite(yearValue) && yearValue > 0
+                    ? `${t('analytics.classYearLabel')} ${yearValue}`
+                    : t('analytics.classUnknownLabel');
+            const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
+            const percentage = (grade.grade / grade.max_grade) * 100;
+            classBuckets.set(label, { count: existing.count, total: existing.total + percentage });
+          });
+
+          setClassAggregates(
+            Array.from(classBuckets.entries())
+              .map(([label, stats]) => ({
+                label,
+                count: stats.count,
+                average: stats.count > 0 ? stats.total / stats.count : 0,
+              }))
+              .sort((a, b) => b.count - a.count)
+          );
+        }
+
+        if (courseAveragePayload.length > 0) {
+          setCourseAggregates(courseAveragePayload);
+        } else {
+          const enrollmentCounts = new Map<number, number>();
+          enrollmentItems.forEach((enrollment) => {
+            if (typeof enrollment.course_id !== 'number') return;
+            enrollmentCounts.set(enrollment.course_id, (enrollmentCounts.get(enrollment.course_id) ?? 0) + 1);
+          });
+
+          const courseTotals = new Map<number, { count: number; total: number }>();
+          gradeItems.forEach((grade) => {
+            if (!grade.max_grade || grade.max_grade <= 0) return;
+            if (typeof grade.course_id !== 'number') return;
+            const existing = courseTotals.get(grade.course_id) ?? { count: 0, total: 0 };
+            const percentage = (grade.grade / grade.max_grade) * 100;
+            courseTotals.set(grade.course_id, {
+              count: existing.count + 1,
+              total: existing.total + percentage,
+            });
+          });
+
+          setCourseAggregates(
+            courseItems
+              .map((course) => ({
+                label: course.course_name,
+                count: enrollmentCounts.get(course.id) ?? 0,
+                average: (courseTotals.get(course.id)?.count ?? 0) > 0
+                  ? (courseTotals.get(course.id)?.total ?? 0) / (courseTotals.get(course.id)?.count ?? 1)
+                  : 0,
+              }))
+              .sort((a, b) => b.count - a.count)
+          );
+        }
+
+        if (divisionAveragePayload.length > 0) {
+          setDivisionAggregates(divisionAveragePayload);
+        } else {
+          const divisionBuckets = new Map<string, { count: number; total: number }>();
+          studentItems.forEach((student) => {
+            const label = student.class_division
+              ? student.class_division
+              : t('analytics.divisionUnknownLabel');
+            const existing = divisionBuckets.get(label) ?? { count: 0, total: 0 };
+            divisionBuckets.set(label, { ...existing, count: existing.count + 1 });
+          });
+
+          gradeItems.forEach((grade) => {
+            if (!grade.max_grade || grade.max_grade <= 0) return;
+            const student = studentItems.find((s) => s.id === grade.student_id);
+            if (!student) return;
+            const label = student.class_division
+              ? student.class_division
+              : t('analytics.divisionUnknownLabel');
+            const existing = divisionBuckets.get(label) ?? { count: 0, total: 0 };
+            const percentage = (grade.grade / grade.max_grade) * 100;
+            divisionBuckets.set(label, { count: existing.count, total: existing.total + percentage });
+          });
+
+          setDivisionAggregates(
+            Array.from(divisionBuckets.entries())
+              .map(([label, stats]) => ({
+                label,
+                count: stats.count,
+                average: stats.count > 0 ? stats.total / stats.count : 0,
+              }))
+              .sort((a, b) => b.count - a.count)
+          );
+        }
+      } catch (err) {
+        console.error('Failed to load analytics lookups:', err);
+      }
+    };
+
+    loadLookups();
+  }, [selectedStudent, selectedCourse, t]);
+
+  useEffect(() => {
+    if (!selectedDivision) return;
+    if (!selectedStudent) return;
+    const current = students.find((student) => student.id === selectedStudent);
+    if (current && current.class_division === selectedDivision) return;
+
+    const fallback = students.find((student) => student.class_division === selectedDivision);
+    setSelectedStudent(fallback ? fallback.id : null);
+  }, [selectedDivision, selectedStudent, students]);
+
+  useEffect(() => {
+    const filteredStudents = selectedDivision
+      ? students.filter((student) => student.class_division === selectedDivision)
+      : students;
+    const totalStudents = filteredStudents.length;
+    const activeCount = filteredStudents.filter((s) => s.is_active !== false).length;
+    const inactiveCount = Math.max(0, totalStudents - activeCount);
+
+    setPieChartData([
+      { name: t('active'), value: activeCount },
+      { name: t('inactive'), value: inactiveCount },
+    ]);
+  }, [selectedDivision, students, t]);
+
+  const filteredCourseAggregates = useMemo(() => {
+    if (!selectedDivision) return courseAggregates;
+    const filteredStudents = students.filter((student) => student.class_division === selectedDivision);
+    const studentIds = new Set(filteredStudents.map((student) => student.id));
+    if (studentIds.size === 0) return [];
+
+    const enrollmentCounts = new Map<number, number>();
+    analyticsEnrollments.forEach((enrollment) => {
+      if (!studentIds.has(enrollment.student_id)) return;
+      enrollmentCounts.set(enrollment.course_id, (enrollmentCounts.get(enrollment.course_id) ?? 0) + 1);
+    });
+
+    const courseTotals = new Map<number, { count: number; total: number }>();
+    analyticsGrades.forEach((grade) => {
+      if (!studentIds.has(grade.student_id)) return;
+      if (!grade.max_grade || grade.max_grade <= 0) return;
+      const existing = courseTotals.get(grade.course_id) ?? { count: 0, total: 0 };
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      courseTotals.set(grade.course_id, {
+        count: existing.count + 1,
+        total: existing.total + percentage,
+      });
+    });
+
+    return courses
+      .map((course) => ({
+        label: course.course_name,
+        count: enrollmentCounts.get(course.id) ?? 0,
+        average: (courseTotals.get(course.id)?.count ?? 0) > 0
+          ? (courseTotals.get(course.id)?.total ?? 0) / (courseTotals.get(course.id)?.count ?? 1)
+          : 0,
+      }))
+      .filter((entry) => entry.count > 0 || entry.average > 0)
+      .sort((a, b) => b.count - a.count);
+  }, [selectedDivision, students, courses, analyticsEnrollments, analyticsGrades, courseAggregates]);
+
+  const divisionGradeDistributionData = useMemo<GradeDistributionData[]>(() => {
+    if (!selectedDivision || !selectedCourse) {
+      return gradeDistributionData;
+    }
+
+    const divisionStudents = new Set(
+      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+    );
+    if (divisionStudents.size === 0) return [];
+
+    const filteredGrades = analyticsGrades.filter(
+      (grade) =>
+        grade.course_id === selectedCourse &&
+        divisionStudents.has(grade.student_id) &&
+        grade.max_grade &&
+        grade.max_grade > 0
+    );
+
+    const buckets = [
+      { label: 'A (90-100)', min: 90, max: 100 },
+      { label: 'B (80-89)', min: 80, max: 89.999 },
+      { label: 'C (70-79)', min: 70, max: 79.999 },
+      { label: 'D (60-69)', min: 60, max: 69.999 },
+      { label: 'F (0-59)', min: 0, max: 59.999 },
     ];
-  }, [language]);
+
+    const totalGrades = filteredGrades.length;
+    const counts = buckets.map(() => 0);
+
+    filteredGrades.forEach((grade) => {
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      const bucketIndex = buckets.findIndex(
+        (bucket) => percentage >= bucket.min && percentage <= bucket.max
+      );
+      if (bucketIndex >= 0) counts[bucketIndex] += 1;
+    });
+
+    return buckets.map((bucket, index) => ({
+      grade: bucket.label,
+      count: counts[index],
+      percentage: totalGrades > 0 ? (counts[index] / totalGrades) * 100 : 0,
+    }));
+  }, [selectedDivision, selectedCourse, analyticsGrades, gradeDistributionData, students]);
+
+  const divisionTrendData = useMemo<TrendData[]>(() => {
+    if (!selectedDivision) return trendData;
+
+    const divisionStudents = new Set(
+      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+    );
+    if (divisionStudents.size === 0) return [];
+
+    const filteredGrades = analyticsGrades.filter((grade) => {
+      if (!divisionStudents.has(grade.student_id)) return false;
+      if (selectedCourse && grade.course_id !== selectedCourse) return false;
+      if (!grade.max_grade || grade.max_grade <= 0) return false;
+      return Boolean(grade.date_assigned || grade.date_submitted);
+    });
+
+    const buckets = new Map<string, { total: number; count: number }>();
+    filteredGrades.forEach((grade) => {
+      const dateValue = grade.date_assigned || grade.date_submitted;
+      if (!dateValue) return;
+      const date = new Date(dateValue);
+      if (Number.isNaN(date.getTime())) return;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const existing = buckets.get(key) ?? { total: 0, count: 0 };
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      buckets.set(key, { total: existing.total + percentage, count: existing.count + 1 });
+    });
+
+    return Array.from(buckets.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([_, stats], index) => ({
+        week: index + 1,
+        average: stats.count > 0 ? stats.total / stats.count : 0,
+      }));
+  }, [selectedDivision, analyticsGrades, students, trendData, selectedCourse]);
+
+  const divisionPerformanceData = useMemo<PerformanceDataPoint[]>(() => {
+    if (!selectedDivision) return performanceData;
+    const divisionStudents = new Set(
+      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+    );
+    if (divisionStudents.size === 0) return [];
+
+    const filteredGrades = analyticsGrades.filter((grade) => {
+      if (!divisionStudents.has(grade.student_id)) return false;
+      if (selectedCourse && grade.course_id !== selectedCourse) return false;
+      if (!grade.max_grade || grade.max_grade <= 0) return false;
+      return Boolean(grade.date_assigned || grade.date_submitted);
+    });
+
+    const courseById = new Map<number, Course>();
+    courses.forEach((course) => courseById.set(course.id, course));
+
+    return filteredGrades.map((grade) => {
+      const course = courseById.get(grade.course_id);
+      const courseLabel = course ? course.course_name : t('courses');
+      const dateValue = grade.date_assigned || grade.date_submitted;
+      const dateLabel = dateValue ? new Date(dateValue).toLocaleDateString() : t('dateLabel');
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      return {
+        date: dateLabel,
+        course: courseLabel,
+        grade: Number(percentage ?? 0),
+        trend: Number(percentage ?? 0),
+      };
+    });
+  }, [selectedDivision, analyticsGrades, students, courses, selectedCourse, performanceData, t]);
+
+  const divisionAttendanceData = useMemo<AttendanceData[]>(() => {
+    if (!selectedDivision) return attendanceData;
+    const divisionStudents = new Set(
+      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+    );
+    if (divisionStudents.size === 0) return [];
+
+    const filteredAttendance = analyticsAttendance.filter((record) => {
+      if (!divisionStudents.has(record.student_id)) return false;
+      if (selectedCourse && record.course_id !== selectedCourse) return false;
+      return true;
+    });
+
+    const courseById = new Map<number, Course>();
+    courses.forEach((course) => courseById.set(course.id, course));
+
+    const courseBuckets = new Map<number, { present: number; absent: number; total: number }>();
+    filteredAttendance.forEach((record) => {
+      const bucket = courseBuckets.get(record.course_id) ?? { present: 0, absent: 0, total: 0 };
+      bucket.total += 1;
+      if (record.status === 'Present' || record.status === 'Excused') {
+        bucket.present += 1;
+      } else {
+        bucket.absent += 1;
+      }
+      courseBuckets.set(record.course_id, bucket);
+    });
+
+    return Array.from(courseBuckets.entries()).map(([courseId, stats]) => {
+      const course = courseById.get(courseId);
+      const label = course ? course.course_name : t('courses');
+      return {
+        course: label,
+        rate: stats.total > 0 ? (stats.present / stats.total) * 100 : 0,
+        present: stats.present,
+        absent: stats.absent,
+      };
+    });
+  }, [selectedDivision, analyticsAttendance, students, courses, selectedCourse, attendanceData, t]);
+
+  const filteredClassAggregates = useMemo(() => {
+    if (!selectedDivision) return classAggregates;
+    const filteredStudents = students.filter((student) => student.class_division === selectedDivision);
+    const studentIds = new Set(filteredStudents.map((student) => student.id));
+    if (studentIds.size === 0) return [];
+
+    const classBuckets = new Map<string, { count: number; total: number }>();
+    filteredStudents.forEach((student) => {
+      const yearValue = Number(student.study_year);
+      const label = student.academic_year
+        ? student.academic_year
+        : yearValue === 1
+          ? 'A'
+          : yearValue === 2
+            ? 'B'
+            : Number.isFinite(yearValue) && yearValue > 0
+              ? `${t('analytics.classYearLabel')} ${yearValue}`
+              : t('analytics.classUnknownLabel');
+      const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
+      classBuckets.set(label, { ...existing, count: existing.count + 1 });
+    });
+
+    analyticsGrades.forEach((grade) => {
+      if (!studentIds.has(grade.student_id)) return;
+      if (!grade.max_grade || grade.max_grade <= 0) return;
+      const student = filteredStudents.find((s) => s.id === grade.student_id);
+      if (!student) return;
+      const yearValue = Number(student.study_year);
+      const label = student.academic_year
+        ? student.academic_year
+        : yearValue === 1
+          ? 'A'
+          : yearValue === 2
+            ? 'B'
+            : Number.isFinite(yearValue) && yearValue > 0
+              ? `${t('analytics.classYearLabel')} ${yearValue}`
+              : t('analytics.classUnknownLabel');
+      const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      classBuckets.set(label, { count: existing.count, total: existing.total + percentage });
+    });
+
+    return Array.from(classBuckets.entries())
+      .map(([label, stats]) => ({
+        label,
+        count: stats.count,
+        average: stats.count > 0 ? stats.total / stats.count : 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [selectedDivision, students, analyticsGrades, classAggregates, t]);
+
+  const quickReportStats = useMemo(() => {
+    if (!selectedDivision) {
+      return {
+        activeStudents: students.filter((s) => s.is_active !== false).length,
+        totalStudents: students.length,
+        averageGrade: (
+          dashboard?.average_grade && dashboard.average_grade > 0
+            ? dashboard.average_grade
+            : performanceData.length > 0
+              ? performanceData.reduce((sum, item) => sum + item.grade, 0) / performanceData.length
+              : 0
+        ),
+        averageAttendance: (
+          dashboard?.average_attendance && dashboard.average_attendance > 0
+            ? dashboard.average_attendance
+            : attendanceData.length > 0
+              ? attendanceData.reduce((sum, item) => sum + item.rate, 0) / attendanceData.length
+              : 0
+        ),
+        totalGrades: dashboard?.total_grades ?? 0,
+      };
+    }
+
+    const filteredStudents = students.filter((student) => student.class_division === selectedDivision);
+    const studentIds = new Set(filteredStudents.map((student) => student.id));
+    const activeStudents = filteredStudents.filter((s) => s.is_active !== false).length;
+
+    const filteredGrades = analyticsGrades.filter((grade) => studentIds.has(grade.student_id));
+    const gradePercentages = filteredGrades
+      .filter((grade) => grade.max_grade && grade.max_grade > 0)
+      .map((grade) => (grade.grade / grade.max_grade) * 100);
+    const averageGrade = gradePercentages.length > 0
+      ? gradePercentages.reduce((sum, val) => sum + val, 0) / gradePercentages.length
+      : 0;
+
+    const filteredAttendance = analyticsAttendance.filter((record) => studentIds.has(record.student_id));
+    const attendanceRate = filteredAttendance.length > 0
+      ? (filteredAttendance.filter((record) => record.status === 'Present' || record.status === 'Excused').length
+        / filteredAttendance.length) * 100
+      : 0;
+
+    return {
+      activeStudents,
+      totalStudents: filteredStudents.length,
+      averageGrade,
+      averageAttendance: attendanceRate,
+      totalGrades: filteredGrades.length,
+    };
+  }, [selectedDivision, students, dashboard, performanceData, attendanceData, analyticsGrades, analyticsAttendance]);
+
+  useEffect(() => {
+    const loadStudentAnalytics = async () => {
+      if (!selectedStudent) {
+        setPerformanceData([]);
+        setAttendanceData([]);
+        setTrendData([]);
+        return;
+      }
+
+      try {
+        const [performanceRes, attendanceRes, trendsRes] = await Promise.all([
+          apiClient.get(`/analytics/student/${selectedStudent}/performance`, { params: { days_back: 90 } }),
+          apiClient.get(`/analytics/student/${selectedStudent}/attendance`),
+          apiClient.get(`/analytics/student/${selectedStudent}/trends`, { params: { limit: 10 } }),
+        ]);
+
+        const performancePayload = extractAPIResponseData<unknown>(performanceRes.data ?? performanceRes);
+        const attendancePayload = extractAPIResponseData<unknown>(attendanceRes.data ?? attendanceRes);
+        const trendsPayload = extractAPIResponseData<unknown>(trendsRes.data ?? trendsRes);
+
+        const courseMap = (performancePayload as { courses?: Record<string, { course_name?: string; course_code?: string; grades?: Array<{ percentage?: number; date?: string | null }> }> }).courses ?? {};
+        const perfPoints: PerformanceDataPoint[] = [];
+
+        Object.values(courseMap).forEach((course) => {
+          const courseLabel = course.course_name || course.course_code || t('courses');
+          (course.grades || []).forEach((grade) => {
+            perfPoints.push({
+              date: grade.date ? new Date(grade.date).toLocaleDateString() : t('dateLabel'),
+              course: courseLabel,
+              grade: Number(grade.percentage ?? 0),
+              trend: Number(grade.percentage ?? 0),
+            });
+          });
+        });
+
+        setPerformanceData(perfPoints);
+
+        const attendanceCourses = (attendancePayload as { courses?: Record<string, { course_name?: string; attendance_rate?: number; present?: number; absent?: number; total_classes?: number }> }).courses ?? {};
+        const attendanceList = Object.values(attendanceCourses).map((course) => {
+          const total = course.total_classes ?? 0;
+          const present = course.present ?? 0;
+          const absent = course.absent ?? Math.max(0, total - present);
+          return {
+            course: course.course_name || t('courses'),
+            rate: Number(course.attendance_rate ?? 0),
+            present,
+            absent,
+          };
+        });
+
+        setAttendanceData(attendanceList);
+
+        const trendItems = (trendsPayload as { trend_data?: Array<{ percentage?: number }> }).trend_data ?? [];
+        setTrendData(
+          trendItems.map((item, index) => ({
+            week: index + 1,
+            average: Number(item.percentage ?? 0),
+          }))
+        );
+      } catch (err) {
+        console.error('Failed to load student analytics:', err);
+        setPerformanceData([]);
+        setAttendanceData([]);
+        setTrendData([]);
+      }
+    };
+
+    loadStudentAnalytics();
+  }, [selectedStudent, t]);
+
+  useEffect(() => {
+    const loadCourseDistribution = async () => {
+      if (!selectedCourse) {
+        setGradeDistributionData([]);
+        return;
+      }
+
+      try {
+        const response = await apiClient.get(`/analytics/course/${selectedCourse}/grade-distribution`);
+        const payload = extractAPIResponseData<unknown>(response.data ?? response);
+        const distribution = (payload as { distribution?: Record<string, number> }).distribution ?? {};
+        const totalGrades = Number((payload as { total_grades?: number }).total_grades ?? 0);
+
+        const mapped: GradeDistributionData[] = Object.entries(distribution).map(([grade, percentage]) => {
+          const percentValue = Number(percentage ?? 0);
+          const count = totalGrades > 0 ? Math.round((percentValue / 100) * totalGrades) : 0;
+          return { grade, count, percentage: percentValue };
+        });
+
+        setGradeDistributionData(mapped);
+      } catch (err) {
+        console.error('Failed to load grade distribution:', err);
+        setGradeDistributionData([]);
+      }
+    };
+
+    loadCourseDistribution();
+  }, [selectedCourse]);
 
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <p className="text-red-600">
-            {language === 'el' ? 'Σφάλμα κατά τη φόρτωση δεδομένων' : 'Error loading analytics data'}
+            {t('analytics.dashboardError')}
           </p>
           <button
             onClick={() => refetch()}
             className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
           >
-            {language === 'el' ? 'Προσπαθήστε ξανά' : 'Retry'}
+            {t('analytics.retry')}
           </button>
         </div>
       </div>
@@ -123,155 +721,312 @@ export const AnalyticsDashboard: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="border-b border-gray-200 bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">
-            {language === 'el' ? 'Analytics Dashboard' : 'Analytics Dashboard'}
-          </h1>
-          <p className="mt-2 text-gray-600">
-            {language === 'el'
-              ? 'Δείτε αναλυτικά δεδομένα σχετικά με τη σχολική απόδοση'
-              : 'View detailed analytics about academic performance'}
-          </p>
+    <div className="space-y-6 pb-10">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <img
+            src="/logo.png"
+            alt="MIEEK Logo"
+            className="h-10 w-auto object-contain"
+          />
+          <div>
+            <h2 className="text-3xl font-semibold text-slate-900">
+              {t('analytics.dashboardTitle')}
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              {t('analytics.dashboardSubtitle')}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:text-slate-900"
+          >
+            {t('dashboardOverviewTab')}
+          </button>
+          <button
+            type="button"
+            className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white"
+            aria-current="page"
+          >
+            {t('dashboardAnalyticsTab')}
+          </button>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Summary Cards */}
-        {dashboard && (
-          <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <SummaryCard
-              icon={Users}
-              label={language === 'el' ? 'Σύνολο μαθητών' : 'Total Students'}
-              value={dashboard.total_students}
-            />
-            <SummaryCard
-              icon={BookOpen}
-              label={language === 'el' ? 'Σύνολο μαθημάτων' : 'Total Courses'}
-              value={dashboard.total_courses}
-            />
-            <SummaryCard
-              icon={TrendingUp}
-              label={language === 'el' ? 'Μέσος όρος βαθμών' : 'Average Grade'}
-              value={dashboard.average_grade.toFixed(2)}
-              unit="%"
-            />
-            <SummaryCard
-              icon={Calendar}
-              label={language === 'el' ? 'Μέση παρουσία' : 'Average Attendance'}
-              value={dashboard.average_attendance.toFixed(2)}
-              unit="%"
-            />
-          </div>
-        )}
-
-        {/* Filter Controls */}
-        <div className="mb-8 flex flex-wrap gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              {language === 'el' ? 'Περίοδος' : 'Time Period'}
-            </label>
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value as 'week' | 'month' | 'semester')}
-              className="mt-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900"
-            >
-              <option value="week">{language === 'el' ? 'Εβδομάδα' : 'Week'}</option>
-              <option value="month">{language === 'el' ? 'Μήνας' : 'Month'}</option>
-              <option value="semester">{language === 'el' ? 'Εξάμηνο' : 'Semester'}</option>
-            </select>
-          </div>
+      {(
+        dashboard ||
+        students.length > 0 ||
+        courses.length > 0 ||
+        performanceData.length > 0 ||
+        attendanceData.length > 0
+      ) && (
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <SummaryCard
+            icon={Users}
+            label={t('analytics.summaryTotalStudents')}
+            value={dashboard?.total_students ?? students.length}
+          />
+          <SummaryCard
+            icon={BookOpen}
+            label={t('analytics.summaryTotalCourses')}
+            value={dashboard?.total_courses ?? courses.length}
+          />
+          <SummaryCard
+            icon={TrendingUp}
+            label={t('analytics.summaryAverageGrade')}
+            value={(
+              dashboard?.average_grade && dashboard.average_grade > 0
+                ? dashboard.average_grade
+                : performanceData.length > 0
+                  ? performanceData.reduce((sum, item) => sum + item.grade, 0) / performanceData.length
+                  : 0
+            ).toFixed(2)}
+            unit="%"
+          />
+          <SummaryCard
+            icon={Calendar}
+            label={t('analytics.summaryAverageAttendance')}
+            value={(
+              dashboard?.average_attendance && dashboard.average_attendance > 0
+                ? dashboard.average_attendance
+                : attendanceData.length > 0
+                  ? attendanceData.reduce((sum, item) => sum + item.rate, 0) / attendanceData.length
+                  : 0
+            ).toFixed(2)}
+            unit="%"
+          />
         </div>
+      )}
 
-        {/* Charts Grid */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full border-4 border-gray-200 border-t-indigo-600 h-12 w-12" />
+      <div className="flex flex-wrap items-end gap-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-600">
+            {t('analytics.divisionLabel')}
+          </label>
+          <select
+            value={selectedDivision}
+            onChange={(e) => setSelectedDivision(e.target.value)}
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">{t('analytics.selectDivision')}</option>
+            {Array.from(new Set(students.map((s) => s.class_division).filter(Boolean)))
+              .sort()
+              .map((division) => (
+                <option key={division as string} value={division as string}>
+                  {division as string}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-600">
+            {t('analytics.studentLabel')}
+          </label>
+          <select
+            value={selectedStudent ?? ''}
+            onChange={(e) => setSelectedStudent(e.target.value ? Number(e.target.value) : null)}
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">{t('analytics.selectStudent')}</option>
+            {students
+              .filter((student) => (selectedDivision ? student.class_division === selectedDivision : true))
+              .map((student) => (
+              <option key={student.id} value={student.id}>
+                {student.first_name} {student.last_name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-600">
+            {t('analytics.courseLabel')}
+          </label>
+          <select
+            value={selectedCourse ?? ''}
+            onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : null)}
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">{t('analytics.selectCourse')}</option>
+            {courses.map((course) => (
+              <option key={course.id} value={course.id}>
+                {course.course_name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-600">
+            {t('analytics.timePeriod')}
+          </label>
+          <select
+            value={dateRange}
+            onChange={(e) => setDateRange(e.target.value as 'week' | 'month' | 'semester')}
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="week">{t('analytics.timePeriodWeek')}</option>
+            <option value="month">{t('analytics.timePeriodMonth')}</option>
+            <option value="semester">{t('analytics.timePeriodSemester')}</option>
+          </select>
+        </div>
+      </div>
+
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
+        </div>
+      ) : (
+        <div className="space-y-8">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <PerformanceChart
+              data={divisionPerformanceData}
+              title={t('analytics.chartStudentPerformance')}
+              height={350}
+            />
+            <GradeDistributionChart
+              data={divisionGradeDistributionData}
+              title={t('analytics.chartGradeDistribution')}
+              height={350}
+            />
           </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Row 1: Performance & Distribution */}
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              <PerformanceChart
-                data={performanceData}
-                title={language === 'el' ? 'Απόδοση μαθητή' : 'Student Performance'}
-                height={350}
-              />
-              <GradeDistributionChart
-                data={gradeDistributionData}
-                title={language === 'el' ? 'Κατανομή βαθμών' : 'Grade Distribution'}
-                height={350}
-              />
-            </div>
 
-            {/* Row 2: Attendance & Trend */}
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              <AttendanceChart
-                data={attendanceData}
-                title={language === 'el' ? 'Ποσοστό παρουσίας' : 'Attendance Rate'}
-                height={350}
-              />
-              <TrendChart
-                data={trendData}
-                title={language === 'el' ? 'Τάση απόδοσης' : 'Performance Trend'}
-                height={350}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <AttendanceChart
+              data={divisionAttendanceData}
+              title={t('analytics.chartAttendanceRate')}
+              height={350}
+            />
+            <TrendChart
+              data={divisionTrendData}
+              title={t('analytics.chartPerformanceTrend')}
+              height={350}
+            />
+          </div>
 
-            {/* Row 3: Overview */}
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-              <StatsPieChart
-                data={pieChartData}
-                title={language === 'el' ? 'Κατάσταση μαθητών' : 'Student Status'}
-                height={350}
-              />
-              <div className="rounded-lg border border-gray-200 bg-white p-6">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {language === 'el' ? 'Σύντομη ανάφορα' : 'Quick Report'}
-                </h3>
-                <div className="mt-4 space-y-3 text-sm text-gray-600">
-                  <p>
-                    <span className="font-medium">{language === 'el' ? 'Ενεργοί μαθητές:' : 'Active Students:'}</span>{' '}
-                    142/150
-                  </p>
-                  <p>
-                    <span className="font-medium">{language === 'el' ? 'Μέσος βαθμός:' : 'Average Grade:'}</span>{' '}
-                    {dashboard?.average_grade.toFixed(2)}%
-                  </p>
-                  <p>
-                    <span className="font-medium">
-                      {language === 'el' ? 'Μέση παρουσία:' : 'Average Attendance:'}
-                    </span>{' '}
-                    {dashboard?.average_attendance.toFixed(2)}%
-                  </p>
-                  <p>
-                    <span className="font-medium">{language === 'el' ? 'Συνολικοί βαθμοί:' : 'Total Grades:'}</span>{' '}
-                    {dashboard?.total_grades}
-                  </p>
-                </div>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <StatsPieChart
+              data={pieChartData}
+              title={t('analytics.chartStudentStatus')}
+              height={350}
+            />
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {t('analytics.quickReportTitle')}
+              </h3>
+              <div className="mt-4 space-y-3 text-sm text-slate-600">
+                <p>
+                  <span className="font-medium text-slate-700">{t('analytics.quickReportActiveStudents')}</span>{' '}
+                  {quickReportStats.activeStudents}/{quickReportStats.totalStudents}
+                </p>
+                <p>
+                  <span className="font-medium text-slate-700">{t('analytics.quickReportAverageGrade')}</span>{' '}
+                  {quickReportStats.averageGrade.toFixed(2)}%
+                </p>
+                <p>
+                  <span className="font-medium text-slate-700">
+                    {t('analytics.quickReportAverageAttendance')}
+                  </span>{' '}
+                  {quickReportStats.averageAttendance.toFixed(2)}%
+                </p>
+                <p>
+                  <span className="font-medium text-slate-700">{t('analytics.quickReportTotalGrades')}</span>{' '}
+                  {quickReportStats.totalGrades}
+                </p>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex gap-4">
-          <button
-            onClick={() => refetch()}
-            className="rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-          >
-            {language === 'el' ? 'Ανανέωση' : 'Refresh'}
-          </button>
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
-          >
-            {language === 'el' ? 'Πίσω' : 'Back'}
-          </button>
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {t('analytics.classAverageSummaryTitle')}
+              </h3>
+              <div className="mt-4 space-y-3">
+                {filteredClassAggregates.length === 0 ? (
+                  <p className="text-sm text-slate-500">{t('analytics.noClassData')}</p>
+                ) : (
+                  filteredClassAggregates.map((entry) => (
+                    <div key={entry.label} className="flex items-center justify-between text-sm text-slate-600">
+                      <div>
+                        <div className="font-medium text-slate-700">{entry.label}</div>
+                        <div className="text-xs text-slate-500">
+                          {t('analytics.averageLabel')} {entry.average.toFixed(2)}%
+                        </div>
+                      </div>
+                      <span className="font-semibold text-slate-900">{entry.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {t('analytics.courseAverageSummaryTitle')}
+              </h3>
+              <div className="mt-4 space-y-3">
+                {filteredCourseAggregates.length === 0 ? (
+                  <p className="text-sm text-slate-500">{t('analytics.noCourseData')}</p>
+                ) : (
+                  filteredCourseAggregates.map((entry) => (
+                    <div key={entry.label} className="flex items-center justify-between text-sm text-slate-600">
+                      <div>
+                        <div className="font-medium text-slate-700">{entry.label}</div>
+                        <div className="text-xs text-slate-500">
+                          {t('analytics.averageLabel')} {entry.average.toFixed(2)}%
+                        </div>
+                      </div>
+                      <span className="font-semibold text-slate-900">
+                        {entry.count} {t('analytics.enrolledLabel')}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+              <h3 className="text-lg font-semibold text-slate-900">
+                {t('analytics.divisionAverageSummaryTitle')}
+              </h3>
+              <div className="mt-4 space-y-3">
+                {divisionAggregates.length === 0 ? (
+                  <p className="text-sm text-slate-500">{t('analytics.noDivisionData')}</p>
+                ) : (
+                  divisionAggregates.map((entry) => (
+                    <div key={entry.label} className="flex items-center justify-between text-sm text-slate-600">
+                      <div>
+                        <div className="font-medium text-slate-700">{entry.label}</div>
+                        <div className="text-xs text-slate-500">
+                          {t('analytics.averageLabel')} {entry.average.toFixed(2)}%
+                        </div>
+                      </div>
+                      <span className="font-semibold text-slate-900">{entry.count}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </div>
+      )}
+
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={() => refetch()}
+          className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+        >
+          {t('analytics.refresh')}
+        </button>
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+        >
+          {t('analytics.back')}
+        </button>
       </div>
     </div>
   );

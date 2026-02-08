@@ -25,6 +25,7 @@ export default {
   language: 'el',
   // Πλοήγηση
   dashboard: 'Επισκόπηση',
+  analytics: 'Αναλυτικά',
   students: 'Σπουδαστές',
   courses: 'Μαθήματα',
   attendance: 'Παρουσίες',
@@ -136,6 +137,11 @@ export default {
   averageGrade: 'Μέσος Όρος',
   averageScale: 'Μέση Κλίμακα',
   classes: 'Μαθήματα',
+   academicYear: 'Ακαδημαϊκό Έτος',
+   classA: 'Τάξη Α',
+   classB: 'Τάξη Β',
+   classDivision: 'Τμήμα Τάξης',
+   classDivisionPlaceholder: 'π.χ., A1, A2, B1',
   basedOn: 'Με βάση',
   progressSoFar: 'Πρόοδος μέχρι τώρα',
   grade: 'βαθμό',
@@ -380,6 +386,8 @@ export default {
   viewBreakdown: 'Προβολή Ανάλυσης',
   recentGrades: 'Πρόσφατοι Βαθμοί',
   dashboardTitle: 'Πίνακας Ελέγχου',
+  dashboardOverviewTab: 'Επισκόπηση',
+  dashboardAnalyticsTab: 'Αναλυτικά',
   hideDetailedAnalytics: 'Απόκρυψη Αναλυτικών Στατιστικών',
   viewDetailedAnalytics: 'Προβολή Αναλυτικών Στατιστικών',
   activeCourses: 'Ενεργά Μαθήματα',
@@ -464,7 +472,7 @@ export default {
     uptimeFormatShort: '{{h}}ώ {{m}}λ {{s}}δ',
   },
   // Υποσέλιδο
-  footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Vasilis Samaras - v{{version}}',
+  footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Βασίλης Σαμαράς - v{{version}}',
 
   // Σελιδοποίηση & Πλοήγηση
   previous: 'Προηγούμενο',

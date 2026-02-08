@@ -47,6 +47,8 @@ import searchEn from './locales/en/search.js';
 import searchEl from './locales/el/search.js';
 import analyticsEn from './locales/en/analytics.js';
 import analyticsEl from './locales/el/analytics.js';
+import notificationsEn from './locales/en/notifications.js';
+import notificationsEl from './locales/el/notifications.js';
 import customReportsEn from './locales/en/customReports.js';
 import customReportsEl from './locales/el/customReports.js';
 import messagesEn from './locales/en/messages.js';
@@ -91,6 +93,7 @@ export const translationNamespaces = {
     errors: errorsEn,
     search: searchEn,
     analytics: analyticsEn,
+    notifications: notificationsEn,
     customReports: customReportsEn,
     messages: messagesEn,
     system: systemEn
@@ -115,6 +118,7 @@ export const translationNamespaces = {
     errors: errorsEl,
     search: searchEl,
     analytics: analyticsEl,
+    notifications: notificationsEl,
     customReports: customReportsEl,
     messages: messagesEl,
     system: systemEl

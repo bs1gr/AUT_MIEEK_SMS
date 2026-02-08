@@ -55,8 +55,8 @@ async def get_current_user(
             auth_header = str(request.headers.get("Authorization", "")).strip()
         except (KeyError, AttributeError):
             auth_header = ""
-        # Require bearer token for auth endpoints always; and for non-auth when AUTH is enabled
-        require_token = is_auth_endpoint or auth_enabled
+        # Require bearer token for auth endpoints always; only strict mode requires it for non-auth
+        require_token = is_auth_endpoint or auth_mode == "strict"
         if require_token:
             if not auth_header.startswith("Bearer "):
                 raise http_error(

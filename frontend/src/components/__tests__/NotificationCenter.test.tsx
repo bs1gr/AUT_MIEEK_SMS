@@ -24,20 +24,22 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, params?: Record<string, unknown>) => {
       const translations: Record<string, string> = {
-        // Notifications namespace
-        'notifications.title': 'Notifications',
-        'notifications.markAllRead': 'Mark All as Read',
-        'notifications.markAsRead': 'Mark as Read',
-        'notifications.empty': 'No notifications',
-        'notifications.of': 'of',
-        'notifications.unreadCount': params?.count ? `You have ${params.count} unread notifications` : 'Unread',
+        // Notifications namespace (key-only usage)
+        title: 'Notifications',
+        markAllRead: 'Mark All as Read',
+        empty: 'No notifications',
+        of: 'of',
+        unreadCount: params?.count ? `You have ${params.count} unread notifications` : 'Unread',
+        'item.viewDetails': 'View details',
+        'item.hideDetails': 'Hide details',
+        'item.details': 'Details',
 
         // Common namespace
-        'common.loading': 'Loading...',
-        'common.delete': 'Delete',
-        'common.previous': 'Previous',
-        'common.next': 'Next',
-        'common.close': 'Close',
+        'common:loading': 'Loading...',
+        'common:delete': 'Delete',
+        'common:previous': 'Previous',
+        'common:next': 'Next',
+        'common:close': 'Close',
 
         // Fallback for any missing keys
       };

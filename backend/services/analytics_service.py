@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import asdict, dataclass
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional, cast
 
+from sqlalchemy import case, func, inspect
+from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.orm import Session, joinedload
 
 from backend.db.utils import get_by_id_or_404
@@ -278,16 +281,61 @@ class AnalyticsService:
         students, courses and basic totals.
         """
         # Use simple count queries; models were resolved in __init__ via import_names
-        student_count = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None)).count()
-        course_count = self.db.query(self.Course).filter(self.Course.deleted_at.is_(None)).count()
-        enrollment_count = (
-            self.db.query(self.CourseEnrollment).filter(self.CourseEnrollment.deleted_at.is_(None)).count()
-        )
+        inspector = cast(Inspector, inspect(self.db.get_bind()))
+        tables = set(inspector.get_table_names())
+
+        student_count = 0
+        course_count = 0
+        enrollment_count = 0
+        grade_count = 0
+        attendance_count = 0
+        avg_grade = 0.0
+        avg_attendance = 0.0
+
+        if "students" in tables:
+            student_count = self.db.query(self.Student).filter(self.Student.deleted_at.is_(None)).count()
+
+        if "courses" in tables:
+            course_count = self.db.query(self.Course).filter(self.Course.deleted_at.is_(None)).count()
+
+        if "course_enrollments" in tables:
+            enrollment_count = (
+                self.db.query(self.CourseEnrollment).filter(self.CourseEnrollment.deleted_at.is_(None)).count()
+            )
+
+        if "grades" in tables:
+            grade_count = self.db.query(self.Grade).filter(self.Grade.deleted_at.is_(None)).count()
+            grade_pct: Any = case(
+                (
+                    self.Grade.max_grade.isnot(None) & (self.Grade.max_grade > 0),
+                    (self.Grade.grade / self.Grade.max_grade) * 100,
+                ),
+                else_=None,
+            )
+            avg_grade_val = self.db.query(func.avg(grade_pct)).filter(self.Grade.deleted_at.is_(None)).scalar()
+            avg_grade = float(avg_grade_val or 0.0)
+
+        if "attendances" in tables:
+            attendance_count = self.db.query(self.Attendance).filter(self.Attendance.deleted_at.is_(None)).count()
+            present_count = (
+                self.db.query(self.Attendance)
+                .filter(
+                    self.Attendance.deleted_at.is_(None),
+                    func.lower(self.Attendance.status) == "present",
+                )
+                .count()
+            )
+            avg_attendance = (present_count / attendance_count * 100) if attendance_count > 0 else 0.0
 
         return {
-            "students": int(student_count),
-            "courses": int(course_count),
+            "total_students": int(student_count),
+            "total_courses": int(course_count),
             "enrollments": int(enrollment_count),
+            "total_grades": int(grade_count),
+            "total_attendance_records": int(attendance_count),
+            "average_grade": round(avg_grade, 2),
+            "average_attendance": round(avg_attendance, 2),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     # ----------------------------- Helpers ------------------------------------

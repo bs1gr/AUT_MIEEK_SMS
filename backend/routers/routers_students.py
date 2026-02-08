@@ -175,3 +175,16 @@ async def bulk_create_students(
     invalidate_cache("get_all_students")
     logger.info("Bulk created %s students, %s errors", result["created"], result["failed"])
     return result
+
+
+@router.post("/bulk/autofill-academic-year")
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:edit")
+def bulk_autofill_academic_year(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """Autofill academic year (A/B) based on study_year for missing records."""
+    service = StudentService(db, request)
+    result = service.bulk_autofill_academic_year()
+    return result

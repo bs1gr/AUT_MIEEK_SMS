@@ -60,6 +60,22 @@ export const studentSchema = z.object({
       val => !isNaN(Date.parse(val)),
       'Invalid date format'
     ),
+
+  academic_year: z.preprocess(
+    (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
+    z
+      .string()
+      .trim()
+      .transform((val) => val.toUpperCase())
+      .refine((val) => val === 'A' || val === 'B', "Academic year must be 'A' or 'B'")
+      .optional()
+  ),
+
+  class_division: z
+    .string()
+    .trim()
+    .max(50, 'Class division must be less than 50 characters')
+    .optional(),
 });
 
 /**

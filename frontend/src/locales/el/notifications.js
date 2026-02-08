@@ -39,6 +39,32 @@ export const notificationsEL = {
   websocketError: 'Σφάλμα σύνδεσης ειδοποιήσεων',
   notificationsCount: 'Έχετε {count} ειδοποιήσεις',
 
+  // Admin broadcast
+  admin: {
+    tabLabel: 'Ειδοποιήσεις',
+    title: 'Αποστολή Ειδοποίησης',
+    description: 'Αποστολή μηνύματος σε όλους, σε ρόλο ή σε συγκεκριμένους χρήστες.',
+    typeLabel: 'Τύπος ειδοποίησης',
+    targetLabel: 'Στόχος αποστολής',
+    targetAll: 'Όλοι οι χρήστες',
+    targetRole: 'Ρόλος',
+    targetUsers: 'Συγκεκριμένοι χρήστες',
+    roleLabel: 'Ρόλος',
+    userIdsLabel: 'Αναγνωριστικά χρηστών',
+    userIdsPlaceholder: 'π.χ., 12, 24, 57',
+    userIdsHelp: 'Χωρίστε με κόμμα τα αριθμητικά ID χρηστών.',
+    titleLabel: 'Τίτλος',
+    messageLabel: 'Μήνυμα',
+    sendButton: 'Αποστολή ειδοποίησης',
+    sending: 'Αποστέλλεται...',
+    success: 'Η ειδοποίηση στάλθηκε.',
+    error: 'Αποτυχία αποστολής ειδοποίησης.',
+    notAuthorized: 'Μόνο διαχειριστές με δικαίωμα broadcast μπορούν να στείλουν ειδοποιήσεις.',
+    validationTitle: 'Απαιτείται τίτλος.',
+    validationMessage: 'Απαιτείται μήνυμα.',
+    validationUsers: 'Εισάγετε τουλάχιστον ένα έγκυρο ID χρήστη.',
+  },
+
   // Bell component
   bell: {
     ariaLabel: 'Ειδοποιήσεις',
@@ -61,6 +87,9 @@ export const notificationsEL = {
   item: {
     markAsRead: 'Σημείωση ως διαβασμένη',
     delete: 'Διαγραφή ειδοποίησης',
+    viewDetails: 'Προβολή λεπτομερειών',
+    hideDetails: 'Απόκρυψη λεπτομερειών',
+    details: 'Λεπτομέρειες',
   },
 
   // Notification types

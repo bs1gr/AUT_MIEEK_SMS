@@ -58,7 +58,7 @@ describe('NotificationBell Component', () => {
   describe('Rendering', () => {
     it('should render bell button', () => {
       render(<NotificationBell />);
-      const button = screen.getByRole('button', { name: /notifications/i });
+      const button = screen.getByRole('button', { name: /bell\.ariaLabel/i });
       expect(button).toBeInTheDocument();
     });
 
@@ -70,7 +70,7 @@ describe('NotificationBell Component', () => {
 
     it('should have ARIA label', () => {
       render(<NotificationBell />);
-      const button = screen.getByRole('button', { name: /notifications/i });
+      const button = screen.getByRole('button', { name: /bell\.ariaLabel/i });
       expect(button).toHaveAttribute('aria-label');
     });
   });

@@ -35,6 +35,7 @@ i18n
         reports: translationNamespaces.en.reports,
         feedback: translationNamespaces.en.feedback,
         analytics: translationNamespaces.en.analytics,
+        notifications: translationNamespaces.en.notifications,
         messages: translationNamespaces.en.messages,
         customReports: translationNamespaces.en.customReports,
         system: translationNamespaces.en.system
@@ -59,12 +60,13 @@ i18n
         reports: translationNamespaces.el.reports,
         feedback: translationNamespaces.el.feedback,
         analytics: translationNamespaces.el.analytics,
+        notifications: translationNamespaces.el.notifications,
         messages: translationNamespaces.el.messages,
         customReports: translationNamespaces.el.customReports,
         system: translationNamespaces.el.system
       }
     },
-    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'messages', 'customReports', 'system'],
+    ns: ['translation', 'search', 'errors', 'dashboard', 'courses', 'students', 'grades', 'attendance', 'calendar', 'controlPanel', 'rbac', 'auth', 'utils', 'common', 'export', 'help', 'reports', 'feedback', 'analytics', 'notifications', 'messages', 'customReports', 'system'],
     defaultNS: 'translation',
     lng: isTestEnvironment ? 'en' : undefined,
     fallbackLng: 'en',

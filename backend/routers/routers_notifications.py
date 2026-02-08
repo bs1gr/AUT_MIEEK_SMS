@@ -373,7 +373,7 @@ async def delete_notification(
 
 @router.post("/broadcast", response_model=dict)
 @limiter.limit(RATE_LIMIT_WRITE)
-@require_permission("notifications:broadcast")
+@require_permission("notifications:manage")
 async def broadcast_notification_endpoint(
     request: Request,
     broadcast: BroadcastNotificationCreate,

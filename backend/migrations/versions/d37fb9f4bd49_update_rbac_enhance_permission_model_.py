@@ -28,62 +28,91 @@ def upgrade() -> None:
     inspector = sa.inspect(conn)
     existing_indexes = {idx["name"] for idx in inspector.get_indexes("permissions")}
 
+    def _column_exists(table_name: str, column_name: str) -> bool:
+        columns = [col["name"] for col in inspector.get_columns(table_name)]
+        return column_name in columns
+
+    def _index_exists(table_name: str, index_name: str) -> bool:
+        return index_name in existing_indexes
+
     # SQLite doesn't support ALTER COLUMN, so we'll use batch operations
     with op.batch_alter_table("permissions", schema=None) as batch_op:
         # Add new columns
-        batch_op.add_column(sa.Column("key", sa.String(length=100), nullable=True))  # nullable first for data migration
-        batch_op.add_column(sa.Column("resource", sa.String(length=50), nullable=True))
-        batch_op.add_column(sa.Column("action", sa.String(length=50), nullable=True))
-        batch_op.add_column(sa.Column("is_active", sa.Boolean(), nullable=True, server_default="1"))
-        batch_op.add_column(sa.Column("created_at", sa.DateTime(timezone=True), nullable=True))
-        batch_op.add_column(sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True))
+        if not _column_exists("permissions", "key"):
+            batch_op.add_column(
+                sa.Column("key", sa.String(length=100), nullable=True)
+            )  # nullable first for data migration
+        if not _column_exists("permissions", "resource"):
+            batch_op.add_column(sa.Column("resource", sa.String(length=50), nullable=True))
+        if not _column_exists("permissions", "action"):
+            batch_op.add_column(sa.Column("action", sa.String(length=50), nullable=True))
+        if not _column_exists("permissions", "is_active"):
+            batch_op.add_column(sa.Column("is_active", sa.Boolean(), nullable=True, server_default="1"))
+        if not _column_exists("permissions", "created_at"):
+            batch_op.add_column(sa.Column("created_at", sa.DateTime(timezone=True), nullable=True))
+        if not _column_exists("permissions", "updated_at"):
+            batch_op.add_column(sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True))
 
         # Drop old indexes only if they exist
-        if "idx_permissions_name" in existing_indexes:
+        if _index_exists("permissions", "idx_permissions_name"):
             batch_op.drop_index("idx_permissions_name")
-        if "ix_permissions_name" in existing_indexes:
+        if _index_exists("permissions", "ix_permissions_name"):
             batch_op.drop_index("ix_permissions_name")
 
-        # Create new indexes
-        batch_op.create_index("idx_permissions_is_active", ["is_active"], unique=False)
-        batch_op.create_index(
-            "idx_permissions_key", ["key"], unique=False
-        )  # Not unique yet, will be after data migration
-        batch_op.create_index("idx_permissions_resource", ["resource"], unique=False)
-        batch_op.create_index(batch_op.f("ix_permissions_is_active"), ["is_active"], unique=False)
-        batch_op.create_index(batch_op.f("ix_permissions_key"), ["key"], unique=False)
-        batch_op.create_index(batch_op.f("ix_permissions_resource"), ["resource"], unique=False)
+        # Create new indexes (guard for existing indexes)
+        if _column_exists("permissions", "is_active"):
+            if not _index_exists("permissions", "idx_permissions_is_active"):
+                batch_op.create_index("idx_permissions_is_active", ["is_active"], unique=False)
+            if not _index_exists("permissions", batch_op.f("ix_permissions_is_active")):
+                batch_op.create_index(batch_op.f("ix_permissions_is_active"), ["is_active"], unique=False)
+        if _column_exists("permissions", "key"):
+            if not _index_exists("permissions", "idx_permissions_key"):
+                batch_op.create_index("idx_permissions_key", ["key"], unique=False)
+            if not _index_exists("permissions", batch_op.f("ix_permissions_key")):
+                batch_op.create_index(batch_op.f("ix_permissions_key"), ["key"], unique=False)
+        if _column_exists("permissions", "resource"):
+            if not _index_exists("permissions", "idx_permissions_resource"):
+                batch_op.create_index("idx_permissions_resource", ["resource"], unique=False)
+            if not _index_exists("permissions", batch_op.f("ix_permissions_resource")):
+                batch_op.create_index(batch_op.f("ix_permissions_resource"), ["resource"], unique=False)
 
     # Migrate existing permission data (if any exists)
     # Convert name format from 'resource.action' to 'resource:action' and populate new fields
     conn = op.get_bind()
-    result = conn.execute(sa.text("SELECT id, name FROM permissions"))
-    for row in result:
-        perm_id, perm_name = row
-        # Split on '.' for old format (e.g., 'students.read')
-        if "." in perm_name:
-            resource, action = perm_name.split(".", 1)
-            key = f"{resource}:{action}"
-        else:
-            # Fallback for unexpected format
-            resource = perm_name
-            action = "unknown"
-            key = perm_name
+    if _column_exists("permissions", "name") and _column_exists("permissions", "key"):
+        result = conn.execute(sa.text("SELECT id, name FROM permissions"))
+        for row in result:
+            perm_id, perm_name = row
+            # Split on '.' for old format (e.g., 'students.read')
+            if "." in perm_name:
+                resource, action = perm_name.split(".", 1)
+                key = f"{resource}:{action}"
+            else:
+                # Fallback for unexpected format
+                resource = perm_name
+                action = "unknown"
+                key = perm_name
 
-        conn.execute(
-            sa.text("UPDATE permissions SET key = :key, resource = :resource, action = :action WHERE id = :id"),
-            {"key": key, "resource": resource, "action": action, "id": perm_id},
-        )
+            conn.execute(
+                sa.text("UPDATE permissions SET key = :key, resource = :resource, action = :action WHERE id = :id"),
+                {"key": key, "resource": resource, "action": action, "id": perm_id},
+            )
 
     # Now make columns non-nullable and drop old name column
     with op.batch_alter_table("permissions", schema=None) as batch_op:
-        batch_op.alter_column("key", nullable=False)
-        batch_op.alter_column("resource", nullable=False)
-        batch_op.alter_column("action", nullable=False)
-        batch_op.drop_column("name")
+        if _column_exists("permissions", "key"):
+            batch_op.alter_column("key", nullable=False)
+        if _column_exists("permissions", "resource"):
+            batch_op.alter_column("resource", nullable=False)
+        if _column_exists("permissions", "action"):
+            batch_op.alter_column("action", nullable=False)
+        if _column_exists("permissions", "name"):
+            batch_op.drop_column("name")
 
     # Add timestamp to role_permissions
-    op.add_column("role_permissions", sa.Column("created_at", sa.DateTime(timezone=True), nullable=True))
+    role_columns = [col["name"] for col in inspector.get_columns("role_permissions")]
+    if "created_at" not in role_columns:
+        op.add_column("role_permissions", sa.Column("created_at", sa.DateTime(timezone=True), nullable=True))
     # ### end Alembic commands ###
 
 
