@@ -1,6 +1,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Notification } from '../types';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import '../styles/NotificationItem.css';
 
 interface NotificationItemProps {
@@ -16,6 +17,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
 }) => {
   const { t } = useTranslation();
   const [isLoading, setIsLoading] = React.useState(false);
+  const { formatDateTime } = useDateTimeFormatter();
 
   const handleMarkAsRead = async () => {
     if (!onMarkAsRead) return;
@@ -47,7 +49,7 @@ export const NotificationItem: React.FC<NotificationItemProps> = ({
         <h4>{notification.title}</h4>
         <p>{notification.message}</p>
         <small className="notification-time">
-          {new Date(notification.createdAt).toLocaleString()}
+          {formatDateTime(notification.createdAt)}
         </small>
       </div>
       <div className="notification-actions">

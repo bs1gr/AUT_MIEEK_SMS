@@ -12,11 +12,13 @@ import { Student, Course, TeachingScheduleEntry } from '@/types';
 import { studentsAPI, coursesAPI } from '@/api/api';
 import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
 import { useAutosave } from '@/hooks/useAutosave';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 const API_BASE_URL = '/api/v1';
 
 const EnhancedAttendanceCalendar = () => {
   const { t, language } = useLanguage();
+  const { formatDate, formatMonthYear, formatWeekday } = useDateTimeFormatter();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [students, setStudents] = useState<Student[]>([]);
@@ -107,10 +109,8 @@ const EnhancedAttendanceCalendar = () => {
 
   // showToast already declared above as a stable useCallback
 
-  const formatDate = (date: Date | string) => formatLocalDate(date);
-
   const getAttendanceKey = (studentId: number) => {
-    return `${studentId}-${formatDate(selectedDate)}`;
+    return `${studentId}-${formatLocalDate(selectedDate)}`;
   };
 
   const setAttendance = (studentId: number, status: string) => {
@@ -271,7 +271,8 @@ const EnhancedAttendanceCalendar = () => {
   const dayNamesShort = useMemo(() => (String(t('dayNames') || 'Sun,Mon,Tue,Wed,Thu,Fri,Sat')).split(',').map((day) => String(day).trim()), [t]);
   const weekStartsOnMonday = useMemo(() => inferWeekStartsOnMonday(dayNamesShort, language === 'el'), [dayNamesShort, language]);
   const days = useMemo(() => getDaysInMonth(currentMonth, weekStartsOnMonday), [currentMonth, weekStartsOnMonday]);
-  const monthYear = currentMonth.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'long', year: 'numeric' });
+  const localeOverride = language === 'el' ? 'el-GR' : 'en-US';
+  const monthYear = formatMonthYear(currentMonth);
 
   // Get localized day names
   // dayNamesShort defined above
@@ -469,10 +470,10 @@ const EnhancedAttendanceCalendar = () => {
                 {selectedDate.getDate()}
               </p>
               <p className="text-gray-600">
-                {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'long', year: 'numeric' })}
+                {formatMonthYear(selectedDate)}
               </p>
               <p className="text-sm text-gray-500 mt-2">
-                {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { weekday: 'long' })}
+                {formatWeekday(selectedDate, localeOverride)}
               </p>
             </div>
           </div>
@@ -539,7 +540,7 @@ const EnhancedAttendanceCalendar = () => {
           <div className="flex items-center space-x-2">
             <Users size={24} className="text-indigo-600" />
             <h3 className="text-xl font-bold text-gray-800">
-              {t('markAttendanceFor')} - {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+              {t('markAttendanceFor')} - {formatDate(selectedDate)}
             </h3>
           </div>
         </div>
@@ -623,12 +624,7 @@ const EnhancedAttendanceCalendar = () => {
 
             <div className="space-y-6">
               <p className="text-gray-600">
-                {t('rateStudentPerformanceFor')} {selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
+                {t('rateStudentPerformanceFor')} {formatWeekday(selectedDate, localeOverride)} {formatDate(selectedDate)}
               </p>
 
               {evaluationCategories.map((rule, idx) => {

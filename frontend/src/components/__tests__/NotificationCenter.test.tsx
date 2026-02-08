@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { NotificationCenter } from '../NotificationCenter';
 import { LanguageProvider } from '../../LanguageContext';
 import api from '../../api/api';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 
 // Mock API module
 vi.mock('../../api/api', () => ({
@@ -83,7 +84,9 @@ function renderWithProviders(ui: React.ReactElement) {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>{ui}</LanguageProvider>
+      <LanguageProvider>
+        <DateTimeSettingsProvider>{ui}</DateTimeSettingsProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
@@ -513,7 +516,9 @@ describe('NotificationCenter', () => {
       rerender(
         <QueryClientProvider client={new QueryClient()}>
           <LanguageProvider>
-            <NotificationCenter isOpen={true} onClose={() => {}} />
+            <DateTimeSettingsProvider>
+              <NotificationCenter isOpen={true} onClose={() => {}} />
+            </DateTimeSettingsProvider>
           </LanguageProvider>
         </QueryClientProvider>
       );

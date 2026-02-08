@@ -48,7 +48,7 @@ export default {
   noGradesRecorded: 'No grades recorded yet',
   historyToggle: 'Historical mode',
   historyDate: 'History date',
-  historicalModeBanner: 'Historical mode enabled',
+  historicalModeBanner: 'Viewing past date',
   gradeAddedSuccessfully: 'Grade added successfully!',
   maxScore: 'Max Score',
   dateAssigned: 'Date Assigned',

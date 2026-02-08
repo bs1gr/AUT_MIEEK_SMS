@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Download, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
 import axios from 'axios';
 import { useLanguage } from '../../LanguageContext';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 interface UpdateCheckResponse {
   current_version: string;
@@ -23,6 +24,7 @@ interface UpdatesPanelProps {
 
 export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
   const { t } = useLanguage();
+  const { formatTime } = useDateTimeFormatter();
   const [updateInfo, setUpdateInfo] = useState<UpdateCheckResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     try {
       const response = await axios.get(`${controlApi}/maintenance/updates/check`);
       setUpdateInfo(response.data);
-      setLastChecked(new Date().toLocaleTimeString());
+      setLastChecked(formatTime(new Date()));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to check for updates');
     } finally {

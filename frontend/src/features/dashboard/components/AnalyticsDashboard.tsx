@@ -24,6 +24,7 @@ import {
   type PieChartData,
 } from './AnalyticsCharts';
 import { Users, BookOpen, TrendingUp, Calendar } from 'lucide-react';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 /**
  * Summary Card Component
@@ -58,6 +59,7 @@ const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, uni
 export const AnalyticsDashboard: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { formatDate } = useDateTimeFormatter();
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
@@ -76,6 +78,17 @@ export const AnalyticsDashboard: React.FC = () => {
   const [trendData, setTrendData] = useState<TrendData[]>([]);
 
   const { dashboard, isLoading, error, refetch } = useDashboardData();
+
+  const normalizeDivisionLabel = (label?: string | null) => {
+    if (!label) return t('analytics.divisionUnknownLabel');
+    const trimmed = label.trim();
+    if (!trimmed) return t('analytics.divisionUnknownLabel');
+    const normalized = trimmed.toLowerCase();
+    if (normalized === 'unassigned division' || normalized === 'unassigned' || normalized === 'no division') {
+      return t('analytics.divisionUnknownLabel');
+    }
+    return trimmed;
+  };
 
   useEffect(() => {
     const loadLookups = async () => {
@@ -240,13 +253,16 @@ export const AnalyticsDashboard: React.FC = () => {
         }
 
         if (divisionAveragePayload.length > 0) {
-          setDivisionAggregates(divisionAveragePayload);
+          setDivisionAggregates(
+            divisionAveragePayload.map((entry) => ({
+              ...entry,
+              label: normalizeDivisionLabel(entry.label),
+            }))
+          );
         } else {
           const divisionBuckets = new Map<string, { count: number; total: number }>();
           studentItems.forEach((student) => {
-            const label = student.class_division
-              ? student.class_division
-              : t('analytics.divisionUnknownLabel');
+            const label = normalizeDivisionLabel(student.class_division);
             const existing = divisionBuckets.get(label) ?? { count: 0, total: 0 };
             divisionBuckets.set(label, { ...existing, count: existing.count + 1 });
           });
@@ -255,9 +271,7 @@ export const AnalyticsDashboard: React.FC = () => {
             if (!grade.max_grade || grade.max_grade <= 0) return;
             const student = studentItems.find((s) => s.id === grade.student_id);
             if (!student) return;
-            const label = student.class_division
-              ? student.class_division
-              : t('analytics.divisionUnknownLabel');
+            const label = normalizeDivisionLabel(student.class_division);
             const existing = divisionBuckets.get(label) ?? { count: 0, total: 0 };
             const percentage = (grade.grade / grade.max_grade) * 100;
             divisionBuckets.set(label, { count: existing.count, total: existing.total + percentage });
@@ -445,7 +459,7 @@ export const AnalyticsDashboard: React.FC = () => {
       const course = courseById.get(grade.course_id);
       const courseLabel = course ? course.course_name : t('courses');
       const dateValue = grade.date_assigned || grade.date_submitted;
-      const dateLabel = dateValue ? new Date(dateValue).toLocaleDateString() : t('dateLabel');
+      const dateLabel = dateValue ? formatDate(dateValue) : t('dateLabel');
       const percentage = (grade.grade / grade.max_grade) * 100;
       return {
         date: dateLabel,
@@ -624,7 +638,7 @@ export const AnalyticsDashboard: React.FC = () => {
           const courseLabel = course.course_name || course.course_code || t('courses');
           (course.grades || []).forEach((grade) => {
             perfPoints.push({
-              date: grade.date ? new Date(grade.date).toLocaleDateString() : t('dateLabel'),
+              date: grade.date ? formatDate(grade.date) : t('dateLabel'),
               course: courseLabel,
               grade: Number(grade.percentage ?? 0),
               trend: Number(grade.percentage ?? 0),
@@ -806,7 +820,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('analytics.selectDivision')}</option>
-            {Array.from(new Set(students.map((s) => s.class_division).filter(Boolean)))
+            {Array.from(new Set(students.map((s) => normalizeDivisionLabel(s.class_division)).filter(Boolean)))
               .sort()
               .map((division) => (
                 <option key={division as string} value={division as string}>
@@ -993,7 +1007,9 @@ export const AnalyticsDashboard: React.FC = () => {
                   divisionAggregates.map((entry) => (
                     <div key={entry.label} className="flex items-center justify-between text-sm text-slate-600">
                       <div>
-                        <div className="font-medium text-slate-700">{entry.label}</div>
+                        <div className="font-medium text-slate-700">
+                          {normalizeDivisionLabel(entry.label)}
+                        </div>
                         <div className="text-xs text-slate-500">
                           {t('analytics.averageLabel')} {entry.average.toFixed(2)}%
                         </div>

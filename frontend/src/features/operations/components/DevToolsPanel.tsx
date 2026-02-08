@@ -4,6 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { adminOpsAPI, getHealthStatus, importAPI, CONTROL_API_BASE } from '@/api/api';
 import { studentKeys } from '@/hooks/useStudentsQuery';
 import { courseKeys } from '@/hooks/useCoursesQuery';
@@ -126,7 +127,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const [importType, setImportType] = useState<ImportType>('courses');
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [intervalMs, setIntervalMs] = useState(5000);
-  const [lastChecked, setLastChecked] = useState<string | null>(null);
+  const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [result, setResult] = useState<OperationResult>(null);
   // Backups management state
   type BackupItem = { filename: string; path: string; size: number; created: string };
@@ -137,6 +138,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
   const { appearanceTheme: selectedTheme, setAppearanceTheme } = useAppearanceTheme();
+  const { formatDateTime, formatTime } = useDateTimeFormatter();
 
   const identityLabel = useMemo(() => {
     if (!user) return null;
@@ -254,7 +256,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       const data = await getHealthStatus();
       setHealth(data);
       setResult(withTimestamp('health', { data }));
-      setLastChecked(now.toLocaleTimeString());
+      setLastChecked(now);
       updateUptime((data as HealthStatus)?.uptime, data?.timestamp as string | undefined);
     } catch (error) {
       console.error('Health check failed', error);
@@ -600,8 +602,8 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
                 )}
                 <div className="flex items-center gap-2 text-white/85">
                   {health?.version ? <span>{t('controlPanel.versionShort', { version: health.version })}</span> : null}
-                  {health?.timestamp ? <span>{new Date(health.timestamp).toLocaleString()}</span> : null}
-                  {lastChecked ? <span>({t('checkedAt')} {lastChecked})</span> : null}
+                    {health?.timestamp ? <span>{formatDateTime(health.timestamp)}</span> : null}
+                    {lastChecked ? <span>({t('checkedAt')} {formatTime(lastChecked)})</span> : null}
                 </div>
               </div>
             </div>
@@ -929,7 +931,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
                       <div>
                         <div className={`text-sm ${theme.text}`}>{b.filename}</div>
                         <div className={`text-xs ${theme.mutedText}`}>
-                          {t('utils.created')}: {new Date(b.created).toLocaleString()} • {(b.size / 1024).toFixed(2)} KB
+                          {t('utils.created')}: {formatDateTime(b.created)} • {(b.size / 1024).toFixed(2)} KB
                         </div>
                       </div>
                     </div>
@@ -952,7 +954,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
         <div className="rounded-lg border border-gray-700 dark:border-gray-600 bg-gray-900 dark:bg-gray-950 p-4 text-gray-100 shadow-inner">
           <div className="flex items-center justify-between text-[11px] uppercase tracking-wide text-gray-400">
             <span>{t('utils.systemStatus')}</span>
-            <span>{new Date(result.timestamp).toLocaleString()}</span>
+            <span>{formatDateTime(result.timestamp)}</span>
           </div>
           <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap text-xs">
             {JSON.stringify(result, null, 2)}

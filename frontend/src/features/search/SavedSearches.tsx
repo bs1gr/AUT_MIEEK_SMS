@@ -5,6 +5,7 @@ import { useSearch, type SavedSearch } from './useSearch';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
 import { useRateLimit } from '../../hooks/useRateLimit';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 interface SavedSearchesProps {
   onLoadSearch?: (search: SavedSearch) => void;
@@ -30,6 +31,7 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
   const [filterType, setFilterType] = useState<'all' | 'students' | 'courses' | 'grades'>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { isRateLimited, call } = useRateLimit(1000); // 1 second cooldown
+  const { formatDate } = useDateTimeFormatter();
 
   const searchState = useSearch();
 
@@ -80,15 +82,6 @@ export const SavedSearches: React.FC<SavedSearchesProps> = ({
     if (filterType !== 'all' && search.search_type !== filterType) return false;
     return true;
   }), [savedSearches, showFavoritesOnly, filterType]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(t('locale') || 'en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   const getSearchTypeLabel = (type: string) => {
     switch (type) {

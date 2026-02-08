@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import ServerControl from './ServerControl';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 
 // Mock useLanguage to avoid i18n dependency
 vi.mock('../../LanguageContext', () => ({
@@ -18,7 +19,11 @@ vi.mock('../../api/api', () => ({
 
 describe('ServerControl', () => {
   it('renders restart button', async () => {
-    render(<ServerControl />);
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <DateTimeSettingsProvider>{children}</DateTimeSettingsProvider>
+    );
+
+    rtlRender(<ServerControl />, { wrapper: Wrapper });
 
     // The restart button label uses the translation key 'controlPanel.restart'
     expect(await screen.findByText('restart')).toBeDefined();

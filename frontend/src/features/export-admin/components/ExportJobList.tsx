@@ -33,7 +33,7 @@ import {
 import { Download, Trash2, Eye, RefreshCw } from 'lucide-react';
 import { useExportJobs, useDeleteExport, useDownloadExport, useRerunExport } from '../hooks/useExportAdmin';
 import { ExportJobListProps, ExportJob } from '../types/export';
-import { formatDistanceToNow } from 'date-fns';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 const ExportJobList: React.FC<ExportJobListProps> = ({
   onJobSelected,
@@ -41,6 +41,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
   onJobDownloaded,
 }) => {
   const { t } = useTranslation('exportAdmin');
+  const { formatDateTime } = useDateTimeFormatter();
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -221,7 +222,7 @@ const ExportJobList: React.FC<ExportJobListProps> = ({
                     {job.duration_seconds ? `${job.duration_seconds.toFixed(2)}${t('units.secondsShort')}` : '-'}
                   </TableCell>
                   <TableCell className="text-sm text-slate-600 dark:text-slate-400 hidden sm:table-cell">
-                    {formatDistanceToNow(new Date(job.created_at), { addSuffix: true })}
+                    {formatDateTime(job.created_at, { includeSeconds: true })}
                   </TableCell>
                   <TableCell className="text-right pr-2">
                     <DropdownMenu>

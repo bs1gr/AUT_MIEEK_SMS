@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { Trash2, Edit, Copy, Download, RefreshCw, ChevronDown, Upload } from 'lucide-react';
 import { useCustomReports, useCreateTemplate, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport, useDeleteGeneratedReport, useImportDefaultTemplates } from '@/hooks/useCustomReports';
 import type { CustomReport, GeneratedReport, ReportTemplate } from '@/api/customReportsAPI';
-import { formatDistanceToNow } from 'date-fns';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 interface ReportListProps {
   onCreateReport?: () => void;
@@ -19,6 +19,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   onEditReport,
 }) => {
   const { t } = useTranslation();
+  const { formatDateTime } = useDateTimeFormatter();
   const { data: reports, isLoading, error } = useCustomReports();
   const createTemplateMutation = useCreateTemplate();
   const deleteMutation = useDeleteReport();
@@ -269,7 +270,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                     </span>
                   </td>
                   <td className="px-6 py-4 text-xs text-gray-600">
-                    {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}
+                    {formatDateTime(report.created_at, { includeSeconds: true })}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-2 relative">
@@ -388,6 +389,7 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
   const { data: generatedReports, isLoading } = useGeneratedReports(reportId);
   const deleteMutation = useDeleteGeneratedReport();
   const { t } = useTranslation();
+  const { formatDateTime } = useDateTimeFormatter();
 
   return (
     <tr className="bg-blue-50">
@@ -401,16 +403,14 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
           {!isLoading && generatedReports && generatedReports.length > 0 && (
             <div className="space-y-2">
               {generatedReports.map((generated: GeneratedReport) => {
-                // Safe date parsing - use generated_at field
-                const generatedDate = generated.generated_at ? new Date(generated.generated_at) : null;
-                const isValidDate = generatedDate && !Number.isNaN(generatedDate.getTime());
+                const formattedGeneratedAt = formatDateTime(generated.generated_at, { includeSeconds: true });
 
                 return (
                   <div key={generated.id} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
                     <div className="text-xs flex-1">
                       <p className="font-medium text-gray-900">
-                        {isValidDate
-                          ? `${t('generatedLabel', { ns: 'customReports' })} ${formatDistanceToNow(generatedDate, { addSuffix: true })}`
+                        {formattedGeneratedAt
+                          ? `${t('generatedLabel', { ns: 'customReports' })} ${formattedGeneratedAt}`
                           : t('generatedNow', { ns: 'customReports' })}
                       </p>
                       <p className="text-gray-600">

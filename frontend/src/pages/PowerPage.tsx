@@ -40,6 +40,7 @@ export default function PowerPage() {
       const params = new URLSearchParams(location.search);
       const id = setTimeout(() => {
         if (params.get('showControl') === '1') setShowControlPanel(true);
+        if (params.get('showSystemHealth') === '1') setShowSystemHealth(true);
         if (params.get('passwordChanged') === '1') setShowPasswordChangedBanner(true);
       }, 0);
       return () => clearTimeout(id);
@@ -55,23 +56,16 @@ export default function PowerPage() {
           <p className="text-sm font-medium text-emerald-800">{t('passwordChangedConfirmation') || 'Password changed successfully'}</p>
         </div>
       )}
-      <div className="bg-white border rounded-xl overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('systemHealth')}</h2>
-          <button
-            type="button"
-            onClick={() => setShowSystemHealth((prev) => !prev)}
-            className="text-sm font-medium text-indigo-700 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:ring-offset-white rounded-lg px-3 py-1.5"
-          >
-            {showSystemHealth ? t('hideSystemHealth') : t('showSystemHealth')}
-          </button>
-        </div>
-        {showSystemHealth && (
+      {showSystemHealth && (
+        <div className="bg-white border rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b">
+            <h2 className="text-2xl font-bold text-indigo-800 drop-shadow-sm">{t('systemHealth')}</h2>
+          </div>
           <div className="p-6">
             <ServerControl />
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="border rounded-xl overflow-hidden bg-white">
         <div className="flex items-center justify-between px-6 py-4 border-b">

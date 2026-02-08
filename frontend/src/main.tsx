@@ -5,6 +5,7 @@ import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
 // import './pwa-register'; // DISABLED for development - causes MIME type errors
 import { AuthProvider } from '@/contexts/AuthContext';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 import RequireAuth from '@/components/auth/RequireAuth';
 import RequireAdmin from '@/components/auth/RequireAdmin';
 
@@ -47,8 +48,9 @@ if (!rootElement) throw new Error('Failed to find the root element');
 
 ReactDOM.createRoot(rootElement).render(
   <BrowserRouter>
-    <AuthProvider>
-      <App>
+    <DateTimeSettingsProvider>
+      <AuthProvider>
+        <App>
         <Suspense fallback={<div className="p-6"><SkeletonLoader rows={6} /></div>}>
           <Routes>
             <Route path="/" element={<AuthPage />} />
@@ -83,7 +85,8 @@ ReactDOM.createRoot(rootElement).render(
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
-      </App>
-    </AuthProvider>
+        </App>
+      </AuthProvider>
+    </DateTimeSettingsProvider>
   </BrowserRouter>
 );

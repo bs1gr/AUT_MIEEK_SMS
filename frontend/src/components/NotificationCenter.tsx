@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import api, { extractAPIResponseData } from '../api/api';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 interface Notification {
   id: number;
@@ -34,7 +35,8 @@ interface NotificationCenterProps {
  * Shows notification history and allows marking as read
  */
 export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
-  const { t, i18n } = useTranslation('notifications');
+  const { t } = useTranslation('notifications');
+  const { formatDateTime } = useDateTimeFormatter();
   const [skip, setSkip] = useState(0);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
   const limit = 20;
@@ -217,10 +219,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                       </p>
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-xs text-gray-500">
-                          {new Date(notification.created_at).toLocaleString(
-                            i18n?.language?.startsWith('el') ? 'el-GR' : 'en-US',
-                            { timeZone: 'Europe/Athens' }
-                          )}
+                          {formatDateTime(notification.created_at)}
                         </span>
                         <div className="flex items-center gap-3">
                           <button

@@ -3,6 +3,7 @@ import { RotateCw, Activity, AlertCircle, CheckCircle, Server } from 'lucide-rea
 import { useLanguage } from '../../LanguageContext';
 import { getHealthStatus, CONTROL_API_BASE, type HealthStatus } from '../../api/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 // Base URL without /api/v1 for direct server endpoints
 const metaEnv = import.meta.env as Partial<Record<string, string | undefined>>;
@@ -57,6 +58,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
   // ...existing code...
   const { t } = useLanguage();
   const { user } = useAuth();
+  const { formatDateTime, formatTime } = useDateTimeFormatter();
 
   const [status, setStatus] = useState<ServerStatus>({
     backend: 'checking',
@@ -201,7 +203,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
         error: error || undefined
       });
       setHealthData(health);
-      setLastCheckedAt(new Date().toLocaleTimeString());
+      setLastCheckedAt(formatTime(new Date()));
       // Reset any offline indicators/backoff after successful check
       setDidShowOffline(false);
       setRetryDelay(1000);
@@ -218,7 +220,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
           error: undefined,
         }));
         setHealthData(null);
-        setLastCheckedAt(new Date().toLocaleTimeString());
+        setLastCheckedAt(formatTime(new Date()));
         // Schedule a retry with exponential backoff up to 4s
         const nextDelay = Math.min(retryDelay * 2, 4000);
         setTimeout(() => {
@@ -235,7 +237,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
           error: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`
         }));
         setHealthData(null);
-        setLastCheckedAt(new Date().toLocaleTimeString());
+        setLastCheckedAt(formatTime(new Date()));
         setDidShowOffline(true);
       }
     }
@@ -495,7 +497,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
               )}
               <div className="flex items-center gap-2 text-white/90">
                 {healthData?.version ? <span>{t('controlPanel.versionShort', { version: healthData.version })}</span> : null}
-                {healthData?.timestamp ? <span>{new Date(healthData.timestamp).toLocaleString()}</span> : null}
+                {healthData?.timestamp ? <span>{formatDateTime(healthData.timestamp)}</span> : null}
                 {lastCheckedAt ? <span>({t('checkedAt')} {lastCheckedAt})</span> : null}
               </div>
             </div>

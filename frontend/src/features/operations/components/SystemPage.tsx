@@ -14,7 +14,7 @@ import { useLocation } from 'react-router-dom';
 export default function SystemPage() {
   const { t } = useLanguage();
   const location = useLocation();
-  const [showSystemHealth, setShowSystemHealth] = useState(true);
+  const [showSystemHealth, setShowSystemHealth] = useState(false);
 
   // Auto-open control panel when URL contains ?showControl=1
   const [showControlPanel, setShowControlPanel] = useState(() => {
@@ -39,6 +39,7 @@ export default function SystemPage() {
       const params = new URLSearchParams(location.search);
       const id = setTimeout(() => {
         if (params.get('showControl') === '1') setShowControlPanel(true);
+        if (params.get('showSystemHealth') === '1') setShowSystemHealth(true);
         if (params.get('passwordChanged') === '1') setShowPasswordChangedBanner(true);
       }, 0);
       return () => clearTimeout(id);

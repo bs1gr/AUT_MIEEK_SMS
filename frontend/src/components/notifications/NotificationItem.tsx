@@ -9,6 +9,7 @@ import { useNotifications } from '../../hooks/useNotifications';
 import type { Notification } from '../../types/notification';
 import './NotificationItem.css';
 import { safeNavigate } from '../../utils/navigation';
+import { useDateTimeFormatter, useDateTimeSettings } from '@/contexts/DateTimeSettingsContext';
 
 export interface NotificationItemProps {
   notification: Notification;
@@ -18,6 +19,8 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
   const { t, i18n } = useTranslation('notifications');
   const { markAsRead, deleteNotification } = useNotifications();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { timeZone } = useDateTimeSettings();
+  const { formatDate } = useDateTimeFormatter();
 
   const handleMarkAsRead = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -84,7 +87,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
   const getRelativeTime = (date: string) => {
     const now = new Date();
     const notificationDate = new Date(date);
-    const timeZone = 'Europe/Athens';
     const locale = i18n?.language?.startsWith('el') ? 'el-GR' : 'en-US';
 
     const getZonedTimestamp = (value: Date) => {
@@ -124,7 +126,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
     } else if (diffDays < 7) {
       return t('time.daysAgo', { count: diffDays });
     } else {
-      return notificationDate.toLocaleDateString(locale, { timeZone });
+      return formatDate(notificationDate);
     }
   };
 

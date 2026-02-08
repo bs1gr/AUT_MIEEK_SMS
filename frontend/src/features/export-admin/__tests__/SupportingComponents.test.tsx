@@ -17,6 +17,7 @@ import {
   PerformanceAnalytics,
   ExportMetricsChart,
 } from '../components/index';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 
 // Initialize i18n for tests
 i18n.init({
@@ -116,7 +117,9 @@ const renderWithProviders = (
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={testQueryClient}>
-      <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+      <I18nextProvider i18n={i18n}>
+        <DateTimeSettingsProvider>{children}</DateTimeSettingsProvider>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 

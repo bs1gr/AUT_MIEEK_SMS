@@ -6,6 +6,7 @@ import testI18n from '@/test-utils/i18n-test-wrapper';
 import { ReactNode } from 'react';
 import { SavedSearches } from './SavedSearches';
 import * as useSearchModule from './useSearch';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 
 type UseSearchReturn = ReturnType<typeof useSearchModule.useSearch>;
 
@@ -63,7 +64,9 @@ describe('SavedSearches Component', () => {
 
   const wrapper = ({ children }: { children: ReactNode }) => (
     <I18nextProvider i18n={testI18n}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <DateTimeSettingsProvider>{children}</DateTimeSettingsProvider>
+      </QueryClientProvider>
     </I18nextProvider>
   );
 

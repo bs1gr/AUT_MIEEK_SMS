@@ -10,6 +10,7 @@ import React, { ReactElement } from 'react';
 import i18n from 'i18next';
 import { I18nextProvider } from 'react-i18next';
 import ExportDashboard from '../components/ExportDashboard';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 
 const mockDeleteExport = vi.fn();
 const mockDownloadExport = vi.fn();
@@ -246,7 +247,9 @@ const renderWithProviders = (ui: ReactElement) => {
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+      <I18nextProvider i18n={i18n}>
+        <DateTimeSettingsProvider>{children}</DateTimeSettingsProvider>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 

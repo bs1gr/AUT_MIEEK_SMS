@@ -46,7 +46,7 @@ import {
   useToggleSchedule,
 } from '../hooks/useExportAdmin';
 import { ExportSchedulerProps, ScheduleFrequency, CreateScheduleRequest, ExportSchedule } from '../types/export';
-import { format } from 'date-fns';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 const ExportScheduler: React.FC<ExportSchedulerProps> = ({
   onScheduleCreated,
@@ -54,6 +54,7 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
   onScheduleDeleted,
 }) => {
   const { t } = useTranslation('exportAdmin');
+  const { formatDateTime } = useDateTimeFormatter();
   const [showForm, setShowForm] = useState(false);
 
   // Form setup
@@ -372,12 +373,12 @@ const ExportScheduler: React.FC<ExportSchedulerProps> = ({
                       </p>
                       {schedule.last_run_at && (
                         <p className="text-slate-500 dark:text-slate-400 text-xs">
-                          <span className="font-medium text-slate-600 dark:text-slate-300">{t('schedule.lastRun')}:</span> {format(new Date(schedule.last_run_at), 'PPpp')}
+                          <span className="font-medium text-slate-600 dark:text-slate-300">{t('schedule.lastRun')}:</span> {formatDateTime(schedule.last_run_at, { includeSeconds: true })}
                         </p>
                       )}
                       {schedule.next_run_at && (
                         <p className="text-slate-500 dark:text-slate-400 text-xs">
-                          <span className="font-medium text-slate-600 dark:text-slate-300">{t('schedule.nextRun')}:</span> {format(new Date(schedule.next_run_at), 'PPpp')}
+                          <span className="font-medium text-slate-600 dark:text-slate-300">{t('schedule.nextRun')}:</span> {formatDateTime(schedule.next_run_at, { includeSeconds: true })}
                         </p>
                       )}
                     </div>

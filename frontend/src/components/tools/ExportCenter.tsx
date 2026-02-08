@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI, sessionAPI } from '../../api/api';
 import type { OperationsLocationState } from '@/features/operations/types';
@@ -435,7 +436,24 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const [courses, setCourses] = useState<CourseType[]>([]);
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
-  const [showPrintCalendar, setShowPrintCalendar] = useState(false);
+  const [showCalendarReview, setShowCalendarReview] = useState(false);
+  const [calendarDraft, setCalendarDraft] = useState<EditableCalendarSession[]>([]);
+  const [calendarLayout, setCalendarLayout] = useState<CalendarLayoutOptions>({
+    showHeader: true,
+    showSummary: true,
+    showGeneratedOn: true,
+    showLegend: true,
+    showFooter: true,
+    showDayCardBackground: true,
+    stylePreset: 'classic',
+  });
+  const [expandedExportCardId, setExpandedExportCardId] = useState<string | null>(null);
+  const [expandedSections, setExpandedSections] = useState({
+    exportCards: false,
+    sessionExport: false,
+    studentReports: false,
+    courseAnalytics: false,
+  });
   const calendarRef = useRef<HTMLDivElement>(null);
   // Map of refs for each export card
   const exportCardRefs = useRef<{ [id: string]: HTMLDivElement | null }>({});
@@ -463,8 +481,6 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   }, [hash, scrollTo]);
   const printCalendar = useReactToPrint({
     contentRef: calendarRef,
-    onAfterPrint: () => setShowPrintCalendar(false),
-    // removeAfterPrint: true, // not supported in this version
   });
 
   const showToast = useCallback((message: string, type: string = 'info') => {
@@ -525,158 +541,355 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     }
   };
 
-  const handlePrintCalendar = () => {
-    setShowPrintCalendar(true);
-    setTimeout(() => {
-      if (printCalendar) printCalendar();
-    }, 100);
+  const buildCalendarDraft = useCallback((courseList: CourseType[]) => {
+    const schedule = buildPrintableSchedule(courseList);
+    const draft: EditableCalendarSession[] = [];
+    Object.entries(schedule).forEach(([day, sessions]) => {
+      sessions.forEach((session, index) => {
+        draft.push({
+          ...session,
+          day,
+          id: `${day}-${session.courseId}-${index}`,
+        });
+      });
+    });
+    return draft;
+  }, []);
+
+  const handleOpenCalendarReview = () => {
+    setCalendarDraft(buildCalendarDraft(courses));
+    setCalendarLayout({
+      showHeader: true,
+      showSummary: true,
+      showGeneratedOn: true,
+      showLegend: true,
+      showFooter: true,
+      showDayCardBackground: true,
+      stylePreset: 'classic',
+    });
+    setShowCalendarReview(true);
   };
 
-  const exportOptions = [
+  useEffect(() => {
+    if (showCalendarReview && calendarDraft.length === 0 && courses.length > 0) {
+      setCalendarDraft(buildCalendarDraft(courses));
+    }
+  }, [buildCalendarDraft, calendarDraft.length, courses, showCalendarReview]);
+
+
+  const handleExportCalendarCsv = () => {
+    const getDayLabel = (day: string) => {
+      const match = WEEKDAY_CONFIG.find((entry) => entry.key === day);
+      return match ? t(match.labelKey) : day;
+    };
+    const header = [
+      t('printCalendarDay'),
+      t('printCalendarCourseCode'),
+      t('printCalendarCourseName'),
+      t('printCalendarStart'),
+      t('printCalendarEnd'),
+      t('printCalendarDuration'),
+      t('printCalendarPeriods'),
+      t('printCalendarLocation')
+    ];
+    const rows = calendarDraft.map((session) => [
+      getDayLabel(session.day),
+      session.courseCode || '',
+      session.courseName || '',
+      session.start,
+      session.end,
+      String(session.duration),
+      String(session.periods),
+      session.location || '',
+    ]);
+    const csv = [header, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n');
+    const csvWithBom = `\uFEFF${csv}`;
+    const blob = new Blob([csvWithBom], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'calendar_export.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportCalendarExcel = () => {
+    const getDayLabel = (day: string) => {
+      const match = WEEKDAY_CONFIG.find((entry) => entry.key === day);
+      return match ? t(match.labelKey) : day;
+    };
+    const header = [
+      t('printCalendarDay'),
+      t('printCalendarCourseCode'),
+      t('printCalendarCourseName'),
+      t('printCalendarStart'),
+      t('printCalendarEnd'),
+      t('printCalendarDuration'),
+      t('printCalendarPeriods'),
+      t('printCalendarLocation')
+    ];
+    const rows = calendarDraft.map((session) => [
+      getDayLabel(session.day),
+      session.courseCode || '',
+      session.courseName || '',
+      session.start,
+      session.end,
+      session.duration,
+      session.periods,
+      session.location || ''
+    ]);
+    const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, t('printCalendarSheetTitle') || 'Calendar');
+    XLSX.writeFile(workbook, 'calendar_export.xlsx');
+  };
+
+  const exportSingles = [
     {
       id: 'print-calendar',
       title: t('printCalendar'),
       description: t('printCalendarDesc'),
       icon: Calendar,
       color: 'from-indigo-500 to-indigo-700',
-      onClick: handlePrintCalendar,
-      format: 'Print'
+      onClick: handleOpenCalendarReview,
+      formatLabel: t('exportToPrint'),
     },
+  ];
+
+  const exportModules = [
     {
-      id: 'students-csv',
-      title: t('studentsListCSV'),
-      description: t('exportAllStudentsCSV'),
-      icon: Users,
-      color: 'from-yellow-500 to-yellow-600',
-      endpoint: '/export/students/csv',
-      filename: 'students.csv',
-      format: 'CSV'
-    },
-    {
-      id: 'all-data-zip',
-      title: t('exportAllDataZIP'),
-      description: t('exportAllDataDescription'),
-      icon: Download,
-      color: 'from-gray-500 to-gray-700',
-      endpoint: '/export/all/zip',
-      filename: 'all_data.zip',
-      format: 'ZIP'
-    },
-    {
-      id: 'students-excel',
+      id: 'students',
       title: t('studentsListExcel'),
       description: t('exportAllStudents'),
       icon: Users,
-      color: 'from-green-500 to-green-600',
-      endpoint: '/export/students/excel',
-      filename: 'students.xlsx',
-      format: 'Excel'
+      color: 'from-blue-500 to-blue-700',
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/students/pdf', filename: 'students.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/students/excel', filename: 'students.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/students/csv', filename: 'students.csv' },
+      ],
     },
     {
-      id: 'students-pdf',
-      title: t('studentsDirectoryPDF'),
-      description: t('exportStudentDirectory'),
-      icon: Users,
-      color: 'from-red-500 to-red-600',
-      endpoint: '/export/students/pdf',
-      filename: 'students.pdf',
-      format: 'PDF'
-    },
-    {
-      id: 'courses-excel',
+      id: 'courses',
       title: t('coursesListExcel'),
       description: t('exportAllCourses'),
       icon: Book,
-      color: 'from-purple-500 to-purple-600',
-      endpoint: '/export/courses/excel',
-      filename: 'courses.xlsx',
-      format: 'Excel'
+      color: 'from-purple-500 to-purple-700',
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/courses/pdf', filename: 'courses.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/courses/excel', filename: 'courses.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/courses/csv', filename: 'courses.csv' },
+      ],
     },
     {
-      id: 'courses-pdf',
-      title: t('coursesCatalogPDF'),
-      description: t('exportCourseCatalog'),
-      icon: Book,
-      color: 'from-indigo-500 to-indigo-600',
-      endpoint: '/export/courses/pdf',
-      filename: 'courses.pdf',
-      format: 'PDF'
-    },
-    {
-      id: 'attendance-excel',
+      id: 'attendance',
       title: t('attendanceRecordsExcel'),
       description: t('exportAllAttendance'),
       icon: Calendar,
-      color: 'from-blue-500 to-blue-600',
-      endpoint: '/export/attendance/excel',
-      filename: 'attendance.xlsx',
-      format: 'Excel'
+      color: 'from-cyan-500 to-cyan-700',
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/attendance/pdf', filename: 'attendance.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/attendance/excel', filename: 'attendance.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/attendance/csv', filename: 'attendance.csv' },
+      ],
     },
     {
-      id: 'attendance-analytics-excel',
+      id: 'attendance-analytics',
       title: t('attendanceAnalyticsExcel'),
       description: t('exportAttendanceAnalytics'),
       icon: BarChart3,
       color: 'from-slate-600 to-indigo-700',
-      endpoint: '/export/attendance/analytics/excel',
-      filename: 'attendance_analytics.xlsx',
-      format: 'Excel'
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/attendance/analytics/pdf', filename: 'attendance_analytics.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/attendance/analytics/excel', filename: 'attendance_analytics.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/attendance/analytics/csv', filename: 'attendance_analytics.csv' },
+      ],
     },
     {
-      id: 'all-grades-excel',
+      id: 'all-grades',
       title: t('allGradesExcel'),
       description: t('exportAllGrades'),
       icon: TrendingUp,
-      color: 'from-emerald-500 to-emerald-600',
-      endpoint: '/export/grades/excel',
-      filename: 'all_grades.xlsx',
-      format: 'Excel'
+      color: 'from-emerald-500 to-emerald-700',
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/grades/pdf', filename: 'all_grades.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/grades/excel', filename: 'all_grades.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/grades/csv', filename: 'all_grades.csv' },
+      ],
     },
     {
-      id: 'enrollments-excel',
+      id: 'enrollments',
       title: t('enrollmentsExcel'),
       description: t('exportEnrollments'),
       icon: Briefcase,
-      color: 'from-cyan-500 to-cyan-600',
-      endpoint: '/export/enrollments/excel',
-      filename: 'enrollments.xlsx',
-      format: 'Excel'
+      color: 'from-teal-500 to-teal-700',
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/enrollments/pdf', filename: 'enrollments.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/enrollments/excel', filename: 'enrollments.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/enrollments/csv', filename: 'enrollments.csv' },
+      ],
     },
     {
-      id: 'performance-excel',
+      id: 'performance',
       title: t('dailyPerformanceExcel'),
       description: t('exportDailyPerformance'),
       icon: Award,
-      color: 'from-amber-500 to-amber-600',
-      endpoint: '/export/performance/excel',
-      filename: 'daily_performance.xlsx',
-      format: 'Excel'
+      color: 'from-amber-500 to-amber-700',
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/performance/pdf', filename: 'daily_performance.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/performance/excel', filename: 'daily_performance.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/performance/csv', filename: 'daily_performance.csv' },
+      ],
     },
     {
-      id: 'highlights-excel',
+      id: 'highlights',
       title: t('highlightsExcel'),
       description: t('exportHighlights'),
       icon: Award,
-      color: 'from-pink-500 to-pink-600',
-      endpoint: '/export/highlights/excel',
-      filename: 'highlights.xlsx',
-      format: 'Excel'
-    }
+      color: 'from-pink-500 to-pink-700',
+      formats: [
+        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/highlights/pdf', filename: 'highlights.pdf' },
+        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/highlights/excel', filename: 'highlights.xlsx' },
+        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/highlights/csv', filename: 'highlights.csv' },
+      ],
+    },
   ];
 
   const isEmbedded = variant === 'embedded';
   const wrapperClass = isEmbedded
-    ? 'space-y-8'
+    ? 'space-y-10'
     : 'min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8';
-  const contentClass = isEmbedded ? 'space-y-8' : 'max-w-7xl mx-auto';
+  const contentClass = isEmbedded ? 'space-y-10' : 'max-w-7xl mx-auto space-y-10';
 
   return (
     <div className={wrapperClass}>
       {/* Print Calendar Modal/Section */}
-      {showPrintCalendar && (
-        <div className="print-calendar-hidden">
-          <div ref={calendarRef}>
-            <PrintableCalendarSheet courses={courses} t={t} language={language} />
+      {showCalendarReview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-slate-900">{t('printCalendarReviewTitle')}</h2>
+                <p className="text-sm text-slate-600">{t('printCalendarReviewSubtitle')}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCalendarReview(false)}
+                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+              >
+                {t('cancel')}
+              </button>
+            </div>
+
+            <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-4">
+              <div className="mb-3 text-sm font-semibold text-slate-700">
+                {t('printCalendarCustomizeTitle')}
+              </div>
+              <div className="grid grid-cols-1 gap-3 text-sm text-slate-700 sm:grid-cols-2">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={calendarLayout.showHeader}
+                    onChange={(e) => setCalendarLayout((prev) => ({ ...prev, showHeader: e.target.checked }))}
+                  />
+                  {t('printCalendarShowHeader')}
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={calendarLayout.showSummary}
+                    onChange={(e) => setCalendarLayout((prev) => ({ ...prev, showSummary: e.target.checked }))}
+                  />
+                  {t('printCalendarShowSummary')}
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={calendarLayout.showGeneratedOn}
+                    onChange={(e) => setCalendarLayout((prev) => ({ ...prev, showGeneratedOn: e.target.checked }))}
+                  />
+                  {t('printCalendarShowGeneratedOn')}
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={calendarLayout.showLegend}
+                    onChange={(e) => setCalendarLayout((prev) => ({ ...prev, showLegend: e.target.checked }))}
+                  />
+                  {t('printCalendarShowLegend')}
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={calendarLayout.showFooter}
+                    onChange={(e) => setCalendarLayout((prev) => ({ ...prev, showFooter: e.target.checked }))}
+                  />
+                  {t('printCalendarShowFooter')}
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={calendarLayout.showDayCardBackground}
+                    onChange={(e) => setCalendarLayout((prev) => ({ ...prev, showDayCardBackground: e.target.checked }))}
+                  />
+                  {t('printCalendarShowDayCardBackground')}
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span>{t('printCalendarStylePreset')}</span>
+                  <select
+                    className="rounded border border-slate-200 bg-white px-2 py-1"
+                    value={calendarLayout.stylePreset}
+                    onChange={(e) =>
+                      setCalendarLayout((prev) => ({ ...prev, stylePreset: e.target.value as CalendarLayoutOptions['stylePreset'] }))
+                    }
+                  >
+                    <option value="classic">{t('printCalendarStyleClassic')}</option>
+                    <option value="minimal">{t('printCalendarStyleMinimal')}</option>
+                    <option value="bold">{t('printCalendarStyleBold')}</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <div ref={calendarRef}>
+                <PrintableCalendarSheet
+                  courses={courses}
+                  t={t}
+                  language={language}
+                  scheduleOverride={calendarDraft}
+                  layoutOptions={calendarLayout}
+                />
+              </div>
+            </div>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => printCalendar && printCalendar()}
+                className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+              >
+                {t('exportToPDF')}
+              </button>
+              <button
+                type="button"
+                onClick={handleExportCalendarExcel}
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+              >
+                {t('exportToExcel')}
+              </button>
+              <button
+                type="button"
+                onClick={handleExportCalendarCsv}
+                className="rounded-lg bg-slate-600 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700"
+              >
+                {t('exportToCSV')}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -688,219 +901,312 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       )}
 
   <div className={contentClass}>
-        <div className="flex items-center space-x-3 mb-8">
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-xl">
-            <Download className="text-white" size={28} />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800">{t('exportCenter')}</h1>
-            <p className="text-gray-600">{t('downloadYourData')}</p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {exportOptions.map(option => (
-            <div
-              key={option.id}
-              className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
-              ref={(el) => {
-                exportCardRefs.current[option.id] = el;
-              }}
-              tabIndex={-1}
-            >
-              <div className={`bg-gradient-to-br ${option.color} p-4 rounded-xl w-fit mb-4`}>
-                <option.icon className="text-white" size={32} />
-              </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">{option.title}</h3>
-              <p className="text-gray-600 text-sm mb-4">{option.description}</p>
-              {option.id === 'print-calendar' ? (
-                <button
-                  onClick={option.onClick}
-                  disabled={loading[option.id]}
-                  className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
-                >
-                  <Download size={20} />
-                  <span>{t('exportTo' + option.format)}</span>
-                </button>
-              ) : (
-                <button
-                  onClick={option.onClick ? option.onClick : () => handleExport(option.endpoint!, option.filename!, option.id)}
-                  disabled={loading[option.id]}
-                  className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
-                >
-                  {loading[option.id] ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      <span>{t('exporting')}</span>
-                    </>
-                  ) : (
-                    <>
-                      <Download size={20} />
-                      <span>{t('exportTo' + option.format)}</span>
-                    </>
-                  )}
-                </button>
-              )}
+        <section className="rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-indigo-50 to-purple-50 p-6 shadow-md">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-2">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">{t('exportCenter')}</p>
+              <h1 className="text-2xl font-semibold text-slate-900 sm:text-3xl">{t('exportCenter')}</h1>
+              <p className="text-base text-slate-700 max-w-3xl">{t('downloadYourData')}</p>
             </div>
-          ))}
-        </div>
-
-        {/* Session Export/Import Section */}
-        <SessionExportImport t={t} showToast={showToast} />
-
-        <div className="bg-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center space-x-2 mb-6">
-            <FileCheck size={24} className="text-indigo-600" />
-            <h2 className="text-2xl font-bold text-gray-800">{t('individualStudentReports')}</h2>
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-3 rounded-2xl w-fit">
+              <Download className="text-white" size={28} />
+            </div>
           </div>
-          <p className="text-gray-600 mb-6">{t('generateComprehensive')}</p>
+        </section>
 
-          {/* DEBUG: Show number of students loaded */}
-          <div className="mb-2 text-xs text-gray-500">{t('loadedStudents', { count: students.length })}</div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {students.length === 0 ? (
-              <div className="col-span-2 text-center text-gray-400 py-8">{t('noStudentsFound')}</div>
-            ) : (
-              students.map(student => (
-                <div key={student.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {student.first_name[0]}{student.last_name[0]}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">{student.first_name} {student.last_name}</p>
-                        <p className="text-sm text-gray-600">{student.student_id}</p>
-                      </div>
-                    </div>
-                    <div className="flex space-x-2">
-                      {/* Grades (Excel) */}
-                      <button
-                        onClick={() => handleExport(
-                          `/export/grades/excel/${student.id}`,
-                          `grades_${student.student_id}.xlsx`,
-                          `grades-${student.id}`
-                        )}
-                        disabled={loading[`grades-${student.id}`]}
-                        className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
-                        title={t('exportGrades') + ' (Excel)'}
-                      >
-                        <FileSpreadsheet size={20} />
-                      </button>
-                      {/* Attendance (Excel) */}
-                      <button
-                        onClick={() => handleExport(
-                          `/export/attendance/excel/${student.id}`,
-                          `attendance_${student.student_id}.xlsx`,
-                          `attendance-${student.id}`
-                        )}
-                        disabled={loading[`attendance-${student.id}`]}
-                        className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
-                        title={t('exportAttendance') + ' (Excel)'}
-                      >
-                        <Calendar size={20} />
-                      </button>
-                      {/* Daily Performance (Excel) */}
-                      <button
-                        onClick={() => handleExport(
-                          `/export/performance/excel/${student.id}`,
-                          `performance_${student.student_id}.xlsx`,
-                          `performance-${student.id}`
-                        )}
-                        disabled={loading[`performance-${student.id}`]}
-                        className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-50"
-                        title={t('exportPerformance') + ' (Excel)'}
-                      >
-                        <TrendingUp size={20} />
-                      </button>
-                      {/* Highlights (Excel) */}
-                      <button
-                        onClick={() => handleExport(
-                          `/export/highlights/excel/${student.id}`,
-                          `highlights_${student.student_id}.xlsx`,
-                          `highlights-${student.id}`
-                        )}
-                        disabled={loading[`highlights-${student.id}`]}
-                        className="p-2 text-pink-600 hover:bg-pink-100 rounded-lg transition-colors disabled:opacity-50"
-                        title={t('exportHighlights') + ' (Excel)'}
-                      >
-                        <Award size={20} />
-                      </button>
-                      {/* Enrollments (Excel) */}
-                      <button
-                        onClick={() => handleExport(
-                          `/export/enrollments/excel/${student.id}`,
-                          `enrollments_${student.student_id}.xlsx`,
-                          `enrollments-${student.id}`
-                        )}
-                        disabled={loading[`enrollments-${student.id}`]}
-                        className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg transition-colors disabled:opacity-50"
-                        title={t('exportEnrollments') + ' (Excel)'}
-                      >
-                        <Briefcase size={20} />
-                      </button>
-                      {/* Full Report (PDF) */}
-                      <button
-                        onClick={() => handleExport(
-                          `/export/student-report/pdf/${student.id}`,
-                          `report_${student.student_id}.pdf`,
-                          `report-${student.id}`
-                        )}
-                        disabled={loading[`report-${student.id}`]}
-                        className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
-                        title={t('exportReport') + ' (PDF)'}
-                      >
-                        <FileText size={20} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
+        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+          <div className="border-b border-slate-100 px-6 py-5">
+            <button
+              type="button"
+              onClick={() => setExpandedSections((prev) => ({ ...prev, exportCards: !prev.exportCards }))}
+              className="w-full flex items-center justify-between"
+            >
+              <span className="text-lg font-semibold text-slate-900">{t('exportCenter')}</span>
+              {expandedSections.exportCards ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
           </div>
-        </div>
-
-        <div className="mt-8 bg-white rounded-2xl shadow-lg p-6">
-          <div className="flex items-center space-x-2 mb-6">
-            <TrendingUp size={24} className="text-indigo-600" />
-            <h2 className="text-2xl font-bold text-gray-800">{t('courseAnalyticsReports')}</h2>
-          </div>
-          <p className="text-gray-600 mb-6">{t('generateCourseAnalytics')}</p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {courses.map(course => (
-              <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
-                      {course.course_code ? course.course_code.substring(0, 2).toUpperCase() : 'CO'}
+          {expandedSections.exportCards && (
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {exportSingles.map(option => (
+                  <div
+                    key={option.id}
+                    className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+                    ref={(el) => {
+                      exportCardRefs.current[option.id] = el;
+                    }}
+                    tabIndex={-1}
+                  >
+                    <div className={`bg-gradient-to-br ${option.color} p-4 rounded-xl w-fit mb-4`}>
+                      <option.icon className="text-white" size={32} />
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-800">{course.course_code} - {course.course_name}</p>
-                      <p className="text-sm text-gray-600">{course.semester || t('na')} | {course.credits || 0} {t('credits')}</p>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{option.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{option.description}</p>
                     <button
-                      onClick={() => handleExport(
-                        `/export/analytics/course/${course.id}/pdf`,
-                        `course_analytics_${course.course_code}.pdf`,
-                        `course-analytics-${course.id}`
-                      )}
-                      disabled={loading[`course-analytics-${course.id}`]}
-                      className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors disabled:opacity-50"
-                      title={t('exportCourseAnalytics') + ' (PDF)'}
+                      onClick={option.onClick ? option.onClick : () => handleExport(option.endpoint!, option.filename!, option.id)}
+                      disabled={loading[option.id]}
+                      className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
                     >
-                      <FileText size={20} />
+                      {loading[option.id] ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          <span>{t('exporting')}</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download size={20} />
+                          <span>{option.formatLabel}</span>
+                        </>
+                      )}
                     </button>
                   </div>
-                </div>
+                ))}
+                {exportModules.map((module) => (
+                  <div
+                    key={module.id}
+                    className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+                    ref={(el) => {
+                      exportCardRefs.current[module.id] = el;
+                    }}
+                    tabIndex={-1}
+                  >
+                    <div className={`bg-gradient-to-br ${module.color} p-4 rounded-xl w-fit mb-4`}>
+                      <module.icon className="text-white" size={32} />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-2">{module.title}</h3>
+                    <p className="text-gray-600 text-sm mb-4">{module.description}</p>
+                    <button
+                      onClick={() =>
+                        setExpandedExportCardId((prev) => (prev === module.id ? null : module.id))
+                      }
+                      className={`w-full bg-gradient-to-r ${module.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all flex items-center justify-center space-x-2`}
+                    >
+                      <Download size={20} />
+                      <span>{expandedExportCardId === module.id ? t('hideFormats') : t('chooseFormat')}</span>
+                    </button>
+                    {expandedExportCardId === module.id && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        {module.formats.map((format) => {
+                          const exportKey = `${module.id}-${format.key}`;
+                          const isDisabled = format.disabled || !format.endpoint;
+                          return (
+                            <button
+                              key={exportKey}
+                              onClick={() =>
+                                !isDisabled && handleExport(format.endpoint!, format.filename!, exportKey)
+                              }
+                              disabled={isDisabled || loading[exportKey]}
+                              title={isDisabled ? t('exportFormatUnavailable') : undefined}
+                              className={`rounded-lg px-3 py-2 text-sm font-semibold transition-all ${
+                                isDisabled
+                                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                  : 'bg-slate-800 text-white hover:bg-slate-900'
+                              }`}
+                            >
+                              {format.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+            </div>
+          )}
+        </section>
 
-        <div className="mt-8 bg-gradient-to-r from-indigo-100 to-purple-100 rounded-2xl p-6 border border-indigo-200">
+        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+          <div className="border-b border-slate-100 px-6 py-5">
+            <button
+              type="button"
+              onClick={() => setExpandedSections((prev) => ({ ...prev, sessionExport: !prev.sessionExport }))}
+              className="w-full flex items-center justify-between"
+            >
+              <span className="text-lg font-semibold text-slate-900">{t('sessionExportImport')}</span>
+              {expandedSections.sessionExport ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+          </div>
+          {expandedSections.sessionExport && (
+            <div className="px-6 py-5">
+              <SessionExportImport t={t} showToast={showToast} />
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+          <div className="border-b border-slate-100 px-6 py-5">
+            <button
+              type="button"
+              onClick={() => setExpandedSections((prev) => ({ ...prev, studentReports: !prev.studentReports }))}
+              className="w-full flex items-center justify-between"
+            >
+              <span className="text-lg font-semibold text-slate-900">{t('individualStudentReports')}</span>
+              {expandedSections.studentReports ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+          </div>
+          {expandedSections.studentReports && (
+            <div className="px-6 py-5">
+              <p className="text-gray-600 mb-6">{t('generateComprehensive')}</p>
+
+              {/* DEBUG: Show number of students loaded */}
+              <div className="mb-2 text-xs text-gray-500">{t('loadedStudents', { count: students.length })}</div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {students.length === 0 ? (
+                  <div className="col-span-2 text-center text-gray-400 py-8">{t('noStudentsFound')}</div>
+                ) : (
+                  students.map(student => (
+                    <div key={student.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
+                            {student.first_name[0]}{student.last_name[0]}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">{student.first_name} {student.last_name}</p>
+                            <p className="text-sm text-gray-600">{student.student_id}</p>
+                          </div>
+                        </div>
+                        <div className="flex space-x-2">
+                          {/* Grades (Excel) */}
+                          <button
+                            onClick={() => handleExport(
+                              `/export/grades/excel/${student.id}`,
+                              `grades_${student.student_id}.xlsx`,
+                              `grades-${student.id}`
+                            )}
+                            disabled={loading[`grades-${student.id}`]}
+                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
+                            title={t('exportGrades') + ' (Excel)'}
+                          >
+                            <FileSpreadsheet size={20} />
+                          </button>
+                          {/* Attendance (Excel) */}
+                          <button
+                            onClick={() => handleExport(
+                              `/export/attendance/excel/${student.id}`,
+                              `attendance_${student.student_id}.xlsx`,
+                              `attendance-${student.id}`
+                            )}
+                            disabled={loading[`attendance-${student.id}`]}
+                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
+                            title={t('exportAttendance') + ' (Excel)'}
+                          >
+                            <Calendar size={20} />
+                          </button>
+                          {/* Daily Performance (Excel) */}
+                          <button
+                            onClick={() => handleExport(
+                              `/export/performance/excel/${student.id}`,
+                              `performance_${student.student_id}.xlsx`,
+                              `performance-${student.id}`
+                            )}
+                            disabled={loading[`performance-${student.id}`]}
+                            className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-50"
+                            title={t('exportPerformance') + ' (Excel)'}
+                          >
+                            <TrendingUp size={20} />
+                          </button>
+                          {/* Highlights (Excel) */}
+                          <button
+                            onClick={() => handleExport(
+                              `/export/highlights/excel/${student.id}`,
+                              `highlights_${student.student_id}.xlsx`,
+                              `highlights-${student.id}`
+                            )}
+                            disabled={loading[`highlights-${student.id}`]}
+                            className="p-2 text-pink-600 hover:bg-pink-100 rounded-lg transition-colors disabled:opacity-50"
+                            title={t('exportHighlights') + ' (Excel)'}
+                          >
+                            <Award size={20} />
+                          </button>
+                          {/* Enrollments (Excel) */}
+                          <button
+                            onClick={() => handleExport(
+                              `/export/enrollments/excel/${student.id}`,
+                              `enrollments_${student.student_id}.xlsx`,
+                              `enrollments-${student.id}`
+                            )}
+                            disabled={loading[`enrollments-${student.id}`]}
+                            className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg transition-colors disabled:opacity-50"
+                            title={t('exportEnrollments') + ' (Excel)'}
+                          >
+                            <Briefcase size={20} />
+                          </button>
+                          {/* Full Report (PDF) */}
+                          <button
+                            onClick={() => handleExport(
+                              `/export/student-report/pdf/${student.id}`,
+                              `report_${student.student_id}.pdf`,
+                              `report-${student.id}`
+                            )}
+                            disabled={loading[`report-${student.id}`]}
+                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
+                            title={t('exportReport') + ' (PDF)'}
+                          >
+                            <FileText size={20} />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
+          <div className="border-b border-slate-100 px-6 py-5">
+            <button
+              type="button"
+              onClick={() => setExpandedSections((prev) => ({ ...prev, courseAnalytics: !prev.courseAnalytics }))}
+              className="w-full flex items-center justify-between"
+            >
+              <span className="text-lg font-semibold text-slate-900">{t('courseAnalyticsReports')}</span>
+              {expandedSections.courseAnalytics ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+          </div>
+          {expandedSections.courseAnalytics && (
+            <div className="px-6 py-5">
+              <p className="text-gray-600 mb-6">{t('generateCourseAnalytics')}</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {courses.map(course => (
+                  <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
+                          {course.course_code ? course.course_code.substring(0, 2).toUpperCase() : 'CO'}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-800">{course.course_code} - {course.course_name}</p>
+                          <p className="text-sm text-gray-600">{course.semester || t('na')} | {course.credits || 0} {t('credits')}</p>
+                        </div>
+                      </div>
+                      <div className="flex space-x-2">
+                        <button
+                          onClick={() => handleExport(
+                            `/export/analytics/course/${course.id}/pdf`,
+                            `course_analytics_${course.course_code}.pdf`,
+                            `course-analytics-${course.id}`
+                          )}
+                          disabled={loading[`course-analytics-${course.id}`]}
+                          className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors disabled:opacity-50"
+                          title={t('exportCourseAnalytics') + ' (PDF)'}
+                        >
+                          <FileText size={20} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-indigo-200 bg-gradient-to-r from-indigo-100 to-purple-100 p-6">
           <h3 className="text-lg font-bold text-gray-800 mb-3">{t('exportTipsHeader')} {t('exportTips')}</h3>
           <ul className="space-y-2 text-gray-700">
             <li className="flex items-start space-x-2">
@@ -920,7 +1226,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
               <span>{t('exportTipTimestamp')}</span>
             </li>
           </ul>
-        </div>
+        </section>
       </div>
     </div>
   );
@@ -937,10 +1243,27 @@ type PrintableSession = {
   location?: string;
 };
 
+type EditableCalendarSession = PrintableSession & {
+  day: string;
+  id: string;
+};
+
+type CalendarLayoutOptions = {
+  showHeader: boolean;
+  showSummary: boolean;
+  showGeneratedOn: boolean;
+  showLegend: boolean;
+  showFooter: boolean;
+  showDayCardBackground: boolean;
+  stylePreset: 'classic' | 'minimal' | 'bold';
+};
+
 interface PrintableCalendarSheetProps {
   courses?: CourseType[];
   t: (key: string, options?: Record<string, unknown>) => string;
   language: string;
+  scheduleOverride?: EditableCalendarSession[];
+  layoutOptions?: CalendarLayoutOptions;
 }
 
 const WEEKDAY_CONFIG: Array<{ key: string; labelKey: string }> = [
@@ -951,8 +1274,27 @@ const WEEKDAY_CONFIG: Array<{ key: string; labelKey: string }> = [
   { key: 'Friday', labelKey: 'friday' },
 ];
 
-const PrintableCalendarSheet = ({ courses = [], t, language }: PrintableCalendarSheetProps) => {
-  const scheduleByDay = useMemo(() => buildPrintableSchedule(courses), [courses]);
+const PrintableCalendarSheet = ({ courses = [], t, language, scheduleOverride, layoutOptions }: PrintableCalendarSheetProps) => {
+  const layout = layoutOptions || {
+    showHeader: true,
+    showSummary: true,
+    showGeneratedOn: true,
+    showLegend: true,
+    showFooter: true,
+    showDayCardBackground: true,
+    stylePreset: 'classic' as CalendarLayoutOptions['stylePreset'],
+  };
+  const rootStyle: React.CSSProperties = {
+    backgroundColor: layout.stylePreset === 'minimal' ? '#ffffff' : undefined,
+    border: layout.stylePreset === 'bold' ? '2px solid #0f172a' : undefined,
+    padding: layout.stylePreset === 'minimal' ? '0.5rem' : undefined,
+  };
+  const scheduleByDay = useMemo(() => {
+    if (scheduleOverride && scheduleOverride.length > 0) {
+      return groupScheduleByDay(scheduleOverride);
+    }
+    return buildPrintableSchedule(courses);
+  }, [courses, scheduleOverride]);
   const totalSessions = useMemo(
     () => Object.values(scheduleByDay).reduce((sum, sessions) => sum + sessions.length, 0),
     [scheduleByDay]
@@ -970,44 +1312,59 @@ const PrintableCalendarSheet = ({ courses = [], t, language }: PrintableCalendar
   );
 
   return (
-    <div className="print-calendar-sheet">
-      <header className="print-calendar-sheet__header">
-        <div>
-          <p className="print-calendar-sheet__title">{t('printCalendarSheetTitle')}</p>
-          <p className="print-calendar-sheet__subtitle">{t('printCalendarSheetSubtitle')}</p>
-        </div>
-        <div className="print-calendar-sheet__meta">
-          <div className="print-calendar-sheet__meta-block">
-            <span className="print-calendar-sheet__meta-label">{t('printCalendarSummary')}</span>
-            <p className="print-calendar-sheet__meta-value">{t('printCalendarCoursesCount', { count: scheduledCourseCount })}</p>
-            <p className="print-calendar-sheet__meta-sub">{t('printCalendarSessionsCount', { count: totalSessions })}</p>
+    <div className={`print-calendar-sheet print-calendar-sheet--${layout.stylePreset}`} style={rootStyle}>
+      {layout.showHeader && (
+        <header className="print-calendar-sheet__header">
+          <div>
+            <p className="print-calendar-sheet__title">{t('printCalendarSheetTitle')}</p>
+            <p className="print-calendar-sheet__subtitle">{t('printCalendarSheetSubtitle')}</p>
           </div>
-          <div className="print-calendar-sheet__meta-block">
-            <span className="print-calendar-sheet__meta-label">
-              {t('printCalendarGeneratedOn', { date: generatedOn })}
-            </span>
+          <div className="print-calendar-sheet__meta">
+            {layout.showSummary && (
+              <div className="print-calendar-sheet__meta-block">
+                <span className="print-calendar-sheet__meta-label">{t('printCalendarSummary')}</span>
+                <p className="print-calendar-sheet__meta-value">{t('printCalendarCoursesCount', { count: scheduledCourseCount })}</p>
+                <p className="print-calendar-sheet__meta-sub">{t('printCalendarSessionsCount', { count: totalSessions })}</p>
+              </div>
+            )}
+            {layout.showGeneratedOn && (
+              <div className="print-calendar-sheet__meta-block">
+                <span className="print-calendar-sheet__meta-label">
+                  {t('printCalendarGeneratedOn', { date: generatedOn })}
+                </span>
+              </div>
+            )}
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
-      <section className="print-calendar-sheet__legend">
-        <h3>{t('printCalendarLegend')}</h3>
-        <div className="print-calendar-sheet__legend-items">
-          <span>
-            {t('printCalendarLegendDurationLabel')}: {t('printCalendarLegendDurationHint')}
-          </span>
-          <span>
-            {t('printCalendarLegendPeriodsLabel')}: {t('printCalendarLegendPeriodsHint')}
-          </span>
-          <span>{t('printCalendarLegendNote')}</span>
-        </div>
-      </section>
+      {layout.showLegend && (
+        <section className="print-calendar-sheet__legend">
+          <h3>{t('printCalendarLegend')}</h3>
+          <div className="print-calendar-sheet__legend-items">
+            <span>
+              {t('printCalendarLegendDurationLabel')}: {t('printCalendarLegendDurationHint')}
+            </span>
+            <span>
+              {t('printCalendarLegendPeriodsLabel')}: {t('printCalendarLegendPeriodsHint')}
+            </span>
+            <span>{t('printCalendarLegendNote')}</span>
+          </div>
+        </section>
+      )}
 
       <section className="print-calendar-sheet__grid">
         {WEEKDAY_CONFIG.map((dayConfig) => {
           const sessions = scheduleByDay[dayConfig.key] || [];
+          const dayStyle: React.CSSProperties = layout.showDayCardBackground
+            ? {}
+            : {
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+              };
           return (
-            <div key={dayConfig.key} className="print-calendar-sheet__day">
+            <div key={dayConfig.key} className="print-calendar-sheet__day" style={dayStyle}>
               <div className="print-calendar-sheet__day-header">
                 <span>{t(dayConfig.labelKey)}</span>
                 <span>
@@ -1046,7 +1403,9 @@ const PrintableCalendarSheet = ({ courses = [], t, language }: PrintableCalendar
         })}
       </section>
 
-      <footer className="print-calendar-sheet__footer">{t('printCalendarFooterNote')}</footer>
+      {layout.showFooter && (
+        <footer className="print-calendar-sheet__footer">{t('printCalendarFooterNote')}</footer>
+      )}
     </div>
   );
 };
@@ -1075,6 +1434,35 @@ const buildPrintableSchedule = (courses: CourseType[]): Record<string, Printable
         periods,
         location: (dataRec?.location as string) || (course as unknown as { location?: string })?.location || (course as { room?: string })?.room || '',
       });
+    });
+  });
+
+  Object.keys(schedule).forEach((day) => {
+    schedule[day].sort((a, b) => (a.start > b.start ? 1 : -1));
+  });
+
+  return schedule;
+};
+
+const groupScheduleByDay = (sessions: EditableCalendarSession[]): Record<string, PrintableSession[]> => {
+  const schedule = WEEKDAY_CONFIG.reduce<Record<string, PrintableSession[]>>((acc, day) => {
+    acc[day.key] = [];
+    return acc;
+  }, {} as Record<string, PrintableSession[]>);
+
+  sessions.forEach((session) => {
+    if (!schedule[session.day]) {
+      schedule[session.day] = [];
+    }
+    schedule[session.day].push({
+      courseId: session.courseId,
+      courseName: session.courseName,
+      courseCode: session.courseCode,
+      start: session.start,
+      end: session.end,
+      duration: session.duration,
+      periods: session.periods,
+      location: session.location,
     });
   });
 

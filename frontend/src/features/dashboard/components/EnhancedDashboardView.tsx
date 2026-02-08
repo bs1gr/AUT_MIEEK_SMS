@@ -16,6 +16,7 @@ import { gpaToPercentage, formatAllGrades, getLetterGrade } from '@/utils/gradeU
 import { getLocalizedCategory } from '@/utils/categoryLabels';
 import { listContainerVariants, listItemVariants } from '@/utils/animations';
 import { CourseCardSkeleton } from '@/components/ui';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import './EnhancedDashboardView.css';
 import type { OperationsLocationState } from '@/features/operations/types';
 import { Student, Course } from '@/types';
@@ -128,6 +129,7 @@ type EnhancedDashboardProps = {
 const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardProps) => {
   const { t } = useLanguage();
   const navigate = useNavigate();
+  const { formatDate } = useDateTimeFormatter();
 
   const goToExport = useCallback(
     (scrollTo: OperationsLocationState['scrollTo']) => {
@@ -756,7 +758,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                       <p className="text-sm text-slate-500">{student.student_id}</p>
                       {student.enrollment_date && (
                         <p className="mt-1 text-xs text-slate-400">
-                          {t('enrolled')} {new Date(student.enrollment_date).toLocaleDateString()}
+                          {t('enrolled')} {formatDate(student.enrollment_date)}
                         </p>
                       )}
                     </div>

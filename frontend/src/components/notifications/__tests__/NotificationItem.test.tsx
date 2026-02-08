@@ -4,12 +4,19 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import NotificationItem from '../NotificationItem';
 import * as useNotificationsModule from '../../../hooks/useNotifications';
 import type { Notification } from '../../../types/notification';
+import { DateTimeSettingsProvider } from '../../../contexts/DateTimeSettingsContext';
+
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <DateTimeSettingsProvider>{children}</DateTimeSettingsProvider>
+);
+
+const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: Wrapper });
 
 // Mock the useNotifications hook
 vi.mock('../../../hooks/useNotifications', () => ({

@@ -83,7 +83,8 @@ export default {
   attendanceRecorded: 'Attendance recorded',
   noAttendanceYet: 'No attendance yet',
   selectedDate: 'Selected date',
+  noDateSelected: 'No date selected',
   autosavePending: 'Changes pending...',
   saving: 'Saving...',
-  historicalModeBanner: 'Historical mode enabled',
+  historicalModeBanner: 'Viewing past date',
 };

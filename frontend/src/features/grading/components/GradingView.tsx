@@ -5,6 +5,7 @@ import { useLanguage } from '@/LanguageContext';
 import { Student, Course, Grade, FinalGrade } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import { formatLocalDate } from '@/utils/date';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -28,6 +29,7 @@ interface GradingViewProps {
 
 const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const { t, language: _language } = useLanguage();
+  const { formatDate } = useDateTimeFormatter();
 
   // Helper function to translate category names
   const translateCategory = (category: string): string => {
@@ -73,10 +75,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
-  const [historyEnabled, setHistoryEnabled] = useState(false);
   const [historyDate, setHistoryDate] = useState<string>('');
   const todayStr = formatLocalDate(new Date());
-  const isHistoricalMode = Boolean(historyEnabled && historyDate && historyDate !== todayStr);
+  const isHistoricalMode = Boolean(historyDate && historyDate !== todayStr);
 
   // loadFinal is declared below and memoized with useCallback. Do not define a separate
   // non-memoized loadFinal here — keep the single useCallback instance to satisfy
@@ -164,7 +165,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           student_id: studentId,
           course_id: courseId || undefined,
         };
-        if (historyEnabled && historyDate) {
+        if (historyDate && historyDate !== todayStr) {
           params.start_date = historyDate;
           params.end_date = historyDate;
           params.use_submitted = true;
@@ -178,7 +179,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       }
     };
     loadGrades();
-  }, [studentId, courseId, historyEnabled, historyDate]);
+  }, [studentId, courseId, historyDate, todayStr]);
 
   // Normalize category for comparison (EN/EL & common variants)
   const normalizeCategory = (name?: string): 'midterm' | 'final' | 'other' => {
@@ -251,13 +252,16 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     setGradeValue(String(grade.grade));
     setMaxGrade(String(grade.max_grade || 100));
     setWeight(String(grade.weight || 1));
-    if (grade.date_submitted || grade.date_assigned) {
-      setHistoryEnabled(true);
-      setHistoryDate(grade.date_submitted || grade.date_assigned || '');
+    if (!historyDate && (grade.date_submitted || grade.date_assigned)) {
+      const rawDate = grade.date_submitted || grade.date_assigned || '';
+      const normalized = rawDate ? formatLocalDate(rawDate) : '';
+      if (normalized && normalized !== todayStr) {
+        setHistoryDate(normalized);
+      }
     }
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  }, [historyDate, todayStr]);
 
   useEffect(() => {
     const recallIdRaw = sessionStorage.getItem('grading_recall_grade_id');
@@ -289,6 +293,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     setGradeValue('');
     setMaxGrade('100');
     setWeight('');
+    setHistoryDate('');
   };
 
   const handleDeleteGrade = async (gradeId: number) => {
@@ -343,7 +348,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         grade: gv,
         max_grade: mg,
         weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
-        date_submitted: historyEnabled && historyDate ? historyDate : formatLocalDate(new Date()),
+        date_submitted: historyDate && historyDate !== todayStr ? historyDate : formatLocalDate(new Date()),
         // optional fields not set: date_assigned, notes
       };
 
@@ -363,6 +368,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         setGrades(Array.isArray(res2.data) ? res2.data as Grade[] : []);
       } catch {}
       setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
+      setHistoryDate('');
     } catch (e: unknown) {
       // Attempt to extract common API error formats without using `any`
       let apiMsg: string | undefined;
@@ -417,40 +423,27 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         <button className="border rounded px-3 py-2" onClick={loadFinal}>{t('refreshFinal')}</button>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center gap-3 bg-white border rounded-xl p-4">
-        <label className="flex items-center gap-2 text-sm text-gray-700">
-          <input
-            type="checkbox"
-            checked={historyEnabled}
-            onChange={(e) => {
-              const next = e.target.checked;
-              setHistoryEnabled(next);
-              if (next && !historyDate) {
-                setHistoryDate(todayStr);
-              }
-            }}
-          />
-          {t('historyToggle') || 'Historical mode'}
-        </label>
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-600" htmlFor="grading-history-date">
-            {t('historyDate') || 'History date'}
-          </label>
-          <input
-            id="grading-history-date"
-            type="date"
-            className="border rounded px-3 py-1.5 text-sm"
-            value={historyDate}
-            onChange={(e) => setHistoryDate(e.target.value)}
-            disabled={!historyEnabled}
-          />
-        </div>
-        {isHistoricalMode && (
-          <div className="ml-auto text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded">
-            {t('historicalModeBanner') || 'Historical mode enabled'} — {formatLocalDate(historyDate)}
+      {editingGradeId && historyDate && (
+        <div className="flex flex-col md:flex-row md:items-center gap-3 bg-white border rounded-xl p-4">
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600" htmlFor="grading-history-date">
+              {t('historyDate') || 'History date'}
+            </label>
+            <input
+              id="grading-history-date"
+              type="date"
+              className="border rounded px-3 py-1.5 text-sm"
+              value={historyDate}
+              onChange={(e) => setHistoryDate(e.target.value)}
+            />
           </div>
-        )}
-      </div>
+          {isHistoricalMode && (
+            <div className="ml-auto text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded">
+              {t('historicalModeBanner') || 'Viewing past date'} — {formatDate(historyDate)}
+            </div>
+          )}
+        </div>
+      )}
 
       <form onSubmit={submitGrade} className="bg-white border rounded-xl p-4 space-y-3" data-testid="grade-form">
         <div className="space-y-2">
@@ -629,7 +622,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                         <td className="px-4 py-2 text-center"><span className={`font-semibold ${color}`}>{pct.toFixed(1)}%</span></td>
                         <td className="px-4 py-2 text-center">×{g.weight || 1}</td>
                         <td className="px-4 py-2 text-center"><span className={`px-2 py-1 rounded-full text-xs font-bold ${color}`}>{letter}</span></td>
-                        <td className="px-4 py-2 text-gray-600">{g.date_submitted || 'N/A'}</td>
+                        <td className="px-4 py-2 text-gray-600">
+                          {g.date_submitted ? formatDate(g.date_submitted) : (g.date_assigned ? formatDate(g.date_assigned) : 'N/A')}
+                        </td>
                         <td className="px-4 py-2 text-center">
                           <div className="flex gap-2 justify-center">
                             <button

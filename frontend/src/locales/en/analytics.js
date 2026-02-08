@@ -35,6 +35,7 @@ export default {
   divisionLabel: 'Class Division',
   selectDivision: 'All divisions',
   divisionUnknownLabel: 'Unassigned Division',
+  unassignedDivision: 'Unassigned Division',
   noDivisionData: 'No class division data available.',
   noClassData: 'No class data available.',
   noCourseData: 'No course data available.',

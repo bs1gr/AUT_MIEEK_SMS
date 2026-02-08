@@ -11,7 +11,8 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { Calendar as CalIcon, ChevronLeft, ChevronRight, Users, CheckCircle, XCircle, Clock, AlertCircle, TrendingUp, BarChart3, ChevronDown, ChevronUp, CloudUpload } from 'lucide-react';
-import { formatLocalDate, formatDateGreek, inferWeekStartsOnMonday } from '@/utils/date';
+import { formatLocalDate, inferWeekStartsOnMonday } from '@/utils/date';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import type { Course, Student, TeachingScheduleEntry } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
@@ -60,6 +61,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
 
   const { t, language } = useLanguage();
+  const { formatDate, formatMonthYear, formatWeekday } = useDateTimeFormatter();
   // Do not auto-select course/date until user chooses
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState<Date>(new Date());
@@ -103,6 +105,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const selectedDateStr = useMemo(() => selectedDate ? formatLocalDate(selectedDate) : '', [selectedDate]);
   const isHistoricalMode = Boolean(selectedDateStr && selectedDateStr !== todayStr);
   const fullDayNames = useMemo(() => ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'], []);
+  const localeOverride = language === 'el' ? 'el-GR' : 'en-US';
 
   const getWeekdayIndex = (d: Date) => {
     const weekday = d.getDay();
@@ -713,7 +716,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
     return days;
   };
   const days = useMemo(() => getDaysInMonth(currentMonth, weekStartsOnMonday), [currentMonth, weekStartsOnMonday]);
-  const monthYear = currentMonth.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'long', year: 'numeric' });
+  const monthYear = formatMonthYear(currentMonth);
 
   const isToday = (date?: Date | null) => date ? date.toDateString() === new Date().toDateString() : false;
   const isSelected = (date?: Date | null) => date && selectedDate ? date.toDateString() === selectedDate.toDateString() : false;
@@ -1063,7 +1066,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
       {isHistoricalMode && (
         <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded">
-          {t('historicalModeBanner') || 'Historical mode enabled'} — {formatDateGreek(selectedDateStr)}
+          {t('historicalModeBanner') || 'Viewing past date'} — {formatDate(selectedDateStr)}
         </div>
       )}
 
@@ -1253,7 +1256,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       {/* Student List */}
       <div className="bg-white rounded-2xl shadow p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">{t('markAttendanceFor') || 'Mark attendance for'} — {selectedDate ? selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : t('noDateSelected') || 'No date selected'}</h3>
+          <h3 className="text-lg font-bold">{t('markAttendanceFor') || 'Mark attendance for'} — {selectedDate ? formatDate(selectedDate) : t('noDateSelected') || 'No date selected'}</h3>
         </div>
 
         <div className="space-y-3">
@@ -1394,7 +1397,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
               <h4 className="text-xl font-bold">{t('dailyPerformance') || 'Daily Performance'} — {selectedStudentForPerformance.first_name} {selectedStudentForPerformance.last_name}</h4>
               <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
             </div>
-            <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate ? selectedDate.toLocaleDateString(language === 'el' ? 'el-GR' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : ''}</p>
+            <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate ? `${formatWeekday(selectedDate, localeOverride)} ${formatDate(selectedDate)}` : ''}</p>
 
             {(() => {
               const modalStatus = getAggregatedStatus(selectedStudentForPerformance.id).status;

@@ -12,6 +12,8 @@ import AppearanceThemeSelector from '@/features/operations/components/Appearance
 import Toast from '@/components/ui/Toast';
 import { type ToastState } from '@/features/operations/components/DevToolsPanel';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDateTimeFormatter, useDateTimeSettings } from '@/contexts/DateTimeSettingsContext';
+import { DATE_FORMAT_OPTIONS, TIME_ZONE_OPTIONS, type DateFormatOption } from '@/utils/dateTime';
 import {
   OPERATIONS_TAB_KEYS,
   type LegacyOperationsTabKey,
@@ -58,6 +60,8 @@ const OperationsView = (_props: OperationsViewProps) => {
   const [broadcastRole, setBroadcastRole] = useState('teacher');
   const [broadcastUserIds, setBroadcastUserIds] = useState('');
   const [broadcastSending, setBroadcastSending] = useState(false);
+  const { timeZone, dateFormat, setTimeZone, setDateFormat } = useDateTimeSettings();
+  const { formatDateTime } = useDateTimeFormatter();
 
   // Toast auto-close effect
   useEffect(() => {
@@ -529,6 +533,58 @@ const OperationsView = (_props: OperationsViewProps) => {
         {effectiveTab === 'settings' && (
           <div className="space-y-6">
             <AppearanceThemeSelector />
+
+            <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+              <div className="space-y-1">
+                <h3 className="text-lg font-semibold text-slate-900">
+                  {t('dateTimeSettingsTitle', { ns: 'controlPanel' }) || 'Date & Time Settings'}
+                </h3>
+                <p className="text-sm text-slate-600">
+                  {t('dateTimeSettingsSubtitle', { ns: 'controlPanel' }) || 'Force the date format and timezone used across the application.'}
+                </p>
+              </div>
+
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <label className="space-y-2 text-sm font-medium text-slate-700">
+                  <span>{t('dateTimeTimezoneLabel', { ns: 'controlPanel' }) || 'Timezone'}</span>
+                  <select
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    value={timeZone}
+                    onChange={(event) => setTimeZone(event.target.value)}
+                  >
+                    {TIME_ZONE_OPTIONS.map((zone) => (
+                      <option key={zone} value={zone}>
+                        {zone}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="space-y-2 text-sm font-medium text-slate-700">
+                  <span>{t('dateTimeFormatLabel', { ns: 'controlPanel' }) || 'Date format'}</span>
+                  <select
+                    className="w-full rounded border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
+                    value={dateFormat}
+                    onChange={(event) => setDateFormat(event.target.value as DateFormatOption)}
+                  >
+                    {DATE_FORMAT_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.value === 'gr-ddmmyyyy' && (t('dateFormatGreekLong', { ns: 'controlPanel' }) || 'Greek (DD/MM/YYYY)')}
+                        {option.value === 'gr-ddmmyy' && (t('dateFormatGreekShort', { ns: 'controlPanel' }) || 'Greek (DD/MM/YY)')}
+                        {option.value === 'en-us' && (t('dateFormatEnUs', { ns: 'controlPanel' }) || 'EN/US (MM/DD/YYYY)')}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="mt-4 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                <span className="font-semibold text-slate-700">
+                  {t('dateTimePreviewLabel', { ns: 'controlPanel' }) || 'Preview'}:
+                </span>{' '}
+                {formatDateTime(new Date())}
+              </div>
+            </div>
           </div>
         )}
       </section>

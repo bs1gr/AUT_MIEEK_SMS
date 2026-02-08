@@ -4,6 +4,7 @@ export default {
   addCourse: 'Add Course',
   courseCode: 'Course Code',
   courseName: 'Course Name',
+  instructor: 'Instructor',
   semester: 'Semester',
   credits: 'Credits',
   editCourse: 'Edit Course',

@@ -22,6 +22,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import type {
   ExportMetricsChartProps,
   EmailConfigPanelProps,
@@ -358,6 +359,7 @@ export const ExportSettingsPanel: React.FC<ExportSettingsPanelProps> = ({ settin
 // ===== ExportDetailModal.tsx =====
 export const ExportDetailModal: React.FC<ExportDetailModalProps> = ({ open, onClose, export: exp }) => {
   const { t } = useTranslation('exportAdmin');
+  const { formatDateTime } = useDateTimeFormatter();
 
   if (!open) return null;
 
@@ -436,7 +438,7 @@ export const ExportDetailModal: React.FC<ExportDetailModalProps> = ({ open, onCl
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{t('detail.created')}</p>
                 <p className="text-base font-medium text-slate-900 dark:text-white">
-                  {new Date(exp.created_at).toLocaleString()}
+                  {formatDateTime(exp.created_at)}
                 </p>
               </div>
             )}
@@ -446,7 +448,7 @@ export const ExportDetailModal: React.FC<ExportDetailModalProps> = ({ open, onCl
               <div className="space-y-2">
                 <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">{t('detail.updated')}</p>
                 <p className="text-base font-medium text-slate-900 dark:text-white">
-                  {new Date(exp.updated_at).toLocaleString()}
+                  {formatDateTime(exp.updated_at)}
                 </p>
               </div>
             )}

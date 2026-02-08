@@ -24,6 +24,7 @@ import DevToolsPanel, { type ToastState } from '@/features/operations/components
 import AdminUsersPanel from '@/components/admin/AdminUsersPanel';
 import { RBACPanel } from '@/components/admin/RBACPanel';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
 import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
 import { CONTROL_API_BASE, controlApiClient } from '@/api/api';
@@ -157,6 +158,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [uptime, setUptime] = useState<string>('');
   const uptimeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
+  const { formatTime } = useDateTimeFormatter();
 
   const controlCacheRef = useRef(new Map<string, { ts: number; data: unknown }>());
   const getCachedControl = useCallback((key: string, ttlMs: number) => {
@@ -806,7 +808,7 @@ function formatUptime(seconds: number): string {
 
             {tabUpdatedAt.ports && (
               <p className="text-xs text-gray-500">
-                {t('lastUpdated') || 'Last updated'}: {new Date(tabUpdatedAt.ports).toLocaleTimeString()}
+                {t('lastUpdated') || 'Last updated'}: {formatTime(tabUpdatedAt.ports)}
               </p>
             )}
 
@@ -870,7 +872,7 @@ function formatUptime(seconds: number): string {
 
             {tabUpdatedAt.logs && (
               <p className="text-xs text-gray-500">
-                {t('lastUpdated') || 'Last updated'}: {new Date(tabUpdatedAt.logs).toLocaleTimeString()}
+                {t('lastUpdated') || 'Last updated'}: {formatTime(tabUpdatedAt.logs)}
               </p>
             )}
 
@@ -932,7 +934,7 @@ function formatUptime(seconds: number): string {
 
             {tabUpdatedAt.environment && (
               <p className="text-xs text-gray-500">
-                {t('lastUpdated') || 'Last updated'}: {new Date(tabUpdatedAt.environment).toLocaleTimeString()}
+                {t('lastUpdated') || 'Last updated'}: {formatTime(tabUpdatedAt.environment)}
               </p>
             )}
 

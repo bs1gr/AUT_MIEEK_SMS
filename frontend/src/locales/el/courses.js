@@ -4,6 +4,7 @@ export default {
   addCourse: 'Προσθήκη Μαθήματος',
   courseCode: 'Κωδικός Μαθήματος',
   courseName: 'Όνομα Μαθήματος',
+  instructor: 'Διδάσκων',
   semester: 'Εξάμηνο',
   credits: 'Πιστωτικές Μονάδες',
   editCourse: 'Επεξεργασία Μαθήματος',

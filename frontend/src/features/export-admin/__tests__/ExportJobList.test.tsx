@@ -12,6 +12,7 @@ import { I18nextProvider } from 'react-i18next';
 import ExportJobList from '../components/ExportJobList';
 import { ExportJob } from '../types/export';
 import { useExportJobs } from '../hooks/useExportAdmin';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 
 // Initialize i18n for tests
 i18n.init({
@@ -87,7 +88,9 @@ const renderWithProviders = (
 
   const Wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={testQueryClient}>
-      <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+      <I18nextProvider i18n={i18n}>
+        <DateTimeSettingsProvider>{children}</DateTimeSettingsProvider>
+      </I18nextProvider>
     </QueryClientProvider>
   );
 
@@ -234,11 +237,17 @@ describe('ExportJobList', () => {
   });
 
   it('shows loading skeleton when data is loading', () => {
-    vi.mocked(useExportJobs).mockReturnValueOnce({
-      data: null,
-      isLoading: true,
-      error: null,
-    });
+    vi.mocked(useExportJobs)
+      .mockReturnValueOnce({
+        data: null,
+        isLoading: true,
+        error: null,
+      })
+      .mockReturnValueOnce({
+        data: null,
+        isLoading: true,
+        error: null,
+      });
 
     renderWithProviders(<ExportJobList />);
 
@@ -246,11 +255,17 @@ describe('ExportJobList', () => {
   });
 
   it('shows empty state when no jobs found', () => {
-    vi.mocked(useExportJobs).mockReturnValueOnce({
-      data: { data: { items: [], total: 0 } },
-      isLoading: false,
-      error: null,
-    });
+    vi.mocked(useExportJobs)
+      .mockReturnValueOnce({
+        data: { data: { items: [], total: 0 } },
+        isLoading: false,
+        error: null,
+      })
+      .mockReturnValueOnce({
+        data: { data: { items: [], total: 0 } },
+        isLoading: false,
+        error: null,
+      });
 
     renderWithProviders(<ExportJobList />);
 

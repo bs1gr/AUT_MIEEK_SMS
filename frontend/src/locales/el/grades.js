@@ -48,7 +48,7 @@ export default {
   noGradesRecorded: 'Δεν έχουν καταγραφεί βαθμοί ακόμη',
   historyToggle: 'Ανάκτηση ιστορικού',
   historyDate: 'Ημερομηνία ιστορικού',
-  historicalModeBanner: 'Ενεργή ανάκτηση ιστορικού',
+  historicalModeBanner: 'Προβολή προηγούμενης ημερομηνίας',
   gradeAddedSuccessfully: 'Ο βαθμός προστέθηκε επιτυχώς!',
   maxScore: 'Μέγιστος Βαθμός',
   dateAssigned: 'Ημερομηνία Ανάθεσης',

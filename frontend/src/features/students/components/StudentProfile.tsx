@@ -8,6 +8,7 @@ import { GradeBreakdownModal } from '@/features/grading';
 import StudentPerformanceReport from '@/components/StudentPerformanceReport';
 import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 const API_BASE_URL: string = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -18,6 +19,7 @@ interface StudentProfileProps {
 
 const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const { t } = useTranslation();
+  const { formatDate } = useDateTimeFormatter();
   const [student, setStudent] = useState<Student | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
@@ -243,7 +245,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               </div>
               <div className="flex items-center space-x-3 text-indigo-700">
                 <Calendar size={20} />
-                <span>{t('enrolled', { ns: 'students' })} {student.enrollment_date}</span>
+                <span>{t('enrolled', { ns: 'students' })} {formatDate(student.enrollment_date)}</span>
               </div>
               <div className="md:col-span-4 mt-4">
                 <button
@@ -408,7 +410,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                     <div className="flex items-center justify-between p-3 rounded border">
                       <div>
                         <div className="font-semibold text-gray-800">{course ? `${course.course_code} — ${course.course_name}` : `Course #${e.course_id}`}</div>
-                        <div className="text-xs text-gray-500">{t('enrolled', { ns: 'students' })}: {e.enrolled_at || '-'}</div>
+                        <div className="text-xs text-gray-500">{t('enrolled', { ns: 'students' })}: {e.enrolled_at ? formatDate(e.enrolled_at) : '-'}</div>
                       </div>
                       <div>
                         <button
@@ -467,7 +469,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                             {letter}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-gray-600">{grade.date_submitted || 'N/A'}</td>
+                        <td className="px-6 py-4 text-gray-600">{grade.date_submitted ? formatDate(grade.date_submitted) : 'N/A'}</td>
                       </tr>
                     );
                   })}

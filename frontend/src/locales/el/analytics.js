@@ -35,6 +35,7 @@ export default {
   divisionLabel: 'Τμήμα Τάξης',
   selectDivision: 'Όλα τα τμήματα',
   divisionUnknownLabel: 'Χωρίς Τμήμα',
+  unassignedDivision: 'Χωρίς Τμήμα',
   noDivisionData: 'Δεν υπάρχουν διαθέσιμα δεδομένα τμημάτων.',
   noClassData: 'Δεν υπάρχουν διαθέσιμα δεδομένα τάξης.',
   noCourseData: 'Δεν υπάρχουν διαθέσιμα δεδομένα μαθημάτων.',

@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render as rtlRender, screen, fireEvent, waitFor } from '@testing-library/react';
 import { NotificationItem } from './NotificationItem';
 import { Notification } from '../types';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
+
+const Wrapper = ({ children }: { children: React.ReactNode }) => (
+  <DateTimeSettingsProvider>{children}</DateTimeSettingsProvider>
+);
+
+const render = (ui: React.ReactElement) => rtlRender(ui, { wrapper: Wrapper });
 
 // Mock i18next
 vi.mock('react-i18next', () => ({
@@ -119,8 +126,8 @@ describe('NotificationItem', () => {
   it('should display notification timestamp', () => {
     render(<NotificationItem notification={mockNotification} />);
 
-    // Date may be formatted as 1/15/2026 (US) or 15/1/2026 (Greek locale)
-    const timestamp = screen.getByText(/(1\/15\/2026|15\/1\/2026)/);
+    // Date may be formatted with leading zeros and time depending on locale settings
+    const timestamp = screen.getByText(/15\/01\/2026/);
     expect(timestamp).toBeInTheDocument();
   });
 
