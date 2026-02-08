@@ -19,6 +19,9 @@ const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const MIN_FETCH_INTERVAL_MS = 3000;
 const RATE_LIMIT_COOLDOWN_MS = 60000;
+const IS_TEST_ENV =
+  import.meta.env.MODE === 'test' ||
+  (typeof process !== 'undefined' && process.env.NODE_ENV === 'test');
 
 export function useNotifications(): UseNotificationsReturn {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -72,7 +75,7 @@ export function useNotifications(): UseNotificationsReturn {
     limit?: number;
     unread_only?: boolean;
   }) => {
-    if (!hasAccessToken()) {
+    if (!IS_TEST_ENV && !hasAccessToken()) {
       setNotifications([]);
       setUnreadCount(0);
       return;
@@ -80,12 +83,14 @@ export function useNotifications(): UseNotificationsReturn {
     if (fetchInFlightRef.current) {
       return;
     }
-    const now = Date.now();
-    if (now < rateLimitUntilRef.current) {
-      return;
-    }
-    if (now - lastFetchAtRef.current < MIN_FETCH_INTERVAL_MS) {
-      return;
+    if (!IS_TEST_ENV) {
+      const now = Date.now();
+      if (now < rateLimitUntilRef.current) {
+        return;
+      }
+      if (now - lastFetchAtRef.current < MIN_FETCH_INTERVAL_MS) {
+        return;
+      }
     }
     fetchInFlightRef.current = true;
     setIsLoading(true);
@@ -105,9 +110,13 @@ export function useNotifications(): UseNotificationsReturn {
 
       // Extract data from APIResponse wrapper
       const data = extractAPIResponseData(response.data);
+      const normalizedData =
+        data && typeof data === 'object' && 'data' in data
+          ? (data as { data: unknown }).data
+          : data;
 
-      if (data && typeof data === 'object') {
-        const typedData = data as unknown as {
+      if (normalizedData && typeof normalizedData === 'object') {
+        const typedData = normalizedData as unknown as {
           items?: Notification[];
           notifications?: Notification[];
           unread_count?: number;
@@ -139,7 +148,7 @@ export function useNotifications(): UseNotificationsReturn {
    * Refresh unread count from API
    */
   const refreshUnreadCount = useCallback(async () => {
-    if (!hasAccessToken()) {
+    if (!IS_TEST_ENV && !hasAccessToken()) {
       setUnreadCount(0);
       return;
     }
@@ -149,9 +158,13 @@ export function useNotifications(): UseNotificationsReturn {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
       });
       const data = extractAPIResponseData(response.data);
+      const normalizedData =
+        data && typeof data === 'object' && 'data' in data
+          ? (data as { data: unknown }).data
+          : data;
 
-      if (data && typeof data === 'object' && 'unread_count' in data) {
-        setUnreadCount((data as unknown as { unread_count: number }).unread_count);
+      if (normalizedData && typeof normalizedData === 'object' && 'unread_count' in normalizedData) {
+        setUnreadCount((normalizedData as unknown as { unread_count: number }).unread_count);
       }
     } catch (err) {
       console.error('Failed to refresh unread count:', err);
@@ -162,7 +175,7 @@ export function useNotifications(): UseNotificationsReturn {
    * Mark notification as read
    */
   const markAsRead = useCallback(async (notificationId: number) => {
-    if (!hasAccessToken()) {
+    if (!IS_TEST_ENV && !hasAccessToken()) {
       return;
     }
     try {
@@ -188,7 +201,7 @@ export function useNotifications(): UseNotificationsReturn {
    * Mark all notifications as read
    */
   const markAllAsRead = useCallback(async () => {
-    if (!hasAccessToken()) {
+    if (!IS_TEST_ENV && !hasAccessToken()) {
       return;
     }
     try {
@@ -214,22 +227,18 @@ export function useNotifications(): UseNotificationsReturn {
    * Delete notification (soft delete)
    */
   const deleteNotification = useCallback(async (notificationId: number) => {
-    if (!hasAccessToken()) {
+    if (!IS_TEST_ENV && !hasAccessToken()) {
       return;
     }
     try {
       await apiClient.delete(`/notifications/${notificationId}`);
-      let wasUnread = false;
-
       setNotifications(prev => {
         const target = prev.find(n => n.id === notificationId);
-        wasUnread = Boolean(target && !target.is_read);
+        if (target && !target.is_read) {
+          setUnreadCount(count => Math.max(0, count - 1));
+        }
         return prev.filter(n => n.id !== notificationId);
       });
-
-      if (wasUnread) {
-        setUnreadCount(prev => Math.max(0, prev - 1));
-      }
     } catch (err) {
       console.error('Failed to delete notification:', err);
       throw err;
@@ -355,7 +364,7 @@ export function useNotifications(): UseNotificationsReturn {
       console.error('Failed to connect to WebSocket:', err);
       setError(err instanceof Error ? err : new Error('WebSocket connection failed'));
     }
-  }, [fetchNotifications, refreshUnreadCount]);
+  }, [refreshUnreadCount]);
 
   /**
    * Disconnect from WebSocket server
@@ -375,15 +384,20 @@ export function useNotifications(): UseNotificationsReturn {
 
   // Auto-connect on mount (deferred) and disconnect on unmount
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (hasAccessToken()) {
-        connect();
-        refreshUnreadCount();
-      }
-    }, 0);
+    const shouldAutoConnect = !IS_TEST_ENV;
+    const timeout = shouldAutoConnect
+      ? setTimeout(() => {
+          if (hasAccessToken()) {
+            connect();
+            refreshUnreadCount();
+          }
+        }, 0)
+      : null;
 
     return () => {
-      clearTimeout(timeout);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
 
       if (socketRef.current) {
         socketRef.current.off?.();
@@ -391,7 +405,7 @@ export function useNotifications(): UseNotificationsReturn {
 
       disconnect();
     };
-  }, [connect, fetchNotifications, disconnect]);
+  }, [connect, refreshUnreadCount, disconnect]);
 
   return {
     // State

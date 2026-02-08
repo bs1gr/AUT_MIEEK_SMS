@@ -19,6 +19,10 @@
 .PARAMETER RetestFailed
     Only re-run test files that failed in previous run
     (Requires .test-failures file from previous run)
+.PARAMETER ShowOutput
+    Print per-batch pytest output to console (default logs only to file)
+.PARAMETER InterBatchDelaySeconds
+    Seconds to wait between batches (default: 2)
 .PARAMETER FailureFile
     Path to file tracking failed tests (default: .test-failures)
 
@@ -37,6 +41,10 @@
 .EXAMPLE
     .\RUN_TESTS_BATCH.ps1 -RetestFailed
     # Re-run only previously failed tests (must run after a failure first)
+
+.EXAMPLE
+    .\RUN_TESTS_BATCH.ps1 -ShowOutput -InterBatchDelaySeconds 5
+    # Print batch output and pause longer between batches
 #>
 
 param(
@@ -44,8 +52,10 @@ param(
     [switch]$Verbose,
     [switch]$FastFail,
     [switch]$RetestFailed,
+    [switch]$ShowOutput,
     [string]$FailureFile = ".test-failures",
-    [string]$LogFile = "test-results/backend_batch_run_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt"
+    [string]$LogFile = "test-results/backend_batch_run_$(Get-Date -Format 'yyyyMMdd_HHmmss').txt",
+    [int]$InterBatchDelaySeconds = 2
 )
 
 $ErrorActionPreference = "Stop"
@@ -64,9 +74,11 @@ $logLocked = $false
 
 # Function to write to both console and log file
 function Write-Log {
-    param($msg, [ConsoleColor]$Color = [Console]::ForegroundColor, [switch]$NoNewline)
+    param($msg, [ConsoleColor]$Color = [Console]::ForegroundColor, [switch]$NoNewline, [switch]$LogOnly)
 
-    Write-Host $msg -ForegroundColor $Color -NoNewline:$NoNewline
+    if (-not $LogOnly) {
+        Write-Host $msg -ForegroundColor $Color -NoNewline:$NoNewline
+    }
 
     # Also write to log file (strip color codes)
     $plainMsg = $msg -replace '\e\[[0-9;]*m', ''
@@ -117,6 +129,9 @@ Write-Log "`n╔═════════════════════�
 Write-Log "║   Batch Test Runner (SMS v1.17.2)     ║`n" Cyan
 Write-Log "╚════════════════════════════════════════╝`n`n" Cyan
 Write-Log "📝 Logging to: $logPath`n`n" Cyan
+if (-not $ShowOutput) {
+    Write-Info "Batch output is log-only to reduce terminal load. Use -ShowOutput to print batch output."
+}
 
 # Verify we're in the right directory or find it
 $projectRoot = $PSScriptRoot
@@ -257,7 +272,8 @@ foreach ($batch in $batches) {
     }
 
     # Display output (Write-Log handles both console and file)
-    Write-Log $outputStr White
+    $logOnlyOutput = -not $ShowOutput
+    Write-Log $outputStr White -LogOnly:$logOnlyOutput
 
     # Batch result
     if ($exitCode -eq 0) {
@@ -274,7 +290,10 @@ foreach ($batch in $batches) {
 
     # Small delay between batches to let system breathe
     if ($batchCount -lt $totalBatches) {
-        Write-Log "  Waiting 2 seconds before next batch...`n" DarkGray
+        Write-Log "  Waiting $InterBatchDelaySeconds seconds before next batch...`n" DarkGray
+        if ($InterBatchDelaySeconds -gt 0) {
+            Start-Sleep -Seconds $InterBatchDelaySeconds
+        }
     }
 }
 

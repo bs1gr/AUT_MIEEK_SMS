@@ -46,6 +46,7 @@ describe('AuthContext', () => {
     it('restores user from localStorage on mount', () => {
       const savedUser = { id: 1, email: 'test@example.com', role: 'user' };
       localStorage.setItem('sms_user_v1', JSON.stringify(savedUser));
+      mockAuthService.getAccessToken.mockReturnValue('token-123');
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 
@@ -235,6 +236,7 @@ describe('AuthContext', () => {
 
       const mockUser = { id: 1, email: 'user@test.com' };
       localStorage.setItem('sms_user_v1', JSON.stringify(mockUser));
+      mockAuthService.getAccessToken.mockReturnValue('token-123');
 
       const { result } = renderHook(() => useAuth(), { wrapper });
 

@@ -33,6 +33,10 @@ vi.mock('../NotificationDropdown', () => ({
     ) : null,
 }));
 
+vi.mock('../../NotificationCenter', () => ({
+  default: () => null,
+}));
+
 describe('NotificationBell Component', () => {
   const mockUseNotifications = vi.fn();
 
@@ -187,7 +191,7 @@ describe('NotificationBell Component', () => {
   describe('Dropdown Toggle', () => {
     it('should toggle dropdown on button click', async () => {
       render(<NotificationBell />);
-      const button = screen.getByRole('button', { name: /notifications/i });
+      const button = screen.getByRole('button', { name: /bell\.ariaLabel/i });
 
       // Initially dropdown should not be visible
       expect(screen.queryByTestId('notification-dropdown')).not.toBeInTheDocument();
@@ -209,7 +213,7 @@ describe('NotificationBell Component', () => {
         </div>
       );
 
-      const button = screen.getByRole('button', { name: /notifications/i });
+      const button = screen.getByRole('button', { name: /bell\.ariaLabel/i });
 
       // Open dropdown
       await userEvent.click(button);
@@ -227,7 +231,7 @@ describe('NotificationBell Component', () => {
 
     it('should not close dropdown when clicking on dropdown itself', async () => {
       render(<NotificationBell />);
-      const button = screen.getByRole('button', { name: /notifications/i });
+      const button = screen.getByRole('button', { name: /bell\.ariaLabel/i });
 
       // Open dropdown
       await userEvent.click(button);
@@ -334,7 +338,7 @@ describe('NotificationBell Component', () => {
   describe('Integration', () => {
     it('should render NotificationDropdown when open', async () => {
       render(<NotificationBell />);
-      const button = screen.getByRole('button', { name: /notifications/i });
+      const button = screen.getByRole('button', { name: /bell\.ariaLabel/i });
 
       await userEvent.click(button);
 
@@ -345,7 +349,7 @@ describe('NotificationBell Component', () => {
 
     it('should pass onClose callback to dropdown', async () => {
       render(<NotificationBell />);
-      const button = screen.getByRole('button', { name: /notifications/i });
+      const button = screen.getByRole('button', { name: /bell\.ariaLabel/i });
 
       // Open dropdown
       await userEvent.click(button);

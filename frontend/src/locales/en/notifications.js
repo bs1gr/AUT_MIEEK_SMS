@@ -65,6 +65,13 @@ export const notificationsEN = {
     validationUsers: 'Enter at least one valid user ID.',
   },
 
+  roles: {
+    admin: 'Admin',
+    teacher: 'Teacher',
+    student: 'Student',
+    viewer: 'Viewer',
+  },
+
   // Bell component
   bell: {
     ariaLabel: 'Notifications',

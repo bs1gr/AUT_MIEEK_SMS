@@ -65,6 +65,13 @@ export const notificationsEL = {
     validationUsers: 'Εισάγετε τουλάχιστον ένα έγκυρο ID χρήστη.',
   },
 
+  roles: {
+    admin: 'Διαχειριστής',
+    teacher: 'Καθηγητής',
+    student: 'Μαθητής',
+    viewer: 'Παρατηρητής',
+  },
+
   // Bell component
   bell: {
     ariaLabel: 'Ειδοποιήσεις',

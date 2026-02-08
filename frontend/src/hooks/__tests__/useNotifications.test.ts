@@ -6,6 +6,8 @@
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { useNotifications } from '../useNotifications';
+import authService from '../../services/authService';
+import apiClient from '../../api/api';
 
 // Mock socket.io-client
 const mockSocket = {
@@ -19,28 +21,18 @@ vi.mock('socket.io-client', () => ({
   io: vi.fn(() => mockSocket),
 }));
 
-// Mock API client with proper response structure
-vi.mock('../../api/api', () => {
-  const mockGet = vi.fn();
-  const mockPost = vi.fn();
-  const mockDelete = vi.fn();
+let apiGetSpy: ReturnType<typeof vi.spyOn>;
+let apiPostSpy: ReturnType<typeof vi.spyOn>;
+let apiDeleteSpy: ReturnType<typeof vi.spyOn>;
 
-  return {
-    default: {
-      get: mockGet,
-      post: mockPost,
-      delete: mockDelete,
-    },
-    extractAPIResponseData: (response: Record<string, unknown>) => (response?.data as Record<string, unknown>)?.data || response?.data,
-    extractAPIError: (error: { message?: string }) => ({
-      message: error?.message || 'Unknown error',
-      code: 'ERROR',
-    }),
-  };
-});
+const setAuthToken = () => {
+  authService.setAccessToken('test-token');
+  localStorage.setItem('access_token', 'test-token');
+};
 
-// Import after mocking
-import api from '../../api/api';
+const setUserContext = () => {
+  localStorage.setItem('sms_user_v1', JSON.stringify({ id: 1 }));
+};
 
 describe('useNotifications Hook', () => {
   beforeEach(() => {
@@ -48,7 +40,9 @@ describe('useNotifications Hook', () => {
     mockSocket.on.mockClear();
     mockSocket.off.mockClear();
     mockSocket.emit.mockClear();
-    localStorage.setItem('access_token', 'test-token');
+    apiGetSpy = vi.spyOn(apiClient, 'get');
+    apiPostSpy = vi.spyOn(apiClient, 'post');
+    apiDeleteSpy = vi.spyOn(apiClient, 'delete');
   });
 
   afterEach(() => {
@@ -98,7 +92,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -107,6 +101,7 @@ describe('useNotifications Hook', () => {
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications({ limit: 10 });
@@ -121,15 +116,10 @@ describe('useNotifications Hook', () => {
 
     it('should handle fetch errors', async () => {
       const error = new Error('Failed to fetch');
-      // Mock first call (mount) as success to stabilize state
-      vi.mocked(api.get).mockResolvedValueOnce({
-        data: { data: { notifications: [], unread_count: 0 } }
-      });
-      // Mock second call (manual) as failure
-      vi.mocked(api.get)
-        .mockRejectedValueOnce(error);
+      apiGetSpy.mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         try {
@@ -166,7 +156,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -175,6 +165,7 @@ describe('useNotifications Hook', () => {
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications();
@@ -201,7 +192,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -209,11 +200,12 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      vi.mocked(api.post).mockResolvedValueOnce({
+      apiPostSpy.mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications();
@@ -242,7 +234,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -251,9 +243,10 @@ describe('useNotifications Hook', () => {
       });
 
       const error = new Error('Failed to mark as read');
-      vi.mocked(api.post).mockRejectedValueOnce(error);
+      apiPostSpy.mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications();
@@ -267,7 +260,7 @@ describe('useNotifications Hook', () => {
         }
       });
 
-      expect(vi.mocked(api.post)).toHaveBeenCalled();
+      expect(apiPostSpy).toHaveBeenCalled();
     });
   });
 
@@ -294,7 +287,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 2 },
@@ -302,17 +295,20 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      vi.mocked(api.post).mockResolvedValueOnce({
+      apiPostSpy.mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications();
       });
 
-      expect(result.current.unreadCount).toBe(2);
+      await waitFor(() => {
+        expect(result.current.unreadCount).toBe(2);
+      });
 
       await act(async () => {
         await result.current.markAllAsRead();
@@ -339,7 +335,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -347,17 +343,20 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      vi.mocked(api.delete).mockResolvedValueOnce({
+      apiDeleteSpy.mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications();
       });
 
-      expect(result.current.notifications).toHaveLength(1);
+      await waitFor(() => {
+        expect(result.current.notifications).toHaveLength(1);
+      });
 
       await act(async () => {
         await result.current.deleteNotification(1);
@@ -381,7 +380,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -389,11 +388,12 @@ describe('useNotifications Hook', () => {
         },
       });
 
-      vi.mocked(api.delete).mockResolvedValueOnce({
+      apiDeleteSpy.mockResolvedValueOnce({
         data: { success: true, data: null },
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications();
@@ -413,7 +413,7 @@ describe('useNotifications Hook', () => {
 
   describe('refreshUnreadCount', () => {
     it('should refresh unread count from API', async () => {
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { unread_count: 5 },
@@ -422,6 +422,7 @@ describe('useNotifications Hook', () => {
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.refreshUnreadCount();
@@ -436,6 +437,8 @@ describe('useNotifications Hook', () => {
   describe('WebSocket Integration', () => {
     it('should handle connect event', async () => {
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
+      setUserContext();
 
       await act(async () => {
         result.current.connect();
@@ -448,6 +451,8 @@ describe('useNotifications Hook', () => {
 
     it('should have proper cleanup on unmount', async () => {
       const { result, unmount } = renderHook(() => useNotifications());
+      setAuthToken();
+      setUserContext();
 
       await act(async () => {
         result.current.connect();
@@ -462,15 +467,10 @@ describe('useNotifications Hook', () => {
   describe('Error Handling', () => {
     it('should set error state on API failure', async () => {
       const error = new Error('API Error');
-      // Mock first call (mount) as success
-      vi.mocked(api.get).mockResolvedValueOnce({
-        data: { data: { notifications: [], unread_count: 0 } }
-      });
-      // Mock second call (manual) as failure
-      vi.mocked(api.get)
-        .mockRejectedValueOnce(error);
+      apiGetSpy.mockRejectedValueOnce(error);
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         try {
@@ -500,7 +500,7 @@ describe('useNotifications Hook', () => {
         },
       ];
 
-      vi.mocked(api.get).mockResolvedValueOnce({
+      apiGetSpy.mockResolvedValueOnce({
         data: {
           success: true,
           data: { notifications: mockNotifications, unread_count: 1 },
@@ -509,6 +509,7 @@ describe('useNotifications Hook', () => {
       });
 
       const { result } = renderHook(() => useNotifications());
+      setAuthToken();
 
       await act(async () => {
         await result.current.fetchNotifications();

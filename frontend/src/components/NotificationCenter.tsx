@@ -272,17 +272,17 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
               disabled={skip === 0}
               className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
             >
-              {t('common.previous')}
+              {t('common:previous')}
             </button>
             <span className="text-sm text-gray-600">
-              {skip + 1}-{Math.min(skip + limit, data.total)} {t('notifications.of')} {data.total}
+              {skip + 1}-{Math.min(skip + limit, data.total)} {t('common:of')} {data.total}
             </span>
             <button
               onClick={() => setSkip(skip + limit)}
               disabled={skip + limit >= data.total}
               className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
             >
-              {t('common.next')}
+              {t('common:next')}
             </button>
           </div>
         ) : null}

@@ -74,7 +74,6 @@ export const AnalyticsDashboard: React.FC = () => {
   const [gradeDistributionData, setGradeDistributionData] = useState<GradeDistributionData[]>([]);
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
-  const [pieChartData, setPieChartData] = useState<PieChartData[]>([]);
 
   const { dashboard, isLoading, error, refetch } = useDashboardData();
 
@@ -115,15 +114,6 @@ export const AnalyticsDashboard: React.FC = () => {
 
         setStudents(studentItems);
         setCourses(courseItems);
-
-        const totalStudents = studentItems.length;
-        const activeCount = studentItems.filter((s) => s.is_active !== false).length;
-        const inactiveCount = Math.max(0, totalStudents - activeCount);
-
-        setPieChartData([
-          { name: t('active'), value: activeCount },
-          { name: t('inactive'), value: inactiveCount },
-        ]);
 
         if (!selectedStudent && studentItems.length > 0) {
           setSelectedStudent(studentItems[0].id);
@@ -291,17 +281,21 @@ export const AnalyticsDashboard: React.FC = () => {
     loadLookups();
   }, [selectedStudent, selectedCourse, t]);
 
-  useEffect(() => {
-    if (!selectedDivision) return;
-    if (!selectedStudent) return;
+  const effectiveSelectedStudent = useMemo(() => {
+    if (!selectedDivision) return selectedStudent;
+    if (!selectedStudent) {
+      const fallback = students.find((student) => student.class_division === selectedDivision);
+      return fallback ? fallback.id : null;
+    }
+
     const current = students.find((student) => student.id === selectedStudent);
-    if (current && current.class_division === selectedDivision) return;
+    if (current && current.class_division === selectedDivision) return selectedStudent;
 
     const fallback = students.find((student) => student.class_division === selectedDivision);
-    setSelectedStudent(fallback ? fallback.id : null);
+    return fallback ? fallback.id : null;
   }, [selectedDivision, selectedStudent, students]);
 
-  useEffect(() => {
+  const pieChartData = useMemo<PieChartData[]>(() => {
     const filteredStudents = selectedDivision
       ? students.filter((student) => student.class_division === selectedDivision)
       : students;
@@ -309,10 +303,10 @@ export const AnalyticsDashboard: React.FC = () => {
     const activeCount = filteredStudents.filter((s) => s.is_active !== false).length;
     const inactiveCount = Math.max(0, totalStudents - activeCount);
 
-    setPieChartData([
+    return [
       { name: t('active'), value: activeCount },
       { name: t('inactive'), value: inactiveCount },
-    ]);
+    ];
   }, [selectedDivision, students, t]);
 
   const filteredCourseAggregates = useMemo(() => {
@@ -605,7 +599,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
   useEffect(() => {
     const loadStudentAnalytics = async () => {
-      if (!selectedStudent) {
+      if (!effectiveSelectedStudent) {
         setPerformanceData([]);
         setAttendanceData([]);
         setTrendData([]);
@@ -614,9 +608,9 @@ export const AnalyticsDashboard: React.FC = () => {
 
       try {
         const [performanceRes, attendanceRes, trendsRes] = await Promise.all([
-          apiClient.get(`/analytics/student/${selectedStudent}/performance`, { params: { days_back: 90 } }),
-          apiClient.get(`/analytics/student/${selectedStudent}/attendance`),
-          apiClient.get(`/analytics/student/${selectedStudent}/trends`, { params: { limit: 10 } }),
+          apiClient.get(`/analytics/student/${effectiveSelectedStudent}/performance`, { params: { days_back: 90 } }),
+          apiClient.get(`/analytics/student/${effectiveSelectedStudent}/attendance`),
+          apiClient.get(`/analytics/student/${effectiveSelectedStudent}/trends`, { params: { limit: 10 } }),
         ]);
 
         const performancePayload = extractAPIResponseData<unknown>(performanceRes.data ?? performanceRes);
@@ -671,7 +665,7 @@ export const AnalyticsDashboard: React.FC = () => {
     };
 
     loadStudentAnalytics();
-  }, [selectedStudent, t]);
+  }, [effectiveSelectedStudent, t]);
 
   useEffect(() => {
     const loadCourseDistribution = async () => {
@@ -826,7 +820,7 @@ export const AnalyticsDashboard: React.FC = () => {
             {t('analytics.studentLabel')}
           </label>
           <select
-            value={selectedStudent ?? ''}
+            value={effectiveSelectedStudent ?? ''}
             onChange={(e) => setSelectedStudent(e.target.value ? Number(e.target.value) : null)}
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >
@@ -834,10 +828,10 @@ export const AnalyticsDashboard: React.FC = () => {
             {students
               .filter((student) => (selectedDivision ? student.class_division === selectedDivision : true))
               .map((student) => (
-              <option key={student.id} value={student.id}>
-                {student.first_name} {student.last_name}
-              </option>
-            ))}
+                <option key={student.id} value={student.id}>
+                  {student.first_name} {student.last_name}
+                </option>
+              ))}
           </select>
         </div>
         <div>

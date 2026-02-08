@@ -17,6 +17,10 @@ vi.mock('../../api/api', () => ({
     post: vi.fn(),
     delete: vi.fn(),
   },
+  extractAPIResponseData: (response: { data?: unknown } | undefined) =>
+    response && typeof response === 'object' && 'data' in response
+      ? (response as { data: unknown }).data
+      : response,
 }));
 
 // Mock translation hook
@@ -39,6 +43,7 @@ vi.mock('react-i18next', () => ({
         'common:delete': 'Delete',
         'common:previous': 'Previous',
         'common:next': 'Next',
+        'common:of': 'of',
         'common:close': 'Close',
 
         // Fallback for any missing keys

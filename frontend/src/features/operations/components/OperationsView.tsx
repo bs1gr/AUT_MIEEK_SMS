@@ -468,10 +468,10 @@ const OperationsView = (_props: OperationsViewProps) => {
                         value={broadcastRole}
                         onChange={(event) => setBroadcastRole(event.target.value)}
                       >
-                        <option value="admin">admin</option>
-                        <option value="teacher">teacher</option>
-                        <option value="student">student</option>
-                        <option value="viewer">viewer</option>
+                        <option value="admin">{t('roles.admin', { ns: 'notifications' })}</option>
+                        <option value="teacher">{t('roles.teacher', { ns: 'notifications' })}</option>
+                        <option value="student">{t('roles.student', { ns: 'notifications' })}</option>
+                        <option value="viewer">{t('roles.viewer', { ns: 'notifications' })}</option>
                       </select>
                     </label>
                   )}

@@ -106,7 +106,6 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
   height = 350,
 }) => {
   const { language } = useLanguage();
-  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#6b7280'];
 
   if (!data || data.length === 0) {
     return (
