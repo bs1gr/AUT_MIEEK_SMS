@@ -303,7 +303,7 @@ describe('StudentResultCard', () => {
       <StudentResultCard student={mockStudentResults[0]} onClick={mockOnClick} />
     );
 
-    const card = screen.getByRole('listitem');
+    const card = screen.getByRole('button', { name: /student: john doe/i });
     fireEvent.click(card);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -314,7 +314,7 @@ describe('StudentResultCard', () => {
       <StudentResultCard student={mockStudentResults[0]} onClick={mockOnClick} />
     );
 
-    const card = screen.getByRole('listitem');
+    const card = screen.getByRole('button', { name: /student: john doe/i });
     fireEvent.keyDown(card, { key: 'Enter' });
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -325,7 +325,7 @@ describe('StudentResultCard', () => {
       <StudentResultCard student={mockStudentResults[0]} onClick={mockOnClick} />
     );
 
-    const card = screen.getByRole('listitem');
+    const card = screen.getByRole('button', { name: /student: john doe/i });
     fireEvent.keyDown(card, { key: ' ' });
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -398,7 +398,7 @@ describe('CourseResultCard', () => {
       <CourseResultCard course={mockCourseResults[0]} onClick={mockOnClick} />
     );
 
-    const card = screen.getByRole('listitem');
+    const card = screen.getByRole('button', { name: /course: cs101 - introduction to computer science/i });
     fireEvent.click(card);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
@@ -467,7 +467,7 @@ describe('GradeResultCard', () => {
       <GradeResultCard grade={mockGradeResults[0]} onClick={mockOnClick} />
     );
 
-    const card = screen.getByRole('listitem');
+    const card = screen.getByRole('button', { name: /grade: john doe - cs101 - a/i });
     fireEvent.click(card);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
