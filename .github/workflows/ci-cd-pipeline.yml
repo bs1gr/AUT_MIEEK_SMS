@@ -773,7 +773,7 @@ jobs:
     name: 🚀 Deploy to Staging
     runs-on: ubuntu-latest
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && (vars.STAGING_URL != '' || secrets.DEPLOY_HOST != '' || vars.DEPLOY_HOST != '')
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && (vars.STAGING_URL != '' || vars.DEPLOY_HOST != '')
     environment:
       name: staging
       url: ${{ vars.STAGING_URL }}
