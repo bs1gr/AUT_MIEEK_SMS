@@ -392,46 +392,45 @@ class HealthChecker:
             dict: Migration status
         """
         try:
-            import subprocess
+            from alembic.config import Config
+            from alembic.runtime.migration import MigrationContext
+            from alembic.script import ScriptDirectory
 
-            # Use the directory where this file resides (backend/) as working directory
-            backend_dir = str(Path(__file__).resolve().parent)
-            result = subprocess.run(
-                ["alembic", "current"],
-                cwd=backend_dir,
-                capture_output=True,
-                text=True,
-                timeout=5,
-            )
+            backend_dir = Path(__file__).resolve().parent
+            alembic_ini = backend_dir / "alembic.ini"
+            config = Config(str(alembic_ini))
+            if not config.get_main_option("script_location"):
+                config.set_main_option("script_location", str(backend_dir / "alembic"))
 
-            if result.returncode == 0:
-                # Parse output to get current version
-                output = result.stdout.strip()
-                # Output format: "3f2b1a9c0d7e (head)"
-                current_version = output.split()[0] if output else "unknown"
-                is_head = "(head)" in output
+            script = ScriptDirectory.from_config(config)
+            heads = set(script.get_heads())
 
-                if is_head:
-                    status = HealthCheckStatus.HEALTHY
-                    message = "Database migrations up to date"
-                else:
-                    status = HealthCheckStatus.DEGRADED
-                    message = "Database migrations may be outdated"
+            with self.db_engine.connect() as connection:
+                context = MigrationContext.configure(connection)
+                current_version = context.get_current_revision()
 
-                return {
-                    "status": status,
-                    "message": message,
-                    "details": {
-                        "current_version": current_version,
-                        "at_head": is_head,
-                    },
-                }
-            else:
+            if not current_version:
                 return {
                     "status": HealthCheckStatus.DEGRADED,
-                    "message": "Could not check migration status",
-                    "details": {"error": result.stderr},
+                    "message": "Database migrations not initialized",
+                    "details": {
+                        "current_version": "unknown",
+                        "at_head": False,
+                    },
                 }
+
+            is_head = current_version in heads
+            status = HealthCheckStatus.HEALTHY if is_head else HealthCheckStatus.DEGRADED
+            message = "Database migrations up to date" if is_head else "Database migrations may be outdated"
+
+            return {
+                "status": status,
+                "message": message,
+                "details": {
+                    "current_version": current_version,
+                    "at_head": is_head,
+                },
+            }
         except Exception as e:
             logger.warning(f"Migration status check failed: {e}")
             return {
@@ -576,7 +575,6 @@ class HealthChecker:
             dict: Frontend status
         """
         frontend_port = self._detect_frontend_port()
-
         if frontend_port:
             return {
                 "status": HealthCheckStatus.HEALTHY,
@@ -586,15 +584,35 @@ class HealthChecker:
                     "port": frontend_port,
                 },
             }
-        else:
+
+        assets_present = self._frontend_assets_present()
+        if assets_present:
             return {
-                "status": HealthCheckStatus.DEGRADED,
-                "message": "Frontend not detected (optional service)",
+                "status": HealthCheckStatus.HEALTHY,
+                "message": "Frontend assets detected (served by backend)",
                 "details": {
-                    "running": False,
+                    "running": True,
                     "port": None,
+                    "assets_path": str(assets_present),
                 },
             }
+
+        return {
+            "status": HealthCheckStatus.DEGRADED,
+            "message": "Frontend not detected (optional service)",
+            "details": {
+                "running": False,
+                "port": None,
+            },
+        }
+
+    def _frontend_assets_present(self) -> Optional[Path]:
+        project_root = Path(__file__).resolve().parent.parent
+        spa_dist_dir = project_root / "frontend" / "dist"
+        index_file = spa_dist_dir / "index.html"
+        if index_file.exists():
+            return index_file
+        return None
 
     def _detect_frontend_port(self) -> Optional[int]:
         """
