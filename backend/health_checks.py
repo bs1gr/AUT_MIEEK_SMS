@@ -399,7 +399,12 @@ class HealthChecker:
             backend_dir = Path(__file__).resolve().parent
             alembic_ini = backend_dir / "alembic.ini"
             config = Config(str(alembic_ini))
-            if not config.get_main_option("script_location"):
+            script_location = config.get_main_option("script_location")
+            if script_location:
+                script_path = (backend_dir / script_location).resolve()
+                if not script_path.exists():
+                    config.set_main_option("script_location", str(backend_dir / "alembic"))
+            else:
                 config.set_main_option("script_location", str(backend_dir / "alembic"))
 
             script = ScriptDirectory.from_config(config)
@@ -597,6 +602,14 @@ class HealthChecker:
                 },
             }
 
+        docker_frontend = self._detect_docker_frontend_service()
+        if docker_frontend:
+            return {
+                "status": HealthCheckStatus.HEALTHY,
+                "message": "Frontend service detected (docker network)",
+                "details": docker_frontend,
+            }
+
         return {
             "status": HealthCheckStatus.DEGRADED,
             "message": "Frontend not detected (optional service)",
@@ -612,6 +625,24 @@ class HealthChecker:
         index_file = spa_dist_dir / "index.html"
         if index_file.exists():
             return index_file
+        return None
+
+    def _detect_docker_frontend_service(self) -> Optional[Dict[str, Any]]:
+        if self._detect_environment() != "docker":
+            return None
+
+        host = "frontend"
+        port = 80
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(0.5)
+            result = sock.connect_ex((host, port))
+            sock.close()
+            if result == 0:
+                return {"running": True, "host": host, "port": port}
+        except Exception:
+            return None
+
         return None
 
     def _detect_frontend_port(self) -> Optional[int]:
