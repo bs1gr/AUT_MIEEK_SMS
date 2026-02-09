@@ -1157,6 +1157,25 @@ function Start-Application {
     # Start container
     Write-Info "Starting container..."
 
+    # If a previous container exists (created/stopped), remove it to avoid name/port conflicts
+    $existingContainerStatus = docker ps -a --filter "name=^${CONTAINER_NAME}$" --format "{{.ID}}\t{{.Status}}" 2>$null
+    if ($existingContainerStatus) {
+        Write-Warning "Removing existing container '${CONTAINER_NAME}' to avoid conflicts: $existingContainerStatus"
+        docker rm -f $CONTAINER_NAME 2>$null | Out-Null
+    }
+
+    # If port is already in use by another container, provide a clear error
+    if (Test-PortInUse -Port $PORT) {
+        $portContainer = docker ps --filter "publish=${PORT}" --format "{{.ID}}\t{{.Names}}\t{{.Ports}}" 2>$null
+        if ($portContainer) {
+            Write-Error-Message "Port $PORT is already in use by another container."
+            Write-Host $portContainer -ForegroundColor DarkGray
+        } else {
+            Write-Error-Message "Port $PORT is already in use by another process."
+        }
+        return 1
+    }
+
     # Build docker run command with env-file if available
     $dockerCmd = @(
         "run", "-d",
@@ -1202,6 +1221,13 @@ function Start-Application {
         $existingContainer = docker ps -a --filter "name=^${CONTAINER_NAME}$" --format "{{.ID}}\t{{.Status}}" 2>$null
         if ($existingContainer) {
             Write-Warning "Existing container found for '${CONTAINER_NAME}': $existingContainer"
+        }
+
+        # Clean up any created container to prevent repeated failures
+        $createdContainer = docker ps -a --filter "name=^${CONTAINER_NAME}$" --format "{{.ID}}\t{{.Status}}" 2>$null
+        if ($createdContainer) {
+            Write-Warning "Cleaning up failed container '${CONTAINER_NAME}': $createdContainer"
+            docker rm -f $CONTAINER_NAME 2>$null | Out-Null
         }
 
         return 1
