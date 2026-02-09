@@ -237,17 +237,11 @@ describe('ExportJobList', () => {
   });
 
   it('shows loading skeleton when data is loading', () => {
-    vi.mocked(useExportJobs)
-      .mockReturnValueOnce({
-        data: null,
-        isLoading: true,
-        error: null,
-      })
-      .mockReturnValueOnce({
-        data: null,
-        isLoading: true,
-        error: null,
-      });
+    vi.mocked(useExportJobs).mockReturnValue({
+      data: null,
+      isLoading: true,
+      error: null,
+    });
 
     renderWithProviders(<ExportJobList />);
 
@@ -255,17 +249,11 @@ describe('ExportJobList', () => {
   });
 
   it('shows empty state when no jobs found', () => {
-    vi.mocked(useExportJobs)
-      .mockReturnValueOnce({
-        data: { data: { items: [], total: 0 } },
-        isLoading: false,
-        error: null,
-      })
-      .mockReturnValueOnce({
-        data: { data: { items: [], total: 0 } },
-        isLoading: false,
-        error: null,
-      });
+    vi.mocked(useExportJobs).mockReturnValue({
+      data: { data: { items: [], total: 0 } },
+      isLoading: false,
+      error: null,
+    });
 
     renderWithProviders(<ExportJobList />);
 
