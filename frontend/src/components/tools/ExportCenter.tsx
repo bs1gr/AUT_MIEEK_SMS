@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, useMemo, useCallback, type ComponentType }
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { Download, FileText, FileSpreadsheet, Users, Calendar, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload, ChevronDown, ChevronUp, type LucideProps } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI, sessionAPI } from '../../api/api';
 import type { OperationsLocationState } from '@/features/operations/types';
@@ -647,36 +646,6 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     URL.revokeObjectURL(url);
   };
 
-  const handleExportCalendarExcel = () => {
-    const getDayLabel = (day: string) => {
-      const match = WEEKDAY_CONFIG.find((entry) => entry.key === day);
-      return match ? t(match.labelKey) : day;
-    };
-    const header = [
-      t('printCalendarDay'),
-      t('printCalendarCourseCode'),
-      t('printCalendarCourseName'),
-      t('printCalendarStart'),
-      t('printCalendarEnd'),
-      t('printCalendarDuration'),
-      t('printCalendarPeriods'),
-      t('printCalendarLocation')
-    ];
-    const rows = calendarDraft.map((session) => [
-      getDayLabel(session.day),
-      session.courseCode || '',
-      session.courseName || '',
-      session.start,
-      session.end,
-      session.duration,
-      session.periods,
-      session.location || ''
-    ]);
-    const worksheet = XLSX.utils.aoa_to_sheet([header, ...rows]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, t('printCalendarSheetTitle') || 'Calendar');
-    XLSX.writeFile(workbook, 'calendar_export.xlsx');
-  };
 
   const exportSingles: ExportSingleOption[] = [
     {
@@ -904,13 +873,6 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
                 className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
               >
                 {t('exportToPDF')}
-              </button>
-              <button
-                type="button"
-                onClick={handleExportCalendarExcel}
-                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
-              >
-                {t('exportToExcel')}
               </button>
               <button
                 type="button"
