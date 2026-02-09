@@ -91,6 +91,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   // Request deduplication - prevent concurrent duplicate requests
   const activeRequestsRef = useRef<Set<string>>(new Set());
   const courseDetailsFetchedRef = useRef<Set<number>>(new Set());
+  const coursesFetchAttemptedRef = useRef(false);
   // debounce timer (currently unused in this refactor)
   // const attendanceFetchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
@@ -379,9 +380,23 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   // Sync local courses with props (only on initial mount or when props change)
   useEffect(() => {
     if (Array.isArray(courses) && courses.length > 0) {
-      setLocalCourses(courses);
-    } else if (!Array.isArray(courses) || courses.length === 0) {
-      // If courses not available from props, try to fetch them from API
+      setLocalCourses((prev) => {
+        const prevIds = prev.map((c) => c.id).join(',');
+        const nextIds = courses.map((c) => c.id).join(',');
+        if (prev.length === courses.length && prevIds === nextIds) {
+          return prev;
+        }
+        return courses;
+      });
+      return;
+    }
+
+    if (!Array.isArray(courses) || courses.length === 0) {
+      if (coursesFetchAttemptedRef.current) {
+        return;
+      }
+      coursesFetchAttemptedRef.current = true;
+
       const fetchCourses = async () => {
         try {
           const response = await fetch(`${API_BASE_URL}/courses?limit=999`);
@@ -398,12 +413,9 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         }
       };
 
-      // Only fetch if we haven't already tried
-      if (localCourses.length === 0) {
-        fetchCourses();
-      }
+      fetchCourses();
     }
-  }, [courses, localCourses]);
+  }, [courses]);
 
   // Determine which courses have at least one enrolled student
   // Only run when courses list changes length (not on every mutation)

@@ -1187,10 +1187,23 @@ function Start-Application {
         $dockerCmd += "HOST_DOCKER_VERSION=$dockerVersionString"
     }
 
-    & docker $dockerCmd 2>$null | Out-Null
+    $runOutput = & docker $dockerCmd 2>&1
 
     if ($LASTEXITCODE -ne 0) {
         Write-Error-Message "Failed to start container"
+        if ($runOutput) {
+            Write-Host $runOutput -ForegroundColor DarkGray
+        }
+
+        if (Test-PortInUse -Port $PORT) {
+            Write-Warning "Port $PORT is already in use. Another service or container may be bound to it."
+        }
+
+        $existingContainer = docker ps -a --filter "name=^${CONTAINER_NAME}$" --format "{{.ID}}\t{{.Status}}" 2>$null
+        if ($existingContainer) {
+            Write-Warning "Existing container found for '${CONTAINER_NAME}': $existingContainer"
+        }
+
         return 1
     }
 

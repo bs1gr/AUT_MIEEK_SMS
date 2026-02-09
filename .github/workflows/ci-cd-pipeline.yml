@@ -808,6 +808,13 @@ jobs:
           $version = (Get-Content VERSION -Raw).Trim()
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
+      - name: Stop existing staging stack (safe)
+        shell: pwsh
+        run: |
+          if (Test-Path ".\DOCKER.ps1") {
+            .\DOCKER.ps1 -Stop
+          }
+
       - name: Deploy to staging server
         shell: pwsh
         run: |

@@ -14,7 +14,25 @@ import type {
   WebSocketMessage,
 } from '../types/notification';
 
-const WEBSOCKET_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+const WEBSOCKET_URL = (() => {
+  const explicitUrl = import.meta.env.VITE_WS_URL;
+  if (explicitUrl) {
+    return explicitUrl;
+  }
+
+  const apiUrl = import.meta.env.VITE_API_URL || '/api/v1';
+
+  if (apiUrl.startsWith('http://') || apiUrl.startsWith('https://')) {
+    return apiUrl.replace(/^http/, 'ws').replace(/\/api\/v1$/, '');
+  }
+
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${protocol}//${window.location.host}`;
+  }
+
+  return 'ws://localhost:8000';
+})();
 const RECONNECT_DELAY = 3000;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const MIN_FETCH_INTERVAL_MS = 3000;
