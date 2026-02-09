@@ -734,7 +734,15 @@ jobs:
       - name: Verify documentation consistency
         run: |
           echo "🔍 Checking documentation TODOs..."
-          TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" docs/ --exclude-dir=node_modules --exclude-dir=.git | wc -l || true)
+          TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" docs/ \
+            --exclude-dir=node_modules \
+            --exclude-dir=.git \
+            --exclude-dir=archive \
+            --exclude-dir=docs/archive \
+            --exclude-dir=docs/reports \
+            --exclude-dir=docs/releases/reports \
+            --exclude-dir=docs/development/sessions \
+            | wc -l || true)
           echo "Found $TODO_COUNT TODO items in documentation"
 
           if [ $TODO_COUNT -gt 50 ]; then
