@@ -270,6 +270,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
 export interface PieChartData {
   name: string;
   value: number;
+  [key: string]: string | number;
 }
 
 interface StatsPieChartProps {
@@ -305,9 +306,10 @@ export const StatsPieChart: React.FC<StatsPieChartProps> = ({
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, value, percent }) =>
-              `${name}: ${value} (${(percent * 100).toFixed(0)}%)`
-            }
+            label={({ name, value, percent }) => {
+              const safePercent = typeof percent === 'number' ? percent : 0;
+              return `${name}: ${value} (${(safePercent * 100).toFixed(0)}%)`;
+            }}
             outerRadius={100}
             fill="#8884d8"
             dataKey="value"

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback, type ComponentType } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Download, FileText, FileSpreadsheet, Users, Calendar, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Users, Calendar, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload, ChevronDown, ChevronUp, type LucideProps } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI, sessionAPI } from '../../api/api';
@@ -29,7 +29,7 @@ type ExportSingleOption = {
   id: string;
   title: string;
   description: string;
-  icon: ComponentType<{ size?: number; className?: string }>;
+  icon: ComponentType<LucideProps>;
   color: string;
   onClick?: () => void;
   formatLabel: string;
@@ -42,7 +42,7 @@ type ExportModuleOption = {
   id: string;
   title: string;
   description: string;
-  icon: ComponentType<{ size?: number; className?: string }>;
+  icon: ComponentType<LucideProps>;
   color: string;
   formats: ExportFormat[];
 };

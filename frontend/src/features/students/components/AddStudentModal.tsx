@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/LanguageContext';
 import type { StudentFormData } from '@/types';
 import { studentSchema } from '@/schemas';
-import type { StudentFormData as SchemaStudentFormData } from '@/schemas';
+import type { StudentFormInput as SchemaStudentFormInput } from '@/schemas';
 import {
   Form,
   FormControl,
@@ -27,7 +27,7 @@ interface AddStudentModalProps {
 const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => {
   const { t } = useLanguage();
 
-  const form = useForm<SchemaStudentFormData>({
+  const form = useForm<SchemaStudentFormInput>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
       student_id: '',
@@ -44,7 +44,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
   });
 
 
-  const onSubmit = (data: SchemaStudentFormData): void => {
+  const onSubmit = (data: SchemaStudentFormInput): void => {
     // Map schema data to existing StudentFormData type
     const studentData: StudentFormData = {
       student_id: data.student_id,

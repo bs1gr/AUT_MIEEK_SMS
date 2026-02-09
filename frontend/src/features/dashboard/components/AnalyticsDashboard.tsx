@@ -30,7 +30,7 @@ import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
  * Summary Card Component
  */
 interface SummaryCardProps {
-  icon: React.ComponentType<{ size?: number }>;
+  icon: React.ComponentType<{ size?: number | string; className?: string }>;
   label: string;
   value: string | number;
   unit?: string;

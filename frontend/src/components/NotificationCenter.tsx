@@ -17,6 +17,7 @@ interface Notification {
   is_read: boolean;
   created_at: string;
   read_at?: string;
+  data?: unknown;
 }
 
 interface NotificationListResponse {
@@ -245,7 +246,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
                           </button>
                         </div>
                       </div>
-                      {expandedIds.has(notification.id) && notification.data && (
+                      {expandedIds.has(notification.id) && notification.data != null && (
                         <div className="mt-3 rounded-lg bg-slate-50 p-3 text-xs text-slate-600">
                           <div className="font-semibold text-slate-700 mb-1">
                             {t('item.details', { defaultValue: 'Details' })}

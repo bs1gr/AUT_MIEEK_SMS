@@ -61,15 +61,12 @@ export const studentSchema = z.object({
       'Invalid date format'
     ),
 
-  academic_year: z.preprocess(
-    (val) => (typeof val === 'string' && val.trim() === '' ? undefined : val),
-    z
-      .string()
-      .trim()
-      .transform((val) => val.toUpperCase())
-      .refine((val) => val === 'A' || val === 'B', "Academic year must be 'A' or 'B'")
-      .optional()
-  ),
+  academic_year: z
+    .string()
+    .trim()
+    .optional()
+    .transform((val) => (val && val.trim().length > 0 ? val.toUpperCase() : undefined))
+    .refine((val) => !val || val === 'A' || val === 'B', "Academic year must be 'A' or 'B'"),
 
   class_division: z
     .string()
@@ -88,5 +85,7 @@ export const studentUpdateSchema = studentSchema.partial().extend({
 /**
  * Type inference from schema
  */
+export type StudentFormInput = z.input<typeof studentSchema>;
 export type StudentFormData = z.infer<typeof studentSchema>;
 export type StudentUpdateFormData = z.infer<typeof studentUpdateSchema>;
+export type StudentUpdateFormInput = z.input<typeof studentUpdateSchema>;

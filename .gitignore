@@ -47,6 +47,7 @@ backend/reports/
 # Databases & backups
 *.db
 data/*.db
+data/*.db.pre-restore-*
 backups/*.db
 backups/
 !backups/.gitkeep
