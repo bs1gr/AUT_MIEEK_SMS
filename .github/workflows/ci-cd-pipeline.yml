@@ -771,9 +771,9 @@ jobs:
 
   deploy-staging:
     name: 🚀 Deploy to Staging
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, windows, staging-lan]
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && (vars.STAGING_URL != '' || vars.DEPLOY_HOST != '')
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.actor == 'bs1gr' && (vars.STAGING_URL != '' || vars.DEPLOY_HOST != '')
     environment:
       name: staging
       url: ${{ vars.STAGING_URL }}
