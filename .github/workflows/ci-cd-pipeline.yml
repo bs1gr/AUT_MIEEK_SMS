@@ -773,10 +773,14 @@ jobs:
     name: 🚀 Deploy to Staging
     runs-on: ubuntu-latest
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && (vars.STAGING_URL != '' || secrets.DEPLOY_HOST != '' || vars.DEPLOY_HOST != '')
     environment:
       name: staging
-      url: https://staging.sms.example.com
+      url: ${{ vars.STAGING_URL }}
+    env:
+      STAGING_URL: ${{ vars.STAGING_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST) }}
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER || 'deploy' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -788,9 +792,6 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Deploy to staging server
-        env:
-          DEPLOY_HOST: staging.example.com
-          DEPLOY_USER: deploy
         run: |
           echo "🚀 Deploying version ${{ steps.version.outputs.version }} to staging..."
           echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
@@ -817,7 +818,7 @@ jobs:
       - name: Run post-deployment health check
         run: |
           echo "🏥 Running health checks on staging..."
-          STAGING_URL="https://staging.sms.example.com"
+          STAGING_URL="${STAGING_URL}"
           MAX_ATTEMPTS=30
           ATTEMPT=0
 
