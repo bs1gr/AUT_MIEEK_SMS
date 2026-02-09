@@ -803,9 +803,10 @@ jobs:
 
       - name: Extract version
         id: version
+        shell: pwsh
         run: |
-          VERSION=$(cat VERSION | tr -d '[:space:]')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          $version = (Get-Content VERSION -Raw).Trim()
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Deploy to staging server
         run: |
