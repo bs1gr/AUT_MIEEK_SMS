@@ -359,7 +359,7 @@ jobs:
           CI: 'true'
           GITHUB_ACTIONS: 'true'
           NODE_OPTIONS: '--max-old-space-size=4096'
-        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html --coverage.reporter=lcov --coverage.reporter=text-summary --threads 2 --maxWorkers 2
+        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html --coverage.reporter=lcov --coverage.reporter=text-summary
 
       - name: Upload test results
         if: always()
