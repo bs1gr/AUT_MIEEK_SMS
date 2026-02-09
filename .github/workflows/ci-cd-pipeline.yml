@@ -1060,6 +1060,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [create-release, post-deployment-monitoring]
     if: always()
+    env:
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
     steps:
       - name: Determine pipeline status
         id: status
@@ -1076,7 +1078,7 @@ jobs:
           fi
 
       - name: Send notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v2.0.0
         with:
           payload: |
@@ -1122,5 +1124,5 @@ jobs:
               ]
             }
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
