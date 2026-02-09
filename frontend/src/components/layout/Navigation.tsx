@@ -12,8 +12,7 @@ export type NavigationView =
   | 'operations'
   | 'system'
   | 'search'
-  | 'analytics'
-  | 'reports';
+  | 'analytics';
 
 export interface NavigationTab {
   key: NavigationView;

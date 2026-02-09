@@ -114,12 +114,18 @@ describe('useCoursesQuery hooks', () => {
 
     it('sets error state on failure', async () => {
       const error = new Error('Network fail');
-      vi.spyOn(coursesAPI, 'getAll').mockRejectedValueOnce(error);
-      const queryClient = makeClient();
-      const { result } = renderHook(() => useCourses(), { wrapper: createWrapper(queryClient) });
-      await waitFor(() => expect(result.current.isError).toBe(true));
-      const state = useCoursesStore.getState();
-      expect(state.error).toBe('Network fail');
+      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        vi.spyOn(coursesAPI, 'getAll').mockRejectedValueOnce(error);
+        const queryClient = makeClient();
+        const { result } = renderHook(() => useCourses(), { wrapper: createWrapper(queryClient) });
+        await waitFor(() => expect(result.current.isError).toBe(true));
+        const state = useCoursesStore.getState();
+        expect(state.error).toBe('Network fail');
+        expect(consoleErrorSpy).toHaveBeenCalled();
+      } finally {
+        consoleErrorSpy.mockRestore();
+      }
     });
 
     it('applies search filter (case-insensitive across name and code)', async () => {

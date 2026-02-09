@@ -16,16 +16,20 @@ interface FilterBuilderProps {
   fields: string[];
   filters: Filter[];
   onChange: (filters: Filter[]) => void;
+  getFieldLabel?: (field: string) => string;
 }
 
 const OPERATORS = [
   { value: 'equals', label: 'operator_equals' },
   { value: 'not_equals', label: 'operator_not_equals' },
   { value: 'contains', label: 'operator_contains' },
+  { value: 'not_contains', label: 'operator_not_contains' },
   { value: 'starts_with', label: 'operator_starts_with' },
   { value: 'ends_with', label: 'operator_ends_with' },
   { value: 'greater_than', label: 'operator_greater_than' },
+  { value: 'greater_than_or_equal', label: 'operator_greater_than_or_equal' },
   { value: 'less_than', label: 'operator_less_than' },
+  { value: 'less_than_or_equal', label: 'operator_less_than_or_equal' },
   { value: 'between', label: 'operator_between' },
   { value: 'in', label: 'operator_in' },
 ];
@@ -34,6 +38,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
   fields,
   filters,
   onChange,
+  getFieldLabel,
 }) => {
   const { t } = useTranslation();
   const [newFilter, setNewFilter] = useState<Filter>({
@@ -41,6 +46,8 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
     operator: 'equals',
     value: '',
   });
+
+  const resolveFieldLabel = (field: string) => (getFieldLabel ? getFieldLabel(field) : field);
 
   const handleAddFilter = () => {
     if (newFilter.field && newFilter.operator && newFilter.value) {
@@ -81,7 +88,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
               >
                 {fields.map((field) => (
                   <option key={field} value={field}>
-                    {field}
+                    {resolveFieldLabel(field)}
                   </option>
                 ))}
               </select>
@@ -131,7 +138,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
             >
               {fields.map((field) => (
                 <option key={field} value={field}>
-                  {field}
+                    {resolveFieldLabel(field)}
                 </option>
               ))}
             </select>
@@ -148,7 +155,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
             >
               {OPERATORS.map(({ value, label }) => (
                 <option key={value} value={value}>
-                  {t(`customReports:${label}`)}
+                  {t(label, { ns: 'customReports' })}
                 </option>
               ))}
             </select>

@@ -1,7 +1,7 @@
 # Testing Guide - Student Management System
 
 **Version**: 1.15.1
-**Last Updated**: January 10, 2026
+**Last Updated**: February 9, 2026
 **Status**: Production Ready
 
 This guide covers all testing strategies, tools, and procedures for the Student Management System.
@@ -577,6 +577,18 @@ npm --prefix frontend run test -- --run  # Frontend tests
 npm --prefix frontend run e2e      # E2E tests
 
 ```text
+### Frontend Test Log Noise (DEBUG_TEST_LOGS)
+
+Frontend tests suppress console output by default to keep CI and local runs readable.
+To re-enable full logging for debugging, set the environment variable:
+
+```powershell
+$env:DEBUG_TEST_LOGS=1
+npm --prefix frontend run test -- --run
+
+```text
+When `DEBUG_TEST_LOGS` is set, all console output (warn/error/info/log) is shown.
+
 ### Test Execution in CI
 
 **Automatic on every push to main**:
@@ -880,6 +892,6 @@ cd load-testing && k6 run scripts/main_scenario.js
 
 ---
 
-**Last Updated**: January 10, 2026
+**Last Updated**: February 9, 2026
 **Author**: Solo Developer + AI Agent
 **Status**: Production Ready

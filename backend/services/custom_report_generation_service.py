@@ -292,6 +292,10 @@ class CustomReportGenerationService:
                     query = query.filter(column.ilike(f"%{value}%"))  # type: ignore[operator]
                 elif operator == "not_contains":
                     query = query.filter(~column.ilike(f"%{value}%"))  # type: ignore[operator]
+                elif operator == "starts_with":
+                    query = query.filter(column.ilike(f"{value}%"))  # type: ignore[operator]
+                elif operator == "ends_with":
+                    query = query.filter(column.ilike(f"%{value}"))  # type: ignore[operator]
                 elif operator == "greater_than" or operator == "gt":
                     query = query.filter(column > value)  # type: ignore[operator]
                 elif operator == "less_than" or operator == "lt":
@@ -329,6 +333,10 @@ class CustomReportGenerationService:
                         query = query.filter(column.ilike(f"%{value}%"))  # type: ignore[operator]
                     elif operator == "not_contains":
                         query = query.filter(~column.ilike(f"%{value}%"))  # type: ignore[operator]
+                    elif operator == "starts_with":
+                        query = query.filter(column.ilike(f"{value}%"))  # type: ignore[operator]
+                    elif operator == "ends_with":
+                        query = query.filter(column.ilike(f"%{value}"))  # type: ignore[operator]
                     elif operator == "greater_than" or operator == "gt":
                         query = query.filter(column > value)  # type: ignore[operator]
                     elif operator == "less_than" or operator == "lt":

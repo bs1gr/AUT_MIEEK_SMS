@@ -180,20 +180,61 @@ const OUTPUT_FORMATS = [
 
 const ENTITY_FIELDS: Record<string, string[]> = {
   student: [
-    'id', 'first_name', 'last_name', 'email', 'phone',
-    'enrollment_date', 'is_active', 'school_id'
+    'id',
+    'student_id',
+    'first_name',
+    'last_name',
+    'email',
+    'enrollment_date',
+    'is_active',
+    'father_name',
+    'mobile_phone',
+    'phone',
+    'health_issue',
+    'note',
+    'study_year',
+    'academic_year',
+    'class_division',
   ],
   course: [
-    'id', 'course_code', 'name', 'description', 'credits',
-    'semester', 'instructor', 'capacity'
+    'id',
+    'course_code',
+    'course_name',
+    'semester',
+    'credits',
+    'description',
+    'evaluation_rules',
+    'absence_penalty',
+    'hours_per_week',
+    'teaching_schedule',
   ],
   grade: [
-    'id', 'student_id', 'course_id', 'grade', 'points',
-    'date_assigned', 'notes'
+    'id',
+    'student_id',
+    'course_id',
+    'assignment_name',
+    'category',
+    'grade',
+    'max_grade',
+    'weight',
+    'date_assigned',
+    'date_submitted',
+    'notes',
+    'student_name',
+    'course_code',
+    'course_name',
   ],
   attendance: [
-    'id', 'student_id', 'course_id', 'date', 'status',
-    'notes'
+    'id',
+    'student_id',
+    'course_id',
+    'date',
+    'status',
+    'period_number',
+    'notes',
+    'student_name',
+    'course_code',
+    'course_name',
   ],
 };
 
@@ -443,6 +484,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const availableFields = ENTITY_FIELDS[config.entity_type] || [];
+  const getFieldLabel = useCallback(
+    (field: string) => t(`field_${field}`, { ns: 'customReports', defaultValue: field }),
+    [t]
+  );
 
   const handleConfigChange = useCallback(
     <T extends keyof ReportConfig>(key: T, value: ReportConfig[T]) => {
@@ -757,6 +802,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
             availableFields={availableFields}
             selectedFields={config.selected_fields}
             onChange={handleFieldsChange}
+            getFieldLabel={getFieldLabel}
           />
         )}
 
@@ -770,6 +816,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 fields={availableFields}
                 filters={config.filters}
                 onChange={handleFiltersChange}
+                getFieldLabel={getFieldLabel}
               />
             </div>
             <div>
@@ -811,7 +858,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                       key={field}
                       className="inline-block bg-blue-100 text-blue-800 px-3 py-1 rounded"
                     >
-                      {field}
+                      {getFieldLabel(field)}
                     </span>
                   ))}
                 </div>

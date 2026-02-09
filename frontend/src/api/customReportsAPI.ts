@@ -322,7 +322,8 @@ export const customReportsAPI = {
       const generatedList = await apiClient.get(
         `/custom-reports/${reportId}/generated?limit=500`
       );
-      const reports = extractAPIResponseData(generatedList) as GeneratedReport[];
+      const reportsData = extractAPIResponseData<GeneratedReport[]>(generatedList.data, []);
+      const reports = Array.isArray(reportsData) ? reportsData : [];
       const targetReport = reports.find(r => r.id === generatedId);
       const filename = targetReport?.file_name || `report_${generatedId}.pdf`;
 

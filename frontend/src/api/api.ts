@@ -834,9 +834,19 @@ export const jobsAPI = {
 
 export const sessionAPI = {
   listSemesters: async (): Promise<string[]> => {
-    const response = await apiClient.get<string[]>('/sessions/semesters');
-    const data = response.data as unknown;
-    return normalizeResponseToArray<string>(data);
+    const response = await apiClient.get('/sessions/semesters');
+    const data = unwrapResponse<unknown>(response.data);
+    if (Array.isArray(data)) {
+      return data as string[];
+    }
+    if (data && typeof data === 'object') {
+      const obj = data as Record<string, unknown>;
+      const semesters = obj.semesters;
+      const list = obj.list;
+      if (Array.isArray(semesters)) return semesters as string[];
+      if (Array.isArray(list)) return list as string[];
+    }
+    return [];
   },
 
   exportSession: async (semester: string): Promise<Blob> => {

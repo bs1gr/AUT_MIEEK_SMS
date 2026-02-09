@@ -14,7 +14,7 @@ describe('useErrorRecovery hook', () => {
 
   describe('error handling', () => {
     it('should handle errors correctly', () => {
-      const { result } = renderHook(() => useErrorRecovery());
+      const { result } = renderHook(() => useErrorRecovery({ strategy: 'none' }));
       const testError = new Error('Test error');
 
       act(() => {
@@ -26,7 +26,7 @@ describe('useErrorRecovery hook', () => {
     });
 
     it('should initialize with no error', () => {
-      const { result } = renderHook(() => useErrorRecovery());
+      const { result } = renderHook(() => useErrorRecovery({ strategy: 'none' }));
 
       expect(result.current.error).toBeNull();
       expect(result.current.retryCount).toBe(0);
@@ -49,7 +49,7 @@ describe('useErrorRecovery hook', () => {
       expect(result.current.shouldRetry()).toBe(false);
     });
 
-    it('should increment retry count with backoff strategy', () => {
+    it('should increment retry count with backoff strategy', async () => {
       vi.useFakeTimers();
       const { result } = renderHook(() =>
         useErrorRecovery({
@@ -69,8 +69,9 @@ describe('useErrorRecovery hook', () => {
       expect(result.current.retryCount).toBe(0);
 
       // Fast-forward time to allow retry count to increment
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(100);
+        await Promise.resolve();
       });
 
       // Retry count should be incremented after timeout
@@ -79,7 +80,7 @@ describe('useErrorRecovery hook', () => {
       vi.useRealTimers();
     });
 
-    it('should respect maxRetries limit', () => {
+    it('should respect maxRetries limit', async () => {
       vi.useFakeTimers();
       const { result } = renderHook(() =>
         useErrorRecovery({
@@ -99,8 +100,9 @@ describe('useErrorRecovery hook', () => {
       expect(result.current.shouldRetry()).toBe(true);
 
       // Advance to trigger first retry (baseDelay * 2^0 = 100ms)
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(100);
+        await Promise.resolve();
       });
       expect(result.current.retryCount).toBe(1);
 
@@ -110,8 +112,9 @@ describe('useErrorRecovery hook', () => {
       });
 
       // Advance to trigger second retry (baseDelay * 2^1 = 200ms)
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(200);
+        await Promise.resolve();
       });
       expect(result.current.retryCount).toBe(2);
 
@@ -123,7 +126,7 @@ describe('useErrorRecovery hook', () => {
   });
 
   describe('exponential backoff calculation', () => {
-    it('should calculate correct exponential backoff delays', () => {
+    it('should calculate correct exponential backoff delays', async () => {
       vi.useFakeTimers();
       const onError = vi.fn();
       const { result } = renderHook(() =>
@@ -143,8 +146,9 @@ describe('useErrorRecovery hook', () => {
       });
 
       // Verify first retry is scheduled at 1000ms (backoffMs * 2^0)
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(1000);
+        await Promise.resolve();
       });
       expect(result.current.retryCount).toBe(1);
 
@@ -154,8 +158,9 @@ describe('useErrorRecovery hook', () => {
       });
 
       // Next retry should be at 2000ms (backoffMs * 2^1)
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(2000);
+        await Promise.resolve();
       });
       expect(result.current.retryCount).toBe(2);
 
@@ -165,7 +170,7 @@ describe('useErrorRecovery hook', () => {
 
   describe('manual retry', () => {
     it('should reset on manual retry', () => {
-      const { result } = renderHook(() => useErrorRecovery());
+      const { result } = renderHook(() => useErrorRecovery({ strategy: 'none' }));
       const testError = new Error('Test error');
 
       act(() => {
@@ -187,7 +192,7 @@ describe('useErrorRecovery hook', () => {
 
   describe('reset', () => {
     it('should clear all state on reset', () => {
-      const { result } = renderHook(() => useErrorRecovery());
+      const { result } = renderHook(() => useErrorRecovery({ strategy: 'none' }));
       const testError = new Error('Test error');
 
       act(() => {
@@ -229,8 +234,9 @@ describe('useErrorRecovery hook', () => {
       });
 
       // Advance time past when retry would have fired
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(1500);
+        await Promise.resolve();
       });
 
       // Retry count should still be 0
@@ -244,7 +250,7 @@ describe('useErrorRecovery hook', () => {
     it('should call onError callback when error occurs', () => {
       const onError = vi.fn();
       const { result } = renderHook(() =>
-        useErrorRecovery({ onError })
+        useErrorRecovery({ onError, strategy: 'none' })
       );
 
       const testError = new Error('Test error');
@@ -259,7 +265,7 @@ describe('useErrorRecovery hook', () => {
     it('should provide retry function in onError callback', () => {
       const onError = vi.fn();
       const { result } = renderHook(() =>
-        useErrorRecovery({ onError })
+        useErrorRecovery({ onError, strategy: 'none' })
       );
 
       const testError = new Error('Test error');
@@ -280,7 +286,8 @@ describe('useErrorRecovery hook', () => {
   });
 
   describe('shouldRetry', () => {
-    it('should return true when conditions allow retry', () => {
+    it('should return true when conditions allow retry', async () => {
+      vi.useFakeTimers();
       const { result } = renderHook(() =>
         useErrorRecovery({
           strategy: 'backoff',
@@ -295,9 +302,16 @@ describe('useErrorRecovery hook', () => {
       });
 
       expect(result.current.shouldRetry()).toBe(true);
+
+      await act(async () => {
+        vi.runOnlyPendingTimers();
+        await Promise.resolve();
+      });
+
+      vi.useRealTimers();
     });
 
-    it('should return false when max retries exceeded', () => {
+    it('should return false when max retries exceeded', async () => {
       vi.useFakeTimers();
       const { result } = renderHook(() =>
         useErrorRecovery({
@@ -314,8 +328,9 @@ describe('useErrorRecovery hook', () => {
       });
 
       // Trigger first retry
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(100);
+        await Promise.resolve();
       });
 
       expect(result.current.retryCount).toBe(1);
@@ -361,7 +376,7 @@ describe('useErrorRecovery hook', () => {
 
   describe('edge cases', () => {
     it('should handle rapid error handling', () => {
-      const { result } = renderHook(() => useErrorRecovery());
+      const { result } = renderHook(() => useErrorRecovery({ strategy: 'none' }));
       const error1 = new Error('Error 1');
       const error2 = new Error('Error 2');
 
@@ -374,7 +389,7 @@ describe('useErrorRecovery hook', () => {
     });
 
     it('should handle non-Error objects', () => {
-      const { result } = renderHook(() => useErrorRecovery());
+      const { result } = renderHook(() => useErrorRecovery({ strategy: 'none' }));
 
       act(() => {
         result.current.handleError(new Error('Test error'));
@@ -383,7 +398,7 @@ describe('useErrorRecovery hook', () => {
       expect(result.current.error).toBeInstanceOf(Error);
     });
 
-    it('should cap exponential backoff to avoid extremely long delays', () => {
+    it('should cap exponential backoff to avoid extremely long delays', async () => {
       vi.useFakeTimers();
       const onError = vi.fn();
       const { result } = renderHook(() =>
@@ -403,8 +418,9 @@ describe('useErrorRecovery hook', () => {
 
       // Advance to trigger first few retries
       // The backoff should be capped at 16x (1000 * 2^4)
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(1000); // First retry (1000 * 2^0)
+        await Promise.resolve();
       });
       expect(result.current.retryCount).toBe(1);
 
@@ -413,8 +429,9 @@ describe('useErrorRecovery hook', () => {
         result.current.handleError(testError);
       });
 
-      act(() => {
+      await act(async () => {
         vi.advanceTimersByTime(2000); // Second retry (1000 * 2^1)
+        await Promise.resolve();
       });
       expect(result.current.retryCount).toBe(2);
 

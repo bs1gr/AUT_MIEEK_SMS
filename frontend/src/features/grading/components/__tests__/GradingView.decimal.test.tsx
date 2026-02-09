@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import GradingView from '../GradingView';
 import * as apiModule from '../../../../api/api';
+import { DateTimeSettingsProvider } from '../../../../contexts/DateTimeSettingsContext';
 
 // Mock the API
 vi.mock('../../../../api/api', () => ({
@@ -60,6 +61,15 @@ const mockCourses = [
 ];
 
 describe('GradingView - Decimal Input', () => {
+  const renderGradingView = () =>
+    render(
+      <BrowserRouter>
+        <DateTimeSettingsProvider>
+          <GradingView students={mockStudents} courses={mockCourses} />
+        </DateTimeSettingsProvider>
+      </BrowserRouter>
+    );
+
   beforeEach(() => {
     vi.clearAllMocks();
     // Stub fetch used by loadFinal
@@ -87,11 +97,7 @@ describe('GradingView - Decimal Input', () => {
   });
 
   it('allows decimal point input in grade field', async () => {
-    render(
-      <BrowserRouter>
-        <GradingView students={mockStudents} courses={mockCourses} />
-      </BrowserRouter>
-    );
+    renderGradingView();
 
     const gradeInput = screen.getByPlaceholderText('gradePlaceholder') as HTMLInputElement;
 
@@ -107,11 +113,7 @@ describe('GradingView - Decimal Input', () => {
   });
 
   it('allows decimal point input in maxGrade field', async () => {
-    render(
-      <BrowserRouter>
-        <GradingView students={mockStudents} courses={mockCourses} />
-      </BrowserRouter>
-    );
+    renderGradingView();
 
     const maxGradeInput = screen.getByPlaceholderText('maxGradePlaceholder') as HTMLInputElement;
 
@@ -123,11 +125,7 @@ describe('GradingView - Decimal Input', () => {
   });
 
   it('allows decimal point input in weight field', async () => {
-    render(
-      <BrowserRouter>
-        <GradingView students={mockStudents} courses={mockCourses} />
-      </BrowserRouter>
-    );
+    renderGradingView();
 
     // Change category to Assignment (weight is disabled for Midterm)
     const categorySelect = screen.getByLabelText('categoryLabel') as HTMLSelectElement;
@@ -143,11 +141,7 @@ describe('GradingView - Decimal Input', () => {
   });
 
   it('accepts comma as decimal separator (European format)', async () => {
-    render(
-      <BrowserRouter>
-        <GradingView students={mockStudents} courses={mockCourses} />
-      </BrowserRouter>
-    );
+    renderGradingView();
 
     const gradeInput = screen.getByPlaceholderText('gradePlaceholder') as HTMLInputElement;
 
@@ -159,11 +153,7 @@ describe('GradingView - Decimal Input', () => {
   });
 
   it('stores decimal values as strings during typing', () => {
-    render(
-      <BrowserRouter>
-        <GradingView students={mockStudents} courses={mockCourses} />
-      </BrowserRouter>
-    );
+    renderGradingView();
 
     const gradeInput = screen.getByPlaceholderText('gradePlaceholder') as HTMLInputElement;
     const maxGradeInput = screen.getByPlaceholderText('maxGradePlaceholder') as HTMLInputElement;
@@ -206,11 +196,7 @@ describe('GradingView - Decimal Input', () => {
       config: {} as unknown as Record<string, unknown>,
     });
 
-    render(
-      <BrowserRouter>
-        <GradingView students={mockStudents} courses={mockCourses} />
-      </BrowserRouter>
-    );
+    renderGradingView();
 
     // Select student and course to enable form and grade list
     fireEvent.change(screen.getByLabelText('selectStudent'), { target: { value: '1' } });

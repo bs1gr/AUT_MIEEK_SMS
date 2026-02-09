@@ -142,6 +142,37 @@ export const ReportList: React.FC<ReportListProps> = ({
     });
   };
 
+  const handleBulkExportSelected = () => {
+    if (selectedReports.length === 0) {
+      return;
+    }
+
+    selectedReports.forEach((reportId) => {
+      generateMutation.mutate({ reportId, options: { email_enabled: false } });
+    });
+
+    showToast(t('generationStarted', { ns: 'customReports' }));
+  };
+
+  const handleBulkDeleteSelected = async () => {
+    if (selectedReports.length === 0) {
+      return;
+    }
+
+    if (!globalThis.confirm(t('confirmDelete', { ns: 'customReports' }))) {
+      return;
+    }
+
+    try {
+      await Promise.all(selectedReports.map((reportId) => deleteMutation.mutateAsync(reportId)));
+      setSelectedReports([]);
+      showToast(t('reportDeleted', { ns: 'customReports' }));
+    } catch (err) {
+      console.error('[ReportList] Bulk delete failed:', err);
+      showToast(t('errorDeleting', { ns: 'customReports' }), 'error');
+    }
+  };
+
   const handleDuplicateReport = (report: CustomReport) => {
     // This would open the report builder with pre-filled data
     onEditReport?.(report.id);
@@ -200,10 +231,18 @@ export const ReportList: React.FC<ReportListProps> = ({
         <div className="flex gap-2">
           {selectedReports.length > 0 && (
             <>
-              <button className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+              <button
+                type="button"
+                onClick={handleBulkExportSelected}
+                className="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
                 {t('bulkExport', { ns: 'customReports' })}
               </button>
-              <button className="px-4 py-2 text-red-700 hover:bg-red-50 rounded-lg transition-colors">
+              <button
+                type="button"
+                onClick={handleBulkDeleteSelected}
+                className="px-4 py-2 text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+              >
                 {t('bulkDelete', { ns: 'customReports' })}
               </button>
             </>

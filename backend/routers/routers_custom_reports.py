@@ -579,6 +579,7 @@ async def update_generated_report(
 
 @router.delete(
     "/{report_id}/generated/{generated_report_id}",
+    response_model=APIResponse[Dict[str, Any]],
     summary="Delete a generated report",
 )
 async def delete_generated_report(
@@ -587,7 +588,7 @@ async def delete_generated_report(
     generated_report_id: int,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
-) -> dict:
+) -> APIResponse[Dict[str, Any]]:
     """Delete a generated report and its file."""
     try:
         service = CustomReportService(db)

@@ -6,26 +6,55 @@ testI18n.changeLanguage('en').catch(() => {
   // Initialization may not be complete yet, that's okay
 });
 
-// Log translation keys for debugging (will be visible in test output)
-if (typeof process !== 'undefined' && (process.env.DEBUG_I18N || process.env.NODE_ENV === 'test')) {
-  // Translation debugging - using warn to comply with ESLint console rules
-  const searchKeys = testI18n.getResourceBundle('en', 'translation')?.search;
-  if (!searchKeys) {
-    console.warn('[i18n] No search translation keys found in English bundle');
-  } else {
-    console.warn('[i18n] Search translation keys loaded:', Object.keys(searchKeys).length, 'keys');
-  }
-}
-
-// Suppress JSDOM navigation warnings - these are expected in test environment
-const originalError = console.error;
-console.error = (...args: unknown[]) => {
-  const message = String(args[0]);
-  if (message.includes('Not implemented: navigation')) {
-    return; // Suppress JSDOM navigation warnings
-  }
-  originalError(...args);
+const shouldSuppressTestLog = (message: string) => {
+	return (
+		message.includes('Not implemented: navigation') ||
+		message.includes('was not wrapped in act') ||
+		message.startsWith('[i18n]') ||
+		message.startsWith('[Performance]') ||
+		message.startsWith('[API Client]') ||
+		message.startsWith('[API]') ||
+		message.startsWith('[WebSocket]') ||
+		message.startsWith('[useAutosave]') ||
+		message.startsWith('Failed to fetch notifications') ||
+		message.startsWith('Failed to mark notification as read') ||
+		message.includes('Each child in a list should have a unique "key" prop') ||
+		message.includes('Failed to fetch saved searches') ||
+		message.includes('Failed to load course info') ||
+		message.includes('Error loading saved searches') ||
+		message.includes('Error saving search') ||
+		message.includes('[ThemeProvider] Failed to save theme') ||
+		message.includes('Error fetching performance') ||
+		message.includes('Error fetching trends') ||
+		message.includes('Error fetching attendance') ||
+		message.includes('Query data cannot be undefined') ||
+		message.includes('Using Vite dev proxy for localhost API')
+	);
 };
+
+const shouldSuppressAllLogs = typeof process !== 'undefined' && !process.env.DEBUG_TEST_LOGS;
+
+const wrapConsoleMethod = <T extends (...args: unknown[]) => void>(method: T) =>
+	(...args: unknown[]) => {
+		if (shouldSuppressAllLogs) {
+			return;
+		}
+		const combined = args.map((entry) => String(entry)).join(' ');
+		if (shouldSuppressTestLog(combined)) {
+			return;
+		}
+		method(...args);
+	};
+
+const originalError = console.error.bind(console);
+const originalWarn = console.warn.bind(console);
+const originalInfo = console.info.bind(console);
+const originalLog = console.log.bind(console);
+
+console.error = wrapConsoleMethod(originalError);
+console.warn = wrapConsoleMethod(originalWarn);
+console.info = wrapConsoleMethod(originalInfo);
+console.log = wrapConsoleMethod(originalLog);
 
 // Disable native browser form validation in JSDOM so component-level schema
 // validation (zod) can run and surface errors in tests. Native validation would
