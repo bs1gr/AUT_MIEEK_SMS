@@ -27,6 +27,10 @@ on:
         description: 'Deployment environment'
         required: false
         type: string
+    secrets:
+      SLACK_WEBHOOK_URL:
+        description: 'Optional Slack webhook for pipeline notifications'
+        required: false
 
 concurrency:
   group: ci-cd-${{ github.ref }}
