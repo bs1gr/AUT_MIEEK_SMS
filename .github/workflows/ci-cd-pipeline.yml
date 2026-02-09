@@ -53,6 +53,9 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          set-safe-directory: false
+          persist-credentials: false
 
       - name: 🔒 Validate Version Format (v1.x.x or 1.x.x ONLY)
         shell: pwsh
@@ -787,6 +790,14 @@ jobs:
       DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
       DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER || 'deploy' }}
     steps:
+      - name: Normalize Git settings (self-hosted runner)
+        shell: pwsh
+        run: |
+          git config --global core.useBuiltinFSMonitor false
+          git config --global core.fsmonitor false
+          git config --global advice.useCoreFSMonitorConfig false
+          git config --global core.longpaths true
+
       - name: Checkout repository
         uses: actions/checkout@v4
 
