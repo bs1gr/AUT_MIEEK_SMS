@@ -809,28 +809,21 @@ jobs:
           "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Deploy to staging server
+        shell: pwsh
         run: |
-          echo "🚀 Deploying version ${{ steps.version.outputs.version }} to staging..."
-          echo "Docker image: ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+          Write-Host "🚀 Deploying version ${{ steps.version.outputs.version }} to staging..."
+          if (-not (Test-Path ".\DOCKER.ps1")) {
+            Write-Error "DOCKER.ps1 not found in repository root. Cannot deploy staging."
+            exit 1
+          }
 
-          # Example deployment script (customize for your infrastructure):
-          # 1. SSH to staging server
-          # 2. Pull latest image: docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          # 3. Stop current container: docker stop sms-staging || true
-          # 4. Start new container: docker run -d --name sms-staging ...
-          # 5. Wait for health check
+          .\DOCKER.ps1 -Start
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Staging deployment failed (DOCKER.ps1 -Start)"
+            exit $LASTEXITCODE
+          }
 
-          echo "📋 Deployment steps:"
-          echo "1. Connect to staging server: $DEPLOY_HOST"
-          echo "2. Pull image: docker pull ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
-          echo "3. Update deployment with docker-compose"
-          echo "4. Verify health endpoints"
-          echo "5. Run smoke tests against staging"
-
-          # Uncomment and configure for your deployment:
-          # ssh -i ${{ secrets.DEPLOY_KEY }} $DEPLOY_USER@$DEPLOY_HOST 'cd /opt/sms && docker-compose pull && docker-compose up -d'
-
-          echo "✅ Staging deployment configured (customize deployment script above)"
+          Write-Host "✅ Staging deployment started"
 
       - name: Run post-deployment health check
         shell: pwsh
