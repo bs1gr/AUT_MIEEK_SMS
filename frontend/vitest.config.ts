@@ -21,8 +21,12 @@ export default defineConfig({
       files: 'serial',
       tests: 'serial'
     },
-    maxThreads: 1,
-    minThreads: 1,
+    poolOptions: {
+      forks: {
+        minForks: 1,
+        maxForks: 2
+      }
+    },
     passWithNoTests: true
   }
 });
