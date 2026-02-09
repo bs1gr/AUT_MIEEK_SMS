@@ -110,7 +110,12 @@ jobs:
       - name: Generate version report
         if: always()
         shell: pwsh
-        run: .\scripts\VERIFY_VERSION.ps1 -Report
+        run: |
+          if (Test-Path "scripts\VERIFY_VERSION.ps1") {
+            .\scripts\VERIFY_VERSION.ps1 -Report
+          } else {
+            Write-Warning "VERIFY_VERSION.ps1 not found. Skipping version report."
+          }
 
       - name: Upload version report
         if: always()
