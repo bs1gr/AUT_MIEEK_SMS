@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
 import { useDashboardData } from '@/api/hooks/useAnalytics';
@@ -79,7 +79,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
   const { dashboard, isLoading, error, refetch } = useDashboardData();
 
-  const normalizeDivisionLabel = (label?: string | null) => {
+  const normalizeDivisionLabel = useCallback((label?: string | null) => {
     if (!label) return t('analytics.divisionUnknownLabel');
     const trimmed = label.trim();
     if (!trimmed) return t('analytics.divisionUnknownLabel');
@@ -88,7 +88,7 @@ export const AnalyticsDashboard: React.FC = () => {
       return t('analytics.divisionUnknownLabel');
     }
     return trimmed;
-  };
+  }, [t]);
 
   useEffect(() => {
     const loadLookups = async () => {
@@ -293,7 +293,7 @@ export const AnalyticsDashboard: React.FC = () => {
     };
 
     loadLookups();
-  }, [selectedStudent, selectedCourse, t]);
+  }, [selectedStudent, selectedCourse, t, normalizeDivisionLabel]);
 
   const effectiveSelectedStudent = useMemo(() => {
     if (!selectedDivision) return selectedStudent;
@@ -468,7 +468,7 @@ export const AnalyticsDashboard: React.FC = () => {
         trend: Number(percentage ?? 0),
       };
     });
-  }, [selectedDivision, analyticsGrades, students, courses, selectedCourse, performanceData, t]);
+  }, [selectedDivision, analyticsGrades, students, courses, selectedCourse, performanceData, formatDate, t]);
 
   const divisionAttendanceData = useMemo<AttendanceData[]>(() => {
     if (!selectedDivision) return attendanceData;
@@ -679,7 +679,7 @@ export const AnalyticsDashboard: React.FC = () => {
     };
 
     loadStudentAnalytics();
-  }, [effectiveSelectedStudent, t]);
+  }, [effectiveSelectedStudent, formatDate, t]);
 
   useEffect(() => {
     const loadCourseDistribution = async () => {

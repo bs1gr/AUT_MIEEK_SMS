@@ -201,7 +201,7 @@ const EnhancedAttendanceCalendar = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedCourse, selectedDate, attendanceRecords, dailyPerformance, t, showToast]);
+  }, [selectedCourse, selectedDate, attendanceRecords, dailyPerformance, formatDate, t, showToast]);
 
   // Autosave when attendance or performance changes
   const hasChanges = Object.keys(attendanceRecords).length > 0 || Object.keys(dailyPerformance).length > 0;

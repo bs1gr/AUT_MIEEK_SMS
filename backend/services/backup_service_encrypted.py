@@ -108,12 +108,6 @@ class BackupServiceEncrypted:
             if pattern in path_str:
                 raise ValueError(f"Path traversal detected: contains '{pattern}'")
 
-        # CodeQL [python/path-injection]: Safe - explicit validation prevents absolute paths
-        # For relative paths, ensure they don't start with "/" or "\"
-        # This prevents absolute path injection
-        if path_str.startswith("/") or path_str.startswith("\\"):
-            raise ValueError("Path traversal detected: absolute paths not allowed")
-
         # CodeQL [python/path-injection]: Safe - path already validated for traversal patterns
         # Resolve path to absolute form to prevent symlink attacks
         resolved_output = Path(output_path).resolve()

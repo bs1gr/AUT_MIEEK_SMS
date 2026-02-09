@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useState, useEffect, useRef, useMemo, useCallback, type ComponentType } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Download, FileText, FileSpreadsheet, Users, Calendar, FileCheck, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, FileText, FileSpreadsheet, Users, Calendar, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload, ChevronDown, ChevronUp } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { useLanguage } from '../../LanguageContext';
 import { studentsAPI, coursesAPI, sessionAPI } from '../../api/api';
@@ -16,6 +16,36 @@ type Student = StudentType;
 interface ExportCenterProps {
   variant?: 'standalone' | 'embedded';
 }
+
+type ExportFormat = {
+  key: string;
+  label: string;
+  endpoint?: string;
+  filename?: string;
+  disabled?: boolean;
+};
+
+type ExportSingleOption = {
+  id: string;
+  title: string;
+  description: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
+  color: string;
+  onClick?: () => void;
+  formatLabel: string;
+  endpoint?: string;
+  filename?: string;
+  disabled?: boolean;
+};
+
+type ExportModuleOption = {
+  id: string;
+  title: string;
+  description: string;
+  icon: ComponentType<{ size?: number; className?: string }>;
+  color: string;
+  formats: ExportFormat[];
+};
 
 // Session Export/Import Component
 interface SessionExportImportProps {
@@ -648,7 +678,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     XLSX.writeFile(workbook, 'calendar_export.xlsx');
   };
 
-  const exportSingles = [
+  const exportSingles: ExportSingleOption[] = [
     {
       id: 'print-calendar',
       title: t('printCalendar'),
@@ -660,7 +690,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     },
   ];
 
-  const exportModules = [
+  const exportModules: ExportModuleOption[] = [
     {
       id: 'students',
       title: t('studentsListExcel'),
@@ -943,7 +973,14 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
                     <h3 className="text-xl font-bold text-gray-800 mb-2">{option.title}</h3>
                     <p className="text-gray-600 text-sm mb-4">{option.description}</p>
                     <button
-                      onClick={option.onClick ? option.onClick : () => handleExport(option.endpoint!, option.filename!, option.id)}
+                      onClick={
+                        option.onClick ??
+                        (() => {
+                          if (option.endpoint && option.filename) {
+                            handleExport(option.endpoint, option.filename, option.id);
+                          }
+                        })
+                      }
                       disabled={loading[option.id]}
                       className={`w-full bg-gradient-to-r ${option.color} text-white px-4 py-2 rounded-lg hover:shadow-lg transition-all disabled:opacity-50 flex items-center justify-center space-x-2`}
                     >

@@ -42,7 +42,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     } finally {
       setLoading(false);
     }
-  }, [controlApi]);
+  }, [controlApi, formatTime]);
 
   useEffect(() => {
     checkForUpdates();

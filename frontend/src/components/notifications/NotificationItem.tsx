@@ -16,7 +16,7 @@ export interface NotificationItemProps {
 }
 
 const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => {
-  const { t, i18n } = useTranslation('notifications');
+  const { t } = useTranslation('notifications');
   const { markAsRead, deleteNotification } = useNotifications();
   const [isExpanded, setIsExpanded] = useState(false);
   const { timeZone } = useDateTimeSettings();
@@ -51,8 +51,9 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
     }
 
     // Navigate if URL provided
-    if (notification.data?.url) {
-      safeNavigate(notification.data.url as string);
+    const notificationData = (notification as Notification & { data?: { url?: string } }).data;
+    if (notificationData?.url) {
+      safeNavigate(notificationData.url as string);
       return;
     }
 
@@ -87,7 +88,6 @@ const NotificationItem: React.FC<NotificationItemProps> = ({ notification }) => 
   const getRelativeTime = (date: string) => {
     const now = new Date();
     const notificationDate = new Date(date);
-    const locale = i18n?.language?.startsWith('el') ? 'el-GR' : 'en-US';
 
     const getZonedTimestamp = (value: Date) => {
       const parts = new Intl.DateTimeFormat('en-US', {

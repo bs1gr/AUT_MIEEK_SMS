@@ -48,12 +48,16 @@ const wrapConsoleMethod = <T extends (...args: unknown[]) => void>(method: T) =>
 
 const originalError = console.error.bind(console);
 const originalWarn = console.warn.bind(console);
+// eslint-disable-next-line no-console
 const originalInfo = console.info.bind(console);
+// eslint-disable-next-line no-console
 const originalLog = console.log.bind(console);
 
 console.error = wrapConsoleMethod(originalError);
 console.warn = wrapConsoleMethod(originalWarn);
+// eslint-disable-next-line no-console
 console.info = wrapConsoleMethod(originalInfo);
+// eslint-disable-next-line no-console
 console.log = wrapConsoleMethod(originalLog);
 
 // Disable native browser form validation in JSDOM so component-level schema

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
 import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_TIME_ZONE,
@@ -25,11 +25,6 @@ interface DateTimeSettingsProviderProps {
 
 export const DateTimeSettingsProvider: React.FC<DateTimeSettingsProviderProps> = ({ children }) => {
   const [settings, setSettings] = useState<DateTimeSettings>(() => getStoredDateTimeSettings());
-
-  useEffect(() => {
-    const stored = getStoredDateTimeSettings();
-    setSettings(stored);
-  }, []);
 
   const setTimeZone = (value: string) => {
     const next = value || DEFAULT_TIME_ZONE;

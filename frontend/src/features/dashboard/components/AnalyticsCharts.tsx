@@ -58,7 +58,7 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
           <XAxis dataKey="date" />
           <YAxis domain={[0, 100]} />
           <Tooltip
-            formatter={(value: number) => value.toFixed(1)}
+            formatter={(value) => (typeof value === 'number' ? value.toFixed(1) : String(value))}
             labelStyle={{ color: '#000' }}
           />
           <Legend />
@@ -124,7 +124,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
           <XAxis dataKey="grade" />
           <YAxis />
           <Tooltip
-            formatter={(value: number) => value}
+            formatter={(value) => (typeof value === 'number' ? value : Number(value))}
             labelStyle={{ color: '#000' }}
           />
           <Legend />
@@ -179,7 +179,7 @@ export const AttendanceChart: React.FC<AttendanceChartProps> = ({
           <XAxis dataKey="course" angle={-45} textAnchor="end" height={80} />
           <YAxis domain={[0, 100]} />
           <Tooltip
-            formatter={(value: number) => `${value.toFixed(1)}%`}
+            formatter={(value) => `${typeof value === 'number' ? value.toFixed(1) : Number(value).toFixed(1)}%`}
             labelStyle={{ color: '#000' }}
           />
           <Legend />
@@ -248,7 +248,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({
           <XAxis dataKey="week" />
           <YAxis domain={[0, 100]} />
           <Tooltip
-            formatter={(value: number) => value.toFixed(1)}
+            formatter={(value) => (typeof value === 'number' ? value.toFixed(1) : String(value))}
             labelStyle={{ color: '#000' }}
           />
           <Area
@@ -316,7 +316,7 @@ export const StatsPieChart: React.FC<StatsPieChartProps> = ({
               <Cell key={`cell-${index}`} fill={COLORS_PIE[index % COLORS_PIE.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={(value: number) => value} />
+          <Tooltip formatter={(value) => (typeof value === 'number' ? value : Number(value))} />
         </PieChart>
       </ResponsiveContainer>
     </div>

@@ -241,7 +241,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
         setDidShowOffline(true);
       }
     }
-  }, [startupGraceUntil, didShowOffline, retryDelay]);
+  }, [startupGraceUntil, didShowOffline, retryDelay, formatTime]);
 
   // Auto-refresh for health details
   useEffect(() => {
