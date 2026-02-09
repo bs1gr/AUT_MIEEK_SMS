@@ -401,11 +401,20 @@ class HealthChecker:
             config = Config(str(alembic_ini))
             script_location = config.get_main_option("script_location")
             if script_location:
-                script_path = (backend_dir / script_location).resolve()
+                script_path = Path(script_location)
+                if not script_path.is_absolute():
+                    script_path = (backend_dir / script_path).resolve()
                 if not script_path.exists():
-                    config.set_main_option("script_location", str(backend_dir / "alembic"))
+                    fallback_path = backend_dir / "migrations"
+                    if not fallback_path.exists():
+                        fallback_path = backend_dir / "alembic"
+                    script_path = fallback_path.resolve()
+                config.set_main_option("script_location", str(script_path))
             else:
-                config.set_main_option("script_location", str(backend_dir / "alembic"))
+                fallback_path = backend_dir / "migrations"
+                if not fallback_path.exists():
+                    fallback_path = backend_dir / "alembic"
+                config.set_main_option("script_location", str(fallback_path.resolve()))
 
             script = ScriptDirectory.from_config(config)
             heads = set(script.get_heads())
