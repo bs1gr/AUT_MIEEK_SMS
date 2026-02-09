@@ -833,25 +833,28 @@ jobs:
           echo "✅ Staging deployment configured (customize deployment script above)"
 
       - name: Run post-deployment health check
+        shell: pwsh
         run: |
-          echo "🏥 Running health checks on staging..."
-          STAGING_URL="${STAGING_URL}"
-          MAX_ATTEMPTS=30
-          ATTEMPT=0
+          Write-Host "🏥 Running health checks on staging..."
+          $stagingUrl = $env:STAGING_URL
+          $maxAttempts = 30
 
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            ATTEMPT=$((ATTEMPT + 1))
-            echo "Health check attempt $ATTEMPT/$MAX_ATTEMPTS..."
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            Write-Host "Health check attempt $attempt/$maxAttempts..."
+            try {
+              $response = Invoke-WebRequest -UseBasicParsing -Uri "$stagingUrl/health" -TimeoutSec 10
+              if ($response.StatusCode -eq 200 -and $response.Content -match '"status"') {
+                Write-Host "✅ Staging health check passed"
+                $response.Content | Write-Host
+                exit 0
+              }
+            } catch {
+              Write-Host "Health check attempt failed: $($_.Exception.Message)"
+            }
+            Start-Sleep -Seconds 10
+          }
 
-            if curl -f -s "${STAGING_URL}/health" | grep -q '"status"'; then
-              echo "✅ Staging health check passed"
-              curl -s "${STAGING_URL}/health" | jq .
-              exit 0
-            fi
-            sleep 10
-          done
-
-          echo "❌ Staging health check failed after $MAX_ATTEMPTS attempts"
+          Write-Error "❌ Staging health check failed after $maxAttempts attempts"
           exit 1
 
       - name: Notify deployment success
