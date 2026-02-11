@@ -8,6 +8,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [1.17.8] - 2026-02-11
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [Unreleased]
 
 ### Performance

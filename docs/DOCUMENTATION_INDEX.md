@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-01-21
 **Project Version (documented)**: 1.18.0
-**Version**: 1.17.7
+**Version**: 1.17.8
 **Current Branch**: `main`
 **Status**: ✅ **PHASE 4 READINESS COMPLETE**
 

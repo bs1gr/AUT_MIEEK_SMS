@@ -278,8 +278,12 @@ function Invoke-InstallerBuild {
         }
 
         # Verify installer was created
-        $installerPath = "installer\Output\SMS_Installer_$Version.exe"
-        if (Test-Path $installerPath) {
+        $installerCandidates = @(
+            "installer\Output\SMS_Installer_$Version.exe",
+            "dist\SMS_Installer_$Version.exe"
+        )
+        $installerPath = $installerCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+        if ($installerPath) {
             $size = (Get-Item $installerPath).Length / 1MB
             Write-Host ""
             Write-Host "✓ Installer built successfully" -ForegroundColor Green
@@ -288,7 +292,8 @@ function Invoke-InstallerBuild {
             Write-Host ""
             return $true
         } else {
-            Write-Host "❌ Installer file not found: $installerPath" -ForegroundColor Red
+            Write-Host "❌ Installer file not found in expected locations:" -ForegroundColor Red
+            $installerCandidates | ForEach-Object { Write-Host "  - $_" -ForegroundColor Gray }
             return $false
         }
     } catch {
