@@ -195,10 +195,12 @@ function Update-VersionReferences {
     # Update DOCUMENTATION_INDEX.md
     (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\*\*Version\*\*: [0-9\.]+', "**Version**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"
 
-    # Update root DOCUMENTATION_INDEX.md
-    (Get-Content "DOCUMENTATION_INDEX.md") -replace '\*\*Version:\*\* [0-9\.]+', "**Version:** $NewVersion" | Set-Content "DOCUMENTATION_INDEX.md"
-    (Get-Content "DOCUMENTATION_INDEX.md") -replace '\(v[0-9\.]+\)', "(v$NewVersion)" | Set-Content "DOCUMENTATION_INDEX.md"
-    (Get-Content "DOCUMENTATION_INDEX.md") -replace '\*\*Documentation Version:\*\* v[0-9\.]+', "**Documentation Version:** v$NewVersion" | Set-Content "DOCUMENTATION_INDEX.md"
+    # Update root DOCUMENTATION_INDEX.md (if present)
+    if (Test-Path "DOCUMENTATION_INDEX.md") {
+        (Get-Content "DOCUMENTATION_INDEX.md") -replace '\*\*Version:\*\* [0-9\.]+' , "**Version:** $NewVersion" | Set-Content "DOCUMENTATION_INDEX.md"
+        (Get-Content "DOCUMENTATION_INDEX.md") -replace '\(v[0-9\.]+\)', "(v$NewVersion)" | Set-Content "DOCUMENTATION_INDEX.md"
+        (Get-Content "DOCUMENTATION_INDEX.md") -replace '\*\*Documentation Version:\*\* v[0-9\.]+' , "**Documentation Version:** v$NewVersion" | Set-Content "DOCUMENTATION_INDEX.md"
+    }
 
     # Update scripts
     (Get-Content "COMMIT_READY.ps1") -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content "COMMIT_READY.ps1"
