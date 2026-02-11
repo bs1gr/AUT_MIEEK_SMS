@@ -312,7 +312,7 @@ export const AnalyticsDashboard: React.FC = () => {
     };
 
     loadLookups();
-  }, [selectedStudent, selectedCourse, t, normalizeDivisionLabel]);
+  }, [selectedStudent, selectedCourse]);
 
   const effectiveSelectedStudent = useMemo(() => {
     if (!selectedDivision) return selectedStudent;
@@ -698,7 +698,7 @@ export const AnalyticsDashboard: React.FC = () => {
     };
 
     loadStudentAnalytics();
-  }, [effectiveSelectedStudent, formatDate, t]);
+  }, [effectiveSelectedStudent]);
 
   useEffect(() => {
     const loadCourseDistribution = async () => {
