@@ -390,7 +390,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 **Commits:** `c61f39be7`, `971237a9d`
 
 1. **GIT_WORKFLOW.md v2.1** - Latest commit conventions and branching strategy
-2. **TODO.md Updates** - Reflect completed quick wins (CI caching, runbook, component tests)
+2. **UNIFIED_WORK_PLAN.md Updates** - Reflect completed quick wins (CI caching, runbook, component tests)
 
 ### Backup & Verification Documentation
 
@@ -449,7 +449,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 #### npm Dependency Caching ($11.14.0)
 
-**Commits:** `9f5a5e64` (inferred from TODO.md)
+**Commits:** `9f5a5e64` (inferred from UNIFIED_WORK_PLAN.md)
 
 1. **Frontend Job Optimization**
    - Added `cache: 'npm'` with `cache-dependency-path: frontend/package-lock.json`
@@ -811,7 +811,7 @@ cd frontend && npm run test:e2e
 
 ## 🔮 Future Roadmap (Post-$11.14.0)
 
-### Deferred Features (from TODO.md)
+### Deferred Features (from UNIFIED_WORK_PLAN.md)
 
 1. **Phase 2.4: Fine-Grained RBAC Permissions System**
    - Roles → Permissions model
@@ -881,7 +881,7 @@ cd frontend && npm run test:e2e
 ## 📎 References
 
 - [CHANGELOG.md](../../../CHANGELOG.md)
-- [TODO.md](../../misc/TODO.md)
+- [UNIFIED_WORK_PLAN.md](../../plans/UNIFIED_WORK_PLAN.md)
 - [Security Audit Summary](../../SECURITY_AUDIT_SUMMARY.md)
 - [Git Workflow Guide](../../development/GIT_WORKFLOW.md)
 - [CI/CD Pipeline Guide](../../deployment/CI_CD_PIPELINE_GUIDE.md)

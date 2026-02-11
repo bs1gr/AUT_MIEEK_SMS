@@ -199,7 +199,7 @@ git branch -vv
 - Responsive design
 - Integration points for 8 sub-components
 
-**Sub-components** (placeholders with TODO):
+**Sub-components** (placeholders with planned steps):
 - SearchBar
 - AdvancedFilters
 - FacetedNavigation
@@ -208,7 +208,7 @@ git branch -vv
 - ResultCards (Student/Course/Grade)
 - Pagination
 
-**Status**: ✅ Scaffold ready, TODO placeholders for implementation
+**Status**: ✅ Scaffold ready, planned placeholders for implementation
 
 #### __tests__/fixtures.ts (85 lines)
 
@@ -230,34 +230,34 @@ frontend/src/features/advanced-search/
 ├── types/
 │   └── search.ts                    (333 lines - COMPLETE)
 ├── components/
-│   ├── SearchBar.tsx                (TODO - Step 4)
-│   ├── AdvancedFilters.tsx          (TODO - Step 5)
-│   ├── FilterCondition.tsx          (TODO - Step 5)
-│   ├── SearchResults.tsx            (TODO - Step 6)
-│   ├── StudentResultCard.tsx        (TODO - Step 6)
-│   ├── CourseResultCard.tsx         (TODO - Step 6)
-│   ├── GradeResultCard.tsx          (TODO - Step 6)
-│   ├── FacetedNavigation.tsx        (TODO - Step 7)
-│   ├── SavedSearches.tsx            (TODO - Step 8)
-│   └── Pagination.tsx               (TODO - Step 9)
+│   ├── SearchBar.tsx                (Planned - Step 4)
+│   ├── AdvancedFilters.tsx          (Planned - Step 5)
+│   ├── FilterCondition.tsx          (Planned - Step 5)
+│   ├── SearchResults.tsx            (Planned - Step 6)
+│   ├── StudentResultCard.tsx        (Planned - Step 6)
+│   ├── CourseResultCard.tsx         (Planned - Step 6)
+│   ├── GradeResultCard.tsx          (Planned - Step 6)
+│   ├── FacetedNavigation.tsx        (Planned - Step 7)
+│   ├── SavedSearches.tsx            (Planned - Step 8)
+│   └── Pagination.tsx               (Planned - Step 9)
 ├── hooks/
 │   ├── useSearch.ts                 (220 lines - COMPLETE)
-│   ├── useAdvancedFilters.ts        (TODO)
-│   ├── usePagination.ts             (TODO)
-│   └── useSearchHistory.ts          (TODO)
+│   ├── useAdvancedFilters.ts        (Planned)
+│   ├── usePagination.ts             (Planned)
+│   └── useSearchHistory.ts          (Planned)
 ├── __tests__/
 │   ├── fixtures.ts                  (85 lines - COMPLETE)
-│   ├── AdvancedSearchPage.test.tsx  (TODO - Step 10)
-│   ├── SearchBar.test.tsx           (TODO - Step 4)
-│   ├── AdvancedFilters.test.tsx     (TODO - Step 5)
-│   ├── SearchResults.test.tsx       (TODO - Step 6)
-│   ├── FacetedNavigation.test.tsx   (TODO - Step 7)
-│   ├── SavedSearches.test.tsx       (TODO - Step 8)
-│   ├── Pagination.test.tsx          (TODO - Step 9)
+│   ├── AdvancedSearchPage.test.tsx  (Planned - Step 10)
+│   ├── SearchBar.test.tsx           (Planned - Step 4)
+│   ├── AdvancedFilters.test.tsx     (Planned - Step 5)
+│   ├── SearchResults.test.tsx       (Planned - Step 6)
+│   ├── FacetedNavigation.test.tsx   (Planned - Step 7)
+│   ├── SavedSearches.test.tsx       (Planned - Step 8)
+│   ├── Pagination.test.tsx          (Planned - Step 9)
 │   └── integration/
-│       └── AdvancedSearch.integration.test.tsx (TODO)
+│       └── AdvancedSearch.integration.test.tsx (Planned)
 ├── AdvancedSearchPage.tsx           (85 lines - SCAFFOLD)
-└── index.ts                         (TODO - exports)
+└── index.ts                         (Planned - exports)
 
 frontend/src/api/
 └── search-client.ts                 (60 lines - COMPLETE)

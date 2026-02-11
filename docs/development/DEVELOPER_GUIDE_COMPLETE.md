@@ -61,7 +61,7 @@ cd student-management-system
 - [ ] Run frontend dev server: `cd frontend && npm run dev`
 - [ ] Review [ARCHITECTURE.md](../ARCHITECTURE.md)
 - [ ] Read [CODE_STRUCTURE.md](CODE_STRUCTURE.md)
-- [ ] Check [TODO.md](../../TODO.md) for tasks
+- [ ] Check [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md) for tasks
 - [ ] Join development discussions on GitHub
 
 ---
@@ -611,7 +611,7 @@ alembic downgrade -1
 ### Manual Migration Example
 
 ```python
-# backend/alembic/versions/xxxx_add_column.py
+# backend/alembic/versions/example_add_column.py
 
 def upgrade():
     # Add column
@@ -1243,7 +1243,7 @@ docker-compose up -d --build
 
 **Project Management:**
 
-- [TODO.md](../../TODO.md) - Current tasks
+- [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md) - Current tasks
 - [CHANGELOG.md](../../CHANGELOG.md) - Version history
 - [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues) - Bug tracking
 

@@ -3291,7 +3291,7 @@ Total issues: 7560
 - Line 345: MD032 - Missing blank line before list
 - Line 375: FENCE_LANG - Unlabeled code fence; suggest `text`
 
-## docs\misc\TODO.md
+## docs\misc\Legacy_Backlog.md
 
 - Line 56: MD022 - Missing blank line after heading
 - Line 62: MD022 - Missing blank line after heading
@@ -3320,7 +3320,7 @@ Total issues: 7560
 - Line 877: MD022 - Missing blank line after heading
 - Line 884: MD022 - Missing blank line after heading
 
-## docs\misc\TODO_PRIORITIES.md
+## docs\misc\Backlog_Priorities.md
 
 - Line 6: MD022 - Missing blank line after heading
 - Line 15: MD022 - Missing blank line after heading

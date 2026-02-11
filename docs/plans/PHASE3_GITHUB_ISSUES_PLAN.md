@@ -411,7 +411,7 @@ Use this template in GitHub issue comments to track weekly progress:
 - None identified / List any blockers
 
 **Metrics**:
-- Lines of code: XXX
+- Lines of code: TBD
 - Tests added: XX
 - Coverage: XX%
 - Time spent: X hours

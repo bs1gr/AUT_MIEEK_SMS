@@ -206,7 +206,7 @@ When tests are running in background (`isBackground: true`), follow this STRICTL
 ### Policy 2: Planning & Versioning - Single Source of Truth ONLY
 
 **❌ FORBIDDEN:**
-- Creating new TODO.md files
+- Creating new backlog/planning files
 - Creating new planning documents
 - Creating new status trackers
 - Creating parallel plans or roadmaps
@@ -622,7 +622,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 | **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
 | **Fix linting** | `python -m ruff check --fix` | Commit with linting errors |
 | **Format code** | `npm --prefix frontend run lint -- --fix` | Commit unformatted code |
-| **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new TODO.md |
+| **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new backlog docs |
 | **Check version** | Read `VERSION` file (1.17.6) | Invent version numbers |
 | **Use version** | **ONLY `v1.x.x`** ($11.17.6) | **NEVER `v11.x.x`, `$11.x.x`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |

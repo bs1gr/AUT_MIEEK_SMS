@@ -303,11 +303,11 @@ Your input matters! At the end of your training session, you'll receive a **feed
 
 ### Training Coordination
 **Email**: training@mieek.edu.cy
-**Phone**: +357 XXXX XXXX
+**Phone**: +357 [phone]
 
 ### Technical Support (After Go-Live)
 **Email**: sms-support@mieek.edu.cy
-**Phone**: +357 XXXX XXXX
+**Phone**: +357 [phone]
 
 ### Emergency Contact
 For urgent issues during training: **Trainer will provide**

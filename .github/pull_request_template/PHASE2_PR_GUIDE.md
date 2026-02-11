@@ -1,3 +1,9 @@
+- **GitHub Issue**: Closes #000
+Closes: #000 (Link to task in UNIFIED_WORK_PLAN)
+Closes #000
+Closes #000
+Closes #000
+Closes #000
 # GitHub PR Template for Phase 2 (RBAC & CI/CD)
 
 **File Location**: `.github/pull_request_template/phase2_rbac.md`

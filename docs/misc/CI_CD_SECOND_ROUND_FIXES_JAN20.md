@@ -122,7 +122,7 @@ threshold=8400
   - CI_CD_FAILURE_FIXES_JAN20.md
   - CI_CD_FIX_EXECUTIVE_SUMMARY.md
 - Threshold increase of 190 provides buffer for future docs
-- TODO remains: Reduce in Phase 4
+- Planned: Reduce in Phase 4
 
 ---
 

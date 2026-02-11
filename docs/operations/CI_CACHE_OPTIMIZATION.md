@@ -180,10 +180,10 @@ See [`../../scripts/README_MONITOR_CI_CACHE.md`](../../scripts/README_MONITOR_CI
 
 | Opportunity | Savings | Effort | Status |
 |---|---|---|---|
-| **Build artifact caching** | 30-40s | Medium | 📋 TODO |
-| **Docker layer caching** (in docker-publish) | 60-90s | Medium | 📋 TODO |
-| **Codecov cache** | 10-15s | Low | 📋 TODO |
-| **Package manager version cache** | 5-10s | Low | 📋 TODO |
+| **Build artifact caching** | 30-40s | Medium | 📋 Planned |
+| **Docker layer caching** (in docker-publish) | 60-90s | Medium | 📋 Planned |
+| **Codecov cache** | 10-15s | Low | 📋 Planned |
+| **Package manager version cache** | 5-10s | Low | 📋 Planned |
 
 ---
 

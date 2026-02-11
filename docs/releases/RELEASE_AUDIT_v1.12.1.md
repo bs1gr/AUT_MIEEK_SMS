@@ -41,7 +41,7 @@ $11.17.2 is a **patch release** that establishes the foundational infrastructure
 - **docs/development/DEVELOPER_GUIDE_COMPLETE.md**: Version sync
 - **docs/DOCUMENTATION_INDEX.md**: Version sync
 - **DOCUMENTATION_INDEX.md**: Version sync
-- **TODO.md**: Version sync
+- **UNIFIED_WORK_PLAN.md**: Version sync
 - **scripts/utils/installer/SMS_INSTALLER_WIZARD.ps1**: Version sync
 - **scripts/utils/installer/SMS_UNINSTALLER_WIZARD.ps1**: Version sync
 - **`.github/workflows/release-installer-with-sha.yml`**: Enhanced with diagnostics, secure cert import (a2b22a89)
@@ -79,7 +79,7 @@ Cleanup (4/4):
 Documentation (4/4):
   ✅ README.md               - Present
   ✅ CHANGELOG.md            - Updated
-  ✅ TODO.md                 - Updated
+  ✅ UNIFIED_WORK_PLAN.md     - Updated
   ✅ DOCUMENTATION_INDEX.md  - Updated
 
 Git Status:
@@ -162,7 +162,7 @@ COMMIT_READY.ps1              1.12.1    ✅
 INSTALLER_BUILDER.ps1         1.12.1    ✅
 SMS_INSTALLER_WIZARD.ps1      1.12.1    ✅
 SMS_UNINSTALLER_WIZARD.ps1    1.12.1    ✅
-TODO.md                        1.12.1    ✅
+UNIFIED_WORK_PLAN.md            1.12.1    ✅
 DOCUMENTATION_INDEX.md         1.12.1    ✅
 ─────────────────────────────────────────────────
 QNAP deployment guide          N/A       ⚠️  (Not found)
@@ -243,7 +243,7 @@ Total Consistent: 13/14 ✅
 
 ---
 
-## Next Steps / Todos
+## Next Steps / Planned Items
 
 ### Immediate (Post-Release)
 

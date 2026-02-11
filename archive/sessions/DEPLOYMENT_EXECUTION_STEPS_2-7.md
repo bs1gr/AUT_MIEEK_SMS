@@ -302,7 +302,7 @@ alembic current
 
 # Run upgrade
 alembic upgrade head
-# Expected: "INFO  [alembic.runtime.migration] Running upgrade ... -> xxxx"
+# Expected: "INFO  [alembic.runtime.migration] Running upgrade ... -> 4bf8a44e5c21"
 
 # Verify migration complete
 alembic current

@@ -1,3 +1,4 @@
+- BACKLOG_PRIORITIES.md
 # Workspace Cleanup Summary
 
 ## Created Files
@@ -239,7 +240,7 @@ This automatically runs:
 - CHANGELOG.md
 - CODE_OF_CONDUCT.md
 - CONTRIBUTING.md
-- TODO.md
+- docs/plans/UNIFIED_WORK_PLAN.md
 - TODO_PRIORITIES.md
 - LLM_AGENT_INSTRUCTIONS.md
 

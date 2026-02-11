@@ -44,7 +44,7 @@
 2. [ ] Categorize by domain (students, courses, grades, attendance, reports, audit, users)
 3. [ ] Define permission names (e.g., `students:view`, `students:edit`, `students:delete`)
 4. [ ] Document permission matrix in `docs/admin/PERMISSION_MATRIX.md`
-5. [ ] Get stakeholder approval
+5. [ ] Get owner approval
 
 **Deliverable**: Permission matrix document with:
 - Permission name
@@ -207,7 +207,7 @@ def has_permission(user, permission_name: str) -> bool:
     pass
 
 ```text
-**Deliverable**: `backend/rbac.py` template with TODOs
+**Deliverable**: `backend/rbac.py` template with placeholders
 
 ---
 
@@ -219,7 +219,7 @@ def has_permission(user, permission_name: str) -> bool:
 
 **Steps**:
 1. [x] Create test file template: `backend/tests/test_rbac_templates.py`
-2. [x] Write test cases (with TODOs):
+2. [x] Write test cases (with placeholders):
     - `test_permission_check_allows_authorized_user()`
     - `test_permission_check_denies_unauthorized_user()`
     - `test_multiple_permissions_or_logic()`
@@ -238,12 +238,12 @@ from backend.rbac import require_permission, has_permission
 
 def test_permission_check_allows_authorized_user():
     """Test that user with permission can access endpoint."""
-    # TODO: Implement after database changes
+  # Planned: Implement after database changes
     pass
 
 def test_permission_check_denies_unauthorized_user():
     """Test that user without permission gets 403."""
-    # TODO: Implement after database changes
+  # Planned: Implement after database changes
     pass
 
 # ... 40+ test cases

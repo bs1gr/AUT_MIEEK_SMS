@@ -15,7 +15,7 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 
 **Critical Policies:**
 - ❌ **NEVER** run `pytest -q` directly → Use `.\RUN_TESTS_BATCH.ps1`
-- ❌ **NEVER** create new TODO/planning docs → Update `UNIFIED_WORK_PLAN.md`
+- ❌ **NEVER** create new backlog/planning docs → Update `UNIFIED_WORK_PLAN.md`
 - ❌ **NEVER** edit DB schema directly → Use Alembic migrations
 - ✅ **ALWAYS** run `COMMIT_READY.ps1 -Quick` before committing
 
@@ -163,7 +163,7 @@ LINK: docs/ACTIVE_WORK_STATUS.md#phase1-002
 ## 🎯 Your Checklist (Use Every Time)
 
 - [ ] Opened ACTIVE_WORK_STATUS.md
-- [ ] Identified my task (PHASE1-XXX)
+- [ ] Identified my task (PHASE1-ID)
 - [ ] Read "Next Action" section
 - [ ] Executed that action
 - [ ] Updated ACTIVE_WORK_STATUS with my progress

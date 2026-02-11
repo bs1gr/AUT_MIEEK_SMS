@@ -153,7 +153,7 @@ All documentation is organized under `docs/` into four main categories:
 | `START_HERE.md` | First-time user guide | Everyone |
 | `README.md` | Complete project overview | Everyone |
 | `CHANGELOG.md` | Version history and changes | Developers |
-| `TODO.md` | Project status and roadmap (DEPRECATED — use ACTIVE_WORK_STATUS.md) | Team members |
+| `docs/plans/UNIFIED_WORK_PLAN.md` | Planning source of truth (use for status/roadmap) | Owners |
 | `DEPLOYMENT_READINESS.md` | Pre-deployment checklist | Operators |
 | `CONTRIBUTING.md` | Contribution guidelines | Developers |
 | `AUDIT_SUMMARY.md` | Quick audit summary | Auditors/Managers |

@@ -129,7 +129,7 @@
   - No additional indexes needed at this time
   - **Owner**: Backend Dev (Self) | **Effort**: 0 hours | **Status**: ✅ Already Present
 
-- [ ] **Performance Tests - Query Optimization** - TODO (post-deployment)
+- [ ] **Performance Tests - Query Optimization** - Planned (post-deployment)
   - Will benchmark endpoints after deployment to measure real-world improvement
   - Expect ~95% reduction in database round-trips for populated result sets
   - **Owner**: Backend Dev | **Effort**: 2 hours | **Status**: Pending

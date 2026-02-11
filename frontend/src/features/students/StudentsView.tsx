@@ -44,7 +44,7 @@ const StudentsView: React.FC = () => {
 
   const handleDelete = (_id: number) => {
     if (window.confirm(t('confirmDelete', { ns: 'students' }))) {
-      // TODO: Implement delete via mutation
+      // INCOMPLETE: Delete mutation not implemented - tracked in UNIFIED_WORK_PLAN.md
 
       refetch();
     }
@@ -100,10 +100,10 @@ const StudentsView: React.FC = () => {
               initialData={editingStudent || undefined}
               onSubmit={async (_data) => {
                 if (editingStudent) {
-                  // TODO: Implement update via mutation
+                  // INCOMPLETE: Update mutation not implemented - tracked in UNIFIED_WORK_PLAN.md
 
                 } else {
-                  // TODO: Implement create via mutation
+                  // INCOMPLETE: Create mutation not implemented - tracked in UNIFIED_WORK_PLAN.md
 
                 }
                 handleCloseForm();

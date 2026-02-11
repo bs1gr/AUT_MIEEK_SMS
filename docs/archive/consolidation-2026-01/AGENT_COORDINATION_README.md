@@ -80,7 +80,7 @@ Agent arrives → Opens ACTIVE_WORK_STATUS.md → Sees current state
    - docs/development/AGENT_CONTINUATION_PROTOCOL.md (the manual)
 
 📝 Updated:
-   - docs/misc/TODO.md (now points to ACTIVE_WORK_STATUS)
+   - docs/misc legacy backlog file (now points to ACTIVE_WORK_STATUS)
    - DOCUMENTATION_INDEX.md (added agent coordination docs)
    - docs/development/sessions/SESSION_FINAL_SUMMARY_2025-01-05.md (type-safety addendum)
    - frontend/src/components/RBACPanel.tsx (type-safety fixes)

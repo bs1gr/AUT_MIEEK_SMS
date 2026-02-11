@@ -97,7 +97,7 @@ cd backend && pytest -q
 **Other Critical Rules**:
 - ❌ Never edit DB schema directly → Always use Alembic migrations (`alembic revision --autogenerate`)
 - ❌ Never hardcode UI strings → Use `t('i18n.key')` from `translations.ts` (bilingual EN/EL required)
-- ❌ Never create new TODO/planning docs → Update `docs/plans/UNIFIED_WORK_PLAN.md`
+- ❌ Never create new backlog/planning docs → Update `docs/plans/UNIFIED_WORK_PLAN.md`
 - ❌ Never start new work without checking git status → Run `git status` and verify no uncommitted changes
 - ❌ **NEVER use incorrect version format** → ALWAYS use `v1.x.x` format (e.g., v1.15.1), NEVER `v11.x.x` or `$11.x.x`
 - ❌ Never use `@app.on_event()` → Use `@asynccontextmanager` lifespan (see `backend/lifespan.py`)
@@ -185,7 +185,7 @@ python -m pytest
 ### Policy 2: Planning & Versioning - Single Source of Truth ONLY
 
 **❌ FORBIDDEN:**
-- Creating new TODO.md files or planning documents
+- Creating new backlog files or planning documents
 - Creating new status trackers or parallel plans
 - Using incorrect version format (v11.x.x, $11.x.x, v2.x.x)
 

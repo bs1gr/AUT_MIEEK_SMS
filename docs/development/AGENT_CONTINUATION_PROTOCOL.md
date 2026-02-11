@@ -27,7 +27,7 @@ When multiple agents work on a project sequentially or in parallel, they need to
 
 1. **`docs/ACTIVE_WORK_STATUS.md`** ← **PRIMARY** — Current state of all active work items
 2. **`docs/releases/RELEASE_PREPARATION_$11.15.2.md`** ← Active release timeline & Phase 1 tasks
-3. **`docs/misc/TODO.md`** ← Historical backlog and completed phases (reference only)
+3. **`docs/plans/UNIFIED_WORK_PLAN.md`** ← Current backlog and completed phases (reference)
 4. **Session summaries** (`docs/development/sessions/`) ← Context for understanding decisions
 
 **Rule**: If ACTIVE_WORK_STATUS conflicts with other docs, ACTIVE_WORK_STATUS wins. Other docs are for context.

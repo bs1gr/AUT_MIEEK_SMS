@@ -1126,7 +1126,7 @@ Fixes three startup warnings and enables scheduler features.
 
 ### Planning
 
-❌ **NEVER**: Create new TODO.md or planning docs
+❌ **NEVER**: Create new backlog docs or planning docs
 ✅ **ALWAYS**: Update this file (UNIFIED_WORK_PLAN.md)
 
 ### Pre-Commit

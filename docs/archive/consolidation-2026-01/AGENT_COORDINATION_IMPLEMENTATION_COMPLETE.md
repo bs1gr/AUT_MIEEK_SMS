@@ -57,7 +57,7 @@ All key navigation files updated to point agents to coordination system:
 - Added docs/ACTIVE_WORK_STATUS.md to root files table
 - Updated audience labels
 
-✅ **docs/misc/TODO.md**
+✅ **Legacy backlog file (deprecated)**
 - Marked as deprecated
 - Now redirects to ACTIVE_WORK_STATUS.md
 - Historical reference only
@@ -212,7 +212,7 @@ Total changes: 11 files, ~100 KB new documentation, 0 breaking changes
 - [x] Create AGENT_CONTINUATION_PROTOCOL.md (system manual)
 - [x] Create AGENT_COORDINATION_SYSTEM.md (complete overview)
 - [x] Create supporting docs (README, visual map)
-- [x] Update navigation (DOCUMENTATION_INDEX, TODO.md)
+- [x] Update navigation (DOCUMENTATION_INDEX, legacy backlog file)
 - [x] Verify backend tests (455 passing ✅)
 - [x] Verify frontend tests (1189 passing ✅)
 - [x] Document current work items (8 Phase 1 items with status)

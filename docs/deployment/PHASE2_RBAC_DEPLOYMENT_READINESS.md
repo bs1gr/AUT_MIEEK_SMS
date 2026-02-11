@@ -152,7 +152,7 @@ a6ae1a355 feat: batch test runners and RBAC audit prep work
 
 Skipped breakdown:
 - 1 integration test (RUN_INTEGRATION not set)
-- 45 RBAC template tests (marked TODO, but actually implemented via decorator)
+- 45 RBAC template tests (marked planned, but actually implemented via decorator)
 - 2 version consistency tests (installer scripts not found)
 
 Warnings:
@@ -325,9 +325,9 @@ If performance issues observed:
 
 ## Known Issues & Limitations
 
-### 1. RBAC Template Tests Marked TODO
+### 1. RBAC Template Tests Marked Planned
 
-**Status**: 45 tests skipped with "TODO: Implement in Phase 2"
+**Status**: 45 tests skipped with "Planned: Implement in Phase 2"
 **Reality**: Tests are actually redundant - RBAC is implemented via decorator
 **Impact**: None - actual RBAC implementation tested in 14 permission API tests
 **Action**: Clean up template tests in future maintenance

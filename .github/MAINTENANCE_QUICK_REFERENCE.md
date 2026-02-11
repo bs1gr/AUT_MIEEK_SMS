@@ -1,3 +1,7 @@
+3. **Check for deprecated patterns:**
+   ```powershell
+   # Search for backlog/fix-me/deprecated markers
+   git grep -n "BACKLOG\|FIX-ME\|DEPRECATED\|OBSOLETE"
 # Workspace Maintenance Quick Reference
 
 **Purpose:** Quick guide for maintaining workspace consistency

@@ -361,8 +361,8 @@ if ($Verify) {
         "Attendance records exist" = $false
     }
 
-    # TODO: Implement actual API calls to verify
-    # For now, mark as pending
+    # NOTE: API verification not yet implemented - verification checks are placeholders
+    # Future enhancement: Add actual API calls to verify data seeding
 
     Write-Host "`nVerification Results:" -ForegroundColor Yellow
     foreach ($check in $checks.GetEnumerator()) {

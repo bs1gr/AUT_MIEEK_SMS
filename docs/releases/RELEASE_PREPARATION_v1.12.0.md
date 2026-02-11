@@ -25,7 +25,7 @@
 - [x] backend/main.py - 1.12.0
 - [x] COMMIT_READY.ps1 - 1.12.0
 - [x] INSTALLER_BUILDER.ps1 - 1.12.0
-- [x] TODO.md - Updated to $11.17.2
+- [x] UNIFIED_WORK_PLAN.md - Updated to $11.17.2
 - [x] Root DOCUMENTATION_INDEX.md - 1.12.0
 
 ### Testing & Validation
@@ -149,7 +149,7 @@ Health Checks:    All passing
 
 **Modified Files** (38 total):
 - Documentation: CHANGELOG.md, RELEASE_NOTES_$11.17.2.md, DOCUMENTATION_INDEX.md (2), USER_GUIDE_COMPLETE.md, DEVELOPER_GUIDE_COMPLETE.md
-- Version Files: VERSION, frontend/package.json, backend/main.py, COMMIT_READY.ps1, INSTALLER_BUILDER.ps1, TODO.md
+- Version Files: VERSION, frontend/package.json, backend/main.py, COMMIT_READY.ps1, INSTALLER_BUILDER.ps1, UNIFIED_WORK_PLAN.md
 - Backend: main.py, routers (6 files), security/permissions.py
 - Frontend: package.json, PowerPage.tsx, RBACPanel.tsx
 - Installer/Config: installer/* (3 files)

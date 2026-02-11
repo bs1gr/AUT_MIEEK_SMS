@@ -492,7 +492,7 @@ stat backups/student_management.db | grep Modify  # Check timestamp
 | **Accidental deletion of students** | Medium | Up to 1000 records lost | Restore from 15-min-old backup |
 | **Corrupted DB from bad migration** | Low | Up to 100% data unavailable | Rollback + restore from backup |
 | **Lost unsaved user session** | High | 1-5 min of work lost | Implement auto-save (done) |
-| **Backup storage failure** | Very Low | All backups lost | Test restore quarterly; store backups off-site (TODO) |
+| **Backup storage failure** | Very Low | All backups lost | Test restore quarterly; store backups off-site (planned) |
 
 ---
 

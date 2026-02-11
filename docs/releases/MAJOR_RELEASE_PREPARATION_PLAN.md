@@ -31,29 +31,17 @@ This major release aims to achieve a **"new solid status"** by:
 ### GitHub Release Status
 
 **Total Releases:** 24+ releases found
-
-**Active Published Releases:**
-- 1.14.0 (Latest - published ~1 hour ago)
-- 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0
+- UNIFIED_WORK_PLAN.md (Phase 2.3 completion markers)
 - 1.14.0, 1.14.0, 1.14.0
-- 1.14.0, 1.14.0
 - 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0, 1.14.0
 
 **Draft Releases (CLEANUP CANDIDATES):**
 - ❌ 1.14.0 (Draft - duplicate, published ~1 hour ago)
-- ❌ 1.14.0 (Draft - duplicate)
-- ❌ 1.14.0 (Draft - duplicate)
-- ❌ pr-45-load-report-20251222-175218 (PR draft from Dec 22)
-
 **Observation:** Multiple duplicate draft releases exist for recent versions
 
-### Local Workspace Artifacts
-
-**Directory Sizes:**
 
 ```text
 artifacts/     2.75 MB   - Build artifacts, installers
-backups/       364.16 MB - Database backups (LARGEST)
 templates/     0.07 MB   - Template files
 test-results/  0.31 MB   - E2E test artifacts
 
@@ -75,8 +63,6 @@ frontend/node_modules/      271.71 MB (IGNORE - managed by npm)
 - WORKSPACE_CLEANUP.ps1 (29 KB) ✅ Keep
 - INSTALLER_BUILDER.ps1 (23 KB) ✅ Keep
 - GENERATE_RELEASE_DOCS.ps1 (17 KB) ✅ Keep
-- RELEASE_PREPARATION.ps1 (11 KB) ✅ Keep
-- RELEASE_WITH_DOCS.ps1 (7 KB) ✅ Keep
 - RELEASE_READY.ps1 (7 KB) ✅ Keep
 - start-backend.ps1 (0.26 KB) ❓ Review
 
@@ -95,7 +81,6 @@ frontend/node_modules/      271.71 MB (IGNORE - managed by npm)
 
 ### Existing Archive Structure
 
-```text
 docs/archive/
 ├── documentation/     - Historical documentation files
 ├── pr-updates/        - PR update documentation
@@ -103,9 +88,6 @@ docs/archive/
 
 ```text
 ### Database Migrations
-
-- **Migration Directory:** `backend/alembic/versions/` (path not found - check actual location)
-- **Migration Status:** Migrations run automatically on startup via lifespan
 
 ---
 
@@ -132,16 +114,12 @@ docs/archive/
 3. **Bug Fixes & Security**
    - Path traversal protection in backup operations
    - E2E test stabilization
-   - Docker entrypoint import order
    - Database path configuration unification
    - SECRET_KEY validation handling
 
 4. **CI/CD & Testing**
    - npm dependency caching (30-45s savings)
    - E2E test improvements (logging, seed validation, page-ready indicators)
-   - Backend test coverage: 65% (390 tests)
-   - Frontend test suite passing
-
 5. **Documentation & Release Automation**
    - Complete release automation (RELEASE_READY.ps1, RELEASE_WITH_DOCS.ps1)
    - Comprehensive deployment reports
@@ -155,21 +133,17 @@ docs/archive/
 
 **Source Data:**
 - CHANGELOG.md (lines 1-100, full file 1642 lines)
-- TODO.md (Phase 2.3 completion markers)
+- UNIFIED_WORK_PLAN.md (Phase 2.3 completion markers)
 - Git log: `git log 1.14.0..1.14.0 --oneline`
 - GitHub PR history
 
 **Timeline:** 2-3 hours research + documentation
-
 ---
 
 ### Task 1.2: Failed Test Artifacts Audit
 
 **Search for:**
 - E2E test failure artifacts: `frontend/test-diagnostics/`, `frontend/test-logs/`
-- Playwright reports: `playwright-report/` (none found in current scan)
-- Coverage reports: `.coverage`, `htmlcov/`, `coverage/`
-- Test output files: `*output*.txt` (none found at root)
 - Backend test artifacts: `backend/.pytest_cache/`, `backend/htmlcov/`
 
 **Actions:**
@@ -189,20 +163,12 @@ docs/archive/
 - Legacy scripts: Check if `start-backend.ps1` is still used
 - Docker compose files: `docker/docker-compose.yml`, `docker/docker-compose.prod.yml`, `docker/docker-compose.monitoring.yml`
 
-**Actions:**
 - Verify each file's usage with `grep -r "filename" .` searches
 - Move obsolete files to `archive/deprecated-configs/`
 - Update documentation references
 
-**Timeline:** 1 hour
-
----
-
-## 🗄️ Phase 2: Archival Strategy
 
 ### Task 2.1: GitHub Release Cleanup
-
-**Delete Draft Releases:**
 
 ```bash
 # Identify drafts
@@ -221,7 +187,6 @@ gh release delete pr-45-load-report-20251222-175218 --yes
 - **Strategy:** Keep all published releases (tags remain in git)
 - **Documentation:** Create `docs/archive/releases/PRE_1.14.0_RELEASES.md`
   - List all v1.9.x, v1.10.x, v1.11.x releases with links
-  - Preserve release notes text for offline reference
   - Document upgrade paths from old versions
 
 **Delete Test Tag:**
@@ -241,14 +206,10 @@ git push origin :refs/tags/v-test-1
 ---
 
 ### Task 2.2: Local Workspace Archival
-
 #### 2.2.1: Database Backups (364 MB)
 
 **Current Location:** `backups/`
 
-**Strategy:**
-- **Keep Latest:** Last 7 days of backups (rotate weekly)
-- **Archive Older:** Move backups >30 days to external storage
 - **Document:** Create `backups/README.md` with retention policy
 
 **Actions:**
@@ -266,17 +227,11 @@ New-Item -ItemType Directory -Path ".\backups\archive-2025-12" -Force
 
 # Move old backups
 
-Move-Item -Path ".\backups\*.db" -Destination ".\backups\archive-2025-12\" -Filter {$_.LastWriteTime -lt (Get-Date).AddDays(-30)}
 
 # Document in .gitignore (already present: backups/)
 
 ```text
 **Expected Savings:** ~300 MB (if 80% are old)
-
-**Timeline:** 30 minutes
-
----
-
 #### 2.2.2: Build Artifacts (2.75 MB)
 
 **Current Location:** `artifacts/`
@@ -286,7 +241,6 @@ Move-Item -Path ".\backups\*.db" -Destination ".\backups\archive-2025-12\" -Filt
 - **Delete Older:** Remove artifacts from v1.11.x and earlier
 - **Document:** Update `artifacts/README.md` with build process
 
-**Actions:**
 
 ```powershell
 # List artifacts with dates
@@ -321,7 +275,6 @@ Get-ChildItem -Path ".\artifacts" -Recurse |
 
 Select-String -Path ".gitignore" -Pattern "test-results"
 
-# Clean old test results
 
 Remove-Item -Path ".\test-results\e2e\*" -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -358,24 +311,15 @@ Remove-Item -Path ".\.mypy_cache" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path ".\.ruff_cache" -Recurse -Force -ErrorAction SilentlyContinue
 
 # Verify gitignore covers these
-
 ```text
 **Expected Savings:** ~50-100 MB (mypy/ruff caches can grow)
 
 **Timeline:** 5 minutes
 
 ---
-
-#### 2.2.5: Obsolete Scripts Review
-
-**Candidate:** `start-backend.ps1` (0.26 KB)
-
-**Actions:**
-
 ```powershell
 # Check usage
 
-Select-String -Path "*.md","*.ps1" -Pattern "start-backend.ps1"
 
 # If unused, move to archive
 
@@ -398,17 +342,13 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
    - Consolidated list of all v1.9.x - v1.11.x releases
    - Release notes excerpts from CHANGELOG.md
    - Upgrade paths and breaking changes
-
-2. **`docs/archive/reports-2025-12/WORKSPACE_CLEANUP_1.14.0_PRE_RELEASE.md`**
    - Document what was cleaned up before 1.14.0
    - File counts, sizes, and locations
    - Archival decisions and rationale
 
-3. **Move existing root reports:**
    - Run `WORKSPACE_CLEANUP.ps1` to organize any remaining root documentation
 
 **Timeline:** 1 hour
-
 ---
 
 ## 📦 Phase 3: Version Bump & Release Preparation
@@ -419,7 +359,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 - `VERSION` - Change to `1.13.0`
 - `frontend/package.json` - Update `version` field
 - `backend/main.py` - Update version constant
-- `TODO.md` - Update "Current Version" line
+- `UNIFIED_WORK_PLAN.md` - Update "Current Version" line
 
 **Verification:**
 
@@ -439,47 +379,27 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 1. Deduplicate 1.14.0 entries (merge into single section)
 2. Add 1.14.0 section at top:
    ```markdown
-   ## [1.13.0] - 2025-12-29
 
    **Release Type:** Major Release - Workspace & Repository Consolidation
    **Focus:** Comprehensive improvement report, archival cleanup, fresh baseline
 
    ### Added
    - Comprehensive improvement report (1.14.0 → 1.14.0)
-   - Release archival documentation for pre-1.14.0 versions
-   - Workspace cleanup automation enhancements
-
-   ### Changed
    - Database backup retention policy (7-day rotation, 30-day archive)
    - Build artifact retention (keep last 3 releases)
    - GitHub release cleanup (removed duplicate drafts)
-
    ### Removed
    - Old test artifacts and cache directories
    - Duplicate GitHub draft releases (1.14.0, 1.14.0, 1.14.0 drafts)
    - Test tag v-test-1
    - Obsolete configuration examples
-
-   ```
-
-**Timeline:** 30 minutes
-
 ---
 
 ### Task 3.3: Create Comprehensive Release Report
-
-**File:** `docs/releases/reports/RELEASE_REPORT_1.14.0.md`
-
-**Sections:**
-1. **Release Summary**
    - Version: 1.13.0
    - Release Date: 2025-12-29
    - Type: Major Release (Consolidation)
-   - Upgrade Path: 1.14.0 → 1.14.0 (no breaking changes)
-
-2. **Improvements Consolidated** (link to Task 1.1 report)
    - Phase 2.3 features summary
-   - Bug fixes summary
    - CI/CD enhancements
    - Documentation improvements
 
@@ -496,7 +416,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 
 5. **Next Steps**
    - 1.14.0+ roadmap (Phase 2.4 RBAC if planned)
-   - Deferred features from TODO.md
+   - Deferred features from UNIFIED_WORK_PLAN.md
    - Community feedback integration
 
 **Timeline:** 2 hours
@@ -516,13 +436,7 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 - ✅ Root markdown whitelist compliance
 - ✅ Git status clean
 
-**Timeline:** 15 minutes
 
----
-
-## 🚀 Phase 4: Release Execution
-
-### Task 4.1: Automated Release
 
 **Execute:**
 
@@ -540,17 +454,9 @@ Move-Item -Path ".\start-backend.ps1" -Destination ".\archive\pre-1.14.0\start-b
 .\RELEASE_WITH_DOCS.ps1 -Version "1.13.0"
 
 ```text
-**Expected Outputs:**
 - Git tag `1.14.0` created and pushed
 - GitHub release published with:
   - Comprehensive release notes
-  - Installer artifact (SMS_Setup_1.13.0.exe)
-  - SHA256 checksum
-  - Links to improvement reports
-- CHANGELOG.md committed and pushed
-
-**Timeline:** 30 minutes
-
 ---
 
 ### Task 4.2: Post-Release Verification
@@ -688,7 +594,7 @@ If issues occur during release:
 ## 📎 References
 
 - [CHANGELOG.md](../../CHANGELOG.md)
-- [TODO.md](../misc/TODO.md)
+- [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md)
 - [WORKSPACE_CLEANUP.ps1](../../WORKSPACE_CLEANUP.ps1)
 - [COMMIT_READY.ps1](../../COMMIT_READY.ps1)
 - [RELEASE_READY.ps1](../../RELEASE_READY.ps1)

@@ -104,10 +104,10 @@ Implemented a **complete agent policy enforcement system** with **critical versi
    - ✅ Always: `.\RUN_TESTS_BATCH.ps1`
 
 2. **Planning & Versioning** - Single source of truth
-   - ❌ Never: Create new TODO/planning docs
-   - ✅ Always: Update UNIFIED_WORK_PLAN.md
-   - ❌ Never: Use v11.x.x versioning
-   - ✅ Always: Use v1.MINOR.PATCH format
+- ❌ Never: Create new backlog/planning docs
+- ✅ Always: Update UNIFIED_WORK_PLAN.md
+- ❌ Never: Use v11.x.x versioning
+- ✅ Always: Use v1.MINOR.PATCH format
 
 3. **Database** - Alembic migrations only
    - ❌ Never: Direct schema edits

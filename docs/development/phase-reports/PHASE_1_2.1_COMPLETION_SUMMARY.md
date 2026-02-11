@@ -351,7 +351,7 @@ feat: Integrate performance report into student profile
 ### 5. Documentation Update (Commit: 756b7a89)
 
 ```text
-docs: Update TODO and ROADMAP with Phase 1 & 2.1 completion
+docs: Update UNIFIED_WORK_PLAN and roadmap with Phase 1 & 2.1 completion
 
 Status: $11.12.2 50% complete
 Next: Phase 2.2 Bulk Operations

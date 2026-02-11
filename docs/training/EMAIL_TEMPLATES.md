@@ -52,7 +52,7 @@ Please confirm your attendance by replying to this email within [timeframe].
 If you cannot attend, please contact us immediately so we can arrange an alternative session.
 
 QUESTIONS?
-Contact: training@mieek.edu.cy or call +357 XXXX XXXX
+Contact: training@mieek.edu.cy or call +357 [phone]
 
 NEXT STEPS:
 1. Review attached pre-reading materials
@@ -127,7 +127,7 @@ THE SMS WILL BE AVAILABLE SOON:
 The SMS will be available for use when training is complete. You'll receive your login credentials before go-live.
 
 QUESTIONS?
-Contact: training@mieek.edu.cy or call +357 XXXX XXXX
+Contact: training@mieek.edu.cy or call +357 [phone]
 
 COFFEE & REFRESHMENTS:
 Light refreshments will be provided during a short break.
@@ -209,7 +209,7 @@ TECHNICAL REQUIREMENTS:
 • Internet connection (venue Wi-Fi provided)
 
 QUESTIONS?
-Contact: training@mieek.edu.cy or call +357 XXXX XXXX
+Contact: training@mieek.edu.cy or call +357 [phone]
 
 WHY ATTEND?
 ✓ Learn to check grades anytime, anywhere
@@ -401,7 +401,7 @@ You can access the SMS from:
 SUPPORT:
 If you have any issues logging in:
 • Email: sms-support@mieek.edu.cy
-• Phone: +357 XXXX XXXX
+• Phone: +357 [phone]
 • Response time: < 2 hours (Feb 7-14)
 
 QUICK REFERENCE:
@@ -455,7 +455,7 @@ SMS Implementation Team
 - `[Room Number]` - Actual room number
 - `[Date]` / `[Time]` - Actual session date/time
 - `[Role]` - User role (Admin/Teacher/Student)
-- `+357 XXXX XXXX` - Actual phone number
+- `+357 [phone]` - Actual phone number
 - `[Survey Link]` - Actual survey URL
 - `[SharePoint/Drive Link]` - Actual materials location
 - `https://sms.mieek.edu.cy` - Actual SMS URL

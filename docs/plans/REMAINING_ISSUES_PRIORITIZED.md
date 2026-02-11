@@ -44,9 +44,9 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 **Action Items**:
 1. ✅ **Already Done**: Authentication fix (loginViaAPI now sets user object)
 2. ✅ **Already Done**: Test robustness improvements (waitForResponse, fallback selectors)
-3. ⏳ **TODO**: Monitor CI execution for 5+ runs
-4. ⏳ **TODO**: Adjust timeouts if CI is slower than local
-5. ⏳ **TODO**: Document final working CI configuration
+3. ⏳ **Planned**: Monitor CI execution for 5+ runs
+4. ⏳ **Planned**: Adjust timeouts if CI is slower than local
+5. ⏳ **Planned**: Document final working CI configuration
 
 **Success Criteria**:
 - [ ] E2E tests pass in CI with 95%+ success rate over 10 runs
@@ -72,9 +72,9 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 **Action Items**:
 1. ✅ **Already Done**: Release notes created (`docs/releases/RELEASE_NOTES_$11.17.2.md`)
 2. ✅ **Already Done**: GitHub release draft prepared (`docs/releases/GITHUB_RELEASE_$11.17.2.md`)
-3. ⏳ **TODO**: Create GitHub Release at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
-4. ⏳ **TODO**: Tag as 1.15.0 (targeting main branch)
-5. ⏳ **TODO**: Mark as "Latest release"
+3. ⏳ **Planned**: Create GitHub Release at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
+4. ⏳ **Planned**: Tag as 1.15.0 (targeting main branch)
+5. ⏳ **Planned**: Mark as "Latest release"
 
 **Success Criteria**:
 - [ ] GitHub Release published and visible

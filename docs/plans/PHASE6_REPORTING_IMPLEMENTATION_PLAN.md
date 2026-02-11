@@ -33,7 +33,7 @@ Build comprehensive reporting system with:
 
 **Files to Create/Modify**:
 - `backend/models.py` - Add Report, ReportTemplate, GeneratedReport models
-- `backend/migrations/versions/XXXX_add_report_tables.py` - Alembic migration
+- `backend/migrations/versions/yyyy_add_report_tables.py` - Alembic migration
 - `backend/services/report_service.py` - Report generation logic (300+ lines)
 - `backend/schemas/reports.py` - Pydantic schemas (ReportCreate, ReportUpdate, ReportResponse)
 

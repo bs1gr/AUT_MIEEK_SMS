@@ -65,7 +65,6 @@ export const AdvancedSearchPage: React.FC = () => {
     }
   };
 
-  // TODO: Implement component render
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
@@ -124,7 +123,7 @@ export const AdvancedSearchPage: React.FC = () => {
               />
 
             {/* Saved Searches */}
-            {/* TODO: SavedSearches component */}
+            {/* INCOMPLETE: SavedSearches component - tracked in UNIFIED_WORK_PLAN.md */}
             <div className="bg-white rounded-lg shadow p-6 mb-6">
               <p className="text-gray-500">{t('common.placeholder')}</p>
             </div>
@@ -144,7 +143,7 @@ export const AdvancedSearchPage: React.FC = () => {
             </div>
 
             {/* Pagination */}
-            {/* TODO: Pagination component */}
+            {/* INCOMPLETE: Pagination component - tracked in UNIFIED_WORK_PLAN.md */}
           </div>
         </div>
       </div>

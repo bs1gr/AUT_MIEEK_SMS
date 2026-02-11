@@ -286,7 +286,7 @@ urllib3==2.6.3          # Was 2.6.0 (1 CVE fixed)
 
 ### Before Creating New Plans
 
-1. ❌ **Don't** create new TODO lists, trackers, or planning docs
+1. ❌ **Don't** create new backlog lists, trackers, or planning docs
 2. ✅ **Do** check [docs/plans/UNIFIED_WORK_PLAN.md](docs/plans/UNIFIED_WORK_PLAN.md) first
 3. ✅ **Do** update existing trackers with progress
 

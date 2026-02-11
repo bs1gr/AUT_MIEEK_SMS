@@ -333,7 +333,7 @@ Response: 200 OK
     "student_id": "STU001",
     "is_active": true,
     "father_name": "James Doe",
-    "mobile_phone": "+30 6XXXXXXXX",
+    "mobile_phone": "+30 6900000000",
     "enrollment_date": "2025-09-01"
   }
 }
@@ -698,7 +698,7 @@ HTTP/1.1 410 Gone
   "id": 1,
   "name": "John Doe",
   "email": "john@example.com",
-  "phone": "+30 6XXXXXXXX"
+  "phone": "+30 6900000000"
 }
 
 ```text
@@ -711,7 +711,7 @@ HTTP/1.1 410 Gone
   "last_name": "Doe",
   "contact": {
     "email": "john@example.com",
-    "phone": "+30 6XXXXXXXX"
+    "phone": "+30 6900000000"
   }
 }
 

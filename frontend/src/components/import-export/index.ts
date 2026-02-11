@@ -22,7 +22,7 @@ export interface ExportDialogProps {
 // Using a type alias instead of empty interface
 export type HistoryTableProps = Record<string, unknown>;
 
-// Placeholder components (TODO: implement these properly)
+// INCOMPLETE: Placeholder components - actual implementations tracked in UNIFIED_WORK_PLAN.md
 export const ImportWizard: React.FC<ImportWizardProps> = () => null;
 export const ExportDialog: React.FC<ExportDialogProps> = () => null;
 export const HistoryTable: React.FC<HistoryTableProps> = () => null;

@@ -150,11 +150,10 @@
 
 ### Root Files (Essential Only)
 
-**Documentation (5 files):**
+**Documentation (4 files):**
 ```
 README.md                           # Main entry point
 CHANGELOG.md                        # Version history
-TODO.md                             # Active tracking
 SCRIPTS_CONSOLIDATION_GUIDE.md      # Migration guide
 DESKTOP_SHORTCUT_QUICK_START.md     # User feature
 ```
@@ -319,7 +318,7 @@ When moving or renaming files, update these locations:
 - [SCRIPTS_CONSOLIDATION_GUIDE.md](../SCRIPTS_CONSOLIDATION_GUIDE.md) - Script migration guide
 - [docs/DOCUMENTATION_INDEX.md](../docs/DOCUMENTATION_INDEX.md) - Master documentation index
 - [archive/sessions_2025-11/README.md](../archive/sessions_2025-11/README.md) - November sessions archive
-- [TODO.md](../TODO.md) - Active task tracking
+- [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) - Planning source of truth
 
 ---
 

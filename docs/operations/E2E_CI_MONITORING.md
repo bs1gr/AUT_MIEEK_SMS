@@ -312,7 +312,7 @@ When a new failure pattern emerges:
 
 ### Actions Taken
 
-- [Issue #XXX](link): [resolution]
+- [Issue #TBD](link): [resolution]
 - [Pattern Y](pattern): [fix applied]
 
 ### Recommendations

@@ -619,7 +619,7 @@ flowchart LR
 ```text
 ---
 
-## 6. Future Diagrams (TODO)
+## 6. Future Diagrams (Planned)
 
 - Daily performance aggregation
 - Attendance range query normalization

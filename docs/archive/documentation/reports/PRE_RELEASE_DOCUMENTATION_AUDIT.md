@@ -92,7 +92,7 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
 **Found and Fixed:**
 
 - ✅ `README.md`: Updated from 1.9.2 → 1.9.7
-- ✅ `TODO.md`: Updated header to 1.9.7
+- ✅ `UNIFIED_WORK_PLAN.md`: Updated header to 1.9.7
 - ✅ `scripts/qnap/install-qnap.sh`: Updated from 1.8.0 → 1.9.7
 - ✅ `installer/create_wizard_images.ps1`: Updated default from 1.9.4 → 1.9.7
 

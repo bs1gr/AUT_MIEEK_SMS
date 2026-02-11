@@ -73,7 +73,7 @@ pre-commit run --all-files   # optional first sweep
 ### Release / High-Risk Changes
 
 - Run `./COMMIT_READY.ps1 -Full`
-- Verify VERSION, CHANGELOG, TODO updates
+- Verify VERSION, CHANGELOG, work plan updates
 - Ensure Docker/Native health checks pass
 
 ### CI Expectations
@@ -104,7 +104,7 @@ pre-commit run --all-files   # optional first sweep
 ## ✅ Checklist (Use Before Commit)
 
 - [ ] `./COMMIT_READY.ps1 -Quick` (or -Standard/-Full as needed)
-- [ ] VERSION, CHANGELOG.md, TODO.md updated if relevant
+- [ ] VERSION, CHANGELOG.md, UNIFIED_WORK_PLAN.md updated if relevant
 - [ ] No lint/type/test failures
 - [ ] No uncommitted generated files
 

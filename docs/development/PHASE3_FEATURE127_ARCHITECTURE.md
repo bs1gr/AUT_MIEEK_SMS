@@ -414,7 +414,7 @@ interface UseImportExportReturn {
 - first_name: Non-empty string, max 100 chars
 - last_name: Non-empty string, max 100 chars
 - email: Valid email format, unique per student
-- student_id: Non-empty, unique, format XXX-YYYY-ZZ
+- student_id: Non-empty, unique, format STD-2026-01
 - phone (optional): Valid phone format
 - date_of_birth (optional): Valid date, cannot be future
 - status (optional): active, inactive, suspended

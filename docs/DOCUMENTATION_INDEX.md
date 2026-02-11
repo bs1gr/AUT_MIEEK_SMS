@@ -55,7 +55,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 ### Getting Started
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
-- **[TODO.md](../TODO.md)** - Current task list and project roadmap
+- **[UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)** - Current task list and project roadmap
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-12-06)
 
 ### Audit & Improvement Planning (1.15.0 - COMPLETE ✅)
@@ -504,6 +504,11 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
+- **[releases/RELEASE_NOTES_v1.17.8.md](releases/RELEASE_NOTES_v1.17.8.md)** - v1.17.8 release notes (Feb 11, 2026)
+- **[releases/GITHUB_RELEASE_v1.17.8.md](releases/GITHUB_RELEASE_v1.17.8.md)** - GitHub release body for v1.17.8
+- **[guides/MIGRATION_v1.17.8.md](guides/MIGRATION_v1.17.8.md)** - Migration guide for v1.17.8 breaking changes
+- **[releases/reports/RELEASE_REPORT_v1.17.8.md](releases/reports/RELEASE_REPORT_v1.17.8.md)** - Executive release report for v1.17.8
+- **[releases/reports/CLEANUP_EXECUTION_REPORT_v1.17.8.md](releases/reports/CLEANUP_EXECUTION_REPORT_v1.17.8.md)** - Cleanup execution report for v1.17.8
 - **[releases/RELEASE_NOTES_$11.17.2.md](releases/RELEASE_NOTES_$11.17.2.md)** - Latest production release notes (Dec 13, 2025)
 - **[releases/RELEASE_AUDIT_$11.17.2.md](releases/RELEASE_AUDIT_$11.17.2.md)** - QA audit and verification follow-up
 - **[releases/RELEASE_PREPARATION_$11.17.2.md](releases/RELEASE_PREPARATION_$11.17.2.md)** - Pre-release checklist and dry-run outcomes
@@ -638,7 +643,7 @@ Get-ChildItem "archive/sessions_2025-11" -Filter "*.md" | Select-String "AUTH_MO
 → Read [PERFORMANCE_OPTIMIZATIONS_2025-01-10.md](../PERFORMANCE_OPTIMIZATIONS_2025-01-10.md)
 
 **See what needs to be done**
-→ Check [TODO.md](../TODO.md)
+→ Check [UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)
 
 **Understand the architecture**
 → Read [docs/ARCHITECTURE.md](ARCHITECTURE.md)
@@ -686,7 +691,7 @@ Get-ChildItem "archive/sessions_2025-11" -Filter "*.md" | Select-String "AUTH_MO
 
 ### Monthly (First week of month)
 
-- [ ] Review TODO.md progress
+- [ ] Review work plan progress
 - [ ] Update this documentation index
 - [ ] Archive completed analyses
 - [ ] Update CHANGELOG.md for new release

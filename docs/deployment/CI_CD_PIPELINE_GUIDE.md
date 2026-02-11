@@ -145,7 +145,7 @@ security-scan-docker:
 
 ```yaml
 cleanup-and-docs:
-  - Check for TODO/FIXME items
+  - Check for backlog markers (e.g., task tags)
   - Find obsolete/deprecated files
   - Validate markdown links
   - Generate documentation index

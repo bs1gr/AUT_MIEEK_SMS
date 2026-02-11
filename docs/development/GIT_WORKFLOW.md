@@ -445,9 +445,9 @@ git status
 git diff
 
 ```text
-### Warning: "Found TODOs in modified files"
+### Warning: "Found task markers in modified files"
 
-Review and resolve TODOs before committing, or acknowledge them in commit message.
+Review and resolve task markers before committing, or acknowledge them in commit message.
 
 ### Warning: "Documentation appears stale"
 
@@ -535,7 +535,7 @@ Recommended extensions:
 - [DOCKER.ps1](../../DOCKER.ps1) - Production deployment script
 - [NATIVE.ps1](../../NATIVE.ps1) - Development environment script
 - [CHANGELOG.md](../../CHANGELOG.md) - Version history and release notes
-- [TODO.md](../../TODO.md) - Current project roadmap and priorities
+- [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md) - Current project roadmap and priorities
 
 ## CI/CD Integration
 

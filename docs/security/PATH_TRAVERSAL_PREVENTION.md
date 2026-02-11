@@ -9,7 +9,7 @@
 
 ## Overview
 
-This document describes the comprehensive path traversal prevention strategy implemented across the SMS backup, admin, and session management systems. This prevents **CVE-style path traversal vulnerabilities** (e.g., CVE-2024-XXXXX class attacks) that could allow unauthorized file access.
+This document describes the comprehensive path traversal prevention strategy implemented across the SMS backup, admin, and session management systems. This prevents **CVE-style path traversal vulnerabilities** (e.g., CVE pending class attacks) that could allow unauthorized file access.
 
 **Key Achievement**: Resolved 14 CodeQL "Uncontrolled data used in path expression" alerts through proper validation and type narrowing.
 

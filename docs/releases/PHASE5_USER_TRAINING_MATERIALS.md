@@ -280,7 +280,7 @@ Expected vs Actual:
 
 ### Support Contact Information
 - **Email Support**: support@[institution].edu
-- **Phone Support**: +1-XXX-XXX-XXXX
+- **Phone Support**: +1-[phone]
 - **Support Hours**: [Specify hours]
 - **Emergency Contact**: [Emergency number]
 

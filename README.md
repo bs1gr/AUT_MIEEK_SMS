@@ -37,8 +37,8 @@ for complete details.
 before working on this project.
 
 **Critical Policies:**
-- ❌ NEVER run `pytest -q` directly → Use `.\RUN_TESTS_BATCH.ps1` (prevents crashes)
-- ❌ NEVER create new TODO/planning docs → Update `UNIFIED_WORK_PLAN.md`
+- ❌ NEVER run `pytest -q` directly → Use `\.\RUN_TESTS_BATCH.ps1` (prevents crashes)
+- ❌ NEVER create new backlog/planning docs → Update `docs/plans/UNIFIED_WORK_PLAN.md`
 - ❌ NEVER edit DB schema directly → Use Alembic migrations
 - ✅ ALWAYS run `COMMIT_READY.ps1 -Quick` before committing
 
@@ -344,11 +344,10 @@ docs/
 └── DOCUMENTATION_INDEX.md  # Master navigation index
 ```
 
-**Root Directory:** Reduced from 15+ markdown files to 4 essential documents
+**Root Directory:** Reduced from 15+ markdown files to essential documents
 
 - README.md (main entry point)
 - CHANGELOG.md (version history)
-- TODO.md (active tracking)
 - DESKTOP_SHORTCUT_QUICK_START.md (user feature)
 
 **Archived:** Session documents moved to `archive/sessions_2025-11/`
@@ -367,7 +366,7 @@ The repository follows best practices for clean project organization:
 student-management-system/
 ├── 📄 README.md                 # Main documentation
 ├── 📄 CHANGELOG.md              # Version history
-├── 📄 TODO.md                   # Active task tracking
+├── 📄 docs/plans/UNIFIED_WORK_PLAN.md  # Planning source of truth
 ├── 📄 LICENSE                   # MIT License
 ├── 📄 VERSION                   # Current version (1.17.8)
 │

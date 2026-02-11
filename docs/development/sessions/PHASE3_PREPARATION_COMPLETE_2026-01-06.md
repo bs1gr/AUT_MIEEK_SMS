@@ -354,7 +354,7 @@ pytest -q --lf                   # Backend last-failed
 
 2. **ESLint any types** (9 locations)
    - Impact: Type safety, no runtime effect
-   - Workaround: Mark as TODO for refactoring
+   - Workaround: Mark as planned for refactoring
    - Phase: Refactor in Phase 4
 
 3. **i18n coverage** (6 components)

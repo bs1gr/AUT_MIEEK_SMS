@@ -1,16 +1,16 @@
-## ⚠️ BREAKING CHANGES - MAJOR Release
+## ⚠️ BREAKING CHANGES
 
-This is a **MAJOR** release with breaking changes. **Read the migration guide before upgrading if you use custom scripts.**
+This release includes a **frontend module relocation**. **Read the migration guide before upgrading if you import legacy page modules in custom code.**
 
 ### 🔴 What Changed
 
-**Removed Modules (after 6+ month deprecation):**
+**Module Relocation (Frontend):**
 
-- refactor: Move Power and RBAC modules to feature architecture + i18n improvements
-- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- Power/System page moved to the Operations feature module (`SystemPage`)
+- RBAC permissions page moved to the Admin feature module (`PermissionsPage`)
 
 **Affected Users:**
-- ❌ Custom Python scripts importing old modules → **Migration Required**
+- ❌ Custom frontend code importing `@/pages/PowerPage` or `@/pages/AdminPermissionsPage` → **Migration Required**
 - ✅ Web UI users → **No action needed**
 - ✅ Docker/standard deployment → **No action needed**
 
@@ -25,24 +25,25 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 
 ### 📊 What's Included in v1.17.8
 
-- **81 new features** - Enhancement and new capabilities
-- **251 bug fixes** - Stability and reliability improvements
-- **Deprecated modules removed** - Clean codebase, reduced maintenance
-- **Complete documentation** - Release report, migration guide, cleanup audit
+- Reporting & analytics UX enhancements
+- Custom report email overrides and delivery improvements
+- Operations/control panel polish and health UI unification
+- Installer/uninstaller reliability and cleanup updates
+- Documentation alignment (migration guide + release/cleanup reports)
 
 ### 📦 Installation
 
 **Windows:** Download \SMS_Installer_1.17.8.exe\ from the assets below.
 
 **Docker:**
-`powershell
-.\DOCKER.ps1 -Update
-`
+```powershell
+./DOCKER.ps1 -Update
+```
 
 **Native (Development):**
-`powershell
-.\NATIVE.ps1 -Start
-`
+```powershell
+./NATIVE.ps1 -Start
+```
 
 ### 📚 Documentation
 
@@ -50,5 +51,3 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 - **[Release Report](docs/releases/reports/RELEASE_REPORT_v1.17.8.md)** - Executive summary and impact assessment
 - **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.17.8.md)** - Detailed cleanup audit
 - **[CHANGELOG](CHANGELOG.md)** - Full commit history
-
-

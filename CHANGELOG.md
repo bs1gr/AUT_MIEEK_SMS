@@ -601,7 +601,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Limit heavy workflows to PRs/schedule
 - Add workflow_dispatch to unblock manual CI reruns
 - Add concurrency groups to prevent CI/CD queue buildup
-- increase markdown lint threshold to 10000 (Phase 4 TODO)
+- increase markdown lint threshold to 10000 (Phase 4 backlog)
 - fix frontend vitest heap memory exhaustion in CI
 - enforce auth in backend tests (AUTH_MODE=strict) to fix saved_search authorization failures
 - fix npm audit security scan and E2E test timeouts
@@ -611,7 +611,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **release**: sync 1.17.8 references and installer assets
 - **release**: bump version to 1.17.8
 - **ci**: formatting whitespace in workflow
-- **docs**: exclude report archives from TODO scan
+- **docs**: exclude report archives from backlog scan
 - **test**: align vitest pool config
 - **test**: cap vitest fork pool
 - **codeql**: ignore archived artifacts
@@ -1858,11 +1858,11 @@ To all contributors who participated in Phase 1 development and testing.
 ## [1.14.0] - 2025-12-29
 
 **Release Type**: Maintenance Release
-**Focus**: Release automation clean-up, TODO.md check removal, TypeScript E2E fixes, line-ending normalization
+**Focus**: Release automation clean-up, backlog check removal, TypeScript E2E fixes, line-ending normalization
 
 ### Changed
 
-- Removed TODO.md from all scripts/checks
+- Removed legacy backlog file from all scripts/checks
 - Normalized line endings across scripts and docs
 - Fixed TypeScript E2E tests and Playwright logging/hooks
 - Generated release documentation (GitHub release notes, CHANGELOG entry)
@@ -3306,7 +3306,7 @@ None. Full backward compatibility maintained.
   - Removed obsolete CI debug tools directory (`tools/ci/`)
 
 - **Updated documentation**:
-  - Updated TODO.md to 1.9.7 with completed cleanup items
+  - Updated backlog tracker to 1.9.7 with completed cleanup items
   - Updated CONTRIBUTING.md to remove reference to deleted CI integration tests
   - Updated GitHub workflow (commit-ready-cleanup-smoke.yml) to remove obsolete test steps
   - Updated DOCUMENTATION_INDEX.md to remove MASTER_CONSOLIDATION_PLAN.md reference
@@ -3390,7 +3390,7 @@ None. Full backward compatibility maintained.
   - Consolidated duplicate directories into canonical locations
   - All legacy warnings now point to DOCKER.ps1/NATIVE.ps1
 
-- **TODO Modernization**: Refreshed backlog to reflect current priorities
+- **Backlog modernization**: Refreshed backlog to reflect current priorities
   - Removed completed legacy phase tracking
   - Updated roadmap references to current version series
 
@@ -3572,4 +3572,3 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
-

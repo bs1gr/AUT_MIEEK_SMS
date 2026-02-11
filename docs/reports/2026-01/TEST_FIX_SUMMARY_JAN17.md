@@ -149,7 +149,7 @@ async def create_student_import(
 
 ### Skipped Tests (Expected)
 
-- **Batch 13**: 39 RBAC template tests skipped - marked "TODO: Implement in Phase 2"
+- **Batch 13**: 39 RBAC template tests skipped - marked "Planned: Implement in Phase 2"
 - **Batch 17**: 3 version consistency tests skipped - expected infrastructure files not yet generated
 - **Total Skipped**: 43 (all expected, no failures)
 

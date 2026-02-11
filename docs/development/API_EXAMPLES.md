@@ -155,7 +155,7 @@ Use these for client-side localization and reliable condition handling.
 
 ---
 
-## 9. TODO (Enhance Later)
+## 9. Future Enhancements
 
 - Add more domain-specific examples (attendance, daily performance)
 - Document bulk import endpoints

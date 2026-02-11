@@ -19,7 +19,7 @@ Comprehensive review and fix of GitHub Actions workflows for the Student Managem
 - **Severity:** HIGH
 - **Type:** YAML Syntax Error
 - **Lines:** 38-46
-- **Fix:** Changed invalid `if: ${{ secrets.XXX != '' }}` to proper `if: env.XXX != ''` pattern
+- **Fix:** Changed invalid `if: ${{ secrets.EXAMPLE_SECRET != '' }}` to proper `if: env.EXAMPLE_SECRET != ''` pattern
 
 **Before:**
 
@@ -220,8 +220,8 @@ Total: 4 files changed | +13 insertions, -4 deletions
 
 ### 1. Secrets in Conditional Expressions
 
-❌ **Avoid:** `if: ${{ secrets.XXX != '' }}`
-✅ **Use:** `if: env.VARIABLE != ''` + `env: VARIABLE: ${{ secrets.XXX }}`
+❌ **Avoid:** `if: ${{ secrets.EXAMPLE_SECRET != '' }}`
+✅ **Use:** `if: env.VARIABLE != ''` + `env: VARIABLE: ${{ secrets.EXAMPLE_SECRET }}`
 
 ### 2. Script Parameter Names
 

@@ -1,3 +1,5 @@
+- BACKLOG_PRIORITIES.md
+- BACKLOG_PRIORITIES.md
 # Workspace Cleanup & Organization Guide
 
 ## Overview
@@ -216,7 +218,7 @@ pyproject.toml
 package.json
 CODE_OF_CONDUCT.md
 CONTRIBUTING.md
-TODO.md
+docs/plans/UNIFIED_WORK_PLAN.md
 TODO_PRIORITIES.md
 LLM_AGENT_INSTRUCTIONS.md
 SECURITY_AUDIT_SUMMARY.md (important reference)

@@ -1,3 +1,4 @@
+docs/misc/BACKLOG_PRIORITIES.md
 # Documentation Index
 
 Generated: Mon Jan 19 09:31:54 UTC 2026
@@ -231,7 +232,7 @@ docs/misc/SESSION_HANDOFF_v1.15.1_JAN7.md
 docs/misc/SOLO_DEPLOYMENT_CHECKLIST.md
 docs/misc/SOLO_PROJECT_NOTICE.md
 docs/misc/SOLO_QUICK_START.md
-docs/misc/TODO.md
+docs/plans/UNIFIED_WORK_PLAN.md
 docs/misc/TODO_PRIORITIES.md
 docs/misc/TONIGHT_CHECKLIST.md
 docs/misc/WEBSOCKET_INTEGRATION_FIX.md

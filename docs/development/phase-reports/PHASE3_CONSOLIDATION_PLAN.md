@@ -33,7 +33,7 @@ Establish `docs/DOCUMENTATION_INDEX.md` as the canonical documentation hub with 
 - `DOCUMENTATION_INDEX.md` (304 lines) - Lists docs/
 - `README.md` - Project overview
 - `START_HERE.md` - Quick start guide
-- `TODO.md` - Task tracking
+- `UNIFIED_WORK_PLAN.md` - Task tracking
 - `CHANGELOG.md` - Version history
 - `CONTRIBUTING.md` - Contribution guide
 - Other files: DEPLOYMENT_GUIDE.md, etc.

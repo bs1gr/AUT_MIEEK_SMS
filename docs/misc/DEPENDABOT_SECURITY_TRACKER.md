@@ -16,7 +16,7 @@
 | **Severity** | 🔴 CRITICAL (Moderate - CVSS 5.3) |
 | **Component** | `backend/requirements.txt`: python-socketio |
 | **Affected Version** | 5.11.2 |
-| **CVE** | CVE-2024-XXXXX (python-socketio RCE) |
+| **CVE** | CVE pending (no ID assigned) |
 | **Detection** | Dependabot #78, Trivy #1592 |
 | **Risk** | Malicious pickle data in multi-server deployments could execute arbitrary Python code |
 
@@ -294,11 +294,11 @@ except ValueError as e:
 | Date | Task | Status |
 |------|------|--------|
 | Jan 18, 2026 | Create utility, fix socketio + XSS | ✅ DONE |
-| Jan 19, 2026 | Update admin_routes.py, backup_service | ⏳ TODO |
-| Jan 19, 2026 | Update routers_sessions.py | ⏳ TODO |
-| Jan 19, 2026 | Run full test suite | ⏳ TODO |
-| Jan 19, 2026 | Commit and push | ⏳ TODO |
-| Jan 20, 2026 | Verify CodeQL scans clear | ⏳ TODO |
+| Jan 19, 2026 | Update admin_routes.py, backup_service | ⏳ Planned |
+| Jan 19, 2026 | Update routers_sessions.py | ⏳ Planned |
+| Jan 19, 2026 | Run full test suite | ⏳ Planned |
+| Jan 19, 2026 | Commit and push | ⏳ Planned |
+| Jan 20, 2026 | Verify CodeQL scans clear | ⏳ Planned |
 
 ---
 

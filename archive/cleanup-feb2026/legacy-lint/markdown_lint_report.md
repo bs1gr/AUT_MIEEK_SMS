@@ -1,3 +1,4 @@
+## docs/misc/BACKLOG_PRIORITIES.md
 # Markdown Lint Report
 
 Total issues: 8480
@@ -4745,7 +4746,7 @@ Total issues: 8480
 - Line 256: MD032 - Missing blank line before list
 - Line 334: MD032 - Missing blank line before list
 
-## docs/misc/TODO.md
+## docs/plans/UNIFIED_WORK_PLAN.md (legacy backlog)
 
 - Line 56: MD022 - Missing blank line after heading
 - Line 62: MD022 - Missing blank line after heading

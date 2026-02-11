@@ -28,28 +28,28 @@ frontend/src/features/advanced-search/
 ├── types/
 │   └── search.ts                 # Type definitions & interfaces
 ├── components/
-│   ├── SearchBar.tsx             # [TODO]
-│   ├── AdvancedFilters.tsx       # [TODO]
-│   ├── FilterCondition.tsx       # [TODO]
-│   ├── SearchResults.tsx         # [TODO]
-│   ├── StudentResultCard.tsx     # [TODO]
-│   ├── CourseResultCard.tsx      # [TODO]
-│   ├── FacetedNavigation.tsx     # [TODO]
-│   ├── SavedSearches.tsx         # [TODO]
-│   └── Pagination.tsx            # [TODO]
+│   ├── SearchBar.tsx             # [Planned]
+│   ├── AdvancedFilters.tsx       # [Planned]
+│   ├── FilterCondition.tsx       # [Planned]
+│   ├── SearchResults.tsx         # [Planned]
+│   ├── StudentResultCard.tsx     # [Planned]
+│   ├── CourseResultCard.tsx      # [Planned]
+│   ├── FacetedNavigation.tsx     # [Planned]
+│   ├── SavedSearches.tsx         # [Planned]
+│   └── Pagination.tsx            # [Planned]
 ├── hooks/
 │   ├── useSearch.ts              # ✅ COMPLETE
-│   ├── useAdvancedFilters.ts     # [TODO]
-│   ├── usePagination.ts          # [TODO]
-│   └── useSearchHistory.ts       # [TODO]
+│   ├── useAdvancedFilters.ts     # [Planned]
+│   ├── usePagination.ts          # [Planned]
+│   └── useSearchHistory.ts       # [Planned]
 ├── __tests__/
 │   ├── fixtures.ts               # ✅ COMPLETE
-│   ├── AdvancedSearchPage.test.tsx     # [TODO]
-│   ├── SearchBar.test.tsx              # [TODO]
-│   ├── AdvancedFilters.test.tsx        # [TODO]
-│   └── integration/                    # [TODO]
+│   ├── AdvancedSearchPage.test.tsx     # [Planned]
+│   ├── SearchBar.test.tsx              # [Planned]
+│   ├── AdvancedFilters.test.tsx        # [Planned]
+│   └── integration/                    # [Planned]
 ├── AdvancedSearchPage.tsx        # Scaffold created
-└── index.ts                      # [TODO]
+└── index.ts                      # [Planned]
 
 frontend/src/api/
 └── search-client.ts              # ✅ COMPLETE

@@ -307,7 +307,7 @@ Start-Process "C:\Program Files\SMS\unins1.17.7.exe" -Wait
 1. Check installer file size (must be 8.01 MB from Feb 3, 2026)
 2. Check .env file timestamps (must be today's date)
 3. Run emergency cleanup script
-4. Check installer logs at: `C:\Users\<user>\AppData\Local\Temp\Setup Log YYYY-MM-DD #XXX.txt`
+4. Check installer logs at: `C:\Users\<user>\AppData\Local\Temp\Setup Log YYYY-MM-DD #000.txt`
 
 **Related Documentation:**
 - `installer/INSTALLER_LOCKED_FILES_FIX.md` - File locking documentation

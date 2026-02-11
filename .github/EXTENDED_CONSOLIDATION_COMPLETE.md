@@ -1,3 +1,4 @@
+- Check for backlog/fix-me/deprecated markers
 # Extended Consolidation Complete
 
 **Date:** 2025-11-25

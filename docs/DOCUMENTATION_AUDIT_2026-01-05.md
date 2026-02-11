@@ -262,14 +262,14 @@
 
 | Phase | Task | Status | Owner | Due |
 |-------|------|--------|-------|-----|
-| 1 | Archive agent root files | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 1 | Archive outdated consolidation plans | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 1 | Archive historical fixes | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 2 | Consolidate E2E testing docs | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 2 | Simplify agent coordination | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 2 | Release documentation template | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 3 | Verify CONFIG_STRATEGY.md | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 3 | Verify RATE_LIMITING doc | ⏳ TODO | Agent-Copilot | Jan 5 |
-| 3 | Review PWA_SETUP_GUIDE.md | ⏳ TODO | Agent-Copilot | Jan 5 |
-| Final | Update DOCUMENTATION_INDEX.md | ⏳ TODO | Agent-Copilot | Jan 5 |
-| Final | Commit consolidation changes | ⏳ TODO | Agent-Copilot | Jan 5 |
+| 1 | Archive agent root files | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 1 | Archive outdated consolidation plans | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 1 | Archive historical fixes | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 2 | Consolidate E2E testing docs | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 2 | Simplify agent coordination | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 2 | Release documentation template | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 3 | Verify CONFIG_STRATEGY.md | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 3 | Verify RATE_LIMITING doc | ⏳ Planned | Agent-Copilot | Jan 5 |
+| 3 | Review PWA_SETUP_GUIDE.md | ⏳ Planned | Agent-Copilot | Jan 5 |
+| Final | Update DOCUMENTATION_INDEX.md | ⏳ Planned | Agent-Copilot | Jan 5 |
+| Final | Commit consolidation changes | ⏳ Planned | Agent-Copilot | Jan 5 |

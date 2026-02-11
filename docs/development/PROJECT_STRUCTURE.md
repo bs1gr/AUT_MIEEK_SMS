@@ -39,7 +39,7 @@ These stay at project root for discoverability:
 
 - `README.md` - Main project documentation
 - `CHANGELOG.md` - Version history
-- `TODO.md` - Current roadmap
+- `docs/plans/UNIFIED_WORK_PLAN.md` - Current roadmap
 - `INSTALLATION_GUIDE.md` - Installation steps
 - `DEPLOYMENT_GUIDE.md` - Full deployment guide
 - `DEPLOYMENT_CHECKLIST.md` - Pre-deployment checklist
@@ -123,7 +123,7 @@ GitHub Action `.github/workflows/doc-audit.yml` runs weekly to:
 ## 🔍 Finding Documentation
 
 1. **Start with README.md** - Overview and getting started
-2. **Check TODO.md** - Current priorities and roadmap
+2. **Check UNIFIED_WORK_PLAN.md** - Current priorities and roadmap
 3. **Browse by role**:
    - User → `docs/user/`
    - Developer → `docs/development/`

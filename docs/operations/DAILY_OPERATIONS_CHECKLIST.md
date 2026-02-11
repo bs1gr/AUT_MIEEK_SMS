@@ -315,11 +315,11 @@ Create weekly status report including:
 ### Monthly Metrics Summary
 ```
 System Uptime:           99.X%
-Average Response Time:   XXXms
-Max Concurrent Users:    XXX
-New Users Added:         XXX
-Courses Created:         XXX
-Support Tickets:         XXX
+Average Response Time:   TBD ms
+Max Concurrent Users:    TBD
+New Users Added:         TBD
+Courses Created:         TBD
+Support Tickets:         TBD
 Critical Incidents:      X
 Performance Incidents:   X
 Data Growth Rate:        X%/month

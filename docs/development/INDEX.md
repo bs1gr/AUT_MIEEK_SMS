@@ -211,5 +211,5 @@ tail -f backend/logs/app.log
 ## 🆘 Getting Help
 
 - Check [GitHub Issues](https://github.com/bs1gr/AUT_MIEEK_SMS/issues)
-- Review [TODO.md](../../TODO.md) for current priorities
+- Review [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md) for current priorities
 - Ask in development discussions

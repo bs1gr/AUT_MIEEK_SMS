@@ -35,7 +35,7 @@ This guide provides step-by-step instructions to complete the CI/CD setup. All a
 
 6. **Copy the Webhook URL** (looks like):
    ```
-   https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX
+   https://hooks.slack.com/services/T00000000/B00000000/REDACTED
    ```
    ⚠️ Keep this URL secret! Anyone with this URL can post to your Slack channel.
 

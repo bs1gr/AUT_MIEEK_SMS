@@ -370,7 +370,7 @@ Create a backup anytime:
    ```powershell
    # Copy backup into Docker volume
    docker run --rm -v sms_data:/data -v ${PWD}/backups:/backups alpine `
-     cp /backups/sms_backup_XXXXXX_XXXXXX.db /data/student_management.db
+   cp /backups/sms_backup_YYYYMMDD_HHMMSS.db /data/student_management.db
    ```
 
 4. Start SMS:

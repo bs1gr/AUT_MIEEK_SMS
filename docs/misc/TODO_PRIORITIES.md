@@ -1,4 +1,4 @@
-# TODO Priorities (2025-12-18)
+# Backlog Priorities (2025-12-18)
 
 > ⚠️ **SUPERSEDED**: General priorities consolidated into [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md)
 > **Use the unified plan** for current work organization. This file is kept for historical reference.
