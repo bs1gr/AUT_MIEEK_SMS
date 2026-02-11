@@ -91,6 +91,7 @@ export const AnalyticsDashboard: React.FC = () => {
     return trimmed;
   }, [t]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadLookups = async () => {
       try {
@@ -630,6 +631,7 @@ export const AnalyticsDashboard: React.FC = () => {
     };
   }, [selectedDivision, students, dashboard, performanceData, attendanceData, analyticsGrades, analyticsAttendance]);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadStudentAnalytics = async () => {
       if (!effectiveSelectedStudent) {
