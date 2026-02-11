@@ -8,6 +8,7 @@ import { useNavigate, useParams, useLocation, useSearchParams } from 'react-rout
 import { ChevronLeft } from 'lucide-react';
 import { ReportBuilder } from '../components/ReportBuilder';
 import { reportTemplatesAPI } from '@/api/customReportsAPI';
+import type { ReportTemplate } from '@/api/customReportsAPI';
 import { getLocalizedTemplateText } from '../utils/templateLocalization';
 
 export const ReportBuilderPage: React.FC = () => {
@@ -19,12 +20,12 @@ export const ReportBuilderPage: React.FC = () => {
   const importDefaultsAttempted = useRef(false);
 
   // Extract template data from navigation state
-  const templateData = (location.state as { templateData?: unknown } | null)?.templateData;
+  const templateData = (location.state as { templateData?: ReportTemplate } | null)?.templateData;
   const templateIdParam = searchParams.get('template');
   const templateNameParam = searchParams.get('templateName');
   const studentIdParam = searchParams.get('studentId');
   const courseIdParam = searchParams.get('courseId');
-  const [resolvedTemplate, setResolvedTemplate] = useState<unknown | null>(templateData ?? null);
+  const [resolvedTemplate, setResolvedTemplate] = useState<ReportTemplate | null>(templateData ?? null);
 
   const prefillFilters = useMemo(() => {
     const filters: Array<{ field: string; operator: string; value: number }> = [];
@@ -60,20 +61,20 @@ export const ReportBuilderPage: React.FC = () => {
 
     const loadTemplate = async () => {
       try {
-        let template = null;
+        let template: ReportTemplate | null = null;
         if (templateIdParam && Number.isFinite(Number(templateIdParam))) {
           // eslint-disable-next-line testing-library/no-await-sync-queries
           template = await reportTemplatesAPI.getById(Number(templateIdParam));
         } else if (templateNameParam) {
           const normalizedTarget = normalizeTemplateName(templateNameParam);
-          const matchTemplate = (templates: typeof template) =>
-            templates?.find((entry) => normalizeTemplateName(entry.name) === normalizedTarget) ??
-            templates?.find(
-              (entry) => normalizeTemplateName(getLocalizedTemplateText(entry, t).name) === normalizedTarget
+          const matchTemplate = (templates: ReportTemplate[] | null | undefined) =>
+            templates?.find((entry: ReportTemplate) => normalizeTemplateName(entry.name) === normalizedTarget) ??
+            templates?.find((entry: ReportTemplate) =>
+              normalizeTemplateName(getLocalizedTemplateText(entry, t).name) === normalizedTarget
             ) ??
             null;
 
-          let templates = await reportTemplatesAPI.getAll({ is_active: true });
+          let templates: ReportTemplate[] = await reportTemplatesAPI.getAll({ is_active: true });
           template = matchTemplate(templates);
 
           if (!template && !importDefaultsAttempted.current) {

@@ -486,7 +486,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 .map((grade: { grade?: number; max_grade?: number }) =>
                   toPercentage(grade.grade, grade.max_grade)
                 )
-                .filter((value): value is number => Number.isFinite(value))
+                .filter((value: number | null): value is number => Number.isFinite(value))
             )
           : 0;
 
@@ -515,7 +515,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 .map((grade: { grade?: number; max_grade?: number }) =>
                   toPercentage(grade.grade, grade.max_grade)
                 )
-                .filter((value): value is number => Number.isFinite(value))
+                .filter((value: number | null): value is number => Number.isFinite(value))
             );
 
           const averageFromDaily = (categoryKey: string) =>
@@ -523,20 +523,20 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               coursePerformances
                 .filter((perf) => normalizeCategory(perf.category) === categoryKey)
                 .map((perf) => toPercentage(perf.score, perf.max_score))
-                .filter((value): value is number => Number.isFinite(value))
+                .filter((value: number | null): value is number => Number.isFinite(value))
             );
 
           const averageFromParticipation = (categoryKey: string) => {
             const dailyValues = coursePerformances
               .filter((perf) => normalizeCategory(perf.category) === categoryKey)
               .map((perf) => toPercentage(perf.score, perf.max_score))
-              .filter((value): value is number => Number.isFinite(value));
+              .filter((value: number | null): value is number => Number.isFinite(value));
             const gradeValues = courseGrades
               .filter((grade: { category?: string }) => normalizeCategory(grade.category) === categoryKey)
               .map((grade: { grade?: number; max_grade?: number }) =>
                 toPercentage(grade.grade, grade.max_grade)
               )
-              .filter((value): value is number => Number.isFinite(value));
+              .filter((value: number | null): value is number => Number.isFinite(value));
 
             if (dailyValues.length === 0 && gradeValues.length === 0) {
               return 0;

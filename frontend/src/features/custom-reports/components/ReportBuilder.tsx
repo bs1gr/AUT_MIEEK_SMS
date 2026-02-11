@@ -436,7 +436,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   useEffect(() => {
     // Load report data when editing
     if (reportId && reportData) {
-      const reportRecord = isRecord(reportData) ? reportData : {};
+      const reportRecord: Record<string, unknown> = isRecord(reportData) ? reportData : {};
       const updatedAt = typeof reportRecord.updated_at === 'string' ? reportRecord.updated_at : '';
       const reportSignature = `report-${reportId}-${updatedAt}`;
 
