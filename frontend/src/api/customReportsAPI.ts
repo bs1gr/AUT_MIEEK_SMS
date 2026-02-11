@@ -75,6 +75,7 @@ export interface GenerateReportRequest {
   include_charts?: boolean | null;
   email_recipients?: string[] | null;
   email_enabled?: boolean | null;
+  language?: string | null;
 }
 
 export interface GenerateReportResponse {
@@ -285,6 +286,7 @@ export const customReportsAPI = {
         include_charts: options.include_charts ?? null,
         email_recipients: options.email_recipients ?? null,
         email_enabled: options.email_enabled ?? null,
+        language: options.language ?? null,
       });
 
       return extractAPIResponseData(response.data) as GenerateReportResponse;

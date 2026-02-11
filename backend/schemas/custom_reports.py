@@ -22,7 +22,7 @@ class ReportTemplateBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200, description="Template name")
     description: Optional[str] = Field(None, description="Template description")
     category: str = Field(..., description="Template category (academic, administrative, statistical)")
-    report_type: str = Field(..., description="Report type (student, course, grade, attendance)")
+    report_type: str = Field(..., description="Report type (student, course, grade, attendance, daily_performance)")
     fields: List[str] | Dict[str, Any] = Field(..., description="Fields to include in report (list or dict)")
     filters: Optional[List[Dict[str, Any]] | Dict[str, Any]] = Field(None, description="Default filter criteria")
     aggregations: Optional[List[Dict[str, Any]] | Dict[str, Any]] = Field(None, description="Aggregation configuration")
@@ -75,7 +75,10 @@ class CustomReportBase(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=200, description="Report name")
     description: Optional[str] = Field(None, description="Report description")
-    report_type: str = Field(..., description="Report type (student, course, grade, attendance, custom)")
+    report_type: str = Field(
+        ...,
+        description="Report type (student, course, grade, attendance, daily_performance, custom)",
+    )
     template_id: Optional[int] = Field(None, description="Template ID if based on template")
     fields: Dict[str, Any] = Field(..., description="Selected fields to include")
     filters: Optional[Dict[str, Any]] = Field(None, description="Filter criteria")
@@ -246,6 +249,7 @@ class ReportGenerationRequest(BaseModel):
     include_charts: Optional[bool] = Field(None, description="Override chart inclusion")
     email_recipients: Optional[List[str]] = Field(None, description="Override email recipients")
     email_enabled: Optional[bool] = Field(None, description="Override email delivery toggle")
+    language: Optional[str] = Field(None, description="Preferred export language (en or el)")
 
     @field_validator("export_format")
     @classmethod

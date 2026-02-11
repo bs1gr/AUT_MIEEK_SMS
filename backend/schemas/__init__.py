@@ -75,6 +75,10 @@ from .import_export import (
 from .grades import GradeCreate as GradeCreate
 from .grades import GradeResponse as GradeResponse
 from .grades import GradeUpdate as GradeUpdate
+from .feedback import FeedbackEntry as FeedbackEntry
+from .feedback import FeedbackImportItem as FeedbackImportItem
+from .feedback import FeedbackImportRequest as FeedbackImportRequest
+from .feedback import FeedbackImportResponse as FeedbackImportResponse
 from .highlights import (
     HighlightBase as HighlightBase,
     HighlightCreate as HighlightCreate,

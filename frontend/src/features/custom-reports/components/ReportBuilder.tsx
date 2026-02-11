@@ -3,7 +3,7 @@
  * Drag-and-drop field selection with filters and sorting
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Save, ChevronDown, ChevronUp } from 'lucide-react';
 import { useCreateReport, useCustomReport, useUpdateReport } from '@/hooks/useCustomReports';
@@ -16,6 +16,7 @@ import { getLocalizedTemplateText } from '../utils/templateLocalization';
 interface ReportBuilderProps {
   reportId?: number;
   initialData?: unknown;
+  prefillFilters?: FilterRule[];
   onSuccess?: (reportId: number) => void;
   onCancel?: () => void;
 }
@@ -36,7 +37,12 @@ type BackendReportPayload = {
   description?: string;
   report_type: string;
   template_id?: number;
-  fields: Record<string, boolean>;
+  fields:
+    | Record<string, boolean>
+    | {
+        columns: Array<{ key: string; label: string }>;
+        fields?: string[];
+      };
   filters?: Record<string, { operator?: string; value?: unknown }>;
   aggregations?: Record<string, unknown>;
   sort_by?: Record<string, string>;
@@ -155,6 +161,28 @@ const normalizeTemplateSorting = (value: unknown): SortingRule[] => {
   return [];
 };
 
+const areConfigsEqual = (left: ReportConfig, right: ReportConfig): boolean =>
+  JSON.stringify(left) === JSON.stringify(right);
+
+const mergeFilters = (base: FilterRule[], extra: FilterRule[]): FilterRule[] => {
+  if (!extra.length) {
+    return base;
+  }
+
+  const seen = new Set(base.map((rule) => `${rule.field}|${rule.operator}|${JSON.stringify(rule.value)}`));
+  const merged = [...base];
+  let added = false;
+  extra.forEach((rule) => {
+    const signature = `${rule.field}|${rule.operator}|${JSON.stringify(rule.value)}`;
+    if (!seen.has(signature)) {
+      seen.add(signature);
+      merged.push(rule);
+      added = true;
+    }
+  });
+  return added ? merged : base;
+};
+
 const getErrorMessage = (error: unknown, fallback: string) => {
   if (isRecord(error) && typeof error.message === 'string') {
     return error.message;
@@ -170,6 +198,7 @@ const ENTITY_TYPES = [
   { value: 'course', label: 'entity_courses' },
   { value: 'grade', label: 'entity_grades' },
   { value: 'attendance', label: 'entity_attendance' },
+  { value: 'daily_performance', label: 'entity_daily_performance' },
 ];
 
 const OUTPUT_FORMATS = [
@@ -236,11 +265,26 @@ const ENTITY_FIELDS: Record<string, string[]> = {
     'course_code',
     'course_name',
   ],
+  daily_performance: [
+    'id',
+    'student_id',
+    'course_id',
+    'date',
+    'category',
+    'score',
+    'max_score',
+    'percentage',
+    'notes',
+    'student_name',
+    'course_code',
+    'course_name',
+  ],
 };
 
 export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   reportId,
   initialData,
+  prefillFilters,
   onSuccess,
   onCancel,
 }) => {
@@ -248,6 +292,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   const createMutation = useCreateReport();
   const updateMutation = useUpdateReport();
   const { data: reportData } = useCustomReport(reportId ?? 0);
+  const prefillAppliedRef = useRef(false);
+  const lastAppliedReportSignatureRef = useRef<string | null>(null);
+  const lastAppliedTemplateSignatureRef = useRef<string | null>(null);
+  const normalizedPrefillFilters = useMemo(() => prefillFilters ?? [], [prefillFilters]);
 
   // Generate a unique key for session storage based on reportId
   const storageKey = `report-builder-${reportId || 'new'}`;
@@ -296,7 +344,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         selected_fields: Array.isArray(templateMeta.fields)
           ? templateMeta.fields
           : (templateMeta.selected_fields || []),
-        filters: normalizeTemplateFilters(templateMeta.filters),
+        filters: mergeFilters(normalizeTemplateFilters(templateMeta.filters), normalizedPrefillFilters),
         sorting_rules: normalizeTemplateSorting(templateMeta.sort_by ?? templateMeta.sorting_rules),
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
@@ -314,7 +362,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       entity_type: 'student',
       output_format: 'pdf',
       selected_fields: [],
-      filters: [],
+      filters: normalizedPrefillFilters,
       sorting_rules: [],
       email_enabled: false,
       email_recipients: '',
@@ -331,7 +379,23 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     const fields = Array.isArray(reportFields)
       ? reportFields
       : reportFields && typeof reportFields === 'object'
-        ? Object.keys(reportFields).filter((key) => (reportFields as Record<string, boolean>)[key])
+        ? (() => {
+            const reportFieldsRecord = reportFields as Record<string, unknown>;
+            if (Array.isArray(reportFieldsRecord.columns)) {
+              return reportFieldsRecord.columns
+                .map((entry) => {
+                  if (!isRecord(entry)) {
+                    return '';
+                  }
+                  return (entry.key || entry.field || entry.name || '').toString();
+                })
+                .filter(Boolean);
+            }
+            if (Array.isArray(reportFieldsRecord.fields)) {
+              return reportFieldsRecord.fields;
+            }
+            return Object.keys(reportFieldsRecord).filter((key) => Boolean(reportFieldsRecord[key]));
+          })()
         : [];
 
     const filters = Array.isArray(reportFilters)
@@ -372,8 +436,41 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   useEffect(() => {
     // Load report data when editing
     if (reportId && reportData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setConfig(normalizeReportData(reportData));
+      const reportRecord = isRecord(reportData) ? reportData : {};
+      const updatedAt = typeof reportRecord.updated_at === 'string' ? reportRecord.updated_at : '';
+      const reportSignature = `report-${reportId}-${updatedAt}`;
+
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] Report hydration check:', {
+          reportId,
+          reportSignature,
+          lastApplied: lastAppliedReportSignatureRef.current,
+          willApply: lastAppliedReportSignatureRef.current !== reportSignature,
+        });
+      }
+
+      if (lastAppliedReportSignatureRef.current !== reportSignature) {
+        lastAppliedReportSignatureRef.current = reportSignature;
+        if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+          console.warn('[ReportBuilder] ✅ Applying report data (signature changed)');
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setConfig((prev) => {
+          const nextConfig = normalizeReportData(reportData);
+          const isEqual = areConfigsEqual(prev, nextConfig);
+          if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+            console.warn('[ReportBuilder] Config equality check:', {
+              isEqual,
+              willUpdate: !isEqual,
+            });
+          }
+          return isEqual ? prev : nextConfig;
+        });
+      } else {
+        if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+          console.warn('[ReportBuilder] ⏭️ Skipping report data (signature unchanged)');
+        }
+      }
       return;
     }
 
@@ -388,6 +485,31 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         selected_fields?: string[];
         sorting_rules?: SortingRule[];
       };
+      const templateId = typeof templateMeta.id === 'number' ? templateMeta.id : 'unknown';
+      const updatedAt = typeof templateMeta.updated_at === 'string' ? templateMeta.updated_at : '';
+      const copyFlag = templateMeta.is_copy ? 'copy' : 'base';
+      const templateSignature = `template-${templateId}-${updatedAt}-${copyFlag}`;
+
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] Template hydration check:', {
+          templateId,
+          templateSignature,
+          lastApplied: lastAppliedTemplateSignatureRef.current,
+          willApply: lastAppliedTemplateSignatureRef.current !== templateSignature,
+        });
+      }
+
+      if (lastAppliedTemplateSignatureRef.current === templateSignature) {
+        if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+          console.warn('[ReportBuilder] ⏭️ Skipping template data (signature unchanged)');
+        }
+        return;
+      }
+      lastAppliedTemplateSignatureRef.current = templateSignature;
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] ✅ Applying template data (signature changed)');
+      }
+
       const templateForLocalization: ReportTemplate | null = templateMeta.is_system
         ? {
             ...templateMeta,
@@ -408,7 +530,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         selected_fields: Array.isArray(templateMeta.fields)
           ? templateMeta.fields
           : (templateMeta.selected_fields || []),
-        filters: normalizeTemplateFilters(templateMeta.filters),
+        filters: mergeFilters(normalizeTemplateFilters(templateMeta.filters), normalizedPrefillFilters),
         sorting_rules: normalizeTemplateSorting(templateMeta.sort_by ?? templateMeta.sorting_rules),
         template_name: templateMeta.template_name || templateMeta.name,
         template_description: templateMeta.template_description || templateMeta.description || '',
@@ -416,13 +538,67 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         email_enabled: false,
         email_recipients: '',
       };
-      setConfig(normalized);
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] Template config normalized, checking equality...');
+      }
+      setConfig((prev) => {
+        const isEqual = areConfigsEqual(prev, normalized);
+        if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+          console.warn('[ReportBuilder] Config equality check:', {
+            isEqual,
+            willUpdate: !isEqual,
+          });
+        }
+        return isEqual ? prev : normalized;
+      });
     }
-  }, [reportId, reportData, normalizeReportData, initialData, t]);
+  }, [reportId, reportData, normalizeReportData, initialData, t, normalizedPrefillFilters]);
+
+  useEffect(() => {
+    if (!normalizedPrefillFilters.length || reportId || prefillAppliedRef.current) {
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] Prefill filters skipped:', {
+          hasFilters: normalizedPrefillFilters.length > 0,
+          reportId,
+          alreadyApplied: prefillAppliedRef.current,
+        });
+      }
+      return;
+    }
+
+    if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+      console.warn('[ReportBuilder] Prefill filters check:', {
+        filtersCount: normalizedPrefillFilters.length,
+        willApply: true,
+      });
+    }
+
+    prefillAppliedRef.current = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setConfig((prev) => {
+      const mergedFilters = mergeFilters(prev.filters, normalizedPrefillFilters);
+      const isIdentical = mergedFilters === prev.filters;
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] Prefill filters merge result:', {
+          prevFiltersCount: prev.filters.length,
+          mergedFiltersCount: mergedFilters.length,
+          isIdentical,
+          willUpdate: !isIdentical,
+        });
+      }
+      if (isIdentical) {
+        return prev;
+      }
+      return { ...prev, filters: mergedFilters };
+    });
+  }, [normalizedPrefillFilters, reportId]);
 
   // Re-localize template name/description on language changes
   useEffect(() => {
     if (!config.template_name) {
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] Re-localization skipped: no template name');
+      }
       return;
     }
 
@@ -435,13 +611,34 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     const templateText = getLocalizedTemplateText(templateForLocalization, t);
     const localizedDescription = templateText.description || '';
 
+    if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+      console.warn('[ReportBuilder] Re-localization check:', {
+        templateName: config.template_name,
+        currentName: config.name,
+        localizedName: templateText.name,
+        nameMatch: config.name === templateText.name,
+        currentDesc: config.description,
+        localizedDesc: localizedDescription,
+        descMatch: config.description === localizedDescription,
+      });
+    }
+
     // Only update if localized text differs from current config
     if (config.name !== templateText.name || config.description !== localizedDescription) {
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] ⚠️ Re-localizing template text (language changed)');
+      }
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setConfig((prev) => {
         // Ensure we only update name/description, preserving other config
         if (prev.name === templateText.name && prev.description === localizedDescription) {
+          if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+            console.warn('[ReportBuilder] ⏭️ Re-localization redundant (already matching inside setter)');
+          }
           return prev;
+        }
+        if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+          console.warn('[ReportBuilder] ✅ Applying re-localized text');
         }
         return {
           ...prev,
@@ -449,6 +646,10 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           description: localizedDescription,
         };
       });
+    } else {
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[ReportBuilder] ⏭️ Re-localization not needed (already matching)');
+      }
     }
   }, [config.template_name, config.template_description, config.name, config.description, t]);
 
@@ -575,16 +776,21 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         .map((recipient) => recipient.trim())
         .filter((recipient) => recipient.length > 0);
 
+      const columns = config.selected_fields.map((field) => ({
+        key: field,
+        label: getFieldLabel(field),
+      }));
+
       // Transform frontend config to backend schema format
       const backendConfig: BackendReportPayload = {
         name: config.name,
         description: config.description || undefined,
         report_type: config.entity_type,
         template_id: undefined,
-        fields: config.selected_fields.reduce((acc, field) => {
-          acc[field] = true;
-          return acc;
-        }, {} as Record<string, boolean>),
+        fields: {
+          columns,
+          fields: config.selected_fields,
+        },
         filters: filtersDict || undefined,
         aggregations: undefined,
         sort_by: sortByDict || undefined,

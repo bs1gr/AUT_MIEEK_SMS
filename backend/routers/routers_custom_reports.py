@@ -5,14 +5,12 @@ Provides endpoints for managing report templates, user-defined reports,
 report generation, and report statistics.
 """
 
-from __future__ import annotations
-
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, cast
 import logging
 import os
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Query, Request, Response
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -38,6 +36,7 @@ from backend.schemas.custom_reports import (
 )
 from backend.services.custom_report_generation_service import CustomReportGenerationService
 from backend.services.custom_report_service import CustomReportService
+from backend.rbac import require_permission
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +50,24 @@ router = APIRouter(
         500: {"description": "Internal server error"},
     },
 )
+
+
+def _normalize_language(value: Optional[str]) -> str:
+    if not value:
+        return "en"
+    normalized = value.strip().lower()
+    if normalized.startswith("el"):
+        return "el"
+    return "en"
+
+
+def _get_request_language(request: Request, override: Optional[str]) -> str:
+    if override:
+        return _normalize_language(override)
+    accept = request.headers.get("accept-language", "")
+    if "el" in accept.lower():
+        return "el"
+    return "en"
 
 
 # ============================================================================
@@ -89,6 +106,7 @@ async def create_report_template(
     response_model=APIResponse[List[Dict[str, Any]]],
     summary="List report templates",
 )
+@require_permission("reports:view")
 async def list_report_templates(
     request: Request,
     category: Optional[str] = Query(None, description="Filter by template category"),
@@ -122,6 +140,7 @@ async def list_report_templates(
     response_model=APIResponse[Dict[str, Any]],
     summary="Get report template",
 )
+@require_permission("reports:view")
 async def get_report_template(
     request: Request,
     template_id: int,
@@ -254,6 +273,7 @@ async def import_default_templates(
     response_model=APIResponse[Dict[str, Any]],
     summary="Create custom report",
 )
+@require_permission("reports:view")
 async def create_custom_report(
     request: Request,
     body: CustomReportCreate,
@@ -280,6 +300,7 @@ async def create_custom_report(
     response_model=APIResponse[List[Dict[str, Any]]],
     summary="List custom reports",
 )
+@require_permission("reports:view")
 async def list_custom_reports(
     request: Request,
     report_type: Optional[str] = Query(None, description="Filter by report type"),
@@ -313,6 +334,7 @@ async def list_custom_reports(
     response_model=APIResponse[Dict[str, Any]],
     summary="Report statistics",
 )
+@require_permission("reports:view")
 async def get_report_statistics(
     request: Request,
     db: Session = Depends(get_db),
@@ -338,6 +360,7 @@ async def get_report_statistics(
     response_model=APIResponse[Dict[str, Any]],
     summary="Get custom report",
 )
+@require_permission("reports:view")
 async def get_custom_report(
     request: Request,
     report_id: int,
@@ -370,6 +393,7 @@ async def get_custom_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Update custom report",
 )
+@require_permission("reports:view")
 async def update_custom_report(
     request: Request,
     report_id: int,
@@ -403,6 +427,7 @@ async def update_custom_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Delete custom report",
 )
+@require_permission("reports:view")
 async def delete_custom_report(
     request: Request,
     report_id: int,
@@ -443,6 +468,7 @@ async def delete_custom_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Generate report",
 )
+@require_permission("reports:generate")
 async def generate_report(
     request: Request,
     report_id: int,
@@ -462,6 +488,7 @@ async def generate_report(
             )
 
         export_format = str(body.export_format or report.export_format).lower()
+        language = _get_request_language(request, body.language)
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         # Normalize file extension to lowercase
         ext = export_format.lower() if export_format else "pdf"
@@ -491,6 +518,7 @@ async def generate_report(
             bool(body.include_charts if body.include_charts is not None else report.include_charts),
             body.email_recipients,
             email_enabled,
+            language,
         )
         response = ReportGenerationResponse(
             generated_report_id=generated_id,
@@ -513,6 +541,7 @@ async def generate_report(
     response_model=APIResponse[List[Dict[str, Any]]],
     summary="List generated reports",
 )
+@require_permission("reports:view")
 async def list_generated_reports(
     request: Request,
     report_id: int,
@@ -548,6 +577,7 @@ async def list_generated_reports(
     response_model=APIResponse[Dict[str, Any]],
     summary="Update generated report",
 )
+@require_permission("reports:view")
 async def update_generated_report(
     request: Request,
     report_id: int,
@@ -582,6 +612,7 @@ async def update_generated_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Delete a generated report",
 )
+@require_permission("reports:view")
 async def delete_generated_report(
     request: Request,
     report_id: int,
@@ -628,14 +659,17 @@ async def delete_generated_report(
 @router.get(
     "/{report_id}/generated/{generated_report_id}/download",
     summary="Download generated report file",
+    response_class=FileResponse,
+    response_model=None,
 )
+@require_permission("reports:generate")
 async def download_generated_report(
     request: Request,
     report_id: int,
     generated_report_id: int,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
-) -> FileResponse:
+) -> Response:
     """Download a generated report file."""
     try:
         service = CustomReportService(db)
@@ -717,6 +751,7 @@ async def download_generated_report(
     response_model=APIResponse[Dict[str, Any]],
     summary="Bulk generate reports",
 )
+@require_permission("reports:generate")
 async def bulk_generate_reports(
     request: Request,
     body: BulkReportGenerationRequest,
@@ -728,6 +763,7 @@ async def bulk_generate_reports(
         service = CustomReportService(db)
         generated_ids: List[int] = []
         errors: List[Dict[str, Any]] = []
+        language = _get_request_language(request, None)
 
         for report_id in body.report_ids:
             report = service.get_report(report_id, current_user.id)
@@ -757,6 +793,7 @@ async def bulk_generate_reports(
                 bool(report.include_charts),
                 None,
                 None,
+                language,
             )
 
         response = BulkReportGenerationResponse(

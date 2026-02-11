@@ -6,7 +6,9 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Star, Copy, Trash2, Search, Heart } from 'lucide-react';
-import { useReportTemplates, useDeleteTemplate, useUpdateTemplate } from '@/hooks/useCustomReports';
+import { useQueryClient } from '@tanstack/react-query';
+import { useReportTemplates, useDeleteTemplate, useUpdateTemplate, useImportDefaultTemplates } from '@/hooks/useCustomReports';
+import { reportTemplatesAPI } from '@/api/customReportsAPI';
 import type { ReportTemplate } from '@/api/customReportsAPI';
 import { getLocalizedTemplateText } from '../utils/templateLocalization';
 
@@ -16,7 +18,10 @@ interface ReportTemplateListProps {
   initialEntityType?: string;
   initialFormat?: string;
   initialQuery?: string;
+  initialTab?: string;
 }
+
+const VALID_TABS = ['standard', 'csv', 'analytics', 'my', 'shared'];
 
 
 export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
@@ -25,15 +30,30 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
   initialEntityType,
   initialFormat,
   initialQuery,
+  initialTab,
 }) => {
   const { t } = useTranslation();
-  const { data: templates, isLoading, error } = useReportTemplates();
+  const queryClient = useQueryClient();
+  const [showArchivedOnly, setShowArchivedOnly] = useState(false);
+  const { data: templates, isLoading, error } = useReportTemplates({
+    is_active: showArchivedOnly ? false : true,
+  });
   const deleteMutation = useDeleteTemplate();
   const updateMutation = useUpdateTemplate();
+  const importDefaultsMutation = useImportDefaultTemplates();
+  const [restoringArchived, setRestoringArchived] = useState(false);
   const [searchQuery, setSearchQuery] = useState(initialQuery || '');
-  const [activeTab, setActiveTab] = useState('standard');
+  const [activeTab, setActiveTab] = useState(() =>
+    initialTab && VALID_TABS.includes(initialTab) ? initialTab : 'standard'
+  );
   const [selectedEntityType, setSelectedEntityType] = useState<string | null>(initialEntityType || null);
   const [selectedFormat, setSelectedFormat] = useState<string | null>(initialFormat || null);
+
+  React.useEffect(() => {
+    if (initialTab && VALID_TABS.includes(initialTab)) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   // Auto-switch to appropriate tab when format filter is selected
   React.useEffect(() => {
@@ -63,13 +83,63 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
   const analyticsTemplates = templates?.filter((t: ReportTemplate) => t.is_system && t.category === 'analytics') || [];
   const sharedTemplates = templates?.filter((t: ReportTemplate) => !t.is_system && t.category === 'shared') || [];
   const userTemplates = templates?.filter((t: ReportTemplate) => !t.is_system && t.category !== 'shared') || [];
+  const hasAnyTemplates = (templates?.length ?? 0) > 0;
+  const importDefaultsLabel = !hasAnyTemplates ? t('importDefaults', { ns: 'customReports' }) : undefined;
+  const handleImportDefaults = !hasAnyTemplates
+    ? () => {
+        if (!importDefaultsMutation.isPending) {
+          importDefaultsMutation.mutate();
+        }
+      }
+    : undefined;
+  const handleRestoreDefaults = () => {
+    if (importDefaultsMutation.isPending) return;
+    const confirmed = window.confirm(t('restoreDefaultsConfirm', { ns: 'customReports' }));
+    if (!confirmed) return;
+    importDefaultsMutation.mutate();
+  };
+
+  const handleRestoreArchivedSystemTemplates = async () => {
+    if (restoringArchived) return;
+    const confirmed = window.confirm(t('restoreArchivedConfirm', { ns: 'customReports' }));
+    if (!confirmed) return;
+
+    setRestoringArchived(true);
+    try {
+      const archivedTemplates = await reportTemplatesAPI.getAll({ is_active: false });
+      const archivedSystemTemplates = archivedTemplates.filter((template) => template.is_system);
+      await Promise.all(
+        archivedSystemTemplates.map((template) =>
+          reportTemplatesAPI.update(template.id, { is_active: true })
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ['customReports', 'templates'] });
+      const toast = document.createElement('div');
+      toast.textContent = `✅ ${t('restoreArchivedSuccess', { ns: 'customReports', count: archivedSystemTemplates.length })}`;
+      toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    } catch (error) {
+      console.error('Failed to restore archived system templates:', error);
+      const toast = document.createElement('div');
+      toast.textContent = `❌ ${t('restoreArchivedError', { ns: 'customReports' })}`;
+      toast.style.cssText = 'position: fixed; bottom: 20px; right: 20px; background: #ef4444; color: white; padding: 16px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);';
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 4000);
+    } finally {
+      setRestoringArchived(false);
+    }
+  };
 
   const filterTemplates = (items: ReportTemplate[]) => {
     return items.filter((item) => {
       const localized = getLocalizedTemplateText(item, t);
+      const normalizedQuery = searchQuery.toLowerCase();
       const matchesSearch =
-        localized.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        localized.description.toLowerCase().includes(searchQuery.toLowerCase());
+        localized.name.toLowerCase().includes(normalizedQuery) ||
+        localized.description.toLowerCase().includes(normalizedQuery) ||
+        item.name.toLowerCase().includes(normalizedQuery) ||
+        (item.description || '').toLowerCase().includes(normalizedQuery);
       const matchesEntity = !selectedEntityType || item.report_type === selectedEntityType;
       const templateFormat = item.default_export_format?.toLowerCase();
       const matchesFormat = !selectedFormat || templateFormat === selectedFormat.toLowerCase();
@@ -77,7 +147,12 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
     });
   };
 
-  const renderTemplateGrid = (items: ReportTemplate[], emptyMessage: string, emptyActionLabel?: string, onEmptyAction?: () => void) => {
+  const renderTemplateGrid = (
+    items: ReportTemplate[],
+    emptyMessage: string,
+    emptyActionLabel?: string,
+    onEmptyAction?: () => void
+  ) => {
     const filtered = filterTemplates(items);
 
     if (filtered.length === 0) {
@@ -126,6 +201,12 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
               if (window.confirm(t('confirmDelete', { ns: 'customReports' }))) {
                 deleteMutation.mutate(template.id);
               }
+            }}
+            onArchiveToggle={() => {
+              updateMutation.mutate({
+                id: template.id,
+                updates: { is_active: template.is_active === false },
+              });
             }}
             isUserTemplate={activeTab === 'my'}
           />
@@ -177,6 +258,34 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
             <option value="excel">{t('format_excel', { ns: 'customReports' })}</option>
             <option value="csv">{t('format_csv', { ns: 'customReports' })}</option>
           </select>
+
+          <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+              checked={showArchivedOnly}
+              onChange={(event) => setShowArchivedOnly(event.target.checked)}
+            />
+            {t('showArchivedOnly', { ns: 'customReports' })}
+          </label>
+
+          <button
+            type="button"
+            onClick={handleRestoreDefaults}
+            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            {t('restoreDefaults', { ns: 'customReports' })}
+          </button>
+
+          <button
+            type="button"
+            onClick={handleRestoreArchivedSystemTemplates}
+            className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+          >
+            {restoringArchived
+              ? t('restoringArchived', { ns: 'customReports' })
+              : t('restoreArchived', { ns: 'customReports' })}
+          </button>
         </div>
       </div>
 
@@ -218,21 +327,27 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
         <TabsContent value="standard" className="space-y-4">
           {renderTemplateGrid(
             standardTemplates,
-            t('noStandardTemplates', { ns: 'customReports' })
+            t('noStandardTemplates', { ns: 'customReports' }),
+            importDefaultsLabel,
+            handleImportDefaults
           )}
         </TabsContent>
 
         <TabsContent value="csv" className="space-y-4">
           {renderTemplateGrid(
             csvTemplates,
-            t('noCsvTemplates', { ns: 'customReports' })
+            t('noCsvTemplates', { ns: 'customReports' }),
+            importDefaultsLabel,
+            handleImportDefaults
           )}
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4">
           {renderTemplateGrid(
             analyticsTemplates,
-            t('noAnalyticsTemplates', { ns: 'customReports' })
+            t('noAnalyticsTemplates', { ns: 'customReports' }),
+            importDefaultsLabel,
+            handleImportDefaults
           )}
         </TabsContent>
 
@@ -271,6 +386,7 @@ interface TemplateCardProps {
   onEdit: () => void;
   onShare: () => void;
   onDelete: () => void;
+  onArchiveToggle: () => void;
   isUserTemplate: boolean;
 }
 
@@ -280,11 +396,14 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   onEdit,
   onShare,
   onDelete,
+  onArchiveToggle,
   isUserTemplate,
 }) => {
   const { t } = useTranslation();
   const [isFavorite, setIsFavorite] = useState(false); // No is_favorite field in backend yet
   const localized = getLocalizedTemplateText(template, t);
+  const isSystemTemplate = template.is_system;
+  const isActive = template.is_active !== false;
 
   return (
     <div className="bg-white rounded-lg border hover:border-blue-500 hover:shadow-lg transition-all p-4 space-y-4">
@@ -314,6 +433,11 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
         <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
           {template.default_export_format?.toUpperCase() || 'PDF'}
         </span>
+        {!isActive && (
+          <span className="px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
+            {t('archivedBadge', { ns: 'customReports' })}
+          </span>
+        )}
         <span className="text-xs text-gray-500">
           {t('fields', { ns: 'customReports', count: Array.isArray(template.fields) ? template.fields.length : 0 })}
         </span>
@@ -362,6 +486,20 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
               <Trash2 size={16} />
             </button>
           </>
+        )}
+
+        {isSystemTemplate && (
+          <button
+            onClick={onArchiveToggle}
+            className="px-3 py-2 text-gray-700 border rounded-lg hover:bg-gray-50 transition-colors"
+            title={
+              isActive
+                ? t('archiveTemplate', { ns: 'customReports' })
+                : t('restoreTemplate', { ns: 'customReports' })
+            }
+          >
+            {isActive ? t('archive', { ns: 'customReports' }) : t('restore', { ns: 'customReports' })}
+          </button>
         )}
       </div>
     </div>

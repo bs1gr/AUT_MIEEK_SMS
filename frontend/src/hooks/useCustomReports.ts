@@ -235,8 +235,24 @@ export function useGenerateReport() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ reportId, options }: { reportId: number; options?: GenerateReportRequest }) =>
-      customReportsAPI.generate(reportId, options),
+    mutationFn: ({ reportId, options }: { reportId: number; options?: GenerateReportRequest }) => {
+      // Normalize language code (el-GR → el, en-US → en)
+      const currentLang = (options?.language ?? i18n.language).toLowerCase();
+      const normalizedLang = currentLang.startsWith('el') ? 'el' : 'en';
+
+      if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
+        console.warn('[useGenerateReport] Language normalization:', {
+          original: options?.language ?? i18n.language,
+          currentLang,
+          normalizedLang,
+        });
+      }
+
+      return customReportsAPI.generate(reportId, {
+        ...options,
+        language: normalizedLang,
+      });
+    },
     onSuccess: (data: GenerateReportResponse, variables) => {
       queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
       // Show success feedback

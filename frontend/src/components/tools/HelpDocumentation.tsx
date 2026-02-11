@@ -521,7 +521,7 @@ const HelpDocumentation = () => {
             <p className="text-sm text-gray-600 mb-3">{t('comprehensivePDF')}</p>
             <div className="space-y-2">
               <a
-                href="/docs/SMS_User_Guide_EN.pdf"
+                href="/api/v1/help/user-guide/en"
                 download="SMS_User_Guide_EN.pdf"
                 className="flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium"
               >
@@ -529,7 +529,7 @@ const HelpDocumentation = () => {
                 {t('downloadEnglishPDF')}
               </a>
               <a
-                href="/docs/SMS_User_Guide_EL.pdf"
+                href="/api/v1/help/user-guide/el"
                 download="SMS_User_Guide_EL.pdf"
                 className="flex items-center text-sm text-indigo-600 hover:text-indigo-800 font-medium"
               >

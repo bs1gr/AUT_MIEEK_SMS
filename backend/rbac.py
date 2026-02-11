@@ -6,7 +6,7 @@ Implements self-access logic for student-scoped permissions.
 """
 
 from functools import wraps
-from typing import Any, Callable, Optional, cast
+from typing import Any, Callable, Optional, cast, get_type_hints
 
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy import text
@@ -390,6 +390,12 @@ def require_permission(
                 except StopIteration:
                     pass
             return result
+
+        try:
+            wrapper.__annotations__ = get_type_hints(func, globalns=func.__globals__, localns=None)
+        except Exception:
+            # Fall back to original annotations if resolution fails
+            wrapper.__annotations__ = getattr(func, "__annotations__", {})
 
         cast(Any, wrapper).__signature__ = sig
         return wrapper

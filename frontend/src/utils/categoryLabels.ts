@@ -21,6 +21,9 @@ export function getLocalizedCategory(category: unknown, t: (key: string) => stri
     'project': 'project',
     'presentation': 'presentation',
     // Consolidate similar categories to Homework/Assignments
+    'homework/assignments': 'homework',
+    'homework assignments': 'homework',
+    'homework & assignments': 'homework',
     'homework': 'homework',
     'assignments': 'homework',
     'assignment': 'homework',

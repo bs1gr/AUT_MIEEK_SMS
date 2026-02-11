@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { gpaToPercentage, gpaToGreekScale, getGreekGradeDescription, getGreekGradeColor, getLetterGrade } from '@/utils/gradeUtils';
 import apiClient, { gradesAPI, enrollmentsAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
@@ -78,6 +79,17 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [historyDate, setHistoryDate] = useState<string>('');
   const todayStr = formatLocalDate(new Date());
   const isHistoricalMode = Boolean(historyDate && historyDate !== todayStr);
+  const summaryReportLink = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set('templateName', 'Student Performance Breakdown - Grades');
+    if (studentId) {
+      params.set('studentId', String(studentId));
+    }
+    if (courseId) {
+      params.set('courseId', String(courseId));
+    }
+    return `/operations/reports/builder?${params.toString()}`;
+  }, [studentId, courseId]);
 
   // loadFinal is declared below and memoized with useCallback. Do not define a separate
   // non-memoized loadFinal here — keep the single useCallback instance to satisfy
@@ -524,7 +536,15 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-indigo-500">
             {t('summary') || 'Summary'}
           </p>
-          <h3 className="text-lg font-semibold text-slate-900">{t('finalGradeSummary')}</h3>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-lg font-semibold text-slate-900">{t('finalGradeSummary')}</h3>
+            <Link
+              to={summaryReportLink}
+              className="inline-flex items-center rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              {t('printSummaryReport')}
+            </Link>
+          </div>
         </div>
         {!studentId || !courseId ? (
           <p className="text-sm text-gray-500">{t('selectStudentAndCourse')}</p>

@@ -59,6 +59,7 @@ export default {
   weightPlaceholder: 'Weight (multiplier)',
   refreshFinal: 'Refresh Final Grade',
   finalGradeSummary: 'Final Grade Summary',
+  printSummaryReport: 'Print/Export Report',
   final: 'Final',
   greek: 'Greek Scale',
   evaluationStructure: 'Evaluation Structure',

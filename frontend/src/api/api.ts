@@ -681,6 +681,39 @@ export const analyticsAPI = {
   }
 };
 
+// ==================== REPORTS API ====================
+
+export type StudentPerformanceReportRequest = {
+  student_id: number;
+  period: string;
+  start_date: string | null;
+  end_date: string | null;
+  course_ids?: number[];
+  include_attendance: boolean;
+  include_grades: boolean;
+  include_performance: boolean;
+  include_highlights: boolean;
+  format: string;
+  language: string;
+};
+
+export const reportsAPI = {
+  generateStudentReport: async <T>(payload: StudentPerformanceReportRequest): Promise<T> => {
+    const response = await apiClient.post('/reports/student-performance', payload, {
+      headers: { 'Accept-Language': payload.language || 'en' },
+    });
+    return unwrapResponse<T>(response.data);
+  },
+
+  downloadStudentReport: async (payload: StudentPerformanceReportRequest): Promise<Blob> => {
+    const response = await apiClient.post('/reports/student-performance/download', payload, {
+      responseType: 'blob',
+      headers: { 'Accept-Language': payload.language || 'en' },
+    });
+    return response.data as Blob;
+  },
+};
+
 // ==================== ENROLLMENTS API ====================
 
 export const enrollmentsAPI = {

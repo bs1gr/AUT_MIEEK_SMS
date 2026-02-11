@@ -12,7 +12,7 @@ import {
   Target,
 } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
-import { gpaToPercentage, formatAllGrades, getLetterGrade } from '@/utils/gradeUtils';
+import { getLetterGrade, percentageToGreekScale } from '@/utils/gradeUtils';
 import { getLocalizedCategory } from '@/utils/categoryLabels';
 import { listContainerVariants, listItemVariants } from '@/utils/animations';
 import { CourseCardSkeleton } from '@/components/ui';
@@ -23,6 +23,112 @@ import { Student, Course } from '@/types';
 
 const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api/v1';
 
+type DailyPerformanceRecord = {
+  course_id?: number;
+  category?: string;
+  score?: number;
+  max_score?: number;
+};
+
+const stripDiacritics = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+const normalizeCategory = (value?: string): string => {
+  if (!value) {
+    return '';
+  }
+  let normalized = stripDiacritics(String(value).trim().toLowerCase());
+  normalized = normalized.replace(/[._()-]+/g, ' ').replace(/\s+/g, ' ').trim();
+
+  const directMap: Record<string, string> = {
+    'class participation': 'participation',
+    participation: 'participation',
+    'συμμετοχη': 'participation',
+    behavior: 'behavior',
+    'συμπεριφορα': 'behavior',
+    effort: 'effort',
+    'προσπαθεια': 'effort',
+    skills: 'skills',
+    'δεξιοτητες': 'skills',
+    homework: 'homework',
+    assignment: 'homework',
+    assignments: 'homework',
+    'εργασια': 'homework',
+    coursework: 'homework',
+    'εργασιες': 'homework',
+    'continuous assessment': 'continuous',
+    'συνεχης αξιολογηση': 'continuous',
+    project: 'project',
+    'προτζεκτ': 'project',
+    'προγραμμα': 'project',
+    quiz: 'quiz',
+    quizzes: 'quiz',
+    'κουιζ': 'quiz',
+    'κουίζ': 'quiz',
+    test: 'quiz',
+    tests: 'quiz',
+    lab: 'lab',
+    'lab work': 'lab',
+    'εργαστηριο': 'lab',
+    'εργαστηρια': 'lab',
+    presentation: 'presentation',
+    'παρουσιαση': 'presentation',
+    midterm: 'midterm',
+    'midterm exam': 'midterm',
+    'ενδιαμεση': 'midterm',
+    'ενδιαμεση εξεταση': 'midterm',
+    final: 'final',
+    'final exam': 'final',
+    'τελικη': 'final',
+    'τελικη εξεταση': 'final',
+    exam: 'exam',
+    'εξεταση': 'exam',
+    attendance: 'attendance',
+    absences: 'attendance',
+    'παρουσιες': 'attendance',
+    'απουσιες': 'attendance',
+    'φοιτηση': 'attendance',
+  };
+
+  if (directMap[normalized]) {
+    return directMap[normalized];
+  }
+
+  const containsMap: Array<[string, string[]]> = [
+    ['participation', ['participation', 'συμμετοχ']],
+    ['behavior', ['behavior', 'συμπεριφορ']],
+    ['effort', ['effort', 'προσπαθ']],
+    ['skills', ['skills', 'δεξιοτ']],
+    ['homework', ['homework', 'assign', 'εργασ']],
+    ['continuous', ['continuous assessment', 'συνεχ', 'αξιολογησ']],
+    ['project', ['project', 'προτζεκ']],
+    ['quiz', ['quiz', 'κουιζ', 'κουίζ', 'test', 'τεστ']],
+    ['lab', ['lab', 'εργαστηρ']],
+    ['presentation', ['presentation', 'παρουσιασ']],
+    ['midterm', ['midterm', 'ενδιαμεσ']],
+    ['final', ['final', 'τελικ']],
+    ['exam', ['exam', 'εξετασ']],
+    ['attendance', ['attendance', 'απουσ', 'παρουσ', 'φοιτησ']],
+  ];
+
+  for (const [key, needles] of containsMap) {
+    if (needles.some((needle) => normalized.includes(needle))) {
+      return key;
+    }
+  }
+
+  return normalized;
+};
+
+const averageOf = (values: number[]) =>
+  values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
+
+const toPercentage = (score?: number, maxScore?: number) => {
+  if (!maxScore || maxScore <= 0 || score === undefined || score === null) {
+    return null;
+  }
+  return (score / maxScore) * 100;
+};
+
 // Extended student type with analytics data
 interface StudentWithGPA extends Student {
   overallGPA: number;
@@ -31,6 +137,9 @@ interface StudentWithGPA extends Student {
   failedCourses: number;
   attendanceRate: number;
   examAverage: number;
+  continuousScore: number;
+  participationScore: number;
+  academicScore: number;
   overallScore: number;
 }
 
@@ -159,11 +268,11 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     const students = [...topPerformers];
     switch (rankingType) {
       case 'gpa':
-        return students.sort((a, b) => b.overallGPA - a.overallGPA).slice(0, 5);
+        return students.sort((a, b) => b.continuousScore - a.continuousScore).slice(0, 5);
       case 'attendance':
-        return students.sort((a, b) => b.attendanceRate - a.attendanceRate).slice(0, 5);
+        return students.sort((a, b) => b.participationScore - a.participationScore).slice(0, 5);
       case 'exams':
-        return students.sort((a, b) => b.examAverage - a.examAverage).slice(0, 5);
+        return students.sort((a, b) => b.academicScore - a.academicScore).slice(0, 5);
       case 'overall':
         return students.sort((a, b) => b.overallScore - a.overallScore).slice(0, 5);
       default:
@@ -194,30 +303,51 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     if (!topPerformers.length) {
       return 0;
     }
-    const avgGpa =
-      topPerformers.reduce((sum: number, student) => sum + (student.overallGPA || 0), 0) /
-      topPerformers.length;
-    return (avgGpa / 4) * 100;
+    return (
+      topPerformers.reduce((sum: number, student) => sum + (student.overallScore || 0), 0) /
+      topPerformers.length
+    );
   }, [topPerformers]);
 
   const yearBuckets = useMemo(() => {
-    const buckets: Record<number, number> = {};
+    const buckets: Record<string, number> = {};
     (students || []).forEach((student) => {
+      if (student.academic_year) {
+        const label = String(student.academic_year).trim() || t('unknownYear');
+        buckets[label] = (buckets[label] || 0) + 1;
+        return;
+      }
+
       const numericYear = Number.isFinite(Number(student.study_year))
         ? Number(student.study_year)
         : 0;
-      buckets[numericYear] = (buckets[numericYear] || 0) + 1;
+
+      let label = t('unknownYear');
+      if (numericYear === 1) {
+        label = t('classA') || 'A';
+      } else if (numericYear === 2) {
+        label = t('classB') || 'B';
+      } else if (numericYear > 2) {
+        label = `${t('year')} ${numericYear}`;
+      }
+
+      buckets[label] = (buckets[label] || 0) + 1;
     });
     return buckets;
-  }, [students]);
+  }, [students, t]);
 
-  const yearEntries = useMemo(
-    () =>
-      Object.entries(yearBuckets)
-        .map(([yearKey, count]) => ({ year: Number(yearKey), count }))
-        .sort((a, b) => a.year - b.year),
-    [yearBuckets]
-  );
+  const yearEntries = useMemo(() => {
+    const entries = Object.entries(yearBuckets).map(([label, count]) => ({ label, count }));
+    const orderPriority = (label: string) => {
+      if (label === (t('classA') || 'A')) return 1;
+      if (label === (t('classB') || 'B')) return 2;
+      if (label === t('unknownYear')) return 99;
+      const match = label.match(/\b\d+\b/);
+      return match ? 10 + Number(match[0]) : 50;
+    };
+
+    return entries.sort((a, b) => orderPriority(a.label) - orderPriority(b.label));
+  }, [yearBuckets, t]);
 
   const loadEnrollmentStats = useCallback(async () => {
     if (courses.length === 0) {
@@ -275,22 +405,25 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     const BATCH_SIZE = 6; // keep concurrent requests manageable
 
     const hasPerformanceData = (student: StudentWithGPA) =>
-      (student.overallGPA ?? 0) > 0 ||
-      (student.attendanceRate ?? 0) > 0 ||
-      (student.examAverage ?? 0) > 0 ||
-      (student.overallScore ?? 0) > 0 ||
-      (student.totalCourses ?? 0) > 0 ||
-      (student.totalCredits ?? 0) > 0;
+      (student.continuousScore ?? 0) > 0 ||
+        (student.participationScore ?? 0) > 0 ||
+        (student.academicScore ?? 0) > 0 ||
+        (student.attendanceRate ?? 0) > 0 ||
+        (student.examAverage ?? 0) > 0 ||
+        (student.overallScore ?? 0) > 0 ||
+        (student.totalCourses ?? 0) > 0 ||
+        (student.totalCredits ?? 0) > 0;
 
     const fetchStudentSnapshot = async (student: Student): Promise<StudentWithGPA> => {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-        const [analyticsResponse, attendanceResponse, gradesResponse] = await Promise.all([
+        const [analyticsResponse, attendanceResponse, gradesResponse, performanceResponse] = await Promise.all([
           fetch(`${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`, { signal: controller.signal }),
           fetch(`${API_BASE_URL}/attendance?student_id=${student.id}&limit=500`, { signal: controller.signal }),
           fetch(`${API_BASE_URL}/grades?student_id=${student.id}&limit=500`, { signal: controller.signal }),
+          fetch(`${API_BASE_URL}/daily-performance/student/${student.id}`, { signal: controller.signal }),
         ]);
 
         clearTimeout(timeoutId);
@@ -298,6 +431,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
         const analyticsData = analyticsResponse.ok ? await analyticsResponse.json() : null;
         const attendanceData = attendanceResponse.ok ? await attendanceResponse.json() : null;
         const gradesData = gradesResponse.ok ? await gradesResponse.json() : null;
+        const performanceData = performanceResponse.ok ? await performanceResponse.json() : null;
 
         const failedCourses = (analyticsData?.courses || []).filter(
           (course: { letter_grade?: string; gpa?: string | number }) =>
@@ -310,21 +444,197 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           : 0;
 
         const grades = gradesData?.items || gradesData?.grades || [];
-        const examGrades = grades.filter((g: { category?: string; grade?: number; max_grade?: number }) =>
-          ['exam', 'midterm', 'final', 'εξέταση', 'ενδιάμεση', 'τελική'].includes(
-            (g.category || '').toLowerCase()
-          )
+        const dailyPerformances: DailyPerformanceRecord[] = Array.isArray(performanceData)
+          ? performanceData
+          : performanceData?.items || [];
+
+        const courseById = new Map(courses.map((course) => [course.id, course]));
+        const courseIds = new Set<number>();
+        grades.forEach((grade: { course_id?: number }) => {
+          if (grade.course_id) courseIds.add(grade.course_id);
+        });
+        attendances.forEach((attendance: { course_id?: number }) => {
+          if (attendance.course_id) courseIds.add(attendance.course_id);
+        });
+        dailyPerformances.forEach((perf) => {
+          if (perf.course_id) courseIds.add(perf.course_id);
+        });
+
+        const examKeys = new Set(['midterm', 'final', 'exam']);
+        const behaviorKeys = new Set(['behavior', 'effort', 'skills', 'continuous']);
+        const participationKeys = new Set(['participation']);
+        const attendanceKeys = new Set(['attendance']);
+        const academicKeys = new Set([
+          'homework',
+          'project',
+          'quiz',
+          'lab',
+          'presentation',
+          'midterm',
+          'final',
+          'exam',
+        ]);
+
+        const courseScores: Array<{ continuous: number; participation: number; academic: number; overall: number }> = [];
+
+        const examGrades = grades.filter((grade: { category?: string }) =>
+          examKeys.has(normalizeCategory(grade.category))
         );
-        const examAverage = examGrades.length > 0
-          ? examGrades.reduce((sum: number, g: { grade?: number; max_grade?: number }) => sum + ((g.grade ?? 0) / (g.max_grade ?? 100) * 100), 0) / examGrades.length
+        const examAverage = examGrades.length
+          ? averageOf(
+              examGrades
+                .map((grade: { grade?: number; max_grade?: number }) =>
+                  toPercentage(grade.grade, grade.max_grade)
+                )
+                .filter((value): value is number => Number.isFinite(value))
+            )
           : 0;
 
-        const overallScore = (
-          (analyticsData?.overall_gpa || 0) * 25 + // GPA weight: 25%
-          attendanceRate * 0.25 + // Attendance: 25%
-          examAverage * 0.35 + // Exams: 35%
-          ((analyticsData?.total_credits || 0) / 10) * 15 // Credits completion: 15%
-        );
+        courseIds.forEach((courseId) => {
+          const course = courseById.get(courseId);
+          if (!course || !Array.isArray(course.evaluation_rules) || course.evaluation_rules.length === 0) {
+            return;
+          }
+
+          const courseGrades = grades.filter((grade: { course_id?: number }) => grade.course_id === courseId);
+          const coursePerformances = dailyPerformances.filter((perf) => perf.course_id === courseId);
+          const courseAttendances = attendances.filter(
+            (attendance: { course_id?: number }) => attendance.course_id === courseId
+          );
+
+          const absences = courseAttendances.filter(
+            (attendance: { status?: string }) => String(attendance.status || '').toLowerCase() === 'absent'
+          ).length;
+          const absencePenalty = Number(course.absence_penalty ?? 0);
+          const attendanceScore = Math.max(0, 100 - absencePenalty * absences);
+
+          const averageFromGrades = (categoryKey: string) =>
+            averageOf(
+              courseGrades
+                .filter((grade: { category?: string }) => normalizeCategory(grade.category) === categoryKey)
+                .map((grade: { grade?: number; max_grade?: number }) =>
+                  toPercentage(grade.grade, grade.max_grade)
+                )
+                .filter((value): value is number => Number.isFinite(value))
+            );
+
+          const averageFromDaily = (categoryKey: string) =>
+            averageOf(
+              coursePerformances
+                .filter((perf) => normalizeCategory(perf.category) === categoryKey)
+                .map((perf) => toPercentage(perf.score, perf.max_score))
+                .filter((value): value is number => Number.isFinite(value))
+            );
+
+          const averageFromParticipation = (categoryKey: string) => {
+            const dailyValues = coursePerformances
+              .filter((perf) => normalizeCategory(perf.category) === categoryKey)
+              .map((perf) => toPercentage(perf.score, perf.max_score))
+              .filter((value): value is number => Number.isFinite(value));
+            const gradeValues = courseGrades
+              .filter((grade: { category?: string }) => normalizeCategory(grade.category) === categoryKey)
+              .map((grade: { grade?: number; max_grade?: number }) =>
+                toPercentage(grade.grade, grade.max_grade)
+              )
+              .filter((value): value is number => Number.isFinite(value));
+
+            if (dailyValues.length === 0 && gradeValues.length === 0) {
+              return 0;
+            }
+
+            const dailyAvg = averageOf(dailyValues);
+            const gradeAvg = averageOf(gradeValues);
+
+            if (dailyValues.length > 0 && gradeValues.length > 0) {
+              return averageOf([dailyAvg, gradeAvg]);
+            }
+
+            return dailyValues.length > 0 ? dailyAvg : gradeAvg;
+          };
+
+          let continuousSum = 0;
+          let continuousWeight = 0;
+          let participationSum = 0;
+          let participationWeight = 0;
+          let academicSum = 0;
+          let academicWeight = 0;
+          let hasAttendanceRule = false;
+
+          course.evaluation_rules.forEach((rule) => {
+            const weight = Number(rule.weight ?? 0);
+            if (!rule.category || weight <= 0) {
+              return;
+            }
+            const categoryKey = normalizeCategory(rule.category);
+
+            if (behaviorKeys.has(categoryKey)) {
+              const avg = averageOf([
+                averageFromDaily(categoryKey),
+                averageFromGrades(categoryKey),
+              ].filter((value) => value > 0));
+              if (avg > 0) {
+                continuousSum += avg * weight;
+                continuousWeight += weight;
+              }
+              return;
+            }
+
+            if (participationKeys.has(categoryKey)) {
+              const avg = averageFromParticipation(categoryKey);
+              if (avg > 0) {
+                participationSum += avg * weight;
+                participationWeight += weight;
+              }
+              return;
+            }
+
+            if (attendanceKeys.has(categoryKey)) {
+              hasAttendanceRule = true;
+              participationSum += attendanceScore * weight;
+              participationWeight += weight;
+              return;
+            }
+
+            if (academicKeys.has(categoryKey)) {
+              const avg = averageFromGrades(categoryKey);
+              if (avg > 0) {
+                academicSum += avg * weight;
+                academicWeight += weight;
+              }
+            }
+          });
+
+          const continuousScore = continuousWeight > 0 ? continuousSum / continuousWeight : 0;
+          let participationScore = participationWeight > 0 ? participationSum / participationWeight : 0;
+          if (!hasAttendanceRule && participationWeight > 0 && absencePenalty > 0 && absences > 0) {
+            participationScore = Math.max(0, participationScore - absencePenalty * absences);
+          }
+          const academicScore = academicWeight > 0 ? academicSum / academicWeight : 0;
+          const totalWeight = continuousWeight + participationWeight + academicWeight;
+          const overallScore = totalWeight > 0
+            ? (continuousScore * continuousWeight + participationScore * participationWeight + academicScore * academicWeight) / totalWeight
+            : 0;
+
+          courseScores.push({
+            continuous: continuousScore,
+            participation: participationScore,
+            academic: academicScore,
+            overall: overallScore,
+          });
+        });
+
+        const continuousScore = courseScores.length
+          ? averageOf(courseScores.map((score) => score.continuous))
+          : 0;
+        const participationScore = courseScores.length
+          ? averageOf(courseScores.map((score) => score.participation))
+          : 0;
+        const academicScore = courseScores.length
+          ? averageOf(courseScores.map((score) => score.academic))
+          : 0;
+        const overallScore = courseScores.length
+          ? averageOf(courseScores.map((score) => score.overall))
+          : 0;
 
         return {
           ...student,
@@ -334,6 +644,9 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           failedCourses,
           attendanceRate: Math.round(attendanceRate * 10) / 10,
           examAverage: Math.round(examAverage * 10) / 10,
+          continuousScore: Math.round(continuousScore * 10) / 10,
+          participationScore: Math.round(participationScore * 10) / 10,
+          academicScore: Math.round(academicScore * 10) / 10,
           overallScore: Math.round(overallScore * 10) / 10,
         };
       } catch {
@@ -345,6 +658,9 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           failedCourses: 0,
           attendanceRate: 0,
           examAverage: 0,
+          continuousScore: 0,
+          participationScore: 0,
+          academicScore: 0,
           overallScore: 0,
         };
       }
@@ -376,7 +692,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     } finally {
       setLoading(false);
     }
-  }, [students]);
+  }, [courses, students]);
 
   useEffect(() => {
     if (students.length > 0) {
@@ -561,10 +877,20 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               ) : (
                 <div className="mt-5 space-y-4">
                   {rankedStudents.map((student, index: number) => {
-                    const gpa = Number(student.overallGPA || 0);
-                    const formatted = formatAllGrades(gpa);
-                    const pct = gpaToPercentage(gpa);
-                    const letter = getLetterGrade(pct);
+                    const continuousPercent = Number.isFinite(student.continuousScore)
+                      ? student.continuousScore
+                      : 0;
+                    const participationPercent = Number.isFinite(student.participationScore)
+                      ? student.participationScore
+                      : 0;
+                    const academicPercent = Number.isFinite(student.academicScore)
+                      ? student.academicScore
+                      : 0;
+                    const overallPercent = Number.isFinite(student.overallScore)
+                      ? student.overallScore
+                      : 0;
+                    const greekAverage = percentageToGreekScale(continuousPercent);
+                    const averageLetter = getLetterGrade(continuousPercent);
                     const failedCount = student.failedCourses || 0;
 
                     // Determine primary metric based on ranking type
@@ -573,21 +899,21 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                     let secondaryInfo = '';
 
                     if (rankingType === 'gpa') {
-                      primaryValue = `${formatted.percentage}%`;
-                      primaryLabel = `GPA ${formatted.gpa}`;
-                      secondaryInfo = `${formatted.greekGrade}${t('outOf20')} ${t('bullet')} ${letter}`;
+                      primaryValue = `${continuousPercent.toFixed(1)}%`;
+                      primaryLabel = t('continuousAssessment') || t('averageScore') || 'Continuous Assessment';
+                      secondaryInfo = `${greekAverage.toFixed(1)}${t('outOf20')} ${t('bullet')} ${averageLetter}`;
                     } else if (rankingType === 'attendance') {
-                      primaryValue = `${student.attendanceRate}%`;
-                      primaryLabel = t('attendanceRate') || 'Attendance';
-                      secondaryInfo = `${student.totalCourses || 0} ${t('courses')}`;
+                      primaryValue = `${participationPercent.toFixed(1)}%`;
+                      primaryLabel = t('participationAttendance') || t('byAttendance') || 'Participation & Attendance';
+                      secondaryInfo = `${student.attendanceRate}% ${t('attendance')} ${t('bullet')} ${student.totalCourses || 0} ${t('courses')}`;
                     } else if (rankingType === 'exams') {
-                      primaryValue = `${student.examAverage}%`;
-                      primaryLabel = t('examAverage') || 'Exam Average';
-                      secondaryInfo = `GPA ${formatted.gpa} ${t('bullet')} ${letter}`;
+                      primaryValue = `${academicPercent.toFixed(1)}%`;
+                      primaryLabel = t('academicPerformance') || t('byExams') || 'Academic Performance';
+                      secondaryInfo = `${student.examAverage}% ${t('examAverage')} ${t('bullet')} ${student.totalCourses || 0} ${t('courses')}`;
                     } else {
-                      primaryValue = `${student.overallScore}`;
+                      primaryValue = `${overallPercent.toFixed(1)}%`;
                       primaryLabel = t('overallScore') || 'Overall Score';
-                      secondaryInfo = `GPA ${formatted.gpa} ${t('bullet')} ${student.attendanceRate}% ${t('attendance')}`;
+                      secondaryInfo = `${academicPercent.toFixed(1)}% ${t('byExams')} ${t('bullet')} ${participationPercent.toFixed(1)}% ${t('byAttendance')}`;
                     }
 
                     const accentPalette = [
@@ -629,7 +955,9 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                             </div>
                             {rankingType === 'gpa' && (
                               <div className="rounded-lg border border-indigo-200 bg-white px-5 py-3 text-center">
-                                <p className="text-lg font-semibold text-indigo-700">{Math.round(pct)}</p>
+                                <p className="text-lg font-semibold text-indigo-700">
+                                  {Math.round(continuousPercent)}
+                                </p>
                                 <p className="text-[10px] font-medium uppercase tracking-wide text-indigo-600">
                                   /100
                                 </p>
@@ -786,8 +1114,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               </h3>
             </div>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-              {yearEntries.map(({ year, count }, index) => {
-                const label = year === 0 ? t('unknownYear') : `${t('year')} ${year}`;
+              {yearEntries.map(({ label, count }, index) => {
                 const palette = [
                   'border-indigo-200 bg-indigo-50',
                   'border-emerald-200 bg-emerald-50',

@@ -106,8 +106,15 @@ def get_dashboard(
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
 def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
-    """Return student/course lists for analytics selectors."""
+    """Return student/course lists for analytics selectors.
+
+    OPTIMIZED: Uses database aggregations instead of loading all records into memory.
+    This prevents N+1 queries and memory exhaustion with large datasets.
+    """
     try:
+        from sqlalchemy import func
+
+        # Step 1: Load students and courses (small set, needed for responses)
         students_query = db.query(Student).order_by(Student.last_name.asc(), Student.first_name.asc())
         if hasattr(Student, "deleted_at"):
             students_query = students_query.filter(Student.deleted_at.is_(None))
@@ -118,16 +125,7 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
             courses_query = courses_query.filter(Course.deleted_at.is_(None))
         courses = courses_query.all()
 
-        enrollment_query = db.query(CourseEnrollment)
-        if hasattr(CourseEnrollment, "deleted_at"):
-            enrollment_query = enrollment_query.filter(CourseEnrollment.deleted_at.is_(None))
-        enrollments = enrollment_query.all()
-
-        grade_query = db.query(Grade)
-        if hasattr(Grade, "deleted_at"):
-            grade_query = grade_query.filter(Grade.deleted_at.is_(None))
-        grades = grade_query.all()
-
+        # Build lookup maps for joining with aggregation results
         student_by_id = {student.id: student for student in students}
         course_by_id = {course.id: course for course in courses}
 
@@ -140,6 +138,7 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
                 return f"Year {student.study_year}"
             return "Unknown Class"
 
+        # Step 2: Compute class/division counts from loaded students (small set)
         class_counts: dict[str, int] = {}
         division_counts: dict[str, int] = {}
         for student in students:
@@ -148,15 +147,55 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
             division_label = student.class_division or "Unassigned Division"
             division_counts[division_label] = division_counts.get(division_label, 0) + 1
 
-        class_grade_totals: dict[str, dict[str, float]] = {}
-        course_grade_totals: dict[int, dict[str, float]] = {}
-        division_grade_totals: dict[str, dict[str, float]] = {}
-        for grade in grades:
-            if not grade.max_grade or grade.max_grade <= 0:
-                continue
-            percentage = (grade.grade / grade.max_grade) * 100
+        # Step 3: Use database aggregation for grades (critical optimization)
+        # This prevents loading potentially tens of thousands of grade records
+        grade_filter = Grade.deleted_at.is_(None) if hasattr(Grade, "deleted_at") else True
+        valid_grade_filter = (Grade.max_grade.isnot(None)) & (Grade.max_grade > 0)
 
-            student = student_by_id.get(grade.student_id)
+        # Build percentage computation for SQL
+        grade_percentage = (Grade.grade / Grade.max_grade) * 100
+
+        # Get enrollment counts by course
+        enrollment_query = db.query(CourseEnrollment.course_id, func.count(CourseEnrollment.id).label("count"))
+        if hasattr(CourseEnrollment, "deleted_at"):
+            enrollment_query = enrollment_query.filter(CourseEnrollment.deleted_at.is_(None))
+        enrollment_counts_raw = enrollment_query.group_by(CourseEnrollment.course_id).all()
+        enrollment_counts = {cid: count for cid, count in enrollment_counts_raw}
+
+        # Get grade statistics aggregated at database level
+        grade_stats_by_course = {}
+        course_grade_query = (
+            db.query(Grade.course_id, func.count(Grade.id).label("count"), func.avg(grade_percentage).label("avg_pct"))
+            .filter(grade_filter, valid_grade_filter)
+            .group_by(Grade.course_id)
+            .all()
+        )
+
+        for course_id, count, avg_pct in course_grade_query:
+            grade_stats_by_course[course_id] = {"count": count or 0, "average": float(avg_pct or 0.0)}
+
+        # Step 4: Build aggregates for class and division
+        # Note: We need student-grade mapping which requires JOIN - do this efficiently
+        class_grade_totals: dict[str, dict[str, float]] = {}
+        division_grade_totals: dict[str, dict[str, float]] = {}
+
+        # Only join Student and Grade tables - minimal data transfer
+        student_grade_query = (
+            db.query(Student.id, Grade.grade, Grade.max_grade)
+            .join(Grade, Student.id == Grade.student_id)
+            .filter(
+                (Student.deleted_at.is_(None) if hasattr(Student, "deleted_at") else True),
+                (Grade.deleted_at.is_(None) if hasattr(Grade, "deleted_at") else True),
+                valid_grade_filter,
+            )
+            .all()
+        )
+
+        for student_id, grade_value, max_grade in student_grade_query:
+            if not max_grade or max_grade <= 0:
+                continue
+            percentage = (grade_value / max_grade) * 100
+            student = student_by_id.get(student_id)
             if student:
                 label = _class_label(student)
                 stats = class_grade_totals.setdefault(label, {"count": 0.0, "total": 0.0})
@@ -168,14 +207,7 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
                 division_stats["count"] += 1
                 division_stats["total"] += percentage
 
-            course_stats = course_grade_totals.setdefault(grade.course_id, {"count": 0.0, "total": 0.0})
-            course_stats["count"] += 1
-            course_stats["total"] += percentage
-
-        enrollment_counts: dict[int, int] = {}
-        for enrollment in enrollments:
-            enrollment_counts[enrollment.course_id] = enrollment_counts.get(enrollment.course_id, 0) + 1
-
+        # Step 5: Format results
         class_averages = []
         for label, count in class_counts.items():
             stats = class_grade_totals.get(label, {"count": 0.0, "total": 0.0})
@@ -202,15 +234,16 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
 
         course_averages = []
         for course_id, course in course_by_id.items():
-            stats = course_grade_totals.get(course_id, {"count": 0.0, "total": 0.0})
+            stats = grade_stats_by_course.get(course_id, {"count": 0, "average": 0.0})
             course_averages.append(
                 {
                     "label": course.course_name,
                     "count": enrollment_counts.get(course_id, 0),
-                    "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
+                    "average": stats["average"],
                 }
             )
         course_averages.sort(key=lambda item: item["count"], reverse=True)
+
         return {
             "students": [StudentResponse.model_validate(s) for s in students],
             "courses": [CourseResponse.model_validate(c) for c in courses],

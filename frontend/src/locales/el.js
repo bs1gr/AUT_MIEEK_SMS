@@ -7,7 +7,7 @@ export const el = {
   // ------------------------------------
   // System & General UI (Common)
   // ------------------------------------
-  systemTitle: 'MIEEK Σύστημα Διαχείρισης Σπουδαστών - AUT Automotive Engineering',
+  systemTitle: 'MIEEK Σύστημα Διαχείρισης Σπουδαστών - AUT',
   systemSubtitle: 'Ολοκληρωμένη Πλατφόρμα Ακαδημαϊκής Διαχείρισης',
 
   // Localization & Utilities

@@ -1,32 +1,7 @@
 import { useState } from 'react';
 import { useLanguage } from '../LanguageContext';
-// import { reportsAPI } from '@/api/api';  // TODO: reportsAPI not yet implemented
-
-type ReportRequest = {
-  student_id: number;
-  period: string;
-  start_date: string | null;
-  end_date: string | null;
-  course_ids?: number[];
-  include_attendance: boolean;
-  include_grades: boolean;
-  include_performance: boolean;
-  include_highlights: boolean;
-  format: string;
-  language: string;
-};
-
-type ReportApiResponse<T> = { data: T };
-
-// Placeholder for reportsAPI until reports feature is fully implemented
-const reportsAPI = {
-  generateStudentReport: async (_req: ReportRequest): Promise<ReportApiResponse<ReportData>> => {
-    throw new Error('Student report generation not yet implemented');
-  },
-  downloadStudentReport: async (_req: ReportRequest): Promise<ReportApiResponse<BlobPart>> => {
-    throw new Error('Student report download not yet implemented');
-  }
-};
+import { reportsAPI } from '@/api/api';
+import { getLocalizedCategory } from '@/utils/categoryLabels';
 
 // TypeScript interfaces for report data
 interface AttendanceSummary {
@@ -167,13 +142,13 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         course_ids: config.courseIds.length > 0 ? config.courseIds : undefined,
         include_attendance: config.includeAttendance,
         include_grades: config.includeGrades,
-        include_performance: config.includePerformance,
+        include_daily_performance: config.includePerformance,
         include_highlights: config.includeHighlights,
         format: config.format,
         language: langContext.language
       };
-      const response = await reportsAPI.generateStudentReport(reportRequest);
-      setReport(response.data);
+      const response = await reportsAPI.generateStudentReport<ReportData>(reportRequest);
+      setReport(response as ReportData);
       setCourseNotes({});
     } catch (error: unknown) {
       setError(getErrorMessage(error, t('error', { ns: 'reports' }) || 'Error generating report'));
@@ -195,17 +170,12 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         course_ids: config.courseIds.length > 0 ? config.courseIds : undefined,
         include_attendance: config.includeAttendance,
         include_grades: config.includeGrades,
-        include_performance: config.includePerformance,
+        include_daily_performance: config.includePerformance,
         include_highlights: config.includeHighlights,
         format: format,
         language: langContext.language
       };
-      const response = await reportsAPI.downloadStudentReport(reportRequest);
-
-      // Create blob from response
-      const blob = new Blob([response.data], {
-        type: format === 'pdf' ? 'application/pdf' : 'text/csv'
-      });
+      const blob = await reportsAPI.downloadStudentReport(reportRequest);
 
       // Create download link
       const url = window.URL.createObjectURL(blob);
@@ -585,7 +555,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                           <div className="space-y-1">
                             {course.performance_categories.map((perf, perfIdx) => (
                               <div key={perfIdx} className="text-sm">
-                                <span className="font-medium">{perf.category}:</span> {perf.score}/{perf.max_score}
+                                <span className="font-medium">{getLocalizedCategory(perf.category, (key) => t(key, { ns: 'grades' }))}:</span> {perf.score}/{perf.max_score}
                                 {perf.notes && <span className="text-gray-500 ml-2">({perf.notes})</span>}
                               </div>
                             ))}

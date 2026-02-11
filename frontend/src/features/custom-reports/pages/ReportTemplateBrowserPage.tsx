@@ -17,10 +17,25 @@ export const ReportTemplateBrowserPage: React.FC = () => {
   const initialEntityType = searchParams.get('report_type') || undefined;
   const initialFormat = searchParams.get('format') || undefined;
   const initialQuery = searchParams.get('query') || undefined;
+  const initialTab = searchParams.get('tab') || undefined;
+  const studentIdParam = searchParams.get('studentId');
+  const courseIdParam = searchParams.get('courseId');
+
+  const buildBuilderLink = (baseParams?: Record<string, string>) => {
+    const params = new URLSearchParams(baseParams || {});
+    if (studentIdParam && Number.isFinite(Number(studentIdParam))) {
+      params.set('studentId', studentIdParam);
+    }
+    if (courseIdParam && Number.isFinite(Number(courseIdParam))) {
+      params.set('courseId', courseIdParam);
+    }
+    const queryString = params.toString();
+    return `/operations/reports/builder${queryString ? `?${queryString}` : ''}`;
+  };
 
   const handleUseTemplate = (template: ReportTemplate) => {
     // Navigate to builder with template data pre-filled
-    navigate('/operations/reports/builder', {
+    navigate(buildBuilderLink(), {
       state: {
         templateData: {
           name: template.name,
@@ -68,11 +83,12 @@ export const ReportTemplateBrowserPage: React.FC = () => {
         <ReportTemplateList
           onUseTemplate={handleUseTemplate}
           onEditTemplate={(templateId) => {
-            navigate(`/operations/reports/builder?template=${templateId}`);
+            navigate(buildBuilderLink({ template: String(templateId) }));
           }}
           initialEntityType={initialEntityType}
           initialFormat={initialFormat}
           initialQuery={initialQuery}
+          initialTab={initialTab}
         />
       </div>
     </div>

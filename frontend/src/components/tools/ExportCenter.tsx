@@ -1,16 +1,13 @@
 import { useState, useEffect, useRef, useMemo, useCallback, type ComponentType } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
-import { Download, FileText, FileSpreadsheet, Users, Calendar, Book, TrendingUp, Award, Briefcase, BarChart3, Database, Upload, ChevronDown, ChevronUp, type LucideProps } from 'lucide-react';
+import { Download, FileText, Users, Calendar, Book, TrendingUp, Briefcase, Database, Upload, ChevronDown, ChevronUp, type LucideProps } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import { studentsAPI, coursesAPI, sessionAPI } from '../../api/api';
+import { coursesAPI, sessionAPI } from '../../api/api';
 import type { OperationsLocationState } from '@/features/operations/types';
-import type { Student as StudentType, Course as CourseType } from '@/types';
+import type { Course as CourseType } from '@/types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
-
-
-type Student = StudentType;
 
 interface ExportCenterProps {
   variant?: 'standalone' | 'embedded';
@@ -461,7 +458,6 @@ const SessionExportImport = ({ t, showToast }: SessionExportImportProps) => {
 
 const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const { t, language } = useLanguage();
-  const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<CourseType[]>([]);
   const [loading, setLoading] = useState<{ [key: string]: boolean }>({});
   const [toast, setToast] = useState<{ message: string; type: string } | null>(null);
@@ -480,8 +476,7 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const [expandedSections, setExpandedSections] = useState({
     exportCards: false,
     sessionExport: false,
-    studentReports: false,
-    courseAnalytics: false,
+    reportsHub: false,
   });
   const calendarRef = useRef<HTMLDivElement>(null);
   // Map of refs for each export card
@@ -490,6 +485,19 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const locationState = (location.state ?? {}) as OperationsLocationState;
   const { scrollTo } = locationState;
   const { hash } = location;
+  const reportShortcutParams = useMemo(() => {
+    const params = new URLSearchParams(location.search);
+    const studentId = params.get('studentId');
+    const courseId = params.get('courseId');
+    const filtered = new URLSearchParams();
+    if (studentId && Number.isFinite(Number(studentId))) {
+      filtered.set('studentId', studentId);
+    }
+    if (courseId && Number.isFinite(Number(courseId))) {
+      filtered.set('courseId', courseId);
+    }
+    return filtered;
+  }, [location.search]);
   // Scroll/focus export card if navigated with scrollTo or hash
   useEffect(() => {
     let scrollToId = scrollTo;
@@ -511,6 +519,12 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
   const printCalendar = useReactToPrint({
     contentRef: calendarRef,
   });
+  const performanceBreakdownLink = useMemo(() => {
+    const params = new URLSearchParams(reportShortcutParams);
+    params.set('templateName', 'Student Performance Breakdown - Grades');
+    const queryString = params.toString();
+    return `/operations/reports/builder${queryString ? `?${queryString}` : ''}`;
+  }, [reportShortcutParams]);
 
   const showToast = useCallback((message: string, type: string = 'info') => {
     setToast({ message, type });
@@ -519,16 +533,11 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
 
   const loadData = useCallback(async () => {
     try {
-      const [studentsData, coursesData] = await Promise.all([
-        studentsAPI.getAll(),
-        coursesAPI.getAll(0, 1000)  // Request up to 1000 courses
-      ]);
-      setStudents(Array.isArray(studentsData) ? studentsData : []);
+      const coursesData = await coursesAPI.getAll(0, 1000);
       setCourses(Array.isArray(coursesData) ? coursesData : []);
     } catch (error) {
       console.error('Failed to load data:', error);
       showToast(t('failedToLoadData'), 'error');
-      setStudents([]);
       setCourses([]);
     }
   }, [t, showToast]);
@@ -697,18 +706,6 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
       ],
     },
     {
-      id: 'attendance-analytics',
-      title: t('attendanceAnalyticsExcel'),
-      description: t('exportAttendanceAnalytics'),
-      icon: BarChart3,
-      color: 'from-slate-600 to-indigo-700',
-      formats: [
-        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/attendance/analytics/pdf', filename: 'attendance_analytics.pdf' },
-        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/attendance/analytics/excel', filename: 'attendance_analytics.xlsx' },
-        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/attendance/analytics/csv', filename: 'attendance_analytics.csv' },
-      ],
-    },
-    {
       id: 'all-grades',
       title: t('allGradesExcel'),
       description: t('exportAllGrades'),
@@ -730,30 +727,6 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
         { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/enrollments/pdf', filename: 'enrollments.pdf' },
         { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/enrollments/excel', filename: 'enrollments.xlsx' },
         { key: 'csv', label: t('exportToCSV'), endpoint: '/export/enrollments/csv', filename: 'enrollments.csv' },
-      ],
-    },
-    {
-      id: 'performance',
-      title: t('dailyPerformanceExcel'),
-      description: t('exportDailyPerformance'),
-      icon: Award,
-      color: 'from-amber-500 to-amber-700',
-      formats: [
-        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/performance/pdf', filename: 'daily_performance.pdf' },
-        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/performance/excel', filename: 'daily_performance.xlsx' },
-        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/performance/csv', filename: 'daily_performance.csv' },
-      ],
-    },
-    {
-      id: 'highlights',
-      title: t('highlightsExcel'),
-      description: t('exportHighlights'),
-      icon: Award,
-      color: 'from-pink-500 to-pink-700',
-      formats: [
-        { key: 'pdf', label: t('exportToPDF'), endpoint: '/export/highlights/pdf', filename: 'highlights.pdf' },
-        { key: 'xlsx', label: t('exportToExcel'), endpoint: '/export/highlights/excel', filename: 'highlights.xlsx' },
-        { key: 'csv', label: t('exportToCSV'), endpoint: '/export/highlights/csv', filename: 'highlights.csv' },
       ],
     },
   ];
@@ -1037,169 +1010,65 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           <div className="border-b border-slate-100 px-6 py-5">
             <button
               type="button"
-              onClick={() => setExpandedSections((prev) => ({ ...prev, studentReports: !prev.studentReports }))}
+              onClick={() => setExpandedSections((prev) => ({ ...prev, reportsHub: !prev.reportsHub }))}
               className="w-full flex items-center justify-between"
             >
-              <span className="text-lg font-semibold text-slate-900">{t('individualStudentReports')}</span>
-              {expandedSections.studentReports ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+              <span className="text-lg font-semibold text-slate-900">{t('reportsHubTitle')}</span>
+              {expandedSections.reportsHub ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
           </div>
-          {expandedSections.studentReports && (
+          {expandedSections.reportsHub && (
             <div className="px-6 py-5">
-              <p className="text-gray-600 mb-6">{t('generateComprehensive')}</p>
-
-              {/* DEBUG: Show number of students loaded */}
-              <div className="mb-2 text-xs text-gray-500">{t('loadedStudents', { count: students.length })}</div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {students.length === 0 ? (
-                  <div className="col-span-2 text-center text-gray-400 py-8">{t('noStudentsFound')}</div>
-                ) : (
-                  students.map(student => (
-                    <div key={student.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {student.first_name[0]}{student.last_name[0]}
-                          </div>
-                          <div>
-                            <p className="font-semibold text-gray-800">{student.first_name} {student.last_name}</p>
-                            <p className="text-sm text-gray-600">{student.student_id}</p>
-                          </div>
-                        </div>
-                        <div className="flex space-x-2">
-                          {/* Grades (Excel) */}
-                          <button
-                            onClick={() => handleExport(
-                              `/export/grades/excel/${student.id}`,
-                              `grades_${student.student_id}.xlsx`,
-                              `grades-${student.id}`
-                            )}
-                            disabled={loading[`grades-${student.id}`]}
-                            className="p-2 text-green-600 hover:bg-green-100 rounded-lg transition-colors disabled:opacity-50"
-                            title={t('exportGrades') + ' (Excel)'}
-                          >
-                            <FileSpreadsheet size={20} />
-                          </button>
-                          {/* Attendance (Excel) */}
-                          <button
-                            onClick={() => handleExport(
-                              `/export/attendance/excel/${student.id}`,
-                              `attendance_${student.student_id}.xlsx`,
-                              `attendance-${student.id}`
-                            )}
-                            disabled={loading[`attendance-${student.id}`]}
-                            className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors disabled:opacity-50"
-                            title={t('exportAttendance') + ' (Excel)'}
-                          >
-                            <Calendar size={20} />
-                          </button>
-                          {/* Daily Performance (Excel) */}
-                          <button
-                            onClick={() => handleExport(
-                              `/export/performance/excel/${student.id}`,
-                              `performance_${student.student_id}.xlsx`,
-                              `performance-${student.id}`
-                            )}
-                            disabled={loading[`performance-${student.id}`]}
-                            className="p-2 text-amber-600 hover:bg-amber-100 rounded-lg transition-colors disabled:opacity-50"
-                            title={t('exportPerformance') + ' (Excel)'}
-                          >
-                            <TrendingUp size={20} />
-                          </button>
-                          {/* Highlights (Excel) */}
-                          <button
-                            onClick={() => handleExport(
-                              `/export/highlights/excel/${student.id}`,
-                              `highlights_${student.student_id}.xlsx`,
-                              `highlights-${student.id}`
-                            )}
-                            disabled={loading[`highlights-${student.id}`]}
-                            className="p-2 text-pink-600 hover:bg-pink-100 rounded-lg transition-colors disabled:opacity-50"
-                            title={t('exportHighlights') + ' (Excel)'}
-                          >
-                            <Award size={20} />
-                          </button>
-                          {/* Enrollments (Excel) */}
-                          <button
-                            onClick={() => handleExport(
-                              `/export/enrollments/excel/${student.id}`,
-                              `enrollments_${student.student_id}.xlsx`,
-                              `enrollments-${student.id}`
-                            )}
-                            disabled={loading[`enrollments-${student.id}`]}
-                            className="p-2 text-cyan-600 hover:bg-cyan-100 rounded-lg transition-colors disabled:opacity-50"
-                            title={t('exportEnrollments') + ' (Excel)'}
-                          >
-                            <Briefcase size={20} />
-                          </button>
-                          {/* Full Report (PDF) */}
-                          <button
-                            onClick={() => handleExport(
-                              `/export/student-report/pdf/${student.id}`,
-                              `report_${student.student_id}.pdf`,
-                              `report-${student.id}`
-                            )}
-                            disabled={loading[`report-${student.id}`]}
-                            className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors disabled:opacity-50"
-                            title={t('exportReport') + ' (PDF)'}
-                          >
-                            <FileText size={20} />
-                          </button>
-                        </div>
-                      </div>
+              <p className="text-gray-600 mb-6">{t('reportsHubDescription')}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Link
+                  to="/operations/reports"
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded bg-indigo-100 text-indigo-600">
+                      <FileText size={18} />
                     </div>
-                  ))
-                )}
-              </div>
-            </div>
-          )}
-        </section>
-
-        <section className="rounded-3xl border border-slate-200 bg-white/90 shadow-lg backdrop-blur">
-          <div className="border-b border-slate-100 px-6 py-5">
-            <button
-              type="button"
-              onClick={() => setExpandedSections((prev) => ({ ...prev, courseAnalytics: !prev.courseAnalytics }))}
-              className="w-full flex items-center justify-between"
-            >
-              <span className="text-lg font-semibold text-slate-900">{t('courseAnalyticsReports')}</span>
-              {expandedSections.courseAnalytics ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-            </button>
-          </div>
-          {expandedSections.courseAnalytics && (
-            <div className="px-6 py-5">
-              <p className="text-gray-600 mb-6">{t('generateCourseAnalytics')}</p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {courses.map(course => (
-                  <div key={course.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
-                          {course.course_code ? course.course_code.substring(0, 2).toUpperCase() : 'CO'}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-gray-800">{course.course_code} - {course.course_name}</p>
-                          <p className="text-sm text-gray-600">{course.semester || t('na')} | {course.credits || 0} {t('credits')}</p>
-                        </div>
-                      </div>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleExport(
-                            `/export/analytics/course/${course.id}/pdf`,
-                            `course_analytics_${course.course_code}.pdf`,
-                            `course-analytics-${course.id}`
-                          )}
-                          disabled={loading[`course-analytics-${course.id}`]}
-                          className="p-2 text-indigo-600 hover:bg-indigo-100 rounded-lg transition-colors disabled:opacity-50"
-                          title={t('exportCourseAnalytics') + ' (PDF)'}
-                        >
-                          <FileText size={20} />
-                        </button>
-                      </div>
-                    </div>
+                    <h4 className="text-sm font-semibold text-slate-900">{t('openReports')}</h4>
                   </div>
-                ))}
+                  <p className="text-xs text-slate-600">{t('openReportsDesc')}</p>
+                </Link>
+                <Link
+                  to="/operations/reports/templates"
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded bg-indigo-100 text-indigo-600">
+                      <Download size={18} />
+                    </div>
+                    <h4 className="text-sm font-semibold text-slate-900">{t('browseTemplates')}</h4>
+                  </div>
+                  <p className="text-xs text-slate-600">{t('browseTemplatesDesc')}</p>
+                </Link>
+                <Link
+                  to="/operations/reports/templates?tab=analytics"
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded bg-indigo-100 text-indigo-600">
+                      <TrendingUp size={18} />
+                    </div>
+                    <h4 className="text-sm font-semibold text-slate-900">{t('browseAnalytics')}</h4>
+                  </div>
+                  <p className="text-xs text-slate-600">{t('browseAnalyticsDesc')}</p>
+                </Link>
+                <Link
+                  to={performanceBreakdownLink}
+                  className="group rounded-lg border border-slate-200 bg-white p-4 transition hover:border-indigo-300 hover:bg-indigo-50"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    <div className="flex h-9 w-9 items-center justify-center rounded bg-indigo-100 text-indigo-600">
+                      <FileText size={18} />
+                    </div>
+                    <h4 className="text-sm font-semibold text-slate-900">{t('performanceBreakdownShortcut')}</h4>
+                  </div>
+                  <p className="text-xs text-slate-600">{t('performanceBreakdownShortcutDesc')}</p>
+                </Link>
               </div>
             </div>
           )}

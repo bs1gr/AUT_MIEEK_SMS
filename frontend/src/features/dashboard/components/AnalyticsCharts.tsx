@@ -288,7 +288,11 @@ export const StatsPieChart: React.FC<StatsPieChartProps> = ({
 }) => {
   const { language } = useLanguage();
 
-  if (!data || data.length === 0) {
+  const totalValue = Array.isArray(data)
+    ? data.reduce((sum, item) => sum + (Number(item.value) || 0), 0)
+    : 0;
+
+  if (!data || data.length === 0 || totalValue <= 0) {
     return (
       <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-8">
         <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
@@ -307,8 +311,9 @@ export const StatsPieChart: React.FC<StatsPieChartProps> = ({
             cy="50%"
             labelLine={false}
             label={({ name, value, percent }) => {
-              const safePercent = typeof percent === 'number' ? percent : 0;
-              return `${name}: ${value} (${(safePercent * 100).toFixed(0)}%)`;
+              const safePercent = typeof percent === 'number' && Number.isFinite(percent) ? percent : 0;
+              const safeValue = Number.isFinite(Number(value)) ? Number(value) : 0;
+              return `${name}: ${safeValue} (${(safePercent * 100).toFixed(0)}%)`;
             }}
             outerRadius={100}
             fill="#8884d8"

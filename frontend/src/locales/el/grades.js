@@ -59,6 +59,7 @@ export default {
   weightPlaceholder: 'Βαρύτητα (πολλαπλασιαστής)',
   refreshFinal: 'Ανανέωση Τελικού Βαθμού',
   finalGradeSummary: 'Περίληψη Τελικού Βαθμού',
+  printSummaryReport: 'Εκτύπωση/Εξαγωγή Αναφοράς',
   final: 'Τελικός',
   greek: 'Ελληνική Κλίμακα',
   evaluationStructure: 'Δομή Αξιολόγησης',

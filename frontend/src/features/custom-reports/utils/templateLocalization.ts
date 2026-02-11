@@ -99,6 +99,18 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
     titleKey: 'template_top_performers_gpa',
     descKey: 'template_top_performers_gpa_desc',
   },
+  'Student Performance Breakdown - Grades': {
+    titleKey: 'template_student_performance_breakdown_grades',
+    descKey: 'template_student_performance_breakdown_grades_desc',
+  },
+  'Student Performance Audit - Attendance': {
+    titleKey: 'template_student_performance_audit_attendance',
+    descKey: 'template_student_performance_audit_attendance_desc',
+  },
+  'Student Performance Audit - Daily Performance': {
+    titleKey: 'template_student_performance_audit_daily_performance',
+    descKey: 'template_student_performance_audit_daily_performance_desc',
+  },
   'Enrollment Analytics - By Semester': {
     titleKey: 'template_enrollment_analytics',
     descKey: 'template_enrollment_analytics_desc',
@@ -106,6 +118,26 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
   'Grade Distribution Analytics': {
     titleKey: 'template_grade_distribution_analytics',
     descKey: 'template_grade_distribution_analytics_desc',
+  },
+  'Grade Analytics - Weighted Overview': {
+    titleKey: 'template_grade_analytics_weighted_overview',
+    descKey: 'template_grade_analytics_weighted_overview_desc',
+  },
+  'Student Engagement - Attendance & Grades': {
+    titleKey: 'template_student_engagement_attendance_grades',
+    descKey: 'template_student_engagement_attendance_grades_desc',
+  },
+  'Attendance Analytics - By Course': {
+    titleKey: 'template_attendance_analytics_by_course',
+    descKey: 'template_attendance_analytics_by_course_desc',
+  },
+  'Student Performance - Detailed Analytics': {
+    titleKey: 'template_student_performance_detailed_analytics',
+    descKey: 'template_student_performance_detailed_analytics_desc',
+  },
+  'Course Performance - Analytics': {
+    titleKey: 'template_course_performance_analytics',
+    descKey: 'template_course_performance_analytics_desc',
   },
 };
 
