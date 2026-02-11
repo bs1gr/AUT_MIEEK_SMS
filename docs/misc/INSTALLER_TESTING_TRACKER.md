@@ -1,12 +1,12 @@
 -
-### Scenario 2: Repair v1.17.7 → v1.17.7
+### Scenario 2: Repair $11.17.7 → $11.17.7
 **Status**: ⚠ Partial
 **Date Started**: Feb 5, 2026
 **Date Completed**: Feb 5, 2026
-**Tester Notes**: Running the installer again detected the existing v1.17.7 instance and immediately proceeded into a reinstall/repair flow. There was no explicit "Remove" option in the dialog, so uninstall could not be invoked from this path. Post-install backup directory received a new timestamped folder, but it did not include the database or `.env` copies as expected.
+**Tester Notes**: Running the installer again detected the existing $11.17.7 instance and immediately proceeded into a reinstall/repair flow. There was no explicit "Remove" option in the dialog, so uninstall could not be invoked from this path. Post-install backup directory received a new timestamped folder, but it did not include the database or `.env` copies as expected.
 
 Key Checks Completed:
-- [x] Installer detected existing v1.17.7 install
+- [x] Installer detected existing $11.17.7 install
 - [x] Repair/reinstall completed without errors
 - [x] Backup folder created with timestamped name
 - [ ] Dialog offered Modify/Repair/Remove choices (missing "Remove")
@@ -21,11 +21,11 @@ Key Checks Completed:
 **Notes**:
 - Need to confirm Inno configuration supports displaying the full Modify/Repair/Remove wizard page
 - Investigate why backup routine skipped db/.env copies during repair
-# Installer Testing Tracker - v1.17.7
+# Installer Testing Tracker - $11.17.7
 
 **Created**: February 5, 2026
 **Installer Version**: 1.17.7
-**Installer Location**: [GitHub Release v1.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7)
+**Installer Location**: [GitHub Release $11.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.7)
 **File**: `SMS_Installer_1.17.7.exe` (≈7.95 MB, Feb 5 rebuild)
 **Status**: ⏳ READY FOR TESTING
 
@@ -35,7 +35,7 @@ Key Checks Completed:
 
 ### Download Installer
 
-1. Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7
+1. Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.7
 2. Download: `SMS_Installer_1.17.7.exe` (6.46 MB)
 3. Verify file size matches: 6.46 MB
 4. Save to a known location (e.g., `C:\Downloads\`)
@@ -57,13 +57,13 @@ Key Checks Completed:
 | # | Scenario | Status | Date | Duration | Notes | Issues Found |
 |---|----------|--------|------|----------|-------|--------------|
 | 1 | **Fresh Install** | ⚠ Partial | Feb 5, 2026 | ≈20m | Welcome screen stuck to Greek locale; rest OK | Issue #3 |
-| 3 | **Upgrade v1.17.6 → v1.17.7** | ⬜ Not Started | - | - | In-place upgrade test | - |
+| 3 | **Upgrade $11.17.7 → $11.17.7** | ⬜ Not Started | - | - | In-place upgrade test | - |
 
 ### Priority 2: Edge Cases (Execute After Priority 1)
 
 | # | Scenario | Status | Date | Duration | Notes | Issues Found |
 |---|----------|--------|------|----------|-------|--------------|
-| 2 | **Repair v1.17.7** | ⚠ Partial | Feb 5, 2026 | ≈15m | Repair succeeded but no "Remove" option and backup missing .env/db files | Issue #4 |
+| 2 | **Repair $11.17.7** | ⚠ Partial | Feb 5, 2026 | ≈15m | Repair succeeded but no "Remove" option and backup missing .env/db files | Issue #4 |
 | 4 | **Docker Running Upgrade** | ⬜ Not Started | - | - | Graceful container handling | - |
 | 5 | **Docker Stopped Upgrade** | ⬜ Not Started | - | - | Standard upgrade flow | - |
 
@@ -157,7 +157,7 @@ When you find an issue, copy this template and fill it in:
 - **Status**: 🟡 Fix implemented (Feb 5, 2026) — `ShowLanguageDialog` is now forced to `yes`, so the installer always prompts for the preferred language regardless of OS locale. Pending validation during the next Scenario 1 run.
 
 #### Issue #4: Repair flow missing Remove option and backup contents
-- **Scenario**: 2 (Repair v1.17.7)
+- **Scenario**: 2 (Repair $11.17.7)
 - **Observed**: Re-running the installer detected the existing version and immediately offered a repair path without presenting the expected Modify/Repair/Remove choice. The generated backup folder contained only subset files (no database or `.env` copies).
 - **Expected**: Inno Setup maintenance page should show Modify/Repair/Remove (or equivalent) and the backup routine should include database plus `.env` files as documented.
 - **Severity**: Medium (repair/uninstall UX + potential data loss if backups incomplete)
@@ -209,7 +209,7 @@ Key Checks Completed:
 
 ---
 
-### Scenario 3: Upgrade v1.17.6 → v1.17.7
+### Scenario 3: Upgrade $11.17.7 → $11.17.7
 **Status**: ⬜ Not Started
 **Date Started**: -
 **Date Completed**: -
@@ -324,7 +324,7 @@ Key Checks Completed:
 
 **To begin testing right now**:
 
-1. **Download installer**: GitHub Release v1.17.7
+1. **Download installer**: GitHub Release $11.17.7
 2. **Open testing guide**: `installer/INSTALLER_TESTING_GUIDE.md`
 3. **Start with Scenario 1**: Fresh Install (10-15 min)
 4. **Update this tracker**: Mark status, duration, notes

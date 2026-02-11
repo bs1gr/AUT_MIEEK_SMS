@@ -28,7 +28,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.7] - 2026-02-04
 
 ### ⚠️ BREAKING CHANGES
-- None - fully backward compatible with v1.17.6
+- None - fully backward compatible with $11.17.7
 
 ### Features
 - **installer**: Critical installer fixes for Windows deployment
@@ -66,7 +66,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.5] - 2026-01-29
 
 ### ⚠️ BREAKING CHANGES
-- None - fully backward compatible with v1.17.6
+- None - fully backward compatible with $11.17.7
 
 ### Features
 - **theme**: MIEEK Dark theme visual refinements with improved input contrast
