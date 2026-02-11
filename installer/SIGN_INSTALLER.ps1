@@ -99,8 +99,11 @@ if ($UseStore -or $Thumbprint -or $SubjectMatch) {
             $eku = $c.EnhancedKeyUsageList
             if ($eku) {
                 $ekuNames = @($eku | ForEach-Object { $_.FriendlyName })
-                $ekuOids = @($eku | ForEach-Object { $_.ObjectId.Value })
-                if ($ekuNames -contains 'Code Signing' -or $ekuOids -contains '1.3.6.1.5.5.7.3.3') {
+                $ekuOids = @(
+                    $eku | ForEach-Object { $_.ObjectId.Value }
+                    $eku | ForEach-Object { $_.ObjectId.ToString() }
+                ) | Where-Object { $_ }
+                if ($ekuNames -contains 'Code Signing' -or $ekuNames -contains 'Υπογραφή κώδικα' -or $ekuOids -contains '1.3.6.1.5.5.7.3.3') {
                     $codeSigning += $c
                     $added = $true
                 }
