@@ -94,9 +94,23 @@ if ($UseStore -or $Thumbprint -or $SubjectMatch) {
     # Filter to code-signing capable certs when EKU is present
     $codeSigning = @()
     foreach ($c in $storeCerts) {
+        $added = $false
         try {
-            if ($c.EnhancedKeyUsageList.FriendlyName -contains 'Code Signing') { $codeSigning += $c }
-        } catch { $codeSigning += $c } # Some certs may not expose EKU via this property
+            $eku = $c.EnhancedKeyUsageList
+            if ($eku) {
+                $ekuNames = @($eku | ForEach-Object { $_.FriendlyName })
+                $ekuOids = @($eku | ForEach-Object { $_.ObjectId.Value })
+                if ($ekuNames -contains 'Code Signing' -or $ekuOids -contains '1.3.6.1.5.5.7.3.3') {
+                    $codeSigning += $c
+                    $added = $true
+                }
+            }
+        } catch {
+            # Some certs may not expose EKU via this property
+            $codeSigning += $c
+            $added = $true
+        }
+        if (-not $added) { continue }
     }
 
     $selected = $null
