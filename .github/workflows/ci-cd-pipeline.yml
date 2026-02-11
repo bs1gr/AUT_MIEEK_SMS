@@ -834,14 +834,14 @@ jobs:
               Write-Host "⚠️  Docker is not available or not running. Skipping port cleanup." -ForegroundColor Yellow
               exit 0
             }
-            
+
             # Get containers on port 8080
             $portContainers = docker ps --filter "publish=8080" --format "{{.ID}}" 2>&1
             if ($LASTEXITCODE -ne 0) {
               Write-Host "⚠️  Could not query Docker containers. Skipping port cleanup." -ForegroundColor Yellow
               exit 0
             }
-            
+
             if ($portContainers -and $portContainers.Count -gt 0) {
               Write-Warning "Port 8080 is in use. Stopping $($portContainers.Count) container(s)..."
               foreach ($id in $portContainers) {
