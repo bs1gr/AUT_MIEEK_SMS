@@ -826,15 +826,36 @@ jobs:
       - name: Free port 8080 if occupied
         shell: pwsh
         run: |
-          $portContainers = docker ps --filter "publish=8080" --format "{{.ID}}\t{{.Names}}\t{{.Ports}}" 2>$null
-          if ($portContainers) {
-            Write-Warning "Port 8080 is in use. Stopping containers bound to 8080:"
-            Write-Host $portContainers
-            $ids = ($portContainers -split "`n" | ForEach-Object { ($_ -split "`t")[0] }) | Where-Object { $_ }
-            foreach ($id in $ids) {
-              docker stop $id 2>$null | Out-Null
-              docker rm $id 2>$null | Out-Null
+          Write-Host "🔍 Checking for containers on port 8080..." -ForegroundColor Cyan
+          try {
+            # Check if docker is available
+            $dockerTest = docker version 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "⚠️  Docker is not available or not running. Skipping port cleanup." -ForegroundColor Yellow
+              exit 0
             }
+            
+            # Get containers on port 8080
+            $portContainers = docker ps --filter "publish=8080" --format "{{.ID}}" 2>&1
+            if ($LASTEXITCODE -ne 0) {
+              Write-Host "⚠️  Could not query Docker containers. Skipping port cleanup." -ForegroundColor Yellow
+              exit 0
+            }
+            
+            if ($portContainers -and $portContainers.Count -gt 0) {
+              Write-Warning "Port 8080 is in use. Stopping $($portContainers.Count) container(s)..."
+              foreach ($id in $portContainers) {
+                Write-Host "  Stopping container: $id"
+                docker stop $id 2>&1 | Out-Null
+                docker rm $id 2>&1 | Out-Null
+              }
+              Write-Host "✅ Port cleanup completed" -ForegroundColor Green
+            } else {
+              Write-Host "✅ Port 8080 is free" -ForegroundColor Green
+            }
+          } catch {
+            Write-Host "⚠️  Error during port cleanup (non-fatal): $_" -ForegroundColor Yellow
+            exit 0
           }
 
       - name: Deploy to staging server
