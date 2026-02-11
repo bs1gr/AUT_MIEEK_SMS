@@ -918,7 +918,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     environment:
       name: production
-      url: https://sms.example.com
+      url: ${{ vars.PROD_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST || 'sms.example.com') }}
+    env:
+      PROD_URL: ${{ vars.PROD_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST || 'sms.example.com') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -961,17 +963,22 @@ jobs:
       - name: Run post-deployment validation
         run: |
           echo "🏥 Running production health checks..."
-          PROD_URL="https://sms.example.com"
+          PROD_URL="${PROD_URL}"
           MAX_ATTEMPTS=30
           ATTEMPT=0
+
+          check_health() {
+            local url="$1"
+            curl -f -s "${url}" | grep -q '"status"'
+          }
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "Health check attempt $ATTEMPT/$MAX_ATTEMPTS..."
 
-            if curl -f -s "${PROD_URL}/health" | grep -q '"status"'; then
+            if check_health "${PROD_URL}/health" || check_health "${PROD_URL}/api/v1/health"; then
               echo "✅ Production health check passed"
-              curl -s "${PROD_URL}/health" | jq .
+              curl -s "${PROD_URL}/health" | jq . || curl -s "${PROD_URL}/api/v1/health" | jq .
               exit 0
             fi
             sleep 10
@@ -1064,19 +1071,25 @@ jobs:
     runs-on: ubuntu-latest
     needs: [deploy-production]
     if: startsWith(github.ref, 'refs/tags/v')
+    env:
+      PROD_URL: ${{ vars.PROD_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST || 'sms.example.com') }}
     steps:
       - name: Monitor application health
         run: |
           echo "📊 Monitoring application health for 5 minutes..."
-          PROD_URL="https://sms.example.com"
           HEALTH_CHECKS=0
           HEALTH_FAILURES=0
+
+          check_health() {
+            local url="$1"
+            curl -f -s "${url}" | grep -q '"status"'
+          }
 
           for i in {1..10}; do
             echo "Health check $i/10 at $(date)..."
             HEALTH_CHECKS=$((HEALTH_CHECKS + 1))
 
-            if curl -f -s "${PROD_URL}/health" | grep -q '"status"'; then
+            if check_health "${PROD_URL}/health" || check_health "${PROD_URL}/api/v1/health"; then
               echo "✅ Health check passed"
             else
               echo "⚠️  Health check failed"
@@ -1099,8 +1112,6 @@ jobs:
       - name: Check application metrics
         run: |
           echo "📈 Checking application metrics..."
-          PROD_URL="https://sms.example.com"
-
           # Check metrics endpoint if available
           if curl -f -s "${PROD_URL}/metrics" > /dev/null 2>&1; then
             echo "✅ Metrics endpoint responsive"
