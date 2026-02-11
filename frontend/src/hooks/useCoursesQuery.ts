@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { coursesAPI } from '@/api/api';
 import { useCoursesStore } from '@/stores';
@@ -16,7 +16,10 @@ export const courseKeys = {
 };
 
 // Fetch all courses
-export function useCourses(filters?: { search?: string; active?: boolean; semester?: string }) {
+export function useCourses(
+  filters?: { search?: string; active?: boolean; semester?: string },
+  queryOptions?: Partial<UseQueryOptions<Course[]>>
+) {
   const { t } = useTranslation();
   const setCourses = useCoursesStore((state) => state.setCourses);
   const setLoading = useCoursesStore((state) => state.setLoading);
@@ -60,6 +63,7 @@ export function useCourses(filters?: { search?: string; active?: boolean; semest
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    ...queryOptions,
   });
 }
 

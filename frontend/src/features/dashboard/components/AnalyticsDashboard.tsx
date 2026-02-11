@@ -60,6 +60,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { formatDate } = useDateTimeFormatter();
+  const MAX_ANALYTICS_PAGE_SIZE = 1000;
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
@@ -139,23 +140,41 @@ export const AnalyticsDashboard: React.FC = () => {
         let gradeItems: Grade[] = [];
         let attendanceItems: Attendance[] = [];
 
+        const fetchAllPages = async <T,>(
+          fetchPage: (skip: number, limit: number) => Promise<{ items?: T[]; total?: number }>
+        ): Promise<T[]> => {
+          const results: T[] = [];
+          let skip = 0;
+          let total: number | undefined;
+          while (total === undefined || results.length < total) {
+            const page = await fetchPage(skip, MAX_ANALYTICS_PAGE_SIZE);
+            const items = page.items ?? [];
+            results.push(...items);
+            if (typeof page.total === 'number') {
+              total = page.total;
+            }
+            if (items.length < MAX_ANALYTICS_PAGE_SIZE) {
+              break;
+            }
+            skip += MAX_ANALYTICS_PAGE_SIZE;
+          }
+          return results;
+        };
+
         try {
-          const enrollmentsRes = await enrollmentsAPI.getAll(0, 5000);
-          enrollmentItems = enrollmentsRes.items ?? [];
+          enrollmentItems = await fetchAllPages((skip, limit) => enrollmentsAPI.getAll(skip, limit));
         } catch (err) {
           console.warn('Analytics enrollments lookup failed:', err);
         }
 
         try {
-          const gradesRes = await gradesAPI.getAll(0, 5000);
-          gradeItems = gradesRes.items ?? [];
+          gradeItems = await fetchAllPages((skip, limit) => gradesAPI.getAll(skip, limit));
         } catch (err) {
           console.warn('Analytics grades lookup failed:', err);
         }
 
         try {
-          const attendanceRes = await attendanceAPI.getAll(0, 5000);
-          attendanceItems = attendanceRes.items ?? [];
+          attendanceItems = await fetchAllPages((skip, limit) => attendanceAPI.getAll(skip, limit));
         } catch (err) {
           console.warn('Analytics attendance lookup failed:', err);
         }

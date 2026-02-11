@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { studentsAPI } from '@/api/api';
 import { useStudentsStore } from '@/stores';
@@ -15,7 +15,10 @@ export const studentKeys = {
 };
 
 // Fetch all students
-export function useStudents(filters?: { search?: string; active?: boolean }) {
+export function useStudents(
+  filters?: { search?: string; active?: boolean },
+  queryOptions?: Partial<UseQueryOptions<Student[]>>
+) {
   const { t } = useTranslation();
   const setStudents = useStudentsStore((state) => state.setStudents);
   const setLoading = useStudentsStore((state) => state.setLoading);
@@ -58,6 +61,7 @@ export function useStudents(filters?: { search?: string; active?: boolean }) {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    ...queryOptions,
   });
 }
 
