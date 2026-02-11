@@ -53,7 +53,7 @@ if (-not $CertPath) {
 # Find installer if not specified
 if (-not $InstallerPath) {
     $DistDir = Join-Path $ProjectRoot "dist"
-    $Installers = Get-ChildItem -Path $DistDir -Filter "SMS_Installer_*.exe" | Sort-Object LastWriteTime -Descending
+    $Installers = @(Get-ChildItem -Path $DistDir -Filter "SMS_Installer_*.exe" | Sort-Object LastWriteTime -Descending)
     if ($Installers.Count -eq 0) {
         Write-Error "No installer found in $DistDir. Build the installer first."
         exit 1
