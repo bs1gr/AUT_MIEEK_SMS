@@ -20,10 +20,14 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-DEFAULT_TYPES = "issues,issue_comments,prs,review_comments,discussions,discussion_comments"
+DEFAULT_TYPES = (
+    "issues,issue_comments,prs,review_comments,discussions,discussion_comments"
+)
 
 
-def _request_json(url: str, token: str | None, accept: str = "application/vnd.github+json") -> tuple[list[dict], str | None]:
+def _request_json(
+    url: str, token: str | None, accept: str = "application/vnd.github+json"
+) -> tuple[list[dict], str | None]:
     headers = {"Accept": accept, "User-Agent": "sms-feedback-exporter"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -53,7 +57,7 @@ def _parse_next_link(link_header: str | None) -> str | None:
         return None
     parts = [part.strip() for part in link_header.split(",")]
     for part in parts:
-        if "rel=\"next\"" in part:
+        if 'rel="next"' in part:
             url_part = part.split(";", 1)[0].strip()
             return url_part.strip("<>")
     return None
@@ -131,14 +135,23 @@ def _discussion_to_item(discussion: dict, repo: str) -> dict:
         "author": (discussion.get("user") or {}).get("login"),
         "created_at": discussion.get("created_at"),
         "repository": repo,
-        "source_id": str(discussion.get("id")) if discussion.get("id") is not None else None,
-        "metadata": {"number": discussion.get("number"), "category": (discussion.get("category") or {}).get("name")},
+        "source_id": str(discussion.get("id"))
+        if discussion.get("id") is not None
+        else None,
+        "metadata": {
+            "number": discussion.get("number"),
+            "category": (discussion.get("category") or {}).get("name"),
+        },
     }
 
 
 def _discussion_comment_to_item(comment: dict, repo: str) -> dict:
     discussion_num = _parse_number_from_url(comment.get("discussion_url"))
-    title = f"Discussion Comment #{discussion_num}" if discussion_num else "Discussion Comment"
+    title = (
+        f"Discussion Comment #{discussion_num}"
+        if discussion_num
+        else "Discussion Comment"
+    )
     return {
         "kind": "discussion_comment",
         "title": title,
@@ -156,7 +169,9 @@ def _build_url(base: str, params: dict) -> str:
     return f"{base}?{urlencode(params)}"
 
 
-def export_feedback(repo: str, types: set[str], token: str | None, limit: int) -> list[dict]:
+def export_feedback(
+    repo: str, types: set[str], token: str | None, limit: int
+) -> list[dict]:
     owner, name = repo.split("/", 1)
     api_base = "https://api.github.com"
     items: list[dict] = []
@@ -215,16 +230,24 @@ def export_feedback(repo: str, types: set[str], token: str | None, limit: int) -
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Export GitHub items into feedback import JSON.")
-    parser.add_argument("--repo", required=True, help="GitHub repository in owner/name format")
+    parser = argparse.ArgumentParser(
+        description="Export GitHub items into feedback import JSON."
+    )
+    parser.add_argument(
+        "--repo", required=True, help="GitHub repository in owner/name format"
+    )
     parser.add_argument(
         "--types",
         default=DEFAULT_TYPES,
         help=f"Comma-separated types (default: {DEFAULT_TYPES})",
     )
-    parser.add_argument("--limit", type=int, default=50, help="Items per type (per page) to fetch")
+    parser.add_argument(
+        "--limit", type=int, default=50, help="Items per type (per page) to fetch"
+    )
     parser.add_argument("--output", help="Optional output file path")
-    parser.add_argument("--token", help="Optional GitHub token (otherwise uses GITHUB_TOKEN env)")
+    parser.add_argument(
+        "--token", help="Optional GitHub token (otherwise uses GITHUB_TOKEN env)"
+    )
 
     args = parser.parse_args()
     token = args.token or os.getenv("GITHUB_TOKEN")

@@ -84,10 +84,10 @@ async def get_user_guide(language: str = "en"):
         doc = SimpleDocTemplate(
             pdf_buffer,
             pagesize=letter,
-            rightMargin=0.75*inch,
-            leftMargin=0.75*inch,
-            topMargin=0.75*inch,
-            bottomMargin=0.75*inch,
+            rightMargin=0.75 * inch,
+            leftMargin=0.75 * inch,
+            topMargin=0.75 * inch,
+            bottomMargin=0.75 * inch,
         )
 
         styles = getSampleStyleSheet()
@@ -97,28 +97,28 @@ async def get_user_guide(language: str = "en"):
             style.fontName = font_normal
 
         title_style = ParagraphStyle(
-            'CustomTitle',
-            parent=styles['Heading1'],
+            "CustomTitle",
+            parent=styles["Heading1"],
             fontName=font_normal,
             fontSize=24,
-            textColor='#4f46e5',
+            textColor="#4f46e5",
             spaceAfter=30,
             alignment=1,  # Center alignment
         )
 
         heading_style = ParagraphStyle(
-            'CustomHeading',
-            parent=styles['Heading2'],
+            "CustomHeading",
+            parent=styles["Heading2"],
             fontName=font_normal,
             fontSize=14,
-            textColor='#4f46e5',
+            textColor="#4f46e5",
             spaceAfter=12,
             spaceBefore=12,
         )
 
         body_style = ParagraphStyle(
-            'CustomBody',
-            parent=styles['Normal'],
+            "CustomBody",
+            parent=styles["Normal"],
             fontName=font_normal,
             fontSize=11,
             leading=14,
@@ -134,39 +134,45 @@ async def get_user_guide(language: str = "en"):
 
             # Quick Start
             story.append(Paragraph("Quick Start (3 Steps)", heading_style))
-            story.append(Paragraph(
-                "1. <b>Create Students:</b> Add student names, IDs, and email addresses<br/>"
-                "2. <b>Add Courses:</b> Set up courses and grading rules<br/>"
-                "3. <b>Record Data:</b> Track attendance, grades, and performance",
-                body_style
-            ))
+            story.append(
+                Paragraph(
+                    "1. <b>Create Students:</b> Add student names, IDs, and email addresses<br/>"
+                    "2. <b>Add Courses:</b> Set up courses and grading rules<br/>"
+                    "3. <b>Record Data:</b> Track attendance, grades, and performance",
+                    body_style,
+                )
+            )
             story.append(Spacer(1, 12))
 
             # Features
             story.append(Paragraph("Key Features", heading_style))
-            story.append(Paragraph(
-                "✓ Student &amp; Course Management<br/>"
-                "✓ Attendance Tracking<br/>"
-                "✓ Grades &amp; Performance Analysis<br/>"
-                "✓ Custom Reports &amp; Exports<br/>"
-                "✓ Multi-Language Support (EN/EL)<br/>"
-                "✓ Auto-Save &amp; Data Backup<br/>"
-                "✓ Real-Time Analytics Dashboard",
-                body_style
-            ))
+            story.append(
+                Paragraph(
+                    "✓ Student &amp; Course Management<br/>"
+                    "✓ Attendance Tracking<br/>"
+                    "✓ Grades &amp; Performance Analysis<br/>"
+                    "✓ Custom Reports &amp; Exports<br/>"
+                    "✓ Multi-Language Support (EN/EL)<br/>"
+                    "✓ Auto-Save &amp; Data Backup<br/>"
+                    "✓ Real-Time Analytics Dashboard",
+                    body_style,
+                )
+            )
             story.append(Spacer(1, 12))
 
             # Help System
             story.append(Paragraph("Getting Help", heading_style))
-            story.append(Paragraph(
-                "Need more information? Access the built-in help system by clicking the "
-                "'Help' button in the application. You'll find:<br/>"
-                "• Detailed feature explanations<br/>"
-                "• Step-by-step how-to guides<br/>"
-                "• Video tutorials (coming soon)<br/>"
-                "• Direct support links",
-                body_style
-            ))
+            story.append(
+                Paragraph(
+                    "Need more information? Access the built-in help system by clicking the "
+                    "'Help' button in the application. You'll find:<br/>"
+                    "• Detailed feature explanations<br/>"
+                    "• Step-by-step how-to guides<br/>"
+                    "• Video tutorials (coming soon)<br/>"
+                    "• Direct support links",
+                    body_style,
+                )
+            )
 
         else:  # Greek
             story.append(Paragraph("Σύστημα Διαχείρισης Φοιτητών", title_style))
@@ -175,39 +181,45 @@ async def get_user_guide(language: str = "en"):
 
             # Quick Start
             story.append(Paragraph("Γρήγορη Έναρξη (3 Βήματα)", heading_style))
-            story.append(Paragraph(
-                "1. <b>Δημιουργία Φοιτητών:</b> Προσθέστε ονόματα, ΑΜ και email φοιτητών<br/>"
-                "2. <b>Προσθήκη Μαθημάτων:</b> Ορίστε μαθήματα και κανόνες αξιολόγησης<br/>"
-                "3. <b>Καταγραφή Δεδομένων:</b> Παρακολουθήστε παρουσία, βαθμούς και απόδοση",
-                body_style
-            ))
+            story.append(
+                Paragraph(
+                    "1. <b>Δημιουργία Φοιτητών:</b> Προσθέστε ονόματα, ΑΜ και email φοιτητών<br/>"
+                    "2. <b>Προσθήκη Μαθημάτων:</b> Ορίστε μαθήματα και κανόνες αξιολόγησης<br/>"
+                    "3. <b>Καταγραφή Δεδομένων:</b> Παρακολουθήστε παρουσία, βαθμούς και απόδοση",
+                    body_style,
+                )
+            )
             story.append(Spacer(1, 12))
 
             # Features
             story.append(Paragraph("Κύρια Χαρακτηριστικά", heading_style))
-            story.append(Paragraph(
-                "✓ Διαχείριση Φοιτητών &amp; Μαθημάτων<br/>"
-                "✓ Παρακολούθηση Παρουσίας<br/>"
-                "✓ Ανάλυση Βαθμών &amp; Απόδοσης<br/>"
-                "✓ Προσαρμοσμένες Αναφορές &amp; Εξαγωγές<br/>"
-                "✓ Πολύγλωσση Υποστήριξη (EN/EL)<br/>"
-                "✓ Αυτόματη Αποθήκευση &amp; Αντίγραφο Ασφαλείας<br/>"
-                "✓ Άμεσος Πίνακας Ελέγχου Ανάλυσης",
-                body_style
-            ))
+            story.append(
+                Paragraph(
+                    "✓ Διαχείριση Φοιτητών &amp; Μαθημάτων<br/>"
+                    "✓ Παρακολούθηση Παρουσίας<br/>"
+                    "✓ Ανάλυση Βαθμών &amp; Απόδοσης<br/>"
+                    "✓ Προσαρμοσμένες Αναφορές &amp; Εξαγωγές<br/>"
+                    "✓ Πολύγλωσση Υποστήριξη (EN/EL)<br/>"
+                    "✓ Αυτόματη Αποθήκευση &amp; Αντίγραφο Ασφαλείας<br/>"
+                    "✓ Άμεσος Πίνακας Ελέγχου Ανάλυσης",
+                    body_style,
+                )
+            )
             story.append(Spacer(1, 12))
 
             # Help System
             story.append(Paragraph("Λήψη Βοήθειας", heading_style))
-            story.append(Paragraph(
-                "Χρειάζεστε περισσότερες πληροφορίες; Προσπελάστε το ενσωματωμένο σύστημα "
-                "βοήθειας κάνοντας κλικ στο κουμπί 'Βοήθεια' στην εφαρμογή. Θα βρείτε:<br/>"
-                "• Λεπτομερείς εξηγήσεις χαρακτηριστικών<br/>"
-                "• Βήμα προς βήμα οδηγούς<br/>"
-                "• Βίντεο εκπαίδευσης (σύντομα)<br/>"
-                "• Άμεσα links υποστήριξης",
-                body_style
-            ))
+            story.append(
+                Paragraph(
+                    "Χρειάζεστε περισσότερες πληροφορίες; Προσπελάστε το ενσωματωμένο σύστημα "
+                    "βοήθειας κάνοντας κλικ στο κουμπί 'Βοήθεια' στην εφαρμογή. Θα βρείτε:<br/>"
+                    "• Λεπτομερείς εξηγήσεις χαρακτηριστικών<br/>"
+                    "• Βήμα προς βήμα οδηγούς<br/>"
+                    "• Βίντεο εκπαίδευσης (σύντομα)<br/>"
+                    "• Άμεσα links υποστήριξης",
+                    body_style,
+                )
+            )
 
         # Build PDF
         doc.build(story)
@@ -218,13 +230,10 @@ async def get_user_guide(language: str = "en"):
         return StreamingResponse(
             iter([pdf_buffer.getvalue()]),
             media_type="application/pdf",
-            headers={"Content-Disposition": f'attachment; filename="{filename}"'}
+            headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
 
     except ImportError:
-        raise HTTPException(
-            status_code=500,
-            detail="PDF generation library not available. Please install reportlab."
-        )
+        raise HTTPException(status_code=500, detail="PDF generation library not available. Please install reportlab.")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating PDF: {str(e)}")
