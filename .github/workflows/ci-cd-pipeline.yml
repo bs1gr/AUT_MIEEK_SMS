@@ -918,9 +918,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v')
     environment:
       name: production
-      url: ${{ vars.PROD_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST || 'sms.example.com') }}
+      url: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
     env:
-      PROD_URL: ${{ vars.PROD_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST || 'sms.example.com') }}
+      PROD_URL: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -971,6 +971,11 @@ jobs:
             local url="$1"
             curl -f -s "${url}" | grep -q '"status"'
           }
+
+          if [ -z "${PROD_URL}" ]; then
+            echo "⚠️  PROD_URL not set. Skipping production health checks."
+            exit 0
+          fi
 
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
@@ -1072,7 +1077,7 @@ jobs:
     needs: [deploy-production]
     if: startsWith(github.ref, 'refs/tags/v')
     env:
-      PROD_URL: ${{ vars.PROD_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST || 'sms.example.com') }}
+      PROD_URL: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
     steps:
       - name: Monitor application health
         run: |
@@ -1084,6 +1089,11 @@ jobs:
             local url="$1"
             curl -f -s "${url}" | grep -q '"status"'
           }
+
+          if [ -z "${PROD_URL}" ]; then
+            echo "⚠️  PROD_URL not set. Skipping post-deployment monitoring."
+            exit 0
+          fi
 
           for i in {1..10}; do
             echo "Health check $i/10 at $(date)..."
@@ -1112,6 +1122,10 @@ jobs:
       - name: Check application metrics
         run: |
           echo "📈 Checking application metrics..."
+          if [ -z "${PROD_URL}" ]; then
+            echo "⚠️  PROD_URL not set. Skipping metrics check."
+            exit 0
+          fi
           # Check metrics endpoint if available
           if curl -f -s "${PROD_URL}/metrics" > /dev/null 2>&1; then
             echo "✅ Metrics endpoint responsive"
