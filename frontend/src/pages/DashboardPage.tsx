@@ -2,31 +2,22 @@ import { EnhancedDashboardView } from '@/features/dashboard';
 import { useStudentsStore, useCoursesStore } from '@/stores';
 import { useCourses, useStudents } from '@/hooks';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
+import { useRef } from 'react';
 
 export default function DashboardPage() {
   const { user, isInitializing } = useAuth();
   const students = useStudentsStore((state) => state.students);
   const courses = useCoursesStore((state) => state.courses);
+  const initialFetchDoneRef = useRef(false);
 
-  // Only fetch data after auth is initialized - disable queries until user is loaded
-  const { refetch: refetchCourses } = useCourses(undefined, { enabled: Boolean(user && !isInitializing) });
-  const { refetch: refetchStudents } = useStudents(undefined, { enabled: Boolean(user && !isInitializing) });
+  // Only fetch data after auth is initialized - queries will auto-run when enabled becomes true
+  useCourses(undefined, { enabled: Boolean(user && !isInitializing) });
+  useStudents(undefined, { enabled: Boolean(user && !isInitializing) });
 
-  useEffect(() => {
-    // Skip fetch if still initializing
-    if (isInitializing || !user) {
-      return;
-    }
-
-    // Execute fetches and wait for them to complete to avoid race conditions
-    Promise.all([
-      refetchCourses(),
-      refetchStudents(),
-    ]).catch((err) => {
-      console.error('[DashboardPage] Data fetch failed:', err);
-    });
-  }, [refetchCourses, refetchStudents, user, isInitializing]);
+  // Mark fetch as done once user is loaded
+  if (user && !isInitializing && !initialFetchDoneRef.current) {
+    initialFetchDoneRef.current = true;
+  }
 
   const stats = {
     totalStudents: students.length,
