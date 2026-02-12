@@ -166,16 +166,28 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
     - name: Resolve load testing paths
       id: loadtest
       run: |
         if [ -d "load-testing" ]; then
           echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
+          echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
         elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
           echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
+          echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
         else
           echo "missing=true" >> $GITHUB_OUTPUT
         fi
+
+    - name: Install dependencies
+      if: steps.loadtest.outputs.missing != 'true'
+      run: |
+        pip install -r ${{ steps.loadtest.outputs.requirements }}
 
     - name: Download test results
       if: steps.loadtest.outputs.missing != 'true'
