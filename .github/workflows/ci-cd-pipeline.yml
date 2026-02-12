@@ -861,10 +861,10 @@ jobs:
       - name: Ensure Docker is running (runner health check)
         shell: pwsh
         run: |
-          Write-Host "🐳 Verifying Docker availability..." -ForegroundColor Cyan
+          Write-Host "Verifying Docker availability..." -ForegroundColor Cyan
           $maxAttempts = 10
           $attempt = 0
-          
+
           while ($attempt -lt $maxAttempts) {
             try {
               $dockerTest = docker version 2>&1
@@ -873,17 +873,18 @@ jobs:
                 exit 0
               }
             } catch {
-              Write-Host "Attempt $($attempt + 1)/$maxAttempts: Docker not responding..." -ForegroundColor Yellow
+              $attemptNum = $attempt + 1
+              Write-Host "Attempt $attemptNum of $maxAttempts - Docker not responding..." -ForegroundColor Yellow
             }
-            
+
             $attempt++
             if ($attempt -lt $maxAttempts) {
               Write-Host "  Waiting 3 seconds..." -ForegroundColor Gray
               Start-Sleep -Seconds 3
             }
           }
-          
-          Write-Error "❌ Docker failed to become available after $maxAttempts attempts (30 seconds)"
+
+          Write-Error "Docker failed to become available after $maxAttempts attempts (30 seconds)"
           exit 1
 
       - name: Deploy to staging server
