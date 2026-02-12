@@ -101,9 +101,8 @@ jobs:
       if: steps.loadtest.outputs.missing != 'true'
       run: |
         # Run migrations to initialize database before backend starts
-        cd backend
-        python -c "from scripts.migrate.runner import run_migrations; run_migrations(verbose=True)"
-        cd ..
+        export PYTHONPATH="${{ github.workspace }}"
+        python -c "from backend.scripts.migrate.runner import run_migrations; run_migrations(verbose=True)"
         echo "Database initialized successfully"
 
     - name: Start backend server (background)
@@ -205,10 +204,12 @@ jobs:
         if [ -d "load-testing" ]; then
           echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
           echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
+          echo "results=load-testing/results" >> $GITHUB_OUTPUT
           echo "rootdir=load-testing" >> $GITHUB_OUTPUT
         elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
           echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
           echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
+          echo "results=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
           echo "rootdir=archive/cleanup-feb2026/legacy-load-testing/root" >> $GITHUB_OUTPUT
         else
           echo "missing=true" >> $GITHUB_OUTPUT
@@ -230,7 +231,7 @@ jobs:
       if: steps.loadtest.outputs.missing != 'true'
       run: |
         cd ${{ steps.loadtest.outputs.rootdir || '.' }}
-        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/generate_report.py --input ${{ github.workspace }}/load-test-results/results/ --output ${{ github.workspace }}/performance-report.html
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/generate_report.py --input ${{ github.workspace }}/load-test-results/${{ steps.loadtest.outputs.results }}/ --output ${{ github.workspace }}/performance-report.html
 
     - name: Upload performance report
       uses: actions/upload-artifact@v4
