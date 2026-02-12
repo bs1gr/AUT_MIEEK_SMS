@@ -138,7 +138,8 @@ jobs:
     - name: Analyze results
       if: steps.loadtest.outputs.missing != 'true'
       run: |
-        python ${{ steps.loadtest.outputs.scripts }}/analyze_results.py --results-dir ${{ steps.loadtest.outputs.results }}
+        cd ${{ steps.loadtest.outputs.rootdir || '.' }}
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/analyze_results.py --results-dir ${{ github.workspace }}/${{ steps.loadtest.outputs.results }}
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
@@ -153,7 +154,8 @@ jobs:
     - name: Performance regression check
       if: steps.loadtest.outputs.missing != 'true'
       run: |
-        python ${{ steps.loadtest.outputs.scripts }}/check_regression.py --baseline ${{ steps.loadtest.outputs.baseline }} --current ${{ steps.loadtest.outputs.results }}/analysis_*.json
+        cd ${{ steps.loadtest.outputs.rootdir || '.' }}
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/check_regression.py --baseline ${{ github.workspace }}/${{ steps.loadtest.outputs.baseline }} --current ${{ github.workspace }}/${{ steps.loadtest.outputs.results }}/analysis_*.json
 
     - name: Notify on failure
       if: failure()
@@ -181,9 +183,11 @@ jobs:
         if [ -d "load-testing" ]; then
           echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
           echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
+          echo "rootdir=load-testing" >> $GITHUB_OUTPUT
         elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
           echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
           echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
+          echo "rootdir=archive/cleanup-feb2026/legacy-load-testing/root" >> $GITHUB_OUTPUT
         else
           echo "missing=true" >> $GITHUB_OUTPUT
         fi
@@ -203,7 +207,8 @@ jobs:
     - name: Generate performance report
       if: steps.loadtest.outputs.missing != 'true'
       run: |
-        python ${{ steps.loadtest.outputs.scripts }}/generate_report.py --input load-test-results/results/ --output performance-report.html
+        cd ${{ steps.loadtest.outputs.rootdir || '.' }}
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/generate_report.py --input ${{ github.workspace }}/load-test-results/results/ --output ${{ github.workspace }}/performance-report.html
 
     - name: Upload performance report
       uses: actions/upload-artifact@v4
