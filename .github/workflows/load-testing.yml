@@ -176,7 +176,12 @@ jobs:
       if: steps.loadtest.outputs.missing != 'true'
       run: |
         cd ${{ steps.loadtest.outputs.rootdir || '.' }}
-        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/check_regression.py --baseline ${{ github.workspace }}/${{ steps.loadtest.outputs.baseline }} --current ${{ github.workspace }}/${{ steps.loadtest.outputs.results }}/analysis_*.json
+        CURRENT_FILE=$(ls -t ${{ github.workspace }}/${{ steps.loadtest.outputs.results }}/analysis_*.json 2>/dev/null | head -n 1)
+        if [ -z "$CURRENT_FILE" ]; then
+          echo "❌ No analysis_*.json files found for regression check"
+          exit 1
+        fi
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/check_regression.py --baseline ${{ github.workspace }}/${{ steps.loadtest.outputs.baseline }} --current "$CURRENT_FILE"
 
     - name: Notify on failure
       if: failure()
