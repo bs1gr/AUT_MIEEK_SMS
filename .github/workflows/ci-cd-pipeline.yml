@@ -864,28 +864,47 @@ jobs:
           Write-Host "Verifying Docker availability..." -ForegroundColor Cyan
           $maxAttempts = 10
           $attempt = 0
+          $dockerAvailable = $false
 
           while ($attempt -lt $maxAttempts) {
-            try {
-              $dockerTest = docker version 2>&1
-              if ($LASTEXITCODE -eq 0) {
-                Write-Host "✅ Docker is available and running" -ForegroundColor Green
-                exit 0
+            $attemptNum = $attempt + 1
+            Write-Host "Attempt $attemptNum of $maxAttempts..." -ForegroundColor Yellow
+            
+            # Test Docker on Windows self-hosted runner
+            $result = & {
+              # Try multiple Docker commands to ensure daemon is really responding
+              docker ps --quiet 2>&1 | Out-Null
+              $dockerPSExit = $LASTEXITCODE
+              
+              docker version 2>&1 | Out-Null
+              $dockerVersionExit = $LASTEXITCODE
+              
+              if ($dockerPSExit -eq 0 -or $dockerVersionExit -eq 0) {
+                return $true
               }
-            } catch {
-              $attemptNum = $attempt + 1
-              Write-Host "Attempt $attemptNum of $maxAttempts - Docker not responding..." -ForegroundColor Yellow
+              return $false
             }
-
+            
+            if ($result -eq $true) {
+              Write-Host "Docker is available and running" -ForegroundColor Green
+              $dockerAvailable = $true
+              break
+            }
+            
             $attempt++
             if ($attempt -lt $maxAttempts) {
-              Write-Host "  Waiting 3 seconds..." -ForegroundColor Gray
+              Write-Host "  Waiting 3 seconds before retry..." -ForegroundColor Gray
               Start-Sleep -Seconds 3
+            } else {
+              Write-Host "Max attempts reached" -ForegroundColor Red
             }
           }
 
-          Write-Error "Docker failed to become available after $maxAttempts attempts (30 seconds)"
-          exit 1
+          if (-not $dockerAvailable) {
+            Write-Error "Docker failed to become available after $maxAttempts attempts (30 seconds total)"
+            exit 1
+          }
+          exit 0
 
       - name: Deploy to staging server
         shell: pwsh
