@@ -199,6 +199,50 @@ function Test-Administrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
+function Ensure-DockerRunning {
+    param(
+        [int]$MaxAttempts = 10,
+        [int]$DelaySeconds = 3
+    )
+
+    if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+        return $false
+    }
+
+    $null = docker ps 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        return $true
+    }
+
+    try {
+        Start-Service -Name "com.docker.service" -ErrorAction SilentlyContinue | Out-Null
+    } catch {
+        # Service may not exist in all environments
+    }
+
+    $dockerDesktopCandidates = @(
+        "C:\Program Files\Docker\Docker\Docker Desktop.exe",
+        "C:\Program Files\Docker\Docker\Docker.exe"
+    )
+
+    foreach ($candidate in $dockerDesktopCandidates) {
+        if (Test-Path $candidate) {
+            Start-Process -FilePath $candidate -ErrorAction SilentlyContinue | Out-Null
+            break
+        }
+    }
+
+    for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
+        Start-Sleep -Seconds $DelaySeconds
+        $null = docker ps 2>$null
+        if ($LASTEXITCODE -eq 0) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
 function Test-DockerAvailable {
     try {
         $null = docker --version 2>$null
@@ -206,8 +250,7 @@ function Test-DockerAvailable {
             return $false
         }
 
-        $null = docker ps 2>$null
-        if ($LASTEXITCODE -ne 0) {
+        if (-not (Ensure-DockerRunning)) {
             Write-Error-Message "Docker is installed but not running"
             Write-Info "Please start Docker Desktop and try again"
             return $false

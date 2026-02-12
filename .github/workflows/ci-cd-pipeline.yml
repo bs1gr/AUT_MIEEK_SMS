@@ -861,43 +861,74 @@ jobs:
       - name: Ensure Docker is running (runner health check)
         shell: pwsh
         run: |
-          Write-Host "Checking Docker availability..." -ForegroundColor Cyan
-          
-          # Check if docker command exists
-          $dockerExists = $null -ne (Get-Command docker -ErrorAction SilentlyContinue)
-          
-          if (-not $dockerExists) {
-            Write-Host "WARNING: Docker command not found in PATH (may be available later)" -ForegroundColor Yellow
-            Write-Host "Continuing with deployment - this may fail if Docker is actually required" -ForegroundColor Yellow
+          Write-Host "Ensuring Docker is running..." -ForegroundColor Cyan
+
+          $dockerBinCandidates = @(
+            "C:\Program Files\Docker\Docker\resources\bin",
+            "C:\Program Files\Docker\Docker\resources"
+          )
+
+          foreach ($path in $dockerBinCandidates) {
+            if (Test-Path $path -and ($env:Path -notlike "*${path}*")) {
+              $env:Path = "$path;$env:Path"
+              Add-Content -Path $env:GITHUB_PATH -Value $path
+            }
+          }
+
+          if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+            Write-Error "Docker command not found in PATH after normalization"
+            exit 1
+          }
+
+          try {
+            Start-Service -Name "com.docker.service" -ErrorAction SilentlyContinue | Out-Null
+          } catch {
+            # Service may not exist in all environments
+          }
+
+          $desktopCandidates = @(
+            "C:\Program Files\Docker\Docker\Docker Desktop.exe",
+            "C:\Program Files\Docker\Docker\Docker.exe"
+          )
+
+          foreach ($candidate in $desktopCandidates) {
+            if (Test-Path $candidate) {
+              Start-Process -FilePath $candidate -ErrorAction SilentlyContinue | Out-Null
+              break
+            }
+          }
+
+          $maxAttempts = 12
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            docker ps > $null 2>&1
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "Docker is available and running" -ForegroundColor Green
+              exit 0
+            }
+
+            Write-Host "  Waiting for Docker to start ($attempt/$maxAttempts)..." -ForegroundColor Gray
+            Start-Sleep -Seconds 3
+          }
+
+          Write-Error "Docker failed to start after $maxAttempts attempts"
+          exit 1
+
+      - name: Docker status snapshot
+        shell: pwsh
+        run: |
+          if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+            Write-Warning "Docker command not found; skipping status snapshot"
             exit 0
           }
 
-          Write-Host "Docker command found, testing daemon responsiveness..."
-          $maxAttempts = 5
-          $attempt = 0
+          Write-Host "Docker version:" -ForegroundColor Cyan
+          docker version
 
-          while ($attempt -lt $maxAttempts) {
-            $attemptNum = $attempt + 1
-            
-            try {
-              docker ps > $null 2>&1
-              if ($LASTEXITCODE -eq 0) {
-                Write-Host "Docker is available and running" -ForegroundColor Green
-                exit 0
-              }
-            } catch {
-              # Continue to retry
-            }
+          Write-Host "Docker info:" -ForegroundColor Cyan
+          docker info
 
-            $attempt++
-            if ($attempt -lt $maxAttempts) {
-              Write-Host "  Retry $attemptNum/$maxAttempts..." -ForegroundColor Gray
-              Start-Sleep -Seconds 2
-            }
-          }
-
-          Write-Host "WARNING: Docker is not responding, but proceeding with deployment" -ForegroundColor Yellow
-          exit 0
+          Write-Host "Docker containers:" -ForegroundColor Cyan
+          docker ps -a --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
 
       - name: Deploy to staging server
         shell: pwsh
