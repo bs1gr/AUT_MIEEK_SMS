@@ -97,6 +97,15 @@ jobs:
         pip install -r ${{ steps.loadtest.outputs.requirements }}
         pip install -r backend/requirements.txt
 
+    - name: Initialize database
+      if: steps.loadtest.outputs.missing != 'true'
+      run: |
+        # Run migrations to initialize database before backend starts
+        cd backend
+        python -c "from scripts.migrate.runner import run_migrations; run_migrations(verbose=True)"
+        cd ..
+        echo "Database initialized successfully"
+
     - name: Start backend server (background)
       if: steps.loadtest.outputs.missing != 'true'
       run: |
@@ -121,7 +130,16 @@ jobs:
         PYTHONPATH: ${{ steps.loadtest.outputs.pythonpath }}
       run: |
         cd ${{ steps.loadtest.outputs.rootdir || '.' }}
-        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/run_load_tests.py --scenario smoke --env "${{ env.SMS_ENV }}" --ci
+        echo "Running smoke test from directory: $(pwd)"
+        echo "PYTHONPATH: $PYTHONPATH"
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/run_load_tests.py \
+          --scenario smoke \
+          --env "${{ env.SMS_ENV }}" \
+          --ci \
+          --verbose || {
+          echo "❌ Smoke test failed with exit code $?"
+          exit 1
+        }
 
     - name: Run load test
       continue-on-error: true
@@ -130,10 +148,14 @@ jobs:
         PYTHONPATH: ${{ steps.loadtest.outputs.pythonpath }}
       run: |
         cd ${{ steps.loadtest.outputs.rootdir || '.' }}
+        echo "Running load test from directory: $(pwd)"
         python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/run_load_tests.py \
           --scenario ${{ github.event.inputs.environment == 'production' && 'medium' || 'light' }} \
           --env "${{ env.SMS_ENV }}" \
-          --ci
+          --ci \
+          --verbose || {
+          echo "⚠️  Load test failed with exit code $? (continuing due to continue-on-error)"
+        }
 
     - name: Analyze results
       if: steps.loadtest.outputs.missing != 'true'
