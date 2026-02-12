@@ -898,11 +898,21 @@ jobs:
             }
           }
 
+          # Check if Docker daemon/process is running
+          # For service accounts, we check process existence rather than docker ps execution
           $maxAttempts = 12
           for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            # Try docker ps first (works if runner has Docker access)
             docker ps > $null 2>&1
             if ($LASTEXITCODE -eq 0) {
-              Write-Host "Docker is available and running" -ForegroundColor Green
+              Write-Host "Docker is available and running (verified via docker ps)" -ForegroundColor Green
+              exit 0
+            }
+
+            # Fallback: check if Docker process is actually running
+            $dockerProcess = Get-Process docker, dockerd, "Docker Desktop" -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($dockerProcess) {
+              Write-Host "Docker process detected ($($dockerProcess.ProcessName)) - proceeding with deployment" -ForegroundColor Green
               exit 0
             }
 
