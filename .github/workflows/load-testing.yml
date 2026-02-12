@@ -60,14 +60,43 @@ jobs:
         cache: 'pip'
         cache-dependency-path: |
           load-testing/requirements.txt
+          archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt
           backend/requirements.txt
 
-    - name: Install dependencies
+    - name: Resolve load testing paths
+      id: loadtest
       run: |
-        pip install -r load-testing/requirements.txt
+        if [ -d "load-testing" ]; then
+          echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
+          echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
+          echo "results=load-testing/results" >> $GITHUB_OUTPUT
+          echo "reports=load-testing/reports" >> $GITHUB_OUTPUT
+          echo "baseline=load-testing/baseline.json" >> $GITHUB_OUTPUT
+          echo "pythonpath=load-testing" >> $GITHUB_OUTPUT
+        elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
+          echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
+          echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
+          echo "results=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
+          echo "reports=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
+          echo "baseline=archive/cleanup-feb2026/legacy-load-testing/root/baseline.json" >> $GITHUB_OUTPUT
+          echo "pythonpath=archive/cleanup-feb2026/legacy-load-testing/root/locust" >> $GITHUB_OUTPUT
+        else
+          echo "missing=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Guard missing load testing suite
+      if: steps.loadtest.outputs.missing == 'true'
+      run: |
+        echo "Load testing suite not found. Skipping run."
+
+    - name: Install dependencies
+      if: steps.loadtest.outputs.missing != 'true'
+      run: |
+        pip install -r ${{ steps.loadtest.outputs.requirements }}
         pip install -r backend/requirements.txt
 
     - name: Start backend server (background)
+      if: steps.loadtest.outputs.missing != 'true'
       run: |
         # Start uvicorn in background so load tests can target localhost:8080
         nohup python -m uvicorn backend.main:app --host 0.0.0.0 --port 8080 &>/dev/null &
@@ -85,38 +114,42 @@ jobs:
         curl -f http://127.0.0.1:8080/health
 
     - name: Run smoke test
+      if: steps.loadtest.outputs.missing != 'true'
+      env:
+        PYTHONPATH: ${{ steps.loadtest.outputs.pythonpath }}
       run: |
-        cd load-testing
-        python scripts/run_load_tests.py --scenario smoke --env "${{ env.SMS_ENV }}" --ci
+        python ${{ steps.loadtest.outputs.scripts }}/run_load_tests.py --scenario smoke --env "${{ env.SMS_ENV }}" --ci
 
     - name: Run load test
       continue-on-error: true
+      if: steps.loadtest.outputs.missing != 'true'
+      env:
+        PYTHONPATH: ${{ steps.loadtest.outputs.pythonpath }}
       run: |
-        cd load-testing
-        python scripts/run_load_tests.py \
+        python ${{ steps.loadtest.outputs.scripts }}/run_load_tests.py \
           --scenario ${{ github.event.inputs.environment == 'production' && 'medium' || 'light' }} \
           --env "${{ env.SMS_ENV }}" \
           --ci
 
     - name: Analyze results
+      if: steps.loadtest.outputs.missing != 'true'
       run: |
-        cd load-testing
-        python scripts/analyze_results.py --results-dir results/
+        python ${{ steps.loadtest.outputs.scripts }}/analyze_results.py --results-dir ${{ steps.loadtest.outputs.results }}
 
     - name: Upload test results
       uses: actions/upload-artifact@v4
-      if: always()
+      if: always() && steps.loadtest.outputs.missing != 'true'
       with:
         name: load-test-results-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
         path: |
-          load-testing/results/
-          load-testing/reports/
+          ${{ steps.loadtest.outputs.results }}/
+          ${{ steps.loadtest.outputs.reports }}/
         retention-days: 30
 
     - name: Performance regression check
+      if: steps.loadtest.outputs.missing != 'true'
       run: |
-        cd load-testing
-        python scripts/check_regression.py --baseline baseline.json --current results/analysis_*.json
+        python ${{ steps.loadtest.outputs.scripts }}/check_regression.py --baseline ${{ steps.loadtest.outputs.baseline }} --current ${{ steps.loadtest.outputs.results }}/analysis_*.json
 
     - name: Notify on failure
       if: failure()
@@ -133,20 +166,33 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Resolve load testing paths
+      id: loadtest
+      run: |
+        if [ -d "load-testing" ]; then
+          echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
+        elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
+          echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
+        else
+          echo "missing=true" >> $GITHUB_OUTPUT
+        fi
+
     - name: Download test results
+      if: steps.loadtest.outputs.missing != 'true'
       uses: actions/download-artifact@v4
       with:
         name: load-test-results-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
         path: load-test-results
 
     - name: Generate performance report
+      if: steps.loadtest.outputs.missing != 'true'
       run: |
-        cd load-testing
-        python scripts/generate_report.py --input ../load-test-results/results/ --output performance-report.html
+        python ${{ steps.loadtest.outputs.scripts }}/generate_report.py --input load-test-results/results/ --output performance-report.html
 
     - name: Upload performance report
       uses: actions/upload-artifact@v4
+      if: steps.loadtest.outputs.missing != 'true'
       with:
         name: performance-report-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
-        path: load-testing/performance-report.html
+        path: performance-report.html
         retention-days: 90
