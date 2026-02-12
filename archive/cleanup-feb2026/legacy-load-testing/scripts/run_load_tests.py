@@ -15,10 +15,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
-# Add the load-testing directory to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Add the root directory to Python path (contains locust package)
+sys.path.insert(0, str(Path(__file__).parent.parent / "root"))
 # Add the locust directory to Python path for config imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "locust"))
+sys.path.insert(0, str(Path(__file__).parent.parent / "root" / "locust"))
 
 from config.base_config import LoadTestConfig
 
