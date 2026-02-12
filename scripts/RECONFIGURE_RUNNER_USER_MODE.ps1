@@ -34,10 +34,10 @@
 param(
     [Parameter()]
     [string]$RunnerPath = "D:\actions-runner",
-    
+
     [Parameter()]
     [switch]$DryRun,
-    
+
     [Parameter()]
     [switch]$Force
 )
@@ -83,10 +83,10 @@ function Test-AdminPrivileges {
 
 function Get-RunnerServiceStatus {
     param([string]$Path)
-    
+
     $serviceName = "actions.runner.*"
     $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-    
+
     if ($service) {
         return @{
             Exists = $true
@@ -96,41 +96,44 @@ function Get-RunnerServiceStatus {
             ServiceAccount = (Get-CimInstance Win32_Service -Filter "Name='$($service.Name)'").StartName
         }
     }
-    
+
     return @{ Exists = $false }
 }
 
 function Test-RunnerConfiguration {
     param([string]$Path)
-    
+
     $configFile = Join-Path $Path ".runner"
     $credFile = Join-Path $Path ".credentials"
-    
+    $svcScript = Join-Path $Path "svc.ps1"
+
     return @{
         IsConfigured = (Test-Path $configFile)
         HasCredentials = (Test-Path $credFile)
+        HasSvcScript = (Test-Path $svcScript)
         ConfigPath = $configFile
         CredPath = $credFile
+        SvcPath = $svcScript
     }
 }
 
 function Backup-RunnerConfig {
     param([string]$Path)
-    
+
     $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
     $backupDir = Join-Path $Path "backup_$timestamp"
-    
+
     New-Item -ItemType Directory -Path $backupDir -Force | Out-Null
-    
+
     $filesToBackup = @(".runner", ".credentials", ".path", "runsvc.sh")
-    
+
     foreach ($file in $filesToBackup) {
         $sourcePath = Join-Path $Path $file
         if (Test-Path $sourcePath) {
             Copy-Item $sourcePath -Destination $backupDir -Force
         }
     }
-    
+
     return $backupDir
 }
 
@@ -166,6 +169,12 @@ if (-not $config.IsConfigured) {
     Write-Host "Please configure the runner first using config.cmd" -ForegroundColor Yellow
     exit 1
 }
+if (-not $config.HasSvcScript) {
+    Write-ErrorMsg "Runner service script not found"
+    Write-Host "Expected svc.ps1 at: $($config.SvcPath)" -ForegroundColor Yellow
+    Write-Host "This file is required for service management operations." -ForegroundColor Yellow
+    exit 1
+}
 Write-Success "Runner configuration detected"
 
 # Check service status
@@ -173,7 +182,7 @@ $serviceStatus = Get-RunnerServiceStatus -Path $RunnerPath
 if (-not $serviceStatus.Exists) {
     Write-Warning "No runner service found - runner may already be in interactive mode"
     Write-Host "Current configuration appears to be non-service mode." -ForegroundColor Gray
-    
+
     if (-not $Force) {
         $continue = Read-Host "Continue anyway? (y/n)"
         if ($continue -ne 'y') {
@@ -237,10 +246,14 @@ if ($serviceStatus.Exists -and $serviceStatus.Status -eq 'Running') {
     Write-Step "Step 2: Stopping runner service..."
     if (-not $DryRun) {
         try {
+            $svcPath = Join-Path $RunnerPath "svc.ps1"
             Push-Location $RunnerPath
-            & ".\svc.ps1" stop
-            Pop-Location
-            
+            try {
+                & $svcPath stop
+            } finally {
+                Pop-Location
+            }
+
             # Wait for service to stop
             $timeout = 30
             $elapsed = 0
@@ -248,7 +261,7 @@ if ($serviceStatus.Exists -and $serviceStatus.Status -eq 'Running') {
                 Start-Sleep -Seconds 1
                 $elapsed++
             }
-            
+
             if ((Get-Service $serviceStatus.Name).Status -eq 'Stopped') {
                 Write-Success "Service stopped successfully"
             } else {
@@ -270,13 +283,17 @@ if ($serviceStatus.Exists) {
     Write-Step "Step 3: Uninstalling runner service..."
     if (-not $DryRun) {
         try {
+            $svcPath = Join-Path $RunnerPath "svc.ps1"
             Push-Location $RunnerPath
-            & ".\svc.ps1" uninstall
-            Pop-Location
-            
+            try {
+                & $svcPath uninstall
+            } finally {
+                Pop-Location
+            }
+
             # Wait for service to be removed
             Start-Sleep -Seconds 2
-            
+
             $stillExists = Get-Service -Name $serviceStatus.Name -ErrorAction SilentlyContinue
             if (-not $stillExists) {
                 Write-Success "Service uninstalled successfully"
@@ -308,17 +325,19 @@ if (-not $DryRun) {
 Write-Step "Step 5: Installing runner service under user account..."
 if (-not $DryRun) {
     try {
+        $svcPath = Join-Path $RunnerPath "svc.ps1"
         Push-Location $RunnerPath
-        
-        # Install service (will prompt for credentials if needed)
-        & ".\svc.ps1" install
-        
-        Pop-Location
-        
+        try {
+            # Install service (will prompt for credentials if needed)
+            & $svcPath install
+        } finally {
+            Pop-Location
+        }
+
         # Verify installation
         Start-Sleep -Seconds 2
         $newService = Get-Service -Name "actions.runner.*" -ErrorAction SilentlyContinue
-        
+
         if ($newService) {
             Write-Success "Service installed successfully: $($newService.Name)"
         } else {
@@ -337,13 +356,17 @@ if (-not $DryRun) {
 Write-Step "Step 6: Starting runner service..."
 if (-not $DryRun) {
     try {
+        $svcPath = Join-Path $RunnerPath "svc.ps1"
         Push-Location $RunnerPath
-        & ".\svc.ps1" start
-        Pop-Location
-        
+        try {
+            & $svcPath start
+        } finally {
+            Pop-Location
+        }
+
         # Wait for service to start
         Start-Sleep -Seconds 3
-        
+
         $service = Get-Service -Name "actions.runner.*" -ErrorAction SilentlyContinue
         if ($service -and $service.Status -eq 'Running') {
             Write-Success "Service started successfully"
@@ -365,7 +388,7 @@ if (-not $DryRun) {
     try {
         # Give the service a moment to initialize
         Start-Sleep -Seconds 2
-        
+
         # Test Docker access
         $dockerTest = docker ps 2>&1
         if ($LASTEXITCODE -eq 0) {
@@ -389,14 +412,14 @@ Write-Header "Reconfiguration Complete"
 
 if (-not $DryRun) {
     $finalService = Get-RunnerServiceStatus -Path $RunnerPath
-    
+
     if ($finalService.Exists) {
         Write-Host "✓ Service Name:      $($finalService.Name)" -ForegroundColor Green
         Write-Host "✓ Service Status:    $($finalService.Status)" -ForegroundColor Green
         Write-Host "✓ Service Account:   $($finalService.ServiceAccount)" -ForegroundColor Green
         Write-Host "✓ Configuration:     User Mode" -ForegroundColor Green
     }
-    
+
     Write-Host ""
     Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
     Write-Host "Next Steps:" -ForegroundColor Yellow
@@ -408,7 +431,7 @@ if (-not $DryRun) {
     Write-Host ""
     Write-Host "Backup location: $backupPath" -ForegroundColor Gray
     Write-Host ""
-    
+
 } else {
     Write-Host ""
     Write-Host "This was a DRY RUN - no changes were made." -ForegroundColor Yellow

@@ -16,6 +16,12 @@ param()
 
 $ErrorActionPreference = "Stop"
 
+# Store the scripts directory
+$ScriptsDir = $PSScriptRoot
+if (-not $ScriptsDir) {
+    $ScriptsDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+}
+
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host "GitHub Actions Runner Reconfiguration - REC Host" -ForegroundColor White
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
@@ -57,8 +63,7 @@ Write-Host "STEP 1: Preview Changes (DRY RUN)" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host ""
 
-cd scripts
-.\RECONFIGURE_RUNNER_USER_MODE.ps1 -DryRun
+& "$ScriptsDir\RECONFIGURE_RUNNER_USER_MODE.ps1" -DryRun
 
 Write-Host ""
 $continue = Read-Host "Continue with actual reconfiguration? (y/n)"
@@ -73,7 +78,7 @@ Write-Host "STEP 2: Execute Reconfiguration" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host ""
 
-.\RECONFIGURE_RUNNER_USER_MODE.ps1 -Force
+& "$ScriptsDir\RECONFIGURE_RUNNER_USER_MODE.ps1" -Force
 
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
@@ -81,7 +86,7 @@ Write-Host "STEP 3: Verify Docker Access" -ForegroundColor Yellow
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Cyan
 Write-Host ""
 
-.\VERIFY_RUNNER_DOCKER_ACCESS.ps1
+& "$ScriptsDir\VERIFY_RUNNER_DOCKER_ACCESS.ps1"
 
 Write-Host ""
 Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor Green

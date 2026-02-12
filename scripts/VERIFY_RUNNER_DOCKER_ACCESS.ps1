@@ -36,10 +36,10 @@ function Test-Check {
         [string]$SuccessMessage,
         [string]$FailMessage
     )
-    
+
     Write-Host ""
     Write-Host "▶ Testing: $Name" -ForegroundColor Yellow
-    
+
     try {
         $result = & $Test
         if ($result) {
