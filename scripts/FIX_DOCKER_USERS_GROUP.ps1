@@ -5,7 +5,7 @@
 .DESCRIPTION
     This script adds the current user to the docker-users group, which is required
     for Docker Desktop named pipe access even when the runner runs as a user account.
-    
+
     Windows services run in Session 0 (isolated) and need explicit group membership
     to access Docker Desktop, even when configured to run as a specific user.
 
@@ -72,7 +72,7 @@ if ($isMember) {
     Write-Host "⚠ $currentUser is NOT in docker-users group" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "Adding $currentUser to docker-users group..." -ForegroundColor Yellow
-    
+
     try {
         Add-LocalGroupMember -Group "docker-users" -Member $currentUser -ErrorAction Stop
         Write-Host "✓ Successfully added to docker-users group" -ForegroundColor Green
@@ -102,18 +102,18 @@ if (-not $runnerService) {
 } else {
     Write-Host "✓ Found service: $($runnerService.Name)" -ForegroundColor Green
     Write-Host "  Status: $($runnerService.Status)" -ForegroundColor Gray
-    
+
     # Get service account
     $serviceAccount = (Get-CimInstance Win32_Service -Filter "Name='$($runnerService.Name)'").StartName
     Write-Host "  Account: $serviceAccount" -ForegroundColor Gray
-    
+
     Write-Host ""
     Write-Host "▶ Restarting runner service to pick up group changes..." -ForegroundColor Yellow
-    
+
     try {
         Restart-Service -Name $runnerService.Name -Force -ErrorAction Stop
         Start-Sleep -Seconds 3
-        
+
         $newStatus = (Get-Service -Name $runnerService.Name).Status
         if ($newStatus -eq 'Running') {
             Write-Host "✓ Service restarted successfully" -ForegroundColor Green
@@ -140,7 +140,7 @@ try {
     } else {
         Write-Host "⚠ Docker version command failed (exit code: $LASTEXITCODE)" -ForegroundColor Yellow
     }
-    
+
     docker ps > $null 2>&1
     if ($LASTEXITCODE -eq 0) {
         Write-Host "✓ Docker ps command succeeded" -ForegroundColor Green
