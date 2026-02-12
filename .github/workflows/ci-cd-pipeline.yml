@@ -869,7 +869,7 @@ jobs:
           )
 
           foreach ($path in $dockerBinCandidates) {
-            if ((Test-Path $path) -and ($env:Path -notlike "*$path*")) {
+            if ((Test-Path -LiteralPath $path) -and ($env:Path -notlike "*$path*")) {
               $env:Path = "$path;$env:Path"
               Add-Content -Path $env:GITHUB_PATH -Value $path
             }
