@@ -73,13 +73,15 @@ jobs:
           echo "reports=load-testing/reports" >> $GITHUB_OUTPUT
           echo "baseline=load-testing/baseline.json" >> $GITHUB_OUTPUT
           echo "pythonpath=load-testing" >> $GITHUB_OUTPUT
+          echo "rootdir=load-testing" >> $GITHUB_OUTPUT
         elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
           echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
           echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
           echo "results=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
           echo "reports=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
           echo "baseline=archive/cleanup-feb2026/legacy-load-testing/root/baseline.json" >> $GITHUB_OUTPUT
-          echo "pythonpath=archive/cleanup-feb2026/legacy-load-testing/root/locust" >> $GITHUB_OUTPUT
+          echo "pythonpath=archive/cleanup-feb2026/legacy-load-testing/root:archive/cleanup-feb2026/legacy-load-testing/root/locust" >> $GITHUB_OUTPUT
+          echo "rootdir=archive/cleanup-feb2026/legacy-load-testing/root" >> $GITHUB_OUTPUT
         else
           echo "missing=true" >> $GITHUB_OUTPUT
         fi
@@ -118,7 +120,8 @@ jobs:
       env:
         PYTHONPATH: ${{ steps.loadtest.outputs.pythonpath }}
       run: |
-        python ${{ steps.loadtest.outputs.scripts }}/run_load_tests.py --scenario smoke --env "${{ env.SMS_ENV }}" --ci
+        cd ${{ steps.loadtest.outputs.rootdir || '.' }}
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/run_load_tests.py --scenario smoke --env "${{ env.SMS_ENV }}" --ci
 
     - name: Run load test
       continue-on-error: true
@@ -126,7 +129,8 @@ jobs:
       env:
         PYTHONPATH: ${{ steps.loadtest.outputs.pythonpath }}
       run: |
-        python ${{ steps.loadtest.outputs.scripts }}/run_load_tests.py \
+        cd ${{ steps.loadtest.outputs.rootdir || '.' }}
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/run_load_tests.py \
           --scenario ${{ github.event.inputs.environment == 'production' && 'medium' || 'light' }} \
           --env "${{ env.SMS_ENV }}" \
           --ci
