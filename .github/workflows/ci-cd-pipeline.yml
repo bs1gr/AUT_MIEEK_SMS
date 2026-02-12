@@ -866,31 +866,31 @@ jobs:
           $attempt = 0
           $dockerAvailable = $false
 
+          # First check if docker command exists
+          $dockerExists = $null -ne (Get-Command docker -ErrorAction SilentlyContinue)
+          if (-not $dockerExists) {
+            Write-Error "Docker command not found in PATH"
+            exit 1
+          }
+
           while ($attempt -lt $maxAttempts) {
             $attemptNum = $attempt + 1
             Write-Host "Attempt $attemptNum of $maxAttempts..." -ForegroundColor Yellow
-            
-            # Test Docker on Windows self-hosted runner
-            $result = & {
-              # Try multiple Docker commands to ensure daemon is really responding
-              docker ps --quiet 2>&1 | Out-Null
-              $dockerPSExit = $LASTEXITCODE
-              
-              docker version 2>&1 | Out-Null
-              $dockerVersionExit = $LASTEXITCODE
-              
-              if ($dockerPSExit -eq 0 -or $dockerVersionExit -eq 0) {
-                return $true
+
+            try {
+              # Test Docker daemon responsiveness
+              $dockerTest = docker ps 2>&1
+              if ($LASTEXITCODE -eq 0) {
+                Write-Host "Docker is available and running" -ForegroundColor Green
+                $dockerAvailable = $true
+                break
+              } else {
+                Write-Host "  Docker returned exit code: $LASTEXITCODE" -ForegroundColor Gray
               }
-              return $false
+            } catch {
+              Write-Host "  Error testing Docker: $_" -ForegroundColor Gray
             }
-            
-            if ($result -eq $true) {
-              Write-Host "Docker is available and running" -ForegroundColor Green
-              $dockerAvailable = $true
-              break
-            }
-            
+
             $attempt++
             if ($attempt -lt $maxAttempts) {
               Write-Host "  Waiting 3 seconds before retry..." -ForegroundColor Gray
