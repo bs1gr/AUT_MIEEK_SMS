@@ -231,7 +231,15 @@ jobs:
       if: steps.loadtest.outputs.missing != 'true'
       run: |
         cd ${{ steps.loadtest.outputs.rootdir || '.' }}
-        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/generate_report.py --input ${{ github.workspace }}/load-test-results/${{ steps.loadtest.outputs.results }}/ --output ${{ github.workspace }}/performance-report.html
+        RESULTS_DIR="${{ github.workspace }}/load-test-results/${{ steps.loadtest.outputs.results }}"
+        if [ ! -d "$RESULTS_DIR" ]; then
+          RESULTS_DIR=$(find "${{ github.workspace }}/load-test-results" -type f -name "analysis_*.json" -printf "%h\n" | head -n 1)
+        fi
+        if [ -z "$RESULTS_DIR" ] || [ ! -d "$RESULTS_DIR" ]; then
+          echo "❌ Results directory not found under load-test-results"
+          exit 1
+        fi
+        python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/generate_report.py --input "$RESULTS_DIR" --output ${{ github.workspace }}/performance-report.html
 
     - name: Upload performance report
       uses: actions/upload-artifact@v4

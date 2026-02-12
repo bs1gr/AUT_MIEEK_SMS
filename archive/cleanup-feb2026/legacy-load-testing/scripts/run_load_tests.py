@@ -76,14 +76,30 @@ class LoadTestRunner:
             print(f"❌ Cannot connect to environment: {e}")
             return False
 
+    def _locust_env(self) -> Dict[str, str]:
+        """Build a safe environment for Locust subprocesses."""
+        proc_env = os.environ.copy()
+        pythonpath = proc_env.get("PYTHONPATH", "")
+        if pythonpath:
+            cleaned_parts = []
+            for part in pythonpath.split(":"):
+                normalized = part.replace("\\", "/")
+                if normalized.endswith("/root/locust"):
+                    continue
+                cleaned_parts.append(part)
+            proc_env["PYTHONPATH"] = ":".join(p for p in cleaned_parts if p)
+
+        if self.args.ci or proc_env.get("CI_SKIP_AUTH", "").lower() == "true":
+            proc_env["CI_SKIP_AUTH"] = "true"
+
+        return proc_env
+
     def run_smoke_test(self) -> bool:
         """Run a quick smoke test to verify basic functionality."""
         print("🚬 Running smoke test...")
 
         scenario_config = self.config.get_scenario_config("smoke")
         cmd = [
-            "python",
-            "-m",
             "locust",
             "-f",
             "locust/locustfile.py",
@@ -108,9 +124,7 @@ class LoadTestRunner:
         try:
             # Propagate environment flags to the Locust subprocess so locustfile can
             # detect CI mode and skip auth users when requested.
-            proc_env = os.environ.copy()
-            if self.args.ci or proc_env.get("CI_SKIP_AUTH", "").lower() == "true":
-                proc_env["CI_SKIP_AUTH"] = "true"
+            proc_env = self._locust_env()
 
             result = subprocess.run(
                 cmd, capture_output=True, text=True, timeout=300, env=proc_env
@@ -143,8 +157,6 @@ class LoadTestRunner:
         test_id = f"{scenario}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         cmd = [
-            "python",
-            "-m",
             "locust",
             "-f",
             "locust/locustfile.py",
@@ -171,9 +183,7 @@ class LoadTestRunner:
             start_time = time.time()
 
             # Ensure CI flags are visible to the Locust process so it excludes auth users
-            proc_env = os.environ.copy()
-            if self.args.ci or proc_env.get("CI_SKIP_AUTH", "").lower() == "true":
-                proc_env["CI_SKIP_AUTH"] = "true"
+            proc_env = self._locust_env()
 
             result = subprocess.run(
                 cmd,
