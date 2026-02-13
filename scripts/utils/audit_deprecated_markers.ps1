@@ -95,10 +95,32 @@ $rootDeprecatedFound = $false
 foreach ($pattern in $rootDeprecatedPatterns) {
     $found = Get-ChildItem -Path "." -Filter $pattern -File -ErrorAction SilentlyContinue
     if ($found) {
+        $archivePath = "archive/cleanup-$(Get-Date -Format 'MMM-yyyy')/legacy-scripts"
         Add-Violation -Message "Deprecated script in root: $($found.Name)" `
                       -File $found.FullName `
-                      -Fix "Move to archive/cleanup-$(Get-Date -Format 'MMM-yyyy')/legacy-scripts/"
-        $rootDeprecatedFound = $true
+                      -Fix "Move to $archivePath/"
+
+        if ($AutoFix) {
+            # Auto-fix: Move deprecated script to archive
+            if (-not (Test-Path $archivePath)) {
+                New-Item -Path $archivePath -ItemType Directory -Force | Out-Null
+                Write-Host "  ✓ Created archive directory: $archivePath" -ForegroundColor Cyan
+            }
+
+            $destination = Join-Path $archivePath $found.Name
+            Move-Item -Path $found.FullName -Destination $destination -Force
+            Write-Host "  ✓ AUTO-FIX: Moved $($found.Name) → $archivePath/" -ForegroundColor Green
+
+            # Add to .gitignore to prevent re-addition
+            $gitignoreEntry = "/$($found.Name)"
+            $gitignoreContent = Get-Content ".gitignore" -Raw -ErrorAction SilentlyContinue
+            if ($gitignoreContent -notlike "*$gitignoreEntry*") {
+                Add-Content -Path ".gitignore" -Value "`n# Archived deprecated script (auto-added $(Get-Date -Format 'yyyy-MM-dd'))`n$gitignoreEntry"
+                Write-Host "  ✓ AUTO-FIX: Added $gitignoreEntry to .gitignore" -ForegroundColor Green
+            }
+        } else {
+            $rootDeprecatedFound = $true
+        }
     }
 }
 
@@ -184,6 +206,14 @@ if ($Mode -ne 'Quick') {
 
 Write-Info "Check 4/5: Git protection for archived scripts..."
 
+
+        if ($AutoFix) {
+            # Auto-fix: Add missing .gitignore patterns
+            foreach ($pattern in $missingPatterns) {
+                Add-Content -Path $gitignoreFile -Value "`n# Archived script protection (auto-added $(Get-Date -Format 'yyyy-MM-dd'))`n$pattern"
+            }
+            Write-Host "  ✓ AUTO-FIX: Added $($missingPatterns.Count) patterns to .gitignore" -ForegroundColor Green
+        }
 $gitignoreFile = ".gitignore"
 if (Test-Path $gitignoreFile) {
     $gitignoreContent = Get-Content $gitignoreFile -Raw
@@ -228,6 +258,11 @@ foreach ($policyFile in $policyFiles) {
         $missingPolicies += $policyFile
         Add-Violation -Message "Deprecation policy missing: $policyFile" `
                       -File $policyFile `
+
+    if ($AutoFix) {
+        Write-Host "  ⚠️  AUTO-FIX: Cannot create policy documents automatically" -ForegroundColor Yellow
+        Write-Host "     Manual action required - see docs/development/DEPRECATION_POLICY.md template" -ForegroundColor Yellow
+    }
                       -Fix "Create deprecation policy documentation"
     }
 }
@@ -278,6 +313,10 @@ if ($script:violations.Count -eq 0 -and $script:warnings.Count -eq 0) {
     exit 0
 } else {
     Write-Host "`n❌ FAIL - Fix violations before committing" -ForegroundColor Red
+
+    if ($AutoFix) {
+        Write-Host "`n💡 Auto-fix applied changes. Re-run audit to verify fixes." -ForegroundColor Cyan
+    }
 
     if ($ExitOnViolation) {
         exit 1
