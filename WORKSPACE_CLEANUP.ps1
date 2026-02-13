@@ -23,6 +23,21 @@
 .PARAMETER DryRun
     Preview changes without executing them
 
+.PARAMETER RunAllCleanupTools
+    Run external cleanup helpers (artifacts cleanup, pre-release cleanup, pycache cleanup)
+
+.PARAMETER IncludeArtifactsCleanup
+    Run .github/scripts/cleanup_artifacts.ps1 before the main cleanup
+
+.PARAMETER IncludePreReleaseCleanup
+    Run scripts/workflows/cleanup_pre_release.ps1 before the main cleanup
+
+.PARAMETER IncludePycacheCleanup
+    Run CLEAR_PYCACHE.ps1 before the main cleanup
+
+.PARAMETER IncludeBackups
+    When used with IncludePreReleaseCleanup, also clean old backup artifacts
+
 .PARAMETER SkipDocs
     Don't organize documentation
 
@@ -58,7 +73,12 @@ param(
 
     [switch]$DryRun,
     [switch]$SkipDocs,
-    [switch]$SkipTests
+    [switch]$SkipTests,
+    [switch]$RunAllCleanupTools,
+    [switch]$IncludeArtifactsCleanup,
+    [switch]$IncludePreReleaseCleanup,
+    [switch]$IncludePycacheCleanup,
+    [switch]$IncludeBackups
 )
 
 $ErrorActionPreference = "Stop"
@@ -95,6 +115,57 @@ function Write-Success { param([string]$Message) Write-Host "✓ $Message" -Fore
 function Write-Info { param([string]$Message) Write-Host "ℹ️  $Message" -ForegroundColor Cyan }
 function Write-Warning { param([string]$Message) Write-Host "⚠️  $Message" -ForegroundColor Yellow }
 function Write-Error { param([string]$Message) Write-Host "❌ $Message" -ForegroundColor Red }
+
+function Invoke-ExternalCleanup {
+    param(
+        [string]$ScriptPath,
+        [string]$Description,
+        [hashtable]$Arguments = @{}
+    )
+
+    if (-not (Test-Path $ScriptPath)) {
+        Write-Warning "Skipping $Description (not found): $ScriptPath"
+        return
+    }
+
+    Write-Info "Running $Description..."
+    try {
+        & $ScriptPath @Arguments
+        Write-Success "$Description completed"
+    } catch {
+        Write-Error "$Description failed: $_"
+        $script:Errors += "External cleanup failed: $Description"
+    }
+}
+
+# Consolidated external cleanup options
+if ($RunAllCleanupTools) {
+    $IncludeArtifactsCleanup = $true
+    $IncludePreReleaseCleanup = $true
+    $IncludePycacheCleanup = $true
+}
+
+if ($IncludeArtifactsCleanup -or $IncludePreReleaseCleanup -or $IncludePycacheCleanup) {
+    Write-Phase "PHASE 0: External Cleanup Tools"
+
+    if ($IncludeArtifactsCleanup) {
+        $artifactsScript = Join-Path $rootDir ".github\scripts\cleanup_artifacts.ps1"
+        Invoke-ExternalCleanup -ScriptPath $artifactsScript -Description "Artifacts cleanup"
+    }
+
+    if ($IncludePreReleaseCleanup) {
+        $preReleaseScript = Join-Path $rootDir "scripts\workflows\cleanup_pre_release.ps1"
+        $preReleaseArgs = @{}
+        if ($DryRun) { $preReleaseArgs["DryRun"] = $true }
+        if ($IncludeBackups) { $preReleaseArgs["IncludeBackups"] = $true }
+        Invoke-ExternalCleanup -ScriptPath $preReleaseScript -Description "Pre-release cleanup" -Arguments $preReleaseArgs
+    }
+
+    if ($IncludePycacheCleanup) {
+        $pycacheScript = Join-Path $rootDir "CLEAR_PYCACHE.ps1"
+        Invoke-ExternalCleanup -ScriptPath $pycacheScript -Description "Python cache cleanup"
+    }
+}
 
 function Remove-Item-Safe {
     param(

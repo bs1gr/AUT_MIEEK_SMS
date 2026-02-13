@@ -1,13 +1,19 @@
 # ⚠️ DEPRECATED - This script is kept for historical reference.
-# Use the canonical CLEANUP_COMPREHENSIVE.ps1 instead.
+# Use the consolidated cleanup entrypoint instead:
+#   .\WORKSPACE_CLEANUP.ps1 -RunAllCleanupTools
+# Or run the comprehensive cleanup script directly:
+#   .\scripts\dev\internal\CLEANUP_COMPREHENSIVE.ps1 -NonInteractive
 
 # ============================================================================
 #   Student Management System - Cleanup Obsolete Files Script (DEPRECATED)
 # ============================================================================
 
 Write-Host ""
-Write-Host "⚠️  This script is deprecated. Use CLEANUP_COMPREHENSIVE.ps1 instead." -ForegroundColor Yellow
+Write-Host "⚠️  This script is deprecated and will not run." -ForegroundColor Yellow
+Write-Host "   Use WORKSPACE_CLEANUP.ps1 -RunAllCleanupTools instead." -ForegroundColor Yellow
+Write-Host "   (Or CLEANUP_COMPREHENSIVE.ps1 -NonInteractive)" -ForegroundColor Yellow
 Write-Host ""
+exit 0
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $projectRoot

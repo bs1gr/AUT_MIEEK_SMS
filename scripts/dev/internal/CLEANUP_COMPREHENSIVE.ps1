@@ -1,6 +1,12 @@
 # CLEANUP_COMPREHENSIVE.ps1
 # Comprehensive cleanup script for removing obsolete files across the project
 
+param(
+    [switch]$Docs,
+    [switch]$Obsolete,
+    [switch]$NonInteractive
+)
+
 # Import shared cleanup utilities
 $libPath = Join-Path (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)) "lib\cleanup_common.ps1"
 . $libPath
@@ -109,12 +115,6 @@ function Invoke-CleanupObsoleteFiles {
     }
 }
 
-# Optionally run doc and obsolete file cleanup as part of comprehensive cleanup
-param(
-    [switch]$Docs,
-    [switch]$Obsolete
-)
-
 if ($Docs) { Invoke-CleanupDocs }
 if ($Obsolete) { Invoke-CleanupObsoleteFiles }
 
@@ -190,11 +190,15 @@ Write-Host "`n[11/14] Checking Docker configuration files..." -ForegroundColor C
 if (Test-Path "docker-compose.qnap.yml") {
     Write-Host "○ Found docker-compose.qnap.yml" -ForegroundColor Yellow
     Write-Host "  This file is for QNAP Container Station deployment." -ForegroundColor Gray
-    $removeQnap = Read-Host "Remove docker-compose.qnap.yml? (y/N)"
-    if ($removeQnap -eq 'y' -or $removeQnap -eq 'Y') {
-        Remove-SafeItem "docker-compose.qnap.yml" "QNAP-specific docker-compose configuration"
+    if ($NonInteractive) {
+        Write-Host "  Non-interactive mode: keeping docker-compose.qnap.yml" -ForegroundColor Gray
     } else {
-        Write-Host "  Kept docker-compose.qnap.yml" -ForegroundColor Gray
+        $removeQnap = Read-Host "Remove docker-compose.qnap.yml? (y/N)"
+        if ($removeQnap -eq 'y' -or $removeQnap -eq 'Y') {
+            Remove-SafeItem "docker-compose.qnap.yml" "QNAP-specific docker-compose configuration"
+        } else {
+            Write-Host "  Kept docker-compose.qnap.yml" -ForegroundColor Gray
+        }
     }
 }
 
