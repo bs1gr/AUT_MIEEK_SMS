@@ -36,9 +36,9 @@
 param(
     [ValidateSet('Quick', 'Standard', 'Full')]
     [string]$Mode = 'Quick',
-    
+
     [switch]$AutoFix,
-    
+
     [switch]$ExitOnViolation
 )
 
@@ -137,32 +137,32 @@ if ($Mode -ne 'Quick') {
         "OBSOLETE",
         "@deprecated"
     )
-    
+
     $activeCodePaths = @(
         "backend/*.py",
         "frontend/src/**/*.{ts,tsx,js,jsx}",
         "scripts/**/*.ps1",
         "*.ps1"
     )
-    
+
     $markerFindings = @()
-    
+
     foreach ($marker in $deprecatedMarkers) {
         $results = Get-ChildItem -Path . -Recurse -Include *.py,*.ts,*.tsx,*.js,*.jsx,*.ps1 -File |
             Where-Object { $_.FullName -notlike "*\archive\*" -and $_.FullName -notlike "*\node_modules\*" } |
             Select-String -Pattern $marker -CaseSensitive:$false |
             Select-Object -First 20
-        
+
         foreach ($result in $results) {
             # Check if it's a proper deprecation notice or orphaned
             $line = $result.Line.Trim()
-            
+
             # Acceptable patterns (intentional deprecation)
-            $acceptable = $line -match "deprecated.*since" -or 
+            $acceptable = $line -match "deprecated.*since" -or
                          $line -match "DEPRECATED.*Use.*instead" -or
                          $line -match "@deprecated.*version" -or
                          $line -match "legacy.*compat"
-            
+
             if (-not $acceptable) {
                 $markerFindings += $result
                 Add-Warning -Message "Undocumented deprecation marker: $($result.Filename):$($result.LineNumber)" `
@@ -170,7 +170,7 @@ if ($Mode -ne 'Quick') {
             }
         }
     }
-    
+
     if ($markerFindings.Count -eq 0) {
         Write-Pass "All deprecation markers properly documented"
     } else {
@@ -187,19 +187,19 @@ Write-Info "Check 4/5: Git protection for archived scripts..."
 $gitignoreFile = ".gitignore"
 if (Test-Path $gitignoreFile) {
     $gitignoreContent = Get-Content $gitignoreFile -Raw
-    
+
     # Check for archived script patterns
     $expectedPatterns = @(
         "/RELEASE_PREPARATION.ps1"
     )
-    
+
     $missingPatterns = @()
     foreach ($pattern in $expectedPatterns) {
         if ($gitignoreContent -notlike "*$pattern*") {
             $missingPatterns += $pattern
         }
     }
-    
+
     if ($missingPatterns.Count -eq 0) {
         Write-Pass "Git protection in place for archived scripts"
     } else {
@@ -278,7 +278,7 @@ if ($script:violations.Count -eq 0 -and $script:warnings.Count -eq 0) {
     exit 0
 } else {
     Write-Host "`n❌ FAIL - Fix violations before committing" -ForegroundColor Red
-    
+
     if ($ExitOnViolation) {
         exit 1
     } else {
