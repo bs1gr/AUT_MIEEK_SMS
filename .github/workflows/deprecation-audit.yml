@@ -1,0 +1,60 @@
+name: Deprecation Policy Audit
+
+on:
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Monthly audit - 1st of month at 3:00 AM UTC
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Audit mode (Quick/Standard/Full)'
+        required: false
+        default: 'Standard'
+        type: choice
+        options:
+          - Quick
+          - Standard
+          - Full
+
+jobs:
+  audit-deprecations:
+    name: Audit Deprecated Markers
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run deprecation audit
+        shell: pwsh
+        run: |
+          $mode = "${{ github.event.inputs.mode }}"
+          if (-not $mode) { $mode = "Standard" }
+          
+          Write-Host "Running deprecation audit (mode: $mode)..."
+          .\scripts\utils\audit_deprecated_markers.ps1 -Mode $mode -ExitOnViolation
+      
+      - name: Upload audit results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deprecation-audit-results
+          path: |
+            artifacts/deprecation-audit-*.md
+          retention-days: 30
+      
+      - name: Comment on PR (if violations found)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ **Deprecation Policy Violation**\n\nThis PR introduces deprecated files or markers that violate the deprecation policy.\n\nPlease review the audit results and fix violations before merging.\n\nSee: `docs/development/DEPRECATION_POLICY.md`'
+            })
