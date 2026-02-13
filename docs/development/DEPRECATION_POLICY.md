@@ -367,4 +367,3 @@ A: Yes, but requires justification and migration guide update. See `archive/READ
 **Last Updated**: February 13, 2026
 **Next Review**: May 13, 2026 (quarterly)
 **Policy Owner**: Development Team
-
