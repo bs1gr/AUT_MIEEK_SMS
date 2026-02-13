@@ -27,14 +27,22 @@ if (-not (Get-Variable -Name SCRIPT_DIR -Scope Script -ErrorAction SilentlyConti
 $INSTALLER_LOG = Join-Path $SCRIPT_DIR "DOCKER_INSTALL.log"
 
 function Write-InstallerLog {
-    param([string]$Message)
+    param([string]$Message, [switch]$Error)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    $prefix = if ($Error) { "[ERROR]" } else { "[INFO]" }
     try {
-        Add-Content -Path $INSTALLER_LOG -Value ("[$timestamp] $Message") -ErrorAction Stop
+        Add-Content -Path $INSTALLER_LOG -Value ("[$timestamp] $prefix $Message") -ErrorAction Stop
     } catch {
-        # If the log file is temporarily locked (e.g., wrapper redirected output), don't fail installation
+        # If the log file is temporarily locked, don't fail installation
         # Best-effort logging only
     }
+}
+
+function Write-DebugInfo {
+    param([string]$Message)
+    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+    Write-InstallerLog "[DEBUG] $Message"
+    Write-Verbose $Message -Verbose
 }
 <#
 .SYNOPSIS
@@ -1079,10 +1087,18 @@ function Start-Application {
     if ($Silent) { Write-InstallerLog "Start-Application called" }
     Write-Header "Starting SMS Application"
 
+    Write-DebugInfo "Current user: $(whoami)"
+    Write-DebugInfo "Process ID: $PID"
+    Write-DebugInfo "Script directory: $SCRIPT_DIR"
+    Write-DebugInfo "Docker command availability: $(where.exe docker 2>&1)"
+
     if (-not (Test-DockerAvailable)) {
+        Write-InstallerLog "START-APPLICATION FAILED: Docker not available" -Error
         Write-Error-Message "Docker is not available"
         return 1
     }
+
+    Write-DebugInfo "Docker available - proceeding with startup"
 
     # Check if already running
     $status = Get-ContainerStatus
@@ -1252,6 +1268,9 @@ function Start-Application {
     $runOutput = & docker $dockerCmd 2>&1
 
     if ($LASTEXITCODE -ne 0) {
+        Write-InstallerLog "DOCKER RUN COMMAND FAILED - Exit code: $($LASTEXITCODE)" -Error
+        Write-InstallerLog "Docker command args: $($dockerCmd -join ' ')" -Error
+        Write-InstallerLog "Docker output: $($runOutput | Out-String)" -Error
         Write-Error-Message "Failed to start container"
         if ($runOutput) {
             Write-Host $runOutput -ForegroundColor DarkGray
@@ -1288,8 +1307,10 @@ function Start-Application {
         }
 
         Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
+        Write-InstallerLog "Start-Application completed successfully"
         return 0
     } else {
+        Write-InstallerLog "START-APPLICATION FAILED: Health check timeout" -Error
         return 1
     }
 }
