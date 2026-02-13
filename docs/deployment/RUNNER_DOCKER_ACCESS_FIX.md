@@ -330,6 +330,5 @@ If you encounter issues:
 
 ---
 
-**Status**: ✅ Ready for deployment  
+**Status**: ✅ Ready for deployment
 **Next Action**: Execute `RECONFIGURE_RUNNER_USER_MODE.ps1` on REC host
-
