@@ -13,9 +13,8 @@
 | Directory | Purpose | Date Range | Items |
 |-----------|---------|------------|-------|
 | `cleanup-feb2026/` | February 2026 cleanup initiative | Feb 2026 | Scripts, backups, reports, tests, lint |
-| `sessions/` | Historical session documents | Nov 2025 - Jan 2026 | Session reports, analysis |
+| `sessions/` | Historical session documents | Nov 2025 - Jan 2026 | Session reports, analysis, displaced files |
 | `phase4-session-jan26/` | Phase 4 work session artifacts | Jan 2026 | Phase 4 planning |
-| `displaced-files-jan2026/` | Relocated files from reorganization | Jan 2026 | Misc files |
 | `db_py_deprecated_20260130_223127.py` | Single deprecated module | Jan 30, 2026 | 1 file |
 
 ---
@@ -40,6 +39,13 @@ cleanup-feb2026/
   - Replaced by: `RELEASE_READY.ps1`
   - Archive path: `cleanup-feb2026/legacy-scripts/RELEASE_PREPARATION.ps1`
   - Migration guide: See `docs/development/release-workflow/RELEASE_PREPARATION_DEPRECATED.md`
+
+### Consolidations & Reorganizations
+
+- **displaced-files-jan2026/** → **sessions/jan2026-displaced/** (Feb 13, 2026)
+  - Consolidated small archive directory (1.33 KB, 2 files) into sessions/
+  - Contents: README.md (801 bytes), site.webmanifest (560 bytes)
+  - Reason: Reduce archive fragmentation (4 → 3 subdirectories)
 
 ---
 
