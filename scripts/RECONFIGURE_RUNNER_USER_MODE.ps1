@@ -39,7 +39,13 @@ param(
     [switch]$DryRun,
 
     [Parameter()]
-    [switch]$Force
+    [switch]$Force,
+
+    [Parameter()]
+    [string]$RunnerUser = "$env:USERDOMAIN\$env:USERNAME",
+
+    [Parameter()]
+    [SecureString]$RunnerPassword
 )
 
 $ErrorActionPreference = "Stop"
@@ -79,6 +85,21 @@ function Write-ErrorMsg {
 function Test-AdminPrivileges {
     $currentPrincipal = New-Object Security.Principal.WindowsPrincipal([Security.Principal.WindowsIdentity]::GetCurrent())
     return $currentPrincipal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Convert-SecureStringToPlainText {
+    param([SecureString]$Value)
+
+    if (-not $Value) {
+        return $null
+    }
+
+    $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($Value)
+    try {
+        return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($bstr)
+    } finally {
+        [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+    }
 }
 
 function Get-RunnerServiceStatus {
@@ -170,10 +191,9 @@ if (-not $config.IsConfigured) {
     exit 1
 }
 if (-not $config.HasSvcScript) {
-    Write-ErrorMsg "Runner service script not found"
+    Write-Warning "Runner service script not found"
     Write-Host "Expected svc.ps1 at: $($config.SvcPath)" -ForegroundColor Yellow
-    Write-Host "This file is required for service management operations." -ForegroundColor Yellow
-    exit 1
+    Write-Host "Will fall back to updating the service account via sc.exe." -ForegroundColor Yellow
 }
 Write-Success "Runner configuration detected"
 
@@ -203,7 +223,7 @@ if ($serviceStatus.Exists) {
 }
 
 Write-Host "Current User:    $env:USERNAME" -ForegroundColor Cyan
-Write-Host "Target Mode:     Interactive User ($env:USERDOMAIN\$env:USERNAME)" -ForegroundColor Green
+Write-Host "Target Mode:     Interactive User ($RunnerUser)" -ForegroundColor Green
 
 # Confirmation
 if (-not $Force -and -not $DryRun) {
@@ -227,6 +247,8 @@ if ($DryRun) {
 
 Write-Header "Reconfiguration Process"
 
+$useScFallback = -not $config.HasSvcScript
+
 # Step 1: Backup current configuration
 Write-Step "Step 1: Backing up current configuration..."
 if (-not $DryRun) {
@@ -246,12 +268,16 @@ if ($serviceStatus.Exists -and $serviceStatus.Status -eq 'Running') {
     Write-Step "Step 2: Stopping runner service..."
     if (-not $DryRun) {
         try {
-            $svcPath = Join-Path $RunnerPath "svc.ps1"
-            Push-Location $RunnerPath
-            try {
-                & $svcPath stop
-            } finally {
-                Pop-Location
+            if ($useScFallback) {
+                Stop-Service -Name $serviceStatus.Name -Force -ErrorAction Stop
+            } else {
+                $svcPath = Join-Path $RunnerPath "svc.ps1"
+                Push-Location $RunnerPath
+                try {
+                    & $svcPath stop
+                } finally {
+                    Pop-Location
+                }
             }
 
             # Wait for service to stop
@@ -279,69 +305,98 @@ if ($serviceStatus.Exists -and $serviceStatus.Status -eq 'Running') {
 }
 
 # Step 3: Uninstall service
-if ($serviceStatus.Exists) {
-    Write-Step "Step 3: Uninstalling runner service..."
-    if (-not $DryRun) {
-        try {
-            $svcPath = Join-Path $RunnerPath "svc.ps1"
-            Push-Location $RunnerPath
+if (-not $useScFallback) {
+    if ($serviceStatus.Exists) {
+        Write-Step "Step 3: Uninstalling runner service..."
+        if (-not $DryRun) {
             try {
-                & $svcPath uninstall
-            } finally {
-                Pop-Location
-            }
+                $svcPath = Join-Path $RunnerPath "svc.ps1"
+                Push-Location $RunnerPath
+                try {
+                    & $svcPath uninstall
+                } finally {
+                    Pop-Location
+                }
 
-            # Wait for service to be removed
-            Start-Sleep -Seconds 2
+                # Wait for service to be removed
+                Start-Sleep -Seconds 2
 
-            $stillExists = Get-Service -Name $serviceStatus.Name -ErrorAction SilentlyContinue
-            if (-not $stillExists) {
-                Write-Success "Service uninstalled successfully"
-            } else {
-                Write-Warning "Service still appears to exist, but continuing..."
+                $stillExists = Get-Service -Name $serviceStatus.Name -ErrorAction SilentlyContinue
+                if (-not $stillExists) {
+                    Write-Success "Service uninstalled successfully"
+                } else {
+                    Write-Warning "Service still appears to exist, but continuing..."
+                }
+            } catch {
+                Write-ErrorMsg "Failed to uninstall service: $_"
+                exit 1
             }
-        } catch {
-            Write-ErrorMsg "Failed to uninstall service: $_"
-            exit 1
+        } else {
+            Write-Host "  [DRY RUN] Would uninstall service: $($serviceStatus.Name)" -ForegroundColor Gray
         }
     } else {
-        Write-Host "  [DRY RUN] Would uninstall service: $($serviceStatus.Name)" -ForegroundColor Gray
+        Write-Step "Step 3: No service to uninstall"
     }
 } else {
-    Write-Step "Step 3: No service to uninstall"
+    Write-Step "Step 3: Skipping uninstall (svc.ps1 not available)"
 }
 
 # Step 4: Reconfigure for interactive user mode
 Write-Step "Step 4: Configuring for interactive user mode..."
 if (-not $DryRun) {
-    Write-Host "  The runner will now run as: $env:USERDOMAIN\$env:USERNAME" -ForegroundColor Cyan
+    Write-Host "  The runner will now run as: $RunnerUser" -ForegroundColor Cyan
     Write-Host "  This provides full Docker Desktop access." -ForegroundColor Green
     Write-Success "Runner configured for user mode"
 } else {
-    Write-Host "  [DRY RUN] Would configure runner for: $env:USERDOMAIN\$env:USERNAME" -ForegroundColor Gray
+    Write-Host "  [DRY RUN] Would configure runner for: $RunnerUser" -ForegroundColor Gray
 }
 
 # Step 5: Install service under user account
 Write-Step "Step 5: Installing runner service under user account..."
 if (-not $DryRun) {
     try {
-        $svcPath = Join-Path $RunnerPath "svc.ps1"
-        Push-Location $RunnerPath
-        try {
-            # Install service (will prompt for credentials if needed)
-            & $svcPath install
-        } finally {
-            Pop-Location
-        }
+        if ($useScFallback) {
+            if (-not $serviceStatus.Exists) {
+                Write-ErrorMsg "Runner service not found; cannot update service account"
+                exit 1
+            }
 
-        # Verify installation
-        Start-Sleep -Seconds 2
-        $newService = Get-Service -Name "actions.runner.*" -ErrorAction SilentlyContinue
+            if (-not $RunnerPassword) {
+                $RunnerPassword = Read-Host "Enter password for $RunnerUser" -AsSecureString
+            }
 
-        if ($newService) {
-            Write-Success "Service installed successfully: $($newService.Name)"
+            $plainPassword = Convert-SecureStringToPlainText -Value $RunnerPassword
+            if (-not $plainPassword) {
+                Write-ErrorMsg "Runner password is required to update the service account"
+                exit 1
+            }
+
+            $configResult = sc.exe config $serviceStatus.Name obj= $RunnerUser password= $plainPassword
+            if ($LASTEXITCODE -ne 0) {
+                Write-ErrorMsg "Failed to update service account via sc.exe"
+                Write-Host "sc.exe output: $configResult" -ForegroundColor Yellow
+                exit 1
+            }
+            Write-Success "Service account updated via sc.exe"
         } else {
-            Write-Warning "Service installation completed but service not found"
+            $svcPath = Join-Path $RunnerPath "svc.ps1"
+            Push-Location $RunnerPath
+            try {
+                # Install service (will prompt for credentials if needed)
+                & $svcPath install
+            } finally {
+                Pop-Location
+            }
+
+            # Verify installation
+            Start-Sleep -Seconds 2
+            $newService = Get-Service -Name "actions.runner.*" -ErrorAction SilentlyContinue
+
+            if ($newService) {
+                Write-Success "Service installed successfully: $($newService.Name)"
+            } else {
+                Write-Warning "Service installation completed but service not found"
+            }
         }
     } catch {
         Write-ErrorMsg "Failed to install service: $_"
@@ -356,12 +411,16 @@ if (-not $DryRun) {
 Write-Step "Step 6: Starting runner service..."
 if (-not $DryRun) {
     try {
-        $svcPath = Join-Path $RunnerPath "svc.ps1"
-        Push-Location $RunnerPath
-        try {
-            & $svcPath start
-        } finally {
-            Pop-Location
+        if ($useScFallback) {
+            Start-Service -Name $serviceStatus.Name -ErrorAction Stop
+        } else {
+            $svcPath = Join-Path $RunnerPath "svc.ps1"
+            Push-Location $RunnerPath
+            try {
+                & $svcPath start
+            } finally {
+                Pop-Location
+            }
         }
 
         # Wait for service to start
