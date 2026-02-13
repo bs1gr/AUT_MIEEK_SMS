@@ -33,8 +33,8 @@ Quick navigation for all release workflow documentation.
 
 | Script | Purpose | Time |
 |--------|---------|------|
-| [RELEASE_PREPARATION.ps1](./RELEASE_PREPARATION.ps1) | Automated pre-release validation | 5-40 min |
-| [RELEASE_READY.ps1](./RELEASE_READY.ps1) | Execute the release | 1 min |
+| ~~[RELEASE_PREPARATION.ps1](./RELEASE_PREPARATION_DEPRECATED.md)~~ | ⛔ DEPRECATED - See [deprecation notice](./RELEASE_PREPARATION_DEPRECATED.md) | ~~5-40 min~~ |
+| [RELEASE_READY.ps1](./RELEASE_READY.ps1) | Execute the release (includes validation) | 5-40 min |
 
 ### Comprehensive Guides
 

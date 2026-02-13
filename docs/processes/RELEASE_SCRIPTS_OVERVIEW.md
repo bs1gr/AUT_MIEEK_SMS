@@ -29,10 +29,12 @@
 ```text
 ---
 
-### 2. RELEASE_PREPARATION.ps1
+### 2. ~~RELEASE_PREPARATION.ps1~~ (DEPRECATED)
 
-**Purpose**: Pre-release validation and quality checks
-**Scope**: Code quality gate before release
+**⚠️ DEPRECATED**: Archived Feb 13, 2026 - **Use RELEASE_READY.ps1 instead**
+
+**Historical Purpose**: Pre-release validation and quality checks
+**Current Replacement**: `RELEASE_READY.ps1` consolidates all validation functionality
 
 **What it does**:
 - Git status checks (clean working directory)

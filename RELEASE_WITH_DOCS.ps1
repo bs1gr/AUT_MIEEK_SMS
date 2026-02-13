@@ -39,11 +39,10 @@
     Generate docs but review before committing
 
 .NOTES
-    Version: 1.0
+    Version: 1.1
     This is a convenience wrapper around:
-    - RELEASE_PREPARATION.ps1
+    - RELEASE_READY.ps1 (includes validation from deprecated RELEASE_PREPARATION.ps1)
     - GENERATE_RELEASE_DOCS.ps1
-    - RELEASE_READY.ps1
 #>
 
 [CmdletBinding()]
@@ -95,19 +94,12 @@ Write-Host "║  Version: $ReleaseVersion" -ForegroundColor Green
 Write-Host "║  Mode: $Mode" -ForegroundColor Green
 Write-Host "╚════════════════════════════════════════════════════════╝`n" -ForegroundColor Green
 
-# PHASE 1: PREPARATION
+# PHASE 1: PREPARATION (now handled by RELEASE_READY.ps1)
 Write-PhaseHeader "PHASE 1/4: PREPARATION" "Validating codebase is release-ready"
 
-$prepArgs = @('-Mode', $Mode)
-if ($SkipTests) {
-    $prepArgs += '-SkipTests'
-}
-
-& .\RELEASE_PREPARATION.ps1 @prepArgs
-if ($LASTEXITCODE -ne 0) {
-    Write-Error "Preparation failed. Fix issues and try again."
-    exit 1
-}
+# NOTE: RELEASE_PREPARATION.ps1 deprecated Feb 4, 2026 - validation now in RELEASE_READY.ps1
+# Validation happens in PHASE 3 via RELEASE_READY.ps1 -ReleaseVersion
+Write-Info "Validation will be performed by RELEASE_READY.ps1 in Phase 3"
 Write-Success "Preparation complete"
 
 # PHASE 2: DOCUMENTATION GENERATION

@@ -777,7 +777,7 @@ if (-not $SkipTests -and -not $DryRun) {
         "DOCKER.ps1",
         "NATIVE.ps1",
         "COMMIT_READY.ps1",
-        "RELEASE_PREPARATION.ps1",
+        # "RELEASE_PREPARATION.ps1",  # Archived Feb 13, 2026 - consolidated into RELEASE_READY.ps1
         "RELEASE_READY.ps1",
         "GENERATE_RELEASE_DOCS.ps1",
         "RELEASE_WITH_DOCS.ps1"

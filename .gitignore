@@ -16,6 +16,9 @@ watch_run.ps1
 commit_msg.txt
 cleanup_msg.txt
 
+# Deprecated scripts (archived Feb 2026 - prevent readdition)
+/RELEASE_PREPARATION.ps1
+
 # Temporary CI / local artifact folders (created by automation runs)
 tmp_artifacts/
 
