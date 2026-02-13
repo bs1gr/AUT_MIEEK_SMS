@@ -1,0 +1,81 @@
+name: Cleanup Deployments
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to clean (e.g., production, staging)'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+      keep_count:
+        description: 'Number of recent deployments to keep'
+        required: false
+        default: 1
+        type: number
+      dry_run:
+        description: 'Dry run (log only, do not delete)'
+        required: false
+        default: true
+        type: boolean
+  schedule:
+    - cron: '0 0 1 * *' # Monthly cleanup (1st of month at 00:00 UTC)
+
+jobs:
+  cleanup:
+    name: 🧹 Cleanup Deployments
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+      contents: read
+    steps:
+      - name: Delete old deployments
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TARGET_ENV: ${{ inputs.environment || 'production' }}
+          KEEP_COUNT: ${{ inputs.keep_count || 1 }}
+          DRY_RUN: ${{ inputs.dry_run || false }}
+        run: |
+          echo "Target environment: $TARGET_ENV"
+          echo "Keep count: $KEEP_COUNT"
+          echo "Dry run: $DRY_RUN"
+
+          DEPLOY_IDS=$(gh api "repos/$GH_REPO/deployments?environment=$TARGET_ENV&per_page=100" --jq '.[].id')
+
+          if [ -z "$DEPLOY_IDS" ]; then
+            echo "No deployments found for $TARGET_ENV"
+            exit 0
+          fi
+
+          TOTAL=$(echo "$DEPLOY_IDS" | wc -l | xargs)
+          echo "Found $TOTAL deployments for $TARGET_ENV"
+
+          TO_DELETE=$(echo "$DEPLOY_IDS" | tail -n +$((KEEP_COUNT + 1)))
+
+          if [ -z "$TO_DELETE" ]; then
+            echo "Nothing to delete (keeping last $KEEP_COUNT deployments)."
+            exit 0
+          fi
+
+          echo "Will delete deployment IDs:"
+          echo "$TO_DELETE"
+
+          if [ "$DRY_RUN" = "true" ]; then
+            echo "Dry run enabled. No deletions performed."
+            exit 0
+          fi
+
+          echo "$TO_DELETE" | while read -r id; do
+            if [ -n "$id" ]; then
+              echo "Deleting deployment $id..."
+              gh api -X DELETE "repos/$GH_REPO/deployments/$id"
+            fi
+          done
+
+          echo "Cleanup complete."
