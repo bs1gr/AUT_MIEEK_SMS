@@ -1,55 +1,67 @@
-# GitHub Release Draft - 1.18.0
+# GitHub Release Draft - v1.18.0
 
-**Use this content to create the GitHub Release at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new**
+**Use this content to create the GitHub Release at:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
 
 ---
 
 ## Tag Information
 
-- **Tag version**: `1.18.0`
-- **Target**: `main` branch
-- **Release title**: `1.18.0 - PWA & Mobile Experience`
+- **Tag version**: `v1.18.0`
+- **Target**: `main`
+- **Release title**: `v1.18.0 - Major Maintenance & UX Consolidation`
 
 ---
 
 ## Release Body
 
-# 1.18.0 - PWA & Mobile Experience
+# v1.18.0 - Major Maintenance & UX Consolidation
 
-**Release Date**: January 22, 2026
-**Type**: Major Feature Release
-**Status**: Production Ready
+**Release Date**: February 2026  
+**Type**: Major maintenance release  
+**Status**: Production-ready
 
 ---
 
 ## 🎉 Highlights
 
-Version 1.18.0 transforms the Student Management System into a fully installable Progressive Web App (PWA), enabling offline access, home screen installation, and a native-like mobile experience.
-
-- ✅ **Installable App** - Install on desktop or mobile
-- ✅ **Offline Support** - Access data without connection
-- ✅ **Mobile Optimized** - Enhanced touch and viewport handling
-- ✅ **Smart Updates** - Automatic update detection and prompting
-
----
-
-## 📱 PWA Capabilities
-
-- **Service Worker**: Powered by `vite-plugin-pwa` and Workbox
-- **Manifest**: Full web app manifest with maskable icons
-- **Persistence**: `persistQueryClient` for offline data access
-- **Caching**: Smart caching strategies for API and assets
+- ✅ Cascaded active/inactive student list experience
+- ✅ Student deactivate/reactivate enrollment lifecycle hardening
+- ✅ Student profile highlight authoring and class-label consistency
+- ✅ Reporting terminology migration to `academic_year` / Class
+- ✅ EN/EL i18n synchronization across dashboard and students modules
+- ✅ CI stability fixes for frontend TypeScript and backend MyPy gates
 
 ---
 
-## 🚀 Upgrade Instructions
+## ✨ What’s Included
 
-### Docker Deployment
+### Students
+- Added cascaded views in both student-list implementations.
+- Added profile highlight authoring with role-aware access.
+- Aligned class labels to `academic_year` semantics across UI/tests.
 
-```bash
-.\DOCKER.ps1 -Update
+### Reports
+- Migrated templates/copy from `study_year` to `academic_year` / “Class”.
+- Added migration utility for legacy report template terminology.
 
-```text
+### Fixes
+- Stabilized analytics/dashboard rendering and attendance filtering.
+- Synced EN/EL locale keys and resolved key-structure mismatches.
+- Normalized grading translation labels for assignment/category surfaces.
+- Fixed CI gate failures:
+  - Frontend TypeScript (`enrollmentsAPI` method mismatch)
+  - Backend MyPy (soft-delete restore assignment annotation)
+
 ---
 
-**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/1.17.3...1.18.0
+## 🚀 Upgrade Notes
+
+- Deploy frontend and backend together.
+- No special migration required for this release documentation set.
+- Keep standard workflow:
+  - Test/dev: `NATIVE.ps1 -Start`
+  - Production: `DOCKER.ps1 -Start`
+
+---
+
+**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.9...v1.18.0

@@ -1,53 +1,56 @@
-# Deployment Checklist $11.17.6
+# Deployment Checklist v1.18.0
 
-**Release Date:** January 22, 2026
-**Version:** $11.17.6
-**Focus:** PWA, Offline Support, Mobile UX
+**Release Date:** February 2026 (target)
+**Version:** v1.18.0
+**Focus:** Student lifecycle UX + reporting terminology + localization consistency + CI stability
 
 ## 📋 Pre-Deployment Verification
 
-### 1. Automated Testing
+### 1) Source & Version Checks
 
-- [ ] Run PWA audit:
+- [ ] `main` is clean (`git status`)
+- [ ] Tag does **not** already exist before release creation (`v1.18.0`)
+- [ ] `VERSION` and frontend package version are aligned with planned release
 
-  ```powershell
-  .\frontend\tests\e2e\run-pwa-audit.ps1
-  ```
-  - [ ] Manifest validation passed
-  - [ ] Service Worker registration passed
-  - [ ] Install prompt trigger passed
-  - [ ] Mobile optimizations passed
+### 2) Quality Gates
 
-### 2. Build Verification
+- [ ] Backend batch tests completed via `RUN_TESTS_BATCH.ps1`
+- [ ] Frontend test suite completed
+- [ ] Frontend TypeScript compilation passes (`npx tsc --noEmit`)
+- [ ] Backend MyPy passes (`mypy --config-file=config/mypy.ini backend --namespace-packages`)
+- [ ] CI/CD pipeline on `main` is green
 
-- [ ] Run production build: `npm run build`
-- [ ] Verify `dist/manifest.json` exists
-- [ ] Verify `dist/sw.js` (or similar service worker file) exists
-- [ ] Verify icons in `dist/`
+### 3) Documentation Gates
+
+- [ ] `CHANGELOG.md` contains post-`v1.17.9` consolidated release notes
+- [ ] `RELEASE_NOTES_v1.18.0.md` updated
+- [ ] `GITHUB_RELEASE_v1.18.0.md` updated
+- [ ] `RELEASE_MANIFEST_v1.18.0.md` updated
+- [ ] `UNIFIED_WORK_PLAN.md` and `DOCUMENTATION_INDEX.md` synchronized
 
 ## 🚀 Deployment Steps
 
-### 1. Backend Deployment
+### Production
 
-- [ ] Deploy updated backend code (no schema changes).
-- [ ] Restart backend service.
+- [ ] Start/update production with `DOCKER.ps1 -Start` (or approved update workflow)
+- [ ] Verify API health endpoint and UI accessibility
+- [ ] Confirm auth, students, and reports critical paths are functional
 
-### 2. Frontend Deployment
+### Native Validation (optional but recommended)
 
-- [ ] Deploy contents of `frontend/dist/` to static file server.
-- [ ] Ensure web server serves `sw.js` with `Cache-Control: no-cache` or short max-age.
+- [ ] Validate local test/dev flow with `NATIVE.ps1 -Start`
+- [ ] Smoke-check student cascade views and report template terminology updates
 
 ## 🔍 Post-Deployment Verification
 
-### 1. PWA Checks
+- [ ] Student active/inactive cascaded views render correctly
+- [ ] Deactivate/reactivate enrollment lifecycle behaves as expected
+- [ ] Report templates display `academic_year` / Class terminology
+- [ ] EN/EL switching works for updated dashboard/student keys
+- [ ] No new CI regressions after release tag
 
-- [ ] Open app in new private window.
-- [ ] Verify "Install App" icon/prompt appears.
-- [ ] Verify "App ready to work offline" toast appears (if configured).
+## 📦 Release Completion
 
-### 2. Offline Check
-
-- [ ] Go offline (Airplane mode or DevTools).
-- [ ] Refresh page.
-- [ ] App should load.
-- [ ] Navigate to Students list (should show cached data).
+- [ ] Create GitHub release using `GITHUB_RELEASE_v1.18.0.md`
+- [ ] Attach release artifacts as needed
+- [ ] Record release commit/tag references in work plan

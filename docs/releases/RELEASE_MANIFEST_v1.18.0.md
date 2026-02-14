@@ -1,20 +1,43 @@
-# Release Manifest $11.17.6
+# Release Manifest v1.18.0
 
-**Version:** 1.17.3
-**Date:** January 22, 2026
-**Build Status:** Ready for Deployment
+**Version:** v1.18.0 (target)
+**Date:** February 15, 2026
+**Build Status:** Documentation + release packaging ready
+**Base Tag:** `v1.17.9`
+**Target Branch:** `main`
 
-## Artifacts
+## Artifact Scope
 
-- **Frontend:** `frontend/dist/` (React SPA)
-- **Backend:** `backend/` (FastAPI Application)
-- **Database:** No schema changes required.
+- **Frontend:** `frontend/` (React + TypeScript application)
+- **Backend:** `backend/` (FastAPI application)
+- **Docs:**
+  - `CHANGELOG.md`
+  - `docs/releases/RELEASE_NOTES_v1.18.0.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.0.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.0.md`
+  - `docs/plans/UNIFIED_WORK_PLAN.md`
+  - `docs/DOCUMENTATION_INDEX.md`
 
-## Configuration
+## Included Change Themes
 
-- **Frontend:** Requires `VITE_API_URL` pointing to backend.
-- **Backend:** Requires `AUTH_MODE` and database credentials.
+- Student lifecycle UX improvements (cascaded lists, enrollment lifecycle safety)
+- Reporting terminology modernization (`academic_year` / Class)
+- EN/EL i18n synchronization and structure corrections
+- CI reliability fixes (TypeScript + MyPy)
 
-## Verification Hashes
+## Validation Gates
 
-(To be populated after build)
+- Frontend TypeScript compilation gate: pass
+- Backend MyPy gate: pass
+- CI/CD pipeline rerun after fixes: pass
+
+## Deployment Configuration
+
+- **Development/Test:** `NATIVE.ps1 -Start`
+- **Production Deployment:** `DOCKER.ps1 -Start`
+- **Environment:** Existing `.env` strategy remains unchanged
+
+## Notes
+
+- No dedicated schema migration is required solely for this release documentation package.
+- Tag and publish only after final owner sign-off for release timing.

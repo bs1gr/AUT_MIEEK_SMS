@@ -8,7 +8,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
-## [Unreleased] - Post v1.17.9 (2026-02-15)
+## [Unreleased] - Target v1.18.0 (2026-02-15)
 
 ### Features
 - **students**: add cascaded active/inactive list views in both student list implementations.
@@ -21,6 +21,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **students**: deactivate flow now unenrolls active enrollments with optional re-enroll on reactivation.
 - **i18n**: synchronize EN/EL dashboard + student locale keys and resolve key-structure mismatch.
 - **grading**: normalize assignment/category label translation handling in grading views.
+- **ci(frontend)**: fix TypeScript pipeline failure in cascaded students view (`enrollmentsAPI` call alignment).
+- **ci(backend)**: fix MyPy pipeline failure in student re-enrollment soft-delete restoration.
 
 ### Tooling & Operations
 - **launcher**: implement `SMS_Manager.exe` Docker controller integration updates.
@@ -29,6 +31,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Release Workflow Notes
 - **release**: `v1.17.9` was already tagged; duplicate release rerun was corrected via revert to preserve proper tag workflow.
+- **release-docs**: prepared and synchronized `v1.18.0` release documentation set (notes, manifest, deployment checklist, GitHub draft).
 
 ---
 

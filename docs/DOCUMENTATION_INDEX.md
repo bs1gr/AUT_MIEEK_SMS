@@ -4,14 +4,15 @@
 **Project Version (documented)**: 1.17.9
 **Version**: 1.17.9
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | 🔧 **MAINTENANCE & STABILITY**
+**Status**: ✅ **PRODUCTION LIVE** | 📦 **NEXT MAJOR RELEASE DOCS READY (v1.18.0)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 15, 2026)**: ✅ **Production Live + Post-release Documentation Synchronized**
+> **Current Status (Feb 15, 2026)**: ✅ **Production Live + Next Major Release Documentation Prepared**
 > - Maintenance & stability phase active
 > - Changelog/work plan/index updated for changes since `v1.17.9`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
+> - `v1.18.0` release documentation pack refreshed (notes, release body, manifest, deployment checklist)
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
@@ -503,6 +504,10 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
+- **[releases/RELEASE_NOTES_v1.18.0.md](releases/RELEASE_NOTES_v1.18.0.md)** - Next major release notes package (prepared Feb 15, 2026)
+- **[releases/GITHUB_RELEASE_v1.18.0.md](releases/GITHUB_RELEASE_v1.18.0.md)** - Publish-ready GitHub release body for v1.18.0
+- **[releases/RELEASE_MANIFEST_v1.18.0.md](releases/RELEASE_MANIFEST_v1.18.0.md)** - Release artifact scope and validation gates
+- **[releases/DEPLOYMENT_CHECKLIST_v1.18.0.md](releases/DEPLOYMENT_CHECKLIST_v1.18.0.md)** - Deployment and post-release verification checklist
 - **[releases/RELEASE_NOTES_v1.17.8.md](releases/RELEASE_NOTES_v1.17.8.md)** - v1.17.8 release notes (Feb 11, 2026)
 - **[releases/GITHUB_RELEASE_v1.17.8.md](releases/GITHUB_RELEASE_v1.17.8.md)** - GitHub release body for v1.17.8
 - **[guides/MIGRATION_v1.17.8.md](guides/MIGRATION_v1.17.8.md)** - Migration guide for v1.17.8 breaking changes
