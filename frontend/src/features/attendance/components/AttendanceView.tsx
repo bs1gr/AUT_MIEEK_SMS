@@ -56,7 +56,7 @@ const shallowEqualNumberMap = (a: Record<string, number>, b: Record<string, numb
   return aKeys.every((key) => a[key] === b[key]);
 };
 
-const AttendanceView: React.FC<Props> = ({ courses }) => {
+const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
 
 
@@ -79,6 +79,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
 
   const [evaluationCategories, setEvaluationCategories] = useState<EvaluationRule[]>([]);
   const [enrolledStudents, setEnrolledStudents] = useState<Student[]>([]);
+  const [activeStudentIds, setActiveStudentIds] = useState<Set<number>>(new Set());
   const [, setLoading] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [showPerformanceModal, setShowPerformanceModal] = useState(false);
@@ -117,6 +118,32 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
   const isResponseLike = (e: unknown): e is { response?: { status?: number } } => (
     typeof e === 'object' && e !== null && 'response' in e
   );
+
+  useEffect(() => {
+    const hydrateActiveStudentIds = async () => {
+      if (Array.isArray(students) && students.length > 0) {
+        setActiveStudentIds(new Set(students.filter((s) => s.is_active !== false).map((s) => s.id)));
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/students?limit=1000`);
+        if (!response.ok) throw new Error(`Failed to fetch students: ${response.status}`);
+        const payload = await response.json();
+        const items: Student[] = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : [];
+        setActiveStudentIds(new Set(items.filter((s) => s.is_active !== false).map((s) => s.id)));
+      } catch (err) {
+        console.error('[AttendanceView] Failed to hydrate active students map:', err);
+        setActiveStudentIds(new Set());
+      }
+    };
+
+    hydrateActiveStudentIds();
+  }, [students]);
 
   useEffect(() => {
     const recallCourse = sessionStorage.getItem('attendance_recall_course');
@@ -468,9 +495,15 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
                 debugAttendance(`Enrollments for course ${c.id}:`, arr);
                 // Accept both array and object-with-items
                 if (Array.isArray(arr)) {
-                  return { id: c.id, count: arr.length };
+                  const activeCount = activeStudentIds.size > 0
+                    ? arr.filter((student: Student) => activeStudentIds.has(student.id)).length
+                    : arr.filter((student: Student) => student.is_active !== false).length;
+                  return { id: c.id, count: activeCount };
                 } else if (arr && Array.isArray(arr.items)) {
-                  return { id: c.id, count: arr.items.length };
+                  const activeCount = activeStudentIds.size > 0
+                    ? arr.items.filter((student: Student) => activeStudentIds.has(student.id)).length
+                    : arr.items.filter((student: Student) => student.is_active !== false).length;
+                  return { id: c.id, count: activeCount };
                 } else {
                   return { id: c.id, count: 0 };
                 }
@@ -515,7 +548,7 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
       }
     };
     fetchEnrollments();
-  }, [courseIds, localCourses]); // Also include localCourses to satisfy exhaustive-deps
+  }, [courseIds, localCourses, activeStudentIds]); // Also include localCourses to satisfy exhaustive-deps
 
   // Ensure selectedCourse is within the filtered list
   useEffect(() => {
@@ -565,13 +598,17 @@ const AttendanceView: React.FC<Props> = ({ courses }) => {
         const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
         if (!resp.ok) throw new Error(`Failed to fetch enrollments: ${resp.status} ${resp.statusText}`);
         const data = await resp.json();
-        setEnrolledStudents(Array.isArray(data) ? data : []);
+        const enrolled = Array.isArray(data) ? data : [];
+        const activeEnrolled = activeStudentIds.size > 0
+          ? enrolled.filter((student: Student) => activeStudentIds.has(student.id))
+          : enrolled.filter((student: Student) => student.is_active !== false);
+        setEnrolledStudents(activeEnrolled);
       } catch {
         setEnrolledStudents([]);
       }
     };
     loadEnrolled();
-  }, [selectedCourse]);
+  }, [selectedCourse, activeStudentIds]);
 
   const refreshAttendancePrefill = useCallback(async () => {
     if (!selectedCourse || !selectedDateStr) return;

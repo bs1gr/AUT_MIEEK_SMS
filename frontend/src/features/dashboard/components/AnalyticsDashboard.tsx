@@ -23,6 +23,7 @@ import {
   type TrendData,
   type PieChartData,
 } from './AnalyticsCharts';
+import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
 import { Users, BookOpen, TrendingUp, Calendar } from 'lucide-react';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
@@ -80,16 +81,17 @@ export const AnalyticsDashboard: React.FC = () => {
 
   const { dashboard, isLoading, error, refetch } = useDashboardData();
 
-  const normalizeDivisionLabel = useCallback((label?: string | null) => {
-    if (!label) return t('analytics.divisionUnknownLabel');
-    const trimmed = label.trim();
-    if (!trimmed) return t('analytics.divisionUnknownLabel');
-    const normalized = trimmed.toLowerCase();
-    if (normalized === 'unassigned division' || normalized === 'unassigned' || normalized === 'no division') {
-      return t('analytics.divisionUnknownLabel');
-    }
-    return trimmed;
-  }, [t]);
+  const divisionUnknownLabel = t('analytics.divisionUnknownLabel');
+
+  const normalizeDivisionLabel = useCallback(
+    (label?: string | null) => normalizeDivisionLabelValue(label, divisionUnknownLabel),
+    [divisionUnknownLabel]
+  );
+
+  const matchesSelectedDivision = useCallback(
+    (student: Student) => matchesSelectedDivisionValue(student.class_division, selectedDivision, divisionUnknownLabel),
+    [selectedDivision, divisionUnknownLabel]
+  );
 
   useEffect(() => {
     const loadLookups = async () => {
@@ -129,11 +131,11 @@ export const AnalyticsDashboard: React.FC = () => {
         setStudents(studentItems);
         setCourses(courseItems);
 
-        if (!selectedStudent && studentItems.length > 0) {
-          setSelectedStudent(studentItems[0].id);
+        if (studentItems.length > 0) {
+          setSelectedStudent((prev) => prev ?? studentItems[0].id);
         }
-        if (!selectedCourse && courseItems.length > 0) {
-          setSelectedCourse(courseItems[0].id);
+        if (courseItems.length > 0) {
+          setSelectedCourse((prev) => prev ?? courseItems[0].id);
         }
 
         let enrollmentItems: CourseEnrollment[] = [];
@@ -312,25 +314,25 @@ export const AnalyticsDashboard: React.FC = () => {
     };
 
     loadLookups();
-  }, [selectedStudent, selectedCourse, t, normalizeDivisionLabel]);
+  }, [t, normalizeDivisionLabel]);
 
   const effectiveSelectedStudent = useMemo(() => {
     if (!selectedDivision) return selectedStudent;
     if (!selectedStudent) {
-      const fallback = students.find((student) => student.class_division === selectedDivision);
+      const fallback = students.find((student) => matchesSelectedDivision(student));
       return fallback ? fallback.id : null;
     }
 
     const current = students.find((student) => student.id === selectedStudent);
-    if (current && current.class_division === selectedDivision) return selectedStudent;
+    if (current && matchesSelectedDivision(current)) return selectedStudent;
 
-    const fallback = students.find((student) => student.class_division === selectedDivision);
+    const fallback = students.find((student) => matchesSelectedDivision(student));
     return fallback ? fallback.id : null;
-  }, [selectedDivision, selectedStudent, students]);
+  }, [selectedDivision, selectedStudent, students, matchesSelectedDivision]);
 
   const pieChartData = useMemo<PieChartData[]>(() => {
     const filteredStudents = selectedDivision
-      ? students.filter((student) => student.class_division === selectedDivision)
+      ? students.filter((student) => matchesSelectedDivision(student))
       : students;
     const totalStudents = filteredStudents.length;
     const activeCount = filteredStudents.filter((s) => s.is_active !== false).length;
@@ -340,11 +342,11 @@ export const AnalyticsDashboard: React.FC = () => {
       { name: t('active'), value: activeCount },
       { name: t('inactive'), value: inactiveCount },
     ];
-  }, [selectedDivision, students, t]);
+  }, [selectedDivision, students, t, matchesSelectedDivision]);
 
   const filteredCourseAggregates = useMemo(() => {
     if (!selectedDivision) return courseAggregates;
-    const filteredStudents = students.filter((student) => student.class_division === selectedDivision);
+    const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
     const studentIds = new Set(filteredStudents.map((student) => student.id));
     if (studentIds.size === 0) return [];
 
@@ -376,7 +378,7 @@ export const AnalyticsDashboard: React.FC = () => {
       }))
       .filter((entry) => entry.count > 0 || entry.average > 0)
       .sort((a, b) => b.count - a.count);
-  }, [selectedDivision, students, courses, analyticsEnrollments, analyticsGrades, courseAggregates]);
+  }, [selectedDivision, students, courses, analyticsEnrollments, analyticsGrades, courseAggregates, matchesSelectedDivision]);
 
   const divisionGradeDistributionData = useMemo<GradeDistributionData[]>(() => {
     if (!selectedDivision || !selectedCourse) {
@@ -384,7 +386,7 @@ export const AnalyticsDashboard: React.FC = () => {
     }
 
     const divisionStudents = new Set(
-      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+      students.filter((student) => matchesSelectedDivision(student)).map((student) => student.id)
     );
     if (divisionStudents.size === 0) return [];
 
@@ -420,13 +422,13 @@ export const AnalyticsDashboard: React.FC = () => {
       count: counts[index],
       percentage: totalGrades > 0 ? (counts[index] / totalGrades) * 100 : 0,
     }));
-  }, [selectedDivision, selectedCourse, analyticsGrades, gradeDistributionData, students]);
+  }, [selectedDivision, selectedCourse, analyticsGrades, gradeDistributionData, students, matchesSelectedDivision]);
 
   const divisionTrendData = useMemo<TrendData[]>(() => {
     if (!selectedDivision) return trendData;
 
     const divisionStudents = new Set(
-      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+      students.filter((student) => matchesSelectedDivision(student)).map((student) => student.id)
     );
     if (divisionStudents.size === 0) return [];
 
@@ -455,12 +457,12 @@ export const AnalyticsDashboard: React.FC = () => {
         week: index + 1,
         average: stats.count > 0 ? stats.total / stats.count : 0,
       }));
-  }, [selectedDivision, analyticsGrades, students, trendData, selectedCourse]);
+  }, [selectedDivision, analyticsGrades, students, trendData, selectedCourse, matchesSelectedDivision]);
 
   const divisionPerformanceData = useMemo<PerformanceDataPoint[]>(() => {
     if (!selectedDivision) return performanceData;
     const divisionStudents = new Set(
-      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+      students.filter((student) => matchesSelectedDivision(student)).map((student) => student.id)
     );
     if (divisionStudents.size === 0) return [];
 
@@ -487,12 +489,12 @@ export const AnalyticsDashboard: React.FC = () => {
         trend: Number(percentage ?? 0),
       };
     });
-  }, [selectedDivision, analyticsGrades, students, courses, selectedCourse, performanceData, formatDate, t]);
+  }, [selectedDivision, analyticsGrades, students, courses, selectedCourse, performanceData, formatDate, t, matchesSelectedDivision]);
 
   const divisionAttendanceData = useMemo<AttendanceData[]>(() => {
     if (!selectedDivision) return attendanceData;
     const divisionStudents = new Set(
-      students.filter((student) => student.class_division === selectedDivision).map((student) => student.id)
+      students.filter((student) => matchesSelectedDivision(student)).map((student) => student.id)
     );
     if (divisionStudents.size === 0) return [];
 
@@ -527,11 +529,11 @@ export const AnalyticsDashboard: React.FC = () => {
         absent: stats.absent,
       };
     });
-  }, [selectedDivision, analyticsAttendance, students, courses, selectedCourse, attendanceData, t]);
+  }, [selectedDivision, analyticsAttendance, students, courses, selectedCourse, attendanceData, t, matchesSelectedDivision]);
 
   const filteredClassAggregates = useMemo(() => {
     if (!selectedDivision) return classAggregates;
-    const filteredStudents = students.filter((student) => student.class_division === selectedDivision);
+    const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
     const studentIds = new Set(filteredStudents.map((student) => student.id));
     if (studentIds.size === 0) return [];
 
@@ -578,7 +580,7 @@ export const AnalyticsDashboard: React.FC = () => {
         average: stats.count > 0 ? stats.total / stats.count : 0,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [selectedDivision, students, analyticsGrades, classAggregates, t]);
+  }, [selectedDivision, students, analyticsGrades, classAggregates, t, matchesSelectedDivision]);
 
   const quickReportStats = useMemo(() => {
     if (!selectedDivision) {
@@ -603,7 +605,7 @@ export const AnalyticsDashboard: React.FC = () => {
       };
     }
 
-    const filteredStudents = students.filter((student) => student.class_division === selectedDivision);
+    const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
     const studentIds = new Set(filteredStudents.map((student) => student.id));
     const activeStudents = filteredStudents.filter((s) => s.is_active !== false).length;
 
@@ -628,7 +630,7 @@ export const AnalyticsDashboard: React.FC = () => {
       averageAttendance: attendanceRate,
       totalGrades: filteredGrades.length,
     };
-  }, [selectedDivision, students, dashboard, performanceData, attendanceData, analyticsGrades, analyticsAttendance]);
+  }, [selectedDivision, students, dashboard, performanceData, attendanceData, analyticsGrades, analyticsAttendance, matchesSelectedDivision]);
 
   useEffect(() => {
     const loadStudentAnalytics = async () => {
@@ -859,7 +861,7 @@ export const AnalyticsDashboard: React.FC = () => {
           >
             <option value="">{t('analytics.selectStudent')}</option>
             {students
-              .filter((student) => (selectedDivision ? student.class_division === selectedDivision : true))
+              .filter((student) => (selectedDivision ? matchesSelectedDivision(student) : true))
               .map((student) => (
                 <option key={student.id} value={student.id}>
                   {student.first_name} {student.last_name}

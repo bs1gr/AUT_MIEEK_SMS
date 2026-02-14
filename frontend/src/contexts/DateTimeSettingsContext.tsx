@@ -70,14 +70,17 @@ export const useDateTimeSettings = () => {
 export const useDateTimeFormatter = () => {
   const settings = useDateTimeSettings();
 
-  return {
-    formatDate: (value: Date | string | number | null | undefined) => formatDateWithSettings(value, settings),
-    formatDateTime: (value: Date | string | number | null | undefined, options?: { includeSeconds?: boolean }) =>
-      formatDateTimeWithSettings(value, settings, options),
-    formatTime: (value: Date | string | number | null | undefined, options?: { includeSeconds?: boolean }) =>
-      formatTimeWithSettings(value, settings, options),
-    formatMonthYear: (value: Date | string | number | null | undefined) => formatMonthYearWithSettings(value, settings),
-    formatWeekday: (value: Date | string | number | null | undefined, localeOverride?: string) =>
-      formatWeekdayWithSettings(value, settings, localeOverride),
-  };
+  return useMemo(
+    () => ({
+      formatDate: (value: Date | string | number | null | undefined) => formatDateWithSettings(value, settings),
+      formatDateTime: (value: Date | string | number | null | undefined, options?: { includeSeconds?: boolean }) =>
+        formatDateTimeWithSettings(value, settings, options),
+      formatTime: (value: Date | string | number | null | undefined, options?: { includeSeconds?: boolean }) =>
+        formatTimeWithSettings(value, settings, options),
+      formatMonthYear: (value: Date | string | number | null | undefined) => formatMonthYearWithSettings(value, settings),
+      formatWeekday: (value: Date | string | number | null | undefined, localeOverride?: string) =>
+        formatWeekdayWithSettings(value, settings, localeOverride),
+    }),
+    [settings]
+  );
 };

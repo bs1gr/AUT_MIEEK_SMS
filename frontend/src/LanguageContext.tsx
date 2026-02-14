@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface LanguageContextType {
@@ -35,11 +35,11 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
   }, [i18n]);
 
   // Update i18next when language is changed via setLanguage
-  const setLanguage = (lang: string) => {
+  const setLanguage = useCallback((lang: string) => {
     i18n.changeLanguage(lang);
     localStorage.setItem('i18nextLng', lang);
     setLanguageState(lang);
-  };
+  }, [i18n]);
 
   useEffect(() => {
     if (language) {
@@ -72,7 +72,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     'system'
   ];
 
-  const t = (key: string, options?: Record<string, unknown>): string => {
+  const t = useCallback((key: string, options?: Record<string, unknown>): string => {
     const tryNamespace = (ns: string, k: string) => {
       const value = i18nT(k, { ...(options || {}), ns });
       return typeof value === 'string' && value !== k ? value : null;
@@ -97,10 +97,15 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
 
     return key;
-  };
+  }, [i18nT]);
+
+  const contextValue = useMemo(
+    () => ({ t, language, setLanguage }),
+    [t, language, setLanguage]
+  );
 
   return (
-    <LanguageContext.Provider value={{ t, language, setLanguage }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );
