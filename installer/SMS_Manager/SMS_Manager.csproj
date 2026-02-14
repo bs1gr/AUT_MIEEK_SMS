@@ -1,0 +1,58 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- ===== Project Metadata ===== -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>false</UseWindowsForms>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <PublishTrimmed>true</PublishTrimmed>
+    <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Build output configuration -->
+    <AssemblyName>SMS_Manager</AssemblyName>
+    <RootNamespace>SMS_Manager</RootNamespace>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    <Company>AUT MIEEK</Company>
+    <Product>Student Management System - Docker Manager</Product>
+    <Description>Lightweight console application for managing SMS Docker containers</Description>
+
+    <!-- Startup hook behavior -->
+    <StartupObject>SMS_Manager.Program</StartupObject>
+
+    <!-- Output and debug settings -->
+    <OutputPath>..\..\dist\</OutputPath>
+    <IntermediateOutputPath>obj\</IntermediateOutputPath>
+    <DebugType>embedded</DebugType>
+    <DebugSymbols>false</DebugSymbols>
+  </PropertyGroup>
+
+  <!-- ===== Build Configurations ===== -->
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+  <!-- ===== Dependencies ===== -->
+  <ItemGroup>
+    <PackageReference Include="System.Security.Principal.Windows" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
+  </ItemGroup>
+
+  <!-- ===== Build Targets ===== -->
+  <Target Name="PublishToInstaller" AfterTargets="Publish">
+    <Copy
+      SourceFiles="$(PublishDir)SMS_Manager.exe"
+      DestinationFolder="..\dist\"
+      SkipUnchangedFiles="true" />
+    <Message Text="SMS_Manager.exe published to installer/dist/" Importance="high" />
+  </Target>
+
+</Project>

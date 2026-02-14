@@ -1,0 +1,12 @@
+D:\SMS\student-management-system\installer\SMS_Manager\obj\net5.0\win-x64\SMS_Manager.csprojAssemblyReference.cache
+D:\SMS\student-management-system\installer\SMS_Manager\obj\net5.0\win-x64\SMS_Manager.AssemblyInfoInputs.cache
+D:\SMS\student-management-system\installer\SMS_Manager\obj\net5.0\win-x64\SMS_Manager.AssemblyInfo.cs
+D:\SMS\student-management-system\installer\SMS_Manager\obj\net5.0\win-x64\SMS_Manager.csproj.CoreCompileInputs.cache
+D:\SMS\student-management-system\dist\net5.0\win-x64\SMS_Manager.exe
+D:\SMS\student-management-system\dist\net5.0\win-x64\SMS_Manager.deps.json
+D:\SMS\student-management-system\dist\net5.0\win-x64\SMS_Manager.runtimeconfig.json
+D:\SMS\student-management-system\dist\net5.0\win-x64\SMS_Manager.runtimeconfig.dev.json
+D:\SMS\student-management-system\dist\net5.0\win-x64\SMS_Manager.dll
+D:\SMS\student-management-system\installer\SMS_Manager\obj\net5.0\win-x64\SMS_Manager.csproj.CopyComplete
+D:\SMS\student-management-system\installer\SMS_Manager\obj\net5.0\win-x64\SMS_Manager.dll
+D:\SMS\student-management-system\installer\SMS_Manager\obj\net5.0\win-x64\SMS_Manager.genruntimeconfig.cache
