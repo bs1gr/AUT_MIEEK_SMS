@@ -1,18 +1,34 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.17.8 ($11.17.8 Release Published)
-**Last Updated**: February 13, 2026 (Workspace cleanup + consolidation review)
-**Status**: ✅ PRODUCTION LIVE - $11.17.8 RELEASED | 🔧 MAINTENANCE PHASE - Installer Testing In Progress
+**Current Version**: 1.17.9 (v1.17.9 Tagged & Published)
+**Last Updated**: February 15, 2026 (Post-release documentation review and correction)
+**Status**: ✅ PRODUCTION LIVE - v1.17.9 RELEASED | 🔧 MAINTENANCE PHASE - Documentation synchronized
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Installer testing + production monitoring)
 **Current Branch**: `main`
 **Latest Commits**:
-- 402e4d14b - chore(policy): enforce TODO/FIXME marker removal policy
-- 50e3f4332 - chore(frontend): tighten query hook lint
-- 106b6530e - chore(frontend): tighten analytics types
-- 836c1dccb - fix(frontend): reduce eslint warnings
-- de1b20945 - docs(work-plan): Update with systematic task assessment completion
-- 8bb9a6d16 - docs(systematic-tasks): Complete assessment of installer testing, code health, and APScheduler
+- b428b18e7 - revert(release): undo duplicate v1.17.9 release rerun commit
+- cacc2a130 - fix(i18n): sync en/el dashboard and student locale keys
+- cfed5a334 - feat(students): cascade primary students list by active status
+- 064a08291 - feat(students): add profile highlight authoring and class labeling
+- 6d478f2e1 - feat(students): add cascaded active/inactive student view
+- 3b848a077 - feat(reports): migrate study_year templates to academic_year/class
+
+---
+
+## 📘 Documentation Preparation Since Last Release (v1.17.9)
+
+**Status**: ✅ COMPLETE (Feb 15, 2026)
+
+**Completed Documentation Actions**:
+1. ✅ Reviewed commit history since `v1.17.9` and categorized changes.
+2. ✅ Added post-release **Unreleased** summary in `CHANGELOG.md` for changes after the tag.
+3. ✅ Updated this work plan header metadata (version, status, latest commits).
+4. ✅ Corrected release workflow record: duplicate 1.17.9 release rerun was reverted to preserve tag integrity.
+
+**Outcome**:
+- Release documentation is now aligned with actual git/tag state.
+- Post-release changes are documented and ready for next version planning.
 
 ---
 

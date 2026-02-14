@@ -1,6 +1,6 @@
 # Documentation Index
 
-**Last Updated**: 2026-02-13
+**Last Updated**: 2026-02-15
 **Project Version (documented)**: 1.17.9
 **Version**: 1.17.9
 **Current Branch**: `main`
@@ -8,9 +8,10 @@
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 13, 2026)**: ✅ **Production Live + Maintenance**
+> **Current Status (Feb 15, 2026)**: ✅ **Production Live + Post-release Documentation Synchronized**
 > - Maintenance & stability phase active
-> - Cleanup workflows consolidated and recent cleanup completed
+> - Changelog/work plan/index updated for changes since `v1.17.9`
+> - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---

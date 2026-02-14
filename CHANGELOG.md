@@ -8,6 +8,30 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [Unreleased] - Post v1.17.9 (2026-02-15)
+
+### Features
+- **students**: add cascaded active/inactive list views in both student list implementations.
+- **students**: add profile highlight authoring flow (role-gated for admin/teacher) and reusable quick templates.
+- **students**: align class labeling to `academic_year` semantics across cards/profile and tests.
+- **reports**: migrate report templates from `study_year` to `academic_year`/"Class" naming and add migration utility.
+
+### Bug Fixes
+- **frontend**: stabilize analytics/dashboard rendering and attendance active filtering.
+- **students**: deactivate flow now unenrolls active enrollments with optional re-enroll on reactivation.
+- **i18n**: synchronize EN/EL dashboard + student locale keys and resolve key-structure mismatch.
+- **grading**: normalize assignment/category label translation handling in grading views.
+
+### Tooling & Operations
+- **launcher**: implement `SMS_Manager.exe` Docker controller integration updates.
+- **scripts**: add timeout-safe behavior for state snapshot verification script in admin-mode workflows.
+- **deps**: remove unnecessary `python-socketio[aiohttp]` extra and keep ASGI-aligned dependency usage.
+
+### Release Workflow Notes
+- **release**: `v1.17.9` was already tagged; duplicate release rerun was corrected via revert to preserve proper tag workflow.
+
+---
+
 
 ## [1.17.9] - 2026-02-13
 
