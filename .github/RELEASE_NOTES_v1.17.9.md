@@ -36,14 +36,14 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 **Windows:** Download \SMS_Installer_1.17.9.exe\ from the assets below.
 
 **Docker:**
-`powershell
+powershell
 .\DOCKER.ps1 -Update
-`
+
 
 **Native (Development):**
-`powershell
+powershell
 .\NATIVE.ps1 -Start
-`
+
 
 ### 📚 Documentation
 

@@ -9,6 +9,779 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.17.9] - 2026-02-15
+
+### ⚠️ BREAKING CHANGES
+- chore(deprecation): archive RELEASE_PREPARATION.ps1 and establish cleanup policies
+- refactor: Move Power and RBAC modules to feature architecture + i18n improvements
+- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning
+
+### Features
+- **students**: cascade primary students list by active status
+- **students**: add profile highlight authoring and class labeling
+- **students**: add cascaded active/inactive student view
+- **reports**: migrate study_year templates to academic_year/class
+- **students**: add deactivate unenroll and optional reenroll flow
+- **launcher**: implement SMS_Manager.exe Docker container controller
+- **workspace**: add auto-fix capability and workspace analysis tool
+- **automation**: add automated deprecation policy enforcement
+- **runner**: add execution helper scripts for REC host reconfiguration
+- **runner**: add automated runner reconfiguration for Docker access
+- **feedback,help,reports**: add feedback inbox, help PDF, and report UX polish
+- **analytics-notifications**: dashboard updates and notification improvements
+- **custom-reports**: add builder email defaults
+- **custom-reports**: add email override actions
+- **custom-reports**: add email override support in UI
+- **reports**: add email delivery overrides and smtp docs
+- **control**: cache control/metrics responses and polish UI
+- **system**: unify health + control panel UI
+- **uninstaller**: add optional Docker image removal during uninstall
+- **installer**: add manual uninstaller for legacy version cleanup
+- **release**: consolidate release workflow into single source of truth
+- **historical-edit**: Add Recall buttons to StudentPerformanceReport for editing past records
+- **reports**: Add Analytics tile to Operations panel for template discovery
+- **reports**: Add clickable Analytics and CSV tiles for quick template access
+- **reports**: Auto-switch to CSV templates tab when CSV format is selected
+- **reports**: add toast notifications and debug logging for template import
+- **reports**: add CSV export templates and detailed analytics templates
+- **reports**: add import default templates API endpoint and service method
+- **i18n**: add missing translation keys for report builder controls (moveUp, moveDown, noFields, sortingOrder)
+- **reports**: implement server-side language support for PDF/CSV export (en/el bilingual)
+- **reports**: add Greek translations for all recommendation messages
+- **search**: add grade date filters and hints
+- **frontend**: add historical edit recall for grades/attendance
+- **reports**: Complete Phase 6 reporting system with help documentation
+- add delete generated reports functionality
+- add download endpoint for generated reports
+- add better error feedback and logging to report save
+- display error messages for failed report generation
+- add generated reports viewer with download functionality
+- **reports**: Implement full Reports submenu with entity types and output formats - fully localized EN/EL
+- **operations**: Add Reports tab to Operations page with quick action buttons
+- **routing**: Move reports to /operations and add missing localization keys for operations and reports tabs
+- **routing**: Add report routes and navigation for Phase 6
+- **frontend**: Phase 6 Days 9-10 custom reports UI components
+- **frontend**: Phase 6 Day 6 - Custom reports API integration and i18n foundation
+- **phase6**: Complete Day 1 backend foundation with mypy fixes
+- **phase6**: Add custom reports backend foundation (models, schemas, service, router)
+- **phase5**: Complete Week 2 Go-Live - System Live for Users
+- **search**: Add AdvancedSearchPage integration tests for Issue #147
+- **export-admin**: Add lightweight integration tests with essential coverage
+- **export-admin**: Complete i18n localization and component integration
+- **export-admin**: Add comprehensive admin UI components and Phase 6 proposal
+- **export**: Wire router endpoints and scheduler initialization
+- **export**: Add multi-format support, scheduling, monitoring, and maintenance
+- **export**: Add progress tracking and job cleanup/archival
+- **async-export**: Add async export with background processing
+- **export**: Implement async Excel export with background processing
+- Remove validation expiration and add incremental test re-running
+- **training**: Create Phase 5 training infrastructure and participant materials
+- **monitoring**: Phase 5 monitoring infrastructure complete
+- **phase5-days2-3**: Complete training materials and operational tools
+- **phase5-day2**: Complete monitoring stack + user training materials
+- Phase 5 Day 1 - User training (EN/EL) and monitoring stack
+- **opt**: add pagination to Excel export
+- **perf**: Complete Issue #149 curated load test - PRODUCTION READY
+- **search**: FacetedNavigation, SearchHistory, and AdvancedQueryBuilder\n\n- Added FacetedNavigation component wired to facets from results\n- Integrated facet selection into useSearch (selectedFacets, toggle/clear)\n- Added SearchHistory sidebar with localStorage persistence and SearchBar integration\n- Added AdvancedQueryBuilder wrapper (AND/OR group selector, UI note)\n- Updated AdvancedSearchPage to include new components\n- Tests: 3 new suites for components (render + interaction)\n\nAll validations passing via COMMIT_READY -Quick
+- **search-results**: Add SearchResults component with entity-specific cards and tests
+- **advanced-filters**: add advanced filter builder and tests
+- **searchbar**: Implement real-time search with debouncing and history (Step 4)
+- Add E2E tests and update work plan for Phase 4 #147
+- Add comprehensive integration tests for Phase 4 #147
+- Add comprehensive test suite for Phase 4 #147 search components
+- **phase4**: Issue #145 - Backend search API implementation
+- CI/CD comprehensive enhancements (Jan 25)
+- BATCH 6 - Frontend SavedSearches Component
+- BATCH 5 - Frontend AdvancedFilters Component
+- BATCH 4 - Frontend SearchBar Component
+- BATCH 2 - Add SavedSearches API endpoints
+- BATCH 1 - Add SavedSearch model and search services
+- **phase-3**: Complete Phase 3 implementation - Features 125, 126, 127
+- Add timing middleware and enhance test isolation
+- Add state snapshot system and fix pre-commit exit code handling
+- implement Feature #127 backend and version enforcement
+- implement Feature #127 backend and version enforcement
+- **import-export**: Add Feature #127 Phase 3 - API endpoints and backend implementation
+- Implement 4-layer version format enforcement system
+- Implement COMMIT_READY enforcement system (Policy 5 - Zero Bypass)
+- Complete Feature #126 - Real-Time Notifications
+- Integrate WebSocket server into FastAPI application (Feature #126 Step 1.3)
+- Complete WebSocket infrastructure for real-time notifications (Feature #126 Step 1)
+- **analytics**: Add comprehensive test suite for AnalyticsService (22 tests, 100% passing)
+
+### Bug Fixes
+- **i18n**: sync en/el dashboard and student locale keys
+- **frontend**: stabilize analytics and attendance active filtering
+- **scripts**: add timeout protection to VERIFY_AND_RECORD_STATE for admin mode
+- **deps**: remove unnecessary [aiohttp] extra from python-socketio
+- **docker**: repair start script syntax
+- **staging**: harden runner preflight
+- **runner**: simpler reconfiguration script (direct sc.exe approach)
+- **runner**: add manual reconfiguration script (svc.ps1 missing)
+- **runner**: add docker-users group membership script
+- **runner**: correct path handling and add svc.ps1 validation
+- **ci-cd**: improve Docker health check for service account runners
+- **ci-cd**: correct staging docker path check
+- **ci-cd**: resolve PowerShell syntax error in Docker health check + document cleanup opportunities
+- **ci-cd**: harden Docker start and snapshot status
+- **ci-cd**: make Docker health check non-blocking to allow deployment to proceed
+- **ci-cd**: simplify Docker health check with proper exit code handling and diagnostics
+- **ci-cd**: improve Docker health check logic with better error handling on self-hosted runner
+- **ci-cd**: fix PowerShell syntax error in Docker health check step
+- **ci-cd**: add Docker health check before staging deployment
+- **load-testing**: use latest analysis file for regression check
+- **load-testing**: use locust CLI and resolve report input path
+- **load-testing**: fix migrations PYTHONPATH and report input path
+- **load-testing**: initialize database before backend startup and add verbose error output
+- **load-testing**: correct sys.path for root/locust directory structure
+- **load-testing**: use absolute paths for all script invocations after cd
+- **load-testing**: add __init__.py files for Python package imports
+- **load-testing**: set working directory and PYTHONPATH for archived suite structure
+- **load-testing**: add Python setup and dependencies to performance-report job
+- **load-testing**: handle archived suite paths
+- **installer**: recognize localized code signing EKU
+- **installer**: detect code signing EKU by OID
+- **installer**: handle single installer match in signer
+- **release**: guard missing DOCUMENTATION_INDEX.md
+- **ci**: improve staging deployment Docker error handling and robustness
+- **tsc**: resolve report and dashboard type errors
+- **eslint**: add proper dependencies to AnalyticsDashboard effects
+- **eslint**: suppress exhaustive-deps for analytics useEffect with stable utilities
+- **analytics**: remove callback functions from useEffect dependencies to prevent infinite loops
+- **dashboard**: eliminate infinite effect loop by relying on React Query enabled flag
+- **auth**: prevent 401 errors by guarding data fetches until auth initializes
+- **staging**: release 8080 and clean container start
+- **staging**: improve deploy and websocket handling
+- **health**: resolve alembic script path
+- **health**: handle alembic path and docker frontend
+- **health**: improve migration and frontend checks
+- **ci**: run staging deploy via DOCKER.ps1
+- **ci**: use pwsh for staging health check
+- **frontend**: resolve axios audit advisory
+- **ci**: use pwsh for staging version extraction
+- **ci**: harden staging checkout on self-hosted
+- **ci**: guard version report step
+- **ci**: lock staging deploy to self-hosted runner
+- **ci**: remove secrets from staging gate
+- **ci**: gate staging deploy and resolve npm audit
+- **ci**: remove unsupported vitest flags
+- **frontend**: remove xlsx dependency
+- **frontend**: resolve tsc type errors and clean analytics tests
+- allow safe backup paths and clean lint
+- **ci**: avoid secrets in slack notify if
+- **ci**: declare workflow_call slack secret
+- **reports**: align builder fields, filters, and tests
+- **exports**: localize export values and restore student report downloads
+- **notifications,analytics**: stabilize hooks, i18n, and batch runner output
+- **search**: show grade assignments and include date filters
+- resolve Pydantic schema generation issues with RBAC forward references
+- **security**: harden backup restore path validation
+- **frontend**: reduce eslint warnings
+- **reports**: send scheduled report emails
+- **native**: stop processes by port on shutdown
+- **reports**: reuse saved email recipients
+- **reports**: unwrap custom report responses and stabilize frontend tests
+- **installer**: keep uninstaller data files and shortcut logs working
+- **installer**: show docker manager window instead of running minimized
+- restore date-tracking in monitoring log - owner records actual completion dates, not schedules
+- remove week-based scheduling from maintenance frameworks - comply with solo developer policy
+- **installer**: resolve missing icon, menu encoding, and uninstaller issues
+- **export-admin-tests**: add missing seconds translation key for PerformanceAnalytics test
+- **export-admin**: add missing useExportJob mock and fix tests - 100% pass rate
+- **export-admin**: fix SupportingComponents test by adding required props and fixing imports
+- **export-admin**: resolve component prop missing errors and test mocking issues
+- **eslint**: remove unused useEffect import from useSearchHistory (Phase 3c cleanup - 240έΗΤ6 warnings, 98.75%)
+- **eslint**: Phase 3c - fix useState-in-effect and unused import warnings (240έΗΤ6 warnings, 97.5% reduction)
+- **phase3d**: Wrap literal metric strings in i18next translation keys
+- **phase3d**: Remove unnecessary act() wrappers and clean up unused variables
+- **api**: prefer dev proxy for localhost base
+- **frontend**: resolve module resolution issues - delete stale api.js and fix reportsAPI imports
+- **utils**: add missing formatDateGreek date formatting function
+- **api**: consolidate RBAC types and ensure proper API wrapping in RBAC components
+- **versioning**: update user guide versions to 1.17.7
+- **ci**: remove restricted teams notification action
+- **security**: correct path traversal validation in output path handling
+- **ci**: remove duplicate concurrency block in CI/CD workflow
+- **installer**: CRITICAL - stop restoring old .env files causing 400 errors
+- **installer**: improve error handling for locked files in .env deletion and uninstaller cleanup
+- **installer**: improve cleanup - remove old uninstallers, docker images, and .env files
+- **installer**: remove old instance on upgrade
+- **installer**: include .env.example for Docker Manager startup
+- **installer**: correct build issues (file paths, undefined functions)
+- **version**: synchronize all version references to v1.17.7
+- **installer**: resolve parallel installations, enforce in-place upgrades, add automatic backups
+- **ci**: use base64 encoding to safely pass release body
+- **ci**: properly handle jq JSON output in workflow script
+- **ci**: fix release workflow JavaScript template literal escaping issue
+- **release**: remove all remaining invalid version format instances
+- **release**: correct invalid version format in release notes (.17.6 έΗΤ v1.17.7)
+- **i18n-dates**: Format dates as DD-MM-YYYY in historical mode banners for Greek locale compatibility
+- **docker**: Improve nginx redirect rewriting to handle all redirect sources
+- **docker**: Fix nginx redirect rewriting for proper CORS handling
+- **docker**: Add reverse proxy headers for CORS redirect issues in Docker deployment
+- **native-backend**: resolve websocket, apscheduler, and migration issues
+- **reports**: Use boolean is_ check for system templates
+- **reports**: Add missing CSV and Analytics template tab translations
+- **reports**: initialize imported_count and add detailed import logging
+- **reports**: remove unused useTranslation import causing ReferenceError
+- **reports**: allow importing new templates even if old ones exist - check by name
+- **i18n**: add fallback mappings for existing template names in database
+- **i18n**: restore remaining missing opening quotes in translation calls
+- **syntax**: restore missing opening quotes in i18n calls
+- **i18n**: fix all namespace usage in report components for complete Greek localization
+- **i18n**: correct namespace usage in report builder child components for proper Greek localization
+- **reports**: localize student report exports
+- **i18n**: use LanguageContext for reports translations
+- **reports**: i18n recommendations and export download
+- **reports**: resolve api error and polish student header
+- **attendance**: resolve historical mode init and el copy
+- **e2e**: add admin@example.com user to seeding script for E2E tests
+- **security**: allow restore to any writable output path, not just backup_dir
+- **security**: harden path handling and password hashing
+- **rbac-tests**: Fix all 24 RBAC template tests - database isolation and response format
+- **rbac**: fix 6 failing RBAC tests
+- translate report success toast and fix excel download filename
+- improve date parsing and add i18n translations for generated reports
+- convert sorting_rules and filters arrays to dict format for backend compatibility
+- use singular report type names matching backend (student, course, grade, attendance)
+- add null checks for generated report dates
+- add notification feedback to report generation
+- add request body to report generation endpoint
+- add missing template_id field to report payload
+- ensure null values instead of undefined for optional report fields
+- add all required schedule/email fields to report creation payload
+- update frontend API interfaces to match backend schema (report_type, export_format, fields as dict)
+- add missing aggregations field to report backend config
+- Remove broken notification calls from useCustomReports hook
+- Add back button to ReportBuilder and persist form state with sessionStorage
+- resolve MyPy type errors in custom_report_service.py scheduler integration
+- correct indentation in custom_report_service.py scheduler integration
+- **types**: Add type ignore annotations to fix MyPy errors in CustomReportGenerationService
+- **tests**: Fix SavedSearches test variable typo - favoriteButton έΗΤ favoriteButtons[0] (100% test pass rate achieved)
+- **i18n**: Complete namespace migration - fix SavedSearches namespace and remaining tests
+- **i18n**: Use namespaced translation key for reports tab to avoid object collision
+- **i18n**: Fix translation keys to use proper namespaced keys and avoid object conflicts
+- **api**: Fix remaining API endpoint URLs and type annotation syntax error
+- **api**: Correct all custom reports API endpoint URLs - remove redundant /reports/ path segments
+- **imports**: Correct apiClient import from default export in customReportsAPI
+- **api**: Correct customReportsAPI import statement (consolidate imports from api.ts)
+- **frontend**: Lint warnings in custom reports components
+- Remove duplicate pytest output and document background limitation
+- Remove duplicate Write-Host causing double pytest output and document background execution limitation
+- Add comprehensive test result logging to batch runner
+- **test-runner**: Fix -RetestFailed flag initialization order
+- Update all archived and active docs to use correct /health endpoint
+- **ci**: correct Teams notification action inputs
+- **ci**: fail e2e on errors and refine completion status
+- improve control env & mieek contrast
+- **docker**: use compose for postgres production
+- **docker**: nginx perms and auth lockout test
+- Prioritize backend/.env and enhance training setup script with API integration
+- **training**: Remove all specific dates and day-based schedules
+- **tests**: Add PYTHONPATH fix to batch runner and archive deprecated db.py
+- enable db-backup automation and stabilize config test
+- **health-checks**: Ensure PostgreSQL-aware health check (no SQLite PRAGMA on PostgreSQL)
+- **postgresql**: comment out invalid index creation + add PostgreSQL-aware health check
+- Reduce batch test size from 5 to 3 files per batch to prevent memory crashes
+- **search**: Remove duplicate /students/facets endpoint and add FacetService
+- **security**: Address Dependabot and CodeQL security alerts
+- Correct malformed version format (vvvv\.17.2 έΗΤ 1.17.5) in documentation
+- search and rbac localization updates
+- Search endpoint response model and pagination
+- return paginated response format from advanced search endpoint
+- transform facets API response into SearchFacets component format
+- enable query text search in advanced search endpoint
+- ensure filteredFacets is always an array in SearchFacets
+- resolve React Hooks violation in SearchFacets component
+- **search**: Add missing state declarations for expandedFacets, searchTerms, selectedValues, and selectSelections
+- **rbac**: Use rbac namespace for tab label translations to support Greek localization
+- **server-control**: Reduce startup grace period from 12s to 3s for faster health check response
+- **devtools**: Disable automatic health check on mount to prevent startup errors
+- **i18n**: Restore Greek localization parity with English translations
+- **i18n**: Restore Greek localization parity after RBAC/search modules
+- **i18n**: Add missing Greek translations for search history and query builder
+- **native**: Add robust venv corruption handling for Setup and Clean
+- **tests**: fix FacetedNavigation test selector to use role-based query
+- **tests**: Fix 47 frontend tests - i18n wrappers, translation keys, and test expectations
+- Use 'search' namespace in useTranslation for proper Greek localization
+- **vite**: Correct frontend port configuration and NATIVE.ps1 startup args
+- **i18n**: add missing search translation keys (students/courses/grades/page_title)
+- **lint**: Resolve ESLint parsing errors and markdownlint issues
+- **search**: handle entity field in advanced search endpoint
+- **phase4**: Issue #145 - Resolve backend search API import blocker and Issue #147 frontend design
+- relax backup restore output path
+- **security**: Add CodeQL sanitizer annotations for path validation
+- **security**: Harden path validation for backup operations
+- Add explicit type assertions for SearchBar result properties
+- Remove deleteStudent reference from StudentsView
+- Resolve 15 TypeScript compilation errors
+- Change SavedSearch endpoints from optional_require_role to get_current_user
+- Depend on patch_settings_for_tests to ensure correct fixture order
+- Use object.__setattr__ to enforce auth in tests (bypasses monkeypatch ordering)
+- Remove unused import in test fixture
+- Return 403 for authorization failures; improve auth patching in tests
+- SavedSearch endpoints - enforce auth with optional_require_role('*')
+- CI/CD environment variables and E2E test blocking (Jan 24, 2026)
+- Correct version format from \.18.0 to v1.18.0 across documentation (Policy 2 compliance)
+- Remove redundant Base import redefinition in conftest.py
+- Add resilience to conftest teardown and explicit schema dependency
+- **frontend**: TypeScript Part 2 - fix remaining 15 errors
+- **frontend**: comprehensive TypeScript error fixes (part 1)
+- **frontend**: rename useSearch.test.ts to .tsx for JSX support
+- **backend**: resolve MyPy type error in saved_search_service
+- resolve search and analytics test failures
+- resolve remaining MyPy type errors in saved_search_service.py
+- resolve MyPy and ESLint errors from Phase 4 implementation
+- resolve npm audit lodash vulnerability and fix COMMIT_READY Windows workflow
+- Align SearchResult and analytics types with usage
+- Resolve ESLint warnings in frontend tests
+- Remove duplicate validation in rollback_import endpoint
+- **frontend**: Add search translation spreads to resolve i18n test failures
+- resolve TypeScript errors and increase markdown threshold
+- resolve 4 CI/CD failures - console.log to warn, remove unused imports
+- **frontend**: wrap analytics tests with i18n providers
+- **frontend**: Fix all SavedSearches test failures (25/25 passing)
+- **frontend**: Batch 11 lint cleanup - 0 warnings
+- **frontend**: Remove unused language variable in GradingView (44έΗΤ43 warnings)
+- **frontend**: Batch 10 - React Hook dependency and ref cleanup (useNotifications + usePerformanceMonitor, 2 fixes, 46έΗΤ44 warnings)
+- **frontend,backend**: Resolve CI TypeScript compilation and test fixture errors
+- Resolve TypeScript compilation errors for CI
+- Batch 6 Phase 3 - Replace any types with explicit types (3 warnings fixed)
+- Batch 6 Phase 2b - Wrap analytics grade labels with i18n (6 warnings fixed)
+- Batch 6 Phase 2a - Wrap ImportWizard 20+ hardcoded strings with i18n (20 warnings fixed)
+- Batch 6 Phase 1 - Remove unused vars, fix empty interfaces, wrap i18n literals (14 warnings fixed)
+- Batch 5 - Wrap i18n hardcoded strings with t() function (24 toast messages)
+- Complete Batch 3-4 ESLint cleanup - Type safety and React Hook dependencies
+- Resolve CI/CD failures - fix linting issues and dependency conflict
+- Add missing useEffect dependencies in custom hooks (Phase 2 - Batch 4)
+- Replace any types with proper types and add type definitions (Phase 2 - Batch 3)
+- Remove 10 unused imports across test files (Phase 2 - Batch 2)
+- **ci**: Add test environment variables to CI backend pytest - Fixes backend test failures
+- Add 'api' global to ESLint config - resolves final 4 blocking errors
+- Remove duplicate keys in translation files
+- silence MyPy Column assignment noise in import/export service
+- Comprehensive MyPy type error resolution in import_export_service
+- Resolve MyPy type errors in search and import/export services
+- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.2)
+- Update documentation versions to 1.17.2 (CI version consistency check)
+- Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
+- Resolve remaining ESLint violations (unused vars, types, quote escaping)
+- ESLint - Remove unused params and fix accessibility
+- Resolve 13 TypeScript errors and multiple linting issues
+- correct notification item translation keys and test expectations
+- trim trailing whitespace in scripts and docs
+- trim trailing whitespace in docs and scripts
+- resolve CI linting errors (explicit any, ts-expect-error)
+- resolve frontend TypeScript errors and git hook execution on Windows
+- resolve frontend TypeScript errors and git hook execution on Windows
+- resolve frontend TypeScript errors and type mismatches
+- Correct SocketIO async_mode from 'aiohttp' to 'asgi' for FastAPI compatibility
+- Add terminal encoding fix for Greek character artifacts
+- Correct version format validator path and PowerShell substitution bugs
+- Resolve all MyPy type errors (28 errors fixed)
+- Resolve linting errors (5 errors total)
+- Update all version references to v1.17.1 (9 files + package-lock.json)
+- Add missing RBAC schema exports; test audit documentation
+- Normalize line endings in VERSION file
+- Auto-fix trailing whitespace in CI summary
+- Allow CI to bypass COMMIT_READY enforcement + add checkpoint to gitignore
+- Update all version references to 1.17.0 (consistency across codebase)
+- Update frontend package version to 1.17.0 (release consistency)
+- Auto-fix trailing whitespace in documentation summary
+- Pre-commit hook formatting fixes for all test documentation
+- Use quoted type hints for Body parameters in RBAC router
+- Remove 'from __future__ import annotations' from all schema and core modules (post ruff-format)
+- Resolve RBAC ForwardRef and edge case test failures (Jan 11) - Remove future annotations, add auth guard, fix edge case DB setup
+- resolve Pydantic schema generation issues with RBAC forward references
+
+### Performance
+- **installer**: optimize deployment by excluding 99% of scripts folder
+
+### Security
+- bump cryptography and refresh npm lockfile
+- **codeql**: add explicit suppression comments for path validation safeguards
+- fix all 14 path traversal vulnerabilities detected by CodeQL
+- **path-traversal**: implement proper path validation and add comprehensive security tests
+- upgrade protobuf to 6.x to fix CVE-2026-0994
+- upgrade transitive dependencies to fix 6 additional CVEs
+- upgrade python-multipart to 0.0.22 and protobuf to 5.29.5, upgrade opentelemetry stack to 1.39.1/0.60b1
+- fix CodeQL path traversal warnings
+- Fix 2 path traversal vulnerabilities (CodeQL #1594, #1593)
+- Fix path traversal vulnerabilities (CodeQL High severity)
+- Fix critical vulnerabilities and add path validation utility
+
+### Refactoring
+- **a11y**: Phase 3b - Fix all 7 accessibility violations (25έΗΤ18 total)
+- **eslint**: Phase 3a - Fix all 26 unused variable warnings (52έΗΤ25 total)
+- **typescript**: eliminate all explicit-any types across frontend
+- **reports**: Remove duplicate tiles - already exist in OperationsView
+- **i18n**: unify translation method for import toast notifications across codebase
+- **reports**: remove copy suffix - keep template names clean and simple
+- **i18n**: eliminate all dot notation, migrate to useTranslation + ns format
+- **backend,docs,scripts**: update and validation
+- **ui**: Replace logout button text with power icon for minimal on/off style
+- **maintenance**: Add collapsible sections to maintenance widgets for decluttered UI
+- Move Power and RBAC modules to feature architecture + i18n improvements
+- **load-test**: Fix curated scenarios - remove invalid search terms, use /docs health proxy, lower export limits
+- stabilize frontend test infrastructure (Phase 4)
+- Normalize whitespace in CI_CD_SETUP_HELPER.ps1 (trailing space cleanup)
+- Extend COMMIT_READY validation window from 5 to 45 minutes (Jan 24, 2026)
+- remove async from all student router endpoints
+- Update grading and student components with translations
+- Update frontend components and hooks
+
+### Documentation
+- **admin**: add comprehensive admin mode development guide
+- **workspace**: add comprehensive workspace management toolkit guide
+- **hooks**: document pre-commit hook recursion fix
+- **deployment**: update runner docker access fix notes
+- **work-plan**: update with policy enforcement completion (v1.17.8)
+- update release and planning records
+- **work-plan**: record query hook lint cleanup
+- **work-plan**: note analytics type cleanup
+- **work-plan**: record Candidate 2 cleanup
+- **work-plan**: start next feature planning
+- **monitoring**: log Feb 7 maintenance update
+- **work-plan**: mark OPTIONAL-002 complete
+- **work-status**: confirm optional-002 SMTP verification
+- **work-plan**: Update maintenance phase status - infrastructure frameworks deployed
+- **maintenance-phase**: Setup monitoring, test documentation, and feature roadmap planning frameworks
+- **tracking**: update installer testing tracker and work plan status - Feb 5, 2026 session
+- **maintenance-phase**: Start Option A - Maintenance & Stability phase with installer testing tracker
+- **work-plan**: Update with systematic task assessment completion - installer testing, code health, and APScheduler all documented and ready
+- **systematic-tasks**: Complete assessment of installer testing, code health, and APScheduler integration - all ready for execution
+- **work-plan**: Update with all frontend tests now passing - 1813/1813 έεΖ
+- **work-plan**: Phase 3c completion - final metrics and test analysis
+- **eslint**: Phase 3c ESLint refactoring complete (240έΗΤ7 warnings, 97.1% reduction)
+- **v1.17.7**: update changelog, readme, and work plan for release
+- **plan**: mark CodeQL path traversal issues as complete with full verification
+- **security**: add comprehensive path traversal prevention guide with test results
+- **security**: document CodeQL path traversal false positives and solutions applied
+- **plan**: add CI ESLint warnings as pending code health issue
+- **installer**: update summary with critical 400 error fix
+- **installer**: comprehensive documentation for 400 error fix
+- **fix**: explain locked files handling improvements in installer
+- **fix**: add emergency cleanup and installation fix documentation
+- **installer**: Add manual cleanup guide for existing installations
+- **installer**: Add v1.17.7 installer build and testing documentation
+- force add installer critical fixes summary
+- add comprehensive installer fixes summary and update work plan
+- **installer**: force add critical upgrade fix documentation
+- **installer**: add critical upgrade fix documentation and whitelist installer docs
+- **verification**: update work plan with actual v1.17.7 release fixes and verification results
+- **release**: add comprehensive audit summary for v1.17.7
+- **release**: audit and fix v1.17.7 CI/CD release workflow
+- **release**: sync v1.17.7 release notes to .github/ for CI/CD automation
+- **release-complete**: Add comprehensive v1.17.7 release completion summary
+- **release**: Mark v1.17.7 GitHub release as published
+- **deployment-final**: Deployment readiness confirmation for v1.17.7
+- **versioning**: Synchronize version references across documentation
+- **release**: Add GitHub release draft for v1.17.7
+- **plan**: Update work plan - v1.17.7 release preparation complete
+- Add v1.17.7 release notes and fix markdown table formatting
+- Update work plan - Native backend fixes verified and complete
+- Update work plan - Historical Edit feature complete
+- **plan**: Update CI/CD recovery completion status (Feb 3, 2026)
+- **plan**: Note CI queue cooldown for next session
+- **policies**: fix lint/format commands and numbering; fix admin_routes Path type
+- **policies**: add mandatory linting and formatting enforcement before commits
+- **work-plan**: update with path traversal security completion (Feb 3, 2026)
+- **security**: add comprehensive path traversal prevention strategy documentation
+- **ci**: add Feb 2, 2026 status addenda for workflow validation
+- **ci**: add 2026-02-02 CI status addendum
+- fix deployment doc links after move
+- Update work plan - RBAC tests 100% complete (24/24 passing, Feb 2 09:40 UTC)
+- **phase6**: Mark Phase 6 complete with final status update
+- **final**: Add deployment ready summary - system ready for production launch
+- **deployment**: Add comprehensive deployment preparation checklist for v1.17.6
+- **completion**: Add Phase 6 completion report with OPTIONAL-001 validation results
+- **phase6**: Add OPTIONAL-001 scheduler validation complete summary and final session documentation
+- **phase6**: Remove timeline references - use step-by-step task list
+- **phase6**: Remove incorrect v1.18.0 target - Phase 6 complete at v1.17.6
+- **phase6**: Mark Phase 6 complete and merged to main
+- Update work plan - Phase 6 reporting integration complete (Feb 1)
+- **phase6**: Update work plan - reports tab relocated to /operations with localization complete
+- **phase6**: Update work plan with Day 11 API integration fixes complete
+- **phase6**: Day 11 integration testing - routing verified and dev servers running
+- **phase6**: Session checkpoint - Frontend complete and backend tests verified (742/742 passing)
+- **phase6**: Update work plan with Days 7-10 completion
+- **phase6**: Update work plan with Day 6 completion
+- **phase6**: Declutter work plan - archive Phases 4 & 5 history
+- **phase6**: Update work plan with Day 2-3 completion and test infrastructure fixes
+- **phase6**: Add Phase 6 Reporting Implementation Plan
+- **phase6**: Update UNIFIED_WORK_PLAN with Day 1 backend foundation completion
+- **security**: add SECURITY.md policy
+- **post-deployment**: Add comprehensive operational documentation suite
+- **phase5**: Complete Week 1 deliverables - baseline metrics and monitoring
+- **work-plan**: Update Phase 4 completion - all GitHub issues closed
+- **policy**: Add mandatory SOLO DEVELOPER - NO STAKEHOLDERS rule
+- **work-plan**: Update Phase 4 completion status and Phase 5 options (v1.17.6)
+- Add comprehensive Phase 6.1 styling completion documentation
+- **export**: Add comprehensive completion summary and update work plan
+- **work-plan**: Mark export enhancements committed and pushed to main
+- **work-plan**: Update with completed export enhancements
+- **work-plan**: Update with async export completion status
+- update work plan with quality improvements session
+- update work plan with ci/cd workflow fixes
+- Add Phase 5 document index and navigation guide
+- Add go-live quick reference card
+- Update work plan - Phase 5 complete and ready for go-live decision
+- Add Phase 5 completion overview summary
+- Add Phase 5 Go-Live completion checklist
+- Phase 5 production go-live summary - system ready for deployment
+- **training**: Phase 5 training materials verification and delivery checklist
+- Update work plan with Phase 5 Days 2-3 completion (training + operational tools complete)
+- **phase5**: Add Phase 5 Day 2 completion summary with monitoring + training verification
+- Update UNIFIED_WORK_PLAN.md with Phase 5 Day 2 completion status
+- **phase5**: Add comprehensive operational procedures for production deployment
+- **plan**: Add Phase 5 planning proposal with 5 prioritized options
+- **plan**: Document Phase 4 STEP 7-9 completion verification
+- require session-start instruction review
+- **release**: Add comprehensive release and deployment completion report
+- **plan**: Update work plan for v1.17.6 release completion and GitHub deployment
+- **release**: Add v1.17.6 deployment verification report
+- **release**: Add v1.17.6 release notes and preparation guides
+- add release summary - v1.17.5 preparation complete
+- add release documentation for v1.17.5
+- **native**: Add comprehensive venv corruption fix documentation
+- Mark Issue #149 COMPLETE - Production deployment approved (Option A - deploy now)
+- **issue149**: Final optimization results - 380ms p95 aggregated, 12/13 endpoints SLA compliant, async export optional enhancement
+- mark GitHub Release creation as complete
+- update work plan with v1.17.5 release status
+- Update work plan with PR #150 merge completion
+- Add comprehensive PR summary for Issue #147 completion
+- Update UNIFIED_WORK_PLAN with STEP 6 completion summary
+- Update UNIFIED_WORK_PLAN with STEP 5 completion summary
+- Update work plan - STEP 4 SearchBar tests verified (20/20 passing, 56/56 total) - Ready for Step 5
+- Update Phase 4 status - Issue #145 complete, #146 discovered
+- update work plan for Phase 4 initialization
+- finalize work plan, doc whitespace fixes, add markdown fixer script
+- **lint**: auto-fix 5158 markdown formatting issues across 536 files (MD022, MD031, MD032, FENCE_LANG)
+- Update work plan with Jan 25 continuation session status (cleanup & validation)
+- CI/CD setup automation & complete implementation guides
+- Update work plan with CI/CD fixes completion (Jan 24, 2026)
+- Update UNIFIED_WORK_PLAN.md with all 4 pending tasks completion status
+- release notes and changelog for v1.17.3
+- Update UNIFIED_WORK_PLAN with BATCH 4-6 completion
+- update work plan with Jan 22 CI verification
+- Fix markdown lint errors and streamline work plan >> >> - Fix README.md line length (reference-style link) >> - Fix frontend/README.md line length (split description) >> - Streamline UNIFIED_WORK_PLAN.md (3309 έΗΤ 153 lines, 95% reduction) >> - Archive historical records to UNIFIED_WORK_PLAN_ARCHIVE_JAN21.md >> - All markdown files pass markdownlint-cli2
+- clarify COMMIT_READY patience requirements
+- CI/CD fix executive summary and final status (all 4 issues resolved)
+- Add CI/CD failure analysis and fixes summary (force)
+- Add Phase 3 final completion report and action plan
+- Update work plan with test fixture verification
+- Update work plans, release notes, and CI artifacts from recent debugging sessions
+- Fix version format violations - change $11.x.x to v1.x.x
+- Begin CI monitoring for 7 queued commits
+- Update work plan - mark pending changes as committed
+- Update Phase 4 roadmap and repository cleanup status
+- Mark CI TypeScript fixes as complete in work plan
+- Update Batch 6 reports with final validation status
+- Add Batch 6 completion to unified work plan
+- Batch 6 Phase 1-3 Completion Report (43+ warnings fixed)
+- Add repository cleanup phase status report (Jan 18)
+- Update Phase 2 execution documentation and security guide (Jan 18)
+- Add comprehensive security policy with responsible disclosure guidelines
+- Add Phase 2 session summaries and continuatin guide for Batch 5
+- Add Repository Issues Cleanup phase before Phase 4 development
+- Add Phase 4 execution kickoff guide - ready for stakeholder review
+- Update work plan with frontend lint parsing error fixes (Jan 18)
+- Add Phase 6 final status report with completion verification
+- Add Phase 6 completion summary with infrastructure fixes and performance baseline
+- Fix version confusion - v1.18.0 is STABLE (not REMEDIATION)
+- add user guide and mark feature #127 complete
+- Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
+- Add production validation documentation and test utilities
+- Terminal encoding fix - cleared corrupted PSReadLine history
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.1 released
+- Update Phase 3 planning and release documentation
+- Add audit session summary with key findings and status
+- Document lesson learned implementation - verification before claims
+- Add critical lesson - verify test results before claiming success (Jan 12 incident)
+- Add comprehensive audit report and root cause analysis
+- Add action summary for CI fix and release complete
+- Add complete summary - CI fix and v1.18.0 release
+- Add release ready checklist - v1.18.0 preparation
+- Update UNIFIED_WORK_PLAN.md with COMMIT_READY enforcement completion
+- Add COMMIT_READY enforcement system guide
+- Update Feature #126 documentation - Steps 1-2 complete
+- Feature #126 Step 2 discovery - Backend 100% complete
+- Feature #126 Step 1 completion report
+- Feature #126 Real-Time Notifications architecture & implementation plan έεΖ
+- Create v1.16.0 release notes and completion summary έεΖ
+- Document Feature #125 backend testing completion (22/22 tests passing)
+- add deployment checklist and session summary for Feature #125
+- add Feature #125 Analytics Dashboard completion report
+
+### Styling
+- **automation**: clean up trailing whitespace in deprecation files
+- format help pdf router and github feedback exporter
+- **linting**: remove console.log statements and unused variables
+- **linting**: fix unused imports and variables in path traversal tests
+- format code (f-string cleanup, whitespace)
+- Apply formatting fixes and type annotations
+- Update export-admin components with enhanced Tailwind CSS styling
+- refine mieek-dark theme inputs
+
+### Tests
+- trigger workflow run for deployment verification
+- verify runner Docker access after reconfiguration
+- verify runner Docker access after reconfiguration
+- verify runner Docker access after user mode reconfiguration
+- **backend**: add coverage for error handling middleware
+- **export-admin**: stabilize ExportJobList empty state
+- **search**: use content for invalid json
+- **reports**: cover email delivery attachments
+- **rbac**: implement 24 RBAC test cases for permission checking
+- add comprehensive scheduler unit tests (10/10 passing)
+- **phase6**: Complete Day 2-3 unit test implementation
+- **async-export**: Fix background task database session in tests
+- **search**: fix 19 failing tests in SearchFacets, SearchView, and useSearchFacets
+- **search**: align SearchIntegration selectors with UI labels
+- stabilize search facets and admin permissions i18n
+- **search**: fix saved searches i18n and integration flows
+- **searchbar**: Fix all 20 SearchBar component tests - async, fireEvent, timeout improvements
+- **searchbar**: Simplify dropdown tests to use fireEvent.focus
+- fix useSearch loadMore async test flakiness
+- silence jsdom navigation errors
+- **frontend**: Achieve 100% pass rate (1550/1550 tests passing)
+- Fix all search endpoint tests - 49/49 passing
+
+### Build System
+- **installer**: rebuild v1.17.7 with RBAC startup seeding fix
+
+### CI/CD
+- **production-deploy**: fix graceful skip when env not configured, add monthly cleanup schedule
+- skip prod checks without url
+- make prod health checks configurable
+- Limit heavy workflows to PRs/schedule
+- Add workflow_dispatch to unblock manual CI reruns
+- Add concurrency groups to prevent CI/CD queue buildup
+- increase markdown lint threshold to 10000 (Phase 4 TODO)
+- fix frontend vitest heap memory exhaustion in CI
+- enforce auth in backend tests (AUTH_MODE=strict) to fix saved_search authorization failures
+- fix npm audit security scan and E2E test timeouts
+- Increase markdown lint threshold to 8210 to accommodate recent doc updates
+
+### Chores
+- **archive**: consolidate displaced-files-jan2026 into sessions
+- **deprecation**: archive RELEASE_PREPARATION.ps1 and establish cleanup policies
+- pre-commit validation complete
+- **staging**: archive obsolete runner reconfig helpers
+- apply code formatting (trailing whitespace, EOF newlines)
+- **policy**: enforce TODO/FIXME marker removal policy
+- **release**: bump version to 1.17.8 and update docs
+- **release**: sync 1.17.8 references and installer assets
+- **release**: bump version to 1.17.8
+- **ci**: formatting whitespace in workflow
+- **docs**: exclude report archives from TODO scan
+- **test**: align vitest pool config
+- **test**: cap vitest fork pool
+- **codeql**: ignore archived artifacts
+- ignore generated logs and sarif
+- pre-commit validation complete
+- **ci**: add SARIF fetch workflow
+- **cleanup**: consolidate session archive folder
+- **cleanup**: consolidate legacy scripts and remove wrapper
+- **ci**: update action pins
+- **cleanup**: archive tmp test migrations db
+- **cleanup**: archive backup metadata older than 14 days
+- **cleanup**: archive backups older than 14 days
+- **cleanup**: archive uploaded test backups
+- **cleanup**: archive additional state snapshots
+- **cleanup**: archive older state snapshots and lint report
+- **cleanup**: archive artifacts reports
+- **cleanup**: archive load-testing root assets
+- **cleanup**: remove archived load-testing scripts
+- **cleanup**: archive load-testing scripts
+- **cleanup**: remove archived load-testing files
+- **cleanup**: archive load-testing docs and scripts
+- **cleanup**: archive older backups
+- **cleanup**: archive load-testing results
+- **cleanup**: archive artifacts session reports
+- **cleanup**: archive runtime logs directory
+- **cleanup**: archive CI monitor log
+- **cleanup**: archive latest backend batch log
+- **cleanup**: archive legacy CI artifacts
+- **cleanup**: archive test_results artifacts
+- **cleanup**: archive legacy test-results
+- **cleanup**: archive Dec 2025 report docs
+- **cleanup**: consolidate deprecated script logs
+- **cleanup**: archive staging baseline logs
+- **cleanup**: archive legacy Dec 2025 reports
+- **cleanup**: archive data test file
+- **cleanup**: archive legacy commit helper
+- **cleanup**: archive additional legacy logs
+- **cleanup**: archive legacy logs
+- **frontend**: tighten query hook lint
+- **frontend**: tighten analytics types
+- **commit-ready**: scope quick tests to changed files
+- **maintenance**: clean up commit_ready logs
+- **cleanup**: remove commit_ready logs
+- control perf, ui labels, i18n, misc updates
+- **ci-cd**: make ESLint warnings non-blocking and document refactoring plan
+- **cleanup**: finalize deletion of archived session/release files
+- **cleanup**: archive 9 session/release completion reports from Feb 2026
+- sync workspace updates
+- **security**: add type hints and pragma annotation to check_login_health.py
+- **version**: update package.json to v1.17.7
+- **version**: bump to v1.17.7 for installer release
+- workspace cleanup and organization
+- **i18n**: Add missing translation keys (resetFilters, applyFilters) and update test patterns for namespace migration
+- **workspace**: Clean up misplaced test artifacts and organize files
+- Add missing translation hints for settings fields (EN)
+- Clean temporary logs from workspace
+- update work plan with Phase 5 operational procedures completion (Jan 30, 16:15 UTC)
+- remove obsolete COMMIT_READY log files
+- **release**: Prepare v1.17.6 - Update version references
+- bump version to 1.17.5
+- **release**: bump version to 1.17.4 and update docs
+- Fix ESLint warnings and organize workspace - remove unused imports/vars, move docs to archive
+- Clean up root directory - move Phase 4 documentation to archive/phase4-session-jan26
+- **frontend**: relocate test_output.txt to test-results and add summary runner; chore(admin): update admin_routes; docs: minor fixes (#143)
+- **tests**: add RUN_FRONTEND_TESTS_SUMMARY.ps1 to capture vitest output and write summary to test-results/frontend
+- **archive**: move displaced site.webmanifest to archive/displaced-files-jan2026 with README for traceability
+- Archive 39 obsolete/deprecated scripts and test files
+- update README to reflect v1.18.0 release and fix auth header attachment
+- **release**: bump version to 1.17.3 and update docs
+- BATCH 3 - Database migration for SavedSearch table
+- improve .gitignore with import/export artifact patterns
+- **frontend**: stabilize i18n tests and vitest runner
+- organize documentation into docs/
+- finalize vitest fixes and search improvements
+- clean lint artifacts and update CI docs
+- **deps**: Add papaparse for bulk import feature (Phase #127)
+- update socketio/engineio deps and refresh plan status
+- Archive session documentation files
+- Clean staging area - accumulated changes
+- pre-commit validation complete
+- Remove test artifact file.tmp
+- Update gitignore to exclude ci_failure_log.txt artifact
+- Complete Phase 1 Cleanup & Prepare Phase 2 Execution
+- Raise markdown lint threshold from 8100 to 8200 (Phase 4 prep)
+- Fix datetime.utcnow() deprecation warnings and improve gitignore
+- remove build artifacts from version control
+- post-COMMIT_READY verification complete
+- cleanup workspace, organize feature #127 files, and apply code quality fixes
+- finalize version enforcement infrastructure and advance Feature #127 to Phase 4
+- minor documentation and escaping fixes in COMMIT_READY.ps1
+- Update VERSION to 1.16.0 for release
+- **frontend**: regenerate package-lock.json after version bump
+- **pre-commit**: apply end-of-file fixes from hooks
+- **version**: sync version references to v1.15.2 (auto-fix)
+
+## [1.17.9] - 2026-02-15
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.17.9] - 2026-02-13
 
 ### Features
@@ -3624,3 +4397,4 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
+
