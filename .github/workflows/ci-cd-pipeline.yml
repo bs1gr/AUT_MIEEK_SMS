@@ -556,7 +556,7 @@ jobs:
         with:
           registry: ${{ env.DOCKER_REGISTRY }}
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GHCR_TOKEN != '' && secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Extract version from VERSION file
         id: version
@@ -583,7 +583,11 @@ jobs:
         with:
           context: .
           file: ./docker/Dockerfile.fullstack
-          push: ${{ github.event_name != 'pull_request' }}
+          # Push policy:
+          # - Always push on release tags (v*)
+          # - On branch pushes, push only if GHCR_TOKEN is configured
+          #   (prevents write_package failures when repository GITHUB_TOKEN cannot push packages)
+          push: ${{ github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v') || secrets.GHCR_TOKEN != '') }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
