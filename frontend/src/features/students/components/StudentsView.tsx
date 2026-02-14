@@ -6,7 +6,7 @@ import { attendanceAPI, gradesAPI, coursesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { usePerformanceMonitor } from '@/hooks';
 import type { Student, Attendance, Grade, Course } from '@/types';
-import { listContainerVariants } from '@/utils/animations';
+
 import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeUtils';
 import StudentCard from './StudentCard';
 import type { StudentStats } from './studentTypes';
@@ -48,6 +48,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [statsById, setStatsById] = useState<Record<number, StudentStats>>({});
+  const [cascadedSectionExpanded, setCascadedSectionExpanded] = useState({ active: true, inactive: false });
   // Derive notes from localStorage for the current students list
   const derivedNotesById = useMemo(() => {
     const loaded: Record<number, string> = {};
@@ -235,6 +236,104 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     navigate('/attendance');
   }, [navigate]);
 
+  // Cascade students by active/inactive status
+  const cascadedStudents = useMemo(() => {
+    const active: Student[] = [];
+    const inactive: Student[] = [];
+
+    (filtered || []).forEach((student) => {
+      if (student.is_active) {
+        active.push(student);
+      } else {
+        inactive.push(student);
+      }
+    });
+
+    return {
+      active: active.sort((a, b) => `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)),
+      inactive: inactive.sort((a, b) => `${a.last_name} ${a.first_name}`.localeCompare(`${b.last_name} ${b.first_name}`)),
+    };
+  }, [filtered]);
+
+  // Render cascaded section
+  const renderCascadedSection = (title: string, students: Student[], sectionKey: 'active' | 'inactive') => {
+    if (students.length === 0) return null;
+
+    const isExpanded = cascadedSectionExpanded[sectionKey];
+
+    return (
+      <div key={sectionKey} className="space-y-2">
+        <button
+          onClick={() => setCascadedSectionExpanded(prev => ({ ...prev, [sectionKey]: !prev[sectionKey] }))}
+          className="w-full flex items-center gap-3 px-6 py-4 bg-gray-100 hover:bg-gray-200 transition-colors rounded-lg border-b-2 border-gray-300"
+        >
+          <span>{isExpanded ? '▼' : '▶'}</span>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {title} ({students.length})
+          </h2>
+        </button>
+
+        {isExpanded && (
+          <motion.div
+            className="space-y-2"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+          >
+            {students.length >= 50 ? (
+              <VirtualList
+                items={students}
+                estimateSize={150}
+                renderItem={(student) => (
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    stats={statsById[student.id]}
+                    isExpanded={expandedId === student.id}
+                    noteValue={notesById[student.id] || ''}
+                    onNoteChange={(value) => updateNote(student.id, value)}
+                    onToggleExpand={toggleExpand}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    coursesMap={coursesMap}
+                    onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                    onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
+                    onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
+                    onViewProfile={onViewProfile}
+                    data-testid={`student-card-${student.id}`}
+                  />
+                )}
+                emptyMessage={t('noStudentsFound')}
+                className="space-y-2"
+              />
+            ) : (
+              <ul className="space-y-2">
+                {students.map((student) => (
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    stats={statsById[student.id]}
+                    isExpanded={expandedId === student.id}
+                    noteValue={notesById[student.id] || ''}
+                    onNoteChange={(value) => updateNote(student.id, value)}
+                    onToggleExpand={toggleExpand}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    coursesMap={coursesMap}
+                    onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                    onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
+                    onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
+                    onViewProfile={onViewProfile}
+                  />
+                ))}
+              </ul>
+            )}
+          </motion.div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
@@ -265,65 +364,12 @@ const StudentsView: React.FC<StudentsViewProps> = ({
         <p className="text-indigo-700 text-center py-8 font-semibold drop-shadow-sm">{t('noStudentsFound')}</p>
       )}
 
-      {/* Student List with Virtual Scrolling for large lists */}
+      {/* Cascaded Student List with Active/Inactive Sections */}
       {!loading && filtered.length > 0 && (
-        <>
-          {/* Use virtual scrolling for 50+ items */}
-          {filtered.length >= 50 ? (
-            <VirtualList
-              items={filtered}
-              estimateSize={150}
-              renderItem={(student) => (
-                  <StudentCard
-                    key={student.id}
-                    student={student}
-                    stats={statsById[student.id]}
-                    isExpanded={expandedId === student.id}
-                    noteValue={notesById[student.id] || ''}
-                    onNoteChange={(value) => updateNote(student.id, value)}
-                    onToggleExpand={toggleExpand}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    coursesMap={coursesMap}
-                    onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
-                    onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
-                    onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
-                    onViewProfile={onViewProfile}
-                    data-testid={`student-card-${student.id}`}
-                  />
-              )}
-              emptyMessage={t('noStudentsFound')}
-              className="space-y-2"
-            />
-          ) : (
-            <motion.ul
-              className="space-y-2"
-              role="list"
-              variants={listContainerVariants}
-              initial="hidden"
-              animate="visible"
-            >
-              {filtered.map((student) => (
-                <StudentCard
-                  key={student.id}
-                  student={student}
-                  stats={statsById[student.id]}
-                  isExpanded={expandedId === student.id}
-                  noteValue={notesById[student.id] || ''}
-                  onNoteChange={(value) => updateNote(student.id, value)}
-                  onToggleExpand={toggleExpand}
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                  coursesMap={coursesMap}
-                  onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
-                  onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
-                  onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
-                  onViewProfile={onViewProfile}
-                />
-              ))}
-            </motion.ul>
-          )}
-        </>
+        <div className="space-y-6">
+          {renderCascadedSection(t('activeStudents') || 'Active Students', cascadedStudents.active, 'active')}
+          {renderCascadedSection(t('inactiveStudents') || 'Inactive Students', cascadedStudents.inactive, 'inactive')}
+        </div>
       )}
     </div>
   );
