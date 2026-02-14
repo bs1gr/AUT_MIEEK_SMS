@@ -19,10 +19,14 @@ import {
 } from '@/components/ui';
 import { modalVariants, backdropVariants } from '@/utils/animations';
 
+type StudentUpdatePayload = Student & {
+  re_enroll_previous?: boolean;
+};
+
 interface EditStudentModalProps {
   student: Student;
   onClose: () => void;
-  onUpdate: (student: Student) => void;
+  onUpdate: (student: StudentUpdatePayload) => void;
 }
 
 const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, onUpdate }) => {
@@ -41,6 +45,8 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
       enrollment_date: student.enrollment_date || new Date().toISOString().split('T')[0],
       academic_year: student.academic_year || '',
       class_division: student.class_division || '',
+      is_active: student.is_active ?? true,
+      re_enroll_previous: false,
     },
   });
 
@@ -57,13 +63,18 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
         enrollment_date: student.enrollment_date || new Date().toISOString().split('T')[0],
         academic_year: student.academic_year || '',
         class_division: student.class_division || '',
+        is_active: student.is_active ?? true,
+        re_enroll_previous: false,
       });
     }
   }, [student, form]);
 
+  const isActive = form.watch('is_active');
+  const showReenrollOption = !student.is_active && isActive;
+
   const onSubmit = (data: StudentUpdateFormData): void => {
     // Map schema data back to Student type, preserving existing values when undefined
-    const updatedStudent: Student = {
+    const updatedStudent: StudentUpdatePayload = {
       ...student,
       first_name: data.first_name ?? student.first_name,
       last_name: data.last_name ?? student.last_name,
@@ -73,6 +84,8 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
       enrollment_date: data.enrollment_date ?? student.enrollment_date,
       academic_year: data.academic_year ?? student.academic_year,
       class_division: data.class_division ?? student.class_division,
+      is_active: data.is_active ?? student.is_active ?? true,
+      re_enroll_previous: data.re_enroll_previous ?? false,
     };
     onUpdate(updatedStudent);
     onClose();
@@ -285,6 +298,50 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="is_active"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2">
+                  <FormControl>
+                    <input
+                      type="checkbox"
+                      checked={field.value || false}
+                      onChange={(e) => field.onChange(e.target.checked)}
+                      data-testid="is-active-checkbox"
+                      className="rounded border-slate-200"
+                    />
+                  </FormControl>
+                  <FormLabel className="!mt-0 cursor-pointer">
+                    {t('active')}
+                  </FormLabel>
+                </FormItem>
+              )}
+            />
+
+            {showReenrollOption && (
+              <FormField
+                control={form.control}
+                name="re_enroll_previous"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value || false}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                        data-testid="re-enroll-checkbox"
+                        className="rounded border-slate-200"
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0 cursor-pointer">
+                      {t('reEnrollPreviousCourses')}
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="flex justify-end space-x-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>

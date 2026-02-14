@@ -130,9 +130,32 @@ class StudentService:
     def update_student(self, student_id: int, student_data: StudentUpdate):
         db_student = get_by_id_or_404(self.db, self.Student, student_id)
         update_data = student_data.model_dump(exclude_unset=True)
+        re_enroll_previous = update_data.pop("re_enroll_previous", False)
         old_values = self._serialize_student(db_student)
+        details: Optional[Dict[str, Any]] = None
 
         with transaction(self.db):
+            # If deactivating student (is_active being set to False), unenroll from all courses
+            if "is_active" in update_data and update_data["is_active"] is False and db_student.is_active:
+                removed_courses = self._unenroll_from_all_courses(db_student)
+                details = {
+                    "action": "deactivate",
+                    "unenrolled_courses": removed_courses,
+                }
+                logger.info("Unenrolled student %s from all courses (deactivation)", student_id)
+
+            if (
+                "is_active" in update_data
+                and update_data["is_active"] is True
+                and not db_student.is_active
+                and re_enroll_previous
+            ):
+                restored_courses = self._reenroll_previous_courses(db_student)
+                details = {
+                    "action": "reactivate",
+                    "reenrolled_courses": restored_courses,
+                }
+
             for key, value in update_data.items():
                 setattr(db_student, key, value)
             self.db.flush()
@@ -144,6 +167,7 @@ class StudentService:
             resource_id=str(db_student.id),
             old_values=old_values,
             new_values=self._serialize_student(db_student),
+            details=details,
         )
         return db_student
 
@@ -151,6 +175,7 @@ class StudentService:
         db_student = get_by_id_or_404(self.db, self.Student, student_id)
         old_values = self._serialize_student(db_student)
         with transaction(self.db):
+            removed_courses = self._unenroll_from_all_courses(db_student)
             db_student.mark_deleted()
             db_student.is_active = False  # type: ignore[assignment]
         logger.info("Soft-deleted student: %s", student_id)
@@ -158,6 +183,10 @@ class StudentService:
             action=AuditAction.DELETE,
             resource_id=str(student_id),
             old_values=old_values,
+            details={
+                "action": "delete",
+                "unenrolled_courses": removed_courses,
+            },
             new_values={
                 "deleted_at": str(db_student.deleted_at),
                 "is_active": db_student.is_active,
@@ -183,6 +212,7 @@ class StudentService:
         db_student = get_by_id_or_404(self.db, self.Student, student_id)
         old_values = self._serialize_student(db_student)
         with transaction(self.db):
+            removed_courses = self._unenroll_from_all_courses(db_student)
             db_student.is_active = False  # type: ignore[assignment]
         logger.info("Deactivated student: %s", student_id)
         self._log_audit(
@@ -190,9 +220,87 @@ class StudentService:
             resource_id=str(student_id),
             old_values=old_values,
             new_values=self._serialize_student(db_student),
-            details={"action": "deactivate"},
+            details={
+                "action": "deactivate",
+                "unenrolled_courses": removed_courses,
+            },
         )
         return {"message": "Student deactivated successfully", "student_id": student_id}
+
+    def _unenroll_from_all_courses(self, db_student) -> List[Dict[str, Any]]:
+        """Soft-delete all course enrollments for a student during deactivation.
+
+        When a student is marked as inactive, they are automatically unenrolled
+        from all courses to prevent them from appearing in course rosters.
+        """
+        removed_courses: List[Dict[str, Any]] = []
+        try:
+            from sqlalchemy.orm import selectinload
+
+            from backend.models import CourseEnrollment
+
+            # Get all active enrollments for this student
+            enrollments = (
+                self.db.query(CourseEnrollment)
+                .options(selectinload(CourseEnrollment.course))
+                .filter(CourseEnrollment.student_id == db_student.id, CourseEnrollment.deleted_at.is_(None))
+                .all()
+            )
+
+            # Soft-delete each enrollment
+            for enrollment in enrollments:
+                course = enrollment.course
+                removed_courses.append(
+                    {
+                        "course_id": enrollment.course_id,
+                        "course_code": getattr(course, "course_code", None) if course else None,
+                        "course_name": getattr(course, "course_name", None) if course else None,
+                    }
+                )
+                enrollment.mark_deleted()
+                logger.info(
+                    "Unenrolled student %s from course %s (id: %s)",
+                    db_student.id,
+                    enrollment.course_id,
+                    enrollment.id,
+                )
+        except Exception as exc:  # pragma: no cover
+            logger.exception("Error unenrolling student from courses: %s", exc)
+            # Don't raise - log and continue (enrollment removal is secondary to deactivation)
+        return removed_courses
+
+    def _reenroll_previous_courses(self, db_student) -> List[Dict[str, Any]]:
+        """Restore previously soft-deleted course enrollments for a student.
+
+        Used when reactivating a student with re-enrollment enabled.
+        """
+        restored_courses: List[Dict[str, Any]] = []
+        try:
+            from sqlalchemy.orm import selectinload
+
+            from backend.models import CourseEnrollment
+
+            enrollments = (
+                self.db.query(CourseEnrollment)
+                .execution_options(include_deleted=True)
+                .options(selectinload(CourseEnrollment.course))
+                .filter(CourseEnrollment.student_id == db_student.id, CourseEnrollment.deleted_at.is_not(None))
+                .all()
+            )
+
+            for enrollment in enrollments:
+                course = enrollment.course
+                restored_courses.append(
+                    {
+                        "course_id": enrollment.course_id,
+                        "course_code": getattr(course, "course_code", None) if course else None,
+                        "course_name": getattr(course, "course_name", None) if course else None,
+                    }
+                )
+                enrollment.deleted_at = None
+        except Exception as exc:  # pragma: no cover
+            logger.exception("Error re-enrolling student into courses: %s", exc)
+        return restored_courses
 
     def bulk_create_students(self, students_data: List[StudentCreate]) -> Dict[str, Any]:
         created: List[str] = []

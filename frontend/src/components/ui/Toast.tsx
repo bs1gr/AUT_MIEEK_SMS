@@ -14,11 +14,18 @@ const Toast: React.FC<ToastProps> = ({ message, type = 'info', onClose }) => {
     info: 'bg-blue-100 text-blue-800',
   }[type];
 
+  // Split message by newlines and render as separate lines
+  const lines = message.split('\n');
+
   return (
     <div className={`fixed top-4 right-4 p-4 rounded shadow-lg ${bgColor}`}>
-      <div className="flex justify-between items-center">
-        <span>{message}</span>
-        <button onClick={onClose} className="ml-4 font-bold">{t('close')}</button>
+      <div className="flex justify-between items-start gap-4">
+        <div className="whitespace-pre-line">
+          {lines.map((line, idx) => (
+            <div key={idx}>{line}</div>
+          ))}
+        </div>
+        <button onClick={onClose} className="font-bold flex-shrink-0">{t('close')}</button>
       </div>
     </div>
   );

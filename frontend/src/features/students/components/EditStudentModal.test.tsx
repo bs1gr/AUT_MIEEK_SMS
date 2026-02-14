@@ -37,7 +37,6 @@ const mockStudent: Student = {
   father_name: '',
   health_issue: '',
   note: '',
-  study_year: 1,
 };
 
 describe('EditStudentModal', () => {
@@ -431,7 +430,6 @@ describe('EditStudentModal', () => {
         father_name: '',
         health_issue: '',
         note: '',
-        study_year: 1,
       };
 
       renderWithProviders(

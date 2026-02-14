@@ -108,7 +108,13 @@ export function useUpdateStudent() {
   const setError = useStudentsStore((state) => state.setError);
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<StudentFormData> }) =>
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: number;
+      data: Partial<StudentFormData> & { re_enroll_previous?: boolean };
+    }) =>
       studentsAPI.update(id, data),
     onSuccess: (updatedStudent) => {
       updateStudent(updatedStudent.id, updatedStudent);

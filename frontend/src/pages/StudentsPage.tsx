@@ -7,6 +7,7 @@ import { useState } from 'react';
 import type { Student, StudentFormData } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import Toast from '@/components/ui/Toast';
+import { coursesAPI, enrollmentsAPI } from '@/api/api';
 
 export default function StudentsPage() {
   const { t } = useLanguage();
@@ -47,6 +48,20 @@ export default function StudentsPage() {
     }
   };
 
+  const getCourseNamesForStudent = async (studentId: number): Promise<string[]> => {
+    const enrollments = await enrollmentsAPI.getByStudent(studentId);
+    if (!enrollments.length) return [];
+
+    const courseIds = Array.from(new Set(enrollments.map((enrollment) => enrollment.course_id)));
+    const courses = await coursesAPI.getAll(0, 1000);
+    const courseMap = new Map(courses.map((course) => [course.id, course]));
+
+    return courseIds
+      .map((courseId) => courseMap.get(courseId))
+      .map((course) => course?.course_name || course?.course_code)
+      .filter((name): name is string => Boolean(name));
+  };
+
   return (
     <SectionErrorBoundary section="StudentsPage">
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
@@ -82,8 +97,26 @@ export default function StudentsPage() {
           onClose={studentModals.editModal.close}
           onUpdate={async (updatedStudent: Student) => {
             try {
+              const wasActive = selectedStudent.is_active;
+              const willBeInactive = updatedStudent.is_active === false;
+              const removedCourseNames =
+                wasActive && willBeInactive
+                  ? await getCourseNamesForStudent(updatedStudent.id)
+                  : [];
               await updateStudent.mutateAsync({ id: updatedStudent.id, data: updatedStudent });
-              showToast(t('studentUpdated'), 'success');
+              if (wasActive && willBeInactive) {
+                if (removedCourseNames.length) {
+                  const courseList = removedCourseNames.map((name) => `• ${name}`).join('\n');
+                  showToast(
+                    `Student unenrolled from:\n${courseList}`,
+                    'success'
+                  );
+                } else {
+                  showToast(t('studentUnenrolledFromCourses'), 'success');
+                }
+              } else {
+                showToast(t('studentUpdated'), 'success');
+              }
             } catch {
               showToast(t('failedToUpdateStudent'), 'error');
             } finally {

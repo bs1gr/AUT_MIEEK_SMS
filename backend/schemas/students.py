@@ -126,6 +126,7 @@ class StudentUpdate(BaseModel):
     student_id: Optional[str] = Field(None, min_length=1, max_length=50)
     enrollment_date: Optional[date] = None
     is_active: Optional[bool] = None
+    re_enroll_previous: Optional[bool] = None
     father_name: Optional[str] = Field(None, max_length=100)
     mobile_phone: Optional[str] = Field(None, max_length=30)
     phone: Optional[str] = Field(None, max_length=30)

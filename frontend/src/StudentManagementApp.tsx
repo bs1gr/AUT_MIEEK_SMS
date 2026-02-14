@@ -15,6 +15,7 @@ import { useStudentModals, useCourseModals } from '@/hooks';
 import { useStudentsStore, useCoursesStore } from '@/stores';
 
 import type { Student, Course, StudentFormData, CourseFormData } from '@/types';
+import { coursesAPI, enrollmentsAPI } from '@/api/api';
 
 interface ToastState {
   message: string;
@@ -54,6 +55,20 @@ const StudentManagementApp = () => {
   const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info'): void => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
+  };
+
+  const getCourseNamesForStudent = async (studentId: number): Promise<string[]> => {
+    const enrollments = await enrollmentsAPI.getByStudent(studentId);
+    if (!enrollments.length) return [];
+
+    const courseIds = Array.from(new Set(enrollments.map((enrollment) => enrollment.course_id)));
+    const courses = await coursesAPI.getAll(0, 1000);
+    const courseMap = new Map(courses.map((course) => [course.id, course]));
+
+    return courseIds
+      .map((courseId) => courseMap.get(courseId))
+      .map((course) => course?.course_name || course?.course_code)
+      .filter((name): name is string => Boolean(name));
   };
 
   // Determine initial view from URL (hash or ?view=)
@@ -201,8 +216,26 @@ const StudentManagementApp = () => {
           onClose={studentModals.editModal.close}
           onUpdate={async (updatedStudent: Student) => {
             try {
+              const wasActive = selectedStudent.is_active;
+              const willBeInactive = updatedStudent.is_active === false;
+              const removedCourseNames =
+                wasActive && willBeInactive
+                  ? await getCourseNamesForStudent(updatedStudent.id)
+                  : [];
               await updateStudent.mutateAsync({ id: updatedStudent.id, data: updatedStudent });
-              showToast(t('studentUpdated'), 'success');
+              if (wasActive && willBeInactive) {
+                if (removedCourseNames.length) {
+                  const courseList = removedCourseNames.map((name) => `• ${name}`).join('\n');
+                  showToast(
+                    `Student unenrolled from:\n${courseList}`,
+                    'success'
+                  );
+                } else {
+                  showToast(t('studentUnenrolledFromCourses'), 'success');
+                }
+              } else {
+                showToast(t('studentUpdated'), 'success');
+              }
             } catch {
               showToast(t('failedToUpdateStudent'), 'error');
             } finally {

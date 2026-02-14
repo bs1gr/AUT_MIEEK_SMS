@@ -73,6 +73,10 @@ export const studentSchema = z.object({
     .trim()
     .max(50, 'Class division must be less than 50 characters')
     .optional(),
+
+  is_active: z
+    .boolean()
+    .optional(),
 });
 
 /**
@@ -80,6 +84,7 @@ export const studentSchema = z.object({
  */
 export const studentUpdateSchema = studentSchema.partial().extend({
   id: z.number().int().positive(),
+  re_enroll_previous: z.boolean().optional(),
 });
 
 /**
