@@ -27,6 +27,15 @@ function Write-Ok   { param($msg) Write-Host "✅ $msg" -ForegroundColor Green }
 function Write-Warn { param($msg) Write-Host "⚠️  $msg" -ForegroundColor Yellow }
 function Write-Err  { param($msg) Write-Host "❌ $msg" -ForegroundColor Red }
 
+# Detect admin mode and warn (may cause hangs)
+$currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
+$principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
+$isAdmin = $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+if ($isAdmin) {
+    Write-Warn "Running as Administrator - COMMIT_READY calls may hang"
+    Write-Info "Timeout protection enabled (5-minute max for validation)"
+}
+
 $ROOT = Split-Path -Parent $MyInvocation.MyCommand.Path | Split-Path -Parent
 $Timestamp = Get-Date -Format 'yyyy-MM-dd_HHmmss'
 $StateDir = Join-Path $ROOT 'artifacts\state'
@@ -97,14 +106,35 @@ Section 'pre-commit quick validation'
 try {
     $commitReady = Join-Path $ROOT 'COMMIT_READY.ps1'
     if (Test-Path $commitReady) {
-        Append ("- Running COMMIT_READY -Quick (capturing to log)")
-        $output = & pwsh -NoProfile -ExecutionPolicy Bypass -File $commitReady -Quick 2>&1 | Tee-Object -FilePath $CommitReadyLog
-        Append ("- Log: $(Split-Path -Leaf $CommitReadyLog)")
-        # Light success heuristic
-        if (($output | Select-String -Pattern 'Version verification completed successfully').Length -gt 0) {
-            Append ("- Summary: Version verification OK")
+        Append ("- Running COMMIT_READY -Quick (capturing to log, 5-minute timeout)")
+        
+        # Run with timeout to prevent hang (especially in admin mode)
+        $job = Start-Job -ScriptBlock {
+            param($script)
+            & pwsh -NoProfile -ExecutionPolicy Bypass -File $script -Quick 2>&1
+        } -ArgumentList $commitReady
+        
+        $timeout = 300 # 5 minutes
+        $completed = Wait-Job -Job $job -Timeout $timeout
+        
+        if ($completed) {
+            $output = Receive-Job -Job $job
+            $output | Out-File -FilePath $CommitReadyLog -Encoding UTF8
+            Remove-Job -Job $job -Force
+            
+            Append ("- Log: $(Split-Path -Leaf $CommitReadyLog)")
+            # Light success heuristic
+            if (($output | Select-String -Pattern 'Version verification completed successfully').Length -gt 0) {
+                Append ("- Summary: Version verification OK")
+            }
+            Append ("- Preview:" + [Environment]::NewLine + ('```' + [Environment]::NewLine + (($output | Select-String -Pattern 'Verification Summary|Consistent|Failed' -SimpleMatch) | Out-String) + '```'))
+        } else {
+            Stop-Job -Job $job
+            Remove-Job -Job $job -Force
+            Append ("- TIMEOUT: COMMIT_READY did not complete in $timeout seconds")
+            Append ("- This often happens when VS Code runs as Administrator")
+            Append ("- Skipping validation output")
         }
-        Append ("- Preview:" + [Environment]::NewLine + ('```' + [Environment]::NewLine + (($output | Select-String -Pattern 'Verification Summary|Consistent|Failed' -SimpleMatch) | Out-String) + '```'))
     } else {
         Append ("- COMMIT_READY.ps1 not found")
     }
