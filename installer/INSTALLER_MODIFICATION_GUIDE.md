@@ -121,7 +121,7 @@ Source: "..\docker_manager.bat"; DestDir: "{app}"; Flags: ignoreversion  [KEEP A
 
 ## Important Notes
 
-1. **Pre-built Executable Location**: 
+1. **Pre-built Executable Location**:
    - Source: `installer/dist/SMS_Manager.exe` (28.51 MB)
    - Destination: `{app}\SMS_Manager.exe` (in installation folder)
 

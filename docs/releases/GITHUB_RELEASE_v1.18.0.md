@@ -1,67 +1,55 @@
-# GitHub Release Draft - v1.18.0
+## ⚠️ BREAKING CHANGES - MAJOR Release
 
-**Use this content to create the GitHub Release at:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
+This is a **MAJOR** release with breaking changes. **Read the migration guide before upgrading if you use custom scripts.**
 
----
+### 🔴 What Changed
 
-## Tag Information
+**Removed Modules (after 6+ month deprecation):**
 
-- **Tag version**: `v1.18.0`
-- **Target**: `main`
-- **Release title**: `v1.18.0 - Major Maintenance & UX Consolidation`
+- chore(deprecation): archive RELEASE_PREPARATION.ps1 and establish cleanup policies
+- refactor: Move Power and RBAC modules to feature architecture + i18n improvements
+- release(v1.17.2): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
----
+**Affected Users:**
+- ❌ Custom Python scripts importing old modules → **Migration Required**
+- ✅ Web UI users → **No action needed**
+- ✅ Docker/standard deployment → **No action needed**
 
-## Release Body
+**Not Affected:**
+- Database schema (no migrations needed)
+- API endpoints (all unchanged)
+- Configuration files
 
-# v1.18.0 - Major Maintenance & UX Consolidation
+### 📖 Migration Guide
 
-**Release Date**: February 2026  
-**Type**: Major maintenance release  
-**Status**: Production-ready
+**[⬆️ FULL MIGRATION GUIDE](docs/guides/MIGRATION_v1.18.0.md)** - Complete instructions with code examples for updating imports.
 
----
+### 📊 What's Included in v1.18.0
 
-## 🎉 Highlights
+- **91 new features** - Enhancement and new capabilities
+- **285 bug fixes** - Stability and reliability improvements
+- **Deprecated modules removed** - Clean codebase, reduced maintenance
+- **Complete documentation** - Release report, migration guide, cleanup audit
 
-- ✅ Cascaded active/inactive student list experience
-- ✅ Student deactivate/reactivate enrollment lifecycle hardening
-- ✅ Student profile highlight authoring and class-label consistency
-- ✅ Reporting terminology migration to `academic_year` / Class
-- ✅ EN/EL i18n synchronization across dashboard and students modules
-- ✅ CI stability fixes for frontend TypeScript and backend MyPy gates
+### 📦 Installation
 
----
+**Windows:** Download \SMS_Installer_1.18.0.exe\ from the assets below.
 
-## ✨ What’s Included
+**Docker:**
+`powershell
+.\DOCKER.ps1 -Update
+`
 
-### Students
-- Added cascaded views in both student-list implementations.
-- Added profile highlight authoring with role-aware access.
-- Aligned class labels to `academic_year` semantics across UI/tests.
+**Native (Development):**
+`powershell
+.\NATIVE.ps1 -Start
+`
 
-### Reports
-- Migrated templates/copy from `study_year` to `academic_year` / “Class”.
-- Added migration utility for legacy report template terminology.
+### 📚 Documentation
 
-### Fixes
-- Stabilized analytics/dashboard rendering and attendance filtering.
-- Synced EN/EL locale keys and resolved key-structure mismatches.
-- Normalized grading translation labels for assignment/category surfaces.
-- Fixed CI gate failures:
-  - Frontend TypeScript (`enrollmentsAPI` method mismatch)
-  - Backend MyPy (soft-delete restore assignment annotation)
+- **[Migration Guide](docs/guides/MIGRATION_v1.18.0.md)** - How to update your code
+- **[Release Report](docs/releases/reports/RELEASE_REPORT_v1.18.0.md)** - Executive summary and impact assessment
+- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.0.md)** - Detailed cleanup audit
+- **[CHANGELOG](CHANGELOG.md)** - Full commit history
 
----
 
-## 🚀 Upgrade Notes
-
-- Deploy frontend and backend together.
-- No special migration required for this release documentation set.
-- Keep standard workflow:
-  - Test/dev: `NATIVE.ps1 -Start`
-  - Production: `DOCKER.ps1 -Start`
-
----
-
-**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.9...v1.18.0

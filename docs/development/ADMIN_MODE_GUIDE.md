@@ -19,7 +19,7 @@ Running VS Code as Administrator is sometimes necessary (e.g., for self-hosted G
 
 ```powershell
 # Check for hung git processes
-Get-Process git* -ErrorAction SilentlyContinue | 
+Get-Process git* -ErrorAction SilentlyContinue |
   Where-Object { $_.StartTime -lt (Get-Date).AddMinutes(-5) }
 ```
 
@@ -65,7 +65,7 @@ npm install
 
 ```powershell
 # Find processes running > 30 minutes
-Get-Process pwsh, git, node, python -ErrorAction SilentlyContinue | 
+Get-Process pwsh, git, node, python -ErrorAction SilentlyContinue |
   Where-Object { $_.StartTime -lt (Get-Date).AddMinutes(-30) } |
   Select-Object Id, ProcessName, StartTime
 
@@ -108,7 +108,7 @@ Wait-Job -Job $job -Timeout 600  # 10-minute timeout
 
 ```powershell
 # Nuclear option: Kill all long-running development processes
-Get-Process pwsh, git, node, python -ErrorAction SilentlyContinue | 
+Get-Process pwsh, git, node, python -ErrorAction SilentlyContinue |
   Where-Object { $_.StartTime -lt (Get-Date).AddMinutes(-20) } |
   Stop-Process -Force -ErrorAction SilentlyContinue
 ```
@@ -183,7 +183,7 @@ But VS Code doesn't need admin rights for:
 - Git operations
 - Most development tasks
 
-**Recommendation**: 
+**Recommendation**:
 - Run **runner service** as admin
 - Run **VS Code** as normal user when possible
 - Use admin terminals for specific operations only

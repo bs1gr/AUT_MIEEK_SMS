@@ -107,21 +107,21 @@ try {
     $commitReady = Join-Path $ROOT 'COMMIT_READY.ps1'
     if (Test-Path $commitReady) {
         Append ("- Running COMMIT_READY -Quick (capturing to log, 5-minute timeout)")
-        
+
         # Run with timeout to prevent hang (especially in admin mode)
         $job = Start-Job -ScriptBlock {
             param($script)
             & pwsh -NoProfile -ExecutionPolicy Bypass -File $script -Quick 2>&1
         } -ArgumentList $commitReady
-        
+
         $timeout = 300 # 5 minutes
         $completed = Wait-Job -Job $job -Timeout $timeout
-        
+
         if ($completed) {
             $output = Receive-Job -Job $job
             $output | Out-File -FilePath $CommitReadyLog -Encoding UTF8
             Remove-Job -Job $job -Force
-            
+
             Append ("- Log: $(Split-Path -Leaf $CommitReadyLog)")
             # Light success heuristic
             if (($output | Select-String -Pattern 'Version verification completed successfully').Length -gt 0) {

@@ -1,7 +1,7 @@
 # Student Management System v1.17.9
 
-**Release Date**: February 13, 2026  
-**Type**: Patch Release (Bug Fixes + Enhancements)  
+**Release Date**: February 13, 2026
+**Type**: Patch Release (Bug Fixes + Enhancements)
 **Commits**: 48 since v1.17.8
 
 ---
