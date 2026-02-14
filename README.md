@@ -9,7 +9,7 @@
 **Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)
 **Location:** Limassol, Cyprus
 **Developer:** Teacher at ΜΙΕΕΚ
-**Current Version**: 1.17.9 (Production Ready)
+**Current Version**: 1.17.8 (Production Ready)
 
 ---
 
@@ -19,7 +19,7 @@
 - All 742 backend tests passing (100%)
 - All 1249 frontend tests passing (100%)
 - All 19+ E2E tests passing (100%)
-- Installer $1.17.9 ready for deployment
+- Installer $1.17.8 ready for deployment
 - Code security verified (path traversal prevention documented)
 - Maintenance phase: Code health issues identified and documented
 
@@ -117,7 +117,7 @@ Detailed commands:
 - **`DOCKER.ps1`** – Production/staging & operator tasks
 - **`NATIVE.ps1`** – Developer hot-reload workflow
 
-See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.17.9/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
+See full mapping table in [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.17.8/SCRIPTS_CONSOLIDATION_GUIDE.md) (archived).
 
 ##### 🎯 NEW: Desktop Shortcut (One-Click Start/Stop)
 
@@ -239,7 +239,7 @@ Deploy to QNAP Container Station with PostgreSQL database:
 - Full management scripts and monitoring included
 - Automatic backups and rollback capabilities
 
-**Monitoring UI deprecation ($1.17.9):**
+**Monitoring UI deprecation ($1.17.8):**
 
 - The embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) has been removed from the app.
 - The Power page now focuses on System Health and the Control Panel only.
@@ -326,9 +326,9 @@ All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `scripts/dev/run-native
 - ✅ 100% feature parity maintained
 - ✅ Better error handling and diagnostics
 
-**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.17.9/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
+**Migration:** See [SCRIPTS_CONSOLIDATION_GUIDE.md](archive/pre-$1.17.8/SCRIPTS_CONSOLIDATION_GUIDE.md) for complete command mapping and migration guide (archived).
 
-**Archived:** Legacy scripts preserved in `archive/pre-$1.17.9/deprecated/scripts_consolidation_2025-11-21/`
+**Archived:** Legacy scripts preserved in `archive/pre-$1.17.8/deprecated/scripts_consolidation_2025-11-21/`
 
 ### Documentation Consolidation ✅
 
@@ -368,7 +368,7 @@ student-management-system/
 ├── 📄 CHANGELOG.md              # Version history
 ├── 📄 docs/plans/UNIFIED_WORK_PLAN.md  # Planning source of truth
 ├── 📄 LICENSE                   # MIT License
-├── 📄 VERSION                   # Current version (1.17.9)
+├── 📄 VERSION                   # Current version (1.17.8)
 │
 ├── 🐳 DOCKER.ps1                # Production deployment script
 ├── 💻 NATIVE.ps1                # Development mode script
@@ -477,21 +477,21 @@ See `backend/ENV_VARS.md` for recommended environment variables and secure defau
 - Consolidated structure (`docs/user`, `docs/deployment`, `docs/development`) & master index updated.
 - RBAC (roles & permissions): `docs/user/RBAC_GUIDE.md` explains defaults, admin endpoints, and safeguards.
 
-Full release notes: `CHANGELOG.md` (sections 1.17.9.0–1.17.9.4).
+Full release notes: `CHANGELOG.md` (sections 1.17.8.0–1.17.8.4).
 
 ---
 
 ## Historical Highlights (Selected)
 
-### $1.17.9 – Control API Re-base Path & Restart UX
+### $1.17.8 – Control API Re-base Path & Restart UX
 
 Canonical `/control/api/*` path, shared `CONTROL_API_BASE`, restart UX improvements.
 
-### $1.17.9 – Repository Cleanup
+### $1.17.8 – Repository Cleanup
 
 Systematic cleanup & maintainability upgrades.
 
-### $1.17.9 – Release Archive Pipeline
+### $1.17.8 – Release Archive Pipeline
 
 Legacy release archival & GHCR retirement guidance.
 
@@ -500,7 +500,7 @@ Legacy release archival & GHCR retirement guidance.
 - 🚪 **Canonical Control API path:** Operational endpoints now sit under `/control/api/*`, decoupling them from the public REST surface and matching the FastAPI lifespan design.
 - 🔗 **Shared Control API base helper:** Frontend utilities export `CONTROL_API_BASE`, so Control Panel components, backups, and restart workflows all target the same origin with zero string duplication.
 - ♻️ **Restart UX polish:** Buttons render backend hints (Docker vs. native), localized fallbacks, and instructions for configuring shutdown tokens so operators always know why a restart is blocked.
-- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/$1.17.9.md`.
+- 📘 **Documentation refresh:** README, `CHANGELOG.md`, and `backend/CONTROL_API.md` explain the new base path, while fresh release notes live in `docs/releases/$1.17.8.md`.
 
 ---
 
@@ -516,28 +516,28 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in $1.17.9
+## 📦 What's New in $1.17.8
 
-- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below $1.17.9 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
+- 🗂️ **Legacy release archive surfaced:** All GitHub releases at or below $1.17.8 are now labeled as archived, link to the repo’s new `archive/` directory, and bundle their last-known binaries for audit purposes.
 - 📦 **GitHub Packages retirement playbook:** Added guidance in the docs and management scripts for deleting or privatizing the three obsolete packages so downstream deployments don’t accidentally pull stale artifacts.
-- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out $1.17.9 as the active release and explain how the archive flow works for operators.
-- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/$1.17.9.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
+- 🧭 **Release management docs refreshed:** README, CHANGELOG, and the documentation index now call out $1.17.8 as the active release and explain how the archive flow works for operators.
+- 📝 **Release notes automation hooks:** Introduced a dedicated `docs/releases/$1.17.8.md` source of truth so GitHub Releases can be generated straight from the repo without copy/paste drift.
 - 🧰 **Operator visibility:** Control Panel + RUN/SMS scripts reference the new archive path in their troubleshooting copy, keeping previously removed helpers discoverable but isolated from day-to-day workflows.
-- 🔒 **Compliance follow-up:** Documented the Starlette 1.17.9 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
+- 🔒 **Compliance follow-up:** Documented the Starlette 1.17.8 patch and attendance-export safeguards inside the new release so auditors have a single entry point for the recent security hardening.
 - 📣 **Upgrade messaging:** Added explicit instructions for tagging/publishing the new release and for consumers who need to migrate automation off the deprecated assets.
 
 ## 📦 Releases
 
-- Latest: [$1.17.9](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.17.9) – Phase 3 Features (Analytics, Notifications, Bulk Import/Export)
-- Previous: [$1.17.9](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.17.9) – RBAC System Implementation
-- Archive: [$1.17.9](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.17.9) – Phase 1 Completion
+- Latest: [$1.17.8](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.17.8) – Phase 3 Features (Analytics, Notifications, Bulk Import/Export)
+- Previous: [$1.17.8](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.17.8) – RBAC System Implementation
+- Archive: [$1.17.8](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$1.17.8) – Phase 1 Completion
 - All releases: <https://github.com/bs1gr/AUT_MIEEK_SMS/releases>
 
-ℹ️ Publish the exact notes shown above via `docs/releases/$1.17.9.md` using `gh release create $1.17.9 --notes-file docs/releases/$1.17.9.md`.
+ℹ️ Publish the exact notes shown above via `docs/releases/$1.17.8.md` using `gh release create $1.17.8 --notes-file docs/releases/$1.17.8.md`.
 
 ---
 
-## 📦 What's New in $1.17.9
+## 📦 What's New in $1.17.8
 
 - 🟢 **Canonical entry points:** Consolidated to `DOCKER.ps1` (Docker deployment) and `NATIVE.ps1` (native development). All legacy scripts (`RUN.ps1`, `INSTALL.ps1`, `SMS.ps1`, `run-native.ps1`) were archived in v2.0.
 - 🔒 **Security:** Documented the optional `SECRET_KEY_STRICT_ENFORCEMENT` flag that rejects placeholder secrets when you turn it on. Keep it enabled for hardened deployments; local setups can leave it off until the next security release.
@@ -547,7 +547,7 @@ Legacy release archival & GHCR retirement guidance.
 
 ---
 
-## 📦 What's New in $1.17.9
+## 📦 What's New in $1.17.8
 
 - 🚀 **One-click deployment** with `DOCKER.ps1` (formerly `RUN.ps1`)
 - 💾 **Automatic backups** before updates
@@ -569,7 +569,7 @@ Legacy release archival & GHCR retirement guidance.
 .\SETUP_AFTER_GITHUB_ZIP.ps1
 ```
 
-This automatically installs everything! Or use the classic method: ($1.17.9)
+This automatically installs everything! Or use the classic method: ($1.17.8)
 
 ### **Recommended Method** - One-Click Docker Deployment
 
@@ -643,7 +643,7 @@ The runtime enforces a clear separation between release and development workflow
 - Set `SMS_ENV=production` for Docker release workflows—native helpers and the backend will block execution in this mode.
 - `DOCKER.ps1` and helper scripts respect these guards to prevent configuration drift.
 
-### PostgreSQL Support & Migration ($1.17.9)
+### PostgreSQL Support & Migration ($1.17.8)
 
 - `RUN.ps1` and all Docker helpers now read `DATABASE_URL`,
   `DATABASE_ENGINE`, and the `POSTGRES_*` variables from `.env` automatically.
@@ -795,7 +795,7 @@ Troubleshooting:
 
 ---
 
-## 🎯 What's New in $1.17.9
+## 🎯 What's New in $1.17.8
 
 ### Testing & Quality Improvements Release
 
@@ -821,7 +821,7 @@ See [CHANGELOG.md](CHANGELOG.md) for complete details.
 
 ---
 
-## 🎯 What's New in $1.17.9
+## 🎯 What's New in $1.17.8
 
 ### Under the Hood
 
@@ -962,7 +962,7 @@ For Docker operations:
 
 Once the stack is running you have two management surfaces:
 
-- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in $1.17.9, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
+- **System Health workspace** (`/power`): toggles the live status card (`ServerControl`) and the React Control Panel. Monitoring dashboards were removed in $1.17.8, so this view now focuses on health, automation, and host guidance. Use `http://localhost:5173/power` in native mode or `http://localhost:8080/power` in Docker/full-stack mode.
 - **Legacy control dashboard** (`/control`): classic HTML panel hosted by the backend. Available at <http://localhost:8080/control> when the API is exposed directly.
 
 Features:
@@ -1070,7 +1070,7 @@ Reverting: edit or delete docker-compose.override.yml and restart compose. Old v
 
 ### Quick Maintenance Scripts (Windows)
 
-> **Note:** As of $1.17.9, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
+> **Note:** As of $1.17.8, only `CLEANUP.bat` and `CLEANUP_COMPREHENSIVE.ps1` are retained for health/maintenance. All other batch scripts are deprecated.
 
 - `CLEANUP.bat` — Non-destructive cleanup: stops Docker services, clears caches/logs, preserves data and Docker volumes, backs up native DB.
 - `CLEANUP_COMPREHENSIVE.ps1` — Deep cleanup of all artifacts, logs, and build files.
@@ -1357,7 +1357,7 @@ To run E2E tests locally in a way that matches CI (backend serves frontend, perm
 This script will:
 - Seed E2E test data (user: test@example.com / password123)
 - Start the backend with `SERVE_FRONTEND=1`, `AUTH_MODE=permissive`, `CSRF_ENABLED=0`
-- Run Playwright E2E tests with `PLAYWRIGHT_BASE_URL=http://1.17.9.1:8000`
+- Run Playwright E2E tests with `PLAYWRIGHT_BASE_URL=http://1.17.8.1:8000`
 - Clean up the backend process after tests
 
 **Troubleshooting:**

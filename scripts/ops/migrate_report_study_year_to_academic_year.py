@@ -42,10 +42,9 @@ def replace_study_year(value: Any) -> Any:
 def update_template_text(template: ReportTemplate) -> bool:
     changed = False
     if template.name:
-        new_name = template.name.replace(
-            "Students by Study Year", "Students by Class"
-        ).replace(
-            "Performance Analytics - By Study Year", "Performance Analytics - By Class"
+        new_name = (
+            template.name.replace("Students by Study Year", "Students by Class")
+            .replace("Performance Analytics - By Study Year", "Performance Analytics - By Class")
         )
         if new_name != template.name:
             template.name = new_name
@@ -63,15 +62,9 @@ def update_template_text(template: ReportTemplate) -> bool:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Migrate study_year to academic_year in reports/templates"
-    )
-    parser.add_argument(
-        "--dry-run", action="store_true", help="Preview changes without committing"
-    )
-    parser.add_argument(
-        "--verbose", action="store_true", help="Print per-record updates"
-    )
+    parser = argparse.ArgumentParser(description="Migrate study_year to academic_year in reports/templates")
+    parser.add_argument("--dry-run", action="store_true", help="Preview changes without committing")
+    parser.add_argument("--verbose", action="store_true", help="Print per-record updates")
     args = parser.parse_args()
 
     engine = create_engine(get_settings().DATABASE_URL)
@@ -143,7 +136,8 @@ def main() -> int:
     print(
         "Migration complete."
         f" Templates updated: {template_updates}."
-        f" Reports updated: {report_updates}." + (" (dry-run)" if args.dry_run else "")
+        f" Reports updated: {report_updates}."
+        + (" (dry-run)" if args.dry_run else "")
     )
     return 0
 
