@@ -104,7 +104,7 @@ const CascadedStudentView: React.FC<CascadedStudentViewProps> = ({
 
         // Fetch enrollments for each student
         for (const student of students) {
-          const enrollments = await enrollmentsAPI.listStudentEnrollments(student.id);
+          const enrollments = await enrollmentsAPI.getByStudent(student.id);
           const resp = enrollments as unknown;
           const list = Array.isArray(resp)
             ? (resp as { id: number }[])

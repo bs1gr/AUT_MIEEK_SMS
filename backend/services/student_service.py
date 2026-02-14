@@ -297,7 +297,7 @@ class StudentService:
                         "course_name": getattr(course, "course_name", None) if course else None,
                     }
                 )
-                enrollment.deleted_at = None
+                enrollment.deleted_at = None  # type: ignore[assignment]
         except Exception as exc:  # pragma: no cover
             logger.exception("Error re-enrolling student into courses: %s", exc)
         return restored_courses
