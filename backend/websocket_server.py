@@ -16,7 +16,7 @@ from datetime import datetime, timezone
 try:
     from socketio import AsyncServer
 except ImportError:
-    raise ImportError("python-socketio not installed. Run: pip install python-socketio[aiohttp]")
+    raise ImportError("python-socketio not installed. Run: pip install python-socketio")
 
 from backend.websocket_config import connection_manager
 
