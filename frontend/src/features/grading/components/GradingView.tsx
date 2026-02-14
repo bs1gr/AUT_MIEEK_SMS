@@ -51,6 +51,34 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     return categoryMap[category] || category;
   };
 
+  const translateAssignmentName = (name?: string): string => {
+    if (!name) return t('assignment');
+
+    if (name === 'Sample Exam Assignment') {
+      return t('sampleExamAssignment');
+    }
+
+    const midtermMatch = name.match(/^Midterm Exam\s*(.*)$/i);
+    if (midtermMatch) {
+      const suffix = midtermMatch[1]?.trim();
+      return `${t('midtermExam')}${suffix ? ` ${suffix}` : ''}`;
+    }
+
+    const finalMatch = name.match(/^Final Exam\s*(.*)$/i);
+    if (finalMatch) {
+      const suffix = finalMatch[1]?.trim();
+      return `${t('finalExam')}${suffix ? ` ${suffix}` : ''}`;
+    }
+
+    const assignmentMatch = name.match(/^Assignment\s*(.*)$/i);
+    if (assignmentMatch) {
+      const suffix = assignmentMatch[1]?.trim();
+      return `${t('assignment')}${suffix ? ` ${suffix}` : ''}`;
+    }
+
+    return name;
+  };
+
   const [studentId, setStudentId] = useState<number | ''>('');
   const [courseId, setCourseId] = useState<number | ''>('');
 
@@ -632,7 +660,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                     return (
                       <tr key={g.id} className="hover:bg-gray-50">
                         <td className="px-4 py-2">
-                          <div className="font-medium text-gray-800">{g.assignment_name || '-'}</div>
+                          <div className="font-medium text-gray-800">{translateAssignmentName(g.assignment_name)}</div>
                           {g.notes && (<div className="text-xs text-gray-500">{g.notes}</div>)}
                         </td>
                         {evaluationRules.length > 0 && (

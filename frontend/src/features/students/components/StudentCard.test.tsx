@@ -32,7 +32,7 @@ const mockStudent: Student = {
   first_name: 'John',
   last_name: 'Doe',
   email: 'john.doe@example.com', enrollment_date: '2023-09-01',
-  study_year: 2,
+  academic_year: 'A',
   is_active: true,
 };
 
@@ -119,7 +119,7 @@ describe('StudentCard', () => {
       renderStudentCard();
       expect(screen.getByText('John Doe')).toBeInTheDocument();
       expect(screen.getByText(/S001/)).toBeInTheDocument();
-      expect(screen.getByText(/Year 2/)).toBeInTheDocument();
+      expect(screen.getByText(/Class A/)).toBeInTheDocument();
     });
 
     it('shows action buttons', () => {
@@ -225,10 +225,10 @@ describe('StudentCard', () => {
       expect(screen.queryByText(/@example.com/)).not.toBeInTheDocument();
     });
 
-    it('handles student with no study year', () => {
-      const studentWithoutYear = { ...mockStudent, study_year: undefined };
-      renderStudentCard({ student: studentWithoutYear });
-      expect(screen.queryByText(/year/i)).not.toBeInTheDocument();
+    it('handles student with no class', () => {
+      const studentWithoutClass = { ...mockStudent, academic_year: undefined };
+      renderStudentCard({ student: studentWithoutClass });
+      expect(screen.queryByText(/class/i)).not.toBeInTheDocument();
     });
 
     it('handles inactive student', () => {

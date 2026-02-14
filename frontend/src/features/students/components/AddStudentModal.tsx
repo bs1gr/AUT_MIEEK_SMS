@@ -56,7 +56,6 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
       email: data.email,
       health_issue: '', // Not in form but backend accepts as optional
       note: '', // Not in form but backend accepts as optional
-      study_year: 1, // Default to 1st year, backend accepts as optional
       academic_year: data.academic_year,
       class_division: data.class_division,
       enrollment_date: data.enrollment_date,

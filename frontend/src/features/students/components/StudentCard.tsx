@@ -96,6 +96,13 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
   }, [stats?.attendanceList]);
 
   const initials = `${student.first_name?.[0] || ''}${student.last_name?.[0] || ''}` || student.student_id?.toString() || '?';
+  const classLabel = student.academic_year === 'A'
+    ? t('classA')
+    : student.academic_year === 'B'
+      ? t('classB')
+      : student.academic_year
+        ? `${t('academicYear')} ${student.academic_year}`
+        : null;
 
   return (
     <motion.li className="border p-4 rounded shadow-sm" variants={listItemVariants} role="listitem">
@@ -103,9 +110,9 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
         <div>
           <strong>{student.first_name} {student.last_name}</strong><br />
           <span>{t('studentId')}: {student.student_id}</span>
-          {student.study_year && (
+          {classLabel && (
             <span className="ml-3 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
-              {t('year')} {student.study_year}
+              {classLabel}
             </span>
           )}
         </div>
@@ -159,7 +166,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
                 <p className="text-slate-600">{t('studentID')}: {student.student_id}</p>
                 <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
                   {student.email && <span>📧 {student.email}</span>}
-                  {student.study_year && <span>📚 {t('year')} {student.study_year}</span>}
+                  {classLabel && <span>🏫 {classLabel}</span>}
                   <span className={student.is_active ? 'text-emerald-600' : 'text-red-600'}>
                     {student.is_active ? '✓ ' + t('active') : '✗ ' + t('inactive')}
                   </span>

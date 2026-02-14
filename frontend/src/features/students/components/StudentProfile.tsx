@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
-import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText } from 'lucide-react';
+import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { GradeBreakdownModal } from '@/features/grading';
 import StudentPerformanceReport from '@/components/StudentPerformanceReport';
-import type { Student, Grade, Attendance, Highlight, Course, CourseEnrollment } from '@/types';
+import type { Student, Grade, Attendance, Highlight, HighlightCreatePayload, Course, CourseEnrollment } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const API_BASE_URL: string = import.meta.env.VITE_API_URL || '/api/v1';
 
@@ -19,6 +20,7 @@ interface StudentProfileProps {
 
 const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const { formatDate } = useDateTimeFormatter();
   const [student, setStudent] = useState<Student | null>(null);
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -32,6 +34,17 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [breakdownCourseId, setBreakdownCourseId] = useState<number | null>(null);
   const [attendanceCourseFilter, setAttendanceCourseFilter] = useState<number | null>(null);
   const [showPerformanceReport, setShowPerformanceReport] = useState(false);
+  const [showAddHighlight, setShowAddHighlight] = useState(false);
+  const [highlightForm, setHighlightForm] = useState({
+    semester: '',
+    category: '',
+    highlight_text: '',
+    rating: '',
+    is_positive: true,
+  });
+  const [highlightSaving, setHighlightSaving] = useState(false);
+  const [highlightFormError, setHighlightFormError] = useState<string | null>(null);
+  const canAddHighlight = ['admin', 'teacher'].includes((user?.role || '').toLowerCase());
 
   // Move loadStudentData here so effects can depend on it without referencing a later declaration
   const loadStudentData = useCallback(async () => {
@@ -164,6 +177,45 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     return 'F';
   };
 
+  const translateAssignmentName = (name?: string) => {
+    if (!name) return t('assignment', { ns: 'grades' });
+
+    if (name === 'Sample Exam Assignment') {
+      return t('sampleExamAssignment', { ns: 'grades' });
+    }
+
+    const midtermMatch = name.match(/^Midterm Exam\s*(.*)$/i);
+    if (midtermMatch) {
+      const suffix = midtermMatch[1]?.trim();
+      return `${t('midtermExam', { ns: 'common' })}${suffix ? ` ${suffix}` : ''}`;
+    }
+
+    const finalMatch = name.match(/^Final Exam\s*(.*)$/i);
+    if (finalMatch) {
+      const suffix = finalMatch[1]?.trim();
+      return `${t('finalExam', { ns: 'common' })}${suffix ? ` ${suffix}` : ''}`;
+    }
+
+    const assignmentMatch = name.match(/^Assignment\s*(.*)$/i);
+    if (assignmentMatch) {
+      const suffix = assignmentMatch[1]?.trim();
+      return `${t('assignment', { ns: 'grades' })}${suffix ? ` ${suffix}` : ''}`;
+    }
+
+    return name;
+  };
+
+  const translateHighlightCategory = (category?: string | null) => {
+    if (!category) return t('highlightCategoryFallback', { ns: 'students' });
+    const normalized = category.toLowerCase();
+    if (normalized === 'academic') return t('highlightCategoryAcademic', { ns: 'students' });
+    if (normalized === 'achievement') return t('highlightCategoryAchievement', { ns: 'students' });
+    if (normalized === 'behavior') return t('highlightCategoryBehavior', { ns: 'students' });
+    if (normalized === 'extracurricular') return t('highlightCategoryExtracurricular', { ns: 'students' });
+    if (normalized === 'note') return t('highlightCategoryNote', { ns: 'students' });
+    return category;
+  };
+
   const gradeDistribution = () => {
     const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
     grades.forEach(grade => {
@@ -172,6 +224,65 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
       distribution[letter]++;
     });
     return distribution;
+  };
+
+  const resetHighlightForm = useCallback(() => {
+    setHighlightForm({
+      semester: '',
+      category: '',
+      highlight_text: '',
+      rating: '',
+      is_positive: true,
+    });
+    setHighlightFormError(null);
+  }, []);
+
+  const handleHighlightTemplate = (text: string, category?: string) => {
+    setHighlightForm((prev) => ({
+      ...prev,
+      highlight_text: text,
+      category: category ?? prev.category,
+      is_positive: true,
+    }));
+  };
+
+  const handleHighlightSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setHighlightFormError(null);
+
+    const semester = highlightForm.semester.trim();
+    const highlightText = highlightForm.highlight_text.trim();
+    if (!semester) {
+      setHighlightFormError(t('highlightSemesterRequired', { ns: 'students' }));
+      return;
+    }
+    if (!highlightText) {
+      setHighlightFormError(t('highlightTextRequired', { ns: 'students' }));
+      return;
+    }
+
+    const ratingValue = highlightForm.rating !== '' ? Number(highlightForm.rating) : undefined;
+    const payload: HighlightCreatePayload = {
+      student_id: studentId,
+      semester,
+      rating: Number.isFinite(ratingValue) ? ratingValue : undefined,
+      category: highlightForm.category.trim() || undefined,
+      highlight_text: highlightText,
+      is_positive: highlightForm.is_positive,
+    };
+
+    try {
+      setHighlightSaving(true);
+      await highlightsAPI.create(payload);
+      resetHighlightForm();
+      setShowAddHighlight(false);
+      await loadStudentData();
+    } catch (error) {
+      console.error('Failed to create highlight:', error);
+      setHighlightFormError(t('highlightCreateFailed', { ns: 'students' }));
+    } finally {
+      setHighlightSaving(false);
+    }
   };
 
   if (loading) {
@@ -209,6 +320,43 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
   const stats = calculateStats();
   const distribution = gradeDistribution();
+  const highestGradePercent = grades.length > 0
+    ? Math.max(...grades.map((grade) => (grade.grade / grade.max_grade) * 100))
+    : null;
+  const classLabel = student.academic_year === 'A'
+    ? t('classA', { ns: 'common' })
+    : student.academic_year === 'B'
+      ? t('classB', { ns: 'common' })
+      : student.academic_year
+        ? `${t('academicYear', { ns: 'common' })} ${student.academic_year}`
+        : null;
+  const studentName = `${student.first_name} ${student.last_name}`;
+  const quickHighlightTemplates = [
+    {
+      key: 'bestGradeInClass',
+      category: 'Academic',
+      text: t('highlightTemplateBestGradeInClass', {
+        ns: 'students',
+        student: studentName,
+        score: highestGradePercent ? highestGradePercent.toFixed(1) : '-'
+      }),
+    },
+    {
+      key: 'bestGradeInExam',
+      category: 'Academic',
+      text: t('highlightTemplateBestGradeInExam', { ns: 'students', student: studentName }),
+    },
+    {
+      key: 'topRankInClass',
+      category: 'Achievement',
+      text: t('highlightTemplateTopRankInClass', { ns: 'students', student: studentName }),
+    },
+    {
+      key: 'topRankInExam',
+      category: 'Achievement',
+      text: t('highlightTemplateTopRankInExam', { ns: 'students', student: studentName }),
+    },
+  ];
 
   return (
     <div data-testid="student-profile" className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
@@ -257,10 +405,10 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                   <span>{t('studentPerformanceReport', { ns: 'reports' })}</span>
                 </button>
               </div>
-              {student.study_year && (
+              {classLabel && (
                 <div className="flex items-center space-x-3 text-indigo-700">
                   <Award size={20} className="text-indigo-600" />
-                  <span className="font-semibold text-indigo-700">{t('year', { ns: 'common' })} {student.study_year}</span>
+                  <span className="font-semibold text-indigo-700">{classLabel}</span>
                 </div>
               )}
               <div className="flex items-center space-x-3">
@@ -353,10 +501,142 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
           {/* Recent Highlights */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800 mb-6 flex items-center space-x-2">
-              <Star size={24} className="text-yellow-500" />
-              <span>{t('recentHighlights', { ns: 'students' })}</span>
-            </h3>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-800 flex items-center space-x-2">
+                <Star size={24} className="text-yellow-500" />
+                <span>{t('recentHighlights', { ns: 'students' })}</span>
+              </h3>
+              {canAddHighlight && (
+                <button
+                  type="button"
+                  onClick={() => setShowAddHighlight((prev) => !prev)}
+                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 px-3 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-50"
+                >
+                  <Plus size={16} />
+                  <span>{showAddHighlight ? t('cancelAddHighlight', { ns: 'students' }) : t('addHighlight', { ns: 'students' })}</span>
+                </button>
+              )}
+            </div>
+
+            {canAddHighlight && showAddHighlight && (
+              <form onSubmit={handleHighlightSubmit} className="mb-6 rounded-xl border border-indigo-100 bg-indigo-50 p-4 space-y-4">
+                <div>
+                  <p className="text-sm font-semibold text-indigo-700">{t('highlightTemplates', { ns: 'students' })}</p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {quickHighlightTemplates.map((template) => (
+                      <button
+                        key={template.key}
+                        type="button"
+                        onClick={() => handleHighlightTemplate(template.text, template.category)}
+                        className="rounded-full border border-indigo-200 bg-white px-3 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                      >
+                        {t(template.key, { ns: 'students' })}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700" htmlFor="highlight-semester">
+                      {t('highlightSemesterLabel', { ns: 'students' })}
+                    </label>
+                    <input
+                      id="highlight-semester"
+                      type="text"
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      placeholder={t('highlightSemesterPlaceholder', { ns: 'students' })}
+                      value={highlightForm.semester}
+                      onChange={(event) => setHighlightForm((prev) => ({ ...prev, semester: event.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700" htmlFor="highlight-category">
+                      {t('highlightCategoryLabel', { ns: 'students' })}
+                    </label>
+                    <select
+                      id="highlight-category"
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      value={highlightForm.category}
+                      onChange={(event) => setHighlightForm((prev) => ({ ...prev, category: event.target.value }))}
+                    >
+                      <option value="">{t('highlightCategoryPlaceholder', { ns: 'students' })}</option>
+                      <option value="Academic">{t('highlightCategoryAcademic', { ns: 'students' })}</option>
+                      <option value="Achievement">{t('highlightCategoryAchievement', { ns: 'students' })}</option>
+                      <option value="Behavior">{t('highlightCategoryBehavior', { ns: 'students' })}</option>
+                      <option value="Extracurricular">{t('highlightCategoryExtracurricular', { ns: 'students' })}</option>
+                      <option value="Note">{t('highlightCategoryNote', { ns: 'students' })}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-semibold text-gray-700" htmlFor="highlight-rating">
+                      {t('highlightRatingLabel', { ns: 'students' })}
+                    </label>
+                    <input
+                      id="highlight-rating"
+                      type="number"
+                      min={0}
+                      max={10}
+                      step={1}
+                      className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                      placeholder={t('highlightRatingPlaceholder', { ns: 'students' })}
+                      value={highlightForm.rating}
+                      onChange={(event) => setHighlightForm((prev) => ({ ...prev, rating: event.target.value }))}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-6">
+                    <input
+                      id="highlight-positive"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-indigo-600"
+                      checked={highlightForm.is_positive}
+                      onChange={(event) => setHighlightForm((prev) => ({ ...prev, is_positive: event.target.checked }))}
+                    />
+                    <label htmlFor="highlight-positive" className="text-sm font-semibold text-gray-700">
+                      {highlightForm.is_positive ? t('highlightPositive', { ns: 'students' }) : t('highlightNegative', { ns: 'students' })}
+                    </label>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-gray-700" htmlFor="highlight-text">
+                    {t('highlightTextLabel', { ns: 'students' })}
+                  </label>
+                  <textarea
+                    id="highlight-text"
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                    rows={3}
+                    placeholder={t('highlightTextPlaceholder', { ns: 'students' })}
+                    value={highlightForm.highlight_text}
+                    onChange={(event) => setHighlightForm((prev) => ({ ...prev, highlight_text: event.target.value }))}
+                  />
+                </div>
+
+                {highlightFormError && (
+                  <p className="text-sm text-red-600">{highlightFormError}</p>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="submit"
+                    disabled={highlightSaving}
+                    className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-60"
+                  >
+                    {highlightSaving ? t('highlightSaving', { ns: 'students' }) : t('highlightSave', { ns: 'students' })}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      resetHighlightForm();
+                      setShowAddHighlight(false);
+                    }}
+                    className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                  >
+                    {t('highlightCancel', { ns: 'students' })}
+                  </button>
+                </div>
+              </form>
+            )}
 
             {highlights.length === 0 ? (
               <p className="text-gray-500 text-center py-8">{t('noHighlights', { ns: 'students' })}</p>
@@ -364,6 +644,10 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
               <div className="space-y-4">
                 {highlights.slice(0, 5).map((highlight, idx) => (
                   <React.Fragment key={highlight.id}>
+                    {(() => {
+                      const ratingValue = Math.min(5, Math.round(highlight.rating ?? 0));
+                      const highlightText = highlight.highlight_text || highlight.description || '';
+                      return (
                     <div
                       className={`p-4 rounded-lg border-l-4 ${
                         highlight.is_positive
@@ -371,21 +655,23 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                           : 'bg-yellow-50 border-yellow-500'
                     }`}
                   >
-                    {highlight.rating && (
+                    {ratingValue > 0 && (
                       <div className="flex items-center space-x-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
                             size={16}
-                            className={i < (highlight.rating ?? 0) ? 'text-yellow-500 fill-current' : 'text-gray-300'}
+                            className={i < ratingValue ? 'text-yellow-500 fill-current' : 'text-gray-300'}
                           />
                         ))}
                       </div>
                     )}
-                    <p className="text-sm font-semibold text-gray-700">{highlight.category}</p>
-                    <p className="text-sm text-gray-600 mt-1">{highlight.highlight_text}</p>
-                    <p className="text-xs text-gray-500 mt-2">{highlight.semester}</p>
+                    <p className="text-sm font-semibold text-gray-700">{translateHighlightCategory(highlight.category)}</p>
+                    <p className="text-sm text-gray-600 mt-1">{highlightText}</p>
+                    <p className="text-xs text-gray-500 mt-2">{highlight.semester || '-'}</p>
                   </div>
+                      );
+                    })()}
                   {idx < highlights.slice(0, 5).length - 1 && (
                     <div className="border-t-2 border-gray-600 dark:border-gray-400 my-2" role="separator" aria-orientation="horizontal" />
                   )}
@@ -455,7 +741,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                     const letter = getLetterGrade(percentage);
                     return (
                       <tr key={grade.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 font-medium text-gray-800">{grade.assignment_name}</td>
+                        <td className="px-6 py-4 font-medium text-gray-800">{translateAssignmentName(grade.assignment_name)}</td>
                         <td className="px-6 py-4 text-center text-gray-600">
                           {grade.grade} / {grade.max_grade}
                         </td>

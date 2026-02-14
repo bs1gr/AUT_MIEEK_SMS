@@ -38,6 +38,7 @@ import type {
   Grade,
   Attendance,
   Highlight,
+  HighlightCreatePayload,
   PaginatedResponse,
   ImportResponse,
   EnrollmentResponse,
@@ -557,7 +558,7 @@ export const highlightsAPI = {
     return unwrapResponse<Highlight>(response.data);
   },
 
-  create: async (data: Omit<Highlight, 'id'>): Promise<Highlight> => {
+  create: async (data: HighlightCreatePayload): Promise<Highlight> => {
     const response = await apiClient.post<Highlight>('/highlights/', data);
     return unwrapResponse<Highlight>(response.data);
   },

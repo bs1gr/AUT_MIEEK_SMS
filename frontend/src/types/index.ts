@@ -98,6 +98,15 @@ export interface Highlight {
   semester?: string;
 }
 
+export interface HighlightCreatePayload {
+  student_id: number;
+  semester: string;
+  rating?: number | null;
+  category?: string | null;
+  highlight_text: string;
+  is_positive?: boolean;
+}
+
 export type UserRole = 'admin' | 'teacher' | 'student';
 
 export interface UserAccount {

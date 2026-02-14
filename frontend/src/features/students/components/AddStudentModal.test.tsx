@@ -305,7 +305,6 @@ describe('AddStudentModal', () => {
             father_name: '',
             health_issue: '',
             note: '',
-            study_year: 1,
           })
         );
       });
