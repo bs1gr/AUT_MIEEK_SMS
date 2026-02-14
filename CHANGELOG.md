@@ -32,6 +32,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Release Workflow Notes
 - **release**: `v1.17.9` was already tagged; duplicate release rerun was corrected via revert to preserve proper tag workflow.
 - **release-docs**: prepared and synchronized `v1.18.0` release documentation set (notes, manifest, deployment checklist, GitHub draft).
+- **ci**: hardened Docker build/push workflow to avoid GHCR `write_package` failures when package write token is unavailable on branch runs.
 
 ---
 

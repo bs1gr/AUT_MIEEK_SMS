@@ -4,7 +4,7 @@
 **Project Version (documented)**: 1.17.9
 **Version**: 1.17.9
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | 📦 **NEXT MAJOR RELEASE DOCS READY (v1.18.0)**
+**Status**: ✅ **PRODUCTION LIVE** | 🚀 **v1.18.0 RELEASE PREP READY (DOCS + CI ALIGNED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
@@ -13,6 +13,7 @@ This document serves as the single source of truth for all project documentation
 > - Changelog/work plan/index updated for changes since `v1.17.9`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
 > - `v1.18.0` release documentation pack refreshed (notes, release body, manifest, deployment checklist)
+> - CI/CD rerun completed successfully after GHCR package-push policy hardening
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
@@ -56,7 +57,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)** - Current task list and project roadmap
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2025-12-06)
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2026-02-15)
 
 ### Audit & Improvement Planning (1.15.0 - COMPLETE ✅)
 
