@@ -11,7 +11,7 @@
       "email",
       "mobile_phone",
       "enrollment_date",
-      "study_year",
+      "academic_year",
       "is_active"
     ],
     "filters": [],
@@ -55,12 +55,12 @@
     "default_include_charts": false
   },
   {
-    "name": "Students by Study Year",
-    "description": "Student distribution organized by study year with enrollment statistics.",
+    "name": "Students by Class",
+    "description": "Student distribution organized by class with enrollment statistics.",
     "category": "students",
     "report_type": "student",
     "fields": [
-      "study_year",
+      "academic_year",
       "student_id",
       "first_name",
       "last_name",
@@ -77,12 +77,12 @@
       {
         "field": "student_id",
         "function": "count",
-        "group_by": "study_year"
+        "group_by": "academic_year"
       }
     ],
     "sort_by": [
       {
-        "field": "study_year",
+        "field": "academic_year",
         "order": "asc"
       },
       {
@@ -104,7 +104,7 @@
       "first_name",
       "last_name",
       "email",
-      "study_year"
+      "academic_year"
     ],
     "filters": [
       {

@@ -15,6 +15,10 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
     titleKey: 'template_active_students_basic',
     descKey: 'template_active_students_basic_desc',
   },
+  'Students by Class': {
+    titleKey: 'template_students_by_year',
+    descKey: 'template_students_by_year_desc',
+  },
   'Students by Study Year': {
     titleKey: 'template_students_by_year',
     descKey: 'template_students_by_year_desc',
@@ -90,6 +94,10 @@ export const SYSTEM_TEMPLATE_TRANSLATIONS: Record<string, { titleKey: string; de
   'System Overview - Detailed Analytics': {
     titleKey: 'template_system_overview_analytics',
     descKey: 'template_system_overview_analytics_desc',
+  },
+  'Performance Analytics - By Class': {
+    titleKey: 'template_performance_by_year',
+    descKey: 'template_performance_by_year_desc',
   },
   'Performance Analytics - By Study Year': {
     titleKey: 'template_performance_by_year',

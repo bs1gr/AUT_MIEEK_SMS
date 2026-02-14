@@ -221,7 +221,6 @@ const ENTITY_FIELDS: Record<string, string[]> = {
     'phone',
     'health_issue',
     'note',
-    'study_year',
     'academic_year',
     'class_division',
   ],
