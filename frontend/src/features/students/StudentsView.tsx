@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { useStudents } from '@/hooks/useStudentsQuery';
-import VirtualStudentList from '@/components/VirtualStudentList';
+import CascadedStudentView from './components/CascadedStudentView';
 import StudentForm from './StudentForm';
 import SkeletonLoader from '../../components/common/SkeletonLoader';
 import { AdvancedFilters } from '../search/AdvancedFilters';
@@ -16,6 +16,9 @@ const StudentsView: React.FC = () => {
   const navigate = useNavigate();
   const studentsQuery = useStudents();
   const { data: students, isLoading, error: apiError, refetch } = studentsQuery;
+
+
+
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
 
@@ -81,12 +84,12 @@ const StudentsView: React.FC = () => {
           <SkeletonLoader rows={10} />
         </div>
       ) : (
-        <VirtualStudentList
+        <CascadedStudentView
           students={students || []}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onView={(id: number) => navigate(`/students/${id}`)}
-          height={600}
+          loading={isLoading}
         />
       )}
 

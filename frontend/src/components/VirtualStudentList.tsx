@@ -10,6 +10,7 @@ interface VirtualStudentListProps {
   onDelete: (id: number) => void;
   onView: (id: number) => void;
   height?: number;
+  enrollmentCounts?: Record<number, number>;
 }
 
 const ITEM_HEIGHT = 65; // Approximate height of a row including padding
@@ -19,7 +20,8 @@ const VirtualStudentList: React.FC<VirtualStudentListProps> = ({
   onEdit,
   onDelete,
   onView,
-  height = 600
+  height = 600,
+  enrollmentCounts = {}
 }) => {
   const { t } = useTranslation();
   const { virtualizer, parentRef } = useVirtualScroll({
@@ -71,6 +73,7 @@ const VirtualStudentList: React.FC<VirtualStudentListProps> = ({
                   onEdit={onEdit}
                   onDelete={onDelete}
                   onView={onView}
+                  enrollmentCount={enrollmentCounts[student.id] || 0}
                 />
               );
             })}

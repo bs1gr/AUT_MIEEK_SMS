@@ -743,7 +743,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
           value={stats.totalStudents || 0}
           icon={Users}
           color="indigo"
-          subtitle={`${stats.activeStudents || 0} ${t('active').toLowerCase()}`}
+          subtitle={`${stats.activeStudents || 0} ${t('active', { count: stats.activeStudents || 0, ns: 'students' }).toLowerCase()}`}
         />
         <StatCard
           title={t('activeCourses')}
