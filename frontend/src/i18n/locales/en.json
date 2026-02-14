@@ -93,7 +93,13 @@
     "noStudents": "No students found",
     "searchPlaceholder": "Search by name, ID, or email...",
     "bulkImport": "Bulk Import",
-    "exportList": "Export Student List"
+    "exportList": "Export Student List",
+    "activeStudents": "Active Students",
+    "inactiveStudents": "Inactive Students",
+    "noCoursesEnrolled": "Not Enrolled",
+    "abandonedEnrollment": "Abandoned Enrollment",
+    "loadingEnrollments": "Loading enrollment data...",
+    "enrolled": "Courses"
   },
   "courses": {
     "title": "Course Management",
@@ -148,7 +154,8 @@
     "average": "Average",
     "highest": "Highest",
     "lowest": "Lowest",
-    "distribution": "Distribution"
+    "distribution": "Distribution",
+    "sampleExamAssignment": "Sample Exam Assignment"
   },
   "attendance": {
     "title": "Attendance Management",
@@ -309,6 +316,14 @@
     "documentation": "Documentation",
     "tutorials": "Tutorials",
     "changelog": "Changelog"
+  },
+  "dashboard": {
+    "recentGrades": "Recent Grades",
+    "assignmentHeader": "Assignment",
+    "scoreHeader": "Score",
+    "percentageHeader": "Percentage",
+    "gradeHeader": "Grade",
+    "dateHeader": "Date"
   },
   "dateTime": {
     "today": "Today",

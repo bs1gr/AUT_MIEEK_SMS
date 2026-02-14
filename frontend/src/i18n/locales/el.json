@@ -93,7 +93,13 @@
     "noStudents": "Δεν βρέθηκαν φοιτητές",
     "searchPlaceholder": "Αναζήτηση με όνομα, Α.Μ. ή email...",
     "bulkImport": "Μαζική Εισαγωγή",
-    "exportList": "Εξαγωγή Λίστας Φοιτητών"
+    "exportList": "Εξαγωγή Λίστας Φοιτητών",
+    "activeStudents": "Ενεργοί Σπουδαστές",
+    "inactiveStudents": "Ανενεργοί Σπουδαστές",
+    "noCoursesEnrolled": "Δεν είναι εγγεγραμμένος/θ",
+    "abandonedEnrollment": "Εγκατέλειφθη Εγγραφή",
+    "loadingEnrollments": "Φόρτωση εγγραφών...",
+    "enrolled": "Μαθήματα"
   },
   "courses": {
     "title": "Διαχείριση Μαθημάτων",
@@ -148,7 +154,8 @@
     "average": "Μέσος Όρος",
     "highest": "Υψηλότερος",
     "lowest": "Χαμηλότερος",
-    "distribution": "Κατανομή"
+    "distribution": "Κατανομή",
+    "sampleExamAssignment": "Δείγμα Εργασίας Εξέτασης"
   },
   "attendance": {
     "title": "Διαχείριση Παρουσιών",
@@ -309,6 +316,14 @@
     "documentation": "Τεκμηρίωση",
     "tutorials": "Οδηγοί",
     "changelog": "Ιστορικό Αλλαγών"
+  },
+  "dashboard": {
+    "recentGrades": "Πρόσφατοι Βαθμοί",
+    "assignmentHeader": "Εργασία",
+    "scoreHeader": "Βαθμός",
+    "percentageHeader": "Ποσοστό",
+    "gradeHeader": "Βαθμολογία",
+    "dateHeader": "Ημερομηνία"
   },
   "dateTime": {
     "today": "Σήμερα",
