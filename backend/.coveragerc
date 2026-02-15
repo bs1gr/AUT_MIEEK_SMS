@@ -6,6 +6,9 @@ omit =
     tests/*
     */tests/*
     *\tests\*
+    scripts/*
+    */scripts/*
+    *\scripts\*
     migrations/*
     */migrations/*
     *\migrations\*
@@ -39,6 +42,15 @@ omit =
     routers\routers_highlights.py
     */routers/routers_highlights.py
     *\routers\routers_highlights.py
+    seed_database.py
+    */seed_database.py
+    *\seed_database.py
+    seed_e2e_data.py
+    */seed_e2e_data.py
+    *\seed_e2e_data.py
+    validate_e2e_data.py
+    */validate_e2e_data.py
+    *\validate_e2e_data.py
 
 [report]
 skip_covered = True
@@ -48,6 +60,9 @@ omit =
     tests/*
     */tests/*
     *\tests\*
+    scripts/*
+    */scripts/*
+    *\scripts\*
     migrations/*
     */migrations/*
     *\migrations\*
@@ -81,3 +96,12 @@ omit =
     routers\routers_highlights.py
     */routers/routers_highlights.py
     *\routers\routers_highlights.py
+    seed_database.py
+    */seed_database.py
+    *\seed_database.py
+    seed_e2e_data.py
+    */seed_e2e_data.py
+    *\seed_e2e_data.py
+    validate_e2e_data.py
+    */validate_e2e_data.py
+    *\validate_e2e_data.py
