@@ -14,22 +14,43 @@ namespace SMS_Manager
     class Program
     {
         private static readonly string SMS_APP_CONTAINER = "sms-app";
-        private static readonly string SMS_IMAGE = "sms:latest";
         private static readonly int APP_PORT = 8080;
         private static readonly string INSTALL_DIR = GetInstallDirectory();
+        private static readonly string COMPOSE_FILE = Path.Combine(INSTALL_DIR, "docker", "docker-compose.yml");
 
-        // ANSI color codes for terminal output
-        private const string RESET = "\x1b[0m";
-        private const string BOLD = "\x1b[1m";
-        private const string GREEN = "\x1b[32m";
-        private const string RED = "\x1b[31m";
-        private const string YELLOW = "\x1b[33m";
-        private const string CYAN = "\x1b[36m";
+        // ANSI color codes for terminal output (enabled only when supported)
+        private const string ANSI_RESET = "\u001b[0m";
+        private const string ANSI_BOLD = "\u001b[1m";
+        private const string ANSI_GREEN = "\u001b[32m";
+        private const string ANSI_RED = "\u001b[31m";
+        private const string ANSI_YELLOW = "\u001b[33m";
+        private const string ANSI_CYAN = "\u001b[36m";
+
+        private static string RESET = "";
+        private static string BOLD = "";
+        private static string GREEN = "";
+        private static string RED = "";
+        private static string YELLOW = "";
+        private static string CYAN = "";
+
+        private const int STD_OUTPUT_HANDLE = -11;
+        private const int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr GetStdHandle(int nStdHandle);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool GetConsoleMode(IntPtr hConsoleHandle, out int lpMode);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool SetConsoleMode(IntPtr hConsoleHandle, int dwMode);
 
         static async Task<int> Main(string[] args)
         {
             try
             {
+                ConfigureConsole();
+
                 // Request admin elevation if not already elevated
                 if (!IsElevated())
                 {
@@ -37,7 +58,6 @@ namespace SMS_Manager
                     return 0;
                 }
 
-                Console.OutputEncoding = System.Text.Encoding.UTF8;
                 DisplayHeader();
 
                 // If launched with argument, execute directly (no menu)
@@ -141,6 +161,17 @@ namespace SMS_Manager
 
             // Run docker compose up
             int code = await RunDockerCompose("up -d");
+            if (code != 0)
+            {
+                Console.WriteLine($"{YELLOW}⚠ Compose start failed, trying fallback: docker start {SMS_APP_CONTAINER}{RESET}");
+                int fallbackCode = await RunCommand("docker", $"start {SMS_APP_CONTAINER}");
+                if (fallbackCode == 0)
+                {
+                    code = 0;
+                    Console.WriteLine($"{GREEN}✓ Existing container started via fallback.{RESET}");
+                }
+            }
+
             if (code == 0)
             {
                 Console.WriteLine($"\n{GREEN}✓ Container started successfully.{RESET}");
@@ -162,6 +193,16 @@ namespace SMS_Manager
         {
             Console.WriteLine($"{RESET}\n{CYAN}🛑 Stopping SMS container...{RESET}");
             int code = await RunDockerCompose("down");
+
+            if (code != 0)
+            {
+                Console.WriteLine($"{YELLOW}⚠ Compose stop failed, trying fallback: docker stop {SMS_APP_CONTAINER}{RESET}");
+                int fallbackCode = await RunCommand("docker", $"stop {SMS_APP_CONTAINER}");
+                if (fallbackCode == 0)
+                {
+                    code = 0;
+                }
+            }
 
             if (code == 0)
             {
@@ -286,10 +327,23 @@ namespace SMS_Manager
 
         static async Task<int> RunDockerCompose(string args)
         {
-            return await RunCommand(
-                "docker",
-                $"compose -f \"{Path.Combine(INSTALL_DIR, "docker", "docker-compose.yml")}\" {args}"
-            );
+            if (!File.Exists(COMPOSE_FILE))
+            {
+                Console.WriteLine($"{RED}❌ Compose file not found: {COMPOSE_FILE}{RESET}");
+                Console.WriteLine($"{YELLOW}⚠ Verify installation folder contains docker\\docker-compose.yml{RESET}");
+                return 1;
+            }
+
+            string composeArgs = $"-f \"{COMPOSE_FILE}\" {args}";
+
+            int code = await RunCommand("docker", $"compose {composeArgs}");
+            if (code == 0)
+            {
+                return 0;
+            }
+
+            Console.WriteLine($"{YELLOW}⚠ 'docker compose' failed, trying 'docker-compose' fallback...{RESET}");
+            return await RunCommand("docker-compose", composeArgs);
         }
 
         static async Task<int> RunCommand(string command, string args)
@@ -301,18 +355,96 @@ namespace SMS_Manager
                     FileName = command,
                     Arguments = args,
                     UseShellExecute = false,
-                    RedirectStandardOutput = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
                     CreateNoWindow = true
                 };
 
                 using var process = Process.Start(psi);
+                if (process == null)
+                {
+                    Console.WriteLine($"{RED}Error: Failed to start process '{command}'.{RESET}");
+                    return 1;
+                }
+
+                string output = await process.StandardOutput.ReadToEndAsync();
+                string error = await process.StandardError.ReadToEndAsync();
                 await process.WaitForExitAsync();
+
+                if (!string.IsNullOrWhiteSpace(output))
+                {
+                    Console.WriteLine(output.TrimEnd());
+                }
+
+                if (!string.IsNullOrWhiteSpace(error))
+                {
+                    Console.WriteLine(error.TrimEnd());
+                }
+
                 return process.ExitCode;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"{RED}Error running command: {ex.Message}{RESET}");
                 return 1;
+            }
+        }
+
+        static void ConfigureConsole()
+        {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                EnableAnsiColors();
+                return;
+            }
+
+            if (TryEnableVirtualTerminalProcessing())
+            {
+                EnableAnsiColors();
+            }
+        }
+
+        static void EnableAnsiColors()
+        {
+            RESET = ANSI_RESET;
+            BOLD = ANSI_BOLD;
+            GREEN = ANSI_GREEN;
+            RED = ANSI_RED;
+            YELLOW = ANSI_YELLOW;
+            CYAN = ANSI_CYAN;
+        }
+
+        static bool TryEnableVirtualTerminalProcessing()
+        {
+            try
+            {
+                IntPtr handle = GetStdHandle(STD_OUTPUT_HANDLE);
+                if (handle == IntPtr.Zero || handle == new IntPtr(-1))
+                {
+                    return false;
+                }
+
+                if (!GetConsoleMode(handle, out int mode))
+                {
+                    return false;
+                }
+
+                if ((mode & ENABLE_VIRTUAL_TERMINAL_PROCESSING) != ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+                {
+                    mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+                    if (!SetConsoleMode(handle, mode))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 
