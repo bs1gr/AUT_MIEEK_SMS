@@ -127,19 +127,25 @@ export interface JobDetail {
 // Base API URL
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL;
 const IS_DEV = import.meta.env.DEV;
+const API_DEBUG = IS_DEV && String(import.meta.env.VITE_API_DEBUG || '').toLowerCase() === 'true';
+const logApiDebug = (...args: unknown[]) => {
+  if (API_DEBUG) {
+    console.debug(...args);
+  }
+};
 const USE_DEV_PROXY = Boolean(
   IS_DEV &&
   typeof RAW_API_BASE_URL === 'string' &&
   /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?api\/v1\/?$/i.test(RAW_API_BASE_URL)
 );
 const API_BASE_URL = USE_DEV_PROXY ? '/api/v1' : (RAW_API_BASE_URL || '/api/v1');
-console.warn('[API Client] VITE_API_URL env var:', RAW_API_BASE_URL);
-console.warn('[API Client] Using API_BASE_URL:', API_BASE_URL);
+logApiDebug('[API Client] VITE_API_URL env var:', RAW_API_BASE_URL);
+logApiDebug('[API Client] Using API_BASE_URL:', API_BASE_URL);
 if (!RAW_API_BASE_URL) {
-  console.warn('VITE_API_URL is not defined. Using default relative URL: /api/v1');
+  logApiDebug('VITE_API_URL is not defined. Using default relative URL: /api/v1');
 }
 if (USE_DEV_PROXY) {
-  console.warn('Using Vite dev proxy for localhost API (CORS-safe): /api/v1');
+  logApiDebug('Using Vite dev proxy for localhost API (CORS-safe): /api/v1');
 }
 
 // Canonical Control API base (backend mounts control router without /api/v1 prefix)
@@ -225,7 +231,7 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
     // Check both with and without /api/v1 prefix since it might not be included in config.url
     if (url.includes('/auth/login') || url.includes('/auth/refresh') ||
         url.includes('/api/v1/auth/login') || url.includes('/api/v1/auth/refresh')) {
-      console.warn('[API] Skipping auth header for:', url);
+      logApiDebug('[API] Skipping auth header for:', url);
       return config;
     }
 
@@ -238,7 +244,7 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
       }
     }
     if (token) {
-      console.warn('[API] Attaching auth header for:', url);
+      logApiDebug('[API] Attaching auth header for:', url);
       if (config.headers instanceof AxiosHeaders) {
         config.headers.set('Authorization', `Bearer ${token}`);
       } else if (config.headers) {
@@ -251,7 +257,7 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
         config.headers = headers;
       }
     } else {
-      console.warn('[API] No token available for:', url);
+      logApiDebug('[API] No token available for:', url);
     }
   } catch {
     // ignore
