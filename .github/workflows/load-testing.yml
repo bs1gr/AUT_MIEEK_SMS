@@ -38,9 +38,9 @@ concurrency:
 jobs:
   load-test:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'development' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}
     env:
-      SMS_ENV: ${{ github.event.inputs.environment || 'development' }}
+      SMS_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}
       AUTH_MODE: disabled
       AUTH_ENABLED: 'false'
       CI_SKIP_AUTH: 'true'
@@ -166,7 +166,7 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always() && steps.loadtest.outputs.missing != 'true'
       with:
-        name: load-test-results-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
+        name: load-test-results-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}-${{ github.run_number }}
         path: |
           ${{ steps.loadtest.outputs.results }}/
           ${{ steps.loadtest.outputs.reports }}/
@@ -229,7 +229,7 @@ jobs:
       if: steps.loadtest.outputs.missing != 'true'
       uses: actions/download-artifact@v4
       with:
-        name: load-test-results-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
+        name: load-test-results-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}-${{ github.run_number }}
         path: load-test-results
 
     - name: Generate performance report
@@ -250,6 +250,6 @@ jobs:
       uses: actions/upload-artifact@v4
       if: steps.loadtest.outputs.missing != 'true'
       with:
-        name: performance-report-${{ github.event.inputs.environment || 'development' }}-${{ github.run_number }}
+        name: performance-report-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}-${{ github.run_number }}
         path: performance-report.html
         retention-days: 90
