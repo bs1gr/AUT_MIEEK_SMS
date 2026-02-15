@@ -36,6 +36,16 @@ except Exception:
     settings = SimpleNamespace(DATABASE_URL=env_db)
 
 
+def _escape_for_alembic_config(value: str) -> str:
+    """Escape percent signs for ConfigParser interpolation used by Alembic.
+
+    Alembic's Config wraps Python's configparser where '%' has interpolation
+    meaning. Database URLs may contain percent-encoded values (for example
+    passwords with '!' encoded as '%21'). Those must be escaped as '%%'.
+    """
+    return value.replace("%", "%%")
+
+
 def _alembic_config(backend_dir: Path) -> Config:
     """Create an Alembic Config configured to use the project's alembic.ini and
     the application's DATABASE_URL.
@@ -48,14 +58,14 @@ def _alembic_config(backend_dir: Path) -> Config:
     # which may have been created earlier in the process.
     try:
         current_settings = Settings()
-        cfg.set_main_option("sqlalchemy.url", current_settings.DATABASE_URL)
+        cfg.set_main_option("sqlalchemy.url", _escape_for_alembic_config(current_settings.DATABASE_URL))
     except Exception:
         # If Settings() validation fails (for example tests may set a
         # temporary DATABASE_URL outside the project tree), fall back to the
         # raw environment variable so tests can control the target DB directly.
         env_db = os.environ.get("DATABASE_URL")
         if env_db:
-            cfg.set_main_option("sqlalchemy.url", env_db)
+            cfg.set_main_option("sqlalchemy.url", _escape_for_alembic_config(env_db))
         else:
             # Fallback to whatever is configured in alembic.ini
             pass

@@ -42,6 +42,11 @@ POSTGRES_OPTIONS=connect_timeout=10&application_name=sms
 > same variables, so the container picks up the PostgreSQL connection without
 > additional flags.
 
+> **Important (v1.18.0 hardening):** PostgreSQL mode is now **explicit**. Keep
+> `DATABASE_ENGINE=postgresql` (or an explicit PostgreSQL `DATABASE_URL`) to run
+> Compose/PostgreSQL mode. This avoids accidental engine switching and prevents
+> "data disappeared" incidents caused by silently reading from the wrong backend.
+
 ## Step 2 — (Optional) Dry Run
 
 Preview the migration without touching PostgreSQL:
@@ -80,6 +85,13 @@ Key options:
 
 By default the script truncates destination tables with `RESTART IDENTITY
 CASCADE` to guarantee clean imports.
+
+### Migration reliability improvements (v1.18.0)
+
+- Percent-encoded PostgreSQL URLs (for example passwords containing `!` encoded
+    as `%21`) are now handled safely by the Alembic runner.
+- If selected tables do not exist in destination PostgreSQL schema, the helper
+    logs a warning and skips only those tables instead of aborting the full run.
 
 ## Step 4 — Point the App to PostgreSQL
 

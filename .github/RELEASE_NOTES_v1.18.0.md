@@ -51,5 +51,3 @@ powershell
 - **[Release Report](docs/releases/reports/RELEASE_REPORT_v1.18.0.md)** - Executive summary and impact assessment
 - **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.0.md)** - Detailed cleanup audit
 - **[CHANGELOG](CHANGELOG.md)** - Full commit history
-
-

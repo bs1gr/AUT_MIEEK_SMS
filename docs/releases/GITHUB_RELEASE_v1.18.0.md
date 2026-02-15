@@ -16,8 +16,8 @@
 
 # v1.18.0 - Major Maintenance & UX Consolidation
 
-**Release Date**: February 2026  
-**Type**: Major maintenance release  
+**Release Date**: February 2026
+**Type**: Major maintenance release
 **Status**: Production-ready
 
 ---

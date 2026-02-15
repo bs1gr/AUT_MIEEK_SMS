@@ -134,6 +134,22 @@ def _truncate_tables(conn: Connection, tables: Sequence[Table]) -> None:
     conn.execute(text(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE"))
 
 
+def _filter_existing_destination_tables(conn: Connection, tables: Sequence[Table]) -> tuple[list[Table], list[str]]:
+    """Return destination-existing tables and names missing from PostgreSQL schema."""
+    inspector = sa.inspect(conn)
+    existing = {name.lower() for name in inspector.get_table_names(schema="public")}
+
+    present_tables: list[Table] = []
+    missing_tables: list[str] = []
+    for table in tables:
+        if table.name.lower() in existing:
+            present_tables.append(table)
+        else:
+            missing_tables.append(table.name)
+
+    return present_tables, missing_tables
+
+
 def _chunked(result: sa.engine.Result, batch_size: int) -> Iterable[list[dict[str, object]]]:
     while True:
         rows = result.fetchmany(batch_size)
@@ -220,9 +236,21 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
 
         with postgres_engine.begin() as dest_conn:
+            tables_for_dest, missing_dest_tables = _filter_existing_destination_tables(dest_conn, tables)
+            if missing_dest_tables:
+                LOGGER.warning(
+                    "Skipping %s table(s) missing in destination schema: %s",
+                    len(missing_dest_tables),
+                    ", ".join(sorted(missing_dest_tables)),
+                )
+
+            if not tables_for_dest:
+                LOGGER.warning("No selected tables exist in destination PostgreSQL schema. Nothing to do.")
+                return 0
+
             if not args.no_truncate:
-                _truncate_tables(dest_conn, tables)
-            for table in tables:
+                _truncate_tables(dest_conn, tables_for_dest)
+            for table in tables_for_dest:
                 _copy_table(table, source_conn, dest_conn, args.batch_size, args.dry_run)
 
     LOGGER.info("Migration complete")

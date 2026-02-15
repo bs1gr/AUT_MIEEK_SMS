@@ -391,10 +391,14 @@ function Use-ComposeMode {
         return $true
     }
 
-    # Require full PostgreSQL credentials before switching to compose mode.
-    # This avoids accidental sqlite -> postgres mode flips from partial env values.
+    # IMPORTANT: Do NOT auto-switch to PostgreSQL compose mode only because
+    # POSTGRES_* variables exist. Those variables may be present in .env for
+    # future/optional use while DATABASE_ENGINE remains sqlite.
+    # Switching implicitly causes "missing data" scenarios by pointing the app
+    # to a different database engine/volume.
     if ($pgHost -and $pgUser -and $pgPassword -and $pgDb) {
-        return $true
+        Write-Warning "POSTGRES_* variables detected, but DATABASE_ENGINE is not postgresql. Staying in SQLite mode."
+        Write-Info "Set DATABASE_ENGINE=postgresql (or DATABASE_URL=postgresql://...) to use compose/PostgreSQL mode explicitly."
     }
 
     return $false

@@ -324,10 +324,12 @@ class Settings(BaseSettings):
 
         data = info.data
         engine = str(data.get("DATABASE_ENGINE") or "sqlite").lower()
-        pg_fields = [data.get("POSTGRES_USER"), data.get("POSTGRES_PASSWORD"), data.get("POSTGRES_DB")]
-        has_pg_creds = all(pg_fields)
-        # Prefer explicit Postgres config when requested
-        if engine == "postgresql" or has_pg_creds:
+
+        # Prefer PostgreSQL only when explicitly requested via DATABASE_ENGINE.
+        # Do not infer PostgreSQL from POSTGRES_* credentials alone, because many
+        # deployments keep those values present in .env while still using sqlite.
+        # Implicit switching can make existing data appear "lost" by changing DB engine.
+        if engine == "postgresql":
             return _build_postgres_url_from_data(data)
 
         # In test runtime, default to an in-memory SQLite database so tests that
