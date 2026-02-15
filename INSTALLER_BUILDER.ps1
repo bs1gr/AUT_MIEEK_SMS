@@ -131,6 +131,8 @@ $SignerScript = Join-Path $InstallerDir "SIGN_INSTALLER.ps1"
 $InnoSetupScript = Join-Path $InstallerDir "SMS_Installer.iss"
 $InstallerExe = Join-Path $DistDir "SMS_Installer_$CurrentVersion.exe"
 $Certificate = Join-Path $InstallerDir "AUT_MIEEK_CodeSign.pfx"
+$SmsManagerProject = Join-Path $InstallerDir "SMS_Manager\SMS_Manager.csproj"
+$SmsManagerExe = Join-Path $InstallerDir "dist\SMS_Manager.exe"
 
 # Inno Setup paths (common installation locations)
 $InnoSetupPaths = @(
@@ -407,6 +409,43 @@ function Invoke-InstallerCompilation {
     }
 }
 
+function Invoke-SmsManagerBuild {
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+    Write-Result Info "SMS MANAGER BUILD"
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+
+    if (-not (Test-FileExists $SmsManagerProject)) {
+        Write-Result Error "SMS_Manager project not found: $SmsManagerProject"
+        return $false
+    }
+
+    if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
+        Write-Result Error "dotnet SDK not found. Required to build SMS_Manager.exe"
+        return $false
+    }
+
+    try {
+        Write-Result Info "Building SMS_Manager.exe..."
+        & dotnet restore $SmsManagerProject | Out-Null
+        & dotnet publish $SmsManagerProject -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true | Out-Null
+
+        if (-not (Test-Path $SmsManagerExe)) {
+            Write-Result Error "SMS_Manager.exe not produced at: $SmsManagerExe"
+            return $false
+        }
+
+        $size = (Get-Item $SmsManagerExe).Length / 1MB
+        $sizeMB = [Math]::Round($size, 2)
+        Write-Result Success "SMS_Manager.exe ready ✓"
+        Write-Result Info "Location: $SmsManagerExe"
+        Write-Result Info "Size: $sizeMB MB"
+        return $true
+    } catch {
+        Write-Result Error "SMS_Manager build failed: $_"
+        return $false
+    }
+}
+
 function Invoke-CodeSigning {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "CODE SIGNING (Authenticode - AUT MIEEK Certificate)"
@@ -597,6 +636,10 @@ switch ($Action) {
             exit 1
         }
 
+        if (-not (Invoke-SmsManagerBuild)) {
+            exit 1
+        }
+
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
                 # Attempt code signing (non-blocking)
@@ -631,6 +674,10 @@ switch ($Action) {
         # Complete release flow
         # Greek encoding audit (critical for release)
         Invoke-GreekEncodingAudit | Out-Null
+
+        if (-not (Invoke-SmsManagerBuild)) {
+            exit 1
+        }
 
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
