@@ -70,6 +70,9 @@ param(
     [switch]$SkipGitHubRelease,
 
     [Parameter()]
+    [switch]$ForceOverwrite,
+
+    [Parameter()]
     [ValidateSet('markdown', 'text', 'json')]
     [string]$Format = 'markdown',
 
@@ -476,8 +479,13 @@ if ($Preview) {
     # Write release notes
     if (-not $SkipReleaseNotes) {
         $releaseNotesPath = Join-Path $OutputDir "RELEASE_NOTES_v${Version}.md"
-        $releaseNotes | Set-Content -Path $releaseNotesPath -Encoding UTF8
-        Write-Success "Created: $releaseNotesPath"
+        if ((Test-Path $releaseNotesPath) -and -not $ForceOverwrite) {
+            Write-Info "Preserving existing release notes (curated): $releaseNotesPath"
+            Write-Info "Use -ForceOverwrite to regenerate generic release notes"
+        } else {
+            $releaseNotes | Set-Content -Path $releaseNotesPath -Encoding UTF8
+            Write-Success "Created: $releaseNotesPath"
+        }
     }
 
     # Update CHANGELOG.md
@@ -506,16 +514,25 @@ if ($Preview) {
     # Write GitHub release description
     if (-not $SkipGitHubRelease) {
         $githubReleasePath = Join-Path $OutputDir "GITHUB_RELEASE_v${Version}.md"
-        $githubRelease | Set-Content -Path $githubReleasePath -Encoding UTF8
-        Write-Success "Created: $githubReleasePath"
+        if ((Test-Path $githubReleasePath) -and -not $ForceOverwrite) {
+            Write-Info "Preserving existing GitHub release draft (curated): $githubReleasePath"
+            Write-Info "Use -ForceOverwrite to regenerate generic release draft"
+        } else {
+            $githubRelease | Set-Content -Path $githubReleasePath -Encoding UTF8
+            Write-Success "Created: $githubReleasePath"
+        }
 
         # Also write to .github path so release workflow can pick it up automatically
         $notesPath = Join-Path ".github" "RELEASE_NOTES_v${Version}.md"
         if (-not (Test-Path ".github")) { New-Item -ItemType Directory -Path ".github" -Force | Out-Null }
-        # Sanitize: remove fenced code blocks (just in case) by replacing triple backticks
-        $sanitized = ($githubRelease -replace "```+", "")
-        $sanitized | Set-Content -Path $notesPath -Encoding UTF8
-        Write-Success "Created: $notesPath"
+        if ((Test-Path $notesPath) -and -not $ForceOverwrite) {
+            Write-Info "Preserving existing workflow release notes (curated): $notesPath"
+        } else {
+            # Sanitize: remove fenced code blocks (just in case) by replacing triple backticks
+            $sanitized = ($githubRelease -replace "```+", "")
+            $sanitized | Set-Content -Path $notesPath -Encoding UTF8
+            Write-Success "Created: $notesPath"
+        }
     }
 }
 
