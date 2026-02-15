@@ -54,7 +54,7 @@ This release finalizes PostgreSQL standardization, hardens migration reliability
 ## 🔐 Integrity
 
 **SHA256 (`SMS_Installer_1.18.0.exe`)**:  
-`DE13F4246ADB304119E58510A5F1E7BF034DC1F465F8F7C13D5B02E496A47C95`
+`09F20386CCB3A6CB1C5D4897C20EAD2C815F52FEA38BEACAA27ADC3D5FE15678`
 
 ---
 
@@ -75,7 +75,7 @@ This release finalizes PostgreSQL standardization, hardens migration reliability
 - Installer signature verified (AUT MIEEK cert, Limassol/CY).
 
 ### Integrity
-- **SHA256 (`SMS_Installer_1.18.0.exe`)**: `DE13F4246ADB304119E58510A5F1E7BF034DC1F465F8F7C13D5B02E496A47C95`
+- **SHA256 (`SMS_Installer_1.18.0.exe`)**: `09F20386CCB3A6CB1C5D4897C20EAD2C815F52FEA38BEACAA27ADC3D5FE15678`
 
 ### Key commits
 - `fb4c13925` docs(plan): record postgres standardization and installer refresh
