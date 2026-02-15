@@ -294,6 +294,81 @@ jobs:
         run: |
           cd backend
           pytest -v --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing --html=pytest-report.html --self-contained-html --json-report --json-report-file=pytest-report.json
+
+      - name: Publish backend failing tests summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+          report_path = Path("backend/pytest-report.json")
+
+          if not summary_path:
+            raise SystemExit("GITHUB_STEP_SUMMARY not set")
+
+          lines = []
+
+          if not report_path.exists():
+            lines.append("### Backend failing tests")
+            lines.append("- pytest-report.json not found (test runner may have failed before report generation).")
+            with open(summary_path, "a", encoding="utf-8") as fh:
+              fh.write("\n".join(lines) + "\n")
+            raise SystemExit(0)
+
+          try:
+            data = json.loads(report_path.read_text(encoding="utf-8"))
+          except Exception as exc:  # pragma: no cover - CI diagnostic path
+            lines.append("### Backend failing tests")
+            lines.append(f"- Could not parse pytest-report.json: {exc}")
+            with open(summary_path, "a", encoding="utf-8") as fh:
+              fh.write("\n".join(lines) + "\n")
+            raise SystemExit(0)
+
+          tests = data.get("tests") or []
+          failed = [t for t in tests if t.get("outcome") in {"failed", "error"}]
+          xfailed = [t for t in tests if t.get("outcome") == "xfailed"]
+
+          lines.append("### Backend failing tests")
+
+          if not failed:
+            lines.append("- None (no failing tests)")
+          else:
+            lines.append(f"- Total failing tests: **{len(failed)}**")
+            for t in failed[:30]:
+              nodeid = t.get("nodeid", "<unknown test>")
+              outcome = t.get("outcome", "failed")
+              lines.append(f"- `{nodeid}` ({outcome})")
+
+              call = t.get("call") or {}
+              longrepr = call.get("longrepr")
+              if isinstance(longrepr, str) and longrepr.strip():
+                snippet = " ".join(longrepr.strip().splitlines()[:2])
+                lines.append(f"  - {snippet[:300]}")
+
+            if len(failed) > 30:
+              lines.append(f"- ... and {len(failed) - 30} more")
+
+          if xfailed:
+            lines.append(f"- xfailed (expected failures): {len(xfailed)}")
+
+          summary = data.get("summary") or {}
+          if summary:
+            lines.append(
+              "- Summary: "
+              f"passed={summary.get('passed', 0)}, "
+              f"failed={summary.get('failed', 0)}, "
+              f"errors={summary.get('error', summary.get('errors', 0))}, "
+              f"skipped={summary.get('skipped', 0)}, "
+              f"total={summary.get('total', 0)}"
+            )
+
+          with open(summary_path, "a", encoding="utf-8") as fh:
+            fh.write("\n".join(lines) + "\n")
+          PY
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
