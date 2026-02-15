@@ -280,20 +280,36 @@ jobs:
           $tag = "${{ steps.resolve_tag.outputs.tag }}"
           $version = "${{ steps.resolve_tag.outputs.version }}"
           $assetName = "SMS_Installer_${version}.exe"
+          $repo = "${{ github.repository }}"
+          $localHash = (Get-FileHash $installerPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          $localDigest = "sha256:$localHash"
 
           Write-Host "Uploading $assetName to release..."
           Write-Host "Tag: $tag"
           Write-Host "Installer path: $installerPath"
           Write-Host "Asset name: $assetName"
+          Write-Host "Local digest: $localDigest"
 
-          # Try to upload to the release
           try {
-            gh release upload $tag "$installerPath#$assetName" --clobber --repo ${{ github.repository }}
-            Write-Host "✓ Successfully uploaded installer to release $tag"
+            $release = gh release view $tag --repo $repo --json assets | ConvertFrom-Json
+            $existing = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
+
+            if ($existing) {
+              Write-Host "Existing asset detected: $($existing.name) (digest: $($existing.digest))"
+              if ($existing.digest -eq $localDigest) {
+                Write-Host "✓ Release installer already up-to-date; skipping upload"
+                exit 0
+              }
+
+              Write-Host "Digest differs; replacing existing asset safely (delete + upload)"
+              gh release delete-asset $tag $assetName --yes --repo $repo
+            }
+
+            gh release upload $tag "$installerPath#$assetName" --repo $repo
+            Write-Host "✓ Successfully uploaded installer to release $tag (digest: $localDigest)"
           } catch {
-            Write-Host "Warning: Could not upload installer to release"
-            Write-Host "This might happen if the release is draft or the tag is being created"
-            Write-Host "Asset upload will be retried on the next workflow run"
+            Write-Error "Failed to upload installer to release: $($_.Exception.Message)"
+            exit 1
           }
 
       - name: Create release summary
