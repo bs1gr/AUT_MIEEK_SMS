@@ -140,6 +140,7 @@ services:
 volumes:
   postgres_data:
     driver: local
+    name: ${POSTGRES_DATA_VOLUME:-sms_postgres_data}
 
 networks:
   sms_network:

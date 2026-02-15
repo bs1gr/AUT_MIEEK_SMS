@@ -27,9 +27,9 @@ if (-not (Get-Variable -Name SCRIPT_DIR -Scope Script -ErrorAction SilentlyConti
 $INSTALLER_LOG = Join-Path $SCRIPT_DIR "DOCKER_INSTALL.log"
 
 function Write-InstallerLog {
-    param([string]$Message, [switch]$Error)
+    param([string]$Message, [switch]$IsError)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    $prefix = if ($Error) { "[ERROR]" } else { "[INFO]" }
+    $prefix = if ($IsError) { "[ERROR]" } else { "[INFO]" }
     try {
         Add-Content -Path $INSTALLER_LOG -Value ("[$timestamp] $prefix $Message") -ErrorAction Stop
     } catch {
@@ -40,7 +40,6 @@ function Write-InstallerLog {
 
 function Write-DebugInfo {
     param([string]$Message)
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     Write-InstallerLog "[DEBUG] $Message"
     Write-Verbose $Message -Verbose
 }
@@ -207,7 +206,7 @@ function Test-Administrator {
     return $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 }
 
-function Ensure-DockerRunning {
+function Start-DockerIfNeeded {
     param(
         [int]$MaxAttempts = 10,
         [int]$DelaySeconds = 3
@@ -258,7 +257,7 @@ function Test-DockerAvailable {
             return $false
         }
 
-        if (-not (Ensure-DockerRunning)) {
+        if (-not (Start-DockerIfNeeded)) {
             Write-Error-Message "Docker is installed but not running"
             Write-Info "Please start Docker Desktop and try again"
             return $false
@@ -377,18 +376,240 @@ function Get-EnvVarValue {
 }
 
 function Use-ComposeMode {
+    $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
     $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
     $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
+    $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
+    $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+    $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+
+    if ($dbUrl -and $dbUrl.Trim().ToLower().StartsWith("postgresql")) {
+        return $true
+    }
 
     if ($dbEngine -and $dbEngine -match "postgres") {
         return $true
     }
 
-    if ($pgHost) {
+    # Require full PostgreSQL credentials before switching to compose mode.
+    # This avoids accidental sqlite -> postgres mode flips from partial env values.
+    if ($pgHost -and $pgUser -and $pgPassword -and $pgDb) {
         return $true
     }
 
     return $false
+}
+
+function Resolve-ComposeVolumeName {
+    param(
+        [string]$DefaultName,
+        [string]$LegacySuffix
+    )
+
+    $volumeNamesRaw = docker volume ls --format "{{.Name}}" 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $volumeNamesRaw) {
+        return $DefaultName
+    }
+
+    $volumeNames = @(
+        $volumeNamesRaw |
+            Where-Object { $_ -and -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { $_.Trim() }
+    )
+
+    if ($volumeNames -contains $DefaultName) {
+        return $DefaultName
+    }
+
+    $legacyCandidates = @($volumeNames | Where-Object { $_ -like "*_${LegacySuffix}" })
+    if ($legacyCandidates.Count -eq 1) {
+        return $legacyCandidates[0]
+    }
+
+    if ($legacyCandidates.Count -gt 1) {
+        $ranked = @(
+            $legacyCandidates | ForEach-Object {
+                $name = $_
+                $createdAt = docker volume inspect $name --format "{{.CreatedAt}}" 2>$null
+                [PSCustomObject]@{
+                    Name = $name
+                    CreatedAt = if ($LASTEXITCODE -eq 0) { $createdAt } else { "" }
+                }
+            }
+        ) | Sort-Object CreatedAt -Descending
+
+        if ($ranked.Count -gt 0 -and $ranked[0].Name) {
+            return $ranked[0].Name
+        }
+    }
+
+    return $DefaultName
+}
+
+function Set-ComposeVolumeEnvironment {
+    if ($script:ComposeVolumeEnvInitialized) {
+        return
+    }
+
+    Invoke-OneTimeVolumeMigration
+
+    $resolvedSmsData = Resolve-ComposeVolumeName -DefaultName "sms_data" -LegacySuffix "sms_data"
+    $resolvedPostgresData = Resolve-ComposeVolumeName -DefaultName "sms_postgres_data" -LegacySuffix "postgres_data"
+
+    $script:SelectedSmsDataVolume = $resolvedSmsData
+    $script:SelectedPostgresDataVolume = $resolvedPostgresData
+
+    $env:SMS_DATA_VOLUME = $resolvedSmsData
+    $env:POSTGRES_DATA_VOLUME = $resolvedPostgresData
+
+    if ($resolvedSmsData -ne "sms_data") {
+        Write-Info "Using existing SMS data volume: $resolvedSmsData"
+    }
+    if ($resolvedPostgresData -ne "sms_postgres_data") {
+        Write-Info "Using existing PostgreSQL data volume: $resolvedPostgresData"
+    }
+
+    $script:ComposeVolumeEnvInitialized = $true
+}
+
+function Get-VolumeDataSizeBytes {
+    param(
+        [string]$VolumeName,
+        [string]$RelativePath
+    )
+
+    $safePath = $RelativePath.TrimStart('/')
+    $sizeRaw = docker run --rm -v "${VolumeName}:/volume:ro" alpine:latest sh -c "if [ -f '/volume/$safePath' ]; then wc -c < '/volume/$safePath'; else echo 0; fi" 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($sizeRaw)) {
+        return 0L
+    }
+
+    $parsed = 0L
+    if ([long]::TryParse(($sizeRaw | Out-String).Trim(), [ref]$parsed)) {
+        return $parsed
+    }
+
+    return 0L
+}
+
+function Test-VolumeHasContent {
+    param([string]$VolumeName)
+
+    $probe = docker run --rm -v "${VolumeName}:/volume:ro" alpine:latest sh -c "find /volume -mindepth 1 -print -quit" 2>$null
+    return ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace(($probe | Out-String).Trim()))
+}
+
+function Copy-VolumeData {
+    param(
+        [string]$SourceVolume,
+        [string]$TargetVolume
+    )
+
+    $copyOut = docker run --rm -v "${SourceVolume}:/from:ro" -v "${TargetVolume}:/to" alpine:latest sh -c "cp -a /from/. /to/" 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Volume copy failed (${SourceVolume} -> ${TargetVolume}): $($copyOut | Out-String)"
+        return $false
+    }
+
+    return $true
+}
+
+function Invoke-OneTimeVolumeMigration {
+    if ($script:VolumeMigrationChecked) {
+        return
+    }
+
+    if (-not (Test-DockerAvailable)) {
+        return
+    }
+
+    $legacySmsDataVolumes = @(
+        docker volume ls --format "{{.Name}}" 2>$null |
+            Where-Object { $_ -and $_ -like "*_sms_data" -and $_ -ne "sms_data" } |
+            ForEach-Object { $_.Trim() }
+    )
+
+    if (-not (docker volume inspect sms_data 2>$null)) {
+        docker volume create sms_data 2>$null | Out-Null
+    }
+
+    $targetDbSize = Get-VolumeDataSizeBytes -VolumeName "sms_data" -RelativePath "student_management.db"
+    if ($targetDbSize -gt 0) {
+        $script:VolumeMigrationChecked = $true
+        return
+    }
+
+    if ($legacySmsDataVolumes.Count -gt 0) {
+        $rankedSources = @(
+            $legacySmsDataVolumes | ForEach-Object {
+                $name = $_
+                $dbSize = Get-VolumeDataSizeBytes -VolumeName $name -RelativePath "student_management.db"
+                $createdAt = docker volume inspect $name --format "{{.CreatedAt}}" 2>$null
+                [PSCustomObject]@{
+                    Name = $name
+                    DbSize = $dbSize
+                    CreatedAt = if ($LASTEXITCODE -eq 0) { $createdAt } else { "" }
+                }
+            }
+        ) | Sort-Object DbSize, CreatedAt -Descending
+
+        if ($rankedSources.Count -gt 0 -and $rankedSources[0].DbSize -gt 0) {
+            $source = $rankedSources[0].Name
+            Write-Info "One-time migration: copying SQLite data from legacy volume '$source' to 'sms_data'"
+            if (Copy-VolumeData -SourceVolume $source -TargetVolume "sms_data") {
+                $migratedSize = Get-VolumeDataSizeBytes -VolumeName "sms_data" -RelativePath "student_management.db"
+                if ($migratedSize -gt 0) {
+                    Write-Success "One-time migration completed for SQLite volume (source: $source)"
+                    $script:LastMigrationSummary = "SQLite: $source -> sms_data"
+                } else {
+                    Write-Warning "Volume copy completed but target SQLite database is still empty"
+                }
+            }
+        }
+    }
+
+    $legacyPgVolumes = @(
+        docker volume ls --format "{{.Name}}" 2>$null |
+            Where-Object { $_ -and $_ -like "*_postgres_data" -and $_ -ne "sms_postgres_data" } |
+            ForEach-Object { $_.Trim() }
+    )
+
+    if (-not (docker volume inspect sms_postgres_data 2>$null)) {
+        docker volume create sms_postgres_data 2>$null | Out-Null
+    }
+
+    $targetPgHasContent = Test-VolumeHasContent -VolumeName "sms_postgres_data"
+    if (-not $targetPgHasContent -and $legacyPgVolumes.Count -gt 0) {
+        $pgCandidate = @(
+            $legacyPgVolumes | ForEach-Object {
+                $name = $_
+                $createdAt = docker volume inspect $name --format "{{.CreatedAt}}" 2>$null
+                [PSCustomObject]@{
+                    Name = $name
+                    HasContent = Test-VolumeHasContent -VolumeName $name
+                    CreatedAt = if ($LASTEXITCODE -eq 0) { $createdAt } else { "" }
+                }
+            } | Where-Object { $_.HasContent }
+        ) | Sort-Object CreatedAt -Descending | Select-Object -First 1
+
+        if ($pgCandidate -and $pgCandidate.Name) {
+            Write-Info "One-time migration: copying PostgreSQL data from legacy volume '$($pgCandidate.Name)' to 'sms_postgres_data'"
+            if (Copy-VolumeData -SourceVolume $pgCandidate.Name -TargetVolume "sms_postgres_data") {
+                if (Test-VolumeHasContent -VolumeName "sms_postgres_data") {
+                    Write-Success "One-time migration completed for PostgreSQL volume (source: $($pgCandidate.Name))"
+                    if ($script:LastMigrationSummary) {
+                        $script:LastMigrationSummary = "$($script:LastMigrationSummary); PostgreSQL: $($pgCandidate.Name) -> sms_postgres_data"
+                    } else {
+                        $script:LastMigrationSummary = "PostgreSQL: $($pgCandidate.Name) -> sms_postgres_data"
+                    }
+                } else {
+                    Write-Warning "PostgreSQL migration copy completed but target volume appears empty"
+                }
+            }
+        }
+    }
+
+    $script:VolumeMigrationChecked = $true
 }
 
 function Get-ComposeContainerId {
@@ -397,6 +618,8 @@ function Get-ComposeContainerId {
     if (-not (Test-Path $COMPOSE_BASE)) {
         return $null
     }
+
+    Set-ComposeVolumeEnvironment
 
     $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
     if (Test-Path $ROOT_ENV) {
@@ -593,7 +816,7 @@ function Backup-Database {
     }
 
     # Check if volume exists and has data
-    $volumeExists = docker volume inspect $VOLUME_NAME 2>$null
+    $null = docker volume inspect $VOLUME_NAME 2>$null
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "Volume '$VOLUME_NAME' does not exist yet - skipping backup (fresh installation)"
         return $true  # Not an error for fresh installs
@@ -609,7 +832,7 @@ function Backup-Database {
         if ($containerStatus -and $containerStatus.IsRunning) {
             Write-Info "Backing up from running container..."
             # Check if database file exists first
-            $dbExists = docker exec $CONTAINER_NAME test -f /data/student_management.db 2>$null
+            $null = docker exec $CONTAINER_NAME test -f /data/student_management.db 2>$null
             if ($LASTEXITCODE -ne 0) {
                 Write-Warning "No database file found - skipping backup (fresh installation)"
                 return $true  # Not an error for fresh installs
@@ -620,7 +843,7 @@ function Backup-Database {
         } else {
             Write-Info "Backing up from Docker volume..."
             # Check if database exists in volume first
-            $dbCheck = docker run --rm `
+            $null = docker run --rm `
                 -v ${VOLUME_NAME}:/data:ro `
                 alpine:latest `
                 test -f /data/student_management.db 2>$null
@@ -784,7 +1007,7 @@ function Stop-MonitoringStack {
     }
 }
 
-function Prune-DockerResources {
+function Invoke-DockerCleanup {
     param([switch]$All, [switch]$Deep)
 
     Write-Header "Docker Cleanup"
@@ -899,7 +1122,7 @@ For native development mode, use: .\NATIVE.ps1
 "@
 }
 
-function Create-DesktopShortcut {
+function New-DesktopShortcut {
     <#
     .SYNOPSIS
         Create Windows desktop shortcut for SMS Toggle
@@ -1058,7 +1281,7 @@ function Start-Installation {
 
     # Create desktop shortcut only if not suppressed (installer handles it)
     if (-not $NoShortcut) {
-        Create-DesktopShortcut | Out-Null
+        New-DesktopShortcut | Out-Null
         Write-Info "Desktop shortcut created for quick Start/Stop access" -ForegroundColor Green
     }
 
@@ -1093,7 +1316,7 @@ function Start-Application {
     Write-DebugInfo "Docker command availability: $(where.exe docker 2>&1)"
 
     if (-not (Test-DockerAvailable)) {
-        Write-InstallerLog "START-APPLICATION FAILED: Docker not available" -Error
+        Write-InstallerLog "START-APPLICATION FAILED: Docker not available" -IsError
         Write-Error-Message "Docker is not available"
         return 1
     }
@@ -1149,6 +1372,10 @@ function Start-Application {
     # Initialize env files
     Initialize-EnvironmentFiles | Out-Null
 
+    # One-time migration of legacy Docker volumes to canonical names
+    # (handles project-name-prefixed legacy volumes from installer/compose contexts)
+    Invoke-OneTimeVolumeMigration
+
     # Validate SECRET_KEY security for production deployments
     if (Test-Path $ROOT_ENV) {
         $envContent = Get-Content $ROOT_ENV -Raw
@@ -1176,6 +1403,7 @@ function Start-Application {
     $useCompose = Use-ComposeMode
     if ($useCompose) {
         Write-Info "Detected PostgreSQL configuration - using Docker Compose (production overlay)"
+        Set-ComposeVolumeEnvironment
 
         $env:FRONTEND_VERSION = $VERSION
         $dockerVersionString = Get-DockerVersionString
@@ -1268,9 +1496,9 @@ function Start-Application {
     $runOutput = & docker $dockerCmd 2>&1
 
     if ($LASTEXITCODE -ne 0) {
-        Write-InstallerLog "DOCKER RUN COMMAND FAILED - Exit code: $($LASTEXITCODE)" -Error
-        Write-InstallerLog "Docker command args: $($dockerCmd -join ' ')" -Error
-        Write-InstallerLog "Docker output: $($runOutput | Out-String)" -Error
+        Write-InstallerLog "DOCKER RUN COMMAND FAILED - Exit code: $($LASTEXITCODE)" -IsError
+        Write-InstallerLog "Docker command args: $($dockerCmd -join ' ')" -IsError
+        Write-InstallerLog "Docker output: $($runOutput | Out-String)" -IsError
         Write-Error-Message "Failed to start container"
         if ($runOutput) {
             Write-Host $runOutput -ForegroundColor DarkGray
@@ -1310,7 +1538,7 @@ function Start-Application {
         Write-InstallerLog "Start-Application completed successfully"
         return 0
     } else {
-        Write-InstallerLog "START-APPLICATION FAILED: Health check timeout" -Error
+        Write-InstallerLog "START-APPLICATION FAILED: Health check timeout" -IsError
         return 1
     }
 }
@@ -1322,6 +1550,7 @@ function Stop-Application {
     if (Use-ComposeMode) {
         Write-Info "Stopping Docker Compose stack..."
         if (Test-Path $COMPOSE_BASE) {
+            Set-ComposeVolumeEnvironment
             $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
             if (Test-Path $ROOT_ENV) {
                 $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
@@ -1408,9 +1637,17 @@ function Show-Status {
             return 1
         }
 
+        Set-ComposeVolumeEnvironment
         $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
         if (Test-Path $ROOT_ENV) {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+        }
+
+        Write-Host "`nVolumes:   " -NoNewline -ForegroundColor Cyan
+        Write-Host "sms_data=$($script:SelectedSmsDataVolume); postgres_data=$($script:SelectedPostgresDataVolume)" -ForegroundColor White
+        if ($script:LastMigrationSummary) {
+            Write-Host "Migration: " -NoNewline -ForegroundColor Cyan
+            Write-Host $script:LastMigrationSummary -ForegroundColor Yellow
         }
 
         Push-Location $SCRIPT_DIR
@@ -1454,6 +1691,13 @@ function Show-Status {
         Write-Host "`nWeb Interface: http://localhost:$PORT" -ForegroundColor Green
     }
 
+    Write-Host "Volumes:   " -NoNewline -ForegroundColor Cyan
+    Write-Host "sms_data=$VOLUME_NAME" -ForegroundColor White
+    if ($script:LastMigrationSummary) {
+        Write-Host "Migration: " -NoNewline -ForegroundColor Cyan
+        Write-Host $script:LastMigrationSummary -ForegroundColor Yellow
+    }
+
     # Check monitoring
     $monStatus = Get-MonitoringStatus
     if ($monStatus.IsRunning) {
@@ -1478,6 +1722,7 @@ function Show-Logs {
 
         Write-Header "SMS Application Logs"
         Write-Info "Press Ctrl+C to stop viewing logs`n"
+        Set-ComposeVolumeEnvironment
         $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
         if (Test-Path $ROOT_ENV) {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
@@ -1534,7 +1779,7 @@ function Update-Application {
     Write-Host ""
     if ($Clean) {
         Write-Info "Clean rebuild (no cache)..."
-        Prune-DockerResources -All | Out-Null
+        Invoke-DockerCleanup -All | Out-Null
         $buildArgs = @("build", "--pull", "--no-cache", "-t", $IMAGE_TAG, "-f", "docker/Dockerfile.fullstack", ".")
     } else {
         Write-Info "Fast rebuild (cached)..."
@@ -1672,7 +1917,7 @@ if ($StopMonitoring) {
 }
 
 if ($Prune -or $PruneAll -or $DeepClean) {
-    $code = Prune-DockerResources -All:$PruneAll -Deep:$DeepClean
+    $code = Invoke-DockerCleanup -All:$PruneAll -Deep:$DeepClean
     exit $code
 }
 

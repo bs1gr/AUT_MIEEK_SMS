@@ -105,5 +105,7 @@ services:
 volumes:
   sms_data:
     driver: local
+    name: ${SMS_DATA_VOLUME:-sms_data}
   redis_data:
     driver: local
+    name: sms_redis_data
