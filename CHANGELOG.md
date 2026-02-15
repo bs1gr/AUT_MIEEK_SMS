@@ -18,6 +18,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Bug Fixes
 - **frontend**: stabilize analytics/dashboard rendering and attendance active filtering.
+- **docker**: harden persistence by using canonical data volumes and auto-migrating legacy project-prefixed volumes on startup.
 - **students**: deactivate flow now unenrolls active enrollments with optional re-enroll on reactivation.
 - **i18n**: synchronize EN/EL dashboard + student locale keys and resolve key-structure mismatch.
 - **grading**: normalize assignment/category label translation handling in grading views.
@@ -26,6 +27,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Tooling & Operations
 - **launcher**: implement `SMS_Manager.exe` Docker controller integration updates.
+- **frontend**: gate API client debug logging behind `VITE_API_DEBUG` to reduce default console noise.
 - **scripts**: add timeout-safe behavior for state snapshot verification script in admin-mode workflows.
 - **deps**: remove unnecessary `python-socketio[aiohttp]` extra and keep ASGI-aligned dependency usage.
 
