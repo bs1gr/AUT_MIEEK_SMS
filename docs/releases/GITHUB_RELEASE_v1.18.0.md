@@ -8,60 +8,76 @@
 
 - **Tag version**: `v1.18.0`
 - **Target**: `main`
-- **Release title**: `v1.18.0 - Major Maintenance & UX Consolidation`
+- **Release title**: `v1.18.0`
 
 ---
 
-## Release Body
+## Release Body (Full)
 
-# v1.18.0 - Major Maintenance & UX Consolidation
+# 🚀 Student Management System v1.18.0
 
-**Release Date**: February 2026
-**Type**: Major maintenance release
-**Status**: Production-ready
+This release finalizes PostgreSQL standardization, hardens migration reliability, and refreshes the signed Windows installer.
 
----
+## ✅ Highlights
 
-## 🎉 Highlights
+- **PostgreSQL runtime standardization**
+  - Docker runtime now uses explicit engine selection to prevent silent SQLite/PostgreSQL mode flips.
+  - Persistence verified across stop/start cycles.
 
-- ✅ Cascaded active/inactive student list experience
-- ✅ Student deactivate/reactivate enrollment lifecycle hardening
-- ✅ Student profile highlight authoring and class-label consistency
-- ✅ Reporting terminology migration to `academic_year` / Class
-- ✅ EN/EL i18n synchronization across dashboard and students modules
-- ✅ CI stability fixes for frontend TypeScript and backend MyPy gates
+- **SQLite → PostgreSQL migration hardening**
+  - Migration runner now safely handles percent-encoded DB URLs (e.g. `%21` in passwords).
+  - Migration helper now skips missing destination tables gracefully (warns, continues), instead of aborting full migration.
 
----
+- **Installer refresh**
+  - New installer artifact rebuilt for `v1.18.0`.
+  - Authenticode signing verified with:
+    - Subject: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
+    - Thumbprint: `2693C1B15C8A8E5E45614308489DC6F4268B075D`
 
-## ✨ What’s Included
+## 🔍 Verified State
 
-### Students
-- Added cascaded views in both student-list implementations.
-- Added profile highlight authoring with role-aware access.
-- Aligned class labels to `academic_year` semantics across UI/tests.
+- PostgreSQL data verified after migration and restart:
+  - `users=3`
+  - `students=5`
+  - `grades=17`
+  - `attendances=56`
+- Targeted backend migration tests passed:
+  - `tests/test_run_migrations.py`
+  - `tests/test_run_migrations_unit.py`
 
-### Reports
-- Migrated templates/copy from `study_year` to `academic_year` / “Class”.
-- Added migration utility for legacy report template terminology.
+## 📦 Included Commits
 
-### Fixes
-- Stabilized analytics/dashboard rendering and attendance filtering.
-- Synced EN/EL locale keys and resolved key-structure mismatches.
-- Normalized grading translation labels for assignment/category surfaces.
-- Fixed CI gate failures:
-  - Frontend TypeScript (`enrollmentsAPI` method mismatch)
-  - Backend MyPy (soft-delete restore assignment annotation)
+- `fb4c13925` — docs(plan): record postgres standardization and installer refresh
+- `3b27f7c0c` — fix(db+release): harden postgres migration and refresh v1.18.0 installer
+- `03e19c848` — fix(ci): prevent installer release auto-overwrite and block undersized assets
 
----
+## 🔐 Integrity
 
-## 🚀 Upgrade Notes
-
-- Deploy frontend and backend together.
-- No special migration required for this release documentation set.
-- Keep standard workflow:
-  - Test/dev: `NATIVE.ps1 -Start`
-  - Production: `DOCKER.ps1 -Start`
+**SHA256 (`SMS_Installer_1.18.0.exe`)**:  
+`DE13F4246ADB304119E58510A5F1E7BF034DC1F465F8F7C13D5B02E496A47C95`
 
 ---
 
-**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.9...v1.18.0
+## Release Body (Short / GitHub-Friendly)
+
+# 🚀 v1.18.0
+
+### What’s new
+- Standardized Docker runtime to **explicit PostgreSQL mode** (no silent engine flips).
+- Hardened SQLite→PostgreSQL migration:
+  - Handles percent-encoded DB URLs safely.
+  - Skips missing destination tables with warning (continues migration).
+- Refreshed and re-signed Windows installer (`SMS_Installer_1.18.0.exe`).
+
+### Verification
+- PostgreSQL persistence validated across restart (`users=3`, `students=5`, `grades=17`, `attendances=56`).
+- Targeted migration tests passed (`test_run_migrations.py`, `test_run_migrations_unit.py`).
+- Installer signature verified (AUT MIEEK cert, Limassol/CY).
+
+### Integrity
+- **SHA256 (`SMS_Installer_1.18.0.exe`)**: `DE13F4246ADB304119E58510A5F1E7BF034DC1F465F8F7C13D5B02E496A47C95`
+
+### Key commits
+- `fb4c13925` docs(plan): record postgres standardization and installer refresh
+- `3b27f7c0c` fix(db+release): harden postgres migration and refresh v1.18.0 installer
+- `03e19c848` fix(ci): prevent installer release auto-overwrite and block undersized assets
