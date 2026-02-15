@@ -452,7 +452,27 @@ namespace SMS_Manager
         {
             try
             {
-                int code = await RunCommand("docker", "info");
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "docker",
+                    Arguments = "info",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using var process = Process.Start(psi);
+                if (process == null)
+                {
+                    return false;
+                }
+
+                await process.StandardOutput.ReadToEndAsync();
+                await process.StandardError.ReadToEndAsync();
+                await process.WaitForExitAsync();
+
+                int code = process.ExitCode;
                 return code == 0;
             }
             catch

@@ -135,6 +135,7 @@ Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesu
 Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,playwright.config.ts"
 Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; DEPLOYMENT OPTIMIZATION: Scripts folder excluded - only backup-database.sh needed (99% size reduction)
 Source: "..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsProductionInstall
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
