@@ -1,13 +1,15 @@
 name: Release - Build & Upload Installer with SHA256
 
 on:
-  release:
-    types: [published, created, edited]
   workflow_dispatch:
     inputs:
       tag:
         description: 'Release tag (e.g., v1.12.0) - leave empty to use latest'
         required: false
+
+concurrency:
+  group: release-installer-${{ github.event.inputs.tag || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   release-installer:
@@ -58,12 +60,7 @@ jobs:
           $tag = ""
           $releaseId = ""
 
-          if ("${{ github.event_name }}" -eq "release") {
-            # Release event: use tag from event
-            $tag = "${{ github.event.release.tag_name }}"
-            $releaseId = "${{ github.event.release.id }}"
-            Write-Host "Release event detected: $tag (ID: $releaseId)"
-          } elseif ("${{ github.event.inputs.tag }}" -ne "") {
+          if ("${{ github.event.inputs.tag }}" -ne "") {
             # Manual dispatch with explicit tag
             $tag = "${{ github.event.inputs.tag }}"
             Write-Host "Manual dispatch with tag: $tag"
@@ -247,6 +244,31 @@ jobs:
           Write-Host "Size: $fileSizeMB MB"
           Write-Host "SHA256: $hash"
 
+      - name: Validate installer payload size (guardrail)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installerPath = "${{ steps.hash.outputs.path }}"
+          if (-not (Test-Path $installerPath)) {
+            Write-Error "Installer path not found for payload validation: $installerPath"
+            exit 1
+          }
+
+          $sizeBytes = (Get-Item $installerPath).Length
+          $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
+          $minSizeBytes = 20000000  # 20 MB minimum expected payload size
+
+          Write-Host "Installer size bytes: $sizeBytes"
+          Write-Host "Installer size MB: $sizeMB"
+          Write-Host "Minimum expected bytes: $minSizeBytes"
+
+          if ($sizeBytes -lt $minSizeBytes) {
+            Write-Error "Installer payload is unexpectedly small ($sizeMB MB). Blocking release asset overwrite to prevent publishing a broken installer."
+            exit 1
+          }
+
+          Write-Host "✓ Installer payload size check passed"
+
       - name: Upload installer to release
         if: steps.hash.outputs.path != ''
         shell: pwsh
@@ -256,7 +278,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $installerPath = "${{ steps.hash.outputs.path }}"
           $tag = "${{ steps.resolve_tag.outputs.tag }}"
-          $assetName = "SMS_Installer_${tag}.exe"
+          $version = "${{ steps.resolve_tag.outputs.version }}"
+          $assetName = "SMS_Installer_${version}.exe"
 
           Write-Host "Uploading $assetName to release..."
           Write-Host "Tag: $tag"
@@ -265,7 +288,7 @@ jobs:
 
           # Try to upload to the release
           try {
-            gh release upload $tag $installerPath --clobber --repo ${{ github.repository }}
+            gh release upload $tag "$installerPath#$assetName" --clobber --repo ${{ github.repository }}
             Write-Host "✓ Successfully uploaded installer to release $tag"
           } catch {
             Write-Host "Warning: Could not upload installer to release"
@@ -284,7 +307,7 @@ jobs:
           $summary = @"
           ## Release $tag - Installer Built
 
-          **Installer**: SMS_Installer_${tag}.exe
+          **Installer**: SMS_Installer_${version}.exe
           **Version**: ${version}
           **Size**: ${size} MB
           **SHA256**: ${sha256}
@@ -293,7 +316,7 @@ jobs:
 
           PowerShell:
           \`\`\`powershell
-          (Get-FileHash 'SMS_Installer_${tag}.exe' -Algorithm SHA256).Hash
+          (Get-FileHash 'SMS_Installer_${version}.exe' -Algorithm SHA256).Hash
           \`\`\`
 
           Expected SHA256:
@@ -310,7 +333,7 @@ jobs:
           Write-Host "✓ Release workflow completed successfully"
           Write-Host "  - Tag: ${{ steps.resolve_tag.outputs.tag }}"
           Write-Host "  - Version: ${{ steps.resolve_tag.outputs.version }}"
-          Write-Host "  - Installer: SMS_Installer_${{ steps.resolve_tag.outputs.tag }}.exe"
+          Write-Host "  - Installer: SMS_Installer_${{ steps.resolve_tag.outputs.version }}.exe"
           Write-Host "  - Size: ${{ steps.hash.outputs.size }} MB"
           Write-Host "  - SHA256: ${{ steps.hash.outputs.sha256 }}"
         shell: pwsh
