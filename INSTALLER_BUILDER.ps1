@@ -427,7 +427,7 @@ function Invoke-SmsManagerBuild {
     try {
         Write-Result Info "Building SMS_Manager.exe..."
         & dotnet restore $SmsManagerProject | Out-Null
-        & dotnet publish $SmsManagerProject -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true | Out-Null
+        & dotnet publish $SmsManagerProject -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true | Out-Null
 
         if (-not (Test-Path $SmsManagerExe)) {
             Write-Result Error "SMS_Manager.exe not produced at: $SmsManagerExe"
