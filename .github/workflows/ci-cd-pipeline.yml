@@ -1270,6 +1270,7 @@ jobs:
   post-deployment-monitoring:
     name: 📊 Post-Deployment Monitoring
     runs-on: ubuntu-latest
+    continue-on-error: true
     needs: [deploy-production]
     if: startsWith(github.ref, 'refs/tags/v') && needs.deploy-production.result == 'success'
     env:
