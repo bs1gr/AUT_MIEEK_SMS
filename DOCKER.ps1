@@ -710,6 +710,7 @@ function Initialize-EnvironmentFiles {
 
     $configured = $false
     $secretKey = -join ((48..57) + (65..90) + (97..122) + (45,95) | Get-Random -Count 64 | ForEach-Object { [char]$_ })
+    $postgresPassword = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
 
     # Root .env
     if (-not (Test-Path $ROOT_ENV)) {
@@ -718,6 +719,7 @@ function Initialize-EnvironmentFiles {
             $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
             $envContent = $envContent -replace 'VERSION=.*', "VERSION=$VERSION"
+            $envContent = $envContent -replace 'POSTGRES_PASSWORD=.*', "POSTGRES_PASSWORD=$postgresPassword"
             Set-Content -Path $ROOT_ENV -Value $envContent
             Write-Success "Root .env created with secure SECRET_KEY"
             $configured = $true
@@ -731,6 +733,13 @@ DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 DEFAULT_ADMIN_FORCE_RESET=False
+DATABASE_ENGINE=postgresql
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=student_management
+POSTGRES_USER=sms_user
+POSTGRES_PASSWORD=$postgresPassword
+POSTGRES_SSLMODE=prefer
 "@
             Set-Content -Path $ROOT_ENV -Value $minimalEnv
             Write-Success "Minimal .env created"
@@ -759,6 +768,7 @@ DEFAULT_ADMIN_FORCE_RESET=False
             Write-Info "Creating backend .env from template..."
             $envContent = Get-Content $BACKEND_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=your-secret-key-change-this-in-production.*', "SECRET_KEY=$secretKey"
+            $envContent = $envContent -replace 'POSTGRES_PASSWORD=.*', "POSTGRES_PASSWORD=$postgresPassword"
             Set-Content -Path $BACKEND_ENV -Value $envContent
             Write-Success "Backend .env created with matching SECRET_KEY"
             $configured = $true
