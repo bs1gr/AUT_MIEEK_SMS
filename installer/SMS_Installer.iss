@@ -13,7 +13,7 @@
 #define MyAppPublisher "AUT MIEEK"
 #define MyAppURL "https://www.mieek.ac.cy/index.php/el/"
 #define MyAppGitHubURL "https://github.com/bs1gr/AUT_MIEEK_SMS"
-#define MyAppExeName "docker_manager.bat"
+#define MyAppExeName "SMS_Manager.exe"
 #define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
 
 ; Read version from VERSION file
@@ -142,6 +142,7 @@ Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recur
 ; Main scripts - Docker-only scripts always installed
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
 Source: "docker_manager.bat"; DestDir: "{app}"; Flags: ignoreversion
+Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
@@ -196,13 +197,13 @@ Type: files; Name: "{app}\config\lang.txt"
 
 [Icons]
 ; Start Menu - Docker Manager with proper container control
-Name: "{group}\{#MyAppName}"; Filename: "{app}\docker_manager.bat"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Flags: runminimized
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
 Name: "{group}\Manual Uninstaller (for broken installations)"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\UNINSTALL_SMS_MANUALLY.ps1"""; WorkingDir: "{app}"; IconFilename: "{sys}\shell32.dll"; IconIndex: 31; Comment: "Remove SMS if standard uninstall fails"
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
 ; Desktop shortcut (optional) - Docker Manager with elevated privileges
-Name: "{autodesktop}\{#MyAppName}"; Filename: "cmd.exe"; Parameters: "/c ""{app}\docker_manager.bat"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon
 
 
 [Run]
@@ -212,7 +213,7 @@ Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-de
 ; --- Docker build and install: always use the batch file, never call PowerShell directly ---
 
 ; Option to launch app after install (only if Docker is running)
-Filename: "cmd.exe"; Parameters: "/c ""{app}\docker_manager.bat"""; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"
 
 ; Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
@@ -364,15 +365,16 @@ begin
   if (Path = '') or not DirExists(Path) then
     Exit;
 
-  SetArrayLength(Indicators, 8);
+  SetArrayLength(Indicators, 9);
   Indicators[0] := Path + '\VERSION';
-  Indicators[1] := Path + '\docker_manager.bat';
-  Indicators[2] := Path + '\docker_manager.cmd';
-  Indicators[3] := Path + '\SMS Toggle.bat';
-  Indicators[4] := Path + '\SMS Toggle.cmd';
-  Indicators[5] := Path + '\DOCKER.ps1';
-  Indicators[6] := Path + '\UNINSTALL_SMS_MANUALLY.ps1';
-  Indicators[7] := Path + '\docker\docker-compose.yml';
+  Indicators[1] := Path + '\SMS_Manager.exe';
+  Indicators[2] := Path + '\docker_manager.bat';
+  Indicators[3] := Path + '\docker_manager.cmd';
+  Indicators[4] := Path + '\SMS Toggle.bat';
+  Indicators[5] := Path + '\SMS Toggle.cmd';
+  Indicators[6] := Path + '\DOCKER.ps1';
+  Indicators[7] := Path + '\UNINSTALL_SMS_MANUALLY.ps1';
+  Indicators[8] := Path + '\docker\docker-compose.yml';
 
   for i := 0 to GetArrayLength(Indicators) - 1 do
   begin
