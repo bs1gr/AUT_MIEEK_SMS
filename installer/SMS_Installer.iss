@@ -413,6 +413,27 @@ begin
   Result := (FileName = '.env');
 end;
 
+procedure CleanupLegacyShortcuts;
+begin
+  Log('Cleaning legacy and stale shortcuts for upgrade...');
+
+  { Legacy desktop shortcuts }
+  DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
+
+  { Current desktop shortcut (forces recreation with new target) }
+  DeleteFile(ExpandConstant('{userdesktop}\{#MyAppName}.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\{#MyAppName}.lnk'));
+
+  { Start menu shortcuts (legacy + current) }
+  DeleteFile(ExpandConstant('{userprograms}\{#MyAppName}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{commonprograms}\{#MyAppName}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{userprograms}\{#MyAppName}\{#MyAppName}.lnk'));
+  DeleteFile(ExpandConstant('{commonprograms}\{#MyAppName}\{#MyAppName}.lnk'));
+
+  Log('Shortcut cleanup complete');
+end;
+
 procedure RemoveOldInstanceFiles(BasePath: String);
 var
   FindRec: TFindRec;
@@ -951,6 +972,9 @@ var
 begin
   if CurStep = ssInstall then
   begin
+    if IsUpgrade then
+      CleanupLegacyShortcuts;
+
     // Before installing, backup user data if upgrading and keepdata task is selected
     if IsUpgrade and WizardIsTaskSelected('keepdata') then
     begin
