@@ -1325,16 +1325,28 @@ jobs:
           VERSION="v${{ steps.version.outputs.version }}"
           NOTES_FILE="RELEASE_NOTES.md"
 
+          # IMPORTANT: Do NOT upload installer executables from generic CI artifacts.
+          # Installer assets are managed by dedicated installer workflows and verified separately.
+          # This prevents accidental clobber of release installer with stale/smaller binaries.
+          mapfile -t RELEASE_FILES < <(find ./artifacts -type f ! -name 'SMS_Installer_*.exe')
+
           # Attempt to create release. If it fails (e.g. already exists), fall back to edit/upload.
           if ! gh release create "$VERSION" \
             --title "Release $VERSION" \
             --notes-file "$NOTES_FILE" \
-            --generate-notes \
-            ./artifacts/**/*; then
+            --generate-notes; then
             echo "Release creation failed (likely already exists). Updating existing release..."
             gh release edit "$VERSION" --notes-file "$NOTES_FILE"
-            if [ -d "./artifacts" ]; then
-              gh release upload "$VERSION" ./artifacts/**/* --clobber || echo "Asset upload failed or no assets found"
+            if [ ${#RELEASE_FILES[@]} -gt 0 ]; then
+              gh release upload "$VERSION" "${RELEASE_FILES[@]}" --clobber || echo "Asset upload failed or no non-installer assets found"
+            else
+              echo "No non-installer artifacts found to upload"
+            fi
+          else
+            if [ ${#RELEASE_FILES[@]} -gt 0 ]; then
+              gh release upload "$VERSION" "${RELEASE_FILES[@]}" --clobber || echo "Asset upload failed or no non-installer assets found"
+            else
+              echo "No non-installer artifacts found to upload"
             fi
           fi
 
