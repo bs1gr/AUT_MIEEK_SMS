@@ -192,6 +192,9 @@ Type: files; Name: "{app}\backend\.env"
 Type: files; Name: "{app}\frontend\.env"
 Type: files; Name: "{app}\.env"
 Type: files; Name: "{app}\config\lang.txt"
+; Legacy launcher cleanup
+Type: files; Name: "{app}\docker_manager.bat"
+Type: files; Name: "{app}\docker_manager.cmd"
 ; Note: data/, backups/, logs/ folders are handled by InitializeUninstall
 ; to give user choice whether to keep or delete them
 
@@ -1004,6 +1007,18 @@ begin
     begin
       Exec('cmd', '/c docker stop sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
     end;
+
+    // Remove legacy batch launchers if they exist
+    if FileExists(ExpandConstant('{app}\docker_manager.bat')) then
+    begin
+      Log('Removing legacy launcher: docker_manager.bat');
+      DeleteFile(ExpandConstant('{app}\docker_manager.bat'));
+    end;
+    if FileExists(ExpandConstant('{app}\docker_manager.cmd')) then
+    begin
+      Log('Removing legacy launcher: docker_manager.cmd');
+      DeleteFile(ExpandConstant('{app}\docker_manager.cmd'));
+    end;
   end
   else if CurStep = ssPostInstall then
   begin
@@ -1091,6 +1106,15 @@ begin
       RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
         'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
     end;
+
+    // Post-install validation: ensure SMS_Manager.exe exists
+    if not FileExists(ExpandConstant('{app}\SMS_Manager.exe')) then
+    begin
+      Log('[ERROR] SMS_Manager.exe missing after installation');
+      MsgBox('Installation completed but SMS_Manager.exe is missing.' + #13#10 +
+             'Please re-run the installer (Repair) or download the latest installer.',
+             mbError, MB_OK);
+    end
   end;
 end;
 
