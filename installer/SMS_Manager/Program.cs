@@ -17,6 +17,7 @@ namespace SMS_Manager
         private static readonly int APP_PORT = 8080;
         private static readonly string INSTALL_DIR = GetInstallDirectory();
         private static readonly string COMPOSE_FILE = Path.Combine(INSTALL_DIR, "docker", "docker-compose.yml");
+        private static readonly string DOCKER_SCRIPT = Path.Combine(INSTALL_DIR, "DOCKER.ps1");
 
         // ANSI color codes for terminal output (enabled only when supported)
         private const string ANSI_RESET = "\u001b[0m";
@@ -159,27 +160,12 @@ namespace SMS_Manager
                 return 1;
             }
 
-            // Run docker compose up
-            int code = await RunDockerCompose("up -d");
-            if (code != 0)
-            {
-                Console.WriteLine($"{YELLOW}⚠ Compose start failed, trying fallback: docker start {SMS_APP_CONTAINER}{RESET}");
-                int fallbackCode = await RunCommand("docker", $"start {SMS_APP_CONTAINER}");
-                if (fallbackCode == 0)
-                {
-                    code = 0;
-                    Console.WriteLine($"{GREEN}✓ Existing container started via fallback.{RESET}");
-                }
-            }
+            // Delegate runtime strategy to DOCKER.ps1 (fullstack vs compose mode)
+            int code = await RunDockerScript("-Start");
 
             if (code == 0)
             {
                 Console.WriteLine($"\n{GREEN}✓ Container started successfully.{RESET}");
-                Console.WriteLine($"{YELLOW}Waiting 3 seconds for service to be ready...{RESET}");
-                await Task.Delay(3000);
-
-                // Try to open web app
-                await OpenWebApp();
             }
             else
             {
@@ -192,17 +178,7 @@ namespace SMS_Manager
         static async Task<int> StopContainer()
         {
             Console.WriteLine($"{RESET}\n{CYAN}🛑 Stopping SMS container...{RESET}");
-            int code = await RunDockerCompose("down");
-
-            if (code != 0)
-            {
-                Console.WriteLine($"{YELLOW}⚠ Compose stop failed, trying fallback: docker stop {SMS_APP_CONTAINER}{RESET}");
-                int fallbackCode = await RunCommand("docker", $"stop {SMS_APP_CONTAINER}");
-                if (fallbackCode == 0)
-                {
-                    code = 0;
-                }
-            }
+            int code = await RunDockerScript("-Stop");
 
             if (code == 0)
             {
@@ -219,16 +195,7 @@ namespace SMS_Manager
         static async Task<int> RestartContainer()
         {
             Console.WriteLine($"{RESET}\n{CYAN}🔄 Restarting SMS container...{RESET}");
-
-            if (!await IsDockerRunning())
-            {
-                Console.WriteLine($"{RED}❌ Docker Desktop is not running.{RESET}");
-                return 1;
-            }
-
-            await RunDockerCompose("down");
-            await Task.Delay(2000);
-            int code = await RunDockerCompose("up -d");
+            int code = await RunDockerScript("-Restart");
 
             if (code == 0)
             {
@@ -248,35 +215,14 @@ namespace SMS_Manager
         static async Task<int> CheckStatus()
         {
             Console.WriteLine($"{RESET}\n{CYAN}📊 Checking container status...{RESET}\n");
-
-            // Check Docker
-            bool dockerRunning = await IsDockerRunning();
-            if (dockerRunning)
-            {
-                Console.WriteLine($"{GREEN}✓ Docker Desktop is running{RESET}");
-            }
-            else
-            {
-                Console.WriteLine($"{RED}✗ Docker Desktop is NOT running{RESET}");
-                return 1;
-            }
-
-            // Check container
-            int code = await RunCommand("docker", "ps --filter name=sms-app --format \"table {{.Names}}\\t{{.Status}}\"");
-            return code;
+            return await RunDockerScript("-Status");
         }
 
         static async Task<int> ViewLogs()
         {
-            Console.WriteLine($"{RESET}\n{CYAN}📋 Container logs (last 50 lines):{RESET}\n");
-            int code = await RunCommand("docker", "logs --tail 50 sms-app");
-
-            if (code != 0)
-            {
-                Console.WriteLine($"{YELLOW}⚠ Container not running or not found.{RESET}");
-            }
-
-            return code;
+            Console.WriteLine($"{RESET}\n{CYAN}📋 Container logs:{RESET}\n");
+            Console.WriteLine($"{YELLOW}Tip: Press Ctrl+C to stop log streaming.{RESET}\n");
+            return await RunDockerScript("-Logs");
         }
 
         static async Task<int> OpenWebApp()
@@ -344,6 +290,80 @@ namespace SMS_Manager
 
             Console.WriteLine($"{YELLOW}⚠ 'docker compose' failed, trying 'docker-compose' fallback...{RESET}");
             return await RunCommand("docker-compose", composeArgs);
+        }
+
+        static async Task<int> RunDockerScript(string scriptArgs)
+        {
+            if (!File.Exists(DOCKER_SCRIPT))
+            {
+                Console.WriteLine($"{RED}❌ DOCKER.ps1 not found: {DOCKER_SCRIPT}{RESET}");
+                return 1;
+            }
+
+            string? shell = ResolvePowerShell();
+            if (string.IsNullOrWhiteSpace(shell))
+            {
+                Console.WriteLine($"{RED}❌ PowerShell not found. Cannot run DOCKER.ps1.{RESET}");
+                return 1;
+            }
+
+            string args = $"-NoProfile -ExecutionPolicy Bypass -File \"{DOCKER_SCRIPT}\" {scriptArgs}";
+            return await RunCommand(shell, args);
+        }
+
+        static string? ResolvePowerShell()
+        {
+            string[] candidates =
+            {
+                @"C:\Program Files\PowerShell\7\pwsh.exe",
+                @"C:\Program Files (x86)\PowerShell\7\pwsh.exe",
+                @"C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe",
+                "pwsh",
+                "powershell"
+            };
+
+            foreach (string candidate in candidates)
+            {
+                if (candidate.Contains('\\'))
+                {
+                    if (File.Exists(candidate))
+                    {
+                        return candidate;
+                    }
+                    continue;
+                }
+
+                try
+                {
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = candidate,
+                        Arguments = "-NoProfile -Command \"exit 0\"",
+                        UseShellExecute = false,
+                        RedirectStandardOutput = true,
+                        RedirectStandardError = true,
+                        CreateNoWindow = true
+                    };
+
+                    using var process = Process.Start(psi);
+                    if (process == null)
+                    {
+                        continue;
+                    }
+
+                    process.WaitForExit(3000);
+                    if (process.ExitCode == 0)
+                    {
+                        return candidate;
+                    }
+                }
+                catch
+                {
+                    // Try next candidate
+                }
+            }
+
+            return null;
         }
 
         static async Task<int> RunCommand(string command, string args)
