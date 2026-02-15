@@ -108,9 +108,11 @@ function Invoke-PreReleaseValidation {
     Write-Step 4 6 "Verifying version consistency..."
     if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
         try {
-            $params = @{}
-            if ($AutoFix) { $params['AutoFix'] = $true }
-            & ".\scripts\VERIFY_VERSION.ps1" @params 2>&1 | Out-Null
+            if ($AutoFix) {
+                & ".\scripts\VERIFY_VERSION.ps1" -Version $ReleaseVersion -Update 2>&1 | Out-Null
+            } else {
+                & ".\scripts\VERIFY_VERSION.ps1" -CheckOnly 2>&1 | Out-Null
+            }
             Write-Host "✓ Version consistency verified" -ForegroundColor Green
         } catch {
             if (-not $AutoFix) {
@@ -194,6 +196,7 @@ function Update-VersionReferences {
 
     # Update DOCUMENTATION_INDEX.md
     (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\*\*Version\*\*: [0-9\.]+', "**Version**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"
+    (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\*\*Project Version \(documented\)\*\*: [0-9\.]+', "**Project Version (documented)**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"
 
     # Update root DOCUMENTATION_INDEX.md (if present)
     if (Test-Path "DOCUMENTATION_INDEX.md") {
@@ -424,6 +427,22 @@ if ($LASTEXITCODE -ne 0) {
     Write-Warning "Release documentation generation reported issues. Continuing, but release notes may be incomplete."
 } else {
     Write-Host "Release documentation generated successfully"
+}
+
+# Enforce version consistency after docs generation (generator may rewrite versioned files)
+Write-Host "Re-syncing and re-verifying version references after documentation generation..."
+if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
+    & .\scripts\VERIFY_VERSION.ps1 -Version "$ReleaseVersion" -Update | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Version re-sync failed after documentation generation. Aborting release."
+        exit 1
+    }
+
+    & .\scripts\VERIFY_VERSION.ps1 -Version "$ReleaseVersion" -CheckOnly | Out-Null
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error "Version verification failed after re-sync. Aborting release."
+        exit 1
+    }
 }
 
 # ============================================================================

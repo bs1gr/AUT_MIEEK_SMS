@@ -167,6 +167,13 @@ $versionChecks = @(
         Critical = $false
     },
     @{
+        File = "docs/DOCUMENTATION_INDEX.md"
+        Pattern = '\*\*Project Version \(documented\)\*\*:\s*\d+\.\d+\.\d+'
+        Replace = "**Project Version (documented)**: $Version"
+        Description = "Documentation index documented project version"
+        Critical = $false
+    },
+    @{
         File = "COMMIT_READY.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $Version"
