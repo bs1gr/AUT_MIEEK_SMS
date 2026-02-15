@@ -142,7 +142,6 @@ Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recur
 
 ; Main scripts - Docker-only scripts always installed
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "docker_manager.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
@@ -366,16 +365,15 @@ begin
   if (Path = '') or not DirExists(Path) then
     Exit;
 
-  SetArrayLength(Indicators, 9);
+  SetArrayLength(Indicators, 8);
   Indicators[0] := Path + '\VERSION';
   Indicators[1] := Path + '\SMS_Manager.exe';
-  Indicators[2] := Path + '\docker_manager.bat';
-  Indicators[3] := Path + '\docker_manager.cmd';
-  Indicators[4] := Path + '\SMS Toggle.bat';
-  Indicators[5] := Path + '\SMS Toggle.cmd';
-  Indicators[6] := Path + '\DOCKER.ps1';
-  Indicators[7] := Path + '\UNINSTALL_SMS_MANUALLY.ps1';
-  Indicators[8] := Path + '\docker\docker-compose.yml';
+  Indicators[2] := Path + '\docker_manager.cmd';
+  Indicators[3] := Path + '\SMS Toggle.bat';
+  Indicators[4] := Path + '\SMS Toggle.cmd';
+  Indicators[5] := Path + '\DOCKER.ps1';
+  Indicators[6] := Path + '\UNINSTALL_SMS_MANUALLY.ps1';
+  Indicators[7] := Path + '\docker\docker-compose.yml';
 
   for i := 0 to GetArrayLength(Indicators) - 1 do
   begin

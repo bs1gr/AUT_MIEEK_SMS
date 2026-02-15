@@ -1135,14 +1135,14 @@ function New-DesktopShortcut {
     Write-Info "Setting up desktop shortcut..."
 
     $desktopPath = [Environment]::GetFolderPath("Desktop")
-    # Use docker_manager.bat as the primary user-facing launcher (start/stop/status)
-    $toggleScript = Join-Path $SCRIPT_DIR "docker_manager.bat"
+    # Use SMS_Manager.exe as the primary user-facing launcher (start/stop/status)
+    $managerExe = Join-Path $SCRIPT_DIR "SMS_Manager.exe"
     $iconPath = Join-Path $SCRIPT_DIR "SMS_Toggle.ico"
     $shortcutPath = Join-Path $desktopPath "SMS Toggle.lnk"
 
-    # Check if toggle script exists
-    if (-not (Test-Path $toggleScript)) {
-        Write-Warning "DOCKER_TOGGLE.bat not found - skipping shortcut creation"
+    # Check if manager executable exists
+    if (-not (Test-Path $managerExe)) {
+        Write-Warning "SMS_Manager.exe not found - skipping shortcut creation"
         return $false
     }
 
@@ -1156,10 +1156,10 @@ function New-DesktopShortcut {
 
         # Create new shortcut
         $shortcut = $WshShell.CreateShortcut($shortcutPath)
-        $shortcut.TargetPath = "cmd.exe"
-        $shortcut.Arguments = "/c `"$toggleScript`""
+        $shortcut.TargetPath = $managerExe
+        $shortcut.Arguments = ""
         $shortcut.WorkingDirectory = $SCRIPT_DIR
-        $shortcut.Description = "Toggle SMS Docker Application (Start/Stop)"
+        $shortcut.Description = "Manage SMS Docker Application (Start/Stop)"
 
         # Use custom icon if available
         if (Test-Path $iconPath) {

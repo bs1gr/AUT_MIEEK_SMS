@@ -26,6 +26,25 @@ jobs:
       - name: Install Inno. Setup
         run: choco install innosetup --no-progress
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Build SMS Manager launcher
+        shell: pwsh
+        run: |
+          dotnet restore .\installer\SMS_Manager\SMS_Manager.csproj
+          dotnet publish .\installer\SMS_Manager\SMS_Manager.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true
+
+          $managerExe = '.\installer\dist\SMS_Manager.exe'
+          if (-not (Test-Path $managerExe)) {
+            Write-Error "SMS_Manager.exe was not produced at expected path: $managerExe"
+            exit 1
+          }
+
+          Write-Host "SMS_Manager.exe ready: $managerExe" -ForegroundColor Green
+
       - name: Build Installer
         shell: pwsh
         run: |
