@@ -88,8 +88,9 @@ class ImportService:
             if not schedule:
                 return 0
             total = 0
+            values: list = []
             if isinstance(schedule, dict):
-                values = schedule.values()
+                values = list(schedule.values())
             elif isinstance(schedule, list):
                 values = schedule
             else:

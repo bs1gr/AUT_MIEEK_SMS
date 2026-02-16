@@ -123,20 +123,40 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   // non-memoized loadFinal here — keep the single useCallback instance to satisfy
   // react-hooks/exhaustive-deps and avoid re-creating the function each render.
 
-  // Keep filters in sync
-  useEffect(() => { setFilteredStudents(students || []); }, [students]);
-  useEffect(() => { setFilteredCourses(courses || []); }, [courses]);
+  const activeStudents = useMemo(
+    () => (students || []).filter((student) => student.is_active !== false),
+    [students]
+  );
+  const activeCourses = useMemo(
+    () => (courses || []).filter((course) => course.is_active !== false),
+    [courses]
+  );
+
+  // Keep filters in sync (active only)
+  useEffect(() => {
+    setFilteredStudents(activeStudents);
+    if (studentId && !activeStudents.some((student) => student.id === studentId)) {
+      setStudentId('');
+    }
+  }, [activeStudents, studentId]);
+
+  useEffect(() => {
+    setFilteredCourses(activeCourses);
+    if (courseId && !activeCourses.some((course) => course.id === courseId)) {
+      setCourseId('');
+    }
+  }, [activeCourses, courseId]);
 
   // When course is chosen, restrict students to those enrolled in course
-  const studentsString = useMemo(() => students?.map(s => s.id).join(',') || '', [students]);
+  const studentsString = useMemo(() => activeStudents.map(s => s.id).join(',') || '', [activeStudents]);
 
   useEffect(() => {
     const run = async () => {
-      if (!courseId) { setFilteredStudents(students || []); return; }
+      if (!courseId) { setFilteredStudents(activeStudents); return; }
       try {
         const arr: Student[] = await enrollmentsAPI.getEnrolledStudents(courseId as number);
         const ids = new Set(arr.map(s => s.id));
-        const list = (students || []).filter(s => ids.has(s.id));
+        const list = activeStudents.filter(s => ids.has(s.id));
         setFilteredStudents(list);
         if (studentId && !ids.has(studentId as number)) {
           setStudentId('');
@@ -144,20 +164,20 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         return;
       } catch {}
       // Fallback: leave students unfiltered
-      setFilteredStudents(students || []);
+      setFilteredStudents(activeStudents);
     };
     run();
-  }, [courseId, studentsString, studentId, students]); // Use studentsString to avoid infinite loop and include studentId
+  }, [courseId, studentsString, studentId, activeStudents]); // Use studentsString to avoid infinite loop and include studentId
 
   // When student is chosen, restrict courses to those the student is enrolled in
-  const coursesString = useMemo(() => courses?.map(c => c.id).join(',') || '', [courses]);
+  const coursesString = useMemo(() => activeCourses.map(c => c.id).join(',') || '', [activeCourses]);
 
   useEffect(() => {
     const run = async () => {
-      if (!studentId) { setFilteredCourses(courses || []); return; }
+      if (!studentId) { setFilteredCourses(activeCourses); return; }
       // Fallback (robust): check each course's enrolled students and see if student is present
       try {
-        const results = await Promise.all((courses || []).map(async (c) => {
+        const results = await Promise.all(activeCourses.map(async (c) => {
           try {
             const studs: Student[] = await enrollmentsAPI.getEnrolledStudents(c.id);
             const has = studs.some(s => s.id === studentId);
@@ -165,17 +185,17 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           } catch { return { id: c.id, has: false }; }
         }));
         const allowed = new Set(results.filter(x => x.has).map(x => x.id));
-        const list = (courses || []).filter(c => allowed.has(c.id));
+        const list = activeCourses.filter(c => allowed.has(c.id));
         setFilteredCourses(list);
         if (courseId && !allowed.has(courseId as number)) {
           setCourseId('');
         }
       } catch {
-        setFilteredCourses(courses || []);
+        setFilteredCourses(activeCourses);
       }
     };
     run();
-  }, [studentId, coursesString, courseId, courses]); // Use coursesString to avoid infinite loop and include courseId
+  }, [studentId, coursesString, courseId, activeCourses]); // Use coursesString to avoid infinite loop and include courseId
 
   const loadFinal = useCallback(async () => {
     setFinalSummary(null);
