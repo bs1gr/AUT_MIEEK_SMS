@@ -1,8 +1,9 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any, Dict, List
 
-from backend.routers.routers_courses import _normalize_evaluation_rules
+from backend.routers.routers_courses import _auto_is_active, _normalize_evaluation_rules
 from backend.tests.conftest import get_error_message
 
 
@@ -263,3 +264,23 @@ def test_normalize_evaluation_rules_variants():
 
     garbage = [object(), {"not": "valid"}]
     assert _normalize_evaluation_rules(garbage) == []
+
+
+def test_auto_is_active_winter_semester_ranges():
+    assert _auto_is_active("Winter Semester 2025", today=date(2025, 10, 1)) is True
+    assert _auto_is_active("Winter Semester 2025", today=date(2026, 2, 1)) is False
+
+
+def test_auto_is_active_spring_semester_ranges():
+    assert _auto_is_active("Spring Semester 2026", today=date(2026, 2, 1)) is True
+    assert _auto_is_active("Spring Semester 2026", today=date(2026, 7, 1)) is False
+
+
+def test_auto_is_active_academic_year_ranges():
+    assert _auto_is_active("Academic Year 2025", today=date(2025, 9, 1)) is True
+    assert _auto_is_active("Academic Year 2025", today=date(2026, 7, 1)) is False
+
+
+def test_auto_is_active_greek_semesters():
+    assert _auto_is_active("Χειμερινό Εξάμηνο 2025", today=date(2025, 12, 1)) is True
+    assert _auto_is_active("Εαρινό Εξάμηνο 2026", today=date(2026, 3, 1)) is True

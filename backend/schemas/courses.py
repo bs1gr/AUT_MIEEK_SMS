@@ -14,7 +14,7 @@ class CourseCreate(BaseModel):
     hours_per_week: Optional[float] = Field(default=3.0, ge=0.5, le=40.0)
     periods_per_week: Optional[int] = Field(default=0, ge=0, le=60)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
-    is_active: Optional[bool] = Field(default=True)
+    is_active: Optional[bool] = Field(default=None)
 
     @classmethod
     def _none_if_empty(cls, v):
