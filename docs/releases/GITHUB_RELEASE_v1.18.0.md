@@ -12,53 +12,7 @@
 
 ---
 
-## Release Body (Full)
-
-# 🚀 Student Management System v1.18.0
-
-This release finalizes PostgreSQL standardization, hardens migration reliability, and refreshes the signed Windows installer.
-
-## ✅ Highlights
-
-- **PostgreSQL runtime standardization**
-  - Docker runtime now uses explicit engine selection to prevent silent SQLite/PostgreSQL mode flips.
-  - Persistence verified across stop/start cycles.
-
-- **SQLite → PostgreSQL migration hardening**
-  - Migration runner now safely handles percent-encoded DB URLs (e.g. `%21` in passwords).
-  - Migration helper now skips missing destination tables gracefully (warns, continues), instead of aborting full migration.
-
-- **Installer refresh**
-  - New installer artifact rebuilt for `v1.18.0`.
-  - Authenticode signing verified with:
-    - Subject: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
-    - Thumbprint: `2693C1B15C8A8E5E45614308489DC6F4268B075D`
-
-## 🔍 Verified State
-
-- PostgreSQL data verified after migration and restart:
-  - `users=3`
-  - `students=5`
-  - `grades=17`
-  - `attendances=56`
-- Targeted backend migration tests passed:
-  - `tests/test_run_migrations.py`
-  - `tests/test_run_migrations_unit.py`
-
-## 📦 Included Commits
-
-- `fb4c13925` — docs(plan): record postgres standardization and installer refresh
-- `3b27f7c0c` — fix(db+release): harden postgres migration and refresh v1.18.0 installer
-- `03e19c848` — fix(ci): prevent installer release auto-overwrite and block undersized assets
-
-## 🔐 Integrity
-
-**SHA256 (`SMS_Installer_1.18.0.exe`)**:
-`09F20386CCB3A6CB1C5D4897C20EAD2C815F52FEA38BEACAA27ADC3D5FE15678`
-
----
-
-## Release Body (Short / GitHub-Friendly)
+## Release Body (GitHub)
 
 # 🚀 v1.18.0
 
@@ -75,7 +29,7 @@ This release finalizes PostgreSQL standardization, hardens migration reliability
 - Installer signature verified (AUT MIEEK cert, Limassol/CY).
 
 ### Integrity
-- **SHA256 (`SMS_Installer_1.18.0.exe`)**: `09F20386CCB3A6CB1C5D4897C20EAD2C815F52FEA38BEACAA27ADC3D5FE15678`
+- **SHA256 (`SMS_Installer_1.18.0.exe`)**: `77D644DB1C9015B28F1736BD0B48E2F1A826AFE499278F83F758137B24181308`
 
 ### Key commits
 - `fb4c13925` docs(plan): record postgres standardization and installer refresh
