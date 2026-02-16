@@ -46,6 +46,7 @@ type CourseType = {
   evaluation_rules?: Rule[];
   teaching_schedule?: Record<string, DaySchedule>;
   hours_per_week?: number;
+  periods_per_week?: number;
 };
 type ToastType = { message: string; type: 'success' | 'error' | 'info' };
 

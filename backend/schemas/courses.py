@@ -12,6 +12,7 @@ class CourseCreate(BaseModel):
     evaluation_rules: Optional[List[Any]] = None
     absence_penalty: Optional[float] = Field(default=0.0, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(default=3.0, ge=0.5, le=40.0)
+    periods_per_week: Optional[int] = Field(default=0, ge=0, le=60)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
 
     @classmethod
@@ -30,6 +31,7 @@ class CourseCreate(BaseModel):
             "evaluation_rules",
             "absence_penalty",
             "hours_per_week",
+            "periods_per_week",
             "teaching_schedule",
         ]
         for k in optional_keys:
@@ -64,6 +66,7 @@ class CourseUpdate(BaseModel):
     evaluation_rules: Optional[List[Any]] = None
     absence_penalty: Optional[float] = Field(None, ge=0.0, le=100.0)
     hours_per_week: Optional[float] = Field(None, ge=0.0, le=40.0)
+    periods_per_week: Optional[int] = Field(None, ge=0, le=60)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
 
     @classmethod
@@ -84,6 +87,7 @@ class CourseUpdate(BaseModel):
             "evaluation_rules",
             "absence_penalty",
             "hours_per_week",
+            "periods_per_week",
             "teaching_schedule",
         ]
         for k in optional_keys:
@@ -109,6 +113,7 @@ class CourseResponse(BaseModel):
     evaluation_rules: Optional[List[Any]]
     absence_penalty: Optional[float]
     hours_per_week: Optional[float]
+    periods_per_week: Optional[int]
     teaching_schedule: Optional[List[Dict[str, Any]]]
 
     model_config = ConfigDict(from_attributes=True)
