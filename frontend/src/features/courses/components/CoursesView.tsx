@@ -1067,6 +1067,26 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
             )}
           </div>
 
+          {/* Course Description Panel */}
+          {currentCourse?.description && (
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-lg p-6 border-2 border-amber-200">
+              <div className="flex items-start space-x-4">
+                <div className="bg-amber-100 rounded-full p-3 flex-shrink-0">
+                  <BookOpen size={24} className="text-amber-700" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-800 mb-3 flex items-center space-x-2">
+                    <span>{currentCourse.course_code} - {currentCourse.course_name}</span>
+                    <span className="text-xs bg-amber-200 text-amber-800 px-3 py-1 rounded-full font-medium">{t('courseDescription')}</span>
+                  </h3>
+                  <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap leading-relaxed bg-white rounded-lg p-4 border border-amber-100">
+                    {currentCourse.description}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Save Button */}
           <div className="flex justify-end space-x-3">
             <button
