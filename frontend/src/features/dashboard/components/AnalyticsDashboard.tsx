@@ -81,6 +81,33 @@ export const AnalyticsDashboard: React.FC = () => {
 
   const { dashboard, isLoading, error, refetch } = useDashboardData();
 
+  const activeStudents = useMemo(
+    () => students.filter((student) => student.is_active !== false),
+    [students]
+  );
+  const activeCourses = useMemo(
+    () => courses.filter((course) => course.is_active !== false),
+    [courses]
+  );
+  const activeStudentIds = useMemo(
+    () => new Set(activeStudents.map((student) => student.id)),
+    [activeStudents]
+  );
+  const activeCourseIdsFromEnrollments = useMemo(() => {
+    if (analyticsEnrollments.length === 0) return new Set<number>();
+    const ids = new Set<number>();
+    analyticsEnrollments.forEach((enrollment) => {
+      if (activeStudentIds.has(enrollment.student_id)) {
+        ids.add(enrollment.course_id);
+      }
+    });
+    return ids;
+  }, [analyticsEnrollments, activeStudentIds]);
+  const selectableCourses = useMemo(() => {
+    if (activeCourseIdsFromEnrollments.size === 0) return activeCourses;
+    return activeCourses.filter((course) => activeCourseIdsFromEnrollments.has(course.id));
+  }, [activeCourses, activeCourseIdsFromEnrollments]);
+
   const divisionUnknownLabel = t('analytics.divisionUnknownLabel');
 
   const normalizeDivisionLabel = useCallback(
@@ -131,11 +158,14 @@ export const AnalyticsDashboard: React.FC = () => {
         setStudents(studentItems);
         setCourses(courseItems);
 
-        if (studentItems.length > 0) {
-          setSelectedStudent((prev) => prev ?? studentItems[0].id);
+        const activeStudentItems = studentItems.filter((student) => student.is_active !== false);
+        const activeCourseItems = courseItems.filter((course) => course.is_active !== false);
+
+        if (activeStudentItems.length > 0) {
+          setSelectedStudent((prev) => prev ?? activeStudentItems[0].id);
         }
-        if (courseItems.length > 0) {
-          setSelectedCourse((prev) => prev ?? courseItems[0].id);
+        if (activeCourseItems.length > 0) {
+          setSelectedCourse((prev) => prev ?? activeCourseItems[0].id);
         }
 
         let enrollmentItems: CourseEnrollment[] = [];
@@ -316,19 +346,31 @@ export const AnalyticsDashboard: React.FC = () => {
     loadLookups();
   }, [t, normalizeDivisionLabel]);
 
+  useEffect(() => {
+    if (selectedStudent && !activeStudents.some((student) => student.id === selectedStudent)) {
+      setSelectedStudent(null);
+    }
+  }, [activeStudents, selectedStudent]);
+
+  useEffect(() => {
+    if (selectedCourse && !selectableCourses.some((course) => course.id === selectedCourse)) {
+      setSelectedCourse(null);
+    }
+  }, [selectableCourses, selectedCourse]);
+
   const effectiveSelectedStudent = useMemo(() => {
     if (!selectedDivision) return selectedStudent;
     if (!selectedStudent) {
-      const fallback = students.find((student) => matchesSelectedDivision(student));
+      const fallback = activeStudents.find((student) => matchesSelectedDivision(student));
       return fallback ? fallback.id : null;
     }
 
-    const current = students.find((student) => student.id === selectedStudent);
+    const current = activeStudents.find((student) => student.id === selectedStudent);
     if (current && matchesSelectedDivision(current)) return selectedStudent;
 
-    const fallback = students.find((student) => matchesSelectedDivision(student));
+    const fallback = activeStudents.find((student) => matchesSelectedDivision(student));
     return fallback ? fallback.id : null;
-  }, [selectedDivision, selectedStudent, students, matchesSelectedDivision]);
+  }, [selectedDivision, selectedStudent, activeStudents, matchesSelectedDivision]);
 
   const pieChartData = useMemo<PieChartData[]>(() => {
     const filteredStudents = selectedDivision
@@ -860,7 +902,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('analytics.selectStudent')}</option>
-            {students
+            {activeStudents
               .filter((student) => (selectedDivision ? matchesSelectedDivision(student) : true))
               .map((student) => (
                 <option key={student.id} value={student.id}>
@@ -879,7 +921,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('analytics.selectCourse')}</option>
-            {courses.map((course) => (
+            {selectableCourses.map((course) => (
               <option key={course.id} value={course.id}>
                 {course.course_name}
               </option>
