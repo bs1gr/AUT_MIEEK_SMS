@@ -90,6 +90,7 @@ export default {
   saveZipToPath: 'Αποθήκευση ZIP στη Διαδρομή',
   viewBackups: 'Προβολή Αντιγράφων',
   availableBackups: 'Διαθέσιμα Αντίγραφα',
+  selectAllBackups: 'Επιλογή όλων των αντιγράφων',
   noBackupsFound: 'Δεν βρέθηκαν αντίγραφα',
   clickViewBackups: 'Κάντε κλικ στο "Προβολή Αντιγράφων" για φόρτωση λίστας',
   downloadSelectedAsZip: 'Λήψη Επιλεγμένων ως ZIP',

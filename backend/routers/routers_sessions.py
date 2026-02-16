@@ -83,6 +83,14 @@ def validate_course_data(course_data: Dict[str, Any]) -> tuple[bool, Optional[st
         except (ValueError, TypeError):
             return False, f"Invalid hours_per_week format: {course_data['hours_per_week']}"
 
+    if "periods_per_week" in course_data and course_data["periods_per_week"] is not None:
+        try:
+            periods = int(course_data["periods_per_week"])
+            if periods < 0 or periods > 200:
+                return False, f"Invalid periods_per_week: {periods} (must be 0-200)"
+        except (ValueError, TypeError):
+            return False, f"Invalid periods_per_week format: {course_data['periods_per_week']}"
+
     return True, None
 
 
@@ -879,6 +887,7 @@ def _serialize_course(course) -> Dict[str, Any]:
         "semester": course.semester,
         "credits": course.credits,
         "hours_per_week": course.hours_per_week,
+        "periods_per_week": course.periods_per_week,
         "description": course.description,
         "evaluation_rules": course.evaluation_rules,
         "teaching_schedule": course.teaching_schedule,

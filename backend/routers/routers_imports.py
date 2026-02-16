@@ -569,6 +569,17 @@ def import_courses(
                         except Exception:
                             errors.append(f"{name}: invalid credits '{obj.get('credits')}', using default")
                             obj.pop("credits", None)
+                    if "periods_per_week" in obj:
+                        try:
+                            obj["periods_per_week"] = int(float(obj["periods_per_week"]))
+                        except Exception:
+                            errors.append(
+                                f"{name}: invalid periods_per_week '{obj.get('periods_per_week')}', using default"
+                            )
+                            obj.pop("periods_per_week", None)
+                        else:
+                            if "hours_per_week" not in obj or obj.get("hours_per_week") in (None, ""):
+                                obj["hours_per_week"] = float(obj["periods_per_week"])
                     if "hours_per_week" in obj:
                         try:
                             obj["hours_per_week"] = float(obj["hours_per_week"])
@@ -987,6 +998,15 @@ async def import_from_upload(
                     except Exception:
                         errors.append(f"item: invalid credits '{obj.get('credits')}', using default")
                         obj.pop("credits", None)
+                if "periods_per_week" in obj:
+                    try:
+                        obj["periods_per_week"] = int(float(obj["periods_per_week"]))
+                    except Exception:
+                        errors.append(f"item: invalid periods_per_week '{obj.get('periods_per_week')}', using default")
+                        obj.pop("periods_per_week", None)
+                    else:
+                        if "hours_per_week" not in obj or obj.get("hours_per_week") in (None, ""):
+                            obj["hours_per_week"] = float(obj["periods_per_week"])
                 if "hours_per_week" in obj:
                     try:
                         obj["hours_per_week"] = float(obj["hours_per_week"])
@@ -1468,6 +1488,15 @@ async def import_preview(
                     course_issues: list[str] = []
                     if not code:
                         course_issues.append("item: missing course_code")
+                    if "periods_per_week" in obj:
+                        try:
+                            obj["periods_per_week"] = int(float(obj["periods_per_week"]))
+                        except Exception:
+                            course_issues.append("warning: invalid periods_per_week, field will be ignored")
+                        else:
+                            if "hours_per_week" not in obj or obj.get("hours_per_week") in (None, ""):
+                                obj["hours_per_week"] = float(obj["periods_per_week"])
+                                course_issues.append("warning: periods_per_week mapped to hours_per_week")
                     # Normalize semester default
                     if "semester" in obj and not obj["semester"]:
                         obj["semester"] = "Α' Εξάμηνο"

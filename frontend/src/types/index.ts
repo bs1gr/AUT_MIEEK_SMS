@@ -26,6 +26,7 @@ export interface Course {
   description?: string;
   credits: number;
   hours_per_week?: number;
+  periods_per_week?: number;
   // Optional canonical year and instructor fields used in some views and tests
   year?: number;
   instructor?: string;
@@ -192,6 +193,7 @@ export interface CourseFormData {
   description?: string;
   credits: number;
   hours_per_week?: number;
+  periods_per_week?: number;
   academic_year?: string;
   absence_penalty?: number;
   is_active?: boolean;

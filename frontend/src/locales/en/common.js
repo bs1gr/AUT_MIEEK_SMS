@@ -310,7 +310,7 @@ export default {
   editSchedule: 'Edit Schedule',
   saveAnyway: 'Save Anyway',
   exampleSchedule: 'Example Schedule',
-  totalHoursPerWeek: 'Total Hours Per Week',
+  totalHoursPerWeek: 'Total Contact Hours Per Week',
   noGradesRecorded: 'No grades recorded',
   percentage: 'Percentage',
   gpa: 'GPA',

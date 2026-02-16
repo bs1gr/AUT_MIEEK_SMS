@@ -135,10 +135,15 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const [backupsLoading, setBackupsLoading] = useState(false);
   // destination path field not currently used in this build
   const [selectedBackups, setSelectedBackups] = useState<Set<string>>(new Set());
+  const selectAllBackupsRef = useRef<HTMLInputElement | null>(null);
   const uptimeTimerRef = useRef<{ uptimeSource: number; recordedAt: number } | null>(null);
   const [uptimeSeconds, setUptimeSeconds] = useState<number | null>(null);
   const { appearanceTheme: selectedTheme, setAppearanceTheme } = useAppearanceTheme();
   const { formatDateTime, formatTime } = useDateTimeFormatter();
+
+  const backupFilenames = useMemo(() => (Array.isArray(backups) ? backups.map((b) => b.filename) : []), [backups]);
+  const allBackupsSelected = backupFilenames.length > 0 && selectedBackups.size === backupFilenames.length;
+  const someBackupsSelected = selectedBackups.size > 0 && !allBackupsSelected;
 
   const identityLabel = useMemo(() => {
     if (!user) return null;
@@ -248,6 +253,11 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     }, 1000);
     return () => window.clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    if (!selectAllBackupsRef.current) return;
+    selectAllBackupsRef.current.indeterminate = someBackupsSelected;
+  }, [someBackupsSelected, allBackupsSelected, backupFilenames.length]);
 
   const runHealthCheck = useCallback(async () => {
     setHealthLoading(true);
@@ -436,6 +446,10 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     });
   };
 
+  const toggleSelectAllBackups = (checked: boolean) => {
+    setSelectedBackups(new Set(checked ? backupFilenames : []));
+  };
+
   const handleRestore = async () => {
     if (!restoreFile) {
       onToast({ message: t('noFileSelected'), type: 'error' });
@@ -551,20 +565,20 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
       if (created > 0 || updated > 0) {
         onToast({
-          message: `${t('utils.importSuccess')}: ${created} ${t('utils.created')}, ${updated} ${t('utils.updated')}`,
+          message: `${t('importSuccess', { ns: 'utils' })}: ${created} ${t('created', { ns: 'utils' })}, ${updated} ${t('updated', { ns: 'utils' })}`,
           type: errors > 0 ? 'info' : 'success',
         });
       } else if (errors > 0) {
-        onToast({ message: `${t('utils.importError')}: ${errors} ${t('errors')}`, type: 'error' });
+        onToast({ message: `${t('importError', { ns: 'utils' })}: ${errors} ${t('errors', { ns: 'utils' })}`, type: 'error' });
       } else {
-        onToast({ message: t('utils.importNoChanges'), type: 'info' });
+        onToast({ message: t('importNoChanges', { ns: 'utils' }), type: 'info' });
       }
       setImportFile(null);
       await refreshAcademicData();
     } catch (error: unknown) {
       console.error('Import failed', error);
       const maybe = error as { response?: { data?: { detail?: { message?: string } } } } | undefined;
-      const detail = maybe?.response?.data?.detail?.message ?? t('utils.importError');
+      const detail = maybe?.response?.data?.detail?.message ?? t('importError', { ns: 'utils' });
       setResult(withTimestamp('upload', { error: detail }));
       onToast({ message: detail, type: 'error' });
     } finally {
@@ -918,7 +932,20 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
               <div className={`text-xs ${theme.mutedText}`}>{t('utils.noBackupsFound') || 'No backups found'}</div>
             ) : (
               <div className="space-y-2">
-                <div className={`text-xs ${theme.mutedText}`}>{t('utils.availableBackups') || 'Available Backups'}:</div>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className={`text-xs ${theme.mutedText}`}>{t('utils.availableBackups') || 'Available Backups'}:</div>
+                  <label className={`flex items-center gap-2 text-xs ${theme.text}`}>
+                    <input
+                      ref={selectAllBackupsRef}
+                      type="checkbox"
+                      checked={allBackupsSelected}
+                      disabled={backupFilenames.length === 0}
+                      onChange={(event) => toggleSelectAllBackups(event.target.checked)}
+                      aria-label={t('utils.selectAllBackups') || 'Select all backups'}
+                    />
+                    <span>{t('utils.selectAllBackups') || 'Select all'}</span>
+                  </label>
+                </div>
                 {backups.map((b) => (
                   <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
                     <div className="flex items-center gap-2">

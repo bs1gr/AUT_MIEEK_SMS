@@ -90,6 +90,7 @@ export default {
     saveZipToPath: 'Save ZIP to Path',
     viewBackups: 'View Backups',
     availableBackups: 'Available Backups',
+    selectAllBackups: 'Select all backups',
     noBackupsFound: 'No backups found',
     clickViewBackups: 'Click "View Backups" to load list',
     downloadSelectedAsZip: 'Download Selected as ZIP',

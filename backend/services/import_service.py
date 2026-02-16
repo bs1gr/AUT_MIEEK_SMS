@@ -84,6 +84,43 @@ class ImportService:
         """
         (Course,) = import_names("models", "Course")
 
+        def _calculate_periods_per_week(schedule) -> int:
+            if not schedule:
+                return 0
+            total = 0
+            if isinstance(schedule, dict):
+                values = schedule.values()
+            elif isinstance(schedule, list):
+                values = schedule
+            else:
+                return 0
+            for item in values:
+                if not isinstance(item, dict):
+                    continue
+                raw = item.get("periods")
+                if raw is None:
+                    raw = item.get("period_count")
+                if raw is None:
+                    raw = item.get("count")
+                try:
+                    total += int(raw) if raw is not None else 0
+                except (TypeError, ValueError):
+                    continue
+            return total
+
+        periods_value = course_data.get("periods_per_week")
+        if periods_value is not None:
+            try:
+                course_data["periods_per_week"] = int(float(periods_value))
+            except (TypeError, ValueError):
+                course_data.pop("periods_per_week", None)
+                periods_value = None
+        if course_data.get("hours_per_week") in (None, "") and periods_value is not None:
+            course_data["hours_per_week"] = periods_value
+
+        if periods_value is None and course_data.get("teaching_schedule") is not None:
+            course_data["periods_per_week"] = _calculate_periods_per_week(course_data.get("teaching_schedule"))
+
         code = course_data.get("course_code")
         if not code:
             return False, "Missing course_code"
@@ -100,6 +137,7 @@ class ImportService:
                 "credits",
                 "description",
                 "hours_per_week",
+                "periods_per_week",
                 "teaching_schedule",
             ]:
                 if field in course_data:
@@ -127,6 +165,7 @@ class ImportService:
                 "description",
                 "evaluation_rules",
                 "hours_per_week",
+                "periods_per_week",
                 "teaching_schedule",
             ]
             filtered_data = {k: v for k, v in course_data.items() if k in allowed_fields}

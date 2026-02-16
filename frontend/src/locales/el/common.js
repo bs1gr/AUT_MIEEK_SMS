@@ -309,7 +309,7 @@ export default {
   editSchedule: 'Επεξεργασία Προγράμματος',
   saveAnyway: 'Αποθήκευση Οπωσδήποτε',
   exampleSchedule: 'Παράδειγμα Προγράμματος',
-  totalHoursPerWeek: 'Συνολικές Ώρες ανά Εβδομάδα',
+  totalHoursPerWeek: 'Συνολικές Ώρες Επαφής ανά Εβδομάδα',
   noGradesRecorded: 'Δεν έχουν καταγραφεί βαθμοί',
   percentage: 'Ποσοστό',
   gpa: 'GPA',

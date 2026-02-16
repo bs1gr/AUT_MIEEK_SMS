@@ -81,6 +81,7 @@ TRANSLATIONS = {
         "label_enrolled_date": "Enrolled Date",
         "label_date_submitted": "Date Submitted",
         "label_hours_per_week": "Hours/Week",
+        "label_periods_per_week": "Periods/Week",
         "label_description": "Description",
         "label_highlight_text": "Highlight Text",
         "label_date_created": "Date Created",
@@ -184,6 +185,7 @@ TRANSLATIONS = {
         "label_enrolled_date": "Ημερομηνία Εγγραφής",
         "label_date_submitted": "Ημερομηνία Υποβολής",
         "label_hours_per_week": "Ώρες/Εβδομάδα",
+        "label_periods_per_week": "Περίοδοι/Εβδομάδα",
         "label_description": "Περιγραφή",
         "label_highlight_text": "Κείμενο Επισήμανσης",
         "label_date_created": "Ημερομηνία Δημιουργίας",
@@ -324,6 +326,7 @@ HEADER_DEFINITIONS = {
         "label_semester",
         "label_credits",
         "label_hours_per_week",
+        "label_periods_per_week",
         "label_description",
     ],
     "enrollments": [
@@ -975,6 +978,7 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
                     c.semester,
                     c.credits,
                     c.hours_per_week,
+                    c.periods_per_week,
                     c.description or "",
                 ]
                 for c in courses
@@ -2204,9 +2208,10 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
             ws.cell(row=row, column=4, value=c.semester)
             ws.cell(row=row, column=5, value=c.credits)
             ws.cell(row=row, column=6, value=c.hours_per_week)
-            ws.cell(row=row, column=7, value=c.description or "")
+            ws.cell(row=row, column=7, value=c.periods_per_week)
+            ws.cell(row=row, column=8, value=c.description or "")
 
-        for col in range(1, 8):
+        for col in range(1, 9):
             ws.column_dimensions[get_column_letter(col)].width = 20
 
         output = BytesIO()
@@ -2262,6 +2267,7 @@ async def export_courses_csv(request: Request, db: Session = Depends(get_db)):
                 c.semester,
                 c.credits,
                 c.hours_per_week,
+                c.periods_per_week,
                 c.description or "",
             ]
             for c in courses
@@ -3191,6 +3197,7 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
             t("label_semester", lang),
             t("label_credits", lang),
             t("label_hours", lang),
+            t("label_periods_per_week", lang),
         ]
         rows = [
             [
@@ -3199,6 +3206,7 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
                 c.semester or not_available(lang),
                 str(c.credits or 0),
                 str(c.hours_per_week or 0),
+                str(c.periods_per_week or 0),
             ]
             for c in courses
         ]

@@ -56,6 +56,7 @@ class CustomReportGenerationService:
         "course_title": {"en": "Course Title", "el": "Τίτλος Μαθήματος"},
         "semester": {"en": "Semester", "el": "Εξάμηνο"},
         "credits": {"en": "Credits", "el": "Μονάδες"},
+        "periods_per_week": {"en": "Periods per Week", "el": "Περίοδοι ανά Εβδομάδα"},
         "assignment_name": {"en": "Assignment Name", "el": "Όνομα Εργασίας"},
         "category": {"en": "Category", "el": "Κατηγορία"},
         "grade": {"en": "Grade", "el": "Βαθμός"},
@@ -635,7 +636,7 @@ class CustomReportGenerationService:
 
         defaults: Dict[str, List[str]] = {
             "student": ["first_name", "last_name", "email", "student_id", "is_active"],
-            "course": ["course_code", "course_name", "semester", "credits"],
+            "course": ["course_code", "course_name", "semester", "credits", "periods_per_week"],
             "grade": ["student_name", "course_code", "grade", "max_grade", "date_assigned"],
             "attendance": ["student_name", "course_code", "date", "status"],
             "daily_performance": [

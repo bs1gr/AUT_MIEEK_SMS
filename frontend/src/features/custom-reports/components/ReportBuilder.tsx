@@ -234,6 +234,7 @@ const ENTITY_FIELDS: Record<string, string[]> = {
     'evaluation_rules',
     'absence_penalty',
     'hours_per_week',
+    'periods_per_week',
     'teaching_schedule',
   ],
   grade: [

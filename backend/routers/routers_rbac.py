@@ -520,7 +520,28 @@ def ensure_defaults_startup(session_factory) -> bool:
     try:
         role_count = session.query(models.Role).count()
         perm_count = session.query(models.Permission).count()
-        if role_count == 0 or perm_count == 0:
+        role_perm_count = session.query(models.RolePermission).count()
+        needs_seed = role_count == 0 or perm_count == 0 or role_perm_count == 0
+
+        if not needs_seed:
+            try:
+                admin_role = session.query(models.Role).filter(models.Role.name == "admin").first()
+                if admin_role:
+                    wildcard = (
+                        session.query(models.RolePermission)
+                        .join(models.Permission, models.RolePermission.permission_id == models.Permission.id)
+                        .filter(
+                            models.RolePermission.role_id == admin_role.id,
+                            models.Permission.key == "*:*",
+                        )
+                        .first()
+                    )
+                    if not wildcard:
+                        needs_seed = True
+            except Exception:
+                needs_seed = True
+
+        if needs_seed:
             _seed_defaults(session, None)
             return True
         return False
