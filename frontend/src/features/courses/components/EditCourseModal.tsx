@@ -40,7 +40,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
     defaultValues: {
       course_code: course.course_code || '',
       course_name: course.course_name || '',
-      description: '',
+      description: course.description || '',
       credits: course.credits || 3,
       semester: course.semester || '',
       year: new Date().getFullYear(),
@@ -78,7 +78,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
       form.reset({
         course_code: course.course_code || '',
         course_name: course.course_name || '',
-        description: '',
+        description: course.description || '',
         credits: course.credits || 3,
         semester: course.semester || '',
         instructor: '',
