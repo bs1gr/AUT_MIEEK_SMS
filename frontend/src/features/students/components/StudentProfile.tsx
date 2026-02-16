@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
 import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -45,6 +45,20 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   const [highlightSaving, setHighlightSaving] = useState(false);
   const [highlightFormError, setHighlightFormError] = useState<string | null>(null);
   const canAddHighlight = ['admin', 'teacher'].includes((user?.role || '').toLowerCase());
+
+  const activeEnrollments = useMemo(
+    () => enrollments.filter((enrollment) => {
+      const course = coursesById[enrollment.course_id];
+      return course ? course.is_active !== false : true;
+    }),
+    [enrollments, coursesById]
+  );
+
+  useEffect(() => {
+    if (attendanceCourseFilter && !activeEnrollments.some((enr) => enr.course_id === attendanceCourseFilter)) {
+      setAttendanceCourseFilter(null);
+    }
+  }, [attendanceCourseFilter, activeEnrollments]);
 
   // Move loadStudentData here so effects can depend on it without referencing a later declaration
   const loadStudentData = useCallback(async () => {
@@ -685,11 +699,11 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         {/* Enrolled Courses & Actions */}
         <div className="mt-6 bg-white rounded-2xl shadow-lg p-6">
           <h3 className="text-xl font-bold text-gray-800 mb-4">{t('enrolledCourses', { ns: 'students' })}</h3>
-          {enrollments.length === 0 ? (
+          {activeEnrollments.length === 0 ? (
             <p className="text-gray-500">{t('noEnrollments', { ns: 'students' })}</p>
           ) : (
             <div className="space-y-2">
-              {enrollments.map((e, idx) => {
+              {activeEnrollments.map((e, idx) => {
                 const course = coursesById[e.course_id];
                 return (
                   <React.Fragment key={e.id}>
@@ -778,7 +792,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 onChange={(e) => setAttendanceCourseFilter(e.target.value ? Number(e.target.value) : null)}
               >
                 <option value="">{t('allCourses', { ns: 'dashboard' })}</option>
-                {enrollments.map((enr) => {
+                {activeEnrollments.map((enr) => {
                   const c = coursesById[enr.course_id];
                   const label = c ? `${c.course_code} — ${c.course_name}` : `Course #${enr.course_id}`;
                   return (

@@ -14,6 +14,7 @@ class CourseCreate(BaseModel):
     hours_per_week: Optional[float] = Field(default=3.0, ge=0.5, le=40.0)
     periods_per_week: Optional[int] = Field(default=0, ge=0, le=60)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
+    is_active: Optional[bool] = Field(default=True)
 
     @classmethod
     def _none_if_empty(cls, v):
@@ -33,6 +34,7 @@ class CourseCreate(BaseModel):
             "hours_per_week",
             "periods_per_week",
             "teaching_schedule",
+            "is_active",
         ]
         for k in optional_keys:
             if k in values:
@@ -68,6 +70,7 @@ class CourseUpdate(BaseModel):
     hours_per_week: Optional[float] = Field(None, ge=0.0, le=40.0)
     periods_per_week: Optional[int] = Field(None, ge=0, le=60)
     teaching_schedule: Optional[List[Dict[str, Any]]] = None
+    is_active: Optional[bool] = None
 
     @classmethod
     def _none_if_empty(cls, v):
@@ -89,6 +92,7 @@ class CourseUpdate(BaseModel):
             "hours_per_week",
             "periods_per_week",
             "teaching_schedule",
+            "is_active",
         ]
         for k in optional_keys:
             if k in values:
@@ -115,5 +119,6 @@ class CourseResponse(BaseModel):
     hours_per_week: Optional[float]
     periods_per_week: Optional[int]
     teaching_schedule: Optional[List[Dict[str, Any]]]
+    is_active: Optional[bool]
 
     model_config = ConfigDict(from_attributes=True)
