@@ -130,6 +130,7 @@ class Course(SoftDeleteMixin, Base):
 
     # Teaching schedule fields
     hours_per_week = Column(Float, default=3.0)
+    periods_per_week = Column(Integer, default=0)
     teaching_schedule = Column(JSON)
 
     # Relationships

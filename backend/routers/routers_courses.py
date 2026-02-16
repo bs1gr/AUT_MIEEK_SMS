@@ -151,6 +151,33 @@ def _normalize_evaluation_rules(er: Any) -> Optional[List[Dict[str, Any]]]:
     return []
 
 
+def _calculate_periods_per_week(schedule: Any) -> int:
+    if not schedule:
+        return 0
+
+    total = 0
+    if isinstance(schedule, dict):
+        values = schedule.values()
+    elif isinstance(schedule, list):
+        values = schedule
+    else:
+        return 0
+
+    for item in values:
+        if not isinstance(item, dict):
+            continue
+        raw = item.get("periods")
+        if raw is None:
+            raw = item.get("period_count")
+        if raw is None:
+            raw = item.get("count")
+        try:
+            total += int(raw) if raw is not None else 0
+        except (TypeError, ValueError):
+            continue
+    return total
+
+
 @router.post("/", response_model=CourseResponse, status_code=201)
 @limiter.limit(RATE_LIMIT_WRITE)
 @require_permission("courses:create")
@@ -181,6 +208,8 @@ async def create_course(
 
         payload = course.model_dump()
         payload["evaluation_rules"] = _normalize_evaluation_rules(payload.get("evaluation_rules"))
+        if "teaching_schedule" in payload:
+            payload["periods_per_week"] = _calculate_periods_per_week(payload.get("teaching_schedule"))
 
         with transaction(db):
             db_course = Course(**payload)
@@ -280,6 +309,9 @@ async def update_course(
                     )
             course.evaluation_rules = normalized
             update_data.pop("evaluation_rules")
+
+        if "teaching_schedule" in update_data:
+            update_data["periods_per_week"] = _calculate_periods_per_week(update_data.get("teaching_schedule"))
 
         with transaction(db):
             for key, value in update_data.items():

@@ -203,6 +203,7 @@ class CourseService:
             "evaluation_rules": course.evaluation_rules,
             "absence_penalty": course.absence_penalty,
             "hours_per_week": course.hours_per_week,
+            "periods_per_week": course.periods_per_week,
             "teaching_schedule": course.teaching_schedule,
         }
 
