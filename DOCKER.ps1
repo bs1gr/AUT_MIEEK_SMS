@@ -719,12 +719,18 @@ function Initialize-EnvironmentFiles {
             $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
             $envContent = $envContent -replace 'VERSION=.*', "VERSION=$VERSION"
-            $envContent = $envContent -replace 'POSTGRES_PASSWORD=.*', "POSTGRES_PASSWORD=$postgresPassword"
+            # CRITICAL: For fresh installs, default to SQLite (production-ready, no external dependencies)
+            # Users can upgrade to PostgreSQL later via upgrade workflow
+            $envContent = $envContent -replace 'DATABASE_ENGINE=postgresql', "DATABASE_ENGINE=sqlite"
+            # Remove PostgreSQL-specific settings from fresh install (can be added later if needed)
+            $envContent = $envContent -replace 'POSTGRES_HOST=postgres.*', ""
+            $envContent = $envContent -replace 'POSTGRES_PASSWORD=.*', ""
             Set-Content -Path $ROOT_ENV -Value $envContent
-            Write-Success "Root .env created with secure SECRET_KEY"
+            Write-Success "Root .env created with secure SECRET_KEY (SQLite - ready out-of-box)"
             $configured = $true
         } else {
             Write-Warning ".env.example not found, creating minimal .env..."
+            # Minimal .env for fresh install: SQLite only
             $minimalEnv = @"
 VERSION=$VERSION
 SECRET_KEY=$secretKey
@@ -733,16 +739,10 @@ DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 DEFAULT_ADMIN_FORCE_RESET=False
-DATABASE_ENGINE=postgresql
-POSTGRES_HOST=postgres
-POSTGRES_PORT=5432
-POSTGRES_DB=student_management
-POSTGRES_USER=sms_user
-POSTGRES_PASSWORD=$postgresPassword
-POSTGRES_SSLMODE=prefer
+DATABASE_ENGINE=sqlite
 "@
             Set-Content -Path $ROOT_ENV -Value $minimalEnv
-            Write-Success "Minimal .env created"
+            Write-Success "Minimal .env created (SQLite - ready out-of-box)"
             $configured = $true
         }
     } else {
@@ -1437,9 +1437,16 @@ function Start-Application {
 
         Push-Location $SCRIPT_DIR
         try {
-            docker compose @composeArgs up -d --build 2>&1 | Out-Null
+            $composeOutput = docker compose @composeArgs up -d --build 2>&1
             if ($LASTEXITCODE -ne 0) {
+                # Capture actual error for logging
+                if ($Silent) {
+                    Write-InstallerLog "Docker Compose error output:"
+                    $composeOutput | ForEach-Object { Write-InstallerLog "$_" }
+                }
                 Write-Error-Message "Failed to start Docker Compose stack"
+                Write-Warning "Docker Compose output:"
+                $composeOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
                 return 1
             }
         } finally {
