@@ -296,6 +296,7 @@ export default {
   enrollment: 'Εγγραφή',
   unenroll: 'Διαγραφή',
   noStudentsEnrolled: 'Δεν υπάρχουν ακόμη εγγεγραμμένοι σπουδαστές',
+  courseDescription: 'Περιγραφή Μαθήματος',
   hours: 'ώρες',
   daysPerWeek: 'ημέρες/εβδομάδα',
   periodsPerWeek: 'περίοδοι/εβδομάδα',

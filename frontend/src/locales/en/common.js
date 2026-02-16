@@ -297,6 +297,7 @@ export default {
   enrollment: 'Enrollment',
   unenroll: 'Unenroll',
   noStudentsEnrolled: 'No students enrolled yet',
+  courseDescription: 'Course Description',
   hours: 'hours',
   daysPerWeek: 'days/week',
   periodsPerWeek: 'periods/week',
