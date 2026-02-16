@@ -11,7 +11,28 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.18.0] - 2026-02-16
 
+### Features
+- **courses**: add PDF extraction pipeline for MIEEK course data import
+  - Multi-page table detection and parsing for evaluation rules
+  - Text-based title extraction with fallback from PDF headers
+  - Last-key persistence across page boundaries for complete data capture
+- **courses**: implement enhanced course template management
+  - Support for evaluation rules with weight validation (100% verification)
+  - Handle practicum courses with empty evaluation sections
+  - Corrected course templates with verified weight calculations
+
 ### Bug Fixes
+- **courses**: fix evaluation weight calculation and normalization
+  - AUT0207: Corrected from 99% (11,22,33,33) to 100% (10,20,30,40)
+  - AUT0305: Added missing 5 evaluation rules from multi-page PDF extraction
+  - Proper integer conversion for weight values
+  - Handles both normalized and pre-normalized weight distributions
+- **courses**: fix PDF title extraction failures
+  - Implement text-based fallback from "Τίτλος Μαθήματος" field
+  - Recover from hardcoded course name mapping errors
+- **courses**: remove periods_per_week from UI display
+  - Simplify course list UI to focus on essential information
+  - Reduce metadata clutter while maintaining data integrity
 - **persistence**: implement comprehensive database volume persistence for SQLite deployments
 - **installer**: default fresh installs to SQLite with better error logging
 - **installer**: default to PostgreSQL for data persistence
@@ -44,6 +65,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **changelog**: record docker persistence and API debug logging updates
 - **index**: align documented version to 1.18.0
 - **release**: restore curated v1.18.0 release documentation
+- **courses**: document PDF extraction pipeline and course data validation procedures
+
+### Tools & Operations
+- **scripts**: add PDF course extraction and import validation tools
+- **templates**: add corrected course template with verified evaluation weights (mieek_courses_20260216_201708.json)
 
 ### Styling
 - **formatting**: clean up trailing whitespace in DOCKER.ps1
@@ -59,44 +85,14 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Chores
 - **frontend**: gate API client debug logs behind VITE_API_DEBUG
 
-## [1.18.0] - 2026-02-16
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
 ---
-## [Unreleased] - Target v1.18.0 (2026-02-15)
+## [Unreleased]
 
 ### Features
-- **students**: add cascaded active/inactive list views in both student list implementations.
-- **students**: add profile highlight authoring flow (role-gated for admin/teacher) and reusable quick templates.
-- **students**: align class labeling to `academic_year` semantics across cards/profile and tests.
-- **reports**: migrate report templates from `study_year` to `academic_year`/"Class" naming and add migration utility.
+- (New features for next release)
 
 ### Bug Fixes
-- **frontend**: stabilize analytics/dashboard rendering and attendance active filtering.
-- **docker**: harden persistence by using canonical data volumes and auto-migrating legacy project-prefixed volumes on startup.
-- **students**: deactivate flow now unenrolls active enrollments with optional re-enroll on reactivation.
-- **i18n**: synchronize EN/EL dashboard + student locale keys and resolve key-structure mismatch.
-- **grading**: normalize assignment/category label translation handling in grading views.
-- **ci(frontend)**: fix TypeScript pipeline failure in cascaded students view (`enrollmentsAPI` call alignment).
-- **ci(backend)**: fix MyPy pipeline failure in student re-enrollment soft-delete restoration.
-
-### Tooling & Operations
-- **launcher**: implement `SMS_Manager.exe` Docker controller integration updates.
-- **frontend**: gate API client debug logging behind `VITE_API_DEBUG` to reduce default console noise.
-- **scripts**: add timeout-safe behavior for state snapshot verification script in admin-mode workflows.
-- **deps**: remove unnecessary `python-socketio[aiohttp]` extra and keep ASGI-aligned dependency usage.
-
-### Release Workflow Notes
-- **release**: `v1.17.9` was already tagged; duplicate release rerun was corrected via revert to preserve proper tag workflow.
-- **release-docs**: prepared and synchronized `v1.18.0` release documentation set (notes, manifest, deployment checklist, GitHub draft).
-- **ci**: hardened Docker build/push workflow to avoid GHCR `write_package` failures when package write token is unavailable on branch runs.
+- (Upcoming bug fixes)
 
 ---
 
@@ -3716,4 +3712,3 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
-
