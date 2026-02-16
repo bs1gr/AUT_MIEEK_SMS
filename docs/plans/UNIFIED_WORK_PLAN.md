@@ -1,12 +1,15 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.17.9 (v1.17.9 Tagged & Published)
-**Last Updated**: February 15, 2026 (PostgreSQL standardization + installer refresh verification)
-**Status**: ✅ PRODUCTION LIVE - v1.17.9 RELEASED | 🚀 v1.18.0 RELEASE PREP READY (docs synced, CI green)
+**Current Version**: 1.18.0 (Development)
+**Last Updated**: February 17, 2026 (Course auto-activation enhancements + comprehensive tests)
+**Status**: ✅ PRODUCTION LIVE - v1.17.9 RELEASED | 🚀 v1.18.0 DEVELOPMENT IN PROGRESS
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Option A - Maintenance & Stability** (Installer testing + production monitoring)
+**Current Phase**: **Option A - Maintenance & Stability** (Feature enhancements + production monitoring)
 **Current Branch**: `main`
 **Latest Commits**:
+- 08625027a - test(courses): add comprehensive unit tests for courseAutoActivation utility
+- 170001597 - feat(courses): add auto-activation enhancements - scheduler, UI indicator, monitoring
+- a4a74ba50 - feat(courses): auto-set active by semester dates
 - 3b27f7c0c - fix(db+release): harden postgres migration and refresh v1.18.0 installer
 - 7a8615cbe - fix(ci): avoid GHCR push failures without package token
 - 64ae9bdc3 - docs: prepare next major release documentation package
@@ -15,9 +18,6 @@
 - b428b18e7 - revert(release): undo duplicate v1.17.9 release rerun commit
 - cacc2a130 - fix(i18n): sync en/el dashboard and student locale keys
 - cfed5a334 - feat(students): cascade primary students list by active status
-- 064a08291 - feat(students): add profile highlight authoring and class labeling
-- 6d478f2e1 - feat(students): add cascaded active/inactive student view
-- 3b848a077 - feat(reports): migrate study_year templates to academic_year/class
 
 ---
 
@@ -118,6 +118,15 @@
 48. ✅ **COMPLETE**: Maintenance cleanup - ran consolidated cleanup entrypoint (deep + external helpers; legacy backup archives pruned)
 49. ✅ **COMPLETE**: PostgreSQL runtime standardization + persistence stabilization (explicit engine selection; removed implicit sqlite/postgres mode flips; verified stop/start durability)
 50. ✅ **COMPLETE**: SQLite→PostgreSQL migration hardening and v1.18.0 installer refresh (migration helper resilience for encoded URLs/missing tables; signed installer rebuilt and validated)
+51. ✅ **COMPLETE** (Feb 17, 2026): **Course auto-activation enhancements** - semester-based activation system
+    - **Scheduled Job**: Daily bulk update at 3:00 AM UTC (CourseActivationScheduler service, 178 lines)
+    - **UI Enhancement**: Real-time visual indicators in AddCourseModal and EditCourseModal (green/amber/blue badges)
+    - **Monitoring**: Audit logging on course create/update operations and bulk scheduler
+    - **Frontend Utility**: courseAutoActivation.ts (143 lines) - replicates backend semester parsing
+    - **i18n**: 6 translation keys each for EN/EL (labels + hints)
+    - **Testing**: 34 comprehensive unit tests (100% passing) covering all utility functions
+    - **Files Modified**: 9 backend/frontend files, 2 new files created
+    - **Commits**: a4a74ba50 (base feature), 170001597 (enhancements), 08625027a (tests)
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

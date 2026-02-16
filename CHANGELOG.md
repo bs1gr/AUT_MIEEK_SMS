@@ -12,6 +12,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.18.0] - 2026-02-16
 
 ### Features
+- **courses**: add auto-activation enhancements for semester-based course management
+  - **Scheduled Job**: APScheduler runs daily at 3:00 AM UTC to bulk-update course `is_active` status based on semester date ranges
+  - **UI Enhancement**: Real-time visual indicators in course modals showing auto-activation status
+    - Green badge: active (current date within semester range)
+    - Amber badge: inactive (current date outside semester range)
+    - Blue badge: manual activation (unrecognized semester format)
+  - **Monitoring**: Comprehensive logging when auto-activation is applied (create/update operations)
+  - Backend: `course_activation_scheduler.py` service integrated into MaintenanceScheduler
+  - Frontend: `courseAutoActivation.ts` utility replicates backend semester parsing logic
+  - i18n: Added EN/EL translation keys for auto-activation labels and hints
+  - Tests: 34 comprehensive unit tests covering all utility functions (100% passing)
 - **courses**: add PDF extraction pipeline for MIEEK course data import
   - Multi-page table detection and parsing for evaluation rules
   - Text-based title extraction with fallback from PDF headers
