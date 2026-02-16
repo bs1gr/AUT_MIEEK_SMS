@@ -12,6 +12,7 @@ TODO.md
 # Temporary scripts
 tmp_*.ps1
 tmp_*.sh
+tmp_*.txt
 watch_run.ps1
 commit_msg.txt
 cleanup_msg.txt
@@ -46,6 +47,9 @@ trivy-results.*
 # Generated test files (exports & reports from Phase 6)
 backend/exports/
 backend/reports/
+
+# Course PDFs and course data
+pdfs-courses/
 
 # Databases & backups
 *.db
