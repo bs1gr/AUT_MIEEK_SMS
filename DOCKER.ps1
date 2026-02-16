@@ -760,6 +760,25 @@ DATABASE_ENGINE=sqlite
                 $secretKey = $existingKey
             }
         }
+        
+        # ====== PERSISTENCE FIX: Validate DATABASE_ENGINE for fresh installs ======
+        # Ensure .env is configured for SQLite persistence (not overridden to PostgreSQL)
+        Write-Debug "Validating .env DATABASE_ENGINE setting..."
+        $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
+        if (-not $dbEngine) {
+            Write-Warning ".env is missing DATABASE_ENGINE setting"
+            Write-Info "Adding DATABASE_ENGINE=sqlite for fresh install"
+            $rootContent = $rootContent + "`nDATABASE_ENGINE=sqlite`n"
+            Set-Content -Path $ROOT_ENV -Value $rootContent
+            $configured = $true
+        } elseif ($dbEngine -ne "sqlite" -and $dbEngine -ne "postgresql") {
+            Write-Warning ".env has invalid DATABASE_ENGINE: $dbEngine"
+            Write-Info "Correcting to: DATABASE_ENGINE=sqlite (fresh install default)"
+            $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=sqlite"
+            Set-Content -Path $ROOT_ENV -Value $rootContent
+            $configured = $true
+        }
+        # ====== END PERSISTENCE FIX ======
     }
 
     # Backend .env
@@ -931,6 +950,29 @@ function Wait-ForHealthy {
         if ($status.IsHealthy) {
             Write-Host "`n"
             Write-Success "Application is healthy and ready!"
+            
+            # ====== PERSISTENCE FIX: Verify Database File in Volume ======
+            # Ensure the SQLite database file is actually being persisted
+            Write-Info "Verifying database persistence in volume..."
+            $dbCheckOutput = docker exec $CONTAINER_NAME sh -c 'if [ -f /data/student_management.db ]; then ls -lh /data/student_management.db; else echo "DATABASE_NOT_FOUND"; fi' 2>&1
+            
+            if ($dbCheckOutput -contains "DATABASE_NOT_FOUND" -or $dbCheckOutput -match "DATABASE_NOT_FOUND") {
+                Write-Warning "⚠️  Database file not found in persistent volume!"
+                Write-Error-Message "This indicates a volume persistence issue on your Docker installation"
+                Write-Info "Troubleshooting steps:"
+                Write-Host "  1. Check if volume exists:  docker volume inspect sms_data"
+                Write-Host "  2. Check volume contents:   docker run --rm -v sms_data:/vol alpine ls -lh /vol/"
+                Write-Host "  3. Restart container:       .\DOCKER.ps1 -Restart"
+                Write-Host "  4. See DATABASE_PERSISTENCE_FIX.md for detailed help"
+                return $false
+            } else {
+                Write-Success "✓ Database file confirmed in persistent volume"
+                if ($dbCheckOutput) {
+                    Write-Debug "  $dbCheckOutput"
+                }
+            }
+            # ====== END PERSISTENCE FIX ======
+            
             return $true
         }
 
@@ -1462,6 +1504,36 @@ function Start-Application {
         return 1
     }
 
+    # ====== PERSISTENCE FIX: Volume Validation for SQLite Mode ======
+    # Ensure persistent data volume exists and is ready for SQLite deployment
+    Write-Info "Validating persistent data volume for SQLite deployment..."
+    
+    $volumeList = docker volume ls --format "{{.Name}}" 2>$null
+    $volumeExists = $volumeList | Where-Object { $_ -eq "sms_data" }
+    
+    if (-not $volumeExists) {
+        Write-Info "Creating persistent data volume: sms_data"
+        $createVolumeOutput = docker volume create sms_data 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error-Message "Failed to create persistence volume 'sms_data'"
+            Write-Warning "Error output: $createVolumeOutput"
+            return 1
+        }
+        Write-Success "✓ Data volume 'sms_data' created (fresh)"
+    } else {
+        Write-Success "✓ Data volume 'sms_data' exists (persistent)"
+        # Verify volume health
+        try {
+            $volumeInfo = docker volume inspect sms_data 2>$null | ConvertFrom-Json -ErrorAction SilentlyContinue
+            if ($volumeInfo -and $volumeInfo.Mountpoint) {
+                Write-Debug "  Volume mount point: $($volumeInfo.Mountpoint)"
+            }
+        } catch {
+            # Non-critical: just log if inspection fails
+        }
+    }
+    # ====== END PERSISTENCE FIX ======
+
     # Start container
     Write-Info "Starting container..."
 
@@ -1499,6 +1571,8 @@ function Start-Application {
     $dockerCmd += @(
         "-e", "SMS_ENV=production",
         "-e", "SMS_EXECUTION_MODE=docker",
+        "-e", "DATABASE_ENGINE=sqlite",
+        "-e", "DATABASE_URL=sqlite:////data/student_management.db",
         "-e", "TZ=Europe/Athens",
         "-e", "FRONTEND_VERSION=$VERSION",
         "-v", "${VOLUME_NAME}:/data",
