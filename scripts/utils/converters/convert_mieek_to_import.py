@@ -17,6 +17,7 @@ Date: October 26, 2025
 """
 
 import json
+import csv
 import re
 import sys
 import argparse
@@ -161,61 +162,48 @@ class MIEEKToSMSConverter:
 
         def _clean_cat(s: str) -> str:
             s = s.strip()
-            # Remove stray trailing punctuation/parentheses
-            s = re.sub(r"[\)\s]+$", "", s)
+            # Remove trailing whitespace only
+            s = re.sub(r"\s+$", "", s)
             # Collapse multiple spaces and separators
             s = re.sub(r"\s*[·•:\-–—]\s*", " ", s)
             s = re.sub(r"\s+", " ", s)
             return s.strip()
 
+        def _has_letters(s: str) -> bool:
+            return any(ch.isalpha() for ch in s)
+
         def _map_category(raw: str) -> str:
             base = raw.strip()
-            base_noacc = _strip_accents(base).lower()
-
-            # Common Greek -> English mappings (keywords, not exact match)
-            mapping = [
-                (["συμμετοχ"], "Class Participation"),
-                (["συνεχη", "διαρκ"], "Continuous Assessment"),
-                (["εργαστηρι"], "Lab Work"),
-                (["ασκησ"], "Exercises"),
-                (["εργασι"], "Assignments"),
-                (["εργασιων στο σπιτι", "στο σπιτι"], "Homework"),
-                (["ενδιαμεση", "προοδος"], "Midterm Exam"),
-                (["τελικ", "τελικη εξεταση"], "Final Exam"),
-                (["εξεταση"], "Exam"),
-                (["παρουσιασ"], "Presentation"),
-                (["project", "εργο"], "Project"),
-                (["quiz", "τεστ"], "Quiz"),
-                (["report", "εκθεση"], "Report"),
-            ]
-
-            for keys, label in mapping:
-                for k in keys:
-                    if k in base_noacc:
-                        return label
-
-            # English passthrough (normalize capitalization)
-            english_known = {
-                "class participation": "Class Participation",
-                "continuous assessment": "Continuous Assessment",
-                "lab assessment": "Lab Work",
-                "lab work": "Lab Work",
-                "assignments": "Assignments",
-                "homework": "Homework",
-                "midterm exam": "Midterm Exam",
-                "final exam": "Final Exam",
-                "exam": "Exam",
-                "presentation": "Presentation",
-                "project": "Project",
-                "quiz": "Quiz",
-                "report": "Report",
-            }
-            low = base.lower()
-            if low in english_known:
-                return english_known[low]
-
-            # Fallback: Title-case cleaned original (Greek left as-is)
+            _ = _strip_accents(base).lower()
             return base
+
+        def _normalize_weights(rules: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+            total = sum(float(r.get("weight", 0.0)) for r in rules)
+            if total <= 0:
+                return [
+                    {
+                        "category": r.get("category", ""),
+                        "weight": int(round(float(r.get("weight", 0)))),
+                    }
+                    for r in rules
+                ]
+            if abs(total - 100.0) < 0.5:
+                # Already normalized to ~100, just convert to integers
+                return [
+                    {
+                        "category": r.get("category", ""),
+                        "weight": int(round(float(r.get("weight", 0)))),
+                    }
+                    for r in rules
+                ]
+            scale = 100.0 / total
+            normalized = []
+            for r in rules:
+                weight = float(r.get("weight", 0.0)) * scale
+                normalized.append(
+                    {"category": r.get("category", ""), "weight": int(round(weight))}
+                )
+            return normalized
 
         rules: List[Dict[str, Any]] = []
 
@@ -235,7 +223,12 @@ class MIEEKToSMSConverter:
             s = it.strip()
             if not s:
                 continue
-            if s in ["Γλώσσα", "Ελληνική", "Αγγλική", "Αξιολόγηση"]:
+            if re.fullmatch(r"\d+(?:[\.,]\d+)?%?", s):
+                continue
+            cleaned = _clean_cat(s)
+            if cleaned in ["Γλώσσα", "Ελληνική", "Αγγλική", "Αξιολόγηση"]:
+                continue
+            if cleaned.startswith("Γλώσσα"):
                 continue
             # If buffer exists and current line ends with percent, append and flush
             if buf:
@@ -272,6 +265,8 @@ class MIEEKToSMSConverter:
             if not m:
                 continue
             raw_cat = _clean_cat(m.group("cat"))
+            if not _has_letters(raw_cat):
+                continue
             w_str = m.group("w").replace(",", ".")
             try:
                 weight = float(w_str)
@@ -288,10 +283,14 @@ class MIEEKToSMSConverter:
                 buf2.append(x)
                 if len(buf2) == 2:
                     c_raw = _clean_cat(str(buf2[0]))
+                    if not _has_letters(c_raw):
+                        buf2 = []
+                        continue
                     try:
                         w_num = float(str(buf2[1]).replace("%", "").replace(",", "."))
                     except Exception:
-                        w_num = 0.0
+                        buf2 = []
+                        continue
                     rules.append({"category": _map_category(c_raw), "weight": w_num})
                     buf2 = []
 
@@ -300,7 +299,7 @@ class MIEEKToSMSConverter:
         for r in rules:
             dedup[r["category"]] = float(r.get("weight", 0.0))
         out = [{"category": k, "weight": v} for k, v in dedup.items()]
-        return out
+        return _normalize_weights(out)
 
     def extract_description(self, course_data: Dict) -> str:
         """Construct course description from various fields"""
@@ -348,6 +347,33 @@ class MIEEKToSMSConverter:
                 parts.append(f"\n**Περιεχόμενο:** {content}")
 
         return "\n".join(parts) if parts else "Course description not available"
+
+    def extract_title(self, course_data: Dict[str, Any]) -> Optional[str]:
+        """Extract course title from raw PDF fields when available"""
+        title_keys = ["Τίτλος Μαθήματος", "Τίτλος\nΜαθήματος", "Τίτλος"]
+        for key in title_keys:
+            if key not in course_data:
+                continue
+            value = course_data.get(key)
+            if isinstance(value, list):
+                for item in value:
+                    text = str(item).strip()
+                    if not text:
+                        continue
+                    if "Τίτλος" in text and "Μαθήματος" in text:
+                        continue
+                    if "Κωδικός" in text:
+                        break
+                    return text
+                continue
+            if isinstance(value, str):
+                text = value.strip()
+                text = re.sub(r"^.*Τίτλος\s+Μαθήματος\s*[:\-]?\s*", "", text).strip()
+                if "Κωδικός" in text:
+                    text = text.split("Κωδικός", 1)[0].strip()
+                if text:
+                    return text
+        return None
 
     def generate_course_name(self, course_code: str, description: str) -> str:
         """Generate a course name from code and description"""
@@ -433,7 +459,10 @@ class MIEEKToSMSConverter:
             description = self.extract_description(course_data)
 
             # Generate course name
-            course_name = self.generate_course_name(course_code, description)
+            course_title = self.extract_title(course_data)
+            course_name = course_title or self.generate_course_name(
+                course_code, description
+            )
 
             # Build SMS course object
             course = {
@@ -448,10 +477,11 @@ class MIEEKToSMSConverter:
             if credits:
                 course["credits"] = credits
 
-            # Extract hours per week
-            hours = self.extract_hours_per_week(course_data.get("ECTS"))
-            if hours:
-                course["hours_per_week"] = hours
+            # Extract periods per week (sum of lectures + labs)
+            periods = self.extract_hours_per_week(course_data.get("ECTS"))
+            if periods:
+                course["periods_per_week"] = periods
+                course["hours_per_week"] = periods
 
             # Extract evaluation rules
             rules = self.extract_evaluation_rules(course_data.get("Αξιολόγηση"))
@@ -497,6 +527,35 @@ class MIEEKToSMSConverter:
                     json.dump(converted, f, ensure_ascii=False, indent=2)
                 print(f"✓ Successfully converted {len(converted)} courses")
                 print(f"✓ Saved to: {output_file}\n")
+                summary_file = output_file.with_name(f"{output_file.stem}_summary.csv")
+                with open(summary_file, "w", encoding="utf-8", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(
+                        [
+                            "course_code",
+                            "course_name",
+                            "semester",
+                            "credits",
+                            "periods_per_week",
+                            "evaluation_rules",
+                        ]
+                    )
+                    for item in converted:
+                        rules = item.get("evaluation_rules") or []
+                        rules_text = "; ".join(
+                            f"{r.get('category')}: {r.get('weight')}" for r in rules
+                        )
+                        writer.writerow(
+                            [
+                                item.get("course_code", ""),
+                                item.get("course_name", ""),
+                                item.get("semester", ""),
+                                item.get("credits", ""),
+                                item.get("periods_per_week", ""),
+                                rules_text,
+                            ]
+                        )
+                print(f"✓ Summary CSV saved to: {summary_file}\n")
             except Exception as e:
                 print(f"✗ Failed to save output: {e}")
                 sys.exit(1)
