@@ -17,6 +17,7 @@ from backend.schemas.common import PaginatedResponse, PaginationParams
 from backend.schemas.enrollments import (
     EnrollmentCreate,
     EnrollmentResponse,
+    EnrollmentStatusUpdate,
     StudentBrief,
 )
 from backend.services.enrollment_service import EnrollmentService
@@ -157,6 +158,34 @@ def unenroll_student(
 
         logger.error(
             "Error unenrolling student from course",
+            extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(exc)),
+            exc_info=True,
+        )
+        raise internal_server_error(request=request)
+
+
+@router.patch("/course/{course_id}/student/{student_id}/status", response_model=EnrollmentResponse)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("courses:edit")
+def update_enrollment_status(
+    course_id: int,
+    student_id: int,
+    payload: EnrollmentStatusUpdate,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    try:
+        with transaction(db):
+            result = EnrollmentService.update_enrollment_status(db, course_id, student_id, payload, request)
+            db.flush()
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        from backend.logging_config import safe_log_context
+
+        logger.error(
+            "Error updating enrollment status",
             extra=safe_log_context(student_id=student_id, course_id=course_id, error=str(exc)),
             exc_info=True,
         )

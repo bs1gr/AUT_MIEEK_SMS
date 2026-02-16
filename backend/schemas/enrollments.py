@@ -1,5 +1,5 @@
 from datetime import date
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -14,8 +14,13 @@ class EnrollmentResponse(BaseModel):
     student_id: int
     course_id: int
     enrolled_at: date
+    status: str
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class EnrollmentStatusUpdate(BaseModel):
+    status: Literal["active", "completed", "dropped"]
 
 
 class StudentBrief(BaseModel):

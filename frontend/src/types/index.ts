@@ -69,6 +69,7 @@ export interface CourseEnrollment {
   student_id: number;
   course_id: number;
   enrolled_at?: string;
+  status?: 'active' | 'completed' | 'dropped';
 }
 
 export interface DailyPerformance {

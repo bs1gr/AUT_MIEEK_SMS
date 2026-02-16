@@ -48,6 +48,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
   const activeEnrollments = useMemo(
     () => enrollments.filter((enrollment) => {
+      if (enrollment.status && enrollment.status !== 'active') {
+        return false;
+      }
       const course = coursesById[enrollment.course_id];
       return course ? course.is_active !== false : true;
     }),

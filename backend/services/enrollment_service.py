@@ -13,6 +13,7 @@ from backend.schemas.common import PaginationParams
 from backend.schemas.enrollments import (
     EnrollmentCreate,
     EnrollmentResponse,
+    EnrollmentStatusUpdate,
     StudentBrief,
 )
 
@@ -140,6 +141,7 @@ class EnrollmentService:
             .filter(
                 CourseEnrollment.course_id == course_id,
                 CourseEnrollment.deleted_at.is_(None),
+                CourseEnrollment.status == "active",
                 Student.deleted_at.is_(None),
             )
             .all()
@@ -209,6 +211,7 @@ class EnrollmentService:
                     existing.deleted_at = None
                     if payload.enrolled_at:
                         existing.enrolled_at = payload.enrolled_at
+                    existing.status = "active"
                     reactivated += 1
                     logger.debug(f"Reactivated enrollment for student {sid} in course {course_id}")
                 else:
@@ -220,6 +223,7 @@ class EnrollmentService:
                 student_id=sid,
                 course_id=course_id,
                 enrolled_at=payload.enrolled_at or date.today(),
+                status="active",
             )
             db.add(enrollment)
             created += 1
@@ -274,3 +278,42 @@ class EnrollmentService:
         logger.info(f"Unenrolled student {student_id} from course {course_id}")
 
         return {"message": "Unenrolled"}
+
+    @staticmethod
+    def update_enrollment_status(
+        db: Session,
+        course_id: int,
+        student_id: int,
+        payload: EnrollmentStatusUpdate,
+        request=None,
+    ) -> EnrollmentResponse:
+        (CourseEnrollment,) = import_names("models", "CourseEnrollment")
+
+        enrollment = (
+            db.query(CourseEnrollment)
+            .filter(
+                CourseEnrollment.course_id == course_id,
+                CourseEnrollment.student_id == student_id,
+                CourseEnrollment.deleted_at.is_(None),
+            )
+            .first()
+        )
+
+        if not enrollment:
+            raise http_error(
+                404,
+                ErrorCode.ENROLLMENT_NOT_FOUND,
+                "Enrollment not found",
+                request,
+                context={"course_id": course_id, "student_id": student_id},
+            )
+
+        enrollment.status = payload.status
+        db.flush()
+
+        logger.info(
+            "Updated enrollment status",
+            extra={"course_id": course_id, "student_id": student_id, "status": payload.status},
+        )
+
+        return enrollment

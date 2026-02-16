@@ -187,12 +187,16 @@ class CourseEnrollment(SoftDeleteMixin, Base):
     student_id = Column(Integer, ForeignKey("students.id"), nullable=False, index=True)
     course_id = Column(Integer, ForeignKey("courses.id"), nullable=False, index=True)
     enrolled_at = Column(Date, default=date.today, index=True)
+    status = Column(String(20), default="active", nullable=False, index=True)
 
     # Relationships
     student = relationship("Student", back_populates="enrollments")  # type: ignore[var-annotated]
     course = relationship("Course", back_populates="enrollments")  # type: ignore[var-annotated]
 
-    __table_args__ = (Index("idx_enrollment_student_course", "student_id", "course_id", unique=True),)
+    __table_args__ = (
+        Index("idx_enrollment_student_course", "student_id", "course_id", unique=True),
+        Index("idx_enrollment_status", "status"),
+    )
 
     def __repr__(self):
         return f"<Enrollment(student={self.student_id}, course={self.course_id})>"
