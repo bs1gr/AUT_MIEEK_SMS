@@ -760,7 +760,7 @@ DATABASE_ENGINE=sqlite
                 $secretKey = $existingKey
             }
         }
-        
+
         # ====== PERSISTENCE FIX: Validate DATABASE_ENGINE for fresh installs ======
         # Ensure .env is configured for SQLite persistence (not overridden to PostgreSQL)
         Write-Debug "Validating .env DATABASE_ENGINE setting..."
@@ -950,12 +950,12 @@ function Wait-ForHealthy {
         if ($status.IsHealthy) {
             Write-Host "`n"
             Write-Success "Application is healthy and ready!"
-            
+
             # ====== PERSISTENCE FIX: Verify Database File in Volume ======
             # Ensure the SQLite database file is actually being persisted
             Write-Info "Verifying database persistence in volume..."
             $dbCheckOutput = docker exec $CONTAINER_NAME sh -c 'if [ -f /data/student_management.db ]; then ls -lh /data/student_management.db; else echo "DATABASE_NOT_FOUND"; fi' 2>&1
-            
+
             if ($dbCheckOutput -contains "DATABASE_NOT_FOUND" -or $dbCheckOutput -match "DATABASE_NOT_FOUND") {
                 Write-Warning "⚠️  Database file not found in persistent volume!"
                 Write-Error-Message "This indicates a volume persistence issue on your Docker installation"
@@ -972,7 +972,7 @@ function Wait-ForHealthy {
                 }
             }
             # ====== END PERSISTENCE FIX ======
-            
+
             return $true
         }
 
@@ -1507,10 +1507,10 @@ function Start-Application {
     # ====== PERSISTENCE FIX: Volume Validation for SQLite Mode ======
     # Ensure persistent data volume exists and is ready for SQLite deployment
     Write-Info "Validating persistent data volume for SQLite deployment..."
-    
+
     $volumeList = docker volume ls --format "{{.Name}}" 2>$null
     $volumeExists = $volumeList | Where-Object { $_ -eq "sms_data" }
-    
+
     if (-not $volumeExists) {
         Write-Info "Creating persistent data volume: sms_data"
         $createVolumeOutput = docker volume create sms_data 2>&1
