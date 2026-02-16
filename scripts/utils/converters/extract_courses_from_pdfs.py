@@ -30,7 +30,9 @@ except ModuleNotFoundError:
     import importlib.util
 
     module_path = Path(__file__).resolve().parent / "convert_mieek_to_import.py"
-    spec = importlib.util.spec_from_file_location("convert_mieek_to_import", module_path)
+    spec = importlib.util.spec_from_file_location(
+        "convert_mieek_to_import", module_path
+    )
     if spec is None or spec.loader is None:
         raise
     module = importlib.util.module_from_spec(spec)
@@ -134,18 +136,24 @@ def _extract_title_from_text(pdf_path: Path) -> Optional[str]:
                     candidate = re.sub(r"^Μαθήματος\s+", "", candidate).strip()
                     if candidate and "Κωδικός" not in candidate:
                         return candidate
-                if line == "Τίτλος" and idx + 1 < len(lines) and "Μαθήματος" in lines[idx + 1]:
-                    for next_line in lines[idx + 2:]:
+                if (
+                    line == "Τίτλος"
+                    and idx + 1 < len(lines)
+                    and "Μαθήματος" in lines[idx + 1]
+                ):
+                    for next_line in lines[idx + 2 :]:
                         if not next_line:
                             continue
                         if "Κωδικός" in next_line:
                             break
                         return next_line
                 if "Τίτλος" in line and "Μαθήματος" in line:
-                    candidate = re.sub(r"^.*Τίτλος\s+Μαθήματος\s*[:\-]?\s*", "", line).strip()
+                    candidate = re.sub(
+                        r"^.*Τίτλος\s+Μαθήματος\s*[:\-]?\s*", "", line
+                    ).strip()
                     if candidate and "Κωδικός" not in candidate:
                         return candidate
-                    for next_line in lines[idx + 1:]:
+                    for next_line in lines[idx + 1 :]:
                         if not next_line:
                             continue
                         if "Κωδικός" in next_line:
@@ -270,7 +278,9 @@ def main() -> None:
         print("Skipping SMS import conversion (per --skip-convert).")
         return
 
-    converter = MIEEKToSMSConverter(input_file=str(raw_output), output_dir=str(output_dir))
+    converter = MIEEKToSMSConverter(
+        input_file=str(raw_output), output_dir=str(output_dir)
+    )
     success = converter.convert_and_save()
     sys.exit(0 if success else 1)
 
