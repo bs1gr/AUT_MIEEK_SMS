@@ -53,7 +53,7 @@ This release finalizes PostgreSQL standardization, hardens migration reliability
 
 ## 🔐 Integrity
 
-**SHA256 (`SMS_Installer_1.18.0.exe`)**:  
+**SHA256 (`SMS_Installer_1.18.0.exe`)**:
 `09F20386CCB3A6CB1C5D4897C20EAD2C815F52FEA38BEACAA27ADC3D5FE15678`
 
 ---

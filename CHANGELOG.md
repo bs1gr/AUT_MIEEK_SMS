@@ -8,6 +8,68 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.18.0] - 2026-02-16
+
+### Bug Fixes
+- **persistence**: implement comprehensive database volume persistence for SQLite deployments
+- **installer**: default fresh installs to SQLite with better error logging
+- **installer**: default to PostgreSQL for data persistence
+- **installer**: bundle native runtime for SMS_Manager
+- **installer**: build SMS_Manager before compiling
+- **installer**: clean legacy launchers and validate SMS_Manager
+- **release**: replace clobber with digest-safe installer upload
+- **release**: prevent generic pipeline from clobbering installer asset
+- **installer**: remove batch launcher and build SMS_Manager in CI
+- **ci**: exclude operational scripts from backend coverage gate
+- **db+release**: harden postgres migration and refresh v1.18.0 installer
+- **ci**: prevent installer release auto-overwrite and block undersized assets
+- **docker**: harden volume persistence and auto-migrate legacy volumes
+- **launcher-runtime**: delegate start flow to DOCKER.ps1
+- **installer-runtime**: include .github scripts and quiet docker probe
+- **launcher**: remove garbled ANSI and add docker start fallbacks
+- **installer-upgrade**: recreate shortcuts during updates
+- **installer**: use SMS_Manager.exe for shortcuts and launch
+- **ci**: avoid development deployment status flips from scheduled load tests
+- **release-docs**: preserve curated docs unless fallback needed
+- **release**: enforce post-doc version re-sync and index coverage
+- **ci**: make post-deployment monitoring non-blocking
+
+### Documentation
+- add installer build summary for v1.18.0 with persistence fixes
+- add comprehensive persistent database fix session summary
+- **testing**: add comprehensive persistence testing and verification guide
+- **release**: finalize v1.18.0 github release body variants
+- **plan**: record postgres standardization and installer refresh
+- **changelog**: record docker persistence and API debug logging updates
+- **index**: align documented version to 1.18.0
+- **release**: restore curated v1.18.0 release documentation
+
+### Styling
+- **formatting**: clean up trailing whitespace in DOCKER.ps1
+
+### Build System
+- **installer**: compile v1.18.0 with database persistence fixes
+- **installer**: refresh v1.18.0 artifact and release hash
+- **installer**: update SMS_Installer_1.18.0 artifact
+
+### CI/CD
+- **testing**: summarize failing backend test names in step summary
+
+### Chores
+- **frontend**: gate API client debug logs behind VITE_API_DEBUG
+
+## [1.18.0] - 2026-02-16
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [Unreleased] - Target v1.18.0 (2026-02-15)
 
 ### Features
@@ -3654,3 +3716,4 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
+
