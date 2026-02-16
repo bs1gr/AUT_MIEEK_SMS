@@ -113,4 +113,11 @@ export default {
   absencePenalty: 'Absence Penalty',
   absencePenaltyPlaceholder: 'Penalty per absence (%)',
   absencePenaltyHelp: 'Percentage deducted from final grade for each unexcused absence',
+  // Auto-Activation
+  autoActivationActive: 'Auto-Active',
+  autoActivationInactive: 'Auto-Inactive',
+  autoActivationNotApplicable: 'Manual Activation',
+  autoActivationActiveHint: 'This course will be auto-activated (current date within semester range)',
+  autoActivationInactiveHint: 'This course will be auto-deactivated (current date outside semester range)',
+  autoActivationNotApplicableHint: 'Auto-activation does not apply to this semester format. You can manually set activation status.',
 };

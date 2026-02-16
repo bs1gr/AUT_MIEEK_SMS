@@ -112,5 +112,10 @@ export default {
   descriptionPlaceholder: 'Περιγραφή μαθήματος',
   absencePenalty: 'Ποινή Απουσίας',
   absencePenaltyPlaceholder: 'Ποινή ανά απουσία (%)',
-  absencePenaltyHelp: 'Ποσοστό που αφαιρείται από τον τελικό βαθμό για κάθε αδικαιολόγητη απουσία',
-};
+  absencePenaltyHelp: 'Ποσοστό που αφαιρείται από τον τελικό βαθμό για κάθε αδικαιολόγητη απουσία',  // Αυτόματη Ενεργοποίηση
+  autoActivationActive: 'Αυτόματα Ενεργό',
+  autoActivationInactive: 'Αυτόματα Ανενεργό',
+  autoActivationNotApplicable: 'Χειροκίνητη Ενεργοποίηση',
+  autoActivationActiveHint: 'Αυτό το μάθημα θα ενεργοποιηθεί αυτόματα (η τρέχουσα ημερομηνία εμπίπτει στο εξάμηνο)',
+  autoActivationInactiveHint: 'Αυτό το μάθημα θα απενεργοποιηθεί αυτόματα (η τρέχουσα ημερομηνία είναι εκτός εξαμήνου)',
+  autoActivationNotApplicableHint: 'Η αυτόματη ενεργοποίηση δεν ισχύει για αυτή τη μορφή εξαμήνου. Μπορείτε να ορίσετε χειροκίνητα την κατάσταση ενεργοποίησης.',};

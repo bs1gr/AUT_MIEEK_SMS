@@ -13,6 +13,7 @@ from backend.services.import_export_service import ImportExportService
 from backend.services.export_performance_monitor import get_export_performance_monitor
 from backend.services.export_scheduler import get_export_scheduler
 from backend.services.report_scheduler import get_report_scheduler
+from backend.services.course_activation_scheduler import get_course_activation_scheduler
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ class MaintenanceScheduler:
         self.import_export_service = ImportExportService()
         self.export_scheduler = get_export_scheduler()
         self.report_scheduler = get_report_scheduler()
+        self.course_activation_scheduler = get_course_activation_scheduler()
 
     def cleanup_old_exports(self, days_old: int = 30, delete_files: bool = True):
         """Clean up old export jobs.
@@ -137,6 +139,21 @@ class MaintenanceScheduler:
         """Stop the report scheduler."""
         self.report_scheduler.stop()
         logger.info("Report scheduler stopped")
+
+    def start_course_activation_scheduler(self):
+        """Start the course activation scheduler and schedule daily updates."""
+        if not self.course_activation_scheduler.is_available():
+            logger.warning("Course activation scheduler not available (APScheduler not installed)")
+            return
+
+        self.course_activation_scheduler.start()
+        self.course_activation_scheduler.schedule_daily_update()
+        logger.info("Course activation scheduler started with daily updates at 3:00 AM UTC")
+
+    def stop_course_activation_scheduler(self):
+        """Stop the course activation scheduler."""
+        self.course_activation_scheduler.stop()
+        logger.info("Course activation scheduler stopped")
 
     def schedule_cleanup_task(self, frequency: str = "daily"):
         """Schedule automatic export cleanup.

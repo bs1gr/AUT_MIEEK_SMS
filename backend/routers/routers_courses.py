@@ -268,6 +268,10 @@ async def create_course(
             auto_active = _auto_is_active(payload.get("semester") or "")
             if auto_active is not None:
                 payload["is_active"] = auto_active
+                logger.info(
+                    f"Auto-activation applied: course_code={payload.get('course_code')}, "
+                    f"semester={payload.get('semester')}, is_active={auto_active}"
+                )
         payload["evaluation_rules"] = _normalize_evaluation_rules(payload.get("evaluation_rules"))
         if "teaching_schedule" in payload:
             payload["periods_per_week"] = _calculate_periods_per_week(payload.get("teaching_schedule"))
@@ -375,6 +379,10 @@ async def update_course(
             auto_active = _auto_is_active(update_data.get("semester") or "")
             if auto_active is not None:
                 update_data["is_active"] = auto_active
+                logger.info(
+                    f"Auto-activation applied on update: course_id={course_id}, "
+                    f"semester={update_data.get('semester')}, is_active={auto_active}"
+                )
 
         if "teaching_schedule" in update_data:
             update_data["periods_per_week"] = _calculate_periods_per_week(update_data.get("teaching_schedule"))

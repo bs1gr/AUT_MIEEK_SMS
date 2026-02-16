@@ -18,6 +18,7 @@ import {
   Textarea,
 } from '@/components/ui';
 import { modalVariants, backdropVariants } from '@/utils/animations';
+import { getAutoActivationStatus } from '@/utils/courseAutoActivation';
 
 interface EditCourseModalProps {
   course: Course;
@@ -237,6 +238,28 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
               <div className="text-sm text-gray-600 bg-gray-50 px-3 py-2 rounded">
                 <strong>{t('semester')}:</strong> {form.watch('semester') || t('selectSemester')}
               </div>
+
+              {/* Auto-activation status indicator */}
+              {form.watch('semester') && (() => {
+                const status = getAutoActivationStatus(form.watch('semester') || '');
+                const bgColor = status.isActive === true
+                  ? 'bg-green-50 border-green-200 text-green-700'
+                  : status.isActive === false
+                    ? 'bg-amber-50 border-amber-200 text-amber-700'
+                    : 'bg-blue-50 border-blue-200 text-blue-700';
+
+                return (
+                  <div className={`text-xs border px-3 py-2 rounded ${bgColor}`}>
+                    <strong>
+                      {status.isActive === true && '✓ '}
+                      {status.isActive === false && '⊗ '}
+                      {status.isActive === null && 'ℹ '}
+                      {t(status.label)}:
+                    </strong>{' '}
+                    {t(status.hint)}
+                  </div>
+                );
+              })()}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
