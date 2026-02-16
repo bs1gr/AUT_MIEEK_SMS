@@ -46,7 +46,6 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
       description: '',
       credits: 3,
       semester: generateSemester('spring', new Date().getFullYear().toString(), ''),
-      year: new Date().getFullYear(),
       instructor: '',
       absence_penalty: 0,
     },
@@ -219,47 +218,25 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="credits"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('creditsPlaceholder')}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder={t('creditsPlaceholder')}
-                        data-testid="credits-input"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('yearPlaceholder') || 'Year'}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder={t('yearPlaceholder') || 'Year'}
-                        data-testid="year-input"
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="credits"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('creditsPlaceholder')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder={t('creditsPlaceholder')}
+                      data-testid="credits-input"
+                      {...field}
+                      onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

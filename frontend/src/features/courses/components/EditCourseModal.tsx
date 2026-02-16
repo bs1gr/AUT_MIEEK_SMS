@@ -81,7 +81,6 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
         description: '',
         credits: course.credits || 3,
         semester: course.semester || '',
-        year: parseInt(extractedYear) || currentYear,
         instructor: '',
         absence_penalty: 0,
       });
@@ -253,25 +252,6 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
                         placeholder={t('creditsPlaceholder')}
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="year"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('yearPlaceholder') || 'Year'}</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder={t('yearPlaceholder') || 'Year'}
-                        {...field}
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || new Date().getFullYear())}
                       />
                     </FormControl>
                     <FormMessage />
