@@ -269,6 +269,13 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     () => topPerformers.filter((student) => activeEnrollmentStudentIds.has(student.id)),
     [topPerformers, activeEnrollmentStudentIds]
   );
+  const activeCoursesWithEnrollments = useMemo(
+    () =>
+      courses.filter(
+        (course) => course.is_active !== false && activeEnrollmentCourseIds.has(course.id)
+      ),
+    [courses, activeEnrollmentCourseIds]
+  );
 
   // Compute ranked students based on selected ranking type
   const rankedStudents = useMemo(() => {
@@ -368,16 +375,27 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       const response = await fetch(`${API_BASE_URL}/enrollments/?limit=500`);
       if (!response.ok) throw new Error(`Failed to fetch enrollments: ${response.status} ${response.statusText}`);
       const data = await response.json();
-      const enrollments: { course_id?: number }[] = data.items || [];
+      const enrollments: { course_id?: number; student_id?: number; status?: string }[] =
+        data?.items || data?.data?.items || data?.data || [];
+      const activeCourseIds = new Set(
+        courses.filter((course) => course.is_active !== false).map((course) => course.id)
+      );
       const activeEnrollments = Array.isArray(enrollments)
-        ? enrollments.filter(
-            (enrollment: { status?: string }) => String(enrollment.status || '').toLowerCase() === 'active'
-          )
+        ? enrollments.filter((enrollment) => {
+            const status = String(enrollment.status || '').toLowerCase();
+            if (status !== 'active') {
+              return false;
+            }
+            if (!enrollment.course_id) {
+              return false;
+            }
+            return activeCourseIds.has(enrollment.course_id);
+          })
         : [];
 
       if (activeEnrollments.length > 0) {
         const enrollmentCounts = activeEnrollments.reduce(
-          (acc: Record<number, number>, enrollment: { course_id?: number }) => {
+          (acc: Record<number, number>, enrollment) => {
             if (enrollment.course_id) {
               acc[enrollment.course_id] = (acc[enrollment.course_id] || 0) + 1;
             }
@@ -390,7 +408,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
         const courseIds = new Set(Object.keys(enrollmentCounts).map((id) => Number(id)));
         const studentIds = new Set(
           activeEnrollments
-            .map((enrollment: { student_id?: number }) => enrollment.student_id)
+            .map((enrollment) => enrollment.student_id)
             .filter((id): id is number => Number.isFinite(id))
         );
 
@@ -1017,8 +1035,8 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               >
                 {loading ? (
                   Array.from({ length: 3 }).map((_, index) => <CourseCardSkeleton key={index} />)
-                ) : courses && courses.length > 0 ? (
-                  courses.slice(0, 6).map((course) => (
+                ) : activeCoursesWithEnrollments.length > 0 ? (
+                  activeCoursesWithEnrollments.slice(0, 6).map((course) => (
                     <motion.div
                       key={course.id}
                       className="rounded-xl border border-slate-200 bg-slate-50 p-4 hover:border-indigo-200"
