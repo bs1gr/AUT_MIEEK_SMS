@@ -1,4 +1,4 @@
-
+﻿
 <#
 .SYNOPSIS
     Ultimate Pre-Commit Verification and System Cleanup - Student Management System

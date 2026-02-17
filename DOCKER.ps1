@@ -119,7 +119,7 @@ function Write-DebugInfo {
     # Stop cleanly
 
 .NOTES
-Version: v1.15.0 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
+Version: 1.18.1 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
     For native development mode, use: .\NATIVE.ps1
 #>
 
@@ -417,6 +417,51 @@ function Use-InternalPostgresProfile {
     return $false
 }
 
+function ConvertTo-UriComponent {
+    param([string]$Value)
+
+    if ($null -eq $Value) {
+        return ""
+    }
+
+    return [System.Uri]::EscapeDataString($Value)
+}
+
+function New-PostgresDatabaseUrl {
+    param(
+        [string]$DbHost,
+        [string]$Port,
+        [string]$User,
+        [string]$Password,
+        [string]$Database
+    )
+
+    $safeHost = $DbHost
+    if (
+        $safeHost -and
+        $safeHost.Contains(":") -and
+        -not ($safeHost.StartsWith("[") -and $safeHost.EndsWith("]"))
+    ) {
+        $safeHost = "[$safeHost]"
+    }
+
+    $encodedUser = ConvertTo-UriComponent -Value $User
+    $encodedPassword = ConvertTo-UriComponent -Value $Password
+    $encodedDatabase = ConvertTo-UriComponent -Value $Database
+
+    return "postgresql://${encodedUser}:${encodedPassword}@${safeHost}:${Port}/${encodedDatabase}"
+}
+
+function Set-ComposeProfileEnvironment {
+    if (Use-InternalPostgresProfile) {
+        $env:COMPOSE_PROFILES = "internal-postgres"
+        return "internal-postgres"
+    }
+
+    $env:COMPOSE_PROFILES = ""
+    return ""
+}
+
 function Resolve-ComposeVolumeName {
     param(
         [string]$DefaultName,
@@ -637,6 +682,7 @@ function Get-ComposeContainerId {
     }
 
     Set-ComposeVolumeEnvironment
+    Set-ComposeProfileEnvironment | Out-Null
 
     $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
     if (Test-Path $ROOT_ENV) {
@@ -783,6 +829,292 @@ function Wait-ForComposeHealthy {
     return $false
 }
 
+function Wait-ForLocalHttpEndpoint {
+    param(
+        [string]$Url,
+        [int]$TimeoutSeconds = 45,
+        [int]$CheckIntervalSeconds = 2
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Url)) {
+        return $false
+    }
+
+    Write-Info "Waiting for web endpoint '$Url'..."
+
+    $elapsed = 0
+    while ($elapsed -lt $TimeoutSeconds) {
+        try {
+            $response = Invoke-WebRequest -Uri $Url -Method Get -TimeoutSec 5 -UseBasicParsing -ErrorAction Stop
+            if ($response -and $response.StatusCode) {
+                Write-Host "`n"
+                Write-Success "Web endpoint is reachable (HTTP $($response.StatusCode))"
+                return $true
+            }
+        } catch {
+            $httpResponse = $_.Exception.Response
+            if ($null -ne $httpResponse -and $httpResponse.StatusCode) {
+                Write-Host "`n"
+                Write-Success "Web endpoint is reachable (HTTP $([int]$httpResponse.StatusCode))"
+                return $true
+            }
+        }
+
+        Start-Sleep -Seconds $CheckIntervalSeconds
+        $elapsed += $CheckIntervalSeconds
+        Write-Host "." -NoNewline
+    }
+
+    Write-Host "`n"
+    Write-Warning "Timeout waiting for web endpoint '$Url'"
+    return $false
+}
+
+function Complete-ComposeStartup {
+    param([int]$WebTimeoutSeconds = 45)
+
+    $webUrl = "http://localhost:$PORT/"
+    if (-not (Wait-ForLocalHttpEndpoint -Url $webUrl -TimeoutSeconds $WebTimeoutSeconds)) {
+        Write-Error-Message "Compose stack started but web frontend is not reachable on $webUrl"
+        return $false
+    }
+
+    Show-AccessInfo -MonitoringEnabled:$false
+    return $true
+}
+
+function Test-SafePostgresIdentifier {
+    param([string]$Value)
+
+    if ([string]::IsNullOrWhiteSpace($Value)) {
+        return $false
+    }
+
+    return ($Value -match '^[A-Za-z_][A-Za-z0-9_]*$')
+}
+
+function Test-ComposePostgresAuthFailure {
+    param(
+        [string[]]$ComposeArgs,
+        [int]$Tail = 200
+    )
+
+    $backendLogs = docker compose @ComposeArgs logs --tail $Tail backend 2>&1
+    if (-not $backendLogs) {
+        return $false
+    }
+
+    $backendText = ($backendLogs | Out-String)
+    return ($backendText -match 'password authentication failed for user' -or $backendText -match 'FATAL:\s+password authentication failed')
+}
+
+function Get-ComposeConflictContainerNames {
+    param([string]$ComposeOutputText)
+
+    if ([string]::IsNullOrWhiteSpace($ComposeOutputText)) {
+        return @()
+    }
+
+    $matches = [regex]::Matches($ComposeOutputText, 'container name "/([^"]+)" is already in use')
+    if (-not $matches -or $matches.Count -eq 0) {
+        return @()
+    }
+
+    $names = @()
+    foreach ($match in $matches) {
+        $name = $match.Groups[1].Value.Trim()
+        if (-not [string]::IsNullOrWhiteSpace($name)) {
+            $names += $name
+        }
+    }
+
+    return @($names | Sort-Object -Unique)
+}
+
+function Invoke-ComposeNameConflictRecovery {
+    param(
+        [string[]]$ComposeArgs,
+        [string]$ComposeOutputText
+    )
+
+    $conflictNames = Get-ComposeConflictContainerNames -ComposeOutputText $ComposeOutputText
+    if (-not $conflictNames -or $conflictNames.Count -eq 0) {
+        return $false
+    }
+
+    Write-Warning "Detected stale Docker container name conflict."
+
+    foreach ($containerName in $conflictNames) {
+        Write-Warning "Removing stale container '$containerName'..."
+        $removeOutput = docker rm -f $containerName 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warning "Failed to remove stale container '$containerName'."
+            if ($removeOutput) {
+                $removeOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+            }
+            return $false
+        }
+    }
+
+    Write-Info "Retrying Docker Compose startup after stale container cleanup..."
+    $retryOutput = docker compose @ComposeArgs up -d --build 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Docker Compose retry after stale container cleanup failed."
+        if ($retryOutput) {
+            $retryOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+        }
+        return $false
+    }
+
+    return $true
+}
+
+function Invoke-ComposePostgresCredentialRepair {
+    param([string[]]$ComposeArgs)
+
+    $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
+    $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+    $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+
+    if (-not (Test-SafePostgresIdentifier -Value $pgUser) -or -not (Test-SafePostgresIdentifier -Value $pgDb)) {
+        Write-Warning "Skipping automatic PostgreSQL credential repair: unsupported POSTGRES_USER/POSTGRES_DB format."
+        return $false
+    }
+
+    if ([string]::IsNullOrWhiteSpace($pgPassword)) {
+        Write-Warning "Skipping automatic PostgreSQL credential repair: POSTGRES_PASSWORD is empty."
+        return $false
+    }
+
+    $passwordSql = $pgPassword -replace "'", "''"
+    $repairScript = @"
+set -e
+ADMIN_USER=""
+PGDATA_DIR="`${PGDATA:-/var/lib/postgresql/data/pgdata}"
+HBA_FILE="`$PGDATA_DIR/pg_hba.conf"
+HBA_BACKUP=""
+
+restore_hba() {
+  if [ -n "`$HBA_BACKUP" ] && [ -f "`$HBA_BACKUP" ]; then
+    cp "`$HBA_BACKUP" "`$HBA_FILE"
+    rm -f "`$HBA_BACKUP"
+    kill -HUP 1 >/dev/null 2>&1 || true
+  fi
+}
+
+trap restore_hba EXIT
+
+for candidate in "$pgUser" postgres; do
+  if psql -U "`$candidate" -d postgres -tAc "SELECT 1" >/dev/null 2>&1; then
+    ADMIN_USER="`$candidate"
+    break
+  fi
+done
+
+if [ -z "`$ADMIN_USER" ] && [ -f "`$HBA_FILE" ]; then
+  HBA_BACKUP="`$HBA_FILE.sms-repair.bak"
+  cp "`$HBA_FILE" "`$HBA_BACKUP"
+  {
+    echo "local all all trust"
+    echo "host all all 127.0.0.1/32 trust"
+    echo "host all all ::1/128 trust"
+    cat "`$HBA_BACKUP"
+  } > "`$HBA_FILE"
+  kill -HUP 1 >/dev/null 2>&1 || true
+
+  if psql -U "$pgUser" -d postgres -tAc "SELECT 1" >/dev/null 2>&1; then
+    ADMIN_USER="$pgUser"
+  fi
+fi
+
+if [ -z "`$ADMIN_USER" ]; then
+  echo "Unable to find an accessible administrative PostgreSQL role for repair."
+  exit 1
+fi
+
+if ! psql -U "`$ADMIN_USER" -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$pgUser'" | grep -q 1; then
+  psql -U "`$ADMIN_USER" -d postgres -v ON_ERROR_STOP=1 -c "CREATE ROLE $pgUser LOGIN PASSWORD '$passwordSql';" >/dev/null
+fi
+
+psql -U "`$ADMIN_USER" -d postgres -v ON_ERROR_STOP=1 -c "ALTER ROLE $pgUser WITH LOGIN PASSWORD '$passwordSql';" >/dev/null
+if ! psql -U "`$ADMIN_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$pgDb'" | grep -q 1; then
+  createdb -U "`$ADMIN_USER" -O $pgUser $pgDb
+fi
+"@
+
+    Write-Warning "Attempting automatic PostgreSQL credential repair for existing volume..."
+    $repairOutput = docker compose @ComposeArgs exec -T postgres sh -lc $repairScript 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Automatic PostgreSQL credential repair failed."
+        if ($repairOutput) {
+            $repairOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+        }
+        return $false
+    }
+
+    Write-Success "PostgreSQL credentials reconciled with .env values."
+    return $true
+}
+
+function Invoke-ComposeAuthRecoveryAndRetry {
+    param([string[]]$ComposeArgs)
+
+    if (-not (Test-ComposePostgresAuthFailure -ComposeArgs $ComposeArgs)) {
+        return $false
+    }
+
+    if (-not (Invoke-ComposePostgresCredentialRepair -ComposeArgs $ComposeArgs)) {
+        return $false
+    }
+
+    Write-Info "Retrying backend startup after PostgreSQL credential repair..."
+    $retryOutput = docker compose @ComposeArgs up -d backend 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Backend retry failed."
+        if ($retryOutput) {
+            $retryOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+        }
+        return $false
+    }
+
+    return (Wait-ForComposeHealthy -ServiceName "backend" -TimeoutSeconds 90)
+}
+
+function Show-ComposeFailureDiagnostics {
+    param(
+        [string[]]$ComposeArgs,
+        [int]$BackendTail = 120
+    )
+
+    Write-Warning "Collecting Docker Compose diagnostics..."
+
+    $composePs = docker compose @ComposeArgs ps 2>&1
+    if ($composePs) {
+        Write-Host "Compose services:" -ForegroundColor Yellow
+        $composePs | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+    }
+
+    $backendLogs = docker compose @ComposeArgs logs --tail $BackendTail backend 2>&1
+    if ($backendLogs) {
+        Write-Host "Backend logs (tail):" -ForegroundColor Yellow
+        $backendLogs | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+    }
+
+    $postgresLogs = docker compose @ComposeArgs logs --tail 80 postgres 2>&1
+    if ($postgresLogs) {
+        Write-Host "PostgreSQL logs (tail):" -ForegroundColor Yellow
+        $postgresLogs | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+    }
+
+    $backendText = ($backendLogs | Out-String)
+    if ($backendText -match "sslmode=require|SSL|password authentication failed|database .* does not exist|connection refused|could not translate host name") {
+        Write-Warning "Detected PostgreSQL connectivity/authentication issue."
+        Write-Info "For internal postgres profile, use POSTGRES_SSLMODE=disable (or prefer)."
+        Write-Info "If postgres volume already exists, credentials are fixed from first initialization."
+        Write-Info "Ensure POSTGRES_USER/POSTGRES_PASSWORD/POSTGRES_DB in .env match the existing DB volume."
+    }
+}
+
 function Initialize-EnvironmentFiles {
     Write-Info "Checking environment configuration..."
 
@@ -854,17 +1186,34 @@ DATABASE_ENGINE=postgresql
         # ====== END PostgreSQL-only enforcement ======
     }
 
-    # Ensure DATABASE_URL exists (PostgreSQL-only)
+    # Ensure DATABASE_URL is available/normalized for PostgreSQL-only deployments
     $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
-    if (-not $dbUrl) {
-        $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
-        $pgPort = Get-EnvVarValue -Name "POSTGRES_PORT"
-        $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
-        $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
-        $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+    $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
+    $pgPort = Get-EnvVarValue -Name "POSTGRES_PORT"
+    $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
+    $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+    $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
 
-        if ($pgHost -and $pgPort -and $pgUser -and $pgPassword -and $pgDb) {
-            $dbUrl = "postgresql://$pgUser`:$pgPassword@$pgHost`:$pgPort/$pgDb"
+    if ($pgHost -and $pgPort -and $pgUser -and $pgPassword -and $pgDb) {
+        # Keep compatibility with legacy auto-generated URLs while fixing URI encoding
+        # for credentials that contain reserved characters.
+        $rawDbUrl = "postgresql://$pgUser`:$pgPassword@$pgHost`:$pgPort/$pgDb"
+        $encodedDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+
+        $needsUrlWrite = $false
+        $writeReason = $null
+
+        if (-not $dbUrl) {
+            $dbUrl = $encodedDbUrl
+            $needsUrlWrite = $true
+            $writeReason = "DATABASE_URL generated from POSTGRES_* settings"
+        } elseif ($dbUrl -eq $rawDbUrl -and $rawDbUrl -ne $encodedDbUrl) {
+            $dbUrl = $encodedDbUrl
+            $needsUrlWrite = $true
+            $writeReason = "DATABASE_URL normalized from legacy raw format"
+        }
+
+        if ($needsUrlWrite) {
             $rootContent = Get-Content $ROOT_ENV -Raw
             if ($rootContent -match 'DATABASE_URL=.*') {
                 $rootContent = $rootContent -replace 'DATABASE_URL=.*', "DATABASE_URL=$dbUrl"
@@ -872,13 +1221,13 @@ DATABASE_ENGINE=postgresql
                 $rootContent = $rootContent + "`nDATABASE_URL=$dbUrl`n"
             }
             Set-Content -Path $ROOT_ENV -Value $rootContent
-            Write-Success "DATABASE_URL generated from POSTGRES_* settings"
+            Write-Success $writeReason
             $configured = $true
-        } else {
-            Write-Error-Message "DATABASE_URL is required for PostgreSQL-only deployments"
-            Write-Info "Set DATABASE_URL or POSTGRES_* variables in .env and re-run"
-            return $false
         }
+    } elseif (-not $dbUrl) {
+        Write-Error-Message "DATABASE_URL is required for PostgreSQL-only deployments"
+        Write-Info "Set DATABASE_URL or POSTGRES_* variables in .env and re-run"
+        return $false
     }
 
     # Backend .env
@@ -1564,10 +1913,9 @@ function Start-Application {
             return 1
         }
 
-        if (Use-InternalPostgresProfile) {
-            $env:COMPOSE_PROFILES = "internal-postgres"
-        } else {
-            $env:COMPOSE_PROFILES = ""
+        $activeProfile = Set-ComposeProfileEnvironment
+        if ($activeProfile) {
+            Write-Info "Compose profile enabled: $activeProfile"
         }
 
         Write-Info "Detected PostgreSQL configuration - using Docker Compose (production overlay)"
@@ -1604,18 +1952,40 @@ function Start-Application {
                 Write-Error-Message "Failed to start Docker Compose stack"
                 Write-Warning "Docker Compose output:"
                 $composeOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+                $composeText = ($composeOutput | Out-String)
+                if ($composeText -match 'depends on undefined service "postgres"') {
+                    Write-Warning "Compose profile mismatch detected (postgres service excluded)."
+                    Write-Info "Use internal profile values (POSTGRES_HOST=postgres) or clear DATABASE_URL for bundled PostgreSQL."
+                }
+                if (Invoke-ComposeNameConflictRecovery -ComposeArgs $composeArgs -ComposeOutputText $composeText) {
+                    if ((Wait-ForComposeHealthy -ServiceName "backend") -and (Complete-ComposeStartup)) {
+                        return 0
+                    }
+                    if ((Invoke-ComposeAuthRecoveryAndRetry -ComposeArgs $composeArgs) -and (Complete-ComposeStartup)) {
+                        return 0
+                    }
+                    Write-Warning "Compose retry succeeded but backend is still not healthy."
+                }
+                if ((Invoke-ComposeAuthRecoveryAndRetry -ComposeArgs $composeArgs) -and (Complete-ComposeStartup)) {
+                    return 0
+                }
+                Show-ComposeFailureDiagnostics -ComposeArgs $composeArgs
                 return 1
             }
         } finally {
             Pop-Location
         }
 
-        if (Wait-ForComposeHealthy -ServiceName "backend") {
-            Show-AccessInfo -MonitoringEnabled:$false
+        if ((Wait-ForComposeHealthy -ServiceName "backend") -and (Complete-ComposeStartup)) {
+            return 0
+        }
+
+        if ((Invoke-ComposeAuthRecoveryAndRetry -ComposeArgs $composeArgs) -and (Complete-ComposeStartup)) {
             return 0
         }
 
         Write-Error-Message "Compose stack started but backend is not healthy"
+        Show-ComposeFailureDiagnostics -ComposeArgs $composeArgs
         return 1
     }
 
@@ -1764,6 +2134,7 @@ function Stop-Application {
         Write-Info "Stopping Docker Compose stack..."
         if (Test-Path $COMPOSE_BASE) {
             Set-ComposeVolumeEnvironment
+            Set-ComposeProfileEnvironment | Out-Null
             $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
             if (Test-Path $ROOT_ENV) {
                 $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
@@ -1771,10 +2142,19 @@ function Stop-Application {
 
             Push-Location $SCRIPT_DIR
             try {
-                docker compose @composeArgs down 2>$null | Out-Null
+                $downOutput = docker compose @composeArgs down --remove-orphans 2>&1
                 if ($LASTEXITCODE -eq 0) {
                     Write-Success "Compose stack stopped"
                     return 0
+                }
+                if ($downOutput) {
+                    Write-Warning "Docker Compose stop output:"
+                    $downOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+                    $downText = ($downOutput | Out-String)
+                    if ($downText -match 'depends on undefined service "postgres"') {
+                        Write-Warning "Compose profile mismatch detected during stop."
+                        Write-Info "This install uses the bundled PostgreSQL profile; re-run with DATABASE_URL targeting @postgres."
+                    }
                 }
             } finally {
                 Pop-Location
@@ -1851,6 +2231,7 @@ function Show-Status {
         }
 
         Set-ComposeVolumeEnvironment
+        Set-ComposeProfileEnvironment | Out-Null
         $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
         if (Test-Path $ROOT_ENV) {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
@@ -1936,6 +2317,7 @@ function Show-Logs {
         Write-Header "SMS Application Logs"
         Write-Info "Press Ctrl+C to stop viewing logs`n"
         Set-ComposeVolumeEnvironment
+        Set-ComposeProfileEnvironment | Out-Null
         $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
         if (Test-Path $ROOT_ENV) {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs

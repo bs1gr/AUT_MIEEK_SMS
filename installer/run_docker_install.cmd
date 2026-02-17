@@ -1,8 +1,10 @@
 @echo off
-REM Unified wrapper: Always use DOCKER.ps1 -Install -Silent for both PowerShell 7+ and Windows PowerShell
+REM Unified installer wrapper: run DOCKER.ps1 -Install -Silent only.
+REM This keeps installer behavior to building the fullstack image without
+REM triggering compose startup (which would also build sms-backend/sms-frontend).
 REM Adds robust pwsh detection, logging, and a readable pause on failure.
 
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 set "SCRIPT_DIR=%~dp0"
 cd /d "%SCRIPT_DIR%"
 
@@ -86,6 +88,6 @@ if NOT "%EXITCODE%" == "0" (
 
 echo.
 echo Docker installation and image build completed successfully!
-echo You can now use the desktop shortcut or run DOCKER.ps1 to start SMS.
+echo SMS fullstack image is ready. Run DOCKER.ps1 -Start when you want to launch.
 echo.
 endlocal & exit /b 0

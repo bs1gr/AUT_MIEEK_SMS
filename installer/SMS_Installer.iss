@@ -765,61 +765,9 @@ begin
 
   UpdateDockerStatus(nil);
 
-  // External PostgreSQL configuration page
-  PostgresPage := CreateCustomPage(DockerPage.ID, 'External PostgreSQL',
-    'Configure the external PostgreSQL database used by SMS');
-
-  PgHostEdit := TEdit.Create(PostgresPage);
-  PgHostEdit.Parent := PostgresPage.Surface;
-  PgHostEdit.Left := 0;
-  PgHostEdit.Top := 10;
-  PgHostEdit.Width := PostgresPage.SurfaceWidth;
-  PgHostEdit.Text := '';
-  PgHostEdit.Hint := 'Host/IP (e.g., 192.168.1.10)';
-
-  PgPortEdit := TEdit.Create(PostgresPage);
-  PgPortEdit.Parent := PostgresPage.Surface;
-  PgPortEdit.Left := 0;
-  PgPortEdit.Top := 45;
-  PgPortEdit.Width := PostgresPage.SurfaceWidth;
-  PgPortEdit.Text := '5432';
-  PgPortEdit.Hint := 'Port (default 5432)';
-
-  PgDbEdit := TEdit.Create(PostgresPage);
-  PgDbEdit.Parent := PostgresPage.Surface;
-  PgDbEdit.Left := 0;
-  PgDbEdit.Top := 80;
-  PgDbEdit.Width := PostgresPage.SurfaceWidth;
-  PgDbEdit.Text := 'student_management';
-  PgDbEdit.Hint := 'Database name';
-
-  PgUserEdit := TEdit.Create(PostgresPage);
-  PgUserEdit.Parent := PostgresPage.Surface;
-  PgUserEdit.Left := 0;
-  PgUserEdit.Top := 115;
-  PgUserEdit.Width := PostgresPage.SurfaceWidth;
-  PgUserEdit.Text := 'sms_user';
-  PgUserEdit.Hint := 'Username';
-
-  PgPassEdit := TEdit.Create(PostgresPage);
-  PgPassEdit.Parent := PostgresPage.Surface;
-  PgPassEdit.Left := 0;
-  PgPassEdit.Top := 150;
-  PgPassEdit.Width := PostgresPage.SurfaceWidth;
-  PgPassEdit.PasswordChar := '*';
-  PgPassEdit.Text := '';
-  PgPassEdit.Hint := 'Password';
-
-  PgSslEdit := TComboBox.Create(PostgresPage);
-  PgSslEdit.Parent := PostgresPage.Surface;
-  PgSslEdit.Left := 0;
-  PgSslEdit.Top := 185;
-  PgSslEdit.Width := PostgresPage.SurfaceWidth;
-  PgSslEdit.Style := csDropDownList;
-  PgSslEdit.Items.Add('prefer');
-  PgSslEdit.Items.Add('require');
-  PgSslEdit.Items.Add('disable');
-  PgSslEdit.ItemIndex := 0;
+  // External PostgreSQL page removed in v1.18.1 integrity sweep.
+  // PostgreSQL setup and migration are handled automatically by DOCKER.ps1.
+  PostgresPage := nil;
 
   // Create Docker build progress page (AFTER file copy, before finish)
   DockerBuildPage := CreateCustomPage(wpInstalling + 1, 'Completing Installation', 'Building SMS Docker container. This may take several minutes on first install.');
@@ -874,11 +822,11 @@ begin
   InstallDir := WizardDirValue;
   if InstallDir = '' then
     Exit;  // Installation directory not yet set
-  
+
   EnvPath := AddBackslash(InstallDir) + '.env';
   if not FileExists(EnvPath) then
     Exit;  // No existing .env file to load from
-  
+
   PgHost := ReadEnvValue(EnvPath, 'POSTGRES_HOST');
   PgPort := ReadEnvValue(EnvPath, 'POSTGRES_PORT');
   PgDb := ReadEnvValue(EnvPath, 'POSTGRES_DB');
@@ -966,11 +914,8 @@ var
 begin
   if CurPageID = DockerPage.ID then
     UpdateDockerStatus(nil);
-  if CurPageID = PostgresPage.ID then
-    LoadPostgresDefaults;
   if (CurPageID = DockerBuildPage.ID) then
   begin
-    WritePostgresEnv;
     WizardForm.NextButton.Enabled := False;
     DockerBuildStatusLabel.Caption := 'Building SMS Docker container...';
     try
@@ -1001,12 +946,17 @@ end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
+  // PostgreSQL setup is automated via bundled scripts; do not prompt for manual DB fields.
+  if (PostgresPage <> nil) and (PageID = PostgresPage.ID) then
+    Result := True
   // Skip Docker page if Docker is already installed and running
-  if PageID = DockerPage.ID then
+  else if PageID = DockerPage.ID then
     Result := IsDockerInstalled and IsDockerRunning
-  // Skip Docker build page if upgrading and container already exists (no rebuild needed)
+  // Do not skip Docker build/setup page.
+  // Even during upgrades, PrepareToInstall may stop/remove the previous container,
+  // so we must always run run_docker_install.cmd to recreate/start the stack.
   else if PageID = DockerBuildPage.ID then
-    Result := IsUpgrade and ContainerExists;
+    Result := False;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -1024,61 +974,6 @@ begin
         ShellExec('open', 'https://www.docker.com/products/docker-desktop/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
       end;
       // Allow continue - user can install Docker later
-    end;
-  end;
-
-  if CurPageID = PostgresPage.ID then
-  begin
-    PgHost := Trim(PgHostEdit.Text);
-    PgPort := Trim(PgPortEdit.Text);
-    PgDb := Trim(PgDbEdit.Text);
-    PgUser := Trim(PgUserEdit.Text);
-    PgPass := Trim(PgPassEdit.Text);
-
-    if (PgHost = '') or (PgPort = '') or (PgDb = '') or (PgUser = '') or (PgPass = '') then
-    begin
-      MsgBox('All PostgreSQL fields are required.', mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-
-    if (Lowercase(PgHost) = 'localhost') or (PgHost = '127.0.0.1') then
-    begin
-      MsgBox('For Docker installs, PostgreSQL cannot be reached via localhost.' + #13#10 +
-        'Use host.docker.internal or the machine IP address instead.', mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-
-    if StrToIntDef(PgPort, 0) <= 0 then
-    begin
-      MsgBox('PostgreSQL port must be a valid number.', mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-
-    if not TestPostgresTcpConnection(PgHost, PgPort) then
-    begin
-      MsgBox('Unable to reach PostgreSQL on ' + PgHost + ':' + PgPort + '.' + #13#10 +
-        'Please verify the host, port, and network/firewall settings.', mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-
-    if not TestDockerReady then
-    begin
-      MsgBox('Docker Desktop must be running to validate PostgreSQL credentials.' + #13#10 +
-        'Please start Docker Desktop and try again.', mbError, MB_OK);
-      Result := False;
-      Exit;
-    end;
-
-    if not TestPostgresAuthConnection(PgHost, PgPort, PgDb, PgUser, PgPass, PgSslEdit.Items[PgSslEdit.ItemIndex]) then
-    begin
-      MsgBox('PostgreSQL authentication failed.' + #13#10 +
-        'Please verify username/password, database name, and SSL mode.', mbError, MB_OK);
-      Result := False;
-      Exit;
     end;
   end;
 end;

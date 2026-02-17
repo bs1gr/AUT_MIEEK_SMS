@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sms_user}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sms_user} -d ${POSTGRES_DB:-student_management}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -93,10 +93,10 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      # Use external DATABASE_URL when provided, otherwise default to postgres service
-      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-sms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-student_management}}
+      # Leave DATABASE_URL empty to let backend/config.py build a safely encoded URL from POSTGRES_*.
+      - DATABASE_URL=${DATABASE_URL-}
       - DATABASE_ENGINE=postgresql
-      - POSTGRES_SSLMODE=${POSTGRES_SSLMODE:-require}
+      - POSTGRES_SSLMODE=${POSTGRES_SSLMODE:-disable}
     deploy:
       restart_policy:
         condition: on-failure

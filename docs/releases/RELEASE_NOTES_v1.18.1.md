@@ -7,7 +7,7 @@
 
 ## 🎯 Overview
 
-This patch release addresses test failures introduced by the auto-activation UI enhancements in v1.18.1 and updates release documentation to properly reflect the new features.
+This patch release addresses test failures introduced by the auto-activation UI enhancements in v1.18.0 and updates release documentation to properly reflect the new features.
 
 ## 🐛 Bug Fixes
 
@@ -27,7 +27,7 @@ This patch release addresses test failures introduced by the auto-activation UI 
   - Added monitoring and audit logging details
   - Listed all 4 auto-activation commits
 
-## 📋 Changes Since v1.18.1
+## 📋 Changes Since v1.18.0
 
 ### Fixed Tests (5 failures)
 1. `AddCourseModal > Rendering > renders credits and year fields with default values`
@@ -52,7 +52,7 @@ This patch release addresses test failures introduced by the auto-activation UI 
 - No breaking changes
 - No database migrations required
 - Frontend and backend compatible with v1.18.1
-- Drop-in replacement for v1.18.1
+- Drop-in replacement for v1.18.0
 
 ## 📦 Files Changed
 
@@ -66,8 +66,8 @@ This patch release addresses test failures introduced by the auto-activation UI 
 
 ## 🔗 Related
 
-- Parent release: [v1.18.1](RELEASE_NOTES_v1.18.1.md)
-- Auto-activation feature: Implemented in v1.18.1
+- Parent release: [v1.18.0](RELEASE_NOTES_v1.18.0.md)
+- Auto-activation feature: Implemented in v1.18.0
 - Test framework: Vitest + React Testing Library
 
 ---

@@ -56,10 +56,10 @@ $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
 $PROJECT_ROOT = Split-Path -Parent $SCRIPT_DIR
 
 # Color output helpers
-function Write-Success { param($msg) Write-Host "✅ $msg" -ForegroundColor Green }
-function Write-Warning { param($msg) Write-Host "⚠️  $msg" -ForegroundColor Yellow }
-function Write-Error-Message { param($msg) Write-Host "❌ $msg" -ForegroundColor Red }
-function Write-Info { param($msg) Write-Host "ℹ️  $msg" -ForegroundColor Cyan }
+function Write-Success { param($msg) Write-Host "[OK] $msg" -ForegroundColor Green }
+function Write-Warning { param($msg) Write-Host "[WARN] $msg" -ForegroundColor Yellow }
+function Write-Error-Message { param($msg) Write-Host "[ERROR] $msg" -ForegroundColor Red }
+function Write-Info { param($msg) Write-Host "[INFO] $msg" -ForegroundColor Cyan }
 
 # ============================================================================
 # CI MODE - Fast VERSION ↔ package.json validation only
@@ -407,3 +407,4 @@ if ($results.Failed -gt 0) {
     }
     exit 0
 }
+

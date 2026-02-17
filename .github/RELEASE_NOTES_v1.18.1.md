@@ -11,13 +11,15 @@
 **Windows:** Download \SMS_Installer_1.18.1.exe\ from the assets below.
 
 **Docker:**
-powershell
+```powershell
 .\DOCKER.ps1 -Update
+```
 
 
 **Native (Development):**
-powershell
+```powershell
 .\NATIVE.ps1 -Start
+```
 
 
 ### 📚 Documentation
