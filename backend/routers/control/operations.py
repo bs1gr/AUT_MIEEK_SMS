@@ -247,7 +247,7 @@ class ZipSaveRequest(BaseModel):
 
 
 class ZipSelectedRequest(BaseModel):
-    filenames: List[str] = Field(description="List of backup .db filenames to include in the ZIP")
+    filenames: List[str] = Field(description="List of backup filenames (.db or .enc) to include in the ZIP")
 
 
 class ZipSelectedSaveRequest(ZipSelectedRequest):
@@ -259,7 +259,7 @@ class BackupCopyRequest(BaseModel):
 
 
 class DeleteSelectedRequest(BaseModel):
-    filenames: List[str] = Field(description="List of backup .db filenames to delete")
+    filenames: List[str] = Field(description="List of backup filenames (.db or .enc) to delete")
 
 
 @router.post("/operations/database-backup", response_model=OperationResult)
@@ -373,7 +373,8 @@ async def list_database_backups(request: Request):
     if not backup_dir.exists():
         return {"backups": [], "message": "No backups directory found"}
     backups = []
-    for backup_file in sorted(backup_dir.glob("*.db"), reverse=True):
+    backup_files = list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.enc"))
+    for backup_file in sorted(backup_files, key=lambda f: f.stat().st_mtime, reverse=True):
         stat = backup_file.stat()
         backups.append(
             {
@@ -419,7 +420,7 @@ async def download_backups_zip(request: Request):
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
-    files = sorted(backup_dir.glob("*.db"), reverse=True)
+    files = sorted(list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.enc")), reverse=True)
     if not files:
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backup files found", request, context={})
     buf = io.BytesIO()
@@ -442,7 +443,7 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
-    files = sorted(backup_dir.glob("*.db"), reverse=True)
+    files = sorted(list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.enc")), reverse=True)
     if not files:
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backup files found", request, context={})
     buf = io.BytesIO()
@@ -495,7 +496,7 @@ async def download_selected_backups_zip(request: Request, payload: ZipSelectedRe
     selected: List[Path] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith(".db"):
+        if not isinstance(name, str) or not name.endswith((".db", ".enc")):
             continue
         if name in seen:
             continue
@@ -529,7 +530,7 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
     selected: List[Path] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith(".db"):
+        if not isinstance(name, str) or not name.endswith((".db", ".enc")):
             continue
         if name in seen:
             continue
@@ -587,7 +588,7 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
     not_found: List[str] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith(".db"):
+        if not isinstance(name, str) or not name.endswith((".db", ".enc")):
             continue
         if name in seen:
             continue
@@ -618,7 +619,7 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
 async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
-    # Reject any path traversal attempts outright and require a simple .db filename
+    # Reject any path traversal attempts outright and require a simple backup filename
     bf_path = Path(backup_filename)
     if (
         not backup_filename
@@ -627,7 +628,7 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
         or bf_path.name != backup_filename
         or os.sep in backup_filename
         or (os.altsep is not None and os.altsep in backup_filename)
-        or not backup_filename.endswith(".db")
+        or not backup_filename.endswith((".db", ".enc"))
     ):
         raise http_error(
             400,

@@ -130,7 +130,7 @@ const IS_DEV = import.meta.env.DEV;
 const API_DEBUG = IS_DEV && String(import.meta.env.VITE_API_DEBUG || '').toLowerCase() === 'true';
 const logApiDebug = (...args: unknown[]) => {
   if (API_DEBUG) {
-    console.debug(...args);
+    console.warn(...args);
   }
 };
 const USE_DEV_PROXY = Boolean(

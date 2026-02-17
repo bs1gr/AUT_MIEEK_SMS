@@ -58,6 +58,7 @@ const StudentManagementApp = () => {
   };
 
   const getCourseNamesForStudent = async (studentId: number): Promise<string[]> => {
+    // eslint-disable-next-line testing-library/no-await-sync-queries
     const enrollments = await enrollmentsAPI.getByStudent(studentId);
     if (!enrollments.length) return [];
 

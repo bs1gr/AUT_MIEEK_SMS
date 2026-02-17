@@ -32,6 +32,7 @@ export default {
   databaseManagement: 'Διαχείριση Βάσης Δεδομένων',
   backupDatabase: 'Δημιουργία Αντιγράφου Ασφαλείας Βάσης Δεδομένων',
   backupDesc: 'Λήψη πλήρους αντιγράφου ασφαλείας',
+  backupSqliteOnly: 'Το αντίγραφο ασφαλείας είναι διαθέσιμο μόνο για εγκαταστάσεις SQLite.',
   resetDatabase: 'Επαναφορά Βάσης Δεδομένων',
   resetDesc: 'Διαγραφή όλων των δεδομένων & επαναδημιουργία',
   addSampleData: 'Προσθήκη Δεδομένων Δείγματος',
@@ -87,6 +88,7 @@ export default {
   destinationPathPlaceholder: 'π.χ. C:\\Backups\\ ή /home/user/Backups',
   saveLatest: 'Αποθήκευση Τελευταίου',
   downloadAllAsZip: 'Λήψη όλων ως ZIP',
+  backupZipIncludesEncrypted: 'Τα ZIP περιλαμβάνουν αντίγραφα .db και .enc.',
   saveZipToPath: 'Αποθήκευση ZIP στη Διαδρομή',
   viewBackups: 'Προβολή Αντιγράφων',
   availableBackups: 'Διαθέσιμα Αντίγραφα',
@@ -103,6 +105,9 @@ export default {
   saveToPath: 'Αποθήκευση στη Διαδρομή',
   deleteSelected: 'Διαγραφή Επιλεγμένων',
   deletedBackups: 'Διαγράφηκαν αντίγραφα',
+  backupEncryptedLabel: 'Κρυπτογραφημένο',
+  backupSqliteLabel: 'SQLite',
+  backupUnknownLabel: 'Αντίγραφο',
   browse: 'Αναζήτηση',
   savedSuccessfully: 'Το αρχείο αποθηκεύτηκε επιτυχώς'
 };

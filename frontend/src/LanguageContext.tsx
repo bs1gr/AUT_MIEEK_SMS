@@ -47,30 +47,33 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
   }, [language]);
 
-  const namespaceFallbacks = [
-    'dashboard',
-    'attendance',
-    'search',
-    'grades',
-    'students',
-    'courses',
-    'calendar',
-    'utils',
-    'controlPanel',
-    'rbac',
-    'auth',
-    'common',
-    'export',
-    'help',
-    'reports',
-    'feedback',
-    'analytics',
-    'notifications',
-    'errors',
-    'customReports',
-    'messages',
-    'system'
-  ];
+  const namespaceFallbacks = useMemo(
+    () => [
+      'dashboard',
+      'attendance',
+      'search',
+      'grades',
+      'students',
+      'courses',
+      'calendar',
+      'utils',
+      'controlPanel',
+      'rbac',
+      'auth',
+      'common',
+      'export',
+      'help',
+      'reports',
+      'feedback',
+      'analytics',
+      'notifications',
+      'errors',
+      'customReports',
+      'messages',
+      'system'
+    ],
+    []
+  );
 
   const t = useCallback((key: string, options?: Record<string, unknown>): string => {
     const tryNamespace = (ns: string, k: string) => {
@@ -97,7 +100,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }
 
     return key;
-  }, [i18nT]);
+  }, [i18nT, namespaceFallbacks]);
 
   const contextValue = useMemo(
     () => ({ t, language, setLanguage }),

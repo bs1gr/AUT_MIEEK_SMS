@@ -346,31 +346,26 @@ export const AnalyticsDashboard: React.FC = () => {
     loadLookups();
   }, [t, normalizeDivisionLabel]);
 
-  useEffect(() => {
-    if (selectedStudent && !activeStudents.some((student) => student.id === selectedStudent)) {
-      setSelectedStudent(null);
-    }
-  }, [activeStudents, selectedStudent]);
-
-  useEffect(() => {
-    if (selectedCourse && !selectableCourses.some((course) => course.id === selectedCourse)) {
-      setSelectedCourse(null);
-    }
-  }, [selectableCourses, selectedCourse]);
-
   const effectiveSelectedStudent = useMemo(() => {
-    if (!selectedDivision) return selectedStudent;
-    if (!selectedStudent) {
-      const fallback = activeStudents.find((student) => matchesSelectedDivision(student));
-      return fallback ? fallback.id : null;
+    const hasSelected = selectedStudent !== null && activeStudents.some((student) => student.id === selectedStudent);
+    if (!selectedDivision) {
+      if (hasSelected) return selectedStudent;
+      return activeStudents[0]?.id ?? null;
     }
-
-    const current = activeStudents.find((student) => student.id === selectedStudent);
-    if (current && matchesSelectedDivision(current)) return selectedStudent;
-
+    if (selectedStudent) {
+      const current = activeStudents.find((student) => student.id === selectedStudent);
+      if (current && matchesSelectedDivision(current)) return selectedStudent;
+    }
     const fallback = activeStudents.find((student) => matchesSelectedDivision(student));
     return fallback ? fallback.id : null;
   }, [selectedDivision, selectedStudent, activeStudents, matchesSelectedDivision]);
+
+  const effectiveSelectedCourse = useMemo(() => {
+    if (selectedCourse !== null && selectableCourses.some((course) => course.id === selectedCourse)) {
+      return selectedCourse;
+    }
+    return selectableCourses[0]?.id ?? null;
+  }, [selectedCourse, selectableCourses]);
 
   const pieChartData = useMemo<PieChartData[]>(() => {
     const filteredStudents = selectedDivision
@@ -423,7 +418,7 @@ export const AnalyticsDashboard: React.FC = () => {
   }, [selectedDivision, students, courses, analyticsEnrollments, analyticsGrades, courseAggregates, matchesSelectedDivision]);
 
   const divisionGradeDistributionData = useMemo<GradeDistributionData[]>(() => {
-    if (!selectedDivision || !selectedCourse) {
+    if (!selectedDivision || !effectiveSelectedCourse) {
       return gradeDistributionData;
     }
 
@@ -434,7 +429,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
     const filteredGrades = analyticsGrades.filter(
       (grade) =>
-        grade.course_id === selectedCourse &&
+        grade.course_id === effectiveSelectedCourse &&
         divisionStudents.has(grade.student_id) &&
         grade.max_grade &&
         grade.max_grade > 0
@@ -464,7 +459,7 @@ export const AnalyticsDashboard: React.FC = () => {
       count: counts[index],
       percentage: totalGrades > 0 ? (counts[index] / totalGrades) * 100 : 0,
     }));
-  }, [selectedDivision, selectedCourse, analyticsGrades, gradeDistributionData, students, matchesSelectedDivision]);
+  }, [selectedDivision, effectiveSelectedCourse, analyticsGrades, gradeDistributionData, students, matchesSelectedDivision]);
 
   const divisionTrendData = useMemo<TrendData[]>(() => {
     if (!selectedDivision) return trendData;
@@ -476,7 +471,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
     const filteredGrades = analyticsGrades.filter((grade) => {
       if (!divisionStudents.has(grade.student_id)) return false;
-      if (selectedCourse && grade.course_id !== selectedCourse) return false;
+      if (effectiveSelectedCourse && grade.course_id !== effectiveSelectedCourse) return false;
       if (!grade.max_grade || grade.max_grade <= 0) return false;
       return Boolean(grade.date_assigned || grade.date_submitted);
     });
@@ -499,7 +494,7 @@ export const AnalyticsDashboard: React.FC = () => {
         week: index + 1,
         average: stats.count > 0 ? stats.total / stats.count : 0,
       }));
-  }, [selectedDivision, analyticsGrades, students, trendData, selectedCourse, matchesSelectedDivision]);
+  }, [selectedDivision, analyticsGrades, students, trendData, effectiveSelectedCourse, matchesSelectedDivision]);
 
   const divisionPerformanceData = useMemo<PerformanceDataPoint[]>(() => {
     if (!selectedDivision) return performanceData;
@@ -510,7 +505,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
     const filteredGrades = analyticsGrades.filter((grade) => {
       if (!divisionStudents.has(grade.student_id)) return false;
-      if (selectedCourse && grade.course_id !== selectedCourse) return false;
+      if (effectiveSelectedCourse && grade.course_id !== effectiveSelectedCourse) return false;
       if (!grade.max_grade || grade.max_grade <= 0) return false;
       return Boolean(grade.date_assigned || grade.date_submitted);
     });
@@ -531,7 +526,7 @@ export const AnalyticsDashboard: React.FC = () => {
         trend: Number(percentage ?? 0),
       };
     });
-  }, [selectedDivision, analyticsGrades, students, courses, selectedCourse, performanceData, formatDate, t, matchesSelectedDivision]);
+  }, [selectedDivision, analyticsGrades, students, courses, effectiveSelectedCourse, performanceData, formatDate, t, matchesSelectedDivision]);
 
   const divisionAttendanceData = useMemo<AttendanceData[]>(() => {
     if (!selectedDivision) return attendanceData;
@@ -542,7 +537,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
     const filteredAttendance = analyticsAttendance.filter((record) => {
       if (!divisionStudents.has(record.student_id)) return false;
-      if (selectedCourse && record.course_id !== selectedCourse) return false;
+      if (effectiveSelectedCourse && record.course_id !== effectiveSelectedCourse) return false;
       return true;
     });
 
@@ -571,7 +566,7 @@ export const AnalyticsDashboard: React.FC = () => {
         absent: stats.absent,
       };
     });
-  }, [selectedDivision, analyticsAttendance, students, courses, selectedCourse, attendanceData, t, matchesSelectedDivision]);
+  }, [selectedDivision, analyticsAttendance, students, courses, effectiveSelectedCourse, attendanceData, t, matchesSelectedDivision]);
 
   const filteredClassAggregates = useMemo(() => {
     if (!selectedDivision) return classAggregates;
@@ -746,13 +741,13 @@ export const AnalyticsDashboard: React.FC = () => {
 
   useEffect(() => {
     const loadCourseDistribution = async () => {
-      if (!selectedCourse) {
+      if (!effectiveSelectedCourse) {
         setGradeDistributionData([]);
         return;
       }
 
       try {
-        const response = await apiClient.get(`/analytics/course/${selectedCourse}/grade-distribution`);
+        const response = await apiClient.get(`/analytics/course/${effectiveSelectedCourse}/grade-distribution`);
         const payload = extractAPIResponseData<unknown>(response.data ?? response);
         const distribution = (payload as { distribution?: Record<string, number> }).distribution ?? {};
         const totalGrades = Number((payload as { total_grades?: number }).total_grades ?? 0);
@@ -771,7 +766,7 @@ export const AnalyticsDashboard: React.FC = () => {
     };
 
     loadCourseDistribution();
-  }, [selectedCourse]);
+  }, [effectiveSelectedCourse]);
 
   if (error) {
     return (
@@ -916,7 +911,7 @@ export const AnalyticsDashboard: React.FC = () => {
             {t('analytics.courseLabel')}
           </label>
           <select
-            value={selectedCourse ?? ''}
+            value={effectiveSelectedCourse ?? ''}
             onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : null)}
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >

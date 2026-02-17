@@ -32,6 +32,7 @@ export default {
   databaseManagement: 'Database Management',
   backupDatabase: 'Backup Database',
   backupDesc: 'Download complete backup',
+  backupSqliteOnly: 'Backup is available only for SQLite deployments.',
   resetDatabase: 'Reset Database',
   resetDesc: 'Delete all data & recreate',
   addSampleData: 'Add Sample Data',
@@ -87,6 +88,7 @@ export default {
     destinationPathPlaceholder: 'e.g. C:\\Backups\\ or /home/user/Backups',
     saveLatest: 'Save Latest',
     downloadAllAsZip: 'Download All as ZIP',
+    backupZipIncludesEncrypted: 'ZIP downloads include .db and .enc backups.',
     saveZipToPath: 'Save ZIP to Path',
     viewBackups: 'View Backups',
     availableBackups: 'Available Backups',
@@ -103,6 +105,9 @@ export default {
     saveToPath: 'Save to Path',
     deleteSelected: 'Delete Selected',
     deletedBackups: 'Deleted backups',
+    backupEncryptedLabel: 'Encrypted',
+    backupSqliteLabel: 'SQLite',
+    backupUnknownLabel: 'Backup',
     browse: 'Browse',
     savedSuccessfully: 'File saved successfully'
 };

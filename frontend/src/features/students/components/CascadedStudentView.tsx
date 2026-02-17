@@ -104,6 +104,7 @@ const CascadedStudentView: React.FC<CascadedStudentViewProps> = ({
 
         // Fetch enrollments for each student
         for (const student of students) {
+          // eslint-disable-next-line testing-library/no-await-sync-queries
           const enrollments = await enrollmentsAPI.getByStudent(student.id);
           const resp = enrollments as unknown;
           const list = Array.isArray(resp)

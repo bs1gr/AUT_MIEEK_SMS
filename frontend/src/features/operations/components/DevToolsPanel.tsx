@@ -142,6 +142,17 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const { formatDateTime, formatTime } = useDateTimeFormatter();
 
   const backupFilenames = useMemo(() => (Array.isArray(backups) ? backups.map((b) => b.filename) : []), [backups]);
+  const getBackupType = useCallback((filename: string) => {
+    if (filename.toLowerCase().endsWith('.enc')) return 'enc';
+    if (filename.toLowerCase().endsWith('.db')) return 'db';
+    return 'other';
+  }, []);
+  const getBackupTypeLabel = useCallback((filename: string) => {
+    const type = getBackupType(filename);
+    if (type === 'enc') return t('utils.backupEncryptedLabel');
+    if (type === 'db') return t('utils.backupSqliteLabel');
+    return t('utils.backupUnknownLabel');
+  }, [getBackupType, t]);
   const allBackupsSelected = backupFilenames.length > 0 && selectedBackups.size === backupFilenames.length;
   const someBackupsSelected = selectedBackups.size > 0 && !allBackupsSelected;
 
@@ -303,13 +314,33 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
         credentials: 'include',
       });
 
+      const contentType = response.headers.get('content-type') ?? '';
+      const data = contentType.includes('application/json') ? await response.json() : await response.text();
+
       if (!response.ok) {
-        throw new Error(`Backup failed: ${response.status} ${response.statusText}`);
+        const message =
+          typeof data === 'string'
+            ? data
+            : typeof data?.detail === 'string'
+              ? data.detail
+              : typeof data?.message === 'string'
+                ? data.message
+                : typeof data?.detail?.message === 'string'
+                  ? data.detail.message
+                  : '';
+        throw new Error(message || `Backup failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = await response.json();
+      if (typeof data === 'object' && data !== null && 'success' in data && data.success === false) {
+        const message = typeof data.message === 'string' ? data.message : t('utils.backupError');
+        throw new Error(message);
+      }
+
       setResult(withTimestamp('backup', { data }));
-      onToast({ message: data.message || t('utils.backupSuccess'), type: 'success' });
+      const successMessage = typeof data === 'object' && data !== null && 'message' in data && data.message
+        ? String(data.message)
+        : t('utils.backupSuccess');
+      onToast({ message: successMessage, type: 'success' });
       // Refresh backups list so the newly created backup appears immediately
       try {
         await loadBackups();
@@ -317,8 +348,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       void runHealthCheck(); // Refresh health
     } catch (error) {
       console.error('Backup failed', error);
-      setResult(withTimestamp('backup', { error: true }));
-      onToast({ message: t('utils.backupError'), type: 'error' });
+      const message = error instanceof Error ? error.message : t('utils.backupError');
+      setResult(withTimestamp('backup', { error: message || true }));
+      onToast({ message: message || t('utils.backupError'), type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -590,6 +622,15 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const studentCount = health?.statistics?.students ?? health?.students_count;
   const courseCount = health?.statistics?.courses ?? health?.courses_count;
   const databaseName = health?.database ?? health?.db ?? t('unknown');
+  const rawDatabaseLabel = typeof health?.database === 'string'
+    ? health.database
+    : typeof health?.db === 'string'
+      ? health.db
+      : '';
+  const normalizedDatabaseLabel = rawDatabaseLabel.trim().toLowerCase();
+  const isDatabaseKnown = rawDatabaseLabel.trim().length > 0;
+  const isSqliteDatabase = normalizedDatabaseLabel.includes('sqlite');
+  const canBackup = !isDatabaseKnown || isSqliteDatabase;
   const fallbackUptime = Number.isFinite(Number(health?.uptime)) ? Number(health?.uptime) : null;
   const displayUptimeSeconds = Number.isFinite(uptimeSeconds ?? NaN) ? uptimeSeconds : fallbackUptime;
   const uptimeDisplayValue = typeof displayUptimeSeconds === 'number' && Number.isFinite(displayUptimeSeconds)
@@ -802,11 +843,17 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
           <button
             type="button"
             onClick={handleBackup}
-            disabled={opLoading === 'backup'}
+            disabled={opLoading === 'backup' || !canBackup}
             className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
+            aria-disabled={opLoading === 'backup' || !canBackup}
           >
             {opLoading === 'backup' ? t('loading') : t('utils.backupDatabase')}
           </button>
+          {!canBackup && (
+            <p className={`mt-2 text-xs ${theme.mutedText}`}>
+              {t('utils.backupSqliteOnly')}
+            </p>
+          )}
         </div>
 
         <div className={theme.card}>
@@ -926,6 +973,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
               {t('utils.deleteSelected') || 'Delete Selected'}
             </button>
           </div>
+          <div className={`mb-3 text-xs ${theme.mutedText}`}>
+            {t('utils.backupZipIncludesEncrypted')}
+          </div>
 
           {Array.isArray(backups) ? (
             backups.length === 0 ? (
@@ -947,7 +997,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
                   </label>
                 </div>
                 {backups.map((b) => (
-                  <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
+                    <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
                     <div className="flex items-center gap-2">
                       <input
                         type="checkbox"
@@ -956,7 +1006,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
                         aria-label={b.filename}
                       />
                       <div>
-                        <div className={`text-sm ${theme.text}`}>{b.filename}</div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <div className={`text-sm ${theme.text}`}>{b.filename}</div>
+                          <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                            {getBackupTypeLabel(b.filename)}
+                          </span>
+                        </div>
                         <div className={`text-xs ${theme.mutedText}`}>
                           {t('utils.created')}: {formatDateTime(b.created)} • {(b.size / 1024).toFixed(2)} KB
                         </div>

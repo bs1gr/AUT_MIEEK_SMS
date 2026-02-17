@@ -168,9 +168,6 @@ describe('courseAutoActivation', () => {
 
   describe('getAutoActivationStatus', () => {
     it('should return active status when course is active', () => {
-      const withinRange = new Date(2025, 10, 1); // Within Winter 2025
-      const mockComputeActive = () => true;
-
       const status = getAutoActivationStatus('Winter 2025');
 
       // Check structure (actual isActive depends on current date)
@@ -183,7 +180,6 @@ describe('courseAutoActivation', () => {
     });
 
     it('should return inactive status when course is inactive', () => {
-      const outsideRange = new Date(2025, 7, 1); // Outside Winter 2025
       const status = getAutoActivationStatus('Winter 2025');
 
       expect(status).toHaveProperty('label');
