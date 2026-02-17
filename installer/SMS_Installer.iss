@@ -868,8 +868,17 @@ end;
 procedure LoadPostgresDefaults;
 var
   EnvPath: String;
+  InstallDir: String;
 begin
-  EnvPath := ExpandConstant('{app}\.env');
+  // Check if we're in an upgrade scenario with existing installation
+  InstallDir := WizardDirValue;
+  if InstallDir = '' then
+    Exit;  // Installation directory not yet set
+  
+  EnvPath := AddBackslash(InstallDir) + '.env';
+  if not FileExists(EnvPath) then
+    Exit;  // No existing .env file to load from
+  
   PgHost := ReadEnvValue(EnvPath, 'POSTGRES_HOST');
   PgPort := ReadEnvValue(EnvPath, 'POSTGRES_PORT');
   PgDb := ReadEnvValue(EnvPath, 'POSTGRES_DB');
