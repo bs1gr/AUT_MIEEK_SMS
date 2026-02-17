@@ -247,6 +247,9 @@ var
   PgPass: String;
   PgSsl: String;
 
+// Forward declarations
+function UrlEncode(const S: String): String; forward;
+
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
 begin
