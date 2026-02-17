@@ -3,6 +3,8 @@
 # To use: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 services:
   postgres:
+    profiles:
+      - internal-postgres
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
@@ -35,6 +37,8 @@ services:
       - sms_network
 
   db-backup:
+    profiles:
+      - internal-postgres
     image: postgres:16-alpine
     container_name: sms-db-backup
     restart: unless-stopped
@@ -89,8 +93,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      # Override DATABASE_URL to use PostgreSQL in production
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-sms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-student_management}
+      # Use external DATABASE_URL when provided, otherwise default to postgres service
+      - DATABASE_URL=${DATABASE_URL:-postgresql://${POSTGRES_USER:-sms_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-student_management}}
       - DATABASE_ENGINE=postgresql
       - POSTGRES_SSLMODE=${POSTGRES_SSLMODE:-require}
     deploy:

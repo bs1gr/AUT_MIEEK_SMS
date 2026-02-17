@@ -200,6 +200,7 @@ function Write-Warning {
     if ($Silent) { Write-InstallerLog "WARNING: $Message" }
 }
 
+
 function Test-Administrator {
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
@@ -397,10 +398,22 @@ function Use-ComposeMode {
     # Switching implicitly causes "missing data" scenarios by pointing the app
     # to a different database engine/volume.
     if ($pgHost -and $pgUser -and $pgPassword -and $pgDb) {
-        Write-Warning "POSTGRES_* variables detected, but DATABASE_ENGINE is not postgresql. Staying in SQLite mode."
-        Write-Info "Set DATABASE_ENGINE=postgresql (or DATABASE_URL=postgresql://...) to use compose/PostgreSQL mode explicitly."
+        Write-Warning "POSTGRES_* variables detected, but DATABASE_ENGINE is not postgresql. PostgreSQL is required."
+        Write-Info "Set DATABASE_ENGINE=postgresql and DATABASE_URL=postgresql://..."
     }
 
+    return $false
+}
+
+function Use-InternalPostgresProfile {
+    $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
+    if (-not $dbUrl) {
+        return $true
+    }
+    $normalized = $dbUrl.Trim().ToLower()
+    if ($normalized -match '@postgres[:/]' -or $normalized -match '@postgresql[:/]') {
+        return $true
+    }
     return $false
 }
 
@@ -664,6 +677,71 @@ function Get-ComposeServiceStatus {
     }
 }
 
+function Invoke-SqliteToPostgresMigration {
+    $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
+    if (-not $dbUrl -or -not $dbUrl.Trim().ToLower().StartsWith("postgresql")) {
+        return $true
+    }
+
+    $sqlitePath = Join-Path $SCRIPT_DIR "data\student_management.db"
+    if (-not (Test-Path $sqlitePath)) {
+        return $true
+    }
+
+    $size = (Get-Item $sqlitePath).Length
+    if ($size -lt 1024) {
+        return $true
+    }
+
+    Write-Info "Detected legacy SQLite database. Starting migration to PostgreSQL..."
+
+    $imageExists = docker images -q $IMAGE_TAG 2>$null
+    if (-not $imageExists) {
+        Write-Info "Migration requires app image. Building..."
+        Push-Location $SCRIPT_DIR
+        try {
+            docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error-Message "Failed to build image for migration"
+                return $false
+            }
+        } finally {
+            Pop-Location
+        }
+    }
+
+    $migrateCmd = @(
+        "run", "--rm",
+        "--env-file", $ROOT_ENV,
+        "-e", "DATABASE_URL=$dbUrl",
+        "-v", "${SCRIPT_DIR}\data:/data",
+        $IMAGE_TAG,
+        "python", "-m", "backend.scripts.migrate_sqlite_to_postgres",
+        "--sqlite-path", "/data/student_management.db",
+        "--postgres-url", $dbUrl
+    )
+
+    $output = & docker @migrateCmd 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error-Message "SQLite to PostgreSQL migration failed"
+        if ($output) {
+            Write-Host $output -ForegroundColor Yellow
+        }
+        return $false
+    }
+
+    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+    $backupName = "student_management.db.migrated_$timestamp"
+    try {
+        Rename-Item -Path $sqlitePath -NewName $backupName -Force
+        Write-Success "Migration completed. SQLite file archived: $backupName"
+    } catch {
+        Write-Warning "Migration completed, but SQLite file could not be renamed: $_"
+    }
+
+    return $true
+}
+
 function Wait-ForComposeHealthy {
     param(
         [string]$ServiceName = "backend",
@@ -719,18 +797,14 @@ function Initialize-EnvironmentFiles {
             $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
             $envContent = $envContent -replace 'VERSION=.*', "VERSION=$VERSION"
-            # CRITICAL: For fresh installs, default to SQLite (production-ready, no external dependencies)
-            # Users can upgrade to PostgreSQL later via upgrade workflow
-            $envContent = $envContent -replace 'DATABASE_ENGINE=postgresql', "DATABASE_ENGINE=sqlite"
-            # Remove PostgreSQL-specific settings from fresh install (can be added later if needed)
-            $envContent = $envContent -replace 'POSTGRES_HOST=postgres.*', ""
-            $envContent = $envContent -replace 'POSTGRES_PASSWORD=.*', ""
+            # CRITICAL: Production installs are PostgreSQL-only
+            $envContent = $envContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
             Set-Content -Path $ROOT_ENV -Value $envContent
-            Write-Success "Root .env created with secure SECRET_KEY (SQLite - ready out-of-box)"
+            Write-Success "Root .env created with secure SECRET_KEY (PostgreSQL required)"
             $configured = $true
         } else {
             Write-Warning ".env.example not found, creating minimal .env..."
-            # Minimal .env for fresh install: SQLite only
+            # Minimal .env for fresh install: PostgreSQL only
             $minimalEnv = @"
 VERSION=$VERSION
 SECRET_KEY=$secretKey
@@ -739,10 +813,10 @@ DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 DEFAULT_ADMIN_FORCE_RESET=False
-DATABASE_ENGINE=sqlite
+DATABASE_ENGINE=postgresql
 "@
             Set-Content -Path $ROOT_ENV -Value $minimalEnv
-            Write-Success "Minimal .env created (SQLite - ready out-of-box)"
+            Write-Success "Minimal .env created (PostgreSQL required)"
             $configured = $true
         }
     } else {
@@ -761,24 +835,50 @@ DATABASE_ENGINE=sqlite
             }
         }
 
-        # ====== PERSISTENCE FIX: Validate DATABASE_ENGINE for fresh installs ======
-        # Ensure .env is configured for SQLite persistence (not overridden to PostgreSQL)
+        # ====== PostgreSQL-only enforcement ======
         Write-Debug "Validating .env DATABASE_ENGINE setting..."
         $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
         if (-not $dbEngine) {
             Write-Warning ".env is missing DATABASE_ENGINE setting"
-            Write-Info "Adding DATABASE_ENGINE=sqlite for fresh install"
-            $rootContent = $rootContent + "`nDATABASE_ENGINE=sqlite`n"
+            Write-Info "Adding DATABASE_ENGINE=postgresql"
+            $rootContent = $rootContent + "`nDATABASE_ENGINE=postgresql`n"
             Set-Content -Path $ROOT_ENV -Value $rootContent
             $configured = $true
-        } elseif ($dbEngine -ne "sqlite" -and $dbEngine -ne "postgresql") {
-            Write-Warning ".env has invalid DATABASE_ENGINE: $dbEngine"
-            Write-Info "Correcting to: DATABASE_ENGINE=sqlite (fresh install default)"
-            $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=sqlite"
+        } elseif ($dbEngine -ne "postgresql") {
+            Write-Warning ".env has invalid DATABASE_ENGINE for production: $dbEngine"
+            Write-Info "Correcting to: DATABASE_ENGINE=postgresql"
+            $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
             Set-Content -Path $ROOT_ENV -Value $rootContent
             $configured = $true
         }
-        # ====== END PERSISTENCE FIX ======
+        # ====== END PostgreSQL-only enforcement ======
+    }
+
+    # Ensure DATABASE_URL exists (PostgreSQL-only)
+    $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
+    if (-not $dbUrl) {
+        $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
+        $pgPort = Get-EnvVarValue -Name "POSTGRES_PORT"
+        $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
+        $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+        $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+
+        if ($pgHost -and $pgPort -and $pgUser -and $pgPassword -and $pgDb) {
+            $dbUrl = "postgresql://$pgUser`:$pgPassword@$pgHost`:$pgPort/$pgDb"
+            $rootContent = Get-Content $ROOT_ENV -Raw
+            if ($rootContent -match 'DATABASE_URL=.*') {
+                $rootContent = $rootContent -replace 'DATABASE_URL=.*', "DATABASE_URL=$dbUrl"
+            } else {
+                $rootContent = $rootContent + "`nDATABASE_URL=$dbUrl`n"
+            }
+            Set-Content -Path $ROOT_ENV -Value $rootContent
+            Write-Success "DATABASE_URL generated from POSTGRES_* settings"
+            $configured = $true
+        } else {
+            Write-Error-Message "DATABASE_URL is required for PostgreSQL-only deployments"
+            Write-Info "Set DATABASE_URL or POSTGRES_* variables in .env and re-run"
+            return $false
+        }
     }
 
     # Backend .env
@@ -1458,6 +1558,18 @@ function Start-Application {
 
     $useCompose = Use-ComposeMode
     if ($useCompose) {
+        $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
+        if (-not $dbEngine -or $dbEngine -ne "postgresql") {
+            Write-Error-Message "PostgreSQL-only mode enforced. Set DATABASE_ENGINE=postgresql in .env"
+            return 1
+        }
+
+        if (Use-InternalPostgresProfile) {
+            $env:COMPOSE_PROFILES = "internal-postgres"
+        } else {
+            $env:COMPOSE_PROFILES = ""
+        }
+
         Write-Info "Detected PostgreSQL configuration - using Docker Compose (production overlay)"
         Set-ComposeVolumeEnvironment
 
@@ -1479,6 +1591,9 @@ function Start-Application {
 
         Push-Location $SCRIPT_DIR
         try {
+            if (-not (Invoke-SqliteToPostgresMigration)) {
+                return 1
+            }
             $composeOutput = docker compose @composeArgs up -d --build 2>&1
             if ($LASTEXITCODE -ne 0) {
                 # Capture actual error for logging
@@ -1503,6 +1618,9 @@ function Start-Application {
         Write-Error-Message "Compose stack started but backend is not healthy"
         return 1
     }
+
+    Write-Error-Message "PostgreSQL-only mode enforced. Configure DATABASE_URL and DATABASE_ENGINE=postgresql."
+    return 1
 
     # ====== PERSISTENCE FIX: Volume Validation for SQLite Mode ======
     # Ensure persistent data volume exists and is ready for SQLite deployment

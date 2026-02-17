@@ -220,6 +220,8 @@ class Settings(BaseSettings):
     AUTH_LOGIN_MAX_ATTEMPTS: int = 5
     AUTH_LOGIN_LOCKOUT_SECONDS: int = 300
     AUTH_LOGIN_TRACKING_WINDOW_SECONDS: int = 300
+    AUTH_LOGIN_EXEMPT_EMAILS: str = "test@example.com,admin@example.com"
+    AUTH_LOGIN_EXEMPT_DOMAINS: str = "test.edu"
 
     # NOTE: DEV_EASE is intentionally not handled here. DEV_EASE is reserved for
     # pre-commit convenience in COMMIT_READY.ps1 only and must not alter runtime
@@ -307,6 +309,20 @@ class Settings(BaseSettings):
                 path = path.replace("//", "/")
             normalized.append(path.rstrip(" "))
         return normalized
+
+    @property
+    def AUTH_LOGIN_EXEMPT_EMAILS_LIST(self) -> List[str]:
+        raw = getattr(self, "AUTH_LOGIN_EXEMPT_EMAILS", "")
+        if isinstance(raw, list):
+            return [str(x).strip().lower() for x in raw if str(x).strip()]
+        return [part.strip().lower() for part in str(raw or "").split(",") if part.strip()]
+
+    @property
+    def AUTH_LOGIN_EXEMPT_DOMAINS_LIST(self) -> List[str]:
+        raw = getattr(self, "AUTH_LOGIN_EXEMPT_DOMAINS", "")
+        if isinstance(raw, list):
+            return [str(x).strip().lower() for x in raw if str(x).strip()]
+        return [part.strip().lower() for part in str(raw or "").split(",") if part.strip()]
 
     @field_validator("POSTGRES_SSLMODE", mode="before")
     @classmethod

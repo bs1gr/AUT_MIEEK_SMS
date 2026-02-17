@@ -36,7 +36,9 @@ def get_lifespan():
             scheduler.start_report_scheduler()
             scheduler.start_course_activation_scheduler()
             scheduler.schedule_cleanup_task(frequency="daily")
-            logging.getLogger(__name__).info("✅ Export/report/course-activation schedulers and maintenance tasks started")
+            logging.getLogger(__name__).info(
+                "✅ Export/report/course-activation schedulers and maintenance tasks started"
+            )
         except Exception as e:
             logging.getLogger(__name__).warning(f"⚠️  Scheduler startup not available: {e}")
 

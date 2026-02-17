@@ -227,12 +227,25 @@ var
   DockerStatusLabel: TLabel;
   DockerInfoLabel: TLabel;
   RefreshButton: TButton;
+  PostgresPage: TWizardPage;
+  PgHostEdit: TEdit;
+  PgPortEdit: TEdit;
+  PgDbEdit: TEdit;
+  PgUserEdit: TEdit;
+  PgPassEdit: TEdit;
+  PgSslEdit: TComboBox;
   DockerBuildPage: TWizardPage;
   DockerBuildStatusLabel: TLabel;
   PreviousVersion: String;
   PreviousInstallPath: String;
   IsUpgrade: Boolean;
   UpgradeBackupPath: String;
+  PgHost: String;
+  PgPort: String;
+  PgDb: String;
+  PgUser: String;
+  PgPass: String;
+  PgSsl: String;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -745,6 +758,62 @@ begin
 
   UpdateDockerStatus(nil);
 
+  // External PostgreSQL configuration page
+  PostgresPage := CreateCustomPage(DockerPage.ID, 'External PostgreSQL',
+    'Configure the external PostgreSQL database used by SMS');
+
+  PgHostEdit := TEdit.Create(PostgresPage);
+  PgHostEdit.Parent := PostgresPage.Surface;
+  PgHostEdit.Left := 0;
+  PgHostEdit.Top := 10;
+  PgHostEdit.Width := PostgresPage.SurfaceWidth;
+  PgHostEdit.Text := '';
+  PgHostEdit.Hint := 'Host/IP (e.g., 192.168.1.10)';
+
+  PgPortEdit := TEdit.Create(PostgresPage);
+  PgPortEdit.Parent := PostgresPage.Surface;
+  PgPortEdit.Left := 0;
+  PgPortEdit.Top := 45;
+  PgPortEdit.Width := PostgresPage.SurfaceWidth;
+  PgPortEdit.Text := '5432';
+  PgPortEdit.Hint := 'Port (default 5432)';
+
+  PgDbEdit := TEdit.Create(PostgresPage);
+  PgDbEdit.Parent := PostgresPage.Surface;
+  PgDbEdit.Left := 0;
+  PgDbEdit.Top := 80;
+  PgDbEdit.Width := PostgresPage.SurfaceWidth;
+  PgDbEdit.Text := 'student_management';
+  PgDbEdit.Hint := 'Database name';
+
+  PgUserEdit := TEdit.Create(PostgresPage);
+  PgUserEdit.Parent := PostgresPage.Surface;
+  PgUserEdit.Left := 0;
+  PgUserEdit.Top := 115;
+  PgUserEdit.Width := PostgresPage.SurfaceWidth;
+  PgUserEdit.Text := 'sms_user';
+  PgUserEdit.Hint := 'Username';
+
+  PgPassEdit := TEdit.Create(PostgresPage);
+  PgPassEdit.Parent := PostgresPage.Surface;
+  PgPassEdit.Left := 0;
+  PgPassEdit.Top := 150;
+  PgPassEdit.Width := PostgresPage.SurfaceWidth;
+  PgPassEdit.PasswordChar := '*';
+  PgPassEdit.Text := '';
+  PgPassEdit.Hint := 'Password';
+
+  PgSslEdit := TComboBox.Create(PostgresPage);
+  PgSslEdit.Parent := PostgresPage.Surface;
+  PgSslEdit.Left := 0;
+  PgSslEdit.Top := 185;
+  PgSslEdit.Width := PostgresPage.SurfaceWidth;
+  PgSslEdit.Style := csDropDownList;
+  PgSslEdit.Items.Add('prefer');
+  PgSslEdit.Items.Add('require');
+  PgSslEdit.Items.Add('disable');
+  PgSslEdit.ItemIndex := 0;
+
   // Create Docker build progress page (AFTER file copy, before finish)
   DockerBuildPage := CreateCustomPage(wpInstalling + 1, 'Completing Installation', 'Building SMS Docker container. This may take several minutes on first install.');
   DockerBuildStatusLabel := TLabel.Create(DockerBuildPage);
@@ -758,6 +827,116 @@ begin
   DockerBuildStatusLabel.Caption := 'Preparing Docker container build...';
 end;
 
+function ReadEnvValue(FilePath, Key: String): String;
+var
+  Data: AnsiString;
+  Lines: TStringList;
+  i: Integer;
+  Line: String;
+begin
+  Result := '';
+  if not FileExists(FilePath) then
+    Exit;
+  if not LoadStringFromFile(FilePath, Data) then
+    Exit;
+  Lines := TStringList.Create;
+  try
+    Lines.Text := String(Data);
+    for i := 0 to Lines.Count - 1 do
+    begin
+      Line := Trim(Lines[i]);
+      if (Line = '') or (Line[1] = '#') then
+        Continue;
+      if Pos(Key + '=', Line) = 1 then
+      begin
+        Result := Trim(Copy(Line, Length(Key) + 2, 999));
+        Exit;
+      end;
+    end;
+  finally
+    Lines.Free;
+  end;
+end;
+
+procedure LoadPostgresDefaults;
+var
+  EnvPath: String;
+begin
+  EnvPath := ExpandConstant('{app}\.env');
+  PgHost := ReadEnvValue(EnvPath, 'POSTGRES_HOST');
+  PgPort := ReadEnvValue(EnvPath, 'POSTGRES_PORT');
+  PgDb := ReadEnvValue(EnvPath, 'POSTGRES_DB');
+  PgUser := ReadEnvValue(EnvPath, 'POSTGRES_USER');
+  PgPass := ReadEnvValue(EnvPath, 'POSTGRES_PASSWORD');
+  PgSsl := ReadEnvValue(EnvPath, 'POSTGRES_SSLMODE');
+
+  if PgHost <> '' then PgHostEdit.Text := PgHost;
+  if PgPort <> '' then PgPortEdit.Text := PgPort;
+  if PgDb <> '' then PgDbEdit.Text := PgDb;
+  if PgUser <> '' then PgUserEdit.Text := PgUser;
+  if PgPass <> '' then PgPassEdit.Text := PgPass;
+  if PgSsl <> '' then
+  begin
+    if PgSslEdit.Items.IndexOf(PgSsl) >= 0 then
+      PgSslEdit.ItemIndex := PgSslEdit.Items.IndexOf(PgSsl);
+  end;
+end;
+
+procedure WritePostgresEnv;
+var
+  EnvPath: String;
+  ExamplePath: String;
+  Content: AnsiString;
+  DbUrl: String;
+  EncUser: String;
+  EncPass: String;
+  EncDb: String;
+begin
+  EnvPath := ExpandConstant('{app}\.env');
+  ExamplePath := ExpandConstant('{app}\.env.example');
+
+  PgHost := Trim(PgHostEdit.Text);
+  PgPort := Trim(PgPortEdit.Text);
+  PgDb := Trim(PgDbEdit.Text);
+  PgUser := Trim(PgUserEdit.Text);
+  PgPass := Trim(PgPassEdit.Text);
+  PgSsl := PgSslEdit.Items[PgSslEdit.ItemIndex];
+
+  EncUser := UrlEncode(PgUser);
+  EncPass := UrlEncode(PgPass);
+  EncDb := UrlEncode(PgDb);
+  DbUrl := 'postgresql://' + EncUser + ':' + EncPass + '@' + PgHost + ':' + PgPort + '/' + EncDb;
+
+  if FileExists(ExamplePath) then
+  begin
+    LoadStringFromFile(ExamplePath, Content);
+    Content := StringChangeEx(Content, 'DATABASE_ENGINE=postgresql', 'DATABASE_ENGINE=postgresql', True);
+    if StringChangeEx(Content, 'DATABASE_URL=', 'DATABASE_URL=' + DbUrl, True) = 0 then
+      Content := Content + #13#10 + 'DATABASE_URL=' + DbUrl + #13#10;
+    Content := StringChangeEx(Content, 'POSTGRES_HOST=postgres', 'POSTGRES_HOST=' + PgHost, True);
+    Content := StringChangeEx(Content, 'POSTGRES_PORT=5432', 'POSTGRES_PORT=' + PgPort, True);
+    Content := StringChangeEx(Content, 'POSTGRES_DB=student_management', 'POSTGRES_DB=' + PgDb, True);
+    Content := StringChangeEx(Content, 'POSTGRES_USER=sms_user', 'POSTGRES_USER=' + PgUser, True);
+    if StringChangeEx(Content, 'POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD_HERE', 'POSTGRES_PASSWORD=' + PgPass, True) = 0 then
+      if StringChangeEx(Content, 'POSTGRES_PASSWORD=SecurePassword2026!', 'POSTGRES_PASSWORD=' + PgPass, True) = 0 then
+        Content := Content + #13#10 + 'POSTGRES_PASSWORD=' + PgPass + #13#10;
+    Content := StringChangeEx(Content, 'POSTGRES_SSLMODE=prefer', 'POSTGRES_SSLMODE=' + PgSsl, True);
+    SaveStringToFile(EnvPath, Content, False);
+  end
+  else
+  begin
+    Content := 'DATABASE_ENGINE=postgresql' + #13#10 +
+      'DATABASE_URL=' + DbUrl + #13#10 +
+      'POSTGRES_HOST=' + PgHost + #13#10 +
+      'POSTGRES_PORT=' + PgPort + #13#10 +
+      'POSTGRES_DB=' + PgDb + #13#10 +
+      'POSTGRES_USER=' + PgUser + #13#10 +
+      'POSTGRES_PASSWORD=' + PgPass + #13#10 +
+      'POSTGRES_SSLMODE=' + PgSsl + #13#10;
+    SaveStringToFile(EnvPath, Content, False);
+  end;
+end;
+
 procedure CurPageChanged(CurPageID: Integer);
 var
   ResultCode: Integer;
@@ -765,8 +944,11 @@ var
 begin
   if CurPageID = DockerPage.ID then
     UpdateDockerStatus(nil);
+  if CurPageID = PostgresPage.ID then
+    LoadPostgresDefaults;
   if (CurPageID = DockerBuildPage.ID) then
   begin
+    WritePostgresEnv;
     WizardForm.NextButton.Enabled := False;
     DockerBuildStatusLabel.Caption := 'Building SMS Docker container...';
     try
@@ -820,6 +1002,61 @@ begin
         ShellExec('open', 'https://www.docker.com/products/docker-desktop/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
       end;
       // Allow continue - user can install Docker later
+    end;
+  end;
+
+  if CurPageID = PostgresPage.ID then
+  begin
+    PgHost := Trim(PgHostEdit.Text);
+    PgPort := Trim(PgPortEdit.Text);
+    PgDb := Trim(PgDbEdit.Text);
+    PgUser := Trim(PgUserEdit.Text);
+    PgPass := Trim(PgPassEdit.Text);
+
+    if (PgHost = '') or (PgPort = '') or (PgDb = '') or (PgUser = '') or (PgPass = '') then
+    begin
+      MsgBox('All PostgreSQL fields are required.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
+    if (Lowercase(PgHost) = 'localhost') or (PgHost = '127.0.0.1') then
+    begin
+      MsgBox('For Docker installs, PostgreSQL cannot be reached via localhost.' + #13#10 +
+        'Use host.docker.internal or the machine IP address instead.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
+    if StrToIntDef(PgPort, 0) <= 0 then
+    begin
+      MsgBox('PostgreSQL port must be a valid number.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
+    if not TestPostgresTcpConnection(PgHost, PgPort) then
+    begin
+      MsgBox('Unable to reach PostgreSQL on ' + PgHost + ':' + PgPort + '.' + #13#10 +
+        'Please verify the host, port, and network/firewall settings.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
+    if not TestDockerReady then
+    begin
+      MsgBox('Docker Desktop must be running to validate PostgreSQL credentials.' + #13#10 +
+        'Please start Docker Desktop and try again.', mbError, MB_OK);
+      Result := False;
+      Exit;
+    end;
+
+    if not TestPostgresAuthConnection(PgHost, PgPort, PgDb, PgUser, PgPass, PgSslEdit.Items[PgSslEdit.ItemIndex]) then
+    begin
+      MsgBox('PostgreSQL authentication failed.' + #13#10 +
+        'Please verify username/password, database name, and SSL mode.', mbError, MB_OK);
+      Result := False;
+      Exit;
     end;
   end;
 end;
@@ -959,6 +1196,77 @@ begin
     Result := 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
   else
     Result := '';
+end;
+
+function TestPostgresTcpConnection(Host: String; Port: String): Boolean;
+var
+  ResultCode: Integer;
+  PowerShellExe: String;
+  Command: String;
+begin
+  Result := False;
+  PowerShellExe := GetPowerShellExe;
+  if PowerShellExe = '' then
+    Exit;
+
+  Command := '-NoProfile -ExecutionPolicy Bypass -Command "' +
+    'if ((Test-NetConnection -ComputerName \"' + Host + '\" -Port ' + Port + ').TcpTestSucceeded) { exit 0 } else { exit 1 }"';
+
+  if Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    Result := (ResultCode = 0);
+end;
+
+function TestDockerReady: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('cmd', '/c docker info', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function UrlEncode(const S: String): String;
+var
+  i: Integer;
+  c: Char;
+begin
+  Result := '';
+  for i := 1 to Length(S) do
+  begin
+    c := S[i];
+    if (c >= 'A') and (c <= 'Z') or
+       (c >= 'a') and (c <= 'z') or
+       (c >= '0') and (c <= '9') or
+       (c = '-') or (c = '_') or (c = '.') or (c = '~') then
+      Result := Result + c
+    else
+      Result := Result + '%' + IntToHex(Ord(c), 2);
+  end;
+end;
+
+function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean;
+var
+  ResultCode: Integer;
+  TempEnv: String;
+  EnvContent: String;
+  Command: String;
+begin
+  Result := False;
+
+  TempEnv := ExpandConstant('{tmp}\sms_pg_auth_test.env');
+  EnvContent := 'PGHOST=' + Host + #13#10 +
+    'PGPORT=' + Port + #13#10 +
+    'PGDATABASE=' + DbName + #13#10 +
+    'PGUSER=' + UserName + #13#10 +
+    'PGPASSWORD=' + Password + #13#10 +
+    'PGSSLMODE=' + SslMode + #13#10;
+
+  SaveStringToFile(TempEnv, EnvContent, False);
+
+  Command := '/c docker run --rm --env-file "' + TempEnv + '" postgres:16-alpine psql -c "select 1"';
+  if Exec('cmd', Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    Result := (ResultCode = 0);
+
+  if FileExists(TempEnv) then
+    DeleteFile(TempEnv);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);
