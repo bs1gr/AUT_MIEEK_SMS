@@ -3,7 +3,7 @@
 **Release Date**: February 13, 2026
 **Release Type**: Patch Release (Bug fixes + Minor Enhancements)
 **Previous Version**: 1.17.8
-**Commits**: 48 commits since $11.18.1
+**Commits**: 48 commits since v1.18.1
 
 ---
 
@@ -142,7 +142,7 @@ This patch release focuses on **workspace management automation**, **CI/CD relia
 
 **Work Plan** (`docs(work-plan)` - 96116e330)
 - Updated with policy enforcement completion status
-- Added $11.18.1 release context
+- Added v1.18.1 release context
 
 **Deployment Docs** (`docs(deployment)` - 8787d2ea5)
 - Updated runner Docker access fix notes
@@ -311,7 +311,7 @@ npm --prefix frontend run test    # Frontend
 
 **Release Assets**:
 - Windows Installer: `SMS_Installer_1.17.9.exe`
-- Source Code: GitHub tag `$11.18.1`
+- Source Code: GitHub tag `v1.18.1`
 - Docker Images: `ghcr.io/bs1gr/aut_mieek_sms:1.17.9`
 
 **Documentation**:
@@ -358,4 +358,4 @@ This release represents comprehensive workspace management automation and CI/CD 
 
 **For questions or issues**: See `CONTRIBUTING.md` or open a GitHub issue.
 
-**Next Release**: $11.18.1 (planned for March 2026) - Major feature enhancements
+**Next Release**: v1.18.1 (planned for March 2026) - Major feature enhancements

@@ -1,6 +1,6 @@
 # Frontend Hooks Reference
 
-This document provides a reference for the custom hooks available in the Student Management System frontend, including those introduced in $11.18.0.
+This document provides a reference for the custom hooks available in the Student Management System frontend, including those introduced in v1.18.0.
 
 ## Core Hooks
 

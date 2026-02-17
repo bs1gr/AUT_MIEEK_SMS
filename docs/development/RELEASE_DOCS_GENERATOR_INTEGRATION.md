@@ -15,7 +15,7 @@ This script generates professional GitHub release notes that include:
 
 ## Current Status
 
-The helper script is created and committed. The release notes for $11.14.2 were already manually updated to use this professional format.
+The helper script is created and committed. The release notes for v1.14.2 were already manually updated to use this professional format.
 
 ## Integration Steps
 

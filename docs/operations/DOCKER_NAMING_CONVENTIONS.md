@@ -44,15 +44,15 @@ sms-frontend:1.2.0
 **Examples:**
 
 ```text
-sms_data_rebuild_$11.9.7_20251029_143022
-sms_data_rebuild_$11.9.7_20251029_150845
-sms_data_rebuild_$11.9.7_20251030_091234
+sms_data_rebuild_v1.9.7_20251029_143022
+sms_data_rebuild_v1.9.7_20251029_150845
+sms_data_rebuild_v1.9.7_20251030_091234
 
 ```text
 **Components:**
 
 - `sms_data_rebuild` - Indicates volume created via rebuild process
-- `v[VERSION]` - App version when volume was created (e.g., $11.9.7)
+- `v[VERSION]` - App version when volume was created (e.g., v1.9.7)
 - `[YYYYMMDD]` - Date in ISO format (e.g., 20251029)
 - `[HHMMSS]` - Time in 24-hour format (e.g., 143022)
 
@@ -80,15 +80,15 @@ sms_data_rebuild_$11.9.7_20251030_091234
 **Examples:**
 
 ```text
-sms_backup_$11.9.7_20251029_143022.db
-sms_backup_$11.9.7_20251029_150845.db
-sms_backup_$11.9.7_20251030_091234.db
+sms_backup_v1.9.7_20251029_143022.db
+sms_backup_v1.9.7_20251029_150845.db
+sms_backup_v1.9.7_20251030_091234.db
 
 ```text
 **Components:**
 
 - `sms_backup` - Indicates database backup file
-- `v[VERSION]` - App version at backup time (e.g., $11.9.7)
+- `v[VERSION]` - App version at backup time (e.g., v1.9.7)
 - `[YYYYMMDD]` - Date in ISO format
 - `[HHMMSS]` - Time in 24-hour format
 - `.db` - SQLite database file extension
@@ -168,7 +168,7 @@ sms_backup_$11.9.7_20251030_091234.db
 ✓ Build cache cleared
 
 [4/6] Creating new data volume...
-✓ New volume configured: sms_data_rebuild_$11.9.7_20251029_143022
+✓ New volume configured: sms_data_rebuild_v1.9.7_20251029_143022
   Volume naming: sms_data_rebuild_v[VERSION]_[DATE]_[TIME]
 
 [5/6] Rebuilding images (this may take a few minutes)...
@@ -210,10 +210,10 @@ Rebuild completed successfully!
 
 ```text
 Creating backup from Docker volume...
-  Target: sms_backup_$11.9.7_20251029_143022.db
+  Target: sms_backup_v1.9.7_20251029_143022.db
 
 ✓ Backup created successfully (188.45 KB)
-  Location: backups\sms_backup_$11.9.7_20251029_143022.db
+  Location: backups\sms_backup_v1.9.7_20251029_143022.db
 
 ```text
 **When to use:**
@@ -248,8 +248,8 @@ echo "1.2.0" > VERSION
 **Result:**
 
 - New images created: `sms-backend:1.2.0`, `sms-frontend:1.2.0`
-- New volume (if selected): `sms_data_rebuild_$11.9.7_20251029_153045`
-- Old $11.9.7 images and volumes remain for rollback
+- New volume (if selected): `sms_data_rebuild_v1.9.7_20251029_153045`
+- Old v1.9.7 images and volumes remain for rollback
 
 ---
 
@@ -259,12 +259,12 @@ echo "1.2.0" > VERSION
 # Current state: VERSION = 1.1.0
 
 # Running: sms-backend:1.1.0, sms-frontend:1.1.0
-# Volume: sms_data_rebuild_$11.9.7_20251029_143022
+# Volume: sms_data_rebuild_v1.9.7_20251029_143022
 
 # Step 1: Create backup before upgrade
 
 .\SMS.ps1  # Option B - Backup
-# Creates: sms_backup_$11.9.7_20251029_150000.db
+# Creates: sms_backup_v1.9.7_20251029_150000.db
 
 # Step 2: Update version
 
@@ -278,7 +278,7 @@ echo "1.2.0" > VERSION
 # Result:
 
 # - New images: sms-backend:1.2.0, sms-frontend:1.2.0
-# - Same volume: sms_data_rebuild_$11.9.7_20251029_143022 (data preserved)
+# - Same volume: sms_data_rebuild_v1.9.7_20251029_143022 (data preserved)
 
 # - Old images still available for rollback
 
@@ -319,12 +319,12 @@ docker images
 
 # sms-frontend:1.1.0 (old - still available)
 
-# Test $11.9.7, if issues found:
+# Test v1.9.7, if issues found:
 
 echo "1.1.0" > VERSION
 docker compose down
 docker compose up -d
-# Back to stable $11.9.7
+# Back to stable v1.9.7
 
 ```text
 ---
@@ -356,11 +356,11 @@ docker rmi sms-backend:1.0.0 sms-frontend:1.0.0
 
 # Remove specific volume (ensure not in use!)
 
-docker volume rm student-management-system_sms_data_rebuild_$11.9.7_20251020_120000
+docker volume rm student-management-system_sms_data_rebuild_v1.9.7_20251020_120000
 
 # Remove specific backup
 
-Remove-Item .\backups\sms_backup_$11.9.7_20251020_120000.db
+Remove-Item .\backups\sms_backup_v1.9.7_20251020_120000.db
 
 ```text
 ### Automated Cleanup (via SMS.ps1)
@@ -528,8 +528,8 @@ $env:VERSION = $version
 | Task | Command | Creates |
 |------|---------|---------|
 | Start app | `.\RUN.ps1` | Uses existing images |
-| Rebuild all | `.\SMS.ps1` → X | `sms-backend:1.1.0`<br>`sms-frontend:1.1.0`<br>`sms_data_rebuild_$11.9.7_20251029_143022` |
-| Backup DB | `.\SMS.ps1` → B | `sms_backup_$11.9.7_20251029_143022.db` |
+| Rebuild all | `.\SMS.ps1` → X | `sms-backend:1.1.0`<br>`sms-frontend:1.1.0`<br>`sms_data_rebuild_v1.9.7_20251029_143022` |
+| Backup DB | `.\SMS.ps1` → B | `sms_backup_v1.9.7_20251029_143022.db` |
 | Update version | Edit `VERSION` file | N/A |
 | View status | `.\SMS.ps1 -Status` | N/A |
 | List images | `docker images \| Select-String "sms-"` | N/A |

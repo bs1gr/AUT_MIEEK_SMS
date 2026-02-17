@@ -128,13 +128,13 @@ This archive contains the complete historical record of Phases 4 and 5 implement
 
 ## Phase 4: Advanced Search & Filtering
 
-**Status**: ✅ COMPLETE (Released in $11.17.6 - Jan 22, 2026)
+**Status**: ✅ COMPLETE (Released in v1.17.6 - Jan 22, 2026)
 **Timeline**: 1-2 weeks
 **Result**: Full-text search, advanced filters, saved searches all implemented
 
 ### Completed Features
 
-1. **Advanced Search & Filtering** ($11.17.6)
+1. **Advanced Search & Filtering** (v1.17.6)
    - Full-text search across students, courses, grades
    - Advanced filters with 8 operator types
    - Faceted navigation with counts
@@ -142,7 +142,7 @@ This archive contains the complete historical record of Phases 4 and 5 implement
    - Saved searches with favorites
    - Performance: 380ms p95 (6× improvement over baseline)
 
-2. **PWA Capabilities** ($11.17.6)
+2. **PWA Capabilities** (v1.17.6)
    - Service Worker with offline support
    - App manifest for installability
    - Static asset caching
@@ -213,9 +213,9 @@ This archive contains the complete historical record of Phases 4 and 5 implement
 2. **Path B (Async Export)**: Background task queue (4-6 hrs)
 3. **Path C (Streaming)**: Stream generation (6-8 hrs)
 
-### $11.17.6 Release (Jan 29, 2026)
+### v1.17.6 Release (Jan 29, 2026)
 
-✅ **RELEASE $11.17.6 COMPLETE - SECURITY FIXES & GITHUB DEPLOYMENT**
+✅ **RELEASE v1.17.6 COMPLETE - SECURITY FIXES & GITHUB DEPLOYMENT**
 
 **Security Fixes**:
 - CVE-2026-24486: python-multipart 0.0.20 → 0.0.22
@@ -224,8 +224,8 @@ This archive contains the complete historical record of Phases 4 and 5 implement
 - 1 polynomial regex alert documented
 
 **Release Artifacts**:
-- GitHub Release: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.6
-- Release Notes: docs/releases/RELEASE_NOTES_$11.17.6.md (500+ lines)
+- GitHub Release: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.6
+- Release Notes: docs/releases/RELEASE_NOTES_v1.17.6.md (500+ lines)
 - Security Docs: docs/security/SECURITY_FIXES_JAN29_2026.md
 
 ### Greek Localization (Jan 28, 2026)

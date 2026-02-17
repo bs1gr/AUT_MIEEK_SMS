@@ -185,7 +185,7 @@ npm --prefix frontend run e2e -- tests/analytics-dashboard.spec.ts
 - Reviewers: Code review checklist
 
 ### 5. **Merge & Release**
-- Tag: `$11.17.7` (includes Features #125)
+- Tag: `v1.17.7` (includes Features #125)
 - Release notes: Feature highlights + installation guide
 - Production deployment via CI/CD
 

@@ -123,4 +123,4 @@ python -m pytest tests/ -q  # Standard way if you must
 
 **Created**: January 8, 2026
 **Purpose**: Prevent VSCode freezes during test execution
-**Status**: Integrated with COMMIT_READY.ps1 $11.15.2+
+**Status**: Integrated with COMMIT_READY.ps1 v1.15.2+

@@ -1,8 +1,8 @@
-# $11.12.2 Roadmap & Planning
+# v1.12.2 Roadmap & Planning
 
 **Created**: 2025-12-12
 **Status**: Planning
-**Baseline**: $11.12.2 (Automation Infrastructure Release)
+**Baseline**: v1.12.2 (Automation Infrastructure Release)
 **Type**: Patch Release - Bug Fixes & Polish
 **Target Release**: 2025-12-15 (3-day sprint)
 
@@ -10,9 +10,9 @@
 
 ## Executive Summary
 
-$11.12.2 successfully delivered **automated release infrastructure** with SHA256 verification, secure certificate handling, and comprehensive diagnostics. $11.12.2 will be a **focused patch release** addressing the post-install issue discovered in $11.12.2 and polishing the automation workflow.
+v1.12.2 successfully delivered **automated release infrastructure** with SHA256 verification, secure certificate handling, and comprehensive diagnostics. v1.12.2 will be a **focused patch release** addressing the post-install issue discovered in v1.12.2 and polishing the automation workflow.
 
-### Key Achievements from $11.12.2
+### Key Achievements from v1.12.2
 
 - ✅ Automated installer builds (33s end-to-end)
 - ✅ SHA256 hash verification infrastructure
@@ -162,8 +162,8 @@ Total Duration:        5.3s
 **Tasks:**
 - [ ] Update FRESH_DEPLOYMENT_TROUBLESHOOTING.md
 - [ ] Add DOCKER_TOGGLE.vbs section to DESKTOP_SHORTCUT_GUIDE.md
-- [ ] Document workaround for $11.12.2 users
-- [ ] Update CHANGELOG.md with $11.12.2 notes
+- [ ] Document workaround for v1.12.2 users
+- [ ] Update CHANGELOG.md with v1.12.2 notes
 - [ ] Add troubleshooting flowchart for shortcut issues
 
 ---
@@ -174,8 +174,8 @@ Total Duration:        5.3s
 **Status**: Planned
 
 **Tasks:**
-- [ ] Create RELEASE_AUDIT_$11.12.2.md
-- [ ] Document all changes since $11.12.2
+- [ ] Create RELEASE_AUDIT_v1.12.2.md
+- [ ] Document all changes since v1.12.2
 - [ ] Record test results
 - [ ] Update CI/CD pipeline guide if needed
 - [ ] Add lessons learned section
@@ -184,14 +184,14 @@ Total Duration:        5.3s
 
 ## Success Criteria
 
-### Release $11.12.2 Success Requires:
+### Release v1.12.2 Success Requires:
 
 1. ✅ DOCKER_TOGGLE.vbs included in installer
 2. ⏳ Desktop shortcut works on fresh install
 3. ⏳ All referenced files exist in repository
 4. ⏳ Installer builds without warnings
 5. ⏳ SHA256 hash verified
-6. ⏳ No regressions from $11.12.2
+6. ⏳ No regressions from v1.12.2
 7. ⏳ Documentation updated
 
 ### Optional Goals (If Time Permits):
@@ -211,7 +211,7 @@ Total Duration:        5.3s
 | 2 | (Optional) Enable code signing | Signed installer |
 | 2-3 | Polish workflow diagnostics | Enhanced logs |
 | 3 | Update documentation | Updated guides |
-| 3 | Release $11.12.2 | Installer + release notes |
+| 3 | Release v1.12.2 | Installer + release notes |
 
 ---
 
@@ -222,7 +222,7 @@ Total Duration:        5.3s
 | Missing files discovered | Medium | High | Automated validation script |
 | Signing certificate issues | Low | Medium | Keep unsigned as fallback |
 | Workflow regression | Low | Medium | Test in branch before merge |
-| Documentation gaps | Low | Low | Use $11.12.2 as template |
+| Documentation gaps | Low | Low | Use v1.12.2 as template |
 
 ---
 
@@ -232,14 +232,14 @@ Total Duration:        5.3s
 
 1. **Clean Installation Test**
    - Uninstall any previous version
-   - Install $11.12.2 from scratch
+   - Install v1.12.2 from scratch
    - Verify desktop shortcut works
    - Test start menu shortcuts
    - Verify Docker toggle functionality
 
 2. **Upgrade Test**
-   - Install $11.12.2
-   - Upgrade to $11.12.2
+   - Install v1.12.2
+   - Upgrade to v1.12.2
    - Verify no data loss
    - Check shortcuts still work
 
@@ -263,7 +263,7 @@ Total Duration:        5.3s
 
 ### Immediate (Day 3):
 
-1. Tag release as $11.12.2
+1. Tag release as v1.12.2
 2. Trigger automated workflow
 3. Verify installer asset uploaded
 4. Download and test installer locally
@@ -275,13 +275,13 @@ Total Duration:        5.3s
 1. Monitor GitHub issues for installer problems
 2. Collect user feedback
 3. Update troubleshooting docs with new issues
-4. Plan $11.12.2 feature scope
+4. Plan v1.12.2 feature scope
 
 ---
 
-## Future Considerations ($11.12.2+)
+## Future Considerations (v1.12.2+)
 
-Based on $11.12.2 experience:
+Based on v1.12.2 experience:
 
 ### Release Automation Enhancements:
 
@@ -309,10 +309,10 @@ Based on $11.12.2 experience:
 
 ## Notes
 
-- $11.12.2 is intentionally small-scope (patch release)
+- v1.12.2 is intentionally small-scope (patch release)
 - Focus on quality and completeness over new features
 - Keep automation infrastructure stable
 - Build confidence in release process
-- Set foundation for larger $11.12.2 release
+- Set foundation for larger v1.12.2 release
 
-**Next Major Release**: $11.12.2 (Feature Release, TBD)
+**Next Major Release**: v1.12.2 (Feature Release, TBD)

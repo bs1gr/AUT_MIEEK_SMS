@@ -82,7 +82,7 @@ cd ..
 
 ## Issue 2: PowerShell Script Issues
 
-**Current Scripts ($11.9.7+):**
+**Current Scripts (v1.9.7+):**
 
 - `DOCKER.ps1` - Docker deployment operations
 - `NATIVE.ps1` - Native development mode

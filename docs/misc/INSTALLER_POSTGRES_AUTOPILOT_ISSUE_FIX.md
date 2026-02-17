@@ -1,7 +1,7 @@
 # Installer PostgreSQL Autopilot Issue - Root Cause & Fix
 
 **Date**: February 16, 2026
-**Issue**: Latest installer ($11.18.1) defaults to PostgreSQL + Docker Compose, causing fresh installs to fail with "Failed to start Docker Compose stack"
+**Issue**: Latest installer (v1.18.1) defaults to PostgreSQL + Docker Compose, causing fresh installs to fail with "Failed to start Docker Compose stack"
 **Status**: ✅ FIXED (Part 1-2 implemented, Part 3 documentation)
 
 ---
@@ -215,9 +215,9 @@ if ($LASTEXITCODE -ne 0) {
 
 ## 📊 Affected Versions
 
-- **$11.18.1**: ❌ Contains the issue (from commit 2a3e64704 onward)
-- **$11.18.1**: ✅ Uses fullstack image (no compose auto-routing)
-- **$11.18.1 and earlier**: ✅ Uses fullstack image
+- **v1.18.1**: ❌ Contains the issue (from commit 2a3e64704 onward)
+- **v1.18.1**: ✅ Uses fullstack image (no compose auto-routing)
+- **v1.18.1 and earlier**: ✅ Uses fullstack image
 
 ---
 
@@ -225,7 +225,7 @@ if ($LASTEXITCODE -ne 0) {
 
 1. **Commit this fix** to main branch
 2. **Test with fresh install** from fixed version
-3. **Update installer** with next release ($11.18.1 or $11.18.1)
+3. **Update installer** with next release (v1.18.1 or v1.18.1)
 4. **Document migration path** for users who want PostgreSQL
 5. **Monitor GitHub issues** for any similar "Docker Compose failed" reports
 

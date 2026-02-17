@@ -1,4 +1,4 @@
-# Greek Text Encoding in Inno Setup Installer ($11.9.9+)
+# Greek Text Encoding in Inno Setup Installer (v1.9.9+)
 
 ## The Permanent Solution: Build-Time Conversion Pipeline
 
@@ -11,7 +11,7 @@ The installer was experiencing Greek text encoding issues that persisted across 
 - **Display Confusion**: PowerShell shows "garbled" output (misinterprets CP1253 as UTF-8)
 - **Root Cause**: No automated process to ensure consistent encoding
 
-### Current Solution ($11.9.9+)
+### Current Solution (v1.9.9+)
 
 An **automatic encoding pipeline** that applies every build:
 

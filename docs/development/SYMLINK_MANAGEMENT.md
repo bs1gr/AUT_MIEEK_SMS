@@ -340,7 +340,7 @@ Get-Item -Path "link-name" | Select-Object Target
 
 ## Implementation Recommendations
 
-### For This Project ($11.10.1+)
+### For This Project (v1.10.1+)
 
 1. **Do NOT create symlinks** in repository
 2. **Use explicit imports** for code organization (already done - see Task 2)

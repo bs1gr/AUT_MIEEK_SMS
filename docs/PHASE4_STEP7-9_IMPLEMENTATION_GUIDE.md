@@ -327,7 +327,7 @@ CREATE TABLE query_template (
 - [ ] Update user documentation
 - [ ] Update developer guide
 - [ ] Create feature overview
-- [ ] Version increment ($11.17.6 → $11.17.6)
+- [ ] Version increment (v1.17.6 → v1.17.6)
 - [ ] Final commit and tag
 
 ---
@@ -487,7 +487,7 @@ queryBuilder: {
 4. 🔄 Implement STEP 9: AdvancedQueryBuilder (6 hours)
 5. 🔄 Integration & Testing (3 hours)
 6. 📦 Create PR and merge to main
-7. 🚀 Release $11.17.6
+7. 🚀 Release v1.17.6
 
 ---
 

@@ -38,7 +38,7 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 
 | Item | Status | Owner | Next Action | Time |
 |------|--------|-------|------------|------|
-| **Phase 1-3** Features & RBAC | ✅ DONE | Solo Dev | *None (Released $11.17.2)* | *Completed* |
+| **Phase 1-3** Features & RBAC | ✅ DONE | Solo Dev | *None (Released v1.17.2)* | *Completed* |
 | **Repo Cleanup** CI/CD Fixes | ✅ DONE | Solo Dev | *None (All checks passing)* | *Completed* |
 | **Repo Cleanup** Code Quality | 🟦 IN PROGRESS | Solo Dev | Run `COMMIT_READY.ps1 -Full` | Jan 19-22 |
 | **Phase 4** Planning | 🟥 NOT STARTED | Solo Dev | Await Cleanup Completion | Jan 23+ |
@@ -74,7 +74,7 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 ### **You're a release manager starting Phase 1:**
 
 ```text
-1. Open: docs/releases/RELEASE_PREPARATION_$11.15.2.md
+1. Open: docs/releases/RELEASE_PREPARATION_v1.15.2.md
 2. Jump to: "Phase 1: Infrastructure Improvements"
 3. Verify PHASE1-001, 002, 003 are marked done in ACTIVE_WORK_STATUS
 4. For PHASE1-005 through 008:
@@ -94,7 +94,7 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 |------|---------|-----------|
 | **docs/ACTIVE_WORK_STATUS.md** | What's happening NOW | 3 min |
 | **docs/development/AGENT_CONTINUATION_PROTOCOL.md** | How to use the system | 5 min |
-| **docs/releases/RELEASE_PREPARATION_$11.15.2.md** | Release timeline + Phase 1 tasks | 10 min |
+| **docs/releases/RELEASE_PREPARATION_v1.15.2.md** | Release timeline + Phase 1 tasks | 10 min |
 | docs/development/sessions/SESSION_FINAL_SUMMARY_2025-01-05.md | Context from last session | 10 min |
 
 ---

@@ -16,18 +16,18 @@
 | # | Scenario | Type | Duration | Prerequisites | Status |
 |---|----------|------|----------|---|---|
 | 1 | Fresh Install (No Prior Version) | Setup | 10-15 min | Clean Windows system | ⏳ Ready |
-| 2 | Upgrade Same Version ($11.17.7 → $11.17.7 Repair) | Repair | 5-10 min | $11.17.7 installed | ⏳ Ready |
-| 3 | Upgrade from $11.17.7 → $11.17.7 | Upgrade | 10-15 min | $11.17.7 installed | ⏳ Ready |
+| 2 | Upgrade Same Version (v1.17.7 → v1.17.7 Repair) | Repair | 5-10 min | v1.17.7 installed | ⏳ Ready |
+| 3 | Upgrade from v1.17.7 → v1.17.7 | Upgrade | 10-15 min | v1.17.7 installed | ⏳ Ready |
 | 4 | Docker Running During Upgrade | Docker Test | 5-10 min | Previous + Docker containers | ⏳ Ready |
 | 5 | Docker Stopped During Upgrade | Docker Test | 5-10 min | Previous + Docker stopped | ⏳ Ready |
-| 6 | Uninstall with Data Preservation | Uninstall | 5-10 min | $11.17.7 installed | ⏳ Ready |
+| 6 | Uninstall with Data Preservation | Uninstall | 5-10 min | v1.17.7 installed | ⏳ Ready |
 | 7 | Backup Integrity Check | Validation | 5-10 min | Backups from test runs | ⏳ Ready |
 | 8 | Metadata File Creation Verification | Validation | 2-5 min | Any installation | ⏳ Ready |
 
 ### Installer Artifact Status
 
 - **File**: SMS_Installer_1.17.7.exe (6.46 MB)
-- **Location**: GitHub Release $11.17.7 (pre-built, available for download)
+- **Location**: GitHub Release v1.17.7 (pre-built, available for download)
 - **Verification**:
   - ✅ Released on GitHub (Feb 3, 2026)
   - ✅ Size confirmed: 6.46 MB
@@ -48,7 +48,7 @@
 
 To execute installer testing:
 
-1. **Download Installer**: Get `SMS_Installer_1.17.7.exe` from GitHub Release $11.17.7
+1. **Download Installer**: Get `SMS_Installer_1.17.7.exe` from GitHub Release v1.17.7
 2. **Select Testing Scenario**: Choose one of 8 scenarios from testing guide
 3. **Follow Step-by-Step**: Complete numbered steps in `INSTALLER_TESTING_GUIDE.md`
 4. **Document Results**: Fill out test results template
@@ -283,7 +283,7 @@ Both commits already in main branch.
 
 ### System Overall Status
 
-- **Version**: $11.17.7 production live ✅
+- **Version**: v1.17.7 production live ✅
 - **Tests**: 2,579+ all passing (100%) ✅
 - **Code Quality**: All gates passing ✅
 - **Features**: Phase 6 + OPTIONAL-001 complete ✅
@@ -296,7 +296,7 @@ Both commits already in main branch.
 
 1. **Option 1: Maintenance & Stability**
    - Focus on installer testing (2-3 hours)
-   - Monitor production $11.17.7 (2-4 weeks)
+   - Monitor production v1.17.7 (2-4 weeks)
    - Gather user feedback
    - Plan next feature release
 

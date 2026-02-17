@@ -1,4 +1,4 @@
-# Release Manifest - $11.18.1
+# Release Manifest - v1.18.1
 
 **Version:** 1.18.1
 **Date:** February 17, 2026
@@ -10,16 +10,16 @@
 ## Release Artifacts
 
 ### Required Artifacts
-- [ ] Git tag: `$11.18.1`
+- [ ] Git tag: `v1.18.1`
 - [ ] GitHub Release: Published with release notes
 - [ ] VERSION file updated: `1.18.1`
 - [ ] CHANGELOG.md updated: [1.18.1] section added
 
 ### Documentation Updates
-- [x] Release notes: `docs/releases/RELEASE_NOTES_$11.18.1.md`
-- [x] GitHub release body: `docs/releases/GITHUB_RELEASE_$11.18.1.md`
-- [x] Release manifest: `docs/releases/RELEASE_MANIFEST_$11.18.1.md`
-- [x] Deployment checklist: `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md`
+- [x] Release notes: `docs/releases/RELEASE_NOTES_v1.18.1.md`
+- [x] GitHub release body: `docs/releases/GITHUB_RELEASE_v1.18.1.md`
+- [x] Release manifest: `docs/releases/RELEASE_MANIFEST_v1.18.1.md`
+- [x] Deployment checklist: `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.1.md`
 
 ### Code Changes
 - [x] Test fixes: Course modal test selectors and assertions
@@ -46,10 +46,10 @@
 ### Release Checklist
 - [ ] GENERATE_RELEASE_DOCS.ps1 executed (or manual equivalent complete)
 - [ ] All documentation files created
-- [ ] Git commit: "chore(release): prepare $11.18.1 release"
-- [ ] Git tag: `$11.18.1` created and signed
+- [ ] Git commit: "chore(release): prepare v1.18.1 release"
+- [ ] Git tag: `v1.18.1` created and signed
 - [ ] Git push: `origin main` with tags
-- [ ] GitHub release: Published at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.1
+- [ ] GitHub release: Published at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
 
 ---
 
@@ -63,8 +63,8 @@
   - Restored frontend test suite to 100% passing (1854/1854)
 
 ### Documentation Updates
-- docs/releases/RELEASE_NOTES_$11.18.1.md: Enhanced with auto-activation details
-- docs/releases/GITHUB_RELEASE_$11.18.1.md: Added auto-activation coverage
+- docs/releases/RELEASE_NOTES_v1.18.1.md: Enhanced with auto-activation details
+- docs/releases/GITHUB_RELEASE_v1.18.1.md: Added auto-activation coverage
 
 ---
 
@@ -78,16 +78,16 @@ frontend/src/features/courses/components/EditCourseModal.test.tsx
 
 ### Documentation Files (2)
 ```
-docs/releases/RELEASE_NOTES_$11.18.1.md
-docs/releases/GITHUB_RELEASE_$11.18.1.md
+docs/releases/RELEASE_NOTES_v1.18.1.md
+docs/releases/GITHUB_RELEASE_v1.18.1.md
 ```
 
 ### Release Documentation (4 new)
 ```
-docs/releases/RELEASE_NOTES_$11.18.1.md
-docs/releases/GITHUB_RELEASE_$11.18.1.md
-docs/releases/RELEASE_MANIFEST_$11.18.1.md
-docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md
+docs/releases/RELEASE_NOTES_v1.18.1.md
+docs/releases/GITHUB_RELEASE_v1.18.1.md
+docs/releases/RELEASE_MANIFEST_v1.18.1.md
+docs/releases/DEPLOYMENT_CHECKLIST_v1.18.1.md
 ```
 
 ---
@@ -135,18 +135,18 @@ git status
 - **E2E**: Not required (UI changes only affect unit tests)
 
 ### Dependencies
-- **Parent release**: $11.18.1 (2026-02-16)
-- **Next release**: $11.18.1 or $11.18.1 (TBD)
+- **Parent release**: v1.18.1 (2026-02-16)
+- **Next release**: v1.18.1 or v1.18.1 (TBD)
 
 ---
 
 ## Post-Release Actions
 
 ### Immediate (within 1 hour)
-- [ ] Verify GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.1
-- [ ] Verify tag created: `git tag -l $11.18.1`
+- [ ] Verify GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
+- [ ] Verify tag created: `git tag -l v1.18.1`
 - [ ] Verify CI/CD pipeline passed: GitHub Actions
-- [ ] Update work plan: Mark $11.18.1 as released in `docs/plans/UNIFIED_WORK_PLAN.md`
+- [ ] Update work plan: Mark v1.18.1 as released in `docs/plans/UNIFIED_WORK_PLAN.md`
 
 ### Short-term (within 24 hours)
 - [ ] Monitor for bug reports or issues
@@ -154,8 +154,8 @@ git status
 - [ ] Check analytics for test failures (if monitoring enabled)
 
 ### Medium-term (within 1 week)
-- [ ] Assess need for $11.18.1 (if critical issues found)
-- [ ] Plan next feature release ($11.18.1)
+- [ ] Assess need for v1.18.1 (if critical issues found)
+- [ ] Plan next feature release (v1.18.1)
 - [ ] Update roadmap with completed work
 
 ---

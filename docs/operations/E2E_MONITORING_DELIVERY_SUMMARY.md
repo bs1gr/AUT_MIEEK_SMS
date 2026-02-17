@@ -23,7 +23,7 @@ All infrastructure, documentation, and automation for E2E test monitoring has be
 **File**: [docs/operations/E2E_CI_MONITORING.md](../docs/operations/E2E_CI_MONITORING.md)
 
 **Contents**:
-- ✅ Monitoring overview with $11.15.2 baseline established
+- ✅ Monitoring overview with v1.15.2 baseline established
 - ✅ Critical path test tracking (19/19 tests @ 100%)
 - ✅ Overall test tracking (19/24 tests @ 79%)
 - ✅ Success criteria and pass rate targets (≥95% critical, ≥75% overall)
@@ -153,7 +153,7 @@ python scripts/e2e_failure_detector.py \
 
 ---
 
-## 📊 Baseline Data Established ($11.15.2 - Jan 7, 2026)
+## 📊 Baseline Data Established (v1.15.2 - Jan 7, 2026)
 
 ### Test Results
 
@@ -175,7 +175,7 @@ python scripts/e2e_failure_detector.py \
   - Navigation, protected routes, mobile, error handling, accessibility
 - ✅ **Registration**: 1/1 test passing
 
-### Non-Critical Tests (Known Issues - Deferred to $11.15.2)
+### Non-Critical Tests (Known Issues - Deferred to v1.15.2)
 
 - ⚠️ **Notifications**: 5/12 tests (42%)
   - Issue: 403 Forbidden on test broadcast endpoint
@@ -309,7 +309,7 @@ All success criteria for Issue #1 have been met:
 - Historical trend analysis enabled
 
 ✅ **Baseline**
-- $11.15.2 baseline established (19/24 passing)
+- v1.15.2 baseline established (19/24 passing)
 - Critical path at 100% (19/19)
 - Flakiness at 0%
 - Duration acceptable (8-12 min CI)

@@ -1,7 +1,7 @@
-# SMS $11.17.2 Release Summary
+# SMS v1.17.2 Release Summary
 
 **Release Date**: December 11, 2025
-**Release Tag**: `$11.17.2`
+**Release Tag**: `v1.17.2`
 **Commit**: `030bccbe`
 **Status**: ✅ Production Ready
 
@@ -73,8 +73,8 @@ This is a maintenance and optimization release focused on **CI/CD performance im
 
 #### New Release Documentation
 
-- `RELEASE_NOTES_$11.17.2.md`: Comprehensive release notes
-- Updated `CHANGELOG.md` with $11.17.2 section
+- `RELEASE_NOTES_v1.17.2.md`: Comprehensive release notes
+- Updated `CHANGELOG.md` with v1.17.2 section
 - Cache optimization guide updated with post-change metrics
 
 #### Validation Records
@@ -137,7 +137,7 @@ This is a maintenance and optimization release focused on **CI/CD performance im
 
 - 3 new/updated markdown files:
   - Release notes (comprehensive guide)
-  - CHANGELOG ($11.17.2 entry)
+  - CHANGELOG (v1.17.2 entry)
   - CI optimization guide (cache metrics and strategy)
 
 ### Automation
@@ -225,7 +225,7 @@ curl http://localhost:8080/health
 - No breaking changes
 - No API modifications
 - No database schema changes
-- Drop-in replacement for $11.17.2
+- Drop-in replacement for v1.17.2
 
 ---
 
@@ -233,8 +233,8 @@ curl http://localhost:8080/health
 
 ### Quick Access
 
-- **Release Notes**: `RELEASE_NOTES_$11.17.2.md`
-- **Changelog**: `CHANGELOG.md` ($11.17.2 section)
+- **Release Notes**: `RELEASE_NOTES_v1.17.2.md`
+- **Changelog**: `CHANGELOG.md` (v1.17.2 section)
 - **CI Optimization**: `docs/operations/CI_CACHE_OPTIMIZATION.md`
 - **Monitoring Guide**: `scripts/README_MONITOR_CI_CACHE.md`
 
@@ -249,9 +249,9 @@ curl http://localhost:8080/health
 
 ## 🏷️ Version Information
 
-- **Current**: $11.17.2
-- **Previous**: $11.17.2
-- **Next Planned**: $11.17.2 (tool consolidation)
+- **Current**: v1.17.2
+- **Previous**: v1.17.2
+- **Next Planned**: v1.17.2 (tool consolidation)
 - **Release Cadence**: As-needed maintenance releases
 
 ---
@@ -261,13 +261,13 @@ curl http://localhost:8080/health
 ### Commit
 
 - **Hash**: `030bccbe`
-- **Message**: "chore: Release $11.17.2 - CI/CD optimization and type-check validation"
+- **Message**: "chore: Release v1.17.2 - CI/CD optimization and type-check validation"
 - **Files Changed**: 13
 - **Insertions**: 315+
 
 ### Tag
 
-- **Name**: `$11.17.2`
+- **Name**: `v1.17.2`
 - **Type**: Annotated
 - **Signed**: Yes
 - **Pushed**: Yes
@@ -293,7 +293,7 @@ curl http://localhost:8080/health
 
 ### For Operators
 
-1. Update to $11.17.2 via deployment scripts
+1. Update to v1.17.2 via deployment scripts
 2. Verify health endpoint: `/health`
 3. Monitor cache metrics weekly via GitHub Actions artifacts
 4. Review optimization guide if running own CI systems
@@ -307,8 +307,8 @@ curl http://localhost:8080/health
 
 ### For Maintainers
 
-1. Archive $11.17.2 documentation
-2. Update deployment templates with $11.17.2
+1. Archive v1.17.2 documentation
+2. Update deployment templates with v1.17.2
 3. Schedule next release cycle
 4. Monitor cache hit rates trending
 

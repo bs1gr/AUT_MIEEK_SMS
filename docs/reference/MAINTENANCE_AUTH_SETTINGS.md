@@ -1,7 +1,7 @@
 # Authentication Settings Management - Control Panel
 
 **Feature:** Maintenance Suite - AUTH_MODE Configuration
-**Added:** $11.9.7.4
+**Added:** v1.9.7.4
 **Access:** `/control` → Maintenance Tab
 
 ## Overview
@@ -375,12 +375,12 @@ alert(result.message);
 ```text
 ## Related Documentation
 
-- [../AUTH_FIX_$11.9.7.4_IMPLEMENTED.md](../AUTH_FIX_$11.9.7.4_IMPLEMENTED.md) - Implementation details
-- [../AUTH_ISSUES_FIX_$11.9.7.4.md](../AUTH_ISSUES_FIX_$11.9.7.4.md) - Problem analysis and fixes
+- [../AUTH_FIX_v1.9.7.4_IMPLEMENTED.md](../AUTH_FIX_v1.9.7.4_IMPLEMENTED.md) - Implementation details
+- [../AUTH_ISSUES_FIX_v1.9.7.4.md](../AUTH_ISSUES_FIX_v1.9.7.4.md) - Problem analysis and fixes
 - [AUTHENTICATION.md](AUTHENTICATION.md) - General authentication guide (if available)
 
 ## Version History
 
-- **$11.9.7.4** - Initial implementation of maintenance suite auth settings management
-- **$11.9.7.4** - Added AUTH_MODE hybrid authorization system
-- **$11.9.7.2** - Introduced auth issues (binary AUTH_ENABLED behavior)
+- **v1.9.7.4** - Initial implementation of maintenance suite auth settings management
+- **v1.9.7.4** - Added AUTH_MODE hybrid authorization system
+- **v1.9.7.2** - Introduced auth issues (binary AUTH_ENABLED behavior)

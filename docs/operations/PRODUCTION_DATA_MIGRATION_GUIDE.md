@@ -2,7 +2,7 @@
 
 **Version**: 1.0
 **Created**: February 1, 2026
-**System Version**: $11.17.6
+**System Version**: v1.17.6
 **Status**: Ready for Execution
 
 ---

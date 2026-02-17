@@ -9,7 +9,7 @@ This summary consolidates everything you need for Jan 8 deployment into one dige
 ## The Big Picture
 
 - **You**: Solo developer (1 person, all roles)
-- **Mission**: Deploy $11.15.2 to staging Jan 8, 08:00-11:00 UTC
+- **Mission**: Deploy v1.15.2 to staging Jan 8, 08:00-11:00 UTC
 - **Status**: ✅ READY
 - **Risk Level**: LOW (all procedures documented and tested)
 - **Success Probability**: 95%+ (procedures proven)
@@ -107,7 +107,7 @@ docker stop sms-fullstack
 docker rm sms-fullstack
 # Restore database from backup
 
-Copy-Item "backups/pre_$11.15.2_*.db" `
+Copy-Item "backups/pre_v1.15.2_*.db" `
   -Destination "data/student_management.db" -Force
 
 ```text

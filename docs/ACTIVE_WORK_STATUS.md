@@ -269,7 +269,7 @@ COMMIT: (pending)
 | ID | Blocker | Impact | Status | Resolution |
 |----|---------|---------|-----------|----|
 | ~~**BLOCK-001**~~ | ~~Backend test count mismatch~~ | ~~Phase 0 completeness claim~~ | **RESOLVED ✅** | Backend pytest run Jan 5 17:40 UTC shows 455 passed, 3 skipped. Phase 0 claim accurate. |
-| **BLOCK-002** | Feature branch not created | Cannot start Phase 1 work | **RESOLVED ✅** | Feature branch `feature/$11.17.2-phase1` created and pushed. Phase 1 infrastructure ready. |
+| **BLOCK-002** | Feature branch not created | Cannot start Phase 1 work | **RESOLVED ✅** | Feature branch `feature/v1.17.2-phase1` created and pushed. Phase 1 infrastructure ready. |
 
 ---
 
@@ -356,7 +356,7 @@ Pushed to: main branch
 **Branch Details**:
 
 ```text
-Branch name: feature/$11.15.2-phase1
+Branch name: feature/v1.15.2-phase1
 Created from: main (commit 1e3bd4696)
 Pushed to: origin
 Status: Ready for Phase 1 work
@@ -365,8 +365,8 @@ Status: Ready for Phase 1 work
 **GitHub Link**:
 
 ```text
-https://github.com/bs1gr/AUT_MIEEK_SMS/tree/feature/$11.15.2-phase1
-PR Template: https://github.com/bs1gr/AUT_MIEEK_SMS/pull/new/feature/$11.15.2-phase1
+https://github.com/bs1gr/AUT_MIEEK_SMS/tree/feature/v1.15.2-phase1
+PR Template: https://github.com/bs1gr/AUT_MIEEK_SMS/pull/new/feature/v1.15.2-phase1
 
 ```text
 **Acceptance Criteria**:
@@ -377,7 +377,7 @@ PR Template: https://github.com/bs1gr/AUT_MIEEK_SMS/pull/new/feature/$11.15.2-ph
 **Progress**:
 
 ```text
-✓ feature/$11.15.2-phase1 created
+✓ feature/v1.15.2-phase1 created
 ✓ Pushed to origin successfully
 ✓ GitHub PR link available
 ✓ PHASE1-003 COMPLETED ✅
@@ -387,7 +387,7 @@ PR Template: https://github.com/bs1gr/AUT_MIEEK_SMS/pull/new/feature/$11.15.2-ph
 All PHASE1-002 and PHASE1-003 prerequisites complete. Phase 1 development can now commence on schedule (Jan 7). Branch is ready for 8 improvements: versioning, architecture docs, error handling, analytics, localization, deployment, testing, and maintenance updates.
 
 **Links**:
-- [RELEASE_PREPARATION_$11.15.2.md](../../releases/RELEASE_PREPARATION_$11.15.2.md#-pre-implementation-requirements)
+- [RELEASE_PREPARATION_v1.15.2.md](../../releases/RELEASE_PREPARATION_v1.15.2.md#-pre-implementation-requirements)
 
 ---
 
@@ -401,16 +401,16 @@ All PHASE1-002 and PHASE1-003 prerequisites complete. Phase 1 development can no
 
 **What**: Implement fixes for the 60+ backend test failures caused by APIResponse format standardization. This is a formal Phase 1 task.
 
-**Acceptance Criteria** (from RELEASE_PREPARATION_$11.15.2.md):
+**Acceptance Criteria** (from RELEASE_PREPARATION_v1.15.2.md):
 - [ ] All 60+ failures fixed
 - [ ] Test pass rate: 100%
 - [ ] Regression tests passing
 - [ ] Code review completed
-- [ ] PR merged to feature/$11.15.2-phase1
+- [ ] PR merged to feature/v1.15.2-phase1
 
 **Blocked By**: PHASE1-001 (test reconciliation decision)
 
-**Next Action**: Wait for PHASE1-001 to complete; then create GitHub issue with `$11.15.2-phase1` label.
+**Next Action**: Wait for PHASE1-001 to complete; then create GitHub issue with `v1.15.2-phase1` label.
 
 **Links**:
 - Root cause: Commit `a1535d074` (APIResponse wrapper format introduced in 1.15.0)
@@ -445,7 +445,7 @@ All PHASE1-002 and PHASE1-003 prerequisites complete. Phase 1 development can no
 
 **Implementation References**:
 - [IMPLEMENTATION_PATTERNS.md](../../docs/misc/IMPLEMENTATION_PATTERNS.md) — Copy-paste code patterns for each improvement
-- [PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md](../../docs/plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md) — Detailed sprint breakdown
+- [PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md](../../docs/plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md) — Detailed sprint breakdown
 - [CODEBASE_AUDIT_REPORT.md](../../CODEBASE_AUDIT_REPORT.md) — Full audit findings
 
 **Next Action**:
@@ -470,7 +470,7 @@ All PHASE1-002 and PHASE1-003 prerequisites complete. Phase 1 development can no
 |----------|----------|-----------|-------------|------|
 | **TEST_STATUS** | Are 60 backend failures pre-existing or new? | ✅ RESOLVED: All 455 tests passing. No failures. Phase 0 claim accurate. | Agent-Copilot | Jan 5, 17:40 UTC |
 | **PHASE1_START** | Is Phase 1 starting Jan 7 as planned or delayed? | ✅ ON SCHEDULE: All prerequisites complete. GitHub issues created. Ready to launch. | Agent-Copilot | Jan 5, 18:35 UTC |
-| **BRANCH_STRATEGY** | PR review required before merge to feature/$11.15.2-phase1? | ✅ READY: Feature branch created. Merge strategy: squash to main after final review. | Agent-Copilot | Jan 5, 18:16 UTC |
+| **BRANCH_STRATEGY** | PR review required before merge to feature/v1.15.2-phase1? | ✅ READY: Feature branch created. Merge strategy: squash to main after final review. | Agent-Copilot | Jan 5, 18:16 UTC |
 
 ---
 
@@ -483,9 +483,9 @@ All PHASE1-002 and PHASE1-003 prerequisites complete. Phase 1 development can no
 ### Pre-Kickoff Preparation
 
 - [x] **All GitHub issues created** — 8 Phase 1 issues visible on GitHub
-- [x] **Feature branch ready** — `feature/$11.15.2-phase1` pushed and available
+- [x] **Feature branch ready** — `feature/v1.15.2-phase1` pushed and available
 - [x] **Implementation patterns documented** — [IMPLEMENTATION_PATTERNS.md](../misc/IMPLEMENTATION_PATTERNS.md) has copy-paste code for all 8 improvements
-- [x] **Sprint breakdown ready** — [PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md](../plans/PHASE1_AUDIT_IMPROVEMENTS_$11.15.2.md) defines sprints and schedules
+- [x] **Sprint breakdown ready** — [PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md](../plans/PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md) defines sprints and schedules
 - [x] **Tests passing** — 455 backend tests ✅, 1189 frontend tests ✅
 - [x] **Coordination system deployed** — Agents can onboard in 5 minutes using AGENT_QUICK_START.md
 - [x] **All blockers resolved** — BLOCK-001 and BLOCK-002 cleared

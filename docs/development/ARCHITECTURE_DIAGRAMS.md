@@ -3,7 +3,7 @@
 **Version**: 1.11.1
 **Last Updated**: 2025-12-11
 **Status**: Production Reference
-**Applies To**: $11.11.1+
+**Applies To**: v1.11.1+
 
 Comprehensive Mermaid diagrams illustrating key system flows, deployment modes, and component relationships.
 
@@ -530,7 +530,7 @@ graph LR
 - **Decision**: 5 focused modules vs. monolithic main.py
 - **Rationale**: Maintainability, testability, code reuse
 - **Impact**: main.py: 1555 → 100 lines
-- **Status**: ✅ Implemented ($11.11.1)
+- **Status**: ✅ Implemented (v1.11.1)
 
 ### ADR-4: React SPA with REST API
 

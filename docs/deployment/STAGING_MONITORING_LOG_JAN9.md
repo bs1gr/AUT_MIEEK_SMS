@@ -1,4 +1,4 @@
-# Staging Deployment Monitoring Log - $11.15.2
+# Staging Deployment Monitoring Log - v1.15.2
 
 **Start Time**: 2026-01-09 10:56:07 UTC
 **End Time**: 2026-01-10 10:56:07 UTC (approx)
@@ -20,7 +20,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **DB Backup** | `pre_$11.15.2_backup_20260109_094908.db.bak` (1.35 MB) |
+| **DB Backup** | `pre_v1.15.2_backup_20260109_094908.db.bak` (1.35 MB) |
 | **Uptime** | ~15 minutes |
 | **Admin Account** | `admin@example.com` (bootstrapped) |
 | **Auth Mode** | `permissive` |

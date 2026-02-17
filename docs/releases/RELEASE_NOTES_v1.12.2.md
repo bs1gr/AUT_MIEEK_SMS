@@ -1,15 +1,15 @@
-# SMS $11.17.2 Release Notes
+# SMS v1.17.2 Release Notes
 
 **Release Version**: 1.12.2
 **Release Date**: December 13, 2025
 **Status**: ✅ Production Ready
-**Previous**: $11.17.2 (December 12, 2025)
+**Previous**: v1.17.2 (December 12, 2025)
 
 ---
 
 ## 🎯 Overview
 
-$11.17.2 is a focused patch release that hardens the release automation pipeline and keeps the bilingual installer assets perfectly in sync with every build. The update makes the Greek-language installer regeneration fully deterministic in CI, removes a Windows-only tooling dependency that previously broke `npm ci` on Linux/macOS runners, and refreshes the localized installer assets for this release.
+v1.17.2 is a focused patch release that hardens the release automation pipeline and keeps the bilingual installer assets perfectly in sync with every build. The update makes the Greek-language installer regeneration fully deterministic in CI, removes a Windows-only tooling dependency that previously broke `npm ci` on Linux/macOS runners, and refreshes the localized installer assets for this release.
 
 ---
 

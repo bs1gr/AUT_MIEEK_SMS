@@ -2,7 +2,7 @@
 
 **Status**: Draft (Initial Skeleton)
 **Last Updated**: 2025-11-16
-**Applies To**: $11.9.7+
+**Applies To**: v1.9.7+
 
 Concise examples of common API interactions. Replace placeholder values where noted.
 

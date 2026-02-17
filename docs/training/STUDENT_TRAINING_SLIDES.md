@@ -1,5 +1,5 @@
 # Student Training Slides
-## SMS $11.17.6 - Your Academic Information Portal
+## SMS v1.17.6 - Your Academic Information Portal
 
 **Duration**: 1.5 hours
 **Audience**: All Students (500+ in multiple sessions)

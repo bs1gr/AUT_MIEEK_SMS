@@ -1,4 +1,4 @@
-# $11.17.2 – Major Quality, Accessibility & Maintenance Release
+# v1.17.2 – Major Quality, Accessibility & Maintenance Release
 
 ## ✨ New & Improved
 
@@ -39,8 +39,8 @@
   - Version consistency enforced across all scripts, docs, and metadata.
 
 - **Installer & Automation**
-  - Windows installer rebuilt and validated for $11.17.2.
-  - Windows installer rebuilt and validated for $11.17.2.
+  - Windows installer rebuilt and validated for v1.17.2.
+  - Windows installer rebuilt and validated for v1.17.2.
   - Greek language encoding and wizard images regenerated and verified.
   - Installer builder script typo fixed (no workflow impact).
   - **Major installer improvements:** Versioned uninstaller naming and shortcut cleanup implemented.

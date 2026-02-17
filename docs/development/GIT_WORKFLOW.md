@@ -305,7 +305,7 @@ git commit -m "chore(release): bump version to 1.17.1"
 ```powershell
 # Create annotated tag
 
-git tag -a $11.17.1 -m "Release $11.17.1: Description
+git tag -a v1.17.1 -m "Release v1.17.1: Description
 
 - Feature 1
 - Feature 2
@@ -313,7 +313,7 @@ git tag -a $11.17.1 -m "Release $11.17.1: Description
 
 # Push tag
 
-git push origin $11.17.1
+git push origin v1.17.1
 
 ```text
 ### 3. Create GitHub Release
@@ -321,7 +321,7 @@ git push origin $11.17.1
 ```powershell
 # Use GitHub CLI (if available)
 
-gh release create $11.9.7 --notes-file docs/releases/$11.9.7.md
+gh release create v1.9.7 --notes-file docs/releases/v1.9.7.md
 
 # Or create manually on GitHub
 

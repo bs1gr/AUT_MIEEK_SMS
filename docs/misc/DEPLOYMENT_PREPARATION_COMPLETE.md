@@ -1,4 +1,4 @@
-# $11.17.2 Deployment Preparation - COMPLETE ✅
+# v1.17.2 Deployment Preparation - COMPLETE ✅
 
 **Completion Date**: January 7, 2026
 **Status**: ✅ ALL PREPARATION COMPLETE - READY FOR STAGING DEPLOYMENT
@@ -10,7 +10,7 @@
 
 ## 🎯 Mission Accomplished
 
-**$11.17.2 deployment preparation is 100% complete and ready for execution.**
+**v1.17.2 deployment preparation is 100% complete and ready for execution.**
 
 ### What Was Completed
 
@@ -45,7 +45,7 @@
 
 #### Documentation (7 Files)
 
-1. **docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.17.2.md** (400+ lines)
+1. **docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.17.2.md** (400+ lines)
    - 4-phase deployment procedure
    - Smoke test checklist
    - Performance validation
@@ -85,7 +85,7 @@
    - Flakiness classification
    - Escalation decision tree
 
-7. **docs/releases/RELEASE_NOTES_$11.17.2.md** (620+ lines)
+7. **docs/releases/RELEASE_NOTES_v1.17.2.md** (620+ lines)
    - User-facing release notes
    - 8 improvements detailed
    - Test results summary
@@ -108,7 +108,7 @@
 ### Modified Files (3 Files)
 
 1. **VERSION** - Bumped to 1.15.1
-2. **CHANGELOG.md** - Added $11.17.2 entry (458 insertions)
+2. **CHANGELOG.md** - Added v1.17.2 entry (458 insertions)
 3. **docs/plans/UNIFIED_WORK_PLAN.md** - Updated progress tracking
 
 ---
@@ -118,9 +118,9 @@
 ### Recent Commits (Last 6)
 
 ```text
-0b746e509 docs: Add comprehensive $11.15.2 deployment readiness summary
-f25f32e09 docs: Add deployment preparation checklists and status tracker for $11.15.2
-3b9d44fd5 release: Prepare $11.15.2 - Post-Phase 1 Polish Release
+0b746e509 docs: Add comprehensive v1.15.2 deployment readiness summary
+f25f32e09 docs: Add deployment preparation checklists and status tracker for v1.15.2
+3b9d44fd5 release: Prepare v1.15.2 - Post-Phase 1 Polish Release
 dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 838a116ce fix: improve markdownlint exclusions and adjust CI threshold
 5e4939f1c fix: remove PostgreSQL service from CI backend tests
@@ -129,7 +129,7 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 ### Deployment-Related Commits
 
 - **dd6f7f29b**: E2E monitoring infrastructure (commit #2)
-- **3b9d44fd5**: $11.17.2 release preparation (commit #3)
+- **3b9d44fd5**: v1.17.2 release preparation (commit #3)
 - **f25f32e09**: Deployment checklists and tracker (commit #4)
 - **0b746e509**: Deployment readiness summary (commit #5)
 
@@ -151,8 +151,8 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 
 **When**: Midday (estimated 11:00-12:30)
 **Duration**: 45 min to 1.5 hours
-**Steps**: Database backup → Stop $11.17.2 → Deploy $11.17.2 → Health checks
-**Reference**: STAGING_DEPLOYMENT_PLAN_$11.17.2.md (Phase 1)
+**Steps**: Database backup → Stop v1.17.2 → Deploy v1.17.2 → Health checks
+**Reference**: STAGING_DEPLOYMENT_PLAN_v1.17.2.md (Phase 1)
 **Success Criteria**: Containers running, health checks pass, frontend accessible
 
 ### Phase 2: Smoke Testing (Jan 8-9, 2026)
@@ -160,7 +160,7 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 **When**: Afternoon/Evening (estimated 13:00-14:30)
 **Duration**: 30-45 minutes
 **Tests**: 8 manual smoke tests + 19 E2E critical tests
-**Reference**: STAGING_DEPLOYMENT_PLAN_$11.17.2.md (Phase 2)
+**Reference**: STAGING_DEPLOYMENT_PLAN_v1.17.2.md (Phase 2)
 **Success Criteria**: 100% tests pass, no 500 errors, response times <500ms p95
 
 ### Phase 3: Monitoring Validation (Jan 9, 2026)
@@ -168,7 +168,7 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 **When**: Morning (estimated 09:00-10:00)
 **Duration**: 15-20 minutes
 **Validation**: Metrics collection, baseline recording, alert configuration
-**Reference**: STAGING_DEPLOYMENT_PLAN_$11.17.2.md (Phase 4)
+**Reference**: STAGING_DEPLOYMENT_PLAN_v1.17.2.md (Phase 4)
 **Success Criteria**: Metrics captured, baseline recorded, no critical failures
 
 ### Phase 4: Sign-Off & Documentation (Jan 9, 2026)
@@ -190,7 +190,7 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
    - Takes ~1-2 hours to complete
    - Gate for approval to proceed
 
-2. **STAGING_DEPLOYMENT_PLAN_$11.15.2.md** - Reference guide
+2. **STAGING_DEPLOYMENT_PLAN_v1.15.2.md** - Reference guide
    - Detailed 4-phase deployment procedure
    - Includes rollback steps
    - Smoke test definitions
@@ -284,14 +284,14 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 
 ## 🚨 Known Issues & Deferred Work
 
-### $11.17.2 (Non-Blocking)
+### v1.17.2 (Non-Blocking)
 
 1. **Notification Broadcast Test** (403 Forbidden)
-   - Status: Deferred to $11.17.2
+   - Status: Deferred to v1.17.2
    - Impact: Test has permission issue, notifications work fine
    - Workaround: Use manual testing
 
-### Deferred to $11.17.2
+### Deferred to v1.17.2
 
 - Fix notification broadcast endpoint (HTTP 403 issue)
 - Add 5 remaining notification E2E tests
@@ -299,8 +299,8 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 
 ### Backlog Features (Phase 2 & Beyond)
 
-- RBAC implementation ($11.17.2 - Jan 27)
-- Advanced load testing ($11.17.2)
+- RBAC implementation (v1.17.2 - Jan 27)
+- Advanced load testing (v1.17.2)
 - Real-time notifications (future)
 - Analytics dashboard (future)
 
@@ -312,14 +312,14 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 
 - **Readiness**: DEPLOYMENT_READINESS_SUMMARY.md (start here)
 - **Checklist**: PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md (30-point verification)
-- **Plan**: STAGING_DEPLOYMENT_PLAN_$11.17.2.md (4-phase procedure)
+- **Plan**: STAGING_DEPLOYMENT_PLAN_v1.17.2.md (4-phase procedure)
 - **Tracker**: DEPLOYMENT_STATUS_TRACKER.md (progress monitoring)
 
 ### Operations Documents
 
 - **Monitoring**: E2E_CI_MONITORING.md (dashboard + baselines)
 - **Procedures**: E2E_MONITORING_PROCEDURES.md (weekly runbook)
-- **Release**: docs/releases/RELEASE_NOTES_$11.17.2.md (user-facing)
+- **Release**: docs/releases/RELEASE_NOTES_v1.17.2.md (user-facing)
 
 ### Monitoring Scripts
 
@@ -379,7 +379,7 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 2. Verify each of the 30 items
 3. Check boxes as items are verified
 4. Get stakeholder go/no-go approval
-5. Proceed to STAGING_DEPLOYMENT_PLAN_$11.17.2.md if approved
+5. Proceed to STAGING_DEPLOYMENT_PLAN_v1.17.2.md if approved
 
 ---
 
@@ -423,7 +423,7 @@ dd6f7f29b feat: Add E2E CI monitoring infrastructure & automation
 ```text
 Jan 8 Morning:     Run PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md (30 items)
                    ↓
-Jan 8 Midday:      Execute STAGING_DEPLOYMENT_PLAN_$11.15.2.md (Phase 1)
+Jan 8 Midday:      Execute STAGING_DEPLOYMENT_PLAN_v1.15.2.md (Phase 1)
                    ↓
 Jan 8 Afternoon:   Run Smoke Tests (Phase 2 - 8 manual + 19 E2E)
                    ↓

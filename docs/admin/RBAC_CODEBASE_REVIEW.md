@@ -238,7 +238,7 @@ async def create_student(
 
 ## 📊 Endpoint Migration Status
 
-### Current State ($11.15.2)
+### Current State (v1.15.2)
 
 | Router | Endpoints | Auth Method | Status |
 |--------|-----------|-------------|--------|
@@ -252,7 +252,7 @@ async def create_student(
 | routers_metrics.py | 5 | `optional_require_role("admin")` | ❌ Legacy |
 | **Total** | **148** | **Legacy role-based** | **0% migrated** |
 
-### Phase 2 Target ($11.15.2)
+### Phase 2 Target (v1.15.2)
 
 | Week | Action | Endpoints Migrated | Progress |
 |------|--------|-------------------|----------|

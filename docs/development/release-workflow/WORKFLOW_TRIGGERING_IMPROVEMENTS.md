@@ -2,7 +2,7 @@
 
 ## Problem Summary
 
-The $11.14.0 release was blocked due to multiple issues in the release workflow chain:
+The v1.14.0 release was blocked due to multiple issues in the release workflow chain:
 
 1. **Pre-commit Auto-fixes Blocking Release**: `COMMIT_READY.ps1 -Quick` would auto-fix issues but then fail, causing `RELEASE_READY.ps1` to abort before pushing the tag
 2. **Tag Event Not Triggering Release Event**: GitHub only fires `release` events for NEW tags. Re-pushing existing tags (even after deletion) doesn't reliably trigger the event
@@ -203,7 +203,7 @@ workflow_dispatch:
 # ✓ Commits changes
 # ✓ Pushes main branch
 
-# ✓ Creates and pushes tag $11.14.0
+# ✓ Creates and pushes tag v1.14.0
 # ✓ GitHub Actions: release-on-tag workflow triggers
 
 # ✓ GitHub Actions: Creates GitHub Release
@@ -221,10 +221,10 @@ workflow_dispatch:
 
 # Actions:
 
-# ✓ Force-deletes existing local tag $11.14.0
+# ✓ Force-deletes existing local tag v1.14.0
 # ✓ Fetches and force-deletes remote tag (if exists)
 
-# ✓ Creates new tag $11.14.0
+# ✓ Creates new tag v1.14.0
 # ✓ Force-pushes to origin
 
 # ✓ GitHub Actions: release-on-tag workflow triggers
@@ -240,7 +240,7 @@ workflow_dispatch:
 ```text
 GitHub Actions → Release – Build & Upload Installer with SHA256
 Inputs:
-  tag: $11.14.0
+  tag: v1.14.0
 
 ```text
 **Option B**: Auto-detect latest release (empty input)
@@ -269,7 +269,7 @@ The workflow will automatically fetch the latest release.
         workflow_id: 'release-on-tag.yml',
         ref: 'main',
         inputs: {
-          tag: '$11.14.0'
+          tag: 'v1.14.0'
         }
       });
 
@@ -280,16 +280,16 @@ The workflow will automatically fetch the latest release.
 
 ```yaml
 outputs:
-  tag: $11.14.0              # The release tag
+  tag: v1.14.0              # The release tag
   release_created: true     # Whether release was newly created (vs updated)
 
 ```text
 ### release-installer-with-sha.yml outputs
 
 The workflow provides these in the step summary:
-- Tag: $11.14.0
+- Tag: v1.14.0
 - Version: 1.12.8
-- Installer: SMS_Installer_$11.14.0.exe
+- Installer: SMS_Installer_v1.14.0.exe
 - Size: 156.2 MB
 - SHA256: abc123def...
 
@@ -299,8 +299,8 @@ The workflow provides these in the step summary:
 
 **Cause**: Tag push event not detected
 **Solution**:
-1. Check that tag format is `v*` (e.g., `$11.14.0`)
-2. Verify tag was actually pushed: `git ls-remote --tags origin $11.14.0`
+1. Check that tag format is `v*` (e.g., `v1.14.0`)
+2. Verify tag was actually pushed: `git ls-remote --tags origin v1.14.0`
 3. Manually trigger: GitHub Actions → release-on-tag.yml → Run workflow
 
 ### Issue: Installer workflow doesn't start
@@ -406,7 +406,7 @@ release-installer-with-sha workflow:
 4. **Verify installer integrity**
    ```powershell
    # From workflow output or release page
-   (Get-FileHash 'SMS_Installer_$11.14.0.exe' -Algorithm SHA256).Hash
+   (Get-FileHash 'SMS_Installer_v1.14.0.exe' -Algorithm SHA256).Hash
    # Should match: abc123def...
    ```
 

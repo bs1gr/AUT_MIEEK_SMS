@@ -1,4 +1,4 @@
-# Deployment Checklist - $11.18.1
+# Deployment Checklist - v1.18.1
 
 **Version:** 1.18.1
 **Date:** February 17, 2026
@@ -26,7 +26,7 @@
 - [ ] VERSION file: Contains `1.18.1`
 - [ ] frontend/package.json: Version is `1.18.1`
 - [ ] CHANGELOG.md: Has [1.18.1] section dated 2026-02-17
-- [ ] Release notes: `docs/releases/RELEASE_NOTES_$11.18.1.md` exists
+- [ ] Release notes: `docs/releases/RELEASE_NOTES_v1.18.1.md` exists
 
 **Verification Command:**
 ```powershell
@@ -50,9 +50,9 @@ git log --oneline -5
 ```
 
 ### 4. Documentation Complete ✅ REQUIRED
-- [ ] Release notes: `docs/releases/RELEASE_NOTES_$11.18.1.md`
-- [ ] GitHub release body: `docs/releases/GITHUB_RELEASE_$11.18.1.md`
-- [ ] Release manifest: `docs/releases/RELEASE_MANIFEST_$11.18.1.md`
+- [ ] Release notes: `docs/releases/RELEASE_NOTES_v1.18.1.md`
+- [ ] GitHub release body: `docs/releases/GITHUB_RELEASE_v1.18.1.md`
+- [ ] Release manifest: `docs/releases/RELEASE_MANIFEST_v1.18.1.md`
 - [ ] Deployment checklist: This file
 - [ ] CHANGELOG.md: [1.18.1] section added
 
@@ -63,13 +63,13 @@ git log --oneline -5
 ### 5. Create Release Tag ✅ REQUIRED
 ```powershell
 # Create annotated tag
-git tag -a $11.18.1 -m "Release $11.18.1 - Test fixes and documentation updates"
+git tag -a v1.18.1 -m "Release v1.18.1 - Test fixes and documentation updates"
 
 # Verify tag created
-git tag -l $11.18.1
+git tag -l v1.18.1
 
 # Show tag details
-git show $11.18.1
+git show v1.18.1
 ```
 
 **Expected Output:**
@@ -84,25 +84,25 @@ git push origin main --tags
 
 # Verify push succeeded
 git log --oneline -1
-git ls-remote --tags origin | Select-String "$11.18.1"
+git ls-remote --tags origin | Select-String "v1.18.1"
 ```
 
 **Expected Output:**
 - Commits pushed successfully
-- Tag $11.18.1 visible on remote
+- Tag v1.18.1 visible on remote
 - GitHub Actions CI/CD triggered
 
 ### 7. Create GitHub Release ✅ REQUIRED
 1. Navigate to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
-2. Select tag: `$11.18.1`
-3. Release title: `$11.18.1 - Test Fixes & Documentation Updates`
-4. Copy body from: `docs/releases/GITHUB_RELEASE_$11.18.1.md`
+2. Select tag: `v1.18.1`
+3. Release title: `v1.18.1 - Test Fixes & Documentation Updates`
+4. Copy body from: `docs/releases/GITHUB_RELEASE_v1.18.1.md`
 5. Set as latest release: ✅ Yes
 6. Set as pre-release: ❌ No
 7. Click "Publish release"
 
 **Verification:**
-- [ ] Release visible at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.1
+- [ ] Release visible at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
 - [ ] Release marked as "Latest"
 - [ ] Full changelog link works
 
@@ -181,10 +181,10 @@ Get-Content VERSION
 **Scenario 1: Git tag created but release not published**
 ```powershell
 # Delete local tag
-git tag -d $11.18.1
+git tag -d v1.18.1
 
 # Delete remote tag (if pushed)
-git push origin :refs/tags/$11.18.1
+git push origin :refs/tags/v1.18.1
 
 # Recommit fixes and retry
 ```
@@ -192,19 +192,19 @@ git push origin :refs/tags/$11.18.1
 **Scenario 2: Release published but deployment broken**
 ```powershell
 # Revert to previous version in Docker
-git checkout $11.18.1
+git checkout v1.18.1
 .\DOCKER.ps1 -Stop
 .\DOCKER.ps1 -Start
 
 # Mark release as pre-release on GitHub (not latest)
 # Investigate and fix issues
-# Create $11.18.1 with fixes
+# Create v1.18.1 with fixes
 ```
 
 **Scenario 3: Critical bug found after release**
 ```powershell
 # Create hotfix branch
-git checkout -b hotfix/$11.18.1
+git checkout -b hotfix/v1.18.1
 
 # Apply fixes
 # ... make changes ...
@@ -213,9 +213,9 @@ git checkout -b hotfix/$11.18.1
 .\RUN_TESTS_BATCH.ps1
 npm --prefix frontend run test -- --run
 
-# Create $11.18.1 release
+# Create v1.18.1 release
 .\GENERATE_RELEASE_DOCS.ps1 -Version "1.18.2"
-# ... follow this checklist for $11.18.1 ...
+# ... follow this checklist for v1.18.1 ...
 ```
 
 ---
@@ -232,8 +232,8 @@ If notification is desired:
 - [ ] Email notification (if distribution list exists)
 
 ### Documentation Updates ✅ REQUIRED
-- [ ] Update `docs/plans/UNIFIED_WORK_PLAN.md`: Mark $11.18.1 as released
-- [ ] Update `docs/DOCUMENTATION_INDEX.md`: Add $11.18.1 release entry (if needed)
+- [ ] Update `docs/plans/UNIFIED_WORK_PLAN.md`: Mark v1.18.1 as released
+- [ ] Update `docs/DOCUMENTATION_INDEX.md`: Add v1.18.1 release entry (if needed)
 - [ ] Archive previous release docs (if policy requires)
 
 ---
@@ -256,7 +256,7 @@ If notification is desired:
 
 ### Completion
 - [ ] Deployment considered successful
-- [ ] Ready for next release planning ($11.18.1 or $11.18.1)
+- [ ] Ready for next release planning (v1.18.1 or v1.18.1)
 
 ---
 

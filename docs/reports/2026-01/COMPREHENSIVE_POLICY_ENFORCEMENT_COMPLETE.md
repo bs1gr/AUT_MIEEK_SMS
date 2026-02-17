@@ -61,7 +61,7 @@ Implemented a **complete agent policy enforcement system** with **critical versi
   - ⚠️ CRITICAL: Version Numbering section
   - Rule 6: Never use incorrect versioning
   - Rule 8: Always verify version from VERSION file
-  - Current version clearly stated: $11.15.2
+  - Current version clearly stated: v1.15.2
   - Format: v1.MINOR.PATCH (NOT v11.x.x or v2.x.x)
 
 - Updated AGENT_POLICY_ENFORCEMENT.md
@@ -79,15 +79,15 @@ Implemented a **complete agent policy enforcement system** with **critical versi
 
 ### Commit 3: Fix Remaining Documentation Versioning (873b74dc2)
 
-**Purpose:** Systematically fix all remaining $11.15.2 references
+**Purpose:** Systematically fix all remaining v1.15.2 references
 
 **Changes:**
-- Fixed $11.15.2 → $11.15.2 in:
-  - `docs/AGENT_QUICK_START.md` (removed feature/$11.15.2-phase1 reference)
-  - `docs/deployment/reports/DEPLOYMENT_REPORT_$11.15.2.md`
-  - `docs/misc/RELEASE_NOTES_$11.15.2.md`
-  - `docs/plans/INSTALLER_IMPROVEMENTS_$11.15.2+.md`
-  - `docs/releases/reports/IMPROVEMENTS_$11.15.2_to_$11.15.2.md`
+- Fixed v1.15.2 → v1.15.2 in:
+  - `docs/AGENT_QUICK_START.md` (removed feature/v1.15.2-phase1 reference)
+  - `docs/deployment/reports/DEPLOYMENT_REPORT_v1.15.2.md`
+  - `docs/misc/RELEASE_NOTES_v1.15.2.md`
+  - `docs/plans/INSTALLER_IMPROVEMENTS_v1.15.2+.md`
+  - `docs/releases/reports/IMPROVEMENTS_v1.15.2_to_v1.15.2.md`
 
 - All historical documentation now uses consistent versioning
 
@@ -141,8 +141,8 @@ Every agent encounters policies through:
 ### Before (BROKEN)
 
 ```text
-❌ feature/$11.15.2-phase1 (branch name)
-❌ $11.15.2 in documentation
+❌ feature/v1.15.2-phase1 (branch name)
+❌ v1.15.2 in documentation
 ❌ No versioning policy
 ❌ Agents could use any version format
 
@@ -150,7 +150,7 @@ Every agent encounters policies through:
 ### After (CORRECT)
 
 ```text
-✅ VERSION file: $11.15.2
+✅ VERSION file: v1.15.2
 ✅ Format: v1.MINOR.PATCH
 ✅ Policy enforced in 5 places
 ✅ Agents know exact version from first context
@@ -212,7 +212,7 @@ Every agent encounters policies through:
 - [x] Documentation index updated
 - [x] Agent quick start updated
 - [x] README updated for agents
-- [x] All $11.15.2 references fixed
+- [x] All v1.15.2 references fixed
 - [x] All commits passed pre-commit hooks
 - [x] All commits have clear messages
 - [x] 5-layer discovery mechanism active
@@ -287,7 +287,7 @@ Every agent encounters policies through:
 
 **Result:**
 ✅ All agents now have mandatory policies
-✅ All agents know correct versioning ($11.15.2)
+✅ All agents know correct versioning (v1.15.2)
 ✅ All agents see policies in multiple places
 ✅ All documentation consistent
 ✅ **Project is protected from major errors**

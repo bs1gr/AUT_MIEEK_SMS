@@ -1,6 +1,6 @@
-# Deployment Checklist $11.17.6
+# Deployment Checklist v1.17.6
 
-**Release**: $11.17.6 - MIEEK Dark Theme Refinements
+**Release**: v1.17.6 - MIEEK Dark Theme Refinements
 **Date**: 2026-01-29
 **Status**: Ready for Production
 
@@ -19,15 +19,15 @@
 
 ### ✅ Git & Version
 - [x] VERSION file updated: 1.17.5
-- [x] CHANGELOG.md updated with $11.17.6 entry
+- [x] CHANGELOG.md updated with v1.17.6 entry
 - [x] All changes committed to main branch
 - [x] Git remote synchronized
 - [x] No uncommitted changes in working directory
-- [x] Release tag ready: $11.17.6
+- [x] Release tag ready: v1.17.6
 
 ### ✅ Documentation
-- [x] RELEASE_NOTES_$11.17.6.md created
-- [x] GITHUB_RELEASE_$11.17.6.md created
+- [x] RELEASE_NOTES_v1.17.6.md created
+- [x] GITHUB_RELEASE_v1.17.6.md created
 - [x] Work plan updated with session notes
 - [x] All untracked session files cleaned up
 
@@ -62,15 +62,15 @@ Get-Content backend/pyproject.toml | Select-String 'version ='
 ### Step 2: Create GitHub Release
 ```powershell
 # Open GitHub and create release
-# Use docs/releases/GITHUB_RELEASE_$11.17.6.md content
-# Tag: $11.17.6
+# Use docs/releases/GITHUB_RELEASE_v1.17.6.md content
+# Tag: v1.17.6
 # Release Name: Version 1.17.5 - MIEEK Dark Theme Refinements
 ```
 
 ### Step 3: Tag Repository
 ```bash
-git tag -a $11.17.6 -m "Release $11.17.6 - MIEEK Dark Theme Refinements"
-git push origin $11.17.6
+git tag -a v1.17.6 -m "Release v1.17.6 - MIEEK Dark Theme Refinements"
+git push origin v1.17.6
 ```
 
 ### Step 4: Deploy to Production (Docker)
@@ -151,10 +151,10 @@ git push origin $11.17.6
 If issues occur:
 
 ```powershell
-# Revert to $11.17.6
-git checkout $11.17.6
-git tag -d $11.17.6
-git push origin --delete $11.17.6
+# Revert to v1.17.6
+git checkout v1.17.6
+git tag -d v1.17.6
+git push origin --delete v1.17.6
 
 # Deploy previous version
 .\DOCKER.ps1 -Start
@@ -180,6 +180,6 @@ git push origin --delete $11.17.6
 
 ---
 
-**Release**: $11.17.6
+**Release**: v1.17.6
 **Date**: January 29, 2026
 **Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS

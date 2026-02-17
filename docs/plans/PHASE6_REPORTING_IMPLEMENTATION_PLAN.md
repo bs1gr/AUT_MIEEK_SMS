@@ -2,7 +2,7 @@
 
 **Version**: 1.0
 **Created**: February 1, 2026
-**Target Version**: $11.17.6
+**Target Version**: v1.17.6
 **Timeline**: 2-3 weeks (Feb 1-21, 2026)
 **Status**: 🚀 IN PROGRESS
 **Feature Branch**: `feature/phase6-reporting-enhancements`

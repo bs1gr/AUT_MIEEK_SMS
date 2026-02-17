@@ -142,7 +142,7 @@ When deployment finishes, ALL 10 must be true:
 ```powershell
 docker stop sms-fullstack
 docker rm sms-fullstack
-Copy-Item "backups/pre_$11.15.2_*.db" -Destination "data/student_management.db" -Force
+Copy-Item "backups/pre_v1.15.2_*.db" -Destination "data/student_management.db" -Force
 
 ```text
 **Then**: Take a break, review what happened, try again tomorrow.
@@ -187,7 +187,7 @@ Before you read the docs tonight, verify you're ready:
 
 Tonight: Read two documents (30 minutes), get good sleep.
 Tomorrow: Follow the checklist, you're done by 11:00 UTC.
-Result: $11.15.2 deployed to staging successfully ✅
+Result: v1.15.2 deployed to staging successfully ✅
 
 **No surprises. No ambiguity. No guessing.**
 

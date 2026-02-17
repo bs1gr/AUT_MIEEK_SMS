@@ -1,7 +1,7 @@
 # Phase 2 Consolidation - Complete
 
 **Date:** December 9, 2025
-**Version:** $11.10.1-ready
+**Version:** v1.10.1-ready
 **Status:** COMPLETE
 
 ---
@@ -123,7 +123,7 @@ Comprehensive guide covering:
 - How configuration is sourced
 - Configuration by deployment mode
 - Available settings reference
-- Migration notes for $11.10.1
+- Migration notes for v1.10.1
 - Best practices (dev & production)
 - Troubleshooting guide
 - Deprecation timeline
@@ -139,9 +139,9 @@ All documented in guide:
 
 ### Deprecation Timeline
 
-- **$11.10.1:** Multiple .env files still work, root is authoritative
-- **$11.10.1:** Warnings if backend/.env or frontend/.env exist
-- **$11.10.1:** Old .env files fully removed
+- **v1.10.1:** Multiple .env files still work, root is authoritative
+- **v1.10.1:** Warnings if backend/.env or frontend/.env exist
+- **v1.10.1:** Old .env files fully removed
 
 ---
 
@@ -231,7 +231,7 @@ None - Phase 2 focused on new additions
 
 ## Next Steps
 
-Phase 3 ($11.10.1) focuses on:
+Phase 3 (v1.10.1) focuses on:
 
 1. Documentation consolidation
    - Merge scattered READMEs
@@ -260,7 +260,7 @@ All Phase 2 tasks finished:
 - Backward compatibility maintained
 - No breaking changes
 
-Ready for $11.10.1 release with Phase 1 & 2 complete.
+Ready for v1.10.1 release with Phase 1 & 2 complete.
 
 ---
 

@@ -1,4 +1,4 @@
-# Release Audit Report - $11.17.2
+# Release Audit Report - v1.17.2
 
 **Date**: December 12, 2025
 **Status**: ✅ Complete - Workflow Successful
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-$11.17.2 is a **patch release** that establishes the foundational infrastructure for automated release workflows. This release does not introduce user-facing features but rather focuses on development infrastructure and release automation.
+v1.17.2 is a **patch release** that establishes the foundational infrastructure for automated release workflows. This release does not introduce user-facing features but rather focuses on development infrastructure and release automation.
 
 **Key Achievement**: Fully automated installer building, signing, and distribution pipeline that will enable all future releases to be automatically built and deployed without manual intervention.
 
@@ -23,15 +23,15 @@ $11.17.2 is a **patch release** that establishes the foundational infrastructure
    - Triggers on release publication or manual dispatch
    - Implements 5-stage pipeline: version verification → installer build → SHA256 hashing → asset upload → notifications
 
-2. **`RELEASE_COMPLETE_$11.17.2.md`** (353 lines)
-   - Comprehensive completion report for $11.17.2 phases
+2. **`RELEASE_COMPLETE_v1.17.2.md`** (353 lines)
+   - Comprehensive completion report for v1.17.2 phases
    - Documents all 4 phases completion status
 
 ### Modified Files (17 total)
 
 - **VERSION**: 1.12.0 → 1.12.1
-- **CHANGELOG.md**: Added $11.17.2 section with all automation features
-- **docs/deployment/CI_CD_PIPELINE_GUIDE.md**: $11.17.2 → $11.17.2 (added 102 lines documenting new workflow)
+- **CHANGELOG.md**: Added v1.17.2 section with all automation features
+- **docs/deployment/CI_CD_PIPELINE_GUIDE.md**: v1.17.2 → v1.17.2 (added 102 lines documenting new workflow)
 - **COMMIT_READY.ps1**: Version sync
 - **INSTALLER_BUILDER.ps1**: Version sync
 - **backend/main.py**: Version sync
@@ -57,7 +57,7 @@ $11.17.2 is a **patch release** that establishes the foundational infrastructure
 
 ```text
 Code Quality (7/7):
-  ✅ Version Consistency      - All 13/14 files at $11.12.2
+  ✅ Version Consistency      - All 13/14 files at v1.12.2
   ✅ Backend Linting (Ruff)   - 0 issues
   ✅ Frontend Linting (ESLint)- 0 issues
   ✅ Markdown Linting         - 0 issues
@@ -85,7 +85,7 @@ Documentation (4/4):
 Git Status:
   ✅ Working Directory       - Clean
   ✅ All Commits Pushed      - main @ e0e06504
-  ✅ Release Tag Created     - $11.17.2 @ e0e06504
+  ✅ Release Tag Created     - v1.17.2 @ e0e06504
 
 ```text
 **Duration**: 179.6 seconds
@@ -108,13 +108,13 @@ Git Status:
 | 3769b00a | Add Inno Setup install step to workflow | Bug fix |
 | **a2b22a89** | **Add secure certificate import with secrets and enhanced diagnostics** | **Security + Bug fix** |
 
-**Total**: 10 commits since $11.17.2 (7 for automation + 3 for bug fixes)
+**Total**: 10 commits since v1.17.2 (7 for automation + 3 for bug fixes)
 
 ---
 
 ## Workflow Status
 
-### Release Pipeline $11.17.2
+### Release Pipeline v1.17.2
 
 - **Status**: ✅ **SUCCESS** (Run ID: 20177567657)
 - **Duration**: 33 seconds
@@ -124,15 +124,15 @@ Git Status:
 ### Workflow Execution Steps (All Successful)
 
 1. ✅ **Checkout** - Repository cloned (a2b22a89)
-2. ✅ **Install Inno Setup** - $11.17.2 detected (pre-installed on runner)
-3. ✅ **Get Release Info** - Tag: $11.17.2, Version: 1.12.1
+2. ✅ **Install Inno Setup** - v1.17.2 detected (pre-installed on runner)
+3. ✅ **Get Release Info** - Tag: v1.17.2, Version: 1.12.1
 4. ✅ **Import Certificate** - Skipped (secrets not provided, graceful fallback)
 5. ✅ **Version Verification** - VERIFY_VERSION.ps1 -CIMode passed
 6. ✅ **Build Installer** - INSTALLER_BUILDER.ps1 -AutoFix completed (3s compile)
 7. ✅ **Verify Installer** - Found: `dist\SMS_Installer_1.12.1.exe` (5.64 MB)
 8. ✅ **Calculate SHA256** - E12EFEE77565F451E7D153A8EBB265CFA76510FD0B85DF219831062644FA6247
 9. ✅ **Generate Release Body** - SHA256 + verification instructions added
-10. ✅ **Upload Asset** - `SMS_Installer_$11.17.2.exe` uploaded (5,915,089 bytes)
+10. ✅ **Upload Asset** - `SMS_Installer_v1.17.2.exe` uploaded (5,915,089 bytes)
 11. ✅ **Create Summary** - Release summary generated
 12. ✅ **Post Notification** - Success message with details
 
@@ -140,7 +140,7 @@ Git Status:
 
 1. **Secure Certificate Import** - Base64 PFX decoding from GitHub secrets (infrastructure ready)
 2. **Enhanced Diagnostics** - Debug output showing exact file locations and search patterns
-3. **Version Handling** - Separate `tag` ($11.12.2) and `version` (1.12.1) outputs
+3. **Version Handling** - Separate `tag` (v1.12.2) and `version` (1.12.1) outputs
 4. **Graceful Fallback** - Signing optional; workflow continues if secrets not provided
 5. **SIGN_INSTALLER.ps1 Refactor** - Accepts cert path/password via parameters or env vars
 
@@ -204,7 +204,7 @@ Total Consistent: 13/14 ✅
 
 ### 5. **Documentation**
 
-- ✅ CI/CD Pipeline Guide updated to $11.17.2
+- ✅ CI/CD Pipeline Guide updated to v1.17.2
 - ✅ 5-stage workflow documented with examples
 - ✅ Usage examples for automatic and manual triggers
 - ✅ Complete reference for release process
@@ -218,9 +218,9 @@ Total Consistent: 13/14 ✅
 - **Installer Built**: SMS_Installer_1.12.1.exe
 - **File Size**: 5.64 MB (5,915,089 bytes)
 - **SHA256 Hash**: `E12EFEE77565F451E7D153A8EBB265CFA76510FD0B85DF219831062644FA6247`
-- **Upload Status**: ✅ Successfully uploaded as `SMS_Installer_$11.17.2.exe`
+- **Upload Status**: ✅ Successfully uploaded as `SMS_Installer_v1.17.2.exe`
 - **Download Count**: 0 (just released)
-- **Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
+- **Release URL**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.2
 
 ### Workflow Performance Metrics
 
@@ -247,7 +247,7 @@ Total Consistent: 13/14 ✅
 
 ### Immediate (Post-Release)
 
-- [x] **Verify $11.17.2 Workflow Success** - ✅ COMPLETE
+- [x] **Verify v1.17.2 Workflow Success** - ✅ COMPLETE
   - [x] Monitor GitHub Actions for installer build completion
   - [x] Confirm installer uploads to release
   - [x] Validate SHA256 hash calculation
@@ -256,12 +256,12 @@ Total Consistent: 13/14 ✅
 ### Optional User Testing
 
 - [ ] **Test Installation Process**
-  - Download SMS_Installer_$11.17.2.exe from release
-  - Verify SHA256 locally: `(Get-FileHash 'SMS_Installer_$11.17.2.exe').Hash`
+  - Download SMS_Installer_v1.17.2.exe from release
+  - Verify SHA256 locally: `(Get-FileHash 'SMS_Installer_v1.17.2.exe').Hash`
   - Test clean installation
-  - Test upgrade from $11.17.2
+  - Test upgrade from v1.17.2
 
-### Near Term (Next Release - $11.17.2)
+### Near Term (Next Release - v1.17.2)
 
 - [ ] **Enhanced Workflow Monitoring**
   - Add dashboard metrics for release automation
@@ -278,7 +278,7 @@ Total Consistent: 13/14 ✅
   - macOS/Linux AppImage builds
   - Docker image auto-push
 
-### Medium Term ($11.17.2+)
+### Medium Term (v1.17.2+)
 
 - [ ] **Advanced Release Features**
   - Pre-release (beta) versions
@@ -303,21 +303,21 @@ Total Consistent: 13/14 ✅
 
 ## Success Criteria
 
-### Release $11.17.2 Success Status: ✅ **ACHIEVED**
+### Release v1.17.2 Success Status: ✅ **ACHIEVED**
 
 1. ✅ Workflow executes without errors - **PASS** (33s runtime)
 2. ✅ Installer builds successfully - **PASS** (SMS_Installer_1.12.1.exe, 5.64 MB)
 3. ✅ SHA256 hash calculated correctly - **PASS** (E12EFEE77565F451E7D153A8EBB265CFA76510FD0B85DF219831062644FA6247)
-4. ✅ Installer uploaded to GitHub release - **PASS** (SMS_Installer_$11.17.2.exe available)
+4. ✅ Installer uploaded to GitHub release - **PASS** (SMS_Installer_v1.17.2.exe available)
 5. ✅ Release notes updated with installer info - **PASS** (SHA256 + verification instructions)
 6. ✅ User can download and verify installer - **READY** (Asset available for download)
 7. ⏳ Clean installation works - **PENDING USER TESTING**
-8. ⏳ Upgrade from $11.17.2 works - **PENDING USER TESTING**
+8. ⏳ Upgrade from v1.17.2 works - **PENDING USER TESTING**
 
 **Workflow Success Rate**: 6/6 automated steps (100%)
 **User Testing**: 0/2 manual tests (awaiting execution)
 
-### Future Releases ($11.17.2+) - Infrastructure Ready:
+### Future Releases (v1.17.2+) - Infrastructure Ready:
 
 - ✅ Installer built automatically on tag push
 - ✅ No manual intervention required
@@ -341,11 +341,11 @@ Total Consistent: 13/14 ✅
 
 ## Rollback Plan
 
-If $11.17.2 release workflow fails completely:
-1. Delete $11.17.2 release and tag
+If v1.17.2 release workflow fails completely:
+1. Delete v1.17.2 release and tag
 2. Revert workflow changes: `git revert e0e06504`
 3. Fix identified issues
-4. Create $11.17.2 with corrected workflow
+4. Create v1.17.2 with corrected workflow
 5. Run smoke tests before next release attempt
 
 ---
@@ -362,14 +362,14 @@ If $11.17.2 release workflow fails completely:
 
 ## Supporting Documents
 
-- CHANGELOG.md - Complete $11.17.2 release notes
+- CHANGELOG.md - Complete v1.17.2 release notes
 - docs/deployment/CI_CD_PIPELINE_GUIDE.md - Workflow documentation
-- RELEASE_COMPLETE_$11.17.2.md - $11.17.2 completion report
+- RELEASE_COMPLETE_v1.17.2.md - v1.17.2 completion report
 - .github/workflows/release-installer-with-sha.yml - Workflow source
 
 ---
 
 **Document Status**: Complete
 **Last Updated**: 2025-12-12 20:45 UTC
-**Next Review**: After $11.17.2 workflow completion
+**Next Review**: After v1.17.2 workflow completion
 **Prepared By**: GitHub Copilot (SMS Release Automation Team)

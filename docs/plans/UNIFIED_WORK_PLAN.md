@@ -1,27 +1,27 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.1 (Release Preparation)
-**Last Updated**: February 17, 2026 ($11.18.1 release preparation - test fixes and documentation)
-**Status**: ✅ $11.18.1 RELEASED (Feb 16, 2026) | 🚀 $11.18.1 RELEASE PREPARATION IN PROGRESS
+**Last Updated**: February 17, 2026 (v1.18.1 release preparation - test fixes and documentation)
+**Status**: ✅ v1.18.1 RELEASED (Feb 16, 2026) | 🚀 v1.18.1 RELEASE PREPARATION IN PROGRESS
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Patch release for test fixes)
 **Current Branch**: `main`
 **Latest Commits**:
-- [pending] - chore(release): prepare $11.18.1 release
+- [pending] - chore(release): prepare v1.18.1 release
 - 08625027a - test(courses): add comprehensive unit tests for courseAutoActivation utility
 - 170001597 - feat(courses): add auto-activation enhancements - scheduler, UI indicator, monitoring
 - a4a74ba50 - feat(courses): auto-set active by semester dates
-- 3b27f7c0c - fix(db+release): harden postgres migration and refresh $11.18.1 installer
+- 3b27f7c0c - fix(db+release): harden postgres migration and refresh v1.18.1 installer
 - 7a8615cbe - fix(ci): avoid GHCR push failures without package token
 - 64ae9bdc3 - docs: prepare next major release documentation package
 - 5fa22c373 - fix(ci): resolve frontend tsc and backend mypy pipeline failures
-- f0b2e00ed - docs: prepare post-$11.18.1 release documentation
-- b428b18e7 - revert(release): undo duplicate $11.18.1 release rerun commit
+- f0b2e00ed - docs: prepare post-v1.18.1 release documentation
+- b428b18e7 - revert(release): undo duplicate v1.18.1 release rerun commit
 - cacc2a130 - fix(i18n): sync en/el dashboard and student locale keys
 
 ---
 
-## � $11.18.1 Patch Release (February 17, 2026)
+## � v1.18.1 Patch Release (February 17, 2026)
 
 **Status**: 🚀 RELEASE PREPARATION IN PROGRESS
 
@@ -36,17 +36,17 @@
    - Updated type expectations from `number` to `text`
    - Frontend test suite restored to 100% (1854/1854 passing)
 
-2. ✅ **Documentation Updates**: Enhanced $11.18.1 release documentation
+2. ✅ **Documentation Updates**: Enhanced v1.18.1 release documentation
    - Added comprehensive auto-activation feature coverage
    - Documented scheduled job (3:00 AM UTC daily)
    - Documented UI indicators (green/amber/blue badges)
    - Added monitoring and audit logging details
 
 **Release Documentation Created**:
-- ✅ `docs/releases/RELEASE_NOTES_$11.18.1.md` - Full release notes
-- ✅ `docs/releases/GITHUB_RELEASE_$11.18.1.md` - GitHub release body
-- ✅ `docs/releases/RELEASE_MANIFEST_$11.18.1.md` - Release artifact manifest
-- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md` - Deployment procedures
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.1.md` - Full release notes
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.1.md` - GitHub release body
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.1.md` - Release artifact manifest
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.1.md` - Deployment procedures
 - ✅ `CHANGELOG.md` - Added [1.18.1] section
 - ✅ `VERSION` file - Updated to 1.18.1
 - ✅ `frontend/package.json` - Updated to 1.18.1
@@ -54,7 +54,7 @@
 **Remaining Tasks**:
 - [ ] Run `.\COMMIT_READY.ps1 -Quick` for final validation
 - [ ] Commit all release preparation changes
-- [ ] Create git tag: `$11.18.1`
+- [ ] Create git tag: `v1.18.1`
 - [ ] Push to remote with tags
 - [ ] Create GitHub release
 - [ ] Verify CI/CD pipeline passes
@@ -66,12 +66,12 @@
 
 ---
 
-## �📘 Documentation Preparation Since Last Release ($11.18.1)
+## �📘 Documentation Preparation Since Last Release (v1.18.1)
 
 **Status**: ✅ COMPLETE (Feb 15, 2026)
 
 **Completed Documentation Actions**:
-1. ✅ Reviewed commit history since `$11.18.1` and categorized changes.
+1. ✅ Reviewed commit history since `v1.18.1` and categorized changes.
 2. ✅ Added post-release **Unreleased** summary in `CHANGELOG.md` for changes after the tag.
 3. ✅ Updated this work plan header metadata (version, status, latest commits).
 4. ✅ Corrected release workflow record: duplicate 1.17.9 release rerun was reverted to preserve tag integrity.
@@ -82,16 +82,16 @@
 
 ---
 
-## 📦 Next Major Release Preparation ($11.18.1)
+## 📦 Next Major Release Preparation (v1.18.1)
 
 **Status**: ✅ Documentation pack prepared (Feb 15, 2026)
 
 **Prepared / Updated**:
-1. ✅ `CHANGELOG.md` unreleased section aligned to **Target $11.18.1**.
-2. ✅ `docs/releases/RELEASE_NOTES_$11.18.1.md` rewritten for current maintenance + UX consolidation scope.
-3. ✅ `docs/releases/GITHUB_RELEASE_$11.18.1.md` updated with publish-ready release body.
-4. ✅ `docs/releases/RELEASE_MANIFEST_$11.18.1.md` updated with artifact and validation gates.
-5. ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md` updated with policy-aligned release/deploy checks.
+1. ✅ `CHANGELOG.md` unreleased section aligned to **Target v1.18.1**.
+2. ✅ `docs/releases/RELEASE_NOTES_v1.18.1.md` rewritten for current maintenance + UX consolidation scope.
+3. ✅ `docs/releases/GITHUB_RELEASE_v1.18.1.md` updated with publish-ready release body.
+4. ✅ `docs/releases/RELEASE_MANIFEST_v1.18.1.md` updated with artifact and validation gates.
+5. ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.1.md` updated with policy-aligned release/deploy checks.
 6. ✅ `docs/DOCUMENTATION_INDEX.md` metadata/status synchronized with release-preparation context.
 
 **Result**:
@@ -162,7 +162,7 @@
 47. ✅ **COMPLETE**: Maintenance cleanup - consolidated cleanup entrypoint added to WORKSPACE_CLEANUP.ps1 (external helper switches)
 48. ✅ **COMPLETE**: Maintenance cleanup - ran consolidated cleanup entrypoint (deep + external helpers; legacy backup archives pruned)
 49. ✅ **COMPLETE**: PostgreSQL runtime standardization + persistence stabilization (explicit engine selection; removed implicit sqlite/postgres mode flips; verified stop/start durability)
-50. ✅ **COMPLETE**: SQLite→PostgreSQL migration hardening and $11.18.1 installer refresh (migration helper resilience for encoded URLs/missing tables; signed installer rebuilt and validated)
+50. ✅ **COMPLETE**: SQLite→PostgreSQL migration hardening and v1.18.1 installer refresh (migration helper resilience for encoded URLs/missing tables; signed installer rebuilt and validated)
 51. ✅ **COMPLETE** (Feb 17, 2026): **Course auto-activation enhancements** - semester-based activation system
     - **Scheduled Job**: Daily bulk update at 3:00 AM UTC (CourseActivationScheduler service, 178 lines)
     - **UI Enhancement**: Real-time visual indicators in AddCourseModal and EditCourseModal (green/amber/blue badges)
@@ -184,7 +184,7 @@
 - 🗺️ **Feature Roadmap Framework**: 5 candidate features with effort/value analysis, decision matrix, implementation approaches
 
 **Quick Start**:
-- Download installer from [GitHub Release $11.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.7)
+- Download installer from [GitHub Release v1.17.7](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7)
 - Follow testing guide: [installer/INSTALLER_TESTING_GUIDE.md](../../installer/INSTALLER_TESTING_GUIDE.md)
 - Track results: [INSTALLER_TESTING_TRACKER.md](../../INSTALLER_TESTING_TRACKER.md) (now with detailed templates)
 - Start with **Scenario 1: Fresh Install** (10-15 min)
@@ -193,7 +193,7 @@
 
 ### Installer Testing Progress (Feb 5, 2026)
 - **Scenario 1 (Fresh Install)**: ⚠ Partial — original Issue #3 (language stuck to Greek) now has a code fix by forcing `ShowLanguageDialog=yes`; pending re-test to confirm the welcome screen honors the selected language.
-- **Scenario 2 (Repair $11.17.7)**: ⚠ Partial — the reinstall flow repairs the installation successfully, so Issue #4 (missing maintenance choices / limited backup contents) is accepted for now unless future testing shows data loss.
+- **Scenario 2 (Repair v1.17.7)**: ⚠ Partial — the reinstall flow repairs the installation successfully, so Issue #4 (missing maintenance choices / limited backup contents) is accepted for now unless future testing shows data loss.
 - **Post-install smoke**: **Issue #5** (duplicate browser tab) is resolved—option 1 now opens a single tab after the smoke test confirmed the updated `docker_manager.bat` behavior.
 - **Status Update (Feb 6, 2026)**: Installer testing is **archived/deferred** by owner request; no further scenarios required at this time.
 - **Archived Follow-ups**: Language selector defaulting to OS locale, Inno maintenance page configuration, backup routine audit (db/`.env` during repair). Scenarios (3-8) deferred.
@@ -208,15 +208,15 @@
 
 **Assessment Complete**:
 - ✅ Testing guide reviewed: 8 comprehensive scenarios (438 lines)
-- ✅ Installer artifact verified: $11.17.7 (6.46 MB on GitHub Release)
+- ✅ Installer artifact verified: v1.17.7 (6.46 MB on GitHub Release)
 - ✅ Test procedures documented with step-by-step instructions
 - ✅ Automated validation script available
 - ✅ Test results template provided
 
 **8 Test Scenarios Ready**:
 1. Fresh Install (No existing version)
-2. Upgrade Same Version ($11.17.7 → $11.17.7 Repair)
-3. Upgrade from $11.17.7 → $11.17.7
+2. Upgrade Same Version (v1.17.7 → v1.17.7 Repair)
+3. Upgrade from v1.17.7 → v1.17.7
 4. Docker Running During Upgrade
 5. Docker Stopped During Upgrade
 6. Uninstall with Data Preservation
@@ -365,17 +365,17 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 - a172c24da - docs(installer): force add critical upgrade fix documentation
 
 **Status (Feb 5, 2026 - Systematic Assessment Complete)**:
-1. ✅ Build new installer ($11.17.7) - **COMPLETE** (6.46 MB, Feb 3 21:59 UTC, on GitHub Release)
+1. ✅ Build new installer (v1.17.7) - **COMPLETE** (6.46 MB, Feb 3 21:59 UTC, on GitHub Release)
 2. ✅ Testing framework prepared - **COMPLETE** (comprehensive guide in `installer/INSTALLER_TESTING_GUIDE.md`)
 3. ✅ Testing scenarios documented - **ASSESSED** (8 scenarios ready for manual execution)
-4. ✅ Release to GitHub - **COMPLETE** ($11.17.7 GitHub release published with installer)
+4. ✅ Release to GitHub - **COMPLETE** (v1.17.7 GitHub release published with installer)
 5. ✅ Deployment documentation updated - **COMPLETE**
 6. ⏳ Owner manual testing - **READY** (when owner decides to execute)
 
 **Installer Testing Ready** (Owner can execute these scenarios):
 - Scenario 1: Fresh install (no existing version)
-- Scenario 2: Upgrade same version ($11.17.7 → $11.17.7 repair)
-- Scenario 3: Upgrade from $11.17.7 → $11.17.7
+- Scenario 2: Upgrade same version (v1.17.7 → v1.17.7 repair)
+- Scenario 3: Upgrade from v1.17.7 → v1.17.7
 - Scenario 4: Docker running during upgrade
 - Scenario 5: Docker stopped during upgrade
 - Scenario 6: Uninstall with data preservation
@@ -397,7 +397,7 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 | **Total Tests** | ✅ 100% | 2579+ passing (all test suites) |
 | **E2E Tests** | ✅ 100% | 19+ critical tests |
 | **Version** | ✅ OK | 1.17.7 released on GitHub |
-| **Production** | ✅ LIVE | System operational, $11.17.7 in use |
+| **Production** | ✅ LIVE | System operational, v1.17.7 in use |
 | **Installer Testing** | ✅ DOCUMENTED | 8 scenarios ready for manual execution |
 | **Code Health** | ✅ VERIFIED | ESLint warnings resolved; analytics types tightened |
 | **APScheduler** | ✅ READY | OPTIONAL-001 production-ready |
@@ -561,19 +561,19 @@ CodeQL cannot fully analyze custom validation functions (`validate_path()`, `val
 
 ---
 
-## ✅ $11.17.7 Release Publication (Feb 3, 2026) - COMPLETE & VERIFIED
+## ✅ v1.17.7 Release Publication (Feb 3, 2026) - COMPLETE & VERIFIED
 
 **Status**: ✅ **GITHUB RELEASE PUBLISHED & VERIFIED** - Production Ready with Installer
 
 **Release Created Successfully** (Feb 3, 2026 - 12:03-13:25 UTC):
-- ✅ Release now exists at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.7
+- ✅ Release now exists at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.7
 - ✅ Tagged as "Latest" release (not draft)
 - ✅ Full release notes body (274 lines comprehensive documentation)
 - ✅ All content properly rendered (Greek characters, code blocks, tables)
 - ✅ **Installer artifact attached**: `SMS_Installer_1.17.7.exe` (6.46 MB)
 
 **CI/CD Workflow Fixes Applied** (Required 4 iterations):
-1. ✅ **Fixed invalid version format** (8 instances of `$11.17.6` → `$11.17.7`/`$11.17.7`)
+1. ✅ **Fixed invalid version format** (8 instances of `v1.17.6` → `v1.17.7`/`v1.17.7`)
    - Commit: 7d8a12bf5 - Initial version format fixes
    - Commit: 48bbec569 - Remaining version format instances
 
@@ -612,7 +612,7 @@ CodeQL cannot fully analyze custom validation functions (`validate_path()`, `val
 - ✅ Total: 2,574+ tests all passing (100% success rate)
 
 **Release Statistics**:
-- Commits since $11.17.7: 15+ main feature commits + 4 CI/CD fix commits
+- Commits since v1.17.7: 15+ main feature commits + 4 CI/CD fix commits
 - Files modified: 12+ application files + workflow fix
 - Bug fixes: 5+ (WebSocket, APScheduler, migrations, CORS)
 - New features: 3 (Greek localization enhancements, historical editing, CI/CD improvements)
@@ -621,10 +621,10 @@ CodeQL cannot fully analyze custom validation functions (`validate_path()`, `val
 **GitHub Release Verification**:
 - Published: February 3, 2026 at 12:03 UTC
 - Status: Latest (not draft)
-- Title: $11.17.7
+- Title: v1.17.7
 - Body: 274 lines of comprehensive release notes
 - Content: All sections properly rendered with Greek characters and formatting
-- Commits included: All 15+ commits since $11.17.7
+- Commits included: All 15+ commits since v1.17.7
 - Author: bs1gr (via GitHub Actions automation)
 
 ---
@@ -836,7 +836,7 @@ Fixes three startup warnings and enables scheduler features.
 > **Next Phase**: Implement Phase 2 permission enforcement features (not blocking this test suite)
 
 ### Phase 4: Advanced Search & Filtering ✅ COMPLETE
-**Status**: Released in $11.17.6 (Jan 22, 2026)
+**Status**: Released in v1.17.6 (Jan 22, 2026)
 - Full-text search across students, courses, grades
 - Advanced filters with 8 operator types
 - Saved searches with favorites
@@ -1286,10 +1286,10 @@ Fixes three startup warnings and enables scheduler features.
 **Repository:**
 - GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS
 - Branch: `feature/phase6-reporting-enhancements` (active work)
-- Main Branch: `main` (production stable - $11.17.6)
+- Main Branch: `main` (production stable - v1.17.6)
 
 ---
 
 **Last Updated**: February 15, 2026 18:45 UTC
-**Status**: ✅ Production Live ($11.17.7) - RBAC fixes complete, Dev proxy implemented
+**Status**: ✅ Production Live (v1.17.7) - RBAC fixes complete, Dev proxy implemented
 **Next Milestone**: Code health maintenance (ESLint warnings) - optional refactoring

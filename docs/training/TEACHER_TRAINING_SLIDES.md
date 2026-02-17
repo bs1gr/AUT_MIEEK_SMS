@@ -1,5 +1,5 @@
 # Teacher Training Slides
-## SMS $11.17.6 - Classroom & Grade Management
+## SMS v1.17.6 - Classroom & Grade Management
 
 **Duration**: 3 hours
 **Audience**: Teachers and Instructors (15-20 people)

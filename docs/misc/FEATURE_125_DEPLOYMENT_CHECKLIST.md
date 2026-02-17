@@ -1,4 +1,4 @@
-# Feature #125 Deployment Checklist - $11.17.7
+# Feature #125 Deployment Checklist - v1.17.7
 
 **Date Created**: January 16, 2026
 **Status**: 🟢 **READY FOR DEPLOYMENT**
@@ -75,7 +75,7 @@ git log --oneline origin/feature/analytics-dashboard -3
 
 **Step 2**: Update CHANGELOG.md
 ```markdown
-## [$11.17.7] - 2026-01-16
+## [v1.17.7] - 2026-01-16
 
 ### Added
 - **Feature #125: Analytics Dashboard**
@@ -115,7 +115,7 @@ git log --oneline origin/feature/analytics-dashboard -3
 ### Migration Notes
 - No database migrations required
 - No breaking API changes
-- Backward compatible with $11.17.7
+- Backward compatible with v1.17.7
 - Recharts dependency added (npm install executed)
 ```
 
@@ -123,7 +123,7 @@ git log --oneline origin/feature/analytics-dashboard -3
 
 Add to "Quick Navigation" section under "For Phase 2 RBAC & Administration":
 ```markdown
-### For Feature #125: Analytics Dashboard (NEW - $11.17.7!)
+### For Feature #125: Analytics Dashboard (NEW - v1.17.7!)
 
 - **Dashboard Guide?** → `docs/analytics/ANALYTICS_DASHBOARD_GUIDE.md` (setup + usage)
 - **E2E Tests?** → `frontend/tests/ANALYTICS_E2E_GUIDE.md` (testing procedures)
@@ -219,7 +219,7 @@ git checkout main
 git pull origin main
 
 # Merge feature branch
-git merge --no-ff feature/analytics-dashboard -m "Merge Feature #125: Analytics Dashboard ($11.17.7)"
+git merge --no-ff feature/analytics-dashboard -m "Merge Feature #125: Analytics Dashboard (v1.17.7)"
 
 # Push to origin
 git push origin main
@@ -228,7 +228,7 @@ git push origin main
 **Step 6**: Tag release
 ```powershell
 # Create annotated tag with release notes
-git tag -a $11.17.7 -m "Release $11.17.7: Feature #125 Analytics Dashboard
+git tag -a v1.17.7 -m "Release v1.17.7: Feature #125 Analytics Dashboard
 
 Feature #125 - Analytics Dashboard
 - React-based dashboard with Recharts visualization
@@ -249,10 +249,10 @@ Commits:
 - a19ee3855: E2E tests and documentation"
 
 # Push tag
-git push origin $11.17.7
+git push origin v1.17.7
 
 # Verify tag
-git tag -l $11.17.7 -n
+git tag -l v1.17.7 -n
 ```
 
 **Step 7**: Create GitHub Release (optional)
@@ -339,11 +339,11 @@ git revert --no-edit <commit-hash>
 git push origin main
 
 # Step 4: Remove tag
-git tag -d $11.17.7
-git push origin --delete $11.17.7
+git tag -d v1.17.7
+git push origin --delete v1.17.7
 
 # Step 5: Deploy previous version
-git checkout $11.17.7
+git checkout v1.17.7
 .\DOCKER.ps1 -Start
 
 # Step 6: Notify stakeholders with incident report
@@ -358,7 +358,7 @@ git checkout $11.17.7
 - [x] Documentation complete
 - [ ] PR created and approved
 - [ ] Code merged to main
-- [ ] Tag $11.17.7 created
+- [ ] Tag v1.17.7 created
 - [ ] E2E tests passing on production
 - [ ] Analytics dashboard accessible at `/analytics`
 - [ ] No performance degradation (still <1s page load)

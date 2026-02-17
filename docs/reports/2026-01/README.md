@@ -4,7 +4,7 @@ This folder collects session reports and artifacts for January 2026 to provide c
 
 ## Snapshot (Jan 17, 2026)
 
-- Version: $11.17.2 (from `VERSION`)
+- Version: v1.17.2 (from `VERSION`)
 - Branch: `main`
 - Backend tests: All 17/17 batches passed; duration 132.8s; exit code 0
   - Skips: integration smoke (by design), version consistency checks for non-present optional files

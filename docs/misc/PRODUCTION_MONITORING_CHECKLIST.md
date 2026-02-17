@@ -1,4 +1,4 @@
-# Production Monitoring Checklist - $11.15.2
+# Production Monitoring Checklist - v1.15.2
 
 **Monitoring Period**: January 8-26, 2026 (19 days)
 **Version**: 1.15.1

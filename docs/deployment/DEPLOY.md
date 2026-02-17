@@ -2,7 +2,7 @@
 
 This document shows how to pull the prebuilt Docker images from Docker Hub or GHCR and run them locally or in production. It includes tag- and digest-based commands for reproducible deployments.
 
-## Images ($11.9.7)
+## Images (v1.9.7)
 
 - Docker Hub
   - vasileiossamaras/aut_mieek_sms-frontend:1.3.5

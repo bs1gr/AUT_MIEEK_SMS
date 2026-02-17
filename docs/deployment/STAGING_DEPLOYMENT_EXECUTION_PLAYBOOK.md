@@ -2,7 +2,7 @@
 
 **Timeline**: January 8-9, 2026 (45 minutes + 24 hours monitoring)
 **Owner**: DevOps Lead + QA
-**Reference**: STAGING_DEPLOYMENT_PLAN_$11.17.2.md
+**Reference**: STAGING_DEPLOYMENT_PLAN_v1.17.2.md
 **Status**: Ready for execution
 
 ---
@@ -13,7 +13,7 @@
 JAN 8 (WEDNESDAY)
 09:00 - 09:30: Pre-deployment validation (30 min)
 09:30 - 10:00: Final go/no-go decision (30 min)
-10:00 - 10:45: Deploy $11.17.2 to staging (45 min)
+10:00 - 10:45: Deploy v1.17.2 to staging (45 min)
 10:45 - 12:00: Manual smoke tests (1h 15m)
 12:00 - 12:15: Escalation check (15 min)
 
@@ -59,8 +59,8 @@ Get-ChildItem "backend/backups/" -Filter "*.bak" | Select-Object -First 1
 
 # Phase 4: Documentation Check
 
-Test-Path "docs/releases/RELEASE_NOTES_$11.17.2.md"  # Should exist
-Test-Path "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.17.2.md"  # Should exist
+Test-Path "docs/releases/RELEASE_NOTES_v1.17.2.md"  # Should exist
+Test-Path "docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.17.2.md"  # Should exist
 
 # Phase 5: Scripts Validation
 
@@ -93,12 +93,12 @@ Proceed with deployment? YES ✓
 # Current data backup (CRITICAL - DO NOT SKIP)
 
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-Copy-Item "data/student_management.db" "backend/backups/pre_$11.17.2_backup_$timestamp.db.bak"
-Write-Host "✅ Backup created: pre_$11.17.2_backup_$timestamp.db.bak"
+Copy-Item "data/student_management.db" "backend/backups/pre_v1.17.2_backup_$timestamp.db.bak"
+Write-Host "✅ Backup created: pre_v1.17.2_backup_$timestamp.db.bak"
 
 # Verify backup
 
-$backupSize = (Get-Item "backend/backups/pre_$11.17.2_backup_$timestamp.db.bak").Length / 1MB
+$backupSize = (Get-Item "backend/backups/pre_v1.17.2_backup_$timestamp.db.bak").Length / 1MB
 Write-Host "Backup size: $backupSize MB"
 if ($backupSize -gt 0.1) {
     Write-Host "✅ Backup valid (>100KB)"
@@ -128,10 +128,10 @@ if ($running) {
 }
 
 ```text
-### Step 1.4: Deploy $11.15.2 (5 minutes)
+### Step 1.4: Deploy v1.15.2 (5 minutes)
 
 ```powershell
-# Start $11.15.2 (will build if needed)
+# Start v1.15.2 (will build if needed)
 
 Write-Host "Starting deployment..."
 .\DOCKER.ps1 -Start
@@ -212,7 +212,7 @@ if ($?) {
 }
 
 ```text
-**Deployment Phase Complete**: ✅ $11.15.2 running and healthy
+**Deployment Phase Complete**: ✅ v1.15.2 running and healthy
 
 ---
 
@@ -527,11 +527,11 @@ Status: ✅ APPROVED FOR PRODUCTION
 ```powershell
 # Use backup from earlier today
 
-Copy-Item "backend/backups/pre_$11.15.2_backup_20260108_100000.db.bak" "data/student_management.db" -Force
+Copy-Item "backend/backups/pre_v1.15.2_backup_20260108_100000.db.bak" "data/student_management.db" -Force
 Write-Host "✅ Database restored from backup"
 
 ```text
-### Step 3: Redeploy $11.15.2 (5 min)
+### Step 3: Redeploy v1.15.2 (5 min)
 
 ```powershell
 # Change VERSION file back to 1.15.0
@@ -555,7 +555,7 @@ Invoke-WebRequest -Uri "http://localhost:8080/health" -TimeoutSec 30
 # Verify all 8 tests still pass
 # Document issue for investigation
 
-Write-Host "Rollback complete - $11.15.2 restored"
+Write-Host "Rollback complete - v1.15.2 restored"
 
 ```text
 ---

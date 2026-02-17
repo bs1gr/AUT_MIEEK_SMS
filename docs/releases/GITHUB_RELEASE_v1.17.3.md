@@ -6,7 +6,7 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 
 **Removed Modules (after 6+ month deprecation):**
 
-- release($11.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release(v1.18.0): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 **Affected Users:**
 - ❌ Custom Python scripts importing old modules → **Migration Required**
@@ -20,9 +20,9 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 
 ### 📖 Migration Guide
 
-**[⬆️ FULL MIGRATION GUIDE](docs/guides/MIGRATION_$11.18.0.md)** - Complete instructions with code examples for updating imports.
+**[⬆️ FULL MIGRATION GUIDE](docs/guides/MIGRATION_v1.18.0.md)** - Complete instructions with code examples for updating imports.
 
-### 📊 What's Included in $11.18.0
+### 📊 What's Included in v1.18.0
 
 - **12 new features** - Enhancement and new capabilities
 - **50 bug fixes** - Stability and reliability improvements
@@ -45,7 +45,7 @@ This is a **MAJOR** release with breaking changes. **Read the migration guide be
 
 ### 📚 Documentation
 
-- **[Migration Guide](docs/guides/MIGRATION_$11.18.0.md)** - How to update your code
-- **[Release Report](docs/releases/reports/RELEASE_REPORT_$11.18.0.md)** - Executive summary and impact assessment
-- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.0.md)** - Detailed cleanup audit
+- **[Migration Guide](docs/guides/MIGRATION_v1.18.0.md)** - How to update your code
+- **[Release Report](docs/releases/reports/RELEASE_REPORT_v1.18.0.md)** - Executive summary and impact assessment
+- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.0.md)** - Detailed cleanup audit
 - **[CHANGELOG](CHANGELOG.md)** - Full commit history

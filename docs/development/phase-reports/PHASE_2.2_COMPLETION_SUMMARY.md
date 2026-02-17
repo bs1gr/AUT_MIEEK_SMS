@@ -1,7 +1,7 @@
 # Phase 2.2 Implementation Summary: Async Job Queue & Audit Logging
 
 **Date:** 2025-12-12
-**Version:** $11.12.2 (Phase 2.2 Complete)
+**Version:** v1.12.2 (Phase 2.2 Complete)
 **Status:** ✅ Core Foundation Complete
 
 ## Overview
@@ -162,7 +162,7 @@ await audit.log_action(
 **Tradeoffs:**
 - ✅ Simpler: No additional dependencies
 - ✅ Consistent: Uses existing cache layer
-- ❌ Limited: No distributed task execution (acceptable for $11.12.2 scope)
+- ❌ Limited: No distributed task execution (acceptable for v1.12.2 scope)
 
 **Implementation:** Jobs stored as JSON strings with `job:{id}` keys, 24-hour TTL. Job lists stored as JSON arrays.
 
@@ -197,7 +197,7 @@ Created 3 composite indexes on AuditLog:
 - ✅ Schema validation (Pydantic)
 - ⏳ Integration tests (pending - see "Next Steps")
 
-## What's NOT Done (Out of Scope for $11.12.2 Core)
+## What's NOT Done (Out of Scope for v1.12.2 Core)
 
 ### Frontend Components (Phase 2.3 - UI Enhancement)
 
@@ -206,7 +206,7 @@ Created 3 composite indexes on AuditLog:
 - [ ] Job list view in admin panel
 - [ ] Audit log viewer in admin panel
 
-### Advanced Features ($11.12.2+)
+### Advanced Features (v1.12.2+)
 
 - [ ] WebSocket for real-time progress updates
 - [ ] Audit log export (CSV/JSON)
@@ -359,7 +359,7 @@ redis-cli get "job:abc123"
 - **Indexes:** 3 composite + 6 single-column indexes
 - **Write Overhead:** ~2-3ms per log entry (indexed writes)
 - **Storage:** ~500 bytes per log entry
-- **Retention:** No auto-cleanup (implement in $11.12.2)
+- **Retention:** No auto-cleanup (implement in v1.12.2)
 
 **Recommendation:** For high-volume deployments (>10K operations/day), consider:
 1. Partition `audit_logs` table by month
@@ -376,7 +376,7 @@ redis-cli get "job:abc123"
 
 None. All tests passing, migration clean.
 
-## Next Steps (Phase 2.3 - $11.12.2 Completion)
+## Next Steps (Phase 2.3 - v1.12.2 Completion)
 
 1. **Integration Work** (Priority 1):
    - [ ] Add audit logging to all bulk operations endpoints
@@ -416,4 +416,4 @@ None. All tests passing, migration clean.
 
 **Phase 2.2 Status:** ✅ Core Foundation Complete
 **Next Milestone:** Phase 2.3 - Integration & UI
-**Target Date:** $11.12.2 release (TBD)
+**Target Date:** v1.12.2 release (TBD)

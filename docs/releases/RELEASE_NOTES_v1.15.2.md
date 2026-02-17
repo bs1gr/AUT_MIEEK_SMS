@@ -277,7 +277,7 @@ All admin endpoints now map to specific permissions in a `resource:action` forma
 
 ---
 
-## 🔄 Migration Guide: $11.15.2 → $11.15.2
+## 🔄 Migration Guide: v1.15.2 → v1.15.2
 
 ### For End Users
 
@@ -425,7 +425,7 @@ All features working as expected. Please report any issues via GitHub.
 
 ---
 
-## 🎯 Next Steps ($11.15.2+)
+## 🎯 Next Steps (v1.15.2+)
 
 ### Planned Features
 

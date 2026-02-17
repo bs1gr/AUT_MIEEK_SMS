@@ -1,5 +1,5 @@
 # Production Go-Live Checklist
-## SMS $11.17.6 - Phase 5 Production Launch
+## SMS v1.17.6 - Phase 5 Production Launch
 
 **Document Version**: 1.0
 **Status**: ✅ Ready for execution

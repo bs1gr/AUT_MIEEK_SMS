@@ -21,7 +21,7 @@
 
 ### 📚 Documentation
 
-- **[Migration Guide](docs/guides/MIGRATION_$11.15.2.md)** - How to update your code
-- **[Release Report](docs/releases/reports/RELEASE_REPORT_$11.15.2.md)** - Executive summary and impact assessment
-- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.15.2.md)** - Detailed cleanup audit
+- **[Migration Guide](docs/guides/MIGRATION_v1.15.2.md)** - How to update your code
+- **[Release Report](docs/releases/reports/RELEASE_REPORT_v1.15.2.md)** - Executive summary and impact assessment
+- **[Cleanup Report](docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.15.2.md)** - Detailed cleanup audit
 - **[CHANGELOG](CHANGELOG.md)** - Full commit history

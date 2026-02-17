@@ -1,5 +1,5 @@
 # Production User Training Program
-## SMS $11.17.6 - Phase 5 Go-Live Training
+## SMS v1.17.6 - Phase 5 Go-Live Training
 
 **Document Version**: 1.0
 **Training Date**: TBD (Target: Early February 2026)

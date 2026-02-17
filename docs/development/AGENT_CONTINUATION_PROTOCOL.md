@@ -26,7 +26,7 @@ When multiple agents work on a project sequentially or in parallel, they need to
 ### The Hierarchy (in order of authority)
 
 1. **`docs/ACTIVE_WORK_STATUS.md`** ← **PRIMARY** — Current state of all active work items
-2. **`docs/releases/RELEASE_PREPARATION_$11.15.2.md`** ← Active release timeline & Phase 1 tasks
+2. **`docs/releases/RELEASE_PREPARATION_v1.15.2.md`** ← Active release timeline & Phase 1 tasks
 3. **`docs/plans/UNIFIED_WORK_PLAN.md`** ← Current backlog and completed phases (reference)
 4. **Session summaries** (`docs/development/sessions/`) ← Context for understanding decisions
 
@@ -67,7 +67,7 @@ CURRENT STATE (from ACTIVE_WORK_STATUS.md):
 **File to read:**
 
 ```text
-docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
+docs/releases/RELEASE_PREPARATION_v1.15.2.md (Phase 1 section)
 
 ```text
 **What to extract:**
@@ -136,7 +136,7 @@ docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
     ✓ Fix patterns documented in docs/TEST_FAILURE_PATTERNS.md
     ✓ PR ready: feature/backend-test-fixes (#47)
   PR/Commit: "feature/backend-test-fixes (#47)"
-  Links: "docs/TEST_FAILURE_PATTERNS.md, docs/releases/$11.15.2_test_status.md"
+  Links: "docs/TEST_FAILURE_PATTERNS.md, docs/releases/v1.15.2_test_status.md"
 
 ```text
 ### If You Hit a Blocker
@@ -147,7 +147,7 @@ docs/releases/RELEASE_PREPARATION_$11.15.2.md (Phase 1 section)
 - Task: "Backend test reconciliation"
 
   Status: "blocked"
-  Blocker: "Cannot determine if failures are pre-existing or new (no baseline test run from $11.15.2 release)"
+  Blocker: "Cannot determine if failures are pre-existing or new (no baseline test run from v1.15.2 release)"
   Blocker Reason: "Release prep doc claims 'all tests passing' but 60 failures exist on current main"
   Decision Needed: |
     1. Should we treat these as pre-existing and defer to Phase 1 task #4?
@@ -199,7 +199,7 @@ work_items:
     last_update: "2026-01-05 15:45 UTC"
 
     description: |
-      Reconcile discrepancy between RELEASE_PREPARATION_$11.15.2.md (claims "all tests passing")
+      Reconcile discrepancy between RELEASE_PREPARATION_v1.15.2.md (claims "all tests passing")
       and actual state (60+ test failures from APIResponse format standardization).
       Determine if these are pre-existing or new regressions.
 
@@ -208,12 +208,12 @@ work_items:
       - Failure categories documented
       - Root causes mapped to commits
       - Decision made: defer to Phase 1 or fix now
-      - RELEASE_PREPARATION_$11.15.2.md Phase 0 claims updated
+      - RELEASE_PREPARATION_v1.15.2.md Phase 0 claims updated
 
     blockers: "None"
     blocked_by: "None"
     related_issues: "#0"
-    related_docs: "docs/releases/RELEASE_PREPARATION_$11.15.2.md"
+    related_docs: "docs/releases/RELEASE_PREPARATION_v1.15.2.md"
 
     next_action: |
       1. Run: cd backend && python -m pytest -q
@@ -238,7 +238,7 @@ work_items:
     description: |
       Commit the type-safety fixes in RBACPanel (Axios response typing) and
       StudentPerformanceReport (error handler + generic config updater).
-      Update release notes for $11.15.2 to reflect this maintenance work.
+      Update release notes for v1.15.2 to reflect this maintenance work.
 
     acceptance_criteria:
       - All 3 local changes committed
@@ -274,18 +274,18 @@ work_items:
 
     description: |
       Create and push the feature branch for Phase 1 work per
-      RELEASE_PREPARATION_$11.15.2.md. This branch will house all 8 improvements.
+      RELEASE_PREPARATION_v1.15.2.md. This branch will house all 8 improvements.
 
     acceptance_criteria:
-      - Branch created: feature/$11.14.2-phase1
+      - Branch created: feature/v1.14.2-phase1
       - Pushed to origin
       - Branch protection rules applied (if applicable)
       - Linked to Phase 1 plan in GitHub Projects or Issues
 
     blockers: "None (can run in parallel with PHASE1-001/002)"
     next_action: |
-      git checkout -b feature/$11.14.2-phase1
-      git push origin feature/$11.14.2-phase1
+      git checkout -b feature/v1.14.2-phase1
+      git push origin feature/v1.14.2-phase1
 
     pr_link: ""
     commit_link: ""

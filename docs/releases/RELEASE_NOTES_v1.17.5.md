@@ -1,12 +1,12 @@
 # Release Notes - Version 1.17.5
 
 **Release Date**: 2026-01-29
-**Previous Version**: $11.17.6
+**Previous Version**: v1.17.6
 **Status**: ✅ Production Ready
 
 ## ⚠️ BREAKING CHANGES
 
-None - fully backward compatible with $11.17.6
+None - fully backward compatible with v1.17.6
 
 ## ✨ Features
 
@@ -116,4 +116,4 @@ For questions or issues with this release:
 
 **Changelog**: See `CHANGELOG.md` for detailed commit history
 **Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS
-**Release Tag**: $11.17.6
+**Release Tag**: v1.17.6

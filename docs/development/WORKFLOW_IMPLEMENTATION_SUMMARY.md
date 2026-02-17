@@ -166,7 +166,7 @@ Installer uploads to release (with graceful fallback)
 
 ```text
 GitHub Actions → Release – Build & Upload Installer with SHA256
-Inputs: tag = $11.14.0
+Inputs: tag = v1.14.0
 # Expected: Resolves tag and builds installer
 
 ```text

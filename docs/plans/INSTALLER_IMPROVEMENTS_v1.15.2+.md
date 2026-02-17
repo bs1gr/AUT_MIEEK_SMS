@@ -1,4 +1,4 @@
-# Installer Improvements - $11.17.2+ Release Notes
+# Installer Improvements - v1.17.2+ Release Notes
 
 ## Overview
 

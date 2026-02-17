@@ -1,5 +1,5 @@
 # SMS Production Troubleshooting Guide
-## $11.17.6 - Days 3-5 Go-Live Support Procedures
+## v1.17.6 - Days 3-5 Go-Live Support Procedures
 
 **Version**: 1.0
 **Date**: January 31, 2026

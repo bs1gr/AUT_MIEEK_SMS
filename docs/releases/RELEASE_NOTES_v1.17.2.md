@@ -1,21 +1,21 @@
-# Release Notes - $11.17.2
+# Release Notes - v1.17.2
 
 **Release Date**: January 17, 2026
 **Version**: 1.17.2 (Stable Consolidation Release)
-**Previous Release**: $11.17.2 (January 10, 2026)
-**Git Tag**: $11.17.2
+**Previous Release**: v1.17.2 (January 10, 2026)
+**Git Tag**: v1.17.2
 
 ---
 
 ## Overview
 
-$11.17.2 is a **consolidation release** that brings together 30+ commits of development, fixes, and improvements made after $11.17.2 was released. This release serves as a **stable baseline** for Phase 4 development and incorporates all critical fixes and Phase 3 feature completions.
+v1.17.2 is a **consolidation release** that brings together 30+ commits of development, fixes, and improvements made after v1.17.2 was released. This release serves as a **stable baseline** for Phase 4 development and incorporates all critical fixes and Phase 3 feature completions.
 
 **Status**: ✅ Production Ready (All 1,638+ tests passing)
 
 ---
 
-## What's New in $11.17.2
+## What's New in v1.17.2
 
 ### Phase 3 Feature Completions (Implemented & Merged)
 
@@ -73,17 +73,17 @@ $11.17.2 is a **consolidation release** that brings together 30+ commits of deve
   - backend/main.py docstring
   - COMMIT_READY.ps1 and INSTALLER_BUILDER.ps1 version headers
   - Documentation version references
-- Establishes $11.17.2 as **stable production baseline**
+- Establishes v1.17.2 as **stable production baseline**
 
-### Why $11.17.2 Instead of $11.17.2?
+### Why v1.17.2 Instead of v1.17.2?
 
 **Strategic Decision**:
-- $11.17.2 tag was created during development but remained unreleased
-- 30+ commits continued after $11.17.2 tag
-- Instead of forcing release of partially-tested $11.17.2:
-  - Consolidating all 30+ commits into $11.17.2 (micro version bump)
-  - $11.17.2 includes all Phase 3 features at 100% completion
-  - Provides stable baseline for Phase 4 development ($11.17.2)
+- v1.17.2 tag was created during development but remained unreleased
+- 30+ commits continued after v1.17.2 tag
+- Instead of forcing release of partially-tested v1.17.2:
+  - Consolidating all 30+ commits into v1.17.2 (micro version bump)
+  - v1.17.2 includes all Phase 3 features at 100% completion
+  - Provides stable baseline for Phase 4 development (v1.17.2)
   - Reduces risk by releasing only thoroughly-tested code
 
 ---
@@ -103,7 +103,7 @@ $11.17.2 is a **consolidation release** that brings together 30+ commits of deve
 - All analytics queries: <1 second response time
 - WebSocket notifications: <100ms latency
 - Bulk import: Handles 1000+ records without performance degradation
-- No regression vs $11.17.2
+- No regression vs v1.17.2
 
 ### Quality Metrics
 
@@ -114,7 +114,7 @@ $11.17.2 is a **consolidation release** that brings together 30+ commits of deve
 
 ---
 
-## Files Changed in $11.17.2
+## Files Changed in v1.17.2
 
 ### New Files
 
@@ -133,9 +133,9 @@ $11.17.2 is a **consolidation release** that brings together 30+ commits of deve
 
 ## Upgrade Instructions
 
-### From $11.17.2 to $11.17.2
+### From v1.17.2 to v1.17.2
 
-**No database migration required** - $11.17.2 uses same schema as $11.17.2
+**No database migration required** - v1.17.2 uses same schema as v1.17.2
 
 #### Docker Deployment
 
@@ -144,9 +144,9 @@ $11.17.2 is a **consolidation release** that brings together 30+ commits of deve
 
 git pull origin main
 
-# Checkout $11.17.2 tag
+# Checkout v1.17.2 tag
 
-git checkout $11.17.2
+git checkout v1.17.2
 
 # Build and deploy
 
@@ -164,9 +164,9 @@ curl http://localhost:8080/health
 
 git pull origin main
 
-# Checkout $11.17.2 tag
+# Checkout v1.17.2 tag
 
-git checkout $11.17.2
+git checkout v1.17.2
 
 # Start development environment
 
@@ -186,7 +186,7 @@ See INSTALLATION_GUIDE.md
 
 ## Breaking Changes
 
-**None** - $11.17.2 is fully backward compatible with $11.17.2
+**None** - v1.17.2 is fully backward compatible with v1.17.2
 
 All Phase 3 features are additive and do not modify existing APIs or functionality.
 
@@ -195,8 +195,8 @@ All Phase 3 features are additive and do not modify existing APIs or functionali
 ## Known Limitations
 
 1. **Email Notifications**: Not yet integrated (Feature #126 supports infrastructure, but email templates pending Phase 4)
-2. **Calendar Integration**: Not included in $11.17.2 (planned for $11.17.2 Phase 4)
-3. **Advanced Search**: Not included in $11.17.2 (planned for $11.17.2 Phase 4)
+2. **Calendar Integration**: Not included in v1.17.2 (planned for v1.17.2 Phase 4)
+3. **Advanced Search**: Not included in v1.17.2 (planned for v1.17.2 Phase 4)
 
 ---
 
@@ -204,7 +204,7 @@ All Phase 3 features are additive and do not modify existing APIs or functionali
 
 ### Database
 
-- No schema changes from $11.17.2
+- No schema changes from v1.17.2
 - No migration required
 - Both versions can share the same database
 
@@ -223,9 +223,9 @@ All Phase 3 features are additive and do not modify existing APIs or functionali
 
 ---
 
-## What's Next: Phase 4 ($11.17.2)
+## What's Next: Phase 4 (v1.17.2)
 
-Phase 4 development will begin with $11.17.2 as the stable baseline. Planned features:
+Phase 4 development will begin with v1.17.2 as the stable baseline. Planned features:
 
 **Tier 1 (High-Impact, Medium Effort)**:
 1. **Advanced Search & Filtering** (40-50 hours)
@@ -259,7 +259,7 @@ See docs/plans/PHASE4_PLANNING.md for complete Phase 4 roadmap and feature asses
 
 ## Credits
 
-**$11.17.2 Release**: Consolidation of 30+ commits from Phase 3 development
+**v1.17.2 Release**: Consolidation of 30+ commits from Phase 3 development
 - Phase 3 Feature Development: Analytics Dashboard, Real-Time Notifications, Bulk Import/Export
 - Code Quality: ESLint fixes, documentation updates, version synchronization
 - Testing: All 1,638+ tests verified passing
@@ -269,16 +269,16 @@ See docs/plans/PHASE4_PLANNING.md for complete Phase 4 roadmap and feature asses
 
 ## Summary
 
-$11.17.2 provides a **stable, well-tested baseline** for continued development. With all Phase 3 features at 100% completion and comprehensive test coverage, this release establishes confidence for Phase 4 feature development and future enhancements.
+v1.17.2 provides a **stable, well-tested baseline** for continued development. With all Phase 3 features at 100% completion and comprehensive test coverage, this release establishes confidence for Phase 4 feature development and future enhancements.
 
 **Status**: ✅ **PRODUCTION READY**
 
 ---
 
 **Release Tags**:
-- Git Tag: `$11.17.2`
-- GitHub Release: $11.17.2
-- Docker Image: Tag $11.17.2 available
+- Git Tag: `v1.17.2`
+- GitHub Release: v1.17.2
+- Docker Image: Tag v1.17.2 available
 
 ---
 

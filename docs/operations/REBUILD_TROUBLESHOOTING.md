@@ -104,7 +104,7 @@ When you select rebuild option in `DOCKER.ps1`:
 ### Volume Naming Convention
 
 - Format: `sms_data_rebuild_v[VERSION]_[DATE]_[TIME]`
-- Example: `sms_data_rebuild_$11.9.7_20251029_160248`
+- Example: `sms_data_rebuild_v1.9.7_20251029_160248`
 - Old volumes are preserved for rollback
 
 ## Rollback Procedure
@@ -123,7 +123,7 @@ If something goes wrong after rebuild:
    services:
      backend:
        volumes:
-         - sms_data_rebuild_$11.9.7_20251029_154149:/data
+         - sms_data_rebuild_v1.9.7_20251029_154149:/data
 
    ```
 

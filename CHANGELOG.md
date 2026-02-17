@@ -154,7 +154,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **release**: prevent generic pipeline from clobbering installer asset
 - **installer**: remove batch launcher and build SMS_Manager in CI
 - **ci**: exclude operational scripts from backend coverage gate
-- **db+release**: harden postgres migration and refresh $11.18.1 installer
+- **db+release**: harden postgres migration and refresh v1.18.1 installer
 - **ci**: prevent installer release auto-overwrite and block undersized assets
 - **docker**: harden volume persistence and auto-migrate legacy volumes
 - **launcher-runtime**: delegate start flow to DOCKER.ps1
@@ -168,14 +168,14 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **ci**: make post-deployment monitoring non-blocking
 
 ### Documentation
-- add installer build summary for $11.18.1 with persistence fixes
+- add installer build summary for v1.18.1 with persistence fixes
 - add comprehensive persistent database fix session summary
 - **testing**: add comprehensive persistence testing and verification guide
-- **release**: finalize $11.18.1 github release body variants
+- **release**: finalize v1.18.1 github release body variants
 - **plan**: record postgres standardization and installer refresh
 - **changelog**: record docker persistence and API debug logging updates
 - **index**: align documented version to 1.18.0
-- **release**: restore curated $11.18.1 release documentation
+- **release**: restore curated v1.18.1 release documentation
 - **courses**: document PDF extraction pipeline and course data validation procedures
 
 ### Tools & Operations
@@ -186,8 +186,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **formatting**: clean up trailing whitespace in DOCKER.ps1
 
 ### Build System
-- **installer**: compile $11.18.1 with database persistence fixes
-- **installer**: refresh $11.18.1 artifact and release hash
+- **installer**: compile v1.18.1 with database persistence fixes
+- **installer**: refresh v1.18.1 artifact and release hash
 - **installer**: update SMS_Installer_1.18.0 artifact
 
 ### CI/CD
@@ -209,7 +209,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - Restored frontend test suite to 100% passing (1854/1854 tests)
 
 ### Documentation
-- **releases**: update $11.18.1 documentation with comprehensive auto-activation coverage
+- **releases**: update v1.18.1 documentation with comprehensive auto-activation coverage
   - Added detailed scheduled job documentation (3:00 AM UTC daily)
   - Documented UI indicators (color-coded badges: green/amber/blue)
   - Added monitoring and audit logging details
@@ -270,7 +270,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **archive**: Update README with consolidation notes
 
 ### Statistics
-- **Commits**: 48 since $11.18.1
+- **Commits**: 48 since v1.18.1
 - **Files Changed**: 120+
 - **Tests**: 2,579+ passing (100% - Backend 742/742, Frontend 1,813/1,813, E2E 19+)
 - **Code Quality**: Zero linting errors, 100% deprecation compliance
@@ -283,7 +283,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### ⚠️ BREAKING CHANGES
 - refactor: Move Power and RBAC modules to feature architecture + i18n improvements
-- release($11.18.1): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release(v1.18.1): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 ### Features
 - **feedback,help,reports**: add feedback inbox, help PDF, and report UX polish
@@ -435,13 +435,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **installer**: remove old instance on upgrade
 - **installer**: include .env.example for Docker Manager startup
 - **installer**: correct build issues (file paths, undefined functions)
-- **version**: synchronize all version references to $11.18.1
+- **version**: synchronize all version references to v1.18.1
 - **installer**: resolve parallel installations, enforce in-place upgrades, add automatic backups
 - **ci**: use base64 encoding to safely pass release body
 - **ci**: properly handle jq JSON output in workflow script
 - **ci**: fix release workflow JavaScript template literal escaping issue
 - **release**: remove all remaining invalid version format instances
-- **release**: correct invalid version format in release notes (.17.6 έΗΤ $11.18.1)
+- **release**: correct invalid version format in release notes (.17.6 έΗΤ v1.18.1)
 - **i18n-dates**: Format dates as DD-MM-YYYY in historical mode banners for Greek locale compatibility
 - **docker**: Improve nginx redirect rewriting to handle all redirect sources
 - **docker**: Fix nginx redirect rewriting for proper CORS handling
@@ -549,7 +549,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Return 403 for authorization failures; improve auth patching in tests
 - SavedSearch endpoints - enforce auth with optional_require_role('*')
 - CI/CD environment variables and E2E test blocking (Jan 24, 2026)
-- Correct version format from \.18.0 to $11.18.1 across documentation (Policy 2 compliance)
+- Correct version format from \.18.0 to v1.18.1 across documentation (Policy 2 compliance)
 - Remove redundant Base import redefinition in conftest.py
 - Add resilience to conftest teardown and explicit schema dependency
 - **frontend**: TypeScript Part 2 - fix remaining 15 errors
@@ -589,7 +589,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - silence MyPy Column assignment noise in import/export service
 - Comprehensive MyPy type error resolution in import_export_service
 - Resolve MyPy type errors in search and import/export services
-- Raise markdown lint threshold to 8100 (temporary workaround for $11.18.1)
+- Raise markdown lint threshold to 8100 (temporary workaround for v1.18.1)
 - Update documentation versions to 1.17.2 (CI version consistency check)
 - Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
 - Resolve remaining ESLint violations (unused vars, types, quote escaping)
@@ -607,7 +607,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Correct version format validator path and PowerShell substitution bugs
 - Resolve all MyPy type errors (28 errors fixed)
 - Resolve linting errors (5 errors total)
-- Update all version references to $11.18.1 (9 files + package-lock.json)
+- Update all version references to v1.18.1 (9 files + package-lock.json)
 - Add missing RBAC schema exports; test audit documentation
 - Normalize line endings in VERSION file
 - Auto-fix trailing whitespace in CI summary
@@ -675,7 +675,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **work-plan**: Update with all frontend tests now passing - 1813/1813 έεΖ
 - **work-plan**: Phase 3c completion - final metrics and test analysis
 - **eslint**: Phase 3c ESLint refactoring complete (240έΗΤ7 warnings, 97.1% reduction)
-- **$11.18.1**: update changelog, readme, and work plan for release
+- **v1.18.1**: update changelog, readme, and work plan for release
 - **plan**: mark CodeQL path traversal issues as complete with full verification
 - **security**: add comprehensive path traversal prevention guide with test results
 - **security**: document CodeQL path traversal false positives and solutions applied
@@ -685,22 +685,22 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **fix**: explain locked files handling improvements in installer
 - **fix**: add emergency cleanup and installation fix documentation
 - **installer**: Add manual cleanup guide for existing installations
-- **installer**: Add $11.18.1 installer build and testing documentation
+- **installer**: Add v1.18.1 installer build and testing documentation
 - force add installer critical fixes summary
 - add comprehensive installer fixes summary and update work plan
 - **installer**: force add critical upgrade fix documentation
 - **installer**: add critical upgrade fix documentation and whitelist installer docs
-- **verification**: update work plan with actual $11.18.1 release fixes and verification results
-- **release**: add comprehensive audit summary for $11.18.1
-- **release**: audit and fix $11.18.1 CI/CD release workflow
-- **release**: sync $11.18.1 release notes to .github/ for CI/CD automation
-- **release-complete**: Add comprehensive $11.18.1 release completion summary
-- **release**: Mark $11.18.1 GitHub release as published
-- **deployment-final**: Deployment readiness confirmation for $11.18.1
+- **verification**: update work plan with actual v1.18.1 release fixes and verification results
+- **release**: add comprehensive audit summary for v1.18.1
+- **release**: audit and fix v1.18.1 CI/CD release workflow
+- **release**: sync v1.18.1 release notes to .github/ for CI/CD automation
+- **release-complete**: Add comprehensive v1.18.1 release completion summary
+- **release**: Mark v1.18.1 GitHub release as published
+- **deployment-final**: Deployment readiness confirmation for v1.18.1
 - **versioning**: Synchronize version references across documentation
-- **release**: Add GitHub release draft for $11.18.1
-- **plan**: Update work plan - $11.18.1 release preparation complete
-- Add $11.18.1 release notes and fix markdown table formatting
+- **release**: Add GitHub release draft for v1.18.1
+- **plan**: Update work plan - v1.18.1 release preparation complete
+- Add v1.18.1 release notes and fix markdown table formatting
 - Update work plan - Native backend fixes verified and complete
 - Update work plan - Historical Edit feature complete
 - **plan**: Update CI/CD recovery completion status (Feb 3, 2026)
@@ -715,11 +715,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Update work plan - RBAC tests 100% complete (24/24 passing, Feb 2 09:40 UTC)
 - **phase6**: Mark Phase 6 complete with final status update
 - **final**: Add deployment ready summary - system ready for production launch
-- **deployment**: Add comprehensive deployment preparation checklist for $11.18.1
+- **deployment**: Add comprehensive deployment preparation checklist for v1.18.1
 - **completion**: Add Phase 6 completion report with OPTIONAL-001 validation results
 - **phase6**: Add OPTIONAL-001 scheduler validation complete summary and final session documentation
 - **phase6**: Remove timeline references - use step-by-step task list
-- **phase6**: Remove incorrect $11.18.1 target - Phase 6 complete at $11.18.1
+- **phase6**: Remove incorrect v1.18.1 target - Phase 6 complete at v1.18.1
 - **phase6**: Mark Phase 6 complete and merged to main
 - Update work plan - Phase 6 reporting integration complete (Feb 1)
 - **phase6**: Update work plan - reports tab relocated to /operations with localization complete
@@ -737,7 +737,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **phase5**: Complete Week 1 deliverables - baseline metrics and monitoring
 - **work-plan**: Update Phase 4 completion - all GitHub issues closed
 - **policy**: Add mandatory SOLO DEVELOPER - NO STAKEHOLDERS rule
-- **work-plan**: Update Phase 4 completion status and Phase 5 options ($11.18.1)
+- **work-plan**: Update Phase 4 completion status and Phase 5 options (v1.18.1)
 - Add comprehensive Phase 6.1 styling completion documentation
 - **export**: Add comprehensive completion summary and update work plan
 - **work-plan**: Mark export enhancements committed and pushed to main
@@ -760,16 +760,16 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **plan**: Document Phase 4 STEP 7-9 completion verification
 - require session-start instruction review
 - **release**: Add comprehensive release and deployment completion report
-- **plan**: Update work plan for $11.18.1 release completion and GitHub deployment
-- **release**: Add $11.18.1 deployment verification report
-- **release**: Add $11.18.1 release notes and preparation guides
-- add release summary - $11.18.1 preparation complete
-- add release documentation for $11.18.1
+- **plan**: Update work plan for v1.18.1 release completion and GitHub deployment
+- **release**: Add v1.18.1 deployment verification report
+- **release**: Add v1.18.1 release notes and preparation guides
+- add release summary - v1.18.1 preparation complete
+- add release documentation for v1.18.1
 - **native**: Add comprehensive venv corruption fix documentation
 - Mark Issue #149 COMPLETE - Production deployment approved (Option A - deploy now)
 - **issue149**: Final optimization results - 380ms p95 aggregated, 12/13 endpoints SLA compliant, async export optional enhancement
 - mark GitHub Release creation as complete
-- update work plan with $11.18.1 release status
+- update work plan with v1.18.1 release status
 - Update work plan with PR #150 merge completion
 - Add comprehensive PR summary for Issue #147 completion
 - Update UNIFIED_WORK_PLAN with STEP 6 completion summary
@@ -783,7 +783,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - CI/CD setup automation & complete implementation guides
 - Update work plan with CI/CD fixes completion (Jan 24, 2026)
 - Update UNIFIED_WORK_PLAN.md with all 4 pending tasks completion status
-- release notes and changelog for $11.18.1
+- release notes and changelog for v1.18.1
 - Update UNIFIED_WORK_PLAN with BATCH 4-6 completion
 - update work plan with Jan 22 CI verification
 - Fix markdown lint errors and streamline work plan >> >> - Fix README.md line length (reference-style link) >> - Fix frontend/README.md line length (split description) >> - Streamline UNIFIED_WORK_PLAN.md (3309 έΗΤ 153 lines, 95% reduction) >> - Archive historical records to UNIFIED_WORK_PLAN_ARCHIVE_JAN21.md >> - All markdown files pass markdownlint-cli2
@@ -793,7 +793,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Add Phase 3 final completion report and action plan
 - Update work plan with test fixture verification
 - Update work plans, release notes, and CI artifacts from recent debugging sessions
-- Fix version format violations - change $11.x.x to v1.x.x
+- Fix version format violations - change v1.x.x to v1.x.x
 - Begin CI monitoring for 7 queued commits
 - Update work plan - mark pending changes as committed
 - Update Phase 4 roadmap and repository cleanup status
@@ -810,27 +810,27 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Update work plan with frontend lint parsing error fixes (Jan 18)
 - Add Phase 6 final status report with completion verification
 - Add Phase 6 completion summary with infrastructure fixes and performance baseline
-- Fix version confusion - $11.18.1 is STABLE (not REMEDIATION)
+- Fix version confusion - v1.18.1 is STABLE (not REMEDIATION)
 - add user guide and mark feature #127 complete
 - Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
 - Add production validation documentation and test utilities
 - Terminal encoding fix - cleared corrupted PSReadLine history
-- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - $11.18.1 released
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.18.1 released
 - Update Phase 3 planning and release documentation
 - Add audit session summary with key findings and status
 - Document lesson learned implementation - verification before claims
 - Add critical lesson - verify test results before claiming success (Jan 12 incident)
 - Add comprehensive audit report and root cause analysis
 - Add action summary for CI fix and release complete
-- Add complete summary - CI fix and $11.18.1 release
-- Add release ready checklist - $11.18.1 preparation
+- Add complete summary - CI fix and v1.18.1 release
+- Add release ready checklist - v1.18.1 preparation
 - Update UNIFIED_WORK_PLAN.md with COMMIT_READY enforcement completion
 - Add COMMIT_READY enforcement system guide
 - Update Feature #126 documentation - Steps 1-2 complete
 - Feature #126 Step 2 discovery - Backend 100% complete
 - Feature #126 Step 1 completion report
 - Feature #126 Real-Time Notifications architecture & implementation plan έεΖ
-- Create $11.18.1 release notes and completion summary έεΖ
+- Create v1.18.1 release notes and completion summary έεΖ
 - Document Feature #125 backend testing completion (22/22 tests passing)
 - add deployment checklist and session summary for Feature #125
 - add Feature #125 Analytics Dashboard completion report
@@ -865,7 +865,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Fix all search endpoint tests - 49/49 passing
 
 ### Build System
-- **installer**: rebuild $11.18.1 with RBAC startup seeding fix
+- **installer**: rebuild v1.18.1 with RBAC startup seeding fix
 
 ### CI/CD
 - Limit heavy workflows to PRs/schedule
@@ -931,8 +931,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **cleanup**: archive 9 session/release completion reports from Feb 2026
 - sync workspace updates
 - **security**: add type hints and pragma annotation to check_login_health.py
-- **version**: update package.json to $11.18.1
-- **version**: bump to $11.18.1 for installer release
+- **version**: update package.json to v1.18.1
+- **version**: bump to v1.18.1 for installer release
 - workspace cleanup and organization
 - **i18n**: Add missing translation keys (resetFilters, applyFilters) and update test patterns for namespace migration
 - **workspace**: Clean up misplaced test artifacts and organize files
@@ -940,7 +940,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Clean temporary logs from workspace
 - update work plan with Phase 5 operational procedures completion (Jan 30, 16:15 UTC)
 - remove obsolete COMMIT_READY log files
-- **release**: Prepare $11.18.1 - Update version references
+- **release**: Prepare v1.18.1 - Update version references
 - bump version to 1.17.5
 - **release**: bump version to 1.17.4 and update docs
 - Fix ESLint warnings and organize workspace - remove unused imports/vars, move docs to archive
@@ -949,7 +949,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **tests**: add RUN_FRONTEND_TESTS_SUMMARY.ps1 to capture vitest output and write summary to test-results/frontend
 - **archive**: move displaced site.webmanifest to archive/displaced-files-jan2026 with README for traceability
 - Archive 39 obsolete/deprecated scripts and test files
-- update README to reflect $11.18.1 release and fix auth header attachment
+- update README to reflect v1.18.1 release and fix auth header attachment
 - **release**: bump version to 1.17.3 and update docs
 - BATCH 3 - Database migration for SavedSearch table
 - improve .gitignore with import/export artifact patterns
@@ -975,7 +975,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Update VERSION to 1.16.0 for release
 - **frontend**: regenerate package-lock.json after version bump
 - **pre-commit**: apply end-of-file fixes from hooks
-- **version**: sync version references to $11.18.1 (auto-fix)
+- **version**: sync version references to v1.18.1 (auto-fix)
 
 ## [1.17.8] - 2026-02-11
 
@@ -1019,7 +1019,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.7] - 2026-02-04
 
 ### ⚠️ BREAKING CHANGES
-- None - fully backward compatible with $11.17.7
+- None - fully backward compatible with v1.17.7
 
 ### Features
 - **installer**: Critical installer fixes for Windows deployment
@@ -1057,7 +1057,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.5] - 2026-01-29
 
 ### ⚠️ BREAKING CHANGES
-- None - fully backward compatible with $11.17.7
+- None - fully backward compatible with v1.17.7
 
 ### Features
 - **theme**: MIEEK Dark theme visual refinements with improved input contrast
@@ -1071,7 +1071,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.4] - 2026-01-26
 
 ### ⚠️ BREAKING CHANGES
-- release($11.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release(v1.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 ### Features
 - **search-results**: Add SearchResults component with entity-specific cards and tests
@@ -1113,7 +1113,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Return 403 for authorization failures; improve auth patching in tests
 - SavedSearch endpoints - enforce auth with optional_require_role('*')
 - CI/CD environment variables and E2E test blocking (Jan 24, 2026)
-- Correct version format from \.18.0 to $11.17.6 across documentation (Policy 2 compliance)
+- Correct version format from \.18.0 to v1.17.6 across documentation (Policy 2 compliance)
 - Remove redundant Base import redefinition in conftest.py
 - Add resilience to conftest teardown and explicit schema dependency
 - **frontend**: TypeScript Part 2 - fix remaining 15 errors
@@ -1153,7 +1153,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - silence MyPy Column assignment noise in import/export service
 - Comprehensive MyPy type error resolution in import_export_service
 - Resolve MyPy type errors in search and import/export services
-- Raise markdown lint threshold to 8100 (temporary workaround for $11.17.6)
+- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.6)
 - Update documentation versions to 1.17.2 (CI version consistency check)
 - Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
 - Resolve remaining ESLint violations (unused vars, types, quote escaping)
@@ -1171,7 +1171,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Correct version format validator path and PowerShell substitution bugs
 - Resolve all MyPy type errors (28 errors fixed)
 - Resolve linting errors (5 errors total)
-- Update all version references to $11.17.6 (9 files + package-lock.json)
+- Update all version references to v1.17.6 (9 files + package-lock.json)
 - Add missing RBAC schema exports; test audit documentation
 
 ### Security
@@ -1202,7 +1202,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - CI/CD setup automation & complete implementation guides
 - Update work plan with CI/CD fixes completion (Jan 24, 2026)
 - Update UNIFIED_WORK_PLAN.md with all 4 pending tasks completion status
-- release notes and changelog for $11.17.6
+- release notes and changelog for v1.17.6
 - Update UNIFIED_WORK_PLAN with BATCH 4-6 completion
 - update work plan with Jan 22 CI verification
 - Fix markdown lint errors and streamline work plan >> >> - Fix README.md line length (reference-style link) >> - Fix frontend/README.md line length (split description) >> - Streamline UNIFIED_WORK_PLAN.md (3309 έΗΤ 153 lines, 95% reduction) >> - Archive historical records to UNIFIED_WORK_PLAN_ARCHIVE_JAN21.md >> - All markdown files pass markdownlint-cli2
@@ -1212,7 +1212,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Add Phase 3 final completion report and action plan
 - Update work plan with test fixture verification
 - Update work plans, release notes, and CI artifacts from recent debugging sessions
-- Fix version format violations - change $11.x.x to v1.x.x
+- Fix version format violations - change v1.x.x to v1.x.x
 - Begin CI monitoring for 7 queued commits
 - Update work plan - mark pending changes as committed
 - Update Phase 4 roadmap and repository cleanup status
@@ -1229,19 +1229,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Update work plan with frontend lint parsing error fixes (Jan 18)
 - Add Phase 6 final status report with completion verification
 - Add Phase 6 completion summary with infrastructure fixes and performance baseline
-- Fix version confusion - $11.17.6 is STABLE (not REMEDIATION)
+- Fix version confusion - v1.17.6 is STABLE (not REMEDIATION)
 - add user guide and mark feature #127 complete
 - Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
 - Add production validation documentation and test utilities
 - Terminal encoding fix - cleared corrupted PSReadLine history
-- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - $11.17.6 released
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.6 released
 - Update Phase 3 planning and release documentation
 - Add audit session summary with key findings and status
 - Document lesson learned implementation - verification before claims
 - Add critical lesson - verify test results before claiming success (Jan 12 incident)
 - Add comprehensive audit report and root cause analysis
 - Add action summary for CI fix and release complete
-- Add complete summary - CI fix and $11.17.6 release
+- Add complete summary - CI fix and v1.17.6 release
 
 ### Tests
 - **searchbar**: Fix all 20 SearchBar component tests - async, fireEvent, timeout improvements
@@ -1264,7 +1264,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **tests**: add RUN_FRONTEND_TESTS_SUMMARY.ps1 to capture vitest output and write summary to test-results/frontend
 - **archive**: move displaced site.webmanifest to archive/displaced-files-jan2026 with README for traceability
 - Archive 39 obsolete/deprecated scripts and test files
-- update README to reflect $11.17.6 release and fix auth header attachment
+- update README to reflect v1.17.6 release and fix auth header attachment
 - **release**: bump version to 1.17.3 and update docs
 - BATCH 3 - Database migration for SavedSearch table
 - improve .gitignore with import/export artifact patterns
@@ -1302,7 +1302,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.17.3] - 2026-01-22
 
 ### ⚠️ BREAKING CHANGES
-- release($11.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning
+- release(v1.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning
 
 ### Features
 - BATCH 6 - Frontend SavedSearches Component
@@ -1349,7 +1349,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - silence MyPy Column assignment noise in import/export service
 - Comprehensive MyPy type error resolution in import_export_service
 - Resolve MyPy type errors in search and import/export services
-- Raise markdown lint threshold to 8100 (temporary workaround for $11.18.0)
+- Raise markdown lint threshold to 8100 (temporary workaround for v1.18.0)
 - Update documentation versions to 1.17.2 (CI version consistency check)
 - Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow
 - Resolve remaining ESLint violations (unused vars, types, quote escaping)
@@ -1367,7 +1367,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Correct version format validator path and PowerShell substitution bugs
 - Resolve all MyPy type errors (28 errors fixed)
 - Resolve linting errors (5 errors total)
-- Update all version references to $11.18.0 (9 files + package-lock.json)
+- Update all version references to v1.18.0 (9 files + package-lock.json)
 - Add missing RBAC schema exports; test audit documentation
 
 ### Security
@@ -1391,7 +1391,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Add Phase 3 final completion report and action plan
 - Update work plan with test fixture verification
 - Update work plans, release notes, and CI artifacts from recent debugging sessions
-- Fix version format violations - change $11.x.x to v1.x.x
+- Fix version format violations - change v1.x.x to v1.x.x
 - Begin CI monitoring for 7 queued commits
 - Update work plan - mark pending changes as committed
 - Update Phase 4 roadmap and repository cleanup status
@@ -1408,19 +1408,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Update work plan with frontend lint parsing error fixes (Jan 18)
 - Add Phase 6 final status report with completion verification
 - Add Phase 6 completion summary with infrastructure fixes and performance baseline
-- Fix version confusion - $11.18.0 is STABLE (not REMEDIATION)
+- Fix version confusion - v1.18.0 is STABLE (not REMEDIATION)
 - add user guide and mark feature #127 complete
 - Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation
 - Add production validation documentation and test utilities
 - Terminal encoding fix - cleared corrupted PSReadLine history
-- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - $11.18.0 released
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.18.0 released
 - Update Phase 3 planning and release documentation
 - Add audit session summary with key findings and status
 - Document lesson learned implementation - verification before claims
 - Add critical lesson - verify test results before claiming success (Jan 12 incident)
 - Add comprehensive audit report and root cause analysis
 - Add action summary for CI fix and release complete
-- Add complete summary - CI fix and $11.18.0 release
+- Add complete summary - CI fix and v1.18.0 release
 
 ### Tests
 - fix useSearch loadMore async test flakiness
@@ -1680,7 +1680,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Notification broadcast test failures (5/12 tests) - 403 Forbidden on test endpoint
   - Root cause: Permission check on test broadcast endpoint
   - Workaround: None; use manual testing for notification features
-  - Timeline: Addressed in $11.15.2
+  - Timeline: Addressed in v1.15.2
 
 ### 🔄 Changes from 1.15.2
 
@@ -1766,9 +1766,9 @@ This release concludes Phase 1 of the Student Management System with **8 major i
 ### 📝 Documentation
 
 - Updated [UNIFIED_WORK_PLAN.md](docs/plans/UNIFIED_WORK_PLAN.md) with Phase 1 completion
-- Added Phase 1 execution tracker: [EXECUTION_TRACKER_$11.15.2.md](docs/releases/EXECUTION_TRACKER_$11.15.2.md)
+- Added Phase 1 execution tracker: [EXECUTION_TRACKER_v1.15.2.md](docs/releases/EXECUTION_TRACKER_v1.15.2.md)
 - Consolidated release notes and migration guide
-- Updated DOCUMENTATION_INDEX.md with $11.15.2 references
+- Updated DOCUMENTATION_INDEX.md with v1.15.2 references
 
 ### 🔄 Migration Guide (1.14.3 → 1.15.0)
 
@@ -1787,7 +1787,7 @@ This release concludes Phase 1 of the Student Management System with **8 major i
 
 ### 🐛 Known Issues
 
-- Notification broadcast E2E tests require admin auth (deferred to $11.15.2)
+- Notification broadcast E2E tests require admin auth (deferred to v1.15.2)
 - UI registration test has minor cookie assertion issue (non-critical)
 
 ### 📚 Related Issues & PRs
@@ -2179,7 +2179,7 @@ python -m backend.auto_import_courses
 python -m backend.scripts.import_.courses
 ```
 
-See [Migration Guide](docs/guides/MIGRATION_$11.15.2.md) for complete details.
+See [Migration Guide](docs/guides/MIGRATION_v1.15.2.md) for complete details.
 
 ### Removed
 
@@ -2825,7 +2825,7 @@ if not auth_enabled or auth_mode == "disabled":
 **Phase Documentation** 📚
 - Created `PHASE_1_2.1_COMPLETION_SUMMARY.md` - Phase 1 & 2.1 deliverables and validation
 - Created `PHASE_2.1_OPTIONALS_COMPLETION.md` - Phase 2.1 optional features completion
-- Updated `ROADMAP_$11.15.2.md` with Phase 2.3 completion and upcoming phases
+- Updated `ROADMAP_v1.15.2.md` with Phase 2.3 completion and upcoming phases
 - Comprehensive CHANGELOG entries for all 1.12.2 components
 
 **Developer Guides** 🛠️
@@ -3828,18 +3828,18 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 
 | Version | Date | Highlights |
 |---------|------|------------|
-| $11.17.2 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
-| $11.17.2.4 | 2025-11-22 | Windows GUI Installer Wizard |
-| $11.17.2 | 2025-11-19 | QNAP deployment, On-demand monitoring |
-| $11.17.2 | 2025-11-13 | Refresh token authentication |
-| $11.17.2 | 2025-11-06 | CSV import, codebase cleanup |
-| $11.17.2 | 2025-10-30 | JWT authentication, RBAC |
+| v1.17.2 | 2025-11-23 | Documentation alignment, DEFAULT_ADMIN_AUTO_RESET |
+| v1.17.2.4 | 2025-11-22 | Windows GUI Installer Wizard |
+| v1.17.2 | 2025-11-19 | QNAP deployment, On-demand monitoring |
+| v1.17.2 | 2025-11-13 | Refresh token authentication |
+| v1.17.2 | 2025-11-06 | CSV import, codebase cleanup |
+| v1.17.2 | 2025-10-30 | JWT authentication, RBAC |
 
 ---
 
-[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
-[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
-[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
-[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
-[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
+[1.9.4]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.2...v1.17.2
+[1.9.3]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.2...v1.17.2
+[1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.2...v1.17.2
+[1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.2...v1.17.2
+[1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.2
 

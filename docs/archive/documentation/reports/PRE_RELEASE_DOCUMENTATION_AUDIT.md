@@ -1,7 +1,7 @@
-# Pre-Release Documentation Audit $11.9.7
+# Pre-Release Documentation Audit v1.9.7
 
 **Date**: 2025-12-04
-**Scope**: Complete documentation review for $11.9.7 release
+**Scope**: Complete documentation review for v1.9.7 release
 **Status**: ✅ Ready for Release
 
 ---
@@ -65,8 +65,8 @@ docs/
 │   └── ...quick references
 │
 └── releases/
-    ├── $11.9.7.md
-    ├── $11.9.7.md
+    ├── v1.9.7.md
+    ├── v1.9.7.md
     └── ...version history
 
 ```text
@@ -85,7 +85,7 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
 | `development/ARCHITECTURE_DIAGRAMS.md` | Visual workflows | LOW | Create Mermaid diagrams |
 | `development/LOAD_TEST_PLAYBOOK.md` | Performance testing | MEDIUM | Document locust/k6 procedures |
 
-**Recommendation**: Draft documents are acceptable for $11.9.7 release. They are clearly marked with `[DRAFT]` status. Expand in future releases.
+**Recommendation**: Draft documents are acceptable for v1.9.7 release. They are clearly marked with `[DRAFT]` status. Expand in future releases.
 
 ### 2. Version Reference Inconsistencies
 
@@ -98,10 +98,10 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
 
 **Still Referencing Older Versions (Acceptable):**
 
-- `docs/releases/$11.9.7.md` - Historical release notes (DO NOT change)
-- `RELEASE_SUMMARY_$11.9.7.md` - Previous release summary (archived reference)
+- `docs/releases/v1.9.7.md` - Historical release notes (DO NOT change)
+- `RELEASE_SUMMARY_v1.9.7.md` - Previous release summary (archived reference)
 - `archive/` directory - Historical documents (preserve as-is)
-- `installer/` docs - Related to $11.9.7 installer build (will update on next installer build)
+- `installer/` docs - Related to v1.9.7 installer build (will update on next installer build)
 
 ### 3. Troubleshooting Documentation
 
@@ -123,7 +123,7 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
 
 ## Proposed Documentation Improvements (Post-1.9.7)
 
-### Short Term ($11.9.7)
+### Short Term (v1.9.7)
 
 1. **Unified Troubleshooting Index**
 
@@ -141,11 +141,11 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
    - Include incident response
 
 3. **Version 1.9.7 Release Notes**
-   - Create `docs/releases/$11.9.7.md`
+   - Create `docs/releases/v1.9.7.md`
    - Document this pre-release audit
    - Highlight cleanup and version alignment
 
-### Medium Term ($11.9.7)
+### Medium Term (v1.9.7)
 
 4. **API_EXAMPLES.md Expansion**
    - Common CRUD operations
@@ -159,7 +159,7 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
    - Database ER diagrams
    - Deployment architecture
 
-### Long Term ($11.9.7)
+### Long Term (v1.9.7)
 
 6. **Video Tutorials**
    - Quick start screencast
@@ -228,7 +228,7 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
 - [x] Broken links verified (automated workflow exists)
 - [x] Draft status clearly marked
 - [x] Greek translations available
-- [ ] Create $11.9.7 release notes (do after PR merge)
+- [ ] Create v1.9.7 release notes (do after PR merge)
 
 ### Code-Documentation Alignment
 
@@ -240,15 +240,15 @@ Status as of DOCUMENTATION_INDEX.md (2025-11-16):
 
 ---
 
-## Recommendations for $11.9.7 Release
+## Recommendations for v1.9.7 Release
 
 ### APPROVE AS-IS with Post-Release Action
 
-**Ship $11.9.7 with current documentation** - it is comprehensive and well-organized.
+**Ship v1.9.7 with current documentation** - it is comprehensive and well-organized.
 
 **Post-Release Tasks** (not blocking):
 
-1. Create `docs/releases/$11.9.7.md` release notes
+1. Create `docs/releases/v1.9.7.md` release notes
 2. Expand RUNBOOK.md (from draft to production)
 3. Create TROUBLESHOOTING_INDEX.md
 4. Update installer documentation when next installer is built
@@ -282,11 +282,11 @@ Additional consolidation would harm usability.
 
 **Documentation Status**: ✅ **READY FOR RELEASE**
 
-The Student Management System documentation is in excellent condition for the $11.9.7 release. The structure is optimal, content is comprehensive, and recent consolidation efforts (Nov 2025) have created a clean, maintainable documentation tree.
+The Student Management System documentation is in excellent condition for the v1.9.7 release. The structure is optimal, content is comprehensive, and recent consolidation efforts (Nov 2025) have created a clean, maintainable documentation tree.
 
 **No blocking issues identified.**
 
-Minor improvements can be addressed in subsequent releases without impacting $11.9.7 ship date.
+Minor improvements can be addressed in subsequent releases without impacting v1.9.7 ship date.
 
 ---
 

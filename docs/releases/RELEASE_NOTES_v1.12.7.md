@@ -1,4 +1,4 @@
-# Release Notes: $11.12.7
+# Release Notes: v1.12.7
 
 **Release Date:** December 24, 2025
 **Release Type:** Patch Release
@@ -37,4 +37,4 @@ No special upgrade steps required.
 
 ---
 
-*Generated for Student Management System $11.12.7*
+*Generated for Student Management System v1.12.7*

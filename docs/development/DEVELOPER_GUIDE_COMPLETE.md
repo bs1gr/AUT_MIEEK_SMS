@@ -959,7 +959,7 @@ test('create example item', async ({ page }) => {
 
 ## Performance Optimization
 
-### Recent Optimizations ($11.9.7+)
+### Recent Optimizations (v1.9.7+)
 
 **Database Indexing (+40% query speed):**
 

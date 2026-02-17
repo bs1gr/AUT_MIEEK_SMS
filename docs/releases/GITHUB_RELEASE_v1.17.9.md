@@ -1,8 +1,8 @@
-# Student Management System $11.18.1
+# Student Management System v1.18.1
 
 **Release Date**: February 13, 2026
 **Type**: Patch Release (Bug Fixes + Enhancements)
-**Commits**: 48 since $11.18.1
+**Commits**: 48 since v1.18.1
 
 ---
 
@@ -103,7 +103,7 @@ Transform workspace maintenance with powerful automation tools:
 ## 📊 Statistics
 
 **Development Activity**:
-- 48 commits since $11.18.1
+- 48 commits since v1.18.1
 - 120+ files changed
 - ~1,500 lines added
 
@@ -181,7 +181,7 @@ npm --prefix frontend run test      # Frontend tests
 ## 🔗 Assets
 
 - **Windows Installer**: `SMS_Installer_1.17.9.exe` (attached)
-- **Source Code**: Tag `$11.18.1`
+- **Source Code**: Tag `v1.18.1`
 - **Docker Images**: `ghcr.io/bs1gr/aut_mieek_sms:1.17.9`
 
 ---
@@ -210,7 +210,7 @@ npm --prefix frontend run test      # Frontend tests
 
 ## 📖 Full Release Notes
 
-For complete details, see: [RELEASE_NOTES_$11.18.1.md](RELEASE_NOTES_$11.18.1.md)
+For complete details, see: [RELEASE_NOTES_v1.18.1.md](RELEASE_NOTES_v1.18.1.md)
 
 ---
 
@@ -224,4 +224,4 @@ This release delivers comprehensive workspace management automation and CI/CD st
 
 **Questions or Issues?** See [CONTRIBUTING.md](../../CONTRIBUTING.md) or open a GitHub issue.
 
-**Next Release**: $11.18.1 (March 2026) - Major feature enhancements
+**Next Release**: v1.18.1 (March 2026) - Major feature enhancements
