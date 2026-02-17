@@ -262,10 +262,17 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
   const [topPerformers, setTopPerformers] = useState<StudentWithGPA[]>([]);
   const [rankingType, setRankingType] = useState<'gpa' | 'attendance' | 'exams' | 'overall'>('gpa');
+  const [activeEnrollmentStudentIds, setActiveEnrollmentStudentIds] = useState<Set<number>>(new Set());
+  const [activeEnrollmentCourseIds, setActiveEnrollmentCourseIds] = useState<Set<number>>(new Set());
+
+  const activeTopPerformers = useMemo(
+    () => topPerformers.filter((student) => activeEnrollmentStudentIds.has(student.id)),
+    [topPerformers, activeEnrollmentStudentIds]
+  );
 
   // Compute ranked students based on selected ranking type
   const rankedStudents = useMemo(() => {
-    const students = [...topPerformers];
+    const students = [...activeTopPerformers];
     switch (rankingType) {
       case 'gpa':
         return students.sort((a, b) => b.continuousScore - a.continuousScore).slice(0, 5);
@@ -278,7 +285,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       default:
         return students.slice(0, 5);
     }
-  }, [topPerformers, rankingType]);
+  }, [activeTopPerformers, rankingType]);
 
   const analyticsRef = useRef<HTMLDivElement>(null);
   const showMore = true;
@@ -295,19 +302,19 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
   );
 
   const topPerformersCourseTotal = useMemo(
-    () => topPerformers.reduce((sum: number, student) => sum + (student.totalCourses || 0), 0),
-    [topPerformers]
+    () => activeTopPerformers.reduce((sum: number, student) => sum + (student.totalCourses || 0), 0),
+    [activeTopPerformers]
   );
 
   const averageTopPerformerPct = useMemo(() => {
-    if (!topPerformers.length) {
+    if (!activeTopPerformers.length) {
       return 0;
     }
     return (
-      topPerformers.reduce((sum: number, student) => sum + (student.overallScore || 0), 0) /
-      topPerformers.length
+      activeTopPerformers.reduce((sum: number, student) => sum + (student.overallScore || 0), 0) /
+      activeTopPerformers.length
     );
-  }, [topPerformers]);
+  }, [activeTopPerformers]);
 
   const yearBuckets = useMemo(() => {
     const buckets: Record<string, number> = {};
@@ -353,6 +360,8 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     if (courses.length === 0) {
       setAvgClassSize(0);
       setActiveCourseCount(0);
+      setActiveEnrollmentStudentIds(new Set());
+      setActiveEnrollmentCourseIds(new Set());
       return;
     }
     try {
@@ -360,9 +369,14 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       if (!response.ok) throw new Error(`Failed to fetch enrollments: ${response.status} ${response.statusText}`);
       const data = await response.json();
       const enrollments: { course_id?: number }[] = data.items || [];
+      const activeEnrollments = Array.isArray(enrollments)
+        ? enrollments.filter(
+            (enrollment: { status?: string }) => String(enrollment.status || '').toLowerCase() === 'active'
+          )
+        : [];
 
-      if (Array.isArray(enrollments) && enrollments.length > 0) {
-        const enrollmentCounts = enrollments.reduce(
+      if (activeEnrollments.length > 0) {
+        const enrollmentCounts = activeEnrollments.reduce(
           (acc: Record<number, number>, enrollment: { course_id?: number }) => {
             if (enrollment.course_id) {
               acc[enrollment.course_id] = (acc[enrollment.course_id] || 0) + 1;
@@ -373,6 +387,15 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
         );
 
         const coursesWithEnrollments = Object.keys(enrollmentCounts).length;
+        const courseIds = new Set(Object.keys(enrollmentCounts).map((id) => Number(id)));
+        const studentIds = new Set(
+          activeEnrollments
+            .map((enrollment: { student_id?: number }) => enrollment.student_id)
+            .filter((id): id is number => Number.isFinite(id))
+        );
+
+        setActiveEnrollmentCourseIds(courseIds);
+        setActiveEnrollmentStudentIds(studentIds);
         setActiveCourseCount(coursesWithEnrollments);
 
         if (coursesWithEnrollments > 0) {
@@ -385,11 +408,15 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       } else {
         setAvgClassSize(0);
         setActiveCourseCount(0);
+        setActiveEnrollmentStudentIds(new Set());
+        setActiveEnrollmentCourseIds(new Set());
       }
     } catch (error) {
       console.error('Error loading enrollment stats:', error);
       setAvgClassSize(0);
       setActiveCourseCount(0);
+      setActiveEnrollmentStudentIds(new Set());
+      setActiveEnrollmentCourseIds(new Set());
     }
   }, [courses]);
 
