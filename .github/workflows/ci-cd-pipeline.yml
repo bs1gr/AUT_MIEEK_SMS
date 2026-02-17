@@ -1328,7 +1328,11 @@ jobs:
           # IMPORTANT: Do NOT upload installer executables from generic CI artifacts.
           # Installer assets are managed by dedicated installer workflows and verified separately.
           # This prevents accidental clobber of release installer with stale/smaller binaries.
-          mapfile -t RELEASE_FILES < <(find ./artifacts -type f ! -name 'SMS_Installer_*.exe')
+          # Also exclude frontend-dist files (already packaged in installer).
+          mapfile -t RELEASE_FILES < <(find ./artifacts -type f \
+            ! -name 'SMS_Installer_*.exe' \
+            ! -path '*/frontend-dist/*' \
+            ! -path '*/frontend-build-stats/*')
 
           # Attempt to create release. If it fails (e.g. already exists), fall back to edit/upload.
           if ! gh release create "$VERSION" \
