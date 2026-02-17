@@ -73,4 +73,3 @@ This patch release addresses test failures introduced by the auto-activation UI 
 ---
 
 **Commit**: fix(tests): update course modal tests for auto-activation UI changes
-

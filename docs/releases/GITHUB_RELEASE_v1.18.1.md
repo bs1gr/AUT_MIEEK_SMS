@@ -60,4 +60,3 @@ git pull origin main
 ---
 
 **Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.1...$11.18.1
-
