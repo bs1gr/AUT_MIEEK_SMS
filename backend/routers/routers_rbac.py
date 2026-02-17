@@ -471,18 +471,28 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
 
     teacher_perms = [
         "students:view",
+        "students:create",
         "students:edit",
+        "students:delete",
         "courses:view",
+        "courses:create",
+        "courses:edit",
+        "courses:delete",
         "grades:view",
         "grades:edit",
+        "grades:delete",
         "attendance:view",
         "attendance:edit",
+        "attendance:delete",
         "enrollments:view",
         "enrollments:manage",
         "reports:view",
         "analytics:view",
+        "system:import",
         "system:export",
         "notifications:manage",
+        "exports:generate",
+        "exports:download",
     ]
     for pn in teacher_perms:
         grant("teacher", pn)
@@ -492,8 +502,11 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
         "courses:view",
         "grades:view",
         "attendance:view",
+        "enrollments:view",
         "reports:view",
         "analytics:view",
+        "exports:generate",
+        "exports:download",
     ]
     for pn in viewer_perms:
         grant("guest", pn)

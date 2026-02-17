@@ -85,6 +85,44 @@ def _build_lockout_exception(request: Request, lockout_until: datetime) -> HTTPE
     )
 
 
+def _is_lockout_exempt_email(email: Optional[str]) -> bool:
+    normalized = (email or "").strip().lower()
+    if not normalized:
+        return False
+    env = str(getattr(settings, "SMS_ENV", "")).strip().lower()
+    if env in {"production", "prod", "staging"}:
+        return False
+    if normalized in getattr(settings, "AUTH_LOGIN_EXEMPT_EMAILS_LIST", []):
+        return True
+    if "@" in normalized:
+        domain = normalized.split("@", 1)[1]
+        if domain in getattr(settings, "AUTH_LOGIN_EXEMPT_DOMAINS_LIST", []):
+            return True
+    return False
+
+
+def _ensure_rbac_role_assignment(db: Session, user: User, role_name: Optional[str]) -> None:
+    if not user or not role_name:
+        return
+    role_key = str(role_name).strip().lower()
+    if not role_key:
+        return
+    role = db.query(models.Role).filter(models.Role.name == role_key).first()
+    if not role:
+        return
+    exists = (
+        db.query(models.UserRole).filter(models.UserRole.user_id == user.id, models.UserRole.role_id == role.id).first()
+    )
+    if exists:
+        return
+    try:
+        db.add(models.UserRole(user_id=user.id, role_id=role.id))
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+
 def _enforce_throttle_guards(keys: list[Optional[str]], request: Request) -> None:
     # Skip throttling entirely when auth is disabled (tests/maintenance modes) or throttle disabled via env
     if (
@@ -446,6 +484,7 @@ async def register_user(request: Request, payload: UserCreate = Body(...), db: S
         db.add(user)
         db.commit()
         db.refresh(user)
+        _ensure_rbac_role_assignment(db, user, assigned_role)
         return user
     except HTTPException:
         raise
@@ -465,18 +504,24 @@ async def login(
     try:
         logger.info("Login attempt")
         normalized_email = payload.email.lower().strip()
+        lockout_exempt = _is_lockout_exempt_email(normalized_email)
         client_identifier = _get_client_identifier(request)
         throttle_keys: list[str | None] = [f"email:{normalized_email}" if normalized_email else None]
         if client_identifier:
             throttle_keys.append(f"ip:{client_identifier}")
 
-        _enforce_throttle_guards(throttle_keys, request)
+        if not lockout_exempt:
+            _enforce_throttle_guards(throttle_keys, request)
 
         user = db.query(User).filter(User.email == normalized_email).first()
         hashed_pw = str(getattr(user, "hashed_password", "")) if user else ""
 
         if user:
-            _enforce_user_lockout(user, request, db)
+            if lockout_exempt:
+                _reset_user_login_state(user, db)
+                _reset_throttle_entries(throttle_keys)
+            else:
+                _enforce_user_lockout(user, request, db)
 
         try:
             password_valid = bool(user and verify_password(payload.password, hashed_pw))
@@ -485,12 +530,13 @@ async def login(
             raise internal_server_error("Password verification failed", request) from exc
         if not password_valid:
             logger.info("Invalid login attempt", extra={"user_exists": bool(user)})
-            user_lockout_until = _register_user_failed_attempt(user, db) if user else None
-            throttle_lockout_until = _register_throttle_failure(throttle_keys)
-            lockout_until = user_lockout_until or throttle_lockout_until
-            if lockout_until:
-                logger.warning("Account lockout triggered")
-                raise _build_lockout_exception(request, lockout_until)
+            if not lockout_exempt:
+                user_lockout_until = _register_user_failed_attempt(user, db) if user else None
+                throttle_lockout_until = _register_throttle_failure(throttle_keys)
+                lockout_until = user_lockout_until or throttle_lockout_until
+                if lockout_until:
+                    logger.warning("Account lockout triggered")
+                    raise _build_lockout_exception(request, lockout_until)
             raise http_error(
                 status.HTTP_400_BAD_REQUEST,
                 ErrorCode.AUTH_INVALID_CREDENTIALS,
@@ -811,10 +857,12 @@ async def admin_create_user(
             context={"email": normalized_email},
         )
 
+    role_name = payload.role or "teacher"
+
     user = User(
         email=normalized_email,
         full_name=(payload.full_name or "").strip() or None,
-        role=payload.role or "teacher",
+        role=role_name,
         hashed_password=get_password_hash(payload.password),
         is_active=True,
     )
@@ -823,6 +871,7 @@ async def admin_create_user(
         db.add(user)
         db.commit()
         db.refresh(user)
+        _ensure_rbac_role_assignment(db, user, role_name)
         return user
     except Exception as exc:
         db.rollback()

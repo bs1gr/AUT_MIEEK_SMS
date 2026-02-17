@@ -71,21 +71,49 @@ def _default_role_permissions(role: Optional[str]) -> set[str]:
         "admin": {"*:*"},
         "teacher": {
             "students:view",
+            "students:create",
             "students:edit",
+            "students:delete",
             "courses:view",
+            "courses:create",
+            "courses:edit",
+            "courses:delete",
             "grades:view",
             "grades:edit",
+            "grades:delete",
             "attendance:view",
             "attendance:edit",
+            "attendance:delete",
             "enrollments:view",
             "enrollments:manage",
             "reports:view",
             "analytics:view",
+            "system:import",
             "system:export",
             "notifications:manage",
+            "exports:generate",
+            "exports:download",
         },
-        "guest": {"students:view", "courses:view"},
-        "viewer": {"students:view", "courses:view", "grades:view", "attendance:view"},
+        "guest": {
+            "students:view",
+            "courses:view",
+            "grades:view",
+            "attendance:view",
+            "enrollments:view",
+            "reports:view",
+            "analytics:view",
+            "exports:generate",
+            "exports:download",
+        },
+        "viewer": {
+            "students:view",
+            "courses:view",
+            "grades:view",
+            "attendance:view",
+            "enrollments:view",
+            "reports:view",
+            "analytics:view",
+        },
         "student": {
             "students.self:read",
             "grades.self:read",
@@ -176,11 +204,19 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
     except Exception:
         has_role_assignments = False
 
+    # Check if user has any direct permission assignments (even if expired)
+    try:
+        has_user_permissions = (
+            db.query(UserPermission.id).filter(UserPermission.user_id == user.id).limit(1).first() is not None
+        )
+    except Exception:
+        has_user_permissions = False
+
     # Only use default role permissions if:
     # 1. No explicit permissions were found, AND
     # 2. User has no role assignments in the RBAC system (legacy user)
     # This preserves backward compatibility while respecting explicit RBAC setup
-    if not granted and not has_role_assignments:
+    if not granted and not has_role_assignments and not has_user_permissions:
         default_perms = _default_role_permissions(getattr(user, "role", None))
         if any(_permission_matches(g, required_key) for g in default_perms):
             return True

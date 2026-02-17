@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 
@@ -9,7 +8,9 @@ sys.path.insert(0, str(project_root))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from backend.models import Base, Course, CourseEnrollment, Student, User
+from backend.config import settings
+from backend.models import Base, Course, CourseEnrollment, Role, Student, User, UserRole
+from backend.routers.routers_rbac import ensure_defaults_startup
 from backend.security.password_hash import get_password_hash
 
 """Seed test data for E2E tests.
@@ -28,20 +29,20 @@ def seed_e2e_data(force: bool = False):
     Args:
         force: If True, delete and recreate test user even if it exists
     """
-    # Use the same database path logic as the main application
-    is_docker = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
-    if is_docker:
-        db_path = "/data/student_management.db"
-    else:
-        db_path = str(Path(__file__).parent.parent / "data" / "student_management.db")
-    DATABASE_URL = f"sqlite:///{db_path}"
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+    DATABASE_URL = settings.DATABASE_URL
+    connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
+    engine = create_engine(DATABASE_URL, connect_args=connect_args)
 
     # Create tables if they don't exist
     Base.metadata.create_all(bind=engine)
 
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
+
+    try:
+        ensure_defaults_startup(SessionLocal)
+    except Exception:
+        pass
 
     try:
         # Check if test users already exist
@@ -80,6 +81,15 @@ def seed_e2e_data(force: bool = False):
         )
         db.add(admin_user)
         db.flush()
+
+        admin_role = db.query(Role).filter(Role.name == "admin").first()
+        if admin_role:
+            for user in [test_user, admin_user]:
+                existing = (
+                    db.query(UserRole).filter(UserRole.user_id == user.id, UserRole.role_id == admin_role.id).first()
+                )
+                if not existing:
+                    db.add(UserRole(user_id=user.id, role_id=admin_role.id))
 
         # Create test students
         students_data = [
