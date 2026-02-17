@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { getLetterGrade, percentageToGreekScale } from '@/utils/gradeUtils';
+import { computeAutoActivation } from '@/utils/courseAutoActivation';
 import { getLocalizedCategory } from '@/utils/categoryLabels';
 import { listContainerVariants, listItemVariants } from '@/utils/animations';
 import { CourseCardSkeleton } from '@/components/ui';
@@ -269,12 +270,23 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
     () => topPerformers.filter((student) => activeEnrollmentStudentIds.has(student.id)),
     [topPerformers, activeEnrollmentStudentIds]
   );
+  const isCourseActiveNow = useCallback((course: Course) => {
+    const semester = String(course.semester || '').trim();
+    if (semester) {
+      const autoActive = computeAutoActivation(semester);
+      if (autoActive !== null) {
+        return autoActive;
+      }
+    }
+    return course.is_active !== false;
+  }, []);
+
   const activeCoursesWithEnrollments = useMemo(
     () =>
       courses.filter(
-        (course) => course.is_active !== false && activeEnrollmentCourseIds.has(course.id)
+        (course) => isCourseActiveNow(course) && activeEnrollmentCourseIds.has(course.id)
       ),
-    [courses, activeEnrollmentCourseIds]
+    [courses, activeEnrollmentCourseIds, isCourseActiveNow]
   );
 
   // Compute ranked students based on selected ranking type
@@ -378,7 +390,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       const enrollments: { course_id?: number; student_id?: number; status?: string }[] =
         data?.items || data?.data?.items || data?.data || [];
       const activeCourseIds = new Set(
-        courses.filter((course) => course.is_active !== false).map((course) => course.id)
+        courses.filter((course) => isCourseActiveNow(course)).map((course) => course.id)
       );
       const activeEnrollments = Array.isArray(enrollments)
         ? enrollments.filter((enrollment) => {
@@ -436,7 +448,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       setActiveEnrollmentStudentIds(new Set());
       setActiveEnrollmentCourseIds(new Set());
     }
-  }, [courses]);
+  }, [courses, isCourseActiveNow]);
 
   const loadDashboardData = useCallback(async () => {
     if (students.length === 0) {

@@ -27,7 +27,7 @@ except ImportError:  # pragma: no cover - optional dependency
 
 
 from backend.db import SessionLocal
-from backend.models import Course
+from backend.models import Course, CourseEnrollment
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +103,8 @@ class CourseActivationScheduler:
             updated_count = 0
             activated_count = 0
             deactivated_count = 0
+            enrollment_updated = 0
+            inactive_course_ids: list[int] = []
 
             for course in courses:
                 semester = str(course.semester or "")
@@ -137,13 +139,32 @@ class CourseActivationScheduler:
                         f"(semester: {semester})"
                     )
 
-            if updated_count > 0:
+                if not should_be_active:
+                    inactive_course_ids.append(int(course.id))
+
+            if inactive_course_ids:
+                deleted_at_enrollment = cast(Any, CourseEnrollment.deleted_at)
+                enrollment_updated = (
+                    db.query(CourseEnrollment)
+                    .filter(
+                        CourseEnrollment.course_id.in_(inactive_course_ids),
+                        deleted_at_enrollment.is_(None),
+                        CourseEnrollment.status == "active",
+                    )
+                    .update({"status": "completed"}, synchronize_session=False)
+                )
+
+            if updated_count > 0 or enrollment_updated > 0:
                 db.commit()
                 logger.info(
                     f"Bulk course activation update complete: "
                     f"{updated_count} courses updated "
                     f"({activated_count} activated, {deactivated_count} deactivated)"
                 )
+                if enrollment_updated > 0:
+                    logger.info(
+                        f"Enrollment status cleanup complete: {enrollment_updated} enrollments set to completed"
+                    )
             else:
                 logger.info("Bulk course activation update: No courses needed updates")
 
