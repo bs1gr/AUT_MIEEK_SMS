@@ -913,17 +913,17 @@ begin
   if FileExists(ExamplePath) then
   begin
     LoadStringFromFile(ExamplePath, Content);
-    Content := StringChangeEx(Content, 'DATABASE_ENGINE=postgresql', 'DATABASE_ENGINE=postgresql', True);
+    StringChangeEx(Content, 'DATABASE_ENGINE=postgresql', 'DATABASE_ENGINE=postgresql', True);
     if StringChangeEx(Content, 'DATABASE_URL=', 'DATABASE_URL=' + DbUrl, True) = 0 then
       Content := Content + #13#10 + 'DATABASE_URL=' + DbUrl + #13#10;
-    Content := StringChangeEx(Content, 'POSTGRES_HOST=postgres', 'POSTGRES_HOST=' + PgHost, True);
-    Content := StringChangeEx(Content, 'POSTGRES_PORT=5432', 'POSTGRES_PORT=' + PgPort, True);
-    Content := StringChangeEx(Content, 'POSTGRES_DB=student_management', 'POSTGRES_DB=' + PgDb, True);
-    Content := StringChangeEx(Content, 'POSTGRES_USER=sms_user', 'POSTGRES_USER=' + PgUser, True);
+    StringChangeEx(Content, 'POSTGRES_HOST=postgres', 'POSTGRES_HOST=' + PgHost, True);
+    StringChangeEx(Content, 'POSTGRES_PORT=5432', 'POSTGRES_PORT=' + PgPort, True);
+    StringChangeEx(Content, 'POSTGRES_DB=student_management', 'POSTGRES_DB=' + PgDb, True);
+    StringChangeEx(Content, 'POSTGRES_USER=sms_user', 'POSTGRES_USER=' + PgUser, True);
     if StringChangeEx(Content, 'POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD_HERE', 'POSTGRES_PASSWORD=' + PgPass, True) = 0 then
       if StringChangeEx(Content, 'POSTGRES_PASSWORD=SecurePassword2026!', 'POSTGRES_PASSWORD=' + PgPass, True) = 0 then
         Content := Content + #13#10 + 'POSTGRES_PASSWORD=' + PgPass + #13#10;
-    Content := StringChangeEx(Content, 'POSTGRES_SSLMODE=prefer', 'POSTGRES_SSLMODE=' + PgSsl, True);
+    StringChangeEx(Content, 'POSTGRES_SSLMODE=prefer', 'POSTGRES_SSLMODE=' + PgSsl, True);
     SaveStringToFile(EnvPath, Content, False);
   end
   else
