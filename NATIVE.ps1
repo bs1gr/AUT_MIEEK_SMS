@@ -336,24 +336,24 @@ function Stop-ProcessByPort {
             return $true
         }
 
-        $pid = $listener.OwningProcess
-        if (-not $pid -or $pid -le 0) {
+        $targetPid = $listener.OwningProcess
+        if (-not $targetPid -or $targetPid -le 0) {
             Write-Warning "$($Name): Port $Port is listening but PID is unavailable"
             return $false
         }
 
-        $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+        $process = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
         if (-not $process) {
-            Write-Warning "$($Name): Port $Port is in use by PID $pid, but process not found"
+            Write-Warning "$($Name): Port $Port is in use by PID $targetPid, but process not found"
             return $false
         }
 
-        Write-Info "$($Name): Stopping process on port $Port (PID $pid)..."
+        Write-Info "$($Name): Stopping process on port $Port (PID $targetPid)..."
 
         # Kill entire process tree (parent + children) to ensure clean shutdown
         try {
             # Get all child processes recursively
-            $childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $pid }
+            $childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $targetPid }
 
             # Kill children first
             foreach ($child in $childProcesses) {
@@ -365,11 +365,11 @@ function Stop-ProcessByPort {
             }
 
             # Kill the main process
-            Stop-Process -Id $pid -Force -ErrorAction Stop
+            Stop-Process -Id $targetPid -Force -ErrorAction Stop
 
             # Close the console window if it still exists
             try {
-                $mainWindow = (Get-Process -Id $pid -ErrorAction SilentlyContinue).MainWindowHandle
+                $mainWindow = (Get-Process -Id $targetPid -ErrorAction SilentlyContinue).MainWindowHandle
                 if ($mainWindow -and $mainWindow -ne 0) {
                     # Win32 type already defined in Stop-ProcessFromPidFile, so just use it
                     try {
@@ -384,14 +384,14 @@ function Stop-ProcessByPort {
         } catch {
             # If force kill fails, try one more time
             try {
-                Stop-Process -Id $pid -Force -ErrorAction Stop
+                Stop-Process -Id $targetPid -Force -ErrorAction Stop
             } catch {
                 # Process might have already exited
             }
         }
 
         try {
-            Wait-Process -Id $pid -Timeout 5 -ErrorAction SilentlyContinue
+            Wait-Process -Id $targetPid -Timeout 5 -ErrorAction SilentlyContinue
         } catch {}
 
         Write-Success "$Name stopped (port $Port)"
