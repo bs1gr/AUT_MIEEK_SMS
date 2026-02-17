@@ -264,15 +264,55 @@ function Stop-ProcessFromPidFile {
         }
 
         Write-Info "$($Name): Stopping process (PID $ProcessId)..."
+
+        # Kill entire process tree (parent + children) to ensure clean shutdown
         try {
-            Stop-Process -Id $ProcessId -ErrorAction Stop
-        } catch {
-            Write-Warning "$($Name): Forcing termination..."
+            # Get all child processes recursively
+            $childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $ProcessId }
+
+            # Kill children first
+            foreach ($child in $childProcesses) {
+                try {
+                    Stop-Process -Id $child.ProcessId -Force -ErrorAction SilentlyContinue
+                } catch {
+                    # Ignore errors for child processes that already exited
+                }
+            }
+
+            # Kill the main process
             Stop-Process -Id $ProcessId -Force -ErrorAction Stop
+
+            # Close the console window if it still exists
+            try {
+                $mainWindow = (Get-Process -Id $ProcessId -ErrorAction SilentlyContinue).MainWindowHandle
+                if ($mainWindow -and $mainWindow -ne 0) {
+                    # Send WM_CLOSE message to close the window gracefully
+                    Add-Type @"
+                        using System;
+                        using System.Runtime.InteropServices;
+                        public class Win32 {
+                            [DllImport("user32.dll")]
+                            public static extern bool PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+                            public const uint WM_CLOSE = 0x0010;
+                        }
+"@
+                    [Win32]::PostMessage($mainWindow, 0x0010, 0, 0) | Out-Null
+                }
+            } catch {
+                # Window already closed or doesn't exist - ignore
+            }
+        } catch {
+            # If force kill fails, try one more time
+            try {
+                Stop-Process -Id $ProcessId -Force -ErrorAction Stop
+            } catch {
+                # Process might have already exited
+            }
         }
 
+        # Wait for process to exit
         try {
-            Wait-Process -Id $ProcessId -Timeout 10 -ErrorAction SilentlyContinue
+            Wait-Process -Id $ProcessId -Timeout 5 -ErrorAction SilentlyContinue
         } catch {}
 
         Remove-Item $PidFile -Force -ErrorAction SilentlyContinue
@@ -309,15 +349,49 @@ function Stop-ProcessByPort {
         }
 
         Write-Info "$($Name): Stopping process on port $Port (PID $pid)..."
+
+        # Kill entire process tree (parent + children) to ensure clean shutdown
         try {
-            Stop-Process -Id $pid -ErrorAction Stop
-        } catch {
-            Write-Warning "$($Name): Forcing termination on port $Port..."
+            # Get all child processes recursively
+            $childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $pid }
+
+            # Kill children first
+            foreach ($child in $childProcesses) {
+                try {
+                    Stop-Process -Id $child.ProcessId -Force -ErrorAction SilentlyContinue
+                } catch {
+                    # Ignore errors for child processes that already exited
+                }
+            }
+
+            # Kill the main process
             Stop-Process -Id $pid -Force -ErrorAction Stop
+
+            # Close the console window if it still exists
+            try {
+                $mainWindow = (Get-Process -Id $pid -ErrorAction SilentlyContinue).MainWindowHandle
+                if ($mainWindow -and $mainWindow -ne 0) {
+                    # Win32 type already defined in Stop-ProcessFromPidFile, so just use it
+                    try {
+                        [Win32]::PostMessage($mainWindow, 0x0010, 0, 0) | Out-Null
+                    } catch {
+                        # Type not defined yet - ignore, will be defined on first call to Stop-ProcessFromPidFile
+                    }
+                }
+            } catch {
+                # Window already closed or doesn't exist - ignore
+            }
+        } catch {
+            # If force kill fails, try one more time
+            try {
+                Stop-Process -Id $pid -Force -ErrorAction Stop
+            } catch {
+                # Process might have already exited
+            }
         }
 
         try {
-            Wait-Process -Id $pid -Timeout 10 -ErrorAction SilentlyContinue
+            Wait-Process -Id $pid -Timeout 5 -ErrorAction SilentlyContinue
         } catch {}
 
         Write-Success "$Name stopped (port $Port)"

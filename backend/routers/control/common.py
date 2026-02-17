@@ -285,6 +285,12 @@ def check_node_installed() -> tuple[bool, Optional[str]]:
 
 
 def check_npm_installed() -> tuple[bool, Optional[str]]:
+    # On Windows, npm is a batch script (.cmd), so try npm.cmd first
+    if sys.platform == "win32":
+        ok, out, _ = run_command(["npm.cmd", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
+        if ok:
+            return True, out.strip()
+    # Fallback to npm (Unix-like systems or if npm.cmd failed)
     ok, out, _ = run_command(["npm", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
     if ok:
         return True, out.strip()

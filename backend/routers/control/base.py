@@ -13,6 +13,9 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel
+from sqlalchemy import text
+
+from backend.db import engine  # Use existing engine instead of creating new ones
 
 from .common import (
     BACKEND_PORTS,
@@ -248,9 +251,8 @@ async def run_diagnostics(response: Response):
             size = os.path.getsize(db_path)
             schema_version = "Unknown"
             try:
-                from sqlalchemy import create_engine, text
-
-                engine = create_engine(settings.DATABASE_URL)
+                # Use existing app engine instead of creating a new one
+                # This prevents repeated Alembic context initialization logging
                 with engine.connect() as conn:
                     row = conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1")).fetchone()
                     if row:
@@ -281,7 +283,8 @@ async def run_diagnostics(response: Response):
 
     # Frontend deps (native only)
     if not in_docker:
-        project_root = Path(__file__).parent.parent.parent
+        # Navigate from backend/routers/control/base.py to project root
+        project_root = Path(__file__).parent.parent.parent.parent
         frontend_dir = project_root / "frontend"
         node_modules = frontend_dir / "node_modules"
         package_json = frontend_dir / "package.json"
@@ -319,7 +322,7 @@ async def run_diagnostics(response: Response):
                 )
             )
 
-        venv_dir = project_root / "backend" / "venv"
+        venv_dir = project_root / "backend" / ".venv"
         if venv_dir.exists():
             results.append(
                 DiagnosticResult(
@@ -334,7 +337,7 @@ async def run_diagnostics(response: Response):
                 DiagnosticResult(
                     category="Backend",
                     status="warning",
-                    message="Virtual environment not found at backend/venv",
+                    message="Virtual environment not found at backend/.venv",
                     details={},
                 )
             )
