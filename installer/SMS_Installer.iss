@@ -249,6 +249,10 @@ var
 
 // Forward declarations
 function UrlEncode(const S: String): String; forward;
+function StringReplaceAll(const Source, OldPattern, NewPattern: AnsiString): AnsiString; forward;
+function TestPostgresTcpConnection(Host: String; Port: String): Boolean; forward;
+function TestDockerReady: Boolean; forward;
+function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -894,6 +898,7 @@ var
   EncUser: String;
   EncPass: String;
   EncDb: String;
+  DummyResult: Integer;
 begin
   EnvPath := ExpandConstant('{app}\.env');
   ExamplePath := ExpandConstant('{app}\.env.example');
@@ -913,17 +918,22 @@ begin
   if FileExists(ExamplePath) then
   begin
     LoadStringFromFile(ExamplePath, Content);
-    StringChangeEx(Content, 'DATABASE_ENGINE=postgresql', 'DATABASE_ENGINE=postgresql', True);
-    if StringChangeEx(Content, 'DATABASE_URL=', 'DATABASE_URL=' + DbUrl, True) = 0 then
-      Content := Content + #13#10 + 'DATABASE_URL=' + DbUrl + #13#10;
-    StringChangeEx(Content, 'POSTGRES_HOST=postgres', 'POSTGRES_HOST=' + PgHost, True);
-    StringChangeEx(Content, 'POSTGRES_PORT=5432', 'POSTGRES_PORT=' + PgPort, True);
-    StringChangeEx(Content, 'POSTGRES_DB=student_management', 'POSTGRES_DB=' + PgDb, True);
-    StringChangeEx(Content, 'POSTGRES_USER=sms_user', 'POSTGRES_USER=' + PgUser, True);
-    if StringChangeEx(Content, 'POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD_HERE', 'POSTGRES_PASSWORD=' + PgPass, True) = 0 then
-      if StringChangeEx(Content, 'POSTGRES_PASSWORD=SecurePassword2026!', 'POSTGRES_PASSWORD=' + PgPass, True) = 0 then
-        Content := Content + #13#10 + 'POSTGRES_PASSWORD=' + PgPass + #13#10;
-    StringChangeEx(Content, 'POSTGRES_SSLMODE=prefer', 'POSTGRES_SSLMODE=' + PgSsl, True);
+    Content := StringReplaceAll(Content, 'DATABASE_ENGINE=postgresql', 'DATABASE_ENGINE=postgresql');
+    if Pos('DATABASE_URL=', Content) = 0 then
+      Content := Content + #13#10 + 'DATABASE_URL=' + DbUrl + #13#10
+    else
+      Content := StringReplaceAll(Content, 'DATABASE_URL=', 'DATABASE_URL=' + DbUrl + #13#10);
+    Content := StringReplaceAll(Content, 'POSTGRES_HOST=postgres', 'POSTGRES_HOST=' + PgHost);
+    Content := StringReplaceAll(Content, 'POSTGRES_PORT=5432', 'POSTGRES_PORT=' + PgPort);
+    Content := StringReplaceAll(Content, 'POSTGRES_DB=student_management', 'POSTGRES_DB=' + PgDb);
+    Content := StringReplaceAll(Content, 'POSTGRES_USER=sms_user', 'POSTGRES_USER=' + PgUser);
+    if Pos('POSTGRES_PASSWORD=', Content) = 0 then
+      Content := Content + #13#10 + 'POSTGRES_PASSWORD=' + PgPass + #13#10
+    else begin
+      Content := StringReplaceAll(Content, 'POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD_HERE', 'POSTGRES_PASSWORD=' + PgPass);
+      Content := StringReplaceAll(Content, 'POSTGRES_PASSWORD=SecurePassword2026!', 'POSTGRES_PASSWORD=' + PgPass);
+    end;
+    Content := StringReplaceAll(Content, 'POSTGRES_SSLMODE=prefer', 'POSTGRES_SSLMODE=' + PgSsl);
     SaveStringToFile(EnvPath, Content, False);
   end
   else
@@ -1230,6 +1240,8 @@ function UrlEncode(const S: String): String;
 var
   i: Integer;
   c: Char;
+  HexVal: Integer;
+  HexStr: String;
 begin
   Result := '';
   for i := 1 to Length(S) do
@@ -1240,9 +1252,28 @@ begin
        (c >= '0') and (c <= '9') or
        (c = '-') or (c = '_') or (c = '.') or (c = '~') then
       Result := Result + c
-    else
-      Result := Result + '%' + IntToHex(Ord(c), 2);
+    else begin
+      HexVal := Ord(c);
+      HexStr := Format('%02x', [HexVal]);
+      Result := Result + '%' + HexStr;
+    end;
   end;
+end;
+
+function StringReplaceAll(const Source, OldPattern, NewPattern: AnsiString): AnsiString;
+var
+  PosIndex: Integer;
+  Temp: AnsiString;
+begin
+  Temp := Source;
+  PosIndex := Pos(OldPattern, Temp);
+  while PosIndex > 0 do
+  begin
+    Delete(Temp, PosIndex, Length(OldPattern));
+    Insert(NewPattern, Temp, PosIndex);
+    PosIndex := Pos(OldPattern, Temp);
+  end;
+  Result := Temp;
 end;
 
 function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean;
