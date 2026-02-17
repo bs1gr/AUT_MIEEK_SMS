@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Optional, Any, cast, TYPE_CHECKING, List
+from typing import Optional, Any, cast, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from apscheduler.schedulers.background import BackgroundScheduler  # type: ignore[import-not-found]
@@ -25,7 +25,6 @@ except ImportError:  # pragma: no cover - optional dependency
     CronTrigger = None  # type: ignore[assignment]
     APSCHEDULER_AVAILABLE = False
 
-from sqlalchemy.orm import Session
 
 from backend.db import SessionLocal
 from backend.models import Course
@@ -94,18 +93,12 @@ class CourseActivationScheduler:
         try:
             # Import here to avoid circular imports
             from backend.routers.routers_courses import (
-                _infer_semester_kind,
-                _extract_year,
                 _semester_date_range,
             )
 
             # Get all non-deleted courses with semester strings
             deleted_at = cast(Any, Course.deleted_at)
-            courses = (
-                db.query(Course)
-                .filter(deleted_at.is_(None), Course.semester.isnot(None))
-                .all()
-            )
+            courses = db.query(Course).filter(deleted_at.is_(None), Course.semester.isnot(None)).all()
 
             updated_count = 0
             activated_count = 0
@@ -117,17 +110,12 @@ class CourseActivationScheduler:
                     continue
 
                 # Compute auto-activation status
-                kind = _infer_semester_kind(semester)
-                year = _extract_year(semester)
-                if not kind or not year:
-                    continue
-
-                date_range = _semester_date_range(kind, year)
+                today = datetime.now(timezone.utc).date()
+                date_range = _semester_date_range(semester, today)
                 if not date_range:
                     continue
 
                 start_date, end_date = date_range
-                today = datetime.now(timezone.utc).date()
 
                 should_be_active = start_date <= today <= end_date
                 current_is_active = bool(course.is_active) if course.is_active is not None else True
