@@ -9,6 +9,106 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.18.1] - 2026-02-17
+
+### Features
+- **backup**: add encrypted backup support + maintenance fixes
+- **backup**: add encrypted backup support to Manage Backups UI
+- **courses**: schedule daily auto-activation updates
+- **courses**: add auto-activation enhancements - scheduler, UI indicator, monitoring
+- **courses**: auto-set active by semester dates
+- **enrollments**: add status and filter profile
+- **courses**: add is_active flag and filter profile
+- **courses**: add course description display panel in bottom section
+- **extraction**: enhance PDF course data extraction and normalization
+
+### Bug Fixes
+- **installer**: replace StringChangeEx with custom StringReplaceAll and add forward declarations
+- **installer**: correct StringChangeEx usage - function returns Int, modifies in-place
+- **installer**: add forward declaration for UrlEncode function
+- **native**: resolve PowerShell variable conflict in Stop-ProcessByPort (rename $pid to $targetPid)
+- **diagnostics**: resolve system diagnostics issues and enhance process management
+- **enrollments**: auto-complete inactive-course enrollments
+- **dashboard**: filter analytics panels by active enrollments
+- **dashboard**: filter top performers and active courses
+- **frontend/courses**: stabilize modal fields and tests
+- **db+installer**: enforce Postgres-only wiring and setup
+- **auth+rbac**: align lockout, role assignment, and permissions
+- **analytics**: limit selectors to active enrollments
+- **grading**: filter active selections and mypy cleanup
+- **courses**: populate course description field in edit modal
+- **courses**: correct evaluation weights for AUT0207 and AUT0305
+
+### Refactoring
+- **courses**: remove redundant year field from course modals
+- **backend**: consolidate course model and schema updates
+- **courses**: remove periods_per_week from course displays
+
+### Documentation
+- **release**: update versioned release docs
+- **courses**: document auto-activation enhancements in changelog and work plan
+- **changelog**: document v1.18.0 course management improvements
+
+### Styling
+- **formatting**: apply ruff formatting to migration and PDF extractor
+
+### Tests
+- **courses**: add comprehensive unit tests for courseAutoActivation utility
+
+### Build System
+- **db**: add migrations for course management improvements
+
+### Chores
+- **commit-ready**: update pre-commit validation workflow
+- remove obsolete VERSION.cpp file
+- clean workspace - remove temp files and update gitignore
+- remove legacy course template and finalize v1.18.0 course data
+
+## [1.18.1] - 2026-02-17
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
+## [1.18.1] - 2026-02-17
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
+## [1.18.1] - 2026-02-17
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
+## [1.18.1] - 2026-02-17
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.0] - 2026-02-16
 
 ### Features
@@ -3742,3 +3842,4 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.17.2...$11.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.17.2
+
