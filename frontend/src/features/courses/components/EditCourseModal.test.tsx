@@ -196,9 +196,9 @@ describe('EditCourseModal', () => {
         <EditCourseModal course={mockCourse} onClose={mockOnClose} onUpdate={mockOnUpdate} />
       );
 
-      // Year should be extracted from "Spring Semester 2024"
-      const yearInput = container.querySelector('input[name="year"]');
-      expect(yearInput).toHaveValue(2024);
+      // Year should be extracted from "Spring Semester 2024" and shown in semester-year-input
+      const yearInput = container.querySelector('[data-testid="semester-year-input"]');
+      expect(yearInput).toHaveValue('2024');
     });
   });
 
@@ -223,8 +223,9 @@ describe('EditCourseModal', () => {
       const creditsInput = screen.getByLabelText(/credits/i);
       expect(creditsInput).toHaveAttribute('type', 'number');
 
-      const yearInput = container.querySelector('input[name="year"]');
-      expect(yearInput).toHaveAttribute('type', 'number');
+      // Year input is now semester-year-input with type="text"
+      const yearInput = container.querySelector('[data-testid="semester-year-input"]');
+      expect(yearInput).toHaveAttribute('type', 'text');
     });
 
     it('disables submit button during submission', async () => {
@@ -285,9 +286,9 @@ describe('EditCourseModal', () => {
         <EditCourseModal course={noYearCourse} onClose={mockOnClose} onUpdate={mockOnUpdate} />
       );
 
-      // Should default to current year
-      const yearInput = container.querySelector('input[name="year"]');
-      expect(yearInput).toHaveValue(new Date().getFullYear());
+      // Should default to current year and show in semester-year-input
+      const yearInput = container.querySelector('[data-testid="semester-year-input"]');
+      expect(yearInput).toHaveValue(new Date().getFullYear().toString());
     });
   });
 });

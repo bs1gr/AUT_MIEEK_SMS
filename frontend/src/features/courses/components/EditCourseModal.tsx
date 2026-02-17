@@ -228,6 +228,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
               ) : (
                 <Input
                   type="text"
+                  data-testid="semester-year-input"
                   placeholder={t('yearPlaceholder')}
                   value={semesterYear}
                   onChange={(e) => handleSemesterYearChange(e.target.value)}

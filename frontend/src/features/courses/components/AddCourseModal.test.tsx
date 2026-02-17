@@ -68,9 +68,9 @@ describe('AddCourseModal', () => {
       const creditsInput = screen.getByLabelText(/credits/i);
       expect(creditsInput).toHaveValue(3);
 
-      // Year field has name="year" but no "year" placeholder
-      const yearFormInput = container.querySelector('input[name="year"]');
-      expect(yearFormInput).toHaveValue(new Date().getFullYear());
+      // Year field is now rendered as semester-year-input
+      const yearInput = container.querySelector('[data-testid="semester-year-input"]');
+      expect(yearInput).toHaveValue(new Date().getFullYear().toString());
     });
 
     it('renders action buttons', () => {
@@ -326,8 +326,9 @@ describe('AddCourseModal', () => {
       const creditsInput = screen.getByLabelText(/credits/i);
       expect(creditsInput).toHaveAttribute('type', 'number');
 
-      const yearInput = container.querySelector('input[name="year"]');
-      expect(yearInput).toHaveAttribute('type', 'number');
+      // Year input is now semester-year-input with type="text"
+      const yearInput = container.querySelector('[data-testid="semester-year-input"]');
+      expect(yearInput).toHaveAttribute('type', 'text');
     });
 
     it('disables submit button during submission', async () => {
