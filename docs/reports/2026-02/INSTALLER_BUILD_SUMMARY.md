@@ -22,7 +22,7 @@
 
 ## 🔧 What's Included
 
-### Persistence Fixes (New in v1.18.0)
+### Persistence Fixes (New in $11.18.1)
 
 **Part 1: Volume Persistence Validation** (DOCKER.ps1:1466)
 - Ensures `sms_data` Docker volume exists before container starts
@@ -59,7 +59,7 @@
 |-------|--------|
 | SMS_Manager.exe compilation | ✓ Passed (65.21 MB) |
 | Inno Setup compilation | ✓ Passed (45 seconds) |
-| Wizard images regeneration | ✓ Passed (v1.18.0) |
+| Wizard images regeneration | ✓ Passed ($11.18.1) |
 | Greek language encoding | ✓ Verified (Windows-1253) |
 | Code signing (Authenticode) | ✓ Passed (AUT MIEEK cert) |
 | Smoke test validation | ✓ Passed |
@@ -97,7 +97,7 @@ Users can verify the signature by right-clicking the installer → Properties �
 The installer is ready to:
 
 1. **Upload to GitHub Release**
-   - Include in v1.18.0 release
+   - Include in $11.18.1 release
    - Mark as "Latest Release"
    - Add release notes describing persistence fixes
 

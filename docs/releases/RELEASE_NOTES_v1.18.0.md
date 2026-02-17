@@ -1,14 +1,15 @@
-# Release Notes v1.18.0 - Major Maintenance & UX Consolidation
+# Release Notes $11.18.1 - Major Maintenance & UX Consolidation
 
-**Date:** February 15, 2026
-**Version:** v1.18.0 (target)
+**Date:** February 17, 2026
+**Version:** $11.18.1 (target)
 **Status:** Release documentation prepared (pre-tag)
-**Focus:** Student lifecycle UX, reporting terminology alignment, i18n consistency, and CI stability
+**Focus:** Course auto-activation, student lifecycle UX, reporting terminology alignment, i18n consistency, and CI stability
 
 ## 🚀 Highlights
 
-This major maintenance release consolidates recent production-hardening work after `v1.17.9`.
+This major maintenance release consolidates recent production-hardening work after `$11.18.1`.
 
+- ✅ **NEW**: Course auto-activation enhancements (scheduled sync, UI indicators, monitoring)
 - ✅ Cascaded student list experience (active/inactive)
 - ✅ Safer deactivate/reactivate enrollment lifecycle
 - ✅ Student profile highlight authoring and class-label consistency
@@ -17,6 +18,29 @@ This major maintenance release consolidates recent production-hardening work aft
 - ✅ CI pipeline stability fixes (frontend TypeScript + backend MyPy)
 
 ## ✨ Features
+
+### Courses (NEW - $11.18.1)
+
+**Semester-Based Auto-Activation System**:
+- **Scheduled Job**: APScheduler service runs daily at 3:00 AM UTC to bulk-update course `is_active` status based on semester date ranges
+- **UI Enhancement**: Real-time visual indicators in course modals showing auto-activation status
+  - Green badge: active (current date within semester range)
+  - Amber badge: inactive (current date outside semester range)
+  - Blue badge: manual activation (unrecognized semester format)
+- **Monitoring**: Comprehensive audit logging when auto-activation is applied (create/update operations, bulk scheduler)
+- **Frontend Utility**: `courseAutoActivation.ts` (143 lines) - replicates backend semester parsing logic
+- **i18n**: Added EN/EL translation keys for auto-activation labels and hints
+- **Testing**: 34 comprehensive unit tests (100% passing) covering all utility functions
+
+**Implementation**:
+- Backend: `CourseActivationScheduler` service (178 lines) integrated into MaintenanceScheduler
+- Frontend: Real-time preview in AddCourseModal and EditCourseModal components
+- Date Range Logic:
+  - Winter: Sept 15 → Jan 30 (next year)
+  - Spring: Feb 1 → June 30
+  - Academic Year: Sept 1 → June 30 (next year)
+- Supports Greek text with diacritic normalization
+- **Commits**: a4a74ba50, 170001597, 08625027a, f6c6df9c4
 
 ### Students
 
@@ -68,10 +92,10 @@ This major maintenance release consolidates recent production-hardening work aft
 
 ## 📦 Recommended Release Artifacts
 
-- `docs/releases/RELEASE_NOTES_v1.18.0.md`
-- `docs/releases/GITHUB_RELEASE_v1.18.0.md`
-- `docs/releases/RELEASE_MANIFEST_v1.18.0.md`
-- `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.0.md`
+- `docs/releases/RELEASE_NOTES_$11.18.1.md`
+- `docs/releases/GITHUB_RELEASE_$11.18.1.md`
+- `docs/releases/RELEASE_MANIFEST_$11.18.1.md`
+- `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md`
 
 ---
 

@@ -1,4 +1,4 @@
-# Migration Guide: v1.17.8
+# Migration Guide: $11.18.1
 
 **Release Date:** 2026-02-11
 **Release Type:** Minor (Breaking changes in frontend module locations)
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Version v1.17.8 moves the legacy Power and RBAC pages into the feature module architecture and standardizes i18n usage. This is a **breaking change only for developers who import these pages directly**. End users and standard deployments are unaffected.
+Version $11.18.1 moves the legacy Power and RBAC pages into the feature module architecture and standardizes i18n usage. This is a **breaking change only for developers who import these pages directly**. End users and standard deployments are unaffected.
 
 **Good news:**
 - ✅ No database migrations
@@ -58,7 +58,7 @@ import PowerPage from '@/pages/PowerPage';
 import AdminPermissionsPage from '@/pages/AdminPermissionsPage';
 ```
 
-**New (v1.17.8+):**
+**New ($11.18.1+):**
 ```tsx
 import { SystemPage } from '@/features/operations';
 import { PermissionsPage } from '@/features/admin';
@@ -74,7 +74,7 @@ import { PermissionsPage } from '@/features/admin';
 }
 ```
 
-**New (v1.17.8+):**
+**New ($11.18.1+):**
 ```tsx
 {
   path: '/system',
@@ -128,7 +128,7 @@ They still work for now, but they are deprecated. Update now to avoid breakage i
 
 If you run into issues:
 - Open an issue: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
-- Tag: `migration`, `v1.17.8`
+- Tag: `migration`, `$11.18.1`
 - Include: error messages, route config snippets, and affected imports
 
 ---

@@ -1,9 +1,9 @@
-# Release Manifest v1.18.0
+# Release Manifest $11.18.1
 
-**Version:** v1.18.0 (target)
+**Version:** $11.18.1 (target)
 **Date:** February 15, 2026
 **Build Status:** Documentation + release packaging ready
-**Base Tag:** `v1.17.9`
+**Base Tag:** `$11.18.1`
 **Target Branch:** `main`
 
 ## Artifact Scope
@@ -12,9 +12,9 @@
 - **Backend:** `backend/` (FastAPI application)
 - **Docs:**
   - `CHANGELOG.md`
-  - `docs/releases/RELEASE_NOTES_v1.18.0.md`
-  - `docs/releases/GITHUB_RELEASE_v1.18.0.md`
-  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.0.md`
+  - `docs/releases/RELEASE_NOTES_$11.18.1.md`
+  - `docs/releases/GITHUB_RELEASE_$11.18.1.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md`
   - `docs/plans/UNIFIED_WORK_PLAN.md`
   - `docs/DOCUMENTATION_INDEX.md`
 

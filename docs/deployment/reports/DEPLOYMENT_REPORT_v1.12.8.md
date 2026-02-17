@@ -117,7 +117,7 @@ Frontend:     ⚠️  Degraded (SPA served by backend, not separate)
 Base URL:  http://localhost:8080
 Docs:      http://localhost:8080/docs
 Health:    http://localhost:8080/health
-Version: 1.17.7
+Version: 1.18.1
 
 ```text
 ## 🔐 Authentication

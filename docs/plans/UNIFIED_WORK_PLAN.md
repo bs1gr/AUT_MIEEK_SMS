@@ -1,32 +1,77 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.0 (Development)
-**Last Updated**: February 17, 2026 (Course auto-activation enhancements + comprehensive tests)
-**Status**: ✅ PRODUCTION LIVE - v1.17.9 RELEASED | 🚀 v1.18.0 DEVELOPMENT IN PROGRESS
+**Current Version**: 1.18.1 (Release Preparation)
+**Last Updated**: February 17, 2026 ($11.18.1 release preparation - test fixes and documentation)
+**Status**: ✅ $11.18.1 RELEASED (Feb 16, 2026) | 🚀 $11.18.1 RELEASE PREPARATION IN PROGRESS
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Option A - Maintenance & Stability** (Feature enhancements + production monitoring)
+**Current Phase**: **Option A - Maintenance & Stability** (Patch release for test fixes)
 **Current Branch**: `main`
 **Latest Commits**:
+- [pending] - chore(release): prepare $11.18.1 release
 - 08625027a - test(courses): add comprehensive unit tests for courseAutoActivation utility
 - 170001597 - feat(courses): add auto-activation enhancements - scheduler, UI indicator, monitoring
 - a4a74ba50 - feat(courses): auto-set active by semester dates
-- 3b27f7c0c - fix(db+release): harden postgres migration and refresh v1.18.0 installer
+- 3b27f7c0c - fix(db+release): harden postgres migration and refresh $11.18.1 installer
 - 7a8615cbe - fix(ci): avoid GHCR push failures without package token
 - 64ae9bdc3 - docs: prepare next major release documentation package
 - 5fa22c373 - fix(ci): resolve frontend tsc and backend mypy pipeline failures
-- f0b2e00ed - docs: prepare post-v1.17.9 release documentation
-- b428b18e7 - revert(release): undo duplicate v1.17.9 release rerun commit
+- f0b2e00ed - docs: prepare post-$11.18.1 release documentation
+- b428b18e7 - revert(release): undo duplicate $11.18.1 release rerun commit
 - cacc2a130 - fix(i18n): sync en/el dashboard and student locale keys
-- cfed5a334 - feat(students): cascade primary students list by active status
 
 ---
 
-## 📘 Documentation Preparation Since Last Release (v1.17.9)
+## � $11.18.1 Patch Release (February 17, 2026)
+
+**Status**: 🚀 RELEASE PREPARATION IN PROGRESS
+
+**Release Type**: Patch (1.18.0 → 1.18.1)
+**Purpose**: Fix test failures and update documentation for auto-activation enhancement
+
+**Release Scope**:
+1. ✅ **Test Fixes**: Fixed 5 failing frontend tests in course modal components
+   - Updated AddCourseModal.test.tsx selectors and assertions
+   - Updated EditCourseModal.test.tsx selectors and assertions
+   - Changed from `input[name="year"]` to `[data-testid="semester-year-input"]`
+   - Updated type expectations from `number` to `text`
+   - Frontend test suite restored to 100% (1854/1854 passing)
+
+2. ✅ **Documentation Updates**: Enhanced $11.18.1 release documentation
+   - Added comprehensive auto-activation feature coverage
+   - Documented scheduled job (3:00 AM UTC daily)
+   - Documented UI indicators (green/amber/blue badges)
+   - Added monitoring and audit logging details
+
+**Release Documentation Created**:
+- ✅ `docs/releases/RELEASE_NOTES_$11.18.1.md` - Full release notes
+- ✅ `docs/releases/GITHUB_RELEASE_$11.18.1.md` - GitHub release body
+- ✅ `docs/releases/RELEASE_MANIFEST_$11.18.1.md` - Release artifact manifest
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md` - Deployment procedures
+- ✅ `CHANGELOG.md` - Added [1.18.1] section
+- ✅ `VERSION` file - Updated to 1.18.1
+- ✅ `frontend/package.json` - Updated to 1.18.1
+
+**Remaining Tasks**:
+- [ ] Run `.\COMMIT_READY.ps1 -Quick` for final validation
+- [ ] Commit all release preparation changes
+- [ ] Create git tag: `$11.18.1`
+- [ ] Push to remote with tags
+- [ ] Create GitHub release
+- [ ] Verify CI/CD pipeline passes
+
+**Test Status**:
+- Backend: 742/742 passing (33 batches) ✅
+- Frontend: 1854/1854 passing (101 files) ✅
+- Auto-activation: 34/34 passing ✅
+
+---
+
+## �📘 Documentation Preparation Since Last Release ($11.18.1)
 
 **Status**: ✅ COMPLETE (Feb 15, 2026)
 
 **Completed Documentation Actions**:
-1. ✅ Reviewed commit history since `v1.17.9` and categorized changes.
+1. ✅ Reviewed commit history since `$11.18.1` and categorized changes.
 2. ✅ Added post-release **Unreleased** summary in `CHANGELOG.md` for changes after the tag.
 3. ✅ Updated this work plan header metadata (version, status, latest commits).
 4. ✅ Corrected release workflow record: duplicate 1.17.9 release rerun was reverted to preserve tag integrity.
@@ -37,16 +82,16 @@
 
 ---
 
-## 📦 Next Major Release Preparation (v1.18.0)
+## 📦 Next Major Release Preparation ($11.18.1)
 
 **Status**: ✅ Documentation pack prepared (Feb 15, 2026)
 
 **Prepared / Updated**:
-1. ✅ `CHANGELOG.md` unreleased section aligned to **Target v1.18.0**.
-2. ✅ `docs/releases/RELEASE_NOTES_v1.18.0.md` rewritten for current maintenance + UX consolidation scope.
-3. ✅ `docs/releases/GITHUB_RELEASE_v1.18.0.md` updated with publish-ready release body.
-4. ✅ `docs/releases/RELEASE_MANIFEST_v1.18.0.md` updated with artifact and validation gates.
-5. ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.0.md` updated with policy-aligned release/deploy checks.
+1. ✅ `CHANGELOG.md` unreleased section aligned to **Target $11.18.1**.
+2. ✅ `docs/releases/RELEASE_NOTES_$11.18.1.md` rewritten for current maintenance + UX consolidation scope.
+3. ✅ `docs/releases/GITHUB_RELEASE_$11.18.1.md` updated with publish-ready release body.
+4. ✅ `docs/releases/RELEASE_MANIFEST_$11.18.1.md` updated with artifact and validation gates.
+5. ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.1.md` updated with policy-aligned release/deploy checks.
 6. ✅ `docs/DOCUMENTATION_INDEX.md` metadata/status synchronized with release-preparation context.
 
 **Result**:
@@ -117,7 +162,7 @@
 47. ✅ **COMPLETE**: Maintenance cleanup - consolidated cleanup entrypoint added to WORKSPACE_CLEANUP.ps1 (external helper switches)
 48. ✅ **COMPLETE**: Maintenance cleanup - ran consolidated cleanup entrypoint (deep + external helpers; legacy backup archives pruned)
 49. ✅ **COMPLETE**: PostgreSQL runtime standardization + persistence stabilization (explicit engine selection; removed implicit sqlite/postgres mode flips; verified stop/start durability)
-50. ✅ **COMPLETE**: SQLite→PostgreSQL migration hardening and v1.18.0 installer refresh (migration helper resilience for encoded URLs/missing tables; signed installer rebuilt and validated)
+50. ✅ **COMPLETE**: SQLite→PostgreSQL migration hardening and $11.18.1 installer refresh (migration helper resilience for encoded URLs/missing tables; signed installer rebuilt and validated)
 51. ✅ **COMPLETE** (Feb 17, 2026): **Course auto-activation enhancements** - semester-based activation system
     - **Scheduled Job**: Daily bulk update at 3:00 AM UTC (CourseActivationScheduler service, 178 lines)
     - **UI Enhancement**: Real-time visual indicators in AddCourseModal and EditCourseModal (green/amber/blue badges)

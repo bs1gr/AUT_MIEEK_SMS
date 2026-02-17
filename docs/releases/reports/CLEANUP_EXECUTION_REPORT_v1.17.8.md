@@ -1,4 +1,4 @@
-# Repository Cleanup Execution Report - v1.17.8
+# Repository Cleanup Execution Report - $11.18.1
 
 **Date:** 2026-02-11
 **Strategy:** Maintenance & Stability Alignment
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-This cleanup report documents repository hygiene and maintenance actions aligned with the v1.17.8 release cycle. The focus is on reducing noise from generated artifacts, consolidating legacy logs, and keeping release documentation discoverable and accurate.
+This cleanup report documents repository hygiene and maintenance actions aligned with the $11.18.1 release cycle. The focus is on reducing noise from generated artifacts, consolidating legacy logs, and keeping release documentation discoverable and accurate.
 
 **Key Outcomes:**
 - ✅ Generated logs and SARIF artifacts excluded where appropriate
@@ -31,7 +31,7 @@ This cleanup report documents repository hygiene and maintenance actions aligned
 
 ### 3) Documentation Alignment
 
-- Added missing v1.17.8 migration guide and release/cleanup reports
+- Added missing $11.18.1 migration guide and release/cleanup reports
 - Ensured release body references point to valid documentation paths
 
 ---
@@ -58,10 +58,10 @@ This cleanup focused on documentation and artifact organization. No additional t
 
 ## Files Added (This Documentation Update)
 
-- `docs/guides/MIGRATION_v1.17.8.md`
-- `docs/releases/reports/RELEASE_REPORT_v1.17.8.md`
-- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.17.8.md`
+- `docs/guides/MIGRATION_$11.18.1.md`
+- `docs/releases/reports/RELEASE_REPORT_$11.18.1.md`
+- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.1.md`
 
 ---
 
-*Cleanup execution recorded for v1.17.8 documentation alignment.*
+*Cleanup execution recorded for $11.18.1 documentation alignment.*

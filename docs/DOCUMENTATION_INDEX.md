@@ -1,18 +1,18 @@
 # Documentation Index
 
 **Last Updated**: 2026-02-15
-**Project Version (documented)**: 1.18.0
-**Version**: 1.18.0
+**Project Version (documented)**: 1.18.1
+**Version**: 1.18.1
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | 🚀 **v1.18.0 RELEASE PREP READY (DOCS + CI ALIGNED)**
+**Status**: ✅ **PRODUCTION LIVE** | 🚀 **$11.18.1 RELEASE PREP READY (DOCS + CI ALIGNED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
 > **Current Status (Feb 15, 2026)**: ✅ **Production Live + Next Major Release Documentation Prepared**
 > - Maintenance & stability phase active
-> - Changelog/work plan/index updated for changes since `v1.17.9`
+> - Changelog/work plan/index updated for changes since `$11.18.1`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
-> - `v1.18.0` release documentation pack refreshed (notes, release body, manifest, deployment checklist)
+> - `$11.18.1` release documentation pack refreshed (notes, release body, manifest, deployment checklist)
 > - CI/CD rerun completed successfully after GHCR package-push policy hardening
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
@@ -505,15 +505,15 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
-- **[releases/RELEASE_NOTES_v1.18.0.md](releases/RELEASE_NOTES_v1.18.0.md)** - Next major release notes package (prepared Feb 15, 2026)
-- **[releases/GITHUB_RELEASE_v1.18.0.md](releases/GITHUB_RELEASE_v1.18.0.md)** - Publish-ready GitHub release body for v1.18.0
-- **[releases/RELEASE_MANIFEST_v1.18.0.md](releases/RELEASE_MANIFEST_v1.18.0.md)** - Release artifact scope and validation gates
-- **[releases/DEPLOYMENT_CHECKLIST_v1.18.0.md](releases/DEPLOYMENT_CHECKLIST_v1.18.0.md)** - Deployment and post-release verification checklist
-- **[releases/RELEASE_NOTES_v1.17.8.md](releases/RELEASE_NOTES_v1.17.8.md)** - v1.17.8 release notes (Feb 11, 2026)
-- **[releases/GITHUB_RELEASE_v1.17.8.md](releases/GITHUB_RELEASE_v1.17.8.md)** - GitHub release body for v1.17.8
-- **[guides/MIGRATION_v1.17.8.md](guides/MIGRATION_v1.17.8.md)** - Migration guide for v1.17.8 breaking changes
-- **[releases/reports/RELEASE_REPORT_v1.17.8.md](releases/reports/RELEASE_REPORT_v1.17.8.md)** - Executive release report for v1.17.8
-- **[releases/reports/CLEANUP_EXECUTION_REPORT_v1.17.8.md](releases/reports/CLEANUP_EXECUTION_REPORT_v1.17.8.md)** - Cleanup execution report for v1.17.8
+- **[releases/RELEASE_NOTES_$11.18.1.md](releases/RELEASE_NOTES_$11.18.1.md)** - Next major release notes package (prepared Feb 15, 2026)
+- **[releases/GITHUB_RELEASE_$11.18.1.md](releases/GITHUB_RELEASE_$11.18.1.md)** - Publish-ready GitHub release body for $11.18.1
+- **[releases/RELEASE_MANIFEST_$11.18.1.md](releases/RELEASE_MANIFEST_$11.18.1.md)** - Release artifact scope and validation gates
+- **[releases/DEPLOYMENT_CHECKLIST_$11.18.1.md](releases/DEPLOYMENT_CHECKLIST_$11.18.1.md)** - Deployment and post-release verification checklist
+- **[releases/RELEASE_NOTES_$11.18.1.md](releases/RELEASE_NOTES_$11.18.1.md)** - $11.18.1 release notes (Feb 11, 2026)
+- **[releases/GITHUB_RELEASE_$11.18.1.md](releases/GITHUB_RELEASE_$11.18.1.md)** - GitHub release body for $11.18.1
+- **[guides/MIGRATION_$11.18.1.md](guides/MIGRATION_$11.18.1.md)** - Migration guide for $11.18.1 breaking changes
+- **[releases/reports/RELEASE_REPORT_$11.18.1.md](releases/reports/RELEASE_REPORT_$11.18.1.md)** - Executive release report for $11.18.1
+- **[releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.1.md](releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.1.md)** - Cleanup execution report for $11.18.1
 - **[releases/RELEASE_NOTES_$11.17.2.md](releases/RELEASE_NOTES_$11.17.2.md)** - Latest production release notes (Dec 13, 2025)
 - **[releases/RELEASE_AUDIT_$11.17.2.md](releases/RELEASE_AUDIT_$11.17.2.md)** - QA audit and verification follow-up
 - **[releases/RELEASE_PREPARATION_$11.17.2.md](releases/RELEASE_PREPARATION_$11.17.2.md)** - Pre-release checklist and dry-run outcomes
