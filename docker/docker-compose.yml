@@ -50,8 +50,8 @@ services:
         condition: service_healthy
     volumes:
       - sms_data:/data
-      - ./templates:/app/templates:ro  # Mount templates directory for imports
-      - ./backups:/app/backups  # Ensure backups are visible on host
+      - ../templates:/app/templates:ro  # Mount templates directory from project root for imports
+      - ../backups:/app/backups  # Ensure backups are visible on host
     expose:
       - "8000"
     healthcheck:
