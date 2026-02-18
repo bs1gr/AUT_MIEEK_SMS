@@ -1287,11 +1287,11 @@ Fixes three startup warnings and enables scheduler features.
 
 **Repository:**
 - GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS
-- Branch: `feature/phase6-reporting-enhancements` (active work)
-- Main Branch: `main` (production stable - v1.17.6)
+- Branch: `main`
+- Main Branch: `main` (production stable - v1.18.1)
 
 ---
 
-**Last Updated**: February 15, 2026 18:45 UTC
-**Status**: ✅ Production Live (v1.17.7) - RBAC fixes complete, Dev proxy implemented
-**Next Milestone**: Code health maintenance (ESLint warnings) - optional refactoring
+**Last Updated**: February 18, 2026
+**Status**: ✅ Production Live (v1.18.1) - release state reconciled and verified
+**Next Milestone**: Maintenance & stability continuation (owner-directed priorities)

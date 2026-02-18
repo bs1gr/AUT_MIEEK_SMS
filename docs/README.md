@@ -37,8 +37,8 @@ docs/
 │   ├── SECURITY_GUIDE_COMPLETE.md
 │   └── session-import-safety.md
 ├── releases/                # Release notes & audits
-│   ├── RELEASE_NOTES_1.12.2.md
-│   └── RELEASE_SUMMARY_1.12.2.md
+│   ├── RELEASE_NOTES_v1.18.1.md
+│   └── RELEASE_MANIFEST_v1.18.1.md
 └── archive/                 # Archived materials
     ├── documentation/
     └── pr-updates/
@@ -103,8 +103,8 @@ For a complete catalog of all documentation, see:
 
 ## 🔄 Version
 
-**Current Version:** 1.12.2
-**Last Updated:** 2025-12-13
+**Current Version:** 1.18.1
+**Last Updated:** 2026-02-18
 
 ## 📝 Contributing
 

@@ -2,7 +2,7 @@
 
 **Date:** February 17, 2026
 **Version:** v1.18.1
-**Status:** Release preparation
+**Status:** Released
 **Type:** Patch release
 
 ## 🎯 Overview

@@ -3,17 +3,17 @@
 **Version:** 1.18.1
 **Date:** February 17, 2026
 **Type:** Patch release
-**Status:** Release preparation
+**Status:** Released
 
 ---
 
 ## Release Artifacts
 
 ### Required Artifacts
-- [ ] Git tag: `v1.18.1`
-- [ ] GitHub Release: Published with release notes
-- [ ] VERSION file updated: `1.18.1`
-- [ ] CHANGELOG.md updated: [1.18.1] section added
+- [x] Git tag: `v1.18.1`
+- [x] GitHub Release: Published with release notes
+- [x] VERSION file updated: `1.18.1`
+- [x] CHANGELOG.md updated: [1.18.1] section added
 
 ### Documentation Updates
 - [x] Release notes: `docs/releases/RELEASE_NOTES_v1.18.1.md`
@@ -30,26 +30,26 @@
 ## Validation Gates
 
 ### Pre-Release Validation
-- [ ] `.\COMMIT_READY.ps1 -Quick` passed
-- [ ] All backend tests passing (33 batches)
-- [ ] All frontend tests passing (101 files)
-- [ ] All auto-activation tests passing (34 tests)
-- [ ] Git status clean (no uncommitted changes)
-- [ ] On correct branch: `main`
+- [x] `.\COMMIT_READY.ps1 -Quick` passed
+- [x] All backend tests passing (33 batches)
+- [x] All frontend tests passing (101 files)
+- [x] All auto-activation tests passing (34 tests)
+- [x] Git status clean (no uncommitted changes)
+- [x] On correct branch: `main`
 
 ### Version Consistency Checks
-- [ ] VERSION file: `1.18.1`
-- [ ] frontend/package.json: `1.18.1`
-- [ ] backend/pyproject.toml: `1.18.1` (if versioned)
-- [ ] CHANGELOG.md: [1.18.1] section added
+- [x] VERSION file: `1.18.1`
+- [x] frontend/package.json: `1.18.1`
+- [x] backend/pyproject.toml: `1.18.1` (if versioned)
+- [x] CHANGELOG.md: [1.18.1] section added
 
 ### Release Checklist
-- [ ] GENERATE_RELEASE_DOCS.ps1 executed (or manual equivalent complete)
-- [ ] All documentation files created
-- [ ] Git commit: "chore(release): prepare v1.18.1 release"
-- [ ] Git tag: `v1.18.1` created and signed
-- [ ] Git push: `origin main` with tags
-- [ ] GitHub release: Published at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
+- [x] GENERATE_RELEASE_DOCS.ps1 executed (or manual equivalent complete)
+- [x] All documentation files created
+- [x] Git commit: "chore(release): prepare v1.18.1 release"
+- [x] Git tag: `v1.18.1` created and signed
+- [x] Git push: `origin main` with tags
+- [x] GitHub release: Published at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
 
 ---
 
@@ -135,18 +135,18 @@ git status
 - **E2E**: Not required (UI changes only affect unit tests)
 
 ### Dependencies
-- **Parent release**: v1.18.1 (2026-02-16)
-- **Next release**: v1.18.1 or v1.18.1 (TBD)
+- **Parent release**: v1.18.0 (2026-02-16)
+- **Next release**: v1.18.2 (TBD)
 
 ---
 
 ## Post-Release Actions
 
 ### Immediate (within 1 hour)
-- [ ] Verify GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
-- [ ] Verify tag created: `git tag -l v1.18.1`
-- [ ] Verify CI/CD pipeline passed: GitHub Actions
-- [ ] Update work plan: Mark v1.18.1 as released in `docs/plans/UNIFIED_WORK_PLAN.md`
+- [x] Verify GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
+- [x] Verify tag created: `git tag -l v1.18.1`
+- [x] Verify CI/CD pipeline passed: GitHub Actions
+- [x] Update work plan: Mark v1.18.1 as released in `docs/plans/UNIFIED_WORK_PLAN.md`
 
 ### Short-term (within 24 hours)
 - [ ] Monitor for bug reports or issues
@@ -154,9 +154,13 @@ git status
 - [ ] Check analytics for test failures (if monitoring enabled)
 
 ### Medium-term (within 1 week)
-- [ ] Assess need for v1.18.1 (if critical issues found)
-- [ ] Plan next feature release (v1.18.1)
+- [ ] Assess need for v1.18.2 (if critical issues found)
+- [ ] Plan next feature release (v1.18.2)
 - [ ] Update roadmap with completed work
+
+---
+
+**Last Updated:** February 18, 2026
 
 ---
 
