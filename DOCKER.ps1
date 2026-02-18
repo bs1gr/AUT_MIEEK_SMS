@@ -881,18 +881,38 @@ function Invoke-SqliteToPostgresMigration {
         return $true
     }
 
+    Set-ComposeVolumeEnvironment
+
+    $sqliteVolumeName = if ($script:SelectedSmsDataVolume) { $script:SelectedSmsDataVolume } else { "sms_data" }
+    $sqliteVolumeSize = Get-VolumeDataSizeBytes -VolumeName $sqliteVolumeName -RelativePath "student_management.db"
+
     $sqlitePath = Join-Path $SCRIPT_DIR "data\student_management.db"
-    if (-not (Test-Path $sqlitePath)) {
+    $useHostSqlite = Test-Path $sqlitePath
+    $useVolumeSqlite = $false
+
+    if ($useHostSqlite) {
+        $size = (Get-Item $sqlitePath).Length
+        if ($size -lt 1024) {
+            $useHostSqlite = $false
+        }
+    }
+
+    if (-not $useHostSqlite -and $sqliteVolumeSize -ge 1024) {
+        $useVolumeSqlite = $true
+    }
+
+    if (-not $useHostSqlite -and -not $useVolumeSqlite) {
         return $true
     }
 
-    $size = (Get-Item $sqlitePath).Length
-    if ($size -lt 1024) {
-        return $true
+    $sourceFingerprint = ""
+    if ($useHostSqlite) {
+        $sqliteInfo = Get-Item $sqlitePath
+        $sourceFingerprint = "host:$($sqliteInfo.Length)|$($sqliteInfo.LastWriteTimeUtc.Ticks)"
+    } else {
+        $sourceFingerprint = "volume:$sqliteVolumeName|$sqliteVolumeSize"
     }
 
-    $sqliteInfo = Get-Item $sqlitePath
-    $sourceFingerprint = "$($sqliteInfo.Length)|$($sqliteInfo.LastWriteTimeUtc.Ticks)"
     $triggerDir = Join-Path $SCRIPT_DIR "data\.triggers"
     $markerFile = Join-Path $triggerDir "sqlite_to_postgres.auto.migrated"
 
@@ -909,7 +929,11 @@ function Invoke-SqliteToPostgresMigration {
         }
     }
 
-    Write-Info "Detected legacy SQLite database. Starting migration to PostgreSQL..."
+    if ($useHostSqlite) {
+        Write-Info "Detected legacy SQLite database on host path. Starting migration to PostgreSQL..."
+    } else {
+        Write-Info "Detected legacy SQLite database in Docker volume '$sqliteVolumeName'. Starting migration to PostgreSQL..."
+    }
 
     $imageExists = docker images -q $IMAGE_TAG 2>$null
     if (-not $imageExists) {
@@ -929,11 +953,19 @@ function Invoke-SqliteToPostgresMigration {
     $migrateCmd = @(
         "run", "--rm",
         "--env-file", $ROOT_ENV,
-        "-e", "DATABASE_URL=$dbUrl",
-        "-v", "${SCRIPT_DIR}\data:/data",
+        "-e", "DATABASE_URL=$dbUrl"
+    )
+
+    if ($useHostSqlite) {
+        $migrateCmd += @("-v", "${SCRIPT_DIR}\data:/data")
+    } else {
+        $migrateCmd += @("-v", "${sqliteVolumeName}:/sqlite_data:ro")
+    }
+
+    $migrateCmd += @(
         $IMAGE_TAG,
         "python", "-m", "backend.scripts.migrate_sqlite_to_postgres",
-        "--sqlite-path", "/data/student_management.db",
+        "--sqlite-path", $(if ($useHostSqlite) { "/data/student_management.db" } else { "/sqlite_data/student_management.db" }),
         "--postgres-url", $dbUrl,
         "--no-truncate"
     )
@@ -947,13 +979,17 @@ function Invoke-SqliteToPostgresMigration {
         return $false
     }
 
-    $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $backupName = "student_management.db.migrated_$timestamp"
-    try {
-        Rename-Item -Path $sqlitePath -NewName $backupName -Force
-        Write-Success "Migration completed. SQLite file archived: $backupName"
-    } catch {
-        Write-Warning "Migration completed, but SQLite file could not be renamed: $_"
+    if ($useHostSqlite) {
+        $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
+        $backupName = "student_management.db.migrated_$timestamp"
+        try {
+            Rename-Item -Path $sqlitePath -NewName $backupName -Force
+            Write-Success "Migration completed. SQLite file archived: $backupName"
+        } catch {
+            Write-Warning "Migration completed, but SQLite file could not be renamed: $_"
+        }
+    } else {
+        Write-Success "Migration completed from Docker volume '$sqliteVolumeName'"
     }
 
     try {
