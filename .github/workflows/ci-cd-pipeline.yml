@@ -860,6 +860,45 @@ jobs:
           path: DOCS_INDEX.md
           retention-days: 7
 
+  release-asset-lock:
+    name: 🔐 Release Asset Mutation Lock
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v1.')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enforce release asset mutation policy
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking release asset mutation commands across workflows..."
+
+          mapfile -t MUTATION_HITS < <(
+            grep -RIn --include='*.yml' --include='*.yaml' \
+              -E 'gh release (upload|delete-asset)' .github/workflows || true
+          )
+
+          if [ ${#MUTATION_HITS[@]} -eq 0 ]; then
+            echo "❌ No release asset mutation commands found at all."
+            echo "Expected installer workflow to manage installer asset upload."
+            exit 1
+          fi
+
+          echo "Found potential release asset mutation commands:"
+          printf '  %s\n' "${MUTATION_HITS[@]}"
+
+          for hit in "${MUTATION_HITS[@]}"; do
+            if [[ "$hit" != *".github/workflows/release-installer-with-sha.yml"* ]]; then
+              echo "❌ Policy violation: non-installer workflow mutates release assets"
+              echo "Offending entry: $hit"
+              exit 1
+            fi
+          done
+
+          echo "✅ Release asset mutation policy passed (installer workflow only)"
+
   # ============================================================================
   # PHASE 7: DEPLOYMENT TO STAGING
   # ============================================================================
@@ -1278,7 +1317,7 @@ jobs:
     name: 📦 Create GitHub Release
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v1.')
-    needs: [build-docker-images] # Depends on docker build to get artifacts
+    needs: [build-docker-images, release-asset-lock] # release-asset-lock enforces installer-only asset mutation
     permissions:
       contents: write
     steps:
