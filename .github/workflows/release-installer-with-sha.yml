@@ -287,6 +287,23 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
+          function Invoke-GhChecked {
+            param([string[]]$Arguments)
+            & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+          }
+
+          function Invoke-GhJsonChecked {
+            param([string[]]$Arguments)
+            $output = & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+            return $output
+          }
+
           $installerPath = "${{ steps.hash.outputs.path }}"
           $tag = "${{ steps.resolve_tag.outputs.tag }}"
           $version = "${{ steps.resolve_tag.outputs.version }}"
@@ -302,7 +319,7 @@ jobs:
           Write-Host "Local digest: $localDigest"
 
           try {
-            $release = gh release view $tag --repo $repo --json assets | ConvertFrom-Json
+            $release = (Invoke-GhJsonChecked @("release", "view", $tag, "--repo", $repo, "--json", "assets")) | ConvertFrom-Json
             $existing = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
 
             if ($existing) {
@@ -313,15 +330,159 @@ jobs:
               }
 
               Write-Host "Digest differs; replacing existing asset safely (delete + upload)"
-              gh release delete-asset $tag $assetName --yes --repo $repo
+              Invoke-GhChecked @("release", "delete-asset", $tag, $assetName, "--yes", "--repo", $repo)
             }
 
-            gh release upload $tag "$installerPath#$assetName" --repo $repo
+            Invoke-GhChecked @("release", "upload", $tag, "$installerPath#$assetName", "--repo", $repo)
             Write-Host "✓ Successfully uploaded installer to release $tag (digest: $localDigest)"
           } catch {
             Write-Error "Failed to upload installer to release: $($_.Exception.Message)"
             exit 1
           }
+
+      - name: Upload SHA256 sidecar asset
+        if: steps.hash.outputs.path != ''
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Invoke-GhChecked {
+            param([string[]]$Arguments)
+            & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+          }
+
+          function Invoke-GhJsonChecked {
+            param([string[]]$Arguments)
+            $output = & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+            return $output
+          }
+
+          $tag = "${{ steps.resolve_tag.outputs.tag }}"
+          $version = "${{ steps.resolve_tag.outputs.version }}"
+          $repo = "${{ github.repository }}"
+          $assetName = "SMS_Installer_${version}.exe.sha256"
+          $sha = "${{ steps.hash.outputs.sha256 }}".Trim()
+          $line = "$sha  SMS_Installer_${version}.exe"
+          $shaPath = Join-Path $env:RUNNER_TEMP $assetName
+          Set-Content -Path $shaPath -Value $line -NoNewline
+
+          try {
+            $release = (Invoke-GhJsonChecked @("release", "view", $tag, "--repo", $repo, "--json", "assets")) | ConvertFrom-Json
+            $existing = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
+            if ($existing) {
+              Invoke-GhChecked @("release", "delete-asset", $tag, $assetName, "--yes", "--repo", $repo)
+            }
+
+            Invoke-GhChecked @("release", "upload", $tag, "$shaPath#$assetName", "--repo", $repo)
+            Write-Host "✓ Uploaded SHA256 sidecar asset: $assetName"
+          } catch {
+            Write-Error "Failed to upload SHA256 sidecar: $($_.Exception.Message)"
+            exit 1
+          }
+
+      - name: Enforce installer-only release assets (cleanup)
+        if: steps.hash.outputs.path != ''
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Invoke-GhChecked {
+            param([string[]]$Arguments)
+            & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+          }
+
+          function Invoke-GhJsonChecked {
+            param([string[]]$Arguments)
+            $output = & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+            return $output
+          }
+
+          $tag = "${{ steps.resolve_tag.outputs.tag }}"
+          $version = "${{ steps.resolve_tag.outputs.version }}"
+          $repo = "${{ github.repository }}"
+
+          $allowed = @(
+            "SMS_Installer_${version}.exe",
+            "SMS_Installer_${version}.exe.sha256"
+          )
+
+          $release = (Invoke-GhJsonChecked @("release", "view", $tag, "--repo", $repo, "--json", "assets")) | ConvertFrom-Json
+          $assets = @($release.assets)
+
+          if (-not $assets -or $assets.Count -eq 0) {
+            Write-Warning "Release has no assets to evaluate."
+            exit 0
+          }
+
+          $removed = 0
+          foreach ($asset in $assets) {
+            if ($allowed -contains $asset.name) {
+              continue
+            }
+
+            Write-Host "Removing non-allowlisted release asset: $($asset.name)"
+            Invoke-GhChecked @("release", "delete-asset", $tag, $asset.name, "--yes", "--repo", $repo)
+            $removed++
+          }
+
+          if ($removed -gt 0) {
+            Write-Host "✓ Removed $removed non-allowlisted asset(s) from release $tag"
+          } else {
+            Write-Host "✓ Release assets already comply with installer-only allowlist"
+          }
+
+      - name: Verify installer-only release assets (final gate)
+        if: steps.hash.outputs.path != ''
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Invoke-GhJsonChecked {
+            param([string[]]$Arguments)
+            $output = & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+            return $output
+          }
+
+          $tag = "${{ steps.resolve_tag.outputs.tag }}"
+          $version = "${{ steps.resolve_tag.outputs.version }}"
+          $repo = "${{ github.repository }}"
+
+          $allowed = @(
+            "SMS_Installer_${version}.exe",
+            "SMS_Installer_${version}.exe.sha256"
+          )
+
+          $release = (Invoke-GhJsonChecked @("release", "view", $tag, "--repo", $repo, "--json", "assets")) | ConvertFrom-Json
+          $assets = @($release.assets)
+          $unexpected = @($assets | Where-Object { $allowed -notcontains $_.name })
+
+          if ($unexpected.Count -gt 0) {
+            Write-Error "Release asset allowlist check failed after cleanup. Unexpected assets remain:"
+            foreach ($asset in $unexpected) {
+              Write-Error " - $($asset.name)"
+            }
+            exit 1
+          }
+
+          Write-Host "✓ Final release asset gate passed (installer-only allowlist)"
 
       - name: Create release summary
         shell: pwsh

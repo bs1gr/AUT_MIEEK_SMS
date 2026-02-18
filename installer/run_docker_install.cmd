@@ -1,7 +1,7 @@
 @echo off
 REM Unified installer wrapper: run DOCKER.ps1 -Install -Silent only.
-REM This keeps installer behavior to building the fullstack image without
-REM triggering compose startup (which would also build sms-backend/sms-frontend).
+REM This keeps installer behavior focused on preparing runtime images/config
+REM without starting the compose stack during setup.
 REM Adds robust pwsh detection, logging, and a readable pause on failure.
 
 setlocal EnableExtensions EnableDelayedExpansion
@@ -87,7 +87,7 @@ if NOT "%EXITCODE%" == "0" (
 )
 
 echo.
-echo Docker installation and image build completed successfully!
-echo SMS fullstack image is ready. Run DOCKER.ps1 -Start when you want to launch.
+echo Docker installation and runtime image preparation completed successfully!
+echo SMS runtime images are ready. Run DOCKER.ps1 -Start when you want to launch.
 echo.
 endlocal & exit /b 0

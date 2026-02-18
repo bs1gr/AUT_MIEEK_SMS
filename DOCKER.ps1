@@ -739,6 +739,24 @@ function Invoke-SqliteToPostgresMigration {
         return $true
     }
 
+    $sqliteInfo = Get-Item $sqlitePath
+    $sourceFingerprint = "$($sqliteInfo.Length)|$($sqliteInfo.LastWriteTimeUtc.Ticks)"
+    $triggerDir = Join-Path $SCRIPT_DIR "data\.triggers"
+    $markerFile = Join-Path $triggerDir "sqlite_to_postgres.auto.migrated"
+
+    if (Test-Path $markerFile) {
+        try {
+            $markerContent = (Get-Content $markerFile -Raw -ErrorAction Stop).Trim()
+            if ($markerContent -eq $sourceFingerprint) {
+                Write-Info "SQLite→PostgreSQL auto-migration already recorded for current source snapshot. Skipping."
+                return $true
+            }
+            Write-Warning "SQLite migration marker exists but source snapshot changed; migration will run again in append-safe mode."
+        } catch {
+            Write-Warning "Could not read migration marker. Proceeding with append-safe migration."
+        }
+    }
+
     Write-Info "Detected legacy SQLite database. Starting migration to PostgreSQL..."
 
     $imageExists = docker images -q $IMAGE_TAG 2>$null
@@ -764,7 +782,8 @@ function Invoke-SqliteToPostgresMigration {
         $IMAGE_TAG,
         "python", "-m", "backend.scripts.migrate_sqlite_to_postgres",
         "--sqlite-path", "/data/student_management.db",
-        "--postgres-url", $dbUrl
+        "--postgres-url", $dbUrl,
+        "--no-truncate"
     )
 
     $output = & docker @migrateCmd 2>&1
@@ -783,6 +802,16 @@ function Invoke-SqliteToPostgresMigration {
         Write-Success "Migration completed. SQLite file archived: $backupName"
     } catch {
         Write-Warning "Migration completed, but SQLite file could not be renamed: $_"
+    }
+
+    try {
+        if (-not (Test-Path $triggerDir)) {
+            New-Item -ItemType Directory -Path $triggerDir -Force | Out-Null
+        }
+        Set-Content -Path $markerFile -Value $sourceFingerprint -NoNewline
+        Write-Info "Recorded SQLite migration marker: $markerFile"
+    } catch {
+        Write-Warning "Failed to record SQLite migration marker: $_"
     }
 
     return $true
@@ -1756,27 +1785,59 @@ function Start-Installation {
         }
     }
 
-    # Build image
+    # Build runtime artifacts
     Write-Host ""
-    Write-Info "Building Docker image (this may take 5-10 minutes)..."
-    Write-Info "Image tag: $IMAGE_TAG"
+    if (Use-ComposeMode) {
+        Write-Info "Building Docker Compose runtime images (backend/frontend)..."
 
-    Push-Location $SCRIPT_DIR
-    try {
-        docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | ForEach-Object {
-            if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged)') {
-                Write-Host $_ -ForegroundColor DarkGray
-            }
-        }
-
-        if ($LASTEXITCODE -ne 0) {
-            Write-Error-Message "Build failed"
+        if (-not (Test-Path $COMPOSE_BASE) -or -not (Test-Path $COMPOSE_PROD)) {
+            Write-Error-Message "Compose files not found for installer runtime validation"
             return 1
         }
 
-        Write-Success "Build completed: $IMAGE_TAG"
-    } finally {
-        Pop-Location
+        Set-ComposeVolumeEnvironment
+        Set-ComposeProfileEnvironment | Out-Null
+
+        $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
+        if (Test-Path $ROOT_ENV) {
+            $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+        }
+
+        Push-Location $SCRIPT_DIR
+        try {
+            docker compose @composeArgs build backend frontend 2>&1 | Out-Null
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error-Message "Compose image build failed"
+                return 1
+            }
+
+            Write-Success "Compose runtime images built successfully"
+        } finally {
+            Pop-Location
+        }
+    }
+    else {
+        Write-Info "Building Docker image (this may take 5-10 minutes)..."
+        Write-Info "Image tag: $IMAGE_TAG"
+
+        Push-Location $SCRIPT_DIR
+        try {
+            docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | ForEach-Object {
+                if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged)') {
+                    Write-Host $_ -ForegroundColor DarkGray
+                }
+            }
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error-Message "Build failed"
+                return 1
+            }
+
+            Write-Success "Build completed: $IMAGE_TAG"
+        } finally {
+            Pop-Location
+        }
     }
 
     # Installation complete
