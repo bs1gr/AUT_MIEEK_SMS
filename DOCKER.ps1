@@ -376,6 +376,30 @@ function Get-EnvVarValue {
     return $null
 }
 
+function Set-RootEnvVarValue {
+    param(
+        [string]$Name,
+        [string]$Value
+    )
+
+    if (-not (Test-Path $ROOT_ENV)) {
+        return
+    }
+
+    $content = Get-Content $ROOT_ENV -Raw
+    $pattern = "(?m)^\s*" + [regex]::Escape($Name) + "\s*=.*$"
+    if ($content -match $pattern) {
+        $content = [regex]::Replace($content, $pattern, "$Name=$Value")
+    } else {
+        if (-not $content.EndsWith("`n")) {
+            $content += "`n"
+        }
+        $content += "$Name=$Value`n"
+    }
+
+    Set-Content -Path $ROOT_ENV -Value $content
+}
+
 function Get-DeploymentMode {
     $rawMode = Get-EnvVarValue -Name "SMS_DEPLOYMENT_MODE"
     if ([string]::IsNullOrWhiteSpace($rawMode)) {
@@ -482,6 +506,112 @@ function Set-ComposeProfileEnvironment {
 
     $env:COMPOSE_PROFILES = ""
     return ""
+}
+
+function Ensure-SingleModePostgresRuntime {
+    $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
+    if (-not $dbEngine -or $dbEngine.Trim().ToLower() -ne "postgresql") {
+        Write-Error-Message "Single-image mode requires PostgreSQL. Set DATABASE_ENGINE=postgresql in .env"
+        return $false
+    }
+
+    $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
+    $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+    $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+    $pgPort = Get-EnvVarValue -Name "POSTGRES_PORT"
+    $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
+
+    if ([string]::IsNullOrWhiteSpace($pgUser)) { $pgUser = "sms_user" }
+    if ([string]::IsNullOrWhiteSpace($pgDb)) { $pgDb = "student_management" }
+    if ([string]::IsNullOrWhiteSpace($pgPort)) { $pgPort = "5432" }
+
+    if ([string]::IsNullOrWhiteSpace($pgPassword)) {
+        Write-Error-Message "POSTGRES_PASSWORD is required for PostgreSQL runtime"
+        return $false
+    }
+
+    $managedHostNames = @("", "postgres", "postgresql", "sms-postgres")
+    $normalizedHost = if ($pgHost) { $pgHost.Trim().ToLower() } else { "" }
+    $useManagedPostgres = $managedHostNames -contains $normalizedHost
+
+    $effectiveHost = $pgHost
+    $script:SingleModeNetworkName = $null
+
+    if ($useManagedPostgres) {
+        $networkName = "sms-single-net"
+        $containerName = "sms-postgres"
+        $volumeName = "sms_postgres_data"
+
+        $networkExists = docker network inspect $networkName 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            docker network create $networkName 2>$null | Out-Null
+        }
+
+        $volumeExists = docker volume inspect $volumeName 2>$null
+        if ($LASTEXITCODE -ne 0) {
+            docker volume create $volumeName 2>$null | Out-Null
+        }
+
+        $containerId = docker ps -a --filter "name=^${containerName}$" --format "{{.ID}}" 2>$null
+        if (-not $containerId) {
+            $pgRunOutput = docker run -d --name $containerName --network $networkName --restart unless-stopped `
+                -e "POSTGRES_USER=$pgUser" `
+                -e "POSTGRES_PASSWORD=$pgPassword" `
+                -e "POSTGRES_DB=$pgDb" `
+                -e "PGDATA=/var/lib/postgresql/data/pgdata" `
+                -v "${volumeName}:/var/lib/postgresql/data" `
+                postgres:16-alpine 2>&1
+
+            if ($LASTEXITCODE -ne 0) {
+                Write-Error-Message "Failed to start managed PostgreSQL container for single-image mode"
+                if ($pgRunOutput) {
+                    $pgRunOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+                }
+                return $false
+            }
+        } else {
+            $runningId = docker ps --filter "name=^${containerName}$" --format "{{.ID}}" 2>$null
+            if (-not $runningId) {
+                docker start $containerName 2>$null | Out-Null
+            }
+            docker network connect $networkName $containerName 2>$null | Out-Null
+        }
+
+        Write-Info "Waiting for managed PostgreSQL container to become ready..."
+        $ready = $false
+        for ($i = 0; $i -lt 45; $i++) {
+            $check = docker exec $containerName pg_isready -U $pgUser -d $pgDb 2>$null
+            if ($LASTEXITCODE -eq 0) {
+                $ready = $true
+                break
+            }
+            Start-Sleep -Seconds 2
+        }
+
+        if (-not $ready) {
+            Write-Error-Message "Managed PostgreSQL container did not become ready in time"
+            return $false
+        }
+
+        $effectiveHost = "sms-postgres"
+        $script:SingleModeNetworkName = $networkName
+
+        Set-RootEnvVarValue -Name "POSTGRES_HOST" -Value $effectiveHost
+        Set-RootEnvVarValue -Name "POSTGRES_PORT" -Value $pgPort
+        Set-RootEnvVarValue -Name "POSTGRES_USER" -Value $pgUser
+        Set-RootEnvVarValue -Name "POSTGRES_DB" -Value $pgDb
+    }
+
+    if ([string]::IsNullOrWhiteSpace($effectiveHost)) {
+        Write-Error-Message "POSTGRES_HOST is required for PostgreSQL runtime"
+        return $false
+    }
+
+    $effectiveDatabaseUrl = New-PostgresDatabaseUrl -DbHost $effectiveHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+    $script:EffectiveDatabaseUrl = $effectiveDatabaseUrl
+    Set-RootEnvVarValue -Name "DATABASE_URL" -Value $effectiveDatabaseUrl
+
+    return $true
 }
 
 function Resolve-ComposeVolumeName {
@@ -746,7 +876,7 @@ function Get-ComposeServiceStatus {
 }
 
 function Invoke-SqliteToPostgresMigration {
-    $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
+    $dbUrl = if ($script:EffectiveDatabaseUrl) { $script:EffectiveDatabaseUrl } else { Get-EnvVarValue -Name "DATABASE_URL" }
     if (-not $dbUrl -or -not $dbUrl.Trim().ToLower().StartsWith("postgresql")) {
         return $true
     }
@@ -1180,14 +1310,14 @@ function Initialize-EnvironmentFiles {
             $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
             $envContent = $envContent -replace 'VERSION=.*', "VERSION=$VERSION"
-            # CRITICAL: Production installs are PostgreSQL-only
+            $envContent = $envContent -replace 'SMS_DEPLOYMENT_MODE=.*', "SMS_DEPLOYMENT_MODE=single"
             $envContent = $envContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
             Set-Content -Path $ROOT_ENV -Value $envContent
-            Write-Success "Root .env created with secure SECRET_KEY (PostgreSQL required)"
+            Write-Success "Root .env created with secure SECRET_KEY (single-image + PostgreSQL)"
             $configured = $true
         } else {
             Write-Warning ".env.example not found, creating minimal .env..."
-            # Minimal .env for fresh install: PostgreSQL only
+            # Minimal .env for fresh install: single image + PostgreSQL.
             $minimalEnv = @"
 VERSION=$VERSION
 SECRET_KEY=$secretKey
@@ -1197,10 +1327,15 @@ DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 DEFAULT_ADMIN_FORCE_RESET=False
 SMS_DEPLOYMENT_MODE=single
-DATABASE_ENGINE=sqlite
+DATABASE_ENGINE=postgresql
+POSTGRES_HOST=sms-postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=student_management
+POSTGRES_USER=sms_user
+POSTGRES_PASSWORD=$postgresPassword
 "@
             Set-Content -Path $ROOT_ENV -Value $minimalEnv
-            Write-Success "Minimal .env created (single-image mode)"
+            Write-Success "Minimal .env created (single-image + PostgreSQL)"
             $configured = $true
         }
     } else {
@@ -1251,8 +1386,14 @@ DATABASE_ENGINE=sqlite
             }
         } else {
             if (-not $dbEngine) {
-                Write-Info "Adding DATABASE_ENGINE=sqlite for single-image mode"
-                $rootContent = $rootContent + "`nDATABASE_ENGINE=sqlite`n"
+                Write-Info "Adding DATABASE_ENGINE=postgresql for single-image mode"
+                $rootContent = $rootContent + "`nDATABASE_ENGINE=postgresql`n"
+                Set-Content -Path $ROOT_ENV -Value $rootContent
+                $configured = $true
+            } elseif ($dbEngine -ne "postgresql") {
+                Write-Warning ".env has invalid DATABASE_ENGINE for single-image mode: $dbEngine"
+                Write-Info "Correcting to: DATABASE_ENGINE=postgresql"
+                $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
                 Set-Content -Path $ROOT_ENV -Value $rootContent
                 $configured = $true
             }
@@ -1477,6 +1618,12 @@ function Wait-ForHealthy {
         if ($status.IsHealthy) {
             Write-Host "`n"
             Write-Success "Application is healthy and ready!"
+
+            $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
+            if ($dbEngine -and $dbEngine.Trim().ToLower() -eq "postgresql") {
+                Write-Success "✓ PostgreSQL mode confirmed"
+                return $true
+            }
 
             # ====== PERSISTENCE FIX: Verify Database File in Volume ======
             # Ensure the SQLite database file is actually being persisted
@@ -2101,6 +2248,14 @@ function Start-Application {
 
     Write-Info "Using single-image runtime mode (sms-fullstack)"
 
+    if (-not (Ensure-SingleModePostgresRuntime)) {
+        return 1
+    }
+
+    if (-not (Invoke-SqliteToPostgresMigration)) {
+        return 1
+    }
+
     # Best-effort cleanup of compose stack to avoid port conflicts when switching modes
     if ((Test-Path $COMPOSE_BASE) -and (Test-Path $COMPOSE_PROD)) {
         Set-ComposeVolumeEnvironment
@@ -2127,6 +2282,10 @@ function Start-Application {
         "-v", "${VOLUME_NAME}:/data"
     )
 
+    if ($script:SingleModeNetworkName) {
+        $runArgs += @("--network", $script:SingleModeNetworkName)
+    }
+
     $backupsPath = Join-Path $SCRIPT_DIR "backups"
     if (Test-Path $backupsPath) {
         $runArgs += @("-v", "${backupsPath}:/app/backups")
@@ -2144,8 +2303,13 @@ function Start-Application {
     $runArgs += @(
         "-e", "SMS_ENV=production",
         "-e", "SMS_EXECUTION_MODE=docker",
-        "-e", "FRONTEND_VERSION=$VERSION"
+        "-e", "FRONTEND_VERSION=$VERSION",
+        "-e", "DATABASE_ENGINE=postgresql"
     )
+
+    if ($script:EffectiveDatabaseUrl) {
+        $runArgs += @("-e", "DATABASE_URL=$($script:EffectiveDatabaseUrl)")
+    }
 
     if ($dockerVersionString) {
         $runArgs += @("-e", "HOST_DOCKER_VERSION=$dockerVersionString")
