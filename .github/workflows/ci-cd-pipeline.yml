@@ -1292,6 +1292,35 @@ jobs:
         with:
           path: ./artifacts
 
+      - name: Validate release artifact hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Validating downloaded artifact hygiene..."
+          mapfile -t BAD_FILES < <(find ./artifacts -type f \
+            \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.ico' \) || true)
+
+          if [ ${#BAD_FILES[@]} -gt 0 ]; then
+            echo "❌ Found web/static build files in generic release artifact set:"
+            printf '  - %s\n' "${BAD_FILES[@]}"
+            echo "These files must never be uploaded as GitHub release assets from CI pipeline."
+            exit 1
+          fi
+
+          if [ -f frontend/public/favicon.ico ]; then
+            ICON_BYTES=$(wc -c < frontend/public/favicon.ico)
+            ICON_TEXT=$(tr -d '\r\n' < frontend/public/favicon.ico | head -c 64 || true)
+            if [ "$ICON_BYTES" -lt 64 ] || [ "$ICON_TEXT" = "placeholder" ]; then
+              echo "❌ Invalid placeholder favicon detected (frontend/public/favicon.ico)"
+              echo "Size: ${ICON_BYTES} bytes; value: '${ICON_TEXT}'"
+              echo "Provide a real favicon.ico before creating a release."
+              exit 1
+            fi
+          fi
+
+          echo "✅ Release artifact hygiene checks passed"
+
       - name: Validate release tag lineage
         shell: bash
         run: |
@@ -1361,33 +1390,20 @@ jobs:
           VERSION="v${{ steps.version.outputs.version }}"
           NOTES_FILE="RELEASE_NOTES.md"
 
-          # IMPORTANT: Do NOT upload installer executables from generic CI artifacts.
-          # Installer assets are managed by dedicated installer workflows and verified separately.
-          # This prevents accidental clobber of release installer with stale/smaller binaries.
-          # Also exclude frontend-dist files (already packaged in installer).
-          mapfile -t RELEASE_FILES < <(find ./artifacts -type f \
-            ! -name 'SMS_Installer_*.exe' \
-            ! -path '*/frontend-dist/*' \
-            ! -path '*/frontend-build-stats/*')
+          # IMPORTANT:
+          # - Do NOT upload generic CI artifacts to GitHub releases from this pipeline.
+          # - Installer assets are managed by dedicated installer workflows with digest validation.
+          # - This avoids release pollution (frontend dist chunks, html reports, misc build outputs).
 
-          # Attempt to create release. If it fails (e.g. already exists), fall back to edit/upload.
+          # Attempt to create release. If it already exists, update notes only.
           if ! gh release create "$VERSION" \
             --title "Release $VERSION" \
             --notes-file "$NOTES_FILE" \
             --generate-notes; then
             echo "Release creation failed (likely already exists). Updating existing release..."
             gh release edit "$VERSION" --notes-file "$NOTES_FILE"
-            if [ ${#RELEASE_FILES[@]} -gt 0 ]; then
-              gh release upload "$VERSION" "${RELEASE_FILES[@]}" --clobber || echo "Asset upload failed or no non-installer assets found"
-            else
-              echo "No non-installer artifacts found to upload"
-            fi
           else
-            if [ ${#RELEASE_FILES[@]} -gt 0 ]; then
-              gh release upload "$VERSION" "${RELEASE_FILES[@]}" --clobber || echo "Asset upload failed or no non-installer assets found"
-            else
-              echo "No non-installer artifacts found to upload"
-            fi
+            echo "Release created successfully (notes only)."
           fi
 
   # ============================================================================
