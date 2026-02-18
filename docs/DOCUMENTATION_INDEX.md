@@ -1,19 +1,19 @@
 # Documentation Index
 
-**Last Updated**: 2026-02-15
+**Last Updated**: 2026-02-18
 **Project Version (documented)**: 1.18.1
 **Version**: 1.18.1
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | 🚀 **v1.18.1 RELEASE PREP READY (DOCS + CI ALIGNED)**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.1 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 15, 2026)**: ✅ **Production Live + Next Major Release Documentation Prepared**
+> **Current Status (Feb 18, 2026)**: ✅ **Production Live + v1.18.1 Release Published and Verified**
 > - Maintenance & stability phase active
 > - Changelog/work plan/index updated for changes since `v1.18.1`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
 > - `v1.18.1` release documentation pack refreshed (notes, release body, manifest, deployment checklist)
-> - CI/CD rerun completed successfully after GHCR package-push policy hardening
+> - Tag `v1.18.1` verified on remote and GitHub release verified as published (non-draft)
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
