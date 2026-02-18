@@ -1,7 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace SMS_Manager
@@ -14,10 +16,12 @@ namespace SMS_Manager
     class Program
     {
         private static readonly string SMS_APP_CONTAINER = "sms-app";
+        private static readonly string SMS_APP_IMAGE = "sms-fullstack";
         private static readonly int APP_PORT = 8080;
         private static readonly string INSTALL_DIR = GetInstallDirectory();
         private static readonly string COMPOSE_FILE = Path.Combine(INSTALL_DIR, "docker", "docker-compose.yml");
         private static readonly string DOCKER_SCRIPT = Path.Combine(INSTALL_DIR, "DOCKER.ps1");
+        private const int START_TIMEOUT_SECONDS = 300;
 
         // ANSI color codes for terminal output (enabled only when supported)
         private const string ANSI_RESET = "\u001b[0m";
@@ -161,7 +165,22 @@ namespace SMS_Manager
             }
 
             // Delegate runtime strategy to DOCKER.ps1 (fullstack vs compose mode)
-            int code = await RunDockerScript("-Start");
+            int code = await RunDockerScript("-Start", START_TIMEOUT_SECONDS);
+
+            // If startup exceeded timeout, verify if app is actually reachable.
+            // This avoids false "stuck" states when the backend is still finalizing.
+            if (code == 124)
+            {
+                Console.WriteLine($"{YELLOW}⚠ Startup command is still running after timeout check. Verifying service availability...{RESET}");
+                bool runtimeRunning = await IsSmsRuntimeRunning();
+                bool webReady = await IsWebAppReachable();
+
+                if (runtimeRunning && webReady)
+                {
+                    Console.WriteLine($"{GREEN}✓ SMS is running and reachable at http://localhost:{APP_PORT}{RESET}");
+                    return 0;
+                }
+            }
 
             if (code == 0)
             {
@@ -292,7 +311,7 @@ namespace SMS_Manager
             return await RunCommand("docker-compose", composeArgs);
         }
 
-        static async Task<int> RunDockerScript(string scriptArgs)
+        static async Task<int> RunDockerScript(string scriptArgs, int timeoutSeconds = 0)
         {
             if (!File.Exists(DOCKER_SCRIPT))
             {
@@ -308,7 +327,7 @@ namespace SMS_Manager
             }
 
             string args = $"-NoProfile -ExecutionPolicy Bypass -File \"{DOCKER_SCRIPT}\" {scriptArgs}";
-            return await RunCommand(shell, args);
+            return await RunCommand(shell, args, timeoutSeconds);
         }
 
         static string? ResolvePowerShell()
@@ -366,7 +385,7 @@ namespace SMS_Manager
             return null;
         }
 
-        static async Task<int> RunCommand(string command, string args)
+        static async Task<int> RunCommand(string command, string args, int timeoutSeconds = 0)
         {
             try
             {
@@ -387,19 +406,59 @@ namespace SMS_Manager
                     return 1;
                 }
 
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
+                var outputBuilder = new StringBuilder();
+                var errorBuilder = new StringBuilder();
 
-                if (!string.IsNullOrWhiteSpace(output))
+                process.OutputDataReceived += (_, e) =>
                 {
-                    Console.WriteLine(output.TrimEnd());
+                    if (string.IsNullOrWhiteSpace(e.Data))
+                    {
+                        return;
+                    }
+
+                    outputBuilder.AppendLine(e.Data);
+                    Console.WriteLine(e.Data);
+                };
+
+                process.ErrorDataReceived += (_, e) =>
+                {
+                    if (string.IsNullOrWhiteSpace(e.Data))
+                    {
+                        return;
+                    }
+
+                    errorBuilder.AppendLine(e.Data);
+                    Console.WriteLine(e.Data);
+                };
+
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                var waitTask = process.WaitForExitAsync();
+                if (timeoutSeconds > 0)
+                {
+                    var timeoutTask = Task.Delay(TimeSpan.FromSeconds(timeoutSeconds));
+                    var completedTask = await Task.WhenAny(waitTask, timeoutTask);
+                    if (completedTask != waitTask)
+                    {
+                        try
+                        {
+                            if (!process.HasExited)
+                            {
+                                process.Kill(entireProcessTree: true);
+                            }
+                        }
+                        catch
+                        {
+                            // Best effort kill; if it already exited ignore
+                        }
+
+                        Console.WriteLine($"{YELLOW}⚠ Command timed out after {timeoutSeconds} seconds.{RESET}");
+                        return 124;
+                    }
                 }
 
-                if (!string.IsNullOrWhiteSpace(error))
-                {
-                    Console.WriteLine(error.TrimEnd());
-                }
+                await waitTask;
 
                 return process.ExitCode;
             }
@@ -408,6 +467,86 @@ namespace SMS_Manager
                 Console.WriteLine($"{RED}Error running command: {ex.Message}{RESET}");
                 return 1;
             }
+        }
+
+        static async Task<bool> IsSmsRuntimeRunning()
+        {
+            try
+            {
+                var byName = await RunCommandCapture("docker", $"ps --filter \"name=^{SMS_APP_CONTAINER}$\" --format \"{{{{.ID}}}}\"");
+                if (byName.ExitCode == 0 && !string.IsNullOrWhiteSpace(byName.Output))
+                {
+                    return true;
+                }
+
+                var byImage = await RunCommandCapture("docker", $"ps --filter \"ancestor={SMS_APP_IMAGE}\" --format \"{{{{.ID}}}}\"");
+                return byImage.ExitCode == 0 && !string.IsNullOrWhiteSpace(byImage.Output);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        static async Task<bool> IsWebAppReachable()
+        {
+            string url = $"http://localhost:{APP_PORT}/";
+
+            try
+            {
+                using var http = new HttpClient
+                {
+                    Timeout = TimeSpan.FromSeconds(4)
+                };
+
+                for (int attempt = 0; attempt < 5; attempt++)
+                {
+                    try
+                    {
+                        using var response = await http.GetAsync(url);
+                        if ((int)response.StatusCode >= 200 && (int)response.StatusCode < 600)
+                        {
+                            return true;
+                        }
+                    }
+                    catch
+                    {
+                        // Keep retrying while service warms up
+                    }
+
+                    await Task.Delay(1000);
+                }
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        static async Task<(int ExitCode, string Output, string Error)> RunCommandCapture(string command, string args)
+        {
+            var psi = new ProcessStartInfo
+            {
+                FileName = command,
+                Arguments = args,
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            using var process = Process.Start(psi);
+            if (process == null)
+            {
+                return (1, string.Empty, "Failed to start process");
+            }
+
+            string output = await process.StandardOutput.ReadToEndAsync();
+            string error = await process.StandardError.ReadToEndAsync();
+            await process.WaitForExitAsync();
+            return (process.ExitCode, output?.Trim() ?? string.Empty, error?.Trim() ?? string.Empty);
         }
 
         static void ConfigureConsole()
