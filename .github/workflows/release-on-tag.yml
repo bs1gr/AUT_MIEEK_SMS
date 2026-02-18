@@ -116,7 +116,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'release-installer-with-sha.yml',
-                ref: 'main',
+                ref: tag,
                 inputs: {
                   tag: tag
                 }
@@ -147,7 +147,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'ci-cd-pipeline.yml',
-                ref: 'main',
+                ref: tag,
                 inputs: {
                   deploy_environment: 'production'
                 }

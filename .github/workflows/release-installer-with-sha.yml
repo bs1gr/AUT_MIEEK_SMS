@@ -28,6 +28,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -105,6 +106,33 @@ jobs:
           echo "release_id=$releaseId" >> $env:GITHUB_OUTPUT
           echo "version=$($tag -replace '^v', '')" >> $env:GITHUB_OUTPUT
 
+      - name: Validate checkout matches tag version
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = "${{ steps.resolve_tag.outputs.tag }}"
+          $expectedVersion = "${{ steps.resolve_tag.outputs.version }}"
+          $versionFile = (Get-Content VERSION -Raw).Trim()
+
+          Write-Host "Tag: $tag"
+          Write-Host "Expected version from tag: $expectedVersion"
+          Write-Host "VERSION file in checked out ref: $versionFile"
+
+          if ($versionFile -ne $expectedVersion) {
+            Write-Error "Tag/version mismatch: tag '$tag' implies '$expectedVersion' but VERSION file is '$versionFile'."
+            exit 1
+          }
+
+      - name: Clean dist before build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (Test-Path "dist") {
+            Write-Host "Cleaning existing dist artifacts to prevent stale installer pickup..."
+            Get-ChildItem "dist" -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+          }
+          New-Item -ItemType Directory -Path "dist" -Force | Out-Null
+
       - name: Import code signing certificate (from secrets)
         id: import_cert
         shell: pwsh
@@ -168,13 +196,13 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $tag = "${{ steps.resolve_tag.outputs.tag }}"
           $version = "${{ steps.resolve_tag.outputs.version }}"
+          $expectedPath = "dist\SMS_Installer_${version}.exe"
 
-          Write-Host "=== Installer Search Debug Info ==="
-          Write-Host "Tag: $tag"
+          Write-Host "=== Installer Verification (strict) ==="
           Write-Host "Version: $version"
           Write-Host "Current directory: $(Get-Location)"
+          Write-Host "Expected installer path: $expectedPath"
           Write-Host ""
 
           # Show what actually exists in dist/
@@ -188,39 +216,13 @@ jobs:
           }
           Write-Host ""
 
-          # Search patterns in priority order
-          $installers = @(
-            "dist\SMS_Installer_${version}.exe",
-            "dist\SMS_Installer_${tag}.exe",
-            "dist\SMS_Installer.exe",
-            "SMS_Installer_${version}.exe",
-            "SMS_Installer_${tag}.exe",
-            "SMS_Installer.exe"
-          )
-
-          Write-Host "Searching for installer in these locations:"
-          $installers | ForEach-Object { Write-Host "  - $_" }
-          Write-Host ""
-
-          $found = $false
-          foreach ($path in $installers) {
-            if (Test-Path $path) {
-              Write-Host "✓ Found installer: $path"
-              echo "path=$path" >> $env:GITHUB_OUTPUT
-              $found = $true
-              break
-            }
-          }
-
-          if (-not $found) {
-            Write-Host ""
-            Write-Host "=== Recursive Search for SMS_Installer*.exe ==="
-            Get-ChildItem -Path "." -Recurse -Filter "SMS_Installer*.exe" -ErrorAction SilentlyContinue | ForEach-Object {
-              Write-Host "  Found: $($_.FullName)"
-            }
-            Write-Error "Installer not found in any expected location"
+          if (-not (Test-Path $expectedPath)) {
+            Write-Error "Expected installer not found: $expectedPath"
             exit 1
           }
+
+          Write-Host "✓ Found expected installer: $expectedPath"
+          echo "path=$expectedPath" >> $env:GITHUB_OUTPUT
 
       - name: Calculate SHA256 hash
         id: hash

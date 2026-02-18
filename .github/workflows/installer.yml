@@ -48,6 +48,11 @@ jobs:
       - name: Build Installer
         shell: pwsh
         run: |
+          if (Test-Path dist) {
+            Write-Host "Cleaning dist before installer build..." -ForegroundColor Cyan
+            Get-ChildItem dist -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
+          }
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
           ./INSTALLER_BUILDER.ps1 -Action build -SkipCodeSign -Verbose -AutoFix
         env:
           CI: 'true'
@@ -86,9 +91,21 @@ jobs:
             }
           }
 
+      - name: Resolve Installer Artifact Path
+        id: resolve_installer
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          $expected = "dist\SMS_Installer_${version}.exe"
+          if (-not (Test-Path $expected)) {
+            Write-Error "Expected installer missing: $expected"
+            exit 1
+          }
+          "path=$expected" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
       - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SMS_Installer
-          path: dist/*.exe
+          path: ${{ steps.resolve_installer.outputs.path }}
           if-no-files-found: error
