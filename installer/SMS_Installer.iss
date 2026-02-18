@@ -278,6 +278,15 @@ begin
   Result := IsUpgrade;
 end;
 
+function GetInstallDirSafe: String;
+begin
+  Result := WizardDirValue;
+  if Result = '' then
+    Result := PreviousInstallPath;
+  if Result = '' then
+    Result := ExpandConstant('{autopf}\{#MyAppShortName}');
+end;
+
 function IsDockerInstalled: Boolean;
 var
   ResultCode: Integer;
@@ -848,6 +857,7 @@ end;
 
 procedure WritePostgresEnv;
 var
+  InstallDir: String;
   EnvPath: String;
   ExamplePath: String;
   Content: AnsiString;
@@ -857,8 +867,9 @@ var
   EncDb: String;
   DummyResult: Integer;
 begin
-  EnvPath := ExpandConstant('{app}\.env');
-  ExamplePath := ExpandConstant('{app}\.env.example');
+  InstallDir := GetInstallDirSafe;
+  EnvPath := AddBackslash(InstallDir) + '.env';
+  ExamplePath := AddBackslash(InstallDir) + '.env.example';
 
   PgHost := Trim(PgHostEdit.Text);
   PgPort := Trim(PgPortEdit.Text);
@@ -911,6 +922,7 @@ procedure CurPageChanged(CurPageID: Integer);
 var
   ResultCode: Integer;
   Cmd: String;
+  InstallDir: String;
 begin
   if CurPageID = DockerPage.ID then
     UpdateDockerStatus(nil);
@@ -919,12 +931,13 @@ begin
     WizardForm.NextButton.Enabled := False;
     DockerBuildStatusLabel.Caption := 'Building SMS Docker container...';
     try
-      Cmd := ExpandConstant('{app}\run_docker_install.cmd');
+      InstallDir := GetInstallDirSafe;
+      Cmd := AddBackslash(InstallDir) + 'run_docker_install.cmd';
       if FileExists(Cmd) then
       begin
         DockerBuildStatusLabel.Caption := 'Running Docker container setup...';
         WizardForm.StatusLabel.Caption := 'Setting up SMS Docker container (this may take several minutes)...';
-        if Exec(Cmd, '', ExpandConstant('{app}'), SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+        if Exec(Cmd, '', InstallDir, SW_SHOW, ewWaitUntilTerminated, ResultCode) then
         begin
           if ResultCode = 0 then
             DockerBuildStatusLabel.Caption := 'SMS Docker container setup completed successfully.'
@@ -983,6 +996,7 @@ var
   ResultCode: Integer;
   BackupPath: String;
   BackupTimestamp: String;
+  InstallDir: String;
   MetadataFile: String;
   MetadataContent: String;
 begin
@@ -1075,6 +1089,8 @@ begin
     Log('Old instance cleanup complete - ready for fresh install of new version');
   end;
 
+  InstallDir := GetInstallDirSafe;
+
   // Create/update installation metadata file
   if PreviousInstallPath <> '' then
   begin
@@ -1082,13 +1098,13 @@ begin
   end
   else
   begin
-    MetadataFile := ExpandConstant('{app}\install_metadata.txt');
+    MetadataFile := AddBackslash(InstallDir) + 'install_metadata.txt';
   end;
 
   MetadataContent := 'INSTALLATION_VERSION=' + '{#MyAppVersion}' + #13#10 +
                      'INSTALLATION_DATE=' + GetDateTimeString('yyyy-mm-dd hh:mm:ss', '-', ':') + #13#10 +
                      'UPGRADE_FROM=' + PreviousVersion + #13#10 +
-                     'INSTALLATION_PATH=' + ExpandConstant('{app}') + #13#10;
+                     'INSTALLATION_PATH=' + InstallDir + #13#10;
 
   Log('Creating installation metadata...');
   SaveStringToFile(MetadataFile, MetadataContent, False);
