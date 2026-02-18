@@ -4,7 +4,7 @@ name: Create GitHub Release on tag
 on:
   push:
     tags:
-      - 'v*'
+      - 'v1.*.*'
   workflow_dispatch:
     inputs:
       tag:
@@ -36,6 +36,32 @@ jobs:
           TRIMMED_TAG=$(echo "$TAG_NAME" | xargs)
           echo "tag_name=$TRIMMED_TAG" >> $GITHUB_OUTPUT
           echo "Debug: tag_name=$TRIMMED_TAG"
+
+      - name: Validate release tag policy
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.get_tag.outputs.tag_name }}"
+          echo "Validating tag: $TAG"
+
+          if [[ ! "$TAG" =~ ^v1\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid release tag format: '$TAG'"
+            echo "Required format: v1.MAJOR.MINOR (e.g., v1.18.1)"
+            exit 1
+          fi
+
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            if [[ "$TAG" != "${{ github.ref_name }}" ]]; then
+              echo "❌ Tag mismatch: resolved '$TAG' but push ref is '${{ github.ref_name }}'"
+              exit 1
+            fi
+          fi
+
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "❌ Tag '$TAG' does not exist in repository refs"
+            exit 1
+          fi
+
+          echo "✅ Tag policy validation passed"
 
       - name: Prepare release body
         id: prepare
@@ -123,9 +149,8 @@ jobs:
               });
               console.log(`✓ Installer build workflow dispatched for ${tag}`);
             } catch (error) {
-              console.error(`Failed to dispatch installer workflow: ${error.message}`);
-              // Don't fail the entire job if workflow dispatch fails
-              // The user can manually trigger it if needed
+              core.setFailed(`Failed to dispatch installer workflow: ${error.message}`);
+              throw error;
             }
 
   # Trigger the full CI/CD pipeline for release validation
@@ -154,5 +179,6 @@ jobs:
               });
               console.log(`✓ CI/CD pipeline dispatched for ${tag}`);
             } catch (error) {
-              console.error(`Failed to dispatch CI/CD pipeline: ${error.message}`);
+              core.setFailed(`Failed to dispatch CI/CD pipeline: ${error.message}`);
+              throw error;
             }
