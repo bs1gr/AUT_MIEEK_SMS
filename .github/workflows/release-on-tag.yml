@@ -61,12 +61,25 @@ jobs:
             exit 1
           fi
 
-          # Ensure release tags come from the mainline history.
+          # Ensure release tags come from the default branch history.
           # This prevents manual dispatch from publishing artifacts for off-branch tags.
-          git fetch --no-tags origin main:refs/remotes/origin/main
-          if ! git merge-base --is-ancestor "refs/tags/$TAG" "refs/remotes/origin/main"; then
-            echo "❌ Tag '$TAG' is not reachable from origin/main"
-            echo "Only mainline tags are allowed for release dispatch."
+          # Fetch full remote branch refs to avoid missing/dangling origin/* tracking refs.
+          git fetch --no-tags --prune origin "+refs/heads/*:refs/remotes/origin/*"
+
+          DEFAULT_BRANCH=$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
+          if [[ -z "$DEFAULT_BRANCH" ]]; then
+            DEFAULT_BRANCH="main"
+          fi
+
+          TARGET_REF="refs/remotes/origin/${DEFAULT_BRANCH}"
+          if ! git rev-parse -q --verify "$TARGET_REF" >/dev/null; then
+            echo "❌ Default branch ref '$TARGET_REF' was not found after fetch"
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor "refs/tags/$TAG" "$TARGET_REF"; then
+            echo "❌ Tag '$TAG' is not reachable from $TARGET_REF"
+            echo "Only default-branch tags are allowed for release dispatch."
             exit 1
           fi
 
