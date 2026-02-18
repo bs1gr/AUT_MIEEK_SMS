@@ -175,32 +175,8 @@ jobs:
               throw error;
             }
 
-  # Trigger the full CI/CD pipeline for release validation
-  trigger-ci-cd-pipeline:
-    runs-on: ubuntu-latest
-    needs: create-release
-    if: needs.create-release.outputs.release_created == 'true'
-    steps:
-      - name: Trigger CI/CD Pipeline
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const tag = '${{ needs.create-release.outputs.tag }}';
-            console.log(`Triggering CI/CD pipeline for new release: ${tag}`);
-
-            try {
-              await github.rest.actions.createWorkflowDispatch({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                workflow_id: 'ci-cd-pipeline.yml',
-                ref: tag,
-                inputs: {
-                  deploy_environment: 'production'
-                }
-              });
-              console.log(`✓ CI/CD pipeline dispatched for ${tag}`);
-            } catch (error) {
-              core.setFailed(`Failed to dispatch CI/CD pipeline: ${error.message}`);
-              throw error;
-            }
+  # NOTE:
+  # CI/CD pipeline dispatch was intentionally removed from this workflow.
+  # Rationale: dispatching ci-cd-pipeline.yml on tag refs can execute stale
+  # workflow logic from historical tags and reintroduce polluted release assets.
+  # Release asset mutation is now installer-workflow-only by policy.
