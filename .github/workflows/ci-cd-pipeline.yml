@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*.*.*'
+      - 'v1.*.*'
   pull_request:
     branches:
       - main
@@ -1277,7 +1277,7 @@ jobs:
   create-release:
     name: 📦 Create GitHub Release
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v1.')
     needs: [build-docker-images] # Depends on docker build to get artifacts
     permissions:
       contents: write
@@ -1291,6 +1291,42 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
+
+      - name: Validate release tag lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_REF#refs/tags/}"
+          echo "Resolved tag: $TAG"
+
+          if [[ ! "$TAG" =~ ^v1\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid release tag format: '$TAG'"
+            echo "Required format: v1.MAJOR.MINOR (e.g., v1.18.1)"
+            exit 1
+          fi
+
+          if [[ "$TAG" != "${GITHUB_REF_NAME}" ]]; then
+            echo "❌ Ref mismatch: GITHUB_REF_NAME='${GITHUB_REF_NAME}' but resolved TAG='$TAG'"
+            exit 1
+          fi
+
+          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "❌ Tag '$TAG' does not exist in repository refs"
+            exit 1
+          fi
+
+          FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          FILE_VERSION_NORM="${FILE_VERSION#v}"
+          TAG_VERSION_NORM="${TAG#v}"
+          echo "VERSION file: $FILE_VERSION"
+
+          if [[ "$FILE_VERSION_NORM" != "$TAG_VERSION_NORM" ]]; then
+            echo "❌ VERSION/tag mismatch: VERSION='$FILE_VERSION' vs TAG='$TAG'"
+            exit 1
+          fi
+
+          echo "✅ Release tag lineage validation passed"
 
       - name: Extract version
         id: version
@@ -1363,7 +1399,7 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     needs: [deploy-production]
-    if: startsWith(github.ref, 'refs/tags/v') && needs.deploy-production.result == 'success'
+    if: startsWith(github.ref, 'refs/tags/v1.') && needs.deploy-production.result == 'success'
     env:
       PROD_URL: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
     steps:
