@@ -58,6 +58,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          $ErrorActionPreference = 'Stop'
           $tag = ""
           $releaseId = ""
 
@@ -65,18 +66,6 @@ jobs:
             # Manual dispatch with explicit tag
             $tag = "${{ github.event.inputs.tag }}"
             Write-Host "Manual dispatch with tag: $tag"
-            # Fetch the release ID for this tag
-            try {
-              $release = gh release view $tag --json id -q .id 2>$null
-              if ($LASTEXITCODE -eq 0 -and $release) {
-                $releaseId = $release
-                Write-Host "Found release ID: $releaseId"
-              } else {
-                Write-Host "No release found for tag $tag yet (will be created if needed)"
-              }
-            } catch {
-              Write-Host "Could not fetch release ID, will attempt upload anyway"
-            }
           } else {
             # No tag provided: get the latest release
             Write-Host "No tag specified, fetching latest release..."
@@ -101,6 +90,26 @@ jobs:
             Write-Error "Could not determine release tag"
             exit 1
           }
+
+          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
+            Write-Error "Resolved tag '$tag' is not in required format vMAJOR.MINOR.PATCH"
+            exit 1
+          }
+
+          # Strict mode: the release must already exist for this tag
+          try {
+            $releaseId = (gh release view $tag --json id -q .id).Trim()
+          } catch {
+            Write-Error "Release for tag '$tag' was not found. Aborting installer upload to prevent lineage drift."
+            exit 1
+          }
+
+          if ([string]::IsNullOrEmpty($releaseId)) {
+            Write-Error "Release ID for tag '$tag' is empty. Aborting."
+            exit 1
+          }
+
+          Write-Host "Release verified for $tag (ID: $releaseId)"
 
           echo "tag=$tag" >> $env:GITHUB_OUTPUT
           echo "release_id=$releaseId" >> $env:GITHUB_OUTPUT
