@@ -2102,7 +2102,7 @@ function Start-Application {
     Write-Info "Using single-image runtime mode (sms-fullstack)"
 
     # Best-effort cleanup of compose stack to avoid port conflicts when switching modes
-    if (Test-Path $COMPOSE_BASE -and Test-Path $COMPOSE_PROD) {
+    if ((Test-Path $COMPOSE_BASE) -and (Test-Path $COMPOSE_PROD)) {
         Set-ComposeVolumeEnvironment
         Set-ComposeProfileEnvironment | Out-Null
         $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
