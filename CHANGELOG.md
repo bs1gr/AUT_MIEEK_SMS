@@ -3842,4 +3842,3 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.2...v1.17.2
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.17.2...v1.17.2
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.17.2
-
