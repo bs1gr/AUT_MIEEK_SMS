@@ -956,6 +956,10 @@ function Invoke-SqliteToPostgresMigration {
         "-e", "DATABASE_URL=$dbUrl"
     )
 
+    if ($script:SingleModeNetworkName) {
+        $migrateCmd += @("--network", $script:SingleModeNetworkName)
+    }
+
     if ($useHostSqlite) {
         $migrateCmd += @("-v", "${SCRIPT_DIR}\data:/data")
     } else {
