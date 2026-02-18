@@ -11,6 +11,9 @@ concurrency:
   group: release-installer-${{ github.event.inputs.tag || github.run_id }}
   cancel-in-progress: true
 
+permissions:
+  contents: write
+
 jobs:
   release-installer:
     runs-on: windows-latest
@@ -284,7 +287,7 @@ jobs:
         if: steps.hash.outputs.path != ''
         shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
           function Invoke-GhChecked {
@@ -344,7 +347,7 @@ jobs:
         if: steps.hash.outputs.path != ''
         shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
           function Invoke-GhChecked {
@@ -391,7 +394,7 @@ jobs:
         if: steps.hash.outputs.path != ''
         shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
           function Invoke-GhChecked {
@@ -449,7 +452,7 @@ jobs:
         if: steps.hash.outputs.path != ''
         shell: pwsh
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
           function Invoke-GhJsonChecked {
