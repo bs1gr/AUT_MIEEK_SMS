@@ -61,6 +61,15 @@ jobs:
             exit 1
           fi
 
+          # Ensure release tags come from the mainline history.
+          # This prevents manual dispatch from publishing artifacts for off-branch tags.
+          git fetch --no-tags origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "refs/tags/$TAG" "refs/remotes/origin/main"; then
+            echo "❌ Tag '$TAG' is not reachable from origin/main"
+            echo "Only mainline tags are allowed for release dispatch."
+            exit 1
+          fi
+
           echo "✅ Tag policy validation passed"
 
       - name: Prepare release body
