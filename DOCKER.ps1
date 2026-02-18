@@ -376,7 +376,29 @@ function Get-EnvVarValue {
     return $null
 }
 
+function Get-DeploymentMode {
+    $rawMode = Get-EnvVarValue -Name "SMS_DEPLOYMENT_MODE"
+    if ([string]::IsNullOrWhiteSpace($rawMode)) {
+        return "single"
+    }
+
+    $mode = $rawMode.Trim().ToLower()
+    switch ($mode) {
+        "split" { return "split" }
+        "single" { return "single" }
+        default {
+            Write-Warning "Unknown SMS_DEPLOYMENT_MODE='$rawMode'. Falling back to single-image mode."
+            return "single"
+        }
+    }
+}
+
 function Use-ComposeMode {
+    $deploymentMode = Get-DeploymentMode
+    if ($deploymentMode -ne "split") {
+        return $false
+    }
+
     $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
     $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
     $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
@@ -1174,10 +1196,11 @@ DEFAULT_ADMIN_EMAIL=admin@example.com
 DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 DEFAULT_ADMIN_FORCE_RESET=False
-DATABASE_ENGINE=postgresql
+SMS_DEPLOYMENT_MODE=single
+DATABASE_ENGINE=sqlite
 "@
             Set-Content -Path $ROOT_ENV -Value $minimalEnv
-            Write-Success "Minimal .env created (PostgreSQL required)"
+            Write-Success "Minimal .env created (single-image mode)"
             $configured = $true
         }
     } else {
@@ -1196,27 +1219,51 @@ DATABASE_ENGINE=postgresql
             }
         }
 
-        # ====== PostgreSQL-only enforcement ======
+        # ====== Deployment mode defaults ======
+        Write-Debug "Validating deployment mode in .env..."
+        $mode = Get-EnvVarValue -Name "SMS_DEPLOYMENT_MODE"
+        if (-not $mode) {
+            Write-Info "Adding SMS_DEPLOYMENT_MODE=single"
+            $rootContent = $rootContent + "`nSMS_DEPLOYMENT_MODE=single`n"
+            Set-Content -Path $ROOT_ENV -Value $rootContent
+            $configured = $true
+            $mode = "single"
+        }
+
+        # ====== Database engine policy by deployment mode ======
         Write-Debug "Validating .env DATABASE_ENGINE setting..."
         $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
-        if (-not $dbEngine) {
-            Write-Warning ".env is missing DATABASE_ENGINE setting"
-            Write-Info "Adding DATABASE_ENGINE=postgresql"
-            $rootContent = $rootContent + "`nDATABASE_ENGINE=postgresql`n"
-            Set-Content -Path $ROOT_ENV -Value $rootContent
-            $configured = $true
-        } elseif ($dbEngine -ne "postgresql") {
-            Write-Warning ".env has invalid DATABASE_ENGINE for production: $dbEngine"
-            Write-Info "Correcting to: DATABASE_ENGINE=postgresql"
-            $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
-            Set-Content -Path $ROOT_ENV -Value $rootContent
-            $configured = $true
+        $normalizedMode = if ($mode) { $mode.Trim().ToLower() } else { "single" }
+
+        if ($normalizedMode -eq "split") {
+            if (-not $dbEngine) {
+                Write-Warning ".env is missing DATABASE_ENGINE setting"
+                Write-Info "Adding DATABASE_ENGINE=postgresql for split mode"
+                $rootContent = $rootContent + "`nDATABASE_ENGINE=postgresql`n"
+                Set-Content -Path $ROOT_ENV -Value $rootContent
+                $configured = $true
+            } elseif ($dbEngine -ne "postgresql") {
+                Write-Warning ".env has invalid DATABASE_ENGINE for split mode: $dbEngine"
+                Write-Info "Correcting to: DATABASE_ENGINE=postgresql"
+                $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
+                Set-Content -Path $ROOT_ENV -Value $rootContent
+                $configured = $true
+            }
+        } else {
+            if (-not $dbEngine) {
+                Write-Info "Adding DATABASE_ENGINE=sqlite for single-image mode"
+                $rootContent = $rootContent + "`nDATABASE_ENGINE=sqlite`n"
+                Set-Content -Path $ROOT_ENV -Value $rootContent
+                $configured = $true
+            }
         }
-        # ====== END PostgreSQL-only enforcement ======
+        # ====== END database policy ======
     }
 
-    # Ensure DATABASE_URL is available/normalized for PostgreSQL-only deployments
+    # Ensure DATABASE_URL is available/normalized for PostgreSQL deployments
     $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
+    $deploymentMode = Get-DeploymentMode
+    $currentDbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
     $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
     $pgPort = Get-EnvVarValue -Name "POSTGRES_PORT"
     $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
@@ -1253,10 +1300,12 @@ DATABASE_ENGINE=postgresql
             Write-Success $writeReason
             $configured = $true
         }
-    } elseif (-not $dbUrl) {
-        Write-Error-Message "DATABASE_URL is required for PostgreSQL-only deployments"
-        Write-Info "Set DATABASE_URL or POSTGRES_* variables in .env and re-run"
-        return $false
+    } elseif ($deploymentMode -eq "split" -or $currentDbEngine -eq "postgresql") {
+        if (-not $dbUrl) {
+            Write-Error-Message "DATABASE_URL is required when DATABASE_ENGINE=postgresql or split mode is enabled"
+            Write-Info "Set DATABASE_URL or POSTGRES_* variables in .env and re-run"
+            return $false
+        }
     }
 
     # Backend .env
@@ -2050,7 +2099,79 @@ function Start-Application {
         return 1
     }
 
-    Write-Error-Message "PostgreSQL-only mode enforced. Configure DATABASE_URL and DATABASE_ENGINE=postgresql."
+    Write-Info "Using single-image runtime mode (sms-fullstack)"
+
+    # Best-effort cleanup of compose stack to avoid port conflicts when switching modes
+    if (Test-Path $COMPOSE_BASE -and Test-Path $COMPOSE_PROD) {
+        Set-ComposeVolumeEnvironment
+        Set-ComposeProfileEnvironment | Out-Null
+        $composeArgs = @("-f", $COMPOSE_BASE, "-f", $COMPOSE_PROD)
+        if (Test-Path $ROOT_ENV) {
+            $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
+        }
+
+        Push-Location $SCRIPT_DIR
+        try {
+            docker compose @composeArgs down --remove-orphans 2>$null | Out-Null
+        } finally {
+            Pop-Location
+        }
+    }
+
+    $dockerVersionString = Get-DockerVersionString
+    $runArgs = @(
+        "run", "-d",
+        "--name", $CONTAINER_NAME,
+        "--restart", "unless-stopped",
+        "-p", "${PORT}:${INTERNAL_PORT}",
+        "-v", "${VOLUME_NAME}:/data"
+    )
+
+    $backupsPath = Join-Path $SCRIPT_DIR "backups"
+    if (Test-Path $backupsPath) {
+        $runArgs += @("-v", "${backupsPath}:/app/backups")
+    }
+
+    $templatesPath = Join-Path $SCRIPT_DIR "templates"
+    if (Test-Path $templatesPath) {
+        $runArgs += @("-v", "${templatesPath}:/app/templates:ro")
+    }
+
+    if (Test-Path $ROOT_ENV) {
+        $runArgs += @("--env-file", $ROOT_ENV)
+    }
+
+    $runArgs += @(
+        "-e", "SMS_ENV=production",
+        "-e", "SMS_EXECUTION_MODE=docker",
+        "-e", "FRONTEND_VERSION=$VERSION"
+    )
+
+    if ($dockerVersionString) {
+        $runArgs += @("-e", "HOST_DOCKER_VERSION=$dockerVersionString")
+    }
+
+    $runArgs += $IMAGE_TAG
+
+    $runOutput = & docker @runArgs 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Error-Message "Failed to start single-image container"
+        if ($runOutput) {
+            $runOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+        }
+        return 1
+    }
+
+    if (Wait-ForHealthy) {
+        if ($withMonitoringBool) {
+            Start-MonitoringStack -GrafanaPortOverride $GrafanaPort | Out-Null
+        }
+        Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
+        return 0
+    }
+
+    Write-Error-Message "Container started but failed health checks"
+    Write-Info "Inspect logs with: .\DOCKER.ps1 -Logs"
     return 1
 }
 
