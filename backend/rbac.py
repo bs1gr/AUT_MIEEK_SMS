@@ -17,6 +17,14 @@ from backend.models import Permission, RolePermission, User, UserPermission, Use
 from backend.security.current_user import get_current_user
 
 
+def _safe_rollback(db: Session) -> None:
+    """Best-effort rollback to clear failed transaction state."""
+    try:
+        db.rollback()
+    except Exception:
+        pass
+
+
 def _normalize_permission_key(key: str) -> str:
     """Normalize permission keys to a consistent `resource:action` format.
 
@@ -173,6 +181,7 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
             granted.add(_normalize_permission_key(perm.key))
     except Exception:
         # If anything goes wrong with direct permissions, fall back to role mapping
+        _safe_rollback(db)
         pass
 
     # Role-based permissions
@@ -187,6 +196,7 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
         granted.update(_normalize_permission_key(k) for (k,) in role_perm_rows)
     except Exception:
         # Ignore DB issues here; fallback defaults will still apply
+        _safe_rollback(db)
         pass
 
     # Evaluate matches
@@ -202,6 +212,7 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
         # Ensure a concrete int for type checking/comparison
         has_role_assignments = int(cast(int, count or 0)) > 0
     except Exception:
+        _safe_rollback(db)
         has_role_assignments = False
 
     # Check if user has any direct permission assignments (even if expired)
@@ -210,6 +221,7 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
             db.query(UserPermission.id).filter(UserPermission.user_id == user.id).limit(1).first() is not None
         )
     except Exception:
+        _safe_rollback(db)
         has_user_permissions = False
 
     # Only use default role permissions if:
@@ -482,42 +494,52 @@ def get_user_permissions(user: User, db: Session) -> list[str]:
     permission_keys: set[str] = set()
 
     # Get direct permissions
-    direct_perms = (
-        db.query(Permission)
-        .join(UserPermission)
-        .filter(
-            UserPermission.user_id == user.id,
-            Permission.is_active,
+    try:
+        direct_perms = (
+            db.query(Permission)
+            .join(UserPermission)
+            .filter(
+                UserPermission.user_id == user.id,
+                Permission.is_active,
+            )
+            .all()
         )
-        .all()
-    )
-    # Cast p.key to str to satisfy mypy (p.key is Column[str] at static analysis but str at runtime)
-    permission_keys.update(_normalize_permission_key(str(p.key)) for p in direct_perms)
+        # Cast p.key to str to satisfy mypy (p.key is Column[str] at static analysis but str at runtime)
+        permission_keys.update(_normalize_permission_key(str(p.key)) for p in direct_perms)
+    except Exception:
+        _safe_rollback(db)
 
     # Get role-based permissions (using raw SQL to avoid schema mismatch)
-    result = db.execute(
-        text(
+    try:
+        result = db.execute(
+            text(
+                """
+                SELECT DISTINCT p.key
+                FROM permissions p
+                JOIN role_permissions rp ON p.id = rp.permission_id
+                JOIN user_roles ur ON rp.role_id = ur.role_id
+                WHERE ur.user_id = :user_id
+                  AND p.is_active = 1
             """
-            SELECT DISTINCT p.key
-            FROM permissions p
-            JOIN role_permissions rp ON p.id = rp.permission_id
-            JOIN user_roles ur ON rp.role_id = ur.role_id
-            WHERE ur.user_id = :user_id
-              AND p.is_active = 1
-        """
-        ),
-        {"user_id": user.id},
-    )
+            ),
+            {"user_id": user.id},
+        )
 
-    for row in result:
-        permission_keys.add(_normalize_permission_key(row[0]))
+        for row in result:
+            permission_keys.add(_normalize_permission_key(row[0]))
+    except Exception:
+        _safe_rollback(db)
 
     # Check if user has ANY role assignments in the RBAC system
-    count = db.execute(
-        text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
-        {"user_id": user.id},
-    ).scalar()
-    has_role_assignments = int(cast(int, count or 0)) > 0
+    try:
+        count = db.execute(
+            text("SELECT COUNT(*) FROM user_roles WHERE user_id = :user_id"),
+            {"user_id": user.id},
+        ).scalar()
+        has_role_assignments = int(cast(int, count or 0)) > 0
+    except Exception:
+        _safe_rollback(db)
+        has_role_assignments = False
 
     # Only include default role permissions if:
     # 1. User has no explicit RBAC permissions, AND
