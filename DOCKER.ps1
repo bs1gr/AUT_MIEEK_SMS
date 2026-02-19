@@ -706,6 +706,54 @@ function Get-VolumeDataSizeBytes {
     return 0L
 }
 
+function Find-VolumeSqliteDatabase {
+        param([string]$VolumeName)
+
+        $discoveryScript = @'
+set -e
+best_path=""
+best_size=0
+
+while IFS= read -r candidate; do
+    [ -z "$candidate" ] && continue
+    size=$(wc -c < "$candidate" 2>/dev/null || echo 0)
+    case "$size" in
+        ''|*[!0-9]*) size=0 ;;
+    esac
+
+    if [ "$size" -gt "$best_size" ]; then
+        best_size="$size"
+        best_path="$candidate"
+    fi
+done <<EOF
+$(find /volume -type f \( -name '*.db' -o -name '*.sqlite' -o -name '*.sqlite3' \) 2>/dev/null)
+EOF
+
+if [ -n "$best_path" ]; then
+    echo "$best_path|$best_size"
+fi
+'@
+
+        $raw = docker run --rm -v "${VolumeName}:/volume:ro" alpine:latest sh -lc $discoveryScript 2>$null
+        if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace(($raw | Out-String).Trim())) {
+                return $null
+        }
+
+        $line = ($raw | Out-String).Trim()
+        $parts = $line -split '\|', 2
+        if ($parts.Count -ne 2) {
+                return $null
+        }
+
+        $size = 0L
+        [void][long]::TryParse($parts[1], [ref]$size)
+
+        return [PSCustomObject]@{
+                Path = $parts[0]
+                Size = $size
+        }
+}
+
 function Test-VolumeHasContent {
     param([string]$VolumeName)
 
@@ -884,7 +932,13 @@ function Invoke-SqliteToPostgresMigration {
     Set-ComposeVolumeEnvironment
 
     $sqliteVolumeName = if ($script:SelectedSmsDataVolume) { $script:SelectedSmsDataVolume } else { "sms_data" }
-    $sqliteVolumeSize = Get-VolumeDataSizeBytes -VolumeName $sqliteVolumeName -RelativePath "student_management.db"
+    $volumeSqliteCandidate = Find-VolumeSqliteDatabase -VolumeName $sqliteVolumeName
+    $sqliteVolumePath = if ($volumeSqliteCandidate) {
+        ($volumeSqliteCandidate.Path -replace '^/volume', '/sqlite_data')
+    } else {
+        "/sqlite_data/student_management.db"
+    }
+    $sqliteVolumeSize = if ($volumeSqliteCandidate) { [long]$volumeSqliteCandidate.Size } else { 0L }
 
     $sqlitePath = Join-Path $SCRIPT_DIR "data\student_management.db"
     $useHostSqlite = Test-Path $sqlitePath
@@ -899,6 +953,7 @@ function Invoke-SqliteToPostgresMigration {
 
     if (-not $useHostSqlite -and $sqliteVolumeSize -ge 1024) {
         $useVolumeSqlite = $true
+        Write-Info "Detected SQLite candidate in volume '$sqliteVolumeName': $sqliteVolumePath ($sqliteVolumeSize bytes)"
     }
 
     if (-not $useHostSqlite -and -not $useVolumeSqlite) {
@@ -910,7 +965,7 @@ function Invoke-SqliteToPostgresMigration {
         $sqliteInfo = Get-Item $sqlitePath
         $sourceFingerprint = "host:$($sqliteInfo.Length)|$($sqliteInfo.LastWriteTimeUtc.Ticks)"
     } else {
-        $sourceFingerprint = "volume:$sqliteVolumeName|$sqliteVolumeSize"
+        $sourceFingerprint = "volume:$sqliteVolumeName|$sqliteVolumePath|$sqliteVolumeSize"
     }
 
     $triggerDir = Join-Path $SCRIPT_DIR "data\.triggers"
@@ -970,7 +1025,7 @@ function Invoke-SqliteToPostgresMigration {
     $migrateCmd += @(
         $IMAGE_TAG,
         "-m", "backend.scripts.migrate_sqlite_to_postgres",
-        "--sqlite-path", $(if ($useHostSqlite) { "/data/student_management.db" } else { "/sqlite_data/student_management.db" }),
+        "--sqlite-path", $(if ($useHostSqlite) { "/data/student_management.db" } else { $sqliteVolumePath }),
         "--postgres-url", $dbUrl,
         "--no-truncate"
     )
@@ -986,6 +1041,62 @@ function Invoke-SqliteToPostgresMigration {
         )
 
         if ($isSourceAccessIssue) {
+            if ($useVolumeSqlite) {
+                $stagingDir = Join-Path $SCRIPT_DIR "data\migration_staging"
+                $stagedFilename = "legacy_sqlite_retry.db"
+                $stagedHostPath = Join-Path $stagingDir $stagedFilename
+
+                try {
+                    New-Item -ItemType Directory -Path $stagingDir -Force | Out-Null
+                    $copyScript = "cp '$($volumeSqliteCandidate.Path)' '/out/$stagedFilename'"
+                    $copyOutput = docker run --rm -v "${sqliteVolumeName}:/volume:ro" -v "${stagingDir}:/out" alpine:latest sh -lc $copyScript 2>&1
+                    if ($LASTEXITCODE -eq 0 -and (Test-Path $stagedHostPath)) {
+                        $stagedSize = (Get-Item $stagedHostPath).Length
+                        if ($stagedSize -ge 1024) {
+                            Write-Warning "Retrying SQLite migration from staged host copy ($stagedSize bytes)..."
+
+                            $retryCmd = @(
+                                "run", "--rm",
+                                "--env-file", $ROOT_ENV,
+                                "-e", "DATABASE_URL=$dbUrl",
+                                "--entrypoint", "python"
+                            )
+
+                            if ($script:SingleModeNetworkName) {
+                                $retryCmd += @("--network", $script:SingleModeNetworkName)
+                            }
+
+                            $retryCmd += @(
+                                "-v", "${stagingDir}:/data:ro",
+                                $IMAGE_TAG,
+                                "-m", "backend.scripts.migrate_sqlite_to_postgres",
+                                "--sqlite-path", "/data/$stagedFilename",
+                                "--postgres-url", $dbUrl,
+                                "--no-truncate"
+                            )
+
+                            $retryOutput = & docker @retryCmd 2>&1
+                            if ($LASTEXITCODE -eq 0) {
+                                Write-Success "SQLite migration retry from staged host copy completed successfully"
+                                return $true
+                            }
+
+                            Write-Warning "SQLite migration retry from staged host copy failed"
+                            if ($retryOutput) {
+                                Write-Host $retryOutput -ForegroundColor Yellow
+                            }
+                        }
+                    } else {
+                        Write-Warning "Could not stage SQLite file for retry migration"
+                        if ($copyOutput) {
+                            Write-Host $copyOutput -ForegroundColor Yellow
+                        }
+                    }
+                } catch {
+                    Write-Warning "SQLite migration staging retry encountered an error: $_"
+                }
+            }
+
             Write-Warning "SQLite source exists but is not readable from migration container. Skipping auto-migration and continuing startup in PostgreSQL mode."
             Write-Warning "Legacy SQLite data remains untouched. Review Docker volume '$sqliteVolumeName' permissions/path if migration is required."
             if ($output) {
