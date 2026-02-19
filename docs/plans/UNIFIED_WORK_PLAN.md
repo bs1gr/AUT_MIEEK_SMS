@@ -177,7 +177,7 @@
 52. ✅ **COMPLETE** (Feb 19, 2026): **Installer refresh and signing verification**
    - Rebuilt `SMS_Installer_1.18.1.exe` from current workspace state
    - Authenticode signature verified (AUT MIEEK certificate)
-   - SHA256 recorded for release docs: `1456900F39F54FC6B35075A356BA784AF89DB2EDC16C6EAEB45D15B6721D478A`
+   - SHA256 recorded for release docs: `92A826E2DD76DB12617B66DA890810AF59E7993AC537C4A7E29961FF6A1E54DD`
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

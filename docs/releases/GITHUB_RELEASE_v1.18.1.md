@@ -38,8 +38,8 @@ No changes to deployment or installation procedures. This is a drop-in replaceme
 ## 🪟 Windows Installer Verification
 
 - Installer: `SMS_Installer_1.18.1.exe`
-- Size: `113.69 MB`
-- SHA256: `1456900F39F54FC6B35075A356BA784AF89DB2EDC16C6EAEB45D15B6721D478A`
+- Size: `114 MB`
+- SHA256: `92A826E2DD76DB12617B66DA890810AF59E7993AC537C4A7E29961FF6A1E54DD`
 - Signature: `Valid (Authenticode)`
 - Publisher: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
 
