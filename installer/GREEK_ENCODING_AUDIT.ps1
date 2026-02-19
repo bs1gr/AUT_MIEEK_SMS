@@ -5,10 +5,10 @@
 .DESCRIPTION
     Ensures all Greek-language files in the installer use proper encoding:
     - Greek.isl: Official Inno translation, LanguageCodePage=1253 (Windows-1253)
-    - *.txt files: UTF-8 with BOM
+    - Installer Greek text files: Windows-1253 (CP1253) or UTF-8 with BOM
 
     Inno Setup 6 requires proper encoding declarations to render Greek text correctly.
-    Current approach uses UTF-8 with BOM for all Greek content files.
+    Build pipeline currently generates installer Greek text files using Windows-1253.
 
 .PARAMETER Audit
     Only audit files, don't fix encoding issues
@@ -65,20 +65,20 @@ $GreekFiles = @(
     @{
         Path = Join-Path $ScriptDir "installer_welcome_el.txt"
         Type = "Welcome Text"
-        Encoding = "UTF-8-BOM"
-        Description = "Greek welcome message (UTF-8 with BOM)"
+        Encoding = "CP1253"
+        Description = "Greek welcome message (Windows-1253)"
     },
     @{
         Path = Join-Path $ScriptDir "installer_complete_el.txt"
         Type = "Completion Text"
-        Encoding = "UTF-8-BOM"
-        Description = "Greek completion message (UTF-8 with BOM)"
+        Encoding = "CP1253"
+        Description = "Greek completion message (Windows-1253)"
     },
     @{
         Path = Join-Path $ScriptDir "LICENSE_EL.txt"
         Type = "License File"
-        Encoding = "UTF-8-BOM"
-        Description = "Greek license text (UTF-8 with BOM)"
+        Encoding = "CP1253 or UTF-8-BOM"
+        Description = "Greek license text"
     }
 )
 
@@ -196,18 +196,28 @@ function Validate-GreekTextFile {
     $encoding = Get-FileEncoding $Path
     Write-Status Info "  $Description encoding: $encoding"
 
-    # Try to read the file
     try {
-        $content = Get-Content $Path -Raw -Encoding Default -ErrorAction Stop
+        $rawBytes = [System.IO.File]::ReadAllBytes($Path)
 
-        # Check for Greek characters
-        if ($content -match '[α-ωΑ-Ω]') {
-            Write-Status OK "Greek characters detected ✓"
-            return $true
-        } else {
-            Write-Status Warning "No Greek characters detected"
-            return $false
+        # Path 1: UTF-8 with BOM
+        if ($encoding -eq "UTF-8-BOM") {
+            $utf8Content = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
+            if ($utf8Content -match '[α-ωΑ-Ω]') {
+                Write-Status OK "Greek characters detected (UTF-8-BOM) ✓"
+                return $true
+            }
         }
+
+        # Path 2: Windows-1253 (CP1253) used by installer build pipeline
+        $cp1253 = [System.Text.Encoding]::GetEncoding(1253)
+        $cp1253Content = $cp1253.GetString($rawBytes)
+        if ($cp1253Content -match '[α-ωΑ-Ω]') {
+            Write-Status OK "Greek characters detected (Windows-1253) ✓"
+            return $true
+        }
+
+        Write-Status Warning "No Greek characters detected in UTF-8-BOM or Windows-1253 decoding"
+        return $false
     }
     catch {
         Write-Status Error "Failed to read file: $_"
@@ -258,12 +268,21 @@ function Fix-GreekTextFile {
     }
 
     try {
-        # Read as UTF-8 (current encoding)
-        $content = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
+        $rawBytes = [System.IO.File]::ReadAllBytes($Path)
+        $content = $null
 
-        # Write back with UTF-8 with BOM (required by Inno Setup when LanguageCodePage=65001)
-        $utf8bom = New-Object System.Text.UTF8Encoding($true)
-        [System.IO.File]::WriteAllText($Path, $content, $utf8bom)
+        # Prefer UTF-8 decode if BOM is present, else use CP1253 fallback.
+        if (($rawBytes.Length -ge 3) -and $rawBytes[0] -eq 0xEF -and $rawBytes[1] -eq 0xBB -and $rawBytes[2] -eq 0xBF) {
+            $content = [System.IO.File]::ReadAllText($Path, [System.Text.Encoding]::UTF8)
+        }
+        else {
+            $cp1253 = [System.Text.Encoding]::GetEncoding(1253)
+            $content = $cp1253.GetString($rawBytes)
+        }
+
+        # Normalize to Windows-1253 for installer compatibility.
+        $targetEncoding = [System.Text.Encoding]::GetEncoding(1253)
+        [System.IO.File]::WriteAllText($Path, $content, $targetEncoding)
 
         Write-Status OK "$Description encoding fixed ✓"
         return $true

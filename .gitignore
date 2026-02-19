@@ -104,6 +104,17 @@ dist/
 dist/*.exe
 installer/.version_cache
 
+# Installer build artifacts (generated on every build)
+installer/SMS_Manager/obj/
+installer/SMS_Manager/bin/
+installer/wizard_image.bmp
+installer/wizard_small.bmp
+installer/installer_welcome_el.txt
+installer/installer_complete_el.txt
+
+# Local installer diagnostics bundles
+installer_diag_*.zip
+
 # Temporary CI/local artifact folders
 tmp_artifacts/
 tmp_*
