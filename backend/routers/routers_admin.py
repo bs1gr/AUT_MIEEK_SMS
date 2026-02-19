@@ -15,9 +15,10 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 @router.get("/users", response_model=list[UserResponse])
 @require_permission("users:view")
-def list_users(
+async def list_users(
     request: Request,
     db: Session = Depends(get_db),
 ):
     """List all users (admin only)."""
-    return db.query(User).all()
+    _ = request  # reserved for future request-aware audit logging
+    return db.query(User).order_by(User.role.desc(), User.email.asc()).all()
