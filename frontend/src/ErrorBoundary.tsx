@@ -1,6 +1,7 @@
 import React, { Component, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { safeNavigate } from './utils/navigation';
+import { recoverFromChunkLoadError } from './utils/chunkLoadRecovery';
 
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -32,6 +33,10 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
+    if (recoverFromChunkLoadError(error)) {
+      return;
+    }
+
     // Log error to console for debugging
     console.error('ErrorBoundary caught an error:', error, errorInfo);
 

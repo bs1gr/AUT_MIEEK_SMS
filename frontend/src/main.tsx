@@ -32,6 +32,7 @@ import {
   ReportTemplateBrowserPage,
   preloadCriticalRoutes,
 } from './routes';
+import { recoverFromChunkLoadError } from './utils/chunkLoadRecovery';
 
 // Initialize global error handlers without forcing the module into the main chunk
 void import('./utils/errorReporting')
@@ -39,6 +40,15 @@ void import('./utils/errorReporting')
   .catch((error) => {
     console.error('[error-reporting] Failed to initialize error reporting', error);
   });
+
+window.addEventListener('error', (event) => {
+  const error = event.error ?? new Error(event.message);
+  recoverFromChunkLoadError(error);
+});
+
+window.addEventListener('unhandledrejection', (event) => {
+  recoverFromChunkLoadError(event.reason);
+});
 
 // Preload critical routes after initial render
 setTimeout(preloadCriticalRoutes, 100);
