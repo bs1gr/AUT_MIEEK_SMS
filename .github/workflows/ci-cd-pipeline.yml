@@ -861,7 +861,6 @@ jobs:
   release-asset-lock:
     name: 🔐 Release Asset Mutation Lock
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v1.')
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -871,31 +870,56 @@ jobs:
         run: |
           set -euo pipefail
 
-          echo "Checking release asset mutation commands across workflows..."
+          echo "Checking release asset mutation commands across workflows (repo-level gate)..."
 
-          mapfile -t MUTATION_HITS < <(
+          mapfile -t GH_UPLOAD_HITS < <(
             grep -RIn --include='*.yml' --include='*.yaml' \
-              -E 'gh release (upload|delete-asset)' .github/workflows || true
+              -E '^[[:space:]]*gh[[:space:]]+release[[:space:]]+upload\b|release",[[:space:]]*"upload"' .github/workflows || true
           )
 
-          if [ ${#MUTATION_HITS[@]} -eq 0 ]; then
-            echo "❌ No release asset mutation commands found at all."
-            echo "Expected installer workflow to manage installer asset upload."
+          mapfile -t API_UPLOAD_HITS < <(
+            grep -RIn --include='*.yml' --include='*.yaml' \
+              -E 'uploadReleaseAsset[[:space:]]*\(|repos\.uploadReleaseAsset\b' .github/workflows || true
+          )
+
+          UPLOAD_HITS=("${GH_UPLOAD_HITS[@]}" "${API_UPLOAD_HITS[@]}")
+
+          if [ ${#UPLOAD_HITS[@]} -eq 0 ]; then
+            echo "❌ No release asset upload commands found at all."
+            echo "Expected installer workflow to manage installer asset upload path."
             exit 1
           fi
 
-          echo "Found potential release asset mutation commands:"
-          printf '  %s\n' "${MUTATION_HITS[@]}"
+          echo "Found potential release asset upload commands:"
+          printf '  %s\n' "${UPLOAD_HITS[@]}"
 
-          for hit in "${MUTATION_HITS[@]}"; do
+          for hit in "${UPLOAD_HITS[@]}"; do
             if [[ "$hit" != *".github/workflows/release-installer-with-sha.yml"* ]]; then
-              echo "❌ Policy violation: non-installer workflow mutates release assets"
+              echo "❌ Policy violation: non-installer workflow uploads release assets"
               echo "Offending entry: $hit"
               exit 1
             fi
           done
 
-          echo "✅ Release asset mutation policy passed (installer workflow only)"
+          mapfile -t DELETE_HITS < <(
+            grep -RIn --include='*.yml' --include='*.yaml' \
+              -E '^[[:space:]]*gh[[:space:]]+release[[:space:]]+delete-asset\b|release",[[:space:]]*"delete-asset"' .github/workflows || true
+          )
+
+          if [ ${#DELETE_HITS[@]} -gt 0 ]; then
+            echo "Found potential release asset delete commands:"
+            printf '  %s\n' "${DELETE_HITS[@]}"
+
+            for hit in "${DELETE_HITS[@]}"; do
+              if [[ "$hit" != *".github/workflows/release-installer-with-sha.yml"* && "$hit" != *".github/workflows/release-asset-sanitizer.yml"* ]]; then
+                echo "❌ Policy violation: unauthorized workflow deletes release assets"
+                echo "Offending entry: $hit"
+                exit 1
+              fi
+            done
+          fi
+
+          echo "✅ Release asset mutation policy passed (upload: installer only, delete: installer/sanitizer only)"
 
   # ============================================================================
   # PHASE 7: DEPLOYMENT TO STAGING
