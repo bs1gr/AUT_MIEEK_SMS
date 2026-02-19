@@ -179,6 +179,8 @@ export const EmailConfigPanel: React.FC<EmailConfigPanelProps> = ({ config, onSa
             <Label className="text-slate-700 dark:text-slate-300 font-medium">{t('email.password')}</Label>
             <Input
               type="password"
+              name="smtp_password"
+              autoComplete="current-password"
               placeholder={t('email.passwordPlaceholder')}
               value={formData.smtp_password || ''}
               onChange={(e) => setFormData({ ...formData, smtp_password: e.target.value })}

@@ -347,6 +347,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
             {t('currentPassword')}
             <input
               type="password"
+              name="currentPassword"
+              autoComplete="current-password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
@@ -357,6 +359,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
             {t('newPassword')}
             <input
               type="password"
+              name="newPassword"
+              autoComplete="new-password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
@@ -382,6 +386,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
             {t('confirmPassword')}
             <input
               type="password"
+              name="confirmPassword"
+              autoComplete="new-password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               className="mt-1 w-full rounded-md border border-teal-300 bg-white px-2 py-1.5 text-sm dark:bg-teal-950 dark:border-teal-700"
@@ -580,6 +586,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
               </div>
               <input
                 type="password"
+                name="resetPassword"
+                autoComplete="new-password"
                 value={resetPassword}
                 onChange={(event) => setResetPassword(event.target.value)}
                 placeholder={t('newPasswordPlaceholder') as string}
@@ -633,6 +641,8 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
             {t('password')}
             <input
               type="password"
+              name="createUserPassword"
+              autoComplete="new-password"
               className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
               value={createForm.password}
               onChange={(event: ChangeEvent<HTMLInputElement>) => setCreateForm((prev: CreateUserPayload) => ({ ...prev, password: event.target.value }))}
