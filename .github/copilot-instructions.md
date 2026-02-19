@@ -45,6 +45,20 @@
 
 If any verification step is incomplete, **do not commit**.
 
+### 🔴 RELEASE LINEAGE RULE: OLD TAG WORKFLOWS ARE IMMUTABLE LEGACY
+
+**Non-negotiable requirement:** Treat workflows stored in old release tags as immutable legacy behavior.
+
+**✅ REQUIRED:**
+- Release from corrected lineage only (current `main` + current `VERSION` tag)
+- Allow release asset mutation only in installer workflow (`release-installer-with-sha.yml`)
+- Keep release assets installer-only (`SMS_Installer_<version>.exe` + `.sha256`)
+
+**❌ FORBIDDEN:**
+- Re-dispatching release automation for old tags to "fix" historical releases
+- Using generic CI artifacts as release assets
+- Manual workflows that can edit legacy release tags outside corrected lineage
+
 ### 🔴 MANDATORY RULE: SOLO DEVELOPER - NO STAKEHOLDERS
 
 **This is a SOLO DEVELOPER project. There are NO stakeholders, no review committees, no steering groups.**

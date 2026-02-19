@@ -52,6 +52,32 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 
 ---
 
+### Policy 0.2: RELEASE LINEAGE IMMUTABILITY (NEW - MANDATORY)
+
+**🔴 NON-NEGOTIABLE RULE:** Old tag workflows are immutable legacy behavior. Release from corrected lineage only.
+
+**✅ REQUIRED:**
+1. Treat historical tags (already published releases) as immutable legacy execution context
+2. Run manual release dispatch only for the current `VERSION` tag on corrected lineage (`main`)
+3. Keep release assets installer-only (`SMS_Installer_<version>.exe` + `.sha256`)
+4. Allow release asset mutation only via installer workflow policy path
+
+**❌ FORBIDDEN:**
+- Re-dispatching release workflow for old tags to "refresh" historical releases
+- Uploading generic CI artifacts to release assets
+- Depending on legacy tag workflow behavior for active release operations
+
+**Why This Exists:**
+- Legacy tags may include old workflow logic that re-pollutes release assets
+- Tag-bound workflows are immutable and cannot be edited safely post-release
+- Corrected-lineage-only release operations prevent recurrence
+
+**Enforcement:**
+- Manual dispatch for legacy tags must fail policy gate
+- Sanitizer workflow must enforce installer-only asset allowlist
+
+---
+
 ### Policy 0.5: SOLO DEVELOPER - NO STAKEHOLDERS (NEW - MANDATORY)
 
 **🔴 CRITICAL CLARIFICATION**: This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**.

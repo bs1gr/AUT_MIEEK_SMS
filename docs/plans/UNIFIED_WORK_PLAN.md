@@ -175,9 +175,15 @@
     - **Files Modified**: 9 backend/frontend files, 2 new files created
     - **Commits**: a4a74ba50 (base feature), 170001597 (enhancements), 08625027a (tests)
 52. ✅ **COMPLETE** (Feb 19, 2026): **Installer refresh and signing verification**
-   - Rebuilt `SMS_Installer_1.18.1.exe` from current workspace state
-   - Authenticode signature verified (AUT MIEEK certificate)
-   - SHA256 recorded for release docs: `92A826E2DD76DB12617B66DA890810AF59E7993AC537C4A7E29961FF6A1E54DD`
+- Rebuilt `SMS_Installer_1.18.1.exe` from current workspace state
+- Authenticode signature verified (AUT MIEEK certificate)
+- SHA256 recorded for release docs: `92A826E2DD76DB12617B66DA890810AF59E7993AC537C4A7E29961FF6A1E54DD`
+53. ✅ **COMPLETE** (Feb 19, 2026): **Release lineage hardening (legacy tag immutability)**
+- Identified repollution root cause: legacy `v1.18.1` tag contains old `ci-cd-pipeline.yml` with `gh release upload`.
+- Added/updated automated guardrails so old tag workflows are treated as immutable legacy and cannot be manually re-released from workflow dispatch.
+- Enforced corrected-lineage manual release policy in `.github/workflows/release-on-tag.yml` (dispatch allowed only for current `VERSION` tag).
+- Strengthened `.github/workflows/release-asset-sanitizer.yml` to react to legacy release-triggered CI runs (`workflow_run`) and keep installer-only assets.
+- Verified behavior: manual dispatch with legacy tag fails policy gate; sanitizer restores/maintains installer-only assets.
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

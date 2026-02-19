@@ -56,6 +56,25 @@ jobs:
             fi
           fi
 
+          # Treat old tag workflows as immutable legacy.
+          # Manual dispatch is allowed only for the current VERSION tag on corrected lineage (main).
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            if [[ ! -f VERSION ]]; then
+              echo "❌ VERSION file not found on default branch checkout"
+              exit 1
+            fi
+
+            CURRENT_VERSION_RAW="$(tr -d '[:space:]' < VERSION)"
+            CURRENT_TAG="v${CURRENT_VERSION_RAW#v}"
+
+            if [[ "$TAG" != "$CURRENT_TAG" ]]; then
+              echo "❌ Legacy tag dispatch blocked: '$TAG'"
+              echo "Manual dispatch is restricted to current lineage tag '$CURRENT_TAG'."
+              echo "Old tags are immutable legacy and must not be re-released/edited via workflow dispatch."
+              exit 1
+            fi
+          fi
+
           if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
             echo "❌ Tag '$TAG' does not exist in repository refs"
             exit 1
