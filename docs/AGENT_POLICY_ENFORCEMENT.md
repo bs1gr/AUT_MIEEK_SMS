@@ -24,6 +24,34 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 
 ## 📜 Mandatory Policies - Zero Exceptions
 
+### Policy 0.1: HARD STOP - DO NOT COMMIT UNLESS 100% VERIFIED (NEW - MANDATORY)
+
+**🔴 NON-NEGOTIABLE RULE:** **DO NOT COMMIT IF NOT 100% VERIFIED FIRST.**
+
+**❌ FORBIDDEN:**
+- Creating any commit before verification is complete
+- "I will verify later" commits
+- Partial verification claims (e.g., checked one file only)
+- Committing when release assets/metadata are known to be mismatched
+
+**✅ REQUIRED BEFORE EVERY COMMIT:**
+1. Run relevant tests/checks for the changed scope
+2. Read actual outputs/artifacts (not only exit code)
+3. Verify runtime behavior for deployment-affecting changes
+4. Verify release integrity when release files/workflows are touched (asset allowlist, hash/signature when applicable)
+5. Only then commit
+
+**Minimum gate for normal commits:**
+```powershell
+.\COMMIT_READY.ps1 -Quick
+```
+
+**Enforcement:**
+- If verification is incomplete, the commit must be blocked.
+- Agents must explicitly report what was verified before claiming completion.
+
+---
+
 ### Policy 0.5: SOLO DEVELOPER - NO STAKEHOLDERS (NEW - MANDATORY)
 
 **🔴 CRITICAL CLARIFICATION**: This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**.

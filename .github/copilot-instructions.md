@@ -32,6 +32,19 @@
 
 ## 🚨 Critical Rules - MANDATORY FOR ALL AGENTS
 
+### 🔴 HARD STOP: DO NOT COMMIT IF NOT 100% VERIFIED FIRST
+
+**Non-negotiable requirement:** Never create a commit unless verification is complete and evidence-backed.
+
+**Required before every commit:**
+1. Run scope-appropriate checks/tests
+2. Read real output/artifacts (not just exit code)
+3. Confirm runtime behavior for impacted flows
+4. If release metadata/assets are touched, verify asset allowlist + hash/signature consistency
+5. Then commit
+
+If any verification step is incomplete, **do not commit**.
+
 ### 🔴 MANDATORY RULE: SOLO DEVELOPER - NO STAKEHOLDERS
 
 **This is a SOLO DEVELOPER project. There are NO stakeholders, no review committees, no steering groups.**

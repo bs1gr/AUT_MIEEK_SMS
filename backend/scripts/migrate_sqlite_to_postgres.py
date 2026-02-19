@@ -24,7 +24,7 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Any, Iterable, Sequence
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine, func, text
@@ -310,8 +310,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             if not args.no_truncate:
                 _truncate_tables(dest_conn, tables_for_dest)
 
-            source_table_columns = {table.name: _get_table_column_names(source_conn, table.name) for table in tables_for_dest}
-            dest_table_columns = {table.name: _get_table_column_names(dest_conn, table.name) for table in tables_for_dest}
+            source_table_columns = {
+                table.name: _get_table_column_names(source_conn, table.name) for table in tables_for_dest
+            }
+            dest_table_columns = {
+                table.name: _get_table_column_names(dest_conn, table.name) for table in tables_for_dest
+            }
 
             for table in tables_for_dest:
                 source_cols = source_table_columns.get(table.name, set())
