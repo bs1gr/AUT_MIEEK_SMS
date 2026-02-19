@@ -953,7 +953,8 @@ function Invoke-SqliteToPostgresMigration {
     $migrateCmd = @(
         "run", "--rm",
         "--env-file", $ROOT_ENV,
-        "-e", "DATABASE_URL=$dbUrl"
+        "-e", "DATABASE_URL=$dbUrl",
+        "--entrypoint", "python"
     )
 
     if ($script:SingleModeNetworkName) {
@@ -968,7 +969,7 @@ function Invoke-SqliteToPostgresMigration {
 
     $migrateCmd += @(
         $IMAGE_TAG,
-        "python", "-m", "backend.scripts.migrate_sqlite_to_postgres",
+        "-m", "backend.scripts.migrate_sqlite_to_postgres",
         "--sqlite-path", $(if ($useHostSqlite) { "/data/student_management.db" } else { "/sqlite_data/student_management.db" }),
         "--postgres-url", $dbUrl,
         "--no-truncate"

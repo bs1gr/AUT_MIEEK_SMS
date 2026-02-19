@@ -150,6 +150,45 @@ def _filter_existing_destination_tables(conn: Connection, tables: Sequence[Table
     return present_tables, missing_tables
 
 
+def _filter_existing_source_tables(conn: Connection, tables: Sequence[Table]) -> tuple[list[Table], list[str]]:
+    """Return source-existing tables and names missing from SQLite schema."""
+    inspector = sa.inspect(conn)
+    existing = {name.lower() for name in inspector.get_table_names()}
+
+    present_tables: list[Table] = []
+    missing_tables: list[str] = []
+    for table in tables:
+        if table.name.lower() in existing:
+            present_tables.append(table)
+        else:
+            missing_tables.append(table.name)
+
+    return present_tables, missing_tables
+
+
+def _get_table_column_names(conn: Connection, table_name: str) -> set[str]:
+    inspector = sa.inspect(conn)
+    return {col["name"] for col in inspector.get_columns(table_name)}
+
+
+def _required_missing_columns(table: Table, selected_column_names: set[str]) -> list[str]:
+    missing_required: list[str] = []
+    for column in table.columns:
+        if column.name in selected_column_names:
+            continue
+
+        is_required = (
+            not column.nullable
+            and column.default is None
+            and column.server_default is None
+            and not (column.primary_key and column.autoincrement)
+        )
+        if is_required:
+            missing_required.append(column.name)
+
+    return missing_required
+
+
 def _chunked(result: sa.engine.Result, batch_size: int) -> Iterable[list[dict[str, object]]]:
     while True:
         rows = result.fetchmany(batch_size)
@@ -164,8 +203,14 @@ def _copy_table(
     dest_conn: Connection | None,
     batch_size: int,
     dry_run: bool,
+    selected_columns: Sequence[sa.Column[Any]],
 ) -> None:
-    total = source_conn.execute(sa.select(func.count()).select_from(table)).scalar_one()
+    if not selected_columns:
+        LOGGER.warning("%s: no compatible columns between source and destination - skipping", table.name)
+        return
+
+    source_subquery = sa.select(*selected_columns).select_from(table).subquery()
+    total = source_conn.execute(sa.select(func.count()).select_from(source_subquery)).scalar_one()
     if total == 0:
         LOGGER.info("%s: no rows to migrate", table.name)
         return
@@ -174,7 +219,7 @@ def _copy_table(
     if dry_run:
         return
 
-    result = source_conn.execution_options(stream_results=True).execute(sa.select(table))
+    result = source_conn.execution_options(stream_results=True).execute(sa.select(*selected_columns).select_from(table))
     migrated = 0
     try:
         for chunk in _chunked(result, batch_size):
@@ -229,14 +274,28 @@ def main(argv: Sequence[str] | None = None) -> int:
     postgres_engine = None if args.dry_run else create_engine(postgres_url)
 
     with sqlite_engine.connect() as source_conn:
+        tables_for_source, missing_source_tables = _filter_existing_source_tables(source_conn, tables)
+        if missing_source_tables:
+            LOGGER.warning(
+                "Skipping %s table(s) missing in source SQLite schema: %s",
+                len(missing_source_tables),
+                ", ".join(sorted(missing_source_tables)),
+            )
+
+        if not tables_for_source:
+            LOGGER.warning("No selected tables exist in source SQLite schema. Nothing to do.")
+            return 0
+
         if postgres_engine is None:
-            for table in tables:
-                _copy_table(table, source_conn, None, args.batch_size, True)
+            for table in tables_for_source:
+                source_cols = _get_table_column_names(source_conn, table.name)
+                selected_columns = [col for col in table.columns if col.name in source_cols]
+                _copy_table(table, source_conn, None, args.batch_size, True, selected_columns)
             LOGGER.info("Dry-run complete. No data was written to PostgreSQL.")
             return 0
 
         with postgres_engine.begin() as dest_conn:
-            tables_for_dest, missing_dest_tables = _filter_existing_destination_tables(dest_conn, tables)
+            tables_for_dest, missing_dest_tables = _filter_existing_destination_tables(dest_conn, tables_for_source)
             if missing_dest_tables:
                 LOGGER.warning(
                     "Skipping %s table(s) missing in destination schema: %s",
@@ -250,8 +309,26 @@ def main(argv: Sequence[str] | None = None) -> int:
 
             if not args.no_truncate:
                 _truncate_tables(dest_conn, tables_for_dest)
+
+            source_table_columns = {table.name: _get_table_column_names(source_conn, table.name) for table in tables_for_dest}
+            dest_table_columns = {table.name: _get_table_column_names(dest_conn, table.name) for table in tables_for_dest}
+
             for table in tables_for_dest:
-                _copy_table(table, source_conn, dest_conn, args.batch_size, args.dry_run)
+                source_cols = source_table_columns.get(table.name, set())
+                dest_cols = dest_table_columns.get(table.name, set())
+                common_cols = source_cols & dest_cols
+                selected_columns = [col for col in table.columns if col.name in common_cols]
+
+                required_missing = _required_missing_columns(table, {col.name for col in selected_columns})
+                if required_missing:
+                    LOGGER.warning(
+                        "%s: skipping table because required destination columns are missing from source schema: %s",
+                        table.name,
+                        ", ".join(required_missing),
+                    )
+                    continue
+
+                _copy_table(table, source_conn, dest_conn, args.batch_size, args.dry_run, selected_columns)
 
     LOGGER.info("Migration complete")
     return 0

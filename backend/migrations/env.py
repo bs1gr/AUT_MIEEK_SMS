@@ -32,6 +32,25 @@ if config.config_file_name is not None:
 # target metadata for autogenerate
 target_metadata = Base.metadata
 
+
+def _resolve_database_url() -> str:
+    """Resolve DB URL with explicit runtime override priority.
+
+    Priority:
+    1) alembic config main option (set by programmatic runner)
+    2) DATABASE_URL environment variable
+    3) backend.settings fallback
+    """
+    configured = config.get_main_option("sqlalchemy.url")
+    if configured and configured.strip() and not configured.startswith("driver://"):
+        return configured
+
+    env_url = os.environ.get("DATABASE_URL", "").strip()
+    if env_url:
+        return env_url
+
+    return settings.DATABASE_URL
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -50,9 +69,9 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    # Ensure URL comes from centralized settings
-    config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
-    url = config.get_main_option("sqlalchemy.url")
+    # Use runtime override URL when provided by programmatic migration runner.
+    url = _resolve_database_url()
+    config.set_main_option("sqlalchemy.url", url)
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -71,9 +90,9 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    # Ensure URL comes from centralized settings
+    # Use runtime override URL when provided by programmatic migration runner.
     section = config.get_section(config.config_ini_section, {})
-    section["sqlalchemy.url"] = settings.DATABASE_URL
+    section["sqlalchemy.url"] = _resolve_database_url()
     connectable = engine_from_config(
         section,
         prefix="sqlalchemy.",
