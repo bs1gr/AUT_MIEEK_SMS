@@ -21,7 +21,9 @@ namespace SMS_Manager
         private static readonly string INSTALL_DIR = GetInstallDirectory();
         private static readonly string COMPOSE_FILE = Path.Combine(INSTALL_DIR, "docker", "docker-compose.yml");
         private static readonly string DOCKER_SCRIPT = Path.Combine(INSTALL_DIR, "DOCKER.ps1");
-        private const int START_TIMEOUT_SECONDS = 300;
+        // First boot can include one-time SQLite -> PostgreSQL migration.
+        // Keep a timeout guard to avoid infinite hangs, but allow realistic migration duration.
+        private const int START_TIMEOUT_SECONDS = 1800;
 
         // ANSI color codes for terminal output (enabled only when supported)
         private const string ANSI_RESET = "\u001b[0m";
@@ -171,7 +173,7 @@ namespace SMS_Manager
             // This avoids false "stuck" states when the backend is still finalizing.
             if (code == 124)
             {
-                Console.WriteLine($"{YELLOW}⚠ Startup command is still running after timeout check. Verifying service availability...{RESET}");
+                Console.WriteLine($"{YELLOW}⚠ Startup command exceeded timeout ({START_TIMEOUT_SECONDS}s). Verifying service availability...{RESET}");
                 bool runtimeRunning = await IsSmsRuntimeRunning();
                 bool webReady = await IsWebAppReachable();
 

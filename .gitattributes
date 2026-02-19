@@ -1,9 +1,7 @@
 # Enforce consistent line endings in the repository
 # All files use LF in the repo (CI runs on Linux with pre-commit hooks)
 # Git will auto-convert to CRLF on Windows checkout
-
 * text=auto eol=lf
-
 # Explicitly set LF for all code and script files
 *.sh text eol=lf
 *.py text eol=lf
@@ -24,7 +22,6 @@
 *.cfg text eol=lf
 *.conf text eol=lf
 *.toml text eol=lf
-
 ## Recommended for artifact handling (optional): use Git LFS for large release artifacts
 # Uncomment or add these lines if you enable Git LFS in the repository:
 # /dist/** filter=lfs diff=lfs merge=lfs -text
@@ -35,3 +32,4 @@
 #   git add .gitattributes
 #   git commit -m "chore: enable git lfs for release artifacts"
 #   git push
+dist/SMS_Installer_*.exe filter=lfs diff=lfs merge=lfs -text
