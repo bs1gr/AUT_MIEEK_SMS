@@ -43,6 +43,30 @@ type RecoveryOptions = {
   now?: () => number;
 };
 
+async function purgeStalePwaState(): Promise<void> {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    if ('serviceWorker' in navigator) {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      await Promise.all(registrations.map((registration) => registration.unregister()));
+    }
+  } catch {
+    // Best effort only.
+  }
+
+  try {
+    if ('caches' in window) {
+      const cacheKeys = await caches.keys();
+      await Promise.all(cacheKeys.map((key) => caches.delete(key)));
+    }
+  } catch {
+    // Best effort only.
+  }
+}
+
 export function recoverFromChunkLoadError(error: unknown, options?: RecoveryOptions): boolean {
   if (!isChunkLoadError(error)) {
     return false;
@@ -78,6 +102,14 @@ export function recoverFromChunkLoadError(error: unknown, options?: RecoveryOpti
     // Ignore storage write issues.
   }
 
-  reload();
+  if (options?.reload) {
+    reload();
+    return true;
+  }
+
+  void purgeStalePwaState().finally(() => {
+    reload();
+  });
+
   return true;
 }
