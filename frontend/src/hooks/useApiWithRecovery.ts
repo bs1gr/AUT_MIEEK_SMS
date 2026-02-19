@@ -1,6 +1,24 @@
 import { useQuery, useMutation, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
 import { useErrorRecovery, type ErrorRetryStrategy } from './useErrorRecovery';
 
+function getHttpStatus(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') {
+    return undefined;
+  }
+
+  const withResponse = error as { response?: { status?: number } };
+  if (typeof withResponse.response?.status === 'number') {
+    return withResponse.response.status;
+  }
+
+  const withStatus = error as { status?: number };
+  if (typeof withStatus.status === 'number') {
+    return withStatus.status;
+  }
+
+  return undefined;
+}
+
 interface UseApiQueryOptions<TData, TError = Error> extends Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'> {
   onSuccess?: (data: TData) => void;
   errorRecovery?: {
@@ -73,7 +91,11 @@ export function useApiQuery<TData = unknown, TError = Error>(
         throw error;
       }
     },
-    retry: (failureCount) => {
+    retry: (failureCount, error) => {
+      const status = getHttpStatus(error);
+      if (status === 401 || status === 403) {
+        return false;
+      }
       if (errorRecovery?.enabled === false || errorRecovery?.strategy === 'none') {
         return false;
       }

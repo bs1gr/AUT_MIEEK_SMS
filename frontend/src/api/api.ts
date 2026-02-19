@@ -172,6 +172,29 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 10000, // 10 seconds timeout
 });
 
+function getHttpStatusFromAxiosLikeError(error: unknown): number | undefined {
+  if (!error || typeof error !== 'object') {
+    return undefined;
+  }
+
+  const withResponse = error as { response?: { status?: number } };
+  if (typeof withResponse.response?.status === 'number') {
+    return withResponse.response.status;
+  }
+
+  const withStatus = error as { status?: number };
+  if (typeof withStatus.status === 'number') {
+    return withStatus.status;
+  }
+
+  return undefined;
+}
+
+export function isAuthOrPermissionError(error: unknown): boolean {
+  const status = getHttpStatusFromAxiosLikeError(error);
+  return status === 401 || status === 403;
+}
+
 // Simple in-memory cache for GET requests (rarely-changing endpoints)
 type ApiCacheEntry = { ts: number; data: unknown };
 const apiCache = new Map<string, ApiCacheEntry>();
@@ -290,12 +313,16 @@ apiClient.interceptors.response.use(
         });
       }
 
-      // Log other response errors with safe property access
+      // Log non-auth response errors with safe property access
       try {
         const errorData = error.response?.data || {};
-        console.error('API Error:', errorData);
+        if (error.response.status !== 401 && error.response.status !== 403) {
+          console.error('API Error:', errorData);
+        }
       } catch {
-        console.error('API Error: Failed to extract error data');
+        if (error.response.status !== 401 && error.response.status !== 403) {
+          console.error('API Error: Failed to extract error data');
+        }
       }
       if (error.response.status === 404) console.error('Resource not found');
       if (error.response.status === 500) console.error('Server error');

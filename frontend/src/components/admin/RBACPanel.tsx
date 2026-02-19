@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useApiMutation, useApiQuery } from '@/hooks/useApiWithRecovery';
-import { rbacAPI, type Role, type RBACSummary } from '@/api/api';
-import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { isAuthOrPermissionError, rbacAPI, type Role, type RBACSummary } from '@/api/api';
+import { AlertCircle, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const RBACPanel: React.FC = () => {
   const { t } = useLanguage();
@@ -101,7 +101,13 @@ export const RBACPanel: React.FC = () => {
   const [roleName, setRoleName] = useState('');
   const [selectedRole, setSelectedRole] = useState<string | null>(null);  // Store role name
   const [selectedPermission, setSelectedPermission] = useState<string | null>(null);  // Store permission key
-  const { data: rbacData, isLoading: isSummaryLoading, refetch: refetchSummary } = useApiQuery<RBACSummary>(
+  const {
+    data: rbacData,
+    isLoading: isSummaryLoading,
+    isError: isSummaryError,
+    error: summaryError,
+    refetch: refetchSummary,
+  } = useApiQuery<RBACSummary>(
     ['rbac-summary'],
     () => rbacAPI.getSummary(),
     { enabled: activeTab === 'overview' || activeTab === 'users' }
@@ -210,6 +216,24 @@ export const RBACPanel: React.FC = () => {
     return (
       <div className="flex items-center justify-center p-8">
         <RefreshCw className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (isSummaryError && isAuthOrPermissionError(summaryError)) {
+    return (
+      <div className="rounded-2xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 p-6">
+        <div className="flex items-start gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-600 dark:text-amber-400" />
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-amber-900 dark:text-amber-100">
+              {t('accessDeniedTitle')}
+            </h3>
+            <p className="mt-1 text-sm text-amber-700 dark:text-amber-300">
+              {t('rbacAccessDeniedMessage') || t('accessDeniedMessage')}
+            </p>
+          </div>
+        </div>
       </div>
     );
   }

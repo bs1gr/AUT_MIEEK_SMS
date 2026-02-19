@@ -268,6 +268,7 @@ export default {
   adminAccessRequired: 'Administrator privileges required to perform this action',
   accessDeniedTitle: 'Access Denied',
   accessDeniedMessage: 'You must be logged in with an administrator account to manage user accounts.',
+  rbacAccessDeniedMessage: 'You must be logged in with an administrator account to access RBAC management.',
   createUserSuccess: 'User created successfully',
   createUserFailed: 'Could not create user',
   updateUserSuccess: 'User updated successfully',

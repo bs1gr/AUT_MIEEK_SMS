@@ -141,6 +141,60 @@ describe('useApiWithRecovery', () => {
       expect(mockFn).toHaveBeenCalledTimes(1);
     });
 
+    it('should not retry on 401 errors', async () => {
+      const unauthorizedError = {
+        response: { status: 401 },
+        message: 'Unauthorized',
+      } as unknown as Error;
+      const mockFn = vi.fn().mockRejectedValue(unauthorizedError);
+
+      const wrapper = createWrapper();
+      const { result } = renderHook(
+        () => useApiQuery(['test-401'], mockFn, {
+          errorRecovery: {
+            enabled: true,
+            strategy: 'backoff',
+            maxRetries: 3,
+            backoffMs: 10,
+          },
+        }),
+        { wrapper }
+      );
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true);
+      });
+
+      expect(mockFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not retry on 403 errors', async () => {
+      const forbiddenError = {
+        response: { status: 403 },
+        message: 'Forbidden',
+      } as unknown as Error;
+      const mockFn = vi.fn().mockRejectedValue(forbiddenError);
+
+      const wrapper = createWrapper();
+      const { result } = renderHook(
+        () => useApiQuery(['test-403'], mockFn, {
+          errorRecovery: {
+            enabled: true,
+            strategy: 'backoff',
+            maxRetries: 3,
+            backoffMs: 10,
+          },
+        }),
+        { wrapper }
+      );
+
+      await waitFor(() => {
+        expect(result.current.isError).toBe(true);
+      });
+
+      expect(mockFn).toHaveBeenCalledTimes(1);
+    });
+
     it('should reset error state on successful retry', async () => {
       vi.useFakeTimers();
       const mockFn = vi.fn()
