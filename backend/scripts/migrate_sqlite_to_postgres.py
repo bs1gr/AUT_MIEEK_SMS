@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Iterable, Sequence
 
 import sqlalchemy as sa
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy import create_engine, func, text
 from sqlalchemy.engine import Connection
 from sqlalchemy.schema import Table
@@ -204,6 +205,7 @@ def _copy_table(
     batch_size: int,
     dry_run: bool,
     selected_columns: Sequence[sa.Column[Any]],
+    append_safe: bool,
 ) -> None:
     if not selected_columns:
         LOGGER.warning("%s: no compatible columns between source and destination - skipping", table.name)
@@ -225,7 +227,16 @@ def _copy_table(
         for chunk in _chunked(result, batch_size):
             if dest_conn is None:
                 continue
-            dest_conn.execute(sa.insert(table), chunk)
+            if append_safe and dest_conn.dialect.name == "postgresql":
+                primary_keys = [col.name for col in table.primary_key.columns]
+                insert_stmt = pg_insert(table)
+                if primary_keys:
+                    insert_stmt = insert_stmt.on_conflict_do_nothing(index_elements=primary_keys)
+                else:
+                    insert_stmt = insert_stmt.on_conflict_do_nothing()
+                dest_conn.execute(insert_stmt, chunk)
+            else:
+                dest_conn.execute(sa.insert(table), chunk)
             migrated += len(chunk)
             LOGGER.debug("%s: migrated %s/%s rows", table.name, migrated, total)
     finally:
@@ -290,7 +301,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             for table in tables_for_source:
                 source_cols = _get_table_column_names(source_conn, table.name)
                 selected_columns = [col for col in table.columns if col.name in source_cols]
-                _copy_table(table, source_conn, None, args.batch_size, True, selected_columns)
+                _copy_table(table, source_conn, None, args.batch_size, True, selected_columns, args.no_truncate)
             LOGGER.info("Dry-run complete. No data was written to PostgreSQL.")
             return 0
 
@@ -332,7 +343,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                     )
                     continue
 
-                _copy_table(table, source_conn, dest_conn, args.batch_size, args.dry_run, selected_columns)
+                _copy_table(
+                    table,
+                    source_conn,
+                    dest_conn,
+                    args.batch_size,
+                    args.dry_run,
+                    selected_columns,
+                    args.no_truncate,
+                )
 
     LOGGER.info("Migration complete")
     return 0
