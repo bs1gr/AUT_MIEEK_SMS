@@ -977,6 +977,23 @@ function Invoke-SqliteToPostgresMigration {
 
     $output = & docker @migrateCmd 2>&1
     if ($LASTEXITCODE -ne 0) {
+        $outputText = ($output | Out-String)
+        $isSourceAccessIssue = (
+            $outputText -match 'sqlite3\.OperationalError:\s+unable to open database file' -or
+            $outputText -match 'sqlalchemy\.exc\.OperationalError: \(sqlite3\.OperationalError\) unable to open database file' -or
+            $outputText -match 'no such file or directory' -or
+            $outputText -match 'unable to open sqlite database file'
+        )
+
+        if ($isSourceAccessIssue) {
+            Write-Warning "SQLite source exists but is not readable from migration container. Skipping auto-migration and continuing startup in PostgreSQL mode."
+            Write-Warning "Legacy SQLite data remains untouched. Review Docker volume '$sqliteVolumeName' permissions/path if migration is required."
+            if ($output) {
+                Write-Host $output -ForegroundColor Yellow
+            }
+            return $true
+        }
+
         Write-Error-Message "SQLite to PostgreSQL migration failed"
         if ($output) {
             Write-Host $output -ForegroundColor Yellow
