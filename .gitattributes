@@ -32,4 +32,3 @@
 #   git add .gitattributes
 #   git commit -m "chore: enable git lfs for release artifacts"
 #   git push
-dist/SMS_Installer_*.exe filter=lfs diff=lfs merge=lfs -text

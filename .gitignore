@@ -95,15 +95,13 @@ docker/.env
 .env.qnap  # QNAP-specific config with secrets (was mistakenly tracked)
 .env.production.SECURE  # Production secrets file (DO NOT COMMIT)
 
-# Ignore release artifacts (except release installers)
-dist/*
-!dist/SMS_Installer_*.exe
+# Ignore release artifacts
+dist/
 
 # Installer executables (distribute via GitHub Releases)
 *.exe
 !installer/SMS_Installer_*.exe  # Keep tagged release installers only
 dist/*.exe
-!dist/SMS_Installer_*.exe
 installer/.version_cache
 
 # Temporary CI/local artifact folders
