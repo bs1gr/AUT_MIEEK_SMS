@@ -9,8 +9,11 @@ on:
         type: string
   release:
     types: [published, edited, released, prereleased]
+  workflow_run:
+    workflows: ["CI/CD Pipeline - Student Management System"]
+    types: [completed]
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: write
@@ -30,12 +33,25 @@ jobs:
           REPO: ${{ github.repository }}
           INPUT_TAG: ${{ github.event.inputs.tag }}
           EVENT_TAG: ${{ github.event.release.tag_name }}
+          WORKFLOW_EVENT: ${{ github.event.workflow_run.event }}
+          WORKFLOW_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
           set -euo pipefail
 
           TAG="${INPUT_TAG:-}"
           if [ -z "$TAG" ] && [ -n "${EVENT_TAG:-}" ]; then
             TAG="$EVENT_TAG"
+          fi
+
+          # For legacy tag-pinned CI runs that mutate release assets, infer tag from workflow_run branch.
+          if [ -z "$TAG" ] && [ -n "${WORKFLOW_BRANCH:-}" ]; then
+            if [[ "${WORKFLOW_BRANCH}" =~ ^v1\.[0-9]+\.[0-9]+$ ]]; then
+              # Only react to release-triggered CI runs that completed successfully.
+              if [ "${WORKFLOW_EVENT:-}" = "release" ] && [ "${WORKFLOW_CONCLUSION:-}" = "success" ]; then
+                TAG="${WORKFLOW_BRANCH}"
+              fi
+            fi
           fi
 
           if [ -z "$TAG" ]; then
