@@ -5,6 +5,16 @@
 **Type:** Patch release
 **Status:** Released
 
+## Installer Artifact (Refreshed Feb 19, 2026)
+
+- File: `SMS_Installer_1.18.1.exe`
+- Location: `dist/SMS_Installer_1.18.1.exe`
+- Size: `113.69 MB`
+- Modified: `2026-02-19 13:05:45`
+- SHA256: `1456900F39F54FC6B35075A356BA784AF89DB2EDC16C6EAEB45D15B6721D478A`
+- Authenticode signature: `Valid`
+- Signer: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
+
 ---
 
 ## Release Artifacts

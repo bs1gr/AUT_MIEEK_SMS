@@ -35,6 +35,14 @@ All 5 failing tests across both course modal components are now passing.
 
 No changes to deployment or installation procedures. This is a drop-in replacement for v1.18.0.
 
+## 🪟 Windows Installer Verification
+
+- Installer: `SMS_Installer_1.18.1.exe`
+- Size: `113.69 MB`
+- SHA256: `1456900F39F54FC6B35075A356BA784AF89DB2EDC16C6EAEB45D15B6721D478A`
+- Signature: `Valid (Authenticode)`
+- Publisher: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
+
 ## 🔄 Upgrade Instructions
 
 ### From v1.18.0

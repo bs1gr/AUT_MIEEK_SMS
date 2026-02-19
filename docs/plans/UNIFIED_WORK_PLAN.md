@@ -174,6 +174,10 @@
     - **Testing**: 34 comprehensive unit tests (100% passing) covering all utility functions
     - **Files Modified**: 9 backend/frontend files, 2 new files created
     - **Commits**: a4a74ba50 (base feature), 170001597 (enhancements), 08625027a (tests)
+52. ✅ **COMPLETE** (Feb 19, 2026): **Installer refresh and signing verification**
+   - Rebuilt `SMS_Installer_1.18.1.exe` from current workspace state
+   - Authenticode signature verified (AUT MIEEK certificate)
+   - SHA256 recorded for release docs: `1456900F39F54FC6B35075A356BA784AF89DB2EDC16C6EAEB45D15B6721D478A`
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).
