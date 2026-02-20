@@ -118,6 +118,33 @@ jobs:
           echo "release_id=$releaseId" >> $env:GITHUB_OUTPUT
           echo "version=$($tag -replace '^v', '')" >> $env:GITHUB_OUTPUT
 
+      - name: Checkout resolved tag commit (lineage lock)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tag = "${{ steps.resolve_tag.outputs.tag }}"
+
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            Write-Error "Resolved tag output is empty; cannot continue."
+            exit 1
+          }
+
+          git fetch --tags --force
+          git checkout --force "refs/tags/$tag"
+
+          $head = (git rev-parse HEAD).Trim()
+          $tagCommit = (git rev-list -n 1 $tag).Trim()
+          Write-Host "Checked out tag: $tag"
+          Write-Host "HEAD: $head"
+          Write-Host "Tag commit: $tagCommit"
+
+          if ($head -ne $tagCommit) {
+            Write-Error "Lineage lock failed: HEAD does not match tag commit."
+            exit 1
+          }
+
+          Write-Host "✓ Lineage lock passed"
+
       - name: Validate checkout matches tag version
         shell: pwsh
         run: |
@@ -154,8 +181,8 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           if (-not $env:CODESIGN_PFX_BASE64 -or -not $env:CODESIGN_PFX_PASSWORD) {
-            Write-Host "Code signing certificate secrets not provided. Skipping import (signing will be skipped)."
-            exit 0
+            Write-Error "Code signing certificate secrets are required for release installer workflow."
+            exit 1
           }
 
           $pfxPath = Join-Path $env:RUNNER_TEMP "sms_codesign.pfx"
@@ -181,7 +208,8 @@ jobs:
             Write-Host "Running VERIFY_VERSION.ps1 in CI mode..."
             & ".\scripts\VERIFY_VERSION.ps1" -CIMode
             if ($LASTEXITCODE -ne 0) {
-              Write-Warning "Version verification found issues, but continuing (may cause issues in release)"
+              Write-Error "Version verification failed. Blocking release installer workflow."
+              exit 1
             }
             Write-Host "Version verification check completed"
           } else {
@@ -236,6 +264,34 @@ jobs:
           Write-Host "✓ Found expected installer: $expectedPath"
           echo "path=$expectedPath" >> $env:GITHUB_OUTPUT
 
+      - name: Verify installer signature (mandatory gate)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = "${{ steps.verify_installer.outputs.path }}"
+
+          if (-not (Test-Path $installer)) {
+            Write-Error "Installer not found for signature verification: $installer"
+            exit 1
+          }
+
+          $sig = Get-AuthenticodeSignature $installer
+          Write-Host "Signature status: $($sig.Status)"
+
+          if ($sig.Status -ne 'Valid') {
+            Write-Error "Installer must be Authenticode-signed. Status: $($sig.Status)"
+            exit 1
+          }
+
+          $subject = $sig.SignerCertificate.Subject
+          Write-Host "Signer: $subject"
+          if ($subject -notmatch 'L=Limassol' -or $subject -notmatch 'C=CY') {
+            Write-Error "Signer does not match required certificate subject constraints (Limassol/CY)."
+            exit 1
+          }
+
+          Write-Host "✓ Signature gate passed"
+
       - name: Calculate SHA256 hash
         id: hash
         shell: pwsh
@@ -270,7 +326,7 @@ jobs:
 
           $sizeBytes = (Get-Item $installerPath).Length
           $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
-          $minSizeBytes = 20000000  # 20 MB minimum expected payload size
+          $minSizeBytes = 80000000  # 80 MB minimum expected payload size for signed production bundle
 
           Write-Host "Installer size bytes: $sizeBytes"
           Write-Host "Installer size MB: $sizeMB"

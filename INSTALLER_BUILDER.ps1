@@ -453,12 +453,12 @@ function Invoke-CodeSigning {
 
     if (-not (Test-FileExists $InstallerExe)) {
         Write-Result Error "Installer not found: $InstallerExe"
-        return $true  # Non-blocking
+        return $false
     }
 
     if (-not (Test-FileExists $SignerScript)) {
         Write-Result Error "Signing script not found: $SignerScript"
-        return $true  # Non-blocking
+        return $false
     }
 
     # Check if code signing should be skipped
@@ -510,8 +510,9 @@ function Invoke-CodeSigning {
             return $false
         }
     } catch {
-        Write-Result Warning "Code signing failed: $($_.Exception.Message) - installer remains unsigned but valid"
-        return $true  # Signing failure doesn't break the build
+        Write-Result Error "Code signing failed: $($_.Exception.Message)"
+        Write-Result Error "Build blocked: Unsigned installer artifacts are not allowed."
+        return $false
     }
 }
 
@@ -642,9 +643,11 @@ switch ($Action) {
 
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
-                # Attempt code signing (non-blocking)
+                # Code signing is mandatory for release-quality artifacts
                 if (-not $SkipCodeSign) {
-                    Invoke-CodeSigning | Out-Null
+                    if (-not (Invoke-CodeSigning)) {
+                        exit 1
+                    }
                 }
 
                 # Run smoke test if not skipped
@@ -681,8 +684,9 @@ switch ($Action) {
 
         if (Invoke-WizardImageRegeneration) {
             if (Invoke-InstallerCompilation) {
-                # Attempt code signing (non-blocking)
-                Invoke-CodeSigning | Out-Null
+                if (-not (Invoke-CodeSigning)) {
+                    exit 1
+                }
 
                 if (Test-InstallerSmoke) {
                     if ($TagAndPush) {
