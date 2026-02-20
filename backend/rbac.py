@@ -207,8 +207,14 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
     # Some migrated environments can temporarily miss RBAC permission links
     # for import operations, while legacy admin role is still authoritative.
     # Keep this limited to imports:* so we don't broaden unrelated checks.
+    #
+    # NOTE:
+    # We intentionally do NOT require `granted` to be empty here. In mixed
+    # migration states an admin may have partial role/direct grants loaded,
+    # but still miss imports:* links specifically, which would otherwise
+    # return 403 for /imports/upload.
     user_role = (getattr(user, "role", "") or "").strip().lower()
-    if user_role == "admin" and not granted and required_key.startswith("imports:"):
+    if user_role == "admin" and required_key.startswith("imports:"):
         return True
 
     # Check if user has ANY role assignments in the RBAC system
