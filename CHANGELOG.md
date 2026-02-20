@@ -198,6 +198,25 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.18.2] - 2026-02-20
+
+### Bug Fixes
+- **installer**: publish hotfix release lineage for runtime installer crash scenario
+- **release**: enforce corrected-lineage publication (`v1.18.2`) to avoid immutable legacy tag behavior
+
+### CI/CD
+- **release**: add configurable payload floor and post-upload digest verification gate
+- **release**: add signer allowlist telemetry (non-blocking)
+
+### Chores
+- **release**: bump `VERSION` and frontend package version to `1.18.2`
+
+### Release Artifacts
+- `SMS_Installer_1.18.2.exe` (SHA256: `1e98607670029b8ebed1b3337794dc79755cf810af2624bfcb53d99e47f6ebc0`)
+- `SMS_Installer_1.18.2.exe.sha256` published and verified
+
+
 ## [1.18.1] - 2026-02-17
 
 ### Bug Fixes

@@ -1,19 +1,19 @@
 # Documentation Index
 
-**Last Updated**: 2026-02-18
-**Project Version (documented)**: 1.18.1
-**Version**: 1.18.1
+**Last Updated**: 2026-02-20
+**Project Version (documented)**: 1.18.2
+**Version**: 1.18.2
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.1 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.2 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 18, 2026)**: ✅ **Production Live + v1.18.1 Release Published and Verified**
+> **Current Status (Feb 20, 2026)**: ✅ **Production Live + v1.18.2 Release Published and Verified**
 > - Maintenance & stability phase active
-> - Changelog/work plan/index updated for changes since `v1.18.1`
+> - Changelog/work plan/index updated for changes since `v1.18.2`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
-> - `v1.18.1` release documentation pack refreshed (notes, release body, manifest, deployment checklist)
-> - Tag `v1.18.1` verified on remote and GitHub release verified as published (non-draft)
+> - `v1.18.2` release documentation pack published (notes, release body, manifest, deployment checklist)
+> - Tag `v1.18.2` verified on remote and GitHub release verified as published (non-draft)
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
@@ -505,6 +505,10 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
+- **[releases/RELEASE_NOTES_v1.18.2.md](releases/RELEASE_NOTES_v1.18.2.md)** - v1.18.2 hotfix release notes (installer runtime fix)
+- **[releases/GITHUB_RELEASE_v1.18.2.md](releases/GITHUB_RELEASE_v1.18.2.md)** - GitHub release body for v1.18.2
+- **[releases/RELEASE_MANIFEST_v1.18.2.md](releases/RELEASE_MANIFEST_v1.18.2.md)** - Artifact manifest and integrity gates for v1.18.2
+- **[releases/DEPLOYMENT_CHECKLIST_v1.18.2.md](releases/DEPLOYMENT_CHECKLIST_v1.18.2.md)** - Deployment and verification checklist for v1.18.2
 - **[releases/RELEASE_NOTES_v1.18.1.md](releases/RELEASE_NOTES_v1.18.1.md)** - Next major release notes package (prepared Feb 15, 2026)
 - **[releases/GITHUB_RELEASE_v1.18.1.md](releases/GITHUB_RELEASE_v1.18.1.md)** - Publish-ready GitHub release body for v1.18.1
 - **[releases/RELEASE_MANIFEST_v1.18.1.md](releases/RELEASE_MANIFEST_v1.18.1.md)** - Release artifact scope and validation gates

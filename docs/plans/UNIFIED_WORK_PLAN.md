@@ -1,12 +1,18 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.1 (Released)
-**Last Updated**: February 18, 2026 (v1.18.1 release state reconciled and validated)
-**Status**: ✅ v1.18.1 RELEASED (tag + GitHub release published)
+**Current Version**: 1.18.2 (Released)
+**Last Updated**: February 20, 2026 (v1.18.2 hotfix release published and documented)
+**Status**: ✅ v1.18.2 RELEASED (tag + GitHub release published)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Patch release for test fixes)
 **Current Branch**: `main`
 **Latest Commits**:
+- 802a656ab - hotfix(release): bump to 1.18.2 for installer runtime crash fix
+- e63060af5 - hardening(release): add non-blocking signer allowlist telemetry
+- 2e8e61dc0 - hardening(release): add configurable payload floor and post-upload digest gate
+- d8278ab9b - fix(release): align payload guardrail with valid installer size
+- 6ef59099a - fix(release): make signature gate self-signed aware via thumbprint check
+- d9b28769c - fix(release): enforce tag-lineage, mandatory signing, and payload gates
 - 78906a9d7 - chore(release): publish v1.18.1 tag + GitHub release
 - 08625027a - test(courses): add comprehensive unit tests for courseAutoActivation utility
 - 170001597 - feat(courses): add auto-activation enhancements - scheduler, UI indicator, monitoring
@@ -18,6 +24,27 @@
 - f0b2e00ed - docs: prepare post-v1.18.1 release documentation
 - b428b18e7 - revert(release): undo duplicate v1.18.1 release rerun commit
 - cacc2a130 - fix(i18n): sync en/el dashboard and student locale keys
+
+---
+
+## 🚀 v1.18.2 Hotfix Release (February 20, 2026)
+
+**Status**: ✅ RELEASE COMPLETED
+
+**Release Type**: Patch (1.18.1 → 1.18.2)
+**Purpose**: Correct installer runtime failure path and publish from corrected release lineage.
+
+**Release Artifacts (published):**
+- ✅ `SMS_Installer_1.18.2.exe` (`26,115,744` bytes)
+- ✅ `SMS_Installer_1.18.2.exe.sha256`
+- ✅ Installer digest: `1e98607670029b8ebed1b3337794dc79755cf810af2624bfcb53d99e47f6ebc0`
+- ✅ Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.2`
+
+**Documentation Pack (v1.18.2):**
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.2.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.2.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.2.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.2.md`
 
 ---
 
