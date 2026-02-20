@@ -13,8 +13,8 @@ This patch release narrows a legacy RBAC fallback to `imports:*` permissions onl
 ## 📦 Assets
 
 - `SMS_Installer_1.18.3.exe`
-  SHA256: `c6f8eb7e0c84faa97ae049de3c81d2c967ca54880f6c7b52afa7fa3ec88c382c`
-  Size: `119231568` bytes
+  SHA256: `86fb67cdf39bc25c7e68a939c3194e01d35c9bdf86c8d719d0adba0c309c13c4`
+  Size: `119232344` bytes
 
 - `SMS_Installer_1.18.3.exe.sha256`
   Contains installer SHA256 sidecar line

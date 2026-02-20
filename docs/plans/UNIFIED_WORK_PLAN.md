@@ -37,9 +37,9 @@
 **Purpose**: Scope legacy RBAC fallback to imports permissions only and publish refreshed installer artifact.
 
 **Release Artifacts (published):**
-- ✅ `SMS_Installer_1.18.3.exe` (`119,231,568` bytes)
+- ✅ `SMS_Installer_1.18.3.exe` (`119,232,344` bytes)
 - ✅ `SMS_Installer_1.18.3.exe.sha256`
-- ✅ Installer digest: `c6f8eb7e0c84faa97ae049de3c81d2c967ca54880f6c7b52afa7fa3ec88c382c`
+- ✅ Installer digest: `86fb67cdf39bc25c7e68a939c3194e01d35c9bdf86c8d719d0adba0c309c13c4`
 - ✅ Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
 
 **Documentation Pack (v1.18.3):**

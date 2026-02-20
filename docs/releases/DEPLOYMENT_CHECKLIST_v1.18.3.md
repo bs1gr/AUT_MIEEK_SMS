@@ -13,7 +13,7 @@
   - `SMS_Installer_1.18.3.exe`
   - `SMS_Installer_1.18.3.exe.sha256`
 - [ ] Confirm installer SHA256:
-  - `c6f8eb7e0c84faa97ae049de3c81d2c967ca54880f6c7b52afa7fa3ec88c382c`
+  - `86fb67cdf39bc25c7e68a939c3194e01d35c9bdf86c8d719d0adba0c309c13c4`
 
 ## 2) Environment Workflow Policy
 

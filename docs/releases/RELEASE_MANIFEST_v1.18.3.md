@@ -16,8 +16,8 @@
 
 ### Required assets (published)
 - [x] `SMS_Installer_1.18.3.exe`
-  - size: `119231568` bytes
-  - digest: `sha256:c6f8eb7e0c84faa97ae049de3c81d2c967ca54880f6c7b52afa7fa3ec88c382c`
+  - size: `119232344` bytes
+  - digest: `sha256:86fb67cdf39bc25c7e68a939c3194e01d35c9bdf86c8d719d0adba0c309c13c4`
 - [x] `SMS_Installer_1.18.3.exe.sha256`
   - digest source: generated from installer artifact in `dist/`
 
