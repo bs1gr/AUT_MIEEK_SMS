@@ -30,6 +30,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy import create_engine, func, text
 from sqlalchemy.engine import Connection
+from sqlalchemy.engine import Engine
 from sqlalchemy.schema import Table
 
 from backend import models
@@ -117,6 +118,20 @@ def _resolve_sqlite_path(path_value: str) -> Path:
     if not path.exists():
         raise FileNotFoundError(f"SQLite database not found: {path}")
     return path
+
+
+def _create_sqlite_source_engine(sqlite_path: Path) -> Engine:
+    """Create a read-only SQLite engine for source migration data.
+
+    The migration source may be mounted read-only inside containers. Opening the
+    SQLite file in default read-write mode can fail with:
+    ``sqlite3.OperationalError: unable to open database file``.
+    """
+    sqlite_uri_path = sqlite_path.as_posix()
+    # immutable=1 avoids write attempts for lock/journal files when the source
+    # database is mounted read-only (common in Docker migration flows).
+    sqlite_url = f"sqlite:///file:{sqlite_uri_path}?mode=ro&immutable=1&uri=true"
+    return create_engine(sqlite_url)
 
 
 def _ensure_migrations(postgres_url: str) -> None:
@@ -281,7 +296,7 @@ def main(argv: Sequence[str] | None = None) -> int:
             LOGGER.error(str(exc))
             return 3
 
-    sqlite_engine = create_engine(f"sqlite:///{sqlite_path}")
+    sqlite_engine = _create_sqlite_source_engine(sqlite_path)
     postgres_engine = None if args.dry_run else create_engine(postgres_url)
 
     with sqlite_engine.connect() as source_conn:

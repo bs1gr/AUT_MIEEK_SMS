@@ -1,8 +1,8 @@
 # Release Notes v1.18.2 - Installer Runtime Hotfix & Release Hardening
 
-**Date:** February 20, 2026  
-**Version:** v1.18.2  
-**Status:** Released  
+**Date:** February 20, 2026
+**Version:** v1.18.2
+**Status:** Released
 **Type:** Patch release
 
 ## 🎯 Overview

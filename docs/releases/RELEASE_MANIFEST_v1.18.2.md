@@ -1,8 +1,8 @@
 # Release Manifest - v1.18.2
 
-**Version:** 1.18.2  
-**Date:** February 20, 2026  
-**Type:** Patch release  
+**Version:** 1.18.2
+**Date:** February 20, 2026
+**Type:** Patch release
 **Status:** Released
 
 ## Release Metadata

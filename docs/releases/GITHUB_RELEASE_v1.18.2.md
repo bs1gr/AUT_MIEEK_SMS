@@ -12,11 +12,11 @@ This patch release resolves the installer runtime failure reported in the 1.18.1
 
 ## 📦 Assets
 
-- `SMS_Installer_1.18.2.exe`  
-  SHA256: `1e98607670029b8ebed1b3337794dc79755cf810af2624bfcb53d99e47f6ebc0`  
+- `SMS_Installer_1.18.2.exe`
+  SHA256: `1e98607670029b8ebed1b3337794dc79755cf810af2624bfcb53d99e47f6ebc0`
   Size: `26,115,744` bytes
 
-- `SMS_Installer_1.18.2.exe.sha256`  
+- `SMS_Installer_1.18.2.exe.sha256`
   Contains installer SHA256: `1e98607670029b8ebed1b3337794dc79755cf810af2624bfcb53d99e47f6ebc0`
 
 ## 🔄 Upgrade

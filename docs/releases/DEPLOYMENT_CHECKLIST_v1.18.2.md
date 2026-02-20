@@ -1,8 +1,8 @@
 # Deployment Checklist - v1.18.2
 
-**Version:** 1.18.2  
-**Date:** February 20, 2026  
-**Type:** Patch release (installer runtime hotfix)  
+**Version:** 1.18.2
+**Date:** February 20, 2026
+**Type:** Patch release (installer runtime hotfix)
 **Risk:** Low to medium (installer path correction + release-lineage hardening)
 
 ## 1) Pre-Deploy Validation
