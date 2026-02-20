@@ -269,6 +269,7 @@ jobs:
           echo "path=$expectedPath" >> $env:GITHUB_OUTPUT
 
       - name: Verify installer signature (mandatory gate)
+        id: verify_signature
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -292,6 +293,9 @@ jobs:
           $actualThumbprint = ($sig.SignerCertificate.Thumbprint -replace '\\s','').ToUpperInvariant()
           Write-Host "Signer: $subject"
           Write-Host "Signer thumbprint: $actualThumbprint"
+          echo "subject=$subject" >> $env:GITHUB_OUTPUT
+          echo "thumbprint=$actualThumbprint" >> $env:GITHUB_OUTPUT
+          echo "status=$($sig.Status)" >> $env:GITHUB_OUTPUT
 
           if ($actualThumbprint -ne $requiredThumbprint) {
             Write-Error "Signer thumbprint mismatch. Expected $requiredThumbprint, got $actualThumbprint"
@@ -304,6 +308,32 @@ jobs:
           }
 
           Write-Host "✓ Signature gate passed"
+
+      - name: Signer subject allowlist telemetry (non-blocking)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $actualSubject = "${{ steps.verify_signature.outputs.subject }}"
+          $actualThumbprint = "${{ steps.verify_signature.outputs.thumbprint }}"
+
+          $allowedSubjects = @(
+            'CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY'
+          )
+
+          Write-Host "Signer telemetry subject: $actualSubject"
+          Write-Host "Signer telemetry thumbprint: $actualThumbprint"
+
+          if ([string]::IsNullOrWhiteSpace($actualSubject)) {
+            Write-Warning 'Signer subject telemetry is empty. Signature gate already enforced signer presence.'
+            exit 0
+          }
+
+          if ($allowedSubjects -contains $actualSubject) {
+            Write-Host '✓ Signer subject matches allowlist'
+          } else {
+            Write-Warning "Signer subject not in allowlist: $actualSubject"
+            Write-Warning 'This is telemetry-only and does not block release. Investigate certificate rotation/policy drift if unexpected.'
+          }
 
       - name: Calculate SHA256 hash
         id: hash
