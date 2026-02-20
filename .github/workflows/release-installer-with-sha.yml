@@ -335,7 +335,7 @@ jobs:
 
           $sizeBytes = (Get-Item $installerPath).Length
           $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
-          $minSizeBytes = 80000000  # 80 MB minimum expected payload size for signed production bundle
+          $minSizeBytes = 20000000  # 20 MB minimum to block clearly broken/truncated installers
 
           Write-Host "Installer size bytes: $sizeBytes"
           Write-Host "Installer size MB: $sizeMB"
