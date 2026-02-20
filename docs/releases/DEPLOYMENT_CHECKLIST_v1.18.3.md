@@ -43,4 +43,4 @@
 
 ---
 
-**Planned Release URL:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3
+**Release URL:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3

@@ -4,16 +4,16 @@
 **Project Version (documented)**: 1.18.3
 **Version**: 1.18.3
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | 🔄 **v1.18.3 PATCH PREPARED (PENDING TAG + RELEASE PUBLISH)**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.3 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 20, 2026)**: ✅ **Production Live + v1.18.3 patch prepared for publication**
+> **Current Status (Feb 20, 2026)**: ✅ **Production Live + v1.18.3 release published and verified**
 > - Maintenance & stability phase active
 > - Changelog/work plan/index updated for changes since `v1.18.2`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
-> - `v1.18.3` release documentation pack prepared (notes, release body, manifest, deployment checklist)
-> - Tag/release publication pending final push/tag workflow
+> - `v1.18.3` release documentation pack published (notes, release body, manifest, deployment checklist)
+> - Tag `v1.18.3` verified on remote and GitHub release verified as published (non-draft)
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---

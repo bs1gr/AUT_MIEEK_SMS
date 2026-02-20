@@ -2,7 +2,7 @@
 
 **Date:** February 20, 2026
 **Version:** v1.18.3
-**Status:** Prepared (pending tag + GitHub release publish)
+**Status:** Released
 **Type:** Patch release
 
 ## 🎯 Overview
@@ -34,6 +34,7 @@ v1.18.3 is a focused patch release that stabilizes a legacy RBAC edge case for i
 - Authenticode signature: valid
 - File/Product version: `1.18.3`
 - RBAC targeted tests (imports scope fallback): passing in prior validation run
+- GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3
 
 ## 🔄 Upgrade Notes
 

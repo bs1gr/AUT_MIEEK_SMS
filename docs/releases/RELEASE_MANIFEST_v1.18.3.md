@@ -3,17 +3,18 @@
 **Version:** 1.18.3
 **Date:** February 20, 2026
 **Type:** Patch release
-**Status:** Prepared (pending tag + GitHub release publish)
+**Status:** Released
 
 ## Release Metadata
 
 - Tag: `v1.18.3`
-- Release: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3` (pending publish)
+- Release: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
+- Published at: `2026-02-20T21:20:18Z`
 - Branch lineage: `main`
 
 ## Artifacts
 
-### Required assets (prepared)
+### Required assets (published)
 - [x] `SMS_Installer_1.18.3.exe`
   - size: `119231568` bytes
   - digest: `sha256:c6f8eb7e0c84faa97ae049de3c81d2c967ca54880f6c7b52afa7fa3ec88c382c`
@@ -35,9 +36,9 @@
 - [x] Version bumped to `1.18.3` in `VERSION` and frontend package
 - [x] Installer built and signed
 - [x] Installer SHA256 generated and recorded
-- [ ] Tag created and pushed (`v1.18.3`)
-- [ ] GitHub release published (non-draft)
-- [ ] Release asset allowlist confirmed on published release
+- [x] Tag created and pushed (`v1.18.3`)
+- [x] GitHub release published (non-draft)
+- [x] Release asset allowlist confirmed on published release
 
 ---
 

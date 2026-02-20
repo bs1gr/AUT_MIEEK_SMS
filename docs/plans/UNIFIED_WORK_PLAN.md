@@ -1,8 +1,8 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.3 (Patch prepared)
-**Last Updated**: February 20, 2026 (v1.18.3 patch prepared: versions bumped, installer rebuilt/signed, docs staged)
-**Status**: 🔄 v1.18.3 PREPARED (pending tag + GitHub release publish)
+**Current Version**: 1.18.3 (Released)
+**Last Updated**: February 20, 2026 (v1.18.3 released: tag published, GitHub release live, installer/hash verified)
+**Status**: ✅ v1.18.3 RELEASED (tag + GitHub release published)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Patch release for test fixes)
 **Current Branch**: `main`
@@ -31,27 +31,28 @@
 
 ## 🚀 v1.18.3 Patch Release (February 20, 2026)
 
-**Status**: 🔄 PREPARED (pending tag + GitHub release publish)
+**Status**: ✅ RELEASE COMPLETED
 
 **Release Type**: Patch (1.18.2 → 1.18.3)
 **Purpose**: Scope legacy RBAC fallback to imports permissions only and publish refreshed installer artifact.
 
-**Prepared Artifacts (local):**
+**Release Artifacts (published):**
 - ✅ `SMS_Installer_1.18.3.exe` (`119,231,568` bytes)
 - ✅ `SMS_Installer_1.18.3.exe.sha256`
 - ✅ Installer digest: `c6f8eb7e0c84faa97ae049de3c81d2c967ca54880f6c7b52afa7fa3ec88c382c`
+- ✅ Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
 
-**Prepared Documentation Pack (v1.18.3):**
+**Documentation Pack (v1.18.3):**
 - ✅ `docs/releases/RELEASE_NOTES_v1.18.3.md`
 - ✅ `docs/releases/GITHUB_RELEASE_v1.18.3.md`
 - ✅ `docs/releases/RELEASE_MANIFEST_v1.18.3.md`
 - ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md`
 
-**Remaining publication actions:**
-- ⏳ Stage scoped release files and commit
-- ⏳ Create and push tag `v1.18.3`
-- ⏳ Publish GitHub release with installer + hash sidecar
-- ⏳ Re-verify release asset allowlist and published digest
+**Publication actions completed:**
+- ✅ Stage scoped release files and commit
+- ✅ Create and push tag `v1.18.3`
+- ✅ Publish GitHub release with installer + hash sidecar
+- ✅ Re-verify release asset allowlist and published digest
 
 ---
 
