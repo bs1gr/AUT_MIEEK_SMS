@@ -690,6 +690,7 @@ async def restore_database(request: Request, backup_filename: str):
     logger = logging.getLogger(__name__)
     try:
         from backend.config import settings
+        from backend.scripts.migrate_sqlite_to_postgres import main as migrate_sqlite_to_postgres
 
         project_root = Path(__file__).resolve().parents[3]
         backup_dir = (project_root / "backups" / "database").resolve()
@@ -712,6 +713,52 @@ async def restore_database(request: Request, backup_filename: str):
         logger.info("Restore request received", extra=safe_log_context(backup_filename=backup_filename))
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
+        with backup_path.open("rb") as check_file:
+            header = check_file.read(16)
+        if not header.startswith(b"SQLite format 3"):
+            raise http_error(
+                400,
+                ErrorCode.CONTROL_INVALID_FILE_TYPE,
+                "Backup file is not a valid SQLite database",
+                request,
+                context={"filename": backup_filename},
+            )
+
+        db_url = (settings.DATABASE_URL or "").strip().lower()
+        if db_url.startswith("postgresql"):
+            logger.info(
+                "PostgreSQL deployment detected - starting automatic SQLite migration",
+                extra={"backup_path": str(backup_path)},
+            )
+            migration_rc = migrate_sqlite_to_postgres(
+                [
+                    "--sqlite-path",
+                    str(backup_path),
+                    "--postgres-url",
+                    settings.DATABASE_URL,
+                    "--batch-size",
+                    "1000",
+                ]
+            )
+            if migration_rc != 0:
+                raise http_error(
+                    500,
+                    ErrorCode.CONTROL_RESTORE_FAILED,
+                    "SQLite to PostgreSQL migration failed during restore",
+                    request,
+                    context={"exit_code": migration_rc, "backup_filename": backup_filename},
+                )
+
+            return OperationResult(
+                success=True,
+                message="SQLite backup restored and migrated to PostgreSQL successfully. Restart may be required.",
+                details={
+                    "restored_from": str(backup_path),
+                    "database_url": settings.DATABASE_URL,
+                    "migration_mode": "sqlite_to_postgresql",
+                },
+            )
+
         db_path = Path(settings.DATABASE_URL.replace("sqlite:///", ""))
         logger.info("Database path resolved", extra={"db_path": str(db_path)})
         safety_backup = None

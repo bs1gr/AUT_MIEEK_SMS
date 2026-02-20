@@ -499,7 +499,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       });
 
       if (!response.ok) {
-        throw new Error(`Upload failed: ${response.status} ${response.statusText}`);
+        const uploadError = await response.json().catch(() => null);
+        const uploadMessage =
+          uploadError?.detail?.message ??
+          uploadError?.message ??
+          `Upload failed: ${response.status} ${response.statusText}`;
+        throw new Error(uploadMessage);
       }
 
       const uploadResult = await response.json();
@@ -519,7 +524,12 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       });
 
       if (!restoreResponse.ok) {
-        throw new Error(`Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`);
+        const restoreError = await restoreResponse.json().catch(() => null);
+        const restoreMessage =
+          restoreError?.detail?.message ??
+          restoreError?.message ??
+          `Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`;
+        throw new Error(restoreMessage);
       }
 
       const data = await restoreResponse.json();
@@ -530,8 +540,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       void runHealthCheck(); // Refresh health
     } catch (error) {
       console.error('Restore failed', error);
+      const message = error instanceof Error ? error.message : t('utils.restoreError');
       setResult(withTimestamp('restore', { error: true }));
-      onToast({ message: t('utils.restoreError'), type: 'error' });
+      onToast({ message, type: 'error' });
     } finally {
       setOpLoading(null);
     }
@@ -882,6 +893,11 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
               {opLoading === 'restore' ? t('loading') : t('utils.restoreDb')}
             </button>
           </div>
+          {!isSqliteDatabase && isDatabaseKnown && (
+            <p className={`mt-2 text-xs ${theme.mutedText}`}>
+              {t('utils.restoreAutoMigrateHint')}
+            </p>
+          )}
           <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{t('utils.appMayNeedRefresh')}</p>
         </div>
 

@@ -33,6 +33,7 @@ export default {
   backupDatabase: 'Backup Database',
   backupDesc: 'Download complete backup',
   backupSqliteOnly: 'Backup is available only for SQLite deployments.',
+  restoreAutoMigrateHint: 'For PostgreSQL deployments, uploaded SQLite backups are migrated automatically.',
   resetDatabase: 'Reset Database',
   resetDesc: 'Delete all data & recreate',
   addSampleData: 'Add Sample Data',
