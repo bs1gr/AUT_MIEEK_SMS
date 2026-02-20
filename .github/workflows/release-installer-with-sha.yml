@@ -269,6 +269,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $installer = "${{ steps.verify_installer.outputs.path }}"
+          $requiredThumbprint = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
 
           if (-not (Test-Path $installer)) {
             Write-Error "Installer not found for signature verification: $installer"
@@ -278,15 +279,23 @@ jobs:
           $sig = Get-AuthenticodeSignature $installer
           Write-Host "Signature status: $($sig.Status)"
 
-          if ($sig.Status -ne 'Valid') {
-            Write-Error "Installer must be Authenticode-signed. Status: $($sig.Status)"
+          if (-not $sig.SignerCertificate) {
+            Write-Error "Installer has no signer certificate (unsigned or invalid signature)."
             exit 1
           }
 
           $subject = $sig.SignerCertificate.Subject
+          $actualThumbprint = ($sig.SignerCertificate.Thumbprint -replace '\\s','').ToUpperInvariant()
           Write-Host "Signer: $subject"
-          if ($subject -notmatch 'L=Limassol' -or $subject -notmatch 'C=CY') {
-            Write-Error "Signer does not match required certificate subject constraints (Limassol/CY)."
+          Write-Host "Signer thumbprint: $actualThumbprint"
+
+          if ($actualThumbprint -ne $requiredThumbprint) {
+            Write-Error "Signer thumbprint mismatch. Expected $requiredThumbprint, got $actualThumbprint"
+            exit 1
+          }
+
+          if ($sig.Status -ne 'Valid' -and $sig.Status -ne 'UnknownError') {
+            Write-Error "Unexpected signature verification status: $($sig.Status)"
             exit 1
           }
 
