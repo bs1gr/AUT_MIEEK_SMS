@@ -203,6 +203,14 @@ def has_permission(user: User, permission_key: str, db: Session) -> bool:
     if any(_permission_matches(g, required_key) for g in granted):
         return True
 
+    # Defensive legacy/admin fallback (narrow scope):
+    # Some migrated environments can temporarily miss RBAC permission links
+    # for import operations, while legacy admin role is still authoritative.
+    # Keep this limited to imports:* so we don't broaden unrelated checks.
+    user_role = (getattr(user, "role", "") or "").strip().lower()
+    if user_role == "admin" and not granted and required_key.startswith("imports:"):
+        return True
+
     # Check if user has ANY role assignments in the RBAC system
     try:
         count = db.execute(
