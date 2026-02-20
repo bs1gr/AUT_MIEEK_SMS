@@ -6,6 +6,10 @@ on:
       tag:
         description: 'Release tag (e.g., v1.12.0) - leave empty to use latest'
         required: false
+      payload_min_bytes:
+        description: 'Minimum installer payload size in bytes (guardrail, default 20000000)'
+        required: false
+        default: '20000000'
 
 concurrency:
   group: release-installer-${{ github.event.inputs.tag || github.run_id }}
@@ -335,10 +339,25 @@ jobs:
 
           $sizeBytes = (Get-Item $installerPath).Length
           $sizeMB = [math]::Round($sizeBytes / 1MB, 2)
-          $minSizeBytes = 20000000  # 20 MB minimum to block clearly broken/truncated installers
+          $minSizeBytes = 0
+          $rawMinSize = "${{ github.event.inputs.payload_min_bytes }}"
+          if ([string]::IsNullOrWhiteSpace($rawMinSize)) {
+            $rawMinSize = '20000000'
+          }
+
+          if (-not [Int64]::TryParse($rawMinSize, [ref]$minSizeBytes)) {
+            Write-Error "Invalid payload_min_bytes input: '$rawMinSize'"
+            exit 1
+          }
+
+          if ($minSizeBytes -lt 5000000) {
+            Write-Error "payload_min_bytes is too low ($minSizeBytes). Refusing unsafe guardrail configuration."
+            exit 1
+          }
 
           Write-Host "Installer size bytes: $sizeBytes"
           Write-Host "Installer size MB: $sizeMB"
+          Write-Host "Configured minimum bytes: $rawMinSize"
           Write-Host "Minimum expected bytes: $minSizeBytes"
 
           if ($sizeBytes -lt $minSizeBytes) {
@@ -454,6 +473,52 @@ jobs:
             Write-Error "Failed to upload SHA256 sidecar: $($_.Exception.Message)"
             exit 1
           }
+
+      - name: Verify uploaded installer digest matches local hash
+        if: steps.hash.outputs.path != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Invoke-GhJsonChecked {
+            param([string[]]$Arguments)
+            $output = & gh @Arguments
+            if ($LASTEXITCODE -ne 0) {
+              throw "gh command failed: gh $($Arguments -join ' ')"
+            }
+            return $output
+          }
+
+          $tag = "${{ steps.resolve_tag.outputs.tag }}"
+          $version = "${{ steps.resolve_tag.outputs.version }}"
+          $repo = "${{ github.repository }}"
+          $assetName = "SMS_Installer_${version}.exe"
+          $expectedDigest = ("sha256:${{ steps.hash.outputs.sha256 }}").ToLowerInvariant()
+
+          $release = (Invoke-GhJsonChecked @("release", "view", $tag, "--repo", $repo, "--json", "assets")) | ConvertFrom-Json
+          $asset = $release.assets | Where-Object { $_.name -eq $assetName } | Select-Object -First 1
+
+          if (-not $asset) {
+            Write-Error "Uploaded installer asset not found on release: $assetName"
+            exit 1
+          }
+
+          $actualDigest = ([string]$asset.digest).ToLowerInvariant()
+          if ([string]::IsNullOrWhiteSpace($actualDigest)) {
+            Write-Error "Release API returned empty digest for asset: $assetName"
+            exit 1
+          }
+
+          Write-Host "Expected digest: $expectedDigest"
+          Write-Host "Actual digest:   $actualDigest"
+
+          if ($actualDigest -ne $expectedDigest) {
+            Write-Error "Uploaded installer digest mismatch. Expected $expectedDigest, got $actualDigest"
+            exit 1
+          }
+
+          Write-Host "✓ Uploaded installer digest matches local hash"
 
       - name: Enforce installer-only release assets (cleanup)
         if: steps.hash.outputs.path != ''
