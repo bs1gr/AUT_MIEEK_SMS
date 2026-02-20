@@ -1,12 +1,13 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.2 (Released)
-**Last Updated**: February 20, 2026 (v1.18.2 hotfix release published and documented)
-**Status**: ✅ v1.18.2 RELEASED (tag + GitHub release published)
+**Current Version**: 1.18.3 (Patch prepared)
+**Last Updated**: February 20, 2026 (v1.18.3 patch prepared: versions bumped, installer rebuilt/signed, docs staged)
+**Status**: 🔄 v1.18.3 PREPARED (pending tag + GitHub release publish)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Patch release for test fixes)
 **Current Branch**: `main`
 **Latest Commits**:
+- 13e5eb57f - fix(rbac): allow legacy admin fallback only for imports permissions
 - 802a656ab - hotfix(release): bump to 1.18.2 for installer runtime crash fix
 - e63060af5 - hardening(release): add non-blocking signer allowlist telemetry
 - 2e8e61dc0 - hardening(release): add configurable payload floor and post-upload digest gate
@@ -24,6 +25,33 @@
 - f0b2e00ed - docs: prepare post-v1.18.1 release documentation
 - b428b18e7 - revert(release): undo duplicate v1.18.1 release rerun commit
 - cacc2a130 - fix(i18n): sync en/el dashboard and student locale keys
+
+
+---
+
+## 🚀 v1.18.3 Patch Release (February 20, 2026)
+
+**Status**: 🔄 PREPARED (pending tag + GitHub release publish)
+
+**Release Type**: Patch (1.18.2 → 1.18.3)
+**Purpose**: Scope legacy RBAC fallback to imports permissions only and publish refreshed installer artifact.
+
+**Prepared Artifacts (local):**
+- ✅ `SMS_Installer_1.18.3.exe` (`119,231,568` bytes)
+- ✅ `SMS_Installer_1.18.3.exe.sha256`
+- ✅ Installer digest: `c6f8eb7e0c84faa97ae049de3c81d2c967ca54880f6c7b52afa7fa3ec88c382c`
+
+**Prepared Documentation Pack (v1.18.3):**
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.3.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.3.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.3.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md`
+
+**Remaining publication actions:**
+- ⏳ Stage scoped release files and commit
+- ⏳ Create and push tag `v1.18.3`
+- ⏳ Publish GitHub release with installer + hash sidecar
+- ⏳ Re-verify release asset allowlist and published digest
 
 ---
 

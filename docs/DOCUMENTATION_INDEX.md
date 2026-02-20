@@ -1,19 +1,19 @@
 # Documentation Index
 
 **Last Updated**: 2026-02-20
-**Project Version (documented)**: 1.18.2
-**Version**: 1.18.2
+**Project Version (documented)**: 1.18.3
+**Version**: 1.18.3
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.2 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
+**Status**: ✅ **PRODUCTION LIVE** | 🔄 **v1.18.3 PATCH PREPARED (PENDING TAG + RELEASE PUBLISH)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 20, 2026)**: ✅ **Production Live + v1.18.2 Release Published and Verified**
+> **Current Status (Feb 20, 2026)**: ✅ **Production Live + v1.18.3 patch prepared for publication**
 > - Maintenance & stability phase active
 > - Changelog/work plan/index updated for changes since `v1.18.2`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
-> - `v1.18.2` release documentation pack published (notes, release body, manifest, deployment checklist)
-> - Tag `v1.18.2` verified on remote and GitHub release verified as published (non-draft)
+> - `v1.18.3` release documentation pack prepared (notes, release body, manifest, deployment checklist)
+> - Tag/release publication pending final push/tag workflow
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
@@ -505,6 +505,10 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
+- **[releases/RELEASE_NOTES_v1.18.3.md](releases/RELEASE_NOTES_v1.18.3.md)** - v1.18.3 patch release notes (RBAC imports fallback scope fix + installer refresh)
+- **[releases/GITHUB_RELEASE_v1.18.3.md](releases/GITHUB_RELEASE_v1.18.3.md)** - GitHub release body for v1.18.3
+- **[releases/RELEASE_MANIFEST_v1.18.3.md](releases/RELEASE_MANIFEST_v1.18.3.md)** - Artifact manifest and integrity checklist for v1.18.3
+- **[releases/DEPLOYMENT_CHECKLIST_v1.18.3.md](releases/DEPLOYMENT_CHECKLIST_v1.18.3.md)** - Deployment and verification checklist for v1.18.3
 - **[releases/RELEASE_NOTES_v1.18.2.md](releases/RELEASE_NOTES_v1.18.2.md)** - v1.18.2 hotfix release notes (installer runtime fix)
 - **[releases/GITHUB_RELEASE_v1.18.2.md](releases/GITHUB_RELEASE_v1.18.2.md)** - GitHub release body for v1.18.2
 - **[releases/RELEASE_MANIFEST_v1.18.2.md](releases/RELEASE_MANIFEST_v1.18.2.md)** - Artifact manifest and integrity gates for v1.18.2

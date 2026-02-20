@@ -9,6 +9,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+## [1.18.3] - 2026-02-20
+
+### Bug Fixes
+- **rbac**: narrow legacy admin fallback to `imports:*` permissions only to preserve strict RBAC behavior while unblocking import operations
+- **installer**: refresh installer artifact for patch release lineage after RBAC permission-path stabilization
+
+### Release
+- **versioning**: bump `VERSION` and frontend package version to `1.18.3`
+- **release-docs**: add v1.18.3 release notes, manifest, checklist, and GitHub release body templates
+
+
 
 ## [1.18.1] - 2026-02-17
 
