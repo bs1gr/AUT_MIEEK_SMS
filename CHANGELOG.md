@@ -8,6 +8,23 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [Unreleased]
+
+### Critical Bug Fixes
+- **backup**: fix SQLite backup WAL mode handling to prevent corruption with database files using write-ahead logging
+- **database**: add missing columns (database_path, database_host, database_name, database_user) via idempotent migration for backup function compatibility
+- **auth**: fix RBAC test enforcement by properly configuring AUTH_MODE="permissive" during test initialization 
+
+### Code Quality Fixes
+- **backend**: add missing logger import in control operations router
+- **frontend**: fix theme property reference in DevToolsPanel (theme.primaryButton → theme.button)
+- **tests**: update test_backup_requires_authentication to handle TestClient loopback behavior correctly
+
+### Infrastructure
+- **documentation**: reorganize backup analysis reports to docs/ directory
+- **pre-commit**: auto-format version consistency (311 files)
+
+---
 
 ## [1.18.3] - 2026-02-20
 
