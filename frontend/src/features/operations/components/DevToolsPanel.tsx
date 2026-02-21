@@ -1153,7 +1153,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
                         type="button"
                         onClick={() => void handleRestoreFromServer(b.filename)}
                         disabled={opLoading === `restore-${b.filename}`}
-                        className={`${theme.primaryButton} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        className={`${theme.button} disabled:opacity-50 disabled:cursor-not-allowed`}
                         title={t('utils.restoreBackup') || 'Restore this backup'}
                       >
                         {opLoading === `restore-${b.filename}` ? (t('utils.restoring') || 'Restoring...') : (t('utils.restore') || 'Restore')}
