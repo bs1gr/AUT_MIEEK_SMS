@@ -2,11 +2,11 @@
 
 > **⚠️ DEPRECATED**: This document is kept for historical reference. Use the canonical **[MONITORING.md](MONITORING.md)** for current monitoring operations and guidelines.
 >
-> Deprecation notice (v1.10.1): As of v1.10.1 the embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) was removed from the application UI. The backend may still expose a /metrics endpoint when ENABLE_METRICS=1 and the external monitoring stack can still be operated via `DOCKER.ps1 -WithMonitoring` in Docker mode, but the React "Power" page no longer embeds monitoring dashboards. The content below describes the legacy design and is kept for historical/operator reference.
+> Deprecation notice ($11.18.3): As of $11.18.3 the embedded Monitoring UI (Grafana/Prometheus/Raw Metrics) was removed from the application UI. The backend may still expose a /metrics endpoint when ENABLE_METRICS=1 and the external monitoring stack can still be operated via `DOCKER.ps1 -WithMonitoring` in Docker mode, but the React "Power" page no longer embeds monitoring dashboards. The content below describes the legacy design and is kept for historical/operator reference.
 >
-> **Note (v1.9.7+):** Legacy scripts (RUN.ps1, SMS.ps1) have been deprecated. Use `DOCKER.ps1` for all Docker operations and `NATIVE.ps1` for native development.
+> **Note ($11.18.3+):** Legacy scripts (RUN.ps1, SMS.ps1) have been deprecated. Use `DOCKER.ps1` for all Docker operations and `NATIVE.ps1` for native development.
 
-## Current Monitoring State (v1.9.7+)
+## Current Monitoring State ($11.18.3+)
 
 - The React Power page now focuses on System Health + Control Panel toggles; there is no in-app button to start Grafana/Prometheus/Loki.
 - Operators start the monitoring stack through host commands (`DOCKER.ps1 -WithMonitoring`, `docker compose -f docker/docker-compose.monitoring.yml up -d`) or via the host-only Control API (`/control/api/monitoring/start`).
@@ -15,7 +15,7 @@
 
 ## Overview
 
-Historically, the Student Management System included an embedded monitoring experience built on Prometheus, Grafana, and Loki. As of v1.9.7, this embedded UI was removed. Operators can still run the optional monitoring stack externally (Docker-only), and the Control API endpoints continue to exist for diagnostics. This document clarifies the legacy architecture and current deployment modes.
+Historically, the Student Management System included an embedded monitoring experience built on Prometheus, Grafana, and Loki. As of $11.18.3, this embedded UI was removed. Operators can still run the optional monitoring stack externally (Docker-only), and the Control API endpoints continue to exist for diagnostics. This document clarifies the legacy architecture and current deployment modes.
 
 ## ⚠️ Important: Docker-Only Feature
 
@@ -23,7 +23,7 @@ Historically, the Student Management System included an embedded monitoring expe
 
 ## On-Demand Activation (Legacy)
 
-Previously the monitoring stack was started eagerly when using legacy scripts with monitoring flags. During the v1.8.x refactor we introduced **on-demand** activation via the Power page (`/power`) and the Control API. As of v1.9.7 the Power page controls were retired, so operators now use the host-only Control API endpoints (listed below) or the PowerShell script `DOCKER.ps1 -WithMonitoring`. The table remains for historical reference and to document the still-supported API contract:
+Previously the monitoring stack was started eagerly when using legacy scripts with monitoring flags. During the v1.8.x refactor we introduced **on-demand** activation via the Power page (`/power`) and the Control API. As of $11.18.3 the Power page controls were retired, so operators now use the host-only Control API endpoints (listed below) or the PowerShell script `DOCKER.ps1 -WithMonitoring`. The table remains for historical reference and to document the still-supported API contract:
 
 | Endpoint | Method | Purpose |
 |----------|--------|---------|
@@ -31,7 +31,7 @@ Previously the monitoring stack was started eagerly when using legacy scripts wi
 | `/control/api/monitoring/start`  | POST | Starts monitoring stack (host only; refused inside container) |
 | `/control/api/monitoring/stop`   | POST | Stops monitoring stack (host only) |
 
-### Power Page Lazy Flow (Legacy ≤ v1.9.7)
+### Power Page Lazy Flow (Legacy ≤ $11.18.3)
 
 1. User opens `/power` → UI calls `monitoring/status`.
 2. If not running: tabs & external links (Grafana / Prometheus) remain hidden; a **Start Monitoring** button is shown.
@@ -123,7 +123,7 @@ Sample status payload when stopped:
 
 **Access Points:**
 
-- **Power Page (legacy ≤ v1.9.7):** <http://localhost:8080/power> (embedded dashboards, removed in v1.9.7)
+- **Power Page (legacy ≤ $11.18.3):** <http://localhost:8080/power> (embedded dashboards, removed in $11.18.3)
 - **Grafana:** <http://localhost:3000> (admin/admin)
 - **Prometheus:** <http://localhost:9090>
 - **API Metrics:** <http://localhost:8080/metrics>
@@ -135,7 +135,7 @@ Sample status payload when stopped:
 2. Prometheus scrapes metrics via `host.docker.internal:8000`
 3. Grafana visualizes metrics from Prometheus
 4. Loki aggregates logs from Promtail
-5. (Legacy) Power page embedded Grafana dashboards in iframes (system health + control panel only in v1.9.7+)
+5. (Legacy) Power page embedded Grafana dashboards in iframes (system health + control panel only in $11.18.3+)
 
 ### 2. Docker Mode (Multi-container)
 
@@ -262,7 +262,7 @@ If you really need monitoring while developing natively:
 
 ### Power Page (/power)
 
-Note (v1.9.7): The Power page no longer embeds Grafana/Prometheus or raw metrics. It now focuses on System Health and the Control Panel only. The section below documents the legacy embedded dashboard for reference.
+Note ($11.18.3): The Power page no longer embeds Grafana/Prometheus or raw metrics. It now focuses on System Health and the Control Panel only. The section below documents the legacy embedded dashboard for reference.
 
 **Purpose (legacy):** Embedded monitoring dashboard for quick access
 
@@ -275,7 +275,7 @@ Note (v1.9.7): The Power page no longer embeds Grafana/Prometheus or raw metrics
 
 **Technology (legacy):**
 
-- Static HTML template (removed in v1.9.7)
+- Static HTML template (removed in $11.18.3)
 - Dynamic URL resolution via JavaScript
 - Detects hostname and ports from browser location
 - Responsive design
@@ -436,9 +436,9 @@ docker logs sms-prometheus
 ```text
 ### Power Page Returns 404
 
-**Current workflow (v1.9.7+):** Ensure `SERVE_FRONTEND=1` (or the reverse proxy serves the built SPA) so the React router can handle `/power`. Rebuild the frontend (`npm run build` inside `frontend/`) if assets are missing.
+**Current workflow ($11.18.3+):** Ensure `SERVE_FRONTEND=1` (or the reverse proxy serves the built SPA) so the React router can handle `/power`. Rebuild the frontend (`npm run build` inside `frontend/`) if assets are missing.
 
-**Legacy template (≤ v1.9.7):** The `templates/power.html` Jinja file was removed from active builds and archived at `archive/obsolete/templates/power.html` for historical reference. Docker images built from v1.9.7+ intentionally omit this template, so `docker exec sms-app ls /app/templates/power.html` will no longer succeed.
+**Legacy template (≤ $11.18.3):** The `templates/power.html` Jinja file was removed from active builds and archived at `archive/obsolete/templates/power.html` for historical reference. Docker images built from $11.18.3+ intentionally omit this template, so `docker exec sms-app ls /app/templates/power.html` will no longer succeed.
 
 **Check Route Registration:**
 

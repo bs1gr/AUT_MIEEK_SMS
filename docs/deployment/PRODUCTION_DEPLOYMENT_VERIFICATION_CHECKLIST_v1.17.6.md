@@ -1,4 +1,4 @@
-# Production Deployment Verification Checklist - v1.17.6
+# Production Deployment Verification Checklist - $11.18.3
 
 **Date**: January 31, 2026
 **Version**: 1.17.6
@@ -290,7 +290,7 @@ Sample Courses (4):
 - **Admin Guide**: `docs/admin/RBAC_OPERATIONS_GUIDE.md`
 - **User Guide**: `docs/user/USER_GUIDE_COMPLETE.md`
 - **Troubleshooting**: `docs/deployment/FRESH_DEPLOYMENT_TROUBLESHOOTING.md`
-- **Production Guide**: `docs/deployment/PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md`
+- **Production Guide**: `docs/deployment/PRODUCTION_GO_LIVE_GUIDE_$11.18.3.md`
 
 ### Monitoring
 - **Health Endpoint**: `GET /health`
@@ -301,7 +301,7 @@ Sample Courses (4):
 ### Backup & Recovery
 - **Database Backup**: Automated (if Docker deployed)
 - **Backup Location**: `backups/` directory
-- **Restore Procedure**: See `docs/deployment/PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md`
+- **Restore Procedure**: See `docs/deployment/PRODUCTION_GO_LIVE_GUIDE_$11.18.3.md`
 
 ---
 

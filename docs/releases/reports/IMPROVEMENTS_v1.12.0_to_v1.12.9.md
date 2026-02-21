@@ -1,7 +1,7 @@
-# Comprehensive Improvement Report: v1.15.2 → v1.15.2
+# Comprehensive Improvement Report: $11.18.3 → $11.18.3
 
 **Report Date:** 2025-12-29
-**Version Range:** v1.15.2 (December 14, 2025) → v1.15.2 (December 29, 2025)
+**Version Range:** $11.18.3 (December 14, 2025) → $11.18.3 (December 29, 2025)
 **Total Commits:** 224 commits (excluding merges)
 **Development Period:** 15 days
 **Report Status:** ✅ Production Ready
@@ -23,16 +23,16 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 ### Major Milestones
 
-1. **Security Audit Complete** (v1.14.0-v1.14.0) - All critical vulnerabilities resolved
-2. **Release Automation** (v1.14.0-v1.14.0) - Automated version bumps, changelog, and installer builds
-3. **E2E Testing Stabilized** (v1.14.0-v1.14.0) - CI/CD pipeline 100% reliable
-4. **Phase 2.3 Features Complete** (v1.14.0-v1.14.0) - Async job queue, audit logging, import preview
+1. **Security Audit Complete** ($11.18.3-$11.18.3) - All critical vulnerabilities resolved
+2. **Release Automation** ($11.18.3-$11.18.3) - Automated version bumps, changelog, and installer builds
+3. **E2E Testing Stabilized** ($11.18.3-$11.18.3) - CI/CD pipeline 100% reliable
+4. **Phase 2.3 Features Complete** ($11.18.3-$11.18.3) - Async job queue, audit logging, import preview
 
 ---
 
 ## 🚀 Major Features Added
 
-### Phase 2.3: Integration & Frontend Components (v1.14.0-v1.14.0)
+### Phase 2.3: Integration & Frontend Components ($11.18.3-$11.18.3)
 
 #### Async Job Queue & Audit Logging Integration ✅
 
@@ -67,7 +67,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
   - Covers preview, execute, job tracking, and error cases
   - Test audit log entries for failed imports
 
-#### Load Testing Infrastructure (v1.14.0)
+#### Load Testing Infrastructure ($11.18.3)
 
 **Commits:** `fbb0314af`, `c61f39be7`, `a2903f2c2`, `d6d16f0b9`
 - ✅ **Complete Locust-based Load Testing Suite**
@@ -87,7 +87,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
   - Jenkins and Azure DevOps integration examples
   - HTML report generation with performance trends
 
-#### RBAC Enhancements (v1.14.0-v1.14.0)
+#### RBAC Enhancements ($11.18.3-$11.18.3)
 
 **Commits:** `6f8103f0a`, `254936753`, `6e8a72b3d`
 - ✅ **Fine-Grained RBAC Permissions System**
@@ -101,7 +101,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
   - Help links integrated into admin UI
   - Permission matrix documentation
 
-#### User Feedback System (v1.14.0)
+#### User Feedback System ($11.18.3)
 
 **Commits:** `01440a487`
 - ✅ **User Feedback API**
@@ -118,7 +118,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 ## 🔐 Security Enhancements (All Versions)
 
-### Comprehensive Security Audit (v1.14.0-v1.14.0)
+### Comprehensive Security Audit ($11.18.3-$11.18.3)
 
 **Major Effort:** 1,521+ security alerts analyzed and resolved
 
@@ -202,17 +202,17 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 **Commits:** `b68335ad4`, `28a1c11ba`, `5dced1584`, `e02fcd905`, `3837cbf1c`, `0c7f82d06`
 
-1. **Auth Bypass Logic Simplification** (v1.14.0)
+1. **Auth Bypass Logic Simplification** ($11.18.3)
    - Simplified `get_current_user()` to bypass only when `AUTH_ENABLED=False` AND no Authorization header
    - Removed redundant CI/pytest detection interfering with token generation
    - Auth endpoints (`/api/v1/auth/login`, `/api/v1/auth/register`) work correctly in tests
 
-2. **SECRET_KEY Validation** (v1.14.0)
+2. **SECRET_KEY Validation** ($11.18.3)
    - Fixed validation to allow config tests to test validation behavior
    - Auto-generation only when enforcement active (`AUTH_ENABLED` or `SECRET_KEY_STRICT_ENFORCEMENT`)
    - CI/pytest environments auto-generate secure keys
 
-3. **Auth Helper Consolidation** (v1.14.0)
+3. **Auth Helper Consolidation** ($11.18.3)
    - Centralized auth helpers to remove duplicate implementations
    - Consolidated imports to avoid circular dependencies
    - `optional_require_role` evaluates `AUTH_ENABLED` at runtime
@@ -221,84 +221,84 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 **Commits:** `8ed218385`, `b68335ad4`
 
-1. **Database Path Unification** (v1.14.0)
+1. **Database Path Unification** ($11.18.3)
    - Unified database path configuration across all components
    - Fixed inconsistencies between Docker and native modes
    - Single source of truth in environment configuration
 
-2. **SQLite Thread Safety** (v1.14.0)
+2. **SQLite Thread Safety** ($11.18.3)
    - Test database connections use `check_same_thread=False`
    - NullPool for test connections prevents reuse issues
    - Fixed "SQLite objects created in a thread can only be used in that same thread" errors
 
-### E2E Testing Stabilization (v1.14.0-v1.14.0)
+### E2E Testing Stabilization ($11.18.3-$11.18.3)
 
 **Major Focus:** Achieved 100% CI/CD pipeline reliability
 
 **Commits:** `78fee41ca`, `e74915855`, `0617cccad`, `404b17852`, `a3f787539`, `1c8b486a1`, `e44b40d48`, `1d5ceef84`, `82e02b828`, `c191698d2`, `24bd54d0a`
 
-1. **Comprehensive E2E Logging** (v1.14.0)
+1. **Comprehensive E2E Logging** ($11.18.3)
    - Added `frontend/tests/e2e/logging.ts` module
    - Log categories: `TEST`, `AUTH`, `API`, `PAGE_DIAGNOSTICS`
    - Console error and network failure capture
    - JSON export for CI artifact upload
    - Commit: `78fee41ca`
 
-2. **Test Data Seeding Improvements** (v1.14.0)
+2. **Test Data Seeding Improvements** ($11.18.3)
    - Expanded seed script with course enrollments
    - Seed validation and login health checks
    - Handle existing data gracefully (idempotent seeding)
    - Force flag for test user recreation
    - Commits: `0617cccad`, `e74915855`, `e44b40d48`, `404b17852`
 
-3. **Password Validation Fixes** (v1.14.0)
+3. **Password Validation Fixes** ($11.18.3)
    - Updated test user password to `Test@Pass123` (meets validation requirements)
    - Updated E2E test password expectations
    - Fixed validation compliance issues
    - Commits: `a3f787539`, `1c8b486a1`
 
-4. **Docker Entrypoint Import Order** (v1.14.0)
+4. **Docker Entrypoint Import Order** ($11.18.3)
    - Resolved import order issues in Docker entrypoint
    - Fixed `SERVE_FRONTEND=1` honor in test mode for E2E runs
    - Commit: `1d5ceef84`, `d228ed7a0`
 
-5. **Page Load Wait Strategies** (v1.14.0)
+5. **Page Load Wait Strategies** ($11.18.3)
    - Added proper page load waits to prevent timeout failures in CI
    - Reverted page-ready indicators (didn't render in CI)
    - Added explicit waits for React initialization
    - Commits: `2cfc28c06`, `f8c98ba3d`, `b6af001a9`
 
-6. **TypeScript & Syntax Fixes** (v1.14.0)
+6. **TypeScript & Syntax Fixes** ($11.18.3)
    - Fixed TypeScript error in `selectOption` with RegExp
    - Closed logout test block properly
    - Fixed syntax error in `helpers.ts`
    - Commits: `8cce7d278`, `885312e9b`, `9361ff1b2`
 
-7. **CI Environment Variables** (v1.14.0)
+7. **CI Environment Variables** ($11.18.3)
    - Use `PLAYWRIGHT_BASE_URL` instead of `E2E_API_BASE`
    - Standardized environment variable naming
    - Commit: `05e8c163b`
 
-### CI/CD Workflow Fixes (v1.14.0-v1.14.0)
+### CI/CD Workflow Fixes ($11.18.3-$11.18.3)
 
 **Commits:** `84377c73b`, `c3c5239ec`, `41787cacb`, `79be9e7ec`, `d19a7980f`
 
-1. **VERIFY_VERSION Parameter Error** (v1.14.0)
+1. **VERIFY_VERSION Parameter Error** ($11.18.3)
    - Fixed parameter error in release automation
    - Enhanced release automation script robustness
    - Commit: `84377c73b`
 
-2. **E2E Test Pragma Comments** (v1.14.0)
+2. **E2E Test Pragma Comments** ($11.18.3)
    - Corrected pragma comment syntax in E2E tests
    - Fixed CodeQL false positives
    - Commit: `d19a7980f`
 
-3. **Pre-Commit Hook Modifications in CI** (v1.14.0)
+3. **Pre-Commit Hook Modifications in CI** ($11.18.3)
    - Added `SkipPreCommitHooks` flag to prevent file modifications in CI
    - Fixes unwanted auto-formatting in CI runs
    - Commit: `79be9e7ec`
 
-4. **Workflow Phase 1 Fixes** (v1.14.0)
+4. **Workflow Phase 1 Fixes** ($11.18.3)
    - Resolved E2E and COMMIT_READY workflow issues
    - Fixed test failures in GitHub Actions
    - Commit: `c3c5239ec`, `41787cacb`
@@ -307,11 +307,11 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 **Commits:** `21e21a2b1`
 
-1. **Unused Frontend Log Tracking Removed** (v1.14.0)
+1. **Unused Frontend Log Tracking Removed** ($11.18.3)
    - Cleaned up unused error tracking code
    - Reduced bundle size
 
-### Load Testing CI Fixes (v1.14.0)
+### Load Testing CI Fixes ($11.18.3)
 
 **Commits:** `024436cfc`, `e1d16f742`, `9959657b6`, `03e0550c1`, `bacd15d2c`, `60dc0a645`, `60dc0a645`, `1935577ec`, `5dced1584`, `02107fd79`
 
@@ -320,30 +320,30 @@ The v1.12.x release series represents **15 days of intensive development** focus
    - Short-circuit auth HTTP calls to avoid hard-coded credentials
    - Prefer local `SMS_ENV` for smoke/load runs targeting local backend
 
-2. **Analytics Dashboard Endpoint** (v1.14.0)
+2. **Analytics Dashboard Endpoint** ($11.18.3)
    - Added `/analytics/dashboard` endpoint for load tests
    - Lightweight dashboard summary in `AnalyticsService`
 
-3. **Artifact Upload/Download** (v1.14.0)
+3. **Artifact Upload/Download** ($11.18.3)
    - Updated to `actions/upload-artifact@v4` and `actions/download-artifact@v4`
 
-4. **Backend Server Start in Workflow** (v1.14.0)
+4. **Backend Server Start in Workflow** ($11.18.3)
    - Start backend server in workflow so smoke tests reach `localhost:8080`
 
-### Installer & Encoding Fixes (v1.14.0-v1.14.0)
+### Installer & Encoding Fixes ($11.18.3-$11.18.3)
 
 **Commits:** `09a5ffc38`, `5e731cf9c`, `163c2cd82`, `e68c0fc44`, `7c9a0e61d`
 
-1. **Versioned Uninstaller & Shortcut Cleanup** (v1.14.0)
+1. **Versioned Uninstaller & Shortcut Cleanup** ($11.18.3)
    - Installer improvements with versioned uninstaller
    - Proper shortcut cleanup on uninstall
 
-2. **Greek Text Encoding** (v1.14.0-v1.14.0)
+2. **Greek Text Encoding** ($11.18.3-$11.18.3)
    - Fixed installer text encoding for Greek language assets
    - Regenerated assets with correct version strings
    - Normalized line endings
 
-3. **Missing DOCKER_TOGGLE.vbs** (v1.14.0)
+3. **Missing DOCKER_TOGGLE.vbs** ($11.18.3)
    - Added missing `DOCKER_TOGGLE.vbs` for desktop shortcut
 
 ---
@@ -354,7 +354,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 **Commits:** `c4213cda7`, `24bd54d0a`, `c191698d2`, `82e02b828`, `74cb57066`, `2a27399eb`, `9b4bbc715`, `e4eaf53e9`, `5312a74ff`, `dee81f416`, `90d3b81d8`, `0311406a0`, `d24f93bc9`, `973d725a1`
 
-1. **v1.14.0 Deployment Report** - Comprehensive session completion summary
+1. **$11.18.3 Deployment Report** - Comprehensive session completion summary
 2. **E2E Testing Improvements Summary** - Detailed E2E diagnostics and fixes
 3. **Security Audit Completion Report** - 1,521 alerts analysis (Dec 27, 2025)
 4. **Security Alert Executive Summary** - High-level security posture overview
@@ -367,8 +367,8 @@ The v1.12.x release series represents **15 days of intensive development** focus
 **Commits:** `8dad05b53`, `c17c70df7`, `692b529d9`
 
 1. **Complete Release Automation Guide** - End-to-end release workflow
-2. **v1.14.0 Release Documentation** - Auth bypass and test infrastructure fixes
-3. **Documentation Summary for v1.14.0** - Change consolidation
+2. **$11.18.3 Release Documentation** - Auth bypass and test infrastructure fixes
+3. **Documentation Summary for $11.18.3** - Change consolidation
 
 ### Workflow & CI/CD Documentation
 
@@ -382,7 +382,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 **Commits:** `4c8e36924`, `3685e09ca`, `09a5ffc38`
 
 1. **Phase Report Consolidation** - Relocated to `docs/development/phase-reports/`
-2. **v1.14.0 Patch Release Roadmap** - Import typings and grade copy fixes
+2. **$11.18.3 Patch Release Roadmap** - Import typings and grade copy fixes
 3. **Accessibility & i18n Improvements** - Color contrast and translation enhancements
 
 ### Git Workflow Improvements
@@ -406,7 +406,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 ### GitHub Actions Improvements
 
-#### Workflow Consolidation (v1.14.0)
+#### Workflow Consolidation ($11.18.3)
 
 **Commits:** `384bb644f`, `4aee25ebe`, `ccbdae3fc`
 
@@ -419,12 +419,12 @@ The v1.12.x release series represents **15 days of intensive development** focus
    - Updated all GitHub Actions to latest versions
    - Fixed deprecation warnings for `set-output`, `save-state`
 
-3. **Workflow Cleanup Automation** (v1.14.0)
+3. **Workflow Cleanup Automation** ($11.18.3)
    - Added `cleanup-workflow-runs.yml` to manage Actions history
    - Reduces storage usage by archiving old workflow runs
    - Configurable retention period
 
-#### Workflow Security Hardening (v1.14.0)
+#### Workflow Security Hardening ($11.18.3)
 
 **Commits:** `0caf77f4e`, `02417eee2`, `b9cb18114`, `4e8e9b11f`
 
@@ -447,7 +447,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
    - Reports vulnerabilities without blocking pipeline (commit `6aaf47657`)
    - Enhanced diagnostic output for triage
 
-#### npm Dependency Caching (v1.14.0)
+#### npm Dependency Caching ($11.18.3)
 
 **Commits:** `9f5a5e64` (inferred from UNIFIED_WORK_PLAN.md)
 
@@ -456,39 +456,39 @@ The v1.12.x release series represents **15 days of intensive development** focus
    - All frontend jobs benefit from caching
    - **Expected Savings:** 30-45 seconds per CI run
 
-#### Release Automation (v1.14.0-v1.14.0)
+#### Release Automation ($11.18.3-$11.18.3)
 
 **Commits:** `64fd3b21c`, `bfa33b647`, `df450d974`, `377ddeb85`, `f7edd5052`, `5f5fffbb7`, `f374fdd15`, `6577ddff5`, `a2e5ddf46`
 
-1. **Automated Release Workflow** (v1.14.0)
+1. **Automated Release Workflow** ($11.18.3)
    - `release-installer-with-sha.yml` triggers on tag push
    - Builds installer, generates SHA256 checksum
    - Creates GitHub release with artifacts
    - Commit: `64fd3b21c`, `ce3ed7684`
 
-2. **Version Verification** (v1.14.0)
+2. **Version Verification** ($11.18.3)
    - Mandatory version verification step before release
    - Checks VERSION file, package.json, main.py, installer wizard
    - Prevents version mismatch releases
    - Commit: `bfa33b647`
 
-3. **Installer Build Automation** (v1.14.0)
+3. **Installer Build Automation** ($11.18.3)
    - Inno Setup installed on GitHub Actions runner
    - Automatic build from source
    - Multiple location fallback logic
    - Commit: `f374fdd15`, `9b5cf1244`
 
-4. **Certificate Import Security** (v1.14.0)
+4. **Certificate Import Security** ($11.18.3)
    - Secure certificate import with GitHub secrets
    - Enhanced diagnostics for signing failures
    - Commit: `6577ddff5`
 
-5. **Idempotent Release Creation** (v1.14.0)
+5. **Idempotent Release Creation** ($11.18.3)
    - Releases can be re-created without errors
    - Whitelist `tomllib` for Python 3.11+ compatibility
    - Commit: `a6c0ef198`, `58e9eb5db`
 
-6. **Production Deploy Decoupling** (v1.14.0)
+6. **Production Deploy Decoupling** ($11.18.3)
    - Staging and production deployments decoupled
    - Independent failure handling
    - Commit: `be15e427b`
@@ -497,23 +497,23 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 **Commits:** `a087a963b`, `ce3ed7684`, `56292f1b7`, `0016f2a03`
 
-1. **pytest Markers Configuration** (v1.14.0)
+1. **pytest Markers Configuration** ($11.18.3)
    - Added missing markers for `auth_required` tests
    - Prevents pytest warnings
 
-2. **Backend Test Suite Lint Fixes** (v1.14.0)
+2. **Backend Test Suite Lint Fixes** ($11.18.3)
    - Fixed Ruff lint errors in all backend tests
    - Ensured code quality standards
 
-3. **Test Infra Best Practices** (v1.14.0)
+3. **Test Infra Best Practices** ($11.18.3)
    - Enforced best practices for inactive users
    - Improved test fixture reliability
 
-### Pre-commit Hook Improvements (v1.14.0-v1.14.0)
+### Pre-commit Hook Improvements ($11.18.3-$11.18.3)
 
 **Commits:** `4b4486743`, `d29c2d839`, `2329855b0`
 
-1. **Prevent Unconditional Execution** (v1.14.0)
+1. **Prevent Unconditional Execution** ($11.18.3)
    - Fixed `COMMIT_READY.ps1` to only run pre-commit hooks when requested
    - Reduces local development friction
    - Users must opt-in with `-RunPreCommitHooks` flag
@@ -522,21 +522,21 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 **Commits:** `b8af04c1a`, `8f53c4bbf`, `1a91efbf6`
 
-1. **Untracked pycache Files** (v1.14.0)
+1. **Untracked pycache Files** ($11.18.3)
    - Stopped tracking `__pycache__` files
    - Refreshed gitignore rules
    - Cleaned up repository
 
-2. **Secrets & Large Files** (v1.14.0)
+2. **Secrets & Large Files** ($11.18.3)
    - Updated gitignore for secrets and large files
    - Prevent accidental commits
 
-3. **Temporary Test Files Cleanup** (v1.14.0)
+3. **Temporary Test Files Cleanup** ($11.18.3)
    - Removed temporary test files and duplicates
 
 ---
 
-## 📦 Release Process Enhancements (v1.14.0-v1.14.0)
+## 📦 Release Process Enhancements ($11.18.3-$11.18.3)
 
 ### Automated Release Scripts
 
@@ -548,23 +548,23 @@ The v1.12.x release series represents **15 days of intensive development** focus
    - CHANGELOG.md generation and validation
    - Pre-release smoke tests and validation
 
-2. **Post-Release Auto-Fixes** (v1.14.0)
+2. **Post-Release Auto-Fixes** ($11.18.3)
    - Automatic line ending normalization
    - EOF fixes via pre-commit hooks
    - Installer text encoding fixes
 
-### Installer Improvements (v1.14.0-v1.14.0)
+### Installer Improvements ($11.18.3-$11.18.3)
 
 **Commits:** `5e731cf9c`, `163c2cd82`, `956aa7b57`
 
-1. **Versioned Uninstaller** (v1.14.0)
+1. **Versioned Uninstaller** ($11.18.3)
    - Uninstaller includes version in filename
    - Prevents conflicts between versions
 
-2. **Shortcut Cleanup** (v1.14.0)
+2. **Shortcut Cleanup** ($11.18.3)
    - Proper cleanup of desktop shortcuts on uninstall
 
-3. **Greek Asset Regeneration** (v1.14.0-v1.14.0)
+3. **Greek Asset Regeneration** ($11.18.3-$11.18.3)
    - Correct version strings in Greek language files
    - UTF-8 encoding fixes
 
@@ -606,7 +606,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 ### E2E Test Suite (Playwright)
 
-- **Status:** 100% reliable in CI/CD after v1.14.0 fixes
+- **Status:** 100% reliable in CI/CD after $11.18.3 fixes
 - **Test Categories:**
 
   1. Authentication flows (login, logout)
@@ -630,47 +630,47 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 **Commits:** `716528933`, `5e602bf6e`, `c44d80a26`, `ce3ed7684`, `56292f1b7`
 
-1. **Auto-Formatting** (v1.14.0)
+1. **Auto-Formatting** ($11.18.3)
    - All code formatted with Black (backend) and Prettier (frontend)
    - Pre-commit hooks enforce formatting
 
-2. **Ruff Configuration** (v1.14.0)
+2. **Ruff Configuration** ($11.18.3)
    - Backend `.ruff.toml` to ignore E402 (import order) in specific contexts
    - Centralized linting configuration
 
-3. **Mypy Test Fixes** (v1.14.0)
+3. **Mypy Test Fixes** ($11.18.3)
    - Resolved type checking errors in test suite
 
 ### Import Management
 
 **Commits:** `60dc0a645`, `e02fcd905`, `d3c71a910`, `0c7f82d06`, `3837cbf1c`, `f27e3a616`, `e1ad5a0b2`
 
-1. **Consolidated Auth Helpers** (v1.14.0)
+1. **Consolidated Auth Helpers** ($11.18.3)
    - Centralized auth helpers to remove duplicate implementations
    - Avoided circular import issues
 
-2. **PyJWT vs python-jose** (v1.14.0)
+2. **PyJWT vs python-jose** ($11.18.3)
    - Switched to PyJWT (jwt) to match requirements
    - Added import mapping to validator
 
-3. **Import Checker Robustness** (v1.14.0)
+3. **Import Checker Robustness** ($11.18.3)
    - Avoid printing non-ASCII characters for Windows pre-commit compatibility
 
 ### Dependency Management
 
 **Commits:** `c17c70df7` (inferred), `080afc061`
 
-1. **Dependabot Automation** (v1.14.0)
+1. **Dependabot Automation** ($11.18.3)
    - Weekly update schedule
    - Automatic PR creation for backend, frontend, GitHub Actions
    - Version pinning for security-sensitive packages
 
-2. **filelock Upgrade** (v1.14.0)
+2. **filelock Upgrade** ($11.18.3)
    - Bump from 3.20.0 to 3.20.1 via Dependabot
 
 ---
 
-## 🌍 Internationalization (i18n) (v1.14.0)
+## 🌍 Internationalization (i18n) ($11.18.3)
 
 ### Accessibility & Color Contrast
 
@@ -687,7 +687,7 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 ---
 
-## 🎯 Performance Baselines (v1.14.0)
+## 🎯 Performance Baselines ($11.18.3)
 
 ### SLA Definitions
 
@@ -721,12 +721,12 @@ The v1.12.x release series represents **15 days of intensive development** focus
 
 ### Deprecations
 
-- **Old .env Files:** Multiple `.env` files deprecated in favor of single root `.env` (warning added in v1.14.0)
+- **Old .env Files:** Multiple `.env` files deprecated in favor of single root `.env` (warning added in $11.18.3)
 - **Auth Bypass Detection:** Removed redundant CI/pytest detection in auth bypass logic (replaced with cleaner `AUTH_ENABLED` check)
 
 ---
 
-## 📈 Migration Guide: v1.14.0 → v1.14.0
+## 📈 Migration Guide: $11.18.3 → $11.18.3
 
 ### Prerequisites
 
@@ -805,11 +805,11 @@ cd frontend && npm run test:e2e
 ```text
 ### Known Issues & Workarounds
 
-**None.** All critical issues resolved in v1.14.0-v1.14.0.
+**None.** All critical issues resolved in $11.18.3-$11.18.3.
 
 ---
 
-## 🔮 Future Roadmap (Post-v1.14.0)
+## 🔮 Future Roadmap (Post-$11.18.3)
 
 ### Deferred Features (from UNIFIED_WORK_PLAN.md)
 
@@ -861,7 +861,7 @@ cd frontend && npm run test:e2e
 ## 🏆 Key Achievements
 
 1. ✅ **Security Posture:** Resolved 1,521+ security alerts (100% critical/high)
-2. ✅ **CI/CD Reliability:** 100% pipeline success rate after v1.14.0
+2. ✅ **CI/CD Reliability:** 100% pipeline success rate after $11.18.3
 3. ✅ **Test Coverage:** 65% backend, 100% frontend pass rate
 4. ✅ **Release Automation:** End-to-end automation from commit to installer
 5. ✅ **Documentation:** 20+ comprehensive reports and guides
@@ -892,4 +892,4 @@ cd frontend && npm run test:e2e
 ---
 
 **Report Status:** ✅ **COMPLETE AND ACCURATE**
-**Next Steps:** Archive into v1.14.0 release documentation
+**Next Steps:** Archive into $11.18.3 release documentation

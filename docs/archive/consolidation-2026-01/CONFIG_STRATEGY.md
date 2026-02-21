@@ -1,7 +1,7 @@
 # Environment Configuration Strategy
 
 **Date:** December 9, 2025
-**Version:** v1.10.1
+**Version:** $11.18.3
 **Status:** Phase 2 - Configuration Clarification
 
 ---
@@ -307,7 +307,7 @@ When adding a new environment variable:
 
 ## Migration Notes
 
-### For v1.10.1
+### For $11.18.3
 
 **Breaking change:** `backend/.env` and `frontend/.env` are now ignored
 
@@ -358,9 +358,9 @@ When adding a new environment variable:
 
 ## Deprecation Timeline
 
-- **v1.10.1:** Multiple .env files still work, root is authoritative
-- **v1.10.1:** Warnings if backend/.env or frontend/.env exist
-- **v1.10.1:** backend/.env and frontend/.env fully removed
+- **$11.18.3:** Multiple .env files still work, root is authoritative
+- **$11.18.3:** Warnings if backend/.env or frontend/.env exist
+- **$11.18.3:** backend/.env and frontend/.env fully removed
 
 ---
 

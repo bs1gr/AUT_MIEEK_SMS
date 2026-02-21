@@ -259,7 +259,7 @@ The RBAC system is **fully functional and production-ready**. Remaining items fr
 2. Request team review
 3. Run final smoke tests
 4. Merge to main
-5. Tag as v1.15.2 or v1.15.2 (with RBAC backend)
+5. Tag as $11.18.3 or $11.18.3 (with RBAC backend)
 
 **Timeline**: 1-2 days (review + merge)
 
@@ -334,7 +334,7 @@ The RBAC system is **fully functional and production-ready**. Remaining items fr
 - [ ] Address review feedback (if any)
 - [ ] Final smoke test
 - [ ] Merge to main
-- [ ] Tag release (v1.15.2 or v1.15.2)
+- [ ] Tag release ($11.18.3 or $11.18.3)
 
 ### Post-Merge Tasks
 

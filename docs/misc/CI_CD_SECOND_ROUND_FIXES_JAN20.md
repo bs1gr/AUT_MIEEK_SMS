@@ -113,7 +113,7 @@ threshold=8400
 **Comment Updated**:
 
 ```yaml
-# Temporarily raised from 8000 to 8100 (v1.18.0) to 8210 (Jan 18) to 8400 (Jan 20) due to CI/CD failure docs
+# Temporarily raised from 8000 to 8100 ($11.18.3) to 8210 (Jan 18) to 8400 (Jan 20) due to CI/CD failure docs
 
 ```text
 **Rationale**:

@@ -295,8 +295,8 @@ post-notifications:
 ```bash
 # Automatic (on release creation)
 
-git tag -a v1.12.2 -m "Release v1.12.2"
-git push origin v1.12.2
+git tag -a $11.18.3 -m "Release $11.18.3"
+git push origin $11.18.3
 # → Workflow triggers automatically
 
 # Manual (for existing releases)
@@ -304,7 +304,7 @@ git push origin v1.12.2
 # Go to Actions → Release - Build & Upload Installer with SHA256
 # Click "Run workflow"
 
-# Enter: v1.12.2
+# Enter: $11.18.3
 # Click "Run workflow" button
 
 ```text
@@ -460,8 +460,8 @@ gh pr merge --squash
 
 # 5. Tag for production release
 
-git tag -a v1.9.7 -m "Release v1.9.7"
-git push origin v1.9.7
+git tag -a $11.18.3 -m "Release $11.18.3"
+git push origin $11.18.3
 # 🎯 Production deployment + GitHub Release
 
 ```text

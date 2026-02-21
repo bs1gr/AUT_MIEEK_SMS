@@ -1,7 +1,7 @@
-# CI/CD Release Workflow Audit - v1.17.7
+# CI/CD Release Workflow Audit - $11.18.3
 
 **Date**: February 3, 2026
-**Audit Focus**: GitHub release v1.17.7 publication failure analysis
+**Audit Focus**: GitHub release $11.18.3 publication failure analysis
 **Status**: ⚠️ CRITICAL ISSUES IDENTIFIED
 **Recommendation**: Unified workflow required
 
@@ -9,9 +9,9 @@
 
 ## Executive Summary
 
-The GitHub release v1.17.7 was created but **published incomplete**:
+The GitHub release $11.18.3 was created but **published incomplete**:
 - ❌ No assets attached (installer, Docker images, documentation)
-- ❌ Minimal release body ("Release v1.17.7" instead of comprehensive notes)
+- ❌ Minimal release body ("Release $11.18.3" instead of comprehensive notes)
 - ❌ CI/CD automation workflows not triggered
 - ❌ Release notes prepared in wrong location
 
@@ -33,9 +33,9 @@ The GitHub release v1.17.7 was created but **published incomplete**:
 **Severity**: CRITICAL - Blocks release body population
 
 **Symptom**:
-- GitHub release body shows: `Release v1.17.7` (fallback text)
+- GitHub release body shows: `Release $11.18.3` (fallback text)
 - Expected body: 276+ lines of comprehensive release notes
-- Actual file: `docs/releases/RELEASE_NOTES_v1.17.7.md` (✅ exists, 276 lines)
+- Actual file: `docs/releases/RELEASE_NOTES_$11.18.3.md` (✅ exists, 276 lines)
 
 **Root Cause**:
 Location in `.github/workflows/release-on-tag.yml` line ~47:
@@ -43,8 +43,8 @@ Location in `.github/workflows/release-on-tag.yml` line ~47:
 NOTES_FILE=".github/RELEASE_NOTES_${TAG}.md"
 ```
 
-Workflow looks for: `.github/RELEASE_NOTES_v1.17.7.md`
-Actual file location: `docs/releases/RELEASE_NOTES_v1.17.7.md`
+Workflow looks for: `.github/RELEASE_NOTES_$11.18.3.md`
+Actual file location: `docs/releases/RELEASE_NOTES_$11.18.3.md`
 
 **Impact**:
 - Release body is 1 line instead of 276 lines
@@ -56,9 +56,9 @@ Actual file location: `docs/releases/RELEASE_NOTES_v1.17.7.md`
 **Option A (Recommended - Copy to .github/):**
 ```powershell
 # Move release notes to location CI/CD expects
-Copy-Item "docs/releases/RELEASE_NOTES_v1.17.7.md" ".github/RELEASE_NOTES_v1.17.7.md"
-git add ".github/RELEASE_NOTES_v1.17.7.md"
-git commit -m "docs(release): sync v1.17.7 release notes to .github/ for CI/CD"
+Copy-Item "docs/releases/RELEASE_NOTES_$11.18.3.md" ".github/RELEASE_NOTES_$11.18.3.md"
+git add ".github/RELEASE_NOTES_$11.18.3.md"
+git commit -m "docs(release): sync $11.18.3 release notes to .github/ for CI/CD"
 ```
 
 **Option B (Update CI/CD workflow):**
@@ -82,7 +82,7 @@ NOTES_FILE="docs/releases/RELEASE_NOTES_${TAG}.md"
 **Symptom**:
 ```bash
 # What happened:
-gh release create v1.17.7 --title "Release v1.17.7" --notes "Release v1.17.7"
+gh release create $11.18.3 --title "Release $11.18.3" --notes "Release $11.18.3"
 
 # Result:
 - Release created instantly (2026-02-03T10:46:52Z)
@@ -100,7 +100,7 @@ Manual `gh CLI` command creates release directly without:
 
 **Expected Workflow Chain** (missing):
 ```
-1. git push tag v1.17.7
+1. git push tag $11.18.3
    ↓
 2. release-on-tag.yml triggered
    - Creates release with comprehensive body
@@ -122,7 +122,7 @@ Manual `gh CLI` command creates release directly without:
    ↓
 6. Complete release with:
    - Comprehensive body (276+ lines)
-   - Installer attachment (SMS_Setup_v1.17.7.exe)
+   - Installer attachment (SMS_Setup_$11.18.3.exe)
    - SHA256 hash documentation
    - Docker images published
 ```
@@ -168,7 +168,7 @@ Manual `gh CLI` command creates release directly without:
    - Since `release-on-tag.yml` never ran, no dispatch occurred
 
 **Expected Output** (missing):
-- `SMS_Setup_v1.17.7.exe` (Windows installer)
+- `SMS_Setup_$11.18.3.exe` (Windows installer)
 - SHA256 hash: `a1b2c3d4e5f6...` (for integrity verification)
 - File size and metadata
 - Attached to GitHub release as asset
@@ -192,7 +192,7 @@ Manual `gh CLI` command creates release directly without:
 - No Docker images built or published
 
 **Impact**:
-- Users cannot pull Docker image for v1.17.7
+- Users cannot pull Docker image for $11.18.3
 - Previous version remains as "latest" in registry
 - Production deployments cannot use new release
 
@@ -297,8 +297,8 @@ release-on-tag.yml (157 lines)
 
 ### What Was Done Locally (✅ Complete)
 ```
-✅ docs/releases/RELEASE_NOTES_v1.17.7.md (276 lines) - CREATED
-✅ docs/releases/GITHUB_RELEASE_v1.17.7.md - CREATED
+✅ docs/releases/RELEASE_NOTES_$11.18.3.md (276 lines) - CREATED
+✅ docs/releases/GITHUB_RELEASE_$11.18.3.md - CREATED
 ✅ docs/plans/UNIFIED_WORK_PLAN.md - UPDATED
 ✅ Git commits - PUSHED to origin/main (8 commits)
 ✅ Version consistency - VERIFIED (1.17.6 → 1.17.7)
@@ -307,7 +307,7 @@ release-on-tag.yml (157 lines)
 
 ### What Should Have Been Done via CI/CD (❌ Missing)
 ```
-❌ Release notes at .github/RELEASE_NOTES_v1.17.7.md - NOT COPIED
+❌ Release notes at .github/RELEASE_NOTES_$11.18.3.md - NOT COPIED
 ❌ GitHub release body - NOT POPULATED (shows fallback text)
 ❌ Installer (.exe) - NOT BUILT
 ❌ SHA256 hash - NOT COMPUTED
@@ -319,7 +319,7 @@ release-on-tag.yml (157 lines)
 ### Manual Override Impact
 ```
 Action Taken:
-  gh release create v1.17.7 --title "Release v1.17.7" --notes "Release v1.17.7"
+  gh release create $11.18.3 --title "Release $11.18.3" --notes "Release $11.18.3"
 
 Consequences:
   ❌ Bypassed entire CI/CD automation chain
@@ -345,21 +345,21 @@ Consequences:
 **Tasks**:
 ```powershell
 # Task 1: Create release documentation
-docs/releases/RELEASE_NOTES_v1.17.7.md (276 lines, comprehensive)
-docs/releases/GITHUB_RELEASE_v1.17.7.md (template for body)
+docs/releases/RELEASE_NOTES_$11.18.3.md (276 lines, comprehensive)
+docs/releases/GITHUB_RELEASE_$11.18.3.md (template for body)
 
 # Task 2: Copy release notes to CI/CD location (NEW - REQUIRED)
-Copy-Item "docs/releases/RELEASE_NOTES_v1.17.7.md" ".github/RELEASE_NOTES_v1.17.7.md"
+Copy-Item "docs/releases/RELEASE_NOTES_$11.18.3.md" ".github/RELEASE_NOTES_$11.18.3.md"
 
 # Task 3: Commit both files
-git add docs/releases/RELEASE_NOTES_v1.17.7.md
-git add .github/RELEASE_NOTES_v1.17.7.md
-git commit -m "docs(release): prepare v1.17.7 release documentation"
+git add docs/releases/RELEASE_NOTES_$11.18.3.md
+git add .github/RELEASE_NOTES_$11.18.3.md
+git commit -m "docs(release): prepare $11.18.3 release documentation"
 git push origin main
 
 # Task 4: Create and push git tag (TRIGGERS CI/CD)
-git tag -a v1.17.7 -m "Release v1.17.7"
-git push origin v1.17.7
+git tag -a $11.18.3 -m "Release $11.18.3"
+git push origin $11.18.3
 ```
 
 **Verification**:
@@ -372,15 +372,15 @@ git push origin v1.17.7
 
 ### Phase 2: CI/CD AUTOMATION (GitHub Actions)
 
-**Triggered By**: `git push origin v1.17.7`
+**Triggered By**: `git push origin $11.18.3`
 
 **Job 1: `release-on-tag.yml` → `create-release`**
 ```
-Inputs: Tag name (v1.17.7) from git push
+Inputs: Tag name ($11.18.3) from git push
 Steps:
   1. Checkout repository
   2. Extract tag name
-  3. Read release notes from .github/RELEASE_NOTES_v1.17.7.md ✅ (fixed path)
+  3. Read release notes from .github/RELEASE_NOTES_$11.18.3.md ✅ (fixed path)
   4. Create GitHub release with comprehensive body
   5. Output release_id and tag for downstream jobs
 Output:
@@ -408,7 +408,7 @@ Steps:
   1. Checkout code
   2. Setup Python 3.11
   3. Install Inno Setup 6 via Chocolatey
-  4. Resolve release ID for v1.17.7
+  4. Resolve release ID for $11.18.3
   5. Verify version consistency
   6. Import code signing certificate (if available)
   7. Run INSTALLER_BUILDER.ps1
@@ -416,7 +416,7 @@ Steps:
   9. Upload installer asset to release (via gh CLI)
   10. Attach release notes to installer
 Output:
-  - SMS_Setup_v1.17.7.exe attached to release
+  - SMS_Setup_$11.18.3.exe attached to release
   - SHA256 hash: abc123def456...
   - File size: 234.5 MB
 Duration: ~5-10 minutes
@@ -438,11 +438,11 @@ Duration: ~10 seconds
 Trigger: Manual or via ci-cd-pipeline.yml dispatch
 Environment: docker (or ubuntu-latest with Docker)
 Steps:
-  1. Build Docker image with v1.17.7 tag
+  1. Build Docker image with $11.18.3 tag
   2. Tag as 'latest' if production release
   3. Push to container registry (GitHub Container Registry or DockerHub)
 Output:
-  - Docker image: ghcr.io/bs1gr/sms:v1.17.7
+  - Docker image: ghcr.io/bs1gr/sms:$11.18.3
   - Docker image: ghcr.io/bs1gr/sms:latest (if applicable)
 Duration: ~3-5 minutes
 ```
@@ -467,7 +467,7 @@ Duration: ~3-5 minutes
 **Manual Verification** (Optional):
 ```powershell
 # Verify release on GitHub
-gh release view v1.17.7 --json body,assets,isDraft,isPrerelease
+gh release view $11.18.3 --json body,assets,isDraft,isPrerelease
 
 # Expected output:
 # - Assets count: 1 (installer .exe)
@@ -476,8 +476,8 @@ gh release view v1.17.7 --json body,assets,isDraft,isPrerelease
 # - isPrerelease: false (stable release)
 
 # Download and verify installer
-gh release download v1.17.7 --pattern "*.exe"
-certUtil -hashfile SMS_Setup_v1.17.7.exe SHA256
+gh release download $11.18.3 --pattern "*.exe"
+certUtil -hashfile SMS_Setup_$11.18.3.exe SHA256
 # Compare output with documented hash
 ```
 
@@ -496,7 +496,7 @@ certUtil -hashfile SMS_Setup_v1.17.7.exe SHA256
 
 ---
 
-## Action Plan to Fix v1.17.7 Release
+## Action Plan to Fix $11.18.3 Release
 
 ### Immediate Actions (Do These Now)
 
@@ -504,26 +504,26 @@ certUtil -hashfile SMS_Setup_v1.17.7.exe SHA256
 ```powershell
 # Copy comprehensive release notes to location CI/CD expects
 Copy-Item `
-  "docs/releases/RELEASE_NOTES_v1.17.7.md" `
-  ".github/RELEASE_NOTES_v1.17.7.md"
+  "docs/releases/RELEASE_NOTES_$11.18.3.md" `
+  ".github/RELEASE_NOTES_$11.18.3.md"
 
-git add ".github/RELEASE_NOTES_v1.17.7.md"
-git commit -m "docs(release): sync v1.17.7 release notes to .github/ for CI/CD"
+git add ".github/RELEASE_NOTES_$11.18.3.md"
+git commit -m "docs(release): sync $11.18.3 release notes to .github/ for CI/CD"
 git push origin main
 ```
 
 **Step 2: Delete Incomplete Manual Release**
 ```powershell
-gh release delete v1.17.7 --yes
+gh release delete $11.18.3 --yes
 ```
 
 **Step 3: Re-trigger CI/CD via Git Tag**
 ```powershell
 # Create annotated tag (triggers release-on-tag.yml)
-git tag -a v1.17.7 -m "Release v1.17.7 - Maintenance and internationalization improvements"
+git tag -a $11.18.3 -m "Release $11.18.3 - Maintenance and internationalization improvements"
 
 # Push tag to origin (TRIGGERS CI/CD AUTOMATION)
-git push origin v1.17.7
+git push origin $11.18.3
 ```
 
 **Step 4: Monitor CI/CD Execution**
@@ -539,7 +539,7 @@ gh run watch <run-id>
 **Step 5: Verify Complete Release**
 ```powershell
 # After ~10-15 minutes, verify:
-gh release view v1.17.7 --json body,assets,isDraft,isPrerelease
+gh release view $11.18.3 --json body,assets,isDraft,isPrerelease
 
 # Should show:
 # - Assets: 1+ (installer, documentation)
@@ -562,7 +562,7 @@ NOTES_FILE=".github/RELEASE_NOTES_${TAG}.md"
 **Options**:
 
 **Option A: Keep as-is, add file to .github/**
-- Copy RELEASE_NOTES_v1.17.7.md to .github/ directory
+- Copy RELEASE_NOTES_$11.18.3.md to .github/ directory
 - Maintain CI/CD workflow predictability
 - ✅ Recommended
 
@@ -574,17 +574,17 @@ NOTES_FILE="docs/releases/RELEASE_NOTES_${TAG}.md"
 - Requires workflow update
 - ⚠️ Not recommended for immediate fix
 
-### 2. `.github/RELEASE_NOTES_v1.17.7.md`
+### 2. `.github/RELEASE_NOTES_$11.18.3.md`
 
 **Status**: NEEDS TO BE CREATED
 
-**Source**: Copy from `docs/releases/RELEASE_NOTES_v1.17.7.md`
+**Source**: Copy from `docs/releases/RELEASE_NOTES_$11.18.3.md`
 
 **Command**:
 ```powershell
 Copy-Item `
-  "docs/releases/RELEASE_NOTES_v1.17.7.md" `
-  ".github/RELEASE_NOTES_v1.17.7.md"
+  "docs/releases/RELEASE_NOTES_$11.18.3.md" `
+  ".github/RELEASE_NOTES_$11.18.3.md"
 ```
 
 ### 3. `.github/workflows/release-installer-with-sha.yml`
@@ -598,7 +598,7 @@ Copy-Item `
 
 ### 4. Future: Establish Standard Release Notes Location
 
-**Recommendation for v1.17.7+**:
+**Recommendation for $11.18.3+**:
 Create workflow to auto-sync docs/releases/ to .github/ during release:
 
 ```yaml
@@ -613,10 +613,10 @@ Create workflow to auto-sync docs/releases/ to .github/ during release:
 
 ## Success Criteria
 
-**Release v1.17.7 Will Be Complete When**:
+**Release $11.18.3 Will Be Complete When**:
 
 ✅ GitHub release body contains 276+ lines of release notes
-✅ Installer asset (SMS_Setup_v1.17.7.exe) attached to release
+✅ Installer asset (SMS_Setup_$11.18.3.exe) attached to release
 ✅ SHA256 hash documented and visible
 ✅ Release marked as "published" (not draft)
 ✅ Docker images published to registry
@@ -626,18 +626,18 @@ Create workflow to auto-sync docs/releases/ to .github/ during release:
 **Verification Commands**:
 ```powershell
 # Show release details
-gh release view v1.17.7 --json body,assets,isDraft,isPrerelease,createdAt,publishedAt
+gh release view $11.18.3 --json body,assets,isDraft,isPrerelease,createdAt,publishedAt
 
 # Expected:
 # body: [276+ line release notes content]
-# assets: [{SMS_Setup_v1.17.7.exe}, ...]
+# assets: [{SMS_Setup_$11.18.3.exe}, ...]
 # isDraft: false
 # isPrerelease: false
 ```
 
 ---
 
-## Lessons Learned & Prevention for v1.17.7+
+## Lessons Learned & Prevention for $11.18.3+
 
 ### What Went Wrong
 1. ❌ Manual gh CLI used instead of git tag push
@@ -649,8 +649,8 @@ gh release view v1.17.7 --json body,assets,isDraft,isPrerelease,createdAt,publis
 
 **Before Pushing Release**:
 1. ✅ Create release notes at BOTH locations:
-   - `docs/releases/RELEASE_NOTES_v1.17.7.md` (single source of truth)
-   - `.github/RELEASE_NOTES_v1.17.7.md` (CI/CD input)
+   - `docs/releases/RELEASE_NOTES_$11.18.3.md` (single source of truth)
+   - `.github/RELEASE_NOTES_$11.18.3.md` (CI/CD input)
 
 2. ✅ Never use manual `gh release create` command
    - Always use `git tag` + `git push origin <tag>`
@@ -677,8 +677,8 @@ gh release view v1.17.7 --json body,assets,isDraft,isPrerelease,createdAt,publis
 - `.github/workflows/ci-cd-pipeline.yml` - Full test suite
 
 **Release Documentation**:
-- `docs/releases/RELEASE_NOTES_v1.17.7.md` (276 lines) - Comprehensive notes
-- `docs/releases/GITHUB_RELEASE_v1.17.7.md` - GitHub template
+- `docs/releases/RELEASE_NOTES_$11.18.3.md` (276 lines) - Comprehensive notes
+- `docs/releases/GITHUB_RELEASE_$11.18.3.md` - GitHub template
 - `docs/plans/UNIFIED_WORK_PLAN.md` - Project status
 
 **CI/CD Configuration**:
@@ -689,7 +689,7 @@ gh release view v1.17.7 --json body,assets,isDraft,isPrerelease,createdAt,publis
 
 ---
 
-**Next Steps**: Execute action plan steps 1-5 above to complete v1.17.7 release properly.
+**Next Steps**: Execute action plan steps 1-5 above to complete $11.18.3 release properly.
 
 **Created By**: AI Agent (Audit Execution)
 **Audit Date**: February 3, 2026

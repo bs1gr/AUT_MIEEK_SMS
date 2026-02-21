@@ -1,7 +1,7 @@
-# Deployment Checklist v1.18.1
+# Deployment Checklist $11.18.3
 
 **Release Date:** February 2026 (target)
-**Version:** v1.18.1
+**Version:** $11.18.3
 **Focus:** Student lifecycle UX + reporting terminology + localization consistency + CI stability
 
 ## 📋 Pre-Deployment Verification
@@ -9,7 +9,7 @@
 ### 1) Source & Version Checks
 
 - [ ] `main` is clean (`git status`)
-- [ ] Tag does **not** already exist before release creation (`v1.18.1`)
+- [ ] Tag does **not** already exist before release creation (`$11.18.3`)
 - [ ] `VERSION` and frontend package version are aligned with planned release
 
 ### 2) Quality Gates
@@ -22,10 +22,10 @@
 
 ### 3) Documentation Gates
 
-- [ ] `CHANGELOG.md` contains post-`v1.18.1` consolidated release notes
-- [ ] `RELEASE_NOTES_v1.18.1.md` updated
-- [ ] `GITHUB_RELEASE_v1.18.1.md` updated
-- [ ] `RELEASE_MANIFEST_v1.18.1.md` updated
+- [ ] `CHANGELOG.md` contains post-`$11.18.3` consolidated release notes
+- [ ] `RELEASE_NOTES_$11.18.3.md` updated
+- [ ] `GITHUB_RELEASE_$11.18.3.md` updated
+- [ ] `RELEASE_MANIFEST_$11.18.3.md` updated
 - [ ] `UNIFIED_WORK_PLAN.md` and `DOCUMENTATION_INDEX.md` synchronized
 
 ## 🚀 Deployment Steps
@@ -51,6 +51,6 @@
 
 ## 📦 Release Completion
 
-- [ ] Create GitHub release using `GITHUB_RELEASE_v1.18.1.md`
+- [ ] Create GitHub release using `GITHUB_RELEASE_$11.18.3.md`
 - [ ] Attach release artifacts as needed
 - [ ] Record release commit/tag references in work plan

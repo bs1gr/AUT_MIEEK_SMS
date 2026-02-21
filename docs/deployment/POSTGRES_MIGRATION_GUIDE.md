@@ -42,7 +42,7 @@ POSTGRES_OPTIONS=connect_timeout=10&application_name=sms
 > same variables, so the container picks up the PostgreSQL connection without
 > additional flags.
 
-> **Important (v1.18.1 hardening):** PostgreSQL mode is now **explicit**. Keep
+> **Important ($11.18.3 hardening):** PostgreSQL mode is now **explicit**. Keep
 > `DATABASE_ENGINE=postgresql` (or an explicit PostgreSQL `DATABASE_URL`) to run
 > Compose/PostgreSQL mode. This avoids accidental engine switching and prevents
 > "data disappeared" incidents caused by silently reading from the wrong backend.
@@ -86,7 +86,7 @@ Key options:
 By default the script truncates destination tables with `RESTART IDENTITY
 CASCADE` to guarantee clean imports.
 
-### Migration reliability improvements (v1.18.1)
+### Migration reliability improvements ($11.18.3)
 
 - Percent-encoded PostgreSQL URLs (for example passwords containing `!` encoded
     as `%21`) are now handled safely by the Alembic runner.

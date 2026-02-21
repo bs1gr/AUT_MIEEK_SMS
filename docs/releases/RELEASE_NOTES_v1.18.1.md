@@ -1,13 +1,13 @@
-# Release Notes v1.18.1 - Test Fixes & Documentation Updates
+# Release Notes $11.18.3 - Test Fixes & Documentation Updates
 
 **Date:** February 17, 2026
-**Version:** v1.18.1
+**Version:** $11.18.3
 **Status:** Released
 **Type:** Patch release
 
 ## 🎯 Overview
 
-This patch release addresses test failures introduced by the auto-activation UI enhancements in v1.18.0 and updates release documentation to properly reflect the new features.
+This patch release addresses test failures introduced by the auto-activation UI enhancements in $11.18.3 and updates release documentation to properly reflect the new features.
 
 ## 🐛 Bug Fixes
 
@@ -21,13 +21,13 @@ This patch release addresses test failures introduced by the auto-activation UI 
 **Impact**: Restores frontend test suite to 100% passing (1854/1854 tests)
 
 ### Documentation
-- **releases**: update v1.18.1 documentation to include auto-activation features
+- **releases**: update $11.18.3 documentation to include auto-activation features
   - Added comprehensive coverage of scheduled job (3:00 AM UTC daily)
   - Documented UI indicators (color-coded badges)
   - Added monitoring and audit logging details
   - Listed all 4 auto-activation commits
 
-## 📋 Changes Since v1.18.0
+## 📋 Changes Since $11.18.3
 
 ### Fixed Tests (5 failures)
 1. `AddCourseModal > Rendering > renders credits and year fields with default values`
@@ -51,8 +51,8 @@ This patch release addresses test failures introduced by the auto-activation UI 
 
 - No breaking changes
 - No database migrations required
-- Frontend and backend compatible with v1.18.1
-- Drop-in replacement for v1.18.0
+- Frontend and backend compatible with $11.18.3
+- Drop-in replacement for $11.18.3
 
 ## 📦 Files Changed
 
@@ -61,13 +61,13 @@ This patch release addresses test failures introduced by the auto-activation UI 
 - `frontend/src/features/courses/components/EditCourseModal.test.tsx`
 
 **Documentation**:
-- `docs/releases/RELEASE_NOTES_v1.18.1.md`
-- `docs/releases/GITHUB_RELEASE_v1.18.1.md`
+- `docs/releases/RELEASE_NOTES_$11.18.3.md`
+- `docs/releases/GITHUB_RELEASE_$11.18.3.md`
 
 ## 🔗 Related
 
-- Parent release: [v1.18.0](RELEASE_NOTES_v1.18.0.md)
-- Auto-activation feature: Implemented in v1.18.0
+- Parent release: [$11.18.3](RELEASE_NOTES_$11.18.3.md)
+- Auto-activation feature: Implemented in $11.18.3
 - Test framework: Vitest + React Testing Library
 
 ---

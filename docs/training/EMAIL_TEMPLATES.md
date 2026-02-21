@@ -1,5 +1,5 @@
 # Training Invitation Email Templates
-## SMS v1.17.6 - Phase 5 Training
+## SMS $11.18.3 - Phase 5 Training
 ## For Training Coordinators
 
 **Purpose**: Email templates for inviting participants to training sessions

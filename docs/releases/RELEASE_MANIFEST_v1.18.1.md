@@ -1,4 +1,4 @@
-# Release Manifest - v1.18.1
+# Release Manifest - $11.18.3
 
 **Version:** 1.18.1
 **Date:** February 17, 2026
@@ -20,16 +20,16 @@
 ## Release Artifacts
 
 ### Required Artifacts
-- [x] Git tag: `v1.18.1`
+- [x] Git tag: `$11.18.3`
 - [x] GitHub Release: Published with release notes
 - [x] VERSION file updated: `1.18.1`
 - [x] CHANGELOG.md updated: [1.18.1] section added
 
 ### Documentation Updates
-- [x] Release notes: `docs/releases/RELEASE_NOTES_v1.18.1.md`
-- [x] GitHub release body: `docs/releases/GITHUB_RELEASE_v1.18.1.md`
-- [x] Release manifest: `docs/releases/RELEASE_MANIFEST_v1.18.1.md`
-- [x] Deployment checklist: `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.1.md`
+- [x] Release notes: `docs/releases/RELEASE_NOTES_$11.18.3.md`
+- [x] GitHub release body: `docs/releases/GITHUB_RELEASE_$11.18.3.md`
+- [x] Release manifest: `docs/releases/RELEASE_MANIFEST_$11.18.3.md`
+- [x] Deployment checklist: `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md`
 
 ### Code Changes
 - [x] Test fixes: Course modal test selectors and assertions
@@ -56,10 +56,10 @@
 ### Release Checklist
 - [x] GENERATE_RELEASE_DOCS.ps1 executed (or manual equivalent complete)
 - [x] All documentation files created
-- [x] Git commit: "chore(release): prepare v1.18.1 release"
-- [x] Git tag: `v1.18.1` created and signed
+- [x] Git commit: "chore(release): prepare $11.18.3 release"
+- [x] Git tag: `$11.18.3` created and signed
 - [x] Git push: `origin main` with tags
-- [x] GitHub release: Published at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
+- [x] GitHub release: Published at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
 
 ---
 
@@ -73,8 +73,8 @@
   - Restored frontend test suite to 100% passing (1854/1854)
 
 ### Documentation Updates
-- docs/releases/RELEASE_NOTES_v1.18.1.md: Enhanced with auto-activation details
-- docs/releases/GITHUB_RELEASE_v1.18.1.md: Added auto-activation coverage
+- docs/releases/RELEASE_NOTES_$11.18.3.md: Enhanced with auto-activation details
+- docs/releases/GITHUB_RELEASE_$11.18.3.md: Added auto-activation coverage
 
 ---
 
@@ -88,16 +88,16 @@ frontend/src/features/courses/components/EditCourseModal.test.tsx
 
 ### Documentation Files (2)
 ```
-docs/releases/RELEASE_NOTES_v1.18.1.md
-docs/releases/GITHUB_RELEASE_v1.18.1.md
+docs/releases/RELEASE_NOTES_$11.18.3.md
+docs/releases/GITHUB_RELEASE_$11.18.3.md
 ```
 
 ### Release Documentation (4 new)
 ```
-docs/releases/RELEASE_NOTES_v1.18.1.md
-docs/releases/GITHUB_RELEASE_v1.18.1.md
-docs/releases/RELEASE_MANIFEST_v1.18.1.md
-docs/releases/DEPLOYMENT_CHECKLIST_v1.18.1.md
+docs/releases/RELEASE_NOTES_$11.18.3.md
+docs/releases/GITHUB_RELEASE_$11.18.3.md
+docs/releases/RELEASE_MANIFEST_$11.18.3.md
+docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md
 ```
 
 ---
@@ -145,18 +145,18 @@ git status
 - **E2E**: Not required (UI changes only affect unit tests)
 
 ### Dependencies
-- **Parent release**: v1.18.0 (2026-02-16)
-- **Next release**: v1.18.2 (TBD)
+- **Parent release**: $11.18.3 (2026-02-16)
+- **Next release**: $11.18.3 (TBD)
 
 ---
 
 ## Post-Release Actions
 
 ### Immediate (within 1 hour)
-- [x] Verify GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.1
-- [x] Verify tag created: `git tag -l v1.18.1`
+- [x] Verify GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+- [x] Verify tag created: `git tag -l $11.18.3`
 - [x] Verify CI/CD pipeline passed: GitHub Actions
-- [x] Update work plan: Mark v1.18.1 as released in `docs/plans/UNIFIED_WORK_PLAN.md`
+- [x] Update work plan: Mark $11.18.3 as released in `docs/plans/UNIFIED_WORK_PLAN.md`
 
 ### Short-term (within 24 hours)
 - [ ] Monitor for bug reports or issues
@@ -164,8 +164,8 @@ git status
 - [ ] Check analytics for test failures (if monitoring enabled)
 
 ### Medium-term (within 1 week)
-- [ ] Assess need for v1.18.2 (if critical issues found)
-- [ ] Plan next feature release (v1.18.2)
+- [ ] Assess need for $11.18.3 (if critical issues found)
+- [ ] Plan next feature release ($11.18.3)
 - [ ] Update roadmap with completed work
 
 ---

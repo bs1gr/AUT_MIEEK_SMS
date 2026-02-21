@@ -1,4 +1,4 @@
-# Installer Improvements - v1.17.2+ Release Notes
+# Installer Improvements - $11.18.3+ Release Notes
 
 ## Overview
 

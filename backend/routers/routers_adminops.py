@@ -73,6 +73,7 @@ def backup_database(
         # Use SQLite backup API to handle WAL mode correctly
         # (file copy in WAL mode only copies schema-only snapshot without data)
         import sqlite3
+
         try:
             source_db = sqlite3.connect(db_file)
             target_db = sqlite3.connect(target)
@@ -82,10 +83,7 @@ def backup_database(
             target_db.close()
             logger.info("Database backup created: %s (source: %s)", target, db_file)
         except Exception as backup_error:
-            logger.warning(
-                "SQLite backup API failed, using fallback copy",
-                extra={"error": str(backup_error)}
-            )
+            logger.warning("SQLite backup API failed, using fallback copy", extra={"error": str(backup_error)})
             # Fallback: simple file copy (may be incomplete in WAL mode but better than nothing)
             shutil.copyfile(db_file, target)
             logger.info("Database backup created (fallback): %s (source: %s)", target, db_file)

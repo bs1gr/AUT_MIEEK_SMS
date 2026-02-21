@@ -25,7 +25,7 @@ conn.execute(text("PRAGMA journal_mode=WAL"))
 ```
 
 In WAL mode:
-- Main `.db` file is read-only snapshot  
+- Main `.db` file is read-only snapshot
 - Actual data writes go to `.db-wal` (WAL file)
 - `shutil.copy2()` copies only `.db` → Gets empty schema-only database (786,432 bytes)
 
@@ -63,7 +63,7 @@ target_db.close()
    - Added error handling and logging
 
 2. **backend/routers/routers_adminops.py** (lines 55-94)
-   - `backup_database()` function  
+   - `backup_database()` function
    - Changed from `shutil.copyfile()` to SQLite backup API
    - Added fallback and logging
 
@@ -109,7 +109,7 @@ Status: ✓ Full backup with data
 - ❌ System becomes inaccessible (all endpoints return 401)
 
 ### After Fix (Now)
-- ✅ New backups capture actual data  
+- ✅ New backups capture actual data
 - ✅ Restore preserves user accounts and data
 - ✅ Feature is now functional and reliable
 - ✅ System remains accessible after restore
@@ -126,7 +126,7 @@ Status: ✓ Full backup with data
 
 ### Data Recovery for Old Backups
 - Existing corrupted backups cannot be recovered (they contain no data)
-- Recommend deleting old backups in `backups/database/` 
+- Recommend deleting old backups in `backups/database/`
 - New backups created after this fix are usable
 - No urgent action needed (old backups already non-functional)
 
@@ -146,7 +146,7 @@ After deployment:
 - SQLite backup API usage with proper error handling
 - Comprehensive logging for troubleshooting
 
-### Modifications  
+### Modifications
 - 2 files changed
 - 181 insertions (new SQLite backup code)
 - 6 deletions (removed shutil.copy2 calls)
@@ -201,6 +201,6 @@ Verified working with actual data preservation.
 ---
 
 **Status**: ✅ FIXED, TESTED, DEPLOYED
-**Date Fixed**: 2026-02-20  
+**Date Fixed**: 2026-02-20
 **Commit**: 0f42f3104
 **Branch**: main

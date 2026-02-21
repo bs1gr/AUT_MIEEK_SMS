@@ -1,5 +1,5 @@
 # Pre-Reading Materials - SMS Training
-## Student Management System v1.17.6
+## Student Management System $11.18.3
 ## ΜΙΕΕΚ Cyprus Technical College
 
 **Target Audience**: Administrators, Teachers, and Students

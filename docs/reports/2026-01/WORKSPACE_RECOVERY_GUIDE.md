@@ -111,13 +111,13 @@ Remove-Item backend\data\imports\1_*.csv -ErrorAction SilentlyContinue
 # Fix COMMIT_READY.ps1
 
 $content = Get-Content COMMIT_READY.ps1 -Raw
-$content = $content -replace "Version: vvvvv1.17.2", "Version: 1.18.0"
+$content = $content -replace "Version: vvvv$11.18.3", "Version: 1.18.0"
 Set-Content COMMIT_READY.ps1 $content -NoNewline
 
 # Fix INSTALLER_BUILDER.ps1
 
 $content = Get-Content INSTALLER_BUILDER.ps1 -Raw
-$content = $content -replace "Version: vvvvv1.17.2", "Version: 1.18.0"
+$content = $content -replace "Version: vvvv$11.18.3", "Version: 1.18.0"
 Set-Content INSTALLER_BUILDER.ps1 $content -NoNewline
 
 ```text

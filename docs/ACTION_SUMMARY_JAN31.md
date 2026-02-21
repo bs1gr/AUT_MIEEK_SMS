@@ -20,7 +20,7 @@
 
 ---
 
-## ✅ What Was Fixed (Already in v1.17.6)
+## ✅ What Was Fixed (Already in $11.18.3)
 
 | Package | Old Version/CVE | New Version | Status |
 |---------|-----------------|-------------|--------|

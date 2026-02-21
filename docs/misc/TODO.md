@@ -8,12 +8,12 @@
 ---
 
 **Last updated**: 2026-01-05 (Migrated to ACTIVE_WORK_STATUS)
-**Current Version**: 1.14.2 (v1.15.2 in Phase 1 planning)
-**Active Release**: [RELEASE_PREPARATION_v1.15.2.md](../releases/RELEASE_PREPARATION_v1.15.2.md)
+**Current Version**: 1.14.2 ($11.18.3 in Phase 1 planning)
+**Active Release**: [RELEASE_PREPARATION_$11.18.3.md](../releases/RELEASE_PREPARATION_$11.18.3.md)
 
 ---
 
-## 🔄 In Progress (v1.15.2 Phase 1 - Infrastructure Improvements)
+## 🔄 In Progress ($11.18.3 Phase 1 - Infrastructure Improvements)
 
 **➡️ CURRENT STATUS**: See [docs/ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md) for latest
 
@@ -76,7 +76,7 @@
   - Frontend API client tests with interceptors & error paths ✅
   - Status: **COMPLETE** - Comprehensive test coverage achieved
 
-### v1.11.2 Development Progress
+### $11.18.3 Development Progress
 
 #### Phase 1: Quick Wins - Documentation (✅ COMPLETE)
 
@@ -254,7 +254,7 @@
     ## 📝 Notes
 
     - Legacy phase tracking removed (obsolete after v1.9.x consolidation)
-    - Pre-v1.11.2 documentation archived to `archive/pre-v1.11.2/`
+    - Pre-$11.18.3 documentation archived to `archive/pre-$11.18.3/`
     - Completed work retained only as summary; document focuses on actionable backlog
 
     ---
@@ -280,9 +280,9 @@
 
 ---
 
-## ✅ Completed (v1.11.2 Release - Cleanup & Consolidation - 2025-12-12)
+## ✅ Completed ($11.18.3 Release - Cleanup & Consolidation - 2025-12-12)
 
-### Release Highlights (v1.11.2)
+### Release Highlights ($11.18.3)
 
 - **Duration**: Full release workflow
 - **Major Achievement**: Comprehensive codebase cleanup and consolidation
@@ -306,7 +306,7 @@
 
 - ✅ **Archive & Artifact Cleanup**
   - Removed consolidation-planning-2025-12-09 directory
-  - Removed workspace-cleanup-v1.11.2-2025-12-09 directory
+  - Removed workspace-cleanup-$11.18.3-2025-12-09 directory
   - Removed dist/ build artifacts, cache metrics JSON
   - Result: ~2.5 MB freed
 
@@ -334,7 +334,7 @@
   - Health checks: Native mode, Docker mode, Installer audit
   - Result: ALL CHECKS PASSED
 
-### Session Highlights (v1.11.2 - Prior Session)
+### Session Highlights ($11.18.3 - Prior Session)
 
 - **Duration**: ~6 hours
 - **Commits**: 3 (9f5a5e64, 850ccc53, final push pending)
@@ -343,7 +343,7 @@
 - **Tests Added**: 29 unit tests (all passing)
 - **Diagrams**: 12 comprehensive Mermaid diagrams
 
-### 1. E2E Test Stabilization ✅ (v1.11.2)
+### 1. E2E Test Stabilization ✅ ($11.18.3)
 
 - ✅ **E2E Test Failures Fixed**: Resolved UI selector mismatches
   - Issue: Tests expected table-based layout, UI uses card-based components
@@ -351,7 +351,7 @@
   - Result: Run #35 successful (12 passed, 2 skipped, 1m 35s)
   - Pattern: `page.waitForFunction()` for card checks, bilingual regex for labels
 
-### 2. Comprehensive Documentation Additions (2,000+ lines) ✅ (v1.11.2)
+### 2. Comprehensive Documentation Additions (2,000+ lines) ✅ ($11.18.3)
 
 - ✅ **Deployment Runbook Expansion**: 600+ lines
   - Section 4: Advanced rollback procedures (code 6-9min, DB 7-13min, restore 9-16min, all ≤20min SLA)
@@ -490,13 +490,13 @@
 
 ---
 
-## ✅ Completed (v1.11.2 Workspace Cleanup - 2025-12-09)
+## ✅ Completed ($11.18.3 Workspace Cleanup - 2025-12-09)
 
 ### Comprehensive Cleanup & Consolidation
 
 - ✅ **Archive Consolidation**: Consolidated 18+ dated session artifact directories into single master cleanup archive
-  - Merged: pre-v1.11.2/, pre-v1.11.2-docker-scripts/, 8 dated 2025-12-06 directories, v1.11.2/v1.11.2/v1.11.2/v1.11.2 session artifacts
-  - Result: `archive/workspace-cleanup-v1.11.2-2025-12-09/` (cleanly organized, 100+ items)
+  - Merged: pre-$11.18.3/, pre-$11.18.3-docker-scripts/, 8 dated 2025-12-06 directories, $11.18.3/$11.18.3/$11.18.3/$11.18.3 session artifacts
+  - Result: `archive/workspace-cleanup-$11.18.3-2025-12-09/` (cleanly organized, 100+ items)
 
 - ✅ **Backend Cleanup**:
   - Archived logs: `backend/logs/*.log` → cleanup archive
@@ -512,12 +512,12 @@
   - Removed: `tmp_test_migrations/` directory (test data cleanup)
 
 - ✅ **Documentation Archival**:
-  - `pre-v1.11.2-documentation/`: 80+ legacy markdown files archived
-  - Deprecated docs: INSTALLER_BUILD_PROTOCOL_v1.11.2.md, ROUTING_VALIDATION_FIXES.md
+  - `pre-$11.18.3-documentation/`: 80+ legacy markdown files archived
+  - Deprecated docs: INSTALLER_BUILD_PROTOCOL_$11.18.3.md, ROUTING_VALIDATION_FIXES.md
   - All old version-specific guides consolidated
 
 - ✅ **Test & Build Artifacts**:
-  - Installer metadata: INSTALLER_UPDATE_v1.11.2.md, .version_cache
+  - Installer metadata: INSTALLER_UPDATE_$11.18.3.md, .version_cache
   - Test results: pytest XML reports, pip-audit JSON
 
 - ✅ **Created Cleanup Manifest**:
@@ -534,7 +534,7 @@
 
 ---
 
-## ✅ Completed (v1.11.2 Analytics Performance Optimization - 2025-12-06)
+## ✅ Completed ($11.18.3 Analytics Performance Optimization - 2025-12-06)
 
 ### Critical Performance Fixes
 
@@ -571,7 +571,7 @@
 
 ---
 
-## ✅ Completed (v1.11.2 Critical Fixes - 2025-12-04)
+## ✅ Completed ($11.18.3 Critical Fixes - 2025-12-04)
 
 ### Rate Limiting & Infinite Loop Fixes
 
@@ -592,7 +592,7 @@
 ### Smoke Testing & Validation
 
 - ✅ Comprehensive smoke test across all components
-  - Health endpoint: ✅ Healthy (v1.11.2, 362s uptime)
+  - Health endpoint: ✅ Healthy ($11.18.3, 362s uptime)
   - Students API: ✅ 200 OK
   - Courses API: ✅ 200 OK
   - Attendance API: ✅ 200 OK (fixed endpoint)
@@ -605,8 +605,8 @@
 
 | Area | Highlights |
 |------|-----------|
-| **Security** | **🔒 CRITICAL FIXES (v1.11.2)**: SECRET_KEY enforcement (no defaults); admin credential hardening; SQL injection verification; multi-layer validation (Docker → PowerShell → Backend); comprehensive security documentation |
-| **Backend Architecture** | **🏗️ MODULAR REFACTORING (v1.11.2)**: Decomposed 1555-line main.py into 5 focused modules (app_factory, lifespan, middleware_config, error_handlers, router_registry); improved testability & maintainability |
+| **Security** | **🔒 CRITICAL FIXES ($11.18.3)**: SECRET_KEY enforcement (no defaults); admin credential hardening; SQL injection verification; multi-layer validation (Docker → PowerShell → Backend); comprehensive security documentation |
+| **Backend Architecture** | **🏗️ MODULAR REFACTORING ($11.18.3)**: Decomposed 1555-line main.py into 5 focused modules (app_factory, lifespan, middleware_config, error_handlers, router_registry); improved testability & maintainability |
 | Security (Legacy) | SECRET_KEY hardening; password strength validator; login throttling & lockout; CSRF middleware; AUTH_MODE compliance; RFC 7807 error handling; Security headers middleware; Code signing certificate (AUT MIEEK) |
 | Performance | Eager loading (analytics); targeted DB indexes; response caching layer; React memoization; 85% reduction in API calls via autosave debouncing; SQLAlchemy session optimization |
 | Architecture | Service layer (9 services); component refactors; TypeScript strict mode; code splitting; pre-commit hooks; Consolidated scripts (DOCKER.ps1, NATIVE.ps1) |
@@ -614,12 +614,12 @@
 | Testing & Quality | **Security validation tests** (17/17 passing); Translation integrity tests; Exception handler regression tests; Enhanced CI/CD with frontend quality gates; DEV_EASE pre-commit policy |
 | UX Enhancement | Universal autosave pattern; automatic data persistence; visual save indicators; eliminated manual save buttons |
 | Documentation | **SECURITY.md** (15-section guide); **SECURITY_AUDIT_REPORT.md**; **SECURITY_FIX_SUMMARY.md**; Port references standardized to 8080; Legacy script refs updated; Comprehensive Git workflow guide |
-| **Legacy Cleanup** | All pre-v1.11.2 artifacts archived; Obsolete test files removed; CI debug tools cleaned; **v1.11.2: Temporary security test artifacts cleaned**; **v1.11.2: Import fallback complexity eliminated**; **v1.11.2: Script consolidation (~427 lines eliminated, 7 scripts archived)** |
-| **Script Quality** | **🧹 CONSOLIDATION (v1.11.2)**: Archived 6 Docker helper scripts → DOCKER.ps1 single source of truth; Consolidated 2 VERIFY_VERSION scripts with dual modes; Created shared cleanup library (scripts/lib/cleanup_common.ps1); Eliminated duplicate code |
+| **Legacy Cleanup** | All pre-$11.18.3 artifacts archived; Obsolete test files removed; CI debug tools cleaned; **$11.18.3: Temporary security test artifacts cleaned**; **$11.18.3: Import fallback complexity eliminated**; **$11.18.3: Script consolidation (~427 lines eliminated, 7 scripts archived)** |
+| **Script Quality** | **🧹 CONSOLIDATION ($11.18.3)**: Archived 6 Docker helper scripts → DOCKER.ps1 single source of truth; Consolidated 2 VERIFY_VERSION scripts with dual modes; Created shared cleanup library (scripts/lib/cleanup_common.ps1); Eliminated duplicate code |
 
 All high-impact objectives delivered; critical security vulnerabilities eliminated; import resolution centralized; script organization optimized.
 
-## ✅ v1.11.2 Release (Completed - 2025-12-04)
+## ✅ $11.18.3 Release (Completed - 2025-12-04)
 
 ### Performance Optimizations & Database Improvements
 
@@ -655,9 +655,9 @@ All high-impact objectives delivered; critical security vulnerabilities eliminat
   - Added proper environment isolation in test
   - All 360 backend tests now pass (100% success rate)
 
-### Script Consolidation & Code Quality (2025-12-04 - v1.11.2)
+### Script Consolidation & Code Quality (2025-12-04 - $11.18.3)
 
-- ✅ **Docker Helper Scripts**: Archived 6 scripts (283 lines) to `archive/pre-v1.11.2-docker-scripts/`
+- ✅ **Docker Helper Scripts**: Archived 6 scripts (283 lines) to `archive/pre-$11.18.3-docker-scripts/`
   - Scripts: ~~DOCKER_UP, DOCKER_DOWN, DOCKER_REFRESH, DOCKER_RUN, DOCKER_SMOKE, DOCKER_UPDATE_VOLUME~~
   - DOCKER.ps1 confirmed as single source of truth (1293 lines comprehensive)
 
@@ -680,15 +680,15 @@ All high-impact objectives delivered; critical security vulnerabilities eliminat
 - ✅ Updated `docs/DOCUMENTATION_INDEX.md` with migration guide
 - ✅ Updated `docs/operations/SCRIPTS_GUIDE.md` (removed archived script references)
 - ✅ Updated CHANGELOG.md with performance improvements and script consolidation
-- ✅ Updated `.github/copilot-instructions.md` to v1.11.2
+- ✅ Updated `.github/copilot-instructions.md` to $11.18.3
 
 ### Final Cleanup (2025-12-04)
 
-- ✅ Archived temporary audit files to `archive/session-artifacts-v1.11.2/`
-- ✅ Archived old installer artifacts to `installer/archive-v1.11.2-artifacts/`
+- ✅ Archived temporary audit files to `archive/session-artifacts-$11.18.3/`
+- ✅ Archived old installer artifacts to `installer/archive-$11.18.3-artifacts/`
 - ✅ Removed duplicate commit instruction files (kept COMMIT_INSTRUCTIONS.md)
 
-## ✅ v1.11.2 Release (Completed - 2025-12-03)
+## ✅ $11.18.3 Release (Completed - 2025-12-03)
 
 ### Code Quality & Import Resolution
 
@@ -717,9 +717,9 @@ All high-impact objectives delivered; critical security vulnerabilities eliminat
 
 - ✅ Updated `backend/import_resolver.py` with comprehensive docstrings
 - ✅ Enhanced `verify_password()` documentation for migration workflow
-- ✅ Updated backlog file with v1.11.2 achievements
+- ✅ Updated backlog file with $11.18.3 achievements
 
-## ✅ v1.11.2 Release (Completed - 2025-12-03)
+## ✅ $11.18.3 Release (Completed - 2025-12-03)
 
 ### Backend Architecture Refactoring
 
@@ -759,7 +759,7 @@ All high-impact objectives delivered; critical security vulnerabilities eliminat
 - ✅ Fixed docker-compose.yml port syntax error
 - ✅ Cleaned obsolete test artifacts
 
-## 🔄 v1.11.2 Release (Completed)
+## 🔄 $11.18.3 Release (Completed)
 
 ### DEV_EASE Pre-Commit Policy & Hardening
 
@@ -814,7 +814,7 @@ Backend coverage goal (≥80%) achieved; focus now on frontend depth & resilienc
 ## 📝 Notes
 
 - Legacy phase tracking removed (obsolete after v1.9.x consolidation)
-- Pre-v1.11.2 documentation archived to `archive/pre-v1.11.2/`
+- Pre-$11.18.3 documentation archived to `archive/pre-$11.18.3/`
 - Completed work retained only as summary; document focuses on actionable backlog
 
 

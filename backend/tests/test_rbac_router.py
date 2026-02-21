@@ -350,4 +350,3 @@ def test_teacher_role_inherits_viewer(rbac_client: TestClient):
     # Verify legacy role is set to teacher (highest priority)
     user = _get_user_by_id(client, 2)
     assert user.role == "teacher", "Legacy role should be set to teacher"
-

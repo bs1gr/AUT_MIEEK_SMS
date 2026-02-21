@@ -179,7 +179,7 @@ Next Day (Jan 9):
    docker stop sms-fullstack
    docker rm sms-fullstack
    # Restore backup database if needed
-   Copy-Item "backups/pre_v1.17.2_*.db" -Destination "data/student_management.db" -Force
+   Copy-Item "backups/pre_$11.18.3_*.db" -Destination "data/student_management.db" -Force
    ```
 
 ### If You Get Stuck Mid-Deployment

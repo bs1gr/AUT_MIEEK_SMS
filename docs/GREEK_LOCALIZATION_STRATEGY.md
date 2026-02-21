@@ -9,12 +9,12 @@
 
 ## 📋 Executive Summary
 
-After implementing the RBAC module (v1.17.6+) and Advanced Search module (v1.17.6+), several Greek localization (EL) issues emerged:
+After implementing the RBAC module ($11.18.3+) and Advanced Search module ($11.18.3+), several Greek localization (EL) issues emerged:
 
 1. **Inconsistent key naming conventions** between EN and EL files
 2. **Missing translation keys** referenced in components but not in EL locales
 3. **Namespace structure mismatches** causing lookup failures
-4. **Deprecated keys still being used** in components (from v1.17.6 era)
+4. **Deprecated keys still being used** in components (from $11.18.3 era)
 5. **Rendering issues** where EL text fails to display, showing EN keys instead
 
 ---
@@ -98,7 +98,7 @@ const operators = [
 }
 ```
 
-**BUT**: Some keys used in newer components (after v1.17.6) are not found:
+**BUT**: Some keys used in newer components (after $11.18.3) are not found:
 - Components try: `t('rbac.errorSearching')`
 - File doesn't have this key (it's from `search` namespace)
 

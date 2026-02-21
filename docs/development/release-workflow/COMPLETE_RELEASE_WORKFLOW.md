@@ -202,7 +202,7 @@ Example:
    - Runs final COMMIT_READY -Quick check
    - Commits changes: "chore(release): bump version to 1.12.9..."
    - Pushes to main branch
-   - Creates and pushes tag v1.14.0
+   - Creates and pushes tag $11.18.3
 
 2. **GitHub Actions Triggered**:
    - release-on-tag.yml runs
@@ -219,7 +219,7 @@ Release 1.12.9 is ready and pushed!
 ✓ Tag created and pushed
 
 → GitHub Actions will now:
-  1. Create GitHub Release v1.14.0
+  1. Create GitHub Release $11.18.3
   2. Build installer
   3. Upload installer to release
 
@@ -275,10 +275,10 @@ Release 1.12.9 is ready and pushed!
 
 **Check Release Page**:
 1. GitHub → Releases tab
-2. Find v1.14.0
+2. Find $11.18.3
 3. Should contain:
    - Release notes
-   - SMS_Installer_v1.14.0.exe (in Assets)
+   - SMS_Installer_$11.18.3.exe (in Assets)
    - SHA256 hash (in notes)
 
 **Download & Verify**:
@@ -286,11 +286,11 @@ Release 1.12.9 is ready and pushed!
 ```powershell
 # Download installer
 
-gh release download v1.14.0 --pattern "*.exe"
+gh release download $11.18.3 --pattern "*.exe"
 
 # Verify SHA256
 
-(Get-FileHash SMS_Installer_v1.14.0.exe -Algorithm SHA256).Hash
+(Get-FileHash SMS_Installer_$11.18.3.exe -Algorithm SHA256).Hash
 # Should match hash in release notes
 
 ```text
@@ -298,7 +298,7 @@ gh release download v1.14.0 --pattern "*.exe"
 
 ## Complete Example Walkthrough
 
-### Scenario: Release v1.14.0
+### Scenario: Release $11.18.3
 
 **Step 1: Prepare** (10 min)
 
@@ -349,7 +349,7 @@ Committing changes...
 Pushing main branch...
 ✓ Pushed to origin
 
-Creating tag v1.14.0...
+Creating tag $11.18.3...
 ✓ Tag created and pushed
 
 Release 1.13.0 is ready and pushed!
@@ -375,13 +375,13 @@ GitHub Actions:
 
 ```text
 GitHub Release Page:
-✓ v1.14.0 published
+✓ $11.18.3 published
 ✓ Release notes visible
-✓ SMS_Installer_v1.14.0.exe uploaded (156 MB)
+✓ SMS_Installer_$11.18.3.exe uploaded (156 MB)
 ✓ SHA256: abc123def456...
 
 PowerShell Verification:
-(Get-FileHash SMS_Installer_v1.14.0.exe -Algorithm SHA256).Hash
+(Get-FileHash SMS_Installer_$11.18.3.exe -Algorithm SHA256).Hash
 Result: abc123def456...
 ✓ Matches! Release is valid.
 

@@ -1,19 +1,19 @@
-# Release Notes v1.18.2 - Installer Runtime Hotfix & Release Hardening
+# Release Notes $11.18.3 - Installer Runtime Hotfix & Release Hardening
 
 **Date:** February 20, 2026
-**Version:** v1.18.2
+**Version:** $11.18.3
 **Status:** Released
 **Type:** Patch release
 
 ## 🎯 Overview
 
-v1.18.2 is a focused hotfix release to address a Windows installer runtime failure and to publish a corrected, signed installer from current lineage.
+$11.18.3 is a focused hotfix release to address a Windows installer runtime failure and to publish a corrected, signed installer from current lineage.
 
 ## 🐛 Fixes Included
 
 ### Installer runtime hotfix
 - Addressed installer behavior that produced runtime failure during setup flow (reported from production installer usage).
-- Released from corrected lineage (`v1.18.2`) to avoid immutable legacy-tag workflow behavior.
+- Released from corrected lineage (`$11.18.3`) to avoid immutable legacy-tag workflow behavior.
 
 ### Release workflow hardening (already validated before this tag)
 - Enforced lineage and signing gates in release automation.
@@ -28,7 +28,7 @@ v1.18.2 is a focused hotfix release to address a Windows installer runtime failu
 - `SMS_Installer_1.18.2.exe.sha256`
   - Contains installer SHA256: `1e98607670029b8ebed1b3337794dc79755cf810af2624bfcb53d99e47f6ebc0`
 
-Release URL: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.2
+Release URL: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
 
 ## ✅ Validation Summary
 
@@ -39,7 +39,7 @@ Release URL: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.2
 ## 🔄 Upgrade Notes
 
 - No database migration required for this patch release.
-- Recommended upgrade path: `v1.18.1` → `v1.18.2`.
+- Recommended upgrade path: `$11.18.3` → `$11.18.3`.
 - Existing deployment workflow remains unchanged:
   - Native testing: `NATIVE.ps1`
   - Production deployment: `DOCKER.ps1`

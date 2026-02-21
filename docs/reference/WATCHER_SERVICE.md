@@ -211,7 +211,7 @@ Potential improvements:
 
 - `scripts/monitoring-watcher.ps1` - Watcher service script
 - `backend/routers/control/monitoring.py` - Trigger endpoint and control API
-- `frontend/src/pages/PowerPage.tsx` - Legacy monitoring UI (removed in v1.9.7)
+- `frontend/src/pages/PowerPage.tsx` - Legacy monitoring UI (removed in $11.18.3)
 - `RUN.ps1` - Application launcher with watcher integration
 - `docker-compose.monitoring.yml` - Monitoring stack definition
 

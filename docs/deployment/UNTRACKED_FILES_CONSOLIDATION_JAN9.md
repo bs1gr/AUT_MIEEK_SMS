@@ -27,7 +27,7 @@
 
 ### **Deployment Logs** → `docs/deployment/`
 
-These files document the v1.15.2 staging deployment on January 9, 2026:
+These files document the $11.18.3 staging deployment on January 9, 2026:
 
 1. **STAGING_MONITORING_LOG_JAN9.md** (2.2 KB)
    - 24-hour monitoring tracking document

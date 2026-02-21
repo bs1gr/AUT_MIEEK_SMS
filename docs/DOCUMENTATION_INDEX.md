@@ -4,16 +4,16 @@
 **Project Version (documented)**: 1.18.3
 **Version**: 1.18.3
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.3 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **$11.18.3 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 20, 2026)**: ✅ **Production Live + v1.18.3 release published and verified**
+> **Current Status (Feb 20, 2026)**: ✅ **Production Live + $11.18.3 release published and verified**
 > - Maintenance & stability phase active
-> - Changelog/work plan/index updated for changes since `v1.18.2`
+> - Changelog/work plan/index updated for changes since `$11.18.3`
 > - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
-> - `v1.18.3` release documentation pack published (notes, release body, manifest, deployment checklist)
-> - Tag `v1.18.3` verified on remote and GitHub release verified as published (non-draft)
+> - `$11.18.3` release documentation pack published (notes, release body, manifest, deployment checklist)
+> - Tag `$11.18.3` verified on remote and GitHub release verified as published (non-draft)
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
@@ -80,29 +80,29 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - 316/316 backend tests passing
   - 30+ E2E tests implemented
   - Complete feature breakdown and metrics
-- **[plans/PHASE1_AUDIT_IMPROVEMENTS_v1.17.2.md](plans/PHASE1_AUDIT_IMPROVEMENTS_v1.17.2.md)** - Phase 1 implementation plan
+- **[plans/PHASE1_AUDIT_IMPROVEMENTS_$11.18.3.md](plans/PHASE1_AUDIT_IMPROVEMENTS_$11.18.3.md)** - Phase 1 implementation plan
   - 8 major improvements (audit logging, performance, security, UX)
   - 2-week sprint breakdown (Jan 7-20, 2026)
   - Team allocation and effort estimates
   - Success metrics and acceptance criteria
   - Links to implementation patterns
-- **[releases/RELEASE_PREPARATION_v1.17.2.md](releases/RELEASE_PREPARATION_v1.17.2.md)** - 1.15.0 Release preparation & timeline
+- **[releases/RELEASE_PREPARATION_$11.18.3.md](releases/RELEASE_PREPARATION_$11.18.3.md)** - 1.15.0 Release preparation & timeline
   - Phase 0 validation (all tests passing)
   - Phase 1 infrastructure improvements roadmap
   - Release checklist and success metrics
   - Timeline: Jan 7-24, 2026 (implementation + release)
-- **[releases/RELEASE_NOTES_v1.17.2.md](releases/RELEASE_NOTES_v1.17.2.md)** - 1.15.0 Official release notes (NEW - Jan 6, 2026)
+- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - 1.15.0 Official release notes (NEW - Jan 6, 2026)
   - Complete feature list with detailed descriptions
   - Performance improvements and metrics
   - Upgrade instructions and breaking changes
   - What's next (Phase 2 preview)
-- **[releases/EXECUTION_TRACKER_v1.17.2.md](releases/EXECUTION_TRACKER_v1.17.2.md)** - 1.15.0 Phase 1 execution tracker
+- **[releases/EXECUTION_TRACKER_$11.18.3.md](releases/EXECUTION_TRACKER_$11.18.3.md)** - 1.15.0 Phase 1 execution tracker
   - Pre-implementation tasks (team kickoff, environment setup, backup)
   - Week 1 tasks: Foundation & performance improvements
   - Week 2 tasks: Testing & stability
   - Release day procedures and post-release validation
   - Progress tracking with owner assignments and effort estimates
-- **[releases/QUICK_REFERENCE_v1.17.2.md](releases/QUICK_REFERENCE_v1.17.2.md)** - 1.15.0 Quick reference card (Print & Post)
+- **[releases/QUICK_REFERENCE_$11.18.3.md](releases/QUICK_REFERENCE_$11.18.3.md)** - 1.15.0 Quick reference card (Print & Post)
   - One-page team reference with timeline and task assignments
   - Daily checklist for developers
   - Blocker resolution procedure
@@ -160,7 +160,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Week-by-week work order
   - Effort estimates and timelines
   - Success criteria for each issue
-- **plans/INSTALLER_IMPROVEMENTS_v1.17.2+.md** - Installer improvements (mostly complete)
+- **plans/INSTALLER_IMPROVEMENTS_$11.18.3+.md** - Installer improvements (mostly complete)
 - **[development/VERSION_1_9_9_IMPROVEMENTS.md](development/VERSION_1_9_9_IMPROVEMENTS.md)** - Latest improvements summary (NEW - 1.9.9)
   - Frontend routing type safety and React Router v7 validation
   - International locale support (European decimal separators)
@@ -188,9 +188,9 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[deployment/POSTGRES_MIGRATION_GUIDE.md](deployment/POSTGRES_MIGRATION_GUIDE.md)** - Step-by-step SQLite → PostgreSQL migration workflow
 - **[installer/README.md](../installer/README.md)** - Windows installer build & distribution (Inno Setup canonical workflow)
 
-### Admin Documentation (Phase 2 - NEW v1.15.2+)
+### Admin Documentation (Phase 2 - NEW $11.18.3+)
 
-### Admin Documentation (Phase 2 - NEW v1.17.2+)
+### Admin Documentation (Phase 2 - NEW $11.18.3+)
 
 - **[admin/PERMISSION_MANAGEMENT_GUIDE.md](admin/PERMISSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Complete permission management guide (930 lines)
   - Permission seeding workflows (full, dry-run, verify modes)
@@ -348,7 +348,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 ### Validation & Smoke Tests
 
 - **operations/SMOKE_TEST_CHECKLIST_v1.12.md** - Current smoke test checklist for v1.12.x
-- Legacy reference: **archive/documentation/checklists/SMOKE_TEST_CHECKLIST_v1.17.2.md**
+- Legacy reference: **archive/documentation/checklists/SMOKE_TEST_CHECKLIST_$11.18.3.md**
 
 ### Historical Reports & Checklists (Archived)
 
@@ -437,7 +437,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Supersedes autosave summaries (archived to `archive/autosave-2025-12-06/`)
 - **[development/LOAD_TEST_PLAYBOOK.md](development/LOAD_TEST_PLAYBOOK.md)** - Load testing guide
 
-**E2E Testing** (NEW - v1.15.2):
+**E2E Testing** (NEW - $11.18.3):
 
 - **[E2E_TESTING_GUIDE.md](../E2E_TESTING_GUIDE.md)** ⭐ - Comprehensive E2E testing guide
   - Quick start (5-10 minutes)
@@ -452,7 +452,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - 15+ FAQ entries with solutions
   - Common fixes by symptom
   - Get help checklist with diagnostic collection
-- **[E2E_AUTHENTICATION_FIX.md](../E2E_AUTHENTICATION_FIX.md)** - Authentication blocker resolution (v1.15.2)
+- **[E2E_AUTHENTICATION_FIX.md](../E2E_AUTHENTICATION_FIX.md)** - Authentication blocker resolution ($11.18.3)
   - Issue: Tests redirect back to login after successful authentication
   - Root cause: Missing user profile object in localStorage
   - Solution: loginViaAPI() now fetches and sets both JWT token and user object
@@ -486,7 +486,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Feature comparison matrix
   - Usage decision tree
   - Space savings potential
-- **[operations/CI_CACHE_OPTIMIZATION.md](operations/CI_CACHE_OPTIMIZATION.md)** - CI/CD cache performance optimization (v1.11.1+)
+- **[operations/CI_CACHE_OPTIMIZATION.md](operations/CI_CACHE_OPTIMIZATION.md)** - CI/CD cache performance optimization ($11.18.3+)
   - npm dependency caching (30-45s savings)
   - Playwright browser caching (45-60s savings)
   - Expected 95% speedup on cache hits
@@ -505,26 +505,26 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
-- **[releases/RELEASE_NOTES_v1.18.3.md](releases/RELEASE_NOTES_v1.18.3.md)** - v1.18.3 patch release notes (RBAC imports fallback scope fix + installer refresh)
-- **[releases/GITHUB_RELEASE_v1.18.3.md](releases/GITHUB_RELEASE_v1.18.3.md)** - GitHub release body for v1.18.3
-- **[releases/RELEASE_MANIFEST_v1.18.3.md](releases/RELEASE_MANIFEST_v1.18.3.md)** - Artifact manifest and integrity checklist for v1.18.3
-- **[releases/DEPLOYMENT_CHECKLIST_v1.18.3.md](releases/DEPLOYMENT_CHECKLIST_v1.18.3.md)** - Deployment and verification checklist for v1.18.3
-- **[releases/RELEASE_NOTES_v1.18.2.md](releases/RELEASE_NOTES_v1.18.2.md)** - v1.18.2 hotfix release notes (installer runtime fix)
-- **[releases/GITHUB_RELEASE_v1.18.2.md](releases/GITHUB_RELEASE_v1.18.2.md)** - GitHub release body for v1.18.2
-- **[releases/RELEASE_MANIFEST_v1.18.2.md](releases/RELEASE_MANIFEST_v1.18.2.md)** - Artifact manifest and integrity gates for v1.18.2
-- **[releases/DEPLOYMENT_CHECKLIST_v1.18.2.md](releases/DEPLOYMENT_CHECKLIST_v1.18.2.md)** - Deployment and verification checklist for v1.18.2
-- **[releases/RELEASE_NOTES_v1.18.1.md](releases/RELEASE_NOTES_v1.18.1.md)** - Next major release notes package (prepared Feb 15, 2026)
-- **[releases/GITHUB_RELEASE_v1.18.1.md](releases/GITHUB_RELEASE_v1.18.1.md)** - Publish-ready GitHub release body for v1.18.1
-- **[releases/RELEASE_MANIFEST_v1.18.1.md](releases/RELEASE_MANIFEST_v1.18.1.md)** - Release artifact scope and validation gates
-- **[releases/DEPLOYMENT_CHECKLIST_v1.18.1.md](releases/DEPLOYMENT_CHECKLIST_v1.18.1.md)** - Deployment and post-release verification checklist
-- **[releases/RELEASE_NOTES_v1.18.1.md](releases/RELEASE_NOTES_v1.18.1.md)** - v1.18.1 release notes (Feb 11, 2026)
-- **[releases/GITHUB_RELEASE_v1.18.1.md](releases/GITHUB_RELEASE_v1.18.1.md)** - GitHub release body for v1.18.1
-- **[guides/MIGRATION_v1.18.1.md](guides/MIGRATION_v1.18.1.md)** - Migration guide for v1.18.1 breaking changes
-- **[releases/reports/RELEASE_REPORT_v1.18.1.md](releases/reports/RELEASE_REPORT_v1.18.1.md)** - Executive release report for v1.18.1
-- **[releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.1.md](releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.1.md)** - Cleanup execution report for v1.18.1
-- **[releases/RELEASE_NOTES_v1.17.2.md](releases/RELEASE_NOTES_v1.17.2.md)** - Latest production release notes (Dec 13, 2025)
-- **[releases/RELEASE_AUDIT_v1.17.2.md](releases/RELEASE_AUDIT_v1.17.2.md)** - QA audit and verification follow-up
-- **[releases/RELEASE_PREPARATION_v1.17.2.md](releases/RELEASE_PREPARATION_v1.17.2.md)** - Pre-release checklist and dry-run outcomes
+- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - $11.18.3 patch release notes (RBAC imports fallback scope fix + installer refresh)
+- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - GitHub release body for $11.18.3
+- **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - Artifact manifest and integrity checklist for $11.18.3
+- **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - Deployment and verification checklist for $11.18.3
+- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - $11.18.3 hotfix release notes (installer runtime fix)
+- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - GitHub release body for $11.18.3
+- **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - Artifact manifest and integrity gates for $11.18.3
+- **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - Deployment and verification checklist for $11.18.3
+- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - Next major release notes package (prepared Feb 15, 2026)
+- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - Publish-ready GitHub release body for $11.18.3
+- **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - Release artifact scope and validation gates
+- **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - Deployment and post-release verification checklist
+- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - $11.18.3 release notes (Feb 11, 2026)
+- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - GitHub release body for $11.18.3
+- **[guides/MIGRATION_$11.18.3.md](guides/MIGRATION_$11.18.3.md)** - Migration guide for $11.18.3 breaking changes
+- **[releases/reports/RELEASE_REPORT_$11.18.3.md](releases/reports/RELEASE_REPORT_$11.18.3.md)** - Executive release report for $11.18.3
+- **[releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md](releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md)** - Cleanup execution report for $11.18.3
+- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - Latest production release notes (Dec 13, 2025)
+- **[releases/RELEASE_AUDIT_$11.18.3.md](releases/RELEASE_AUDIT_$11.18.3.md)** - QA audit and verification follow-up
+- **[releases/RELEASE_PREPARATION_$11.18.3.md](releases/RELEASE_PREPARATION_$11.18.3.md)** - Pre-release checklist and dry-run outcomes
 - **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper for archiving historical tags (supports `-DryRun`; fixture: `scripts/ops/samples/releases.sample.json`)
 - **[`.github/workflows/archive-legacy-releases.yml`](../.github/workflows/archive-legacy-releases.yml)** - Manual Action wrapper around the archival script
 - **[`scripts/ops/remove-legacy-packages.ps1`](../scripts/ops/remove-legacy-packages.ps1)** - GHCR cleanup helper (remove or privatize legacy images; fixture: `scripts/ops/samples/package-versions.sample.json`)
@@ -547,7 +547,7 @@ Documentation consolidation is an ongoing effort. Session-specific documents are
 - `REPOSITORY_AUDIT_SUMMARY.md` - Full repository audit (425 lines)
 - Session consolidated 4 testing guides into 1 comprehensive guide
 
-#### Earlier Sessions (Pre-v1.9.7)
+#### Earlier Sessions (Pre-$11.18.3)
 
 **Path:** `archive/sessions_2025-11/`
 **Archive Index:** [archive/sessions_2025-11/README.md](../archive/sessions_2025-11/README.md)
@@ -742,25 +742,25 @@ Found incorrect, outdated, or missing documentation?
 
 ## 📅 Recent Updates
 
-### January 6, 2026 (v1.15.2 Released)
+### January 6, 2026 ($11.18.3 Released)
 
 **Current Project Phase**: Phase 1 COMPLETE ✅ → Phase 2 Planning
 
 **Major Updates**:
-- ✅ Phase 1 complete: All 8 improvements delivered (v1.15.2 released Jan 5, 2026)
-- ✅ Added comprehensive release notes for v1.15.2
+- ✅ Phase 1 complete: All 8 improvements delivered ($11.18.3 released Jan 5, 2026)
+- ✅ Added comprehensive release notes for $11.18.3
 - ✅ Phase 2 consolidated plan created (RBAC + CI/CD + Performance)
 - ✅ Remaining issues prioritized and scheduled
-- 📋 Phase 2 planning underway (targeting v1.15.2 for Feb/March 2026)
+- 📋 Phase 2 planning underway (targeting $11.18.3 for Feb/March 2026)
 
 **New Documentation**:
-- [releases/RELEASE_NOTES_v1.15.2.md](releases/RELEASE_NOTES_v1.15.2.md) - Official v1.15.2 release notes
-- [releases/GITHUB_RELEASE_v1.15.2.md](releases/GITHUB_RELEASE_v1.15.2.md) - GitHub release draft
+- [releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md) - Official $11.18.3 release notes
+- [releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md) - GitHub release draft
 - [plans/PHASE2_CONSOLIDATED_PLAN.md](plans/PHASE2_CONSOLIDATED_PLAN.md) - Unified Phase 2 roadmap
 - [plans/REMAINING_ISSUES_PRIORITIZED.md](plans/REMAINING_ISSUES_PRIORITIZED.md) - Post-Phase 1 priorities
 
 **What's Next**:
-1. Create GitHub Release for v1.15.2
+1. Create GitHub Release for $11.18.3
 2. Monitor E2E tests in CI
 3. Set up coverage reporting
 4. Begin Phase 2 Sprint 1 (RBAC design)
@@ -776,7 +776,7 @@ Found incorrect, outdated, or missing documentation?
 - ✅ 316/316 backend tests passing, 30+ E2E tests ready
 
 **Archive Note**:
-- See `archive/pre-v1.17.2/CHANGELOG_ARCHIVE.md` for legacy history
+- See `archive/pre-$11.18.3/CHANGELOG_ARCHIVE.md` for legacy history
 
 ---
 

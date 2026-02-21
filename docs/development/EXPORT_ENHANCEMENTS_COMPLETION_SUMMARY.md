@@ -246,7 +246,7 @@ curl http://localhost:8080/api/v1/import-export/performance
 - Existing export functionality **unchanged**
 - Format parameter defaults to "excel" (existing behavior)
 - No database schema changes required
-- Backward compatible with v1.17.6+
+- Backward compatible with $11.18.3+
 
 ### Upgrading from Previous Versions
 1. Pull latest code: `git pull origin main`

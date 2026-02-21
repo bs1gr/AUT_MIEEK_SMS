@@ -4,7 +4,7 @@
 **Status**: ✅ **MULTI-LAYER ENFORCEMENT ACTIVE**
 **Authority**: User-mandated automated compliance system
 **Scope**: Prevents forbidden version formats (v11.x.x, v1.x.x, v2.x.x)
-**Required Format**: v1.x.x ONLY (e.g., v1.17.2)
+**Required Format**: v1.x.x ONLY (e.g., $11.18.3)
 
 ---
 
@@ -57,8 +57,8 @@ if (-not (Invoke-VersionFormatValidation)) {
 
 ```text
 ❌ CRITICAL VERSION VIOLATION DETECTED
-Version format v1.17.1 breaks version tracking (CRITICAL)
-Required format: v1.x.x (e.g., v1.17.2)
+Version format $11.18.3 breaks version tracking (CRITICAL)
+Required format: v1.x.x (e.g., $11.18.3)
 Edit VERSION file to use correct format and retry COMMIT_READY.ps1
 
 ```text
@@ -147,8 +147,8 @@ pwsh -Command "& '.\scripts\validate_version_format.ps1'" || exit 1
 
 ```text
 ❌ CRITICAL VERSION VIOLATION: Version format v11.x.x breaks version tracking
-Detected: v1.17.1 (forbidden)
-Required format: v1.x.x (e.g., v1.17.1)
+Detected: $11.18.3 (forbidden)
+Required format: v1.x.x (e.g., $11.18.3)
 exit 1
 
 ```text
@@ -188,18 +188,18 @@ exec pwsh -NoProfile -ExecutionPolicy Bypass -File "./COMMIT_READY.ps1" -Mode qu
 
 | Pattern | Reason | Example |
 |---------|--------|---------|
-| `v11.x.x` | Breaks version tracking - CRITICAL | v1.17.2 ❌ |
-| `v1.x.x` | Breaks version tracking - CRITICAL | v1.17.1 ❌ |
-| `v2.x.x` | Wrong major version | v1.17.2 ❌ |
+| `v11.x.x` | Breaks version tracking - CRITICAL | $11.18.3 ❌ |
+| `v1.x.x` | Breaks version tracking - CRITICAL | $11.18.3 ❌ |
+| `v2.x.x` | Wrong major version | $11.18.3 ❌ |
 | Other formats | Invalid format | v1 ❌, 1.17.1 ❌, v1.17 ❌ |
 
 ### ✅ REQUIRED (Only Accepted Format)
 
 | Pattern | Example | Status |
 |---------|---------|--------|
-| `v1.x.x` | v1.17.2 | ✅ Valid |
-| `v1.x.x` | v1.17.2 | ✅ Valid |
-| `v1.x.x` | v1.17.2 | ✅ Valid |
+| `v1.x.x` | $11.18.3 | ✅ Valid |
+| `v1.x.x` | $11.18.3 | ✅ Valid |
+| `v1.x.x` | $11.18.3 | ✅ Valid |
 
 ---
 
@@ -207,20 +207,20 @@ exec pwsh -NoProfile -ExecutionPolicy Bypass -File "./COMMIT_READY.ps1" -Mode qu
 
 ### Scenario 1: Agent Tries Wrong Version Format
 
-**Step 1**: Edit VERSION file to `v1.17.1`
+**Step 1**: Edit VERSION file to `$11.18.3`
 
 **Step 2**: Try to commit:
 
 ```powershell
 git add .
-git commit -m "Release v1.17.1"
+git commit -m "Release $11.18.3"
 
 ```text
 **Result**:
 
 ```text
 ❌ CRITICAL VERSION VIOLATION DETECTED
-Version format v1.17.1 breaks version tracking
+Version format $11.18.3 breaks version tracking
 Required format: v1.x.x
 
 ```text
@@ -229,13 +229,13 @@ Required format: v1.x.x
 **Step 3**: Try to bypass with --no-verify:
 
 ```powershell
-git commit --no-verify -m "Release v1.17.1"
+git commit --no-verify -m "Release $11.18.3"
 
 ```text
 **Result**:
 
 ```text
-[main abc1234] Release v1.17.1
+[main abc1234] Release $11.18.3
 WARNING: Pre-commit hook may have been bypassed
 
 ```text
@@ -251,7 +251,7 @@ git push origin main
 
 ```text
 ❌ CRITICAL VERSION VIOLATION: Version format v11.x.x breaks version tracking
-Detected: v1.17.1 (forbidden)
+Detected: $11.18.3 (forbidden)
 exit 1
 
 ```text
@@ -260,11 +260,11 @@ exit 1
 **Step 5**: Fix and retry:
 
 ```powershell
-# Edit VERSION file to v1.17.1
+# Edit VERSION file to $11.18.3
 
 .\COMMIT_READY.ps1 -Quick   # Validates new format
 git add VERSION
-git commit -m "Fix version format to v1.17.1"
+git commit -m "Fix version format to $11.18.3"
 git push origin main        # Now succeeds ✅
 
 ```text
@@ -276,7 +276,7 @@ git push origin main        # Now succeeds ✅
 
 - [ ] Read and understand this enforcement document
 - [ ] Know forbidden patterns: v11.x.x, v1.x.x, v2.x.x
-- [ ] Know required pattern: v1.x.x (e.g., v1.17.1)
+- [ ] Know required pattern: v1.x.x (e.g., $11.18.3)
 - [ ] Always check VERSION file before committing
 - [ ] Always run `.\COMMIT_READY.ps1 -Quick` before commit
 - [ ] Understand hard fail on version format violations
@@ -308,10 +308,10 @@ git push origin main        # Now succeeds ✅
 
 | Violation | Layer 1 | Layer 2 | Layer 3 | Result |
 |-----------|---------|---------|---------|--------|
-| v1.17.2 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
-| v1.17.1 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
-| v1.17.2 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
-| v1.17.2 | ✅ PASS | ✅ PASS | ✅ PASS | Releases normally |
+| $11.18.3 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
+| $11.18.3 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
+| $11.18.3 | ✅ FAIL | ✅ FAIL | ✅ FAIL | Impossible to release |
+| $11.18.3 | ✅ PASS | ✅ PASS | ✅ PASS | Releases normally |
 
 ### Failure Rate Expected
 
@@ -433,9 +433,9 @@ function Invoke-VersionFormatValidation {
 - [x] Test pre-commit hook locally
 
 **Testing**:
-- [ ] Test COMMIT_READY.ps1 with v1.17.1 in VERSION file
+- [ ] Test COMMIT_READY.ps1 with $11.18.3 in VERSION file
 - [ ] Test CI/CD rejection of forbidden version
-- [ ] Test valid version v1.17.1 passes all layers
+- [ ] Test valid version $11.18.3 passes all layers
 - [ ] Test --no-verify bypass creates audit trail
 
 **Monitoring**:

@@ -262,7 +262,7 @@ New agent arrives:
 
 ## 🔄 Escalation: When You Get Stuck
 
-**Example**: "I don't know if we should commit to `main` or `feature/v1.14.2-phase1`"
+**Example**: "I don't know if we should commit to `main` or `feature/$11.18.3-phase1`"
 
 **Process**:
 1. Don't guess. Open ACTIVE_WORK_STATUS.md
@@ -271,7 +271,7 @@ New agent arrives:
    ```
    | Decision | Question | Impact | Owner | Deadline |
    |------|------|---|---|---|
-   | BRANCH_STRATEGY | Commit to main or feature/v1.14.2-phase1? | Blocks PHASE1-002 | Tech lead | Jan 6 EOD |
+   | BRANCH_STRATEGY | Commit to main or feature/$11.18.3-phase1? | Blocks PHASE1-002 | Tech lead | Jan 6 EOD |
    ```
 4. Mark your work item as 🟨 BLOCKED
 5. Work on a different item (don't wait)

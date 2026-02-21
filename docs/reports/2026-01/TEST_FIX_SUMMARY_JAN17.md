@@ -143,7 +143,7 @@ async def create_student_import(
 ### Test Execution
 
 - **Command**: `.\RUN_TESTS_BATCH.ps1` (PowerShell batch runner)
-- **Environment**: SMS v1.17.2, Windows 11, Python 3.13.3, pytest 8.4.2
+- **Environment**: SMS $11.18.3, Windows 11, Python 3.13.3, pytest 8.4.2
 - **Execution Method**: VS Code task system (proper output capture)
 - **Exit Code**: 0 (SUCCESS)
 

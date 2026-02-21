@@ -70,8 +70,8 @@ With Phase 1 complete (all 8 improvements delivered), we now focus on consolidat
 **Owner**: Project Lead
 
 **Action Items**:
-1. ✅ **Already Done**: Release notes created (`docs/releases/RELEASE_NOTES_v1.17.2.md`)
-2. ✅ **Already Done**: GitHub release draft prepared (`docs/releases/GITHUB_RELEASE_v1.17.2.md`)
+1. ✅ **Already Done**: Release notes created (`docs/releases/RELEASE_NOTES_$11.18.3.md`)
+2. ✅ **Already Done**: GitHub release draft prepared (`docs/releases/GITHUB_RELEASE_$11.18.3.md`)
 3. ⏳ **Planned**: Create GitHub Release at https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
 4. ⏳ **Planned**: Tag as 1.15.0 (targeting main branch)
 5. ⏳ **Planned**: Mark as "Latest release"

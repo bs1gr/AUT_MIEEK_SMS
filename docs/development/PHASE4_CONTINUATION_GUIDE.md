@@ -13,13 +13,13 @@
 ### Completed Work
 
 ✅ **Phase 4 Issue #145: Backend Full-Text Search API**
-- Status: Complete (merged in v1.17.6)
+- Status: Complete (merged in $11.18.3)
 - Deliverable: Full-text search endpoint with filters, sorting, pagination
 - Tests: 100% coverage with unit and integration tests
 - Performance: < 500ms for typical queries
 
 ✅ **Phase 4 Issue #146: Saved Searches CRUD**
-- Status: Complete (merged in v1.17.6)
+- Status: Complete (merged in $11.18.3)
 - Deliverable: SavedSearch model, service layer, API endpoints
 - Features: CRUD operations, favorites, statistics
 - Tests: Comprehensive test coverage

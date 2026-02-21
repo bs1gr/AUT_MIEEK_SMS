@@ -95,7 +95,7 @@ cache-to: type=gha,mode=max
 
 ### CI Execution Time Changes
 
-**Before Optimization** (v1.15.2):
+**Before Optimization** ($11.18.3):
 
 ```text
 Total: 12-15 minutes

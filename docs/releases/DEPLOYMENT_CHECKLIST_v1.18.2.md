@@ -1,4 +1,4 @@
-# Deployment Checklist - v1.18.2
+# Deployment Checklist - $11.18.3
 
 **Version:** 1.18.2
 **Date:** February 20, 2026
@@ -7,7 +7,7 @@
 
 ## 1) Pre-Deploy Validation
 
-- [ ] Verify tag and release exist: `v1.18.2`
+- [ ] Verify tag and release exist: `$11.18.3`
 - [ ] Confirm release is published (non-draft)
 - [ ] Confirm asset allowlist only contains:
   - `SMS_Installer_1.18.2.exe`
@@ -30,17 +30,17 @@
 
 ## 4) Documentation & Tracking
 
-- [ ] Release notes present: `docs/releases/RELEASE_NOTES_v1.18.2.md`
-- [ ] GitHub release body present: `docs/releases/GITHUB_RELEASE_v1.18.2.md`
-- [ ] Manifest present: `docs/releases/RELEASE_MANIFEST_v1.18.2.md`
-- [ ] Work plan updated for v1.18.2 release status
-- [ ] Documentation index updated for v1.18.2
+- [ ] Release notes present: `docs/releases/RELEASE_NOTES_$11.18.3.md`
+- [ ] GitHub release body present: `docs/releases/GITHUB_RELEASE_$11.18.3.md`
+- [ ] Manifest present: `docs/releases/RELEASE_MANIFEST_$11.18.3.md`
+- [ ] Work plan updated for $11.18.3 release status
+- [ ] Documentation index updated for $11.18.3
 
 ## 5) Rollback Readiness
 
-- [ ] Previous release reference retained (`v1.18.1`)
+- [ ] Previous release reference retained (`$11.18.3`)
 - [ ] Recovery path documented for installer redeploy if needed
 
 ---
 
-**Release URL:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.2
+**Release URL:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3

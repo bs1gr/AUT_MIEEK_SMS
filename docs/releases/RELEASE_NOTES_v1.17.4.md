@@ -1,12 +1,12 @@
 # Release Notes - Version 1.17.4
 
 **Release Date**: 2026-01-26
-**Previous Version**: v1.17.6
+**Previous Version**: $11.18.3
 
 ## ⚠️ BREAKING CHANGES
 
-- **release(v1.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning** [1e45d96]
-  BREAKING CHANGES: None - fully backward compatible with v1.17.6
+- **release($11.18.3): Consolidate Phase 3 features with version alignment and Phase 4 planning** [1e45d96]
+  BREAKING CHANGES: None - fully backward compatible with $11.18.3
 
 ## ✨ Features
 
@@ -50,7 +50,7 @@
 - Return 403 for authorization failures; improve auth patching in tests [5312487]
 - SavedSearch endpoints - enforce auth with optional_require_role('*') [25fcb15]
 - CI/CD environment variables and E2E test blocking (Jan 24, 2026) [e4d6c96]
-- Correct version format from \.18.0 to v1.17.6 across documentation (Policy 2 compliance) [1ba54f0]
+- Correct version format from \.18.0 to $11.18.3 across documentation (Policy 2 compliance) [1ba54f0]
 - Remove redundant Base import redefinition in conftest.py [586c3b0]
 - Add resilience to conftest teardown and explicit schema dependency [8ef391f]
 - **frontend**: TypeScript Part 2 - fix remaining 15 errors [af63fa9]
@@ -90,7 +90,7 @@
 - silence MyPy Column assignment noise in import/export service [75c651c]
 - Comprehensive MyPy type error resolution in import_export_service [363329c]
 - Resolve MyPy type errors in search and import/export services [6f535a8]
-- Raise markdown lint threshold to 8100 (temporary workaround for v1.17.6) [74fd9c7]
+- Raise markdown lint threshold to 8100 (temporary workaround for $11.18.3) [74fd9c7]
 - Update documentation versions to 1.17.2 (CI version consistency check) [3aab152]
 - Update VERSION to 1.17.2 and adjust Phase 4 planning for solo developer workflow [a780ac3]
 - Resolve remaining ESLint violations (unused vars, types, quote escaping) [8a1b9b3]
@@ -108,7 +108,7 @@
 - Correct version format validator path and PowerShell substitution bugs [169f330]
 - Resolve all MyPy type errors (28 errors fixed) [3e17b6e]
 - Resolve linting errors (5 errors total) [c198607]
-- Update all version references to v1.17.6 (9 files + package-lock.json) [d8f2d47]
+- Update all version references to $11.18.3 (9 files + package-lock.json) [d8f2d47]
 - Add missing RBAC schema exports; test audit documentation [a5c53dd]
 
 ## 🔒 Security
@@ -142,7 +142,7 @@
 - CI/CD setup automation & complete implementation guides [c54fe62]
 - Update work plan with CI/CD fixes completion (Jan 24, 2026) [6a7b690]
 - Update UNIFIED_WORK_PLAN.md with all 4 pending tasks completion status [5e0766f]
-- release notes and changelog for v1.17.6 [2d43064]
+- release notes and changelog for $11.18.3 [2d43064]
 - Update UNIFIED_WORK_PLAN with BATCH 4-6 completion [0fc8f95]
 - update work plan with Jan 22 CI verification [b25507e]
 - Fix markdown lint errors and streamline work plan >> >> - Fix README.md line length (reference-style link) >> - Fix frontend/README.md line length (split description) >> - Streamline UNIFIED_WORK_PLAN.md (3309 έΗΤ 153 lines, 95% reduction) >> - Archive historical records to UNIFIED_WORK_PLAN_ARCHIVE_JAN21.md >> - All markdown files pass markdownlint-cli2 [f1093c2]
@@ -169,19 +169,19 @@
 - Update work plan with frontend lint parsing error fixes (Jan 18) [04a622b]
 - Add Phase 6 final status report with completion verification [fcbfacd]
 - Add Phase 6 completion summary with infrastructure fixes and performance baseline [fce0efe]
-- Fix version confusion - v1.17.6 is STABLE (not REMEDIATION) [b83aa1d]
+- Fix version confusion - $11.18.3 is STABLE (not REMEDIATION) [b83aa1d]
 - add user guide and mark feature #127 complete [9770655]
 - Feature #127 (Bulk Import/Export) architecture design - ready for Phase 1 implementation [68df49e]
 - Add production validation documentation and test utilities [04dd222]
 - Terminal encoding fix - cleared corrupted PSReadLine history [c851216]
-- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - v1.17.6 released [0916dc8]
+- Mark Feature #126 (Real-Time Notifications) as 100% COMPLETE - $11.18.3 released [0916dc8]
 - Update Phase 3 planning and release documentation [1e5946a]
 - Add audit session summary with key findings and status [0d585c7]
 - Document lesson learned implementation - verification before claims [cc0cb48]
 - Add critical lesson - verify test results before claiming success (Jan 12 incident) [9b485b8]
 - Add comprehensive audit report and root cause analysis [fe0940a]
 - Add action summary for CI fix and release complete [6cfc933]
-- Add complete summary - CI fix and v1.17.6 release [b96771a]
+- Add complete summary - CI fix and $11.18.3 release [b96771a]
 
 ## ✅ Tests
 
@@ -207,7 +207,7 @@
 - **tests**: add RUN_FRONTEND_TESTS_SUMMARY.ps1 to capture vitest output and write summary to test-results/frontend [51af42b]
 - **archive**: move displaced site.webmanifest to archive/displaced-files-jan2026 with README for traceability [cd9c346]
 - Archive 39 obsolete/deprecated scripts and test files [b0b3a34]
-- update README to reflect v1.17.6 release and fix auth header attachment [992f89c]
+- update README to reflect $11.18.3 release and fix auth header attachment [992f89c]
 - **release**: bump version to 1.17.3 and update docs [356a681]
 - BATCH 3 - Database migration for SavedSearch table [b83400a]
 - improve .gitignore with import/export artifact patterns [aafca80]
@@ -500,7 +500,7 @@
 - [- Updat]
 - [- Test ]
 - GitHub Copilot
-- v1.17.6: Fix CI/API response handling, auth security, and version consistency [cd331f4]
+- $11.18.3: Fix CI/API response handling, auth security, and version consistency [cd331f4]
 - [- Add s]
 - [- Migra]
 - [- Verif]
@@ -1172,7 +1172,7 @@
 - [- Updat]
 - [- Adjus]
 - GitHub Copilot
-- release(v1.17.6): Consolidate Phase 3 features with version alignment and Phase 4 planning [1e45d96]
+- release($11.18.3): Consolidate Phase 3 features with version alignment and Phase 4 planning [1e45d96]
 - [FEATURE]
 - [- Phase]
 - [- Phase]
@@ -1194,7 +1194,7 @@
 - [- Updat]
 - [- Fixed]
 - [RATIONA]
-- [v1.17.6]
+- [$11.18.3]
 - [- v1.18]
 - [- v1.17]
 - [- Provi]
@@ -1475,7 +1475,7 @@
 - [- Ensur]
 - [Fixes v]
 - GitHub Copilot
-- release: Prepare v1.17.6 - bugfix for RBAC schema exports (all tests passing) [3054c7e]
+- release: Prepare $11.18.3 - bugfix for RBAC schema exports (all tests passing) [3054c7e]
 - [- CI bl]
 - [- v1.18]
 - [- Artif]

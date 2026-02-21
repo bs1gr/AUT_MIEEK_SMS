@@ -1,13 +1,13 @@
-# Release Notes v1.18.1 - Major Maintenance & UX Consolidation
+# Release Notes $11.18.3 - Major Maintenance & UX Consolidation
 
 **Date:** February 17, 2026
-**Version:** v1.18.1 (target)
+**Version:** $11.18.3 (target)
 **Status:** Release documentation prepared (pre-tag)
 **Focus:** Course auto-activation, student lifecycle UX, reporting terminology alignment, i18n consistency, and CI stability
 
 ## 🚀 Highlights
 
-This major maintenance release consolidates recent production-hardening work after `v1.18.1`.
+This major maintenance release consolidates recent production-hardening work after `$11.18.3`.
 
 - ✅ **NEW**: Course auto-activation enhancements (scheduled sync, UI indicators, monitoring)
 - ✅ Cascaded student list experience (active/inactive)
@@ -19,7 +19,7 @@ This major maintenance release consolidates recent production-hardening work aft
 
 ## ✨ Features
 
-### Courses (NEW - v1.18.1)
+### Courses (NEW - $11.18.3)
 
 **Semester-Based Auto-Activation System**:
 - **Scheduled Job**: APScheduler service runs daily at 3:00 AM UTC to bulk-update course `is_active` status based on semester date ranges
@@ -92,10 +92,10 @@ This major maintenance release consolidates recent production-hardening work aft
 
 ## 📦 Recommended Release Artifacts
 
-- `docs/releases/RELEASE_NOTES_v1.18.1.md`
-- `docs/releases/GITHUB_RELEASE_v1.18.1.md`
-- `docs/releases/RELEASE_MANIFEST_v1.18.1.md`
-- `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.1.md`
+- `docs/releases/RELEASE_NOTES_$11.18.3.md`
+- `docs/releases/GITHUB_RELEASE_$11.18.3.md`
+- `docs/releases/RELEASE_MANIFEST_$11.18.3.md`
+- `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md`
 
 ---
 

@@ -119,7 +119,7 @@ function Write-DebugInfo {
     # Stop cleanly
 
 .NOTES
-Version: 1.18.1 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
+Version: 1.18.3 (Consolidated from RUN.ps1, SMS.ps1, INSTALL.ps1, SUPER_CLEAN_AND_DEPLOY.ps1)
     For native development mode, use: .\NATIVE.ps1
 #>
 

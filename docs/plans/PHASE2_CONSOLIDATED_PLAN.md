@@ -3,8 +3,8 @@
 **Created**: January 6, 2026
 **Status**: Planning Phase
 **Duration**: 4-6 weeks (estimated)
-**Release Target**: v1.17.2 (February/March 2026)
-**Prerequisites**: v1.17.2 complete ✅
+**Release Target**: $11.18.3 (February/March 2026)
+**Prerequisites**: $11.18.3 complete ✅
 
 ---
 
@@ -134,7 +134,7 @@ Phase 2 consolidates three parallel improvement tracks into a unified roadmap:
 - [ ] All documentation updated
 - [ ] Admin user guides complete
 - [ ] Release notes prepared
-- [ ] v1.17.2 ready for release
+- [ ] $11.18.3 ready for release
 
 ---
 
@@ -393,7 +393,7 @@ async def create_student(student: StudentCreate, current_user = Depends(get_curr
     python scripts/check_performance_regression.py
 
 ```text
-**Performance Baselines** (from v1.15.2):
+**Performance Baselines** (from $11.18.3):
 - Student list: <100ms (p95)
 - Grade calculation: <200ms (p95)
 - Attendance: <80ms (p95)
@@ -427,7 +427,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 #### 4.2 Installer Enhancements
 
-**Already Complete** (from v1.15.2):
+**Already Complete** (from $11.18.3):
 - ✅ SMS Toggle shortcut persistence fixed
 - ✅ Uninstaller naming (unins{version}.exe)
 - ✅ Docker integration improvements
@@ -476,7 +476,7 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 ### Sprint 6 (Week 6): Release
 
 1. **Final Testing** - Full regression suite
-2. **Migration Guide** - v1.15.2 → v1.15.2
+2. **Migration Guide** - $11.18.3 → $11.18.3
 3. **Release Prep** - Release notes, tagging
 
 ---
@@ -507,17 +507,17 @@ logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 - [RBAC_PHASE2.4_PLAN.md](RBAC_PHASE2.4_PLAN.md) - Original RBAC plan
 - [REMAINING_ISSUES_PRIORITY_PLAN.md](REMAINING_ISSUES_PRIORITY_PLAN.md) - CI/CD issues
-- [INSTALLER_IMPROVEMENTS_v1.15.2+.md](INSTALLER_IMPROVEMENTS_v1.15.2+.md) - Installer notes
+- [INSTALLER_IMPROVEMENTS_$11.18.3+.md](INSTALLER_IMPROVEMENTS_$11.18.3+.md) - Installer notes
 
 ### Implementation
 
-- [PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md](PHASE1_AUDIT_IMPROVEMENTS_v1.15.2.md) - Phase 1 reference
+- [PHASE1_AUDIT_IMPROVEMENTS_$11.18.3.md](PHASE1_AUDIT_IMPROVEMENTS_$11.18.3.md) - Phase 1 reference
 - [../misc/IMPLEMENTATION_PATTERNS.md](../misc/IMPLEMENTATION_PATTERNS.md) - Code patterns
 
 ### Status Tracking
 
 - [../ACTIVE_WORK_STATUS.md](../ACTIVE_WORK_STATUS.md) - Current work status
-- [../releases/EXECUTION_TRACKER_v1.15.2.md](../releases/EXECUTION_TRACKER_v1.15.2.md) - Phase 2 tracker (to be created)
+- [../releases/EXECUTION_TRACKER_$11.18.3.md](../releases/EXECUTION_TRACKER_$11.18.3.md) - Phase 2 tracker (to be created)
 
 ---
 

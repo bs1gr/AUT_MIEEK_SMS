@@ -5,7 +5,7 @@
 **Status**: Production Ready
 **Base URL**: `/api/v1`
 **API Version**: v1
-**Target Release**: v1.11.2
+**Target Release**: $11.18.3
 
 ---
 
@@ -733,9 +733,9 @@ HTTP/1.1 410 Gone
 
 | Date | Version | Status | Action |
 |------|---------|--------|--------|
-| 2025-01-01 | v1.11.2 | Released | Initial release |
-| 2025-12-12 | v1.11.2 | Current | Bug fixes, minor features |
-| 2026-01-01 | v1.11.2 (planned) | Release | Breaking changes allowed |
+| 2025-01-01 | $11.18.3 | Released | Initial release |
+| 2025-12-12 | $11.18.3 | Current | Bug fixes, minor features |
+| 2026-01-01 | $11.18.3 (planned) | Release | Breaking changes allowed |
 | 2026-06-01 | v1 Sunset | Deprecated | v1 endpoints return 410 |
 | 2026-06-01 | v2 Current | Stable | Full support |
 

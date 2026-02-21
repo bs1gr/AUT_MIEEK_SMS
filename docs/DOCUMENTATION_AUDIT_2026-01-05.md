@@ -57,7 +57,7 @@
 ### 4. **Release/Deployment Guides (Duplicated)**
 
 **Found Files**:
-- `docs/releases/RELEASE_PREPARATION_v1.15.2.md` (current phase plan)
+- `docs/releases/RELEASE_PREPARATION_$11.18.3.md` (current phase plan)
 - `QUICK_RELEASE_GUIDE.md` (generic guide)
 - `RELEASE_PREPARATION.ps1` (script)
 - `RELEASE_READY.ps1` (script)
@@ -140,7 +140,7 @@
 
 | File | Status | Action |
 |------|--------|--------|
-| `RELEASE_PREPARATION_v1.15.2.md` | ✅ KEEP | Current release plan |
+| `RELEASE_PREPARATION_$11.18.3.md` | ✅ KEEP | Current release plan |
 | (older versions) | ✅ ARCHIVE | Keep for historical record |
 
 ### docs/user/ (User-Facing Guides)
@@ -209,7 +209,7 @@
 
 3. **Release Documentation**
    - Create generic template: `docs/releases/RELEASE_TEMPLATE.md`
-   - Keep version-specific docs (v1.15.2, etc.)
+   - Keep version-specific docs ($11.18.3, etc.)
    - Archive generic `QUICK_RELEASE_GUIDE.md` if covered by template
 
 ### Phase 3: Verification & Update (Low Effort)

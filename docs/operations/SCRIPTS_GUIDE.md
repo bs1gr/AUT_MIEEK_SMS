@@ -509,7 +509,7 @@ If you're upgrading from a version before the script consolidation (1.9.7):
 
 ### Breaking Changes
 
-All legacy scripts are consolidated in v1.9.7. Use only the canonical entry points (`DOCKER.ps1`, `NATIVE.ps1`).
+All legacy scripts are consolidated in $11.18.3. Use only the canonical entry points (`DOCKER.ps1`, `NATIVE.ps1`).
 
 ### Benefits of New Organization
 
@@ -529,12 +529,12 @@ All legacy scripts are consolidated in v1.9.7. Use only the canonical entry poin
 
 ## Version History
 
-- **v1.9.7** (January 2025): Scripts consolidated to DOCKER.ps1 and NATIVE.ps1
-- **v1.9.7** (November 2025): Legacy scripts archived
-- **v1.9.7+** (October 2025): Scripts reorganized into dev/ and deploy/
-- **v1.9.7** (September 2025): Introduced SMART_SETUP.ps1 and SMS.ps1
-- **v1.9.7** (August 2025): Added Docker volume versioning
-- **v1.9.7** (July 2025): Initial release
+- **$11.18.3** (January 2025): Scripts consolidated to DOCKER.ps1 and NATIVE.ps1
+- **$11.18.3** (November 2025): Legacy scripts archived
+- **$11.18.3+** (October 2025): Scripts reorganized into dev/ and deploy/
+- **$11.18.3** (September 2025): Introduced SMART_SETUP.ps1 and SMS.ps1
+- **$11.18.3** (August 2025): Added Docker volume versioning
+- **$11.18.3** (July 2025): Initial release
 
 ## Contributing
 

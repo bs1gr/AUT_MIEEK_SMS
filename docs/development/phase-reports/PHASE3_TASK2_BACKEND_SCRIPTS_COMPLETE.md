@@ -1,6 +1,6 @@
 # Phase 3: Task 2 Completion Report - Backend Scripts Organization
 
-> **⚠️ DEPRECATED (v1.14.0):** This document references `backend.auto_import_courses` which was removed in v1.14.0. See [Migration Guide](../../guides/MIGRATION_v1.14.0.md) for updated import paths.
+> **⚠️ DEPRECATED ($11.18.3):** This document references `backend.auto_import_courses` which was removed in $11.18.3. See [Migration Guide](../../guides/MIGRATION_$11.18.3.md) for updated import paths.
 
 **Date:** December 9, 2025
 **Task:** Backend Scripts Organization
@@ -252,9 +252,9 @@ Status: ✅ PASSED
 
 ## Migration Timeline
 
-- **v1.10.1 (Now):** Both import paths work, deprecation warnings shown
-- **v1.10.1+:** Enhanced diagnostics if old paths used
-- **v1.10.1+:** Possible removal of old import stubs (with notice period)
+- **$11.18.3 (Now):** Both import paths work, deprecation warnings shown
+- **$11.18.3+:** Enhanced diagnostics if old paths used
+- **$11.18.3+:** Possible removal of old import stubs (with notice period)
 
 ---
 
@@ -284,7 +284,7 @@ Status: ✅ PASSED
 | Task 3: Symlink Strategy | 3 | ⏳ Pending | Dec 9 |
 | Task 4: Implementation Guide | 1.5 | ⏳ Pending | Dec 10 |
 | Task 5: Testing & Validation | 2 | ⏳ Pending | Dec 10 |
-| **TOTAL** | **13.5** | **2/5 Complete** | **v1.10.1-ready** |
+| **TOTAL** | **13.5** | **2/5 Complete** | **$11.18.3-ready** |
 
 ---
 

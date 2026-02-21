@@ -1,4 +1,4 @@
-# v1.18.3 - RBAC Imports Fallback Patch + Installer Refresh
+# $11.18.3 - RBAC Imports Fallback Patch + Installer Refresh
 
 ## 🛠️ What’s fixed
 
@@ -6,7 +6,7 @@ This patch release narrows a legacy RBAC fallback to `imports:*` permissions onl
 
 ## ✅ Release integrity
 
-- Signed installer built for `v1.18.3`
+- Signed installer built for `$11.18.3`
 - Installer digest computed and sidecar generated
 - Release asset set remains installer-focused (`.exe` + `.sha256`)
 
@@ -21,15 +21,15 @@ This patch release narrows a legacy RBAC fallback to `imports:*` permissions onl
 
 ## 🔄 Upgrade
 
-Direct patch upgrade from `v1.18.2`.
+Direct patch upgrade from `$11.18.3`.
 
 - Production: `DOCKER.ps1`
 - Development/testing: `NATIVE.ps1`
 
 ## 📚 Notes
 
-See full details in: `docs/releases/RELEASE_NOTES_v1.18.3.md`
+See full details in: `docs/releases/RELEASE_NOTES_$11.18.3.md`
 
 ---
 
-**Full Changelog:** https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.18.2...v1.18.3
+**Full Changelog:** https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3

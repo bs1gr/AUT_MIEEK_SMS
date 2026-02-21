@@ -41,7 +41,7 @@ These documented specific fixes that are now baked into the system:
 
 #### Configuration Documentation (1 file)
 
-- `CONFIG_STRATEGY.md` → Outdated version references (v1.15.2 vs current 1.14.2)
+- `CONFIG_STRATEGY.md` → Outdated version references ($11.18.3 vs current 1.14.2)
 
 #### User-Specific Documentation (1 file)
 

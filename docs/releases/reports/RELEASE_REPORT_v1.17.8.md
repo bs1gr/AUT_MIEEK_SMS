@@ -1,16 +1,16 @@
-# Release Report: v1.18.1
+# Release Report: $11.18.3
 
 **Release Date:** 2026-02-11
 **Release Type:** Minor (includes breaking frontend module relocation)
 **Breaking Changes:** Yes (frontend import paths)
-**Previous Version:** v1.18.1
+**Previous Version:** $11.18.3
 **Repository:** bs1gr/AUT_MIEEK_SMS
 
 ---
 
 ## Executive Summary
 
-Version v1.18.1 delivers a broad set of UX and reporting enhancements, quality-of-life improvements to operations and admin tooling, and a small but notable breaking change: the Power/System and RBAC permissions pages were moved into the feature module architecture. The legacy page wrappers remain for compatibility, but custom imports should be updated.
+Version $11.18.3 delivers a broad set of UX and reporting enhancements, quality-of-life improvements to operations and admin tooling, and a small but notable breaking change: the Power/System and RBAC permissions pages were moved into the feature module architecture. The legacy page wrappers remain for compatibility, but custom imports should be updated.
 
 **Key Highlights:**
 - 🧭 **Feature module alignment** for Power/System and RBAC permissions UI
@@ -32,7 +32,7 @@ The following pages moved to feature modules:
 | `@/pages/PowerPage` | `@/features/operations` → `SystemPage` | Power/System page moved to Operations feature |
 | `@/pages/AdminPermissionsPage` | `@/features/admin` → `PermissionsPage` | RBAC permissions page moved to Admin feature |
 
-**Migration Guide:** `docs/guides/MIGRATION_v1.18.1.md`
+**Migration Guide:** `docs/guides/MIGRATION_$11.18.3.md`
 
 ---
 
@@ -75,25 +75,25 @@ The following pages moved to feature modules:
 
 ## Validation & Testing
 
-No additional test runs were executed as part of this documentation update. Refer to existing CI/CD and release validation artifacts for the v1.18.1 verification history.
+No additional test runs were executed as part of this documentation update. Refer to existing CI/CD and release validation artifacts for the $11.18.3 verification history.
 
 ---
 
 ## Files Added (This Documentation Update)
 
-- `docs/guides/MIGRATION_v1.18.1.md`
-- `docs/releases/reports/RELEASE_REPORT_v1.18.1.md`
-- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.1.md`
+- `docs/guides/MIGRATION_$11.18.3.md`
+- `docs/releases/reports/RELEASE_REPORT_$11.18.3.md`
+- `docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md`
 
 ---
 
 ## Quick Links
 
-- **Release Notes:** `docs/releases/RELEASE_NOTES_v1.18.1.md`
-- **Migration Guide:** `docs/guides/MIGRATION_v1.18.1.md`
-- **Cleanup Report:** `docs/releases/reports/CLEANUP_EXECUTION_REPORT_v1.18.1.md`
+- **Release Notes:** `docs/releases/RELEASE_NOTES_$11.18.3.md`
+- **Migration Guide:** `docs/guides/MIGRATION_$11.18.3.md`
+- **Cleanup Report:** `docs/releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md`
 - **Changelog:** `CHANGELOG.md`
 
 ---
 
-*Release report prepared for v1.18.1 documentation alignment.*
+*Release report prepared for $11.18.3 documentation alignment.*

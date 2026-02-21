@@ -1,9 +1,9 @@
-# SMS v1.12.2 Release Summary
+# SMS $11.18.3 Release Summary
 
 **Release Date**: December 19, 2025
-**Release Tag**: `v1.12.2`
+**Release Tag**: `$11.18.3`
 **Status**: ✅ Production Ready
-**Baseline**: v1.12.2 (December 11, 2025)
+**Baseline**: $11.18.3 (December 11, 2025)
 
 ---
 
@@ -271,7 +271,7 @@ This is a **major feature and operational excellence release** focused on **asyn
 
 - Phase documentation (Phase 1/2.1/2.2/2.3 summaries)
 - Developer guides (QUERY_OPTIMIZATION, ERROR_RECOVERY, API_CONTRACT)
-- CHANGELOG entry (comprehensive v1.12.2 section)
+- CHANGELOG entry (comprehensive $11.18.3 section)
 - Quick reference guide
 - Release notes (this document)
 - Roadmap updates
@@ -389,7 +389,7 @@ Automatic on startup via `run_migrations.py` in FastAPI lifespan. No manual step
 
 - **Backend Tests**: 272 tests across all modules
 - **Frontend Tests**: 1,189 tests in 53 files
-- **New Tests**: 290+ test cases for v1.12.2 features
+- **New Tests**: 290+ test cases for $11.18.3 features
 - **Pass Rate**: 100% (1,461+ tests)
 
 ### Feature Completeness
@@ -425,12 +425,12 @@ We welcome contributions! See CONTRIBUTING.md for guidelines.
 ### For Questions
 
 - Check [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md) for guides
-- Review [ROADMAP_v1.12.2.md](ROADMAP_v1.12.2.md) for feature details
+- Review [ROADMAP_$11.18.3.md](ROADMAP_$11.18.3.md) for feature details
 - See [copilot-instructions.md](.github/copilot-instructions.md) for development setup
 
 ### For Issues
 
-- Report bugs on GitHub Issues with version tag `v1.12.2`
+- Report bugs on GitHub Issues with version tag `$11.18.3`
 - Include reproduction steps and error logs
 - Reference relevant phase (Phase 1, 2.1, 2.2, 2.3)
 

@@ -171,7 +171,7 @@ jobs:
 
       - name: Deploy to production
 
-        uses: appleboy/ssh-action@v1.9.7
+        uses: appleboy/ssh-action@$11.18.3
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}
@@ -244,7 +244,7 @@ jobs:
 
       - name: Update production environment
 
-        uses: appleboy/ssh-action@v1.9.7
+        uses: appleboy/ssh-action@$11.18.3
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}
@@ -279,7 +279,7 @@ jobs:
 
       - name: Send notification
 
-        uses: slackapi/slack-github-action@v1.9.7
+        uses: slackapi/slack-github-action@$11.18.3
         with:
           webhook-url: ${{ secrets.SLACK_WEBHOOK }}
           payload: |
@@ -336,7 +336,7 @@ jobs:
 
       - name: Deploy to ${{ matrix.environment }}
 
-        uses: appleboy/ssh-action@v1.9.7
+        uses: appleboy/ssh-action@$11.18.3
         with:
           host: ${{ secrets[format('{0}_HOST', matrix.environment)] }}
           username: ${{ secrets[format('{0}_USER', matrix.environment)] }}
@@ -406,7 +406,7 @@ jobs:
 
       - name: Deploy updated configuration
 
-        uses: appleboy/ssh-action@v1.9.7
+        uses: appleboy/ssh-action@$11.18.3
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}
@@ -471,7 +471,7 @@ jobs:
 
       - name: Deploy to production
 
-        uses: appleboy/ssh-action@v1.9.7
+        uses: appleboy/ssh-action@$11.18.3
         with:
           host: ${{ secrets.DEPLOYMENT_HOST }}
           username: ${{ secrets.DEPLOYMENT_USER }}

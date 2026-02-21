@@ -411,7 +411,7 @@ npm run e2e -- notifications --project=chromium
 
 ## ⚠️ Known Limitations & Future Enhancements
 
-### Current (v1.15.2)
+### Current ($11.18.3)
 
 - Email notifications: Jinja2 templates created but not sent
 - SMS notifications: Twilio integration not implemented

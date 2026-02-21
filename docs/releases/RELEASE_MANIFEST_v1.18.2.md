@@ -1,4 +1,4 @@
-# Release Manifest - v1.18.2
+# Release Manifest - $11.18.3
 
 **Version:** 1.18.2
 **Date:** February 20, 2026
@@ -7,8 +7,8 @@
 
 ## Release Metadata
 
-- Tag: `v1.18.2`
-- Release: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.2
+- Tag: `$11.18.3`
+- Release: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
 - Published at: `2026-02-20T10:46:44Z`
 - Branch lineage: `main`
 
@@ -25,7 +25,7 @@
 ## Scope Summary
 
 - Hotfix release for installer runtime failure resolution.
-- Release produced from corrected tag lineage (`v1.18.2`) to avoid immutable legacy workflow behavior.
+- Release produced from corrected tag lineage (`$11.18.3`) to avoid immutable legacy workflow behavior.
 
 ## Key Commits in Scope
 

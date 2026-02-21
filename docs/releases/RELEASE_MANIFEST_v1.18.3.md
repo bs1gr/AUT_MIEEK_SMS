@@ -1,4 +1,4 @@
-# Release Manifest - v1.18.3
+# Release Manifest - $11.18.3
 
 **Version:** 1.18.3
 **Date:** February 20, 2026
@@ -7,8 +7,8 @@
 
 ## Release Metadata
 
-- Tag: `v1.18.3`
-- Release: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
+- Tag: `$11.18.3`
+- Release: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3`
 - Published at: `2026-02-20T21:20:18Z`
 - Branch lineage: `main`
 
@@ -24,19 +24,19 @@
 ## Scope Summary
 
 - RBAC patch: fallback narrowed to `imports:*` only for legacy permission edge cases.
-- Installer artifact refreshed and signed for `v1.18.3` release lineage.
+- Installer artifact refreshed and signed for `$11.18.3` release lineage.
 
 ## Key Commits in Scope
 
 - `13e5eb57f` - fix(rbac): allow legacy admin fallback only for imports permissions
-- `<pending>` - release(v1.18.3): bump versions, refresh installer, add release docs
+- `<pending>` - release($11.18.3): bump versions, refresh installer, add release docs
 
 ## Policy Gates
 
 - [x] Version bumped to `1.18.3` in `VERSION` and frontend package
 - [x] Installer built and signed
 - [x] Installer SHA256 generated and recorded
-- [x] Tag created and pushed (`v1.18.3`)
+- [x] Tag created and pushed (`$11.18.3`)
 - [x] GitHub release published (non-draft)
 - [x] Release asset allowlist confirmed on published release
 

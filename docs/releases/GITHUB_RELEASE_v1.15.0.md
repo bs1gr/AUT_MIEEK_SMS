@@ -222,7 +222,7 @@ The new `APIResponse[T]` format is optional. Frontend helpers handle both old an
 - [Phase 1 Completion Summary](docs/PHASE1_COMPLETION_SUMMARY.md)
 - [E2E Testing Guide](docs/E2E_TESTING_GUIDE.md)
 - [Implementation Patterns](docs/misc/IMPLEMENTATION_PATTERNS.md)
-- [Release Notes 1.15.0](docs/releases/RELEASE_NOTES_v1.15.2.md)
+- [Release Notes 1.15.0](docs/releases/RELEASE_NOTES_$11.18.3.md)
 
 ### Updated Documentation
 

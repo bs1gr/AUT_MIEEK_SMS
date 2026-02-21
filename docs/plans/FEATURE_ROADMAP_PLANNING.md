@@ -1,7 +1,7 @@
-# Feature Roadmap Planning - v1.17.7+ Maintenance Phase
+# Feature Roadmap Planning - $11.18.3+ Maintenance Phase
 
 **Created**: February 5, 2026
-**Planning Period**: Post v1.17.7 Release
+**Planning Period**: Post $11.18.3 Release
 **Status**: Framework prepared for owner input
 **Owner**: Solo Developer decision-making
 

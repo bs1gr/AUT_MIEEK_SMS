@@ -1,6 +1,6 @@
 # E2E Testing Guide - Student Management System
 
-**Last Updated**: January 7, 2026 (v1.15.2)
+**Last Updated**: January 7, 2026 ($11.18.3)
 **Status**: Production Testing Documentation
 **Audience**: QA Engineers, DevOps, Backend Developers
 
@@ -168,7 +168,7 @@ npx playwright test --debug
      ├─ Login after registration ✅
      └─ UI validation ✅
 
-⚠️ NON-CRITICAL (5/12 failing - deferred to v1.15.2)
+⚠️ NON-CRITICAL (5/12 failing - deferred to $11.18.3)
   └─ Notifications (12 tests)
      ├─ Broadcast notification ⚠️ (403 Forbidden)
      ├─ In-app notification UI ✅
@@ -449,7 +449,7 @@ await expect(page.locator('[data-testid="success-toast"]')).toBeVisible();
 
 ### Issue #5: Notification Tests Failing (403 Forbidden)
 
-**Symptoms** (Expected for v1.15.2, Fixed in v1.15.2):
+**Symptoms** (Expected for $11.18.3, Fixed in $11.18.3):
 
 ```text
 GET /api/v1/control/notifications/broadcast 403 Forbidden
@@ -457,11 +457,11 @@ Test: should broadcast notification to all users
 Status: ⚠️ Known limitation
 
 ```text
-**Root Cause**: Test broadcast endpoint requires special permissions (non-critical for v1.15.2)
+**Root Cause**: Test broadcast endpoint requires special permissions (non-critical for $11.18.3)
 
-**Status**: Deferred to v1.15.2 - Notification system refactoring
+**Status**: Deferred to $11.18.3 - Notification system refactoring
 
-**Workaround**: Skip notification tests in v1.15.2
+**Workaround**: Skip notification tests in $11.18.3
 
 ```bash
 npm run e2e -- --grep="^(?!.*Notifications)"
@@ -471,7 +471,7 @@ npm run e2e -- --grep="^(?!.*Notifications)"
 
 ## 📈 Monitoring & Tracking
 
-### Baseline Metrics (v1.15.2)
+### Baseline Metrics ($11.18.3)
 
 ```text
 Test Execution:
@@ -510,7 +510,7 @@ Flakiness:
 ### Observations
 
 - No flaky tests detected (19/24 consistently passing)
-- Notifications expected to fail (non-critical, deferred to v1.15.2)
+- Notifications expected to fail (non-critical, deferred to $11.18.3)
 - Performance stable across all runs
 - No timeout issues detected
 
@@ -607,7 +607,7 @@ Use this checklist before releasing a new version:
   - [ ] Duration consistent (±10%)
 
 - [ ] **Document Results**
-  - [ ] Success rate: XX/24 (target: 79%+ for v1.15.2)
+  - [ ] Success rate: XX/24 (target: 79%+ for $11.18.3)
   - [ ] Any new failures: Document in KNOWN_ISSUES
   - [ ] Performance baseline: Record p95 latencies
 
@@ -647,7 +647,7 @@ Use this checklist before releasing a new version:
 - [ ] Achieve 95%+ consistency over 5 runs
 - [ ] Create troubleshooting knowledge base
 
-**Phase 2.0** (v1.15.2):
+**Phase 2.0** ($11.18.3):
 - [ ] Expand to 100% of critical flows
 - [ ] Add visual regression testing
 - [ ] Performance benchmarking (Lighthouse)

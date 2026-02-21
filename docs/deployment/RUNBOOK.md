@@ -1,8 +1,8 @@
 # Deployment Runbook
 
-**Status**: Production Ready (v1.11.1)
+**Status**: Production Ready ($11.18.3)
 **Last Updated**: 2025-12-11
-**Applies To**: v1.11.1+
+**Applies To**: $11.18.3+
 
 This runbook provides a concise, operational sequence for deploying, verifying, and rolling back the Student Management System (SMS).
 
@@ -75,7 +75,7 @@ Scenario: New release causes runtime errors or critical regression; DB schema un
 
 3. Checkout previous tag:
    ```powershell
-   git checkout v1.11.1  # or latest stable version
+   git checkout $11.18.3  # or latest stable version
    ```
 
 4. Restart with previous version:

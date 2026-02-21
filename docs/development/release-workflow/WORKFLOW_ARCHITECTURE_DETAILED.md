@@ -17,7 +17,7 @@
 │         │   └─→ Auto-fix + retry if needed ✓ NEW              │
 │         ├─→ Stage and commit changes                           │
 │         ├─→ Push main branch                                   │
-│         └─→ Create & push tag v1.14.0                          │
+│         └─→ Create & push tag $11.18.3                          │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
          │ Git push → GitHub
@@ -71,10 +71,10 @@
 │ GITHUB RELEASE PAGE                                             │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│ Release: v1.14.0                                               │
+│ Release: $11.18.3                                               │
 │  ├─ Release Notes                                              │
 │  ├─ Assets                                                     │
-│  │  └─ SMS_Installer_v1.14.0.exe (156.2 MB)                   │
+│  │  └─ SMS_Installer_$11.18.3.exe (156.2 MB)                   │
 │  └─ Details                                                    │
 │     ├─ SHA256: abc123def...                                    │
 │     └─ Verification instructions                               │
@@ -370,11 +370,11 @@ All operations are idempotent:
 ### GitHub Workflow Testing
 
 ```text
-1. Create a test tag: v1.14.0-test
+1. Create a test tag: $11.18.3-test
 2. Monitor workflows on GitHub Actions
 3. Check release page for assets
 4. Verify SHA256
-5. Clean up test tag: git push origin --delete v1.14.0-test
+5. Clean up test tag: git push origin --delete $11.18.3-test
 
 ```text
 ## Future Enhancements
