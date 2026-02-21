@@ -26,10 +26,12 @@ def build_app_with_auth_enabled() -> tuple[FastAPI, TestClient]:
     # Flip feature flag before routers are (re)loaded
     try:
         config.settings.AUTH_ENABLED = True
+        config.settings.AUTH_MODE = "permissive"  # Enforce permissions in tests
     except Exception:
         # Fallback: reload config (lru_cache may have cached instance)
         importlib.reload(config)
         config.settings.AUTH_ENABLED = True
+        config.settings.AUTH_MODE = "permissive"  # Enforce permissions in tests
 
     # Reload auth and target routers so their decorators see AUTH_ENABLED=True
     auth_mod = importlib.import_module("backend.routers.routers_auth")
