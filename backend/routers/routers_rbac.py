@@ -545,7 +545,7 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
     # (wildcard already covers it, but explicit grants for clarity)
     for pn in teacher_perms:
         grant("admin", pn)
-    
+
     # Teacher inherits all viewer permissions explicitly
     for pn in viewer_perms:
         grant("teacher", pn)
