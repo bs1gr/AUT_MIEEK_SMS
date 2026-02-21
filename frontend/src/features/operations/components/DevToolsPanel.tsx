@@ -548,6 +548,121 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     }
   };
 
+  // Restore a backup directly from the server (no upload needed)
+  const handleRestoreFromServer = async (filename: string) => {
+    const confirmMessage = t('utils.confirmRestoreBackup') || `Are you sure you want to restore this backup?\n\n"${filename}"\n\nThis will replace all current data!`;
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    setOpLoading(`restore-${filename}`);
+    try {
+      const isEncrypted = filename.toLowerCase().endsWith('.enc');
+
+      if (isEncrypted) {
+        // For encrypted backups: decrypt, download decrypted file, then upload and restore
+        const backupName = filename.replace(/\.enc$/i, '');
+        const decryptResponse = await fetch(`${RAW_API_BASE}/admin/restore-encrypted-backup?backup_name=${encodeURIComponent(backupName)}&output_filename=decrypted_backup.db`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (!decryptResponse.ok) {
+          const decryptError = await decryptResponse.json().catch(() => null);
+          const decryptMessage =
+            decryptError?.detail?.message ??
+            decryptError?.message ??
+            `Failed to decrypt backup: ${decryptResponse.status} ${decryptResponse.statusText}`;
+          throw new Error(decryptMessage);
+        }
+
+        // Get decrypted file as blob
+        const decryptedBlob = await decryptResponse.blob();
+        const decryptedFile = new File([decryptedBlob], 'decrypted_backup.db', { type: 'application/x-sqlite3' });
+
+        // Upload the decrypted file
+        const formData = new FormData();
+        formData.append('file', decryptedFile);
+
+        const uploadResponse = await fetch(`${CONTROL_API_BASE}/operations/database-upload`, {
+          method: 'POST',
+          body: formData,
+          credentials: 'include',
+        });
+
+        if (!uploadResponse.ok) {
+          const uploadError = await uploadResponse.json().catch(() => null);
+          const uploadMessage =
+            uploadError?.detail?.message ??
+            uploadError?.message ??
+            `Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`;
+          throw new Error(uploadMessage);
+        }
+
+        const uploadResult = await uploadResponse.json();
+        const uploadedFilename = uploadResult.details?.filename;
+
+        if (!uploadedFilename) {
+          throw new Error('Failed to get uploaded filename');
+        }
+
+        // Now restore the uploaded decrypted backup
+        const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(uploadedFilename)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!restoreResponse.ok) {
+          const restoreError = await restoreResponse.json().catch(() => null);
+          const restoreMessage =
+            restoreError?.detail?.message ??
+            restoreError?.message ??
+            `Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`;
+          throw new Error(restoreMessage);
+        }
+
+        const data = await restoreResponse.json();
+        setResult(withTimestamp('restore', { data }));
+        onToast({ message: data.message || t('utils.restoreSuccess') || 'Encrypted backup restored successfully', type: 'success' });
+      } else {
+        // For plain SQLite backups: restore directly
+        const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        if (!restoreResponse.ok) {
+          const restoreError = await restoreResponse.json().catch(() => null);
+          const restoreMessage =
+            restoreError?.detail?.message ??
+            restoreError?.message ??
+            `Restore failed: ${restoreResponse.status} ${restoreResponse.statusText}`;
+          throw new Error(restoreMessage);
+        }
+
+        const data = await restoreResponse.json();
+        setResult(withTimestamp('restore', { data }));
+        onToast({ message: data.message || t('utils.restoreSuccess') || 'Backup restored successfully', type: 'success' });
+      }
+
+      await refreshAcademicData();
+      void runHealthCheck(); // Refresh health
+    } catch (error) {
+      console.error('Restore from server failed', error);
+      const message = error instanceof Error ? error.message : (t('utils.restoreError') || 'Restore failed');
+      setResult(withTimestamp('restore', { error: true }));
+      onToast({ message, type: 'error' });
+    } finally {
+      setOpLoading(null);
+    }
+  };
+
   const handleClear = async () => {
     if (!clearConfirm) {
       onToast({ message: t('confirmRequired'), type: 'error' });
@@ -1034,7 +1149,20 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
                       </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <button type="button" onClick={() => void downloadBackup(b.filename)} className={theme.secondaryButton}>
+                      <button
+                        type="button"
+                        onClick={() => void handleRestoreFromServer(b.filename)}
+                        disabled={opLoading === `restore-${b.filename}`}
+                        className={`${theme.primaryButton} disabled:opacity-50 disabled:cursor-not-allowed`}
+                        title={t('utils.restoreBackup') || 'Restore this backup'}
+                      >
+                        {opLoading === `restore-${b.filename}` ? (t('utils.restoring') || 'Restoring...') : (t('utils.restore') || 'Restore')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void downloadBackup(b.filename)}
+                        className={theme.secondaryButton}
+                      >
                         {t('utils.download') || 'Download'}
                       </button>
                     </div>
