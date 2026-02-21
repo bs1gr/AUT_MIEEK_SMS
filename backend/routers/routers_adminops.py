@@ -69,8 +69,27 @@ def backup_database(
         os.makedirs(BACKUPS_DIR, exist_ok=True)
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         target = os.path.join(BACKUPS_DIR, f"backup_{ts}.db")
-        shutil.copyfile(db_file, target)
-        logger.info("Database backup created: %s (source: %s)", target, db_file)
+
+        # Use SQLite backup API to handle WAL mode correctly
+        # (file copy in WAL mode only copies schema-only snapshot without data)
+        import sqlite3
+        try:
+            source_db = sqlite3.connect(db_file)
+            target_db = sqlite3.connect(target)
+            with target_db:
+                source_db.backup(target_db)
+            source_db.close()
+            target_db.close()
+            logger.info("Database backup created: %s (source: %s)", target, db_file)
+        except Exception as backup_error:
+            logger.warning(
+                "SQLite backup API failed, using fallback copy",
+                extra={"error": str(backup_error)}
+            )
+            # Fallback: simple file copy (may be incomplete in WAL mode but better than nothing)
+            shutil.copyfile(db_file, target)
+            logger.info("Database backup created (fallback): %s (source: %s)", target, db_file)
+
         return {"backup_file": target, "source": db_file}
     except HTTPException:
         raise

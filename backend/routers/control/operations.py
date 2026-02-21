@@ -333,13 +333,34 @@ async def create_database_backup(
                 },
             )
         else:
-            # Create unencrypted backup (legacy)
+            # Create unencrypted backup (legacy) - use SQLite backup API to handle WAL mode correctly
+            import sqlite3
+
             backup_filename = f"student_management.backup_{timestamp}.db"
             backup_path = backup_dir / backup_filename
 
-            import shutil
-
-            shutil.copy2(db_path, backup_path)
+            # Use SQLite backup API which properly handles WAL mode (copies .db + .db-wal together)
+            # This is critical because normal file copy in WAL mode only copies the schema-only snapshot
+            try:
+                source_db = sqlite3.connect(str(db_path))
+                target_db = sqlite3.connect(str(backup_path))
+                with target_db:
+                    source_db.backup(target_db)
+                source_db.close()
+                target_db.close()
+            except Exception as backup_error:
+                # Log but don't fail critical backup - still useful for troubleshooting
+                logger.error(
+                    "SQLite backup API failed, attempting fallback copy",
+                    extra={
+                        "db_path": str(db_path),
+                        "backup_path": str(backup_path),
+                        "error": str(backup_error),
+                    }
+                )
+                # Fallback to file copy if SQLite API fails
+                import shutil
+                shutil.copy2(db_path, backup_path)
 
             file_size = backup_path.stat().st_size
 
@@ -802,6 +823,25 @@ async def restore_database(request: Request, backup_filename: str):
             logger.info("Schema ensured")
         except Exception as e:
             logger.warning("Schema ensure failed", extra={"error": str(e)})
+
+        # Ensure default admin account exists after restore
+        try:
+            from backend.scripts.admin.bootstrap import ensure_default_admin_account
+            from sqlalchemy.orm import sessionmaker as sa_sessionmaker
+            from sqlalchemy import create_engine as sa_create_engine
+
+            # Create a fresh session with the restored database
+            restore_engine = sa_create_engine(settings.DATABASE_URL, echo=False)
+            RestoreSessionLocal = sa_sessionmaker(autocommit=False, autoflush=False, bind=restore_engine)
+
+            def restore_session_factory():
+                return RestoreSessionLocal()
+
+            ensure_default_admin_account(settings=settings, session_factory=restore_session_factory, close_session=True)
+            logger.info("Admin account ensured after restore")
+        except Exception as e:
+            logger.warning(f"Failed to ensure admin account after restore: {e}", exc_info=True)
+
         logger.info("Restore completed successfully")
         return OperationResult(
             success=True,
