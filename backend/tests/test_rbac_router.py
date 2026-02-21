@@ -110,6 +110,28 @@ def _login(client: TestClient, email: str, password: str) -> str:
     return r.json()["access_token"]
 
 
+def _get_user_by_id(client: TestClient, user_id: int):
+    import backend.models as models
+    from backend.db import get_session as db_get_session
+
+    with next(client.app.dependency_overrides[db_get_session]()) as db:  # type: ignore[index]
+        return db.query(models.User).filter(models.User.id == user_id).first()
+
+
+def _get_user_role_names(client: TestClient, user_id: int) -> set[str]:
+    import backend.models as models
+    from backend.db import get_session as db_get_session
+
+    with next(client.app.dependency_overrides[db_get_session]()) as db:  # type: ignore[index]
+        rows = (
+            db.query(models.Role.name)
+            .join(models.UserRole, models.UserRole.role_id == models.Role.id)
+            .filter(models.UserRole.user_id == user_id)
+            .all()
+        )
+        return {name for (name,) in rows}
+
+
 def test_ensure_defaults_and_summary(rbac_client: TestClient):
     client = rbac_client
     strong_password = "Str0ngPass!123"  # pragma: allowlist secret
@@ -156,6 +178,10 @@ def test_assign_and_revoke_role_with_last_admin_protection(rbac_client: TestClie
     )
     assert ar.status_code == 200, ar.text
 
+    user = _get_user_by_id(client, 2)
+    assert user is not None
+    assert user.role == "admin"
+
     # Revoke admin from the second user (should succeed; not the last admin)
     rr = client.post(
         "/api/v1/admin/rbac/revoke-role",
@@ -164,6 +190,10 @@ def test_assign_and_revoke_role_with_last_admin_protection(rbac_client: TestClie
     )
     assert rr.status_code == 200, rr.text
     assert rr.json()["status"] in {"revoked", "not_assigned"}
+
+    user = _get_user_by_id(client, 2)
+    assert user is not None
+    assert user.role == "teacher"
 
     # Attempt to revoke admin from the only remaining admin (should be blocked)
     rr2 = client.post(
@@ -230,3 +260,28 @@ def test_bulk_grant_permission_and_permission_crud(rbac_client: TestClient):
         headers={"Authorization": f"Bearer {admin_token}"},
     )
     assert dp.status_code == 200, dp.text
+
+
+def test_admin_update_user_syncs_rbac_roles(rbac_client: TestClient):
+    client = rbac_client
+    strong_password = "Str0ngPass!123"  # pragma: allowlist secret
+
+    _create_user_direct(client, "admin@example.com", strong_password, role="admin")
+    admin_token = _login(client, "admin@example.com", strong_password)
+    client.post("/api/v1/admin/rbac/ensure-defaults", headers={"Authorization": f"Bearer {admin_token}"})
+
+    _register_user_via_api(client, "teacher@example.com", strong_password, role="teacher")
+
+    update_resp = client.patch(
+        "/api/v1/admin/users/2",
+        json={"role": "admin"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert update_resp.status_code == 200, update_resp.text
+
+    user = _get_user_by_id(client, 2)
+    assert user is not None
+    assert user.role == "admin"
+
+    roles = _get_user_role_names(client, 2)
+    assert "admin" in roles

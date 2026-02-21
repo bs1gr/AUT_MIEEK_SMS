@@ -358,6 +358,25 @@ async def bulk_grant_permission(
 logger = logging.getLogger(__name__)
 
 
+LEGACY_ROLE_PRIORITY = ("admin", "teacher", "viewer", "guest")
+
+
+def _resolve_legacy_role_for_user(db: Session, user: models.User) -> str | None:
+    if not user:
+        return None
+    assigned = (
+        db.query(models.Role.name)
+        .join(models.UserRole, models.UserRole.role_id == models.Role.id)
+        .filter(models.UserRole.user_id == user.id)
+        .all()
+    )
+    assigned_names = {name for (name,) in assigned}
+    for role_name in LEGACY_ROLE_PRIORITY:
+        if role_name in assigned_names:
+            return role_name
+    return None
+
+
 def _seed_defaults(db: Session, request: Request | None = None) -> None:
     audit_logger = get_audit_logger(db)
 
@@ -666,6 +685,13 @@ async def assign_role(
                 details={"role": role.name, "operation": "assign_role", "success": True},
             )
 
+        # Keep legacy User.role in sync for compatibility (admin/teacher/viewer/guest)
+        legacy_role = _resolve_legacy_role_for_user(db, user)
+        if legacy_role and user.role != legacy_role:
+            user.role = legacy_role
+            db.add(user)
+            db.commit()
+
         return {"status": "assigned"}
     except HTTPException:
         raise
@@ -717,6 +743,19 @@ async def revoke_role(
                 resource_id=str(user.id),
                 details={"role": role.name, "operation": "revoke_role", "success": True},
             )
+
+            # Keep legacy User.role in sync for compatibility (admin/teacher/viewer/guest)
+            if role.name in LEGACY_ROLE_PRIORITY and user.role == role.name:
+                legacy_role = _resolve_legacy_role_for_user(db, user)
+                if legacy_role and user.role != legacy_role:
+                    user.role = legacy_role
+                    db.add(user)
+                    db.commit()
+                elif role.name == "admin":
+                    # Prevent stale admin role when RBAC admin is removed
+                    user.role = "teacher"
+                    db.add(user)
+                    db.commit()
             return {"status": "revoked"}
         return {"status": "not_assigned"}
     except HTTPException:

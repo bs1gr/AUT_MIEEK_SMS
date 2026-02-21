@@ -123,6 +123,42 @@ def _ensure_rbac_role_assignment(db: Session, user: User, role_name: Optional[st
         raise
 
 
+LEGACY_ROLE_PRIORITY = ("admin", "teacher", "viewer", "guest")
+
+
+def _sync_rbac_legacy_role(db: Session, user: User, role_name: Optional[str]) -> None:
+    if not user or not role_name:
+        return
+    role_key = str(role_name).strip().lower()
+    if not role_key:
+        return
+
+    role = db.query(models.Role).filter(models.Role.name == role_key).first()
+    if not role:
+        return
+
+    try:
+        legacy_roles = db.query(models.Role.id).filter(models.Role.name.in_(LEGACY_ROLE_PRIORITY)).all()
+        legacy_role_ids = {rid for (rid,) in legacy_roles}
+        if legacy_role_ids:
+            db.query(models.UserRole).filter(
+                models.UserRole.user_id == user.id,
+                models.UserRole.role_id.in_(legacy_role_ids),
+            ).delete(synchronize_session=False)
+
+        exists = (
+            db.query(models.UserRole)
+            .filter(models.UserRole.user_id == user.id, models.UserRole.role_id == role.id)
+            .first()
+        )
+        if not exists:
+            db.add(models.UserRole(user_id=user.id, role_id=role.id))
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+
 def _enforce_throttle_guards(keys: list[Optional[str]], request: Request) -> None:
     # Skip throttling entirely when auth is disabled (tests/maintenance modes) or throttle disabled via env
     if (
@@ -932,6 +968,8 @@ async def admin_update_user(
         db.add(user)
         db.commit()
         db.refresh(user)
+        if payload.role is not None:
+            _sync_rbac_legacy_role(db, user, payload.role)
         return user
     except HTTPException:
         raise

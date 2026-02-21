@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useApiMutation, useApiQuery } from '@/hooks/useApiWithRecovery';
-import { isAuthOrPermissionError, rbacAPI, type Role, type RBACSummary } from '@/api/api';
+import apiClient, { isAuthOrPermissionError, rbacAPI, type Role, type RBACSummary } from '@/api/api';
+import { useAuth } from '@/contexts/AuthContext';
 import { AlertCircle, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 
 export const RBACPanel: React.FC = () => {
   const { t } = useLanguage();
   const { i18n } = useTranslation('rbac');
+  const { user, updateUser } = useAuth();
 
   // Permission translation map - hardcoded for reliability
   const isGreek = i18n.language === 'el';
@@ -123,6 +125,25 @@ export const RBACPanel: React.FC = () => {
       }))
     : [];
 
+  const refreshCurrentUser = async (targetUserId: number | null) => {
+    if (!user || !targetUserId || user.id !== targetUserId) return;
+    try {
+      const meResp = await apiClient.get('/auth/me', { withCredentials: true });
+      if (meResp?.data) {
+        updateUser(meResp.data);
+      }
+    } catch (err) {
+      console.warn('Failed to refresh current user after role update', err);
+    }
+  };
+
+  const selectedUserRoles = userId && rbacData
+    ? rbacData.user_roles
+        .filter((ur) => ur.user_id === userId)
+        .map((ur) => rbacData.roles.find((r) => r.id === ur.role_id))
+        .filter(Boolean)
+    : [];
+
   // Ensure defaults mutation
   const ensureDefaultsMutation = useApiMutation<{ status: string }, Error, Record<string, never>>(
     () => rbacAPI.ensureDefaults(),
@@ -137,10 +158,21 @@ export const RBACPanel: React.FC = () => {
   const assignRoleMutation = useApiMutation<{ status: string }, Error, { user_id: number; role_name: string }>(
     async (data) => rbacAPI.assignRole(data.user_id, data.role_name),
     {
-      onSuccess: () => {
+      onSuccess: async () => {
         setUserId(null);
         setRoleName('');
         refetchSummary();
+        await refreshCurrentUser(userId);
+      },
+    }
+  );
+
+  const revokeRoleMutation = useApiMutation<{ status: string }, Error, { user_id: number; role_name: string }>(
+    async (data) => rbacAPI.revokeRole(data.user_id, data.role_name),
+    {
+      onSuccess: async () => {
+        refetchSummary();
+        await refreshCurrentUser(userId);
       },
     }
   );
@@ -163,39 +195,16 @@ export const RBACPanel: React.FC = () => {
 
   const handleAssignRole = async () => {
     if (!userId || !roleName) return;
+    await assignRoleMutation.mutate({ user_id: userId, role_name: roleName });
+  };
 
+  const handleRevokeRole = async (targetRole: string) => {
+    if (!userId || !targetRole) return;
     try {
-      // Find ALL current roles for the user and revoke them ALL first
-      const userRoleMappings = rbacData?.user_roles?.filter(ur => ur.user_id === userId) || [];
-
-
-
-      // Revoke ALL existing roles (even if one matches the new role)
-      for (const mapping of userRoleMappings) {
-        const currentRole = rbacData?.roles?.find(r => r.id === mapping.role_id);
-        if (currentRole) {
-          try {
-
-            await rbacAPI.revokeRole(userId, currentRole.name);
-
-          } catch (err: unknown) {
-            const typedError = err as { response?: { data?: { error?: { message?: string } } }; message?: string };
-            console.error(`Failed to revoke role ${currentRole.name}:`, typedError?.response?.data || typedError?.message);
-            // If it's the "last admin" error, stop
-            if (typedError?.response?.data?.error?.message?.includes('last admin')) {
-              alert('Cannot remove last admin role');
-              return;
-            }
-          }
-        }
-      }
-
-      // Now assign the new role (will be the only role)
-
-      await assignRoleMutation.mutate({ user_id: userId, role_name: roleName });
+      await revokeRoleMutation.mutate({ user_id: userId, role_name: targetRole });
     } catch (error) {
-      console.error('Error in handleAssignRole:', error);
-      alert('Failed to assign role');
+      console.error('Error in handleRevokeRole:', error);
+      alert(t('rbac.roleRevokedError'));
     }
   };
 
@@ -379,6 +388,9 @@ export const RBACPanel: React.FC = () => {
                 <CardTitle className="text-sm">{t('rbac.assignRole')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  {t('rbac.assignRoleHelp')}
+                </p>
                 <div>
                   <label className="text-sm font-medium">{t('rbac.userId')}</label>
                   <Input
@@ -387,6 +399,27 @@ export const RBACPanel: React.FC = () => {
                     onChange={(e) => setUserId(e.target.value ? parseInt(e.target.value) : null)}
                     placeholder={t('rbac.enterUserId')}
                   />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">{t('rbac.assignedRoles')}</label>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {selectedUserRoles.length > 0 ? (
+                      selectedUserRoles.map((role) => (
+                        <div key={role!.id} className="flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs">
+                          <span>{translateRoleName(role?.name)}</span>
+                          <button
+                            type="button"
+                            onClick={() => role?.name && handleRevokeRole(role.name)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            {t('rbac.revokeRole')}
+                          </button>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-xs text-gray-500">{t('rbac.noRolesForUser')}</span>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="role-select" className="text-sm font-medium">{t('rbac.roleName')}</label>
@@ -398,13 +431,11 @@ export const RBACPanel: React.FC = () => {
                     aria-label="Select role"
                   >
                     <option value="">{t('rbac.selectRole')}</option>
-                    {rbacData?.roles
-                      .filter((role) => ["admin", "teacher", "guest"].includes(role.name))
-                      .map((role) => (
-                        <option key={role.id} value={role.name}>
-                          {t(`controlPanel.roles.${role.name}`) || role.name}
-                        </option>
-                      ))}
+                    {rbacData?.roles.map((role) => (
+                      <option key={role.id} value={role.name}>
+                        {t(`controlPanel.roles.${role.name}`) || role.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <Button
@@ -425,6 +456,12 @@ export const RBACPanel: React.FC = () => {
                   <div className="flex items-center gap-2 text-red-600 text-sm">
                     <AlertCircle className="h-4 w-4" />
                     {t('rbac.roleAssignedError')}
+                  </div>
+                )}
+                {revokeRoleMutation.isSuccess && (
+                  <div className="flex items-center gap-2 text-green-600 text-sm">
+                    <CheckCircle className="h-4 w-4" />
+                    {t('rbac.roleRevokedSuccess')}
                   </div>
                 )}
               </CardContent>
