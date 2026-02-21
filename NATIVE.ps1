@@ -952,6 +952,29 @@ function Stop-All {
         $frontendStopped = (Stop-ProcessByPort -Port $FRONTEND_PORT -Name "Frontend") -and $frontendStopped
     }
 
+    # Clean up any stray Python processes from the venv (uvicorn or other backend tasks)
+    try {
+        $venvPython = Join-Path $SCRIPT_DIR ".venv\Scripts\python.exe"
+        if (Test-Path $venvPython) {
+            $strayProcs = Get-Process python -ErrorAction SilentlyContinue | Where-Object {
+                $_.Path -eq $venvPython -or $_.CommandLine -like "*uvicorn*" -or $_.CommandLine -like "*$BACKEND_DIR*"
+            }
+            if ($strayProcs) {
+                Write-Info "Cleaning up stray Python processes from backend..."
+                foreach ($proc in $strayProcs) {
+                    try {
+                        Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+                        Write-Info "Stopped stray Python process (PID $($proc.Id))"
+                    } catch {
+                        # Ignore errors, process may have already exited
+                    }
+                }
+            }
+        }
+    } catch {
+        # Ignore cleanup errors, they're not critical
+    }
+
     if ($backendStopped -and $frontendStopped) {
         Write-Host ""
         Write-Success "All processes stopped"
