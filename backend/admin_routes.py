@@ -161,7 +161,8 @@ async def backup_database(encrypt: bool = True, _auth=Depends(require_control_ad
             raise HTTPException(status_code=404, detail="Database file not found")
 
         # Create backups directory if it doesn't exist
-        backup_root = pathlib.Path("backups")
+        # Use database subdirectory where encrypted backups are actually stored
+        backup_root = pathlib.Path("backups/database")
         backup_root.mkdir(parents=True, exist_ok=True)
 
         # Generate timestamp for backup
@@ -288,7 +289,8 @@ async def restore_encrypted_backup(
         # Validate output_filename before path construction to prevent path traversal
         safe_output_filename = _validate_restore_filename(output_filename)
 
-        backup_root = pathlib.Path("backups").resolve()
+        # Use database subdirectory where encrypted backups are actually stored
+        backup_root = pathlib.Path("backups/database").resolve()
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
         # Create temporary output directory
@@ -342,7 +344,8 @@ async def list_encrypted_backups(_auth=Depends(require_control_admin)):
         List of backup information dictionaries
     """
     try:
-        backup_root = pathlib.Path("backups")
+        # Use database subdirectory where encrypted backups are actually stored
+        backup_root = pathlib.Path("backups/database")
         backup_service = BackupServiceEncrypted(backup_dir=backup_root, enable_encryption=True)
 
         backups = backup_service.list_encrypted_backups()
