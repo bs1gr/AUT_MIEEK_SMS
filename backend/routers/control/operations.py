@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import os
 from datetime import datetime
 from pathlib import Path
@@ -22,6 +23,7 @@ from .common import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 class OperationResult(BaseModel):
@@ -356,10 +358,11 @@ async def create_database_backup(
                         "db_path": str(db_path),
                         "backup_path": str(backup_path),
                         "error": str(backup_error),
-                    }
+                    },
                 )
                 # Fallback to file copy if SQLite API fails
                 import shutil
+
                 shutil.copy2(db_path, backup_path)
 
             file_size = backup_path.stat().st_size
