@@ -6,11 +6,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, File, HTTPException, Query, Request, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.config import get_settings
+from backend.control_auth import require_control_admin
 from backend.errors import ErrorCode, http_error
 from backend.services.backup_service_encrypted import BackupServiceEncrypted
 
@@ -266,7 +267,9 @@ class DeleteSelectedRequest(BaseModel):
 
 @router.post("/operations/database-backup", response_model=OperationResult)
 async def create_database_backup(
-    request: Request, encrypt: bool = Query(True, description="Enable AES-256 encryption for backup")
+    request: Request,
+    encrypt: bool = Query(True, description="Enable AES-256 encryption for backup"),
+    _auth=Depends(require_control_admin),
 ):
     """
     Create a new database backup (SQLite only).
