@@ -360,6 +360,14 @@ logger = logging.getLogger(__name__)
 
 LEGACY_ROLE_PRIORITY = ("admin", "teacher", "viewer", "guest")
 
+# Role hierarchy: higher roles inherit ALL permissions from lower roles
+ROLE_HIERARCHY = {
+    "admin": ["teacher", "viewer", "guest"],
+    "teacher": ["viewer", "guest"],
+    "viewer": [],
+    "guest": [],
+}
+
 
 def _resolve_legacy_role_for_user(db: Session, user: models.User) -> str | None:
     if not user:
@@ -485,9 +493,10 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
                 details={"role": role_name, "permission": perm_name, "operation": "grant_permission"},
             )
 
-    # Admin wildcard
+    # Admin wildcard (covers everything)
     grant("admin", "*:*")
 
+    # Teacher permissions (explicit grants)
     teacher_perms = [
         "students:view",
         "students:create",
@@ -516,6 +525,7 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
     for pn in teacher_perms:
         grant("teacher", pn)
 
+    # Viewer/Guest permissions (read-only)
     viewer_perms = [
         "students:view",
         "courses:view",
@@ -530,6 +540,15 @@ def _seed_defaults(db: Session, request: Request | None = None) -> None:
     for pn in viewer_perms:
         grant("guest", pn)
         grant("viewer", pn)
+
+    # Role hierarchy: Admin inherits all teacher permissions explicitly
+    # (wildcard already covers it, but explicit grants for clarity)
+    for pn in teacher_perms:
+        grant("admin", pn)
+    
+    # Teacher inherits all viewer permissions explicitly
+    for pn in viewer_perms:
+        grant("teacher", pn)
 
     # Backfill UserRole from legacy User.role (admin/teacher/guest only)
     users = db.query(models.User).all()
@@ -684,6 +703,37 @@ async def assign_role(
                 resource_id=str(user.id),
                 details={"role": role.name, "operation": "assign_role", "success": True},
             )
+
+        # Role hierarchy: assign inherited roles automatically
+        # If assigning admin → also assign teacher, viewer, guest
+        # If assigning teacher → also assign viewer, guest
+        inherited_roles = ROLE_HIERARCHY.get(role.name, [])
+        for inherited_role_name in inherited_roles:
+            inherited_role = db.query(models.Role).filter(models.Role.name == inherited_role_name).first()
+            if inherited_role:
+                inherited_exists = (
+                    db.query(models.UserRole)
+                    .filter(
+                        models.UserRole.user_id == user.id,
+                        models.UserRole.role_id == inherited_role.id,
+                    )
+                    .first()
+                )
+                if not inherited_exists:
+                    db.add(models.UserRole(user_id=user.id, role_id=inherited_role.id))
+                    db.commit()
+                    audit_logger.log_from_request(
+                        request,
+                        action=AuditAction.ROLE_CHANGE,
+                        resource=AuditResource.USER,
+                        resource_id=str(user.id),
+                        details={
+                            "role": inherited_role.name,
+                            "operation": "auto_assign_inherited",
+                            "parent_role": role.name,
+                            "success": True,
+                        },
+                    )
 
         # Keep legacy User.role in sync for compatibility (admin/teacher/viewer/guest)
         legacy_role = _resolve_legacy_role_for_user(db, user)

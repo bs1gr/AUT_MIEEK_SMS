@@ -285,3 +285,69 @@ def test_admin_update_user_syncs_rbac_roles(rbac_client: TestClient):
 
     roles = _get_user_role_names(client, 2)
     assert "admin" in roles
+
+
+def test_role_hierarchy_auto_assigns_inherited_roles(rbac_client: TestClient):
+    """Test that assigning admin role automatically assigns teacher, viewer, guest."""
+    client = rbac_client
+    strong_password = "Str0ngPass!123"  # pragma: allowlist secret
+
+    # Create admin user and seed defaults
+    _create_user_direct(client, "admin@example.com", strong_password, role="admin")
+    admin_token = _login(client, "admin@example.com", strong_password)
+    client.post("/api/v1/admin/rbac/ensure-defaults", headers={"Authorization": f"Bearer {admin_token}"})
+
+    # Create a regular user
+    _register_user_via_api(client, "user@example.com", strong_password, role="teacher")
+    
+    # Assign admin role
+    assign_resp = client.post(
+        "/api/v1/admin/rbac/assign-role",
+        json={"user_id": 2, "role_name": "admin"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert assign_resp.status_code == 200, assign_resp.text
+    
+    # Verify user has admin, teacher, viewer, and guest roles
+    roles = _get_user_role_names(client, 2)
+    assert "admin" in roles, "User should have admin role"
+    assert "teacher" in roles, "User should inherit teacher role from admin"
+    assert "viewer" in roles, "User should inherit viewer role from admin"
+    assert "guest" in roles, "User should inherit guest role from admin"
+    
+    # Verify legacy role is set to highest priority (admin)
+    user = _get_user_by_id(client, 2)
+    assert user.role == "admin", "Legacy role should be set to highest priority role"
+
+
+def test_teacher_role_inherits_viewer(rbac_client: TestClient):
+    """Test that assigning teacher role automatically assigns viewer and guest."""
+    client = rbac_client
+    strong_password = "Str0ngPass!123"  # pragma: allowlist secret
+
+    # Create admin user and seed defaults
+    _create_user_direct(client, "admin@example.com", strong_password, role="admin")
+    admin_token = _login(client, "admin@example.com", strong_password)
+    client.post("/api/v1/admin/rbac/ensure-defaults", headers={"Authorization": f"Bearer {admin_token}"})
+
+    # Create a regular user (start with teacher, will remove and reassign)
+    _register_user_via_api(client, "user@example.com", strong_password, role="teacher")
+    
+    # Assign teacher role
+    assign_resp = client.post(
+        "/api/v1/admin/rbac/assign-role",
+        json={"user_id": 2, "role_name": "teacher"},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    assert assign_resp.status_code == 200, assign_resp.text
+    
+    # Verify user has teacher, viewer, and guest roles
+    roles = _get_user_role_names(client, 2)
+    assert "teacher" in roles, "User should have teacher role"
+    assert "viewer" in roles, "User should inherit viewer role from teacher"
+    assert "guest" in roles, "User should inherit guest role from teacher"
+    
+    # Verify legacy role is set to teacher (highest priority)
+    user = _get_user_by_id(client, 2)
+    assert user.role == "teacher", "Legacy role should be set to teacher"
+
