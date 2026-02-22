@@ -13,7 +13,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Critical Bug Fixes
 - **backup**: fix SQLite backup WAL mode handling to prevent corruption with database files using write-ahead logging
 - **database**: add missing columns (database_path, database_host, database_name, database_user) via idempotent migration for backup function compatibility
-- **auth**: fix RBAC test enforcement by properly configuring AUTH_MODE="permissive" during test initialization 
+- **auth**: fix RBAC test enforcement by properly configuring AUTH_MODE="permissive" during test initialization
 
 ### Code Quality Fixes
 - **backend**: add missing logger import in control operations router

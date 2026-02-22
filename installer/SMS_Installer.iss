@@ -1,7 +1,13 @@
 ; ============================================================================
 ; Student Management System - Inno Setup Installer Script
-; Version: 1.9.8 - Bilingual (English / Greek)
+; Version: 1.18.3 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
+;
+; LATEST CHANGES (v1.18.3):
+; - RBAC legacy admin fallback scoped to imports permissions only
+; - PostgreSQL-only deployment standardization
+; - Course auto-activation with scheduler (3:00 AM UTC daily)
+; - Refreshed installer artifact for corrected release lineage
 ;
 ; NOTE: Inno Setup 6.x does not support UninstallExeName directive.
 ; Workaround: Uninstaller is renamed from unins000.exe to unins{version}.exe
@@ -1294,7 +1300,7 @@ begin
 
       Log('[SKIPPED] .env restoration - using fresh .env files from new installation');
       Log('  Reason: Old .env files contain stale credentials that cause login failures');
-      Log('  Action: New .env files from v1.17.7 installation will be used');
+      Log('  Action: New .env files from current installation will be used');
 
       // Only restore user data (not configuration files)
 

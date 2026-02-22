@@ -1,22 +1,30 @@
-# Installer Testing Guide - v1.17.7
+# Installer Testing Guide - v1.18.3
 
-**Created**: February 3, 2026
-**Installer Version**: 1.17.7
-**Installer File**: `SMS_Installer_1.17.7.exe` (8.4 MB)
-**Status**: Ready for Testing
+**Last Updated**: February 22, 2026
+**Installer Version**: 1.18.3
+**Installer File**: `SMS_Installer_1.18.3.exe`
+**Status**: Production Release
 
 ---
 
 ## 📋 Overview
 
-This guide provides step-by-step testing procedures for the v1.17.7 installer, which includes critical fixes for:
+This guide provides step-by-step testing procedures for the v1.18.3 installer, which includes:
+
+**Latest Features (v1.18.3):**
+- RBAC legacy admin fallback scoped to imports permissions only
+- PostgreSQL-only deployment standardization
+- Course auto-activation with scheduler (3:00 AM UTC daily)
+- Refreshed installer artifact with corrected release lineage
+
+**Core Capabilities:**
 - Parallel installation prevention (enforces in-place upgrades)
 - Robust existing installation detection
 - Automatic data backup before changes
 - Installation metadata tracking
 - Improved Docker resource handling
-- Version-aware uninstaller rename (EXE/DAT/MSG stay in sync for Control Panel uninstall)
-- Docker Manager shortcut auto-elevates reliably and its "View Logs" option now prints logs/fallback without PowerShell parser errors
+- Version-aware uninstaller rename
+- SMS_Manager.exe with elevated privileges for container control
 
 ---
 
@@ -32,7 +40,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
    - Check registry: `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}`
    - Check registry: `HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}`
 
-2. Run installer: `SMS_Installer_1.17.7.exe`
+2. Run installer: `SMS_Installer_1.18.3.exe`
 
 3. Verify installation:
    - [ ] Welcome screen displays in selected language (EN/EL)
@@ -44,7 +52,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 4. Verify metadata:
    - [ ] Check `C:\Program Files\SMS\install_metadata.txt` exists
-   - [ ] Metadata contains version 1.17.7
+   - [ ] Metadata contains version 1.18.3
    - [ ] Metadata contains installation date/time
    - [ ] Metadata shows "InstallationType: Fresh"
 
@@ -57,17 +65,17 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 ---
 
-### Scenario 2: Upgrade Same Version (v1.17.7 → v1.17.7 Repair)
+### Scenario 2: Upgrade Same Version (v1.18.3 → v1.18.3 Repair)
 
 **Purpose**: Verify repair/reinstall functionality
 
-**Prerequisites**: Scenario 1 completed (v1.17.7 already installed)
+**Prerequisites**: Scenario 1 completed (v1.18.3 already installed)
 
 **Steps**:
-1. Run installer again: `SMS_Installer_1.17.7.exe`
+1. Run installer again: `SMS_Installer_1.18.3.exe`
 
 2. Verify behavior:
-   - [ ] Installer detects existing v1.17.7
+   - [ ] Installer detects existing v1.18.3
    - [ ] Dialog offers: "Repair", "Modify", or "Remove"
    - [ ] Select "Repair"
 
@@ -91,22 +99,22 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 ---
 
-### Scenario 3: Upgrade from v1.17.6 → v1.17.7
+### Scenario 3: Upgrade from v1.18.2 → v1.18.3
 
 **Purpose**: Verify in-place upgrade functionality
 
-**Prerequisites**: v1.17.6 installed (or mock older version)
+**Prerequisites**: v1.18.2 installed (or mock older version)
 
 **Steps**:
-1. Verify v1.17.6 is installed:
-   - Check `C:\Program Files\SMS\VERSION` shows 1.17.6
+1. Verify v1.18.2 is installed:
+   - Check `C:\Program Files\SMS\VERSION` shows 1.18.2
    - Check registry version
 
-2. Run installer: `SMS_Installer_1.17.7.exe`
+2. Run installer: `SMS_Installer_1.18.3.exe`
 
 3. Verify detection:
-   - [ ] Installer detects existing v1.17.6
-   - [ ] Displays upgrade message: "Upgrading from v1.17.6 to v1.17.7"
+   - [ ] Installer detects existing v1.18.2
+   - [ ] Displays upgrade message: "Upgrading from v1.18.2 to v1.18.3"
    - [ ] **NO option to change installation directory** (enforced in-place upgrade)
    - [ ] **Legacy detector validation** (only once per environment):
      1. Back up the uninstall registry keys so they can be restored afterward:
@@ -125,20 +133,20 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 4. Verify automatic backup:
    - [ ] Backup created automatically (no user prompt)
-   - [ ] Backup location: `C:\Program Files\SMS\backups\backup_1.17.6_YYYYMMDD_HHMMSS.zip`
+   - [ ] Backup location: `C:\Program Files\SMS\backups\backup_1.18.2_YYYYMMDD_HHMMSS.zip`
    - [ ] Backup contains all critical files
 
 5. Verify upgrade:
    - [ ] Upgrade completes without errors
-   - [ ] Version updated: `C:\Program Files\SMS\VERSION` shows 1.17.7
+   - [ ] Version updated: `C:\Program Files\SMS\VERSION` shows 1.18.3
    - [ ] All data preserved
    - [ ] Docker containers upgraded
    - [ ] Application functional after upgrade
 
 6. Verify metadata:
    - [ ] `install_metadata.txt` updated
-   - [ ] Shows "PreviousVersion: 1.17.6"
-   - [ ] Shows "CurrentVersion: 1.17.7"
+   - [ ] Shows "PreviousVersion: 1.18.2"
+   - [ ] Shows "CurrentVersion: 1.18.3"
    - [ ] Shows "LastAction: Upgrade"
    - [ ] Installation directory unchanged
    - [ ] If the registry entries were removed for the legacy detector test, confirm the metadata still reports the previous and current versions correctly (it now reads directly from the existing `VERSION` file when the registry is empty).
@@ -151,7 +159,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 **Purpose**: Verify upgrade handles running Docker containers gracefully
 
-**Prerequisites**: v1.17.6 installed with Docker containers running
+**Prerequisites**: v1.18.2 installed with Docker containers running
 
 **Steps**:
 1. Start Docker containers:
@@ -165,7 +173,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
    docker ps
    ```
 
-3. Run installer: `SMS_Installer_1.17.7.exe`
+3. Run installer: `SMS_Installer_1.18.3.exe`
 
 4. Verify behavior:
    - [ ] Installer detects running Docker containers
@@ -191,7 +199,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 **Purpose**: Verify upgrade with Docker stopped (normal upgrade scenario)
 
-**Prerequisites**: v1.17.6 installed with Docker stopped
+**Prerequisites**: v1.18.2 installed with Docker stopped
 
 **Steps**:
 1. Stop Docker containers:
@@ -200,7 +208,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
    docker-compose down
    ```
 
-2. Run installer: `SMS_Installer_1.17.7.exe`
+2. Run installer: `SMS_Installer_1.18.3.exe`
 
 3. Verify behavior:
    - [ ] No Docker warnings displayed
@@ -225,13 +233,13 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 **Purpose**: Verify uninstall offers data preservation option
 
-**Prerequisites**: v1.17.7 installed
+**Prerequisites**: v1.18.3 installed
 
 **Steps**:
 1. Run uninstaller:
    - Option A: Control Panel → "Uninstall a program" → Select SMS → Uninstall
-   - Option B: `C:\Program Files\SMS\unins1.17.7.exe`
-   - Before uninstalling, confirm `unins1.17.7.exe`, `unins1.17.7.dat`, and `unins1.17.7.msg` all exist in `C:\Program Files\SMS\`. If any file is missing, note it in the tracker before proceeding.
+   - Option B: `C:\Program Files\SMS\unins1.18.3.exe`
+   - Before uninstalling, confirm `unins1.18.3.exe`, `unins1.18.3.dat`, and `unins1.18.3.msg` all exist in `C:\Program Files\SMS\`. If any file is missing, note it in the tracker before proceeding.
 
 2. Verify uninstall dialog:
    - [ ] Dialog asks: "Do you want to preserve user data?"
@@ -305,7 +313,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 
 3. Expected fields:
    - [ ] InstallDate: `YYYY-MM-DD HH:MM:SS`
-   - [ ] CurrentVersion: `1.17.7`
+   - [ ] CurrentVersion: `1.18.3`
    - [ ] PreviousVersion: (if upgrade) or `none` (if fresh)
    - [ ] InstallationType: `Fresh`, `Upgrade`, or `Repair`
    - [ ] InstallationDirectory: `C:\Program Files\SMS\`
@@ -329,7 +337,7 @@ This guide provides step-by-step testing procedures for the v1.17.7 installer, w
 # Run this script to perform automated validation checks
 
 # Check installer exists
-$installerPath = ".\dist\SMS_Installer_1.17.7.exe"
+$installerPath = ".\dist\SMS_Installer_1.18.3.exe"
 if (-not (Test-Path $installerPath)) {
     Write-Error "Installer not found: $installerPath"
     exit 1
@@ -376,8 +384,8 @@ Write-Host "`n✅ Automated validation complete"
 | Scenario | Status | Notes |
 |----------|--------|-------|
 | 1. Fresh Install | ⬜ Pass ⬜ Fail | |
-| 2. Repair (v1.17.7 → v1.17.7) | ⬜ Pass ⬜ Fail | |
-| 3. Upgrade (v1.17.6 → v1.17.7) | ⬜ Pass ⬜ Fail | |
+| 2. Repair (v1.18.3 → v1.18.3) | ⬜ Pass ⬜ Fail | |
+| 3. Upgrade (v1.18.2 → v1.18.3) | ⬜ Pass ⬜ Fail | |
 | 4. Docker Running | ⬜ Pass ⬜ Fail | |
 | 5. Docker Stopped | ⬜ Pass ⬜ Fail | |
 | 6. Uninstall (Preserve Data) | ⬜ Pass ⬜ Fail | |

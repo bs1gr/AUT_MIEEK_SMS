@@ -1,22 +1,33 @@
-# SMS Installer - v1.10.0
+# SMS Installer - v1.18.3
 
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
 
-## Recent Changes (v1.10.0)
+## Recent Changes (v1.18.3)
 
-**New Features:**
+**Major Updates:**
 
-- ✅ Excellence Highlights: Auto-recognition for A/A+ grades (⭐ 4-5 stars)
-- ✅ Enhanced test coverage: Backend integration + UI tests
-- ✅ Translation fixes: 8 missing grading categories + attendance collision resolved
-- ✅ Version management: Enhanced script tracks all 12 version references
+- ✅ **RBAC Improvements**: Legacy admin fallback scoped to imports permissions only (stricter security)
+- ✅ **Database Standardization**: PostgreSQL-only deployment with persistence hardening
+- ✅ **Course Auto-Activation**: Scheduled job (3:00 AM UTC daily) + UI indicators (green/amber/blue badges)
+- ✅ **Installer Runtime**: Fixed runtime crash scenarios with corrected release lineage
+- ✅ **Release Integrity**: Mandatory signing + payload gates + digest verification
+
+**Recent Features (v1.18.0-1.18.3):**
+
+- Course auto-activation based on semester dates with real-time UI indicators
+- PDF extraction pipeline for MIEEK course data import
+- Enhanced course template management with evaluation rules validation
+- Encrypted backup support + maintenance fixes
+- Enrollment status filtering (active courses only)
+- Dashboard analytics limited to active enrollments
 
 **Technical Improvements:**
 
-- Updated wizard images to v1.10.0 with Modern v2.0 design
-- All version references synchronized across codebase
-- Comprehensive audit and verification completed
-- 1411 tests passing (378 backend + 1033 frontend)
+- 2579+ tests passing (742 backend + 1813 frontend + 34 auto-activation)
+- PostgreSQL-only wiring enforced for data persistence
+- Docker volume persistence hardening with auto-migration
+- SMS_Manager.exe bundled native runtime for shortcuts
+- Release asset sanitization (installer-only artifacts)
 
 **What's Excluded from Installer:**
 
@@ -113,7 +124,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 - ✅ Automatic Docker container build on first run
 - ✅ Preserves user data during upgrades/uninstall (optional)
 
-**Upgrade Intelligence (v1.9.7+):**
+**Upgrade Intelligence:**
 
 - Detects previous version and offers:
   - **Update/Overwrite:** Keep data, install over existing
@@ -143,24 +154,29 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 The built installer will be placed in:
 
 ```
-dist\SMS_Installer_1.9.7.exe
+dist\SMS_Installer_1.18.3.exe
 ```
 
-## Important Notes for v1.9.7
+**Installer Size**: 119,232,344 bytes (~119 MB)
+- Includes SMS_Manager.exe (28.51 MB self-contained .NET 5.0 runtime)
+- Full backend and frontend source code
+- Docker configuration files
+- Code signing certificate
 
-### Circular Dependency Fix
+## Important Notes for v1.18.3
 
-Version 1.9.7 fixed a critical bug where `frontend/package.json` contained:
+### PostgreSQL-Only Deployment
 
-```json
-"sms-monorepo": "file:.."
-```
+Version 1.18.3 enforces PostgreSQL as the only database engine. SQLite is deprecated for fresh installations.
 
-This caused infinite symlink recursion (17x depth) in `node_modules/`. **The dependency has been removed.**
+**Database Configuration:**
+- PostgreSQL container managed automatically by Docker Compose
+- Default connection: `postgresql://sms_user:***@sms-postgres:5432/sms`
+- SQLite→PostgreSQL migration helper available for upgrades
 
 ### Uninstaller Behavior
 
-The uninstaller is renamed to include version: `Uninstall_SMS_1.9.7.exe`
+The uninstaller is renamed to include version: `Uninstall_SMS_1.18.3.exe`
 
 **During Uninstall:**
 
@@ -174,8 +190,8 @@ The uninstaller is renamed to include version: `Uninstall_SMS_1.9.7.exe`
 
 **Preserved on "NO":**
 
-- Database: `{app}\data\student_management.db`
-- Backups: `{app}\backups\*.db.backup`
+- Database: PostgreSQL data in Docker volume `sms_postgres_data`
+- Backups: `{app}\backups\*.sql` (or `.db.backup` for legacy SQLite)
 - Logs: `{app}\logs\*.log`
 - Config: `{app}\backend\.env`, `{app}\frontend\.env`
 
@@ -186,18 +202,20 @@ When upgrading from previous versions:
 1. Installer detects existing installation
 2. Shows version comparison dialog
 3. If "Update" chosen:
-   - Backs up data to `backups/pre_upgrade_1.9.7/`
+   - Backs up data to `backups/pre_upgrade_1.18.3/`
    - Stops Docker container
    - Updates files in place
+   - Migrates SQLite to PostgreSQL if needed
    - Restores `.env` configuration
-4. First launch rebuilds Docker image with fixed `package.json`
+4. First launch rebuilds Docker image with latest code
 
 ### Testing Checklist
 
 - [ ] Fresh install on clean system
-- [ ] Upgrade from v1.9.6 with data preservation
-- [ ] Upgrade from v1.9.6 with fresh install
+- [ ] Upgrade from v1.18.2 with data preservation
+- [ ] Upgrade from v1.17.x with SQLite→PostgreSQL migration
 - [ ] Uninstall with data preservation
+- [ ] Course auto-activation scheduler verification (daily 3:00 AM UTC)
 
 ### Validation Checklist (Windows 10 & 11)
 
@@ -213,9 +231,10 @@ Use this checklist when validating the installer on clean environments:
    - Start Menu entry present and launches app
 
 3) **Upgrade Scenario**
-   - Install v1.9.6 (baseline)
-   - Run new installer and choose **Update/Overwrite**
+   - Install v1.18.2 (or v1.17.x baseline)
+   - Run new v1.18.3 installer and choose **Update/Overwrite**
    - Verify data preserved (`data/`, `backups/`, `logs/`, `.env`)
+   - Verify SQLite→PostgreSQL migration if upgrading from v1.17.x
    - App launches successfully after upgrade
 
 4) **Uninstall**

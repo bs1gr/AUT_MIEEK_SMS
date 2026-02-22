@@ -57,7 +57,7 @@ Comprehensive pre-release validation completed. **6 critical fixes** identified 
 - **Files**: backend/routers/control/operations.py (added `_auth=Depends(require_control_admin)`), backend/tests/test_admin_backup_encryption.py
 - **Impact**: Authentication properly tested, RBAC not bypassed
 
-#### 6. **RBAC Test Enforcement** ✅ 
+#### 6. **RBAC Test Enforcement** ✅
 - **Issue**: test_rbac_enforcement.py::test_rbac_teacher_can_write_but_not_admin_ops failing
 - **Root Cause**: AUTH_MODE default "disabled" caused optional_require_permission() to return dummy admin, bypassing teacher permission checks
 - **Fix**: Added `config.settings.AUTH_MODE = "permissive"` to test setup
@@ -77,7 +77,7 @@ Comprehensive pre-release validation completed. **6 critical fixes** identified 
 
 ### ✅ Code Quality (All Passing)
 - **Ruff Linting**: ✅ PASSED
-- **MyPy Type Checking**: ✅ PASSED  
+- **MyPy Type Checking**: ✅ PASSED
 - **ESLint (Frontend)**: ✅ PASSED
 - **TypeScript**: ✅ PASSED
 - **Markdown Lint**: ✅ PASSED
@@ -113,7 +113,7 @@ Comprehensive pre-release validation completed. **6 critical fixes** identified 
 
 ### Included Fixes
 - ✅ Backup WAL mode handling
-- ✅ Database schema columns  
+- ✅ Database schema columns
 - ✅ Backend logger import
 - ✅ Frontend theme property
 - ✅ Backup auth testing
@@ -207,7 +207,7 @@ Comprehensive pre-release validation completed. **6 critical fixes** identified 
 
 **Status**: ✅ **PRODUCTION READY FOR RELEASE**
 
-All validation gates have been cleared. The system is stable, all critical fixes are verified, and the test installer has been successfully built with all changes included. 
+All validation gates have been cleared. The system is stable, all critical fixes are verified, and the test installer has been successfully built with all changes included.
 
 **Ready to proceed with v1.18.4 release when approved by owner.**
 
