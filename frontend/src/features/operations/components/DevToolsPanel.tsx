@@ -6,6 +6,7 @@ import { useLanguage } from '@/LanguageContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { adminOpsAPI, getHealthStatus, importAPI, CONTROL_API_BASE } from '@/api/api';
+import authService from '@/services/authService';
 import { studentKeys } from '@/hooks/useStudentsQuery';
 import { courseKeys } from '@/hooks/useCoursesQuery';
 import { useStudentsStore, useCoursesStore } from '@/stores';
@@ -109,6 +110,7 @@ const statusTone = (status?: HealthStatus['status']) => {
 };
 
 const UPTIME_STORAGE_KEY = 'sms.operations.healthUptime';
+const CONTROL_ADMIN_TOKEN_STORAGE_KEY = 'sms.operations.controlAdminToken';
 
 const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorSummary = true }: DevToolsPanelProps) => {
   const { t } = useLanguage();
@@ -129,6 +131,14 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const [intervalMs, setIntervalMs] = useState(5000);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [result, setResult] = useState<OperationResult>(null);
+  const [controlAdminToken, setControlAdminToken] = useState(() => {
+    if (typeof window === 'undefined') return '';
+    try {
+      return sessionStorage.getItem(CONTROL_ADMIN_TOKEN_STORAGE_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
   // Backups management state
   type BackupItem = { filename: string; path: string; size: number; created: string };
   const [backups, setBackups] = useState<BackupItem[] | null>(null);
@@ -213,6 +223,31 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     timestamp: new Date().toISOString(),
     ...payload,
   });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      if (controlAdminToken) {
+        sessionStorage.setItem(CONTROL_ADMIN_TOKEN_STORAGE_KEY, controlAdminToken);
+      } else {
+        sessionStorage.removeItem(CONTROL_ADMIN_TOKEN_STORAGE_KEY);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [controlAdminToken]);
+
+  const getControlHeaders = useCallback((extra?: Record<string, string>) => {
+    const headers: Record<string, string> = { ...(extra || {}) };
+    const accessToken = authService.getAccessToken();
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
+    }
+    if (controlAdminToken) {
+      headers['X-ADMIN-TOKEN'] = controlAdminToken;
+    }
+    return headers;
+  }, [controlAdminToken]);
 
   const persistUptime = useCallback((uptimeSource: number, recordedAt: number) => {
     uptimeTimerRef.current = { uptimeSource, recordedAt };
@@ -308,9 +343,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       // Use Control API endpoint
       const response = await fetch(`${CONTROL_API_BASE}/operations/database-backup`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getControlHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'include',
       });
 
@@ -361,6 +394,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     try {
       const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups`, {
         method: 'GET',
+        headers: getControlHeaders(),
         credentials: 'include',
       });
       if (!res.ok) throw new Error(`Failed to load backups: ${res.status} ${res.statusText}`);
@@ -374,7 +408,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     } finally {
       setBackupsLoading(false);
     }
-  }, [onToast, t]);
+  }, [getControlHeaders, onToast, t]);
 
   // Load existing backups on mount so users immediately see available backups
   useEffect(() => {
@@ -386,7 +420,23 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const downloadBackup = async (filename: string) => {
     try {
       const url = `${CONTROL_API_BASE}/operations/database-backups/${encodeURIComponent(filename)}/download`;
-      window.open(url, '_blank');
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: getControlHeaders(),
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+        a.remove();
+      }, 0);
     } catch {
       onToast({ message: t('error'), type: 'error' });
     }
@@ -396,10 +446,26 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
   // saveLatestToPath handled via UI action when implemented
 
-  const downloadAllZip = () => {
+  const downloadAllZip = async () => {
     try {
       const url = `${CONTROL_API_BASE}/operations/database-backups/archive.zip`;
-      window.open(url, '_blank');
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: getControlHeaders(),
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`Download failed: ${res.status} ${res.statusText}`);
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      a.href = objectUrl;
+      a.download = 'sms_backups_all.zip';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        URL.revokeObjectURL(objectUrl);
+        a.remove();
+      }, 0);
     } catch {
       onToast({ message: t('error'), type: 'error' });
     }
@@ -415,7 +481,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     try {
       const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/archive/selected.zip`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getControlHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'include',
         body: JSON.stringify({ filenames: Array.from(selectedBackups) }),
       });
@@ -450,7 +516,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     try {
       const res = await fetch(`${CONTROL_API_BASE}/operations/database-backups/delete-selected`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getControlHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'include',
         body: JSON.stringify({ filenames: Array.from(selectedBackups) }),
       });
@@ -494,6 +560,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
       const response = await fetch(`${CONTROL_API_BASE}/operations/database-upload`, {
         method: 'POST',
+        headers: getControlHeaders(),
         body: formData,
         credentials: 'include',
       });
@@ -517,9 +584,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       // Now restore from the uploaded backup
       const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getControlHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'include',
       });
 
@@ -586,6 +651,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
         const uploadResponse = await fetch(`${CONTROL_API_BASE}/operations/database-upload`, {
           method: 'POST',
+          headers: getControlHeaders(),
           body: formData,
           credentials: 'include',
         });
@@ -609,9 +675,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
         // Now restore the uploaded decrypted backup
         const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(uploadedFilename)}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: getControlHeaders({ 'Content-Type': 'application/json' }),
           credentials: 'include',
         });
 
@@ -631,9 +695,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
         // For plain SQLite backups: restore directly
         const restoreResponse = await fetch(`${CONTROL_API_BASE}/operations/database-restore?backup_filename=${encodeURIComponent(filename)}`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: getControlHeaders({ 'Content-Type': 'application/json' }),
           credentials: 'include',
         });
 
@@ -1085,6 +1147,24 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
         <div className={`${theme.card} md:col-span-2`}>
           <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
+
+          <div className="mb-3">
+            <label className={`mb-1 block text-xs ${theme.mutedText}`} htmlFor="control-admin-token">
+              {t('utils.controlAdminTokenLabel')}
+            </label>
+            <input
+              id="control-admin-token"
+              type="password"
+              value={controlAdminToken}
+              onChange={(event) => setControlAdminToken(event.target.value)}
+              className={`w-full ${theme.input}`}
+              placeholder={t('utils.controlAdminTokenPlaceholder')}
+              autoComplete="off"
+            />
+            <p className={`mt-1 text-[11px] ${theme.mutedText}`}>
+              {t('utils.controlAdminTokenHint')}
+            </p>
+          </div>
 
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>

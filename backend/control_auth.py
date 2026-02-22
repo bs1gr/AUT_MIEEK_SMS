@@ -29,8 +29,15 @@ import logging
 import os
 from typing import Callable
 
+import jwt
+from jwt.exceptions import InvalidTokenError
+
 from fastapi import HTTPException, Request
 from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
+
+import backend.models as models
+from backend.config import settings
+from backend.db import SessionLocal
 
 # No implicit test-mode bypass here. Tests should opt in by setting
 # ENABLE_CONTROL_API during test runs (see backend/tests/conftest.py).
@@ -93,6 +100,38 @@ def _get_env_token() -> str | None:
     return t if t else None
 
 
+def _admin_from_bearer(request: Request) -> bool:
+    auth_header = str(request.headers.get("Authorization", "")).strip()
+    if not auth_header.startswith("Bearer "):
+        return False
+    token = auth_header.split(" ", 1)[1].strip()
+    if not token:
+        return False
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    except InvalidTokenError:
+        return False
+    except Exception:
+        return False
+
+    role = str(payload.get("role", "")).strip().lower()
+    if role:
+        return role == "admin"
+
+    email = str(payload.get("sub", "")).strip().lower()
+    if not email:
+        return False
+
+    try:
+        with SessionLocal() as db:
+            user = db.query(models.User).filter(models.User.email == email).first()
+            if not user or not bool(getattr(user, "is_active", False)):
+                return False
+            return str(getattr(user, "role", "")).strip().lower() == "admin"
+    except Exception:
+        return False
+
+
 async def require_control_admin(request: Request) -> None:
     """FastAPI dependency that enforces control endpoint access rules.
 
@@ -126,6 +165,21 @@ async def require_control_admin(request: Request) -> None:
 
     env_token = _get_env_token()
     header_token = request.headers.get("x-admin-token")
+    client_host = getattr(request.client, "host", None) if request.client else None
+    is_loopback = _is_loopback(client_host)
+
+    if _admin_from_bearer(request):
+        if is_loopback or _allow_remote():
+            logger.info(
+                "Control API access granted via admin bearer token",
+                extra={"client": client_host},
+            )
+            return
+        logger.warning(
+            "Rejected control API call — admin token provided but remote access not allowed",
+            extra={"client": client_host},
+        )
+        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Forbidden")
     # Debug: help tests diagnose header presence (DEBUG level to avoid noisy CI logs)
     logger.debug("control_auth: header keys=%s", list(request.headers.keys()))
     logger.debug("control_auth: header_token=%r env_token=%r", header_token, env_token)
@@ -146,8 +200,7 @@ async def require_control_admin(request: Request) -> None:
         return
 
     # No token configured — only allow loopback clients by default
-    client_host = getattr(request.client, "host", None) if request.client else None
-    if _is_loopback(client_host):
+    if is_loopback:
         logger.info(
             "Control API access granted for loopback client",
             extra={"client": client_host},
