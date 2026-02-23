@@ -24,8 +24,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 # System deps
+# Note: postgresql-client required for pg_dump backup operations
 RUN apt-get update -y && apt-get install -y --no-install-recommends \
-    ca-certificates curl \
+    ca-certificates curl postgresql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Backend deps

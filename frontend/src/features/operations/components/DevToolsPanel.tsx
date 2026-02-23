@@ -604,6 +604,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
         const backupName = filename.replace(/\.enc$/i, '');
         const decryptResponse = await fetch(`${RAW_API_BASE}/admin/restore-encrypted-backup?backup_name=${encodeURIComponent(backupName)}&output_filename=decrypted_backup.db`, {
           method: 'POST',
+          headers: getControlHeaders(),
           credentials: 'include',
         });
 

@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import logging
 import os
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
@@ -34,7 +36,7 @@ class OperationResult(BaseModel):
 
 
 @router.post("/operations/install-frontend-deps", response_model=OperationResult)
-async def install_frontend_deps(request: Request):
+async def install_frontend_deps(request: Request, _auth=Depends(require_control_admin)):
     # Resolve project root (repository root)
     project_root = Path(__file__).resolve().parents[3]
     frontend_dir = project_root / "frontend"
@@ -93,7 +95,7 @@ async def install_frontend_deps(request: Request):
 
 
 @router.post("/operations/install-backend-deps", response_model=OperationResult)
-async def install_backend_deps(request: Request):
+async def install_backend_deps(request: Request, _auth=Depends(require_control_admin)):
     project_root = Path(__file__).resolve().parents[3]
     backend_dir = project_root / "backend"
     requirements_file = backend_dir / "requirements.txt"
@@ -136,7 +138,7 @@ async def install_backend_deps(request: Request):
 
 
 @router.post("/operations/docker-build", response_model=OperationResult)
-async def docker_build(request: Request):
+async def docker_build(request: Request, _auth=Depends(require_control_admin)):
     # Backward-compat: allow tests to monkeypatch legacy symbol in routers_control
     try:
         import importlib
@@ -174,7 +176,7 @@ async def docker_build(request: Request):
 
 
 @router.post("/operations/database-upload", response_model=OperationResult)
-async def upload_database(request: Request, file: UploadFile = File(...)):
+async def upload_database(request: Request, file: UploadFile = File(...), _auth=Depends(require_control_admin)):
     if not file.filename or not file.filename.lower().endswith(".db"):
         raise http_error(
             400,
@@ -208,7 +210,7 @@ async def upload_database(request: Request, file: UploadFile = File(...)):
 
 
 @router.post("/operations/docker-update-volume", response_model=OperationResult)
-async def docker_update_volume(request: Request):
+async def docker_update_volume(request: Request, _auth=Depends(require_control_admin)):
     # Backward-compat: allow tests to monkeypatch legacy symbol in routers_control
     try:
         import importlib
@@ -272,34 +274,24 @@ async def create_database_backup(
     _auth=Depends(require_control_admin),
 ):
     """
-    Create a new database backup (SQLite only).
+    Create a new database backup (PostgreSQL ONLY).
+
+    ⚠️ CRITICAL: SQLite is FORBIDDEN and OBSOLETE as of v1.18.x
+    Only PostgreSQL databases are supported. SQLite databases must be migrated.
 
     Args:
         encrypt: Whether to encrypt the backup with AES-256-GCM (default: True)
 
     Returns:
         OperationResult with backup details including encryption status
+
+    Raises:
+        400: If SQLite database is detected (OBSOLETE - migration required)
+        500: If pg_dump fails or PostgreSQL client tools not installed
     """
     try:
         settings = get_settings()
         db_url = settings.DATABASE_URL
-
-        # Only support sqlite URLs for file backup
-        if not db_url.startswith("sqlite"):
-            raise http_error(400, ErrorCode.BAD_REQUEST, "Backup supported only for SQLite database", request)
-
-        # Extract filesystem path
-        path_part = db_url.split("sqlite:///", 1)[-1] if "sqlite:///" in db_url else db_url.split("sqlite:", 1)[-1]
-        db_path = Path(path_part.lstrip("/") if os.name == "nt" else path_part)
-
-        if not db_path.exists():
-            raise http_error(
-                404,
-                ErrorCode.CONTROL_BACKUP_NOT_FOUND,
-                "Database file not found",
-                request,
-                context={"db_path": str(db_path)},
-            )
 
         # Create backups directory
         project_root = Path(__file__).resolve().parents[3]
@@ -309,78 +301,141 @@ async def create_database_backup(
         # Generate timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        if encrypt:
-            # Create encrypted backup
-            backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
-            backup_name = f"backup_{timestamp}"
+        # ============================================================================
+        # POSTGRESQL BACKUP - THE ONLY SUPPORTED DATABASE ENGINE
+        # ============================================================================
+        # SQLite is FORBIDDEN and OBSOLETE as of v1.18.x
+        # All installations MUST use PostgreSQL. No exceptions.
+        # ============================================================================
+        if db_url.startswith("postgresql"):
+            parsed = urlparse(db_url)
 
-            backup_info = backup_service.create_encrypted_backup(
-                source_path=db_path,
-                backup_name=backup_name,
-                metadata={
-                    "database_url": settings.DATABASE_URL,
-                    "backup_method": "control_api",
-                    "encryption_enabled": True,
-                },
-            )
+            # Extract connection details
+            pg_host = parsed.hostname or "localhost"
+            pg_port = parsed.port or 5432
+            pg_user = parsed.username
+            pg_password = parsed.password
+            pg_database = parsed.path.lstrip("/")
 
-            return OperationResult(
-                success=True,
-                message="Encrypted database backup created successfully",
-                details={
-                    "filename": f"{backup_name}.enc",
-                    "path": backup_info["backup_path"],
-                    "original_size": backup_info["original_size"],
-                    "encrypted_size": backup_info["encrypted_size"],
-                    "encryption": "AES-256-GCM",
-                    "timestamp": timestamp,
-                    "compression_ratio": backup_info["compression_ratio"],
+            backup_filename = f"backup_{timestamp}.sql"
+            backup_path = backup_dir / backup_filename
+
+            # Build pg_dump command
+            pg_dump_cmd = [
+                "pg_dump",
+                "-h", pg_host,
+                "-p", str(pg_port),
+                "-U", pg_user,
+                "-d", pg_database,
+                "-F", "c",  # Custom format (compressed)
+                "-f", str(backup_path),
+            ]
+
+            # Set password via environment variable
+            env = os.environ.copy()
+            if pg_password:
+                env["PGPASSWORD"] = pg_password
+
+            try:
+                result = subprocess.run(
+                    pg_dump_cmd,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=300,  # 5 minutes timeout
+                )
+
+                if result.returncode != 0:
+                    raise Exception(f"pg_dump failed: {result.stderr}")
+
+                file_size = backup_path.stat().st_size
+
+                if encrypt:
+                    # Encrypt the SQL dump
+                    backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
+                    backup_name = f"backup_{timestamp}"
+
+                    backup_info = backup_service.create_encrypted_backup(
+                        source_path=backup_path,
+                        backup_name=backup_name,
+                        metadata={
+                            "database_type": "postgresql",
+                            "database_host": pg_host,
+                            "database_name": pg_database,
+                            "backup_method": "pg_dump",
+                            "encryption_enabled": True,
+                        },
+                    )
+
+                    # Remove unencrypted dump
+                    backup_path.unlink()
+
+                    return OperationResult(
+                        success=True,
+                        message="Encrypted PostgreSQL backup created successfully",
+                        details={
+                            "filename": f"{backup_name}.enc",
+                            "path": backup_info["backup_path"],
+                            "original_size": backup_info["original_size"],
+                            "encrypted_size": backup_info["encrypted_size"],
+                            "encryption": "AES-256-GCM",
+                            "timestamp": timestamp,
+                            "compression_ratio": backup_info["compression_ratio"],
+                            "database_type": "postgresql",
+                        },
+                    )
+                else:
+                    return OperationResult(
+                        success=True,
+                        message="PostgreSQL backup created successfully",
+                        details={
+                            "filename": backup_filename,
+                            "path": str(backup_path),
+                            "size": file_size,
+                            "timestamp": timestamp,
+                            "encryption": None,
+                            "database_type": "postgresql",
+                        },
+                    )
+
+            except subprocess.TimeoutExpired:
+                raise http_error(
+                    500,
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "PostgreSQL backup timed out after 5 minutes",
+                    request,
+                )
+            except FileNotFoundError:
+                raise http_error(
+                    500,
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "pg_dump not found. Please install PostgreSQL client tools.",
+                    request,
+                )
+
+        # Handle SQLite backups - FORBIDDEN AND OBSOLETE
+        elif db_url.startswith("sqlite"):
+            raise http_error(
+                400,
+                ErrorCode.BAD_REQUEST,
+                "SQLite is FORBIDDEN and OBSOLETE. PostgreSQL is the ONLY supported database. "
+                "Please migrate your SQLite database to PostgreSQL immediately. "
+                "Contact your system administrator for migration assistance.",
+                request,
+                context={
+                    "database_type": "sqlite",
+                    "status": "OBSOLETE - MIGRATION REQUIRED",
+                    "supported_database": "PostgreSQL ONLY",
                 },
             )
         else:
-            # Create unencrypted backup (legacy) - use SQLite backup API to handle WAL mode correctly
-            import sqlite3
-
-            backup_filename = f"student_management.backup_{timestamp}.db"
-            backup_path = backup_dir / backup_filename
-
-            # Use SQLite backup API which properly handles WAL mode (copies .db + .db-wal together)
-            # This is critical because normal file copy in WAL mode only copies the schema-only snapshot
-            try:
-                source_db = sqlite3.connect(str(db_path))
-                target_db = sqlite3.connect(str(backup_path))
-                with target_db:
-                    source_db.backup(target_db)
-                source_db.close()
-                target_db.close()
-            except Exception as backup_error:
-                # Log but don't fail critical backup - still useful for troubleshooting
-                logger.error(
-                    "SQLite backup API failed, attempting fallback copy",
-                    extra={
-                        "db_path": str(db_path),
-                        "backup_path": str(backup_path),
-                        "error": str(backup_error),
-                    },
-                )
-                # Fallback to file copy if SQLite API fails
-                import shutil
-
-                shutil.copy2(db_path, backup_path)
-
-            file_size = backup_path.stat().st_size
-
-            return OperationResult(
-                success=True,
-                message="Database backup created successfully",
-                details={
-                    "filename": backup_filename,
-                    "path": str(backup_path),
-                    "size": file_size,
-                    "timestamp": timestamp,
-                    "encryption": None,
-                },
+            raise http_error(
+                400,
+                ErrorCode.BAD_REQUEST,
+                f"Unsupported database type: {db_url.split(':')[0]}. Only PostgreSQL is supported.",
+                request,
             )
+
     except HTTPException:
         raise
     except Exception as exc:
@@ -394,7 +449,7 @@ async def create_database_backup(
 
 
 @router.get("/operations/database-backups")
-async def list_database_backups(request: Request):
+async def list_database_backups(request: Request, _auth=Depends(require_control_admin)):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = project_root / "backups" / "database"
     if not backup_dir.exists():
@@ -415,7 +470,7 @@ async def list_database_backups(request: Request):
 
 
 @router.get("/operations/database-backups/{backup_filename:path}/download")
-async def download_database_backup(request: Request, backup_filename: str):
+async def download_database_backup(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     target_path = (backup_dir / backup_filename).resolve()
@@ -439,7 +494,7 @@ async def download_database_backup(request: Request, backup_filename: str):
 
 
 @router.get("/operations/database-backups/archive.zip")
-async def download_backups_zip(request: Request):
+async def download_backups_zip(request: Request, _auth=Depends(require_control_admin)):
     import io
     import zipfile
 
@@ -462,7 +517,7 @@ async def download_backups_zip(request: Request):
 
 
 @router.post("/operations/database-backups/archive/save-to-path", response_model=OperationResult)
-async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
+async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _auth=Depends(require_control_admin)):
     import io
     import zipfile
 
@@ -512,7 +567,7 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest):
 
 
 @router.post("/operations/database-backups/archive/selected.zip")
-async def download_selected_backups_zip(request: Request, payload: ZipSelectedRequest):
+async def download_selected_backups_zip(request: Request, payload: ZipSelectedRequest, _auth=Depends(require_control_admin)):
     import io
     import zipfile
 
@@ -546,7 +601,7 @@ async def download_selected_backups_zip(request: Request, payload: ZipSelectedRe
 
 
 @router.post("/operations/database-backups/archive/selected/save-to-path", response_model=OperationResult)
-async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelectedSaveRequest):
+async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelectedSaveRequest, _auth=Depends(require_control_admin)):
     import io
     import zipfile
 
@@ -606,7 +661,7 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
 
 
 @router.post("/operations/database-backups/delete-selected", response_model=OperationResult)
-async def delete_selected_backups(request: Request, payload: DeleteSelectedRequest):
+async def delete_selected_backups(request: Request, payload: DeleteSelectedRequest, _auth=Depends(require_control_admin)):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -643,7 +698,7 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
 
 
 @router.post("/operations/database-backups/{backup_filename:path}/save-to-path", response_model=OperationResult)
-async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest):
+async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest, _auth=Depends(require_control_admin)):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     # Reject any path traversal attempts outright and require a simple backup filename
@@ -710,7 +765,7 @@ async def save_database_backup_to_path(request: Request, backup_filename: str, p
 
 
 @router.post("/operations/database-restore", response_model=OperationResult)
-async def restore_database(request: Request, backup_filename: str):
+async def restore_database(request: Request, backup_filename: str, _auth=Depends(require_control_admin)):
     import logging
     import shutil as _sh
 
