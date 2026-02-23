@@ -63,13 +63,13 @@
 **Publication and workflow verification completed:**
 - ✅ Tag `v1.18.4` created and pushed from `main`.
 - ✅ Release workflow chain completed successfully:
-   - `Create GitHub Release on tag` run `22315391846` — success
-   - `Release - Build & Upload Installer with SHA256` run `22315419856` — success
-   - `Release Asset Sanitizer` run `22315551253` — success
+  - `Create GitHub Release on tag` run `22315391846` — success
+  - `Release - Build & Upload Installer with SHA256` run `22315419856` — success
+  - `Release Asset Sanitizer` run `22315551253` — success
 - ✅ Release published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.4`
 - ✅ Final assets verified (installer-only allowlist):
-   - `SMS_Installer_1.18.4.exe`
-   - `SMS_Installer_1.18.4.exe.sha256`
+  - `SMS_Installer_1.18.4.exe`
+  - `SMS_Installer_1.18.4.exe.sha256`
 - ✅ SHA256 integrity verified (`sha_match=true`) for downloaded installer vs published sidecar hash.
 
 **Closure note:**

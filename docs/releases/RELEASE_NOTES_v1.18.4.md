@@ -1,8 +1,8 @@
 # Release Notes v1.18.4
 
-**Date:** February 23, 2026  
-**Version:** v1.18.4  
-**Type:** Patch / Stability & Security Hardening  
+**Date:** February 23, 2026
+**Version:** v1.18.4
+**Type:** Patch / Stability & Security Hardening
 **Status:** Prepared (tag + publish pending)
 
 ## Overview

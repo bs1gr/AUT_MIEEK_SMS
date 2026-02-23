@@ -1,7 +1,7 @@
 # Release Manifest v1.18.4
 
-**Release Tag:** `v1.18.4`  
-**Branch:** `main`  
+**Release Tag:** `v1.18.4`
+**Branch:** `main`
 **Prepared On:** 2026-02-23
 
 ## Scope Baseline
