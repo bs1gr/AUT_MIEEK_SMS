@@ -929,6 +929,10 @@ jobs:
     name: 🚀 Deploy to Staging
     runs-on: [self-hosted, windows, staging-lan]
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
+    # Push auto-deploy safety gate:
+    # - vars.AUTO_DEPLOY_ON_PUSH == 'true' enables push-triggered deployment globally
+    # - vars.STAGING_DEPLOY_ENABLED == 'true' enables staging on push specifically
+    # Manual dispatch/call with deploy_environment=staging still works regardless of AUTO_DEPLOY_ON_PUSH.
     if: |
       (github.event_name == 'workflow_dispatch' && inputs.deploy_environment == 'staging') ||
       (github.event_name == 'workflow_call' && inputs.deploy_environment == 'staging') ||
@@ -1140,6 +1144,10 @@ jobs:
     name: 🎯 Deploy to Production
     runs-on: [self-hosted, windows, production-lan]
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
+    # Push auto-deploy safety gate:
+    # - vars.AUTO_DEPLOY_ON_PUSH == 'true' enables push-triggered deployment globally
+    # - vars.PROD_DEPLOY_ENABLED == 'true' enables production deployment (manual + push)
+    # Manual dispatch/call with deploy_environment=production still requires PROD_DEPLOY_ENABLED=true.
     if: |
       (github.event_name == 'workflow_dispatch' && inputs.deploy_environment == 'production' && vars.PROD_DEPLOY_ENABLED == 'true') ||
       (github.event_name == 'workflow_call' && inputs.deploy_environment == 'production' && vars.PROD_DEPLOY_ENABLED == 'true') ||
