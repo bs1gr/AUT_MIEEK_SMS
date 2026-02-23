@@ -929,7 +929,10 @@ jobs:
     name: 🚀 Deploy to Staging
     runs-on: [self-hosted, windows, staging-lan]
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && github.actor == 'bs1gr' && (vars.STAGING_URL != '' || vars.DEPLOY_HOST != '')
+    if: |
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_environment == 'staging') ||
+      (github.event_name == 'workflow_call' && inputs.deploy_environment == 'staging') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor == 'bs1gr' && vars.STAGING_DEPLOY_ENABLED == 'true' && vars.AUTO_DEPLOY_ON_PUSH == 'true' && (vars.STAGING_URL != '' || vars.DEPLOY_HOST != ''))
     environment:
       name: staging
       url: ${{ vars.STAGING_URL }}
@@ -1089,13 +1092,13 @@ jobs:
             exit 1
           }
 
-          .\DOCKER.ps1 -Start
+          .\DOCKER.ps1 -Update
           if ($LASTEXITCODE -ne 0) {
-            Write-Error "Staging deployment failed (DOCKER.ps1 -Start)"
+            Write-Error "Staging deployment failed (DOCKER.ps1 -Update)"
             exit $LASTEXITCODE
           }
 
-          Write-Host "✅ Staging deployment started"
+          Write-Host "✅ Staging deployment updated"
 
       - name: Run post-deployment health check
         shell: pwsh
@@ -1137,7 +1140,10 @@ jobs:
     name: 🎯 Deploy to Production
     runs-on: [self-hosted, windows, production-lan]
     needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
-    if: vars.PROD_DEPLOY_ENABLED == 'true'
+    if: |
+      (github.event_name == 'workflow_dispatch' && inputs.deploy_environment == 'production' && vars.PROD_DEPLOY_ENABLED == 'true') ||
+      (github.event_name == 'workflow_call' && inputs.deploy_environment == 'production' && vars.PROD_DEPLOY_ENABLED == 'true') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PROD_DEPLOY_ENABLED == 'true' && vars.AUTO_DEPLOY_ON_PUSH == 'true')
     environment:
       name: production
       url: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
@@ -1291,13 +1297,13 @@ jobs:
             exit 1
           }
 
-          .\DOCKER.ps1 -Start
+          .\DOCKER.ps1 -Update
           if ($LASTEXITCODE -ne 0) {
-            Write-Error "Production deployment failed (DOCKER.ps1 -Start)"
+            Write-Error "Production deployment failed (DOCKER.ps1 -Update)"
             exit $LASTEXITCODE
           }
 
-          Write-Host "✅ Production deployment started"
+          Write-Host "✅ Production deployment updated"
 
       - name: Run post-deployment validation
         shell: pwsh
