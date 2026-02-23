@@ -168,18 +168,13 @@ async def require_control_admin(request: Request) -> None:
     client_host = getattr(request.client, "host", None) if request.client else None
     is_loopback = _is_loopback(client_host)
 
+    # Valid admin bearer token is sufficient authorization regardless of remote access settings
     if _admin_from_bearer(request):
-        if is_loopback or _allow_remote():
-            logger.info(
-                "Control API access granted via admin bearer token",
-                extra={"client": client_host},
-            )
-            return
-        logger.warning(
-            "Rejected control API call — admin token provided but remote access not allowed",
+        logger.info(
+            "Control API access granted via admin bearer token",
             extra={"client": client_host},
         )
-        raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Forbidden")
+        return
     # Debug: help tests diagnose header presence (DEBUG level to avoid noisy CI logs)
     logger.debug("control_auth: header keys=%s", list(request.headers.keys()))
     logger.debug("control_auth: header_token=%r env_token=%r", header_token, env_token)
