@@ -110,7 +110,6 @@ const statusTone = (status?: HealthStatus['status']) => {
 };
 
 const UPTIME_STORAGE_KEY = 'sms.operations.healthUptime';
-const CONTROL_ADMIN_TOKEN_STORAGE_KEY = 'sms.operations.controlAdminToken';
 
 const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorSummary = true }: DevToolsPanelProps) => {
   const { t } = useLanguage();
@@ -131,14 +130,6 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const [intervalMs, setIntervalMs] = useState(5000);
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const [result, setResult] = useState<OperationResult>(null);
-  const [controlAdminToken, setControlAdminToken] = useState(() => {
-    if (typeof window === 'undefined') return '';
-    try {
-      return sessionStorage.getItem(CONTROL_ADMIN_TOKEN_STORAGE_KEY) || '';
-    } catch {
-      return '';
-    }
-  });
   // Backups management state
   type BackupItem = { filename: string; path: string; size: number; created: string };
   const [backups, setBackups] = useState<BackupItem[] | null>(null);
@@ -224,30 +215,14 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
     ...payload,
   });
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      if (controlAdminToken) {
-        sessionStorage.setItem(CONTROL_ADMIN_TOKEN_STORAGE_KEY, controlAdminToken);
-      } else {
-        sessionStorage.removeItem(CONTROL_ADMIN_TOKEN_STORAGE_KEY);
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [controlAdminToken]);
-
   const getControlHeaders = useCallback((extra?: Record<string, string>) => {
     const headers: Record<string, string> = { ...(extra || {}) };
     const accessToken = authService.getAccessToken();
     if (accessToken) {
       headers.Authorization = `Bearer ${accessToken}`;
     }
-    if (controlAdminToken) {
-      headers['X-ADMIN-TOKEN'] = controlAdminToken;
-    }
     return headers;
-  }, [controlAdminToken]);
+  }, []);
 
   const persistUptime = useCallback((uptimeSource: number, recordedAt: number) => {
     uptimeTimerRef.current = { uptimeSource, recordedAt };
@@ -1147,24 +1122,6 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
         <div className={`${theme.card} md:col-span-2`}>
           <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
-
-          <div className="mb-3">
-            <label className={`mb-1 block text-xs ${theme.mutedText}`} htmlFor="control-admin-token">
-              {t('utils.controlAdminTokenLabel')}
-            </label>
-            <input
-              id="control-admin-token"
-              type="password"
-              value={controlAdminToken}
-              onChange={(event) => setControlAdminToken(event.target.value)}
-              className={`w-full ${theme.input}`}
-              placeholder={t('utils.controlAdminTokenPlaceholder')}
-              autoComplete="off"
-            />
-            <p className={`mt-1 text-[11px] ${theme.mutedText}`}>
-              {t('utils.controlAdminTokenHint')}
-            </p>
-          </div>
 
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
