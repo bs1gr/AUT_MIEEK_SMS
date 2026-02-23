@@ -274,10 +274,9 @@ async def create_database_backup(
     _auth=Depends(require_control_admin),
 ):
     """
-    Create a new database backup (PostgreSQL ONLY).
+    Create a new database backup.
 
-    ⚠️ CRITICAL: SQLite is FORBIDDEN and OBSOLETE as of v1.18.x
-    Only PostgreSQL databases are supported. SQLite databases must be migrated.
+    Supports PostgreSQL (`pg_dump`) and SQLite (consistent file snapshot).
 
     Args:
         encrypt: Whether to encrypt the backup with AES-256-GCM (default: True)
@@ -286,7 +285,7 @@ async def create_database_backup(
         OperationResult with backup details including encryption status
 
     Raises:
-        400: If SQLite database is detected (OBSOLETE - migration required)
+        400: If database URL is unsupported
         500: If pg_dump fails or PostgreSQL client tools not installed
     """
     try:
@@ -302,10 +301,7 @@ async def create_database_backup(
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # ============================================================================
-        # POSTGRESQL BACKUP - THE ONLY SUPPORTED DATABASE ENGINE
-        # ============================================================================
-        # SQLite is FORBIDDEN and OBSOLETE as of v1.18.x
-        # All installations MUST use PostgreSQL. No exceptions.
+        # POSTGRESQL BACKUP
         # ============================================================================
         if db_url.startswith("postgresql"):
             parsed = urlparse(db_url)
@@ -323,12 +319,18 @@ async def create_database_backup(
             # Build pg_dump command
             pg_dump_cmd = [
                 "pg_dump",
-                "-h", pg_host,
-                "-p", str(pg_port),
-                "-U", pg_user,
-                "-d", pg_database,
-                "-F", "c",  # Custom format (compressed)
-                "-f", str(backup_path),
+                "-h",
+                pg_host,
+                "-p",
+                str(pg_port),
+                "-U",
+                pg_user,
+                "-d",
+                pg_database,
+                "-F",
+                "c",  # Custom format (compressed)
+                "-f",
+                str(backup_path),
             ]
 
             # Set password via environment variable
@@ -367,8 +369,11 @@ async def create_database_backup(
                         },
                     )
 
-                    # Remove unencrypted dump
-                    backup_path.unlink()
+                    # Remove unencrypted dump (best effort; do not fail backup on transient lock)
+                    try:
+                        backup_path.unlink()
+                    except PermissionError:
+                        logger.warning("Could not remove temporary PostgreSQL dump due to file lock: %s", backup_path)
 
                     return OperationResult(
                         success=True,
@@ -413,26 +418,98 @@ async def create_database_backup(
                     request,
                 )
 
-        # Handle SQLite backups - FORBIDDEN AND OBSOLETE
+        # Handle SQLite backups
         elif db_url.startswith("sqlite"):
-            raise http_error(
-                400,
-                ErrorCode.BAD_REQUEST,
-                "SQLite is FORBIDDEN and OBSOLETE. PostgreSQL is the ONLY supported database. "
-                "Please migrate your SQLite database to PostgreSQL immediately. "
-                "Contact your system administrator for migration assistance.",
-                request,
-                context={
+            import sqlite3
+
+            parsed = urlparse(db_url)
+            if db_url.endswith(":memory:") or parsed.path in (":memory:", "/:memory:"):
+                raise http_error(
+                    400,
+                    ErrorCode.BAD_REQUEST,
+                    "Cannot create file backup from in-memory SQLite database",
+                    request,
+                )
+
+            db_path_str = parsed.path or ""
+            # sqlite:///C:/... may parse as /C:/... on Windows
+            if len(db_path_str) >= 3 and db_path_str[0] == "/" and db_path_str[2] == ":":
+                db_path_str = db_path_str[1:]
+
+            db_path = Path(db_path_str)
+            if not db_path.is_absolute():
+                db_path = (project_root / db_path).resolve()
+
+            if not db_path.exists():
+                raise http_error(
+                    400,
+                    ErrorCode.BAD_REQUEST,
+                    f"SQLite database file not found: {db_path}",
+                    request,
+                )
+
+            backup_filename = f"backup_{timestamp}.db"
+            backup_path = backup_dir / backup_filename
+
+            # Use SQLite online backup API for a consistent snapshot (WAL-safe)
+            with sqlite3.connect(str(db_path)) as source_conn, sqlite3.connect(str(backup_path)) as target_conn:
+                source_conn.backup(target_conn)
+
+            file_size = backup_path.stat().st_size
+
+            if encrypt:
+                backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
+                backup_name = f"backup_{timestamp}"
+
+                backup_info = backup_service.create_encrypted_backup(
+                    source_path=backup_path,
+                    backup_name=backup_name,
+                    metadata={
+                        "database_type": "sqlite",
+                        "database_path": str(db_path),
+                        "backup_method": "sqlite_backup_api",
+                        "encryption_enabled": True,
+                    },
+                )
+
+                # Best effort cleanup on Windows where file handles can linger briefly
+                try:
+                    backup_path.unlink(missing_ok=True)
+                except PermissionError:
+                    logger.warning("Could not remove temporary SQLite dump due to file lock: %s", backup_path)
+
+                return OperationResult(
+                    success=True,
+                    message="Encrypted SQLite backup created successfully",
+                    details={
+                        "filename": f"{backup_name}.enc",
+                        "path": backup_info["backup_path"],
+                        "original_size": backup_info["original_size"],
+                        "encrypted_size": backup_info["encrypted_size"],
+                        "encryption": "AES-256-GCM",
+                        "timestamp": timestamp,
+                        "compression_ratio": backup_info["compression_ratio"],
+                        "database_type": "sqlite",
+                    },
+                )
+
+            return OperationResult(
+                success=True,
+                message="SQLite backup created successfully",
+                details={
+                    "filename": backup_filename,
+                    "path": str(backup_path),
+                    "size": file_size,
+                    "timestamp": timestamp,
+                    "encryption": None,
                     "database_type": "sqlite",
-                    "status": "OBSOLETE - MIGRATION REQUIRED",
-                    "supported_database": "PostgreSQL ONLY",
                 },
             )
         else:
             raise http_error(
                 400,
                 ErrorCode.BAD_REQUEST,
-                f"Unsupported database type: {db_url.split(':')[0]}. Only PostgreSQL is supported.",
+                f"Unsupported database type: {db_url.split(':')[0]}. Supported types: postgresql, sqlite.",
                 request,
             )
 
@@ -567,7 +644,9 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _a
 
 
 @router.post("/operations/database-backups/archive/selected.zip")
-async def download_selected_backups_zip(request: Request, payload: ZipSelectedRequest, _auth=Depends(require_control_admin)):
+async def download_selected_backups_zip(
+    request: Request, payload: ZipSelectedRequest, _auth=Depends(require_control_admin)
+):
     import io
     import zipfile
 
@@ -601,7 +680,9 @@ async def download_selected_backups_zip(request: Request, payload: ZipSelectedRe
 
 
 @router.post("/operations/database-backups/archive/selected/save-to-path", response_model=OperationResult)
-async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelectedSaveRequest, _auth=Depends(require_control_admin)):
+async def save_selected_backups_zip_to_path(
+    request: Request, payload: ZipSelectedSaveRequest, _auth=Depends(require_control_admin)
+):
     import io
     import zipfile
 
@@ -661,7 +742,9 @@ async def save_selected_backups_zip_to_path(request: Request, payload: ZipSelect
 
 
 @router.post("/operations/database-backups/delete-selected", response_model=OperationResult)
-async def delete_selected_backups(request: Request, payload: DeleteSelectedRequest, _auth=Depends(require_control_admin)):
+async def delete_selected_backups(
+    request: Request, payload: DeleteSelectedRequest, _auth=Depends(require_control_admin)
+):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
@@ -698,7 +781,9 @@ async def delete_selected_backups(request: Request, payload: DeleteSelectedReque
 
 
 @router.post("/operations/database-backups/{backup_filename:path}/save-to-path", response_model=OperationResult)
-async def save_database_backup_to_path(request: Request, backup_filename: str, payload: BackupCopyRequest, _auth=Depends(require_control_admin)):
+async def save_database_backup_to_path(
+    request: Request, backup_filename: str, payload: BackupCopyRequest, _auth=Depends(require_control_admin)
+):
     project_root = Path(__file__).resolve().parents[3]
     backup_dir = (project_root / "backups" / "database").resolve()
     # Reject any path traversal attempts outright and require a simple backup filename

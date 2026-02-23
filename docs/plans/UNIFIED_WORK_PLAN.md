@@ -1,12 +1,16 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.3 (Released)
-**Last Updated**: February 20, 2026 ($11.18.3 released: tag published, GitHub release live, installer/hash verified)
-**Status**: ✅ $11.18.3 RELEASED (tag + GitHub release published)
+**Current Version**: 1.18.4 (Release Prepared)
+**Last Updated**: February 23, 2026 (v1.18.4 release package prepared from verified post-v1.18.3 changes)
+**Status**: 🟡 v1.18.4 READY FOR TAG + PUBLISH (final workflow execution pending)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Option A - Maintenance & Stability** (Patch release for test fixes)
+**Current Phase**: **Option A - Maintenance & Stability** (Patch release readiness + release automation validation)
 **Current Branch**: `main`
 **Latest Commits**:
+- 4a16ef9b3 - fix(security): complete control operations authorization and backup infrastructure hardening
+- 0779c2d00 - refactor(ui): remove redundant ADMIN_SHUTDOWN_TOKEN field from backup UI
+- 3a85f0720 - fix(control-api): allow remote admin bearer auth without ALLOW_REMOTE_SHUTDOWN
+- 72aec9b09 - fix(control-api): allow admin bearer auth for backups
 - 13e5eb57f - fix(rbac): allow legacy admin fallback only for imports permissions
 - 802a656ab - hotfix(release): bump to 1.18.2 for installer runtime crash fix
 - e63060af5 - hardening(release): add non-blocking signer allowlist telemetry
@@ -26,6 +30,40 @@
 - b428b18e7 - revert(release): undo duplicate $11.18.3 release rerun commit
 - cacc2a130 - fix(i18n): sync en/el dashboard and student locale keys
 
+
+---
+
+## 🚀 v1.18.4 Release Preparation (February 23, 2026)
+
+**Status**: ✅ PREP COMPLETE | ⏳ TAG/PUBLISH PENDING
+
+**Scope verification performed (since `v1.18.3`):**
+- ✅ Reviewed commit history and changed-file scope from `v1.18.3..HEAD`.
+- ✅ Curated release-impacting changes (backup integrity, control-api auth hardening, RBAC behavior, DevTools UX/security).
+- ✅ Excluded runtime/local noise from release scope (untracked artifacts, CSV newline-only drift).
+
+**CI/CD release workflow validation:**
+- ✅ `release-on-tag.yml` enforces tag format/policy + corrected-lineage checks.
+- ✅ `release-installer-with-sha.yml` enforces signature, payload floor, digest verification, and installer-only asset upload.
+- ✅ `release-asset-sanitizer.yml` enforces installer-only release asset allowlist and cleans non-allowlisted assets.
+- ✅ Workflow chain verified: release creation → installer build/upload → sanitizer/final gate.
+
+**Release docs prepared for v1.18.4:**
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.4.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.4.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.4.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.4.md`
+- ✅ `.github/RELEASE_NOTES_v1.18.4.md`
+
+**Release metadata synced:**
+- ✅ `VERSION` → `1.18.4`
+- ✅ `frontend/package.json` → `1.18.4`
+- ✅ `CHANGELOG.md` includes finalized `[1.18.4]` entry
+
+**Next execution step (owner-triggered):**
+1. Create/push tag `v1.18.4` from `main`.
+2. Let `release-on-tag.yml` create/update release body and dispatch installer workflow.
+3. Verify release assets and digest gates pass.
 
 ---
 

@@ -10,21 +10,34 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
-### Critical Bug Fixes
-- **backup**: fix SQLite backup WAL mode handling to prevent corruption with database files using write-ahead logging
-- **database**: add missing columns (database_path, database_host, database_name, database_user) via idempotent migration for backup function compatibility
-- **auth**: fix RBAC test enforcement by properly configuring AUTH_MODE="permissive" during test initialization
-
-### Code Quality Fixes
-- **backend**: add missing logger import in control operations router
-- **frontend**: fix theme property reference in DevToolsPanel (theme.primaryButton → theme.button)
-- **tests**: update test_backup_requires_authentication to handle TestClient loopback behavior correctly
-
-### Infrastructure
-- **documentation**: reorganize backup analysis reports to docs/ directory
-- **pre-commit**: auto-format version consistency (311 files)
+### Notes
+- Ongoing maintenance and post-release fixes will be listed here.
 
 ---
+
+## [1.18.4] - 2026-02-23
+
+### Features
+- **rbac**: implement hierarchical role inheritance and improve multi-role UX behavior in admin flows.
+- **operations/ui**: add "restore backup from server" workflow in DevTools and simplify backup shutdown-token UX.
+
+### Bug Fixes
+- **backup**: fix SQLite WAL backup handling to avoid empty/corrupted backup captures.
+- **database**: add missing backup-related columns via idempotent migration to prevent API 500 errors.
+- **control-api**: enforce/align admin bearer auth for backup and restore operations, including remote admin bearer flows.
+- **security**: enforce control-admin authorization on backup save-to-path operation and harden related control routes.
+- **frontend**: fix DevTools theme token usage (`theme.primaryButton` → `theme.button`).
+- **backend**: add missing logger import and stabilize control operations lint/type hygiene.
+- **tests**: fix RBAC enforcement setup by setting `AUTH_MODE=permissive` during relevant test initialization.
+
+### CI/CD
+- **release**: validated corrected release-lineage automation (`release-on-tag` → `release-installer-with-sha` → `release-asset-sanitizer`).
+- **release-assets**: keep installer-only allowlist policy (`SMS_Installer_<version>.exe` + `.sha256`) with digest verification gates.
+
+### Documentation
+- **release-docs**: prepared complete v1.18.4 release package (notes, GitHub body, manifest, deployment checklist).
+- **pre-release**: recorded validation summary and synchronized release metadata across planning/index documents.
+
 
 ## [1.18.3] - 2026-02-20
 

@@ -1,19 +1,19 @@
 # Documentation Index
 
-**Last Updated**: 2026-02-20
-**Project Version (documented)**: 1.18.3
-**Version**: 1.18.3
+**Last Updated**: 2026-02-23
+**Project Version (documented)**: 1.18.4
+**Version**: 1.18.4
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **$11.18.3 RELEASED (TAG + GITHUB RELEASE PUBLISHED)**
+**Status**: ✅ **PRODUCTION LIVE** | 🟡 **v1.18.4 RELEASE PREP COMPLETE (PUBLISH PENDING)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 20, 2026)**: ✅ **Production Live + $11.18.3 release published and verified**
+> **Current Status (Feb 23, 2026)**: ✅ **Production Live + v1.18.4 release package prepared**
 > - Maintenance & stability phase active
-> - Changelog/work plan/index updated for changes since `$11.18.3`
-> - Duplicate 1.17.9 release rerun corrected (tag integrity preserved)
-> - `$11.18.3` release documentation pack published (notes, release body, manifest, deployment checklist)
-> - Tag `$11.18.3` verified on remote and GitHub release verified as published (non-draft)
+> - Changelog/work plan/index updated for verified changes since `v1.18.3`
+> - v1.18.4 release documentation pack prepared (notes, release body, manifest, deployment checklist)
+> - Release workflow chain validated (`release-on-tag` → `release-installer-with-sha` → `release-asset-sanitizer`)
+> - Installer-only asset allowlist and digest gates confirmed in workflow policy
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
@@ -505,6 +505,10 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
+- **[releases/RELEASE_NOTES_v1.18.4.md](releases/RELEASE_NOTES_v1.18.4.md)** - v1.18.4 release notes (prepared)
+- **[releases/GITHUB_RELEASE_v1.18.4.md](releases/GITHUB_RELEASE_v1.18.4.md)** - publish-ready GitHub release body for v1.18.4
+- **[releases/RELEASE_MANIFEST_v1.18.4.md](releases/RELEASE_MANIFEST_v1.18.4.md)** - artifact manifest and integrity gates for v1.18.4
+- **[releases/DEPLOYMENT_CHECKLIST_v1.18.4.md](releases/DEPLOYMENT_CHECKLIST_v1.18.4.md)** - deployment and post-release verification checklist for v1.18.4
 - **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - $11.18.3 patch release notes (RBAC imports fallback scope fix + installer refresh)
 - **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - GitHub release body for $11.18.3
 - **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - Artifact manifest and integrity checklist for $11.18.3
