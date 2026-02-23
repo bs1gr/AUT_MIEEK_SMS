@@ -7,7 +7,8 @@
 .DESCRIPTION
     Keeps the workspace lean by pruning only:
       1) artifacts/state snapshot files (STATE_*.md, COMMIT_READY_*.log)
-      2) backup metadata files under backups/.metadata and backups/database/.metadata
+    2) root-level commit_ready logs (commit_ready_*.log, COMMIT_READY_*.log)
+    3) backup metadata files under backups/.metadata and backups/database/.metadata
 
     This script intentionally does NOT touch:
       - backup database files
@@ -26,6 +27,12 @@
 
 .PARAMETER KeepRecentMetadataFiles
     Always keep at least this many newest metadata files per metadata directory, regardless of age.
+
+.PARAMETER RootCommitLogRetentionDays
+    Remove root-level commit_ready log files older than this many days.
+
+.PARAMETER KeepRecentRootCommitLogs
+    Always keep at least this many newest root-level commit_ready logs, regardless of age.
 
 .PARAMETER DryRun
     Show what would be deleted without deleting.
@@ -55,6 +62,12 @@ param(
     [ValidateRange(0, 500)]
     [int]$KeepRecentMetadataFiles = 50,
 
+    [ValidateRange(1, 365)]
+    [int]$RootCommitLogRetentionDays = 14,
+
+    [ValidateRange(0, 500)]
+    [int]$KeepRecentRootCommitLogs = 30,
+
     [ValidateRange(1, 500)]
     [int]$DryRunListLimit = 30,
 
@@ -65,6 +78,7 @@ $ErrorActionPreference = "Stop"
 
 $rootDir = Split-Path -Parent $PSScriptRoot | Split-Path -Parent
 $stateDir = Join-Path $rootDir "artifacts\state"
+$rootLogCutoff = $null
 $metadataDirs = @(
     (Join-Path $rootDir "backups\.metadata"),
     (Join-Path $rootDir "backups\database\.metadata")
@@ -180,8 +194,10 @@ try {
     $now = Get-Date
     $stateCutoff = $now.AddDays(-$StateRetentionDays)
     $metadataCutoff = $now.AddDays(-$BackupMetadataRetentionDays)
+    $rootLogCutoff = $now.AddDays(-$RootCommitLogRetentionDays)
 
     Write-Info "State cutoff: $stateCutoff"
+    Write-Info "Root commit log cutoff: $rootLogCutoff"
     Write-Info "Backup metadata cutoff: $metadataCutoff"
 
     $totalCount = 0
@@ -206,8 +222,21 @@ try {
         Write-Info "State directory not found: $stateDir"
     }
 
-    # 2) backups metadata
-    Write-Phase "Step 2/2: Backup metadata"
+    # 2) root-level commit logs
+    Write-Phase "Step 2/3: Root commit logs"
+    $rootCommitLogs = @(Get-ChildItem -Path $rootDir -File -Force -ErrorAction SilentlyContinue |
+        Where-Object { $_.Name -like "commit_ready_*.log" -or $_.Name -like "COMMIT_READY_*.log" }
+    )
+
+    Write-Info "Found $($rootCommitLogs.Count) root commit logs"
+    $rootLogsPrunable = Get-PrunableFiles -Files $rootCommitLogs -Cutoff $rootLogCutoff -KeepRecent $KeepRecentRootCommitLogs
+    Write-Info "Root commit logs eligible for cleanup: $($rootLogsPrunable.Count)"
+    $rootLogsResult = Remove-FilesSafe -Files $rootLogsPrunable -Category "root-commit-log" -DryRunLimit $DryRunListLimit -DryRun:$DryRun
+    $totalCount += $rootLogsResult.Count
+    $totalBytes += $rootLogsResult.Bytes
+
+    # 3) backups metadata
+    Write-Phase "Step 3/3: Backup metadata"
     foreach ($metaDir in $metadataDirs) {
         if (-not (Test-Path $metaDir)) {
             Write-Info "Metadata directory not found: $metaDir"
@@ -234,7 +263,7 @@ try {
         Write-Ok "Space reclaimed: $(Format-Bytes $totalBytes)"
     }
 
-    Write-Info "Policy scope: snapshots + backup metadata only"
+    Write-Info "Policy scope: snapshots + root commit logs + backup metadata only"
     exit 0
 }
 catch {
