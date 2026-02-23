@@ -35,6 +35,15 @@
 .PARAMETER IncludePycacheCleanup
     Run CLEAR_PYCACHE.ps1 before the main cleanup
 
+.PARAMETER IncludeRetentionPolicyCleanup
+    Run scripts/maintenance/RETENTION_POLICY_CLEANUP.ps1 before the main cleanup
+
+.PARAMETER StateRetentionDays
+    Retention window for artifacts/state snapshots when IncludeRetentionPolicyCleanup is used
+
+.PARAMETER BackupMetadataRetentionDays
+    Retention window for backup metadata when IncludeRetentionPolicyCleanup is used
+
 .PARAMETER IncludeBackups
     When used with IncludePreReleaseCleanup, also clean old backup artifacts
 
@@ -78,7 +87,12 @@ param(
     [switch]$IncludeArtifactsCleanup,
     [switch]$IncludePreReleaseCleanup,
     [switch]$IncludePycacheCleanup,
-    [switch]$IncludeBackups
+    [switch]$IncludeBackups,
+    [switch]$IncludeRetentionPolicyCleanup,
+    [ValidateRange(1, 365)]
+    [int]$StateRetentionDays = 14,
+    [ValidateRange(1, 365)]
+    [int]$BackupMetadataRetentionDays = 30
 )
 
 $ErrorActionPreference = "Stop"
@@ -143,9 +157,10 @@ if ($RunAllCleanupTools) {
     $IncludeArtifactsCleanup = $true
     $IncludePreReleaseCleanup = $true
     $IncludePycacheCleanup = $true
+    $IncludeRetentionPolicyCleanup = $true
 }
 
-if ($IncludeArtifactsCleanup -or $IncludePreReleaseCleanup -or $IncludePycacheCleanup) {
+if ($IncludeArtifactsCleanup -or $IncludePreReleaseCleanup -or $IncludePycacheCleanup -or $IncludeRetentionPolicyCleanup) {
     Write-Phase "PHASE 0: External Cleanup Tools"
 
     if ($IncludeArtifactsCleanup) {
@@ -164,6 +179,16 @@ if ($IncludeArtifactsCleanup -or $IncludePreReleaseCleanup -or $IncludePycacheCl
     if ($IncludePycacheCleanup) {
         $pycacheScript = Join-Path $rootDir "CLEAR_PYCACHE.ps1"
         Invoke-ExternalCleanup -ScriptPath $pycacheScript -Description "Python cache cleanup"
+    }
+
+    if ($IncludeRetentionPolicyCleanup) {
+        $retentionScript = Join-Path $rootDir "scripts\maintenance\RETENTION_POLICY_CLEANUP.ps1"
+        $retentionArgs = @{
+            StateRetentionDays = $StateRetentionDays
+            BackupMetadataRetentionDays = $BackupMetadataRetentionDays
+        }
+        if ($DryRun) { $retentionArgs["DryRun"] = $true }
+        Invoke-ExternalCleanup -ScriptPath $retentionScript -Description "Retention policy cleanup" -Arguments $retentionArgs
     }
 }
 
