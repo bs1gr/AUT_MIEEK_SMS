@@ -46,8 +46,15 @@ No other release assets are permitted.
 
 ## Post-Publish Verification Targets
 
-- [ ] Release exists at tag `v1.18.4`
-- [ ] Installer + `.sha256` sidecar present
-- [ ] Asset digest matches workflow output
-- [ ] No non-allowlisted assets remain
-- [ ] Installer signature gate passed in workflow logs
+- [x] Release exists at tag `v1.18.4`
+- [x] Installer + `.sha256` sidecar present
+- [x] Asset digest matches workflow output
+- [x] No non-allowlisted assets remain
+- [x] Installer signature gate passed in workflow logs
+
+## Workflow Run Evidence
+
+- `Create GitHub Release on tag` run `22315391846` — success
+- `Release - Build & Upload Installer with SHA256` run `22315419856` — success
+- `Release Asset Sanitizer` run `22315551253` — success
+- Release page: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.4`

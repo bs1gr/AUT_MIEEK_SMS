@@ -4,16 +4,16 @@
 **Project Version (documented)**: 1.18.4
 **Version**: 1.18.4
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | 🟡 **v1.18.4 RELEASE PREP COMPLETE (PUBLISH PENDING)**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.4 RELEASED (CHAIN VERIFIED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 23, 2026)**: ✅ **Production Live + v1.18.4 release package prepared**
+> **Current Status (Feb 23, 2026)**: ✅ **Production Live + v1.18.4 released and verified**
 > - Maintenance & stability phase active
 > - Changelog/work plan/index updated for verified changes since `v1.18.3`
-> - v1.18.4 release documentation pack prepared (notes, release body, manifest, deployment checklist)
-> - Release workflow chain validated (`release-on-tag` → `release-installer-with-sha` → `release-asset-sanitizer`)
-> - Installer-only asset allowlist and digest gates confirmed in workflow policy
+> - v1.18.4 release documentation pack published (notes, release body, manifest, deployment checklist)
+> - Release workflow chain completed and verified (`release-on-tag` → `release-installer-with-sha` → `release-asset-sanitizer`)
+> - Installer-only asset allowlist and digest/hash verification confirmed on published assets
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---

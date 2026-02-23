@@ -2,46 +2,54 @@
 
 ## Pre-Tag Checks
 
-- [ ] Working tree contains only intentional release changes.
-- [ ] `VERSION` and `frontend/package.json` both set to `1.18.4`.
-- [ ] `CHANGELOG.md` has finalized `1.18.4` section.
+- [x] Working tree contains only intentional release changes.
+- [x] `VERSION` and `frontend/package.json` both set to `1.18.4`.
+- [x] `CHANGELOG.md` has finalized `1.18.4` section.
 - [ ] Release docs prepared:
-  - [ ] `RELEASE_NOTES_v1.18.4.md`
-  - [ ] `GITHUB_RELEASE_v1.18.4.md`
-  - [ ] `RELEASE_MANIFEST_v1.18.4.md`
-  - [ ] `.github/RELEASE_NOTES_v1.18.4.md`
+  - [x] `RELEASE_NOTES_v1.18.4.md`
+  - [x] `GITHUB_RELEASE_v1.18.4.md`
+  - [x] `RELEASE_MANIFEST_v1.18.4.md`
+  - [x] `.github/RELEASE_NOTES_v1.18.4.md`
 
 ## Tag & Release Execution
 
-- [ ] Create and push tag `v1.18.4` from `main`.
-- [ ] Confirm `release-on-tag.yml` started.
-- [ ] Confirm release body was created/updated from `.github/RELEASE_NOTES_v1.18.4.md`.
-- [ ] Confirm installer workflow dispatch to `release-installer-with-sha.yml`.
+- [x] Create and push tag `v1.18.4` from `main`.
+- [x] Confirm `release-on-tag.yml` started.
+- [x] Confirm release body was created/updated from `.github/RELEASE_NOTES_v1.18.4.md`.
+- [x] Confirm installer workflow dispatch to `release-installer-with-sha.yml`.
 
 ## Workflow Gate Verification
 
-- [ ] Signature gate passed.
-- [ ] Payload minimum size gate passed.
-- [ ] Installer digest gate passed.
-- [ ] SHA256 sidecar uploaded successfully.
-- [ ] Sanitizer removed non-allowlisted assets (if any).
-- [ ] Final allowlist gate passed.
+- [x] Signature gate passed.
+- [x] Payload minimum size gate passed.
+- [x] Installer digest gate passed.
+- [x] SHA256 sidecar uploaded successfully.
+- [x] Sanitizer removed non-allowlisted assets (if any).
+- [x] Final allowlist gate passed.
 
 ## Asset Verification
 
-- [ ] `SMS_Installer_1.18.4.exe` present.
-- [ ] `SMS_Installer_1.18.4.exe.sha256` present.
-- [ ] Local installer hash equals published `.sha256` value.
+- [x] `SMS_Installer_1.18.4.exe` present.
+- [x] `SMS_Installer_1.18.4.exe.sha256` present.
+- [x] Local installer hash equals published `.sha256` value.
 
 ## Post-Release Operational Verification
 
 - [ ] Native smoke verification (`NATIVE.ps1 -Start`) for app startup sanity.
 - [ ] Docker production verification (`DOCKER.ps1 -Start`) for deployment sanity.
-- [ ] Backup/restore control operations require admin bearer auth.
-- [ ] Release record updated in `docs/plans/UNIFIED_WORK_PLAN.md`.
+- [x] Backup/restore control operations require admin bearer auth.
+- [x] Release record updated in `docs/plans/UNIFIED_WORK_PLAN.md`.
 
 ## Rollback Preparedness
 
-- [ ] Previous installer release remains accessible.
-- [ ] Prior stable tag recorded (`v1.18.3`).
-- [ ] No legacy-tag workflow re-dispatch actions performed.
+- [x] Previous installer release remains accessible.
+- [x] Prior stable tag recorded (`v1.18.3`).
+- [x] No legacy-tag workflow re-dispatch actions performed.
+
+## Workflow Evidence (v1.18.4)
+
+- `Create GitHub Release on tag` run `22315391846` — success
+- `Release - Build & Upload Installer with SHA256` run `22315419856` — success
+- `Release Asset Sanitizer` run `22315551253` — success
+- Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.4`
+- Hash verification: `sha_match=true` (downloaded installer hash matches `.sha256` sidecar)

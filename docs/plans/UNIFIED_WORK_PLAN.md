@@ -1,8 +1,8 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.4 (Release Prepared)
-**Last Updated**: February 23, 2026 (v1.18.4 release package prepared from verified post-v1.18.3 changes)
-**Status**: 🟡 v1.18.4 READY FOR TAG + PUBLISH (final workflow execution pending)
+**Current Version**: 1.18.4 (Released)
+**Last Updated**: February 23, 2026 (v1.18.4 published and workflow chain verified)
+**Status**: ✅ v1.18.4 RELEASED (assets + digest + sanitizer verified)
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Option A - Maintenance & Stability** (Patch release readiness + release automation validation)
 **Current Branch**: `main`
@@ -33,9 +33,9 @@
 
 ---
 
-## 🚀 v1.18.4 Release Preparation (February 23, 2026)
+## 🚀 v1.18.4 Release Closure (February 23, 2026)
 
-**Status**: ✅ PREP COMPLETE | ⏳ TAG/PUBLISH PENDING
+**Status**: ✅ RELEASE COMPLETED
 
 **Scope verification performed (since `v1.18.3`):**
 - ✅ Reviewed commit history and changed-file scope from `v1.18.3..HEAD`.
@@ -60,10 +60,20 @@
 - ✅ `frontend/package.json` → `1.18.4`
 - ✅ `CHANGELOG.md` includes finalized `[1.18.4]` entry
 
-**Next execution step (owner-triggered):**
-1. Create/push tag `v1.18.4` from `main`.
-2. Let `release-on-tag.yml` create/update release body and dispatch installer workflow.
-3. Verify release assets and digest gates pass.
+**Publication and workflow verification completed:**
+- ✅ Tag `v1.18.4` created and pushed from `main`.
+- ✅ Release workflow chain completed successfully:
+   - `Create GitHub Release on tag` run `22315391846` — success
+   - `Release - Build & Upload Installer with SHA256` run `22315419856` — success
+   - `Release Asset Sanitizer` run `22315551253` — success
+- ✅ Release published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.4`
+- ✅ Final assets verified (installer-only allowlist):
+   - `SMS_Installer_1.18.4.exe`
+   - `SMS_Installer_1.18.4.exe.sha256`
+- ✅ SHA256 integrity verified (`sha_match=true`) for downloaded installer vs published sidecar hash.
+
+**Closure note:**
+- A transient failure in initial tag-policy validation was fixed by hardening default-branch detection in `.github/workflows/release-on-tag.yml` (commit `34749854e`), followed by successful workflow re-dispatch.
 
 ---
 
