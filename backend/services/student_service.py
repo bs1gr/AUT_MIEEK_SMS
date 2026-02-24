@@ -343,7 +343,7 @@ class StudentService:
                         "index": idx,
                         "error": build_error_detail(
                             ErrorCode.VALIDATION_FAILED,
-                            f"Integrity error: {str(getattr(exc, 'orig', exc))}",
+                            "Integrity constraint violation during bulk student create",
                             request=self.request,
                         ),
                     }
@@ -355,7 +355,7 @@ class StudentService:
                         "index": idx,
                         "error": build_error_detail(
                             ErrorCode.INTERNAL_SERVER_ERROR,
-                            str(exc),
+                            "Unexpected internal error during bulk student create",
                             request=self.request,
                         ),
                     }
