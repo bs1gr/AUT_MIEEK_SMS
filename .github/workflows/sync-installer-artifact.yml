@@ -134,12 +134,18 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $skipCodesignInput = "${{ github.event.inputs.skip_codesign }}".ToLowerInvariant()
 
-          $buildArgs = @('-Action', 'build', '-AutoFix', '-Verbose', '-Version', '${{ steps.resolve.outputs.version }}')
-          if ($skipCodesignInput -eq 'true') {
-            $buildArgs += '-SkipCodeSign'
+          $buildArgs = @{
+            Action  = 'build'
+            AutoFix = $true
+            Verbose = $true
+            Version = '${{ steps.resolve.outputs.version }}'
           }
 
-          Write-Host "Running INSTALLER_BUILDER.ps1 with args: $($buildArgs -join ' ')"
+          if ($skipCodesignInput -eq 'true') {
+            $buildArgs['SkipCodeSign'] = $true
+          }
+
+          Write-Host "Running INSTALLER_BUILDER.ps1 with named parameters..."
           & .\INSTALLER_BUILDER.ps1 @buildArgs
 
           if ($LASTEXITCODE -ne 0) {
