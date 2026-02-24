@@ -348,7 +348,7 @@ class StudentService:
                         ),
                     }
                 )
-            except Exception as exc:  # pragma: no cover - unexpected errors logged
+            except Exception:  # pragma: no cover - unexpected errors logged
                 logger.exception("Unexpected error during bulk student create")
                 errors.append(
                     {
