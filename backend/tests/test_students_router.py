@@ -203,6 +203,34 @@ def test_bulk_create_students_with_duplicates(client):
     assert "STD_DUP_ID" in error_ids
 
 
+def test_bulk_create_students_masks_internal_exception(client, monkeypatch):
+    from backend.routers import routers_students
+
+    class BrokenStudent:
+        def __init__(self, **_kwargs):
+            raise RuntimeError("boom secret stack trace")
+
+    def patched_import_names(*args, **_kwargs):
+        if args == ("models", "Student"):
+            return (BrokenStudent,)
+        return (None,)
+
+    monkeypatch.setattr(routers_students, "import_names", patched_import_names)
+
+    r = client.post("/api/v1/students/bulk/create", json=[make_student_payload(50)])
+    assert r.status_code == 200, r.text
+
+    data = r.json()
+    assert data["created"] == 0
+    assert data["failed"] == 1
+
+    message = data["errors"][0]["error"]["message"]
+    assert message == "Unexpected internal error during bulk student create"
+    assert "boom" not in message.lower()
+    assert "stack" not in message.lower()
+    assert "trace" not in message.lower()
+
+
 def test_create_student_handles_internal_error(client, monkeypatch):
     from backend.routers import routers_students
 
