@@ -100,7 +100,8 @@ dist/
 
 # Installer executables (distribute via GitHub Releases)
 *.exe
-!installer/SMS_Installer_*.exe  # Keep tagged release installers only
+# Keep tagged release installers under installer/
+!installer/SMS_Installer_*.exe
 dist/*.exe
 installer/.version_cache
 

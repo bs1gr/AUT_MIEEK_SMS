@@ -1386,34 +1386,104 @@ begin
   end;
 end;
 
-function InitializeUninstall: Boolean;
+procedure RemoveProductionDockerImages;
 var
   ResultCode: Integer;
+begin
+  Log('Removing production Docker images (sms-fullstack + postgres variants)...');
+
+  { SMS app image variants }
+  Exec('cmd', '/c docker image rm -f sms-fullstack 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f sms-fullstack:latest 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f sms-fullstack:{#MyAppVersion} 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { PostgreSQL image variants used by production profile }
+  Exec('cmd', '/c docker image rm -f postgres 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f postgres:latest 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f postgres:16 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f postgres:16-alpine 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { Safety pass: remove any remaining tags for target repositories }
+  Exec('cmd', '/c for /f %i in (''docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i "^sms-fullstack:"'') do docker image rm -f %i 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c for /f %i in (''docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i "^postgres:"'') do docker image rm -f %i 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  Log('Production Docker image removal commands executed');
+end;
+
+procedure StopAndRemoveProductionContainers;
+var
+  ResultCode: Integer;
+  InstallDir: String;
+  ComposeBase: String;
+  ComposeProd: String;
+  RootEnv: String;
+  ComposeDownCmd: String;
+begin
+  InstallDir := ExpandConstant('{app}');
+  ComposeBase := InstallDir + '\docker\docker-compose.yml';
+  ComposeProd := InstallDir + '\docker\docker-compose.prod.yml';
+  RootEnv := InstallDir + '\.env';
+
+  Log('Stopping/removing production containers (compose + single-image fallbacks)...');
+
+  { Best-effort compose teardown first (covers prefixed service containers) }
+  if FileExists(ComposeBase) and FileExists(ComposeProd) then
+  begin
+    if FileExists(RootEnv) then
+      ComposeDownCmd := '/c docker compose --env-file "' + RootEnv + '" -f "' + ComposeBase + '" -f "' + ComposeProd + '" down --remove-orphans 2>nul'
+    else
+      ComposeDownCmd := '/c docker compose -f "' + ComposeBase + '" -f "' + ComposeProd + '" down --remove-orphans 2>nul';
+
+    Exec('cmd', ComposeDownCmd, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+
+  { Single-image mode containers }
+  Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { Managed PostgreSQL + helper containers that may keep postgres image in use }
+  Exec('cmd', '/c docker stop sms-postgres 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-postgres 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-db-backup 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-redis 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { Safety pass: remove any remaining sms-* containers from legacy/custom runs }
+  Exec('cmd', '/c for /f %i in (''docker ps -aq --filter "name=^sms-" 2^>nul'') do docker rm -f %i 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  Log('Production container teardown commands executed');
+end;
+
+function InitializeUninstall: Boolean;
+var
   DeleteUserData: Integer;
   DeleteDockerImage: Integer;
+  DockerImagesRemoved: Boolean;
 begin
   Result := True;
+  DockerImagesRemoved := False;
 
-  // Stop container before uninstall
-  Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Exec('cmd', '/c docker rm sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  // Stop/remove running production containers before any image decision
+  StopAndRemoveProductionContainers;
 
-  // Ask user if they want to delete Docker image
+  // Ask user if they want to delete production Docker images
   DeleteDockerImage := MsgBox(
-    'Do you want to remove the Docker image?' + #13#10 + #13#10 +
-    'The Docker image is ~500MB-1GB and can be reused if you reinstall.' + #13#10 + #13#10 +
-    'Click YES to remove the image and free up disk space.' + #13#10 +
-    'Click NO to keep the image for faster reinstallation.',
+    'Do you want to remove Docker images?' + #13#10 + #13#10 +
+    'This removes production images used by SMS:' + #13#10 +
+    '  • sms-fullstack' + #13#10 +
+    '  • postgres (runtime DB image)' + #13#10 + #13#10 +
+    'Click YES to remove images and free disk space.' + #13#10 +
+    'Click NO to keep images for faster reinstallation.',
     mbConfirmation, MB_YESNO);
 
   if DeleteDockerImage = IDYES then
   begin
-    Log('User chose to delete Docker image');
-    Exec('cmd', '/c docker rmi sms-fullstack 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Log('User chose to delete Docker images');
+    RemoveProductionDockerImages;
+    DockerImagesRemoved := True;
   end
   else
   begin
-    Log('User chose to keep Docker image');
+    Log('User chose to keep Docker images');
   end;
 
   // Ask user if they want to delete user data
@@ -1431,6 +1501,15 @@ begin
   if DeleteUserData = IDYES then
   begin
     Log('User chose to delete all user data');
+
+    { Full uninstall: always remove production images as well }
+    if not DockerImagesRemoved then
+    begin
+      Log('Full uninstall selected - forcing production Docker image removal');
+      RemoveProductionDockerImages;
+      DockerImagesRemoved := True;
+    end;
+
     DelTree(ExpandConstant('{app}\data'), True, True, True);
     DelTree(ExpandConstant('{app}\backups'), True, True, True);
     DelTree(ExpandConstant('{app}\logs'), True, True, True);

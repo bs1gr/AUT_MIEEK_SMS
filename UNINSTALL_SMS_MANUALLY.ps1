@@ -15,26 +15,71 @@ if (-not $isAdmin) {
     exit 1
 }
 
-# Stop Docker container if running
-Write-Host "Stopping SMS Docker container..." -ForegroundColor Yellow
-docker stop sms-app 2>$null
-docker rm sms-app 2>$null
-Write-Host "✓ Docker container stopped and removed" -ForegroundColor Green
+# Stop/remove production runtime containers first (prevents image-in-use failures)
+Write-Host "Stopping/removing SMS runtime containers..." -ForegroundColor Yellow
 
-# Ask if user wants to remove Docker image as well
+$appFolder = 'C:\Program Files\SMS'
+
+$composeBase = Join-Path $appFolder 'docker\docker-compose.yml'
+$composeProd = Join-Path $appFolder 'docker\docker-compose.prod.yml'
+$rootEnv = Join-Path $appFolder '.env'
+
+if ((Test-Path $composeBase) -and (Test-Path $composeProd)) {
+    if (Test-Path $rootEnv) {
+        docker compose --env-file "$rootEnv" -f "$composeBase" -f "$composeProd" down --remove-orphans 2>$null | Out-Null
+    } else {
+        docker compose -f "$composeBase" -f "$composeProd" down --remove-orphans 2>$null | Out-Null
+    }
+}
+
+# Single-image mode and managed postgres containers
+docker stop sms-app 2>$null | Out-Null
+docker rm -f sms-app 2>$null | Out-Null
+docker stop sms-postgres 2>$null | Out-Null
+docker rm -f sms-postgres 2>$null | Out-Null
+docker rm -f sms-db-backup 2>$null | Out-Null
+docker rm -f sms-redis 2>$null | Out-Null
+
+# Safety pass: remove any remaining sms-* containers from legacy/custom runs
+$smsResidualContainers = docker ps -aq --filter "name=^sms-" 2>$null
+if ($smsResidualContainers) {
+    docker rm -f $smsResidualContainers 2>$null | Out-Null
+}
+
+Write-Host "✓ Runtime container teardown commands executed" -ForegroundColor Green
+
+# Ask if user wants to remove Docker images as well
 Write-Host ""
-$removeImage = Read-Host "Do you want to remove the Docker image as well? (y/N)"
+$removeImage = Read-Host "Do you want to remove Docker images as well (sms-fullstack + postgres)? (y/N)"
 if ($removeImage -eq 'y' -or $removeImage -eq 'Y') {
-    Write-Host "Removing Docker image..." -ForegroundColor Yellow
-    docker rmi sms-fullstack 2>$null
-    Write-Host "✓ Docker image removed" -ForegroundColor Green
-    Write-Host "Note: This will free up ~500MB-1GB disk space" -ForegroundColor Cyan
+    Write-Host "Removing production Docker images..." -ForegroundColor Yellow
+    $imagesToRemove = @(
+        'sms-fullstack',
+        'sms-fullstack:latest',
+        'postgres',
+        'postgres:latest',
+        'postgres:16',
+        'postgres:16-alpine'
+    )
+
+    foreach ($image in $imagesToRemove) {
+        docker image rm -f $image 2>$null | Out-Null
+    }
+
+    # Safety pass: remove any remaining tags for target repositories
+    $dynamicImageRefs = docker images --format '{{.Repository}}:{{.Tag}}' 2>$null |
+        Where-Object { $_ -match '^(sms-fullstack|postgres):' }
+    foreach ($imageRef in $dynamicImageRefs) {
+        docker image rm -f $imageRef 2>$null | Out-Null
+    }
+
+    Write-Host "✓ Production Docker image removal commands executed" -ForegroundColor Green
+    Write-Host "Note: This can free significant disk space" -ForegroundColor Cyan
 } else {
-    Write-Host "✓ Docker image kept (can be reused for reinstall)" -ForegroundColor Gray
+    Write-Host "✓ Docker images kept (can be reused for reinstall)" -ForegroundColor Gray
 }
 
 # Remove application folder
-$appFolder = 'C:\Program Files\SMS'
 if (Test-Path $appFolder) {
     Write-Host "`nRemoving folder: $appFolder" -ForegroundColor Yellow
     try {
