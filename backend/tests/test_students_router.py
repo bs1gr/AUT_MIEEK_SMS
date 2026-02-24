@@ -205,6 +205,7 @@ def test_bulk_create_students_with_duplicates(client):
 
 def test_bulk_create_students_masks_internal_exception(client, monkeypatch):
     from backend.routers import routers_students
+    from backend.services.student_service import StudentService
 
     class BrokenStudent:
         def __init__(self, **_kwargs):
@@ -216,6 +217,7 @@ def test_bulk_create_students_masks_internal_exception(client, monkeypatch):
         return (None,)
 
     monkeypatch.setattr(routers_students, "import_names", patched_import_names)
+    monkeypatch.setattr(StudentService, "_duplicate_error", lambda *_args, **_kwargs: None)
 
     r = client.post("/api/v1/students/bulk/create", json=[make_student_payload(50)])
     assert r.status_code == 200, r.text
