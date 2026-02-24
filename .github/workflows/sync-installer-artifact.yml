@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: sync-installer-artifact-${{ github.event.inputs.target_branch || github.ref_name }}
@@ -183,21 +184,61 @@ jobs:
 
       - name: Commit and push if changed
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
           $repoPath = "${{ steps.resolve.outputs.repo_path }}"
           $version = "${{ steps.resolve.outputs.version }}"
           $targetBranch = "${{ github.event.inputs.target_branch }}"
+          $repo = "${{ github.repository }}"
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add -- "$repoPath"
 
-          if (-not (git diff --cached --quiet)) {
-            git commit -m "chore(installer): sync SMS_Installer_$version.exe from dist"
+          git diff --cached --quiet
+          $hasChanges = ($LASTEXITCODE -ne 0)
+
+          if ($hasChanges) {
+            $commitMessage = "chore(installer): sync SMS_Installer_$version.exe from dist"
+            git commit -m $commitMessage
+
+            # Try direct push first
             git push origin "HEAD:$targetBranch"
-            Write-Host "✓ Installer artifact synced and pushed to $targetBranch"
+
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "✓ Installer artifact synced and pushed to $targetBranch"
+            } else {
+              Write-Warning "Direct push to '$targetBranch' failed (likely branch protection). Falling back to PR flow..."
+
+              $syncBranch = "ci/sync-installer-$version-${{ github.run_id }}"
+              git push origin "HEAD:$syncBranch"
+
+              if ($LASTEXITCODE -ne 0) {
+                Write-Error "Failed to push fallback sync branch '$syncBranch'."
+                exit 1
+              }
+
+              $prTitle = "chore(installer): sync SMS_Installer_$version.exe"
+              $prBody = @(
+                "Automated installer sync from workflow run ${{ github.run_id }}.",
+                "",
+                "- Target branch: $targetBranch",
+                "- Synced file: $repoPath",
+                "- Version: $version"
+              ) -join "`n"
+
+              gh pr create --repo $repo --base $targetBranch --head $syncBranch --title $prTitle --body $prBody
+
+              if ($LASTEXITCODE -ne 0) {
+                Write-Error "Failed to create PR from '$syncBranch' to '$targetBranch'."
+                exit 1
+              }
+
+              Write-Host "✓ Direct push blocked; opened PR from '$syncBranch' into '$targetBranch'."
+            }
           } else {
             Write-Host "No installer artifact changes detected. Nothing to commit."
           }
