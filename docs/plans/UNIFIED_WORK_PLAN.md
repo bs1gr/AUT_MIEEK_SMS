@@ -288,6 +288,12 @@
 - Enforced corrected-lineage manual release policy in `.github/workflows/release-on-tag.yml` (dispatch allowed only for current `VERSION` tag).
 - Strengthened `.github/workflows/release-asset-sanitizer.yml` to react to legacy release-triggered CI runs (`workflow_run`) and keep installer-only assets.
 - Verified behavior: manual dispatch with legacy tag fails policy gate; sanitizer restores/maintains installer-only assets.
+54. ✅ **COMPLETE** (Feb 26, 2026): **Native runtime + E2E stability hardening**
+- Resolved `ModuleNotFoundError: pydantic_core._pydantic_core` in `backend/.venv` (environment used by `NATIVE.ps1`) via targeted dependency repair.
+- Repaired additional broken binary deps in `backend/.venv` discovered during startup validation (`cryptography`, `numpy`/`pandas`).
+- Hardened report workflow E2E setup and selectors (`frontend/tests/e2e/report-workflows.spec.ts`, `frontend/tests/e2e/helpers.ts`, custom-reports UI test IDs) for deterministic local runs.
+- Fixed `NATIVE.ps1 -Status` false negatives by adding port-listener fallback detection when PID files are stale under uvicorn reload.
+- Verified backend health endpoint (`/health` → 200) and successful import of critical native modules (`pydantic_core`, `numpy`).
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

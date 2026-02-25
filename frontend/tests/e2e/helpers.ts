@@ -27,6 +27,51 @@ export interface TestUser {
   role?: string;
 }
 
+const normalizeHttpUrl = (value?: string | null): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return null;
+    }
+
+    return trimmed.replace(/\/+$/, '');
+  } catch {
+    return null;
+  }
+};
+
+const getApiBase = () => {
+  const explicitApiBase = normalizeHttpUrl(process.env.PLAYWRIGHT_API_BASE_URL);
+  if (explicitApiBase) {
+    return explicitApiBase;
+  }
+
+  const uiBase = normalizeHttpUrl(process.env.PLAYWRIGHT_BASE_URL);
+  if (uiBase) {
+    try {
+      const parsed = new URL(uiBase);
+      // Docker/production mode usually serves both UI and API from same origin.
+      if (parsed.port === '8080' || parsed.port === '80' || parsed.port === '443') {
+        return `${parsed.protocol}//${parsed.host}`;
+      }
+    } catch {
+      // Fall through to native default.
+    }
+  }
+
+  // Native mode default: backend API on 8000, frontend on 5173.
+  return 'http://127.0.0.1:8000';
+};
+
 // Data generators
 export const generateRandomString = (prefix: string = '') => {
   const rnd = Math.random().toString(36).slice(2, 8);
@@ -65,7 +110,7 @@ export const generateTeacherUser = (): TestUser => {
 
 // Authentication helpers
 export async function registerUser(page: Page, user: TestUser) {
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+  const apiBase = getApiBase();
 
   const response = await page.request.post(`${apiBase}/api/v1/auth/register`, {
     data: {
@@ -152,7 +197,7 @@ export async function loginViaUI(page: Page, email: string, password: string) {
 
 export async function loginViaAPI(page: Page, email: string, password: string) {
   console.log(`🔐 [E2E API LOGIN] Starting API login for: ${email}`);
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+  const apiBase = getApiBase();
 
   console.log(`🔐 [E2E API LOGIN] API Base: ${apiBase}`);
   console.log(`🔐 [E2E API LOGIN] Attempting POST to ${apiBase}/api/v1/auth/login`);
@@ -266,7 +311,7 @@ export async function loginAsTestUser(page: Page): Promise<TestUser> {
 
   try {
     // First, verify the test user exists via API
-    const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+    const apiBase = getApiBase();
     console.log(`🔍 [E2E] Verifying test user exists at ${apiBase}`);
 
     const loginResponse = await page.request.post(`${apiBase}/api/v1/auth/login`, {
@@ -305,7 +350,7 @@ export async function loginAsTestUser(page: Page): Promise<TestUser> {
 
 // API helpers for test data setup
 export async function createStudentViaAPI(page: Page, student: TestStudent) {
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+  const apiBase = getApiBase();
 
   const response = await page.request.post(`${apiBase}/api/v1/students/`, {
     data: {
@@ -325,7 +370,7 @@ export async function createStudentViaAPI(page: Page, student: TestStudent) {
 }
 
 export async function createCourseViaAPI(page: Page, course: TestCourse, evaluationRules?: Course['evaluation_rules']) {
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+  const apiBase = getApiBase();
 
   const defaultRules = [
     { category: 'Homework', weight: 30, includeDailyPerformance: true },
@@ -359,7 +404,7 @@ export async function createGradeViaAPI(
   maxGrade: number = 100,
   category: string = 'Homework'
 ) {
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+  const apiBase = getApiBase();
 
   const response = await page.request.post(`${apiBase}/api/v1/grades/`, {
     data: {
@@ -387,7 +432,7 @@ export async function createAttendanceViaAPI(
   status: 'Present' | 'Absent' | 'Late' = 'Present',
   date?: string
 ) {
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+  const apiBase = getApiBase();
 
   const response = await page.request.post(`${apiBase}/api/v1/attendance/`, {
     data: {
@@ -453,7 +498,7 @@ export async function loginAsAdmin(page: Page) {
 
 // Cleanup helpers
 export async function cleanupTestData(page: Page, resourceType: string, id: number) {
-  const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:8000';
+  const apiBase = getApiBase();
 
   await page.request.delete(`${apiBase}/api/v1/${resourceType}/${id}`);
 }

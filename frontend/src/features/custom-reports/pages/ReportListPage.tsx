@@ -28,7 +28,7 @@ export const ReportListPage: React.FC = () => {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 data-testid="report-list-title" className="text-3xl font-bold text-gray-900">
                 {t('customReports:myReports')}
               </h1>
               <p className="text-sm text-gray-600 mt-1">
@@ -37,6 +37,7 @@ export const ReportListPage: React.FC = () => {
             </div>
             <button
               onClick={() => navigate('/operations/reports/builder')}
+              data-testid="create-report-btn"
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium"
             >
               <Plus size={20} />

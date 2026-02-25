@@ -88,13 +88,14 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             {t('availableFields', { ns: 'customReports' })}
           </h3>
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div data-testid="available-fields-list" className="space-y-2 max-h-96 overflow-y-auto">
             {unselectedFields.length === 0 ? (
               <p className="text-gray-500 text-sm">{t('noFields', { ns: 'customReports' })}</p>
             ) : (
               unselectedFields.map((field) => (
                 <button
                   key={field}
+                  data-testid={`add-field-${field}`}
                   onClick={() => handleAddField(field)}
                   className="w-full text-left px-4 py-2 bg-gray-50 hover:bg-blue-50 border border-gray-200 rounded-lg transition-colors flex items-center justify-between group"
                 >
@@ -114,7 +115,7 @@ export const FieldSelector: React.FC<FieldSelectorProps> = ({
           <h3 className="text-lg font-semibold mb-4 text-gray-900">
             {t('selectedFields', { ns: 'customReports' })} ({selectedFields.length})
           </h3>
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div data-testid="selected-fields-list" className="space-y-2 max-h-96 overflow-y-auto">
             {selectedFields.length === 0 ? (
               <p className="text-gray-500 text-sm">{t('helpDragFields', { ns: 'customReports' })}</p>
             ) : (

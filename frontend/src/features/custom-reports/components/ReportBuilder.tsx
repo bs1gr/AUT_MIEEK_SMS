@@ -870,6 +870,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
           ].map(({ key, label }) => (
             <button
               key={key}
+              data-testid={`report-step-${key}`}
               onClick={() => setActiveStep(key as typeof activeStep)}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                 activeStep === key
@@ -893,6 +894,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
               </label>
               <input
                 type="text"
+                data-testid="report-name-input"
                 value={config.name}
                 onChange={(e) => handleConfigChange('name', e.target.value)}
                 className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
@@ -961,6 +963,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                   {t('entityType', { ns: 'customReports' })} *
                 </label>
                 <select
+                  data-testid="report-entity-select"
                   value={config.entity_type}
                   onChange={(e) => handleConfigChange('entity_type', e.target.value)}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
@@ -983,6 +986,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                   {t('outputFormat', { ns: 'customReports' })} *
                 </label>
                 <select
+                  data-testid="report-format-select"
                   value={config.output_format}
                   onChange={(e) => handleConfigChange('output_format', e.target.value as 'pdf' | 'excel' | 'csv')}
                   className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 ${
@@ -1103,6 +1107,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
         {activeStep !== 'preview' && (
           <button
+            data-testid="report-next-step"
             onClick={() => {
               const steps: ('config' | 'fields' | 'filters' | 'preview')[] = ['config', 'fields', 'filters', 'preview'];
               const currentIndex = steps.indexOf(activeStep);
@@ -1119,6 +1124,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
         {activeStep === 'preview' && (
           <button
+            data-testid="report-save-btn"
             onClick={handleSave}
             disabled={isLoading}
             className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center gap-2"

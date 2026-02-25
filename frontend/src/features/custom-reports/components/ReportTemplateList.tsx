@@ -272,6 +272,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
           <button
             type="button"
             onClick={handleRestoreDefaults}
+            data-testid="restore-default-templates-btn"
             className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
           >
             {t('restoreDefaults', { ns: 'customReports' })}
@@ -280,6 +281,7 @@ export const ReportTemplateList: React.FC<ReportTemplateListProps> = ({
           <button
             type="button"
             onClick={handleRestoreArchivedSystemTemplates}
+            data-testid="restore-archived-templates-btn"
             className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
           >
             {restoringArchived
@@ -406,7 +408,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   const isActive = template.is_active !== false;
 
   return (
-    <div className="bg-white rounded-lg border hover:border-blue-500 hover:shadow-lg transition-all p-4 space-y-4">
+    <div data-testid={`template-card-${template.id}`} className="bg-white rounded-lg border hover:border-blue-500 hover:shadow-lg transition-all p-4 space-y-4">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -457,6 +459,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
       <div className="flex gap-2 pt-2 border-t">
         <button
           onClick={onUseTemplate}
+          data-testid={`template-use-${template.id}`}
           className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
         >
           {t('useTemplate', { ns: 'customReports' })}

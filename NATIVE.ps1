@@ -989,9 +989,41 @@ function Stop-All {
 function Show-Status {
     Write-Header "Native Development Status"
 
+    function Get-ListeningProcessInfo {
+        param([int]$Port)
+
+        try {
+            $listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+            if (-not $listener) {
+                return $null
+            }
+
+            $processIdFromPort = [int]$listener.OwningProcess
+            if ($processIdFromPort -le 0) {
+                return $null
+            }
+
+            $process = Get-Process -Id $processIdFromPort -ErrorAction SilentlyContinue
+            if (-not $process) {
+                return $null
+            }
+
+            return $process
+        }
+        catch {
+            return $null
+        }
+    }
+
     # Backend status
     Write-Host "Backend: " -NoNewline
     $backendProcess = Get-ProcessFromPidFile -PidFile $BACKEND_PID_FILE
+    if (-not $backendProcess) {
+        $backendProcess = Get-ListeningProcessInfo -Port $BACKEND_PORT
+        if ($backendProcess) {
+            Set-Content -Path $BACKEND_PID_FILE -Value $backendProcess.Id -ErrorAction SilentlyContinue
+        }
+    }
     if ($backendProcess) {
         Write-Host "Running ✅ " -ForegroundColor Green -NoNewline
         Write-Host "(PID $($backendProcess.Id))" -ForegroundColor Gray
@@ -1004,6 +1036,12 @@ function Show-Status {
     # Frontend status
     Write-Host "`nFrontend: " -NoNewline
     $frontendProcess = Get-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE
+    if (-not $frontendProcess) {
+        $frontendProcess = Get-ListeningProcessInfo -Port $FRONTEND_PORT
+        if ($frontendProcess) {
+            Set-Content -Path $FRONTEND_PID_FILE -Value $frontendProcess.Id -ErrorAction SilentlyContinue
+        }
+    }
     if ($frontendProcess) {
         Write-Host "Running ✅ " -ForegroundColor Green -NoNewline
         Write-Host "(PID $($frontendProcess.Id))" -ForegroundColor Gray
