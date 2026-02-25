@@ -224,9 +224,9 @@
 3. ✅ **Monitoring framework deployed** (Feb 5) - [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 4. ✅ **Feature roadmap planning framework prepared** (Feb 5) - [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
 5. 📦 **ARCHIVED (for now)**: Installer testing (owner deferred; not required at this time)
-6. 🔄 **IN PROGRESS**: Production monitoring (Feb 5 health-check entry logged in `monitoring/STABILITY_MONITORING.md`)
+6. 🔄 **IN PROGRESS**: Production monitoring (latest health-check + follow-up retest entry logged Feb 25 in `monitoring/STABILITY_MONITORING.md`)
 7. ✅ **COMPLETE**: OPTIONAL-002 email report delivery (SMTP integration for scheduled/on-demand reports)
-8. 🔄 **IN PROGRESS**: User feedback collection (in-app feedback modal + `/api/v1/feedback` endpoint)
+8. ✅ **COMPLETE**: User feedback collection (in-app feedback modal + `/api/v1/feedback` endpoint + operations feedback inbox)
 9. ✅ **COMPLETE**: Candidate 2 - ESLint code health refactoring batch (frontend lint clean; commit 836c1dccb)
 10. ✅ **COMPLETE**: Maintenance cleanup - tighten analytics hook types (remove `any`; commit 106b6530e)
 11. ✅ **COMPLETE**: Maintenance cleanup - tighten query hook lint handling (commit 50e3f4332)
@@ -1310,10 +1310,9 @@ Fixes three startup warnings and enables scheduler features.
 
 ### Optional Enhancements (not required)
 
-- [ ] APScheduler for automated report scheduling (OPTIONAL-001 ready)
-- [ ] Email integration for report delivery
+- [x] APScheduler for automated report scheduling (OPTIONAL-001 complete)
+- [x] Email integration for report delivery (OPTIONAL-002 complete)
 - [ ] Advanced analytics & charts
-- [ ] E2E tests for report workflows
 - [ ] E2E tests for report workflows
 
 ---
