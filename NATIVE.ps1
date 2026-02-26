@@ -795,6 +795,9 @@ function Start-Backend {
         # Set PYTHONPATH and SMS environment variables for the backend process
         $env:PYTHONPATH = $SCRIPT_DIR
         $env:SMS_PROJECT_ROOT = $SCRIPT_DIR
+        # Force UTF-8 process I/O on Windows consoles (prevents emoji/unicode logging crashes)
+        $env:PYTHONUTF8 = "1"
+        $env:PYTHONIOENCODING = "utf-8"
 
         $processInfo = Start-Process -FilePath $uvicornScript -ArgumentList $args -WorkingDirectory $SCRIPT_DIR -WindowStyle Normal -PassThru
 
@@ -994,25 +997,51 @@ function Show-Status {
 
         try {
             $listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
-            if (-not $listener) {
-                return $null
+            if ($listener) {
+                $processIdFromPort = [int]$listener.OwningProcess
+                if ($processIdFromPort -gt 0) {
+                    $process = Get-Process -Id $processIdFromPort -ErrorAction SilentlyContinue
+                    if ($process) {
+                        return $process
+                    }
+                }
             }
-
-            $processIdFromPort = [int]$listener.OwningProcess
-            if ($processIdFromPort -le 0) {
-                return $null
-            }
-
-            $process = Get-Process -Id $processIdFromPort -ErrorAction SilentlyContinue
-            if (-not $process) {
-                return $null
-            }
-
-            return $process
         }
         catch {
-            return $null
+            # Fall through to netstat fallback
         }
+
+        # Fallback for environments where Get-NetTCPConnection can intermittently miss listeners
+        try {
+            $lines = netstat -ano | Select-String ":$Port" | Where-Object { $_ -match 'LISTENING' }
+            foreach ($line in $lines) {
+                $text = ($line.ToString() -replace '^\s+', '')
+                $parts = $text -split '\s+'
+                if ($parts.Length -lt 5) {
+                    continue
+                }
+
+                $pidText = $parts[-1]
+                $pid = 0
+                if (-not [int]::TryParse($pidText, [ref]$pid)) {
+                    continue
+                }
+
+                if ($pid -le 0) {
+                    continue
+                }
+
+                $process = Get-Process -Id $pid -ErrorAction SilentlyContinue
+                if ($process) {
+                    return $process
+                }
+            }
+        }
+        catch {
+            # Ignore and return null below
+        }
+
+        return $null
     }
 
     # Backend status

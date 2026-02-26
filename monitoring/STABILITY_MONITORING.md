@@ -215,6 +215,18 @@ Copy this for each check you perform:
 - Actions Taken: Logged results, kept maintenance phase item active, and confirmed no repo drift before proceeding.
 - Time Invested: ~10 minutes
 
+### Entry Date: February 26, 2026 (Runtime Smoke Follow-up)
+- Version: 1.18.4
+- Test Status: Passing (runtime validation + script hardening)
+- Tests Run: Native stack start/stop cycle (`NATIVE.ps1 -Start` / `-Stop`), backend health probe (`GET /health`), frontend probe (`GET /` at `:5173`), native status verification (`NATIVE.ps1 -Status`)
+- Tests Passed: Yes (backend `200`, frontend `200`, clean stop confirmed)
+- Notes: Initial smoke attempt exposed two maintenance issues in native tooling: backend startup instability from Windows console encoding (`UnicodeEncodeError` on emoji log output) and intermittent backend status false negatives under uvicorn reload.
+- Issues Found: Native runtime script-level issues only (no application functional regression):
+  - Backend startup process needed UTF-8 process environment for robust logging on cp1253 consoles.
+  - Status detection needed stronger fallback when listener discovery via `Get-NetTCPConnection` is incomplete.
+- Actions Taken: Updated `NATIVE.ps1` to force UTF-8 process I/O for backend startup (`PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`) and added netstat-based listener fallback in status detection; reran full native smoke cycle successfully.
+- Time Invested: ~35 minutes
+
 ---
 
 ## 🔗 Related Documents

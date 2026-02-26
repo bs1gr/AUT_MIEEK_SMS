@@ -224,7 +224,7 @@
 3. ✅ **Monitoring framework deployed** (Feb 5) - [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 4. ✅ **Feature roadmap planning framework prepared** (Feb 5) - [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
 5. 📦 **ARCHIVED (for now)**: Installer testing (owner deferred; not required at this time)
-6. 🔄 **IN PROGRESS**: Production monitoring (latest health-check entries logged Feb 25 and Feb 26 in `monitoring/STABILITY_MONITORING.md`)
+6. 🔄 **IN PROGRESS**: Production monitoring (latest health-check entries logged Feb 25 and Feb 26, including native runtime smoke follow-up, in `monitoring/STABILITY_MONITORING.md`)
 7. ✅ **COMPLETE**: OPTIONAL-002 email report delivery (SMTP integration for scheduled/on-demand reports)
 8. ✅ **COMPLETE**: User feedback collection (in-app feedback modal + `/api/v1/feedback` endpoint + operations feedback inbox)
 9. ✅ **COMPLETE**: Candidate 2 - ESLint code health refactoring batch (frontend lint clean; commit 836c1dccb)
@@ -294,6 +294,10 @@
 - Hardened report workflow E2E setup and selectors (`frontend/tests/e2e/report-workflows.spec.ts`, `frontend/tests/e2e/helpers.ts`, custom-reports UI test IDs) for deterministic local runs.
 - Fixed `NATIVE.ps1 -Status` false negatives by adding port-listener fallback detection when PID files are stale under uvicorn reload.
 - Verified backend health endpoint (`/health` → 200) and successful import of critical native modules (`pydantic_core`, `numpy`).
+55. ✅ **COMPLETE** (Feb 26, 2026): **Native runtime smoke follow-up hardening**
+- Fixed Windows console encoding startup instability in `NATIVE.ps1` backend launch by forcing UTF-8 process I/O (`PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`).
+- Strengthened `NATIVE.ps1 -Status` listener discovery with netstat fallback for intermittent `Get-NetTCPConnection` misses.
+- Verified runtime cycle end-to-end: `NATIVE.ps1 -Start` → backend `/health` 200 + frontend 200 → `NATIVE.ps1 -Status` accurate → `NATIVE.ps1 -Stop` clean shutdown.
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).
