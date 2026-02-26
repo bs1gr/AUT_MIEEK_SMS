@@ -227,6 +227,16 @@ Copy this for each check you perform:
 - Actions Taken: Updated `NATIVE.ps1` to force UTF-8 process I/O for backend startup (`PYTHONUTF8=1`, `PYTHONIOENCODING=utf-8`) and added netstat-based listener fallback in status detection; reran full native smoke cycle successfully.
 - Time Invested: ~35 minutes
 
+### Entry Date: February 26, 2026 (Retention Policy Cleanup)
+- Version: 1.18.4
+- Test Status: Passing (maintenance cleanup)
+- Tests Run: Policy cleanup task execution (`scripts/maintenance/RETENTION_POLICY_CLEANUP.ps1`) covering state snapshots, root commit logs, and backup metadata retention windows
+- Tests Passed: Yes (task completed with no runtime errors)
+- Notes: Cleanup removed stale artifacts while preserving policy scope only; no tracked source changes were introduced.
+- Issues Found: None
+- Actions Taken: Removed 138 retained artifacts and reclaimed ~495 KB (`state snapshots` + `backup metadata`); root commit log cleanup had zero eligible removals.
+- Time Invested: ~8 minutes
+
 ---
 
 ## 🔗 Related Documents
