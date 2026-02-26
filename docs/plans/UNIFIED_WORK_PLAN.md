@@ -350,6 +350,10 @@
 - Added scheduled GitHub Actions workflow `.github/workflows/scheduled-production-health-check.yml`.
 - Configured hourly cadence (`cron: 0 * * * *`) plus manual trigger (`workflow_dispatch`) on production self-hosted runner (`[self-hosted, windows, production-lan]`).
 - Automated checkpoint captures Docker status, restart count, startup timestamp, and `/health` status; uploads JSON/Markdown evidence artifacts and fails on health regressions.
+69. ✅ **COMPLETE** (Feb 26, 2026): **Scheduled checkpoint workflow verification + hardening**
+- Triggered manual run for new workflow and diagnosed first-run false negative (`run 22448965864`) caused by brittle text parsing of `DOCKER.ps1 -Status` output.
+- Hardened workflow assertion logic to use structured Docker health state (`docker inspect .State.Health.Status`) instead of status text matching.
+- Re-dispatched and confirmed passing execution (`run 22449222888`, job `Production checkpoint (scheduled)` completed `success`).
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

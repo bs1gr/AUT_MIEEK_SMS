@@ -357,6 +357,16 @@ Copy this for each check you perform:
 - Actions Taken: Implemented workflow with hourly schedule + manual dispatch, health assertions (`restart_count=0`, `/health=200`, healthy status signal), and JSON/Markdown artifact uploads.
 - Time Invested: ~15 minutes
 
+### Entry Date: February 26, 2026 (Monitoring Automation Verification)
+- Version: 1.18.4
+- Test Status: Passing (post-fix)
+- Tests Run: Manual workflow dispatch + run inspection for `.github/workflows/scheduled-production-health-check.yml`
+- Tests Passed: Yes (run `22449222888` completed `success`)
+- Notes: Initial verification run (`22448965864`) failed due to brittle text-match parsing of `DOCKER.ps1 -Status` output despite healthy container state.
+- Issues Found: False-negative health assertion (`Container health signal missing from DOCKER status output`) in workflow step logic.
+- Actions Taken: Patched workflow to assert container health via structured Docker inspect (`.State.Health.Status == healthy`) and reran successfully.
+- Time Invested: ~12 minutes
+
 ### Owner Decision (Feb 26, 2026)
 - Installer manual retest scope remains **deferred** in this maintenance window.
 - Execution focus remains on production stability monitoring and operational hardening.
