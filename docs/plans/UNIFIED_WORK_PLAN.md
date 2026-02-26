@@ -224,7 +224,7 @@
 3. ✅ **Monitoring framework deployed** (Feb 5) - [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 4. ✅ **Feature roadmap planning framework prepared** (Feb 5) - [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
 5. 📦 **ARCHIVED (for now)**: Installer testing (owner deferred; not required at this time)
-6. 🔄 **IN PROGRESS**: Production monitoring (latest health-check entries logged Feb 25 and Feb 26, including native runtime smoke follow-up, retention cleanup execution, and Docker production recovery, in `monitoring/STABILITY_MONITORING.md`)
+6. 🔄 **IN PROGRESS**: Production monitoring (latest health-check entries logged Feb 25 and Feb 26, including native runtime smoke follow-up, retention cleanup execution, Docker production recovery, and post-recovery checkpoint validation, in `monitoring/STABILITY_MONITORING.md`)
 7. ✅ **COMPLETE**: OPTIONAL-002 email report delivery (SMTP integration for scheduled/on-demand reports)
 8. ✅ **COMPLETE**: User feedback collection (in-app feedback modal + `/api/v1/feedback` endpoint + operations feedback inbox)
 9. ✅ **COMPLETE**: Candidate 2 - ESLint code health refactoring batch (frontend lint clean; commit 836c1dccb)
@@ -306,6 +306,10 @@
 - Diagnosed restart-loop on `sms-app` (`DOCKER.ps1 -Status` + container logs): PostgreSQL auth/migration chain failure with duplicate unique conflicts during SQLite→PostgreSQL append migration.
 - Hardened `backend/scripts/migrate_sqlite_to_postgres.py` append-mode upsert strategy to ignore conflicts on any unique constraint (not only PK).
 - Verified recovery workflow: `DOCKER.ps1 -UpdateClean` completed SQLite→PostgreSQL migration + marker/archive, stale `sms-app` conflict removed, `DOCKER.ps1 -Start` healthy, `/health` on `:8080` returned 200.
+58. ✅ **COMPLETE** (Feb 26, 2026): **Docker post-recovery stability verification**
+- Ran follow-up production checkpoint (`DOCKER.ps1 -Status` + `/health` probe on `:8080`).
+- Confirmed `sms-app` remained healthy (`Up ... (healthy)`) and endpoint stability persisted (`/health` → 200).
+- Logged verification outcome in `monitoring/STABILITY_MONITORING.md`.
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

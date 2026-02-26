@@ -247,6 +247,16 @@ Copy this for each check you perform:
 - Actions Taken: Patched `backend/scripts/migrate_sqlite_to_postgres.py` to use targetless `ON CONFLICT DO NOTHING` in append mode, reran `DOCKER.ps1 -UpdateClean` (migration completed and archive marker written), removed stale conflicting `sms-app` container, and restarted successfully.
 - Time Invested: ~30 minutes
 
+### Entry Date: February 26, 2026 (Docker Post-Recovery Verification)
+- Version: 1.18.4
+- Test Status: Passing (stability checkpoint)
+- Tests Run: Repository clean-state check (`git status --short`), Docker runtime status (`DOCKER.ps1 -Status`), production health probe (`GET http://localhost:8080/health`)
+- Tests Passed: Yes (`sms-app` reported `Up ... (healthy)` and `/health` returned `200`)
+- Notes: Post-recovery checkpoint confirms production remains healthy after the migration conflict fix and stale-container cleanup.
+- Issues Found: None
+- Actions Taken: Logged successful post-recovery verification and kept production monitoring stream active.
+- Time Invested: ~5 minutes
+
 ---
 
 ## 🔗 Related Documents
