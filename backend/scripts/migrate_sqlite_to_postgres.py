@@ -243,12 +243,13 @@ def _copy_table(
             if dest_conn is None:
                 continue
             if append_safe and dest_conn.dialect.name == "postgresql":
-                primary_keys = [col.name for col in table.primary_key.columns]
                 insert_stmt = pg_insert(table)
-                if primary_keys:
-                    insert_stmt = insert_stmt.on_conflict_do_nothing(index_elements=primary_keys)
-                else:
-                    insert_stmt = insert_stmt.on_conflict_do_nothing()
+                # Use targetless ON CONFLICT so duplicates on *any* unique
+                # constraint are ignored (not just primary key collisions).
+                # This is required for append-mode retries where natural-key
+                # unique constraints (e.g. role_permissions(role_id, permission_id))
+                # may already exist with different surrogate IDs.
+                insert_stmt = insert_stmt.on_conflict_do_nothing()
                 dest_conn.execute(insert_stmt, chunk)
             else:
                 dest_conn.execute(sa.insert(table), chunk)

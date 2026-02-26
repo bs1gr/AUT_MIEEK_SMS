@@ -237,6 +237,16 @@ Copy this for each check you perform:
 - Actions Taken: Removed 138 retained artifacts and reclaimed ~495 KB (`state snapshots` + `backup metadata`); root commit log cleanup had zero eligible removals.
 - Time Invested: ~8 minutes
 
+### Entry Date: February 26, 2026 (Docker Production Recovery)
+- Version: 1.18.4
+- Test Status: Passing (production mode restored)
+- Tests Run: Docker status probe (`DOCKER.ps1 -Status`), container log diagnostics (`docker logs sms-app`), clean Docker rebuild/update (`DOCKER.ps1 -UpdateClean`), production startup (`DOCKER.ps1 -Start`), health probe (`GET http://localhost:8080/health`)
+- Tests Passed: Yes (`/health` returned `200`, application reported healthy and ready)
+- Notes: Initial check found `sms-app` in restart loop due PostgreSQL auth/migration chain issue. During recovery, SQLite→PostgreSQL auto-migration exposed append-mode duplicate conflicts in `role_permissions` (`idx_role_permission_unique`).
+- Issues Found: 1) migration append path tolerated PK conflicts only, not natural-key unique conflicts; 2) stale existing `sms-app` container name blocked restart after clean update.
+- Actions Taken: Patched `backend/scripts/migrate_sqlite_to_postgres.py` to use targetless `ON CONFLICT DO NOTHING` in append mode, reran `DOCKER.ps1 -UpdateClean` (migration completed and archive marker written), removed stale conflicting `sms-app` container, and restarted successfully.
+- Time Invested: ~30 minutes
+
 ---
 
 ## 🔗 Related Documents
