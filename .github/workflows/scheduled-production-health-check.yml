@@ -38,6 +38,7 @@ jobs:
           $healthCode = -1
           $restartCount = 'unknown'
           $startedAt = 'unknown'
+          $containerHealth = 'unknown'
           $issues = @()
 
           try {
@@ -62,6 +63,13 @@ jobs:
           }
 
           try {
+            $containerHealth = (docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' sms-app).Trim()
+          }
+          catch {
+            $issues += "Unable to read sms-app container health status: $($_.Exception.Message)"
+          }
+
+          try {
             $response = Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:8080/health' -TimeoutSec 15
             $healthCode = [int]$response.StatusCode
           }
@@ -77,8 +85,8 @@ jobs:
             $issues += "Expected restart count 0, got $restartCount"
           }
 
-          if (-not ($statusText -match 'Healthy OK|\(healthy\)')) {
-            $issues += 'Container health signal missing from DOCKER status output'
+          if ($containerHealth -ne 'healthy') {
+            $issues += "Expected container health status 'healthy', got '$containerHealth'"
           }
 
           $result = [ordered]@{
@@ -87,6 +95,7 @@ jobs:
             workflow_trigger = '${{ github.event_name }}'
             restart_count = $restartCount
             started_at = $startedAt
+            container_health = $containerHealth
             health_status_code = $healthCode
             issues = $issues
           }
@@ -103,6 +112,7 @@ jobs:
             "- Trigger: $($result.workflow_trigger)"
             "- Restart count: $restartCount"
             "- StartedAt: $startedAt"
+            "- Container health: $containerHealth"
             "- /health status: $healthCode"
             "- Issue count: $($issues.Count)"
             ''
@@ -118,6 +128,7 @@ jobs:
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## Production checkpoint result"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Restart count: $restartCount"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- StartedAt: $startedAt"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Container health: $containerHealth"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- /health status: $healthCode"
 
           if ($issues.Count -gt 0) {
