@@ -2047,7 +2047,7 @@ function New-CommitMessage {
         Write-Host "  3. Commit: git commit -m '<message above>'" -ForegroundColor White
         Write-Host "  4. Push: git push origin main" -ForegroundColor White
         Write-Host ""
-        Write-Host "Note: Validation checkpoint valid for 90 minutes (extended on Jan 30, 2026)" -ForegroundColor Cyan
+        Write-Host "Note: Validation checkpoint valid indefinitely (never expires; clear manually if needed)" -ForegroundColor Cyan
     } else {
         Write-Host "[WARN] Fix the failed checks before committing" -ForegroundColor Yellow
         Write-Host "Review the failures above and address them" -ForegroundColor White
