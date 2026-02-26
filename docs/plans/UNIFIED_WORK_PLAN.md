@@ -224,7 +224,7 @@
 3. ✅ **Monitoring framework deployed** (Feb 5) - [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 4. ✅ **Feature roadmap planning framework prepared** (Feb 5) - [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
 5. 📦 **ARCHIVED (for now)**: Installer testing (owner deferred; not required at this time)
-6. 🔄 **IN PROGRESS**: Production monitoring (latest health-check entries logged Feb 25 and Feb 26, including native runtime smoke follow-up, retention cleanup execution, Docker production recovery, post-recovery checkpoint validation, sustained stability follow-up checkpoints, additional extended follow-up validation, and ongoing cadence checkpoints, in `monitoring/STABILITY_MONITORING.md`)
+6. 🔄 **IN PROGRESS**: Production monitoring (latest health-check entries logged Feb 25 and Feb 26, including native runtime smoke follow-up, retention cleanup execution, Docker production recovery, post-recovery checkpoint validation, sustained stability follow-up checkpoints, additional extended follow-up validation, ongoing cadence checkpoints, and scheduled automation rollout, in `monitoring/STABILITY_MONITORING.md`)
 7. ✅ **COMPLETE**: OPTIONAL-002 email report delivery (SMTP integration for scheduled/on-demand reports)
 8. ✅ **COMPLETE**: User feedback collection (in-app feedback modal + `/api/v1/feedback` endpoint + operations feedback inbox)
 9. ✅ **COMPLETE**: Candidate 2 - ESLint code health refactoring batch (frontend lint clean; commit 836c1dccb)
@@ -346,6 +346,10 @@
 - Ran additional rolling follow-up production checkpoint (`DOCKER.ps1 -Status`, restart counter, start-timestamp capture, `/health` probe on `:8080`).
 - Confirmed stability remained steady (sustained healthy runtime window, restart count `0`, startup timestamp unchanged, `/health` → 200).
 - Logged ongoing-cadence follow-up checkpoint evidence in `monitoring/STABILITY_MONITORING.md`.
+68. ✅ **COMPLETE** (Feb 26, 2026): **Scheduled production checkpoint automation rollout**
+- Added scheduled GitHub Actions workflow `.github/workflows/scheduled-production-health-check.yml`.
+- Configured hourly cadence (`cron: 0 * * * *`) plus manual trigger (`workflow_dispatch`) on production self-hosted runner (`[self-hosted, windows, production-lan]`).
+- Automated checkpoint captures Docker status, restart count, startup timestamp, and `/health` status; uploads JSON/Markdown evidence artifacts and fails on health regressions.
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

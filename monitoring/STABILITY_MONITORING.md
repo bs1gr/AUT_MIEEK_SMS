@@ -347,6 +347,16 @@ Copy this for each check you perform:
 - Actions Taken: Logged ongoing-cadence follow-up checkpoint evidence and continued active monitoring cadence.
 - Time Invested: ~3 minutes
 
+### Entry Date: February 26, 2026 (Monitoring Automation Rollout)
+- Version: 1.18.4
+- Test Status: Automation configured
+- Tests Run: Workflow design + repository integration for scheduled checkpoint execution
+- Tests Passed: Pending first scheduled/manual run in GitHub Actions
+- Notes: Added `.github/workflows/scheduled-production-health-check.yml` to run hourly on the production self-hosted runner and collect checkpoint evidence artifacts automatically.
+- Issues Found: None during config rollout
+- Actions Taken: Implemented workflow with hourly schedule + manual dispatch, health assertions (`restart_count=0`, `/health=200`, healthy status signal), and JSON/Markdown artifact uploads.
+- Time Invested: ~15 minutes
+
 ### Owner Decision (Feb 26, 2026)
 - Installer manual retest scope remains **deferred** in this maintenance window.
 - Execution focus remains on production stability monitoring and operational hardening.

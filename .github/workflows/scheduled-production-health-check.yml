@@ -1,0 +1,138 @@
+name: Scheduled Production Health Check
+
+on:
+  schedule:
+    # Hourly checkpoint cadence (UTC)
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: production-health-check
+  cancel-in-progress: false
+
+jobs:
+  checkpoint:
+    name: Production checkpoint (scheduled)
+    runs-on: [self-hosted, windows, production-lan]
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run production checkpoint
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $timestamp = Get-Date -Format 'yyyy-MM-dd_HHmmss'
+          $artifactDir = Join-Path $PWD 'artifacts/monitoring'
+          New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
+
+          $statusText = ''
+          $healthCode = -1
+          $restartCount = 'unknown'
+          $startedAt = 'unknown'
+          $issues = @()
+
+          try {
+            $statusText = (& .\DOCKER.ps1 -Status | Out-String).Trim()
+          }
+          catch {
+            $issues += "DOCKER status command failed: $($_.Exception.Message)"
+          }
+
+          try {
+            $restartCount = (docker inspect -f '{{.RestartCount}}' sms-app).Trim()
+          }
+          catch {
+            $issues += "Unable to read sms-app restart count: $($_.Exception.Message)"
+          }
+
+          try {
+            $startedAt = (docker inspect -f '{{.State.StartedAt}}' sms-app).Trim()
+          }
+          catch {
+            $issues += "Unable to read sms-app started timestamp: $($_.Exception.Message)"
+          }
+
+          try {
+            $response = Invoke-WebRequest -UseBasicParsing -Uri 'http://localhost:8080/health' -TimeoutSec 15
+            $healthCode = [int]$response.StatusCode
+          }
+          catch {
+            $issues += "Health probe failed: $($_.Exception.Message)"
+          }
+
+          if ($healthCode -ne 200) {
+            $issues += "Expected /health status 200, got $healthCode"
+          }
+
+          if ($restartCount -ne '0') {
+            $issues += "Expected restart count 0, got $restartCount"
+          }
+
+          if (-not ($statusText -match 'Healthy OK|\(healthy\)')) {
+            $issues += 'Container health signal missing from DOCKER status output'
+          }
+
+          $result = [ordered]@{
+            timestamp_utc = (Get-Date).ToUniversalTime().ToString('o')
+            workflow_run_id = '${{ github.run_id }}'
+            workflow_trigger = '${{ github.event_name }}'
+            restart_count = $restartCount
+            started_at = $startedAt
+            health_status_code = $healthCode
+            issues = $issues
+          }
+
+          $jsonPath = Join-Path $artifactDir "production-health-check_$timestamp.json"
+          $mdPath = Join-Path $artifactDir "production-health-check_$timestamp.md"
+
+          ($result | ConvertTo-Json -Depth 5) | Set-Content -Path $jsonPath -Encoding UTF8
+
+          @(
+            '# Production Health Check Report'
+            ''
+            "- Timestamp (UTC): $($result.timestamp_utc)"
+            "- Trigger: $($result.workflow_trigger)"
+            "- Restart count: $restartCount"
+            "- StartedAt: $startedAt"
+            "- /health status: $healthCode"
+            "- Issue count: $($issues.Count)"
+            ''
+            '## Docker Status Output'
+            '```text'
+            $statusText
+            '```'
+            ''
+            '## Issues'
+            if ($issues.Count -eq 0) { '- None' } else { $issues | ForEach-Object { "- $_" } }
+          ) | Set-Content -Path $mdPath -Encoding UTF8
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## Production checkpoint result"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Restart count: $restartCount"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- StartedAt: $startedAt"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- /health status: $healthCode"
+
+          if ($issues.Count -gt 0) {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Status: ❌ FAILED"
+            throw "Production checkpoint failed: $($issues -join '; ')"
+          }
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Status: ✅ PASSED'
+
+      - name: Upload checkpoint artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-health-check-${{ github.run_id }}
+          path: |
+            artifacts/monitoring/production-health-check_*.json
+            artifacts/monitoring/production-health-check_*.md
+          retention-days: 30
