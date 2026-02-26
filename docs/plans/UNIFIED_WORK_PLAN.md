@@ -354,6 +354,10 @@
 - Triggered manual run for new workflow and diagnosed first-run false negative (`run 22448965864`) caused by brittle text parsing of `DOCKER.ps1 -Status` output.
 - Hardened workflow assertion logic to use structured Docker health state (`docker inspect .State.Health.Status`) instead of status text matching.
 - Re-dispatched and confirmed passing execution (`run 22449222888`, job `Production checkpoint (scheduled)` completed `success`).
+70. ✅ **COMPLETE** (Feb 26, 2026): **Post-automation live production checkpoint**
+- Ran live production checkpoint (`DOCKER.ps1 -Status`, restart counter, container health state, start timestamp, `/health` probe on `:8080`).
+- Confirmed continued stability (~7 hours healthy runtime, restart count `0`, container health `healthy`, startup timestamp unchanged, `/health` → `200`).
+- Logged post-automation checkpoint evidence in `monitoring/STABILITY_MONITORING.md`.
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).
