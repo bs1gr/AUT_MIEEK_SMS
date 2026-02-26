@@ -267,6 +267,16 @@ Copy this for each check you perform:
 - Actions Taken: Logged sustained-health checkpoint and continued monitoring cadence.
 - Time Invested: ~4 minutes
 
+### Entry Date: February 26, 2026 (Extended Stability Check)
+- Version: 1.18.4
+- Test Status: Passing (extended checkpoint)
+- Tests Run: Docker runtime status (`DOCKER.ps1 -Status`), restart counter check (`docker inspect -f '{{.RestartCount}}' sms-app`), production health probe (`GET http://localhost:8080/health`)
+- Tests Passed: Yes (`sms-app` remained healthy for ~2 hours, restart count `0`, `/health` returned `200`)
+- Notes: No regression signals detected in the extended window after recovery and prior checkpoints.
+- Issues Found: None
+- Actions Taken: Logged continued stability evidence and kept monitoring stream active.
+- Time Invested: ~3 minutes
+
 ---
 
 ## 🔗 Related Documents
