@@ -327,6 +327,16 @@ Copy this for each check you perform:
 - Actions Taken: Logged ongoing-cadence follow-up checkpoint and continued active production monitoring.
 - Time Invested: ~3 minutes
 
+### Entry Date: February 26, 2026 (Extended Stability Check - Ongoing Cadence Follow-up 3)
+- Version: 1.18.4
+- Test Status: Passing (extended checkpoint)
+- Tests Run: Docker runtime status (`DOCKER.ps1 -Status`), restart counter check (`docker inspect -f '{{.RestartCount}}' sms-app`), container start timestamp capture, production health probe (`GET http://localhost:8080/health`)
+- Tests Passed: Yes (`sms-app` remained healthy through the sustained ~5-hour runtime window, restart count `0`, startup timestamp unchanged, `/health` returned `200`)
+- Notes: Repeated cadence checks continue to show stable container runtime and no restart drift.
+- Issues Found: None
+- Actions Taken: Logged ongoing-cadence follow-up checkpoint evidence and kept monitoring cadence active.
+- Time Invested: ~3 minutes
+
 ### Owner Decision (Feb 26, 2026)
 - Installer manual retest scope remains **deferred** in this maintenance window.
 - Execution focus remains on production stability monitoring and operational hardening.
