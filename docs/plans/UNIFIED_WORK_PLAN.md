@@ -338,7 +338,7 @@
 - Plan next phase: [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
 
 ### Installer Testing Progress (Feb 5, 2026)
-- **Scenario 1 (Fresh Install)**: ⚠ Partial — original Issue #3 (language stuck to Greek) now has a code fix by forcing `ShowLanguageDialog=yes`; pending re-test to confirm the welcome screen honors the selected language.
+- **Scenario 1 (Fresh Install)**: ⚠ Partial — original Issue #3 (language stuck to Greek) now has a code fix by forcing `ShowLanguageDialog=yes`; re-test is deferred under the archived installer-testing scope.
 - **Scenario 2 (Repair $11.18.3)**: ⚠ Partial — the reinstall flow repairs the installation successfully, so Issue #4 (missing maintenance choices / limited backup contents) is accepted for now unless future testing shows data loss.
 - **Post-install smoke**: **Issue #5** (duplicate browser tab) is resolved—option 1 now opens a single tab after the smoke test confirmed the updated `docker_manager.bat` behavior.
 - **Status Update (Feb 6, 2026)**: Installer testing is **archived/deferred** by owner request; no further scenarios required at this time.
@@ -1164,7 +1164,7 @@ Fixes three startup warnings and enables scheduler features.
 >   - ReportBuilderPage, ReportListPage, ReportTemplateBrowserPage exported via index.ts
 >   - 6 child components (ReportBuilder, ReportList, etc.) properly exported
 > - ✅ **Native Development Server**:
->   - Backend (8000) - FastAPI with report generation service running
+>   - Backend (8000) - FastAPI with report generation service was running during validation
 >   - Frontend (5173) - Vite with hot module reloading enabled
 >   - Both services healthy and responding
 > - ✅ **Backend Tests**: All 742 tests still passing from previous batch run (199s)
@@ -1235,7 +1235,7 @@ Fixes three startup warnings and enables scheduler features.
 > - ✅ Days 1-4: Backend complete (742 tests passing, report generation working)
 > - ✅ Day 6: API integration and translations (200+ keys, useCustomReports hooks)
 > - ✅ Days 7-10: Frontend UI complete (8 components, 3 pages, production-ready)
-> - ⏳ Optional Week 3: Advanced features (scheduling, email, analytics)
+> - ✅ Historical note (completed later): Optional Week 3 scheduling and email enhancements were delivered; advanced analytics remained optional/deferred.
 >
 > **Next Steps**: Integration Testing & Optional Enhancements
 > - Routing integration (if needed for immediate use)
