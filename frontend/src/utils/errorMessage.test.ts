@@ -113,9 +113,26 @@ describe('errorMessage', () => {
           },
         },
       };
-      // This won't extract nested detail, but should serialize
       const result = getErrorMessage(axiosError, fallback);
-      expect(result).toContain('response');
+      expect(result).toBe('Validation failed');
+    });
+
+    it('extracts backend APIResponse nested error message', () => {
+      const apiWrappedError = {
+        response: {
+          data: {
+            success: false,
+            error: {
+              code: 'HTTP_400',
+              message: 'Invalid email or password',
+            },
+          },
+        },
+        message: 'Request failed with status code 400',
+      };
+
+      const result = getErrorMessage(apiWrappedError, fallback);
+      expect(result).toBe('Invalid email or password');
     });
 
     it('handles circular reference gracefully', () => {

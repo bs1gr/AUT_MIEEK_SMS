@@ -273,6 +273,11 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = True
     SMTP_ATTACHMENT_MAX_MB: int = 10
 
+    # Native runtime safety guard:
+    # when enabled by orchestration script, force DATABASE_URL from backend/.env
+    # to avoid accidental process-level DATABASE_URL drift.
+    SMS_ENFORCE_BACKEND_ENV_DB: bool = False
+
     @property
     def CORS_ORIGINS_LIST(self) -> List[str]:
         v: Any = getattr(self, "CORS_ORIGINS", "")
@@ -577,6 +582,41 @@ class Settings(BaseSettings):
 
         # No runtime mutations; returning self keeps behavior unchanged for CI/tests
         # and local runs where environment variables should drive the desired state.
+        return self
+
+    @model_validator(mode="after")
+    def enforce_backend_env_database_url(self) -> "Settings":
+        """
+        Optional native-mode guard: when explicitly enabled, pin DATABASE_URL to
+        backend/.env value. This protects local native startup from transient
+        shell/process overrides.
+        """
+        if not self.SMS_ENFORCE_BACKEND_ENV_DB:
+            return self
+
+        if (self.SMS_EXECUTION_MODE or "").strip().lower() != "native":
+            return self
+
+        try:
+            env_path = Path(__file__).resolve().parent / ".env"
+            if not env_path.exists():
+                return self
+
+            for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+                line = raw_line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if not line.lower().startswith("database_url="):
+                    continue
+
+                value = line.split("=", 1)[1].strip().strip('"').strip("'")
+                if value:
+                    object.__setattr__(self, "DATABASE_URL", value)
+                break
+        except Exception:
+            # Non-fatal guard: if parsing fails, keep already-resolved DATABASE_URL.
+            return self
+
         return self
 
     @field_validator("DEFAULT_ADMIN_PASSWORD")

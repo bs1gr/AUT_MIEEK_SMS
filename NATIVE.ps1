@@ -902,6 +902,47 @@ function Start-Backend {
         # Set PYTHONPATH and SMS environment variables for the backend process
         $env:PYTHONPATH = $SCRIPT_DIR
         $env:SMS_PROJECT_ROOT = $SCRIPT_DIR
+        $env:SMS_EXECUTION_MODE = "native"
+        $env:SMS_ENFORCE_BACKEND_ENV_DB = "1"
+
+        # Ensure Node.js directory is present in PATH for backend diagnostics
+        # (nvm4w setups can be missing from child process PATH in some shells).
+        $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+        if ($nodeCommand -and $nodeCommand.Source) {
+            $nodeDir = Split-Path -Parent $nodeCommand.Source
+            if ($nodeDir -and -not (($env:Path -split ';') -contains $nodeDir)) {
+                $env:Path = "$nodeDir;$env:Path"
+            }
+        }
+
+        # Force DATABASE_URL from backend/.env in native mode to avoid accidental
+        # process/session overrides that can point to the wrong SQLite file.
+        $backendEnvPath = Join-Path $BACKEND_DIR ".env"
+        if (Test-Path $backendEnvPath) {
+            try {
+                $dbLine = Get-Content $backendEnvPath -ErrorAction Stop |
+                    Where-Object { $_ -match '^\s*DATABASE_URL\s*=' } |
+                    Select-Object -First 1
+
+                if ($dbLine) {
+                    $dbValue = ($dbLine -split '=', 2)[1].Trim()
+                    if ($dbValue.StartsWith('"') -and $dbValue.EndsWith('"')) {
+                        $dbValue = $dbValue.Trim('"')
+                    } elseif ($dbValue.StartsWith("'") -and $dbValue.EndsWith("'")) {
+                        $dbValue = $dbValue.Trim("'")
+                    }
+
+                    if (-not [string]::IsNullOrWhiteSpace($dbValue)) {
+                        $env:DATABASE_URL = $dbValue
+                        Write-Info "Using DATABASE_URL from backend/.env for native backend"
+                    }
+                }
+            }
+            catch {
+                Write-Warning "Could not read DATABASE_URL from backend/.env; using process environment"
+            }
+        }
+
         # Force UTF-8 process I/O on Windows consoles (prevents emoji/unicode logging crashes)
         $env:PYTHONUTF8 = "1"
         $env:PYTHONIOENCODING = "utf-8"
@@ -1013,15 +1054,26 @@ function Start-Frontend {
         # (Start-Process npm may spawn child processes and exit immediately).
         # Bind to 0.0.0.0 (all interfaces) to ensure both IPv4 and IPv6 work
         $pwsh = Get-Command pwsh -ErrorAction SilentlyContinue
+        $nodeCommand = Get-Command node -ErrorAction SilentlyContinue
+        if ($nodeCommand -and $nodeCommand.Source) {
+            $nodeDir = Split-Path -Parent $nodeCommand.Source
+            if ($nodeDir -and -not (($env:Path -split ';') -contains $nodeDir)) {
+                $env:Path = "$nodeDir;$env:Path"
+            }
+        }
+
+        $npmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
+        $npmExecutable = if ($npmCmd -and $npmCmd.Source) { $npmCmd.Source } else { "npm" }
+
         if ($pwsh) {
             $processInfo = Start-Process -FilePath "pwsh" `
-                -ArgumentList "-NoExit", "-Command", "cd '$FRONTEND_DIR'; npm run dev" `
+                -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-Command", "cd '$FRONTEND_DIR'; & '$npmExecutable' run dev -- --host 127.0.0.1" `
                 -WindowStyle Normal `
                 -PassThru
         } else {
             # Fall back to starting npm directly
-            $processInfo = Start-Process -FilePath "npm" `
-                -ArgumentList "run", "dev" `
+            $processInfo = Start-Process -FilePath $npmExecutable `
+                -ArgumentList "run", "dev", "--", "--host", "127.0.0.1" `
                 -WindowStyle Normal `
                 -PassThru
         }

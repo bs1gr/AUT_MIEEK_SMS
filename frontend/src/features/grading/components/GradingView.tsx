@@ -312,16 +312,13 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     setGradeValue(String(grade.grade));
     setMaxGrade(String(grade.max_grade || 100));
     setWeight(String(grade.weight || 1));
-    if (!historyDate && (grade.date_submitted || grade.date_assigned)) {
-      const rawDate = grade.date_submitted || grade.date_assigned || '';
-      const normalized = rawDate ? formatLocalDate(rawDate) : '';
-      if (normalized && normalized !== todayStr) {
-        setHistoryDate(normalized);
-      }
-    }
+    // Always set the date when editing (use grade's date or today)
+    const rawDate = grade.date_submitted || grade.date_assigned || new Date().toISOString();
+    const normalized = rawDate ? formatLocalDate(rawDate) : todayStr;
+    setHistoryDate(normalized);
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [historyDate, todayStr]);
+  }, [todayStr]);
 
   useEffect(() => {
     const recallIdRaw = sessionStorage.getItem('grading_recall_grade_id');
@@ -483,11 +480,11 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
         <button className="border rounded px-3 py-2" onClick={loadFinal}>{t('refreshFinal')}</button>
       </div>
 
-      {editingGradeId && historyDate && (
+      {editingGradeId && (
         <div className="flex flex-col md:flex-row md:items-center gap-3 bg-white border rounded-xl p-4">
           <div className="flex items-center gap-2">
             <label className="text-sm text-gray-600" htmlFor="grading-history-date">
-              {t('historyDate') || 'History date'}
+              {t('historyDate') || 'Date'}
             </label>
             <input
               id="grading-history-date"
@@ -499,7 +496,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
           </div>
           {isHistoricalMode && (
             <div className="ml-auto text-xs text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded">
-              {t('historicalModeBanner') || 'Viewing past date'} — {formatDate(historyDate)}
+              {t('historicalModeBanner') || 'Editing past date'} — {formatDate(historyDate)}
             </div>
           )}
         </div>

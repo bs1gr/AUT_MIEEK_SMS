@@ -23,7 +23,12 @@ import time
 from datetime import datetime
 from typing import Any, Dict, Iterable, Tuple
 
-import psutil
+try:
+    import psutil
+    _PSUTIL_IMPORT_ERROR: Exception | None = None
+except Exception as e:
+    psutil = None
+    _PSUTIL_IMPORT_ERROR = e
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
@@ -468,6 +473,12 @@ async def add_sample_data(db: Session = Depends(get_db), _auth=Depends(require_c
 @router.get("/debug-processes")
 async def debug_processes(_auth=Depends(require_control_admin)):
     """Debug endpoint to see what processes will be killed"""
+    if psutil is None:
+        detail = "psutil is not available; process diagnostics require psutil"
+        if _PSUTIL_IMPORT_ERROR is not None:
+            detail = f"{detail} ({_PSUTIL_IMPORT_ERROR})"
+        raise HTTPException(status_code=503, detail=detail)
+
     # Explicit typing to satisfy strict type checkers: values are lists or dicts
     processes_info: Dict[str, Any] = {
         "frontend_on_port_5173": [],
@@ -661,6 +672,11 @@ def _kill_process_by_pid_file(pid_file_path: pathlib.Path, process_name: str):
         pid = int(pid_file_path.read_text().strip())
         print(f"[{process_name}] Found PID from file: {pid}")
         try:
+            if psutil is None:
+                print(f"[{process_name}] psutil unavailable; attempting direct kill for PID {pid}")
+                os.kill(pid, signal.SIGTERM)
+                return
+
             proc = psutil.Process(pid)
             print(f"[{process_name}] Killing process tree: {proc.name()} ({pid})")
             # Use psutil to kill the children first, then the parent
@@ -675,8 +691,6 @@ def _kill_process_by_pid_file(pid_file_path: pathlib.Path, process_name: str):
                     pass
             proc.kill()
             print(f"[{process_name}] Successfully killed main process.")
-        except psutil.NoSuchProcess:
-            print(f"[{process_name}] Process {pid} no longer exists.")
         except Exception as e:
             print(f"[{process_name}] Could not kill process {pid}: {e}")
     except Exception as e:
