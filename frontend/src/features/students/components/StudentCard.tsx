@@ -4,6 +4,7 @@ import type { Student, Course } from '@/types';
 import { listItemVariants } from '@/utils/animations';
 import { percentageToGreekScale, getLetterGrade } from '@/utils/gradeUtils';
 import { useLanguage } from '@/LanguageContext';
+import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import CourseGradeBreakdown from './CourseGradeBreakdown';
 import AttendanceDetails from './AttendanceDetails';
 import GradeStatistics, { GradeInsights } from './GradeStatistics';
@@ -43,6 +44,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
   onViewProfile,
 }) => {
   const { t } = useLanguage();
+  const { formatDate } = useDateTimeFormatter();
 
   const gradeInsights = useMemo<GradeInsights | null>(() => {
     if (!stats?.gradesList || stats.gradesList.length === 0) return null;
@@ -242,7 +244,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
                       <div key={grade.id} className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 rounded px-3 py-2">
                         <div className="flex-1">
                           <div className="font-medium text-gray-800">{grade.assignment_name || t('assignment') || 'Assignment'}</div>
-                          <div className="text-[11px] text-gray-500">{grade.date_submitted || grade.date_assigned || '—'}</div>
+                          <div className="text-[11px] text-gray-500">{formatDate(grade.date_submitted || grade.date_assigned) || '—'}</div>
                         </div>
                         <div className="text-right mr-3">
                           <div className="font-semibold text-gray-800">{grade.grade}/{grade.max_grade}</div>
@@ -269,7 +271,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
                     {sortedAttendance.slice(0, 10).map((record) => (
                       <div key={record.id} className="flex items-center justify-between text-xs text-gray-600 bg-gray-50 rounded px-3 py-2">
                         <div className="flex-1">
-                          <div className="font-medium text-gray-800">{record.date || '—'}</div>
+                          <div className="font-medium text-gray-800">{formatDate(record.date) || '—'}</div>
                           <div className="text-[11px] text-gray-500">{record.status}</div>
                         </div>
                         {onRecallAttendance && record.course_id && record.date && (
