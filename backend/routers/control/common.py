@@ -17,7 +17,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import psutil  # type: ignore
+try:
+    import psutil  # type: ignore
+
+    PSUTIL_AVAILABLE = True
+except Exception as exc:  # pragma: no cover - optional/runtime dependency
+    psutil = None  # type: ignore[assignment]
+    PSUTIL_AVAILABLE = False
+    _PSUTIL_IMPORT_ERROR = exc
 
 # Import project utilities lazily via resolver to work in different execution modes
 from backend.import_resolver import import_names
@@ -77,6 +84,14 @@ def is_port_open(port: int, host: str = "127.0.0.1") -> bool:
 
 
 def get_process_on_port(port: int) -> Optional[Dict[str, Any]]:
+    if not PSUTIL_AVAILABLE or psutil is None:
+        logger.debug(
+            "psutil is unavailable (%s); process lookup on port %s disabled",
+            str(globals().get("_PSUTIL_IMPORT_ERROR", "unknown error")),
+            port,
+        )
+        return None
+
     try:
         for conn in psutil.net_connections(kind="inet"):
             # Safely extract local address port across platforms/psutil versions
@@ -106,7 +121,7 @@ def get_process_on_port(port: int) -> Optional[Dict[str, Any]]:
                         "exe": proc.exe(),
                         "cmdline": " ".join(proc.cmdline()),
                     }
-                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                except Exception:
                     return {"pid": conn.pid, "name": "Unknown", "exe": None, "cmdline": None}
     except Exception as e:
         logger.warning(f"Error checking port {port}: {e}")

@@ -169,9 +169,51 @@ function Test-Node {
 
 function Test-PortInUse {
     param([int]$Port)
+
+    function Get-ListeningPids {
+        param([int]$TargetPort)
+
+        $pids = @()
+
+        try {
+            $listeners = Get-NetTCPConnection -LocalPort $TargetPort -State Listen -ErrorAction SilentlyContinue
+            if ($listeners) {
+                $pids += ($listeners | Where-Object { $_.OwningProcess -gt 0 } | Select-Object -ExpandProperty OwningProcess)
+            }
+        }
+        catch {
+            # Fall through to netstat fallback
+        }
+
+        # Fallback for environments where Get-NetTCPConnection intermittently misses listeners
+        if (-not $pids -or $pids.Count -eq 0) {
+            try {
+                $lines = netstat -ano | Select-String ":$TargetPort" | Where-Object { $_ -match 'LISTENING' }
+                foreach ($line in $lines) {
+                    $text = ($line.ToString() -replace '^\s+', '')
+                    $parts = $text -split '\s+'
+                    if ($parts.Length -lt 5) {
+                        continue
+                    }
+
+                    $pidText = $parts[-1]
+                    $parsedPid = 0
+                    if ([int]::TryParse($pidText, [ref]$parsedPid) -and $parsedPid -gt 0) {
+                        $pids += $parsedPid
+                    }
+                }
+            }
+            catch {
+                # ignore fallback failures
+            }
+        }
+
+        return @($pids | Sort-Object -Unique)
+    }
+
     try {
-        $connections = netstat -ano | Select-String ":$Port" | Where-Object { $_ -match 'LISTENING' }
-        return ($null -ne $connections -and $connections.Count -gt 0)
+        $listeningPids = Get-ListeningPids -TargetPort $Port
+        return ($null -ne $listeningPids -and $listeningPids.Count -gt 0)
     }
     catch {
         return $false
@@ -331,70 +373,129 @@ function Stop-ProcessByPort {
     )
 
     try {
-        $listener = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
-        if (-not $listener) {
+        $targetPids = @()
+
+        try {
+            $listeners = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+            if ($listeners) {
+                $targetPids += ($listeners | Where-Object { $_.OwningProcess -gt 0 } | Select-Object -ExpandProperty OwningProcess)
+            }
+        }
+        catch {
+            # Fall through to netstat fallback
+        }
+
+        if (-not $targetPids -or $targetPids.Count -eq 0) {
+            try {
+                $lines = netstat -ano | Select-String ":$Port" | Where-Object { $_ -match 'LISTENING' }
+                foreach ($line in $lines) {
+                    $text = ($line.ToString() -replace '^\s+', '')
+                    $parts = $text -split '\s+'
+                    if ($parts.Length -lt 5) {
+                        continue
+                    }
+
+                    $pidText = $parts[-1]
+                    $parsedPid = 0
+                    if ([int]::TryParse($pidText, [ref]$parsedPid) -and $parsedPid -gt 0) {
+                        $targetPids += $parsedPid
+                    }
+                }
+            }
+            catch {
+                # Ignore fallback errors
+            }
+        }
+
+        $targetPids = @($targetPids | Sort-Object -Unique)
+
+        if (-not $targetPids -or $targetPids.Count -eq 0) {
             return $true
         }
 
-        $targetPid = $listener.OwningProcess
-        if (-not $targetPid -or $targetPid -le 0) {
-            Write-Warning "$($Name): Port $Port is listening but PID is unavailable"
-            return $false
-        }
+        $allStopped = $true
 
-        $process = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
-        if (-not $process) {
-            Write-Warning "$($Name): Port $Port is in use by PID $targetPid, but process not found"
-            return $false
-        }
-
-        Write-Info "$($Name): Stopping process on port $Port (PID $targetPid)..."
-
-        # Kill entire process tree (parent + children) to ensure clean shutdown
-        try {
-            # Get all child processes recursively
-            $childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $targetPid }
-
-            # Kill children first
-            foreach ($child in $childProcesses) {
-                try {
-                    Stop-Process -Id $child.ProcessId -Force -ErrorAction SilentlyContinue
-                } catch {
-                    # Ignore errors for child processes that already exited
-                }
+        foreach ($targetPid in $targetPids) {
+            $process = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
+            if (-not $process) {
+                Write-Warning "$($Name): Port $Port is in use by PID $targetPid, but process is unresolved. Attempting taskkill fallback..."
+                cmd /c "taskkill /PID $targetPid /F /T" 2>$null | Out-Null
+                Start-Sleep -Milliseconds 300
+                continue
             }
 
-            # Kill the main process
-            Stop-Process -Id $targetPid -Force -ErrorAction Stop
+            Write-Info "$($Name): Stopping process on port $Port (PID $targetPid)..."
 
-            # Close the console window if it still exists
+            # Kill entire process tree (parent + children) to ensure clean shutdown
             try {
-                $mainWindow = (Get-Process -Id $targetPid -ErrorAction SilentlyContinue).MainWindowHandle
-                if ($mainWindow -and $mainWindow -ne 0) {
-                    # Win32 type already defined in Stop-ProcessFromPidFile, so just use it
+                # Get all child processes recursively
+                $childProcesses = Get-CimInstance Win32_Process | Where-Object { $_.ParentProcessId -eq $targetPid }
+
+                # Kill children first
+                foreach ($child in $childProcesses) {
                     try {
-                        [Win32]::PostMessage($mainWindow, 0x0010, 0, 0) | Out-Null
+                        Stop-Process -Id $child.ProcessId -Force -ErrorAction SilentlyContinue
                     } catch {
-                        # Type not defined yet - ignore, will be defined on first call to Stop-ProcessFromPidFile
+                        # Ignore errors for child processes that already exited
                     }
                 }
-            } catch {
-                # Window already closed or doesn't exist - ignore
-            }
-        } catch {
-            # If force kill fails, try one more time
-            try {
+
+                # Kill the main process
                 Stop-Process -Id $targetPid -Force -ErrorAction Stop
+
+                # Close the console window if it still exists
+                try {
+                    $mainWindow = (Get-Process -Id $targetPid -ErrorAction SilentlyContinue).MainWindowHandle
+                    if ($mainWindow -and $mainWindow -ne 0) {
+                        # Win32 type already defined in Stop-ProcessFromPidFile, so just use it
+                        try {
+                            [Win32]::PostMessage($mainWindow, 0x0010, 0, 0) | Out-Null
+                        } catch {
+                            # Type not defined yet - ignore, will be defined on first call to Stop-ProcessFromPidFile
+                        }
+                    }
+                } catch {
+                    # Window already closed or doesn't exist - ignore
+                }
+            }
+            catch {
+                # If force kill fails, try one more time
+                try {
+                    Stop-Process -Id $targetPid -Force -ErrorAction Stop
+                } catch {
+                    # Process might have already exited
+                }
+            }
+
+            try {
+                Wait-Process -Id $targetPid -Timeout 5 -ErrorAction SilentlyContinue
+            }
+            catch {
+                # ignore wait errors
+            }
+
+            # Verify this PID is no longer active
+            try {
+                $stillAlive = Get-Process -Id $targetPid -ErrorAction SilentlyContinue
+                if ($stillAlive) {
+                    $allStopped = $false
+                }
             } catch {
-                # Process might have already exited
+                # Process no longer present (expected)
             }
         }
 
-        try {
-            Wait-Process -Id $targetPid -Timeout 5 -ErrorAction SilentlyContinue
-        } catch {}
+        Start-Sleep -Milliseconds 300
+        if (Test-PortInUse -Port $Port) {
+            Write-Warning "$($Name): Port $Port remains in use after stop attempt"
+            return $false
+        }
 
-        Write-Success "$Name stopped (port $Port)"
+        if ($allStopped) {
+            Write-Success "$Name stopped (port $Port)"
+        } else {
+            Write-Warning "${Name}: some listener processes required fallback handling, but port was released"
+        }
         return $true
     } catch {
         Write-Warning "$($Name): Failed to stop process on port $Port - $_"
@@ -759,9 +860,15 @@ function Start-Backend {
 
     # Check port
     if (Test-PortInUse -Port $BACKEND_PORT) {
-        Write-Error-Message "Port $BACKEND_PORT is already in use"
-        Write-Info "Stop the process using the port or change BACKEND_PORT in this script"
-        return 1
+        Write-Warning "Port $BACKEND_PORT is in use. Attempting automatic cleanup..."
+        $recovered = Stop-ProcessByPort -Port $BACKEND_PORT -Name "Backend"
+        Start-Sleep -Milliseconds 500
+        if ((-not $recovered) -or (Test-PortInUse -Port $BACKEND_PORT)) {
+            Write-Error-Message "Port $BACKEND_PORT is already in use"
+            Write-Info "Run .\NATIVE.ps1 -Stop and retry, or free the port manually"
+            return 1
+        }
+        Write-Success "Recovered port $BACKEND_PORT"
     }
 
     # Check venv
@@ -847,9 +954,15 @@ function Start-Frontend {
 
     # Check port
     if (Test-PortInUse -Port $FRONTEND_PORT) {
-        Write-Error-Message "Port $FRONTEND_PORT is already in use"
-        Write-Info "Stop the process using the port or change FRONTEND_PORT in this script"
-        return 1
+        Write-Warning "Port $FRONTEND_PORT is in use. Attempting automatic cleanup..."
+        $recovered = Stop-ProcessByPort -Port $FRONTEND_PORT -Name "Frontend"
+        Start-Sleep -Milliseconds 500
+        if ((-not $recovered) -or (Test-PortInUse -Port $FRONTEND_PORT)) {
+            Write-Error-Message "Port $FRONTEND_PORT is already in use"
+            Write-Info "Run .\NATIVE.ps1 -Stop and retry, or free the port manually"
+            return 1
+        }
+        Write-Success "Recovered port $FRONTEND_PORT"
     }
 
     # Check node_modules
@@ -1059,7 +1172,12 @@ function Show-Status {
         Write-Host "  API:  http://localhost:$BACKEND_PORT" -ForegroundColor Cyan
         Write-Host "  Docs: http://localhost:$BACKEND_PORT/docs" -ForegroundColor Cyan
     } else {
-        Write-Host "Not running ❌" -ForegroundColor Red
+        if (Test-PortInUse -Port $BACKEND_PORT) {
+            Write-Host "Port occupied ⚠️  " -ForegroundColor Yellow -NoNewline
+            Write-Host "(owner unresolved)" -ForegroundColor Gray
+        } else {
+            Write-Host "Not running ❌" -ForegroundColor Red
+        }
     }
 
     # Frontend status
@@ -1076,7 +1194,12 @@ function Show-Status {
         Write-Host "(PID $($frontendProcess.Id))" -ForegroundColor Gray
         Write-Host "  Web: http://localhost:$FRONTEND_PORT" -ForegroundColor Cyan
     } else {
-        Write-Host "Not running ❌" -ForegroundColor Red
+        if (Test-PortInUse -Port $FRONTEND_PORT) {
+            Write-Host "Port occupied ⚠️  " -ForegroundColor Yellow -NoNewline
+            Write-Host "(owner unresolved)" -ForegroundColor Gray
+        } else {
+            Write-Host "Not running ❌" -ForegroundColor Red
+        }
     }
 
     Write-Host ""

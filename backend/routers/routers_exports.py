@@ -5,8 +5,34 @@ import re
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
+
+try:
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+    from reportlab.lib.units import inch
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+    from reportlab.platypus import Flowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+    REPORTLAB_AVAILABLE = True
+    REPORTLAB_IMPORT_ERROR = None
+except Exception as exc:  # pragma: no cover - optional/runtime dependency
+    REPORTLAB_AVAILABLE = False
+    REPORTLAB_IMPORT_ERROR = exc
+    colors = None  # type: ignore[assignment]
+    letter = None  # type: ignore[assignment]
+    ParagraphStyle = None  # type: ignore[assignment]
+    getSampleStyleSheet = None  # type: ignore[assignment]
+    inch = None  # type: ignore[assignment]
+    pdfmetrics = None  # type: ignore[assignment]
+    TTFont = None  # type: ignore[assignment]
+    Flowable = Any  # type: ignore[assignment]
+    Paragraph = None  # type: ignore[assignment]
+    SimpleDocTemplate = None  # type: ignore[assignment]
+    Spacer = None  # type: ignore[assignment]
+    Table = None  # type: ignore[assignment]
+    TableStyle = None  # type: ignore[assignment]
 
 # Simple i18n dict for EN/EL (expand as needed)
 TRANSLATIONS = {
@@ -484,11 +510,6 @@ from fastapi.responses import StreamingResponse
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.worksheet import Worksheet
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.lib.units import inch
-from reportlab.platypus import Flowable, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 from sqlalchemy.orm import Session
 
 HEADER_FILL = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
@@ -555,6 +576,12 @@ def _csv_response(headers: list[str], rows: list[list[Any]], filename: str) -> S
 
 
 def _pdf_table_response(title: str, headers: list[str], rows: list[list[Any]], filename: str) -> StreamingResponse:
+    if not REPORTLAB_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail=f"PDF export is temporarily unavailable: {REPORTLAB_IMPORT_ERROR}",
+        )
+
     font_path = os.path.join(os.path.dirname(__file__), "../fonts/DejaVuSans.ttf")
     pdfmetrics.registerFont(TTFont("DejaVuSans", font_path))
     buffer = BytesIO()
@@ -654,11 +681,24 @@ def _build_wrapped_table(
     align: str = "CENTER",
     header_font_size: float = 9.5,
     cell_font_size: float = 9,
-    header_bg: Any = colors.HexColor("#4F46E5"),
-    body_bg: Any = colors.beige,
-    grid_color: Any = colors.grey,
+    header_bg: Any = None,
+    body_bg: Any = None,
+    grid_color: Any = None,
     extra_styles: list[tuple[Any, ...]] | None = None,
 ) -> Table:
+    if not REPORTLAB_AVAILABLE:
+        raise HTTPException(
+            status_code=503,
+            detail=f"PDF export is temporarily unavailable: {REPORTLAB_IMPORT_ERROR}",
+        )
+
+    if header_bg is None:
+        header_bg = colors.HexColor("#4F46E5")
+    if body_bg is None:
+        body_bg = colors.beige
+    if grid_color is None:
+        grid_color = colors.grey
+
     styles = getSampleStyleSheet()
     header_style = ParagraphStyle(
         "TableHeader",
@@ -2995,6 +3035,15 @@ async def export_highlights_pdf(request: Request, db: Session = Depends(get_db))
 async def export_student_report_pdf(student_id: int, request: Request, db: Session = Depends(get_db)):
     """Generate comprehensive student report PDF with grades, attendance, and analytics"""
     try:
+        if not REPORTLAB_AVAILABLE:
+            raise http_error(
+                503,
+                ErrorCode.EXPORT_FAILED,
+                "PDF export is temporarily unavailable",
+                request,
+                context={"dependency_error": str(REPORTLAB_IMPORT_ERROR)},
+            )
+
         Student, Grade, Attendance, Course, DailyPerformance = import_names(
             "models", "Student", "Grade", "Attendance", "Course", "DailyPerformance"
         )
@@ -3227,6 +3276,15 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
 async def export_course_analytics_pdf(course_id: int, request: Request, db: Session = Depends(get_db)):
     """Export course analytics report to PDF"""
     try:
+        if not REPORTLAB_AVAILABLE:
+            raise http_error(
+                503,
+                ErrorCode.EXPORT_FAILED,
+                "PDF export is temporarily unavailable",
+                request,
+                context={"dependency_error": str(REPORTLAB_IMPORT_ERROR)},
+            )
+
         Course, Grade, CourseEnrollment = import_names("models", "Course", "Grade", "CourseEnrollment")
         lang = get_lang(request)
         font_path = os.path.join(os.path.dirname(__file__), "../fonts/DejaVuSans.ttf")
