@@ -880,9 +880,54 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         logger.info("Restore request received", extra=safe_log_context(backup_filename=backup_filename))
         if not backup_path.exists():
             raise http_error(404, ErrorCode.CONTROL_BACKUP_NOT_FOUND, "Backup file not found", request)
-        with backup_path.open("rb") as check_file:
+
+        # Handle encrypted backups (.enc files)
+        decrypted_temp_path = None
+        actual_backup_path = backup_path
+
+        if backup_filename.endswith(".enc"):
+            logger.info("Encrypted backup detected - decrypting before restore", extra={"backup_filename": backup_filename})
+            try:
+                backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
+
+                # Decrypt to temporary file in backup directory
+                backup_name = backup_filename.replace(".enc", "")
+                decrypted_temp_path = backup_dir / f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}_decrypted_backup.db"
+
+                restore_info = backup_service.restore_encrypted_backup(
+                    backup_name=backup_name,  # Pass without .enc (service adds it)
+                    output_path=decrypted_temp_path,
+                    allowed_base_dir=backup_dir
+                )
+
+                actual_backup_path = decrypted_temp_path
+                logger.info("Decryption successful", extra={"decrypted_path": str(decrypted_temp_path), "size": restore_info["restored_size"]})
+
+            except Exception as e:
+                logger.error(f"Failed to decrypt backup: {e}", exc_info=True)
+                if decrypted_temp_path and decrypted_temp_path.exists():
+                    try:
+                        decrypted_temp_path.unlink()
+                    except Exception:
+                        pass
+                raise http_error(
+                    500,
+                    ErrorCode.CONTROL_RESTORE_FAILED,
+                    f"Failed to decrypt backup: {str(e)}",
+                    request,
+                    context={"backup_filename": backup_filename}
+                )
+
+        # Verify it's a valid SQLite database
+        with actual_backup_path.open("rb") as check_file:
             header = check_file.read(16)
         if not header.startswith(b"SQLite format 3"):
+            # Clean up temp file if we created one
+            if decrypted_temp_path and decrypted_temp_path.exists():
+                try:
+                    decrypted_temp_path.unlink()
+                except Exception:
+                    pass
             raise http_error(
                 400,
                 ErrorCode.CONTROL_INVALID_FILE_TYPE,
@@ -895,18 +940,27 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         if db_url.startswith("postgresql"):
             logger.info(
                 "PostgreSQL deployment detected - starting automatic SQLite migration",
-                extra={"backup_path": str(backup_path)},
+                extra={"backup_path": str(actual_backup_path)},
             )
             migration_rc = migrate_sqlite_to_postgres(
                 [
                     "--sqlite-path",
-                    str(backup_path),
+                    str(actual_backup_path),
                     "--postgres-url",
                     settings.DATABASE_URL,
                     "--batch-size",
                     "1000",
                 ]
             )
+
+            # Clean up decrypted temp file if we created one
+            if decrypted_temp_path and decrypted_temp_path.exists():
+                try:
+                    decrypted_temp_path.unlink()
+                    logger.info("Cleaned up decrypted temp file", extra={"temp_path": str(decrypted_temp_path)})
+                except Exception as e:
+                    logger.warning(f"Failed to clean up temp file: {e}")
+
             if migration_rc != 0:
                 raise http_error(
                     500,
@@ -920,7 +974,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                 success=True,
                 message="SQLite backup restored and migrated to PostgreSQL successfully. Restart may be required.",
                 details={
-                    "restored_from": str(backup_path),
+                    "restored_from": str(actual_backup_path),
                     "database_url": settings.DATABASE_URL,
                     "migration_mode": "sqlite_to_postgresql",
                 },
@@ -954,12 +1008,12 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         shm_path.unlink(missing_ok=True)
         logger.info("WAL/SHM files removed")
         try:
-            logger.info("Attempting restore with copyfile", extra={"source": str(backup_path), "dest": str(db_path)})
-            _sh.copyfile(backup_path, db_path)
+            logger.info("Attempting restore with copyfile", extra={"source": str(actual_backup_path), "dest": str(db_path)})
+            _sh.copyfile(actual_backup_path, db_path)
             logger.info("Restore completed with copyfile")
         except (PermissionError, OSError) as e:
             logger.warning("copyfile failed, trying copy", extra={"error": str(e)})
-            _sh.copy(backup_path, db_path)
+            _sh.copy(actual_backup_path, db_path)
             logger.info("Restore completed with copy")
         # Don't attempt chmod - may fail on Docker volumes with root-owned files
         try:
@@ -988,19 +1042,63 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         except Exception as e:
             logger.warning(f"Failed to ensure admin account after restore: {e}", exc_info=True)
 
+        # CRITICAL: Reinitialize the application engine so it can connect to the restored database
+        # Without this, the disposed engine leaves the app unable to serve requests
+        try:
+            from backend import db as db_module
+            from backend import models
+
+            # Close the temporary restore_engine to avoid resource leak
+            try:
+                restore_engine.dispose()
+            except Exception:
+                pass
+
+            # Reinitialize db_module.engine using models.init_db() which properly configures
+            # SQLite with NullPool, WAL mode, and other critical settings
+            db_module.engine = models.init_db(settings.DATABASE_URL)
+            db_module.SessionLocal.configure(bind=db_module.engine)
+            logger.info("Database engine reinitialized for restored database")
+        except Exception as e:
+            logger.error(f"Failed to reinitialize database engine after restore: {e}", exc_info=True)
+            raise http_error(500, ErrorCode.CONTROL_RESTORE_FAILED, "Failed to reinitialize database engine after restore", request, context={"error": str(e)}) from e
+
+        # Clean up decrypted temp file if we created one
+        if decrypted_temp_path and decrypted_temp_path.exists():
+            try:
+                decrypted_temp_path.unlink()
+                logger.info("Cleaned up decrypted temp file", extra={"temp_path": str(decrypted_temp_path)})
+            except Exception as e:
+                logger.warning(f"Failed to clean up temp file: {e}")
+
         logger.info("Restore completed successfully")
         return OperationResult(
             success=True,
             message="Database restored successfully. Restart may be required.",
             details={
-                "restored_from": str(backup_path),
+                "restored_from": backup_filename,  # Return original filename, not temp path
                 "database_path": str(db_path),
                 "safety_backup": str(safety_backup) if safety_backup else None,
+                "was_encrypted": backup_filename.endswith(".enc"),
             },
         )
     except HTTPException:
+        # Clean up decrypted temp file if we created one
+        if 'decrypted_temp_path' in locals() and decrypted_temp_path and decrypted_temp_path.exists():
+            try:
+                decrypted_temp_path.unlink()
+                logger.info("Cleaned up decrypted temp file after HTTPException")
+            except Exception:
+                pass
         raise
     except Exception as exc:
+        # Clean up decrypted temp file if we created one
+        if 'decrypted_temp_path' in locals() and decrypted_temp_path and decrypted_temp_path.exists():
+            try:
+                decrypted_temp_path.unlink()
+                logger.info("Cleaned up decrypted temp file after exception")
+            except Exception:
+                pass
         logger.error("Restore failed", extra={"error": str(exc)}, exc_info=True)
         raise http_error(
             500, ErrorCode.CONTROL_RESTORE_FAILED, "Database restore failed", request, context={"error": str(exc)}
