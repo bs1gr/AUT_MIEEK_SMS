@@ -497,9 +497,24 @@ Copy this for each check you perform:
 - Actions Taken: Logged post-automation follow-up checkpoint evidence and continued monitoring cadence.
 - Time Invested: ~4 minutes
 
+### Entry Date: February 28, 2026 (Monitoring Phase Restart - Fresh Start)
+- Version: 1.18.4
+- Test Status: Passing (production restart checkpoint)
+- Tests Run: `.\DOCKER.ps1 -Start` (full restart from stopped state), `.\DOCKER.ps1 -Status` post-restart verification, container health check, health endpoint probe
+- Tests Passed: Yes (container started successfully, Status: `Up 20 seconds (healthy)`, Ports: `0.0.0.0:8080->8000/tcp`, Health: `Healthy OK`, PostgreSQL mode confirmed, SQLite→PostgreSQL migration executed and completed successfully)
+- Notes: Restarted production environment after 18-hour idle period. Container came up healthy on first attempt with no errors. SQLite migration marker recorded successfully. Application accessible at http://localhost:8080 with full health status.
+- Issues Found: None
+- Actions Taken: Restarted production, verified health status, recorded checkpoint. Resumed monitoring phase continuation.
+- Time Invested: ~8 minutes
+
 ### Owner Decision (Feb 26, 2026)
 - Installer manual retest scope remains **deferred** in this maintenance window.
 - Execution focus remains on production stability monitoring and operational hardening.
+
+### Continuation (Feb 28, 2026)
+- Owner directed: **Continue current monitoring phase**
+- Status: ✅ Production restarted and verified healthy
+- Next checkpoint: As scheduled (automated via GitHub Actions hourly cadence + manual checkpoints as needed)
 
 ---
 
