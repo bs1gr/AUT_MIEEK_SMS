@@ -4,6 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { I18nextProvider } from 'react-i18next';
 import StudentCard from './StudentCard';
 import { LanguageProvider } from '@/LanguageContext';
+import { DateTimeSettingsProvider } from '@/contexts/DateTimeSettingsContext';
 import testI18n from '@/test-utils/i18n-test-wrapper';
 import type { Student, Course } from '@/types';
 import type { StudentStats } from './studentTypes';
@@ -103,7 +104,9 @@ const renderStudentCard = (props = {}) => {
   return render(
     <I18nextProvider i18n={testI18n}>
       <LanguageProvider>
-        <StudentCard {...defaultProps} {...props} />
+        <DateTimeSettingsProvider>
+          <StudentCard {...defaultProps} {...props} />
+        </DateTimeSettingsProvider>
       </LanguageProvider>
     </I18nextProvider>
   );
@@ -324,9 +327,13 @@ describe('StudentCard', () => {
       // Change an unrelated prop that is not used in memoization comparator
       const newOnEdit = vi.fn();
       rerender(
-        <LanguageProvider>
-          <StudentCard {...defaultProps} onEdit={newOnEdit} />
-        </LanguageProvider>
+        <I18nextProvider i18n={testI18n}>
+          <LanguageProvider>
+            <DateTimeSettingsProvider>
+              <StudentCard {...defaultProps} onEdit={newOnEdit} />
+            </DateTimeSettingsProvider>
+          </LanguageProvider>
+        </I18nextProvider>
       );
 
       const secondRender = screen.getByText('John Doe');
