@@ -1,10 +1,10 @@
 # Database Restore Verification Guide
 
-**Date**: February 27, 2026  
-**Status**: Code fixed and committed ✅  
+**Date**: February 27, 2026
+**Status**: Code fixed and committed ✅
 **Commits Applied**:
 - `4ad925f20` - fix(restore): pass backup_name without .enc to service (fixes encrypted backup decryption)
-- `d9bc914fb` - fix(students): format historical record dates to Greek format (DD/MM/YYYY)  
+- `d9bc914fb` - fix(students): format historical record dates to Greek format (DD/MM/YYYY)
 - `7fbdf6a5f` - refactor(native): harden native mode stability and error handling
 
 ---
@@ -87,7 +87,7 @@ While on Students page:
 2. View **Historical Records** section
 3. Check **Past Grades** and **Past Attendance** dates
 
-**Expected Format**: DD/MM/YYYY (Greek format)  
+**Expected Format**: DD/MM/YYYY (Greek format)
 **Example**: `27/02/2026` instead of `2026-02-27`
 
 ✅ All dates should now display in Greek format consistently
@@ -168,6 +168,6 @@ If issues remain:
 
 ---
 
-**Status**: Ready for manual testing ✅  
-**System**: Native mode prepared and configured  
+**Status**: Ready for manual testing ✅
+**System**: Native mode prepared and configured
 **Code**: All fixes committed and pushed to origin/main

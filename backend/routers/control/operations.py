@@ -886,22 +886,29 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         actual_backup_path = backup_path
 
         if backup_filename.endswith(".enc"):
-            logger.info("Encrypted backup detected - decrypting before restore", extra={"backup_filename": backup_filename})
+            logger.info(
+                "Encrypted backup detected - decrypting before restore", extra={"backup_filename": backup_filename}
+            )
             try:
                 backup_service = BackupServiceEncrypted(backup_dir=backup_dir, enable_encryption=True)
 
                 # Decrypt to temporary file in backup directory
                 backup_name = backup_filename.replace(".enc", "")
-                decrypted_temp_path = backup_dir / f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}_decrypted_backup.db"
+                decrypted_temp_path = (
+                    backup_dir / f"uploaded_{datetime.now().strftime('%Y%m%d_%H%M%S')}_decrypted_backup.db"
+                )
 
                 restore_info = backup_service.restore_encrypted_backup(
                     backup_name=backup_name,  # Pass without .enc (service adds it)
                     output_path=decrypted_temp_path,
-                    allowed_base_dir=backup_dir
+                    allowed_base_dir=backup_dir,
                 )
 
                 actual_backup_path = decrypted_temp_path
-                logger.info("Decryption successful", extra={"decrypted_path": str(decrypted_temp_path), "size": restore_info["restored_size"]})
+                logger.info(
+                    "Decryption successful",
+                    extra={"decrypted_path": str(decrypted_temp_path), "size": restore_info["restored_size"]},
+                )
 
             except Exception as e:
                 logger.error(f"Failed to decrypt backup: {e}", exc_info=True)
@@ -915,7 +922,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                     ErrorCode.CONTROL_RESTORE_FAILED,
                     f"Failed to decrypt backup: {str(e)}",
                     request,
-                    context={"backup_filename": backup_filename}
+                    context={"backup_filename": backup_filename},
                 )
 
         # Verify it's a valid SQLite database
@@ -1008,7 +1015,9 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         shm_path.unlink(missing_ok=True)
         logger.info("WAL/SHM files removed")
         try:
-            logger.info("Attempting restore with copyfile", extra={"source": str(actual_backup_path), "dest": str(db_path)})
+            logger.info(
+                "Attempting restore with copyfile", extra={"source": str(actual_backup_path), "dest": str(db_path)}
+            )
             _sh.copyfile(actual_backup_path, db_path)
             logger.info("Restore completed with copyfile")
         except (PermissionError, OSError) as e:
@@ -1061,7 +1070,13 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
             logger.info("Database engine reinitialized for restored database")
         except Exception as e:
             logger.error(f"Failed to reinitialize database engine after restore: {e}", exc_info=True)
-            raise http_error(500, ErrorCode.CONTROL_RESTORE_FAILED, "Failed to reinitialize database engine after restore", request, context={"error": str(e)}) from e
+            raise http_error(
+                500,
+                ErrorCode.CONTROL_RESTORE_FAILED,
+                "Failed to reinitialize database engine after restore",
+                request,
+                context={"error": str(e)},
+            ) from e
 
         # Clean up decrypted temp file if we created one
         if decrypted_temp_path and decrypted_temp_path.exists():
@@ -1084,7 +1099,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         )
     except HTTPException:
         # Clean up decrypted temp file if we created one
-        if 'decrypted_temp_path' in locals() and decrypted_temp_path and decrypted_temp_path.exists():
+        if "decrypted_temp_path" in locals() and decrypted_temp_path and decrypted_temp_path.exists():
             try:
                 decrypted_temp_path.unlink()
                 logger.info("Cleaned up decrypted temp file after HTTPException")
@@ -1093,7 +1108,7 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
         raise
     except Exception as exc:
         # Clean up decrypted temp file if we created one
-        if 'decrypted_temp_path' in locals() and decrypted_temp_path and decrypted_temp_path.exists():
+        if "decrypted_temp_path" in locals() and decrypted_temp_path and decrypted_temp_path.exists():
             try:
                 decrypted_temp_path.unlink()
                 logger.info("Cleaned up decrypted temp file after exception")

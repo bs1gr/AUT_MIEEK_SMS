@@ -25,6 +25,7 @@ from typing import Any, Dict, Iterable, Tuple
 
 try:
     import psutil
+
     _PSUTIL_IMPORT_ERROR: Exception | None = None
 except Exception as e:
     psutil = None
