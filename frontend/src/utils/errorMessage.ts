@@ -13,10 +13,9 @@ export function getErrorMessage(source: unknown, fallback: string): string {
     const obj = value as {
       response?: {
         data?: {
-          error?: { message?: unknown; detail?: unknown; code?: unknown };
+          error?: { message?: unknown; detail?: unknown; code?: unknown } | unknown;
           detail?: unknown;
           message?: unknown;
-          error?: unknown;
         };
       };
       message?: unknown;
