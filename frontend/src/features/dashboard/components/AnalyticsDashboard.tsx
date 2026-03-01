@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
 import { useDashboardData } from '@/api/hooks/useAnalytics';
-import { useAnalyticsExport } from '../hooks/useAnalyticsExport';
 import apiClient, {
   extractAPIResponseData,
   enrollmentsAPI,
@@ -25,7 +24,7 @@ import {
   type PieChartData,
 } from './AnalyticsCharts';
 import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
-import { Users, BookOpen, TrendingUp, Calendar, Download } from 'lucide-react';
+import { Users, BookOpen, TrendingUp, Calendar } from 'lucide-react';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 
 /**
@@ -62,7 +61,6 @@ export const AnalyticsDashboard: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { formatDate } = useDateTimeFormatter();
-  const { exportPDF, exportExcel, isExporting } = useAnalyticsExport();
   const MAX_ANALYTICS_PAGE_SIZE = 1000;
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -1085,22 +1083,6 @@ export const AnalyticsDashboard: React.FC = () => {
       )}
 
       <div className="flex flex-wrap gap-3">
-        <button
-          onClick={() => exportPDF()}
-          disabled={isExporting}
-          className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          <Download size={18} />
-          {isExporting ? t('analytics.exporting') || 'Exporting...' : 'PDF'}
-        </button>
-        <button
-          onClick={() => exportExcel()}
-          disabled={isExporting}
-          className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          <Download size={18} />
-          {isExporting ? t('analytics.exporting') || 'Exporting...' : 'Excel'}
-        </button>
         <button
           onClick={() => refetch()}
           className="rounded-xl bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"

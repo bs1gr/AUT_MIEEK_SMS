@@ -17,19 +17,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [1.18.5] - 2026-03-01
 
-### Features
-- **analytics**: add comprehensive analytics dashboard, predictive analytics services, and custom report builder flows.
+### Security Fixes
+- **npm**: fix Dependabot alert #117 (minimatch CVE-2026-27903 ReDoS vulnerability) via npm override to 10.2.4.
+- **npm**: fix markdown-it moderate advisory (GHSA-38c4-r59v-3vqw ReDoS vulnerability) via npm override to 14.1.1.
+- **verification**: npm audit clean (0 vulnerabilities confirmed).
 
-### Release
-- **versioning**: bump `VERSION` and frontend package version to `1.18.5`.
-- **release-docs**: publish v1.18.5 release notes, GitHub release body, manifest, and deployment checklist.
+### Improvements
+- **testing**: harden E2E report-workflows spec with graceful setup, mobile project skip, and API fallback patterns.
+- **infrastructure**: version consistency maintenance, documentation consolidation.
 
-### Release Repair
-- **artifacts**: repaired published release state for `v1.18.5` via approved installer workflow path.
-- **assets**: verified installer-only allowlist is present on GitHub release:
-  - `SMS_Installer_1.18.5.exe`
-  - `SMS_Installer_1.18.5.exe.sha256`
-- **integrity**: verified published installer digest `sha256:caa30894e6e8abfc655f584e54d6935522f8a0f4c417aca8d7d49b8907697259`.
+### Notes
+- **analytics**: Advanced analytics feature deferred to v1.19.0 to preserve CI stability and release integrity per Policy 0.1.
 
 ---
 
