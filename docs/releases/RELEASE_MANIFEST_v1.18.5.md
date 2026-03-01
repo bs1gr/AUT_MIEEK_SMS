@@ -52,11 +52,11 @@
 
 ### Deferred Features
 
-**Analytics Dashboard** (Scheduled for v1.19.0)
+**Analytics Dashboard** (Not in v1.18.5)
 - **Components**: 27 files (backend routers, services, frontend components, hooks, utils, translations)
 - **Reason**: CI pipeline failures (frontend linting + backend tests)
 - **Decision**: Reverted per Policy 0.1 to preserve release integrity
-- **Next Steps**: Comprehensive testing and CI verification before v1.19.0
+- **Next Steps**: Comprehensive testing and CI verification required before future release
 
 ---
 
@@ -148,10 +148,8 @@
 
 ### Planning
 
-- [ ] Create v1.19.0 milestone
-- [ ] Plan analytics feature re-integration
-- [ ] Schedule comprehensive analytics testing
-- [ ] Document lessons learned
+- [ ] Document lessons learned from v1.18.5
+- [ ] Archive v1.18.5 release artifacts
 
 ---
 
@@ -203,14 +201,7 @@ git diff --stat HEAD
 
 ### Decision Rationale
 
-This release prioritizes **security and stability** over new features per Policy 0.1 ("DO NOT COMMIT unless 100% verified first"). Analytics feature showed CI failures and was deferred to v1.19.0 for proper testing and verification.
-
-### Next Release Planning
-
-v1.19.0 will include:
-- Fully tested analytics dashboard
-- Comprehensive CI verification
-- All features from deferred v1.18.5 scope
+This release prioritizes **security and stability** over new features per Policy 0.1 ("DO NOT COMMIT unless 100% verified first"). Analytics feature showed CI failures and was deferred for proper testing and verification before any future release.
 
 ---
 

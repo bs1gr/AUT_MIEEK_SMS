@@ -27,7 +27,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **infrastructure**: version consistency maintenance, documentation consolidation.
 
 ### Notes
-- **analytics**: Advanced analytics feature deferred to v1.19.0 to preserve CI stability and release integrity per Policy 0.1.
+- **analytics**: Advanced analytics feature deferred to preserve CI stability and release integrity per Policy 0.1. Full testing required before future release.
 
 ---
 
