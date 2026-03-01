@@ -40,7 +40,7 @@
 1. Run scope-appropriate checks/tests
 2. Read real output/artifacts (not just exit code)
 3. Confirm runtime behavior for impacted flows
-4. If release metadata/assets are touched, verify asset allowlist + hash/signature consistency
+4. If release metadata/assets are touched, verify asset allowlist + hash/signature consistency (see Policy 9 for release procedures)
 5. Then commit
 
 If any verification step is incomplete, **do not commit**.
@@ -428,6 +428,136 @@ git diff                          # Review pending changes
 **Why**: Prevents context switching with incomplete work, avoids losing changes, maintains clean history.
 
 **Exception**: Intentional WIP commits allowed: `git commit -m "WIP: feature description"`
+
+---
+
+### Policy 9: Release Artifacts - Script-Based Workflow MANDATORY
+
+**🔴 CRITICAL**: Releases MUST use automated scripts, not ad-hoc commands.
+
+**❌ FORBIDDEN:**
+- Creating releases with ad-hoc commands
+- Building installers without comprehensive scripts
+- Uploading artifacts without verification testing
+- Creating git tags BEFORE building artifacts
+- Manual version updates without script verification
+- Skipping installer verification tests
+
+**✅ REQUIRED - Standard Release Workflow:**
+
+```powershell
+# PRIMARY METHOD: Use RELEASE_READY.ps1 for automated releases
+.\RELEASE_READY.ps1 -ReleaseVersion "X.X.X" -TagRelease
+
+# What this does (8 phases):
+# 1. Pre-release validation (git status, version, tests)
+# 2. Update version references (all files)
+# 3. Build installer (with code signing)
+# 4. Validate changes (COMMIT_READY)
+# 5. Organize documentation (workspace cleanup)
+# 6. Generate release docs (4 comprehensive files)
+# 7. Commit and push (with proper messages)
+# 8. Create git tag (triggers GitHub Actions)
+```
+
+**Correct Phase Order** (MUST follow this sequence):
+
+```
+Phase 1: CODE PREPARATION
+├─ git status (must be clean)
+├─ .\scripts\VERIFY_VERSION.ps1 -CheckOnly
+├─ .\COMMIT_READY.ps1 -Quick
+├─ .\RUN_TESTS_BATCH.ps1 (all tests passing)
+├─ .\NATIVE.ps1 -Start (manual testing)
+├─ .\DOCKER.ps1 -Start (manual testing)
+└─ .\WORKSPACE_CLEANUP.ps1 -Mode standard
+
+Phase 2: ARTIFACT BUILD & VERIFICATION
+├─ .\INSTALLER_BUILDER.ps1 -Action build -Version "X.X.X"
+├─ Get-AuthenticodeSignature (verify signature is Valid)
+├─ Get-FileHash -Algorithm SHA256 (generate checksum)
+├─ .\INSTALLER_BUILDER.ps1 -Action test (smoke test)
+├─ Test fresh installation (VM/clean machine - MANUAL)
+├─ Test upgrade scenario (previous → current - MANUAL)
+├─ Test repair scenario (/REPAIR flag - MANUAL)
+└─ Complete deployment checklist (95+ checkpoints)
+
+Phase 3: GITHUB RELEASE
+├─ .\GENERATE_RELEASE_DOCS.ps1 -Version "X.X.X"
+├─ git commit + push (release changes)
+├─ git tag vX.X.X + push (triggers GitHub Actions)
+└─ Wait for GitHub Actions to complete
+
+Phase 4: DEPLOYMENT (AFTER verification passes)
+├─ Verify GitHub Actions workflows passed
+├─ gh release upload (installer + SHA256)
+└─ .\DOCKER.ps1 -Update (production deployment)
+```
+
+**Installer Verification Requirements** (Phase 2 - MANDATORY):
+
+```powershell
+# After building installer, BEFORE uploading:
+# 1. Verify digital signature
+$sig = Get-AuthenticodeSignature "SMS_Installer_X.X.X.exe"
+if ($sig.Status -ne 'Valid') { Write-Error "Invalid signature!" }
+
+# 2. Verify checksum
+Get-FileHash "SMS_Installer_X.X.X.exe" -Algorithm SHA256 > "SMS_Installer_X.X.X.exe.sha256"
+
+# 3. Automated smoke test
+.\INSTALLER_BUILDER.ps1 -Action test -Version "X.X.X"
+
+# 4. Manual testing scenarios (REQUIRED before upload)
+#    - Fresh installation on clean VM
+#    - Upgrade from previous version
+#    - Repair installation scenario
+#    - Complete deployment checklist (95+ verification points)
+
+# 5. ONLY THEN upload to GitHub release
+gh release upload vX.X.X SMS_Installer_X.X.X.exe
+gh release upload vX.X.X SMS_Installer_X.X.X.exe.sha256
+```
+
+**Why This Exists:**
+- Comprehensive scripts exist: RELEASE_READY.ps1, INSTALLER_BUILDER.ps1, GENERATE_RELEASE_DOCS.ps1
+- Scripts ensure correct phase order and prevent skipped steps
+- Policy 0 applies to artifacts as much as code
+- **"Built" ≠ "Verified" ≠ "Deployed"** (three separate phases with mandatory gates)
+- v1.18.5 incident: Agent uploaded unverified installer, violating Policy 0.1
+
+**Enforcement:**
+- Releases without script-based workflow are considered incomplete
+- Uploading artifacts without verification violates Policy 0.1
+- Must complete all verification gates before upload
+- See: `docs/RELEASE_PROCEDURE_CORRECT.md` for detailed procedure
+- See: `docs/RELEASE_PROCEDURE_MANDATORY.md` for three-phase workflow
+
+**Available Release Scripts:**
+
+| Script | Purpose | When to Use |
+|--------|---------|-------------|
+| `RELEASE_READY.ps1` | Complete automated release | **Primary method for all releases** |
+| `INSTALLER_BUILDER.ps1` | Installer build/verify/test | Called by RELEASE_READY or standalone |
+| `GENERATE_RELEASE_DOCS.ps1` | Release documentation | Generates 4 comprehensive doc files |
+| `RELEASE_HELPER.ps1` | Manual helpers | Fallback for automation failures |
+| `RELEASE_WITH_DOCS.ps1` | Combined release+docs | Alternative to RELEASE_READY |
+
+**Quick Reference:**
+
+```powershell
+# Check available release scripts
+Get-ChildItem RELEASE*.ps1 | Select-Object Name, Length
+
+# Standard release (RECOMMENDED)
+.\RELEASE_READY.ps1 -ReleaseVersion "1.18.6" -TagRelease
+
+# Verify installer after build (before upload)
+.\INSTALLER_BUILDER.ps1 -Action test -Version "1.18.6"
+
+# Generate release docs only
+.\GENERATE_RELEASE_DOCS.ps1 -Version "1.18.6"
+```
 
 ---
 
@@ -1105,6 +1235,12 @@ npm --prefix frontend run test   # Frontend tests (auto-flag set)
 .\COMMIT_READY.ps1 -Quick        # Pre-commit (2-3 min)
 .\COMMIT_READY.ps1 -Standard     # Standard check (5-8 min)
 .\COMMIT_READY.ps1 -Full         # Full validation (15-20 min)
+
+# Release (Policy 9 - Script-Based MANDATORY)
+.\RELEASE_READY.ps1 -ReleaseVersion "X.X.X" -TagRelease  # COMPLETE automated release
+.\INSTALLER_BUILDER.ps1 -Action build -Version "X.X.X"   # Build installer
+.\INSTALLER_BUILDER.ps1 -Action test -Version "X.X.X"    # Verify installer
+.\GENERATE_RELEASE_DOCS.ps1 -Version "X.X.X"             # Generate release docs
 
 # Database
 cd backend
