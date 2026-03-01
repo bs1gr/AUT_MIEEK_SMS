@@ -43,6 +43,9 @@ export default {
   averageLabel: 'Average:',
   refresh: 'Refresh',
   back: 'Back',
+  exportPDF: 'Export as PDF',
+  exportExcel: 'Export as Excel',
+  exporting: 'Exporting...',
   attendance_good: '✓ Good Attendance',
   attendance_warning: '⚠ Attendance Warning',
   attendance_title: 'Attendance',
@@ -50,4 +53,109 @@ export default {
   total_classes: 'Total Classes',
   courses: 'Courses',
   by_course: 'By Course',
+  predictive: {
+    risk: {
+      assessment: 'Risk Assessment',
+      grades: 'Grade Average',
+      attendance: 'Attendance',
+      trend: 'Trend',
+      recommendations: 'Recommendations',
+      low: 'Low Risk',
+      medium: 'Medium Risk',
+      high: 'High Risk',
+    },
+    grades: {
+      forecast: 'Grade Forecast',
+    },
+    final: {
+      grade: 'Final Grade Projection',
+    },
+    scenario: {
+      pessimistic: 'Pessimistic',
+      realistic: 'Realistic',
+      optimistic: 'Optimistic',
+    },
+    confidence: 'Confidence',
+    trend: {
+      improving: 'Improving',
+      declining: 'Declining',
+      stable: 'Stable',
+    },
+    attendance: {
+      patterns: 'Attendance Patterns',
+    },
+    info: {
+      title: 'About Predictions',
+      description: 'Predictions are based on historical data and trends. Individual student circumstances may vary. Always verify with actual assessments and records.',
+    },
+    error: 'Predictive Analysis Error',
+  },
+  builder: {
+    title: 'Custom Report Builder',
+    step: {
+      template: 'Report Template',
+      template: {
+        desc: 'Select a template or start custom',
+      },
+      dataseries: 'Data Series',
+      dataseries: {
+        desc: 'Choose metrics to include',
+      },
+      charttype: 'Chart Type',
+      charttype: {
+        desc: 'Select visualization type',
+      },
+      filters: 'Filters',
+      filters: {
+        desc: 'Configure data filters',
+      },
+      preview: 'Preview',
+      preview: {
+        desc: 'Review your report',
+      },
+    },
+    template: {
+      description: 'Choose a template to get started quickly or customize from scratch',
+      custom: 'Start from scratch with full customization',
+      class_summary: 'Class Summary',
+      grade_analysis: 'Grade Analysis',
+      performance_trend: 'Performance Trends',
+      attendance_report: 'Attendance Report',
+    },
+    dataseries: {
+      description: 'Choose which metrics to include in your report',
+      selected: 'Selected series',
+    },
+    charttype: {
+      description: 'Choose the visualization that best represents your data',
+      info: 'You can change this type later in the preview',
+    },
+    filters: {
+      description: 'Choose which filters to apply to refine your data',
+      daterange: 'Date Range',
+      additional: 'Additional Filters',
+      includeinreport: 'Include in report filtering',
+      active: 'Active Filters',
+      info: 'Filters narrow the data included in your report. You can modify filter values when generating the report.',
+    },
+    preview: {
+      description: 'Review your report configuration and give it a name',
+      configuration: 'Configuration Summary',
+      template: 'Template',
+      charttype: 'Chart Type',
+      dataseries: 'Data Series',
+      filters: 'Filters',
+      incomplete: 'Incomplete Configuration',
+      atleastone: 'At least one data series',
+      info: 'After saving, you can generate the report with specific filter values and download it as PDF or Excel.',
+    },
+    reportName: 'Report Name',
+    reportName: {
+      placeholder: 'e.g., Q1 Performance Analysis',
+      hint: 'This name will appear in your reports list',
+    },
+    error: {
+      noName: 'Please enter a report name',
+    },
+  },
 };

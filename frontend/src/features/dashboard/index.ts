@@ -13,3 +13,16 @@ export {
   type TrendData,
   type PieChartData,
 } from './components/AnalyticsCharts';
+// New Premium Features
+export { CustomReportBuilder } from './components/CustomReportBuilder';
+export { PredictiveAnalyticsPanel } from './components/PredictiveAnalyticsPanel';
+
+// Builder Steps
+export { ReportTemplate } from './components/builder-steps/ReportTemplate';
+export { DataSeriesPicker } from './components/builder-steps/DataSeriesPicker';
+export { ChartTypeSelector } from './components/builder-steps/ChartTypeSelector';
+export { FilterConfiguration } from './components/builder-steps/FilterConfiguration';
+export { ReportPreview } from './components/builder-steps/ReportPreview';
+
+// Hooks
+export { usePredictiveAnalytics } from './hooks/usePredictiveAnalytics';
