@@ -1,17 +1,17 @@
 # Documentation Index
 
-**Last Updated**: 2026-02-23
-**Project Version (documented)**: 1.18.4
-**Version**: 1.18.4
+**Last Updated**: 2026-03-01
+**Project Version (documented)**: 1.18.5
+**Version**: 1.18.5
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.4 RELEASED (CHAIN VERIFIED)**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.5 RELEASED (INSTALLER CHAIN VERIFIED)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Feb 23, 2026)**: ✅ **Production Live + v1.18.4 released and verified**
+> **Current Status (Mar 1, 2026)**: ✅ **Production Live + v1.18.5 released and verified**
 > - Maintenance & stability phase active
-> - Changelog/work plan/index updated for verified changes since `v1.18.3`
-> - v1.18.4 release documentation pack published (notes, release body, manifest, deployment checklist)
+> - Changelog/work plan/index updated for verified changes since `v1.18.4`
+> - v1.18.5 release documentation pack published (notes, release body, manifest, deployment checklist)
 > - Release workflow chain completed and verified (`release-on-tag` → `release-installer-with-sha` → `release-asset-sanitizer`)
 > - Installer-only asset allowlist and digest/hash verification confirmed on published assets
 > - See plans/UNIFIED_WORK_PLAN.md for details
@@ -505,28 +505,22 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
+- **[releases/RELEASE_NOTES_v1.18.5.md](releases/RELEASE_NOTES_v1.18.5.md)** - v1.18.5 release notes
+- **[releases/GITHUB_RELEASE_v1.18.5.md](releases/GITHUB_RELEASE_v1.18.5.md)** - publish-ready GitHub release body for v1.18.5
+- **[releases/RELEASE_MANIFEST_v1.18.5.md](releases/RELEASE_MANIFEST_v1.18.5.md)** - artifact manifest and integrity gates for v1.18.5
+- **[releases/DEPLOYMENT_CHECKLIST_v1.18.5.md](releases/DEPLOYMENT_CHECKLIST_v1.18.5.md)** - deployment and post-release verification checklist for v1.18.5
 - **[releases/RELEASE_NOTES_v1.18.4.md](releases/RELEASE_NOTES_v1.18.4.md)** - v1.18.4 release notes (prepared)
 - **[releases/GITHUB_RELEASE_v1.18.4.md](releases/GITHUB_RELEASE_v1.18.4.md)** - publish-ready GitHub release body for v1.18.4
 - **[releases/RELEASE_MANIFEST_v1.18.4.md](releases/RELEASE_MANIFEST_v1.18.4.md)** - artifact manifest and integrity gates for v1.18.4
 - **[releases/DEPLOYMENT_CHECKLIST_v1.18.4.md](releases/DEPLOYMENT_CHECKLIST_v1.18.4.md)** - deployment and post-release verification checklist for v1.18.4
-- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - $11.18.3 patch release notes (RBAC imports fallback scope fix + installer refresh)
-- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - GitHub release body for $11.18.3
-- **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - Artifact manifest and integrity checklist for $11.18.3
-- **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - Deployment and verification checklist for $11.18.3
-- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - $11.18.3 hotfix release notes (installer runtime fix)
-- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - GitHub release body for $11.18.3
-- **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - Artifact manifest and integrity gates for $11.18.3
-- **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - Deployment and verification checklist for $11.18.3
-- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - Next major release notes package (prepared Feb 15, 2026)
-- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - Publish-ready GitHub release body for $11.18.3
-- **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - Release artifact scope and validation gates
-- **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - Deployment and post-release verification checklist
-- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - $11.18.3 release notes (Feb 11, 2026)
-- **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - GitHub release body for $11.18.3
+- **Legacy v1.18.3 release bundle (consolidated references)**
+  - **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - v1.18.3 release notes
+  - **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - v1.18.3 GitHub release body
+  - **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - v1.18.3 artifact manifest
+  - **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - v1.18.3 deployment checklist
 - **[guides/MIGRATION_$11.18.3.md](guides/MIGRATION_$11.18.3.md)** - Migration guide for $11.18.3 breaking changes
 - **[releases/reports/RELEASE_REPORT_$11.18.3.md](releases/reports/RELEASE_REPORT_$11.18.3.md)** - Executive release report for $11.18.3
 - **[releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md](releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md)** - Cleanup execution report for $11.18.3
-- **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - Latest production release notes (Dec 13, 2025)
 - **[releases/RELEASE_AUDIT_$11.18.3.md](releases/RELEASE_AUDIT_$11.18.3.md)** - QA audit and verification follow-up
 - **[releases/RELEASE_PREPARATION_$11.18.3.md](releases/RELEASE_PREPARATION_$11.18.3.md)** - Pre-release checklist and dry-run outcomes
 - **[`scripts/ops/archive-releases.ps1`](../scripts/ops/archive-releases.ps1)** - CLI helper for archiving historical tags (supports `-DryRun`; fixture: `scripts/ops/samples/releases.sample.json`)

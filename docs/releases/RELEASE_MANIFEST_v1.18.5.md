@@ -11,7 +11,7 @@
 
 ### Installer Package
 - **Filename**: `SMS_Installer_1.18.5.exe`
-- **Size**: ~25-30 MB (measured during build)
+- **Size**: 26,132,464 bytes (24.92 MB)
 - **Format**: InnoSetup Windows installer
 - **Architecture**: x86/x64 hybrid (Windows 7+)
 - **Signing**: Authenticode signed with AUT MIEEK certificate
@@ -20,8 +20,8 @@
 ### Checksum File
 - **Filename**: `SMS_Installer_1.18.5.exe.sha256`
 - **Format**: Plain text, hex digest + filename
-- **Content**: `{SHA256_HASH}  SMS_Installer_1.18.5.exe`
-- **Integrity**: Verified by release-asset-sanitizer workflow
+- **Content**: `CAA30894E6E8ABFC655F584E54D6935522F8A0F4C417ACA8D7D49B8907697259  SMS_Installer_1.18.5.exe`
+- **Integrity**: Verified by release workflow + release asset sanitizer
 
 ### Release Assets Allowlist
 **Permitted Assets (installer-only policy)**
@@ -105,22 +105,22 @@
 - ✅ GitHub confirms tag receipt
 
 ### Artifact Generation Phase
-- ⏳ Build SMS_Installer_1.18.5.exe (requires InnoSetup)
-- ⏳ Create SMS_Installer_1.18.5.exe.sha256 checksum
-- ⏳ Upload artifacts to GitHub release
-- ⏳ Verify upload integrity
+- ✅ Build SMS_Installer_1.18.5.exe completed in release installer workflow
+- ✅ Create SMS_Installer_1.18.5.exe.sha256 checksum completed
+- ✅ Upload artifacts to GitHub release completed
+- ✅ Verify upload integrity completed (digest + sidecar validated)
 
 ### Release Publication Phase
 - ✅ GitHub release created for v1.18.5
-- ⏳ Release body (GITHUB_RELEASE_v1.18.5.md) added
-- ⏳ Artifacts linked to release
-- ⏳ Release marked as latest (not draft)
+- ✅ Release body (GITHUB_RELEASE_v1.18.5.md) added
+- ✅ Artifacts linked to release
+- ✅ Release marked as latest (not draft)
 
 ### Post-Release Verification Phase
-- ⏳ Verify release is publicly accessible
-- ⏳ Download installer and verify checksum
-- ⏳ Test fresh installation workflow
-- ⏳ Verify CI/CD pipeline remains green
+- ✅ Verify release is publicly accessible
+- ✅ Download checksum sidecar and verify published hash content
+- ⏳ Test fresh installation workflow (manual deployment checkpoint)
+- ✅ Verify release installer workflow completed successfully
 
 ---
 

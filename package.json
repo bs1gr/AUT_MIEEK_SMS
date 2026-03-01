@@ -2,6 +2,10 @@
   "name": "sms-monorepo",
   "private": true,
   "description": "Meta package file. Frontend dependencies live under frontend/package.json.",
+  "overrides": {
+    "minimatch": "10.2.4",
+    "markdown-it": "14.1.1"
+  },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
     "jsdom": "^27.4.0",

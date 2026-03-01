@@ -1,10 +1,10 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.5 (Code Released | Installer Pending Phase 2 Verification)
-**Last Updated**: March 1, 2026, v1.18.5 Release Procedure Correction
-**Status**: ✅ v1.18.5 Code Complete | ✅ Tests passing (2,691+) | ⏳ Installer Build & Verification Pending
+**Current Version**: 1.18.5 (Code + Installer Assets Released)
+**Last Updated**: March 1, 2026, v1.18.5 Release Asset Repair Completed
+**Status**: ✅ v1.18.5 Code Complete | ✅ Tests passing (2,691+) | ✅ Installer + SHA256 published
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Release Verification - Phase 2 Pending** (Installation artifact requires proper verification before upload)
+**Current Phase**: **Maintenance & Stability** (v1.18.5 release artifact state verified)
 **Current Branch**: `main` (HEAD: adabae67e)
 
 ---
@@ -37,6 +37,14 @@ Before uploading ANY installer to GitHub, follow Phase 2 verification gates exac
 
 **MANDATORY REFERENCE**:
 - [RELEASE_PROCEDURE_MANDATORY.md](../RELEASE_PROCEDURE_MANDATORY.md) - Three-phase procedure (read before every release)
+
+**RESOLUTION UPDATE (March 1, 2026):**
+- ✅ Re-dispatched installer publishing through the approved workflow path (`release-installer-with-sha.yml`) for tag `v1.18.5`
+- ✅ Verified release now contains installer-only allowlisted assets:
+   - `SMS_Installer_1.18.5.exe`
+   - `SMS_Installer_1.18.5.exe.sha256`
+- ✅ Verified installer digest on published release: `sha256:caa30894e6e8abfc655f584e54d6935522f8a0f4c417aca8d7d49b8907697259`
+- ✅ Release state now conforms to Policy 0.1 and Policy 9 artifact requirements
 
 ---
 

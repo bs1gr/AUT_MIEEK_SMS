@@ -15,6 +15,24 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [1.18.5] - 2026-03-01
+
+### Features
+- **analytics**: add comprehensive analytics dashboard, predictive analytics services, and custom report builder flows.
+
+### Release
+- **versioning**: bump `VERSION` and frontend package version to `1.18.5`.
+- **release-docs**: publish v1.18.5 release notes, GitHub release body, manifest, and deployment checklist.
+
+### Release Repair
+- **artifacts**: repaired published release state for `v1.18.5` via approved installer workflow path.
+- **assets**: verified installer-only allowlist is present on GitHub release:
+  - `SMS_Installer_1.18.5.exe`
+  - `SMS_Installer_1.18.5.exe.sha256`
+- **integrity**: verified published installer digest `sha256:caa30894e6e8abfc655f584e54d6935522f8a0f4c417aca8d7d49b8907697259`.
+
+---
+
 ## [1.18.4] - 2026-02-23
 
 ### Features
