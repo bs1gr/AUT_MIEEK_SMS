@@ -198,7 +198,7 @@ Installer defaults to PostgreSQL. Users will be prompted for:
 2. ✅ Release published on GitHub
 3. ⏳ Gather user feedback on 1.18.3
 4. ⏳ Monitor production deployments
-5. ⏳ Plan next feature release (1.19.0)
+5. ⏳ Plan next feature release (1.18.6)
 
 ---
 

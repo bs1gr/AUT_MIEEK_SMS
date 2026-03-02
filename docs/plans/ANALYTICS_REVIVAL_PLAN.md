@@ -1,4 +1,4 @@
-# Analytics Feature Revival Plan - v1.19.0
+# Analytics Feature Revival Plan - v1.18.6
 
 **Created**: March 1, 2026
 **Status**: 📋 PLANNING
@@ -166,7 +166,7 @@ git status
 # Should be clean (already verified)
 
 # 2. Create analytics revival branch
-git checkout -b feature/analytics-revival-v1.19.0
+git checkout -b feature/analytics-revival-v1.18.6
 
 # 3. Restore analytics files from original commit
 git checkout adabae67e -- backend/routers/routers_analytics.py
@@ -467,7 +467,7 @@ describe('AnalyticsDashboard', () => {
 ```powershell
 git add .
 git commit -m "feat(analytics): restore analytics feature with comprehensive test coverage"
-git push origin feature/analytics-revival-v1.19.0
+git push origin feature/analytics-revival-v1.18.6
 ```
 
 #### **Monitor CI pipeline** (15 min):

@@ -402,4 +402,4 @@ All installer documentation is now fully aligned with v1.18.3 and includes:
 
 **Update Completed**: February 22, 2026 by AI Agent
 **Review Status**: Self-verified, cross-referenced, comprehensive
-**Next Maintenance**: Update when v1.19.0 or major version released
+**Next Maintenance**: Update when v1.18.6 or major version released

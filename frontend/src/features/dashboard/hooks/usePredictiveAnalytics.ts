@@ -5,13 +5,10 @@
 
 import { useQuery, UseQueryResult } from '@tanstack/react-query';
 import { apiClient } from '@/api/api';
-
-interface PredictiveAnalyticsData {
-  gradePredictions: any[];
-  attendancePredictions: any[];
-  riskAssessment: any;
-  finalGradeProjection: any;
-}
+import {
+  PredictiveAnalyticsData,
+  RiskAssessment,
+} from '../types/analytics';
 
 interface PredictiveAnalyticsParams {
   studentId?: number;
@@ -56,7 +53,7 @@ export const usePredictiveAnalytics = (
 export const usePredictiveClassRiskAssessment = (
   classId: number,
   enabled = true
-): UseQueryResult<any, Error> => {
+): UseQueryResult<RiskAssessment, Error> => {
   return useQuery({
     queryKey: ['predictive-class-risk', classId],
     queryFn: async () => {
@@ -76,7 +73,7 @@ export const usePredictiveAtRiskStudents = (
   classId: number,
   riskThreshold = 60,
   enabled = true
-): UseQueryResult<any[], Error> => {
+): UseQueryResult<RiskAssessment[], Error> => {
   return useQuery({
     queryKey: ['predictive-at-risk-students', classId, riskThreshold],
     queryFn: async () => {

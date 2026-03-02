@@ -5,18 +5,16 @@
 
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Edit, Trash2, Download, Play, Plus } from 'lucide-react';
+import { Edit, Trash2, ChevronRight, Plus } from 'lucide-react';
 import { useCustomReports, useDeleteReport, useGenerateReport } from '@/hooks/useCustomReports';
 
 interface SavedReportsPanelProps {
   onEdit?: (reportId: number) => void;
-  onGenerate?: (reportId: number) => void;
   onCreateNew?: () => void;
 }
 
 export const SavedReportsPanel: React.FC<SavedReportsPanelProps> = ({
   onEdit,
-  onGenerate,
   onCreateNew,
 }) => {
   const { t } = useTranslation();
@@ -102,7 +100,7 @@ export const SavedReportsPanel: React.FC<SavedReportsPanelProps> = ({
                         {selectedReportId === report.id && generateReport.isPending ? (
                           <div className="animate-spin h-4 w-4 border-2 border-gray-600 border-t-transparent rounded-full" />
                         ) : (
-                          <Play className="w-4 h-4" />
+                          <ChevronRight className="w-4 h-4" />
                         )}
                       </button>
                       <button
