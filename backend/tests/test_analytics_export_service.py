@@ -4,8 +4,6 @@ Tests for Excel and PDF export functionality
 """
 
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from io import BytesIO
 
 
 class TestAnalyticsExportService:

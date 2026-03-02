@@ -69,11 +69,13 @@ class PredictiveAnalyticsService:
                 # Clamp to valid grade range (0-100)
                 predicted_grade = max(0, min(100, predicted_grade))
 
-                predictions.append({
-                    "date": future_date.isoformat(),
-                    "predicted_grade": round(predicted_grade, 2),
-                    "confidence": self._calculate_confidence(grades),
-                })
+                predictions.append(
+                    {
+                        "date": future_date.isoformat(),
+                        "predicted_grade": round(predicted_grade, 2),
+                        "confidence": self._calculate_confidence(grades),
+                    }
+                )
 
             # Determine trend direction
             current_avg = mean(grades[-3:]) if len(grades) >= 3 else mean(grades)
@@ -97,9 +99,7 @@ class PredictiveAnalyticsService:
             logger.error("Error in grade trend prediction: %s", exc, exc_info=True)
             return {"error": str(exc), "predictions": []}
 
-    def predict_attendance_pattern(
-        self, attendance_records: List[Tuple[datetime, bool]]
-    ) -> Dict[str, Any]:
+    def predict_attendance_pattern(self, attendance_records: List[Tuple[datetime, bool]]) -> Dict[str, Any]:
         """
         Predict attendance patterns based on historical data.
 
@@ -134,12 +134,14 @@ class PredictiveAnalyticsService:
                 attendance_rate = sum(attendance_by_weekday[day_idx]) / len(attendance_by_weekday[day_idx])
                 risk_level = self._assess_risk_level(attendance_rate)
 
-                predictions.append({
-                    "day": day_name,
-                    "predicted_attendance_rate": round(attendance_rate * 100, 2),
-                    "risk_level": risk_level,
-                    "sample_size": len(attendance_by_weekday[day_idx]),
-                })
+                predictions.append(
+                    {
+                        "day": day_name,
+                        "predicted_attendance_rate": round(attendance_rate * 100, 2),
+                        "risk_level": risk_level,
+                        "sample_size": len(attendance_by_weekday[day_idx]),
+                    }
+                )
 
             # Overall attendance rate
             total_present = sum(is_present for _, is_present in attendance_records)
@@ -308,9 +310,7 @@ class PredictiveAnalyticsService:
         except (ValueError, ZeroDivisionError):
             return 50.0
 
-    def _calculate_r_squared(
-        self, x: List[float], y: List[float], slope: float, intercept: float
-    ) -> float:
+    def _calculate_r_squared(self, x: List[float], y: List[float], slope: float, intercept: float) -> float:
         """Calculate R-squared value for regression model."""
         if not y:
             return 0.0
@@ -342,9 +342,7 @@ class PredictiveAnalyticsService:
         else:
             return "Critical"
 
-    def _generate_risk_recommendations(
-        self, grade_avg: float, attendance_rate: float, trend: str
-    ) -> List[str]:
+    def _generate_risk_recommendations(self, grade_avg: float, attendance_rate: float, trend: str) -> List[str]:
         """Generate recommendations based on risk factors."""
         recommendations = []
 

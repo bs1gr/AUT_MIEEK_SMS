@@ -4,8 +4,7 @@ Comprehensive test coverage for all analytics API endpoints
 """
 
 import pytest
-from fastapi.testclient import TestClient
-from backend.models import User, Student, Course, CourseEnrollment, Grade
+from backend.models import Student, Course, CourseEnrollment, Grade
 
 
 class TestAnalyticsRouter:
@@ -38,10 +37,7 @@ class TestAnalyticsRouter:
         clean_db.add(student)
         clean_db.commit()
 
-        response = client.get(
-            f"/api/v1/analytics/student/{student.id}/summary",
-            headers=admin_headers
-        )
+        response = client.get(f"/api/v1/analytics/student/{student.id}/summary", headers=admin_headers)
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, dict)
@@ -49,10 +45,7 @@ class TestAnalyticsRouter:
 
     def test_get_student_summary_not_found(self, client, admin_headers):
         """Test student summary with non-existent student ID"""
-        response = client.get(
-            "/api/v1/analytics/student/99999/summary",
-            headers=admin_headers
-        )
+        response = client.get("/api/v1/analytics/student/99999/summary", headers=admin_headers)
         assert response.status_code == 404
 
     def test_calculate_final_grade(self, client, admin_headers, clean_db):
@@ -75,7 +68,7 @@ class TestAnalyticsRouter:
             assignment_name="Midterm Exam",
             category="midterm",
             max_grade=100.0,
-            weight=30.0
+            weight=30.0,
         )
         grade2 = Grade(
             student_id=student.id,
@@ -84,21 +77,22 @@ class TestAnalyticsRouter:
             assignment_name="Final Exam",
             category="final",
             max_grade=100.0,
-            weight=40.0
+            weight=40.0,
         )
         clean_db.add_all([grade1, grade2])
         clean_db.commit()
 
         response = client.get(
-            f"/api/v1/analytics/student/{student.id}/course/{course.id}/final-grade",
-            headers=admin_headers
+            f"/api/v1/analytics/student/{student.id}/course/{course.id}/final-grade", headers=admin_headers
         )
         assert response.status_code == 200
         data = response.json()
         # Check actual response structure (no success wrapper)
         assert isinstance(data, dict)
 
-    @pytest.mark.skip(reason="Endpoint /analytics/course/{id} does not exist - use /analytics/course/{id}/grade-distribution instead")
+    @pytest.mark.skip(
+        reason="Endpoint /analytics/course/{id} does not exist - use /analytics/course/{id}/grade-distribution instead"
+    )
     def test_get_course_analytics(self, client, admin_headers, clean_db):
         """Test GET /analytics/course/{id} (endpoint not implemented)"""
         pass
@@ -117,17 +111,35 @@ class TestAnalyticsRouter:
 
         # Add varied grades for distribution
         grades = [
-            Grade(student_id=student.id, course_id=course.id, grade=95.0, assignment_name="Final Exam", category="final", max_grade=100.0),
-            Grade(student_id=student.id, course_id=course.id, grade=85.0, assignment_name="Midterm Exam", category="midterm", max_grade=100.0),
-            Grade(student_id=student.id, course_id=course.id, grade=75.0, assignment_name="Quiz 1", category="quiz", max_grade=100.0),
+            Grade(
+                student_id=student.id,
+                course_id=course.id,
+                grade=95.0,
+                assignment_name="Final Exam",
+                category="final",
+                max_grade=100.0,
+            ),
+            Grade(
+                student_id=student.id,
+                course_id=course.id,
+                grade=85.0,
+                assignment_name="Midterm Exam",
+                category="midterm",
+                max_grade=100.0,
+            ),
+            Grade(
+                student_id=student.id,
+                course_id=course.id,
+                grade=75.0,
+                assignment_name="Quiz 1",
+                category="quiz",
+                max_grade=100.0,
+            ),
         ]
         clean_db.add_all(grades)
         clean_db.commit()
 
-        response = client.get(
-            f"/api/v1/analytics/course/{course.id}/grade-distribution",
-            headers=admin_headers
-        )
+        response = client.get(f"/api/v1/analytics/course/{course.id}/grade-distribution", headers=admin_headers)
         assert response.status_code == 200
 
     def test_analytics_rate_limiting(self, client, admin_headers):
@@ -154,13 +166,12 @@ class TestAnalyticsRouter:
         clean_db.add(student)
         clean_db.commit()
 
-        response = client.get(
-            f"/api/v1/analytics/student/{student.id}/attendance",
-            headers=admin_headers
-        )
+        response = client.get(f"/api/v1/analytics/student/{student.id}/attendance", headers=admin_headers)
         assert response.status_code == 200
 
-    @pytest.mark.skip(reason="Endpoint /analytics/student/{id}/performance-trend does not exist - use /analytics/student/{id}/trends instead")
+    @pytest.mark.skip(
+        reason="Endpoint /analytics/student/{id}/performance-trend does not exist - use /analytics/student/{id}/trends instead"
+    )
     def test_get_performance_trend(self, client, admin_headers, clean_db):
         """Test GET /analytics/student/{id}/performance-trend (endpoint not implemented)"""
         pass
@@ -170,26 +181,19 @@ class TestAnalyticsRouter:
         response = client.get(
             "/api/v1/analytics/dashboard",
             params={"start_date": "2026-01-01", "end_date": "2026-03-01"},
-            headers=admin_headers
+            headers=admin_headers,
         )
         assert response.status_code == 200
 
     def test_invalid_student_id_type(self, client, admin_headers):
         """Test analytics endpoint with invalid student ID type"""
-        response = client.get(
-            "/api/v1/analytics/student/invalid/summary",
-            headers=admin_headers
-        )
+        response = client.get("/api/v1/analytics/student/invalid/summary", headers=admin_headers)
         assert response.status_code == 422  # Validation error
 
     def test_analytics_export_format(self, client, admin_headers):
         """Test analytics export with different formats"""
         formats = ["json", "csv", "excel"]
         for format_type in formats:
-            response = client.get(
-                "/api/v1/analytics/dashboard",
-                params={"format": format_type},
-                headers=admin_headers
-            )
+            response = client.get("/api/v1/analytics/dashboard", params={"format": format_type}, headers=admin_headers)
             # Should either accept or gracefully reject
             assert response.status_code in [200, 400, 501]

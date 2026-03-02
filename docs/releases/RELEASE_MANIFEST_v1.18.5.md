@@ -1,10 +1,10 @@
 # Release Manifest: v1.18.5 - Security & Stability Patch
 
-**Release Date**: March 1, 2026  
-**Release Type**: Patch (Security & Stability)  
-**Version**: 1.18.5  
-**Previous Version**: 1.18.4  
-**Branch**: `main`  
+**Release Date**: March 1, 2026
+**Release Type**: Patch (Security & Stability)
+**Version**: 1.18.5
+**Previous Version**: 1.18.4
+**Branch**: `main`
 **Commit**: TBD (post-analytics-revert)
 
 ---
@@ -205,6 +205,6 @@ This release prioritizes **security and stability** over new features per Policy
 
 ---
 
-**Manifest Version**: 1.0  
-**Last Updated**: March 1, 2026  
+**Manifest Version**: 1.0
+**Last Updated**: March 1, 2026
 **Maintained By**: Solo Developer + AI Assistant

@@ -241,11 +241,13 @@ class AnalyticsExportService:
 
                 class_data = [["Class", "Student Count", "Average Grade %"]]
                 for item in data["class_averages"][:10]:  # Limit to first 10
-                    class_data.append([
-                        item.get("label", ""),
-                        str(item.get("count", 0)),
-                        f"{item.get('average', 0):.2f}%",
-                    ])
+                    class_data.append(
+                        [
+                            item.get("label", ""),
+                            str(item.get("count", 0)),
+                            f"{item.get('average', 0):.2f}%",
+                        ]
+                    )
 
                 class_table = Table(class_data, colWidths=[2.5 * inch, 1.5 * inch, 1.5 * inch])
                 class_table.setStyle(
@@ -275,11 +277,13 @@ class AnalyticsExportService:
 
                 course_data = [["Course Name", "Enrollments", "Average Grade %"]]
                 for item in data["course_averages"][:15]:  # Limit to first 15
-                    course_data.append([
-                        item.get("label", "")[:30],  # Truncate long names
-                        str(item.get("count", 0)),
-                        f"{item.get('average', 0):.2f}%",
-                    ])
+                    course_data.append(
+                        [
+                            item.get("label", "")[:30],  # Truncate long names
+                            str(item.get("count", 0)),
+                            f"{item.get('average', 0):.2f}%",
+                        ]
+                    )
 
                 course_table = Table(course_data, colWidths=[2.5 * inch, 1.5 * inch, 1.5 * inch])
                 course_table.setStyle(

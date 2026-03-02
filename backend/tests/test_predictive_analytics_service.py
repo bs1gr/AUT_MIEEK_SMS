@@ -4,9 +4,8 @@ Tests for ML-based prediction functionality (risk assessment, grade forecasting)
 """
 
 import pytest
-from unittest.mock import Mock, patch
-from backend.models import Student, Course, Grade, Attendance
-from datetime import datetime, timedelta
+from unittest.mock import patch
+from backend.models import Student, Course, Grade
 
 
 class TestPredictiveAnalyticsService:
@@ -31,11 +30,7 @@ class TestPredictiveAnalyticsService:
 
         # Add poor grades
         grade = Grade(
-            student_id=student.id,
-            course_id=course.id,
-            grade=45.0,
-            assignment_name="Midterm Exam",
-            category="midterm"
+            student_id=student.id, course_id=course.id, grade=45.0, assignment_name="Midterm Exam", category="midterm"
         )
         clean_db.add(grade)
         clean_db.commit()
@@ -45,7 +40,7 @@ class TestPredictiveAnalyticsService:
         result = service.assess_student_risk(
             grades=[45.0],  # Low grade indicates high risk
             attendance_rate=50.0,  # Poor attendance
-            recent_trend="declining"  # Getting worse
+            recent_trend="declining",  # Getting worse
         )
         assert result is not None
         assert isinstance(result, dict)
@@ -62,11 +57,7 @@ class TestPredictiveAnalyticsService:
 
         # Add good grades
         grade = Grade(
-            student_id=student.id,
-            course_id=course.id,
-            grade=92.0,
-            assignment_name="Midterm Exam",
-            category="midterm"
+            student_id=student.id, course_id=course.id, grade=92.0, assignment_name="Midterm Exam", category="midterm"
         )
         clean_db.add(grade)
         clean_db.commit()
@@ -76,7 +67,7 @@ class TestPredictiveAnalyticsService:
         result = service.assess_student_risk(
             grades=[92.0],  # High grade indicates low risk
             attendance_rate=95.0,  # Excellent attendance
-            recent_trend="stable"  # Consistent performance
+            recent_trend="stable",  # Consistent performance
         )
         assert result is not None
         assert isinstance(result, dict)
@@ -93,7 +84,9 @@ class TestPredictiveAnalyticsService:
         # Add partial grades
         grades = [
             Grade(student_id=student.id, course_id=course.id, grade=85.0, assignment_name="Quiz 1", category="quiz"),
-            Grade(student_id=student.id, course_id=course.id, grade=88.0, assignment_name="Midterm", category="midterm"),
+            Grade(
+                student_id=student.id, course_id=course.id, grade=88.0, assignment_name="Midterm", category="midterm"
+            ),
         ]
         clean_db.add_all(grades)
         clean_db.commit()
@@ -103,7 +96,9 @@ class TestPredictiveAnalyticsService:
         result = service.predict_final_grade(student.id, course.id, clean_db)
         assert result is not None
 
-    @pytest.mark.skip(reason="Method identify_at_risk_students does not exist - use assess_student_risk per student instead")
+    @pytest.mark.skip(
+        reason="Method identify_at_risk_students does not exist - use assess_student_risk per student instead"
+    )
     def test_identify_at_risk_students(self, clean_db):
         """Test identification of at-risk students (use assess_student_risk instead)"""
         pass
@@ -126,7 +121,7 @@ class TestPredictiveAnalyticsService:
         service = PredictiveAnalyticsService()
 
         # More data points = higher confidence
-        with patch.object(service, 'calculate_confidence') as mock_confidence:
+        with patch.object(service, "calculate_confidence") as mock_confidence:
             mock_confidence.return_value = 0.92
             confidence = service.calculate_confidence(data_points=10)
 
@@ -154,13 +149,9 @@ class TestPredictiveAnalyticsService:
         from backend.services.predictive_analytics_service import PredictiveAnalyticsService
 
         service = PredictiveAnalyticsService()
-        student_data = {
-            "avg_grade": 58.0,
-            "attendance_rate": 0.65,
-            "missing_assignments": 3
-        }
+        student_data = {"avg_grade": 58.0, "attendance_rate": 0.65, "missing_assignments": 3}
 
-        with patch.object(service, 'identify_risk_factors') as mock_identify:
+        with patch.object(service, "identify_risk_factors") as mock_identify:
             mock_identify.return_value = ["low_grades", "poor_attendance", "missing_work"]
             factors = service.identify_risk_factors(student_data)
 
@@ -175,12 +166,12 @@ class TestPredictiveAnalyticsService:
         service = PredictiveAnalyticsService()
 
         # First call should compute
-        with patch.object(service, 'get_cached_prediction') as mock_cache:
+        with patch.object(service, "get_cached_prediction") as mock_cache:
             mock_cache.return_value = None
             # Simulate cache miss
 
         # Second call should use cache
-        with patch.object(service, 'get_cached_prediction') as mock_cache:
+        with patch.object(service, "get_cached_prediction") as mock_cache:
             mock_cache.return_value = {"cached": True, "result": {}}
             result = service.get_cached_prediction("student_1_risk")
 

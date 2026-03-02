@@ -1,0 +1,16 @@
+# Failed test files (generated 2026-03-02 02:24:41)
+# To retest only these files, run: .\RUN_TESTS_BATCH.ps1 -RetestFailed
+# To clear this file, run: Remove-Item .test-failures
+
+test_control_jwt_integration.py
+test_control_maintenance.py
+test_control_path_traversal.py
+test_gzip_middleware.py
+test_health_checks.py
+test_health.py
+test_integration_smoke.py
+test_jwt_smoke.py
+test_list_routes.py
+test_students_router.py
+test_timing_middleware.py
+test_version_consistency.py
