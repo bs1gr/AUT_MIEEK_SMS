@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    tags:
-      - 'v1.*.*'
   pull_request:
     branches:
       - main
@@ -55,10 +53,10 @@ jobs:
           set-safe-directory: false
           persist-credentials: false
 
-      - name: 🔒 Validate Version Format (v1.x.x or 1.x.x ONLY)
+      - name: 🔒 Validate Version Format (v1.x.x ONLY)
         shell: pwsh
         run: |
-          Write-Host "Validating version format (v1.x.x or 1.x.x)..." -ForegroundColor Cyan
+          Write-Host "Validating version format (v1.x.x only)..." -ForegroundColor Cyan
           $versionFile = "VERSION"
           $version = (Get-Content $versionFile).Trim()
           Write-Host "Current version: $version" -ForegroundColor Blue
@@ -74,17 +72,17 @@ jobs:
               if ($version -match $pattern) {
                   Write-Error "❌ CRITICAL VERSION VIOLATION: $($forbiddenPatterns[$pattern])" -ErrorAction Continue
                   Write-Error "Detected: $version (forbidden)" -ErrorAction Continue
-                  Write-Error "Required format: v1.x.x or 1.x.x (e.g., v1.17.1 or 1.17.1)" -ErrorAction Continue
+                    Write-Error "Required format: v1.x.x (e.g., v1.17.1)" -ErrorAction Continue
                   exit 1
               }
           }
 
-          # Validate v1.x.x or 1.x.x format (both acceptable)
-          if ($version -match '^v?1\.\d+\.\d+$') {
+                # Validate strict v1.x.x format
+                if ($version -match '^v1\.\d+\.\d+$') {
               Write-Host "✅ Version format valid: $version" -ForegroundColor Green
           } else {
               Write-Error "❌ Invalid version format: $version" -ErrorAction Continue
-              Write-Error "Required format: v1.x.x or 1.x.x (e.g., v1.17.1 or 1.17.1)" -ErrorAction Continue
+                  Write-Error "Required format: v1.x.x (e.g., v1.17.1)" -ErrorAction Continue
               exit 1
           }
 
@@ -210,13 +208,11 @@ jobs:
       - name: Run ESLint
         # ESLint warnings tracked in docs/plans/UNIFIED_WORK_PLAN.md (Issue 1)
         # 240 warnings identified (161 `any` types, 23 console.log, others)
-        # Non-blocking: warnings allowed, errors only will fail
+        # Warnings allowed by ESLint config; errors must fail CI
         # Refactoring PR planned for next maintenance cycle
         run: |
           cd frontend
-          npm run lint || echo "⚠️  ESLint warnings detected (see issue tracker)"
-          # Exit code 0 even if warnings exist (non-blocking)
-          exit 0
+          npm run lint
 
       - name: Check TypeScript compilation
         run: cd frontend && npx tsc --noEmit
@@ -1352,7 +1348,9 @@ jobs:
   create-release:
     name: 📦 Create GitHub Release
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v1.')
+    # Release creation is centralized in release-on-tag.yml.
+    # Keep this job disabled to prevent duplicate release owners.
+    if: ${{ false }}
     needs: [build-docker-images, release-asset-lock] # release-asset-lock enforces installer-only asset mutation
     permissions:
       contents: write
