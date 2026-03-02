@@ -450,10 +450,10 @@ def clear_course_analytics_cache(
 
 @router.post("/export/excel")
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 async def export_dashboard_excel(
     request: Request,
     db: Session = Depends(get_db),
-    _: bool = Depends(require_permission("reports:generate")),
 ) -> StreamingResponse:
     """
     Export dashboard analytics data to Excel format.
@@ -503,10 +503,10 @@ async def export_dashboard_excel(
 
 @router.post("/export/pdf")
 @limiter.limit(RATE_LIMIT_READ)
+@require_permission("reports:generate")
 async def export_dashboard_pdf(
     request: Request,
     db: Session = Depends(get_db),
-    _: bool = Depends(require_permission("reports:generate")),
 ) -> StreamingResponse:
     """
     Export dashboard analytics data to PDF format.

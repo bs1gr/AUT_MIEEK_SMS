@@ -27,7 +27,7 @@ from __future__ import annotations
 import hmac
 import logging
 import os
-from typing import Callable
+from typing import Any
 
 import jwt
 from jwt.exceptions import InvalidTokenError
@@ -214,7 +214,7 @@ async def require_control_admin(request: Request) -> None:
     raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Forbidden")
 
 
-def create_control_dependency(auth_check: Callable[[Request], bool] | None = None):
+def create_control_dependency(auth_check: Any = None):
     """Factory to create a dependency that can incorporate an external auth check.
 
     If `auth_check` is provided, it will be consulted first; if it returns

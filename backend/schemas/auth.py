@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -7,7 +7,7 @@ def _validate_password_strength(value: str, field_name: str = "password") -> str
     if any(c.isspace() for c in value):
         raise ValueError(f"{field_name.capitalize()} must not contain whitespace")
 
-    checks: List[tuple[str, Callable[[str], bool]]] = [
+    checks = [
         ("uppercase letter", lambda ch: ch.isupper()),
         ("lowercase letter", lambda ch: ch.islower()),
         ("digit", lambda ch: ch.isdigit()),

@@ -468,7 +468,7 @@ def require_permission(
 def check_permission(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
-) -> Callable[[str], bool]:
+) -> Any:
     """
     Dependency that returns a function to check permissions for the current user.
 

@@ -36,6 +36,12 @@ def version_file(project_root: Path) -> str:
     return version_path.read_text(encoding="utf-8").strip()
 
 
+@pytest.fixture
+def version_core(version_file: str) -> str:
+    """Get core semver (1.x.x) from VERSION tag format (v1.x.x)."""
+    return version_file.lstrip("v")
+
+
 def extract_version(content: str, pattern: str) -> str | None:
     """Extract version string using regex pattern."""
     match = re.search(pattern, content)
@@ -53,10 +59,12 @@ def test_version_file_exists(project_root: Path):
     assert version_file.exists(), "VERSION file must exist"
 
     content = version_file.read_text(encoding="utf-8").strip()
-    assert re.match(r"^\d+\.\d+\.\d+$", content), f"VERSION file must contain valid semver (got: {content})"
+    assert re.match(r"^v\d+\.\d+\.\d+$", content), (
+        f"VERSION file must contain valid version tag format v1.x.x (got: {content})"
+    )
 
 
-def test_frontend_package_json_version(project_root: Path, version_file: str):
+def test_frontend_package_json_version(project_root: Path, version_core: str):
     """Verify frontend/package.json version matches VERSION file."""
     pkg_path = project_root / "frontend" / "package.json"
     assert pkg_path.exists(), "frontend/package.json not found"
@@ -64,10 +72,10 @@ def test_frontend_package_json_version(project_root: Path, version_file: str):
     pkg_data = json.loads(pkg_path.read_text(encoding="utf-8"))
     pkg_version = pkg_data.get("version")
 
-    assert pkg_version == version_file, f"package.json version ({pkg_version}) != VERSION ({version_file})"
+    assert pkg_version == version_core, f"package.json version ({pkg_version}) != VERSION core ({version_core})"
 
 
-def test_backend_main_docstring_version(project_root: Path, version_file: str):
+def test_backend_main_docstring_version(project_root: Path, version_core: str):
     """Verify backend/main.py docstring version matches VERSION file."""
     main_path = project_root / "backend" / "main.py"
     assert main_path.exists(), "backend/main.py not found"
@@ -76,7 +84,7 @@ def test_backend_main_docstring_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in backend/main.py docstring"
-    assert extracted_version == version_file, f"main.py version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_core, f"main.py version ({extracted_version}) != VERSION core ({version_core})"
 
 
 # ============================================================================
@@ -84,7 +92,7 @@ def test_backend_main_docstring_version(project_root: Path, version_file: str):
 # ============================================================================
 
 
-def test_user_guide_version(project_root: Path, version_file: str):
+def test_user_guide_version(project_root: Path, version_core: str):
     """Verify USER_GUIDE_COMPLETE.md version matches VERSION file."""
     guide_path = project_root / "docs" / "user" / "USER_GUIDE_COMPLETE.md"
     if not guide_path.exists():
@@ -94,10 +102,12 @@ def test_user_guide_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"\*\*Version:\*\*\s*(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in USER_GUIDE_COMPLETE.md"
-    assert extracted_version == version_file, f"User guide version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_core, (
+        f"User guide version ({extracted_version}) != VERSION core ({version_core})"
+    )
 
 
-def test_developer_guide_version(project_root: Path, version_file: str):
+def test_developer_guide_version(project_root: Path, version_core: str):
     """Verify DEVELOPER_GUIDE_COMPLETE.md version matches VERSION file."""
     guide_path = project_root / "docs" / "development" / "DEVELOPER_GUIDE_COMPLETE.md"
     if not guide_path.exists():
@@ -107,12 +117,12 @@ def test_developer_guide_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"\*\*Version:\*\*\s*(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in DEVELOPER_GUIDE_COMPLETE.md"
-    assert extracted_version == version_file, (
-        f"Developer guide version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_core, (
+        f"Developer guide version ({extracted_version}) != VERSION core ({version_core})"
     )
 
 
-def test_documentation_index_version(project_root: Path, version_file: str):
+def test_documentation_index_version(project_root: Path, version_core: str):
     """Verify docs/DOCUMENTATION_INDEX.md version matches VERSION file."""
     index_path = project_root / "docs" / "DOCUMENTATION_INDEX.md"
     if not index_path.exists():
@@ -122,12 +132,12 @@ def test_documentation_index_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"\*\*Version\*\*:\s*(\d+\.\d+\.\d+)")
 
     assert extracted_version is not None, "Version not found in docs/DOCUMENTATION_INDEX.md"
-    assert extracted_version == version_file, (
-        f"Documentation index version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_core, (
+        f"Documentation index version ({extracted_version}) != VERSION core ({version_core})"
     )
 
 
-def test_root_documentation_index_version(project_root: Path, version_file: str):
+def test_root_documentation_index_version(project_root: Path, version_core: str):
     """Verify DOCUMENTATION_INDEX.md version matches VERSION file."""
     index_path = project_root / "DOCUMENTATION_INDEX.md"
     if not index_path.exists():
@@ -146,8 +156,8 @@ def test_root_documentation_index_version(project_root: Path, version_file: str)
 
     # All header versions should match
     for found_version in versions_found:
-        assert found_version == version_file, (
-            f"Documentation index version ({found_version}) != VERSION ({version_file})"
+        assert found_version == version_core, (
+            f"Documentation index version ({found_version}) != VERSION core ({version_core})"
         )
 
 
@@ -156,7 +166,7 @@ def test_root_documentation_index_version(project_root: Path, version_file: str)
 # ============================================================================
 
 
-def test_installer_wizard_version(project_root: Path, version_file: str):
+def test_installer_wizard_version(project_root: Path, version_core: str):
     """Verify SMS_INSTALLER_WIZARD.ps1 version matches VERSION file."""
     wizard_path = project_root / "tools" / "installer" / "SMS_INSTALLER_WIZARD.ps1"
     if not wizard_path.exists():
@@ -166,12 +176,12 @@ def test_installer_wizard_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r'Version\s*=\s*"(\d+\.\d+\.\d+)"')
 
     assert extracted_version is not None, "Version not found in SMS_INSTALLER_WIZARD.ps1"
-    assert extracted_version == version_file, (
-        f"Installer wizard version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_core, (
+        f"Installer wizard version ({extracted_version}) != VERSION core ({version_core})"
     )
 
 
-def test_uninstaller_wizard_version(project_root: Path, version_file: str):
+def test_uninstaller_wizard_version(project_root: Path, version_core: str):
     """Verify SMS_UNINSTALLER_WIZARD.ps1 version matches VERSION file."""
     wizard_path = project_root / "tools" / "installer" / "SMS_UNINSTALLER_WIZARD.ps1"
     if not wizard_path.exists():
@@ -181,8 +191,8 @@ def test_uninstaller_wizard_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r'Version\s*=\s*"(\d+\.\d+\.\d+)"')
 
     assert extracted_version is not None, "Version not found in SMS_UNINSTALLER_WIZARD.ps1"
-    assert extracted_version == version_file, (
-        f"Uninstaller wizard version ({extracted_version}) != VERSION ({version_file})"
+    assert extracted_version == version_core, (
+        f"Uninstaller wizard version ({extracted_version}) != VERSION core ({version_core})"
     )
 
 
@@ -191,7 +201,7 @@ def test_uninstaller_wizard_version(project_root: Path, version_file: str):
 # ============================================================================
 
 
-def test_commit_ready_script_version(project_root: Path, version_file: str):
+def test_commit_ready_script_version(project_root: Path, version_core: str):
     """Verify COMMIT_READY.ps1 version matches VERSION file."""
     script_path = project_root / "COMMIT_READY.ps1"
     if not script_path.exists():
@@ -202,8 +212,8 @@ def test_commit_ready_script_version(project_root: Path, version_file: str):
     extracted_version = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
 
     if extracted_version:
-        assert extracted_version == version_file, (
-            f"COMMIT_READY.ps1 version ({extracted_version}) != VERSION ({version_file})"
+        assert extracted_version == version_core, (
+            f"COMMIT_READY.ps1 version ({extracted_version}) != VERSION core ({version_core})"
         )
 
 
@@ -212,7 +222,7 @@ def test_commit_ready_script_version(project_root: Path, version_file: str):
 # ============================================================================
 
 
-def test_all_versions_consistent(project_root: Path, version_file: str):
+def test_all_versions_consistent(project_root: Path, version_file: str, version_core: str):
     """
     Comprehensive test that checks all known version references.
 
@@ -265,8 +275,13 @@ def test_all_versions_consistent(project_root: Path, version_file: str):
     # Report findings
     inconsistent = []
     for file_key, found_version in version_files.items():
-        if found_version is not None and found_version != version_file:
-            inconsistent.append(f"{file_key}: {found_version} != {version_file}")
+        if file_key == "VERSION":
+            if found_version is not None and found_version != version_file:
+                inconsistent.append(f"{file_key}: {found_version} != {version_file}")
+            continue
+
+        if found_version is not None and found_version != version_core:
+            inconsistent.append(f"{file_key}: {found_version} != {version_core}")
 
     if inconsistent:
         error_msg = "Version inconsistencies found:\n" + "\n".join(inconsistent)
