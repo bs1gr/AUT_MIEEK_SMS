@@ -159,6 +159,7 @@ def _calculate_periods_per_week(schedule: Any) -> int:
         return 0
 
     total = 0
+    values: Iterable[Any]
     if isinstance(schedule, dict):
         values = schedule.values()
     elif isinstance(schedule, list):

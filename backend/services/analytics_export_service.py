@@ -13,7 +13,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Flowable
 from reportlab.lib import colors
 from sqlalchemy.orm import Session
 
@@ -198,7 +198,7 @@ class AnalyticsExportService:
                 spaceBefore=6,
             )
 
-            elements = []
+            elements: List[Flowable] = []
 
             # Title
             elements.append(Paragraph("Analytics Dashboard Report", title_style))

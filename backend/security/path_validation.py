@@ -6,10 +6,10 @@ Prevents path traversal attacks, directory escape, and other filesystem exploits
 
 import re
 from pathlib import Path
-from typing import Union
+from typing import Optional, Union
 
 
-def validate_filename(filename: str, allowed_extensions: list[str] = None) -> bool:
+def validate_filename(filename: str, allowed_extensions: Optional[list[str]] = None) -> bool:
     """
     Validate a filename for safe filesystem usage.
 
@@ -183,7 +183,7 @@ class PathValidator:
         if not self.base_dir.exists():
             raise ValueError(f"Base directory does not exist: {self.base_dir}")
 
-    def validate_filename(self, filename: str, allowed_extensions: list[str] = None) -> str:
+    def validate_filename(self, filename: str, allowed_extensions: Optional[list[str]] = None) -> str:
         """Validate filename and return it if valid."""
         validate_filename(filename, allowed_extensions)
         return filename
