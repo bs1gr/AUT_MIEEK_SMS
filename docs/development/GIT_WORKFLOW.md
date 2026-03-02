@@ -283,6 +283,32 @@ git push origin main
 ```text
 ## Release Workflow
 
+### Workflow Version Contract (CI/CD)
+
+To prevent version drift in workflows, use this contract everywhere:
+
+- `VERSION` file is the source of truth and **must** be `v1.x.x`
+- `version_tag` means release/tag format (example: `v1.18.6`)
+- `version_core` means semver core (example: `1.18.6`)
+- Use `version_tag` for tag checks/release references
+- Use `version_core` for package metadata, build args, and installer file names
+
+Preferred pattern in workflows:
+
+```yaml
+- name: Normalize version from VERSION file
+	id: version
+	uses: ./.github/actions/normalize-version
+
+# Then consume outputs:
+# steps.version.outputs.version_tag   -> v1.x.x
+# steps.version.outputs.version_core  -> 1.x.x
+```
+
+Never duplicate ad-hoc parsing logic when this shared action can be used.
+
+**Automatic enforcement gate:** `ci-cd-pipeline.yml` now includes a `workflow-version-policy` job that fails the pipeline if any workflow uses direct `Get-Content VERSION` / `cat VERSION` without also using `./.github/actions/normalize-version`.
+
 ### 1. Prepare Release
 
 ```powershell

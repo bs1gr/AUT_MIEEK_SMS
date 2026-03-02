@@ -62,8 +62,8 @@ jobs:
             }
           }
 
-      - name: Resolve target version
-        id: resolve
+      - name: Resolve target version source
+        id: version_source
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -77,16 +77,27 @@ jobs:
             $inputVersion = (Get-Content VERSION -Raw).Trim()
           }
 
-          if ($inputVersion -notmatch '^\d+\.\d+\.\d+$') {
-            Write-Error "Invalid version '$inputVersion'. Expected format: MAJOR.MINOR.PATCH (e.g., 1.18.4)"
-            exit 1
-          }
-
           "version=$inputVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "dist_path=dist/SMS_Installer_$inputVersion.exe" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          "repo_path=installer/SMS_Installer_$inputVersion.exe" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-          Write-Host "Resolved version: $inputVersion"
+      - name: Normalize resolved version
+        id: resolve
+        uses: ./.github/actions/normalize-version
+        with:
+          version: ${{ steps.version_source.outputs.version }}
+
+      - name: Prepare installer paths
+        id: installer_paths
+        shell: pwsh
+        run: |
+          $versionCore = "${{ steps.resolve.outputs.version_core }}"
+          $versionTag = "${{ steps.resolve.outputs.version_tag }}"
+
+          "dist_path=dist/SMS_Installer_$versionCore.exe" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "repo_path=installer/SMS_Installer_$versionCore.exe" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "legacy_dist_path=dist/SMS_Installer_$versionTag.exe" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          Write-Host "Resolved version core: $versionCore"
+          Write-Host "Resolved version tag: $versionTag"
 
       - name: Clean dist
         shell: pwsh
@@ -139,7 +150,7 @@ jobs:
             Action  = 'build'
             AutoFix = $true
             Verbose = $true
-            Version = '${{ steps.resolve.outputs.version }}'
+            Version = '${{ steps.resolve.outputs.version_core }}'
           }
 
           if ($skipCodesignInput -eq 'true') {
@@ -158,7 +169,14 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $distPath = "${{ steps.resolve.outputs.dist_path }}"
+          $distPath = "${{ steps.installer_paths.outputs.dist_path }}"
+          $legacyDistPath = "${{ steps.installer_paths.outputs.legacy_dist_path }}"
+
+          if (-not (Test-Path $distPath) -and (Test-Path $legacyDistPath)) {
+            Write-Warning "Detected legacy installer naming with v-prefix; normalizing to core filename..."
+            Rename-Item -Path $legacyDistPath -NewName (Split-Path -Leaf $distPath) -Force
+          }
+
           if (-not (Test-Path $distPath)) {
             Write-Error "Built installer not found: $distPath"
             exit 1
@@ -176,8 +194,8 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          $distPath = "${{ steps.resolve.outputs.dist_path }}"
-          $repoPath = "${{ steps.resolve.outputs.repo_path }}"
+          $distPath = "${{ steps.installer_paths.outputs.dist_path }}"
+          $repoPath = "${{ steps.installer_paths.outputs.repo_path }}"
 
           Copy-Item -Path $distPath -Destination $repoPath -Force
           Write-Host "Synced installer to tracked path: $repoPath"
@@ -188,8 +206,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           $ErrorActionPreference = 'Stop'
-          $repoPath = "${{ steps.resolve.outputs.repo_path }}"
-          $version = "${{ steps.resolve.outputs.version }}"
+          $repoPath = "${{ steps.installer_paths.outputs.repo_path }}"
+          $version = "${{ steps.resolve.outputs.version_core }}"
           $targetBranch = "${{ github.event.inputs.target_branch }}"
           $repo = "${{ github.repository }}"
 

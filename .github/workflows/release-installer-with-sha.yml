@@ -98,8 +98,8 @@ jobs:
             exit 1
           }
 
-          if ($tag -notmatch '^v\d+\.\d+\.\d+$') {
-            Write-Error "Resolved tag '$tag' is not in required format vMAJOR.MINOR.PATCH"
+          if ($tag -notmatch '^v1\.\d+\.\d+$') {
+            Write-Error "Resolved tag '$tag' is not in required format v1.MAJOR.MINOR"
             exit 1
           }
 
@@ -149,20 +149,26 @@ jobs:
 
           Write-Host "✓ Lineage lock passed"
 
+      - name: Normalize version from checked out VERSION file
+        id: normalized_version
+        uses: ./.github/actions/normalize-version
+
       - name: Validate checkout matches tag version
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $tag = "${{ steps.resolve_tag.outputs.tag }}"
           $expectedVersion = "${{ steps.resolve_tag.outputs.version }}"
-          $versionFile = (Get-Content VERSION -Raw).Trim()
+          $versionFileRaw = "${{ steps.normalized_version.outputs.version_tag }}"
+          $versionFile = "${{ steps.normalized_version.outputs.version_core }}"
 
           Write-Host "Tag: $tag"
           Write-Host "Expected version from tag: $expectedVersion"
-          Write-Host "VERSION file in checked out ref: $versionFile"
+          Write-Host "VERSION file in checked out ref (tag): $versionFileRaw"
+          Write-Host "VERSION file in checked out ref (core): $versionFile"
 
           if ($versionFile -ne $expectedVersion) {
-            Write-Error "Tag/version mismatch: tag '$tag' implies '$expectedVersion' but VERSION file is '$versionFile'."
+            Write-Error "Tag/version mismatch: tag '$tag' implies '$expectedVersion' but VERSION file core is '$versionFile' (raw '$versionFileRaw')."
             exit 1
           }
 
@@ -242,6 +248,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $version = "${{ steps.resolve_tag.outputs.version }}"
           $expectedPath = "dist\SMS_Installer_${version}.exe"
+          $legacyTaggedPath = "dist\SMS_Installer_v${version}.exe"
 
           Write-Host "=== Installer Verification (strict) ==="
           Write-Host "Version: $version"
@@ -259,6 +266,11 @@ jobs:
             Write-Host "  dist/ directory does not exist!"
           }
           Write-Host ""
+
+          if (-not (Test-Path $expectedPath) -and (Test-Path $legacyTaggedPath)) {
+            Write-Warning "Detected legacy installer naming with v-prefix; normalizing to expected core filename..."
+            Rename-Item -Path $legacyTaggedPath -NewName (Split-Path -Leaf $expectedPath) -Force
+          }
 
           if (-not (Test-Path $expectedPath)) {
             Write-Error "Expected installer not found: $expectedPath"

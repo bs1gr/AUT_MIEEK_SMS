@@ -22,8 +22,16 @@ function Get-FrontendVersion {
     return 'unknown'
 }
 
+function Get-VersionCore {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return 'unknown' }
+    return (($Value -as [string]).Trim() -replace '^v', '')
+}
+
 $version = Get-Version
 $feVersion = Get-FrontendVersion
+$versionCore = Get-VersionCore -Value $version
+$feVersionCore = Get-VersionCore -Value $feVersion
 $date = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
 
 $report = @"
@@ -33,7 +41,9 @@ Generated: $date
 
 - VERSION file: $version
 - Frontend package.json: $feVersion
-- Consistent: $([bool]($version -eq $feVersion))
+- VERSION core: $versionCore
+- Frontend core: $feVersionCore
+- Consistent: $([bool]($versionCore -eq $feVersionCore))
 "@
 
 Set-Content -Path (Join-Path $ROOT_DIR $Output) -Value $report -Encoding UTF8

@@ -124,6 +124,42 @@ jobs:
           path: VERSION_VERIFICATION_REPORT.md
           retention-days: 30
 
+  workflow-version-policy:
+    name: 🛡️ Workflow Version Normalization Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Enforce normalize-version in workflows
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $workflowFiles = Get-ChildItem -Path '.github/workflows/*.y*ml' -File
+          $directReadPattern = '(?im)\b(Get-Content|cat)\s+(?:-Raw\s+)?["'']?(?:\./|\.\\)?VERSION["'']?\b'
+          $normalizePattern = '(?im)uses:\s*\.\/\.github\/actions\/normalize-version\b'
+          $violations = @()
+
+          foreach ($file in $workflowFiles) {
+            $content = Get-Content -Path $file.FullName -Raw
+            $hasDirectVersionRead = [regex]::IsMatch($content, $directReadPattern)
+            $usesNormalizeVersion = [regex]::IsMatch($content, $normalizePattern)
+
+            if ($hasDirectVersionRead -and -not $usesNormalizeVersion) {
+              $violations += $file.FullName
+            }
+          }
+
+          if ($violations.Count -gt 0) {
+            Write-Error '❌ Workflow version policy violation detected.'
+            Write-Host 'Files with direct VERSION reads but no normalize-version usage:' -ForegroundColor Yellow
+            $violations | ForEach-Object { Write-Host " - $_" }
+            exit 1
+          }
+
+          Write-Host '✅ Workflow version policy check passed.' -ForegroundColor Green
+
   # ============================================================================
   # PHASE 2: LINTING, SECRET SCANNING & CODE QUALITY
   # ============================================================================
@@ -131,7 +167,7 @@ jobs:
   lint-backend:
     name: 🔍 Backend Linting (Python)
     runs-on: ubuntu-latest
-    needs: version-verification
+    needs: [version-verification, workflow-version-policy]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -164,7 +200,7 @@ jobs:
   lint-frontend:
     name: 🔍 Frontend Linting (TypeScript/React)
     runs-on: ubuntu-latest
-    needs: version-verification
+    needs: [version-verification, workflow-version-policy]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -627,12 +663,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_TOKEN != '' && secrets.GHCR_TOKEN || secrets.GITHUB_TOKEN }}
 
-      - name: Extract version from VERSION file
+      - name: Normalize version from VERSION file
         id: version
-        run: |
-          VERSION=$(cat VERSION | tr -d '[:space:]')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
+        uses: ./.github/actions/normalize-version
 
       - name: Docker metadata
         id: meta
@@ -642,8 +675,8 @@ jobs:
           tags: |
             type=ref,event=branch
             type=ref,event=pr
-            type=semver,pattern={{version}},value=${{ steps.version.outputs.version }}
-            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version }}
+            type=semver,pattern={{version}},value=${{ steps.version.outputs.version_tag }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.version.outputs.version_tag }}
             type=sha,prefix=sha-
             type=raw,value=latest,enable={{is_default_branch}}
 
@@ -662,7 +695,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
-            VERSION=${{ steps.version.outputs.version }}
+            VERSION=${{ steps.version.outputs.version_core }}
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
 
@@ -799,7 +832,7 @@ jobs:
   cleanup-and-docs:
     name: 📚 Documentation & Cleanup Validation
     runs-on: ubuntu-latest
-    needs: [version-verification]
+    needs: [version-verification, workflow-version-policy]
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -952,12 +985,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Extract version
+      - name: Normalize version from VERSION file
         id: version
-        shell: pwsh
-        run: |
-          $version = (Get-Content VERSION -Raw).Trim()
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        uses: ./.github/actions/normalize-version
 
       - name: Stop existing staging stack (safe)
         shell: pwsh
@@ -1195,17 +1225,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Resolve version
-        id: version
+      - name: Resolve version source
+        id: version_source
         shell: pwsh
         run: |
           if ($env:GITHUB_REF -like 'refs/tags/v1.*') {
-            $version = $env:GITHUB_REF -replace '^refs/tags/v', ''
+            $versionRaw = $env:GITHUB_REF -replace '^refs/tags/', ''
           } else {
-            $version = (Get-Content VERSION -Raw).Trim()
+            $versionRaw = ''
           }
-          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          Write-Host "Deploying version: $version"
+          "version=$versionRaw" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+      - name: Normalize resolved version
+        id: version
+        uses: ./.github/actions/normalize-version
+        with:
+          version: ${{ steps.version_source.outputs.version }}
 
       - name: Stop existing production stack (safe)
         shell: pwsh

@@ -17,6 +17,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Normalize VERSION file (contract check)
+        id: version
+        uses: ./.github/actions/normalize-version
+
       - name: Run version verification
         shell: pwsh
         run: |

@@ -3,7 +3,7 @@ name: Windows Installer Build
 on:
   push:
     tags:
-      - 'v*'
+      - 'v1.*.*'
   workflow_dispatch:
 
 jobs:
@@ -91,17 +91,30 @@ jobs:
             }
           }
 
+      - name: Normalize version from VERSION file
+        id: version
+        uses: ./.github/actions/normalize-version
+
       - name: Resolve Installer Artifact Path
         id: resolve_installer
         shell: pwsh
         run: |
-          $version = (Get-Content VERSION -Raw).Trim()
-          $expected = "dist\SMS_Installer_${version}.exe"
-          if (-not (Test-Path $expected)) {
-            Write-Error "Expected installer missing: $expected"
+          $versionRaw = "${{ steps.version.outputs.version_tag }}"
+          $versionCore = "${{ steps.version.outputs.version_core }}"
+          $expectedCore = "dist\SMS_Installer_${versionCore}.exe"
+          $legacyTagged = "dist\SMS_Installer_${versionRaw}.exe"
+
+          if (-not (Test-Path $expectedCore) -and (Test-Path $legacyTagged)) {
+            Write-Warning "Detected legacy installer naming with v-prefix; normalizing to core filename..."
+            Rename-Item -Path $legacyTagged -NewName (Split-Path -Leaf $expectedCore) -Force
+          }
+
+          if (-not (Test-Path $expectedCore)) {
+            Write-Error "Expected installer missing: $expectedCore"
             exit 1
           }
-          "path=$expected" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+          "path=$expectedCore" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Upload Installer Artifact
         uses: actions/upload-artifact@v4

@@ -61,6 +61,19 @@ function Write-Warning { param($msg) Write-Host "[WARN] $msg" -ForegroundColor Y
 function Write-Error-Message { param($msg) Write-Host "[ERROR] $msg" -ForegroundColor Red }
 function Write-Info { param($msg) Write-Host "[INFO] $msg" -ForegroundColor Cyan }
 
+function Get-VersionCore {
+    param([string]$Value)
+    if ([string]::IsNullOrWhiteSpace($Value)) { return "" }
+    return (($Value -as [string]).Trim() -replace '^v', '')
+}
+
+function Get-VersionTag {
+    param([string]$Value)
+    $core = Get-VersionCore -Value $Value
+    if ([string]::IsNullOrWhiteSpace($core)) { return "" }
+    return "v$core"
+}
+
 # ============================================================================
 # CI MODE - Fast VERSION ↔ package.json validation only
 # ============================================================================
@@ -76,11 +89,13 @@ if ($CIMode) {
     $versionFile = (Get-Content $VERSION_FILE -Raw).Trim()
     $pkg = Get-Content $FRONTEND_PKG -Raw | ConvertFrom-Json
     $versionPkg = $pkg.version
+    $versionFileCore = Get-VersionCore -Value $versionFile
+    $versionPkgCore = Get-VersionCore -Value $versionPkg
 
     Write-Host "VERSION file: $versionFile"
     Write-Host "package.json: $versionPkg"
 
-    if ($versionFile -ne $versionPkg) {
+    if ($versionFileCore -ne $versionPkgCore) {
         Write-Error-Message "Version mismatch: VERSION ($versionFile) != package.json ($versionPkg)"
         exit 1
     }
@@ -111,12 +126,15 @@ if (-not $Version) {
 }
 
 # Validate version format
-if ($Version -notmatch '^\d+\.\d+\.\d+$') {
-    Write-Error-Message "Invalid version format: $Version (expected: X.Y.Z)"
+if ($Version -notmatch '^v?\d+\.\d+\.\d+$') {
+    Write-Error-Message "Invalid version format: $Version (expected: vX.Y.Z or X.Y.Z)"
     exit 1
 }
 
-Write-Info "Target version: $Version"
+$VersionCore = Get-VersionCore -Value $Version
+$Version = Get-VersionTag -Value $Version
+
+Write-Info "Target version: $Version (core: $VersionCore)"
 Write-Info "Mode: $(if($Update) {'UPDATE'} else {'CHECK ONLY'})"
 
 # Define files to check/update
@@ -132,14 +150,14 @@ $versionChecks = @(
     @{
         File = "backend/main.py"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
-        Replace = "Version: $Version"
+        Replace = "Version: $VersionCore"
         Description = "Backend main.py docstring"
         Critical = $true
     },
     @{
         File = "frontend/package.json"
         Pattern = '"version":\s*"\d+\.\d+\.\d+"'
-        Replace = "`"version`": `"$Version`""
+        Replace = "`"version`": `"$VersionCore`""
         Description = "Frontend package.json"
         Critical = $true
     },
@@ -148,42 +166,42 @@ $versionChecks = @(
     @{
         File = "docs/user/USER_GUIDE_COMPLETE.md"
         Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
-        Replace = "**Version:** $Version"
+        Replace = "**Version:** $VersionCore"
         Description = "User guide version"
         Critical = $false
     },
     @{
         File = "docs/development/DEVELOPER_GUIDE_COMPLETE.md"
         Pattern = '\*\*Version:\*\*\s*\d+\.\d+\.\d+'
-        Replace = "**Version:** $Version"
+        Replace = "**Version:** $VersionCore"
         Description = "Developer guide version"
         Critical = $false
     },
     @{
         File = "docs/DOCUMENTATION_INDEX.md"
         Pattern = '\*\*Version\*\*:\s*\d+\.\d+\.\d+'
-        Replace = "**Version**: $Version"
+        Replace = "**Version**: $VersionCore"
         Description = "Documentation index version"
         Critical = $false
     },
     @{
         File = "docs/DOCUMENTATION_INDEX.md"
         Pattern = '\*\*Project Version \(documented\)\*\*:\s*\d+\.\d+\.\d+'
-        Replace = "**Project Version (documented)**: $Version"
+        Replace = "**Project Version (documented)**: $VersionCore"
         Description = "Documentation index documented project version"
         Critical = $false
     },
     @{
         File = "COMMIT_READY.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
-        Replace = "Version: $Version"
+        Replace = "Version: $VersionCore"
         Description = "COMMIT_READY.ps1 version"
         Critical = $false
     },
     @{
         File = "INSTALLER_BUILDER.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
-        Replace = "Version: $Version"
+        Replace = "Version: $VersionCore"
         Description = "INSTALLER_BUILDER.ps1 version"
         Critical = $false
     }
@@ -246,7 +264,7 @@ foreach ($check in $versionChecks) {
             if ($currentMatch -match '\d+\.\d+\.\d+') {
                 $currentVersion = $matches[0]
 
-                if ($currentVersion -eq $Version) {
+                if ($currentVersion -eq $VersionCore) {
                     Write-Success "$($check.Description): $currentVersion (correct)"
                     $results.Consistent++
                 } else {
@@ -254,10 +272,10 @@ foreach ($check in $versionChecks) {
                         # Perform update
                         $newContent = $content -replace $check.Pattern, $check.Replace
                         Set-Content -Path $filePath -Value $newContent -NoNewline
-                        Write-Success "$($check.Description): Updated $currentVersion → $Version"
+                        Write-Success "$($check.Description): Updated $currentVersion → $VersionCore"
                         $results.Updated++
                     } else {
-                        Write-Warning "$($check.Description): $currentVersion (expected: $Version)"
+                        Write-Warning "$($check.Description): $currentVersion (expected: $VersionCore)"
                         $results.Inconsistent++
                     }
                 }
@@ -293,17 +311,17 @@ if ($Update) {
             $lockJson = $lockContent | ConvertFrom-Json -Depth 100
 
             # Update only the root-level version
-            $lockJson.version = $Version
+            $lockJson.version = $VersionCore
 
             # Update the packages."" version (represents the project itself)
             if ($lockJson.packages -and $lockJson.packages.PSObject.Properties['']) {
-                $lockJson.packages.''.version = $Version
+                $lockJson.packages.''.version = $VersionCore
             }
 
             # Convert back to JSON with proper formatting
             $updatedContent = $lockJson | ConvertTo-Json -Depth 100
             Set-Content -Path $packageLockPath -Value $updatedContent -Encoding UTF8
-            Write-Success "Frontend package-lock.json: Updated project version to $Version (dependencies unchanged)"
+            Write-Success "Frontend package-lock.json: Updated project version to $VersionCore (dependencies unchanged)"
             $results.Updated++
         } catch {
             Write-Warning "Could not update package-lock.json: $($_.Exception.Message)"
@@ -344,6 +362,7 @@ if ($Report) {
 
 **Date:** $timestamp
 **Target Version:** $Version
+**Target Version Core:** $VersionCore
 **Mode:** $(if($Update) {'UPDATE'} else {'CHECK ONLY'})
 **Status:** $(if($results.Failed -eq 0 -and $results.Inconsistent -eq 0) {'✅ VERIFIED'} else {'⚠️ ISSUES FOUND'})
 
@@ -378,9 +397,9 @@ if ($Report) {
     $reportContent += "`n`n---`n`n## Next Steps`n`n"
 
     if ($results.Inconsistent -gt 0 -and -not $Update) {
-        $reportContent += "Run with ``-Update`` flag to automatically fix inconsistencies:`n``````powershell`n.\scripts\VERIFY_VERSION.ps1 -Version `"$Version`" -Update`n```````n"
+        $reportContent += "Run with ``-Update`` flag to automatically fix inconsistencies:`n``````powershell`n.\scripts\VERIFY_VERSION.ps1 -Version `"$VersionCore`" -Update`n```````n"
     } elseif ($results.Updated -gt 0) {
-        $reportContent += "✅ All version references updated successfully.`n`nReady for commit:`n``````powershell`ngit add -A`ngit commit -m `"chore: update version to $Version`"`ngit tag -a v$Version -m `"Release v$Version`"`n```````n"
+        $reportContent += "✅ All version references updated successfully.`n`nReady for commit:`n``````powershell`ngit add -A`ngit commit -m `"chore: update version to $Version`"`ngit tag -a $Version -m `"Release $Version`"`n```````n"
     } elseif ($results.Consistent -eq $results.Total) {
         $reportContent += "✅ All version references are consistent and up-to-date.`n`nReady for release!`n"
     }
@@ -398,7 +417,7 @@ if ($results.Failed -gt 0) {
     exit 1
 } elseif ($results.Inconsistent -gt 0 -and -not $Update) {
     Write-Warning "Found $($results.Inconsistent) inconsistent version references"
-    Write-Info "Run with -Update flag to fix: .\scripts\VERIFY_VERSION.ps1 -Version `"$Version`" -Update"
+    Write-Info "Run with -Update flag to fix: .\scripts\VERIFY_VERSION.ps1 -Version `"$VersionCore`" -Update"
     exit 2
 } else {
     Write-Success "Version verification completed successfully!"

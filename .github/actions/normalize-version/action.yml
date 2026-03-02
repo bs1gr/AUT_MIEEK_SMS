@@ -1,0 +1,55 @@
+name: Normalize Version
+description: Validate and normalize version to v1.x.x (tag) and 1.x.x (core)
+
+inputs:
+  version:
+    description: Optional explicit version value to normalize. If empty, reads from version_file.
+    required: false
+    default: ""
+  version_file:
+    description: Relative path to version file used when input version is empty.
+    required: false
+    default: VERSION
+
+outputs:
+  version_tag:
+    description: Normalized tag version in v1.x.x format
+    value: ${{ steps.normalize.outputs.version_tag }}
+  version_core:
+    description: Normalized core semver in 1.x.x format
+    value: ${{ steps.normalize.outputs.version_core }}
+  version:
+    description: Backward-compatible alias for version_core
+    value: ${{ steps.normalize.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - id: normalize
+      shell: pwsh
+      run: |
+        $ErrorActionPreference = 'Stop'
+
+        $raw = "${{ inputs.version }}".Trim()
+        if ([string]::IsNullOrWhiteSpace($raw)) {
+          $filePath = Join-Path $env:GITHUB_WORKSPACE "${{ inputs.version_file }}"
+          if (-not (Test-Path $filePath)) {
+            Write-Error "Version source file not found: $filePath"
+            exit 1
+          }
+          $raw = (Get-Content $filePath -Raw).Trim()
+        }
+
+        if ($raw -notmatch '^v1\.\d+\.\d+$') {
+          Write-Error "Invalid version format '$raw'. Required format: v1.x.x"
+          exit 1
+        }
+
+        $core = $raw -replace '^v', ''
+
+        "version_tag=$raw" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        "version_core=$core" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+        "version=$core" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+        Write-Host "Normalized version (tag): $raw"
+        Write-Host "Normalized version (core): $core"
