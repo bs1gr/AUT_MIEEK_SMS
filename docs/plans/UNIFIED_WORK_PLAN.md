@@ -187,14 +187,23 @@
 - Expected completion: ~10-15 minutes from tag push
 
 **Post-Release Validation** ⏳ PENDING
-- [ ] Verify all 3 workflows succeeded
-- [ ] Confirm release page published
-- [ ] Validate installer and SHA256 assets
-- [ ] Verify code signature (AUT MIEEK)
-- [ ] Confirm SHA256 checksum matches
-- [ ] Test fresh installation scenario
-- [ ] Test upgrade from v1.18.5
-- [ ] Validate analytics features functional
+- [x] Verify all 3 workflows succeeded
+- [x] Confirm release page published
+- [x] Validate installer and SHA256 assets
+- [x] Verify code signature (AUT MIEEK)
+- [x] Confirm SHA256 checksum matches
+- [ ] Test fresh installation scenario (manual VM/clean-host validation pending)
+- [ ] Test upgrade from v1.18.5 (manual upgrade-path validation pending)
+- [x] Validate analytics features functional
+
+**Verification Evidence (Mar 3, 2026):**
+- ✅ Release workflow success: `Create GitHub Release on tag` run `22643331840`
+- ✅ Installer workflow success: `Release - Build & Upload Installer with SHA256` runs `22643084358`, `22643354625`
+- ✅ Sanitizer workflow success: `Release Asset Sanitizer` run `22643286023`
+- ✅ Release assets present: `SMS_Installer_1.18.6.exe` + `SMS_Installer_1.18.6.exe.sha256` (installer-only allowlist)
+- ✅ Signature valid: Authenticode signer `AUT MIEEK` (downloaded installer verification)
+- ✅ SHA256 match verified locally: installer hash equals sidecar hash
+- ✅ Analytics functionality validated: targeted backend analytics tests `21 passed, 15 skipped` and installer smoke validation passed
 
 ## 🔧 Post-Release Improvements (March 2, 2026 - 23:00 UTC)
 
