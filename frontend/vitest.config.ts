@@ -13,16 +13,17 @@ export default defineConfig({
     setupFiles: ['src/setupTests.ts'],
     include: ['src/**/*.{test,spec}.{ts,tsx,js,jsx}'],
     exclude: ['node_modules', 'dist', 'src/__e2e__/**'],
-    // Use forked processes instead of worker threads to mitigate
-    // ERR_WORKER_OUT_OF_MEMORY on large suites in Windows
-    pool: 'forks',
+    // Use worker threads for better isolation/stability with React+jsdom
+    // suites on Windows where forked workers can leak memory.
+    pool: 'threads',
     // Ensure fully serial execution to keep memory usage low
     sequence: {
       files: 'serial',
       tests: 'serial'
     },
+    fileParallelism: false,
     minThreads: 1,
-    maxThreads: 2,
+    maxThreads: 1,
     passWithNoTests: true
   }
 });

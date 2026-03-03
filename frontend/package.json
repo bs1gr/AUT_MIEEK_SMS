@@ -12,7 +12,8 @@
     "ci:install": "npm ci --no-audit --silent",
     "ci:build": "npm run prebuild && vite build --logLevel error",
     "preview": "vite preview",
-    "test": "vitest",
+    "test": "node --max-old-space-size=6144 ./node_modules/vitest/vitest.mjs run",
+    "test:watch": "vitest",
     "lint": "eslint \"src/**/*.{ts,tsx}\"",
     "e2e": "playwright test",
     "generate-icons": "node ../scripts/generate-pwa-icons.js"

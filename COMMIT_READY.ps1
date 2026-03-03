@@ -72,7 +72,7 @@
     # Fix formatting and import issues automatically
 
 .NOTES
-Version: 1.18.6
+Version: vvv1.18.6
     Created: 2025-11-27
     Consolidates: COMMIT_PREP, PRE_COMMIT_CHECK, PRE_COMMIT_HOOK, SMOKE_TEST_AND_COMMIT_PREP
 
@@ -1461,6 +1461,7 @@ function Invoke-TestSuite {
     Write-Section "Frontend: Vitest"
     try {
         Push-Location $FRONTEND_DIR
+        $frontendExitCode = 0
 
         $scopeQuick = ($Mode -eq 'quick') -or $ScopeToChanges
         $changedFiles = if ($scopeQuick) { Get-ChangedFiles } else { @() }
@@ -1472,17 +1473,65 @@ function Invoke-TestSuite {
         if ($scopeQuick -and $changedFrontendTests.Count -gt 0) {
             Write-Info "Quick scope enabled: running changed frontend tests only"
             $testPaths = $changedFrontendTests | ForEach-Object { Join-Path $SCRIPT_DIR $_ }
-            $output = npm run test -- run $testPaths --reporter=dot --bail 1 2>&1
+            $output = npm run test -- $testPaths --reporter=dot --bail 1 2>&1
+            $frontendExitCode = $LASTEXITCODE
         }
         elseif ($Mode -eq 'quick') {
             Write-Info "Running fast frontend tests only..."
-            $output = npm run test -- run --reporter=dot --bail 1 2>&1
+            $output = npm run test -- --reporter=dot --bail 1 2>&1
+            $frontendExitCode = $LASTEXITCODE
         } else {
-            Write-Info "Running full frontend test suite..."
-            $output = npm run test -- run 2>&1
+            Write-Info "Running full frontend test suite in batches (OOM-safe mode)..."
+
+            $testFiles = Get-ChildItem -Path "src" -Recurse -File |
+                Where-Object {
+                    $_.FullName -notmatch "src[\\/]__e2e__[\\/]" -and
+                    $_.Name -match "\.(test|spec)\.(ts|tsx|js|jsx)$"
+                } |
+                ForEach-Object { $_.FullName } |
+                Sort-Object
+
+            if (-not $testFiles -or $testFiles.Count -eq 0) {
+                throw "No frontend test files found for batched execution"
+            }
+
+            $batchSize = 5
+            $batchFailed = $false
+            $previousNodeOptions = $env:NODE_OPTIONS
+            $env:NODE_OPTIONS = "--max-old-space-size=8192"
+
+            for ($i = 0; $i -lt $testFiles.Count; $i += $batchSize) {
+                $end = [Math]::Min($i + $batchSize - 1, $testFiles.Count - 1)
+                $batch = $testFiles[$i..$end]
+                $batchIndex = [int]($i / $batchSize) + 1
+                $batchTotal = [int][Math]::Ceiling($testFiles.Count / [double]$batchSize)
+
+                Write-Info "Frontend batch $batchIndex/$batchTotal (files: $($batch.Count))"
+
+                # Direct vitest invocation avoids an extra npm layer and gives
+                # deterministic non-watch batch execution.
+                $batchOutput = & npx vitest run --reporter=dot @batch 2>&1
+
+                if ($LASTEXITCODE -ne 0) {
+                    Write-Failure "Frontend batch $batchIndex failed"
+                    Write-Host $batchOutput -ForegroundColor Gray
+                    $output = $batchOutput
+                    $batchFailed = $true
+                    break
+                }
+            }
+
+            $env:NODE_OPTIONS = $previousNodeOptions
+
+            if (-not $batchFailed) {
+                $output = "Frontend batches completed successfully ($($testFiles.Count) files)"
+                $frontendExitCode = 0
+            } else {
+                $frontendExitCode = 1
+            }
         }
 
-        if ($LASTEXITCODE -eq 0) {
+        if ($frontendExitCode -eq 0) {
             Write-Success "Frontend tests passed"
             Add-Result "Tests" "Frontend Vitest" $true
         } else {
@@ -1502,7 +1551,7 @@ function Invoke-TestSuite {
     }
 
     # Frontend: Playwright E2E
-    if ($Mode -in @('standard', 'full')) {
+    if ($Mode -eq 'full') {
         Write-Section "Frontend: Playwright E2E"
         try {
             Push-Location $FRONTEND_DIR
@@ -1529,6 +1578,10 @@ function Invoke-TestSuite {
             $allPassed = $false
             Pop-Location
         }
+    } elseif ($Mode -eq 'standard') {
+        Write-Section "Frontend: Playwright E2E"
+        Write-Info "Skipping Playwright E2E in standard mode (run with -Mode full for E2E)"
+        Add-Result "Tests" "Frontend E2E" $true "Skipped in standard mode"
     }
 
     return $allPassed

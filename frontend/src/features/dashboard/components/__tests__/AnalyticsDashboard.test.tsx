@@ -8,6 +8,18 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
 import React from 'react';
 
+const stableI18nMock = {
+  t: (key: string) => key,
+  language: 'en',
+  setLanguage: vi.fn(),
+};
+
+const stableDateTimeMock = {
+  formatDate: (date: Date | string) => new Date(date).toISOString(),
+  formatTime: (date: Date | string) => new Date(date).toLocaleTimeString(),
+  formatDateTime: (date: Date | string) => new Date(date).toISOString(),
+};
+
 // Mock React Router
 vi.mock('react-router-dom', () => ({
   useNavigate: () => vi.fn(),
@@ -53,20 +65,12 @@ vi.mock('../hooks/useAnalyticsExport', () => ({
 
 // Mock LanguageContext
 vi.mock('@/LanguageContext', () => ({
-  useLanguage: () => ({
-    t: (key: string) => key,
-    language: 'en',
-    setLanguage: vi.fn(),
-  }),
+  useLanguage: () => stableI18nMock,
 }));
 
 // Mock DateTimeSettingsContext
 vi.mock('@/contexts/DateTimeSettingsContext', () => ({
-  useDateTimeFormatter: () => ({
-    formatDate: (date: Date) => date.toISOString(),
-    formatTime: (date: Date) => date.toLocaleTimeString(),
-    formatDateTime: (date: Date) => date.toISOString(),
-  }),
+  useDateTimeFormatter: () => stableDateTimeMock,
 }));
 
 // Mock AnalyticsCharts
