@@ -87,4 +87,7 @@ export default {
   autosavePending: 'Changes pending...',
   saving: 'Saving...',
   historicalModeBanner: 'Viewing past date',
+  offlineQueued: 'Offline: changes queued and will sync when connection returns.',
+  queuedSyncCount: '{{count}} queued for sync',
+  syncedQueued: '{{count}} queued change set(s) synced.',
 };

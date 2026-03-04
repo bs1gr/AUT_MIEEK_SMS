@@ -6,6 +6,7 @@ import { useStudents, useStudent, useCreateStudent, useUpdateStudent, useDeleteS
 import { studentsAPI } from '@/api/api';
 import { useStudentsStore } from '@/stores/useStudentsStore';
 import type { Student } from '@/types';
+import { getQueuedStudentUpdates } from '@/features/students/utils/offlineStudentUpdateQueue';
 
 function createWrapper(queryClient: QueryClient) {
   return ({ children }: { children: React.ReactNode }) => (
@@ -64,6 +65,7 @@ describe('useStudentsQuery hooks', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     resetStore();
+    localStorage.clear();
   });
 
   describe('useStudents - basic fetching', () => {
@@ -184,6 +186,26 @@ describe('useStudentsQuery hooks', () => {
       expect(useStudentsStore.getState().students.find((s: Student) => s.id === updated.id)?.first_name).toContain('Updated');
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: studentKeys.lists() });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: studentKeys.detail(updated.id) });
+    });
+
+    it('queues student update when offline and updates store optimistically', async () => {
+      useStudentsStore.getState().setStudents(sampleStudents);
+
+      const networkError = Object.assign(new Error('Network Error'), {
+        code: 'ERR_NETWORK',
+        request: {},
+      });
+      vi.spyOn(studentsAPI, 'update').mockRejectedValueOnce(networkError);
+
+      const queryClient = makeClient();
+      const { result } = renderHook(() => useUpdateStudent(), { wrapper: createWrapper(queryClient) });
+
+      await act(async () => {
+        await result.current.mutateAsync({ id: 1, data: { first_name: 'OfflineUpdated' } });
+      });
+
+      expect(useStudentsStore.getState().students.find((s: Student) => s.id === 1)?.first_name).toBe('OfflineUpdated');
+      expect(getQueuedStudentUpdates().some((item) => item.studentId === 1)).toBe(true);
     });
 
     it('deletes student and invalidates list', async () => {

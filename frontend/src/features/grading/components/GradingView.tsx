@@ -7,6 +7,12 @@ import { Student, Course, Grade, FinalGrade } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import { formatLocalDate } from '@/utils/date';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
+import {
+  enqueueGradeMutation,
+  getQueuedGradeMutationCount,
+  getQueuedGradeMutations,
+  removeQueuedGradeMutation,
+} from '@/features/grading/utils/offlineGradesQueue';
 
 // Evaluation rules are attached to courses; define a lightweight type here (kept internal
 // to avoid premature global expansion until other views standardize it).
@@ -105,6 +111,7 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [error, setError] = useState<string | null>(null);
   const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
   const [historyDate, setHistoryDate] = useState<string>('');
+  const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getQueuedGradeMutationCount());
   const todayStr = formatLocalDate(new Date());
   const isHistoricalMode = Boolean(historyDate && historyDate !== todayStr);
   const summaryReportLink = useMemo(() => {
@@ -118,6 +125,109 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     }
     return `/operations/reports/builder?${params.toString()}`;
   }, [studentId, courseId]);
+
+  const updatePendingSyncCount = useCallback(() => {
+    setPendingSyncCount(getQueuedGradeMutationCount());
+  }, []);
+
+  const isOfflineNetworkError = useCallback((error: unknown) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
+    if (typeof error !== 'object' || error === null) return false;
+
+    const maybeError = error as {
+      code?: string;
+      message?: string;
+      response?: { status?: number };
+      request?: unknown;
+    };
+
+    const message = String(maybeError.message || '');
+    return (
+      maybeError.code === 'ERR_NETWORK' ||
+      maybeError.response?.status === 0 ||
+      (!maybeError.response && Boolean(maybeError.request)) ||
+      /Network Error|Failed to fetch|offline/i.test(message)
+    );
+  }, []);
+
+  const refreshGrades = useCallback(async () => {
+    if (!studentId) return;
+    try {
+      const res = await apiClient.get('/grades/', { params: { student_id: studentId, course_id: courseId || undefined } });
+      const gradesData = res.data?.items || (Array.isArray(res.data) ? res.data : []);
+      setGrades(gradesData as Grade[]);
+    } catch {
+      // ignore refresh errors
+    }
+  }, [studentId, courseId]);
+
+  const flushQueuedGradeMutations = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+    const queue = getQueuedGradeMutations();
+    if (!queue.length) {
+      updatePendingSyncCount();
+      return;
+    }
+
+    let syncedCount = 0;
+    for (const item of queue) {
+      try {
+        if (item.op === 'update' && item.gradeId) {
+          await gradesAPI.update(item.gradeId, item.payload).catch(async (error: unknown) => {
+            const status =
+              typeof error === 'object' && error !== null && 'response' in error
+                ? (error as { response?: { status?: number } }).response?.status
+                : undefined;
+            if (status === 404) {
+              await gradesAPI.create(item.payload);
+              return;
+            }
+            throw error;
+          });
+        } else {
+          await gradesAPI.create(item.payload);
+        }
+
+        removeQueuedGradeMutation(item.id);
+        syncedCount += 1;
+      } catch (error) {
+        if (isOfflineNetworkError(error)) {
+          break;
+        }
+        console.error('[GradingView] Failed to sync queued mutation:', error);
+        break;
+      }
+    }
+
+    updatePendingSyncCount();
+    if (syncedCount > 0) {
+      await refreshGrades();
+      setError(null);
+    }
+  }, [isOfflineNetworkError, refreshGrades, updatePendingSyncCount]);
+
+  useEffect(() => {
+    updatePendingSyncCount();
+
+    const handleOnline = () => {
+      void flushQueuedGradeMutations();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+    }
+
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      void flushQueuedGradeMutations();
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline);
+      }
+    };
+  }, [flushQueuedGradeMutations, updatePendingSyncCount]);
 
   // loadFinal is declared below and memoized with useCallback. Do not define a separate
   // non-memoized loadFinal here — keep the single useCallback instance to satisfy
@@ -396,19 +506,18 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     if (!Number.isFinite(gv) || !Number.isFinite(mg) || mg <= 0) { setError(t('invalidScoreMaxValues')); return; }
     if (gv < 0 || gv > mg) { setError(t('scoreMustBeBetween0AndMax')); return; }
     setSubmitting(true); setError(null);
+    const payload: Omit<Grade, 'id'> = {
+      student_id: Number(studentId),
+      course_id: Number(courseId),
+      assignment_name: assignmentName,
+      category,
+      grade: gv,
+      max_grade: mg,
+      weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
+      date_submitted: historyDate && historyDate !== todayStr ? historyDate : formatLocalDate(new Date()),
+      // optional fields not set: date_assigned, notes
+    };
     try {
-      const payload: Omit<Grade, 'id'> = {
-        student_id: Number(studentId),
-        course_id: Number(courseId),
-        assignment_name: assignmentName,
-        category,
-        grade: gv,
-        max_grade: mg,
-        weight: Number((category === 'Midterm Exam' || category === 'Final Exam' ? '1' : (weight || '1')).replace(',', '.')),
-        date_submitted: historyDate && historyDate !== todayStr ? historyDate : formatLocalDate(new Date()),
-        // optional fields not set: date_assigned, notes
-      };
-
       // Update existing grade or create new one
       if (editingGradeId) {
         await gradesAPI.update(editingGradeId, payload);
@@ -427,6 +536,22 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
       setHistoryDate('');
     } catch (e: unknown) {
+      if (isOfflineNetworkError(e)) {
+        enqueueGradeMutation({
+          op: editingGradeId ? 'update' : 'create',
+          gradeId: editingGradeId || undefined,
+          payload,
+        });
+        updatePendingSyncCount();
+        setError(t('offlineQueued') || 'Offline: grade changes queued and will sync when connection returns.');
+        if (editingGradeId) {
+          setEditingGradeId(null);
+        }
+        setAssignmentName(''); setCategory('Midterm'); setGradeValue(''); setMaxGrade('100'); setWeight('');
+        setHistoryDate('');
+        return;
+      }
+
       // Attempt to extract common API error formats without using `any`
       let apiMsg: string | undefined;
       if (typeof e === 'object' && e !== null && 'response' in e) {
@@ -456,17 +581,24 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">{t('addGrade') || 'Add Grade'}</h2>
-        <button
-          type="button"
-          data-testid="add-grade-button"
-          className="border px-3 py-2 rounded text-sm hover:bg-gray-50"
-          onClick={() => {
-            const el = document.querySelector('[data-testid="grade-form"] input[name="assignmentName"]') as HTMLInputElement | null;
-            el?.focus();
-          }}
-        >
-          {t('addGrade') || 'Add Grade'}
-        </button>
+        <div className="flex items-center gap-2">
+          {pendingSyncCount > 0 && (
+            <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-1 rounded" data-testid="grading-offline-queue-indicator">
+              {t('queuedSyncCount', { count: pendingSyncCount }) || `${pendingSyncCount} queued for sync`}
+            </span>
+          )}
+          <button
+            type="button"
+            data-testid="add-grade-button"
+            className="border px-3 py-2 rounded text-sm hover:bg-gray-50"
+            onClick={() => {
+              const el = document.querySelector('[data-testid="grade-form"] input[name="assignmentName"]') as HTMLInputElement | null;
+              el?.focus();
+            }}
+          >
+            {t('addGrade') || 'Add Grade'}
+          </button>
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <select name="studentId" className="border rounded px-3 py-2" value={studentId === '' ? '' : String(studentId)} onChange={e=>setStudentId(e.target.value? Number(e.target.value): '')} aria-label={t('selectStudent')}>

@@ -17,6 +17,13 @@ import type { Course, Student, TeachingScheduleEntry } from '@/types';
 import { eventBus, EVENTS } from '@/utils/events';
 import apiClient from '@/api/api';
 import { useAutosave } from '@/hooks/useAutosave';
+import {
+  AttendanceSyncSnapshot,
+  enqueueAttendanceSyncSnapshot,
+  getAttendanceSyncQueue,
+  getPendingAttendanceSyncCount,
+  removeAttendanceSyncSnapshot,
+} from '@/features/attendance/utils/offlineAttendanceQueue';
 
 const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
 
@@ -87,6 +94,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const [datesWithAttendance, setDatesWithAttendance] = useState<Set<string>>(new Set());
   const [expandedStudents, setExpandedStudents] = useState<Set<number>>(new Set());
   const [showPeriodBreakdown, setShowPeriodBreakdown] = useState(false);
+  const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getPendingAttendanceSyncCount());
   const todayStr = formatLocalDate(new Date());
 
   // Request deduplication - prevent concurrent duplicate requests
@@ -243,6 +251,229 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 2500);
   };
+
+  const updatePendingSyncCount = useCallback(() => {
+    setPendingSyncCount(getPendingAttendanceSyncCount());
+  }, []);
+
+  const parseAttendanceKey = useCallback((key: string, fallbackDate: string) => {
+    const tokens = key.includes('|') ? key.split('|') : key.split('-');
+    const [studentIdStr, periodNumberStr, storedDate] = tokens;
+    const studentId = parseInt(studentIdStr, 10);
+    const periodNumber = periodNumberStr ? parseInt(periodNumberStr, 10) : 1;
+    return {
+      studentId,
+      periodNumber: Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1,
+      payloadDate: storedDate || fallbackDate,
+    };
+  }, []);
+
+  const isOfflineNetworkError = useCallback((error: unknown) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
+    if (typeof error !== 'object' || error === null) return false;
+
+    const maybeError = error as {
+      code?: string;
+      message?: string;
+      response?: { status?: number };
+      request?: unknown;
+    };
+
+    const message = String(maybeError.message || '');
+    return (
+      maybeError.code === 'ERR_NETWORK' ||
+      maybeError.response?.status === 0 ||
+      (!maybeError.response && Boolean(maybeError.request)) ||
+      /Network Error|Failed to fetch|offline/i.test(message)
+    );
+  }, []);
+
+  const queueAttendanceSnapshot = useCallback((snapshotDate: string) => {
+    const courseId = typeof selectedCourse === 'number' ? selectedCourse : Number(selectedCourse);
+    if (!courseId || !snapshotDate) return false;
+
+    enqueueAttendanceSyncSnapshot({
+      courseId,
+      date: snapshotDate,
+      attendanceRecords: { ...attendanceRecords },
+      dailyPerformance: { ...dailyPerformance },
+    });
+
+    setPersistedAttendanceRecords({ ...attendanceRecords });
+    setPersistedDailyPerformance({ ...dailyPerformance });
+    updatePendingSyncCount();
+    return true;
+  }, [selectedCourse, attendanceRecords, dailyPerformance, updatePendingSyncCount]);
+
+  const syncSnapshotToServer = useCallback(async (snapshot: AttendanceSyncSnapshot) => {
+    const attendanceIdMap: Record<string, number> = {};
+    const performanceIdMap: Record<string, number> = {};
+
+    const attendanceResponse = await apiClient.get(`/attendance/date/${snapshot.date}/course/${snapshot.courseId}`);
+    const attendanceData = Array.isArray(attendanceResponse)
+      ? attendanceResponse
+      : attendanceResponse.data
+        ? (Array.isArray(attendanceResponse.data) ? attendanceResponse.data : [])
+        : [];
+
+    (attendanceData as (RawAttendanceRecord & { id?: number })[]).forEach((record) => {
+      if (!record?.student_id) return;
+      const periodNumber = Number(record.period_number ?? 1);
+      const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
+      const recordDate = formatLocalDate(record.date || snapshot.date);
+      const key = `${record.student_id}|${safePeriod}|${recordDate}`;
+      if (record.id) attendanceIdMap[key] = record.id;
+    });
+
+    try {
+      const performanceResponse = await apiClient.get(`/daily-performance/date/${snapshot.date}/course/${snapshot.courseId}`);
+      const performanceData = Array.isArray(performanceResponse)
+        ? performanceResponse
+        : performanceResponse.data
+          ? (Array.isArray(performanceResponse.data) ? performanceResponse.data : [])
+          : [];
+
+      (performanceData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((record) => {
+        const key = `${record.student_id}-${record.category}`;
+        if (record.id) performanceIdMap[key] = record.id;
+      });
+    } catch (error) {
+      if (!(isResponseLike(error) && error.response?.status === 404)) {
+        throw error;
+      }
+    }
+
+    const attendancePromises = Object.entries(snapshot.attendanceRecords).map(([key, status]) => {
+      const parsed = parseAttendanceKey(key, snapshot.date);
+      if (!parsed.studentId) return Promise.resolve(null);
+
+      const normalizedKey = `${parsed.studentId}|${parsed.periodNumber}|${parsed.payloadDate}`;
+      const recordId = attendanceIdMap[normalizedKey];
+
+      if (recordId) {
+        return apiClient.put(`/attendance/${recordId}`, { status }).catch((error) => {
+          if (isResponseLike(error) && error.response?.status === 404) {
+            return apiClient.post(`/attendance/`, {
+              student_id: parsed.studentId,
+              course_id: snapshot.courseId,
+              date: parsed.payloadDate,
+              status,
+              period_number: parsed.periodNumber,
+              notes: '',
+            });
+          }
+          throw error;
+        });
+      }
+
+      return apiClient.post(`/attendance/`, {
+        student_id: parsed.studentId,
+        course_id: snapshot.courseId,
+        date: parsed.payloadDate,
+        status,
+        period_number: parsed.periodNumber,
+        notes: '',
+      });
+    });
+
+    const performancePromises = Object.entries(snapshot.dailyPerformance).map(([key, score]) => {
+      const [studentIdStr, category] = key.split('-');
+      const studentId = parseInt(studentIdStr, 10);
+      if (!studentId || !category) return Promise.resolve(null);
+
+      const recordId = performanceIdMap[key];
+      if (recordId) {
+        return apiClient.put(`/daily-performance/${recordId}`, { score, max_score: 10.0 }).catch((error) => {
+          if (isResponseLike(error) && error.response?.status === 404) {
+            return apiClient.post(`/daily-performance/`, {
+              student_id: studentId,
+              course_id: snapshot.courseId,
+              date: snapshot.date,
+              category,
+              score,
+              max_score: 10.0,
+              notes: '',
+            });
+          }
+          throw error;
+        });
+      }
+
+      return apiClient.post(`/daily-performance/`, {
+        student_id: studentId,
+        course_id: snapshot.courseId,
+        date: snapshot.date,
+        category,
+        score,
+        max_score: 10.0,
+        notes: '',
+      });
+    });
+
+    const allPromises = [...attendancePromises, ...performancePromises];
+    const CHUNK_SIZE = 30;
+    for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
+      await Promise.all(allPromises.slice(i, i + CHUNK_SIZE));
+      if (i + CHUNK_SIZE < allPromises.length) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
+  }, [parseAttendanceKey]);
+
+  const flushQueuedSnapshots = useCallback(async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+
+    const queue = getAttendanceSyncQueue();
+    if (!queue.length) {
+      updatePendingSyncCount();
+      return;
+    }
+
+    let syncedCount = 0;
+    for (const snapshot of queue) {
+      try {
+        await syncSnapshotToServer(snapshot);
+        removeAttendanceSyncSnapshot(snapshot.id);
+        syncedCount += 1;
+      } catch (error) {
+        if (isOfflineNetworkError(error)) {
+          break;
+        }
+        console.error('[Attendance] Failed to sync queued snapshot:', error);
+        break;
+      }
+    }
+
+    updatePendingSyncCount();
+    if (syncedCount > 0) {
+      showToast(t('syncedQueued', { count: syncedCount }) || `${syncedCount} queued change set(s) synced.`, 'success');
+      if (selectedCourse && selectedDate) {
+        await refreshAttendancePrefill();
+      }
+    }
+  }, [isOfflineNetworkError, refreshAttendancePrefill, selectedCourse, selectedDate, syncSnapshotToServer, t, updatePendingSyncCount]);
+
+  useEffect(() => {
+    updatePendingSyncCount();
+
+    const handleOnline = () => {
+      void flushQueuedSnapshots();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+    }
+
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      void flushQueuedSnapshots();
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline);
+      }
+    };
+  }, [flushQueuedSnapshots, updatePendingSyncCount]);
 
 
   const translateStatusLabel = (status: string) => {
@@ -907,6 +1138,13 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     setLoading(true);
     try {
       const dateStr = selectedDate ? formatLocalDate(selectedDate) : '';
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        if (queueAttendanceSnapshot(dateStr)) {
+          showToast(t('offlineQueued') || 'Offline: changes queued and will sync when connection returns.', 'success');
+          return;
+        }
+      }
+
       console.warn('[Attendance] Saving - attendanceRecords:', attendanceRecords);
       console.warn('[Attendance] Saving - recordIds:', attendanceRecordIds);
 
@@ -1060,11 +1298,18 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       // Keep the fetched values so dirty detection sees a clean state.
       showToast(t('savedSuccessfully') || 'Saved successfully', 'success');
     } catch (e) {
+      if (isOfflineNetworkError(e)) {
+        const dateStr = selectedDate ? formatLocalDate(selectedDate) : '';
+        if (queueAttendanceSnapshot(dateStr)) {
+          showToast(t('offlineQueued') || 'Offline: changes queued and will sync when connection returns.', 'success');
+          return;
+        }
+      }
       console.error('[Attendance] Save error:', e);
       showToast(t('saveFailed') || 'Save failed', 'error');
       throw e; // Re-throw for autosave error handling
     } finally { setLoading(false); }
-  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t, refreshAttendancePrefill]);
+  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t, refreshAttendancePrefill, isOfflineNetworkError, queueAttendanceSnapshot]);
 
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
@@ -1104,13 +1349,25 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
             <p className="text-gray-600">{t('trackAttendanceDaily') || 'Track attendance and rate daily performance'}</p>
           </div>
         </div>
-        {/* Autosave Indicator */}
-        {(isAutosaving || autosavePending) && (
-          <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
-            <CloudUpload size={16} className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} />
-            <span>{isAutosaving ? (t('saving') || 'Saving...') : (t('autosavePending') || 'Changes pending...')}</span>
-          </div>
-        )}
+        <div className="flex flex-col sm:flex-row gap-2">
+          {pendingSyncCount > 0 && (
+            <div
+              className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg"
+              data-testid="attendance-offline-queue-indicator"
+            >
+              <AlertCircle size={16} className="text-amber-600" />
+              <span>{t('queuedSyncCount', { count: pendingSyncCount }) || `${pendingSyncCount} queued for sync`}</span>
+            </div>
+          )}
+
+          {/* Autosave Indicator */}
+          {(isAutosaving || autosavePending) && (
+            <div className="flex items-center gap-2 text-sm text-gray-600 bg-blue-50 px-3 py-2 rounded-lg">
+              <CloudUpload size={16} className={isAutosaving ? 'animate-pulse text-blue-600' : 'text-gray-400'} />
+              <span>{isAutosaving ? (t('saving') || 'Saving...') : (t('autosavePending') || 'Changes pending...')}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {isHistoricalMode && (
