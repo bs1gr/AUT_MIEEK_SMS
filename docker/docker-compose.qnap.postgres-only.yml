@@ -1,0 +1,50 @@
+services:
+  postgres:
+    image: arm32v7/postgres:14-bullseye
+    platform: linux/arm/v7
+    container_name: sms-postgres-qnap
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sms_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+      POSTGRES_DB: ${POSTGRES_DB:-student_management}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      POSTGRES_INITDB_ARGS: "--auth=scram-sha-256"
+    command:
+      - postgres
+      - -c
+      - password_encryption=scram-sha-256
+      - -c
+      - max_connections=${POSTGRES_MAX_CONNECTIONS:-150}
+      - -c
+      - shared_buffers=${POSTGRES_SHARED_BUFFERS:-256MB}
+      - -c
+      - log_min_duration_statement=${POSTGRES_LOG_MIN_DURATION_MS:-300}
+    volumes:
+      - type: bind
+        source: ${QNAP_POSTGRES_DATA_PATH:-/share/Container/sms-postgres}
+        target: /var/lib/postgresql/data
+    ports:
+      - "${QNAP_PG_BIND_IP:?Set QNAP_PG_BIND_IP}:${QNAP_PG_PORT:-55433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sms_user} -d ${POSTGRES_DB:-student_management}"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    labels:
+      - "com.sms.service=database"
+      - "com.sms.deployment=qnap-postgres-only"

@@ -6,6 +6,21 @@ This directory contains scripts for deploying and managing the Student Managemen
 
 ### 🚀 Installation & Setup
 
+#### `install-qnap-postgres-only.sh`
+
+**Purpose**: Deploy PostgreSQL only on QNAP for shared DB architecture (app runtime stays on VPS/native host)
+
+**Usage**:
+
+```bash
+./install-qnap-postgres-only.sh
+```
+
+**Notes**:
+- Uses `docker/docker-compose.qnap.postgres-only.yml`
+- Creates `.env.qnap.postgres-only` from example if missing
+- Intended for "common PostgreSQL online on QNAP" topology
+
 #### `install-qnap.sh`
 
 **Purpose**: Automated installation of SMS on QNAP NAS
@@ -44,6 +59,24 @@ This directory contains scripts for deploying and managing the Student Managemen
 ---
 
 ### 🔧 Management
+
+#### `manage-qnap-postgres-only.sh`
+
+**Purpose**: Operate PostgreSQL-only QNAP deployment
+
+**Usage**:
+
+```bash
+./manage-qnap-postgres-only.sh start
+./manage-qnap-postgres-only.sh status
+./manage-qnap-postgres-only.sh backup
+./manage-qnap-postgres-only.sh psql-url
+```
+
+**Key Commands**:
+- `start`, `stop`, `restart`, `status`, `logs`
+- `backup` / `restore <file.sql.gz>`
+- `psql-url` (prints `DATABASE_URL` template)
 
 #### `manage-qnap.sh`
 
