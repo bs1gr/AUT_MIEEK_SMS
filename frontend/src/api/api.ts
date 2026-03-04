@@ -1085,6 +1085,14 @@ export interface HealthStatus {
   docker?: string;
   database?: string;
   db?: string;
+  database_target?: {
+    engine?: string;
+    host?: string | null;
+    port?: number | null;
+    database?: string | null;
+    is_remote?: boolean;
+    driver?: string | null;
+  };
   network?: {
     ips?: string[];
   };

@@ -264,6 +264,29 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
     }
   }, [isRestarting, status.backend]);
 
+  const databaseTarget = healthData?.database_target;
+  const databaseTargetLabel = useMemo(() => {
+    if (!databaseTarget || typeof databaseTarget !== 'object') {
+      return null;
+    }
+
+    const engine = typeof databaseTarget.engine === 'string' ? databaseTarget.engine : null;
+    const host = typeof databaseTarget.host === 'string' ? databaseTarget.host : null;
+    const port = typeof databaseTarget.port === 'number' ? databaseTarget.port : null;
+    const dbName = typeof databaseTarget.database === 'string' ? databaseTarget.database : null;
+
+    if (engine === 'postgresql' && host) {
+      const hostPort = port ? `${host}:${port}` : host;
+      return dbName ? `${hostPort}/${dbName}` : hostPort;
+    }
+
+    if (engine === 'sqlite' && dbName) {
+      return dbName;
+    }
+
+    return null;
+  }, [databaseTarget]);
+
   const handleRestart = async () => {
     if (healthData?.environment === 'docker') {
       setStatus(prev => ({
@@ -607,6 +630,21 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
         <div className="rounded-lg border p-3">
           <div className="text-xs text-gray-500">{t('database')}</div>
           <div className="text-sm font-semibold">{healthData?.database || healthData?.db || t('unknown')}</div>
+          {databaseTargetLabel && (
+            <div className="mt-1 text-xs text-gray-600 break-all" data-testid="db-target-evidence">
+              {t('databaseTarget')}: <span className="font-mono">{databaseTargetLabel}</span>
+            </div>
+          )}
+          {databaseTarget?.engine && (
+            <div className="mt-1 text-xs text-gray-600">
+              {t('databaseEngine')}: <span className="font-semibold">{databaseTarget.engine}</span>
+            </div>
+          )}
+          {databaseTarget?.is_remote === true && (
+            <div className="mt-1 inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+              {t('databaseRemoteConnected')}
+            </div>
+          )}
         </div>
         <div className="rounded-lg border p-3">
           <div className="text-xs text-gray-500">{t('students')}</div>

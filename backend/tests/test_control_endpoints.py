@@ -4,6 +4,7 @@ import sys
 import uuid
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import HTTPException
@@ -30,6 +31,42 @@ def test_control_status_monkeypatched(monkeypatch, client):
     assert resp.status_code == 200
     data = resp.json()
     assert "backend" in data and "frontend" in data
+
+
+def test_diagnostics_reports_remote_postgres(monkeypatch, client):
+    monkeypatch.setattr("backend.routers.control.base._cache_get", lambda *args, **kwargs: None)
+    monkeypatch.setattr("backend.routers.control.base._cache_set", lambda *args, **kwargs: None)
+    monkeypatch.setattr("backend.routers.control.base.in_docker_container", lambda: False)
+    monkeypatch.setattr("backend.routers.control.base.check_node_installed", lambda: (True, "v20.19.5"))
+    monkeypatch.setattr("backend.routers.control.base.check_npm_installed", lambda: (True, "11.6.2"))
+    monkeypatch.setattr("backend.routers.control.base.check_docker_running", lambda: False)
+    monkeypatch.setattr(
+        "backend.config.settings.DATABASE_URL",
+        "postgresql+psycopg://sms_user:secret@172.16.0.2:55433/student_management?sslmode=prefer",
+        raising=False,
+    )
+
+    row = MagicMock()
+    row.__getitem__.return_value = "abc123"
+    conn = MagicMock()
+    conn.execute.return_value.fetchone.return_value = row
+    engine_ctx = MagicMock()
+    engine_ctx.__enter__.return_value = conn
+    monkeypatch.setattr("backend.routers.control.base.engine.connect", lambda: engine_ctx)
+
+    resp = client.get("/control/api/diagnostics")
+    assert resp.status_code == 200
+    data = resp.json()
+
+    db_entry = next(item for item in data if item["category"] == "Database")
+    assert db_entry["status"] == "ok"
+    assert "Remote database reachable" in db_entry["message"]
+    assert "Database file not found" not in db_entry["message"]
+    assert db_entry["details"]["engine"] == "postgresql"
+    assert db_entry["details"]["host"] == "172.16.0.2"
+    assert db_entry["details"]["port"] == 55433
+    assert db_entry["details"]["database"] == "student_management"
+    assert db_entry["details"]["sslmode"] == "prefer"
 
 
 def test_control_start_npm_missing(monkeypatch, client):

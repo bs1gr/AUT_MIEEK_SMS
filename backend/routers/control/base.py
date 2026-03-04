@@ -14,6 +14,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Request, Response
 from pydantic import BaseModel
 from sqlalchemy import text
+from sqlalchemy.engine import make_url
 
 from backend.db import engine  # Use existing engine instead of creating new ones
 
@@ -246,34 +247,69 @@ async def run_diagnostics(response: Response):
     try:
         from backend.config import settings
 
-        db_path = settings.DATABASE_URL.replace("sqlite:///", "")
-        if os.path.exists(db_path):
-            size = os.path.getsize(db_path)
-            schema_version = "Unknown"
-            try:
-                # Use existing app engine instead of creating a new one
-                # This prevents repeated Alembic context initialization logging
-                with engine.connect() as conn:
-                    row = conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1")).fetchone()
-                    if row:
-                        schema_version = row[0]
-            except Exception as exc:
-                logger.warning("Failed to retrieve alembic version", extra={"error": str(exc)})
+        db_url = settings.DATABASE_URL
+        parsed_url = make_url(db_url)
+        backend_name = parsed_url.get_backend_name()
+
+        schema_version = "Unknown"
+        try:
+            # Use existing app engine instead of creating a new one
+            # This prevents repeated Alembic context initialization logging
+            with engine.connect() as conn:
+                row = conn.execute(text("SELECT version_num FROM alembic_version LIMIT 1")).fetchone()
+                if row:
+                    schema_version = row[0]
+        except Exception as exc:
+            logger.warning("Failed to retrieve alembic version", extra={"error": str(exc)})
+
+        if backend_name == "sqlite":
+            db_path = parsed_url.database or ""
+            if db_path and os.path.exists(db_path):
+                size = os.path.getsize(db_path)
+                results.append(
+                    DiagnosticResult(
+                        category="Database",
+                        status="ok",
+                        message=f"Database operational ({size // 1024} KB)",
+                        details={"path": db_path, "size_bytes": size, "sms_schema_version": schema_version},
+                    )
+                )
+            else:
+                results.append(
+                    DiagnosticResult(
+                        category="Database",
+                        status="warning",
+                        message="Database file not found (will be created on first run)",
+                        details={"path": db_path},
+                    )
+                )
+        else:
+            details = {
+                "engine": backend_name,
+                "host": parsed_url.host,
+                "port": parsed_url.port,
+                "database": parsed_url.database,
+                "sms_schema_version": schema_version,
+            }
+            if isinstance(parsed_url.query, dict) and "sslmode" in parsed_url.query:
+                sslmode_raw = parsed_url.query.get("sslmode")
+                if isinstance(sslmode_raw, tuple):
+                    details["sslmode"] = ",".join(sslmode_raw)
+                elif sslmode_raw is not None:
+                    details["sslmode"] = str(sslmode_raw)
+
+            endpoint = parsed_url.host or "configured remote database"
+            if parsed_url.port:
+                endpoint = f"{endpoint}:{parsed_url.port}"
+            if parsed_url.database:
+                endpoint = f"{endpoint}/{parsed_url.database}"
+
             results.append(
                 DiagnosticResult(
                     category="Database",
                     status="ok",
-                    message=f"Database operational ({size // 1024} KB)",
-                    details={"path": db_path, "size_bytes": size, "sms_schema_version": schema_version},
-                )
-            )
-        else:
-            results.append(
-                DiagnosticResult(
-                    category="Database",
-                    status="warning",
-                    message="Database file not found (will be created on first run)",
-                    details={"path": db_path},
+                    message=f"Remote database reachable ({endpoint})",
+                    details=details,
                 )
             )
     except Exception as e:

@@ -15,6 +15,8 @@ def test_health_endpoint(client):
     assert "courses" in data["statistics"]
     assert "services" in data
     assert "network" in data
+    assert "database_target" in data
+    assert data["database_target"]["engine"] in {"sqlite", "postgresql", "unknown"}
 
 
 def test_root_endpoint(client):

@@ -7,6 +7,7 @@ import logging
 import os
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
@@ -24,6 +25,52 @@ from backend.router_registry import register_routers
 from backend.tracing import setup_tracing
 
 logger = logging.getLogger(__name__)
+
+
+def _build_database_target_evidence() -> dict:
+    """Build non-sensitive database target details for health overlays."""
+    from backend.config import settings
+
+    engine_name = str(getattr(settings, "DATABASE_ENGINE", "unknown") or "unknown").lower()
+    details: dict[str, object] = {
+        "engine": engine_name,
+        "host": None,
+        "port": None,
+        "database": None,
+        "is_remote": False,
+        "driver": None,
+    }
+
+    if engine_name == "postgresql":
+        host = getattr(settings, "POSTGRES_HOST", None)
+        port = getattr(settings, "POSTGRES_PORT", None)
+        db_name = getattr(settings, "POSTGRES_DB", None)
+
+        if not host and getattr(settings, "DATABASE_URL", None):
+            try:
+                parsed = urlparse(str(settings.DATABASE_URL))
+                host = parsed.hostname
+                port = parsed.port
+                db_name = parsed.path.lstrip("/") or db_name
+                details["driver"] = parsed.scheme
+            except Exception:
+                pass
+
+        details["host"] = host
+        details["port"] = port
+        details["database"] = db_name
+        details["is_remote"] = bool(host and host not in {"localhost", "127.0.0.1", "::1"})
+        return details
+
+    if engine_name == "sqlite":
+        db_url = str(getattr(settings, "DATABASE_URL", "") or "")
+        path = None
+        if "sqlite:///" in db_url:
+            path = db_url.split("sqlite:///", 1)[-1]
+        details["database"] = path
+        return details
+
+    return details
 
 
 def get_version() -> str:
@@ -163,6 +210,7 @@ def _register_health_endpoints(app: FastAPI):
 
             legacy_overlay = {
                 "database": database_str,
+                "database_target": _build_database_target_evidence(),
                 "services": {k: v.get("status", "unknown") for k, v in checks.items()},
                 "network": {
                     "hostname": system.get("hostname"),
