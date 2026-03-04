@@ -32,6 +32,50 @@ docker compose -f docker-compose.qnap.yml logs -f
 ```text
 Open `http://<NAS-IP>:8080/`.
 
+---
+
+## 🗄️ QNAP PostgreSQL-Only (Recommended for VPS Runtime)
+
+If you want a **single common database online on QNAP** while running the app on a VPS/native host, use the dedicated PostgreSQL-only stack.
+
+### Why this mode
+
+- Keeps QNAP focused on database durability and snapshots
+- Avoids running full app stack on constrained NAS hardware
+- Lets VPS handle API/frontend scaling
+
+### Files
+
+- Compose: `docker/docker-compose.qnap.postgres-only.yml`
+- Env template: `.env.qnap.postgres-only.example`
+- Installer: `scripts/qnap/install-qnap-postgres-only.sh`
+- Manager: `scripts/qnap/manage-qnap-postgres-only.sh`
+
+### Quick start
+
+```bash
+cd /share/Container/AUT_MIEEK_SMS
+cp .env.qnap.postgres-only.example .env.qnap.postgres-only
+# Set QNAP_PG_BIND_IP to private/VPN interface (WireGuard/Tailscale/LAN)
+./scripts/qnap/install-qnap-postgres-only.sh
+./scripts/qnap/manage-qnap-postgres-only.sh status
+```
+
+### Security requirements (mandatory)
+
+- Do **not** expose PostgreSQL directly to public internet.
+- Bind to private/VPN interface only (`QNAP_PG_BIND_IP`).
+- Allow access only from app host IP/VPN peers via firewall rules.
+- Use strong `POSTGRES_PASSWORD` and SCRAM auth (enabled in compose).
+
+### App connection (VPS/backend)
+
+Set backend `DATABASE_URL` to:
+
+`postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<QNAP_PRIVATE_OR_VPN_IP>:<QNAP_PG_PORT>/<POSTGRES_DB>`
+
+Then run normal app deployment on VPS side.
+
 **Data volume:** `sms_data_qnap` (change to a bind mount if you prefer a shared folder).
 
 **Upgrade / restart:**

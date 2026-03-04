@@ -222,19 +222,19 @@
 - ✅ **Release Ownership**: Removed tag trigger from monolithic CI (eliminated overlap with `release-on-tag.yml`)
   - Problem: 3 workflows could trigger releases (non-deterministic)
   - Solution: Centralized release creation to `release-on-tag.yml` only
-  
+
 - ✅ **Version Format Enforcement**: Changed regex from `^v?1\.\d+\.\d+$` to strict `^v1\.\d+\.\d+$`
   - Enforces Policy 2 version format requirements
   - Prevents invalid version numbers from entering pipeline
-  
+
 - ✅ **Lint Gate Restoration**: Removed `npm run lint || exit 0` unconditional success
   - Problem: ESLint failures were being silently ignored
   - Solution: Restored proper error gating; linting failures now block pipeline
-  
+
 - ✅ **Docker Publish Cleanup**: Removed duplicate `create-release` job
   - Already centralized in `release-on-tag.yml`
   - Prevents release asset duplication
-  
+
 - ✅ **Sanitizer Optimization**: Reduced cron frequency from `*/5 * * * *` to `15 * * * *`
   - Maintains hourly enforcement of installer-only policy
   - Reduces aggressive polling overhead

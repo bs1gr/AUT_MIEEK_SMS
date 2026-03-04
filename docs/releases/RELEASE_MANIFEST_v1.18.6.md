@@ -1,8 +1,8 @@
 # Release Manifest - v1.18.6
 
-**Release Version**: 1.18.6  
-**Release Date**: March 2, 2026  
-**Release Type**: Feature Release  
+**Release Version**: 1.18.6
+**Release Date**: March 2, 2026
+**Release Type**: Feature Release
 **Git Tag**: v1.18.6
 
 ---
@@ -21,7 +21,7 @@
 ### Code Signing
 
 **Certificate Details**:
-- **Issuer**: AUT MIEEK  
+- **Issuer**: AUT MIEEK
 - **Algorithm**: SHA256RSA
 - **Status**: ⏳ Awaiting signature verification
 
@@ -140,8 +140,8 @@ SHA256: <pending build>
 
 ### Code Changes
 
-**Modified Files**: 36  
-**Lines Added**: 5,587+  
+**Modified Files**: 36
+**Lines Added**: 5,587+
 **Lines Deleted**: Minimal (refactoring only)
 
 **Backend Services**:
@@ -207,8 +207,8 @@ SHA256: <pending build>
 
 ### Installer Build
 
-**Tool**: Inno Setup 6+  
-**Script**: `installer/SMS_Installer.iss`  
+**Tool**: Inno Setup 6+
+**Script**: `installer/SMS_Installer.iss`
 **Version**: 1.18.6 (auto-detected from VERSION file)
 
 **Compiler Options**:
@@ -224,9 +224,9 @@ SHA256: <pending build>
 
 ### GitHub Actions Environment
 
-**Runner**: `ubuntu-latest` (workflow creation/sanitizer)  
-**Runner**: `windows-latest` (installer build)  
-**Timeout**: 15 minutes per workflow  
+**Runner**: `ubuntu-latest` (workflow creation/sanitizer)
+**Runner**: `windows-latest` (installer build)
+**Timeout**: 15 minutes per workflow
 **Concurrency**: Sequential execution required
 
 ---
@@ -266,7 +266,6 @@ Release is considered **complete and verified** when:
 
 ---
 
-**Manifest Version**: 1.0  
-**Last Updated**: 2026-03-02  
+**Manifest Version**: 1.0
+**Last Updated**: 2026-03-02
 **Maintained By**: Solo Developer + AI Assistant
-

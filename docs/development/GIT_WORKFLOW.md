@@ -297,8 +297,8 @@ Preferred pattern in workflows:
 
 ```yaml
 - name: Normalize version from VERSION file
-	id: version
-	uses: ./.github/actions/normalize-version
+ id: version
+ uses: ./.github/actions/normalize-version
 
 # Then consume outputs:
 # steps.version.outputs.version_tag   -> v1.x.x

@@ -1,7 +1,7 @@
 # Deployment Checklist - v1.18.6
 
-**Release Version**: 1.18.6  
-**Release Date**: March 2, 2026  
+**Release Version**: 1.18.6
+**Release Date**: March 2, 2026
 **Deployment Type**: Automated + Manual Verification
 
 ---
@@ -10,7 +10,7 @@
 
 This checklist ensures complete verification of the v1.18.6 release deployment. Follow all steps sequentially for production-ready validation.
 
-**Estimated Time**: 30-45 minutes  
+**Estimated Time**: 30-45 minutes
 **Prerequisites**: Access to GitHub, Docker environment, test system
 
 ---
@@ -53,7 +53,7 @@ This checklist ensures complete verification of the v1.18.6 release deployment. 
 - [ ] **Release is "Latest"**: Latest badge visible
 - [ ] **Release body correct**: Matches GITHUB_RELEASE_v1.18.6.md
 
-**Expected Duration**: ~2 minutes  
+**Expected Duration**: ~2 minutes
 **Troubleshooting**: Check workflow logs if failed
 
 #### Workflow 2: Build & Upload Installer with SHA256
@@ -63,7 +63,7 @@ This checklist ensures complete verification of the v1.18.6 release deployment. 
 - [ ] **Checksum uploaded**: SMS_Installer_1.18.6.exe.sha256 present
 - [ ] **File sizes reasonable**: Installer ~25-30 MB
 
-**Expected Duration**: ~5-8 minutes  
+**Expected Duration**: ~5-8 minutes
 **Troubleshooting**: Check Inno Setup logs in workflow
 
 #### Workflow 3: Release Asset Sanitizer
@@ -72,7 +72,7 @@ This checklist ensures complete verification of the v1.18.6 release deployment. 
 - [ ] **Only approved assets**: Installer + SHA256 only
 - [ ] **No extra artifacts**: Generic CI artifacts removed
 
-**Expected Duration**: ~1 minute  
+**Expected Duration**: ~1 minute
 **Troubleshooting**: Check sanitizer logs
 
 ### 2.2 Workflow Summary
@@ -526,9 +526,8 @@ git push origin main
 
 ---
 
-**Checklist Version**: 1.0  
-**Last Updated**: 2026-03-02  
+**Checklist Version**: 1.0
+**Last Updated**: 2026-03-02
 **Maintained By**: Solo Developer + AI Assistant
 
 **Remember**: This checklist ensures production-ready deployment. Don't skip steps! 🎯
-

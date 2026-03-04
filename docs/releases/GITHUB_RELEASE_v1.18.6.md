@@ -32,7 +32,7 @@ Version 1.18.6 brings back the comprehensive analytics platform with dashboard v
 4. Report Preview - Real-time validation
 5. Report Template - Save and reuse configurations
 
-### Predictive Analytics  
+### Predictive Analytics
 - ML-based student risk assessment
 - Performance prediction models
 - At-risk student identification
@@ -77,7 +77,7 @@ Version 1.18.6 brings back the comprehensive analytics platform with dashboard v
 - `usePredictiveAnalytics.ts` (148 lines) - Data fetching
 
 **Utilities**:
-- `dataOptimization.ts` (351 lines) - Performance optimization  
+- `dataOptimization.ts` (351 lines) - Performance optimization
 - `chartAnimations.ts` (238 lines) - Animation configs
 
 ---
@@ -117,7 +117,7 @@ Download `SMS_Installer_1.18.6.exe` from the assets below.
 
 **Code Changes**:
 - Backend: 3 services, 20+ endpoints, 23 tests (1,192 lines)
-- Frontend: 15+ components, 2 hooks, utilities (2,000+ lines)  
+- Frontend: 15+ components, 2 hooks, utilities (2,000+ lines)
 - Total: **36 files changed, 5,587+ lines added**
 
 **Test Coverage**:
@@ -190,7 +190,7 @@ Download `SMS_Installer_1.18.6.exe` from the assets below.
 - ✅ Git tag created and workflows triggered
 
 ### Post-Release Verification
-- Monitor GitHub Actions workflows  
+- Monitor GitHub Actions workflows
 - Verify installer build (SMS_Installer_1.18.6.exe)
 - Check SHA256 checksum accuracy
 - Test fresh installation scenario
@@ -224,8 +224,8 @@ Download `SMS_Installer_1.18.6.exe` from the assets below.
 
 ## 👥 Credits
 
-**Developed by**: Solo Developer + AI Assistant  
-**Institution**: ΜΙΕΕΚ Cyprus Technical College  
+**Developed by**: Solo Developer + AI Assistant
+**Institution**: ΜΙΕΕΚ Cyprus Technical College
 **License**: See [LICENSE](LICENSE)
 
 ---
@@ -248,5 +248,3 @@ Get-FileHash "SMS_Installer_1.18.6.exe" -Algorithm SHA256
 ---
 
 **Thank you for using Student Management System! 🎓**
-
-
