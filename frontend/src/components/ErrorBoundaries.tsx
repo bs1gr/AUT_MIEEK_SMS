@@ -79,18 +79,18 @@ class SectionErrorBoundaryCore extends Component<SectionErrorBoundaryCoreProps, 
       // Default fallback UI
       return (
         <div className="p-8 border-2 border-dashed border-rose-200 rounded-md bg-rose-50 text-center">
-          <div className="text-2xl mb-2">{this.props.t('iconWarning', { ns: 'errors' }) || '⚠️'}</div>
+          <div className="text-2xl mb-2">{this.props.t('iconWarning', { defaultValue: '⚠️' })}</div>
           <h3 className="text-lg font-semibold text-rose-800 mb-2">
-            {this.props.t('sectionError', { ns: 'errors' }) || `Error in ${section || 'this section'}`}
+            {this.props.t('sectionError', { section: section || 'this section', defaultValue: `Error in ${section || 'this section'}` })}
           </h3>
           <p className="text-sm text-rose-700 mb-4">
-            {this.props.t('sectionErrorDesc', { ns: 'errors' }) || 'This section encountered an error, but the rest of the app is still working.'}
+            {this.props.t('sectionErrorDesc', { defaultValue: 'This section encountered an error, but the rest of the app is still working.' })}
           </p>
           <button
             onClick={this.handleRetry}
             className="px-4 py-2 bg-rose-600 text-white rounded-md text-sm font-medium hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500"
           >
-            {this.props.t('retry') || 'Retry'}
+            {this.props.t('common.retry', { defaultValue: 'Retry' })}
           </button>
         </div>
       );

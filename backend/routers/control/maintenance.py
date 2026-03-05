@@ -886,23 +886,8 @@ def _fetch_github_release(channel: Literal["stable", "preview"] = "stable") -> O
     if channel == "preview":
         return _fetch_github_preview_release()
 
-    # Stable: use latest stable release endpoint/flow
-    # 1) Try gh CLI (fast + supports auth automatically if configured)
-    try:
-        result = subprocess.run(
-            ["gh", "release", "view", "--json", "tagName,name,body,htmlUrl,assets"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-            **_hidden_window_kwargs(),
-        )
-        if result.returncode == 0:
-            raw = json.loads(result.stdout)
-            return _normalize_release(raw)
-    except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError) as exc:
-        logger.debug("gh CLI release fetch failed; falling back", extra={"error": str(exc)})
-
-    # 2) Fallback to GitHub REST API
+    # Stable: use GitHub REST API (avoids gh CLI subprocess which can crash
+    # with 0xc0000142 DLL init failure under uvicorn's reloader on Windows)
     try:
         import urllib.request
 

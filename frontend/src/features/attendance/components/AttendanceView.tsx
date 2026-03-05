@@ -420,6 +420,98 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     }
   }, [parseAttendanceKey]);
 
+  const refreshAttendancePrefill = useCallback(async () => {
+    if (!selectedCourse || !selectedDateStr) return;
+    const dateStr = selectedDateStr;
+
+    // Request deduplication key
+    const requestKey = `attendance-${selectedCourse}-${dateStr}`;
+
+    // Prevent duplicate concurrent requests
+    if (activeRequestsRef.current.has(requestKey)) {
+      console.warn('[AttendanceView] Skipping duplicate request:', requestKey);
+      return;
+    }
+
+    activeRequestsRef.current.add(requestKey);
+
+    try {
+      const attRes = await apiClient.get(`/attendance/date/${dateStr}/course/${selectedCourse}`);
+      const attData = Array.isArray(attRes) ? attRes : (attRes.data ? (Array.isArray(attRes.data) ? attRes.data : []) : []);
+      const next: Record<string, string> = {};
+      const ids: Record<string, number> = {};
+      if (Array.isArray(attData)) {
+        (attData as (RawAttendanceRecord & { id?: number })[]).forEach((a) => {
+          if (!a?.student_id) return;
+          const periodNumber = Number(a.period_number ?? 1);
+          const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
+          const recordDate = formatLocalDate(a.date || dateStr);
+          const key = getAttendanceKey(a.student_id, safePeriod, recordDate);
+          next[key] = a.status;
+          if (a.id) {
+            ids[key] = a.id;
+          }
+        });
+      }
+      setAttendanceRecords(next);
+      setAttendanceRecordIds(ids);
+      setPersistedAttendanceRecords(next);
+
+      let dpData: (RawDailyPerformanceRecord & { id?: number })[] = [];
+      try {
+        const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
+        dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
+      } catch (error) {
+        // If 404, treat as no data
+        if (isResponseLike(error) && error.response?.status === 404) {
+          dpData = [];
+        } else {
+          console.error('[AttendanceView] Error fetching daily performance:', error);
+        }
+      }
+      const dp: Record<string, number> = {};
+      const dpIds: Record<string, number> = {};
+      if (Array.isArray(dpData)) {
+        (dpData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((r) => {
+          const key = `${r.student_id}-${r.category}`;
+          dp[key] = r.score;
+          if (r.id) {
+            dpIds[key] = r.id;
+          }
+        });
+      }
+      setDailyPerformance(dp);
+      setDailyPerformanceIds(dpIds);
+      setPersistedDailyPerformance(dp);
+    } catch (error) {
+      console.error('[AttendanceView] Error fetching attendance:', error);
+      setAttendanceRecords({});
+      setAttendanceRecordIds({});
+      setDailyPerformance({});
+      setDailyPerformanceIds({});
+      setPersistedAttendanceRecords({});
+      setPersistedDailyPerformance({});
+    } finally {
+      activeRequestsRef.current.delete(requestKey);
+    }
+  }, [selectedCourse, selectedDateStr, getAttendanceKey]);
+
+  // Always fetch attendance and performance from backend on date/course change
+  useEffect(() => {
+    // Only fetch if both course and date are selected
+    if (selectedCourse && selectedDate) {
+      // Clear state before fetch to avoid stale data
+      setAttendanceRecords({});
+      setAttendanceRecordIds({});
+      setDailyPerformance({});
+      setDailyPerformanceIds({});
+      setPersistedAttendanceRecords({});
+      setPersistedDailyPerformance({});
+      // Fetch new data
+      refreshAttendancePrefill();
+    }
+  }, [selectedCourse, selectedDate, refreshAttendancePrefill]);
+
   const flushQueuedSnapshots = useCallback(async () => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) return;
 
@@ -840,98 +932,6 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     };
     loadEnrolled();
   }, [selectedCourse, activeStudentIds]);
-
-  const refreshAttendancePrefill = useCallback(async () => {
-    if (!selectedCourse || !selectedDateStr) return;
-    const dateStr = selectedDateStr;
-
-    // Request deduplication key
-    const requestKey = `attendance-${selectedCourse}-${dateStr}`;
-
-    // Prevent duplicate concurrent requests
-    if (activeRequestsRef.current.has(requestKey)) {
-      console.warn('[AttendanceView] Skipping duplicate request:', requestKey);
-      return;
-    }
-
-    activeRequestsRef.current.add(requestKey);
-
-    try {
-      const attRes = await apiClient.get(`/attendance/date/${dateStr}/course/${selectedCourse}`);
-      const attData = Array.isArray(attRes) ? attRes : (attRes.data ? (Array.isArray(attRes.data) ? attRes.data : []) : []);
-      const next: Record<string, string> = {};
-      const ids: Record<string, number> = {};
-      if (Array.isArray(attData)) {
-        (attData as (RawAttendanceRecord & { id?: number })[]).forEach((a) => {
-          if (!a?.student_id) return;
-          const periodNumber = Number(a.period_number ?? 1);
-          const safePeriod = Number.isFinite(periodNumber) && periodNumber > 0 ? periodNumber : 1;
-          const recordDate = formatLocalDate(a.date || dateStr);
-          const key = getAttendanceKey(a.student_id, safePeriod, recordDate);
-          next[key] = a.status;
-          if (a.id) {
-            ids[key] = a.id;
-          }
-        });
-      }
-      setAttendanceRecords(next);
-      setAttendanceRecordIds(ids);
-      setPersistedAttendanceRecords(next);
-
-      let dpData: (RawDailyPerformanceRecord & { id?: number })[] = [];
-      try {
-        const dpRes = await apiClient.get(`/daily-performance/date/${dateStr}/course/${selectedCourse}`);
-        dpData = Array.isArray(dpRes) ? dpRes : (dpRes.data ? (Array.isArray(dpRes.data) ? dpRes.data : []) : []);
-      } catch (error) {
-        // If 404, treat as no data
-        if (isResponseLike(error) && error.response?.status === 404) {
-          dpData = [];
-        } else {
-          console.error('[AttendanceView] Error fetching daily performance:', error);
-        }
-      }
-      const dp: Record<string, number> = {};
-      const dpIds: Record<string, number> = {};
-      if (Array.isArray(dpData)) {
-        (dpData as (RawDailyPerformanceRecord & { id?: number })[]).forEach((r) => {
-          const key = `${r.student_id}-${r.category}`;
-          dp[key] = r.score;
-          if (r.id) {
-            dpIds[key] = r.id;
-          }
-        });
-      }
-      setDailyPerformance(dp);
-      setDailyPerformanceIds(dpIds);
-      setPersistedDailyPerformance(dp);
-    } catch (error) {
-      console.error('[AttendanceView] Error fetching attendance:', error);
-      setAttendanceRecords({});
-      setAttendanceRecordIds({});
-      setDailyPerformance({});
-      setDailyPerformanceIds({});
-      setPersistedAttendanceRecords({});
-      setPersistedDailyPerformance({});
-    } finally {
-      activeRequestsRef.current.delete(requestKey);
-    }
-  }, [selectedCourse, selectedDateStr, getAttendanceKey]);
-
-  // Always fetch attendance and performance from backend on date/course change
-  useEffect(() => {
-    // Only fetch if both course and date are selected
-    if (selectedCourse && selectedDate) {
-      // Clear state before fetch to avoid stale data
-      setAttendanceRecords({});
-      setAttendanceRecordIds({});
-      setDailyPerformance({});
-      setDailyPerformanceIds({});
-      setPersistedAttendanceRecords({});
-      setPersistedDailyPerformance({});
-      // Fetch new data
-      refreshAttendancePrefill();
-    }
-  }, [selectedCourse, selectedDate, refreshAttendancePrefill]);
 
   // Fetch dates with attendance records for the current month
   useEffect(() => {
