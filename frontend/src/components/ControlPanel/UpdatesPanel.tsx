@@ -265,7 +265,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
           <button
             onClick={() => checkForUpdates(releaseChannel)}
             disabled={loading || installing}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors text-sm"
           >
             <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
             {t('checkForUpdates') || 'Check for Updates'}
@@ -413,13 +413,13 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
               </div>
             </div>
           ) : (
-            <div className="bg-blue-900/20 border border-blue-700/50 rounded-lg p-6 flex items-start gap-4">
-              <CheckCircle size={24} className="text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="border-2 border-indigo-100 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6 flex items-start gap-4">
+              <CheckCircle size={24} className="text-indigo-700 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-blue-300 mb-2">
+                <h3 className="text-lg font-semibold text-indigo-900 mb-2">
                   {t('upToDate') || 'Up to Date'}
                 </h3>
-                <p className="text-sm text-blue-200">
+                <p className="text-sm text-indigo-700">
                   {t('upToDateDescription') || 'You are running the latest version of the application.'}
                 </p>
               </div>
@@ -427,7 +427,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
           )}
 
           {/* Release Information */}
-          {updateInfo.release_name && (
+          {(updateInfo.release_name || updateInfo.release_url || updateInfo.latest_version) && (
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6">
               <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
                 <ExternalLink size={18} />
@@ -436,7 +436,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-gray-400 mb-1">{t('releaseName') || 'Release Name'}</p>
-                  <p className="text-white">{updateInfo.release_name}</p>
+                  <p className="text-white">{updateInfo.release_name || `v${updateInfo.latest_version || updateInfo.current_version}`}</p>
                 </div>
                 {updateInfo.release_url && (
                   <a
