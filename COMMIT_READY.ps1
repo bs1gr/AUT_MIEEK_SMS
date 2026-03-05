@@ -2183,7 +2183,7 @@ function Invoke-MainWorkflow {
     $transcriptPath = Join-Path $SCRIPT_DIR "commit_ready_$timestamp.log"
     try { Start-Transcript -Path $transcriptPath -Force | Out-Null } catch { }
 
-    $startBanner = "--------------------------------------------------------------`n COMMIT READY - Pre-Commit Verification`n Student Management System v$(Get-Version)`n--------------------------------------------------------------"
+    $startBanner = "--------------------------------------------------------------`n COMMIT READY - Pre-Commit Verification`n Student Management System $(Get-Version)`n--------------------------------------------------------------"
     Write-Host $startBanner -ForegroundColor Green
     Write-Host ""
     Write-Host "Mode: $Mode" -ForegroundColor Cyan
