@@ -148,6 +148,8 @@ export const notificationsEL = {
     viewAll: 'Προβολή όλων των ειδοποιήσεων',
     empty: 'Δεν υπάρχουν ειδοποιήσεις',
     loading: 'Φόρτωση ειδοποιήσεων...',
+    updateAvailable: 'Διαθέσιμη Ενημέρωση',
+    updateVersion: 'Έκδοση {{version}}',
   },
 
   // Item component

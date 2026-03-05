@@ -86,6 +86,7 @@ export default {
   shutdownSuccess: '✅ Ο τερματισμός του backend ξεκίνησε. Ο διακομιστής θα σταματήσει σε 2 δευτερόλεπτα.',
   shutdownError: '❌ Αποτυχία τερματισμού του backend',
   shutdownInitiated: '✅ Ο τερματισμός του backend ξεκίνησε (σύνδεση έκλεισε)',
+  shutdownDockerUnavailable: '⚠️ Ζητήθηκε τερματισμός Docker αλλά το Docker δεν είναι διαθέσιμο. Ελέγξτε αν το Docker Desktop εκτελείται ή δείτε την κονσόλα για λεπτομέρειες.',
   error: 'Σφάλμα',
   // Διαχείριση αντιγράφων ασφαλείας
   manageBackups: 'Διαχείριση Αντιγράφων Ασφαλείας',

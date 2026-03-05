@@ -44,6 +44,7 @@ def test_control_start_success(monkeypatch, client):
         check=False,
         timeout=None,
         text=None,
+        **kwargs,
     ):
         if args and args[1] == "-v":
             return SimpleNamespace(returncode=0, stdout="9.0.0\n", stderr="")
@@ -102,6 +103,7 @@ def test_control_start_install_failure(monkeypatch, tmp_path, client):
         check=False,
         timeout=None,
         text=None,
+        **kwargs,
     ):
         # npm -v
         if args and args == ["npm", "-v"]:

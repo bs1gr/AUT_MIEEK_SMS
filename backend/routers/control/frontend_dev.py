@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from .common import (
     FRONTEND_PORT_CANDIDATES,
     FRONTEND_PORT_PREFERRED,
+    _hidden_window_kwargs,
     find_pids_on_port,
     is_port_open,
     resolve_npm_command,
@@ -81,6 +82,7 @@ async def control_start():
                 {"success": False, "message": "npm not found. Please install Node.js and npm (https://nodejs.org/)"},
                 status_code=400,
             )
+        _hw_kwargs = _hidden_window_kwargs()
         try:
             version_check = subprocess.run(
                 [npm_cmd, "-v"],
@@ -91,6 +93,7 @@ async def control_start():
                 check=False,
                 timeout=5,
                 text=True,
+                **_hw_kwargs,
             )
             if version_check.returncode != 0:
                 raise subprocess.CalledProcessError(version_check.returncode, [npm_cmd, "-v"])
@@ -117,6 +120,7 @@ async def control_start():
                 check=False,
                 text=True,
                 timeout=300,
+                **_hw_kwargs,
             )
             if install_result.returncode != 0 and install_args[1] == "ci":
                 fallback_result = subprocess.run(
@@ -128,6 +132,7 @@ async def control_start():
                     check=False,
                     text=True,
                     timeout=300,
+                    **_hw_kwargs,
                 )
                 if fallback_result.returncode != 0:
                     return JSONResponse(
@@ -159,13 +164,6 @@ async def control_start():
             "--strictPort",
         ]
         try:
-            creationflags = 0
-            if sys.platform == "win32":
-                try:
-                    creationflags = subprocess.CREATE_NO_WINDOW  # type: ignore[attr-defined]
-                except Exception as exc:
-                    creationflags = 0
-                    logger.debug("CREATE_NO_WINDOW not available, using defaults", extra={"error": str(exc)})
             close_fds = sys.platform != "win32"
             logs_dir = PROJECT_ROOT / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
@@ -179,7 +177,7 @@ async def control_start():
                     stdout=log_file,
                     stderr=log_file,
                     text=True,
-                    creationflags=creationflags,
+                    startupinfo=_hw_kwargs.get("startupinfo"),
                     close_fds=close_fds,
                 )
 

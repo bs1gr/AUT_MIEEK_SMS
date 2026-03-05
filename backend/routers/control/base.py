@@ -23,8 +23,10 @@ from .common import (
     COMMON_DEV_PORTS,
     FRONTEND_PORTS,
     check_docker_running,
+    check_docker_running_passive,
     check_docker_version,
     check_node_installed,
+    check_node_installed_passive,
     check_npm_installed,
     get_process_on_port,
     in_docker_container,
@@ -117,14 +119,12 @@ async def get_system_status(request: Request, response: Response):
         except Exception:
             return False
 
-    frontend_port, docker_running, db_ok, node_info = await asyncio.gather(
+    frontend_port, docker_running, db_ok, node_installed = await asyncio.gather(
         asyncio.to_thread(get_frontend_port),
-        asyncio.to_thread(check_docker_running),
+        asyncio.to_thread(check_docker_running_passive),
         check_db(),
-        asyncio.to_thread(check_node_installed),
+        asyncio.to_thread(check_node_installed_passive),
     )
-
-    node_installed, node_version = node_info
 
     process_start_time = None
     try:
@@ -141,7 +141,7 @@ async def get_system_status(request: Request, response: Response):
         docker=docker_running,
         database=db_ok,
         python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
-        node_version=node_version,
+        node_version="installed" if node_installed else None,
         timestamp=datetime.now().isoformat(),
         process_start_time=process_start_time,
     )
@@ -203,6 +203,15 @@ async def run_diagnostics(response: Response):
                         details={"version": node_version},
                     )
                 )
+        elif node_ok:
+            results.append(
+                DiagnosticResult(
+                    category="Node.js",
+                    status="ok",
+                    message="Node.js detected in PATH",
+                    details={"version": None, "detection": "passive"},
+                )
+            )
         else:
             results.append(
                 DiagnosticResult(
@@ -211,13 +220,22 @@ async def run_diagnostics(response: Response):
             )
 
         npm_ok, npm_version = check_npm_installed()
-        if npm_ok:
+        if npm_ok and npm_version:
             results.append(
                 DiagnosticResult(
                     category="npm",
                     status="ok",
                     message=f"npm {npm_version} installed",
                     details={"version": npm_version},
+                )
+            )
+        elif npm_ok:
+            results.append(
+                DiagnosticResult(
+                    category="npm",
+                    status="ok",
+                    message="npm detected in PATH",
+                    details={"version": None, "detection": "passive"},
                 )
             )
         else:

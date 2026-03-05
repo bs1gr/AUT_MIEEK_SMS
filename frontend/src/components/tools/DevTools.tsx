@@ -33,6 +33,11 @@ export default function DevTools() {
       'devtools.tip2': 'Sample data is for testing only',
       'devtools.tip3': 'Reset will delete ALL existing data',
       'devtools.tip4': 'Check health status regularly',
+      'shutdownConfirm': '⚠️ This will stop the backend server. Continue?',
+      'shutdownSuccess': '✅ Backend shutdown initiated. Server will stop in 2 seconds.',
+      'shutdownError': '❌ Failed to shutdown backend',
+      'shutdownInitiated': '✅ Backend shutdown initiated (connection closed)',
+      'shutdownDockerUnavailable': '⚠️ Docker shutdown requested but Docker is not available. See console for details.',
     };
     return fallbackTranslations[key] || key;
   };

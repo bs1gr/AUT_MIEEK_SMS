@@ -37,6 +37,29 @@ from backend.import_resolver import import_names
 logger = logging.getLogger(__name__)
 
 # -----------------------------
+# Windows subprocess helpers
+# -----------------------------
+
+
+def _hidden_window_kwargs() -> Dict[str, Any]:
+    """Return subprocess kwargs that suppress visible console windows on Windows.
+
+    Uses STARTUPINFO with SW_HIDE instead of CREATE_NO_WINDOW.
+    CREATE_NO_WINDOW prevents console allocation entirely, which causes
+    0xc0000142 (DLL initialization failure) for executables like node.exe
+    and docker.exe that need console handles during CRT initialization.
+    STARTUPINFO with SW_HIDE creates a hidden console, allowing DLL init
+    to succeed while keeping the window invisible.
+    """
+    if os.name != "nt":
+        return {}
+    si = subprocess.STARTUPINFO()
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si.wShowWindow = 0  # SW_HIDE
+    return {"startupinfo": si}
+
+
+# -----------------------------
 # Constants
 # -----------------------------
 TIMEOUT_PORT_CHECK = 0.5
@@ -155,7 +178,9 @@ def safe_run(cmd_args: List[str], timeout: int = 5):
             except Exception:
                 pass
 
-        return subprocess.run(cmd_args, check=False, capture_output=True, text=True, timeout=timeout)
+        return subprocess.run(
+            cmd_args, check=False, capture_output=True, text=True, timeout=timeout, **_hidden_window_kwargs()
+        )
     except Exception as e:
         logger.warning(f"Safe run failed for {cmd_args}: {e}")
         from types import SimpleNamespace
@@ -209,6 +234,7 @@ def find_pids_on_port(port: int) -> List[int]:
             stderr=subprocess.DEVNULL,
             text=True,
             check=False,
+            **_hidden_window_kwargs(),
         )
         pids: set[int] = set()
         for line in proc.stdout.splitlines():
@@ -228,9 +254,25 @@ def find_pids_on_port(port: int) -> List[int]:
         return []
 
 
-def run_command(cmd: List[str], timeout: int = 30) -> Tuple[bool, str, str]:
+def run_command(cmd: List[str], timeout: int = 30, allow_active_binaries: bool = False) -> Tuple[bool, str, str]:
+    cmd0 = cmd[0].lower() if cmd else ""
+    if (
+        os.name == "nt"
+        and not allow_active_binaries
+        and os.getenv("SMS_CONTROL_ALLOW_ACTIVE_BINARY_PROBES", "0") != "1"
+        and cmd0 in {"docker", "docker.exe", "node", "node.exe", "npm", "npm.cmd", "npx", "npx.cmd"}
+    ):
+        return False, "", f"Blocked active binary probe for '{cmd0}' on Windows"
     try:
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, encoding="utf-8", errors="replace")
+        res = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            encoding="utf-8",
+            errors="replace",
+            **_hidden_window_kwargs(),
+        )
         return res.returncode == 0, res.stdout, res.stderr
     except subprocess.TimeoutExpired:
         return False, "", f"Command timed out after {timeout}s"
@@ -238,12 +280,61 @@ def run_command(cmd: List[str], timeout: int = 30) -> Tuple[bool, str, str]:
         return False, "", str(e)
 
 
+def _active_binary_probes_enabled() -> bool:
+    """Return True only when explicitly allowing active binary probes.
+
+    Background/status endpoints should avoid launching external binaries by default
+    to prevent disruptive Windows application popups when local installations are
+    broken or partially configured.
+    """
+
+    return os.getenv("SMS_CONTROL_ALLOW_ACTIVE_BINARY_PROBES", "0") == "1"
+
+
 def check_docker_running() -> bool:
-    ok, _, _ = run_command(["docker", "info"], timeout=TIMEOUT_COMMAND_SHORT)
+    if not _active_binary_probes_enabled():
+        return check_docker_running_passive()
+    ok, _, _ = run_command(["docker", "info"], timeout=TIMEOUT_COMMAND_SHORT, allow_active_binaries=True)
     return ok
 
 
-def docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60) -> Tuple[bool, str, str]:
+def check_docker_running_passive() -> bool:
+    """Best-effort passive Docker runtime probe.
+
+    This helper intentionally avoids executing the Docker CLI to prevent
+    disruptive OS popups when docker.exe is broken/misconfigured on Windows.
+    It is suitable for frequently-polled health/status endpoints.
+    """
+    if in_docker_container():
+        return True
+
+    if os.name == "nt":
+        # Common Docker Desktop processes on Windows
+        if PSUTIL_AVAILABLE and psutil is not None:
+            try:
+                candidates = {"docker desktop.exe", "com.docker.backend.exe", "dockerd.exe"}
+                for proc in psutil.process_iter(attrs=["name"]):
+                    name = (proc.info.get("name") or "").lower()
+                    if name in candidates:
+                        return True
+            except Exception:
+                pass
+
+        # Named pipe existence may indicate Docker engine availability
+        try:
+            return Path(r"\\.\pipe\docker_engine").exists()
+        except Exception:
+            return False
+
+    # Unix-like: Docker socket presence as a lightweight signal
+    return Path("/var/run/docker.sock").exists()
+
+
+def docker_compose(
+    cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60, allow_active_binaries: bool = False
+) -> Tuple[bool, str, str]:
+    if os.name == "nt" and not _active_binary_probes_enabled():
+        return False, "", "Blocked docker compose probe (passive guard)"
     args = ["docker", "compose"] + cmd
     try:
         result = subprocess.run(
@@ -254,6 +345,7 @@ def docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60
             cwd=str(cwd) if cwd else None,
             encoding="utf-8",
             errors="replace",
+            **_hidden_window_kwargs(),
         )
         success = result.returncode == 0
         if not success and result.stderr:
@@ -273,7 +365,7 @@ def docker_compose(cmd: List[str], cwd: Optional[Path] = None, timeout: int = 60
 
 
 def docker_volume_exists(name: str) -> bool:
-    ok, out, _ = run_command(["docker", "volume", "ls", "--format", "{{.Name}}"])
+    ok, out, _ = run_command(["docker", "volume", "ls", "--format", "{{.Name}}"], allow_active_binaries=True)
     if not ok:
         return False
     return name in [line.strip() for line in out.splitlines()]
@@ -286,34 +378,52 @@ def create_unique_volume(base_name: str) -> str:
     while docker_volume_exists(candidate):
         idx += 1
         candidate = f"{base_name}_v{date_suffix}_{idx}"
-    ok, _, err = run_command(["docker", "volume", "create", candidate])
+    ok, _, err = run_command(["docker", "volume", "create", candidate], allow_active_binaries=True)
     if not ok:
         raise RuntimeError(f"Failed to create volume {candidate}: {err}")
     return candidate
 
 
 def check_node_installed() -> tuple[bool, Optional[str]]:
-    ok, out, _ = run_command(["node", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
+    if not _active_binary_probes_enabled():
+        detected = check_node_installed_passive()
+        return (detected, None)
+    ok, out, _ = run_command(["node", "--version"], timeout=TIMEOUT_COMMAND_SHORT, allow_active_binaries=True)
     if ok:
         return True, out.strip()
     return False, None
+
+
+def check_node_installed_passive() -> bool:
+    """Passive Node.js presence probe without invoking node executable."""
+    return bool(shutil.which("node") or shutil.which("node.exe"))
 
 
 def check_npm_installed() -> tuple[bool, Optional[str]]:
+    if not _active_binary_probes_enabled():
+        detected = check_npm_installed_passive()
+        return (detected, None)
     # On Windows, npm is a batch script (.cmd), so try npm.cmd first
     if sys.platform == "win32":
-        ok, out, _ = run_command(["npm.cmd", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
+        ok, out, _ = run_command(["npm.cmd", "--version"], timeout=TIMEOUT_COMMAND_SHORT, allow_active_binaries=True)
         if ok:
             return True, out.strip()
     # Fallback to npm (Unix-like systems or if npm.cmd failed)
-    ok, out, _ = run_command(["npm", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
+    ok, out, _ = run_command(["npm", "--version"], timeout=TIMEOUT_COMMAND_SHORT, allow_active_binaries=True)
     if ok:
         return True, out.strip()
     return False, None
 
 
+def check_npm_installed_passive() -> bool:
+    """Passive npm presence probe without invoking npm executable."""
+    return bool(shutil.which("npm") or shutil.which("npm.cmd") or shutil.which("npx") or shutil.which("npx.cmd"))
+
+
 def check_docker_version() -> Optional[str]:
-    ok, out, _ = run_command(["docker", "--version"], timeout=TIMEOUT_COMMAND_SHORT)
+    if not _active_binary_probes_enabled():
+        return None
+    ok, out, _ = run_command(["docker", "--version"], timeout=TIMEOUT_COMMAND_SHORT, allow_active_binaries=True)
     return out.strip() if ok else None
 
 

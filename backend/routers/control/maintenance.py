@@ -7,15 +7,24 @@ authentication and authorization policies.
 from __future__ import annotations
 
 import json
+import hashlib
 import logging
 import os
 import subprocess
-from datetime import datetime
+import threading
+import urllib.request
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, Literal, Optional
+from typing import Any, Callable, Dict, Literal, Optional, cast
+from urllib.parse import urlparse
+from uuid import uuid4
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
+
+from backend.control_auth import require_control_admin
+
+from .common import _hidden_window_kwargs
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -67,8 +76,287 @@ class UpdateCheckResponse(BaseModel):
     docker_image_url: Optional[str] = None
     update_instructions: str
     update_instructions_key: Optional[str] = None
+    release_channel: Literal["stable", "preview"] = Field(default="stable")
     deployment_mode: Literal["docker", "native"] = Field(description="Detected deployment mode for localization")
     timestamp: str = Field(default_factory=lambda: datetime.now().isoformat())
+
+
+class AutoUpdateRequest(BaseModel):
+    """Request payload for auto-update installation."""
+
+    channel: Literal["stable", "preview"] = Field(default="stable")
+    install_mode: Literal["silent", "interactive"] = Field(default="silent")
+    allow_downgrade: bool = Field(default=False)
+
+
+class AutoUpdateStatusResponse(BaseModel):
+    """Status payload for smart updater progress tracking."""
+
+    job_id: str
+    status: Literal["queued", "running", "completed", "failed", "not_found"]
+    phase: str
+    progress_percent: int = Field(ge=0, le=100)
+    current_version: Optional[str] = None
+    target_version: Optional[str] = None
+    release_channel: Optional[Literal["stable", "preview"]] = None
+    release_url: Optional[str] = None
+    installer_path: Optional[str] = None
+    installer_sha256: Optional[str] = None
+    installer_launched: bool = False
+    installer_process_id: Optional[int] = None
+    bytes_downloaded: Optional[int] = None
+    bytes_total: Optional[int] = None
+    message: Optional[str] = None
+    error: Optional[str] = None
+    started_at: Optional[str] = None
+    updated_at: Optional[str] = None
+    phase_history: list[Dict[str, Any]] = Field(default_factory=list)
+
+
+_AUTO_UPDATE_JOBS: Dict[str, Dict[str, Any]] = {}
+_AUTO_UPDATE_LOCK = threading.Lock()
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _create_auto_update_job(
+    *,
+    current_version: str,
+    channel: Literal["stable", "preview"],
+    install_mode: Literal["silent", "interactive"],
+) -> str:
+    job_id = uuid4().hex
+    now = _now_iso()
+    job = {
+        "job_id": job_id,
+        "status": "queued",
+        "phase": "queued",
+        "progress_percent": 0,
+        "current_version": current_version,
+        "target_version": None,
+        "release_channel": channel,
+        "release_url": None,
+        "installer_path": None,
+        "installer_sha256": None,
+        "installer_launched": False,
+        "installer_process_id": None,
+        "bytes_downloaded": 0,
+        "bytes_total": None,
+        "install_mode": install_mode,
+        "message": "Update job queued.",
+        "error": None,
+        "started_at": now,
+        "updated_at": now,
+        "phase_history": [
+            {
+                "phase": "queued",
+                "status": "queued",
+                "progress_percent": 0,
+                "message": "Update job queued.",
+                "timestamp": now,
+            }
+        ],
+    }
+    with _AUTO_UPDATE_LOCK:
+        _AUTO_UPDATE_JOBS[job_id] = job
+    return job_id
+
+
+def _update_auto_update_job(job_id: str, **updates: Any) -> None:
+    with _AUTO_UPDATE_LOCK:
+        job = _AUTO_UPDATE_JOBS.get(job_id)
+        if not job:
+            return
+        previous_phase = job.get("phase")
+        previous_status = job.get("status")
+        job.update(updates)
+        updated_at = _now_iso()
+        job["updated_at"] = updated_at
+
+        phase_history = job.setdefault("phase_history", [])
+        new_phase = job.get("phase")
+        new_status = job.get("status")
+
+        should_append = (
+            previous_phase != new_phase
+            or previous_status != new_status
+            or (
+                "message" in updates
+                and updates.get("message")
+                and updates.get("message") != phase_history[-1].get("message")
+                if phase_history
+                else False
+            )
+        )
+
+        if should_append:
+            phase_history.append(
+                {
+                    "phase": new_phase,
+                    "status": new_status,
+                    "progress_percent": job.get("progress_percent"),
+                    "message": job.get("message"),
+                    "timestamp": updated_at,
+                }
+            )
+            if len(phase_history) > 50:
+                del phase_history[:-50]
+
+
+def _get_auto_update_job(job_id: str) -> Optional[Dict[str, Any]]:
+    with _AUTO_UPDATE_LOCK:
+        job = _AUTO_UPDATE_JOBS.get(job_id)
+        return dict(job) if job else None
+
+
+def _mark_auto_update_failed(job_id: str, message: str, *, error: Optional[str] = None) -> None:
+    _update_auto_update_job(
+        job_id,
+        status="failed",
+        phase="failed",
+        message=message,
+        error=error or message,
+    )
+
+
+def _start_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_version: str) -> None:
+    worker = threading.Thread(
+        target=_run_auto_update_job,
+        args=(job_id, payload, current_version),
+        daemon=True,
+        name=f"smart-updater-{job_id[:8]}",
+    )
+    worker.start()
+
+
+def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_version: str) -> None:
+    try:
+        _update_auto_update_job(
+            job_id, status="running", phase="fetch_release", progress_percent=5, message="Fetching release metadata."
+        )
+        release = _fetch_github_release(channel=payload.channel)
+        if not release:
+            _mark_auto_update_failed(job_id, "Could not fetch release metadata for update.")
+            return
+
+        latest_version = str(release.get("tag_name", "")).lstrip("v")
+        if not latest_version:
+            _mark_auto_update_failed(job_id, "Release metadata did not include a valid version.")
+            return
+
+        if not payload.allow_downgrade and not _version_is_newer(latest_version, current_version):
+            _mark_auto_update_failed(job_id, "No newer update available for the selected channel.")
+            return
+
+        installer_url: Optional[str] = None
+        installer_hash: Optional[str] = None
+        for asset in release.get("assets", []) or []:
+            name = asset.get("name", "")
+            url = asset.get("browser_download_url")
+            if not name or not url:
+                continue
+            if name.endswith(".exe") and not installer_url:
+                installer_url = url
+            elif name.endswith(".sha256") and not installer_hash:
+                installer_hash = _download_text(url)
+
+        if not installer_url:
+            _mark_auto_update_failed(job_id, "No Windows installer asset was found for the selected release.")
+            return
+
+        updates_dir = _get_updates_download_dir()
+        updates_dir.mkdir(parents=True, exist_ok=True)
+        installer_filename = Path(urlparse(installer_url).path).name or f"SMS_Installer_{latest_version}.exe"
+        installer_path = updates_dir / installer_filename
+
+        _update_auto_update_job(
+            job_id,
+            phase="downloading",
+            progress_percent=10,
+            target_version=latest_version,
+            release_url=release.get("html_url"),
+            installer_path=str(installer_path),
+            message="Downloading installer.",
+        )
+
+        def _progress(downloaded: int, total: Optional[int]) -> None:
+            progress = 10
+            if total and total > 0:
+                ratio = min(1.0, downloaded / total)
+                progress = 10 + int(ratio * 70)
+            _update_auto_update_job(
+                job_id,
+                phase="downloading",
+                progress_percent=progress,
+                bytes_downloaded=downloaded,
+                bytes_total=total,
+                message="Downloading installer.",
+            )
+
+        computed_hash = _download_file(installer_url, installer_path, progress_callback=_progress)
+
+        _update_auto_update_job(job_id, phase="verifying", progress_percent=85, message="Verifying installer checksum.")
+        expected_hash = _extract_sha256(installer_hash)
+        if expected_hash and computed_hash.lower() != expected_hash.lower():
+            installer_path.unlink(missing_ok=True)
+            _mark_auto_update_failed(
+                job_id,
+                "Downloaded installer failed SHA256 verification.",
+                error=f"Expected {expected_hash}, got {computed_hash}",
+            )
+            return
+
+        cmd = [str(installer_path)]
+        if payload.install_mode == "silent":
+            cmd.extend(
+                [
+                    "/VERYSILENT",
+                    "/SUPPRESSMSGBOXES",
+                    "/NORESTART",
+                    "/CLOSEAPPLICATIONS",
+                    "/SP-",
+                ]
+            )
+        else:
+            cmd.append("/CLOSEAPPLICATIONS")
+
+        _update_auto_update_job(job_id, phase="launching", progress_percent=95, message="Launching installer.")
+        proc = _launch_installer(cmd)
+
+        _update_auto_update_job(
+            job_id,
+            status="completed",
+            phase="completed",
+            progress_percent=100,
+            installer_sha256=computed_hash,
+            installer_launched=True,
+            installer_process_id=proc.pid,
+            message="Installer launched. Follow installer prompts to finish update.",
+            error=None,
+        )
+    except Exception as exc:  # pragma: no cover - defensive catch
+        logger.error("Smart updater job failed: %s", exc, exc_info=True)
+        _mark_auto_update_failed(job_id, "Updater job failed unexpectedly.", error=str(exc))
+
+
+def _launch_installer(cmd: list[str]) -> subprocess.Popen:
+    creation_flags = 0
+    if hasattr(subprocess, "CREATE_NEW_PROCESS_GROUP"):
+        creation_flags |= subprocess.CREATE_NEW_PROCESS_GROUP
+    if hasattr(subprocess, "DETACHED_PROCESS"):
+        creation_flags |= subprocess.DETACHED_PROCESS
+
+    si_kwargs = _hidden_window_kwargs()
+    return subprocess.Popen(
+        cmd,
+        cwd=str(Path(__file__).resolve().parents[3]),
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        creationflags=creation_flags,
+        startupinfo=si_kwargs.get("startupinfo"),
+    )
 
 
 def _get_policy_description(enabled: bool, mode: str) -> str:
@@ -123,8 +411,13 @@ def get_auth_settings(_request: Request):
     else:
         source = "defaults"
 
-    auth_enabled = getattr(settings, "AUTH_ENABLED", False)
-    auth_mode = getattr(settings, "AUTH_MODE", "disabled")
+    auth_enabled = bool(getattr(settings, "AUTH_ENABLED", False))
+    auth_mode_raw = str(getattr(settings, "AUTH_MODE", "disabled"))
+    auth_mode: Literal["disabled", "permissive", "strict"]
+    if auth_mode_raw in {"disabled", "permissive", "strict"}:
+        auth_mode = cast(Literal["disabled", "permissive", "strict"], auth_mode_raw)
+    else:
+        auth_mode = "disabled"
 
     return AuthSettingsResponse(
         auth_enabled=auth_enabled,
@@ -338,17 +631,17 @@ def get_auth_policy_guide():
 
 
 @router.get("/maintenance/updates/check", response_model=UpdateCheckResponse)
-def check_for_updates(_request: Request):
+def check_for_updates(_request: Request, channel: Literal["stable", "preview"] = "stable"):
     """Check for available updates from GitHub releases."""
     from backend.environment import get_runtime_context
 
     context = get_runtime_context()
-    deployment_mode = "docker" if context.is_docker else "native"
+    deployment_mode: Literal["docker", "native"] = "docker" if context.is_docker else "native"
 
     current_version = _get_version()
 
     try:
-        latest_release = _fetch_github_latest_release()
+        latest_release = _fetch_github_release(channel=channel)
         if not latest_release:
             return UpdateCheckResponse(
                 current_version=current_version,
@@ -356,6 +649,7 @@ def check_for_updates(_request: Request):
                 update_available=False,
                 update_instructions="Could not check for updates. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases",
                 update_instructions_key="maintenance.update.check_error",
+                release_channel=channel,
                 deployment_mode=deployment_mode,
             )
 
@@ -391,11 +685,14 @@ def check_for_updates(_request: Request):
             )
             instructions_key = "maintenance.update.instructions_docker"
         else:
+            release_label = "stable" if channel == "stable" else "preview/prerelease"
             instructions = (
+                f"Update channel: {release_label}\n\n"
                 "To update your native installation:\n\n"
                 "1. Download the latest installer from:\n"
                 f"   {installer_url}\n\n"
                 "2. Run the installer to update your installation\n\n"
+                "   - Or use 'Download & Install Now' in this tab for automatic in-place update\n\n"
                 "3. Or if using source code:\n"
                 "   git pull\n"
                 "   .\\NATIVE.ps1 -Setup\n"
@@ -415,6 +712,7 @@ def check_for_updates(_request: Request):
             docker_image_url="https://github.com/bs1gr/AUT_MIEEK_SMS/pkgs/container/sms-backend",
             update_instructions=instructions,
             update_instructions_key=instructions_key,
+            release_channel=channel,
             deployment_mode=deployment_mode,
         )
     except Exception as exc:
@@ -425,8 +723,71 @@ def check_for_updates(_request: Request):
             update_available=False,
             update_instructions=f"Error checking for updates: {str(exc)}. Please check manually at https://github.com/bs1gr/AUT_MIEEK_SMS/releases",
             update_instructions_key="maintenance.update.check_error",
+            release_channel=channel,
             deployment_mode=deployment_mode,
         )
+
+
+@router.post("/maintenance/updates/auto-install", response_model=OperationResult)
+def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Depends(require_control_admin)):
+    """Start background smart updater job (native Windows only)."""
+    from backend.environment import get_runtime_context
+
+    context = get_runtime_context()
+    if context.is_docker:
+        return OperationResult(
+            success=False,
+            message="Automatic installer updates are not available in Docker mode. Use .\\DOCKER.ps1 -UpdateClean.",
+            message_key="maintenance.update.auto_install_docker_blocked",
+            details={"deployment_mode": "docker"},
+        )
+
+    if os.name != "nt":
+        return OperationResult(
+            success=False,
+            message="Automatic installer updates are currently supported on Windows only.",
+            message_key="maintenance.update.auto_install_windows_only",
+            details={"platform": os.name},
+        )
+
+    current_version = _get_version()
+    job_id = _create_auto_update_job(
+        current_version=current_version,
+        channel=payload.channel,
+        install_mode=payload.install_mode,
+    )
+    _start_auto_update_job(job_id, payload, current_version)
+
+    return OperationResult(
+        success=True,
+        message="Smart updater started. Track progress from the updater timeline.",
+        message_key="maintenance.update.auto_install_started",
+        details={
+            "current_version": current_version,
+            "channel": payload.channel,
+            "install_mode": payload.install_mode,
+            "job_id": job_id,
+            "status_endpoint": f"/control/api/maintenance/updates/auto-install/{job_id}/status",
+        },
+    )
+
+
+@router.get("/maintenance/updates/auto-install/{job_id}/status", response_model=AutoUpdateStatusResponse)
+def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends(require_control_admin)):
+    """Get smart updater job progress and installer launch state."""
+    job = _get_auto_update_job(job_id)
+    if not job:
+        return AutoUpdateStatusResponse(
+            job_id=job_id,
+            status="not_found",
+            phase="not_found",
+            progress_percent=0,
+            message="No updater job found for the requested id.",
+            error="not_found",
+            phase_history=[],
+        )
+
+    return AutoUpdateStatusResponse(**job)
 
 
 def _get_version() -> str:
@@ -439,12 +800,46 @@ def _get_version() -> str:
 
 def _download_text(url: str) -> Optional[str]:
     try:
-        import urllib.request
-
         with urllib.request.urlopen(url, timeout=10) as response:
             return response.read().decode("utf-8", errors="replace").strip()
     except Exception:
         return None
+
+
+def _extract_sha256(raw_hash: Optional[str]) -> Optional[str]:
+    if not raw_hash:
+        return None
+    token = raw_hash.strip().split()[0].strip()
+    if len(token) == 64 and all(c in "0123456789abcdefABCDEF" for c in token):
+        return token
+    return None
+
+
+def _get_updates_download_dir() -> Path:
+    return Path(__file__).resolve().parents[3] / "artifacts" / "updates"
+
+
+def _download_file(
+    url: str,
+    destination: Path,
+    progress_callback: Optional[Callable[[int, Optional[int]], None]] = None,
+) -> str:
+    """Download a file to destination and return SHA256 hash."""
+    hasher = hashlib.sha256()
+    downloaded = 0
+    with urllib.request.urlopen(url, timeout=60) as response, destination.open("wb") as out_file:
+        header_value = response.headers.get("Content-Length")
+        total_bytes = int(header_value) if header_value and header_value.isdigit() else None
+        while True:
+            chunk = response.read(1024 * 1024)
+            if not chunk:
+                break
+            out_file.write(chunk)
+            hasher.update(chunk)
+            downloaded += len(chunk)
+            if progress_callback:
+                progress_callback(downloaded, total_bytes)
+    return hasher.hexdigest()
 
 
 def _normalize_release(raw: Dict[str, Any]) -> Dict[str, Any]:
@@ -486,8 +881,12 @@ def _normalize_release(raw: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
-    """Fetch latest release info from GitHub (gh CLI if available, otherwise REST)."""
+def _fetch_github_release(channel: Literal["stable", "preview"] = "stable") -> Optional[Dict[str, Any]]:
+    """Fetch release info from GitHub for stable or preview channels."""
+    if channel == "preview":
+        return _fetch_github_preview_release()
+
+    # Stable: use latest stable release endpoint/flow
     # 1) Try gh CLI (fast + supports auth automatically if configured)
     try:
         result = subprocess.run(
@@ -495,6 +894,7 @@ def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
             capture_output=True,
             text=True,
             timeout=10,
+            **_hidden_window_kwargs(),
         )
         if result.returncode == 0:
             raw = json.loads(result.stdout)
@@ -512,6 +912,27 @@ def _fetch_github_latest_release() -> Optional[Dict[str, Any]]:
             return _normalize_release(raw)
     except Exception as exc:
         logger.debug("GitHub REST release fetch failed", extra={"error": str(exc)})
+        return None
+
+
+def _fetch_github_preview_release() -> Optional[Dict[str, Any]]:
+    """Fetch newest non-draft release, including prereleases."""
+    try:
+        url = "https://api.github.com/repos/bs1gr/AUT_MIEEK_SMS/releases"
+        with urllib.request.urlopen(url, timeout=10) as response:
+            raw_list = json.loads(response.read().decode("utf-8", errors="replace"))
+            if not isinstance(raw_list, list):
+                return None
+
+            for raw in raw_list:
+                if not isinstance(raw, dict):
+                    continue
+                if raw.get("draft") is True:
+                    continue
+                return _normalize_release(raw)
+            return None
+    except Exception as exc:
+        logger.debug("GitHub preview release fetch failed", extra={"error": str(exc)})
         return None
 
 

@@ -148,6 +148,8 @@ export const notificationsEN = {
     viewAll: 'View all notifications',
     empty: 'No notifications',
     loading: 'Loading notifications...',
+    updateAvailable: 'Update Available',
+    updateVersion: 'Version {{version}}',
   },
 
   // Item component

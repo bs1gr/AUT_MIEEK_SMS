@@ -3,7 +3,7 @@
  * Dropdown list showing recent notifications with actions
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from './NotificationItem';
@@ -33,6 +33,25 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Check for pending software update notification
+  const [updateAvailable, setUpdateAvailable] = useState<{ version: string; url: string | null } | null>(() => {
+    const raw = localStorage.getItem('sms.updateAvailable');
+    return raw ? JSON.parse(raw) : null;
+  });
+
+  useEffect(() => {
+    const handler = () => {
+      const raw = localStorage.getItem('sms.updateAvailable');
+      setUpdateAvailable(raw ? JSON.parse(raw) : null);
+    };
+    window.addEventListener('sms:update-status', handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('sms:update-status', handler);
+      window.removeEventListener('storage', handler);
+    };
+  }, []);
+
   // Fetch notifications when dropdown opens
   useEffect(() => {
     if (isOpen) {
@@ -49,7 +68,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   };
 
   const displayNotifications = notifications.slice(0, maxNotifications);
-  const hasNotifications = displayNotifications.length > 0;
+  const hasNotifications = displayNotifications.length > 0 || !!updateAvailable;
 
   // Return null if dropdown is not open
   if (!isOpen) {
@@ -82,6 +101,24 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
       {/* Body */}
       <div className="notification-dropdown-body">
+        {/* Software update notification */}
+        {updateAvailable && (
+          <div className="notification-dropdown-update" style={{ padding: '10px 14px', background: 'rgba(59,130,246,0.08)', borderBottom: '1px solid rgba(59,130,246,0.18)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'default' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M12 16L7 11H10V4H14V11H17L12 16Z" fill="#3b82f6" />
+              <path d="M20 18H4V20H20V18Z" fill="#3b82f6" />
+            </svg>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ margin: 0, fontSize: '13px', fontWeight: 600, color: '#2563eb' }}>
+                {t('dropdown.updateAvailable', 'Update Available')}
+              </p>
+              <p style={{ margin: 0, fontSize: '11px', color: '#3b82f6', opacity: 0.85 }}>
+                {t('dropdown.updateVersion', { version: updateAvailable.version, defaultValue: `Version ${updateAvailable.version}` })}
+              </p>
+            </div>
+          </div>
+        )}
+
         {isLoading && (
           <div className="notification-dropdown-loading">
             <div className="notification-loading-spinner" />

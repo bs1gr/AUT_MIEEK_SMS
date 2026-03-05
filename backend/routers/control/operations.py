@@ -18,6 +18,7 @@ from backend.errors import ErrorCode, http_error
 from backend.services.backup_service_encrypted import BackupServiceEncrypted
 
 from .common import (
+    _hidden_window_kwargs,
     check_docker_running,
     check_npm_installed,
     create_unique_volume,
@@ -73,7 +74,7 @@ async def install_frontend_deps(request: Request, _auth=Depends(require_control_
             context={"command": "npm --version"},
         )
 
-    success, stdout, stderr = run_command(["npm", "install"], timeout=300)
+    success, stdout, stderr = run_command(["npm", "install"], timeout=300, allow_active_binaries=True)
     if success:
         return OperationResult(
             success=True,
@@ -158,7 +159,9 @@ async def docker_build(request: Request, _auth=Depends(require_control_admin)):
         )
 
     project_root = Path(__file__).resolve().parents[3]
-    success, stdout, stderr = docker_compose(["build", "--no-cache"], cwd=project_root, timeout=600)
+    success, stdout, stderr = docker_compose(
+        ["build", "--no-cache"], cwd=project_root, timeout=600, allow_active_binaries=True
+    )
     if success:
         return OperationResult(
             success=True,
@@ -313,6 +316,14 @@ async def create_database_backup(
             pg_password = parsed.password
             pg_database = parsed.path.lstrip("/")
 
+            if not pg_user:
+                raise http_error(
+                    400,
+                    ErrorCode.BAD_REQUEST,
+                    "PostgreSQL username missing in DATABASE_URL",
+                    request,
+                )
+
             backup_filename = f"backup_{timestamp}.sql"
             backup_path = backup_dir / backup_filename
 
@@ -324,7 +335,7 @@ async def create_database_backup(
                 "-p",
                 str(pg_port),
                 "-U",
-                pg_user,
+                str(pg_user),
                 "-d",
                 pg_database,
                 "-F",
@@ -345,6 +356,7 @@ async def create_database_backup(
                     capture_output=True,
                     text=True,
                     timeout=300,  # 5 minutes timeout
+                    **_hidden_window_kwargs(),
                 )
 
                 if result.returncode != 0:

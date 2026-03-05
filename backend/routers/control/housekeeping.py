@@ -81,11 +81,11 @@ async def exit_all(down: bool = False):
     docker_performed = False
     if not in_docker_container() and check_docker_running():
         project_root = Path(__file__).resolve().parents[3]
-        ok_s, out_s, err_s = docker_compose(["stop"], cwd=project_root, timeout=120)
+        ok_s, out_s, err_s = docker_compose(["stop"], cwd=project_root, timeout=120, allow_active_binaries=True)
         details.update({"docker_stop_ok": ok_s, "docker_stop_stdout": out_s[-800:], "docker_stop_stderr": err_s[-800:]})
         docker_performed = True
         if down:
-            ok_d, out_d, err_d = docker_compose(["down"], cwd=project_root, timeout=180)
+            ok_d, out_d, err_d = docker_compose(["down"], cwd=project_root, timeout=180, allow_active_binaries=True)
             details.update(
                 {"docker_down_ok": ok_d, "docker_down_stdout": out_d[-800:], "docker_down_stderr": err_d[-800:]}
             )

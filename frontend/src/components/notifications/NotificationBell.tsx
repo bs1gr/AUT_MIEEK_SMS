@@ -23,7 +23,21 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
   const { unreadCount, isConnected } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const [showCenter, setShowCenter] = useState(false);
+  const [hasUpdateAvailable, setHasUpdateAvailable] = useState(
+    () => !!localStorage.getItem('sms.updateAvailable')
+  );
   const bellRef = useRef<HTMLDivElement>(null);
+
+  // Listen for update-available status changes
+  useEffect(() => {
+    const handler = () => setHasUpdateAvailable(!!localStorage.getItem('sms.updateAvailable'));
+    window.addEventListener('sms:update-status', handler);
+    window.addEventListener('storage', handler);
+    return () => {
+      window.removeEventListener('sms:update-status', handler);
+      window.removeEventListener('storage', handler);
+    };
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -54,8 +68,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({
     setShowCenter(false);
   };
 
-  const displayCount = unreadCount > maxDisplayCount ? `${maxDisplayCount}+` : unreadCount;
-  const hasUnread = unreadCount > 0;
+  const totalUnread = unreadCount + (hasUpdateAvailable ? 1 : 0);
+  const displayCount = totalUnread > maxDisplayCount ? `${maxDisplayCount}+` : totalUnread;
+  const hasUnread = totalUnread > 0;
 
   return (
     <div className={`notification-bell-container ${className}`} ref={bellRef}>

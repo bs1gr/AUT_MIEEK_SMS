@@ -18,10 +18,27 @@ import os
 import pathlib
 import shutil
 import signal
+import subprocess
 import threading
 import time
 from datetime import datetime
 from typing import Any, Dict, Iterable, Tuple
+
+
+def _hidden_window_kwargs() -> dict:
+    """Return subprocess kwargs that create a hidden console window on Windows.
+
+    Using STARTUPINFO with SW_HIDE instead of CREATE_NO_WINDOW so that the
+    child process still gets a valid console (prevents 0xc0000142 DLL init
+    failures with executables like docker.exe / taskkill.exe).
+    """
+    if os.name != "nt":
+        return {}
+    si = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]
+    si.wShowWindow = 0  # SW_HIDE
+    return {"startupinfo": si}
+
 
 try:
     import psutil
@@ -623,6 +640,9 @@ def _docker_shutdown_routine():
     """
     Shutdown routine for Docker environment.
     Executes docker-compose down to stop all containers.
+
+    Handles Docker availability gracefully to prevent Windows error dialogs
+    when Docker Desktop is not running or has DLL issues (error 0xc0000142).
     """
     time.sleep(0.2)  # Allow response to be sent
 
@@ -630,35 +650,79 @@ def _docker_shutdown_routine():
     print("[Docker] Environment detected - stopping containers...")
 
     try:
-        # Try to find docker-compose command
+        # Try to find docker-compose command using subprocess for better error handling
         compose_cmd = None
-        for cmd in ["docker-compose", "docker compose"]:
+        docker_available = False
+
+        # First check if docker is available to prevent DLL error dialogs
+        for cmd_list in [["docker-compose", "version"], ["docker", "compose", "version"]]:
             try:
-                result = os.system(f"{cmd} version > /dev/null 2>&1")
-                if result == 0:
-                    compose_cmd = cmd
+                result = subprocess.run(
+                    cmd_list,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                    stdin=subprocess.DEVNULL,
+                    **_hidden_window_kwargs(),
+                )
+                if result.returncode == 0:
+                    compose_cmd = cmd_list[:-1]  # Remove 'version' argument
+                    docker_available = True
+                    print(f"[Docker] Found: {' '.join(compose_cmd)}")
                     break
+            except FileNotFoundError:
+                # Docker executable not found - expected when Docker not installed
+                continue
+            except subprocess.TimeoutExpired:
+                print(f"[Docker] Timeout checking {' '.join(cmd_list)}")
+                continue
             except Exception as e:
                 import logging
 
-                logging.getLogger(__name__).debug(f"Error finding docker-compose command: {e}")
-        if not compose_cmd:
-            print("[Docker] Warning: docker-compose not found, cannot stop containers gracefully")
+                logging.getLogger(__name__).debug(f"Error checking docker command {cmd_list}: {e}")
+                continue
+
+        if not docker_available or not compose_cmd:
+            print("[Docker] Warning: Docker not available - cannot stop containers")
+            print("[Docker] This may be because:")
+            print("         - Docker Desktop is not installed")
+            print("         - Docker Desktop is not running")
+            print("         - Docker has system compatibility issues")
             print("[Docker] Container will stop when process exits")
             time.sleep(1)
             os.kill(os.getpid(), signal.SIGTERM)
             return
-        # Execute docker-compose down
-        print(f"[Docker] Executing: {compose_cmd} down")
-        result = os.system(f"cd {PROJECT_ROOT} && {compose_cmd} down")
-        if result == 0:
-            print("[Docker] Successfully stopped containers")
-        else:
-            print(f"[Docker] docker-compose down returned exit code: {result}")
+
+        # Execute docker-compose down with proper subprocess handling
+        print(f"[Docker] Executing: {' '.join(compose_cmd)} down")
+        try:
+            result = subprocess.run(
+                compose_cmd + ["down"],
+                cwd=str(PROJECT_ROOT),
+                capture_output=True,
+                text=True,
+                timeout=30,
+                stdin=subprocess.DEVNULL,
+                **_hidden_window_kwargs(),
+            )
+            if result.returncode == 0:
+                print("[Docker] Successfully stopped containers")
+            else:
+                print(f"[Docker] docker-compose down returned exit code: {result.returncode}")
+                if result.stderr:
+                    print(f"[Docker] stderr: {result.stderr[:200]}")
+        except subprocess.TimeoutExpired:
+            print("[Docker] Warning: docker-compose down timed out after 30s")
+        except FileNotFoundError:
+            print("[Docker] Error: Docker executable disappeared during shutdown")
+        except Exception as e:
+            print(f"[Docker] Error executing docker-compose down: {e}")
+
     except Exception as e:
-        print(f"[Docker] Error during shutdown: {e}")
+        print(f"[Docker] Unexpected error during shutdown: {e}")
     finally:
         # Ensure process exits
+        print("[Docker] Terminating process...")
         time.sleep(0.5)
         os.kill(os.getpid(), signal.SIGTERM)
 
@@ -675,7 +739,20 @@ def _kill_process_by_pid_file(pid_file_path: pathlib.Path, process_name: str):
         try:
             if psutil is None:
                 print(f"[{process_name}] psutil unavailable; attempting direct kill for PID {pid}")
-                os.kill(pid, signal.SIGTERM)
+                # On Windows, use taskkill to avoid error dialogs from abrupt process termination
+                if os.name == "nt":
+                    try:
+                        subprocess.run(
+                            ["taskkill", "/F", "/PID", str(pid)],
+                            capture_output=True,
+                            timeout=5,
+                            **_hidden_window_kwargs(),
+                        )
+                        print(f"[{process_name}] Successfully killed process {pid} using taskkill")
+                    except Exception as e:
+                        print(f"[{process_name}] taskkill failed: {e}")
+                else:
+                    os.kill(pid, signal.SIGTERM)
                 return
 
             proc = psutil.Process(pid)
@@ -729,8 +806,23 @@ def _safe_shutdown_routine():
         if backend_pid_file.exists():
             backend_pid_file.unlink()
 
-        # Use SIGTERM to cleanly shut down Uvicorn
-        os.kill(current_pid, signal.SIGTERM)
+        # On Windows, use taskkill to gracefully terminate without error dialogs
+        # On Unix, use SIGTERM for clean shutdown
+        if os.name == "nt":
+            try:
+                subprocess.run(
+                    ["taskkill", "/F", "/PID", str(current_pid)],
+                    capture_output=True,
+                    timeout=5,
+                    **_hidden_window_kwargs(),
+                )
+                print(f"[Backend] Successfully terminated process {current_pid} using taskkill")
+            except Exception as e:
+                print(f"[Backend] taskkill failed: {e}")
+                # Fallback to SIGTERM if taskkill fails
+                os.kill(current_pid, signal.SIGTERM)
+        else:
+            os.kill(current_pid, signal.SIGTERM)
 
     except Exception as e:
         print(f"[Backend] Error initiating self-kill: {e}")

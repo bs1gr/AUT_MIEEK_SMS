@@ -156,6 +156,12 @@ function Test-Node {
             return $false
         }
 
+        # Passive mode on Windows: avoid executing node.exe for routine checks
+        # to prevent popup crashes on unstable local installations.
+        if ($IsWindows -and $env:SMS_NATIVE_ALLOW_ACTIVE_BINARY_PROBES -ne '1') {
+            return $true
+        }
+
         $versionOutput = node --version 2>&1
         if ($versionOutput -match 'v(\d+\.\d+\.\d+)') {
             $version = [version]$matches[1]
@@ -217,6 +223,71 @@ function Test-PortInUse {
     }
     catch {
         return $false
+    }
+}
+
+function Test-Npm {
+    try {
+        $npmCmd = Get-Command npm -ErrorAction SilentlyContinue
+        if (-not $npmCmd) {
+            return $false
+        }
+
+        # Passive mode on Windows: detect command presence without executing npm.
+        if ($IsWindows -and $env:SMS_NATIVE_ALLOW_ACTIVE_BINARY_PROBES -ne '1') {
+            return $true
+        }
+
+        $versionOutput = npm --version 2>&1
+        return -not [string]::IsNullOrWhiteSpace("$versionOutput")
+    } catch {
+        return $false
+    }
+}
+
+function Enable-NativeProcessGuards {
+    <#
+    .SYNOPSIS
+    Apply Windows native-runtime guards for child processes
+    .DESCRIPTION
+    Masks Docker CLI from PATH by default in native mode to prevent disruptive
+    docker.exe popup crashes when local Docker Desktop binaries are broken.
+    Opt-out by setting SMS_NATIVE_BLOCK_DOCKER_CLI=0 before running NATIVE.ps1.
+    #>
+
+    if (-not $IsWindows) {
+        return
+    }
+
+    if ($env:SMS_NATIVE_BLOCK_DOCKER_CLI -eq '0') {
+        return
+    }
+
+    try {
+        $originalPath = $env:Path
+        $segments = $originalPath -split ';'
+        $filtered = @()
+        foreach ($segment in $segments) {
+            if ([string]::IsNullOrWhiteSpace($segment)) {
+                continue
+            }
+
+            if ($segment -match '(?i)\\Docker(\\|$)' -or $segment -match '(?i)Docker Desktop') {
+                continue
+            }
+
+            $filtered += $segment
+        }
+
+        $env:Path = ($filtered -join ';')
+        $env:SMS_CONTROL_ALLOW_ACTIVE_BINARY_PROBES = '0'
+        $env:SMS_NATIVE_ALLOW_ACTIVE_BINARY_PROBES = '0'
+        $env:SMS_NATIVE_BLOCK_DOCKER_CLI = '1'
+
+        Write-Info 'Native guard active: Docker CLI masked for child processes (set SMS_NATIVE_BLOCK_DOCKER_CLI=0 to opt out)'
+    }
+    catch {
+        Write-Warning "Failed to apply native Docker CLI guard: $_"
     }
 }
 
@@ -577,8 +648,16 @@ function Test-Prerequisites {
     # Check Node.js
     Write-Host "Node.js: " -NoNewline
     if (Test-Node) {
-        $nodeVersion = node --version 2>&1
-        Write-Host "$nodeVersion " -NoNewline -ForegroundColor Green
+        $nodeVersion = $null
+        if (-not ($IsWindows -and $env:SMS_NATIVE_ALLOW_ACTIVE_BINARY_PROBES -ne '1')) {
+            $nodeVersion = node --version 2>&1
+        }
+
+        if ($nodeVersion) {
+            Write-Host "$nodeVersion " -NoNewline -ForegroundColor Green
+        } else {
+            Write-Host "detected (passive) " -NoNewline -ForegroundColor Green
+        }
         Write-Success ""
     } else {
         Write-Error-Message "Node.js $MIN_NODE_VERSION or higher required"
@@ -588,10 +667,17 @@ function Test-Prerequisites {
 
     # Check npm
     Write-Host "npm: " -NoNewline
-    $npmCmd = Get-Command npm -ErrorAction SilentlyContinue
-    if ($npmCmd) {
-        $npmVersion = npm --version 2>&1
-        Write-Host "$npmVersion " -NoNewline -ForegroundColor Green
+    if (Test-Npm) {
+        $npmVersion = $null
+        if (-not ($IsWindows -and $env:SMS_NATIVE_ALLOW_ACTIVE_BINARY_PROBES -ne '1')) {
+            $npmVersion = npm --version 2>&1
+        }
+
+        if ($npmVersion) {
+            Write-Host "$npmVersion " -NoNewline -ForegroundColor Green
+        } else {
+            Write-Host "detected (passive) " -NoNewline -ForegroundColor Green
+        }
         Write-Success ""
     } else {
         Write-Error-Message "npm not found (should come with Node.js)"
@@ -915,6 +1001,9 @@ function Start-Backend {
             }
         }
 
+        # Apply child-process safety guards for native mode on Windows.
+        Enable-NativeProcessGuards
+
         # Force DATABASE_URL from backend/.env in native mode to avoid accidental
         # process/session overrides that can point to the wrong SQLite file.
         $backendEnvPath = Join-Path $BACKEND_DIR ".env"
@@ -1061,6 +1150,9 @@ function Start-Frontend {
                 $env:Path = "$nodeDir;$env:Path"
             }
         }
+
+        # Apply child-process safety guards for native mode on Windows.
+        Enable-NativeProcessGuards
 
         $npmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
         $npmExecutable = if ($npmCmd -and $npmCmd.Source) { $npmCmd.Source } else { "npm" }

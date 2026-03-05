@@ -295,7 +295,9 @@ async def start_monitoring_stack(request: Request):
         raise http_error(404, ErrorCode.CONTROL_FILE_NOT_FOUND, "Monitoring compose file not found", request)
 
     try:
-        success, stdout, stderr = docker_compose(["-f", "docker-compose.monitoring.yml", "up", "-d"], timeout=120)
+        success, stdout, stderr = docker_compose(
+            ["-f", "docker-compose.monitoring.yml", "up", "-d"], timeout=120, allow_active_binaries=True
+        )
         if not success:
             logger.error(
                 "Failed to start monitoring stack",
@@ -368,7 +370,9 @@ async def stop_monitoring_stack(request: Request):
     if not check_docker_running():
         return {"success": True, "message": "Docker not running, monitoring stack already stopped", "details": {}}
     try:
-        success, stdout, stderr = docker_compose(["-f", "docker-compose.monitoring.yml", "down"], timeout=60)
+        success, stdout, stderr = docker_compose(
+            ["-f", "docker-compose.monitoring.yml", "down"], timeout=60, allow_active_binaries=True
+        )
         if not success and "no configuration file provided" not in stderr.lower():
             raise http_error(
                 500, ErrorCode.CONTROL_OPERATION_FAILED, f"Failed to stop monitoring stack: {stderr}", request

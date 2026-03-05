@@ -86,6 +86,7 @@ export default {
   shutdownSuccess: '✅ Backend shutdown initiated. Server will stop in 2 seconds.',
   shutdownError: '❌ Failed to shutdown backend',
   shutdownInitiated: '✅ Backend shutdown initiated (connection closed)',
+  shutdownDockerUnavailable: '⚠️ Docker shutdown requested but Docker is not available. Check if Docker Desktop is running or see console for details.',
     error: 'Error',
     // Backups management
     manageBackups: 'Manage Backups',
