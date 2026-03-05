@@ -120,9 +120,9 @@ $InstallerDir = Join-Path $ProjectRoot "installer"
 $DistDir = Join-Path $ProjectRoot "dist"
 $VersionFile = Join-Path $ProjectRoot "VERSION"
 
-# Read version from file if not provided
+# Read version from file if not provided (strip v prefix for numeric version)
 if (-not $Version) {
-    $Version = (Get-Content $VersionFile -Raw).Trim()
+    $Version = (Get-Content $VersionFile -Raw).Trim() -replace '^v', ''
 }
 
 $CurrentVersion = $Version

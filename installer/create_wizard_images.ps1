@@ -108,16 +108,16 @@ function Test-ImageFiles {
 # ============================================================================
 
 $currentVersion = Get-ProjectVersion
-Write-Host "Current version: v$currentVersion" -ForegroundColor Cyan
+Write-Host "Current version: $currentVersion" -ForegroundColor Cyan
 
 # Check if regeneration is needed
 $needsRegen = $Force -or -not (Test-VersionCacheValid) -or -not (Test-ImageFiles)
 
 if ($needsRegen) {
-    Write-Host "Regenerating wizard images for v$currentVersion..." -ForegroundColor Yellow
+    Write-Host "Regenerating wizard images for $currentVersion..." -ForegroundColor Yellow
 }
 else {
-    Write-Host "Wizard images are up-to-date (v$currentVersion)" -ForegroundColor Green
+    Write-Host "Wizard images are up-to-date ($currentVersion)" -ForegroundColor Green
     exit 0
 }
 
@@ -200,7 +200,7 @@ $graphics.FillRectangle($lineGradient, 30, 200, $lineWidth, 2)
 $versionFont = New-Object System.Drawing.Font("Segoe UI", 7, [System.Drawing.FontStyle]::Regular)
 $versionBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(200, 255, 255, 255))
 $versionX = $width / 2
-$graphics.DrawString("v$($currentVersion)", $versionFont, $versionBrush, $versionX, 285, $format)
+$graphics.DrawString("$($currentVersion)", $versionFont, $versionBrush, $versionX, 285, $format)
 
 # Bottom accent bar
 $bottomY = $height - 3
@@ -208,7 +208,7 @@ $graphics.FillRectangle($accentBrush, 0, $bottomY, $width, 3)
 
 # Save high quality
 $bitmap.Save("$scriptDir\wizard_image.bmp", [System.Drawing.Imaging.ImageFormat]::Bmp)
-Write-Host "  Created wizard_image.bmp (v$currentVersion)" -ForegroundColor Green
+Write-Host "  Created wizard_image.bmp ($currentVersion)" -ForegroundColor Green
 
 # Cleanup
 $graphics.Dispose()
@@ -283,7 +283,7 @@ $graphics.DrawString("S", $font, $textBrush, $smallCenterX, $smallCenterY, $form
 
 # Save high quality
 $bitmap.Save("$scriptDir\wizard_small.bmp", [System.Drawing.Imaging.ImageFormat]::Bmp)
-Write-Host "  Created wizard_small.bmp (v$currentVersion)" -ForegroundColor Green
+Write-Host "  Created wizard_small.bmp ($currentVersion)" -ForegroundColor Green
 
 # Cleanup
 $graphics.Dispose()
@@ -306,7 +306,7 @@ Update-VersionCache
 # ============================================================================
 
 Write-Host "`nWizard Images Generation Complete" -ForegroundColor Cyan
-Write-Host "Version: v$currentVersion" -ForegroundColor Green
+Write-Host "Version: $currentVersion" -ForegroundColor Green
 Write-Host "Large Image: wizard_image.bmp (164x314)" -ForegroundColor Green
 Write-Host "Small Image: wizard_small.bmp (55x55)" -ForegroundColor Green
 Write-Host "Design: Modern v2.0 with enhanced visuals" -ForegroundColor Green

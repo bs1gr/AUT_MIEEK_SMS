@@ -22,10 +22,12 @@
 #define MyAppExeName "SMS_Manager.exe"
 #define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
 
-; Read version from VERSION file
+; Read version from VERSION file (may include "v" prefix per Policy 2)
 #define VersionFile FileOpen("..\VERSION")
 #define MyAppVersion Trim(FileRead(VersionFile))
 #expr FileClose(VersionFile)
+; Strip "v" prefix for directives requiring numeric-only format (e.g. VersionInfoVersion)
+#define MyAppVersionNumeric StringChange(MyAppVersion, "v", "")
 
 [Setup]
 ; Unique application ID - DO NOT CHANGE
@@ -43,7 +45,7 @@ DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 ; License and info files are language-specific (set in [Languages])
 OutputDir=..\dist
-OutputBaseFilename=SMS_Installer_{#MyAppVersion}
+OutputBaseFilename=SMS_Installer_{#MyAppVersionNumeric}
 SetupIconFile=..\favicon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -58,13 +60,13 @@ UninstallDisplayName={#MyAppName} {#MyAppVersion}
 ShowLanguageDialog=yes
 DisableWelcomePage=no
 ; Version info for Windows (shows in Properties and UAC dialogs)
-VersionInfoVersion={#MyAppVersion}
+VersionInfoVersion={#MyAppVersionNumeric}
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription={#MyAppName} Installer
 VersionInfoTextVersion={#MyAppVersion}
 VersionInfoCopyright=Copyright (C) 2024-2025 {#MyAppPublisher}
 VersionInfoProductName={#MyAppName}
-VersionInfoProductVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersionNumeric}
 VersionInfoProductTextVersion={#MyAppVersion}
 ; Upgrade/Update behavior
 UsePreviousAppDir=yes
