@@ -80,8 +80,48 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 ## [Unreleased]
 
-### Notes
-- Ongoing maintenance and post-release fixes will be listed here.
+### Features
+- **control-panel/updater**: Add auto-update job system with threaded download, SHA256 verification, and installer launch (`AutoUpdateRequest`, `AutoUpdateStatusResponse`, `_run_auto_update_job`, `_launch_installer`).
+- **control-panel/updater**: Split updater into separate Check and Update buttons; Update button disabled until update is detected.
+- **control-panel/updater**: Add `release_channel` field to `UpdateCheckResponse` for stable/beta channel support.
+- **notifications**: Integrate update-available badge into NotificationBell via localStorage + CustomEvent bridge (`sms.updateAvailable`, `sms:update-status`).
+- **notifications**: Add update-available card in NotificationDropdown body with version display and navigate-to-update action.
+- **offline**: Queue attendance, grades, and student updates for automatic reconnect sync with offline queues (`offlineAttendanceQueue`, `offlineGradesQueue`, `offlineStudentUpdateQueue`).
+- **qnap**: Add postgres-only ARMv7 deployment artifacts (docker-compose, install/manage scripts, example env).
+- **health**: Surface remote DB evidence and correct PostgreSQL diagnostics in health endpoint.
+
+### Bug Fixes
+- **subprocess**: Fix Windows `docker.exe 0xc0000142` crash by replacing `CREATE_NO_WINDOW` with `STARTUPINFO(dwFlags=STARTF_USESHOWWINDOW, wShowWindow=SW_HIDE)` across all control panel modules (admin_routes, common, frontend_dev, monitoring, operations).
+- **subprocess**: Add `_hidden_window_kwargs()` helper for safe subprocess creation on Windows.
+- **control-panel**: Add passive binary probe functions (`check_docker_running_passive`, `check_node_installed_passive`, `check_npm_installed_passive`) to avoid launching external binaries on status endpoint calls.
+- **backend**: Resolve OpenAPI callable schema issues and fix version consistency tests.
+- **backend**: Fix `auth_mode` type narrowing in maintenance router.
+- **tests**: Stabilize Vitest execution and dashboard mocks; fix AnalyticsDashboard test isolation.
+- **release**: Inline version normalization in installer workflow to prevent format mismatches.
+
+### CI/CD
+- **version**: Enforce `normalize-version` composite action as mandatory policy gate across all workflows (ci-cd-pipeline, docker-publish, installer, release-installer-with-sha, sync-installer-artifact).
+- **version**: Add `v` prefix to VERSION file to comply with Policy 2 (`v1.x.x` format).
+- **version**: Harden `VERIFY_VERSION.ps1`, `GENERATE_VERSION_REPORT.ps1`, `fix_version_discrepancies.ps1` for normalized version handling.
+
+### Internationalization
+- **i18n**: Add bilingual (EN/EL) keys for updater UI and notification bell update alerts.
+- **i18n**: Add offline sync status translations for attendance and grades.
+- **i18n**: Add health diagnostic translations for control panel.
+
+### Tests
+- **tests**: Add updater endpoint tests (`test_control_maintenance.py`).
+- **tests**: Add offline queue unit tests (attendance, grades, student updates).
+- **tests**: Add health endpoint evidence tests (`test_control_endpoints.py`, `test_health.py`).
+
+### Scripts
+- **NATIVE.ps1**: Improve startup reliability and process management.
+- **COMMIT_READY.ps1**: Improve Vitest subprocess handling and timeout management.
+
+### Documentation
+- **release**: Update v1.18.6 release and deployment documentation.
+- **release**: Update post-release verification status.
+- **qnap**: Update QNAP deployment guide with postgres-only ARMv7 instructions.
 
 ---
 
