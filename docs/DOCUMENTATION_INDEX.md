@@ -1,8 +1,8 @@
 # Documentation Index
 
 **Last Updated**: 2026-03-02
-**Project Version (documented)**: 1.18.6
-**Version**: 1.18.6
+**Project Version (documented)**: 1.18.7
+**Version**: 1.18.7
 **Current Branch**: `main`
 **Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.6 RELEASED (ANALYTICS REVIVAL)**
 

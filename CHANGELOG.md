@@ -90,6 +90,9 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **qnap**: Add postgres-only ARMv7 deployment artifacts (docker-compose, install/manage scripts, example env).
 - **health**: Surface remote DB evidence and correct PostgreSQL diagnostics in health endpoint.
 
+### UI Improvements
+- **control-panel**: Improve UpdatesPanel button contrast (gray → indigo), up-to-date card styling (gradient), and release info fallback display.
+
 ### Bug Fixes
 - **subprocess**: Fix Windows `docker.exe 0xc0000142` crash by replacing `CREATE_NO_WINDOW` with `STARTUPINFO(dwFlags=STARTF_USESHOWWINDOW, wShowWindow=SW_HIDE)` across all control panel modules (admin_routes, common, frontend_dev, monitoring, operations).
 - **subprocess**: Add `_hidden_window_kwargs()` helper for safe subprocess creation on Windows.
@@ -98,11 +101,19 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **backend**: Fix `auth_mode` type narrowing in maintenance router.
 - **tests**: Stabilize Vitest execution and dashboard mocks; fix AnalyticsDashboard test isolation.
 - **release**: Inline version normalization in installer workflow to prevent format mismatches.
+- **runtime**: Remove `gh` CLI subprocess from maintenance router to eliminate external binary dependency.
+- **runtime**: Fix ErrorBoundary i18n namespace resolution.
+- **runtime**: Fix AttendanceView temporal dead zone (TDZ) caused by variable initialization order.
+- **types**: Resolve MyPy mismatches in analytics export service, courses router, and path validation.
+
+### UI Improvements
+- **control-panel**: Improve UpdatesPanel button contrast (gray to indigo), up-to-date card styling (gradient), and release info fallback display.
 
 ### CI/CD
 - **version**: Enforce `normalize-version` composite action as mandatory policy gate across all workflows (ci-cd-pipeline, docker-publish, installer, release-installer-with-sha, sync-installer-artifact).
 - **version**: Add `v` prefix to VERSION file to comply with Policy 2 (`v1.x.x` format).
 - **version**: Harden `VERIFY_VERSION.ps1`, `GENERATE_VERSION_REPORT.ps1`, `fix_version_discrepancies.ps1` for normalized version handling.
+- **workflows**: Harden release ownership and CI gating; remove duplicate create-release job from docker-publish.
 
 ### Internationalization
 - **i18n**: Add bilingual (EN/EL) keys for updater UI and notification bell update alerts.
