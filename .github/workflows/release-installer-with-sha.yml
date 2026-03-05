@@ -151,37 +151,7 @@ jobs:
 
       - name: Normalize version from checked out VERSION file
         id: normalized_version
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          if (-not (Test-Path "VERSION")) {
-            Write-Error "VERSION file not found in checked out tag"
-            exit 1
-          }
-
-          $raw = (Get-Content VERSION -Raw).Trim()
-          if ([string]::IsNullOrWhiteSpace($raw)) {
-            Write-Error "VERSION file is empty"
-            exit 1
-          }
-
-          if ($raw -match '^v1\.\d+\.\d+$') {
-            $versionTag = $raw
-            $versionCore = $raw -replace '^v', ''
-          }
-          elseif ($raw -match '^1\.\d+\.\d+$') {
-            $versionCore = $raw
-            $versionTag = "v$raw"
-          }
-          else {
-            Write-Error "VERSION '$raw' is not in expected format (v1.x.x or 1.x.x)."
-            exit 1
-          }
-
-          Write-Host "Normalized VERSION tag: $versionTag"
-          Write-Host "Normalized VERSION core: $versionCore"
-          "version_tag=$versionTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "version_core=$versionCore" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        uses: ./.github/actions/normalize-version
 
       - name: Validate checkout matches tag version
         shell: pwsh
