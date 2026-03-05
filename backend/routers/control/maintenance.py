@@ -30,6 +30,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def _is_native_windows() -> bool:
+    """Check if running natively on Windows (safe to mock without corrupting os.name)."""
+    return os.name == "nt"
+
+
 class AuthSettingsResponse(BaseModel):
     """Current authentication configuration."""
 
@@ -742,7 +747,7 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
             details={"deployment_mode": "docker"},
         )
 
-    if os.name != "nt":
+    if not _is_native_windows():
         return OperationResult(
             success=False,
             message="Automatic installer updates are currently supported on Windows only.",

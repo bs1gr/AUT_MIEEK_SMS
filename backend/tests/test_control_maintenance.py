@@ -146,7 +146,7 @@ def test_auto_install_update_native_windows_success(client, monkeypatch, tmp_pat
             source="test",
         ),
     )
-    monkeypatch.setattr(maintenance.os, "name", "nt", raising=False)
+    monkeypatch.setattr(maintenance, "_is_native_windows", lambda: True)
     monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
     monkeypatch.setattr(
         maintenance,
