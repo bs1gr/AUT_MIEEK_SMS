@@ -12,3 +12,4 @@ export * from './usePerformanceMonitor';
 export * from './useStudentModals';
 export * from './useStudentsQuery';
 export * from './useVirtualScroll';
+export * from './useNetworkStatus';

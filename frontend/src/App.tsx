@@ -17,6 +17,7 @@ import Footer from './components/Footer';
 import { useAuth } from './contexts/AuthContext';
 import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptModal';
 import BackendStatusBanner from './components/common/BackendStatusBanner';
+import OfflineBanner from './components/common/OfflineBanner';
 import UserFeedbackModal from './components/UserFeedbackModal';
 
 interface NavigationTabConfig {
@@ -148,6 +149,9 @@ function AppLayout({ children }: AppLayoutProps) {
     <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col relative z-10">
       {/* Backend Status Banner - appears at top when backend is unavailable */}
       <BackendStatusBanner />
+
+      {/* Offline / Pending-Sync Banner */}
+      <OfflineBanner />
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 

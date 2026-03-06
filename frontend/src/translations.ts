@@ -55,6 +55,8 @@ import messagesEn from './locales/en/messages.js';
 import messagesEl from './locales/el/messages.js';
 import systemEn from './locales/en/system.js';
 import systemEl from './locales/el/system.js';
+import offlineEn from './locales/en/offline.js';
+import offlineEl from './locales/el/offline.js';
 
 export interface Translations {
   en: Record<string, unknown>;
@@ -96,7 +98,8 @@ export const translationNamespaces = {
     notifications: notificationsEn,
     customReports: customReportsEn,
     messages: messagesEn,
-    system: systemEn
+    system: systemEn,
+    offline: offlineEn
   },
 
   el: {
@@ -121,7 +124,8 @@ export const translationNamespaces = {
     notifications: notificationsEl,
     customReports: customReportsEl,
     messages: messagesEl,
-    system: systemEl
+    system: systemEl,
+    offline: offlineEl
   }
 };
 
