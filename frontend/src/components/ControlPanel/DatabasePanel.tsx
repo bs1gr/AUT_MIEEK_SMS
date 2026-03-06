@@ -171,14 +171,23 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
     }
   }, [controlApi, fetchBackups, flash, t]);
 
-  const handleDownload = useCallback((filename: string) => {
-    const url = `${controlApi}/database/backups/${encodeURIComponent(filename)}/download`;
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+  const handleDownload = useCallback(async (filename: string) => {
+    try {
+      const res = await axios.get(
+        `${controlApi}/database/backups/${encodeURIComponent(filename)}/download`,
+        { responseType: 'blob' },
+      );
+      const url = window.URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch {
+      setError('Download failed');
+    }
   }, [controlApi]);
 
   const handleDelete = useCallback(async (filename: string) => {

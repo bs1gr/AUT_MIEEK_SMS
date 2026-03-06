@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 from backend.control_auth import require_control_admin
 from backend.services.database_manager import (
+    _find_instance,
     check_instance_health,
     create_backup,
     delete_backup,
@@ -118,16 +119,11 @@ async def get_instance_status(
 ):
     """Check health of a specific database instance."""
     try:
-        instances = get_configured_instances()
-        inst = None
-        for i in instances:
-            if i["name"] == name:
-                inst = i
-                break
-        if inst is None:
-            raise HTTPException(status_code=404, detail=f"Instance '{name}' not found")
+        inst = _find_instance(name)
         health = check_instance_health(inst)
         return InstanceInfo(**health)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
     except HTTPException:
         raise
     except Exception as exc:
@@ -142,16 +138,11 @@ async def get_database_stats(
 ):
     """Get detailed statistics for a database instance."""
     try:
-        instances = get_configured_instances()
-        inst = None
-        for i in instances:
-            if i["name"] == name:
-                inst = i
-                break
-        if inst is None:
-            raise HTTPException(status_code=404, detail=f"Instance '{name}' not found")
+        inst = _find_instance(name)
         stats = get_instance_stats(inst)
         return DatabaseStats(**stats)
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
     except HTTPException:
         raise
     except Exception as exc:
@@ -171,19 +162,11 @@ async def create_instance_backup(
 ):
     """Create a backup of a database instance."""
     try:
-        instances = get_configured_instances()
-        inst = None
-        for i in instances:
-            if i["name"] == name:
-                inst = i
-                break
-        if inst is None:
-            raise HTTPException(status_code=404, detail=f"Instance '{name}' not found")
-
+        inst = _find_instance(name)
         result = create_backup(inst, compress=compress)
         return BackupResult(**result)
-    except HTTPException:
-        raise
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
     except Exception as exc:
         logger.error("Backup creation failed: %s", exc)
         return BackupResult(success=False, error=str(exc))
@@ -237,23 +220,13 @@ async def delete_database_backup(
 @router.post("/database/backups/{filename}/restore")
 async def restore_database_backup(
     filename: str,
+    request: Request,
     instance_name: str = Query(..., description="Target instance name"),
-    request: Request = None,  # type: ignore[assignment]
     _auth=Depends(require_control_admin),
 ):
     """Restore a backup to a database instance."""
     try:
-        instances = get_configured_instances()
-        inst = None
-        for i in instances:
-            if i["name"] == instance_name:
-                inst = i
-                break
-        if inst is None:
-            raise HTTPException(
-                status_code=404, detail=f"Instance '{instance_name}' not found"
-            )
-
+        inst = _find_instance(instance_name)
         result = restore_backup(inst, filename)
         return RestoreResult(**result)
     except HTTPException:
