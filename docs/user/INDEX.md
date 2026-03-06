@@ -69,6 +69,7 @@ Documentation for end-users of the Student Management System.
 - Bookmark frequently used pages
 - Enable dark mode for reduced eye strain
 - Regular data backups (admin feature)
+- For multi-PC deployments and offline operation, see [Multi-PC Deployment Guide](../deployment/MULTI_PC_DEPLOYMENT_GUIDE.md)
 
 ## 🆘 Need Help?
 

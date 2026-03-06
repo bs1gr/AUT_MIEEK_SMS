@@ -27,6 +27,15 @@ Documentation for deploying and operating the Student Management System in produ
 
 - **[QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)** - Consolidated QNAP Container Station guide (standard, ARM/TS-431P3, virtual host)
 
+### Multi-PC Deployment
+
+- **[MULTI_PC_DEPLOYMENT_GUIDE.md](MULTI_PC_DEPLOYMENT_GUIDE.md)** - Multi-PC architecture & offline operation
+  - Central QNAP PostgreSQL + frontend offline queues
+  - New PC setup (5-minute guide)
+  - Offline data queuing (attendance, grades, students)
+  - Sync mechanics & conflict resolution
+  - Troubleshooting multi-PC scenarios
+
 ### Docker Operations
 
 - **[DOCKER_OPERATIONS.md](DOCKER_OPERATIONS.md)** - Docker commands & management
