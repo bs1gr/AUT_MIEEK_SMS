@@ -1019,6 +1019,10 @@ async def admin_delete_user(
 
     try:
         db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).delete(synchronize_session=False)
+        # Nullify audit log references so history is preserved without FK violation
+        db.query(models.AuditLog).filter(models.AuditLog.user_id == user.id).update(
+            {models.AuditLog.user_id: None}, synchronize_session=False
+        )
         # Use query-based delete to avoid ORM cascade against
         # tables that may not exist in older database schemas.
         db.query(models.User).filter(models.User.id == user.id).delete(synchronize_session=False)
