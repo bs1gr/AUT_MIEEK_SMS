@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from . import (
     base,
+    database,
     frontend_dev,
     housekeeping,
     logs,
@@ -24,3 +25,4 @@ router.include_router(housekeeping.router)
 router.include_router(frontend_dev.router)
 router.include_router(maintenance.router)
 router.include_router(rate_limits.router)
+router.include_router(database.router)

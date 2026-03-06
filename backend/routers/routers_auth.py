@@ -1019,13 +1019,16 @@ async def admin_delete_user(
 
     try:
         db.query(models.RefreshToken).filter(models.RefreshToken.user_id == user.id).delete(synchronize_session=False)
-        db.delete(user)
+        # Use query-based delete to avoid ORM cascade against
+        # tables that may not exist in older database schemas.
+        db.query(models.User).filter(models.User.id == user.id).delete(synchronize_session=False)
         db.commit()
         return Response(status_code=status.HTTP_204_NO_CONTENT)
     except HTTPException:
         raise
     except Exception as exc:
         db.rollback()
+        logger.error(f"Failed to delete user {user_id}: {exc!r}", exc_info=True)
         raise internal_server_error("Unable to delete user", request) from exc
 
 

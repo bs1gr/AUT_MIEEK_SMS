@@ -15,7 +15,8 @@ import {
   Shield,
   Download,
   Activity,
-  ChevronDown
+  ChevronDown,
+  Database
 } from 'lucide-react';
 import { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
@@ -27,6 +28,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import UpdatesPanel from './ControlPanel/UpdatesPanel';
 import RateLimitAdjuster from './ControlPanel/RateLimitAdjuster';
+import DatabasePanel from './ControlPanel/DatabasePanel';
 import { CONTROL_API_BASE, controlApiClient } from '@/api/api';
 
 // TypeScript interfaces
@@ -568,6 +570,7 @@ function formatUptime(seconds: number): string {
               { id: 'logs', label: t('logs') || 'Logs', icon: FileText },
               { id: 'environment', label: t('environment') || 'Environment', icon: Cpu },
               ...(user?.role === 'admin' ? [{ id: 'rate-limits', label: t('rateLimitsLabel') || 'Rate Limits', icon: Activity }] : []),
+              { id: 'database', label: t('database') || 'Database', icon: Database },
               { id: 'maintenance', label: t('maintenance') || 'Maintenance', icon: Shield }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -1142,6 +1145,11 @@ function formatUptime(seconds: number): string {
               )}
             </div>
           </div>
+        )}
+
+        {/* Database Tab */}
+        {activeTab === 'database' && (
+          <DatabasePanel controlApi={CONTROL_API} />
         )}
 
         {/* Rate Limits Tab */}
