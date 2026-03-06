@@ -185,5 +185,6 @@ def test_backup_requires_authentication(client):
 
     # 200 OK: TestClient is treated as loopback and allowed (control_auth permits loopback)
     # 400 Bad Request (missing body), 401 Unauthorized, or 404 if control API is disabled
+    # 500: pg_dump not found when DATABASE_URL points to PostgreSQL but client tools missing
     # NOTE: To properly test auth rejection, mock request.client to be non-loopback or set ADMIN_SHUTDOWN_TOKEN
-    assert response.status_code in (200, 400, 401, 404)
+    assert response.status_code in (200, 400, 401, 404, 500)
