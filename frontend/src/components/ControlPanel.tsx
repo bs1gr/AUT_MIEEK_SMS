@@ -16,7 +16,6 @@ import {
   Download,
   Activity,
   ChevronDown,
-  Database
 } from 'lucide-react';
 import { AxiosError } from 'axios';
 import { useLanguage } from '../LanguageContext';
@@ -157,6 +156,7 @@ const ControlPanel: React.FC<ControlPanelProps> = ({ showTitle = true, variant =
   const [expandAdminUsers, setExpandAdminUsers] = useState<boolean>(false);
   const [expandRBAC, setExpandRBAC] = useState<boolean>(false);
   const [expandDevTools, setExpandDevTools] = useState<boolean>(false);
+  const [expandDatabase, setExpandDatabase] = useState<boolean>(false);
   const [uptime, setUptime] = useState<string>('');
   const uptimeTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
@@ -570,7 +570,6 @@ function formatUptime(seconds: number): string {
               { id: 'logs', label: t('logs') || 'Logs', icon: FileText },
               { id: 'environment', label: t('environment') || 'Environment', icon: Cpu },
               ...(user?.role === 'admin' ? [{ id: 'rate-limits', label: t('rateLimitsLabel') || 'Rate Limits', icon: Activity }] : []),
-              { id: 'database', label: t('database') || 'Database', icon: Database },
               { id: 'maintenance', label: t('maintenance') || 'Maintenance', icon: Shield }
             ].map((tab) => {
               const Icon = tab.icon;
@@ -1125,7 +1124,7 @@ function formatUptime(seconds: number): string {
                 className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
                 <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  {t('utils.operationsMonitor') || 'Dev Tools & Operations'}
+                  {t('controlPanel.systemOperations') || 'System Operations'}
                 </h3>
                 <ChevronDown
                   size={20}
@@ -1144,13 +1143,31 @@ function formatUptime(seconds: number): string {
                   />
                 </div>
               )}
+
+              {/* Database Management Section */}
+              <div className="border border-l-4 border-l-indigo-500 rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setExpandDatabase(!expandDatabase)}
+                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                    {t('controlPanel.databaseManagement') || 'Database Management'}
+                  </h3>
+                  <ChevronDown
+                    size={20}
+                    className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                      expandDatabase ? 'rotate-180' : ''
+                    }`}
+                  />
+                </button>
+                {expandDatabase && (
+                  <div className="p-6">
+                    <DatabasePanel controlApi={CONTROL_API} />
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        )}
-
-        {/* Database Tab */}
-        {activeTab === 'database' && (
-          <DatabasePanel controlApi={CONTROL_API} />
         )}
 
         {/* Rate Limits Tab */}

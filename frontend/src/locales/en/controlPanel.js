@@ -252,6 +252,8 @@ export default {
   maintenance: 'Maintenance',
   maintenanceTitle: 'Maintenance Suite',
   maintenanceSubtitle: 'System administration, user management, backups, restores, imports, and database maintenance all in one place.',
+  systemOperations: 'System Operations',
+  databaseManagement: 'Database Management',
   dateTimeSettingsTitle: 'Date & Time Settings',
   dateTimeSettingsSubtitle: 'Force the date format and timezone used across the application.',
   dateTimeTimezoneLabel: 'Timezone',

@@ -252,6 +252,8 @@ export default {
   maintenance: 'Συντήρηση',
   maintenanceTitle: 'Σουίτα Συντήρησης',
   maintenanceSubtitle: 'Διαχείριση συστήματος, διαχείριση χρηστών, αντίγραφα ασφαλείας, επαναφορές, εισαγωγές και συντήρηση βάσης δεδομένων όλα σε ένα μέρος.',
+  systemOperations: 'Λειτουργίες Συστήματος',
+  databaseManagement: 'Διαχείριση Βάσης Δεδομένων',
   dateTimeSettingsTitle: 'Ρυθμίσεις Ημερομηνίας & Ώρας',
   dateTimeSettingsSubtitle: 'Ορίστε το υποχρεωτικό format ημερομηνίας και ζώνη ώρας σε όλη την εφαρμογή.',
   dateTimeTimezoneLabel: 'Ζώνη ώρας',
