@@ -8,6 +8,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, UseQueryResult } from '@tanstack/react-query';
 import { searchAPI } from '@/api/search-client';
+import { ErrorHandler, ErrorCategory } from '@/utils/errorHandling';
 import {
   SearchQuery,
   SearchResult,
@@ -27,6 +28,7 @@ export interface UseSearchState {
   currentPage: number;
   pageSize: number;
   selectedFacets?: Record<string, string[]>;
+  errorCategory?: ErrorCategory;
 }
 
 /**
@@ -50,6 +52,7 @@ export const useSearch = (
     currentPage: initialState?.currentPage ?? 1,
     pageSize: initialState?.pageSize ?? 20,
     selectedFacets: initialState?.selectedFacets ?? {},
+    errorCategory: ErrorCategory.UNKNOWN,
   });
 
   // Debounce timer
@@ -104,16 +107,41 @@ export const useSearch = (
         return { success: true, data: { items: [], total: 0, page: 1, page_size: 20, facets: {} } };
       }
 
-      const response =
-        debouncedQuery.entityType === 'all'
-          ? await searchAPI.advancedSearch(buildSearchQuery())
-          : debouncedQuery.entityType === 'students'
-            ? await searchAPI.searchStudents(buildSearchQuery())
-            : debouncedQuery.entityType === 'courses'
-              ? await searchAPI.searchCourses(buildSearchQuery())
-              : await searchAPI.searchGrades(buildSearchQuery());
+      try {
+        const response =
+          debouncedQuery.entityType === 'all'
+            ? await searchAPI.advancedSearch(buildSearchQuery())
+            : debouncedQuery.entityType === 'students'
+              ? await searchAPI.searchStudents(buildSearchQuery())
+              : debouncedQuery.entityType === 'courses'
+                ? await searchAPI.searchCourses(buildSearchQuery())
+                : await searchAPI.searchGrades(buildSearchQuery());
 
-      return response;
+        // Track successful query
+        setState((prev) => ({
+          ...prev,
+          errorCategory: ErrorCategory.UNKNOWN,
+        }));
+
+        return response;
+      } catch (error: unknown) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        const category = ErrorHandler.categorizeError(err);
+
+        // Update state with error category
+        setState((prev) => ({
+          ...prev,
+          errorCategory: category,
+        }));
+
+        // Log error with structured context
+        ErrorHandler.logError(err, {
+          operation: 'useSearch.execute',
+          request: `Search[${debouncedQuery.entityType}]`,
+        });
+
+        throw err;
+      }
     },
     enabled: true,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -217,8 +245,8 @@ export const useSearch = (
     ) => {
       setState((prev) => ({
         ...prev,
-        sort_by: sortBy,
-        sort_order: sortOrder,
+        sortBy,
+        sortOrder,
         currentPage: 1, // Reset to first page
       }));
     },
@@ -230,7 +258,7 @@ export const useSearch = (
     (sortBy: string) => {
       setState((prev) => ({
         ...prev,
-        sort_by: sortBy,
+        sortBy: sortBy as UseSearchState['sortBy'],
         currentPage: 1, // Reset to first page
       }));
     },
@@ -256,6 +284,9 @@ export const useSearch = (
 
   // Get results data
   const results: SearchResultData | undefined = searchQuery.data?.data;
+  const errorCategory = state.errorCategory ?? ErrorCategory.UNKNOWN;
+  const userErrorMessage = searchQuery.error ? ErrorHandler.getUserMessage(errorCategory) : null;
+  const isRecoverable = searchQuery.isError && ErrorHandler.isRecoverable(errorCategory);
 
   return {
     // State
@@ -264,6 +295,9 @@ export const useSearch = (
     isLoading: searchQuery.isLoading,
     isError: searchQuery.isError,
     error: searchQuery.error,
+    errorCategory,
+    userErrorMessage,
+    isRecoverable,
 
     // Methods
     setQuery,

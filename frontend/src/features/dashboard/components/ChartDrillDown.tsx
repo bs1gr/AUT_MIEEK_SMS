@@ -183,7 +183,7 @@ export const createStudentPerformanceDrillDown = (
     label: `Students in ${course.name}`,
     parentId: `courses-${course.class_id}`,
     data: students.filter(
-      (s) => grades.some((g: any) => g.course_id === course.id && g.student_id === s.id)
+      (s) => grades.some((g: StudentGrade) => g.course_id === course.id && g.student_id === s.id)
     ),
   }));
 

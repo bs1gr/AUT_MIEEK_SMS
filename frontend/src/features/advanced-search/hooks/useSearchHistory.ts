@@ -1,28 +1,28 @@
 import { useState, useCallback } from 'react';
 import { SearchHistoryEntry } from '@/features/advanced-search/types/search';
+import { safeLocalStorage, ErrorHandler } from '@/utils/errorHandling';
 
 const STORAGE_KEY = 'sms.search.history';
 const MAX_ENTRIES = 10;
 
 function loadHistory(): SearchHistoryEntry[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
+    const parsed = safeLocalStorage<SearchHistoryEntry[]>('get', STORAGE_KEY);
     if (Array.isArray(parsed)) {
       return parsed;
     }
-  } catch {
-    // ignore
+    return [];
+  } catch (error) {
+    ErrorHandler.logError(error, { operation: 'loadSearchHistory' });
+    return [];
   }
-  return [];
 }
 
-function saveHistory(entries: SearchHistoryEntry[]) {
+function saveHistory(entries: SearchHistoryEntry[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    // ignore
+    safeLocalStorage('set', STORAGE_KEY, entries);
+  } catch (error) {
+    ErrorHandler.logError(error, { operation: 'saveSearchHistory' });
   }
 }
 

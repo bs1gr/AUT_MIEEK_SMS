@@ -1,13 +1,15 @@
 import React, { Component, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { safeNavigate } from './utils/navigation';
-import { recoverFromChunkLoadError } from './utils/chunkLoadRecovery';
+import { ErrorHandler, ErrorCategory, ErrorContext } from './utils/errorHandling';
 
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
   errorInfo: React.ErrorInfo | null;
   showDetails: boolean;
+  errorCategory: ErrorCategory;
+  errorContext: ErrorContext | null;
 }
 
 interface ErrorBoundaryCoreProps {
@@ -22,6 +24,8 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
     this.state = {
       hasError: false,
       error: null,
+      errorCategory: ErrorCategory.UNKNOWN,
+      errorContext: null,
       errorInfo: null,
       showDetails: false
     };
@@ -33,25 +37,33 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
-    if (recoverFromChunkLoadError(error)) {
-      return;
-    }
-
-    // Log error to console for debugging
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    // Categorize error for better handling
+    const category = ErrorHandler.categorizeError(error);
+    const context = ErrorHandler.createContext(`ErrorBoundary-${this.props.boundaryName}`);
 
     // Store error info in state
-    this.setState({ errorInfo });
+    this.setState({
+      errorInfo,
+      errorCategory: category,
+      errorContext: context,
+    });
 
-    // Send to backend error logging service
-    import('./utils/errorReporting').then(({ logErrorToBackend }) => {
-      logErrorToBackend(error, { componentStack: errorInfo.componentStack || undefined }, {
-        boundaryName: this.props.boundaryName || 'Root',
+    // Log error with structured context
+    ErrorHandler.logError(error, {
+      operation: `ErrorBoundary caught [${this.props.boundaryName}]`,
+    });
+
+    // Log detailed context in DEV mode
+    if (import.meta.env.DEV) {
+      console.error('ErrorBoundary detailed context:', {
+        error,
+        category,
+        context,
+        componentStack: errorInfo.componentStack,
+        boundaryName: this.props.boundaryName,
         timestamp: new Date().toISOString(),
       });
-    }).catch(err => {
-      console.warn('Failed to load error reporting:', err);
-    });
+    }
   }
 
   handleReset = (): void => {
@@ -75,8 +87,12 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
 
   render(): ReactNode {
     if (this.state.hasError) {
-      const { error, errorInfo, showDetails } = this.state;
+      const { error, errorInfo, showDetails, errorCategory } = this.state;
       const { t } = this.props;
+
+      // Get user-friendly message based on error category
+      const userMessage = ErrorHandler.getUserMessage(errorCategory);
+      const isRecoverable = ErrorHandler.isRecoverable(errorCategory);
 
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4 font-sans">
@@ -96,8 +112,13 @@ class ErrorBoundaryCore extends Component<ErrorBoundaryCoreProps, ErrorBoundaryS
                 {t('unknown', { ns: 'errors' }) || 'Something went wrong'}
               </h2>
               <p className="text-sm text-gray-600">
-                {t('pleaseWait', { ns: 'messages' }) || 'We encountered an unexpected error. You can try reloading the page or return to the home page.'}
+                {userMessage}
               </p>
+              {isRecoverable && (
+                <p className="text-xs text-sky-600 mt-2">
+                  💡 {t('tryAgain', { ns: 'messages' }) || 'This error may be temporary. Try again or go home.'}
+                </p>
+              )}
             </div>
 
             {/* Error Details (Collapsible) */}
