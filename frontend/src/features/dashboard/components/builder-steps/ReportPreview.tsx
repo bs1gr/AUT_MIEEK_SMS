@@ -6,10 +6,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle, AlertCircle, Copy } from 'lucide-react';
+import { ReportConfig } from '../CustomReportBuilder';
 
 interface ReportPreviewProps {
-  reportConfig: any;
-  onUpdate: (updates: any) => void;
+  reportConfig: ReportConfig;
+  onUpdate: (updates: Partial<ReportConfig>) => void;
   onSave?: () => void;
   isSaving?: boolean;
 }

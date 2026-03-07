@@ -83,13 +83,13 @@ export function calculateVirtualScrollRange(
 /**
  * Debounce function for scroll/resize events
  */
-export function debounce<T extends (...args: any[]) => any>(
-  func: T,
+export function debounce<Args extends unknown[], R>(
+  func: (...args: Args) => R,
   wait: number
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
   let timeout: ReturnType<typeof setTimeout> | null = null;
 
-  return function executedFunction(...args: Parameters<T>) {
+  return function executedFunction(...args: Args) {
     const later = () => {
       timeout = null;
       func(...args);
@@ -106,13 +106,13 @@ export function debounce<T extends (...args: any[]) => any>(
 /**
  * Throttle function for scroll/resize events
  */
-export function throttle<T extends (...args: any[]) => any>(
-  func: T,
+export function throttle<Args extends unknown[], R>(
+  func: (...args: Args) => R,
   limit: number
-): (...args: Parameters<T>) => void {
+): (...args: Args) => void {
   let inThrottle: boolean = false;
 
-  return function (...args: Parameters<T>) {
+  return function (...args: Args) {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;
@@ -128,8 +128,9 @@ export function requestIdleCallback(
   callback: (deadline: IdleDeadline) => void,
   options?: IdleRequestOptions
 ): number {
-  if ('requestIdleCallback' in window) {
-    return (window as any).requestIdleCallback(callback, options);
+  const requestIdleCallbackFn = (window as unknown as { requestIdleCallback?: typeof globalThis.requestIdleCallback }).requestIdleCallback;
+  if (requestIdleCallbackFn) {
+    return requestIdleCallbackFn(callback, options);
   }
 
   // Fallback to setTimeout
@@ -138,8 +139,8 @@ export function requestIdleCallback(
     callback({
       didTimeout: false,
       timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
-    } as IdleDeadline);
-  }, 1) as any;
+    } as unknown as IdleDeadline);
+  }, 1);
 }
 
 /**
@@ -183,14 +184,14 @@ export async function batchProcessAsync<T, R>(
 /**
  * Memoize computed results to avoid recalculation
  */
-export function memoize<T extends (...args: any[]) => any>(func: T): T {
-  const cache = new Map();
+export function memoize<Args extends unknown[], R>(func: (...args: Args) => R): (...args: Args) => R {
+  const cache = new Map<string, R>();
 
-  return ((...args: any[]) => {
+  return (...args: Args) => {
     const key = JSON.stringify(args);
 
     if (cache.has(key)) {
-      return cache.get(key);
+      return cache.get(key)!;
     }
 
     const result = func(...args);
@@ -203,7 +204,7 @@ export function memoize<T extends (...args: any[]) => any>(func: T): T {
     }
 
     return result;
-  }) as T;
+  };
 }
 
 /**

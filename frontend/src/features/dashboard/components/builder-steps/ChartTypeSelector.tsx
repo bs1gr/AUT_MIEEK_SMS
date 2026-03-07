@@ -6,6 +6,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, BarChart3, PieChart as PieIcon } from 'lucide-react';
+import { ReportConfig } from '../CustomReportBuilder';
 
 interface ChartType {
   id: string;
@@ -52,8 +53,8 @@ const CHART_TYPES: ChartType[] = [
 ];
 
 interface ChartTypeSelectorProps {
-  reportConfig: any;
-  onUpdate: (updates: any) => void;
+  reportConfig: ReportConfig;
+  onUpdate: (updates: Partial<ReportConfig>) => void;
 }
 
 export const ChartTypeSelector: React.FC<ChartTypeSelectorProps> = ({

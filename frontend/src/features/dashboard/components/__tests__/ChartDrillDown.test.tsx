@@ -33,7 +33,7 @@ describe('ChartDrillDown', () => {
     vi.clearAllMocks();
   });
 
-  const mockRenderContent = (level: any) => (
+  const mockRenderContent = (level: { id: string; label: string }) => (
     <div data-testid={`level-${level.id}`}>
       {level.label}
     </div>

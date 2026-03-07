@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { useTranslation } from 'react-i18next';
+import { ReportConfig } from '../CustomReportBuilder';
 
 interface DataSeriesMetric {
   id: string;
@@ -53,8 +54,8 @@ const METRICS: DataSeriesMetric[] = [
 ];
 
 interface DataSeriesPickerProps {
-  reportConfig: any;
-  onUpdate: (updates: any) => void;
+  reportConfig: ReportConfig;
+  onUpdate: (updates: Partial<ReportConfig>) => void;
 }
 
 export const DataSeriesPicker: React.FC<DataSeriesPickerProps> = ({

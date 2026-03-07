@@ -41,8 +41,9 @@ export function useAnalyticsExport() {
         window.URL.revokeObjectURL(url);
 
         return { success: true, format, filename };
-      } catch (error: any) {
-        throw new Error(error.response?.data?.message || `Failed to export as ${format}`);
+      } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Failed to export';
+        throw new Error(`Failed to export as ${format}: ${message}`);
       }
     },
     // TODO: Add notification callbacks when useNotificationStore is available

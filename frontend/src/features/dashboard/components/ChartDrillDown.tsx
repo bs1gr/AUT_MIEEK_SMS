@@ -7,33 +7,33 @@ import React, { useState, useCallback } from 'react';
 import { ChevronRight, Home } from 'lucide-react';
 import { useLanguage } from '../../../hooks/useLanguage';
 
-export interface DrillDownLevel {
+export interface DrillDownLevel<T = Record<string, unknown>> {
   id: string;
   label: string;
-  data: any[];
+  data: T[];
   parentId?: string;
 }
 
-export interface DrillDownState {
-  currentLevel: DrillDownLevel;
-  history: DrillDownLevel[];
+export interface DrillDownState<T = Record<string, unknown>> {
+  currentLevel: DrillDownLevel<T>;
+  history: DrillDownLevel<T>[];
 }
 
-interface ChartDrillDownProps {
+interface ChartDrillDownProps<T = Record<string, unknown>> {
   title: string;
-  levels: DrillDownLevel[];
-  renderContent: (level: DrillDownLevel) => React.ReactNode;
+  levels: DrillDownLevel<T>[];
+  renderContent: (level: DrillDownLevel<T>) => React.ReactNode;
   onBackToRoot?: () => void;
 }
 
-export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
+export const ChartDrillDown = <T extends Record<string, unknown> = Record<string, unknown>>({
   title,
   levels,
   renderContent,
   onBackToRoot,
-}) => {
+}: ChartDrillDownProps<T>) => {
   const { t } = useLanguage();
-  const [history, setHistory] = useState<DrillDownLevel[]>([levels[0]]);
+  const [history, setHistory] = useState<DrillDownLevel<T>[]>([levels[0]]);
   const currentLevel = history[history.length - 1];
 
   const handleBackToPrevious = useCallback(() => {
@@ -117,12 +117,12 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
 /**
  * Hook for managing drill-down state
  */
-export function useDrillDown(initialLevel: DrillDownLevel) {
-  const [history, setHistory] = useState<DrillDownLevel[]>([initialLevel]);
+export function useDrillDown<T extends Record<string, unknown> = Record<string, unknown>>(initialLevel: DrillDownLevel<T>) {
+  const [history, setHistory] = useState<DrillDownLevel<T>[]>([initialLevel]);
 
   const currentLevel = history[history.length - 1];
 
-  const drillDown = useCallback((newLevel: DrillDownLevel) => {
+  const drillDown = useCallback((newLevel: DrillDownLevel<T>) => {
     setHistory((prev) => [...prev, newLevel]);
   }, []);
 
@@ -151,14 +151,19 @@ export function useDrillDown(initialLevel: DrillDownLevel) {
   };
 }
 
+interface StudentClass { id: string; name: string; }
+interface StudentCourse { id: string; name: string; class_id: string; }
+interface StudentRecord { id: string; name?: string; label?: string; }
+interface StudentGrade { course_id: string; student_id: string; }
+
 /**
  * Sample drill-down data structure for student performance
  */
 export const createStudentPerformanceDrillDown = (
-  classes: any[],
-  courses: any[],
-  students: any[],
-  grades: any
+  classes: StudentClass[],
+  courses: StudentCourse[],
+  students: StudentRecord[],
+  grades: StudentGrade[]
 ) => {
   const rootLevel: DrillDownLevel = {
     id: 'root',
@@ -188,22 +193,22 @@ export const createStudentPerformanceDrillDown = (
 /**
  * Render function for class drill-down
  */
-export const renderClassDrillDown = (level: DrillDownLevel, t?: (key: string, fallback: string) => string) => {
+export const renderClassDrillDown = <T extends Record<string, unknown> = Record<string, unknown>>(level: DrillDownLevel<T>, t?: (key: string, fallback: string) => string) => {
   const translate = t || ((key: string, fallback: string) => fallback);
-  
+
   if (level.data.length === 0) {
     return <p className="text-center text-slate-500">{translate('analytics.drilldown.noData', 'No data available')}</p>;
   }
 
   return (
     <ul className="space-y-2">
-      {level.data.map((item: any) => (
+      {level.data.map((item: Record<string, unknown>) => (
         <li
-          key={item.id}
+          key={String(item.id)}
           className="flex items-center justify-between p-3 rounded-lg bg-white border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition cursor-pointer"
         >
-          <span className="font-medium text-slate-900">{item.name || item.label}</span>
-          <span className="text-sm text-slate-500">{item.count || ''}</span>
+          <span className="font-medium text-slate-900">{String(item.name ?? item.label ?? '')}</span>
+          <span className="text-sm text-slate-500">{String(item.count ?? '')}</span>
         </li>
       ))}
     </ul>

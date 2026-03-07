@@ -96,8 +96,8 @@ export const usePredictiveAtRiskStudents = (
 export const usePredictiveCourseAnalytics = (
   courseId: number,
   enabled = true
-): UseQueryResult<any, Error> => {
-  return useQuery({
+) => {
+  return useQuery<PredictiveAnalyticsData, Error>({
     queryKey: ['predictive-course-analytics', courseId],
     queryFn: async () => {
       const response = await apiClient.get(`/analytics/predictive/course/${courseId}`);

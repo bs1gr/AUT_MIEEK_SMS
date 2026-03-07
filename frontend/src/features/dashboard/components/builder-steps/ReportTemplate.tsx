@@ -6,6 +6,7 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { BarChart3, TrendingUp, Users, Activity } from 'lucide-react';
+import { ReportConfig } from '../CustomReportBuilder';
 
 const TEMPLATES = [
   {
@@ -39,8 +40,8 @@ const TEMPLATES = [
 ];
 
 interface ReportTemplateProps {
-  reportConfig: any;
-  onUpdate: (updates: any) => void;
+  reportConfig: ReportConfig;
+  onUpdate: (updates: Partial<ReportConfig>) => void;
 }
 
 export const ReportTemplate: React.FC<ReportTemplateProps> = ({ reportConfig, onUpdate }) => {

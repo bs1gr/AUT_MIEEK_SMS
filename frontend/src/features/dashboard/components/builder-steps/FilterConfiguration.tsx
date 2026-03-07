@@ -6,10 +6,11 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, Filter } from 'lucide-react';
+import { ReportConfig } from '../CustomReportBuilder';
 
 interface FilterConfigurationProps {
-  reportConfig: any;
-  onUpdate: (updates: any) => void;
+  reportConfig: ReportConfig;
+  onUpdate: (updates: Partial<ReportConfig>) => void;
 }
 
 export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({

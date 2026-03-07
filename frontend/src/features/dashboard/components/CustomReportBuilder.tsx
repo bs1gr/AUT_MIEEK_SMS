@@ -15,10 +15,19 @@ import { ChartTypeSelector } from './builder-steps/ChartTypeSelector';
 import { FilterConfiguration } from './builder-steps/FilterConfiguration';
 import { ReportPreview } from './builder-steps/ReportPreview';
 
+export interface ReportConfig {
+  template: string;
+  dataSeries: string[];
+  chartType: string;
+  filters: Record<string, unknown>;
+  name: string;
+  description: string;
+}
+
 interface CustomReportBuilderProps {
-  onSave?: (reportConfig: any) => void;
+  onSave?: (reportConfig: ReportConfig) => void;
   onCancel?: () => void;
-  initialReport?: any;
+  initialReport?: ReportConfig;
   isLoading?: boolean;
 }
 
@@ -32,7 +41,7 @@ export const CustomReportBuilder: React.FC<CustomReportBuilderProps> = ({
   const createReport = useCreateReport();
   const [currentStep, setCurrentStep] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-  const [reportConfig, setReportConfig] = useState(
+  const [reportConfig, setReportConfig] = useState<ReportConfig>(
     initialReport || {
       template: 'class_summary',
       dataSeries: [],
@@ -86,8 +95,8 @@ export const CustomReportBuilder: React.FC<CustomReportBuilderProps> = ({
     }
   };
 
-  const handleUpdateConfig = (updates: any) => {
-    setReportConfig((prev: any) => ({
+  const handleUpdateConfig = (updates: Partial<ReportConfig>) => {
+    setReportConfig((prev: ReportConfig) => ({
       ...prev,
       ...updates,
     }));

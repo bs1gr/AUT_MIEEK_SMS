@@ -33,7 +33,7 @@ vi.mock('@/api/api', () => ({
   apiClient: {
     get: vi.fn(),
   },
-  extractAPIResponseData: (data: any) => data,
+  extractAPIResponseData: (data: unknown) => data,
 }));
 
 // Mock the analytics hooks
