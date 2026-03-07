@@ -480,7 +480,7 @@ export default {
     uptimeFormatShort: '{{h}}ώ {{m}}λ {{s}}δ',
   },
   // Υποσέλιδο
-  footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Βασίλης Σαμαράς - v{{version}}',
+  footerCredits: 'Σύστημα Διαχείρισης Σπουδαστών © {{year}} Βασίλης Σαμαράς - {{version}}',
 
   // Σελιδοποίηση & Πλοήγηση
   previous: 'Προηγούμενο',

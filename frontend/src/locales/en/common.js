@@ -481,7 +481,7 @@ export default {
     uptimeFormatShort: '{{h}}h {{m}}m {{s}}s',
   },
   // Footer
-  footerCredits: 'Student Management System © {{year}} Vasilis Samaras - v{{version}}',
+  footerCredits: 'Student Management System © {{year}} Vasilis Samaras - {{version}}',
 
   // Pagination & Navigation
   previous: 'Previous',
