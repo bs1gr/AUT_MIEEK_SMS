@@ -89,9 +89,6 @@ services:
 
   backend:
     restart: unless-stopped
-    depends_on:
-      postgres:
-        condition: service_healthy
     environment:
       # Leave DATABASE_URL empty to let backend/config.py build a safely encoded URL from POSTGRES_*.
       - DATABASE_URL=${DATABASE_URL-}

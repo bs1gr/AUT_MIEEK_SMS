@@ -46,11 +46,13 @@ type OperationResult =
 type DevToolsVariant = 'standalone' | 'embedded';
 type ImportType = 'courses' | 'students';
 type ClearScope = 'all' | 'data_only';
+type BackupMode = 'encrypted' | 'unencrypted';
 
 export interface DevToolsPanelProps {
   variant?: DevToolsVariant;
   onToast: (toast: ToastState) => void;
   showOperationsMonitorSummary?: boolean;
+  hideLegacyDatabaseTools?: boolean;
 }
 
 const metaEnv = import.meta.env as Partial<Record<string, string | undefined>>;
@@ -111,7 +113,12 @@ const statusTone = (status?: HealthStatus['status']) => {
 
 const UPTIME_STORAGE_KEY = 'sms.operations.healthUptime';
 
-const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorSummary = true }: DevToolsPanelProps) => {
+const DevToolsPanel = ({
+  variant = 'standalone',
+  onToast,
+  showOperationsMonitorSummary = true,
+  hideLegacyDatabaseTools,
+}: DevToolsPanelProps) => {
   const { t } = useLanguage();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -123,6 +130,7 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const [opLoading, setOpLoading] = useState<string | null>(null);
   const [clearConfirm, setClearConfirm] = useState(false);
   const [clearScope, setClearScope] = useState<ClearScope>('all');
+  const [backupMode, setBackupMode] = useState<BackupMode>('encrypted');
   const [restoreFile, setRestoreFile] = useState<File | null>(null);
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importType, setImportType] = useState<ImportType>('courses');
@@ -144,16 +152,23 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
   const backupFilenames = useMemo(() => (Array.isArray(backups) ? backups.map((b) => b.filename) : []), [backups]);
   const getBackupType = useCallback((filename: string) => {
-    if (filename.toLowerCase().endsWith('.enc')) return 'enc';
-    if (filename.toLowerCase().endsWith('.db')) return 'db';
+    const normalized = filename.toLowerCase();
+    if (normalized.endsWith('.enc')) return 'enc';
+    if (normalized.endsWith('.db')) return 'db';
+    if (normalized.endsWith('.sql') || normalized.endsWith('.sql.gz')) return 'sql';
     return 'other';
   }, []);
   const getBackupTypeLabel = useCallback((filename: string) => {
     const type = getBackupType(filename);
     if (type === 'enc') return t('utils.backupEncryptedLabel');
     if (type === 'db') return t('utils.backupSqliteLabel');
+    if (type === 'sql') return t('utils.backupSqlLabel');
     return t('utils.backupUnknownLabel');
   }, [getBackupType, t]);
+  const isRestorableBackupType = useCallback((filename: string) => {
+    const type = getBackupType(filename);
+    return type === 'enc' || type === 'db';
+  }, [getBackupType]);
   const allBackupsSelected = backupFilenames.length > 0 && selectedBackups.size === backupFilenames.length;
   const someBackupsSelected = selectedBackups.size > 0 && !allBackupsSelected;
 
@@ -315,8 +330,9 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const handleBackup = async () => {
     setOpLoading('backup');
     try {
+      const encrypt = backupMode === 'encrypted';
       // Use Control API endpoint
-      const response = await fetch(`${CONTROL_API_BASE}/operations/database-backup`, {
+      const response = await fetch(`${CONTROL_API_BASE}/operations/database-backup?encrypt=${encrypt ? 'true' : 'false'}`, {
         method: 'POST',
         headers: getControlHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'include',
@@ -590,6 +606,14 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
 
   // Restore a backup directly from the server (no upload needed)
   const handleRestoreFromServer = async (filename: string) => {
+    if (!isRestorableBackupType(filename)) {
+      onToast({
+        message: t('utils.restoreUnsupportedType') || 'Restore from server is only supported for .db and .enc backups.',
+        type: 'error',
+      });
+      return;
+    }
+
     const confirmMessage = t('utils.confirmRestoreBackup') || `Are you sure you want to restore this backup?\n\n"${filename}"\n\nThis will replace all current data!`;
     if (!window.confirm(confirmMessage)) {
       return;
@@ -794,12 +818,14 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
   const normalizedDatabaseLabel = rawDatabaseLabel.trim().toLowerCase();
   const isDatabaseKnown = rawDatabaseLabel.trim().length > 0;
   const isSqliteDatabase = normalizedDatabaseLabel.includes('sqlite');
-  const canBackup = !isDatabaseKnown || isSqliteDatabase;
+  const isPostgresqlDatabase = normalizedDatabaseLabel.includes('postgres');
+  const canBackup = !isDatabaseKnown || isSqliteDatabase || isPostgresqlDatabase;
   const fallbackUptime = Number.isFinite(Number(health?.uptime)) ? Number(health?.uptime) : null;
   const displayUptimeSeconds = Number.isFinite(uptimeSeconds ?? NaN) ? uptimeSeconds : fallbackUptime;
   const uptimeDisplayValue = typeof displayUptimeSeconds === 'number' && Number.isFinite(displayUptimeSeconds)
     ? Math.max(0, Math.floor(displayUptimeSeconds))
     : null;
+  const legacyDatabaseToolsVisible = hideLegacyDatabaseTools ?? variant === 'standalone';
 
   return (
     <section className="space-y-6">
@@ -1001,58 +1027,101 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
       )}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <div className={theme.card}>
-          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.backupDatabase')}</h4>
-          <p className={`mb-4 text-xs ${theme.mutedText}`}>{t('utils.backupDesc')}</p>
-          <button
-            type="button"
-            onClick={handleBackup}
-            disabled={opLoading === 'backup' || !canBackup}
-            className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
-            aria-disabled={opLoading === 'backup' || !canBackup}
-          >
-            {opLoading === 'backup' ? t('loading') : t('utils.backupDatabase')}
-          </button>
-          {!canBackup && (
-            <p className={`mt-2 text-xs ${theme.mutedText}`}>
-              {t('utils.backupSqliteOnly')}
-            </p>
-          )}
-        </div>
+        {legacyDatabaseToolsVisible ? (
+          <>
+            <div className={theme.card}>
+              <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.backupDatabase')}</h4>
+              <p className={`mb-4 text-xs ${theme.mutedText}`}>{t('utils.backupDesc')}</p>
+              <div className="mb-4 space-y-2">
+                <div className={`text-[11px] font-semibold uppercase tracking-wide ${theme.mutedText}`}>
+                  {t('utils.backupModeLabel') || 'Backup format'}
+                </div>
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <label className={`flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-xs ${theme.text}`}>
+                    <input
+                      type="radio"
+                      name="backup-mode"
+                      checked={backupMode === 'encrypted'}
+                      onChange={() => setBackupMode('encrypted')}
+                    />
+                    <span>{t('utils.backupModeEncrypted') || 'Encrypted (.enc)'}</span>
+                  </label>
+                  <label className={`flex items-center gap-2 rounded border border-slate-200 px-3 py-2 text-xs ${theme.text}`}>
+                    <input
+                      type="radio"
+                      name="backup-mode"
+                      checked={backupMode === 'unencrypted'}
+                      onChange={() => setBackupMode('unencrypted')}
+                    />
+                    <span>{t('utils.backupModeUnencrypted') || 'Unencrypted (.db/.sql)'}</span>
+                  </label>
+                </div>
+                <p className={`text-xs ${theme.mutedText}`}>
+                  {backupMode === 'encrypted'
+                    ? (t('utils.backupModeEncryptedHint') || 'Recommended for secure offsite storage.')
+                    : (t('utils.backupModeUnencryptedHint') || 'Creates a plain backup for direct inspection or migration.')}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleBackup}
+                disabled={opLoading === 'backup' || !canBackup}
+                className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
+                aria-disabled={opLoading === 'backup' || !canBackup}
+              >
+                {opLoading === 'backup' ? t('loading') : t('utils.backupDatabase')}
+              </button>
+              {!canBackup && (
+                <p className={`mt-2 text-xs ${theme.mutedText}`}>
+                  {t('utils.backupSqliteOnly')}
+                </p>
+              )}
+            </div>
 
-        <div className={theme.card}>
-          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.resetDatabase')}</h4>
-          <p className={`mb-3 text-xs ${theme.mutedText}`}>{t('utils.uploadPreviouslySavedBackup')}</p>
-          <div className="flex flex-col items-stretch gap-2 md:flex-row md:items-center">
-            <label className={`${theme.secondaryButton} flex flex-1 cursor-pointer items-center gap-2`}>
-              <span>{t('chooseFile')}</span>
-              <span className={`flex-1 truncate text-[11px] ${theme.mutedText}`}>
-                {restoreFile ? restoreFile.name : t('noFileChosen')}
-              </span>
-              <input
-                type="file"
-                accept=".db"
-                className="hidden"
-                onChange={(event: ChangeEvent<HTMLInputElement>) => setRestoreFile(event.target.files?.[0] ?? null)}
-                aria-label={t('utils.selectBackupFile')}
-              />
-            </label>
-            <button
-              type="button"
-              onClick={handleRestore}
-              disabled={!restoreFile || opLoading === 'restore'}
-              className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
-            >
-              {opLoading === 'restore' ? t('loading') : t('utils.restoreDb')}
-            </button>
-          </div>
-          {!isSqliteDatabase && isDatabaseKnown && (
-            <p className={`mt-2 text-xs ${theme.mutedText}`}>
-              {t('utils.restoreAutoMigrateHint')}
+            <div className={theme.card}>
+              <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.resetDatabase')}</h4>
+              <p className={`mb-3 text-xs ${theme.mutedText}`}>{t('utils.uploadPreviouslySavedBackup')}</p>
+              <div className="flex flex-col items-stretch gap-2 md:flex-row md:items-center">
+                <label className={`${theme.secondaryButton} flex flex-1 cursor-pointer items-center gap-2`}>
+                  <span>{t('chooseFile')}</span>
+                  <span className={`flex-1 truncate text-[11px] ${theme.mutedText}`}>
+                    {restoreFile ? restoreFile.name : t('noFileChosen')}
+                  </span>
+                  <input
+                    type="file"
+                    accept=".db"
+                    className="hidden"
+                    onChange={(event: ChangeEvent<HTMLInputElement>) => setRestoreFile(event.target.files?.[0] ?? null)}
+                    aria-label={t('utils.selectBackupFile')}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleRestore}
+                  disabled={!restoreFile || opLoading === 'restore'}
+                  className={`${theme.button} disabled:cursor-not-allowed disabled:opacity-60`}
+                >
+                  {opLoading === 'restore' ? t('loading') : t('utils.restoreDb')}
+                </button>
+              </div>
+              {!isSqliteDatabase && isDatabaseKnown && (
+                <p className={`mt-2 text-xs ${theme.mutedText}`}>
+                  {t('utils.restoreAutoMigrateHint')}
+                </p>
+              )}
+              <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{t('utils.appMayNeedRefresh')}</p>
+            </div>
+          </>
+        ) : (
+          <div className={`${theme.card} md:col-span-2`}>
+            <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>
+              {t('db.title') || 'Database Management'}
+            </h4>
+            <p className={`text-xs ${theme.mutedText}`}>
+              {t('utils.databaseToolsMoved') || 'Backup, restore, and backup files are managed from the Database tab to avoid duplicate database references.'}
             </p>
-          )}
-          <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{t('utils.appMayNeedRefresh')}</p>
-        </div>
+          </div>
+        )}
 
         <div className={theme.card}>
           <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.clear')}</h4>
@@ -1121,97 +1190,103 @@ const DevToolsPanel = ({ variant = 'standalone', onToast, showOperationsMonitorS
           <p className={`mt-2 text-xs ${theme.mutedText}`}>{t('utils.selectJsonFiles')}</p>
         </div>
 
-        <div className={`${theme.card} md:col-span-2`}>
-          <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
+        {legacyDatabaseToolsVisible && (
+          <div className={`${theme.card} md:col-span-2`}>
+            <h4 className={`mb-2 text-sm font-semibold ${theme.text}`}>{t('utils.manageBackups') || 'Manage Backups'}</h4>
 
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
-              {backupsLoading ? (t('loading') as string) : (t('utils.viewBackups') || 'View Backups')}
-            </button>
-            <button type="button" onClick={downloadAllZip} className={theme.secondaryButton}>
-              {t('utils.downloadAllAsZip') || 'Download All as ZIP'}
-            </button>
-            <button type="button" onClick={downloadSelectedZip} className={theme.secondaryButton}>
-              {t('utils.downloadSelectedAsZip') || 'Download Selected as ZIP'}
-            </button>
-            <button
-              type="button"
-              onClick={deleteSelectedBackups}
-              className={`${theme.secondaryButton} text-rose-700 border-rose-300 hover:bg-rose-50 dark:text-rose-400 dark:border-rose-700 dark:hover:bg-rose-900/20`}
-            >
-              {t('utils.deleteSelected') || 'Delete Selected'}
-            </button>
-          </div>
-          <div className={`mb-3 text-xs ${theme.mutedText}`}>
-            {t('utils.backupZipIncludesEncrypted')}
-          </div>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <button type="button" onClick={() => void loadBackups()} className={theme.secondaryButton}>
+                {backupsLoading ? (t('loading') as string) : (t('utils.viewBackups') || 'View Backups')}
+              </button>
+              <button type="button" onClick={downloadAllZip} className={theme.secondaryButton}>
+                {t('utils.downloadAllAsZip') || 'Download All as ZIP'}
+              </button>
+              <button type="button" onClick={downloadSelectedZip} className={theme.secondaryButton}>
+                {t('utils.downloadSelectedAsZip') || 'Download Selected as ZIP'}
+              </button>
+              <button
+                type="button"
+                onClick={deleteSelectedBackups}
+                className={`${theme.secondaryButton} text-rose-700 border-rose-300 hover:bg-rose-50 dark:text-rose-400 dark:border-rose-700 dark:hover:bg-rose-900/20`}
+              >
+                {t('utils.deleteSelected') || 'Delete Selected'}
+              </button>
+            </div>
+            <div className={`mb-3 text-xs ${theme.mutedText}`}>
+              {t('utils.backupZipIncludesEncrypted')}
+            </div>
 
-          {Array.isArray(backups) ? (
-            backups.length === 0 ? (
-              <div className={`text-xs ${theme.mutedText}`}>{t('utils.noBackupsFound') || 'No backups found'}</div>
-            ) : (
-              <div className="space-y-2">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className={`text-xs ${theme.mutedText}`}>{t('utils.availableBackups') || 'Available Backups'}:</div>
-                  <label className={`flex items-center gap-2 text-xs ${theme.text}`}>
-                    <input
-                      ref={selectAllBackupsRef}
-                      type="checkbox"
-                      checked={allBackupsSelected}
-                      disabled={backupFilenames.length === 0}
-                      onChange={(event) => toggleSelectAllBackups(event.target.checked)}
-                      aria-label={t('utils.selectAllBackups') || 'Select all backups'}
-                    />
-                    <span>{t('utils.selectAllBackups') || 'Select all'}</span>
-                  </label>
-                </div>
-                {backups.map((b) => (
-                    <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
-                    <div className="flex items-center gap-2">
+            {Array.isArray(backups) ? (
+              backups.length === 0 ? (
+                <div className={`text-xs ${theme.mutedText}`}>{t('utils.noBackupsFound') || 'No backups found'}</div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className={`text-xs ${theme.mutedText}`}>{t('utils.availableBackups') || 'Available Backups'}:</div>
+                    <label className={`flex items-center gap-2 text-xs ${theme.text}`}>
                       <input
+                        ref={selectAllBackupsRef}
                         type="checkbox"
-                        checked={selectedBackups.has(b.filename)}
-                        onChange={(e) => toggleSelected(b.filename, e.target.checked)}
-                        aria-label={b.filename}
+                        checked={allBackupsSelected}
+                        disabled={backupFilenames.length === 0}
+                        onChange={(event) => toggleSelectAllBackups(event.target.checked)}
+                        aria-label={t('utils.selectAllBackups') || 'Select all backups'}
                       />
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className={`text-sm ${theme.text}`}>{b.filename}</div>
-                          <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
-                            {getBackupTypeLabel(b.filename)}
-                          </span>
-                        </div>
-                        <div className={`text-xs ${theme.mutedText}`}>
-                          {t('utils.created')}: {formatDateTime(b.created)} • {(b.size / 1024).toFixed(2)} KB
+                      <span>{t('utils.selectAllBackups') || 'Select all'}</span>
+                    </label>
+                  </div>
+                  {backups.map((b) => (
+                      <div key={b.filename} className="flex items-center justify-between gap-3 rounded border border-slate-200 p-2">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={selectedBackups.has(b.filename)}
+                          onChange={(e) => toggleSelected(b.filename, e.target.checked)}
+                          aria-label={b.filename}
+                        />
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className={`text-sm ${theme.text}`}>{b.filename}</div>
+                            <span className="rounded-full border border-slate-200 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-600">
+                              {getBackupTypeLabel(b.filename)}
+                            </span>
+                          </div>
+                          <div className={`text-xs ${theme.mutedText}`}>
+                            {t('utils.created')}: {formatDateTime(b.created)} • {(b.size / 1024).toFixed(2)} KB
+                          </div>
                         </div>
                       </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void handleRestoreFromServer(b.filename)}
+                          disabled={opLoading === `restore-${b.filename}` || !isRestorableBackupType(b.filename)}
+                          className={`${theme.button} disabled:opacity-50 disabled:cursor-not-allowed`}
+                          title={
+                            isRestorableBackupType(b.filename)
+                              ? (t('utils.restoreBackup') || 'Restore this backup')
+                              : (t('utils.restoreUnsupportedType') || 'Restore not supported for this backup type')
+                          }
+                        >
+                          {opLoading === `restore-${b.filename}` ? (t('utils.restoring') || 'Restoring...') : (t('utils.restore') || 'Restore')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void downloadBackup(b.filename)}
+                          className={theme.secondaryButton}
+                        >
+                          {t('utils.download') || 'Download'}
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => void handleRestoreFromServer(b.filename)}
-                        disabled={opLoading === `restore-${b.filename}`}
-                        className={`${theme.button} disabled:opacity-50 disabled:cursor-not-allowed`}
-                        title={t('utils.restoreBackup') || 'Restore this backup'}
-                      >
-                        {opLoading === `restore-${b.filename}` ? (t('utils.restoring') || 'Restoring...') : (t('utils.restore') || 'Restore')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void downloadBackup(b.filename)}
-                        className={theme.secondaryButton}
-                      >
-                        {t('utils.download') || 'Download'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )
-          ) : (
-            <div className={`text-xs ${theme.mutedText}`}>{t('utils.clickViewBackups') || 'Click "View Backups" to load list'}</div>
-          )}
-        </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              <div className={`text-xs ${theme.mutedText}`}>{t('utils.clickViewBackups') || 'Click "View Backups" to load list'}</div>
+            )}
+          </div>
+        )}
       </div>
 
       {result && (

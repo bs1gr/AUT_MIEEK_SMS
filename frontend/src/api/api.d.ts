@@ -179,7 +179,7 @@ declare module '@/api/api' {
   };
 
   export const adminOpsAPI: {
-    createBackup(): Promise<{ message: string; backup_path?: string; backup_size?: number }>;
+    createBackup(encrypt?: boolean): Promise<{ message: string; backup_path?: string; backup_size?: number }>;
     restoreBackup(file: File): Promise<{ message: string; restored_from?: string }>;
     clearDatabase(scope?: 'all' | 'data_only'): Promise<{ message: string }>;
     generateSampleData(): Promise<{ message: string }>;

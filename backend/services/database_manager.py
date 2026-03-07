@@ -42,6 +42,7 @@ def _get_backup_dir() -> Path:
         _BACKUP_DIR = Path("/data/backups/postgres")
     else:
         from backend.config import _PROJECT_ROOT
+
         _BACKUP_DIR = _PROJECT_ROOT / "backups" / "postgres"
 
     _BACKUP_DIR.mkdir(parents=True, exist_ok=True)
@@ -64,11 +65,9 @@ def _parse_db_url(url: str) -> dict[str, Any]:
         "user": unquote(parsed.username or ""),
         "password": unquote(parsed.password or ""),
         "dbname": (parsed.path or "/").lstrip("/"),
-        "sslmode": dict(
-            item.split("=", 1)
-            for item in (parsed.query or "").split("&")
-            if "=" in item
-        ).get("sslmode", "prefer"),
+        "sslmode": dict(item.split("=", 1) for item in (parsed.query or "").split("&") if "=" in item).get(
+            "sslmode", "prefer"
+        ),
     }
 
 
@@ -91,6 +90,7 @@ def _build_connection_url(instance: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 # Instance discovery
 # ---------------------------------------------------------------------------
+
 
 def get_configured_instances() -> list[dict[str, Any]]:
     """Return all configured database instances.
@@ -147,6 +147,7 @@ def _find_instance(name: str) -> dict[str, Any]:
 # Health / status
 # ---------------------------------------------------------------------------
 
+
 def check_instance_health(instance: dict[str, Any]) -> dict[str, Any]:
     """Test connection to a PostgreSQL instance and return status info."""
     import psycopg
@@ -173,16 +174,12 @@ def check_instance_health(instance: dict[str, Any]) -> dict[str, Any]:
             result["version"] = row[0] if row else "unknown"
 
             # Uptime
-            row = conn.execute(
-                "SELECT pg_postmaster_start_time()"
-            ).fetchone()
+            row = conn.execute("SELECT pg_postmaster_start_time()").fetchone()
             if row and row[0]:
                 result["started_at"] = str(row[0])
 
             # Database size
-            row = conn.execute(
-                "SELECT pg_database_size(current_database())"
-            ).fetchone()
+            row = conn.execute("SELECT pg_database_size(current_database())").fetchone()
             if row:
                 result["size_bytes"] = row[0]
                 result["size_human"] = _human_size(row[0])
@@ -225,31 +222,29 @@ def get_instance_stats(instance: dict[str, Any]) -> dict[str, Any]:
             for (tname,) in tables_row:
                 try:
                     cnt = conn.execute(
-                        f"SELECT count(*) FROM \"{tname}\""  # noqa: S608
+                        f'SELECT count(*) FROM "{tname}"'  # noqa: S608
                     ).fetchone()
                     tsize = conn.execute(
                         f"SELECT pg_total_relation_size('\"{tname}\"')"  # noqa: S608
                     ).fetchone()
-                    table_sizes.append({
-                        "name": tname,
-                        "rows": cnt[0] if cnt else 0,
-                        "size_bytes": tsize[0] if tsize else 0,
-                        "size_human": _human_size(tsize[0]) if tsize else "0 B",
-                    })
+                    table_sizes.append(
+                        {
+                            "name": tname,
+                            "rows": cnt[0] if cnt else 0,
+                            "size_bytes": tsize[0] if tsize else 0,
+                            "size_human": _human_size(tsize[0]) if tsize else "0 B",
+                        }
+                    )
                 except Exception:
                     table_sizes.append({"name": tname, "rows": -1, "size_bytes": 0})
             stats["tables"] = table_sizes
 
             # Active connections
-            row = conn.execute(
-                "SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()"
-            ).fetchone()
+            row = conn.execute("SELECT count(*) FROM pg_stat_activity WHERE datname = current_database()").fetchone()
             stats["active_connections"] = row[0] if row else 0
 
             # Database size
-            row = conn.execute(
-                "SELECT pg_database_size(current_database())"
-            ).fetchone()
+            row = conn.execute("SELECT pg_database_size(current_database())").fetchone()
             if row:
                 stats["size_bytes"] = row[0]
                 stats["size_human"] = _human_size(row[0])
@@ -263,6 +258,7 @@ def get_instance_stats(instance: dict[str, Any]) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Backup operations
 # ---------------------------------------------------------------------------
+
 
 def create_backup(instance: dict[str, Any], *, compress: bool = True) -> dict[str, Any]:
     """Create a backup of a PostgreSQL instance.
@@ -297,10 +293,14 @@ def _backup_via_pg_dump(
 
     cmd = [
         "pg_dump",
-        "-h", str(instance["host"]),
-        "-p", str(instance["port"]),
-        "-U", instance["user"],
-        "-d", instance["dbname"],
+        "-h",
+        str(instance["host"]),
+        "-p",
+        str(instance["port"]),
+        "-U",
+        instance["user"],
+        "-d",
+        instance["dbname"],
         "--no-owner",
         "--no-privileges",
         "--clean",
@@ -309,9 +309,7 @@ def _backup_via_pg_dump(
 
     try:
         if compress:
-            result = subprocess.run(
-                cmd, capture_output=True, env=env, timeout=300
-            )
+            result = subprocess.run(cmd, capture_output=True, env=env, timeout=300)
             if result.returncode != 0:
                 raise RuntimeError(result.stderr.decode(errors="replace"))
             with gzip.open(filepath, "wb") as f:
@@ -397,10 +395,7 @@ def _backup_via_psycopg(
                         continue
 
                     # COPY data out as CSV
-                    copy_sql = (
-                        f"COPY \"{table_name}\" ({', '.join(col_names)}) "
-                        f"TO STDOUT WITH (FORMAT csv, HEADER true)"
-                    )
+                    copy_sql = f'COPY "{table_name}" ({", ".join(col_names)}) TO STDOUT WITH (FORMAT csv, HEADER true)'
                     with conn.cursor().copy(copy_sql) as copy:
                         f.write(f"-- COPY {table_name} ({len(col_names)} columns)\n")
                         for row_data in copy:
@@ -448,17 +443,17 @@ def list_backups(instance_name: str | None = None) -> list[dict[str, Any]]:
             continue
 
         meta = _read_backup_metadata(f)
-        backups.append({
-            "filename": f.name,
-            "size_bytes": f.stat().st_size,
-            "size_human": _human_size(f.stat().st_size),
-            "created_at": datetime.fromtimestamp(
-                f.stat().st_mtime, tz=timezone.utc
-            ).isoformat(),
-            "instance": meta.get("instance_name", "unknown"),
-            "method": meta.get("method", "unknown"),
-            "compressed": f.name.endswith(".gz"),
-        })
+        backups.append(
+            {
+                "filename": f.name,
+                "size_bytes": f.stat().st_size,
+                "size_human": _human_size(f.stat().st_size),
+                "created_at": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat(),
+                "instance": meta.get("instance_name", "unknown"),
+                "method": meta.get("method", "unknown"),
+                "compressed": f.name.endswith(".gz"),
+            }
+        )
 
     return backups
 
@@ -504,6 +499,7 @@ def get_backup_path(filename: str) -> Path | None:
 # Restore
 # ---------------------------------------------------------------------------
 
+
 def restore_backup(instance: dict[str, Any], filename: str) -> dict[str, Any]:
     """Restore a SQL backup to a PostgreSQL instance.
 
@@ -539,16 +535,23 @@ def _restore_via_psql(instance: dict[str, Any], sql: str) -> dict[str, Any]:
 
     cmd = [
         "psql",
-        "-h", str(instance["host"]),
-        "-p", str(instance["port"]),
-        "-U", instance["user"],
-        "-d", instance["dbname"],
+        "-h",
+        str(instance["host"]),
+        "-p",
+        str(instance["port"]),
+        "-U",
+        instance["user"],
+        "-d",
+        instance["dbname"],
         "--quiet",
     ]
 
     result = subprocess.run(
-        cmd, input=sql.encode("utf-8"),
-        capture_output=True, env=env, timeout=600,
+        cmd,
+        input=sql.encode("utf-8"),
+        capture_output=True,
+        env=env,
+        timeout=600,
     )
 
     return {
@@ -607,6 +610,7 @@ def _restore_via_psycopg(instance: dict[str, Any], sql: str) -> dict[str, Any]:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _human_size(size_bytes: int | None) -> str:
     """Format byte count as human-readable string."""

@@ -188,3 +188,41 @@ def test_backup_requires_authentication(client):
     # 500: pg_dump not found when DATABASE_URL points to PostgreSQL but client tools missing
     # NOTE: To properly test auth rejection, mock request.client to be non-loopback or set ADMIN_SHUTDOWN_TOKEN
     assert response.status_code in (200, 400, 401, 404, 500)
+
+
+def test_postgres_backup_fallback_when_pg_dump_missing(client, admin_token, tmp_path, monkeypatch):
+    """Falls back to python/psycopg backup path when pg_dump is unavailable."""
+
+    class _MockSettings:
+        DATABASE_URL = "postgresql://test_user:test%21pass@localhost:5432/test_db"
+
+    fallback_sql = tmp_path / "fallback_postgres.sql"
+    fallback_sql.write_text("-- fallback postgres backup", encoding="utf-8")
+    captured_instance = {}
+
+    monkeypatch.setattr("backend.routers.control.operations.get_settings", lambda: _MockSettings())
+    monkeypatch.setattr("backend.routers.control.operations.shutil.which", lambda _: None)
+
+    def _fake_create_backup(instance, compress=False):
+        captured_instance.update(instance)
+        return {"filename": "fallback_postgres.sql", "method": "psycopg_copy"}
+
+    monkeypatch.setattr("backend.services.database_manager.create_backup", _fake_create_backup)
+    monkeypatch.setattr(
+        "backend.services.database_manager.get_backup_path",
+        lambda filename: fallback_sql if filename == "fallback_postgres.sql" else None,
+    )
+
+    response = client.post(
+        "/control/api/operations/database-backup",
+        params={"encrypt": False},
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert data["details"]["encryption"] is None
+    assert data["details"]["backup_method"] == "psycopg_copy"
+    assert str(data["details"]["filename"]).endswith(".sql")
+    assert captured_instance["password"] == "test!pass"

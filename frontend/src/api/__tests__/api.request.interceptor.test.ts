@@ -28,6 +28,13 @@ describe('apiClient request interceptor', () => {
     expect(config.headers.Authorization).toBeUndefined();
   });
 
+  it('removes stale Authorization header when no token is present', () => {
+    authService.clearAccessToken();
+    const config: { headers: Record<string, unknown> } = { headers: { Authorization: 'Bearer stale-token' } };
+    (apiModule as unknown as { attachAuthHeader: (cfg: { headers?: Record<string, unknown> }) => unknown }).attachAuthHeader(config);
+    expect(config.headers.Authorization).toBeUndefined();
+  });
+
   it('is resilient if headers missing or getter throws', () => {
     const configNoHeaders: Record<string, unknown> = {};
     expect(() => (apiModule as unknown as { attachAuthHeader: (cfg: Record<string, unknown>) => unknown }).attachAuthHeader(configNoHeaders)).not.toThrow();

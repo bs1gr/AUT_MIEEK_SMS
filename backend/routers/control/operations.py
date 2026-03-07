@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import logging
 import os
+import shutil
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse, StreamingResponse
@@ -255,7 +256,7 @@ class ZipSaveRequest(BaseModel):
 
 
 class ZipSelectedRequest(BaseModel):
-    filenames: List[str] = Field(description="List of backup filenames (.db or .enc) to include in the ZIP")
+    filenames: List[str] = Field(description="List of backup filenames (.db, .sql, or .enc) to include in the ZIP")
 
 
 class ZipSelectedSaveRequest(ZipSelectedRequest):
@@ -267,7 +268,22 @@ class BackupCopyRequest(BaseModel):
 
 
 class DeleteSelectedRequest(BaseModel):
-    filenames: List[str] = Field(description="List of backup filenames (.db or .enc) to delete")
+    filenames: List[str] = Field(description="List of backup filenames (.db, .sql, or .enc) to delete")
+
+
+_BACKUP_FILE_SUFFIXES = (".db", ".enc", ".sql", ".sql.gz")
+
+
+def _is_supported_backup_filename(filename: str) -> bool:
+    return filename.endswith(_BACKUP_FILE_SUFFIXES)
+
+
+def _list_backup_files(backup_dir: Path) -> List[Path]:
+    files: List[Path] = []
+    for entry in backup_dir.iterdir():
+        if entry.is_file() and _is_supported_backup_filename(entry.name):
+            files.append(entry)
+    return files
 
 
 @router.post("/operations/database-backup", response_model=OperationResult)
@@ -312,8 +328,8 @@ async def create_database_backup(
             # Extract connection details
             pg_host = parsed.hostname or "localhost"
             pg_port = parsed.port or 5432
-            pg_user = parsed.username
-            pg_password = parsed.password
+            pg_user = unquote(parsed.username) if parsed.username else None
+            pg_password = unquote(parsed.password) if parsed.password else None
             pg_database = parsed.path.lstrip("/")
 
             if not pg_user:
@@ -339,7 +355,7 @@ async def create_database_backup(
                 "-d",
                 pg_database,
                 "-F",
-                "c",  # Custom format (compressed)
+                "p",  # Plain SQL text (readable when unencrypted)
                 "-f",
                 str(backup_path),
             ]
@@ -350,17 +366,49 @@ async def create_database_backup(
                 env["PGPASSWORD"] = pg_password
 
             try:
-                result = subprocess.run(
-                    pg_dump_cmd,
-                    env=env,
-                    capture_output=True,
-                    text=True,
-                    timeout=300,  # 5 minutes timeout
-                    **_hidden_window_kwargs(),
-                )
+                backup_method = "pg_dump"
+                if shutil.which("pg_dump"):
+                    result = subprocess.run(
+                        pg_dump_cmd,
+                        env=env,
+                        capture_output=True,
+                        text=True,
+                        timeout=300,  # 5 minutes timeout
+                        **_hidden_window_kwargs(),
+                    )
 
-                if result.returncode != 0:
-                    raise Exception(f"pg_dump failed: {result.stderr}")
+                    if result.returncode != 0:
+                        raise Exception(f"pg_dump failed: {result.stderr}")
+                else:
+                    # Fallback for environments without PostgreSQL client tools.
+                    logger.warning("pg_dump not found. Falling back to psycopg backup export.")
+                    from backend.services.database_manager import (
+                        create_backup as create_postgres_backup,
+                        get_backup_path as get_postgres_backup_path,
+                    )
+
+                    fallback_result = create_postgres_backup(
+                        {
+                            "name": "primary",
+                            "host": pg_host,
+                            "port": pg_port,
+                            "user": pg_user,
+                            "password": pg_password or "",
+                            "dbname": pg_database,
+                            "sslmode": dict(
+                                item.split("=", 1) for item in (parsed.query or "").split("&") if "=" in item
+                            ).get("sslmode", "prefer"),
+                        },
+                        compress=False,
+                    )
+                    fallback_filename = str(fallback_result.get("filename", ""))
+                    fallback_path = get_postgres_backup_path(fallback_filename) if fallback_filename else None
+                    if fallback_path is None or not fallback_path.exists():
+                        raise RuntimeError("PostgreSQL fallback backup did not produce an output file")
+                    shutil.copy2(fallback_path, backup_path)
+                    (fallback_path.parent / f"{fallback_path.name}.meta.json").unlink(missing_ok=True)
+                    fallback_path.unlink(missing_ok=True)
+                    backup_method = str(fallback_result.get("method") or "psycopg_copy")
 
                 file_size = backup_path.stat().st_size
 
@@ -376,7 +424,7 @@ async def create_database_backup(
                             "database_type": "postgresql",
                             "database_host": pg_host,
                             "database_name": pg_database,
-                            "backup_method": "pg_dump",
+                            "backup_method": backup_method,
                             "encryption_enabled": True,
                         },
                     )
@@ -411,6 +459,7 @@ async def create_database_backup(
                             "size": file_size,
                             "timestamp": timestamp,
                             "encryption": None,
+                            "backup_method": backup_method,
                             "database_type": "postgresql",
                         },
                     )
@@ -426,7 +475,7 @@ async def create_database_backup(
                 raise http_error(
                     500,
                     ErrorCode.INTERNAL_SERVER_ERROR,
-                    "pg_dump not found. Please install PostgreSQL client tools.",
+                    "PostgreSQL backup tooling is unavailable and fallback export failed.",
                     request,
                 )
 
@@ -544,7 +593,7 @@ async def list_database_backups(request: Request, _auth=Depends(require_control_
     if not backup_dir.exists():
         return {"backups": [], "message": "No backups directory found"}
     backups = []
-    backup_files = list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.enc"))
+    backup_files = _list_backup_files(backup_dir)
     for backup_file in sorted(backup_files, key=lambda f: f.stat().st_mtime, reverse=True):
         stat = backup_file.stat()
         backups.append(
@@ -591,7 +640,7 @@ async def download_backups_zip(request: Request, _auth=Depends(require_control_a
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
-    files = sorted(list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.enc")), reverse=True)
+    files = sorted(_list_backup_files(backup_dir), reverse=True)
     if not files:
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backup files found", request, context={})
     buf = io.BytesIO()
@@ -614,7 +663,7 @@ async def save_backups_zip_to_path(request: Request, payload: ZipSaveRequest, _a
     backup_dir = (project_root / "backups" / "database").resolve()
     if not backup_dir.exists():
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backups directory found", request, context={})
-    files = sorted(list(backup_dir.glob("*.db")) + list(backup_dir.glob("*.enc")), reverse=True)
+    files = sorted(_list_backup_files(backup_dir), reverse=True)
     if not files:
         raise http_error(404, ErrorCode.CONTROL_BACKUP_LIST_FAILED, "No backup files found", request, context={})
     buf = io.BytesIO()
@@ -669,7 +718,7 @@ async def download_selected_backups_zip(
     selected: List[Path] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith((".db", ".enc")):
+        if not isinstance(name, str) or not _is_supported_backup_filename(name):
             continue
         if name in seen:
             continue
@@ -705,7 +754,7 @@ async def save_selected_backups_zip_to_path(
     selected: List[Path] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith((".db", ".enc")):
+        if not isinstance(name, str) or not _is_supported_backup_filename(name):
             continue
         if name in seen:
             continue
@@ -765,7 +814,7 @@ async def delete_selected_backups(
     not_found: List[str] = []
     seen = set()
     for name in payload.filenames or []:
-        if not isinstance(name, str) or not name.endswith((".db", ".enc")):
+        if not isinstance(name, str) or not _is_supported_backup_filename(name):
             continue
         if name in seen:
             continue
@@ -807,7 +856,7 @@ async def save_database_backup_to_path(
         or bf_path.name != backup_filename
         or os.sep in backup_filename
         or (os.altsep is not None and os.altsep in backup_filename)
-        or not backup_filename.endswith((".db", ".enc"))
+        or not _is_supported_backup_filename(backup_filename)
     ):
         raise http_error(
             400,

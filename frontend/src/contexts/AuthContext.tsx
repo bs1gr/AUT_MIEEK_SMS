@@ -70,6 +70,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [accessToken]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const handleAuthExpired = () => {
+      authService.clearAccessToken();
+      setAccessTokenState(null);
+      setUser(null);
+      try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
+    };
+    window.addEventListener('sms-auth-expired', handleAuthExpired);
+    return () => {
+      window.removeEventListener('sms-auth-expired', handleAuthExpired);
+    };
+  }, []);
+
   // Optional auto-login on mount (disabled by default). Intentionally run once on mount.
   useEffect(() => {
     if (autoLoginAttemptedRef.current) {

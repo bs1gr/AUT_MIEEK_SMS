@@ -84,6 +84,13 @@ export function useNotifications(): UseNotificationsReturn {
       return null;
     }
   };
+  const getErrorStatus = (err: unknown): number | null => {
+    if (typeof err !== 'object' || err === null || !('response' in err)) {
+      return null;
+    }
+    const response = (err as { response?: { status?: unknown } }).response;
+    return typeof response?.status === 'number' ? response.status : null;
+  };
 
   /**
    * Fetch notifications from API
@@ -144,6 +151,12 @@ export function useNotifications(): UseNotificationsReturn {
         setUnreadCount(typedData.unread_count || 0);
       }
     } catch (err) {
+      const status = getErrorStatus(err);
+      if (status === 401 || status === 403) {
+        setNotifications([]);
+        setUnreadCount(0);
+        return;
+      }
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch notifications';
       setError(new Error(errorMessage));
       console.error('Failed to fetch notifications:', err);
@@ -185,6 +198,11 @@ export function useNotifications(): UseNotificationsReturn {
         setUnreadCount((normalizedData as unknown as { unread_count: number }).unread_count);
       }
     } catch (err) {
+      const status = getErrorStatus(err);
+      if (status === 401 || status === 403) {
+        setUnreadCount(0);
+        return;
+      }
       console.error('Failed to refresh unread count:', err);
     }
   }, []);

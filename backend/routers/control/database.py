@@ -37,6 +37,7 @@ logger = logging.getLogger(__name__)
 # Response models
 # ---------------------------------------------------------------------------
 
+
 class InstanceInfo(BaseModel):
     name: str
     label: str = ""
@@ -97,6 +98,7 @@ class DatabaseStats(BaseModel):
 # Instance endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.get("/database/instances", response_model=List[InstanceInfo])
 async def list_instances(
     request: Request,
@@ -152,6 +154,7 @@ async def get_database_stats(
 # ---------------------------------------------------------------------------
 # Backup endpoints
 # ---------------------------------------------------------------------------
+
 
 @router.post("/database/instances/{name}/backup", response_model=BackupResult)
 async def create_instance_backup(

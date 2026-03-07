@@ -253,6 +253,24 @@ def test_download_database_backup_success(tmp_path, client):
         backup_path.unlink(missing_ok=True)
 
 
+def test_list_database_backups_includes_sql(client):
+    backup_dir = Path(control.__file__).resolve().parents[2] / "backups" / "database"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+
+    filename = f"test_backup_{uuid.uuid4().hex}.sql"
+    backup_path = backup_dir / filename
+    backup_path.write_text("-- test backup", encoding="utf-8")
+
+    try:
+        resp = client.get("/control/api/operations/database-backups")
+        assert resp.status_code == 200
+        data = resp.json()
+        listed = [item.get("filename") for item in data.get("backups", [])]
+        assert filename in listed
+    finally:
+        backup_path.unlink(missing_ok=True)
+
+
 def test_download_database_backup_not_found(client):
     missing = f"missing_backup_{uuid.uuid4().hex}.db"
     resp = client.get(f"/control/api/operations/database-backups/{missing}/download")

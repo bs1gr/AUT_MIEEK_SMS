@@ -1139,6 +1139,7 @@ function formatUptime(seconds: number): string {
                   <DevToolsPanel
                     variant="embedded"
                     showOperationsMonitorSummary={false}
+                    hideLegacyDatabaseTools
                     onToast={handleToast}
                   />
                 </div>

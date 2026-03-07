@@ -236,6 +236,30 @@ export const controlApiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
+const REFRESH_FAILURE_COOLDOWN_MS = 30000;
+let refreshPromise: Promise<string | null> | null = null;
+let refreshCooldownUntil = 0;
+
+function clearApiClientAuthorizationHeader() {
+  try {
+    const defaults = apiClient.defaults as unknown as { headers?: { common?: Record<string, string> } };
+    if (!defaults.headers || !defaults.headers.common) return;
+    delete defaults.headers.common.Authorization;
+    delete (defaults.headers.common as Record<string, string>).authorization;
+  } catch {
+    // ignore
+  }
+}
+
+function notifyAuthExpired() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new Event('sms-auth-expired'));
+  } catch {
+    // ignore
+  }
+}
+
 // Request interceptor
 apiClient.interceptors.request.use(
   (config) => attachAuthHeader(config),
@@ -280,6 +304,16 @@ export function attachAuthHeader(config: InternalAxiosRequestConfig): InternalAx
         config.headers = headers;
       }
     } else {
+      // Prevent stale default Authorization headers from being sent.
+      if (config.headers instanceof AxiosHeaders) {
+        config.headers.delete('Authorization');
+        config.headers.delete('authorization');
+      } else if (config.headers) {
+        const headers = AxiosHeaders.from(config.headers);
+        headers.delete('Authorization');
+        headers.delete('authorization');
+        config.headers = headers;
+      }
       logApiDebug('[API] No token available for:', url);
     }
   } catch {
@@ -297,15 +331,40 @@ apiClient.interceptors.response.use(
     if (error.response) {
       // If unauthorized and we haven't retried yet, attempt refresh
       if (error.response.status === 401 && !originalRequest._retry) {
+        const requestUrl = String(originalRequest.url || '');
+        const isAuthRequest = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/refresh');
+        if (isAuthRequest) {
+          return Promise.reject(error);
+        }
+        if (Date.now() < refreshCooldownUntil) {
+          return Promise.reject(error);
+        }
+
         originalRequest._retry = true;
-        return authService.refreshAccessToken().then((newToken) => {
+
+        if (!refreshPromise) {
+          refreshPromise = authService.refreshAccessToken()
+            .then((newToken) => {
+              if (newToken) {
+                refreshCooldownUntil = 0;
+                return newToken;
+              }
+              refreshCooldownUntil = Date.now() + REFRESH_FAILURE_COOLDOWN_MS;
+              clearApiClientAuthorizationHeader();
+              notifyAuthExpired();
+              return null;
+            })
+            .finally(() => {
+              refreshPromise = null;
+            });
+        }
+
+        return refreshPromise.then((newToken) => {
           if (newToken) {
-            if (originalRequest.headers) {
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              // @ts-ignore
-              originalRequest.headers.Authorization = `Bearer ${newToken}`;
-            }
-            return axios(originalRequest);
+            const headers = AxiosHeaders.from(originalRequest.headers || {});
+            headers.set('Authorization', `Bearer ${newToken}`);
+            originalRequest.headers = headers;
+            return apiClient(originalRequest);
           }
           return Promise.reject(error);
         }).catch(() => {
@@ -949,8 +1008,10 @@ export const sessionAPI = {
 // ==================== ADMIN OPS API ====================
 
 export const adminOpsAPI = {
-  createBackup: async (): Promise<{ message: string; backup_path?: string; backup_size?: number }> => {
-    const response = await apiClient.post<{ message: string; backup_path?: string; backup_size?: number }>('/adminops/backup');
+  createBackup: async (encrypt = true): Promise<{ message: string; backup_path?: string; backup_size?: number }> => {
+    const response = await apiClient.post<{ message: string; backup_path?: string; backup_size?: number }>('/adminops/backup', null, {
+      params: { encrypt },
+    });
     return unwrapResponse<{ message: string; backup_path?: string; backup_size?: number }>(response.data);
   },
 
