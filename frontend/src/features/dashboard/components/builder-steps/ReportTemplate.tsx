@@ -99,7 +99,7 @@ export const ReportTemplate: React.FC<ReportTemplateProps> = ({ reportConfig, on
                 <p className="text-sm opacity-75">{template.description}</p>
               </div>
               {isSelected && (
-                <div className="ml-auto text-xl">✓</div>
+                <div className="ml-auto text-xl">{t('analytics.builder.ui.checkmark', '✓')}</div>
               )}
             </button>
           );

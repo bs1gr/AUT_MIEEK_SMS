@@ -2,7 +2,7 @@
  * Tests for PredictiveAnalyticsPanel component
  */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PredictiveAnalyticsPanel } from '../PredictiveAnalyticsPanel';

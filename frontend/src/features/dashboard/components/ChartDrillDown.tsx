@@ -5,6 +5,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { ChevronRight, Home } from 'lucide-react';
+import { useLanguage } from '../../../hooks/useLanguage';
 
 export interface DrillDownLevel {
   id: string;
@@ -31,6 +32,7 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
   renderContent,
   onBackToRoot,
 }) => {
+  const { t } = useLanguage();
   const [history, setHistory] = useState<DrillDownLevel[]>([levels[0]]);
   const currentLevel = history[history.length - 1];
 
@@ -62,7 +64,7 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
               className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700 transition"
             >
               <Home size={16} />
-              Root
+              {t('analytics.drilldown.root', 'Root')}
             </button>
 
             {history.slice(1).map((level, idx) => (
@@ -97,13 +99,13 @@ export const ChartDrillDown: React.FC<ChartDrillDownProps> = ({
               onClick={handleBackToPrevious}
               className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition"
             >
-              ← Previous Level
+              ← {t('analytics.drilldown.previousLevel', 'Previous Level')}
             </button>
             <button
               onClick={handleBackToRoot}
               className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition"
             >
-              ↑ Back to Root
+              ↑ {t('analytics.drilldown.backToRoot', 'Back to Root')}
             </button>
           </>
         )}
@@ -186,9 +188,11 @@ export const createStudentPerformanceDrillDown = (
 /**
  * Render function for class drill-down
  */
-export const renderClassDrillDown = (level: DrillDownLevel) => {
+export const renderClassDrillDown = (level: DrillDownLevel, t?: (key: string, fallback: string) => string) => {
+  const translate = t || ((key: string, fallback: string) => fallback);
+  
   if (level.data.length === 0) {
-    return <p className="text-center text-slate-500">No data available</p>;
+    return <p className="text-center text-slate-500">{translate('analytics.drilldown.noData', 'No data available')}</p>;
   }
 
   return (

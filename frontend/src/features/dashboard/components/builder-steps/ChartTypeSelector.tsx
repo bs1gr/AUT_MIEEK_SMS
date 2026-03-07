@@ -125,7 +125,7 @@ export const ChartTypeSelector: React.FC<ChartTypeSelectorProps> = ({
               )}
               {isSelected && (
                 <div className="absolute top-2 right-2 w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-sm font-bold">
-                  ✓
+                  {t('analytics.builder.ui.checkmark', '✓')}
                 </div>
               )}
             </button>

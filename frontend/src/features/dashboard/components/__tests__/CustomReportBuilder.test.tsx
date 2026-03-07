@@ -2,7 +2,7 @@
  * Tests for CustomReportBuilder component
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CustomReportBuilder } from '../CustomReportBuilder';

@@ -154,7 +154,7 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
                 key={filter}
                 className="px-3 py-1 bg-green-200 text-green-900 rounded-full text-sm font-medium flex items-center gap-2"
               >
-                {t(`common.${filter}`, filter)} ✓
+                {t(`common.${filter}`, filter)} {t('analytics.builder.ui.checkmark', '✓')}
               </span>
             ))}
           </div>

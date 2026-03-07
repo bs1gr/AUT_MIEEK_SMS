@@ -53,6 +53,12 @@ export default {
   total_classes: 'Total Classes',
   courses: 'Courses',
   by_course: 'By Course',
+  drilldown: {
+    root: 'Root',
+    previousLevel: 'Previous Level',
+    backToRoot: 'Back to Root',
+    noData: 'No data available',
+  },
   predictive: {
     risk: {
       assessment: 'Risk Assessment',
@@ -86,12 +92,17 @@ export default {
     },
     info: {
       title: 'About Predictions',
+      icon: 'ℹ️',
       description: 'Predictions are based on historical data and trends. Individual student circumstances may vary. Always verify with actual assessments and records.',
     },
     error: 'Predictive Analysis Error',
   },
   builder: {
     title: 'Custom Report Builder',
+    ui: {
+      checkmark: '✓',
+      isRequired: ' is required',
+    },
     step: {
       template: 'Report Template',
       template: {
@@ -146,7 +157,8 @@ export default {
       dataseries: 'Data Series',
       filters: 'Filters',
       incomplete: 'Incomplete Configuration',
-      atleastone: 'At least one data series',
+      atleastone: 'At least one data series is required',
+      isrequired: 'is required',
       info: 'After saving, you can generate the report with specific filter values and download it as PDF or Excel.',
     },
     reportName: 'Report Name',

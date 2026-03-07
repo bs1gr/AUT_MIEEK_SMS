@@ -336,7 +336,7 @@ export const PredictiveAnalyticsPanel: React.FC<PredictiveAnalyticsPanelProps> =
       {/* Info Box */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <p className="text-sm text-blue-900">
-          <span className="font-semibold">ℹ️ {t('analytics.predictive.info.title', 'About Predictions')}:</span>{' '}
+          <span className="font-semibold">{t('analytics.predictive.info.icon', 'ℹ️')} {t('analytics.predictive.info.title', 'About Predictions')}:</span>{' '}
           {t(
             'analytics.predictive.info.description',
             'Predictions are based on historical data and trends. Individual student circumstances may vary. Always verify with actual assessments and records.'

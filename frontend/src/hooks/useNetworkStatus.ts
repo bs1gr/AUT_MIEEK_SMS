@@ -66,8 +66,12 @@ export function useNetworkStatus(): NetworkStatus {
   // Track transition from offline → online to show "back online" banner
   useEffect(() => {
     if (prevOnline.current === false && isOnline === true) {
-      setWasOffline(true);
-      wasOfflineTimer.current = setTimeout(() => setWasOffline(false), 5000);
+      // Defer setState to avoid calling it synchronously in effect
+      const timeoutId = setTimeout(() => {
+        setWasOffline(true);
+        wasOfflineTimer.current = setTimeout(() => setWasOffline(false), 5000);
+      }, 0);
+      return () => clearTimeout(timeoutId);
     }
     prevOnline.current = isOnline;
 
@@ -78,9 +82,13 @@ export function useNetworkStatus(): NetworkStatus {
 
   // Poll pending counts periodically (every 5s) and on network change
   useEffect(() => {
-    refreshPendingCounts();
+    // Schedule pending count refresh in next tick to avoid synchronous setState in effect
+    const timeoutId = setTimeout(refreshPendingCounts, 0);
     const timer = setInterval(refreshPendingCounts, 5000);
-    return () => clearInterval(timer);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(timer);
+    };
   }, [isOnline, refreshPendingCounts]);
 
   const pendingSyncCount =

@@ -157,9 +157,9 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
               {t('analytics.builder.preview.incomplete', 'Incomplete Configuration')}
             </p>
             <ul className="text-sm text-yellow-800 mt-1 space-y-1">
-              {!reportConfig.name && <li>• {t('common.reportname', 'Report name')} is required</li>}
-              {!reportConfig.template && <li>• {t('analytics.builder.step.template', 'Template')} is required</li>}
-              {!reportConfig.dataSeries?.length && <li>• {t('analytics.builder.preview.atleastone', 'At least one data series')} is required</li>}
+              {!reportConfig.name && <li>• {t('common.reportname', 'Report name')}{t('analytics.builder.ui.isRequired', ' is required')}</li>}
+              {!reportConfig.template && <li>• {t('analytics.builder.step.template', 'Template')}{t('analytics.builder.ui.isRequired', ' is required')}</li>}
+              {!reportConfig.dataSeries?.length && <li>• {t('analytics.builder.preview.atleastone', 'At least one data series')}{t('analytics.builder.ui.isRequired', ' is required')}</li>}
             </ul>
           </div>
         </div>
