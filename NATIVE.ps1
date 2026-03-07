@@ -1036,7 +1036,11 @@ function Start-Backend {
         $env:PYTHONUTF8 = "1"
         $env:PYTHONIOENCODING = "utf-8"
 
-        $processInfo = Start-Process -FilePath $uvicornScript -ArgumentList $args -WorkingDirectory $SCRIPT_DIR -WindowStyle Normal -PassThru
+        # Use python -m uvicorn directly instead of venv wrapper script to ensure proper module path resolution
+        # This allows relative imports like "from .app_factory import create_app" in main.py to work correctly
+        $pythonExe = Join-Path $venvPath "Scripts\python.exe"
+        $uvicornArgs = @("-u", "-m", "uvicorn") + $args
+        $processInfo = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -WorkingDirectory $SCRIPT_DIR -WindowStyle Normal -PassThru
 
         # Save PID
         Set-Content -Path $BACKEND_PID_FILE -Value $processInfo.Id
