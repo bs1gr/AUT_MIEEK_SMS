@@ -155,6 +155,11 @@ test-diagnostics/
 *.swo
 *~
 
+# Visual Studio
+*.sln
+*.suo
+*.user
+
 # Virtualenvs
 .venv/
 backend/.venv/
