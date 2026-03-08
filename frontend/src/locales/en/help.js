@@ -187,6 +187,109 @@ export default {
   helpGradeExamplesAnswer: 'Example course rules:\n• Exams: 40% weight\n• Homework: 30% weight\n• Participation: 30% weight\n\nStudent grades:\n• Exam avg: 90% → 90 × 0.40 = 36\n• HW avg: 85% → 85 × 0.30 = 25.5\n• Part avg: 95% → 95 × 0.30 = 28.5\n\nFinal: 36 + 25.5 + 28.5 = 90% ✓',
   helpAbsencePenaltyExample: 'How does absence penalty work?',
   helpAbsencePenaltyExAnswer: 'Course with -2% penalty per unexcused absence:\n\nStudent has:\n• Grade: 85%\n• 3 unexcused absences\n• Penalty: 3 × -2% = -6%\n\nFinal: 85% - 6% = 79% ✓',
+  // ===========================
+  // ✨ AUTOSAVE & RECENT IMPROVEMENTS
+  // ===========================
+  helpAutosaveFeatures: '💾 Autosave & Data Persistence',
+  helpWhatIsAutosave: 'What is autosave?',
+  helpAutosaveAnswer: 'Autosave stores your changes automatically a few seconds after edits, helping prevent accidental data loss.',
+  helpWhereIsAutosave: 'Where is autosave available?',
+  helpWhereAutosaveAnswer: 'Autosave is active in attendance entry, daily performance updates, evaluation-rule editing, and student notes workflows.',
+  helpHowDoIKnowSaving: 'How do I know data is being saved?',
+  helpKnowSavingAnswer: 'Saving indicators and status messages appear while changes are being synced.',
+  helpCanIDisableAutosave: 'Can I disable autosave?',
+  helpDisableAutosaveAnswer: 'Autosave is enabled by design for reliability and cannot be fully disabled in normal operation.',
   helpWhatIfAutosaveFails: 'What if autosave fails?',
   helpAutosaveFailAnswer: 'Autosave is smart:\n✓ Retries automatically\n✓ Shows warning if network dies\n✓ Data stays on page (not lost)\n\nWhen network is back:\n✓ Automatically syncs\n✓ Or click "Save" manually',
+  helpDoesAutosaveWorkOffline: 'Does autosave work offline?',
+  helpAutosaveOfflineAnswer: 'Some local draft flows work offline, but server-backed data still requires a network connection to persist permanently.',
+  helpIsAutosaveSecure: 'Is autosave secure?',
+  helpAutosaveSecureAnswer: 'Yes. Autosave uses the same authentication, permissions, and backend validation as manual save actions.',
+
+  helpRecentImprovements: '🆕 Recent Improvements',
+  helpWhatsNewInLatest: 'What is new in the latest version?',
+  helpWhatsNewAnswer: 'Recent updates include better autosave behavior, stronger import/export tooling, improved authentication persistence, and quality-of-life UI refinements.',
+  helpSessionExportImport: 'What is session/semester export-import?',
+  helpSessionExportImportAnswer: 'It lets you package and transfer complete academic-session data between installations with validation and safer restore options.',
+  helpHowToExportSemester: 'How do I export a semester?',
+  helpExportSemesterAnswer: 'Go to Utilities → Export/Import Session, select the semester, then export the generated JSON package.',
+  helpHowToImportSemester: 'How do I import a semester?',
+  helpImportSemesterAnswer: 'Upload a previously exported session package in Utilities → Export/Import Session, validate, then run import.',
+  helpWhatIsRateLimitIncrease: 'Why were API rate limits increased?',
+  helpRateLimitIncreaseAnswer: 'Limits were tuned to better support larger class sizes and batch workflows without unnecessary save interruptions.',
+  helpPersistentLogin: 'Why do I stay logged in after refresh?',
+  helpPersistentLoginAnswer: 'Session tokens are persisted securely for smoother user experience across page reloads and restarts.',
+  helpWindowsInstaller: 'What is the Windows installer workflow?',
+  helpWindowsInstallerAnswer: 'The installer provides guided setup, environment validation, and first-run initialization for easier deployment on Windows.',
+
+  // ===========================
+  // 🧰 UTILS / OPERATIONS HELP
+  // ===========================
+  helpUtilsOperations: '🧰 Utilities & Operations',
+  helpWhatIsDevTools: 'What are Dev Tools?',
+  helpDevToolsAnswer: 'Dev Tools provide maintenance actions such as diagnostics, backups, restore workflows, and operational health checks.',
+  helpHowToAccessControlPanel: 'How do I access the Control Panel?',
+  helpControlPanelAnswer: 'Open Utilities/Operations and select the Control Panel area to use administrative maintenance features.',
+  helpWhatIsServerControl: 'What is Server Control?',
+  helpServerControlAnswer: 'Server Control displays backend/frontend service status and helps verify runtime health from one place.',
+
+  // ===========================
+  // 📋 CUSTOM REPORTS EXTENSIONS
+  // ===========================
+  helpWhatIsReportBuilder: 'What is the report builder?',
+  helpReportBuilderAnswer: 'The report builder is a step-by-step wizard for selecting fields, filters, and sort rules before saving a custom report.',
+  helpHowToEditReport: 'How do I edit an existing report?',
+  helpEditReportAnswer: 'From the reports list, choose Edit on a saved report to reopen it in the builder and update its configuration.',
+  helpHowToGenerateReport: 'How do I generate a report file?',
+  helpGenerateReportAnswer: 'Click Generate from the reports list; once processing completes, download the produced file in the selected format.',
+  helpHowToCreateTemplate: 'How do I create a template?',
+  helpCreateTemplateAnswer: 'Save a configured report as a template so it can be reused quickly in future runs.',
+  helpHowToShareTemplate: 'How do I share a template?',
+  helpShareTemplateAnswer: 'Use the Share action in template management to publish it for other permitted users.',
+  helpWhatIsDataSourceTile: 'What do data source tiles do?',
+  helpDataSourceTileAnswer: 'They open the template browser pre-filtered by entity type (students, courses, grades, attendance, enrollments).',
+  helpWhatIsOutputFormatTile: 'What do output format tiles do?',
+  helpOutputFormatTileAnswer: 'They jump to template results filtered by export format (PDF, Excel, CSV).',
+  helpWhatFiltersAvailable: 'What filter operators are available?',
+  helpFiltersAvailableAnswer: 'You can use operators like equals, contains, between, greater than, less than, and list-based matching.',
+  helpHowManySortRules: 'How many sort rules can I add?',
+  helpSortRulesAnswer: 'You can add multiple sort rules; they are applied in priority order from top to bottom.',
+  helpCanIDuplicateReport: 'Can I duplicate a report?',
+  helpDuplicateReportAnswer: 'Yes. Use Duplicate from the report actions menu to clone and modify an existing report quickly.',
+  helpWhereAreGeneratedReports: 'Where can I find generated reports?',
+  helpGeneratedReportsAnswer: 'Generated files are listed under each saved report entry, where they can be reviewed and downloaded.',
+
+  // ===========================
+  // 🌐 LOCALIZATION HELP EXTENSIONS
+  // ===========================
+  helpWhatIsLocalized: 'What parts are localized?',
+  helpLocalizedAnswer: 'Navigation, forms, labels, messaging, and documentation content are localized for supported languages.',
+  helpWhyGreekEnglishCategories: 'Why do category labels vary by language?',
+  helpLocalizationCategoriesAnswer: 'Display labels are localized for users, while normalized values are stored consistently for backend logic.',
+  helpArePlaceholdersBilingual: 'Are placeholders bilingual too?',
+  helpPlaceholdersBilingualAnswer: 'Yes, placeholders and helper examples are localized to match the active language.',
+
+  // ===========================
+  // 🗄️ DATABASE / VOLUME MAINTENANCE
+  // ===========================
+  helpCleanupObsolete: 'What does cleanup obsolete files do?',
+  helpCleanupObsoleteAnswer: 'It removes outdated generated artifacts and maintenance leftovers according to cleanup policy.',
+  helpDockerVolumeUpdate: 'What is Docker data volume update?',
+  helpDockerVolumeUpdateAnswer: 'It creates/switches to a versioned data volume and can migrate existing data when requested.',
+  helpUpdateVolumeHowTo: 'How do I update data volume safely?',
+  helpUpdateVolumeHowToAnswer: 'Run the volume update flow, confirm migration choice, then restart the stack so services mount the new volume.',
+  helpUpdateVolumeRevert: 'How do I revert volume update?',
+  helpUpdateVolumeRevertAnswer: 'Restore the previous override/volume mapping and restart Docker services to return to the prior data volume.',
+  helpUpdateVolumeMigrate: 'Should I enable data migration?',
+  helpUpdateVolumeMigrateAnswer: 'Enable migration when you need current data preserved; disable only for clean-slate environments.',
+
+  // ===========================
+  // 📊 GRADING / ATTENDANCE RELATIONS
+  // ===========================
+  helpDoesAttendanceAffectFinal: 'Does attendance affect final grade?',
+  helpAttendanceAffectAnswer: 'Attendance can affect final grades when attendance category weighting and/or absence penalty are configured.',
+  helpDoDailyPerformanceAffectFinal: 'Does daily performance affect final grade?',
+  helpDailyPerformanceAffectAnswer: 'Yes, when included in evaluation rules, daily performance contributes with its configured multiplier.',
+  helpWhatIsGreekGrade: 'What is Greek grading scale output?',
+  helpGreekGradeAnswer: 'The system can present equivalent score output on the Greek 0–20 scale alongside percentage/GPA views.',
 };
