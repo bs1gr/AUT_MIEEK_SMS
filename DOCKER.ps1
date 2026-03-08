@@ -1579,6 +1579,65 @@ POSTGRES_PASSWORD=$postgresPassword
     $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
     $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
     $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+    $pgSslMode = Get-EnvVarValue -Name "POSTGRES_SSLMODE"
+
+    # Enforce verified production PostgreSQL profile for installer deployments.
+    $verifiedPgHost = "172.16.0.2"
+    $verifiedPgPort = "55433"
+    $verifiedPgDb = "student_management"
+    $verifiedPgUser = "sms_user"
+    $verifiedPgPassword = "TestAdmin2026!"
+    $verifiedPgSslMode = "disable"
+
+    $verifiedProfileChanged = $false
+
+    if ($currentDbEngine -ne "postgresql") {
+        Set-RootEnvVarValue -Name "DATABASE_ENGINE" -Value "postgresql"
+        $currentDbEngine = "postgresql"
+        $verifiedProfileChanged = $true
+    }
+    if ($pgHost -ne $verifiedPgHost) {
+        Set-RootEnvVarValue -Name "POSTGRES_HOST" -Value $verifiedPgHost
+        $pgHost = $verifiedPgHost
+        $verifiedProfileChanged = $true
+    }
+    if ($pgPort -ne $verifiedPgPort) {
+        Set-RootEnvVarValue -Name "POSTGRES_PORT" -Value $verifiedPgPort
+        $pgPort = $verifiedPgPort
+        $verifiedProfileChanged = $true
+    }
+    if ($pgDb -ne $verifiedPgDb) {
+        Set-RootEnvVarValue -Name "POSTGRES_DB" -Value $verifiedPgDb
+        $pgDb = $verifiedPgDb
+        $verifiedProfileChanged = $true
+    }
+    if ($pgUser -ne $verifiedPgUser) {
+        Set-RootEnvVarValue -Name "POSTGRES_USER" -Value $verifiedPgUser
+        $pgUser = $verifiedPgUser
+        $verifiedProfileChanged = $true
+    }
+    if ($pgPassword -ne $verifiedPgPassword) {
+        Set-RootEnvVarValue -Name "POSTGRES_PASSWORD" -Value $verifiedPgPassword
+        $pgPassword = $verifiedPgPassword
+        $verifiedProfileChanged = $true
+    }
+    if ($pgSslMode -ne $verifiedPgSslMode) {
+        Set-RootEnvVarValue -Name "POSTGRES_SSLMODE" -Value $verifiedPgSslMode
+        $pgSslMode = $verifiedPgSslMode
+        $verifiedProfileChanged = $true
+    }
+
+    $verifiedDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+    if ($dbUrl -ne $verifiedDbUrl) {
+        Set-RootEnvVarValue -Name "DATABASE_URL" -Value $verifiedDbUrl
+        $dbUrl = $verifiedDbUrl
+        $verifiedProfileChanged = $true
+    }
+
+    if ($verifiedProfileChanged) {
+        Write-Success "Verified PostgreSQL profile enforced ($pgHost`:$pgPort/$pgDb)"
+        $configured = $true
+    }
 
     if ($pgHost -and $pgPort -and $pgUser -and $pgPassword -and $pgDb) {
         # Keep compatibility with legacy auto-generated URLs while fixing URI encoding
