@@ -1,0 +1,60 @@
+{
+  "version": "1.18.8",
+  "buildDate": "2026-03-08T20:05:56Z",
+  "commit": "f5ffba1f5242dfb0691eba085941b7f27062bd36",
+  "commitShort": "f5ffba1f5",
+  "commitMessage": "feat: Add Docker host updater bridge for Control Panel auto-updates",
+  "installer": {
+    "filename": "SMS_Installer_1.18.8.exe",
+    "size": 95883928,
+    "sizeHuman": "91.44 MB",
+    "sha256": "3523716A8F1BC7C018DE97C8B49FBCB2911F4D9D7D2C566790BD3B6C85B05413",
+    "checksumFile": "SMS_Installer_1.18.8.exe.sha256"
+  },
+  "codeSigning": {
+    "status": "Valid",
+    "publisher": "CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY",
+    "certificate": "AUT MIEEK",
+    "thumbprint": "2693C1B15C8A8E5E45614308489DC6F4268B075D",
+    "expiresAfter": "2028-11-27"
+  },
+  "features": {
+    "primary": [
+      "Docker host updater bridge for Control Panel auto-updates",
+      "Bidirectional file handoff between container and host",
+      "Host watcher service with detached process lifecycle",
+      "Frontend UpdatesPanel integration with fallback messaging"
+    ],
+    "technical": [
+      "Backend trigger/status file plumbing in maintenance.py",
+      "scripts/update-watcher.ps1 service (300+ lines)",
+      "Environment toggles: SMS_HOST_UPDATER_BRIDGE, SMS_HOST_UPDATER_TRIGGER_DIR",
+      "Complete i18n updates (English + Greek)"
+    ]
+  },
+  "validation": {
+    "preCommitPassed": true,
+    "testsStatus": "13/13 maintenance tests passing, 100 total test files",
+    "smokeTestPassed": true,
+    "frontendBuildPassed": true,
+    "watcherLifecycleVerified": true
+  },
+  "distribution": {
+    "location": "dist/",
+    "gitignored": true,
+    "distributionMethod": "GitHub Releases (recommended)",
+    "localPath": "D:\\SMS\\student-management-system\\dist\\SMS_Installer_1.18.8.exe"
+  },
+  "buildEnvironment": {
+    "innoSetup": "Inno Setup 6",
+    "pythonVersion": "3.13.3",
+    "platform": "Windows",
+    "buildDuration": "59 seconds"
+  },
+  "notes": [
+    "Installer includes Docker host updater bridge feature",
+    "Tested with smoke test - all handoff stages validated",
+    "Code-signed with AUT MIEEK certificate",
+    "Ready for production deployment"
+  ]
+}
