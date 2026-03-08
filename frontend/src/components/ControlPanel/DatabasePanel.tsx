@@ -396,7 +396,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
                       {inst.started_at && (
                         <div>
                           <p className="text-xs text-gray-500 uppercase">{t('db.startedAt') || 'Started At'}</p>
-                          <p className="font-mono text-sm">{new Date(inst.started_at).toLocaleString()}</p>
+                          <p className="font-mono text-sm">{inst.started_at ? new Date(inst.started_at).toLocaleString() : 'N/A'}</p>
                         </div>
                       )}
                       {stats[inst.name]?.active_connections != null && (
@@ -428,7 +428,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
                               {stats[inst.name].tables!.map((tbl) => (
                                 <tr key={tbl.table} className="hover:bg-gray-50">
                                   <td className="px-3 py-1.5 font-mono">{tbl.table}</td>
-                                  <td className="px-3 py-1.5 text-right">{tbl.row_count.toLocaleString()}</td>
+                                  <td className="px-3 py-1.5 text-right">{(tbl.row_count ?? 0).toLocaleString()}</td>
                                   <td className="px-3 py-1.5 text-right text-gray-500">{tbl.size}</td>
                                 </tr>
                               ))}
@@ -474,7 +474,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-800 truncate">{bk.filename}</p>
                   <p className="text-xs text-gray-500 flex items-center gap-2">
-                    <Clock size={10} /> {new Date(bk.created_at).toLocaleString()}
+                    <Clock size={10} /> {bk.created_at ? new Date(bk.created_at).toLocaleString() : 'N/A'}
                     <span className="text-gray-300">•</span>
                     {bk.size_human}
                     <span className="text-gray-300">•</span>
