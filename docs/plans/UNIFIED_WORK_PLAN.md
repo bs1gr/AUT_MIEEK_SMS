@@ -1,11 +1,85 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.6 (Released - Analytics Revival)
-**Last Updated**: March 5, 2026, 10:30 PM UTC
-**Status**: ✅ v1.18.6 RELEASED | 🔄 Post-Release Development Active
+**Current Version**: 1.18.7 (Released - Control Panel & Infrastructure Hardening)
+**Last Updated**: March 8, 2026, 02:30 AM UTC
+**Status**: ✅ v1.18.7 RELEASED | 🔄 Post-Release Development Active
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Post-Release Development** (control panel enhancements + offline support + infrastructure hardening)
-**Current Branch**: `main` (HEAD: 5dd528648 - control panel auto-updater + Windows subprocess fixes)
+**Current Phase**: **Post-Release Development** (analytics fixes + type safety + testing improvements)
+**Current Branch**: `main` (HEAD: 57ed221c0 - dashboard vitest helper imports and report builder fixes)
+
+---
+
+## 🎉 v1.18.7 Release - Control Panel & Infrastructure Hardening (March 5-8, 2026)
+
+**Status**: ✅ **RELEASED - INFRASTRUCTURE & STABILITY COMPLETE**
+
+### Release Overview
+
+**Release Type**: Feature Release (Control Panel & Infrastructure)
+**Release Date**: March 5, 2026 (initial tag) - March 8, 2026 (post-release fixes)
+**Tag**: v1.18.7 (commit: b4a52ce4c)
+**Current HEAD**: 57ed221c0 (18 commits post-release with fixes and improvements)
+
+### What's in v1.18.7
+
+**Control Panel Features**:
+- ✅ **Auto-Updater System**: Threaded download with SHA256 verification, installer launch
+- ✅ **Update Check/Update Split**: Separate buttons, Update disabled until update detected
+- ✅ **Release Channel Support**: Stable/beta channel infrastructure (`release_channel` field)
+- ✅ **Notification Integration**: Update-available badge in NotificationBell via localStorage + CustomEvent
+- ✅ **Update Cards**: Update-available card in NotificationDropdown with version display
+- ✅ **Database Management Panel**: Backup, diagnostics, and user admin consolidated
+- ✅ **Improved UX**: Better button contrast (gray → indigo), enhanced styling
+
+**Offline Support**:
+- ✅ **Centralized Network Status**: New `useNetworkStatus` hook
+- ✅ **Offline Banner**: Visual indicator when network disconnected
+- ✅ **Offline Queues**: Automatic sync for attendance, grades, and student updates on reconnect
+
+**Infrastructure Improvements**:
+- ✅ **Windows Subprocess Fix**: Resolved `docker.exe 0xc0000142` crashes across all control panel modules
+- ✅ **Passive Binary Probes**: Safe subprocess creation on Windows (`_hidden_window_kwargs` helper)
+- ✅ **Health Endpoint**: Surface remote DB evidence, correct PostgreSQL diagnostics
+- ✅ **SQL Backup Support**: Encrypted/unencrypted backup modes
+- ✅ **QNAP Deployment**: postgres-only ARMv7 deployment artifacts
+
+**Bug Fixes & Refinements**:
+- ✅ **Native Runtime**: Fixed uvicorn relative import resolution
+- ✅ **Auth**: Nullify audit_logs before user delete (prevent FK violation)
+- ✅ **Tests**: Stabilized vitest execution, dashboard mocks, Windows CI compatibility
+- ✅ **OpenAPI**: Resolved callable schema issues
+- ✅ **Version Format**: Enforced v1.x.x format compliance (Policy 2)
+
+### Post-Release Development (v1.18.7+)
+
+**18 commits after v1.18.7 tag focused on quality & stability**:
+
+1. **Analytics Type Safety** (4 commits):
+   - Eliminated `any` types from hooks, components, utilities
+   - Dashboard TypeScript typing failures resolved
+   - Error handling flow recovery
+   - Search analytics hooks alignment
+
+2. **Testing Improvements** (2 commits):
+   - Dashboard vitest helper imports fixed
+   - Report builder prop alignment
+
+3. **UI/UX Polish** (2 commits):
+   - i18n footer version display (removed double-v)
+   - ESLint hardcoded strings reduced (41→34 warnings)
+
+4. **Refactoring** (1 commit):
+   - Control panel database tab consolidated into maintenance section
+
+5. **Infrastructure** (2 commits):
+   - SQL backup support added
+   - Visual Studio solution files ignored
+
+**Quality Metrics**:
+- **Test Status**: All backend tests passing ✅
+- **Type Safety**: Analytics module fully typed (no `any`)
+- **Code Quality**: ESLint warnings reduced by 17%
+- **Documentation**: Multi-PC deployment guide added
 
 ---
 

@@ -1,19 +1,19 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-02
+**Last Updated**: 2026-03-08
 **Project Version (documented)**: 1.18.7
 **Version**: 1.18.7
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.6 RELEASED (ANALYTICS REVIVAL)**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.7 RELEASED (CONTROL PANEL & INFRASTRUCTURE)**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 2, 2026)**: ✅ **Production Live + v1.18.6 released with analytics revival**
-> - Maintenance & stability phase active
-> - Changelog/work plan/index updated for verified changes since `v1.18.4`
-> - v1.18.5 release documentation pack published (notes, release body, manifest, deployment checklist)
-> - Release workflow chain completed and verified (`release-on-tag` → `release-installer-with-sha` → `release-asset-sanitizer`)
-> - Installer-only asset allowlist and digest/hash verification confirmed on published assets
+> **Current Status (Mar 8, 2026)**: ✅ **Production Live + v1.18.7 released with control panel & infrastructure hardening**
+> - v1.18.7: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
+> - v1.18.6: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
+> - Post-release development: Type safety improvements, testing stability, ESLint cleanup
+> - Changelog/work plan/index updated with v1.18.7 changes
+> - All tests passing, repository clean and synced
 > - See plans/UNIFIED_WORK_PLAN.md for details
 
 ---
