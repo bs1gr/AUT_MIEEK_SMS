@@ -1143,29 +1143,30 @@ function formatUptime(seconds: number): string {
                   />
                 </div>
               )}
+            </div>
 
-              {/* Database Management Section */}
-              <div className="border border-l-4 border-l-indigo-500 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setExpandDatabase(!expandDatabase)}
-                  className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-                >
-                  <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                    {t('controlPanel.databaseManagement') || 'Database Management'}
-                  </h3>
-                  <ChevronDown
-                    size={20}
-                    className={`text-gray-500 dark:text-gray-400 transition-transform ${
-                      expandDatabase ? 'rotate-180' : ''
-                    }`}
-                  />
-                </button>
-                {expandDatabase && (
-                  <div className="p-6">
-                    <DatabasePanel controlApi={CONTROL_API} />
-                  </div>
-                )}
-              </div>
+            {/* Database Management Section */}
+            <div className="border rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+              <button
+                type="button"
+                onClick={() => setExpandDatabase(!expandDatabase)}
+                className="w-full flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+              >
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+                  {t('controlPanel.databaseManagement') || 'Database Management'}
+                </h3>
+                <ChevronDown
+                  size={20}
+                  className={`text-gray-500 dark:text-gray-400 transition-transform ${
+                    expandDatabase ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+              {expandDatabase && (
+                <div className="p-6">
+                  <DatabasePanel controlApi={CONTROL_API} />
+                </div>
+              )}
             </div>
           </div>
         )}
