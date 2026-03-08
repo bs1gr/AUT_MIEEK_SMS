@@ -14,7 +14,7 @@ import {
   FileText,
   Cpu,
 } from 'lucide-react';
-import axios from 'axios';
+import { apiClient } from '@/api/api';
 import { useLanguage } from '../../LanguageContext';
 
 /* ------------------------------------------------------------------ */
@@ -111,7 +111,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
   /* ---- data fetching ---- */
   const fetchInstances = useCallback(async () => {
     try {
-      const res = await axios.get<InstanceInfo[]>(`${controlApi}/database/instances`);
+      const res = await apiClient.get<InstanceInfo[]>(`${controlApi}/database/instances`);
       setInstances(res.data);
       setError(null);
     } catch (err) {
@@ -122,7 +122,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
 
   const fetchBackups = useCallback(async () => {
     try {
-      const res = await axios.get<BackupInfo[]>(`${controlApi}/database/backups`);
+      const res = await apiClient.get<BackupInfo[]>(`${controlApi}/database/backups`);
       setBackups(res.data);
     } catch {
       /* non-critical */
@@ -131,7 +131,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
 
   const fetchStats = useCallback(async (name: string) => {
     try {
-      const res = await axios.get<DatabaseStats>(`${controlApi}/database/instances/${encodeURIComponent(name)}/stats`);
+      const res = await apiClient.get<DatabaseStats>(`${controlApi}/database/instances/${encodeURIComponent(name)}/stats`);
       setStats((prev) => ({ ...prev, [name]: res.data }));
     } catch {
       /* non-critical */
@@ -155,7 +155,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
     setBackupLoading(name);
     setError(null);
     try {
-      const res = await axios.post<BackupResult>(
+      const res = await apiClient.post<BackupResult>(
         `${controlApi}/database/instances/${encodeURIComponent(name)}/backup?compress=true`,
       );
       if (res.data.success) {
@@ -173,7 +173,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
 
   const handleDownload = useCallback(async (filename: string) => {
     try {
-      const res = await axios.get(
+      const res = await apiClient.get(
         `${controlApi}/database/backups/${encodeURIComponent(filename)}/download`,
         { responseType: 'blob' },
       );
@@ -194,7 +194,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
     if (!window.confirm(`${t('db.confirmDelete') || 'Delete backup'} ${filename}?`)) return;
     setDeleteLoading(filename);
     try {
-      await axios.delete(`${controlApi}/database/backups/${encodeURIComponent(filename)}`);
+      await apiClient.delete(`${controlApi}/database/backups/${encodeURIComponent(filename)}`);
       flash(t('db.backupDeleted') || 'Backup deleted');
       await fetchBackups();
     } catch (err) {
@@ -209,7 +209,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = ({ controlApi }) => {
     setRestoreLoading(filename);
     setError(null);
     try {
-      const res = await axios.post<RestoreResult>(
+      const res = await apiClient.post<RestoreResult>(
         `${controlApi}/database/backups/${encodeURIComponent(filename)}/restore?instance_name=${encodeURIComponent(instanceName)}`,
       );
       if (res.data.success) {
