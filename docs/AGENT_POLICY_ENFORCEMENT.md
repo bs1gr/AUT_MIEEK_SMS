@@ -78,6 +78,26 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 
 ---
 
+### Policy 0.3: INSTRUCTION-ORDER LOCK + EVIDENCE GATES (NEW - MANDATORY)
+
+**🔴 NON-NEGOTIABLE RULE:** **Use instruction-order lock + evidence gates.**
+
+**✅ REQUIRED:**
+1. Execute the owner's explicit instruction sequence in the exact order provided
+2. Do not reorder, skip, or merge ordered steps without explicit owner approval
+3. Provide objective evidence output for each ordered step before moving to the next
+4. Do not claim "complete" until all ordered evidence gates are satisfied
+5. If a session handshake/acknowledgement (for example, `SESSION_POLICY_ACK`) exists, it is binding and must be enforced in behavior
+
+**❌ FORBIDDEN:**
+- Claiming completion based on downstream success while earlier ordered steps are missing
+- Treating workflow success as a substitute for owner-specified order
+- Ignoring session policy acknowledgements
+
+**Enforcement:** Any missing ordered gate must be reported as **"not complete yet"**.
+
+---
+
 ### Policy 0.5: SOLO DEVELOPER - NO STAKEHOLDERS (NEW - MANDATORY)
 
 **🔴 CRITICAL CLARIFICATION**: This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**.

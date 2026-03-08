@@ -22,6 +22,7 @@
 **First Steps for AI Agents**:
 0. Record a workspace snapshot: run COMMIT_READY Quick with -Snapshot or use the VS Code task "Record State Snapshot" (artifacts/state)
 0a. **Session start (mandatory):** Re-read this file and `docs/AGENT_POLICY_ENFORCEMENT.md` every session. Primary agent must ensure subagents do the same.
+0b. **Instruction-order lock (mandatory):** **Use instruction-order lock + evidence gates.** Execute owner instructions in the exact order provided; do not declare completion until evidence for each ordered gate is shown.
 1. Check current status in [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) (single source of truth)
 2. Read [DOCUMENTATION_INDEX.md](../docs/DOCUMENTATION_INDEX.md) for navigation
 3. Follow [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) (prevents crashes & duplication)
@@ -434,6 +435,7 @@ git diff                          # Review pending changes
 ### Policy 9: Release Artifacts - Script-Based Workflow MANDATORY
 
 **🔴 CRITICAL**: Releases MUST use automated scripts, not ad-hoc commands.
+**🔒 ORDER LOCK**: **Use instruction-order lock + evidence gates.** For releases, if the owner provides an explicit step order, follow that order exactly and present verifiable evidence for each step before claiming release completion.
 
 **❌ FORBIDDEN:**
 - Creating releases with ad-hoc commands

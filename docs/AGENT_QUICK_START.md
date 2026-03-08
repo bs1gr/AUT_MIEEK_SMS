@@ -18,6 +18,7 @@ Read [`docs/AGENT_POLICY_ENFORCEMENT.md`](./AGENT_POLICY_ENFORCEMENT.md) (10 min
 - ❌ **NEVER** create new backlog/planning docs → Update `UNIFIED_WORK_PLAN.md`
 - ❌ **NEVER** edit DB schema directly → Use Alembic migrations
 - ✅ **ALWAYS** run `COMMIT_READY.ps1 -Quick` before committing
+- ✅ **ALWAYS** **Use instruction-order lock + evidence gates.** Execute owner steps in exact order; do not claim completion without evidence per step
 
 **If you skip this:** You might crash VS Code, corrupt data, or duplicate work.
 

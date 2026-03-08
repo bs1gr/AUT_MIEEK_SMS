@@ -245,6 +245,7 @@ New agent arrives:
 5. **Link everything** — PRs, issues, docs, commits
 6. **Keep next actions detailed** — Include exact commands or file paths
 7. **Timestamp all updates** — UTC timezone always
+8. **Use instruction-order lock + evidence gates.** Execute owner instructions in the exact order provided and attach evidence per ordered step before claiming completion
 
 ---
 
