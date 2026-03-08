@@ -3,6 +3,7 @@
 Tests authentication settings management via /control/api/maintenance/*.
 """
 
+import json
 from pathlib import Path
 
 from backend.environment import RuntimeContext, RuntimeEnvironment
@@ -129,6 +130,159 @@ def test_updates_check_preview_channel(client, monkeypatch):
     data = resp.json()
     assert data["release_channel"] == "preview"
     assert data["latest_version"] == "9.9.9"
+
+
+def test_updates_check_docker_mode_returns_manual_instructions(client, monkeypatch):
+    """Docker deployments should return manual host-script update instructions."""
+    from backend.routers.control import maintenance
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(
+            environment=RuntimeEnvironment.PRODUCTION,
+            is_docker=True,
+            is_ci=False,
+            source="test",
+        ),
+    )
+    monkeypatch.setattr(
+        maintenance,
+        "_fetch_github_release",
+        lambda channel="stable": {
+            "tag_name": "v9.9.9",
+            "html_url": "https://example.invalid/release",
+            "name": "Docker release",
+            "body": "Release notes",
+            "assets": [],
+        },
+    )
+    monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
+
+    resp = client.get("/control/api/maintenance/updates/check")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["deployment_mode"] == "docker"
+    assert data["update_available"] is True
+    assert data["update_instructions_key"] == "maintenance.update.instructions_docker"
+    assert "DOCKER.ps1 -UpdateClean" in data["update_instructions"]
+
+
+def test_auto_install_update_docker_mode_blocked(client, monkeypatch):
+    """Auto-installer must be blocked in Docker deployments."""
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(
+            environment=RuntimeEnvironment.PRODUCTION,
+            is_docker=True,
+            is_ci=False,
+            source="test",
+        ),
+    )
+    monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "0")
+
+    resp = client.post(
+        "/control/api/maintenance/updates/auto-install",
+        json={"channel": "stable", "install_mode": "silent"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is False
+    assert data["message_key"] == "maintenance.update.auto_install_docker_blocked"
+    assert data["details"]["deployment_mode"] == "docker"
+    assert data["details"]["bridge_enabled"] is False
+
+
+def test_auto_install_update_docker_mode_host_bridge_start(client, monkeypatch, tmp_path):
+    """Docker mode should queue host-bridge update when enabled."""
+    from backend.routers.control import maintenance
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(
+            environment=RuntimeEnvironment.PRODUCTION,
+            is_docker=True,
+            is_ci=False,
+            source="test",
+        ),
+    )
+    monkeypatch.setattr(maintenance, "_get_version", lambda: "1.18.7")
+    monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "1")
+    monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
+
+    resp = client.post(
+        "/control/api/maintenance/updates/auto-install",
+        json={"channel": "stable", "install_mode": "silent"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["success"] is True
+    assert data["details"]["mode"] == "docker_host_bridge"
+    job_id = data["details"]["job_id"]
+    trigger_file = tmp_path / f"update_request_{job_id}.json"
+    assert trigger_file.exists() is True
+
+    trigger_payload = json.loads(trigger_file.read_text(encoding="utf-8"))
+    assert trigger_payload["job_id"] == job_id
+    assert trigger_payload["action"] == "docker_update_clean"
+    assert trigger_payload["command"] == ".\\DOCKER.ps1 -UpdateClean"
+
+
+def test_auto_install_update_docker_mode_status_sync_from_bridge(client, monkeypatch, tmp_path):
+    """Status endpoint should reflect bridge watcher status payload updates."""
+    from backend.routers.control import maintenance
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(
+            environment=RuntimeEnvironment.PRODUCTION,
+            is_docker=True,
+            is_ci=False,
+            source="test",
+        ),
+    )
+    monkeypatch.setattr(maintenance, "_get_version", lambda: "1.18.7")
+    monkeypatch.setenv("SMS_HOST_UPDATER_BRIDGE", "1")
+    monkeypatch.setenv("SMS_HOST_UPDATER_TRIGGER_DIR", str(tmp_path))
+
+    resp = client.post(
+        "/control/api/maintenance/updates/auto-install",
+        json={"channel": "stable", "install_mode": "silent"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    job_id = data["details"]["job_id"]
+
+    status_file = tmp_path / f"update_status_{job_id}.json"
+    status_file.write_text(
+        json.dumps(
+            {
+                "job_id": job_id,
+                "status": "completed",
+                "phase": "bridge_completed",
+                "progress_percent": 100,
+                "message": "Host update completed successfully.",
+                "target_version": "1.18.8",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    status_resp = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status")
+    assert status_resp.status_code == 200
+    status_data = status_resp.json()
+    assert status_data["status"] == "completed"
+    assert status_data["phase"] == "bridge_completed"
+    assert status_data["progress_percent"] == 100
+    assert status_data["target_version"] == "1.18.8"
 
 
 def test_auto_install_update_native_windows_success(client, monkeypatch, tmp_path):

@@ -205,6 +205,16 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
     setInstallMessage(null);
     setError(null);
     setUpdaterStatus(null);
+
+    if (updateInfo?.deployment_mode === 'native' && !updateInfo?.installer_url) {
+      setError(
+        t('updateInstallerMissing')
+        || 'Installer asset is not available for this release yet. Please open the release page and retry shortly.',
+      );
+      setInstalling(false);
+      return;
+    }
+
     try {
       const response = await axios.post<AutoInstallStartResponse>(`${controlApi}/maintenance/updates/auto-install`, {
         channel: releaseChannel,
@@ -224,13 +234,29 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
         const detail = (err.response?.data as { detail?: string; message?: string } | undefined)?.message
           || (err.response?.data as { detail?: string; message?: string } | undefined)?.detail
           || err.message;
-        setError(detail || fallback);
+        const fallbackDetail = detail || fallback;
+        if (updateInfo?.deployment_mode === 'docker') {
+          setError(`${fallbackDetail} ${(t('updateDockerManualCta') || 'Run .\\DOCKER.ps1 -UpdateClean on the host machine.')}`);
+          if (updateInfo?.release_url) {
+            window.open(updateInfo.release_url, '_blank', 'noopener,noreferrer');
+          }
+        } else {
+          setError(fallbackDetail);
+        }
       } else {
-        setError(err instanceof Error ? err.message : fallback);
+        const fallbackDetail = err instanceof Error ? err.message : fallback;
+        if (updateInfo?.deployment_mode === 'docker') {
+          setError(`${fallbackDetail} ${(t('updateDockerManualCta') || 'Run .\\DOCKER.ps1 -UpdateClean on the host machine.')}`);
+          if (updateInfo?.release_url) {
+            window.open(updateInfo.release_url, '_blank', 'noopener,noreferrer');
+          }
+        } else {
+          setError(fallbackDetail);
+        }
       }
       setInstalling(false);
     }
-  }, [controlApi, releaseChannel, startUpdaterPolling, t]);
+  }, [controlApi, releaseChannel, startUpdaterPolling, t, updateInfo]);
 
   // No auto-check on mount — updates are only checked when the user clicks a button
 
@@ -241,6 +267,12 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
       window.localStorage.setItem(UPDATER_TIMELINE_MODE_STORAGE_KEY, timelineMode);
     }
   }, [timelineMode]);
+
+  const hasAvailableUpdate = Boolean(updateInfo?.update_available);
+  const isDockerMode = updateInfo?.deployment_mode === 'docker';
+  const isNativeMode = updateInfo?.deployment_mode === 'native';
+  const canStartNativeInstall = isNativeMode && Boolean(updateInfo?.installer_url);
+  const canUseUpdateButton = hasAvailableUpdate && (canStartNativeInstall || isDockerMode);
 
   return (
     <div className="space-y-6">
@@ -272,8 +304,15 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
           </button>
           <button
             onClick={installUpdate}
-            disabled={loading || installing || !updateInfo?.update_available || updateInfo?.deployment_mode !== 'native' || !updateInfo?.installer_url}
+            disabled={loading || installing || !canUseUpdateButton}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded-lg transition-colors font-semibold"
+            title={
+              !hasAvailableUpdate
+                ? (t('upToDateDescription') || 'You are running the latest version of the application.')
+                : (!canStartNativeInstall && !isDockerMode)
+                    ? (t('updateInstallerMissing') || 'Installer asset is not available for this release yet.')
+                    : undefined
+            }
           >
             <Download size={16} className={installing ? 'animate-pulse' : ''} />
             {installing
@@ -282,6 +321,12 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
           </button>
         </div>
       </div>
+
+      {updateInfo?.update_available && isDockerMode && (
+        <p className="text-xs text-amber-400 -mt-2">
+          {t('updateDockerHint') || 'Docker mode: host updater bridge will be used if available; otherwise run .\\DOCKER.ps1 -UpdateClean on the host machine.'}
+        </p>
+      )}
 
       {/* Last Checked */}
       {lastChecked && (
@@ -388,7 +433,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <p className="text-sm text-gray-400 mb-1">{t('currentVersion') || 'Current Version'}</p>
-                <p className="text-2xl font-bold text-white">{updateInfo.current_version}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">{updateInfo.current_version}</p>
               </div>
               {updateInfo.latest_version && (
                 <div>
@@ -436,7 +481,7 @@ export const UpdatesPanel: React.FC<UpdatesPanelProps> = ({ controlApi }) => {
               <div className="space-y-3">
                 <div>
                   <p className="text-sm text-gray-400 mb-1">{t('releaseName') || 'Release Name'}</p>
-                  <p className="text-white">{updateInfo.release_name || `v${updateInfo.latest_version || updateInfo.current_version}`}</p>
+                  <p className="text-gray-900 dark:text-white">{updateInfo.release_name || `v${updateInfo.latest_version || updateInfo.current_version}`}</p>
                 </div>
                 {updateInfo.release_url && (
                   <a

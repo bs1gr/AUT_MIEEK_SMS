@@ -122,6 +122,107 @@ _AUTO_UPDATE_JOBS: Dict[str, Dict[str, Any]] = {}
 _AUTO_UPDATE_LOCK = threading.Lock()
 
 
+def _host_updater_trigger_dir() -> Path:
+    return Path(os.environ.get("SMS_HOST_UPDATER_TRIGGER_DIR", "/app/data/.triggers"))
+
+
+def _host_updater_bridge_enabled() -> bool:
+    """Determine whether Docker host updater bridge is enabled.
+
+    Modes via SMS_HOST_UPDATER_BRIDGE:
+    - true/1/on/enabled: always enabled
+    - false/0/off/disabled: always disabled
+    - auto (default): enabled when trigger directory is writable/creatable
+    """
+    mode = os.environ.get("SMS_HOST_UPDATER_BRIDGE", "auto").strip().lower()
+    if mode in {"0", "false", "off", "disabled", "no"}:
+        return False
+    if mode in {"1", "true", "on", "enabled", "yes"}:
+        return True
+
+    trigger_dir = _host_updater_trigger_dir()
+    try:
+        trigger_dir.mkdir(parents=True, exist_ok=True)
+        probe = trigger_dir / ".bridge_probe.tmp"
+        probe.write_text("ok", encoding="utf-8")
+        probe.unlink(missing_ok=True)
+        return True
+    except Exception:
+        return False
+
+
+def _host_updater_trigger_file(job_id: str) -> Path:
+    return _host_updater_trigger_dir() / f"update_request_{job_id}.json"
+
+
+def _host_updater_status_file(job_id: str) -> Path:
+    return _host_updater_trigger_dir() / f"update_status_{job_id}.json"
+
+
+def _write_host_updater_trigger(job_id: str, payload: AutoUpdateRequest, current_version: str) -> Path:
+    trigger_dir = _host_updater_trigger_dir()
+    trigger_dir.mkdir(parents=True, exist_ok=True)
+    trigger_file = _host_updater_trigger_file(job_id)
+    trigger_payload = {
+        "job_id": job_id,
+        "action": "docker_update_clean",
+        "command": ".\\DOCKER.ps1 -UpdateClean",
+        "requested_at": _now_iso(),
+        "current_version": current_version,
+        "channel": payload.channel,
+        "install_mode": payload.install_mode,
+        "allow_downgrade": payload.allow_downgrade,
+    }
+    trigger_file.write_text(json.dumps(trigger_payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    return trigger_file
+
+
+def _read_host_updater_status(job_id: str) -> Optional[Dict[str, Any]]:
+    status_file = _host_updater_status_file(job_id)
+    if not status_file.exists():
+        return None
+    try:
+        return json.loads(status_file.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+def _sync_job_from_host_updater_status(job_id: str) -> None:
+    status_payload = _read_host_updater_status(job_id)
+    if not status_payload:
+        return
+
+    raw_status = str(status_payload.get("status", "running")).strip().lower()
+    mapped_status: Literal["queued", "running", "completed", "failed"]
+    if raw_status in {"queued", "running", "completed", "failed"}:
+        mapped_status = cast(Literal["queued", "running", "completed", "failed"], raw_status)
+    else:
+        mapped_status = "running"
+
+    mapped_phase = str(status_payload.get("phase") or "bridge_waiting").strip() or "bridge_waiting"
+    progress = status_payload.get("progress_percent", 0)
+    try:
+        progress_int = max(0, min(100, int(progress)))
+    except Exception:
+        progress_int = 0
+
+    updates: Dict[str, Any] = {
+        "status": mapped_status,
+        "phase": mapped_phase,
+        "progress_percent": progress_int,
+        "message": status_payload.get("message"),
+        "error": status_payload.get("error"),
+    }
+
+    if status_payload.get("target_version"):
+        updates["target_version"] = str(status_payload.get("target_version"))
+
+    if status_payload.get("release_url"):
+        updates["release_url"] = str(status_payload.get("release_url"))
+
+    _update_auto_update_job(job_id, **updates)
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
 
@@ -740,11 +841,76 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
 
     context = get_runtime_context()
     if context.is_docker:
+        if _host_updater_bridge_enabled():
+            current_version = _get_version()
+            job_id = _create_auto_update_job(
+                current_version=current_version,
+                channel=payload.channel,
+                install_mode=payload.install_mode,
+            )
+            _update_auto_update_job(
+                job_id,
+                status="running",
+                phase="bridge_queued",
+                progress_percent=5,
+                message=(
+                    "Docker host updater bridge accepted request. "
+                    "Waiting for host watcher to execute DOCKER.ps1 -UpdateClean."
+                ),
+            )
+
+            try:
+                trigger_file = _write_host_updater_trigger(job_id, payload, current_version)
+            except Exception as exc:
+                _mark_auto_update_failed(
+                    job_id,
+                    "Failed to enqueue host updater bridge trigger.",
+                    error=str(exc),
+                )
+                return OperationResult(
+                    success=False,
+                    message=(
+                        "Failed to write host updater trigger file. "
+                        "Ensure trigger bind mount is configured and watcher service is running."
+                    ),
+                    message_key="maintenance.update.host_bridge_trigger_failed",
+                    details={
+                        "deployment_mode": "docker",
+                        "job_id": job_id,
+                        "trigger_dir": str(_host_updater_trigger_dir()),
+                        "error": str(exc),
+                    },
+                )
+
+            return OperationResult(
+                success=True,
+                message=(
+                    "Host updater bridge request queued. "
+                    "The watcher service will run DOCKER.ps1 -UpdateClean on the host."
+                ),
+                message_key="maintenance.update.host_bridge_started",
+                details={
+                    "deployment_mode": "docker",
+                    "mode": "docker_host_bridge",
+                    "job_id": job_id,
+                    "trigger_file": str(trigger_file),
+                    "status_endpoint": f"/control/api/maintenance/updates/auto-install/{job_id}/status",
+                    "watcher_hint": ".\\scripts\\update-watcher.ps1 -Start",
+                },
+            )
+
         return OperationResult(
             success=False,
-            message="Automatic installer updates are not available in Docker mode. Use .\\DOCKER.ps1 -UpdateClean.",
+            message=(
+                "Automatic installer updates are not available in Docker mode because host bridge is disabled. "
+                "Use .\\DOCKER.ps1 -UpdateClean or enable SMS_HOST_UPDATER_BRIDGE."
+            ),
             message_key="maintenance.update.auto_install_docker_blocked",
-            details={"deployment_mode": "docker"},
+            details={
+                "deployment_mode": "docker",
+                "bridge_enabled": False,
+                "bridge_mode": os.environ.get("SMS_HOST_UPDATER_BRIDGE", "auto"),
+            },
         )
 
     if not _is_native_windows():
@@ -780,6 +946,7 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
 @router.get("/maintenance/updates/auto-install/{job_id}/status", response_model=AutoUpdateStatusResponse)
 def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends(require_control_admin)):
     """Get smart updater job progress and installer launch state."""
+    _sync_job_from_host_updater_status(job_id)
     job = _get_auto_update_job(job_id)
     if not job:
         return AutoUpdateStatusResponse(
