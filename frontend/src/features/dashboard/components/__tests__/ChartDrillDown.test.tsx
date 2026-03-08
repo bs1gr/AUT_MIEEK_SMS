@@ -2,7 +2,7 @@
  * Tests for ChartDrillDown component
  */
 
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ChartDrillDown } from '../ChartDrillDown';
 import React from 'react';

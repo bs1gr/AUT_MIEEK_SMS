@@ -2,7 +2,7 @@
  * Tests for CustomReportBuilder component
  */
 
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CustomReportBuilder } from '../CustomReportBuilder';
@@ -105,14 +105,17 @@ describe('CustomReportBuilder', () => {
 
   it('receives and displays report name when provided', async () => {
     const existingReport = {
-      id: 1,
+      template: 'class_summary',
+      dataSeries: ['total_students'],
+      chartType: 'bar',
+      filters: {},
       name: 'Existing Report',
-      config: {},
+      description: '',
     };
 
     const { container } = render(
       <QueryClientProvider client={queryClient}>
-        <CustomReportBuilder report={existingReport} />
+        <CustomReportBuilder initialReport={existingReport} />
       </QueryClientProvider>
     );
 
