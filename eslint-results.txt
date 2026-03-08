@@ -143,4 +143,3 @@ D:\SMS\student-management-system\frontend\src\hooks\useNetworkStatus.ts:81:5
   84 |   }, [isOnline, refreshPendingCounts]);  react-hooks/set-state-in-effect
 
 έεΨ 54 problems (0 errors, 54 warnings)
-

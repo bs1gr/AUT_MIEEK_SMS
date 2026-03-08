@@ -9,6 +9,54 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.18.8] - 2026-03-08
+
+### Features
+- **backup**: add SQL backup support with encrypted/unencrypted modes
+- **offline**: add centralized network status hook and offline banner
+- **control-panel**: add database management panel with backup, diagnostics, and user admin
+
+### Bug Fixes
+- **control-panel**: add authentication to control API client
+- **control-panel**: route database panel requests via control API client
+- **control-panel**: use authenticated apiClient for database panel requests
+- **frontend**: resolve dashboard TS typing failures in CI lint job
+- **frontend**: recover error handling flow and align search analytics hooks
+- **analytics**: eliminate any types from hooks, components, and utilities
+- **i18n**: correct version display in footer (remove double-v)
+- **eslint**: resolve remaining i18next hardcoded strings (41έΗΤ34 warnings)
+- **native**: use python -m uvicorn directly to fix relative import resolution
+- **auth**: nullify audit_logs before user delete to prevent FK violation
+- **tests**: accept 500 in backup auth test when pg_dump unavailable
+- **tests**: extract _is_native_windows helper to avoid corrupting os.name in CI
+- **ci**: use normalize-version action in installer workflow
+
+### Refactoring
+- **control-panel**: consolidate database tab into maintenance section
+- **database**: fix download auth, DRY instance lookup, fix param ordering
+
+### Documentation
+- update work plan, changelog, and index to reflect v1.18.7 release status
+- **deployment**: add multi-PC deployment guide for hybrid QNAP architecture
+
+### Tests
+- **frontend**: fix dashboard vitest helper imports and report builder prop
+
+### Chores
+- **gitignore**: add Visual Studio solution files to ignore list
+
+## [1.18.8] - 2026-03-08
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.7] - 2026-03-05
 
 **Release Type**: Feature Release
@@ -4092,3 +4140,4 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
