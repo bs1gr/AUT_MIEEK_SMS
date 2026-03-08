@@ -15,11 +15,18 @@ import { ChartTypeSelector } from './builder-steps/ChartTypeSelector';
 import { FilterConfiguration } from './builder-steps/FilterConfiguration';
 import { ReportPreview } from './builder-steps/ReportPreview';
 
+export interface ReportFilters {
+  active?: string[];
+  startDate?: string;
+  endDate?: string;
+  [key: string]: unknown;
+}
+
 export interface ReportConfig {
   template: string;
   dataSeries: string[];
   chartType: string;
-  filters: Record<string, unknown>;
+  filters: ReportFilters;
   name: string;
   description: string;
 }

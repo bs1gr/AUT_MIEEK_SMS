@@ -22,6 +22,9 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
   isSaving = false,
 }) => {
   const { t } = useTranslation();
+  const activeFilters = Array.isArray(reportConfig.filters?.active)
+    ? reportConfig.filters.active
+    : [];
 
   const isValid = reportConfig.name && reportConfig.template && reportConfig.dataSeries?.length > 0;
 
@@ -128,7 +131,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
         </div>
 
         {/* Filters */}
-        {reportConfig.filters?.active?.length > 0 && (
+        {activeFilters.length > 0 && (
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
             <div className="flex items-start gap-3">
               <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -137,7 +140,7 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
                   {t('analytics.builder.preview.filters', 'Filters')}
                 </p>
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {reportConfig.filters.active.map((filter: string) => (
+                  {activeFilters.map((filter: string) => (
                     <span key={filter} className="px-2 py-1 bg-green-100 text-green-900 rounded text-xs">
                       {filter}
                     </span>

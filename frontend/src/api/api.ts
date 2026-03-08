@@ -361,7 +361,11 @@ apiClient.interceptors.response.use(
 
         return refreshPromise.then((newToken) => {
           if (newToken) {
-            const headers = AxiosHeaders.from(originalRequest.headers || {});
+            const headers = AxiosHeaders.from(
+              (originalRequest.headers ?? undefined) as
+                | Parameters<typeof AxiosHeaders.from>[0]
+                | undefined
+            );
             headers.set('Authorization', `Bearer ${newToken}`);
             originalRequest.headers = headers;
             return apiClient(originalRequest);

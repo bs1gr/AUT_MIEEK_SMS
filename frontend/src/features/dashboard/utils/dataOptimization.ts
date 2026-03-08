@@ -135,7 +135,7 @@ export function requestIdleCallback(
 
   // Fallback to setTimeout
   const start = Date.now();
-  return setTimeout(() => {
+  return window.setTimeout(() => {
     callback({
       didTimeout: false,
       timeRemaining: () => Math.max(0, 50 - (Date.now() - start)),
@@ -200,7 +200,9 @@ export function memoize<Args extends unknown[], R>(func: (...args: Args) => R): 
     // Keep cache size reasonable (max 100 entries)
     if (cache.size > 100) {
       const firstKey = cache.keys().next().value;
-      cache.delete(firstKey);
+      if (firstKey !== undefined) {
+        cache.delete(firstKey);
+      }
     }
 
     return result;

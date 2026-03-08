@@ -20,6 +20,9 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
   const { t } = useTranslation();
 
   const filters = reportConfig.filters || {};
+  const activeFilters = Array.isArray(filters.active) ? filters.active : [];
+  const startDate = typeof filters.startDate === 'string' ? filters.startDate : '';
+  const endDate = typeof filters.endDate === 'string' ? filters.endDate : '';
 
   const handleDateChange = (field: string, value: string) => {
     onUpdate({
@@ -31,7 +34,6 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
   };
 
   const handleFilterAdd = (type: string) => {
-    const activeFilters = filters.active || [];
     if (!activeFilters.includes(type)) {
       onUpdate({
         filters: {
@@ -43,16 +45,14 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
   };
 
   const handleFilterRemove = (type: string) => {
-    const activeFilters = (filters.active || []).filter((f: string) => f !== type);
+    const nextActiveFilters = activeFilters.filter((f: string) => f !== type);
     onUpdate({
       filters: {
         ...filters,
-        active: activeFilters,
+        active: nextActiveFilters,
       },
     });
   };
-
-  const activeFilters = filters.active || [];
 
   return (
     <div className="space-y-6">
@@ -81,7 +81,7 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
             </label>
             <input
               type="date"
-              value={filters.startDate || ''}
+              value={startDate}
               onChange={(e) => handleDateChange('startDate', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -92,7 +92,7 @@ export const FilterConfiguration: React.FC<FilterConfigurationProps> = ({
             </label>
             <input
               type="date"
-              value={filters.endDate || ''}
+              value={endDate}
               onChange={(e) => handleDateChange('endDate', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />

@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { ChevronRight, Home } from 'lucide-react';
-import { useLanguage } from '../../../hooks/useLanguage';
+import { useTranslation } from 'react-i18next';
 
 export interface DrillDownLevel<T = Record<string, unknown>> {
   id: string;
@@ -32,7 +32,7 @@ export const ChartDrillDown = <T extends Record<string, unknown> = Record<string
   renderContent,
   onBackToRoot,
 }: ChartDrillDownProps<T>) => {
-  const { t } = useLanguage();
+  const { t } = useTranslation();
   const [history, setHistory] = useState<DrillDownLevel<T>[]>([levels[0]]);
   const currentLevel = history[history.length - 1];
 
@@ -151,9 +151,9 @@ export function useDrillDown<T extends Record<string, unknown> = Record<string, 
   };
 }
 
-interface StudentClass { id: string; name: string; }
-interface StudentCourse { id: string; name: string; class_id: string; }
-interface StudentRecord { id: string; name?: string; label?: string; }
+interface StudentClass extends Record<string, unknown> { id: string; name: string; }
+interface StudentCourse extends Record<string, unknown> { id: string; name: string; class_id: string; }
+interface StudentRecord extends Record<string, unknown> { id: string; name?: string; label?: string; }
 interface StudentGrade { course_id: string; student_id: string; }
 
 /**
@@ -194,7 +194,7 @@ export const createStudentPerformanceDrillDown = (
  * Render function for class drill-down
  */
 export const renderClassDrillDown = <T extends Record<string, unknown> = Record<string, unknown>>(level: DrillDownLevel<T>, t?: (key: string, fallback: string) => string) => {
-  const translate = t || ((key: string, fallback: string) => fallback);
+  const translate = t || ((_key: string, fallback: string) => fallback);
 
   if (level.data.length === 0) {
     return <p className="text-center text-slate-500">{translate('analytics.drilldown.noData', 'No data available')}</p>;
