@@ -70,6 +70,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const displayNotifications = notifications.slice(0, maxNotifications);
   const hasNotifications = displayNotifications.length > 0 || !!updateAvailable;
 
+  // Dismiss update notification
+  const handleDismissUpdate = () => {
+    localStorage.removeItem('sms.updateAvailable');
+    setUpdateAvailable(null);
+    window.dispatchEvent(new CustomEvent('sms:update-status'));
+  };
+
   // Return null if dropdown is not open
   if (!isOpen) {
     return null;
@@ -103,7 +110,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       <div className="notification-dropdown-body">
         {/* Software update notification */}
         {updateAvailable && (
-          <div className="notification-dropdown-update" style={{ padding: '10px 14px', background: 'rgba(59,130,246,0.08)', borderBottom: '1px solid rgba(59,130,246,0.18)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'default' }}>
+          <div className="notification-dropdown-update" style={{ padding: '10px 14px', background: 'rgba(59,130,246,0.08)', borderBottom: '1px solid rgba(59,130,246,0.18)', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'default', position: 'relative' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M12 16L7 11H10V4H14V11H17L12 16Z" fill="#3b82f6" />
               <path d="M20 18H4V20H20V18Z" fill="#3b82f6" />
@@ -116,6 +123,34 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                 {t('dropdown.updateVersion', { version: updateAvailable.version, defaultValue: `Version ${updateAvailable.version}` })}
               </p>
             </div>
+            <button
+              onClick={handleDismissUpdate}
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                background: 'transparent',
+                border: 'none',
+                width: '20px',
+                height: '20px',
+                padding: 0,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#3b82f6',
+                opacity: 0.7,
+                transition: 'opacity 0.2s'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.opacity = '1'}
+              onMouseLeave={(e) => e.currentTarget.style.opacity = '0.7'}
+              aria-label={t('dropdown.dismissUpdate', 'Dismiss update notification')}
+              title={t('dropdown.dismissUpdate', 'Dismiss update notification')}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="currentColor"/>
+              </svg>
+            </button>
           </div>
         )}
 

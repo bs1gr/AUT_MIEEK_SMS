@@ -150,6 +150,7 @@ export const notificationsEN = {
     loading: 'Loading notifications...',
     updateAvailable: 'Update Available',
     updateVersion: 'Version {{version}}',
+    dismissUpdate: 'Dismiss update notification',
   },
 
   // Item component
