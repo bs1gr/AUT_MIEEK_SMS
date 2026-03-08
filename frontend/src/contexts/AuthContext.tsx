@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import authService from '@/services/authService';
-import apiClient from '@/api/api';
+import apiClient, { controlApiClient } from '@/api/api';
 
 // Environment-driven flags (resolved at build time via Vite)
 const env = (import.meta as { env?: Record<string, string | undefined> }).env || {};
@@ -64,6 +64,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         defaults.headers.common.Authorization = `Bearer ${accessToken}`;
       } else {
         delete defaults.headers.common.Authorization;
+      }
+    } catch {
+      // ignore
+    }
+    // Also update controlApiClient defaults to keep auth headers in sync
+    try {
+      const controlDefaults = controlApiClient.defaults as unknown as { headers?: { common?: Record<string, string> } };
+      if (!controlDefaults.headers) {
+        controlDefaults.headers = { common: {} };
+      }
+      if (!controlDefaults.headers.common) {
+        controlDefaults.headers.common = {};
+      }
+      if (accessToken) {
+        controlDefaults.headers.common.Authorization = `Bearer ${accessToken}`;
+      } else {
+        delete controlDefaults.headers.common.Authorization;
       }
     } catch {
       // ignore

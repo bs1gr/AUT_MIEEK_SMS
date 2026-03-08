@@ -236,6 +236,14 @@ export const controlApiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
+// Attach the same authentication interceptor to controlApiClient
+controlApiClient.interceptors.request.use(
+  (config) => attachAuthHeader(config),
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const REFRESH_FAILURE_COOLDOWN_MS = 30000;
 let refreshPromise: Promise<string | null> | null = null;
 let refreshCooldownUntil = 0;
