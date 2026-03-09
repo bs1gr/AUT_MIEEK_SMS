@@ -4,13 +4,14 @@
 **Project Version (documented)**: 1.18.11
 **Version**: 1.18.11
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | 🛠️ **v1.18.11 RELEASE PREP ACTIVE**
+**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.11 CORRECTIVE RELEASE PUBLISHED**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 9, 2026)**: ✅ **Production Live + corrective `v1.18.11` release prep active**
+> **Current Status (Mar 9, 2026)**: ✅ **Production Live + corrective `v1.18.11` release published successfully**
 > - `v1.18.10` tag/release page was created, but installer asset upload failed in CI because the workflow referenced ignored Greek `.txt` files
-> - `v1.18.11` prepares the corrective release path using tracked Greek `.rtf` installer assets
+> - `v1.18.11` corrected the release path by switching to tracked Greek `.rtf` installer assets
+> - Release assets verified on GitHub: `SMS_Installer_1.18.11.exe` + `SMS_Installer_1.18.11.exe.sha256`
 > - v1.18.7: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
 > - v1.18.6: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
 > - Post-release development: Type safety improvements, testing stability, ESLint cleanup
