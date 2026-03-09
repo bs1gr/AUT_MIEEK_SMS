@@ -5,7 +5,7 @@
 **Status**: ✅ v1.18.11 RELEASE PUBLISHED | ⚠️ v1.18.10 TAGGED, INSTALLER ASSET BUILD FAILED
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **Post-Release Verification Complete** (corrective installer asset publication release)
-**Current Branch**: `main` (HEAD: 3964c45b4 - v1.18.11 corrective installer asset publication fix)
+**Current Branch**: `main` (HEAD: fabbae5dc - installer tracked-input guardrails)
 
 ---
 
@@ -47,6 +47,14 @@
 - ✅ `Windows Installer Build` succeeded (run `22872209994`)
 - ✅ Release assets published: `SMS_Installer_1.18.11.exe`, `SMS_Installer_1.18.11.exe.sha256`
 - ✅ Release asset allowlist satisfied (installer + SHA256 only)
+
+### Post-Release Hardening
+
+- ✅ Added `scripts/validate_installer_release_inputs.ps1` to block local-only or ignored installer inputs
+- ✅ Wired installer input validation into `COMMIT_READY.ps1`
+- ✅ Wired installer input validation into `INSTALLER_BUILDER.ps1` (prebuild + postbuild)
+- ✅ Wired installer input validation into `.github/workflows/release-installer-with-sha.yml`
+- ✅ Verified guardrails locally via standalone validation, local installer build path, and `COMMIT_READY.ps1 -Quick -Snapshot`
 
 ---
 

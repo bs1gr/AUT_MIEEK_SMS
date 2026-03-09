@@ -20,6 +20,9 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Build
 - **release**: prepare corrective patch release after `v1.18.10` published without installer assets
 
+### Operations
+- **guardrails**: add tracked-input validation for installer assets in pre-commit checks, local installer builds, and release CI to block local-only file references before publication
+
 ## [1.18.10] - 2026-03-09
 
 ### Bug Fixes
