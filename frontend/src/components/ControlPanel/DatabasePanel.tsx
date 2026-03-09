@@ -84,6 +84,20 @@ interface DatabasePanelProps {
   controlApi: string;
 }
 
+interface ImportCredentialsResponse {
+  success: boolean;
+  message: string;
+  connection_test?: {
+    success?: boolean;
+    status?: string;
+    version?: string | null;
+    size_human?: string | null;
+    error?: string | null;
+  };
+  credentials_saved?: boolean;
+  error?: string | null;
+}
+
 /* ------------------------------------------------------------------ */
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
@@ -101,6 +115,9 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [expandedInstance, setExpandedInstance] = useState<string | null>(null);
+  const [credentialsFile, setCredentialsFile] = useState<File | null>(null);
+  const [autoConnect, setAutoConnect] = useState(true);
+  const [credentialsLoading, setCredentialsLoading] = useState(false);
 
   /* ---- helpers ---- */
   const flash = useCallback((msg: string) => {
@@ -232,6 +249,40 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
     setLoading(false);
   }, [fetchInstances, fetchBackups]);
 
+  const handleImportCredentials = useCallback(async (connectAfterTest: boolean) => {
+    if (!credentialsFile) {
+      setError(t('db.credentialsFileRequired') || 'Please select a credentials file first.');
+      return;
+    }
+
+    setCredentialsLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', credentialsFile);
+
+      const res = await controlApiClient.post<ImportCredentialsResponse>(
+        `/database/import-credentials?auto_connect=${connectAfterTest ? 'true' : 'false'}`,
+        formData,
+        { headers: { 'Content-Type': 'multipart/form-data' } },
+      );
+
+      if (res.data.success) {
+        flash(res.data.message || (t('db.credentialsImportSuccess') || 'Credentials validated successfully.'));
+        if (res.data.credentials_saved) {
+          await fetchInstances();
+        }
+      } else {
+        setError(res.data.error || res.data.message || (t('db.credentialsImportFailed') || 'Credentials validation failed.'));
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : (t('db.credentialsImportFailed') || 'Credentials validation failed.'));
+    } finally {
+      setCredentialsLoading(false);
+    }
+  }, [credentialsFile, fetchInstances, flash, t]);
+
   const toggleExpand = useCallback((name: string) => {
     setExpandedInstance((prev) => {
       if (prev === name) return null;
@@ -279,6 +330,78 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
           <CheckCircle size={18} /> {successMsg}
         </div>
       )}
+
+      {/* Credentials Import Section */}
+      <div className="border rounded-lg overflow-hidden bg-white">
+        <div className="px-6 py-4 border-b bg-gray-50">
+          <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+            <Upload size={18} />
+            {t('db.credentialsTitle') || 'Remote Database Credentials'}
+          </h3>
+          <p className="text-xs text-gray-500 mt-1">
+            {t('db.credentialsSubtitle') || 'Upload a .json or .env credentials file to validate and optionally connect to a remote PostgreSQL instance.'}
+          </p>
+        </div>
+
+        <div className="px-6 py-4 space-y-4">
+          <div>
+            <label htmlFor="db-credentials-file" className="block text-sm font-medium text-gray-700 mb-2">
+              {t('db.credentialsSelectFile') || 'Credentials file'}
+            </label>
+            <input
+              id="db-credentials-file"
+              type="file"
+              accept=".json,.env,.txt"
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                setCredentialsFile(file);
+              }}
+              className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-2 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+            {credentialsFile && (
+              <p className="mt-2 text-xs text-gray-500">
+                {t('db.credentialsSelected') || 'Selected'}: {credentialsFile.name}
+              </p>
+            )}
+          </div>
+
+          <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={autoConnect}
+              onChange={(e) => setAutoConnect(e.target.checked)}
+              className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            {t('db.credentialsAutoConnect') || 'Automatically apply credentials after successful validation'}
+          </label>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => handleImportCredentials(autoConnect)}
+              disabled={credentialsLoading}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-indigo-600 text-white text-sm hover:bg-indigo-700 disabled:opacity-50"
+            >
+              {credentialsLoading ? (
+                <RefreshCw size={14} className="animate-spin" />
+              ) : (
+                <Upload size={14} />
+              )}
+              {autoConnect
+                ? (t('db.credentialsValidateAndConnect') || 'Validate & Connect')
+                : (t('db.credentialsValidateOnly') || 'Validate File')}
+            </button>
+
+            <button
+              onClick={() => handleImportCredentials(false)}
+              disabled={credentialsLoading}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md border border-gray-300 text-gray-700 text-sm hover:bg-gray-50 disabled:opacity-50"
+            >
+              <CheckCircle size={14} />
+              {t('db.credentialsTestOnly') || 'Test Only'}
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Instances Section */}
       <div className="border rounded-lg overflow-hidden bg-white">

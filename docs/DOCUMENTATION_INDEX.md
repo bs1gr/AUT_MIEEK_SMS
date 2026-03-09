@@ -1,8 +1,8 @@
 # Documentation Index
 
 **Last Updated**: 2026-03-08
-**Project Version (documented)**: 1.18.8
-**Version**: 1.18.8
+**Project Version (documented)**: 1.18.9
+**Version**: 1.18.9
 **Current Branch**: `main`
 **Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.7 RELEASED (CONTROL PANEL & INFRASTRUCTURE)**
 

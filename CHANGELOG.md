@@ -10,6 +10,28 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.9] - 2026-03-09
+
+### Features
+- **notifications**: add dismiss button for update notification with i18n support
+- Add Docker host updater bridge for Control Panel auto-updates
+- **control-panel**: add remote database credential upload UI (Validate & Connect / Test Only)
+- **database**: add credential import and connection-test control endpoints
+
+### Bug Fixes
+- **security**: remove forced remote PostgreSQL defaults and switch to secure local SQLite profile by default
+- **help**: complete EN Help & Documentation i18n coverage
+- **control-panel**: align database management accordion with maintenance tabs
+- **frontend**: prevent TypeError in DatabasePanel on undefined database stats
+
+### Documentation
+- **policy**: enforce instruction-order lock and evidence gates across agent docs
+
+### Chores
+- **env**: update `.env.example` to local-first secure profile defaults with explicit remote opt-in
+- **installer**: Add build metadata tracking for v1.18.8
+
 ## [1.18.8] - 2026-03-08
 
 ### Features

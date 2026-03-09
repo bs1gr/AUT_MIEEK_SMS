@@ -1555,14 +1555,14 @@ POSTGRES_PASSWORD=$postgresPassword
             }
         } else {
             if (-not $dbEngine) {
-                Write-Info "Adding DATABASE_ENGINE=postgresql for single-image mode"
-                $rootContent = $rootContent + "`nDATABASE_ENGINE=postgresql`n"
+                Write-Info "Adding DATABASE_ENGINE=sqlite for single-image mode (secure local default)"
+                $rootContent = $rootContent + "`nDATABASE_ENGINE=sqlite`n"
                 Set-Content -Path $ROOT_ENV -Value $rootContent
                 $configured = $true
-            } elseif ($dbEngine -ne "postgresql") {
+            } elseif ($dbEngine -ne "postgresql" -and $dbEngine -ne "sqlite") {
                 Write-Warning ".env has invalid DATABASE_ENGINE for single-image mode: $dbEngine"
-                Write-Info "Correcting to: DATABASE_ENGINE=postgresql"
-                $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
+                Write-Info "Correcting to: DATABASE_ENGINE=sqlite"
+                $rootContent = $rootContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=sqlite"
                 Set-Content -Path $ROOT_ENV -Value $rootContent
                 $configured = $true
             }
@@ -1581,65 +1581,108 @@ POSTGRES_PASSWORD=$postgresPassword
     $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
     $pgSslMode = Get-EnvVarValue -Name "POSTGRES_SSLMODE"
 
-    # Enforce verified production PostgreSQL profile for installer deployments.
-    $verifiedPgHost = "172.16.0.2"
-    $verifiedPgPort = "55433"
-    $verifiedPgDb = "student_management"
-    $verifiedPgUser = "sms_user"
-    $verifiedPgPassword = "TestAdmin2026!"
-    $verifiedPgSslMode = "disable"
-
-    $verifiedProfileChanged = $false
-
-    if ($currentDbEngine -ne "postgresql") {
-        Set-RootEnvVarValue -Name "DATABASE_ENGINE" -Value "postgresql"
-        $currentDbEngine = "postgresql"
-        $verifiedProfileChanged = $true
-    }
-    if ($pgHost -ne $verifiedPgHost) {
-        Set-RootEnvVarValue -Name "POSTGRES_HOST" -Value $verifiedPgHost
-        $pgHost = $verifiedPgHost
-        $verifiedProfileChanged = $true
-    }
-    if ($pgPort -ne $verifiedPgPort) {
-        Set-RootEnvVarValue -Name "POSTGRES_PORT" -Value $verifiedPgPort
-        $pgPort = $verifiedPgPort
-        $verifiedProfileChanged = $true
-    }
-    if ($pgDb -ne $verifiedPgDb) {
-        Set-RootEnvVarValue -Name "POSTGRES_DB" -Value $verifiedPgDb
-        $pgDb = $verifiedPgDb
-        $verifiedProfileChanged = $true
-    }
-    if ($pgUser -ne $verifiedPgUser) {
-        Set-RootEnvVarValue -Name "POSTGRES_USER" -Value $verifiedPgUser
-        $pgUser = $verifiedPgUser
-        $verifiedProfileChanged = $true
-    }
-    if ($pgPassword -ne $verifiedPgPassword) {
-        Set-RootEnvVarValue -Name "POSTGRES_PASSWORD" -Value $verifiedPgPassword
-        $pgPassword = $verifiedPgPassword
-        $verifiedProfileChanged = $true
-    }
-    if ($pgSslMode -ne $verifiedPgSslMode) {
-        Set-RootEnvVarValue -Name "POSTGRES_SSLMODE" -Value $verifiedPgSslMode
-        $pgSslMode = $verifiedPgSslMode
-        $verifiedProfileChanged = $true
+    # Database profile selection for installer deployments:
+    # - local  => SQLite in local Docker volume (default, safest)
+    # - remote => Prompt for PostgreSQL credentials (interactive) or use existing env values
+    $dbProfile = Get-EnvVarValue -Name "SMS_DATABASE_PROFILE"
+    if ([string]::IsNullOrWhiteSpace($dbProfile)) {
+        if ($Silent) {
+            $dbProfile = "local"
+            Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
+            Write-Info "SMS_DATABASE_PROFILE not set. Defaulting to secure local mode for unattended install."
+            $configured = $true
+        } else {
+            Write-Host ""
+            Write-Host "Database setup" -ForegroundColor Cyan
+            Write-Host "  [L] Local SQLite (recommended default)" -ForegroundColor White
+            Write-Host "  [R] Remote PostgreSQL (you will enter credentials)" -ForegroundColor White
+            $choice = Read-Host "Select database mode [L/R] (default L)"
+            if ($choice -and $choice.Trim().ToLower().StartsWith("r")) {
+                $dbProfile = "remote"
+            } else {
+                $dbProfile = "local"
+            }
+            Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
+            $configured = $true
+        }
     }
 
-    $verifiedDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
-    if ($dbUrl -ne $verifiedDbUrl) {
-        Set-RootEnvVarValue -Name "DATABASE_URL" -Value $verifiedDbUrl
-        $dbUrl = $verifiedDbUrl
-        $verifiedProfileChanged = $true
-    }
-
-    if ($verifiedProfileChanged) {
-        Write-Success "Verified PostgreSQL profile enforced ($pgHost`:$pgPort/$pgDb)"
+    $dbProfile = $dbProfile.Trim().ToLower()
+    if ($dbProfile -ne "local" -and $dbProfile -ne "remote") {
+        Write-Warning "Unknown SMS_DATABASE_PROFILE '$dbProfile'. Falling back to local SQLite mode."
+        $dbProfile = "local"
+        Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
         $configured = $true
     }
 
-    if ($pgHost -and $pgPort -and $pgUser -and $pgPassword -and $pgDb) {
+    if ($dbProfile -eq "local") {
+        $localDbUrl = "sqlite:////data/student_management.db"
+        if ($currentDbEngine -ne "sqlite") {
+            Set-RootEnvVarValue -Name "DATABASE_ENGINE" -Value "sqlite"
+            $currentDbEngine = "sqlite"
+            $configured = $true
+        }
+        if ($dbUrl -ne $localDbUrl) {
+            Set-RootEnvVarValue -Name "DATABASE_URL" -Value $localDbUrl
+            $dbUrl = $localDbUrl
+            $configured = $true
+        }
+        Write-Success "Database profile active: local SQLite"
+    } else {
+        if ($currentDbEngine -ne "postgresql") {
+            Set-RootEnvVarValue -Name "DATABASE_ENGINE" -Value "postgresql"
+            $currentDbEngine = "postgresql"
+            $configured = $true
+        }
+
+        if ([string]::IsNullOrWhiteSpace($pgHost) -and -not $Silent) {
+            $pgHost = Read-Host "Remote PostgreSQL host"
+        }
+        if ([string]::IsNullOrWhiteSpace($pgPort) -and -not $Silent) {
+            $pgPort = Read-Host "Remote PostgreSQL port (default 5432)"
+        }
+        if ([string]::IsNullOrWhiteSpace($pgDb) -and -not $Silent) {
+            $pgDb = Read-Host "Remote PostgreSQL database name"
+        }
+        if ([string]::IsNullOrWhiteSpace($pgUser) -and -not $Silent) {
+            $pgUser = Read-Host "Remote PostgreSQL username"
+        }
+        if ([string]::IsNullOrWhiteSpace($pgPassword) -and -not $Silent) {
+            $securePgPassword = Read-Host "Remote PostgreSQL password" -AsSecureString
+            $pgPassword = [System.Net.NetworkCredential]::new("", $securePgPassword).Password
+        }
+
+        if ([string]::IsNullOrWhiteSpace($pgPort)) {
+            $pgPort = "5432"
+        }
+        if ([string]::IsNullOrWhiteSpace($pgSslMode)) {
+            $pgSslMode = "prefer"
+        }
+
+        if ([string]::IsNullOrWhiteSpace($pgHost) -or [string]::IsNullOrWhiteSpace($pgDb) -or [string]::IsNullOrWhiteSpace($pgUser) -or [string]::IsNullOrWhiteSpace($pgPassword)) {
+            Write-Error-Message "Remote database profile selected but POSTGRES credentials are incomplete."
+            Write-Info "Provide POSTGRES_HOST, POSTGRES_PORT, POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD in .env or rerun interactively."
+            return $false
+        }
+
+        Set-RootEnvVarValue -Name "POSTGRES_HOST" -Value $pgHost
+        Set-RootEnvVarValue -Name "POSTGRES_PORT" -Value $pgPort
+        Set-RootEnvVarValue -Name "POSTGRES_DB" -Value $pgDb
+        Set-RootEnvVarValue -Name "POSTGRES_USER" -Value $pgUser
+        Set-RootEnvVarValue -Name "POSTGRES_PASSWORD" -Value $pgPassword
+        Set-RootEnvVarValue -Name "POSTGRES_SSLMODE" -Value $pgSslMode
+
+        $remoteDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+        if ($dbUrl -ne $remoteDbUrl) {
+            Set-RootEnvVarValue -Name "DATABASE_URL" -Value $remoteDbUrl
+            $dbUrl = $remoteDbUrl
+            $configured = $true
+        }
+
+        Write-Success "Database profile active: remote PostgreSQL ($pgHost`:$pgPort/$pgDb)"
+    }
+
+    if ($currentDbEngine -eq "postgresql" -and $pgHost -and $pgPort -and $pgUser -and $pgPassword -and $pgDb) {
         # Keep compatibility with legacy auto-generated URLs while fixing URI encoding
         # for credentials that contain reserved characters.
         $rawDbUrl = "postgresql://$pgUser`:$pgPassword@$pgHost`:$pgPort/$pgDb"
@@ -2476,12 +2519,28 @@ function Start-Application {
 
     Write-Info "Using single-image runtime mode (sms-fullstack)"
 
-    if (-not (Ensure-SingleModePostgresRuntime)) {
-        return 1
+    $singleDbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
+    if ([string]::IsNullOrWhiteSpace($singleDbEngine)) {
+        $singleDbEngine = "sqlite"
     }
+    $singleDbEngine = $singleDbEngine.Trim().ToLower()
 
-    if (-not (Invoke-SqliteToPostgresMigration)) {
-        return 1
+    if ($singleDbEngine -eq "postgresql") {
+        if (-not (Ensure-SingleModePostgresRuntime)) {
+            return 1
+        }
+
+        if (-not (Invoke-SqliteToPostgresMigration)) {
+            return 1
+        }
+    } else {
+        $localDbUrl = Get-EnvVarValue -Name "DATABASE_URL"
+        if ([string]::IsNullOrWhiteSpace($localDbUrl)) {
+            $localDbUrl = "sqlite:////data/student_management.db"
+            Set-RootEnvVarValue -Name "DATABASE_URL" -Value $localDbUrl
+        }
+        $script:EffectiveDatabaseUrl = $localDbUrl
+        Write-Info "Single-image local SQLite mode enabled."
     }
 
     # Best-effort cleanup of compose stack to avoid port conflicts when switching modes
@@ -2532,7 +2591,7 @@ function Start-Application {
         "-e", "SMS_ENV=production",
         "-e", "SMS_EXECUTION_MODE=docker",
         "-e", "FRONTEND_VERSION=$VERSION",
-        "-e", "DATABASE_ENGINE=postgresql"
+        "-e", "DATABASE_ENGINE=$singleDbEngine"
     )
 
     if ($script:EffectiveDatabaseUrl) {
