@@ -129,6 +129,7 @@ $CurrentVersion = $Version
 $WizardImageScript = Join-Path $InstallerDir "create_wizard_images.ps1"
 $SignerScript = Join-Path $InstallerDir "SIGN_INSTALLER.ps1"
 $InnoSetupScript = Join-Path $InstallerDir "SMS_Installer.iss"
+$InstallerInputValidator = Join-Path $ProjectRoot "scripts\validate_installer_release_inputs.ps1"
 $InstallerExe = Join-Path $DistDir "SMS_Installer_$CurrentVersion.exe"
 $Certificate = Join-Path $InstallerDir "AUT_MIEEK_CodeSign.pfx"
 $SmsManagerProject = Join-Path $InstallerDir "SMS_Manager\SMS_Manager.csproj"
@@ -284,6 +285,40 @@ function Invoke-GreekEncodingAudit {
     } catch {
         Write-Result Warning "Greek encoding audit skipped: $_"
         return $true  # Non-critical
+    }
+}
+
+function Invoke-InstallerReleaseInputValidation {
+    param(
+        [switch]$RequireGeneratedArtifacts
+    )
+
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+    Write-Result Info "INSTALLER RELEASE INPUT VALIDATION"
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+
+    if (-not (Test-FileExists $InstallerInputValidator)) {
+        Write-Result Error "Installer input validator not found: $InstallerInputValidator"
+        return $false
+    }
+
+    try {
+        $splat = @{ InstallerScriptPath = $InnoSetupScript }
+        if ($RequireGeneratedArtifacts) {
+            $splat.RequireGeneratedArtifacts = $true
+        }
+
+        & $InstallerInputValidator @splat
+        if ($LASTEXITCODE -ne 0) {
+            Write-Result Error "Installer release input validation failed"
+            return $false
+        }
+
+        Write-Result Success "Installer release inputs validated ✓"
+        return $true
+    } catch {
+        Write-Result Error "Installer release input validation error: $_"
+        return $false
     }
 }
 
@@ -606,11 +641,11 @@ $success = $false
 
 switch ($Action) {
     'audit' {
-        $success = Test-VersionConsistency
+        $success = (Test-VersionConsistency) -and (Invoke-InstallerReleaseInputValidation)
     }
 
     'validate' {
-        $success = Test-VersionConsistency
+        $success = (Test-VersionConsistency) -and (Invoke-InstallerReleaseInputValidation)
         if ($success) {
             Write-Result Success "Validation passed - ready for build"
         }
@@ -629,6 +664,10 @@ switch ($Action) {
             }
         }
 
+        if (-not (Invoke-InstallerReleaseInputValidation)) {
+            exit 1
+        }
+
         # Greek encoding audit (before wizard regeneration)
         Invoke-GreekEncodingAudit | Out-Null
 
@@ -642,6 +681,9 @@ switch ($Action) {
         }
 
         if (Invoke-WizardImageRegeneration) {
+            if (-not (Invoke-InstallerReleaseInputValidation -RequireGeneratedArtifacts)) {
+                exit 1
+            }
             if (Invoke-InstallerCompilation) {
                 # Code signing is mandatory for release-quality artifacts
                 if (-not $SkipCodeSign) {
@@ -675,6 +717,10 @@ switch ($Action) {
 
     'release' {
         # Complete release flow
+        if (-not (Invoke-InstallerReleaseInputValidation)) {
+            exit 1
+        }
+
         # Greek encoding audit (critical for release)
         Invoke-GreekEncodingAudit | Out-Null
 
@@ -683,6 +729,9 @@ switch ($Action) {
         }
 
         if (Invoke-WizardImageRegeneration) {
+            if (-not (Invoke-InstallerReleaseInputValidation -RequireGeneratedArtifacts)) {
+                exit 1
+            }
             if (Invoke-InstallerCompilation) {
                 if (-not (Invoke-CodeSigning)) {
                     exit 1

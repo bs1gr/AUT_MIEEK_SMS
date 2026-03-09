@@ -226,6 +226,17 @@ jobs:
             Write-Warning "Version verification script not found, skipping..."
           }
 
+      - name: Validate installer tracked inputs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Write-Host "Validating installer tracked inputs before build..."
+          & ".\scripts\validate_installer_release_inputs.ps1"
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Installer tracked input validation failed"
+            exit 1
+          }
+
       - name: Build installer
         shell: pwsh
         env:

@@ -1059,6 +1059,37 @@ function Invoke-VersionFormatValidation {
     }
 }
 
+function Invoke-InstallerReleaseInputValidation {
+    Write-Header "Phase 0.6: Installer Release Input Guard" "DarkCyan"
+
+    $validator = Join-Path $SCRIPT_DIR "scripts\validate_installer_release_inputs.ps1"
+    if (-not (Test-Path $validator)) {
+        Write-Warning-Msg "Installer input validator not found; skipping installer input guard"
+        Add-Result "Linting" "Installer Input Guard" $true "Skipped (validator missing)"
+        return $true
+    }
+
+    try {
+        $output = & $validator 2>&1
+        $output | ForEach-Object { Write-Host $_ }
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Success "Installer release input validation passed"
+            Add-Result "Linting" "Installer Input Guard" $true
+            return $true
+        }
+
+        Write-Failure "Installer release input validation failed"
+        Add-Result "Linting" "Installer Input Guard" $false "Installer references local-only or missing inputs"
+        return $false
+    }
+    catch {
+        Write-Failure "Installer input guard error: $_"
+        Add-Result "Linting" "Installer Input Guard" $false $_
+        return $false
+    }
+}
+
 # ============================================================================
 # PHASE 1: CODE QUALITY & LINTING
 # ============================================================================
@@ -2229,6 +2260,15 @@ function Invoke-MainWorkflow {
         Write-Host ""
         Write-Failure "❌ Version format validation FAILED - commit blocked"
         Write-Host "This is a CRITICAL enforcement check to prevent version tracking corruption"
+        Write-Host ""
+        exit 1
+    }
+
+    # Phase 0.6: Installer release input validation (always, fast guard)
+    if (-not (Invoke-InstallerReleaseInputValidation)) {
+        Write-Host ""
+        Write-Failure "❌ Installer release input validation FAILED - commit blocked"
+        Write-Host "This guard prevents local-only installer assets from reaching release workflows."
         Write-Host ""
         exit 1
     }
