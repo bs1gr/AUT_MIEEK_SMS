@@ -1,12 +1,13 @@
-# SMS Installer - v1.18.9
+# SMS Installer - v1.18.10
 
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
 
-## Recent Changes (v1.18.9)
+## Recent Changes (v1.18.10)
 
 **Major Updates:**
 
 - ✅ **Upgrade Profile-Drift Prevention**: Installer now preserves existing PostgreSQL configuration during upgrades (prevents silent switch to local SQLite)
+- ✅ **Secure Profile Defaults**: Fresh installs stay local-first while remote PostgreSQL remains explicit opt-in
 - ✅ **Control Panel Auto-Updater**: Threaded download with SHA256 verification and installer launch
 - ✅ **Database Management Panel**: Backup, diagnostics, and user admin consolidated in Control Panel
 - ✅ **Offline Support**: Centralized network status hook, offline banner, and reconnect sync queues
@@ -14,7 +15,7 @@ This directory contains the Inno Setup installer configuration and code signing 
 - ✅ **SQL Backup Support**: Encrypted and unencrypted backup modes
 - ✅ **Analytics Dashboard**: Comprehensive multi-chart visualization, predictive analytics, custom report builder
 
-**Recent Features (v1.18.4-1.18.9):**
+**Recent Features (v1.18.4-1.18.10):**
 
 - Control Panel with auto-updater, database management, and release channel support
 - Offline queues for attendance, grades, and student updates on reconnect
@@ -157,7 +158,7 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 The built installer will be placed in:
 
 ```
-dist\SMS_Installer_1.18.9.exe
+dist\SMS_Installer_1.18.10.exe
 ```
 
 **Installer Size**: ~25-30 MB (compressed)
@@ -166,11 +167,11 @@ dist\SMS_Installer_1.18.9.exe
 - Docker configuration files
 - Code signing certificate
 
-## Important Notes for v1.18.9
+## Important Notes for v1.18.10
 
-### PostgreSQL-Only Deployment
+### Database Profile Behavior
 
-Version 1.18.9 enforces PostgreSQL as the only database engine. SQLite is deprecated for fresh installations.
+Version 1.18.10 keeps **secure local SQLite** as the default profile for fresh installs while preserving existing PostgreSQL configurations during upgrades.
 
 **Upgrade Profile-Drift Prevention:**
 - Installer now detects existing PostgreSQL configuration in `.env` and preserves it
@@ -178,13 +179,13 @@ Version 1.18.9 enforces PostgreSQL as the only database engine. SQLite is deprec
 - Recovery helper available: `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1`
 
 **Database Configuration:**
-- PostgreSQL container managed automatically by Docker Compose
-- Default connection: `postgresql://sms_user:***@sms-postgres:5432/sms`
-- SQLite→PostgreSQL migration helper available for upgrades
+- `SMS_DATABASE_PROFILE=local` uses SQLite for secure local-first installs
+- `SMS_DATABASE_PROFILE=remote` uses PostgreSQL with explicit `POSTGRES_*` credentials
+- Existing PostgreSQL installs are preserved and auto-inferred during upgrades
 
 ### Uninstaller Behavior
 
-The uninstaller is renamed to include version: `Uninstall_SMS_1.18.9.exe`
+The uninstaller is renamed to include version: `Uninstall_SMS_1.18.10.exe`
 
 **During Uninstall:**
 
@@ -211,6 +212,7 @@ When upgrading from previous versions:
 2. Shows version comparison dialog
 3. If "Update" chosen:
    - Backs up data to `backups/pre_upgrade_1.18.9/`
+   - Backs up data to `backups/pre_upgrade_1.18.10/`
    - Stops Docker container
    - Updates files in place
    - Migrates SQLite to PostgreSQL if needed
@@ -240,7 +242,7 @@ Use this checklist when validating the installer on clean environments:
 
 3) **Upgrade Scenario**
    - Install v1.18.8 (or v1.18.x baseline)
-   - Run new v1.18.9 installer and choose **Update/Overwrite**
+   - Run new v1.18.10 installer and choose **Update/Overwrite**
    - Verify data preserved (`data/`, `backups/`, `logs/`, `.env`)
    - Verify SQLite→PostgreSQL migration if upgrading from v1.17.x
    - App launches successfully after upgrade

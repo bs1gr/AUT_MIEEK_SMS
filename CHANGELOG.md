@@ -11,6 +11,22 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.10] - 2026-03-09
+
+### Bug Fixes
+- **installer**: preserve existing PostgreSQL profile data during upgrades to prevent silent drift back to local SQLite
+- **docker**: auto-infer remote profile settings from existing `DATABASE_ENGINE`/`DATABASE_URL` when valid PostgreSQL configuration is already present
+
+### Operations
+- **recovery**: add `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1` to restore remote profile keys after profile-drift incidents
+
+### Build
+- **installer**: rebuild Windows installer for the profile-drift fix lineage and refresh bundled installer metadata/docs
+
+### Documentation
+- **release**: prepare `v1.18.10` release notes for the post-`v1.18.9` installer/profile-drift patch scope
+
 ## [1.18.9] - 2026-03-09
 
 ### Features

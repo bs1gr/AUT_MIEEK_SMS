@@ -1,10 +1,11 @@
 ; ============================================================================
 ; Student Management System - Inno Setup Installer Script
-; Version: 1.18.9 - Bilingual (English / Greek)
+; Version: 1.18.10 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ;
-; LATEST CHANGES (v1.18.9):
+; LATEST CHANGES (v1.18.10):
 ; - Installer upgrade profile-drift prevention (preserves existing PostgreSQL config)
+; - Local-first secure profile defaults for fresh installs
 ; - Control Panel auto-updater with SHA256 verification
 ; - Database management panel (backup, diagnostics, user admin)
 ; - Offline support with centralized network status and reconnect sync

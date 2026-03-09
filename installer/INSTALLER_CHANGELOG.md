@@ -1,5 +1,16 @@
 # Installer Changelog
 
+## [1.18.10] - 2026-03-09
+
+### Changed
+- **Version Update:** Installer script header and documentation updated to v1.18.10
+- **Database Profile Handling:** Fresh installs remain local-first while existing PostgreSQL settings are preserved during upgrades
+- **Release Prep:** Rebuilt installer artifact and staged refreshed release notes for the post-v1.18.9 patch release
+
+### Fixed
+- **Upgrade Profile Drift:** Preserved existing PostgreSQL `.env`/profile settings instead of silently switching upgraded installs back to local SQLite
+- **Remote Profile Inference:** `DOCKER.ps1` now reuses valid PostgreSQL profile configuration when present
+
 ## [1.18.9] - 2026-03-09
 
 ### Added

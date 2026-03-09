@@ -1,11 +1,44 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.7 (Released - Control Panel & Infrastructure Hardening)
-**Last Updated**: March 8, 2026, 02:30 AM UTC
-**Status**: ✅ v1.18.7 RELEASED | 🔄 Post-Release Development Active
+**Current Version**: 1.18.10 (Release Prep - Installer Profile Drift Patch)
+**Last Updated**: March 9, 2026
+**Status**: 🛠️ v1.18.10 RELEASE PREP ACTIVE | ✅ v1.18.9 RELEASED
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Post-Release Development** (analytics fixes + type safety + testing improvements)
-**Current Branch**: `main` (HEAD: 57ed221c0 - dashboard vitest helper imports and report builder fixes)
+**Current Phase**: **Patch Release Preparation** (installer/profile-drift correction release)
+**Current Branch**: `main` (HEAD: 500147165 - installer rebuild and release prep alignment)
+
+---
+
+## 🚀 v1.18.10 Release Preparation (March 9, 2026)
+
+**Status**: 🛠️ **IN PROGRESS - VALIDATING RELEASE CANDIDATE**
+
+### Scope
+
+- Package the post-`v1.18.9` installer/profile-drift fixes into a clean release lineage.
+- Publish a release whose installer artifact actually matches the upgraded PostgreSQL profile-preservation behavior.
+- Align version metadata, release notes, manifest, and deployment checklist for `v1.18.10`.
+
+### Included Changes Since `v1.18.9`
+
+- ✅ `fix(installer): preserve postgres profile on upgrade and add env repair helper`
+- ✅ `build(installer): rebuild v1.18.9 installer with profile-drift fix and updated docs`
+- ✅ release note and CSV formatting normalization
+- ✅ archive cleanup for deprecated scripts and lint artifacts
+- ✅ test runners guide + workspace cleanup session documentation
+
+### Release Prep Progress
+
+- ✅ Version metadata bumped to `v1.18.10`
+- ✅ Release notes prepared (`docs/releases/RELEASE_NOTES_v1.18.10.md`)
+- ✅ GitHub release body prepared (`docs/releases/GITHUB_RELEASE_v1.18.10.md`)
+- ✅ Workflow release body prepared (`.github/RELEASE_NOTES_v1.18.10.md`)
+- ✅ Release manifest prepared (`docs/releases/RELEASE_MANIFEST_v1.18.10.md`)
+- ✅ Deployment checklist prepared (`docs/releases/DEPLOYMENT_CHECKLIST_v1.18.10.md`)
+- ✅ Version consistency verification passed (`scripts/VERIFY_VERSION.ps1 -CheckOnly`)
+- ⏳ Pending: COMMIT_READY validation
+- ⏳ Pending: installer build/sign/verification
+- ⏳ Pending: commit/tag/push/release publication
 
 ---
 
