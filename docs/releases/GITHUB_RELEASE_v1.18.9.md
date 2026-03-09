@@ -35,5 +35,3 @@
 - **Windows**: Download `SMS_Installer_1.18.9.exe` from release assets.
 - **Docker (production)**: `./DOCKER.ps1 -Update`
 - **Native (development)**: `./NATIVE.ps1 -Start`
-
-

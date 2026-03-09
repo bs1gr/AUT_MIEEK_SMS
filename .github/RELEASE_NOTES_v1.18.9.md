@@ -16,10 +16,10 @@
 ### 🖥️ Control Panel UI
 
 - New upload interface under:
-	- `Power` → `Control Panel` → `Maintenance` → `Database Management`
+  - `Power` → `Control Panel` → `Maintenance` → `Database Management`
 - Includes:
-	- **Validate & Connect**
-	- **Test Only**
+  - **Validate & Connect**
+  - **Test Only**
 - Includes EN/EL translation coverage.
 
 ### ✅ Validation
@@ -27,5 +27,3 @@
 - Frontend lint on changed files: pass
 - Targeted backend tests for new endpoints: 4/4 pass
 - Runtime remote PostgreSQL health verification: pass
-
-
