@@ -1,5 +1,28 @@
 # Installer Changelog
 
+## [1.18.9] - 2026-03-09
+
+### Added
+- **Profile-Drift Prevention**: Installer preserves existing PostgreSQL configuration during upgrades
+- **Control Panel Auto-Updater**: Threaded download with SHA256 verification and installer launch
+- **Database Management Panel**: Backup, diagnostics, and user admin in Control Panel
+- **Offline Support**: Centralized network status hook, offline banner, and reconnect sync queues
+- **Remote Database Credential Upload**: UI for validating and connecting to remote PostgreSQL
+- **SQL Backup Support**: Encrypted and unencrypted backup modes
+- **Analytics Dashboard**: Multi-chart visualization, predictive analytics, custom report builder
+- **Environment Repair Helper**: `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1` for profile-drift recovery
+
+### Changed
+- **DOCKER.ps1**: Auto-infer remote profile from existing DATABASE_ENGINE/DATABASE_URL
+- **Default Profile**: Secure local SQLite by default for fresh installs; existing PostgreSQL preserved on upgrade
+- **Release Workflow**: Version normalization enforced in installer CI workflow
+
+### Fixed
+- **Upgrade Profile Drift**: Prevented silent switch from PostgreSQL to local SQLite during unattended install
+- **Windows Subprocess Crashes**: Resolved `docker.exe 0xc0000142` across all control panel modules
+- **Native Runtime**: Fixed uvicorn relative import resolution
+- **Auth**: Nullify audit_logs before user delete to prevent FK violation
+
 ## [1.18.3] - 2026-02-20
 
 ### Changed

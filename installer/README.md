@@ -1,33 +1,36 @@
-# SMS Installer - v1.18.3
+# SMS Installer - v1.18.9
 
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
 
-## Recent Changes (v1.18.3)
+## Recent Changes (v1.18.9)
 
 **Major Updates:**
 
-- ✅ **RBAC Improvements**: Legacy admin fallback scoped to imports permissions only (stricter security)
-- ✅ **Database Standardization**: PostgreSQL-only deployment with persistence hardening
-- ✅ **Course Auto-Activation**: Scheduled job (3:00 AM UTC daily) + UI indicators (green/amber/blue badges)
-- ✅ **Installer Runtime**: Fixed runtime crash scenarios with corrected release lineage
-- ✅ **Release Integrity**: Mandatory signing + payload gates + digest verification
+- ✅ **Upgrade Profile-Drift Prevention**: Installer now preserves existing PostgreSQL configuration during upgrades (prevents silent switch to local SQLite)
+- ✅ **Control Panel Auto-Updater**: Threaded download with SHA256 verification and installer launch
+- ✅ **Database Management Panel**: Backup, diagnostics, and user admin consolidated in Control Panel
+- ✅ **Offline Support**: Centralized network status hook, offline banner, and reconnect sync queues
+- ✅ **Remote Database Credential Upload**: Validate & Connect / Test Only UI for remote PostgreSQL
+- ✅ **SQL Backup Support**: Encrypted and unencrypted backup modes
+- ✅ **Analytics Dashboard**: Comprehensive multi-chart visualization, predictive analytics, custom report builder
 
-**Recent Features (v1.18.0-1.18.3):**
+**Recent Features (v1.18.4-1.18.9):**
 
-- Course auto-activation based on semester dates with real-time UI indicators
-- PDF extraction pipeline for MIEEK course data import
-- Enhanced course template management with evaluation rules validation
-- Encrypted backup support + maintenance fixes
-- Enrollment status filtering (active courses only)
-- Dashboard analytics limited to active enrollments
+- Control Panel with auto-updater, database management, and release channel support
+- Offline queues for attendance, grades, and student updates on reconnect
+- Analytics revival (dashboard, predictive analytics, custom report builder, export)
+- Windows subprocess crash fix (`docker.exe 0xc0000142`)
+- Notification integration for update-available events
+- Environment repair helper for profile-drift incidents
 
 **Technical Improvements:**
 
-- 2579+ tests passing (742 backend + 1813 frontend + 34 auto-activation)
+- All backend and frontend tests passing
 - PostgreSQL-only wiring enforced for data persistence
 - Docker volume persistence hardening with auto-migration
 - SMS_Manager.exe bundled native runtime for shortcuts
 - Release asset sanitization (installer-only artifacts)
+- ESLint warnings reduced, analytics types fully typed
 
 **What's Excluded from Installer:**
 
@@ -154,20 +157,25 @@ certutil -addstore TrustedPublisher "installer\AUT_MIEEK_CodeSign.cer"
 The built installer will be placed in:
 
 ```
-dist\SMS_Installer_1.18.3.exe
+dist\SMS_Installer_1.18.9.exe
 ```
 
-**Installer Size**: 119,232,344 bytes (~119 MB)
+**Installer Size**: ~25-30 MB (compressed)
 - Includes SMS_Manager.exe (28.51 MB self-contained .NET 5.0 runtime)
 - Full backend and frontend source code
 - Docker configuration files
 - Code signing certificate
 
-## Important Notes for v1.18.3
+## Important Notes for v1.18.9
 
 ### PostgreSQL-Only Deployment
 
-Version 1.18.3 enforces PostgreSQL as the only database engine. SQLite is deprecated for fresh installations.
+Version 1.18.9 enforces PostgreSQL as the only database engine. SQLite is deprecated for fresh installations.
+
+**Upgrade Profile-Drift Prevention:**
+- Installer now detects existing PostgreSQL configuration in `.env` and preserves it
+- Prevents silent switch to local SQLite during unattended upgrades
+- Recovery helper available: `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1`
 
 **Database Configuration:**
 - PostgreSQL container managed automatically by Docker Compose
@@ -176,7 +184,7 @@ Version 1.18.3 enforces PostgreSQL as the only database engine. SQLite is deprec
 
 ### Uninstaller Behavior
 
-The uninstaller is renamed to include version: `Uninstall_SMS_1.18.3.exe`
+The uninstaller is renamed to include version: `Uninstall_SMS_1.18.9.exe`
 
 **During Uninstall:**
 
@@ -202,7 +210,7 @@ When upgrading from previous versions:
 1. Installer detects existing installation
 2. Shows version comparison dialog
 3. If "Update" chosen:
-   - Backs up data to `backups/pre_upgrade_1.18.3/`
+   - Backs up data to `backups/pre_upgrade_1.18.9/`
    - Stops Docker container
    - Updates files in place
    - Migrates SQLite to PostgreSQL if needed
@@ -212,8 +220,8 @@ When upgrading from previous versions:
 ### Testing Checklist
 
 - [ ] Fresh install on clean system
-- [ ] Upgrade from v1.18.2 with data preservation
-- [ ] Upgrade from v1.17.x with SQLite→PostgreSQL migration
+- [ ] Upgrade from v1.18.8 with data preservation
+- [ ] Upgrade from v1.18.x with PostgreSQL data preserved
 - [ ] Uninstall with data preservation
 - [ ] Course auto-activation scheduler verification (daily 3:00 AM UTC)
 
@@ -231,8 +239,8 @@ Use this checklist when validating the installer on clean environments:
    - Start Menu entry present and launches app
 
 3) **Upgrade Scenario**
-   - Install v1.18.2 (or v1.17.x baseline)
-   - Run new v1.18.3 installer and choose **Update/Overwrite**
+   - Install v1.18.8 (or v1.18.x baseline)
+   - Run new v1.18.9 installer and choose **Update/Overwrite**
    - Verify data preserved (`data/`, `backups/`, `logs/`, `.env`)
    - Verify SQLite→PostgreSQL migration if upgrading from v1.17.x
    - App launches successfully after upgrade

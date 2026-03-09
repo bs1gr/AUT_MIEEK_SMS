@@ -1,13 +1,15 @@
 ; ============================================================================
 ; Student Management System - Inno Setup Installer Script
-; Version: 1.18.3 - Bilingual (English / Greek)
+; Version: 1.18.9 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ;
-; LATEST CHANGES (v1.18.3):
-; - RBAC legacy admin fallback scoped to imports permissions only
-; - PostgreSQL-only deployment standardization
-; - Course auto-activation with scheduler (3:00 AM UTC daily)
-; - Refreshed installer artifact for corrected release lineage
+; LATEST CHANGES (v1.18.9):
+; - Installer upgrade profile-drift prevention (preserves existing PostgreSQL config)
+; - Control Panel auto-updater with SHA256 verification
+; - Database management panel (backup, diagnostics, user admin)
+; - Offline support with centralized network status and reconnect sync
+; - Remote database credential upload UI
+; - SQL backup support (encrypted/unencrypted modes)
 ;
 ; NOTE: Inno Setup 6.x does not support UninstallExeName directive.
 ; Workaround: Uninstaller is renamed from unins000.exe to unins{version}.exe
