@@ -1,9 +1,0 @@
-# Failed test files (generated 2026-03-08 17:53:21)
-# To retest only these files, run: .\RUN_TESTS_BATCH.ps1 -RetestFailed
-# To clear this file, run: Remove-Item .test-failures
-
-test_students_import.py
-test_students_router.py
-test_timing_middleware.py
-test_version_consistency.py
-test_websocket.py

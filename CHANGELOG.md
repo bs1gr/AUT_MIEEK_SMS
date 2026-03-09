@@ -21,9 +21,13 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Bug Fixes
 - **security**: remove forced remote PostgreSQL defaults and switch to secure local SQLite profile by default
+- **installer/docker**: prevent upgrade profile drift that could switch existing PostgreSQL installs to local SQLite during unattended install; auto-infer/repair remote profile when PostgreSQL config already exists
 - **help**: complete EN Help & Documentation i18n coverage
 - **control-panel**: align database management accordion with maintenance tabs
 - **frontend**: prevent TypeError in DatabasePanel on undefined database stats
+
+### Operations
+- **recovery**: add `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1` to back up `.env` and restore PostgreSQL profile keys after installer profile drift incidents
 
 ### Documentation
 - **policy**: enforce instruction-order lock and evidence gates across agent docs

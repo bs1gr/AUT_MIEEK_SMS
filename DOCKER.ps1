@@ -1583,10 +1583,23 @@ POSTGRES_PASSWORD=$postgresPassword
 
     # Database profile selection for installer deployments:
     # - local  => SQLite in local Docker volume (default, safest)
-    # - remote => Prompt for PostgreSQL credentials (interactive) or use existing env values
+    # - remote => PostgreSQL (remote/internal), using explicit credentials
+    #
+    # IMPORTANT (upgrade safety):
+    # If .env already exists and clearly points to PostgreSQL,
+    # infer/keep remote profile instead of defaulting to local.
+    $existingEngine = if ($currentDbEngine) { $currentDbEngine.Trim().ToLower() } else { "" }
+    $existingDbUrl = if ($dbUrl) { $dbUrl.Trim().ToLower() } else { "" }
+    $existingLooksPostgres = ($existingEngine -eq "postgresql" -or $existingDbUrl.StartsWith("postgresql"))
+
     $dbProfile = Get-EnvVarValue -Name "SMS_DATABASE_PROFILE"
     if ([string]::IsNullOrWhiteSpace($dbProfile)) {
-        if ($Silent) {
+        if ($existingLooksPostgres) {
+            $dbProfile = "remote"
+            Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
+            Write-Info "SMS_DATABASE_PROFILE inferred as remote from existing PostgreSQL configuration."
+            $configured = $true
+        } elseif ($Silent) {
             $dbProfile = "local"
             Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
             Write-Info "SMS_DATABASE_PROFILE not set. Defaulting to secure local mode for unattended install."
@@ -1613,6 +1626,27 @@ POSTGRES_PASSWORD=$postgresPassword
         $dbProfile = "local"
         Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
         $configured = $true
+    }
+
+    # Auto-correct legacy drift from older installer behavior where profile was
+    # set to local even though preserved POSTGRES_* values indicate remote usage.
+    if ($dbProfile -eq "local") {
+        $safeLocalHosts = @("", "localhost", "127.0.0.1", "postgres", "postgresql", "sms-postgres")
+        $normalizedPgHost = if ($pgHost) { $pgHost.Trim().ToLower() } else { "" }
+        $hasRemoteCredentialShape = (
+            -not [string]::IsNullOrWhiteSpace($pgHost) -and
+            -not ($safeLocalHosts -contains $normalizedPgHost) -and
+            -not [string]::IsNullOrWhiteSpace($pgUser) -and
+            -not [string]::IsNullOrWhiteSpace($pgPassword) -and
+            -not [string]::IsNullOrWhiteSpace($pgDb)
+        )
+
+        if ($existingLooksPostgres -or $hasRemoteCredentialShape) {
+            Write-Warning "Detected PostgreSQL upgrade profile drift. Switching SMS_DATABASE_PROFILE to remote."
+            $dbProfile = "remote"
+            Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
+            $configured = $true
+        }
     }
 
     if ($dbProfile -eq "local") {

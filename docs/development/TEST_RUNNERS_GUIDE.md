@@ -1,7 +1,7 @@
 # Test Runners Guide
 
-**Last Updated**: March 9, 2026  
-**Version**: 1.18.9  
+**Last Updated**: March 9, 2026
+**Version**: 1.18.9
 **Status**: ✅ ACTIVE - Specialized scripts maintained separately
 
 ---
@@ -17,8 +17,8 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ### 🎯 Primary Test Runners (Keep As-Is)
 
 #### 1. RUN_TESTS_BATCH.ps1
-**Purpose**: Backend pytest execution in batches to prevent system overload  
-**Use Case**: Primary backend test runner (490+ tests)  
+**Purpose**: Backend pytest execution in batches to prevent system overload
+**Use Case**: Primary backend test runner (490+ tests)
 **Key Features**:
 - **Incremental testing** with failure tracking (`.test-failures` file)
 - **Batch execution** prevents VS Code crashes (default: 5 files per batch)
@@ -53,8 +53,8 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ---
 
 #### 2. RUN_E2E_TESTS.ps1
-**Purpose**: End-to-end test orchestration with service management  
-**Use Case**: Playwright E2E tests with automatic service verification  
+**Purpose**: End-to-end test orchestration with service management
+**Use Case**: Playwright E2E tests with automatic service verification
 **Key Features**:
 - **Service orchestration** via NATIVE.ps1
 - **HTTP health checks** before running tests (backend:8000, frontend:5173)
@@ -82,8 +82,8 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ---
 
 #### 3. RUN_CURATED_LOAD_TEST.ps1
-**Purpose**: Specialized load testing framework  
-**Use Case**: Performance testing with controlled load scenarios  
+**Purpose**: Specialized load testing framework
+**Use Case**: Performance testing with controlled load scenarios
 **Key Features**:
 - Curated test scenarios (not general-purpose)
 - Performance metrics collection
@@ -99,8 +99,8 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ### 🔀 Frontend Test Runners
 
 #### 4. RUN_FRONTEND_TESTS_SIMPLE.ps1
-**Purpose**: Simple vitest runner with proper output capture  
-**Use Case**: Quick frontend test execution (1813+ tests)  
+**Purpose**: Simple vitest runner with proper output capture
+**Use Case**: Quick frontend test execution (1813+ tests)
 **Key Features**:
 - **UTF-8 encoding handling** for console output
 - Sets `SMS_ALLOW_DIRECT_VITEST=1` environment variable
@@ -117,8 +117,8 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ---
 
 #### 5. RUN_FRONTEND_TESTS_SUMMARY.ps1
-**Purpose**: Frontend test execution with summary output  
-**Use Case**: CI/CD or when detailed output not needed  
+**Purpose**: Frontend test execution with summary output
+**Use Case**: CI/CD or when detailed output not needed
 **Key Features**:
 - Summary reporter (condensed output)
 - Faster execution than verbose mode
@@ -134,8 +134,8 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ### 🎭 Alternative Test Runners
 
 #### 6. RUN_E2E_DIRECT.ps1
-**Purpose**: Direct E2E execution without service orchestration  
-**Use Case**: When services already running manually  
+**Purpose**: Direct E2E execution without service orchestration
+**Use Case**: When services already running manually
 **Key Features**:
 - Skips NATIVE.ps1 service checks
 - Direct Playwright invocation
@@ -151,8 +151,8 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ---
 
 #### 7. RUN_TESTS_CATEGORY.ps1
-**Purpose**: Category-based backend test execution  
-**Use Case**: Run specific test categories/modules  
+**Purpose**: Category-based backend test execution
+**Use Case**: Run specific test categories/modules
 **Key Features**:
 - Targeted test execution by category
 - Faster than full batch run
@@ -196,14 +196,14 @@ After comprehensive analysis, these scripts remain separate for these reasons:
 ### Potential Future Consolidation
 
 These pairs could be merged with low risk:
-- `RUN_FRONTEND_TESTS_SIMPLE.ps1` + `RUN_FRONTEND_TESTS_SUMMARY.ps1`  
+- `RUN_FRONTEND_TESTS_SIMPLE.ps1` + `RUN_FRONTEND_TESTS_SUMMARY.ps1`
   → Single `RUN_FRONTEND_TESTS.ps1 -Mode [Simple|Summary]`
-  
+
 - `RUN_E2E_DIRECT.ps1` → Merge into `RUN_E2E_TESTS.ps1 -Direct`
 
 - `RUN_TESTS_CATEGORY.ps1` → Merge into `RUN_TESTS_BATCH.ps1 -Category`
 
-**Estimated effort**: 2-3 hours careful refactoring + testing  
+**Estimated effort**: 2-3 hours careful refactoring + testing
 **Recommendation**: Defer to dedicated refactoring sprint
 
 ---
@@ -267,25 +267,25 @@ npm run test -- ComponentName.test --run
 ## Troubleshooting
 
 ### VS Code Crashes During Tests
-**Issue**: Running all backend tests at once crashes VS Code  
+**Issue**: Running all backend tests at once crashes VS Code
 **Solution**: Use `RUN_TESTS_BATCH.ps1` (default behavior)
 
 ### Frontend Tests Encoding Errors
-**Issue**: Garbled output or encoding warnings  
+**Issue**: Garbled output or encoding warnings
 **Solution**: Use `RUN_FRONTEND_TESTS_SIMPLE.ps1` (has UTF-8 handling)
 
 ### E2E Tests Fail with "Service Not Running"
-**Issue**: Backend/frontend services not detected  
-**Solution**: 
+**Issue**: Backend/frontend services not detected
+**Solution**:
 - Check services with `.\NATIVE.ps1 -Status`
 - Start services with `.\NATIVE.ps1 -Start`
 - Or use `.\RUN_E2E_TESTS.ps1` (auto-detects and starts services)
 
 ### Background Test Execution Hangs
-**Issue**: Tests run via background mode don't produce output  
+**Issue**: Tests run via background mode don't produce output
 **Solution**: Do NOT use `isBackground: true` - see [TEST_RUNNER_BACKGROUND_LIMITATION.md](../TEST_RUNNER_BACKGROUND_LIMITATION.md)
 
 ---
 
-**Maintained by**: Development Team  
+**Maintained by**: Development Team
 **Last Reviewed**: March 9, 2026
