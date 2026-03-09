@@ -12,6 +12,14 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+## [1.18.11] - 2026-03-09
+
+### Fixed
+- **installer**: point Greek installer info pages to tracked `.rtf` assets so GitHub Actions release builds can compile and upload release artifacts
+
+### Build
+- **release**: prepare corrective patch release after `v1.18.10` published without installer assets
+
 ## [1.18.10] - 2026-03-09
 
 ### Bug Fixes

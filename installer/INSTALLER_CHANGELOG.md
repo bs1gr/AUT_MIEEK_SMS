@@ -1,5 +1,14 @@
 # Installer Changelog
 
+## [1.18.11] - 2026-03-09
+
+### Changed
+- **Version Update:** Installer script header and documentation updated to v1.18.11
+- **Release Publication:** Prepared corrective patch release after the v1.18.10 tag published without installer assets
+
+### Fixed
+- **CI Installer Inputs:** Switched Greek installer info pages to tracked `.rtf` assets so GitHub Actions release builds can compile and upload installer artifacts
+
 ## [1.18.10] - 2026-03-09
 
 ### Changed

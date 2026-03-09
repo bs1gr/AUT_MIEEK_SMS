@@ -1,17 +1,48 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.10 (Release Prep - Installer Profile Drift Patch)
+**Current Version**: 1.18.11 (Corrective Release Prep - Installer Asset Publication Fix)
 **Last Updated**: March 9, 2026
-**Status**: 🛠️ v1.18.10 RELEASE PREP ACTIVE | ✅ v1.18.9 RELEASED
+**Status**: 🛠️ v1.18.11 RELEASE PREP ACTIVE | ⚠️ v1.18.10 TAGGED, INSTALLER ASSET BUILD FAILED
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Patch Release Preparation** (installer/profile-drift correction release)
-**Current Branch**: `main` (HEAD: 500147165 - installer rebuild and release prep alignment)
+**Current Phase**: **Patch Release Preparation** (corrective installer asset publication release)
+**Current Branch**: `main` (HEAD: 5e5a47eef - v1.18.10 release prep before corrective installer asset fix)
+
+---
+
+## 🚀 v1.18.11 Corrective Release Preparation (March 9, 2026)
+
+**Status**: 🛠️ **IN PROGRESS - CORRECTING v1.18.10 INSTALLER ASSET PUBLICATION**
+
+### Scope
+
+- Replace CI-broken Greek installer info file references with tracked assets already present in the repository.
+- Publish a clean patch release whose GitHub installer workflow can compile, sign, and upload the release assets successfully.
+- Align version metadata, release notes, manifest, and deployment checklist for `v1.18.11`.
+
+### Root Cause Verified
+
+- ✅ `v1.18.10` GitHub Release page was created successfully.
+- ✅ `Build & Upload Installer with SHA256` failed in CI before asset upload.
+- ✅ Failure isolated to `installer/SMS_Installer.iss` referencing ignored local files:
+  - `installer_welcome_el.txt`
+  - `installer_complete_el.txt`
+- ✅ Repository already tracks the equivalent Greek `.rtf` files used for the corrective patch.
+
+### Release Prep Progress
+
+- ✅ Patched `installer/SMS_Installer.iss` to use tracked Greek `.rtf` assets
+- ✅ Local installer build/sign/smoke succeeded after the patch
+- ✅ Version metadata bumped to `v1.18.11`
+- ✅ Corrective release docs prepared (`RELEASE_NOTES`, `GITHUB_RELEASE`, `RELEASE_MANIFEST`, `DEPLOYMENT_CHECKLIST`)
+- ⏳ Pending: version verification / COMMIT_READY validation
+- ⏳ Pending: corrective release commit / tag / push
+- ⏳ Pending: GitHub release publication with installer assets
 
 ---
 
 ## 🚀 v1.18.10 Release Preparation (March 9, 2026)
 
-**Status**: 🛠️ **IN PROGRESS - VALIDATING RELEASE CANDIDATE**
+**Status**: ⚠️ **TAGGED / RELEASE PAGE CREATED - INSTALLER ASSET BUILD FAILED IN CI**
 
 ### Scope
 

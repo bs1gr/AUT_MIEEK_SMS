@@ -1,9 +1,10 @@
 ; ============================================================================
 ; Student Management System - Inno Setup Installer Script
-; Version: 1.18.10 - Bilingual (English / Greek)
+; Version: 1.18.11 - Bilingual (English / Greek)
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ;
-; LATEST CHANGES (v1.18.10):
+; LATEST CHANGES (v1.18.11):
+; - Release workflow fix: use tracked Greek RTF installer info files in CI builds
 ; - Installer upgrade profile-drift prevention (preserves existing PostgreSQL config)
 ; - Local-first secure profile defaults for fresh installs
 ; - Control Panel auto-updater with SHA256 verification
@@ -86,7 +87,7 @@ WizardSmallImageFile=wizard_small.bmp
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
-Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.txt"; InfoAfterFile: "installer_complete_el.txt"
+Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.rtf"; InfoAfterFile: "installer_complete_el.rtf"
 
 ; Note: Greek messages use local Greek.isl (official Inno translation)
 ; English messages serve as fallback

@@ -1,14 +1,16 @@
 # Documentation Index
 
 **Last Updated**: 2026-03-09
-**Project Version (documented)**: 1.18.10
-**Version**: 1.18.10
+**Project Version (documented)**: 1.18.11
+**Version**: 1.18.11
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.7 RELEASED (CONTROL PANEL & INFRASTRUCTURE)**
+**Status**: ✅ **PRODUCTION LIVE** | 🛠️ **v1.18.11 RELEASE PREP ACTIVE**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 8, 2026)**: ✅ **Production Live + v1.18.7 released with control panel & infrastructure hardening**
+> **Current Status (Mar 9, 2026)**: ✅ **Production Live + corrective `v1.18.11` release prep active**
+> - `v1.18.10` tag/release page was created, but installer asset upload failed in CI because the workflow referenced ignored Greek `.txt` files
+> - `v1.18.11` prepares the corrective release path using tracked Greek `.rtf` installer assets
 > - v1.18.7: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
 > - v1.18.6: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
 > - Post-release development: Type safety improvements, testing stability, ESLint cleanup
