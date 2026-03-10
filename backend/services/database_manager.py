@@ -380,7 +380,7 @@ def _backup_via_pg_dump(
                 raise RuntimeError(result.stderr.decode(errors="replace"))
 
         size = filepath.stat().st_size
-        _write_backup_metadata(filepath, instance, size, "pg_dump")
+        _write_backup_metadata(filepath, size, "pg_dump")
 
         return {
             "success": True,
@@ -426,8 +426,6 @@ def _backup_via_psycopg(
             with open_fn(filepath, "wt", encoding="utf-8") as f:  # type: ignore[call-overload]
                 # Header
                 f.write("-- SMS PostgreSQL Backup (psycopg COPY)\n")
-                f.write(f"-- Instance: {inst_name}\n")
-                f.write(f"-- Database: {instance['dbname']}\n")
                 f.write(f"-- Timestamp: {timestamp}\n")
                 f.write("\n")
 
@@ -463,7 +461,7 @@ def _backup_via_psycopg(
                     f.write("\n")
 
         size = filepath.stat().st_size
-        _write_backup_metadata(filepath, instance, size, "psycopg_copy")
+        _write_backup_metadata(filepath, size, "psycopg_copy")
 
         return {
             "success": True,
@@ -502,13 +500,14 @@ def list_backups(instance_name: str | None = None) -> list[dict[str, Any]]:
             continue
 
         meta = _read_backup_metadata(f)
+        inferred_instance = f.name.split("_", 1)[0] if "_" in f.name else "unknown"
         backups.append(
             {
                 "filename": f.name,
                 "size_bytes": f.stat().st_size,
                 "size_human": _human_size(f.stat().st_size),
                 "created_at": datetime.fromtimestamp(f.stat().st_mtime, tz=timezone.utc).isoformat(),
-                "instance": meta.get("instance_name", "unknown"),
+                "instance": meta.get("instance_name", inferred_instance),
                 "method": meta.get("method", "unknown"),
                 "compressed": f.name.endswith(".gz"),
             }
@@ -675,13 +674,11 @@ def _human_size(size_bytes: int | None) -> str:
 
 def _write_backup_metadata(
     filepath: Path,
-    instance: dict[str, Any],
     size: int,
     method: str,
 ) -> None:
     """Write a JSON metadata sidecar for a backup file."""
     meta = {
-        "instance_name": instance.get("name", "unknown"),
         "method": method,
         "size_bytes": size,
         "created_at": datetime.now(timezone.utc).isoformat(),
