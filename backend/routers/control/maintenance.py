@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from backend.control_auth import require_control_admin
-from backend.security.path_validation import validate_filename, validate_path
+from backend.security.path_validation import validate_filename
 
 from .common import _hidden_window_kwargs
 
@@ -138,12 +138,15 @@ def _validate_auto_update_job_id(job_id: str) -> str:
 
 def _resolve_host_updater_json_path(job_id: str, prefix: str) -> Path:
     """Resolve a host updater JSON file within the trigger directory safely."""
-    trigger_dir = _host_updater_trigger_dir()
+    trigger_dir = _host_updater_trigger_dir().resolve()
     safe_job_id = _validate_auto_update_job_id(job_id)
-    filename = f"{prefix}_{safe_job_id}.json"
+    filename = Path(f"{prefix}_{safe_job_id}.json").name
     validate_filename(filename, [".json"])
     candidate = (trigger_dir / filename).resolve()
-    validate_path(trigger_dir, candidate)
+    try:
+        candidate.relative_to(trigger_dir)
+    except (ValueError, OSError) as exc:
+        raise ValueError("Updater path escaped trigger directory") from exc
     return candidate
 
 

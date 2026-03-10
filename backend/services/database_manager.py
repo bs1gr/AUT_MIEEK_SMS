@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.config import get_settings
-from backend.security.path_validation import validate_filename, validate_path
+from backend.security.path_validation import validate_filename
 
 logger = logging.getLogger(__name__)
 
@@ -59,19 +59,31 @@ def _validate_backup_filename(filename: str) -> str:
 
 def _resolve_backup_path(filename: str) -> Path:
     """Resolve a validated backup filename within the backup directory."""
-    backup_dir = _get_backup_dir()
-    safe_filename = _validate_backup_filename(filename)
+    backup_dir = _get_backup_dir().resolve()
+    safe_filename = Path(_validate_backup_filename(filename)).name
     candidate = (backup_dir / safe_filename).resolve()
-    validate_path(backup_dir, candidate)
+    try:
+        candidate.relative_to(backup_dir)
+    except (ValueError, OSError) as exc:
+        raise ValueError("Backup path escaped backup directory") from exc
     return candidate
 
 
 def _resolve_metadata_path(filepath: Path) -> Path:
     """Resolve the metadata sidecar path for a validated backup path."""
-    backup_dir = _get_backup_dir()
-    validate_path(backup_dir, filepath)
-    meta_path = (filepath.parent / f"{filepath.name}.meta.json").resolve()
-    validate_path(backup_dir, meta_path)
+    backup_dir = _get_backup_dir().resolve()
+    resolved_filepath = filepath.resolve()
+    try:
+        resolved_filepath.relative_to(backup_dir)
+    except (ValueError, OSError) as exc:
+        raise ValueError("Metadata path escaped backup directory") from exc
+
+    meta_filename = Path(f"{resolved_filepath.name}.meta.json").name
+    meta_path = (backup_dir / meta_filename).resolve()
+    try:
+        meta_path.relative_to(backup_dir)
+    except (ValueError, OSError) as exc:
+        raise ValueError("Metadata path escaped backup directory") from exc
     return meta_path
 
 
