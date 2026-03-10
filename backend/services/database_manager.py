@@ -61,12 +61,18 @@ def _resolve_backup_path(filename: str) -> Path:
     """Resolve a validated backup filename within the backup directory."""
     backup_dir = _get_backup_dir().resolve()
     safe_filename = Path(_validate_backup_filename(filename)).name
-    candidate = (backup_dir / safe_filename).resolve()
-    try:
-        candidate.relative_to(backup_dir)
-    except (ValueError, OSError) as exc:
-        raise ValueError("Backup path escaped backup directory") from exc
-    return candidate
+    for candidate in backup_dir.iterdir():
+        if not candidate.is_file() or candidate.name != safe_filename:
+            continue
+
+        resolved_candidate = candidate.resolve()
+        try:
+            resolved_candidate.relative_to(backup_dir)
+        except (ValueError, OSError):
+            continue
+        return resolved_candidate
+
+    return backup_dir / safe_filename
 
 
 def _resolve_metadata_path(filepath: Path) -> Path:
@@ -79,12 +85,18 @@ def _resolve_metadata_path(filepath: Path) -> Path:
         raise ValueError("Metadata path escaped backup directory") from exc
 
     meta_filename = Path(f"{resolved_filepath.name}.meta.json").name
-    meta_path = (backup_dir / meta_filename).resolve()
-    try:
-        meta_path.relative_to(backup_dir)
-    except (ValueError, OSError) as exc:
-        raise ValueError("Metadata path escaped backup directory") from exc
-    return meta_path
+    for candidate in backup_dir.iterdir():
+        if not candidate.is_file() or candidate.name != meta_filename:
+            continue
+
+        resolved_candidate = candidate.resolve()
+        try:
+            resolved_candidate.relative_to(backup_dir)
+        except (ValueError, OSError):
+            continue
+        return resolved_candidate
+
+    return backup_dir / meta_filename
 
 
 def _pg_dump_available() -> bool:

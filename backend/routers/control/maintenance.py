@@ -150,6 +150,30 @@ def _resolve_host_updater_json_path(job_id: str, prefix: str) -> Path:
     return candidate
 
 
+def _find_host_updater_json_path(job_id: str, prefix: str) -> Optional[Path]:
+    """Find an existing host updater JSON file by exact validated filename."""
+    trigger_dir = _host_updater_trigger_dir().resolve()
+    safe_job_id = _validate_auto_update_job_id(job_id)
+    expected_name = Path(f"{prefix}_{safe_job_id}.json").name
+    validate_filename(expected_name, [".json"])
+
+    if not trigger_dir.exists():
+        return None
+
+    for candidate in trigger_dir.iterdir():
+        if not candidate.is_file() or candidate.name != expected_name:
+            continue
+
+        resolved_candidate = candidate.resolve()
+        try:
+            resolved_candidate.relative_to(trigger_dir)
+        except (ValueError, OSError):
+            continue
+        return resolved_candidate
+
+    return None
+
+
 def _host_updater_bridge_enabled() -> bool:
     """Determine whether Docker host updater bridge is enabled.
 
@@ -203,10 +227,10 @@ def _write_host_updater_trigger(job_id: str, payload: AutoUpdateRequest, current
 
 def _read_host_updater_status(job_id: str) -> Optional[Dict[str, Any]]:
     try:
-        status_file = _host_updater_status_file(job_id)
+        status_file = _find_host_updater_json_path(job_id, "update_status")
     except ValueError:
         return None
-    if not status_file.exists():
+    if status_file is None or not status_file.exists():
         return None
     try:
         return json.loads(status_file.read_text(encoding="utf-8"))
