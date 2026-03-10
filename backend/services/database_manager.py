@@ -429,7 +429,7 @@ def _backup_via_psycopg(
                 f.write(f"-- Instance: {inst_name}\n")
                 f.write(f"-- Database: {instance['dbname']}\n")
                 f.write(f"-- Timestamp: {timestamp}\n")
-                f.write(f"-- Host: {instance['host']}:{instance['port']}\n\n")
+                f.write("\n")
 
                 # Get all tables
                 tables = conn.execute(
@@ -682,9 +682,6 @@ def _write_backup_metadata(
     """Write a JSON metadata sidecar for a backup file."""
     meta = {
         "instance_name": instance.get("name", "unknown"),
-        "host": instance.get("host", ""),
-        "port": instance.get("port", 5432),
-        "dbname": instance.get("dbname", ""),
         "method": method,
         "size_bytes": size,
         "created_at": datetime.now(timezone.utc).isoformat(),
