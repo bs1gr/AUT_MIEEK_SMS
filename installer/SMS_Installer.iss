@@ -4,7 +4,7 @@
 ; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
 ;
 ; LATEST CHANGES (v1.18.11):
-; - Release workflow fix: use tracked Greek RTF installer info files in CI builds
+; - Restore build-time generation of Greek RTF installer info files
 ; - Installer upgrade profile-drift prevention (preserves existing PostgreSQL config)
 ; - Local-first secure profile defaults for fresh installs
 ; - Control Panel auto-updater with SHA256 verification
@@ -90,6 +90,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\LICENSE"
 Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.rtf"; InfoAfterFile: "installer_complete_el.rtf"
 
 ; Note: Greek messages use local Greek.isl (official Inno translation)
+; Note: Greek info pages are regenerated during the installer build pipeline
 ; English messages serve as fallback
 
 [CustomMessages]

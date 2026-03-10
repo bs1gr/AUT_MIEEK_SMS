@@ -374,3 +374,120 @@ def test_auto_install_status_not_found(client):
     assert data["status"] == "not_found"
     assert data["phase"] == "not_found"
     assert data["phase_history"] == []
+
+
+def test_auto_install_status_invalid_job_id_returns_not_found(client):
+    """Invalid job ids must not be used to build filesystem paths."""
+    resp = client.get("/control/api/maintenance/updates/auto-install/not-a-valid-job-id/status")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "not_found"
+    assert data["phase"] == "not_found"
+
+
+def test_updates_check_native_uses_asset_digest_without_sha_sidecar(client, monkeypatch):
+    """Update checks should surface installer digest metadata even without .sha256 assets."""
+    from backend.routers.control import maintenance
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(
+            environment=RuntimeEnvironment.DEVELOPMENT,
+            is_docker=False,
+            is_ci=False,
+            source="test",
+        ),
+    )
+    monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
+    monkeypatch.setattr(
+        maintenance,
+        "_fetch_github_release",
+        lambda channel="stable": {
+            "tag_name": "v1.0.1",
+            "html_url": "https://example.invalid/release",
+            "name": "Installer-only release",
+            "body": "Notes",
+            "assets": [
+                {
+                    "name": "SMS_Installer_1.0.1.exe",
+                    "browser_download_url": "https://example.invalid/sms.exe",
+                    "digest": "sha256:" + ("deadbeef" * 8),
+                }
+            ],
+        },
+    )
+
+    resp = client.get("/control/api/maintenance/updates/check")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["update_available"] is True
+    assert data["installer_hash"] == ("deadbeef" * 8)
+
+
+def test_auto_install_update_native_windows_uses_asset_digest(client, monkeypatch, tmp_path):
+    """Auto-install should verify digest metadata from installer asset when no sidecar exists."""
+    from backend.routers.control import maintenance
+    import backend.environment as environment_module
+
+    monkeypatch.setattr(
+        environment_module,
+        "get_runtime_context",
+        lambda: RuntimeContext(
+            environment=RuntimeEnvironment.DEVELOPMENT,
+            is_docker=False,
+            is_ci=False,
+            source="test",
+        ),
+    )
+    monkeypatch.setattr(maintenance, "_is_native_windows", lambda: True)
+    monkeypatch.setattr(maintenance, "_get_version", lambda: "1.0.0")
+    monkeypatch.setattr(
+        maintenance,
+        "_fetch_github_release",
+        lambda channel="stable": {
+            "tag_name": "v1.0.1",
+            "html_url": "https://example.invalid/release",
+            "assets": [
+                {
+                    "name": "SMS_Installer_1.0.1.exe",
+                    "browser_download_url": "https://example.invalid/sms.exe",
+                    "digest": "sha256:" + ("deadbeef" * 8),
+                }
+            ],
+        },
+    )
+
+    def _mock_download_file(_url, destination, progress_callback=None):
+        destination.write_bytes(b"x")
+        if progress_callback:
+            progress_callback(1, 1)
+        return "deadbeef" * 8
+
+    monkeypatch.setattr(maintenance, "_download_file", _mock_download_file)
+    monkeypatch.setattr(maintenance, "_get_updates_download_dir", lambda: tmp_path)
+
+    class _Proc:
+        pid = 4242
+
+    monkeypatch.setattr(maintenance.subprocess, "Popen", lambda *args, **kwargs: _Proc())
+
+    def _start_sync(job_id, payload, current_version):
+        maintenance._run_auto_update_job(job_id, payload, current_version)
+
+    monkeypatch.setattr(maintenance, "_start_auto_update_job", _start_sync)
+
+    resp = client.post(
+        "/control/api/maintenance/updates/auto-install",
+        json={"channel": "stable", "install_mode": "silent"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    job_id = data["details"]["job_id"]
+
+    status_resp = client.get(f"/control/api/maintenance/updates/auto-install/{job_id}/status")
+    assert status_resp.status_code == 200
+    status_data = status_resp.json()
+    assert status_data["status"] == "completed"
+    assert status_data["installer_sha256"] == ("deadbeef" * 8)

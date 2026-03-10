@@ -35,6 +35,8 @@ $InstallerScriptPath = [System.IO.Path]::GetFullPath($InstallerScriptPath)
 $InstallerDir = Split-Path -Parent $InstallerScriptPath
 
 $generatedAllowlist = @(
+    'installer\installer_welcome_el.rtf',
+    'installer\installer_complete_el.rtf',
     'installer\wizard_image.bmp',
     'installer\wizard_small.bmp',
     'installer\dist\SMS_Manager.exe'

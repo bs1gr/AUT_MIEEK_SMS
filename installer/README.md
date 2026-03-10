@@ -7,7 +7,7 @@ This directory contains the Inno Setup installer configuration and code signing 
 **Major Updates:**
 
 - ✅ **Upgrade Profile-Drift Prevention**: Installer now preserves existing PostgreSQL configuration during upgrades (prevents silent switch to local SQLite)
-- ✅ **Release Build Alignment**: Greek installer info pages now use tracked `.rtf` assets so GitHub Actions release builds compile successfully
+- ✅ **Release Build Alignment**: Greek installer info pages are regenerated as `.rtf` assets during installer builds for reliable CI compilation and correct CP1253 rendering
 - ✅ **Secure Profile Defaults**: Fresh installs stay local-first while remote PostgreSQL remains explicit opt-in
 - ✅ **Control Panel Auto-Updater**: Threaded download with SHA256 verification and installer launch
 - ✅ **Database Management Panel**: Backup, diagnostics, and user admin consolidated in Control Panel

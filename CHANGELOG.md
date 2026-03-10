@@ -8,20 +8,17 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
-
-
-
-
-## [1.18.11] - 2026-03-09
+## [1.18.12] - 2026-03-10
 
 ### Fixed
-- **installer**: point Greek installer info pages to tracked `.rtf` assets so GitHub Actions release builds can compile and upload release artifacts
-
-### Build
+- **security**: harden maintenance/update path handling and backup path validation against uncontrolled path input
+- **installer**: restore generated Greek RTF pipeline for Inno Setup builds and align builder validation with version cache
 - **release**: prepare corrective patch release after `v1.18.10` published without installer assets
-
-### Operations
 - **guardrails**: add tracked-input validation for installer assets in pre-commit checks, local installer builds, and release CI to block local-only file references before publication
+
+### Verification
+- **installer**: fresh local `v1.18.12` installer build, signing, and smoke validation completed successfully
+- **backend**: targeted maintenance/database security regression tests passing
 
 ## [1.18.10] - 2026-03-09
 

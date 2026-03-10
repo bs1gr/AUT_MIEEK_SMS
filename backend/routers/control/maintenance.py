@@ -10,6 +10,7 @@ import json
 import hashlib
 import logging
 import os
+import re
 import subprocess
 import threading
 import urllib.request
@@ -23,6 +24,7 @@ from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel, Field
 
 from backend.control_auth import require_control_admin
+from backend.security.path_validation import validate_filename, validate_path
 
 from .common import _hidden_window_kwargs
 
@@ -120,10 +122,29 @@ class AutoUpdateStatusResponse(BaseModel):
 
 _AUTO_UPDATE_JOBS: Dict[str, Dict[str, Any]] = {}
 _AUTO_UPDATE_LOCK = threading.Lock()
+_AUTO_UPDATE_JOB_ID_RE = re.compile(r"^[0-9a-f]{32}$")
 
 
 def _host_updater_trigger_dir() -> Path:
     return Path(os.environ.get("SMS_HOST_UPDATER_TRIGGER_DIR", "/app/data/.triggers"))
+
+
+def _validate_auto_update_job_id(job_id: str) -> str:
+    """Validate updater job ids before using them in filesystem paths."""
+    if not _AUTO_UPDATE_JOB_ID_RE.fullmatch(job_id):
+        raise ValueError("Invalid updater job id")
+    return job_id
+
+
+def _resolve_host_updater_json_path(job_id: str, prefix: str) -> Path:
+    """Resolve a host updater JSON file within the trigger directory safely."""
+    trigger_dir = _host_updater_trigger_dir()
+    safe_job_id = _validate_auto_update_job_id(job_id)
+    filename = f"{prefix}_{safe_job_id}.json"
+    validate_filename(filename, [".json"])
+    candidate = (trigger_dir / filename).resolve()
+    validate_path(trigger_dir, candidate)
+    return candidate
 
 
 def _host_updater_bridge_enabled() -> bool:
@@ -152,11 +173,11 @@ def _host_updater_bridge_enabled() -> bool:
 
 
 def _host_updater_trigger_file(job_id: str) -> Path:
-    return _host_updater_trigger_dir() / f"update_request_{job_id}.json"
+    return _resolve_host_updater_json_path(job_id, "update_request")
 
 
 def _host_updater_status_file(job_id: str) -> Path:
-    return _host_updater_trigger_dir() / f"update_status_{job_id}.json"
+    return _resolve_host_updater_json_path(job_id, "update_status")
 
 
 def _write_host_updater_trigger(job_id: str, payload: AutoUpdateRequest, current_version: str) -> Path:
@@ -178,7 +199,10 @@ def _write_host_updater_trigger(job_id: str, payload: AutoUpdateRequest, current
 
 
 def _read_host_updater_status(job_id: str) -> Optional[Dict[str, Any]]:
-    status_file = _host_updater_status_file(job_id)
+    try:
+        status_file = _host_updater_status_file(job_id)
+    except ValueError:
+        return None
     if not status_file.exists():
         return None
     try:
@@ -365,6 +389,7 @@ def _run_auto_update_job(job_id: str, payload: AutoUpdateRequest, current_versio
                 continue
             if name.endswith(".exe") and not installer_url:
                 installer_url = url
+                installer_hash = installer_hash or _asset_sha256(asset)
             elif name.endswith(".sha256") and not installer_hash:
                 installer_hash = _download_text(url)
 
@@ -774,6 +799,7 @@ def check_for_updates(_request: Request, channel: Literal["stable", "preview"] =
 
             if name.endswith(".exe") and not installer_url:
                 installer_url = url
+                installer_hash = installer_hash or _asset_sha256(asset)
             elif name.endswith(".sha256") and not installer_hash:
                 installer_hash = _download_text(url)
 
@@ -946,11 +972,16 @@ def auto_install_update(payload: AutoUpdateRequest, _request: Request, _auth=Dep
 @router.get("/maintenance/updates/auto-install/{job_id}/status", response_model=AutoUpdateStatusResponse)
 def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends(require_control_admin)):
     """Get smart updater job progress and installer launch state."""
-    _sync_job_from_host_updater_status(job_id)
-    job = _get_auto_update_job(job_id)
+    try:
+        safe_job_id = _validate_auto_update_job_id(job_id)
+    except ValueError:
+        safe_job_id = job_id
+
+    _sync_job_from_host_updater_status(safe_job_id)
+    job = _get_auto_update_job(safe_job_id)
     if not job:
         return AutoUpdateStatusResponse(
-            job_id=job_id,
+            job_id=safe_job_id,
             status="not_found",
             phase="not_found",
             progress_percent=0,
@@ -982,8 +1013,27 @@ def _extract_sha256(raw_hash: Optional[str]) -> Optional[str]:
     if not raw_hash:
         return None
     token = raw_hash.strip().split()[0].strip()
+    if token.lower().startswith("sha256:"):
+        token = token.split(":", 1)[1].strip()
     if len(token) == 64 and all(c in "0123456789abcdefABCDEF" for c in token):
         return token
+    return None
+
+
+def _asset_sha256(asset: Dict[str, Any]) -> Optional[str]:
+    """Extract SHA256 from release asset digest metadata or legacy sidecar content."""
+    digest = asset.get("digest")
+    if isinstance(digest, str):
+        parsed = _extract_sha256(digest)
+        if parsed:
+            return parsed
+
+    sha_value = asset.get("sha256")
+    if isinstance(sha_value, str):
+        parsed = _extract_sha256(sha_value)
+        if parsed:
+            return parsed
+
     return None
 
 
@@ -1034,6 +1084,7 @@ def _normalize_release(raw: Dict[str, Any]) -> Dict[str, Any]:
                 {
                     "name": aname,
                     "browser_download_url": f"https://github.com/bs1gr/AUT_MIEEK_SMS/releases/download/{tag}/{aname}",
+                    "digest": a.get("digest"),
                 }
             )
     else:
@@ -1042,7 +1093,7 @@ def _normalize_release(raw: Dict[str, Any]) -> Dict[str, Any]:
             aname = a.get("name")
             dl = a.get("browser_download_url")
             if aname and dl:
-                assets_out.append({"name": aname, "browser_download_url": dl})
+                assets_out.append({"name": aname, "browser_download_url": dl, "digest": a.get("digest")})
 
     return {
         "tag_name": tag,

@@ -1,11 +1,59 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.11 (Corrective Release Published - Installer Asset Publication Fixed)
-**Last Updated**: March 9, 2026
-**Status**: ✅ v1.18.11 RELEASE PUBLISHED | ⚠️ v1.18.10 TAGGED, INSTALLER ASSET BUILD FAILED
+**Current Version**: 1.18.12 (next corrective candidate staging in progress)
+**Last Updated**: March 10, 2026
+**Status**: ⚠️ `v1.18.10` + `v1.18.11` ARCHIVED AS PRERELEASES | ✅ `v1.18.9` retained live pending next corrective patch
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Post-Release Verification Complete** (corrective installer asset publication release)
+**Current Phase**: **Next Corrective Release Candidate Preparation**
 **Current Branch**: `main` (HEAD: fabbae5dc - installer tracked-input guardrails)
+
+---
+
+## 🚀 Next Corrective Release Candidate (March 10, 2026)
+
+**Status**: ✅ **VERIFIED SCOPE STAGED | RELEASE PATH PREPARED**
+
+### Exact-Tag Release Cleanup
+
+- ✅ Archived `v1.18.10` as a prerelease with an `ARCHIVED – Legacy release` banner
+- ✅ Archived `v1.18.11` as a prerelease with an `ARCHIVED – Legacy release` banner
+- ✅ Confirmed `v1.18.9` remains the live fallback release while the next corrective patch is prepared
+
+### Verified Candidate Scope (staged)
+
+- ✅ **Security hardening**
+  - `backend/services/database_manager.py`
+  - `backend/routers/control/maintenance.py`
+  - `backend/tests/test_control_maintenance.py`
+  - `backend/tests/test_database_manager_security.py`
+- ✅ **Installer builder repair**
+  - `INSTALLER_BUILDER.ps1`
+  - `fix_greek_encoding_permanent.py`
+  - `installer/GREEK_ENCODING_AUDIT.ps1`
+  - `installer/README.md`
+  - `installer/SMS_Installer.iss`
+  - `installer/installer_welcome_el.rtf`
+  - `installer/installer_complete_el.rtf`
+  - `scripts/validate_installer_release_inputs.ps1`
+
+### Verification Evidence
+
+- ✅ Focused backend verification passed: `20 passed`
+  - `backend/tests/test_control_maintenance.py`
+  - `backend/tests/test_database_manager_security.py`
+- ✅ `COMMIT_READY.ps1 -Quick -Snapshot` completed successfully
+- ✅ Fresh state snapshot recorded: `artifacts/state/STATE_2026-03-10_101933.md`
+- ✅ Fresh local installer verification passed for `v1.18.12`
+  - Local build produced `dist/SMS_Installer_1.18.12.exe`
+  - Authenticode signing succeeded (`AUT MIEEK`)
+  - Installer smoke validation passed
+
+### Next Release Path
+
+- 🎯 Prepare the next patch from the staged verified scope only
+- 🎯 Keep unrelated workflow/doc-policy edits and CSV drift out of the release candidate commit
+- 🎯 Bump version metadata for the next corrective patch after final scope confirmation
+- 🎯 Run installer build/sign/smoke verification again on the final tagged candidate before publication
 
 ---
 

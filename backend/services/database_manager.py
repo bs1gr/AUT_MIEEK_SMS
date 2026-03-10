@@ -23,11 +23,13 @@ from pathlib import Path
 from typing import Any
 
 from backend.config import get_settings
+from backend.security.path_validation import validate_filename, validate_path
 
 logger = logging.getLogger(__name__)
 
 # Backup storage directory
 _BACKUP_DIR: Path | None = None
+_ALLOWED_BACKUP_EXTENSIONS = [".sql", ".sql.gz"]
 
 
 def _get_backup_dir() -> Path:
@@ -47,6 +49,30 @@ def _get_backup_dir() -> Path:
 
     _BACKUP_DIR.mkdir(parents=True, exist_ok=True)
     return _BACKUP_DIR
+
+
+def _validate_backup_filename(filename: str) -> str:
+    """Validate a backup filename before any filesystem usage."""
+    validate_filename(filename, _ALLOWED_BACKUP_EXTENSIONS)
+    return filename
+
+
+def _resolve_backup_path(filename: str) -> Path:
+    """Resolve a validated backup filename within the backup directory."""
+    backup_dir = _get_backup_dir()
+    safe_filename = _validate_backup_filename(filename)
+    candidate = (backup_dir / safe_filename).resolve()
+    validate_path(backup_dir, candidate)
+    return candidate
+
+
+def _resolve_metadata_path(filepath: Path) -> Path:
+    """Resolve the metadata sidecar path for a validated backup path."""
+    backup_dir = _get_backup_dir()
+    validate_path(backup_dir, filepath)
+    meta_path = (filepath.parent / f"{filepath.name}.meta.json").resolve()
+    validate_path(backup_dir, meta_path)
+    return meta_path
 
 
 def _pg_dump_available() -> bool:
@@ -460,35 +486,27 @@ def list_backups(instance_name: str | None = None) -> list[dict[str, Any]]:
 
 def delete_backup(filename: str) -> bool:
     """Delete a backup file and its metadata."""
-    backup_dir = _get_backup_dir()
-    filepath = backup_dir / filename
-
-    # Security: ensure file is within backup dir
-    if not filepath.resolve().is_relative_to(backup_dir.resolve()):
+    try:
+        filepath = _resolve_backup_path(filename)
+    except ValueError:
         raise ValueError("Invalid backup filename")
 
     if not filepath.exists():
         return False
 
     filepath.unlink()
-    # Remove metadata too
-    meta_path = filepath.with_suffix(filepath.suffix + ".meta.json")
+    meta_path = _resolve_metadata_path(filepath)
     if meta_path.exists():
         meta_path.unlink()
-    # For .sql.gz files, metadata might be at .sql.gz.meta.json
-    meta_path2 = backup_dir / (filename + ".meta.json")
-    if meta_path2.exists():
-        meta_path2.unlink()
 
     return True
 
 
 def get_backup_path(filename: str) -> Path | None:
     """Get the full path to a backup file for download."""
-    backup_dir = _get_backup_dir()
-    filepath = backup_dir / filename
-
-    if not filepath.resolve().is_relative_to(backup_dir.resolve()):
+    try:
+        filepath = _resolve_backup_path(filename)
+    except ValueError:
         return None
     if not filepath.exists():
         return None
@@ -506,10 +524,9 @@ def restore_backup(instance: dict[str, Any], filename: str) -> dict[str, Any]:
     Uses psql subprocess when available, otherwise psycopg execute.
     Only supports uncompressed .sql files or .sql.gz (auto-decompressed).
     """
-    backup_dir = _get_backup_dir()
-    filepath = backup_dir / filename
-
-    if not filepath.resolve().is_relative_to(backup_dir.resolve()):
+    try:
+        filepath = _resolve_backup_path(filename)
+    except ValueError:
         raise ValueError("Invalid backup filename")
     if not filepath.exists():
         raise FileNotFoundError(f"Backup file not found: {filename}")
@@ -639,13 +656,16 @@ def _write_backup_metadata(
         "size_bytes": size,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    meta_path = filepath.parent / (filepath.name + ".meta.json")
+    meta_path = _resolve_metadata_path(filepath)
     meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 
 def _read_backup_metadata(filepath: Path) -> dict[str, Any]:
     """Read backup metadata sidecar if it exists."""
-    meta_path = filepath.parent / (filepath.name + ".meta.json")
+    try:
+        meta_path = _resolve_metadata_path(filepath)
+    except ValueError:
+        return {}
     if meta_path.exists():
         try:
             return json.loads(meta_path.read_text(encoding="utf-8"))

@@ -79,7 +79,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.18.11
+Version: 1.18.12
     Created: 2025-12-04
     Updated: 2026-03-09
 
@@ -127,6 +127,7 @@ if (-not $Version) {
 
 $CurrentVersion = $Version
 $WizardImageScript = Join-Path $InstallerDir "create_wizard_images.ps1"
+$WizardVersionCacheFile = Join-Path $InstallerDir ".version_cache"
 $SignerScript = Join-Path $InstallerDir "SIGN_INSTALLER.ps1"
 $InnoSetupScript = Join-Path $InstallerDir "SMS_Installer.iss"
 $InstallerInputValidator = Join-Path $ProjectRoot "scripts\validate_installer_release_inputs.ps1"
@@ -234,11 +235,19 @@ function Test-VersionConsistency {
         $lastModified = [Math]::Max($largeTime.Ticks, $smallTime.Ticks) | Get-Date
         Write-Result Info "Wizard images last updated: $lastModified"
 
-        $timeSinceUpdate = (Get-Date) - $lastModified
-        if ($timeSinceUpdate.TotalMinutes -gt 60) {
-            $hoursOld = [Math]::Round($timeSinceUpdate.TotalHours)
-            Write-Result Warning "Wizard images may be outdated - last modified $hoursOld hrs ago"
-            $issues += "Wizard images potentially outdated"
+        if (Test-Path $WizardVersionCacheFile) {
+            $cachedVersion = (Get-Content $WizardVersionCacheFile -Raw).Trim()
+            Write-Result Info "Wizard image cache version: $cachedVersion"
+
+            if ($cachedVersion -eq $fileVersion) {
+                Write-Result Success "Wizard images match VERSION cache ✓"
+            } else {
+                Write-Result Warning "Wizard image cache does not match VERSION file"
+                $issues += "Wizard images out of sync with VERSION cache"
+            }
+        } else {
+            Write-Result Warning "Wizard image version cache missing"
+            $issues += "Wizard image version cache missing"
         }
     } else {
         if (-not (Test-Path $wizardLarge)) { $issues += "wizard_image.bmp missing" }
@@ -353,35 +362,35 @@ function Invoke-WizardImageRegeneration {
 function Invoke-GreekEncodingFix {
     <#
     .SYNOPSIS
-        Fix Greek text files encoding for Inno Setup compilation.
+        Regenerate Greek RTF info files for Inno Setup compilation.
     .DESCRIPTION
-        Converts proper UTF-8 Greek text to Windows-1253 (CP1253) for Inno Setup.
-        This is a build-time transformation that ensures proper Greek text handling
-        in the installer UI, regardless of how the files are stored in git.
+        Regenerates Greek RTF files from UTF-8 source strings and emits CP1253
+        RTF escapes for reliable Inno Setup rendering. This keeps the Greek info
+        pages version-aware and avoids depending on stale tracked artifacts.
     #>
     Write-Result Info "═══════════════════════════════════════════════════════════════"
-    Write-Result Info "GREEK TEXT ENCODING FIX (for Inno Setup)"
+    Write-Result Info "GREEK RTF GENERATION (for Inno Setup)"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
 
     try {
         $pythonScript = Join-Path $PSScriptRoot "fix_greek_encoding_permanent.py"
         if (-not (Test-Path $pythonScript)) {
-            Write-Result Warning "Greek encoding fix script not found, skipping Greek text conversion"
+            Write-Result Warning "Greek RTF generator script not found, skipping Greek asset generation"
             return $true
         }
 
-        Write-Result Info "Running Greek text encoding conversion..."
+        Write-Result Info "Generating Greek installer RTF assets..."
         & python $pythonScript 2>&1 | ForEach-Object { Write-Result Info "  $_" }
 
         if ($LASTEXITCODE -eq 0) {
-            Write-Result Success "Greek text files encoded properly for Inno Setup ✓"
+            Write-Result Success "Greek RTF files regenerated for Inno Setup ✓"
             return $true
         } else {
-            Write-Result Error "Greek encoding conversion failed (exit code: $LASTEXITCODE)"
+            Write-Result Error "Greek RTF generation failed (exit code: $LASTEXITCODE)"
             return $false
         }
     } catch {
-        Write-Result Error "Greek encoding fix error: $_"
+        Write-Result Error "Greek RTF generation error: $_"
         return $false
     }
 }
@@ -668,13 +677,13 @@ switch ($Action) {
             exit 1
         }
 
-        # Greek encoding audit (before wizard regeneration)
-        Invoke-GreekEncodingAudit | Out-Null
-
-        # Fix Greek text encoding (build-time transformation)
+        # Generate Greek installer RTF assets first
         if (-not (Invoke-GreekEncodingFix)) {
             exit 1
         }
+
+        # Greek encoding audit (after regeneration)
+        Invoke-GreekEncodingAudit | Out-Null
 
         if (-not (Invoke-SmsManagerBuild)) {
             exit 1
@@ -718,6 +727,11 @@ switch ($Action) {
     'release' {
         # Complete release flow
         if (-not (Invoke-InstallerReleaseInputValidation)) {
+            exit 1
+        }
+
+        # Generate Greek installer RTF assets first
+        if (-not (Invoke-GreekEncodingFix)) {
             exit 1
         }
 

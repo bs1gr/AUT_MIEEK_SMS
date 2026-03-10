@@ -1,18 +1,18 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-09
-**Project Version (documented)**: 1.18.11
-**Version**: 1.18.11
+**Last Updated**: 2026-03-10
+**Project Version (documented)**: 1.18.12
+**Version**: 1.18.12
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ✅ **v1.18.11 CORRECTIVE RELEASE PUBLISHED**
+**Status**: ✅ **PRODUCTION LIVE** | ⚠️ **v1.18.12 CORRECTIVE CANDIDATE STAGING**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 9, 2026)**: ✅ **Production Live + corrective `v1.18.11` release published successfully**
-> - `v1.18.10` tag/release page was created, but installer asset upload failed in CI because the workflow referenced ignored Greek `.txt` files
-> - `v1.18.11` corrected the release path by switching to tracked Greek `.rtf` installer assets
-> - Release assets verified on GitHub: `SMS_Installer_1.18.11.exe` + `SMS_Installer_1.18.11.exe.sha256`
-> - Post-release hardening added tracked-input guardrails to pre-commit, local installer builds, and release CI
+> **Current Status (Mar 10, 2026)**: ⚠️ **Production live on fallback `v1.18.9` while corrective `v1.18.12` candidate is being prepared**
+> - `v1.18.10` and `v1.18.11` were archived as prereleases after exact-tag cleanup
+> - The next corrective candidate restores generated Greek `.rtf` installer assets in the build pipeline
+> - The next corrective candidate hardens backup/update path handling and supports installer digest metadata without requiring `.sha256` sidecars
+> - A fresh local installer build, signing, and smoke verification completed successfully for `v1.18.12`
 > - v1.18.7: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
 > - v1.18.6: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
 > - Post-release development: Type safety improvements, testing stability, ESLint cleanup
