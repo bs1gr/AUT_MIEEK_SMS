@@ -1,9 +1,12 @@
 # Pre-Deployment Execution Walkthrough (Jan 8, 2026)
 
+> **Historical document (Jan 2026):** This walkthrough documents a specific January 2026 pre-deployment validation run.
+> For current deployment workflow, use `NATIVE.ps1` / `DOCKER.ps1`, `docs/plans/UNIFIED_WORK_PLAN.md`, and `docs/DOCUMENTATION_INDEX.md`.
+
 **Timeline**: January 8, 2026 (1-2 hours)
 **Reference**: [PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md](PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md)
-**Owner**: DevOps Lead / Tech Lead
-**Status**: Ready for execution
+**Owner**: Historical deployment execution record
+**Status**: ⚠️ Historical execution walkthrough
 
 ---
 
@@ -110,7 +113,7 @@ foreach ($file in $requiredFiles) {
 - ❌ Files missing
   - Action: Locate missing files or regenerate from templates
   - Decision: Cannot proceed without deployment plan
-  - Contact: Tech lead for file recovery
+  - Contact: Owner for file recovery guidance
 
 ### Step 1.5: Git Log Verification
 
@@ -605,7 +608,7 @@ if ($errors.Count -eq 0) {
 ```text
 **If Syntax Errors Found**:
 - ❌ Script has errors
-  - Action: Do not execute, contact tech lead
+  - Action: Do not execute; contact the owner
   - Decision: Cannot proceed with invalid scripts
 
 ---
@@ -770,10 +773,10 @@ if (Test-Path "frontend/package-lock.json") {
 
 **DECISION: ✅ GO FOR DEPLOYMENT**
 
-**Authorized By**: [Tech Lead Name], Date: [Date], Time: [Time]
+**Authorized By**: [Owner], Date: [Date], Time: [Time]
 
 **Next Steps**:
-1. Confirm GO decision with stakeholders
+1. Confirm GO decision with the owner
 2. Proceed to Phase 1 of [STAGING_DEPLOYMENT_PLAN_$11.18.3.md](STAGING_DEPLOYMENT_PLAN_$11.18.3.md)
 3. Execute `DOCKER.ps1 -Stop` (if containers running)
 4. Execute `DOCKER.ps1 -Start` to begin deployment
@@ -795,7 +798,7 @@ if (Test-Path "frontend/package-lock.json") {
 
 **If NO-GO Occurs**:
 1. Document issue in DEPLOYMENT_STATUS_TRACKER.md
-2. Contact tech lead
+2. Contact the owner
 3. Create action plan to resolve issue
 4. Reschedule validation for next day
 5. Do NOT attempt deployment with NO-GO status
@@ -807,15 +810,15 @@ if (Test-Path "frontend/package-lock.json") {
 | Issue | Contact | Escalation Time |
 |-------|---------|-----------------|
 | Database backup issues | Database Admin | 30 min |
-| Docker/infrastructure | DevOps Lead | 15 min |
-| Script syntax errors | Tech Lead | Immediate |
+| Docker/infrastructure | Deployment operator / owner | 15 min |
+| Script syntax errors | Owner | Immediate |
 | Network connectivity | Network Admin | 30 min |
 | Disk space issues | System Admin | 1 hour |
 | Git/repository issues | Git Admin | 15 min |
 
 ---
 
-**Document Status**: ✅ Ready for execution
+**Document Status**: ⚠️ Historical execution record
 **Created**: January 7, 2026
-**Owner**: DevOps Lead
-**Next Review**: January 8, 2026 (Day of execution)
+**Owner**: Historical deployment execution record
+**Next Review**: Historical snapshot — no scheduled review

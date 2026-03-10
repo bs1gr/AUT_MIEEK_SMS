@@ -1,8 +1,13 @@
 # PHASE 6 PLANNING - Feature Selection & Next Steps
 
 **Date**: January 31, 2026
-**Status**: 📋 PLANNING - Ready for Stakeholder Selection
-**Version**: 1.17.6 (Production Ready)
+**Status**: ⚠️ Historical planning snapshot — use `docs/plans/UNIFIED_WORK_PLAN.md` for current status
+**Version**: 1.17.6 (historical snapshot)
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical planning reference only
 
 ---
 
@@ -10,7 +15,7 @@
 
 The Student Management System $11.18.3 is **production-ready** and fully deployed. Phase 5 (Production Deployment & Operations) is complete with all systems operational.
 
-**Phase 6 will focus on**: Selected feature development based on organizational priorities.
+**Phase 6 will focus on**: Selected feature development based on owner priorities.
 
 ---
 
@@ -37,7 +42,7 @@ The Student Management System $11.18.3 is **production-ready** and fully deploye
 - ✅ Monitoring dashboards operational
 - ✅ User training conducted
 - ✅ Operational procedures documented
-- ✅ Support team trained
+- ✅ Support procedures verified
 
 **Why Now**: System is ready, users are waiting, real-world feedback is valuable.
 
@@ -175,7 +180,7 @@ The Student Management System $11.18.3 is **production-ready** and fully deploye
 
 ## ✅ Phase 6 Decision Process
 
-### Step 1: Stakeholder Input (Today)
+### Step 1: Owner Input (Today)
 - [ ] Review feature options
 - [ ] Assess organizational priorities
 - [ ] Consider resource availability
@@ -206,7 +211,7 @@ The Student Management System $11.18.3 is **production-ready** and fully deploye
 ### Action 1: Go-Live Decision
 ```
 Status: Ready to execute
-When: Organization to decide
+When: Owner to decide
 Command: .\DOCKER.ps1 -Start
 Documentation: docs/deployment/PHASE5_GOLIVE_SUMMARY_JAN31.md
 ```
@@ -215,13 +220,13 @@ Documentation: docs/deployment/PHASE5_GOLIVE_SUMMARY_JAN31.md
 ```
 Choose 1-2 priority features from 5 options
 Consider: Timeline, effort, business value, risk
-Inform: Development team of selection
+Record: Update the active work plan with the selected direction
 ```
 
 ### Action 3: Resource Planning
 ```
 Review availability for next phase
-Estimate team bandwidth
+Estimate owner bandwidth
 Plan milestone schedule
 Setup communication plan
 ```
@@ -253,18 +258,17 @@ Setup communication plan
 
 ## 📞 Communication Plan
 
-### Stakeholders to Notify
-- [ ] Executive team (deployment readiness)
-- [ ] Department heads (training schedule)
-- [ ] Operations team (monitoring setup)
-- [ ] Support team (escalation procedures)
-- [ ] Development team (Phase 6 planning)
+### Operational Audiences (If Applicable)
+- [ ] Owner confirms deployment readiness
+- [ ] Affected user groups receive training/schedule updates as needed
+- [ ] Operations procedures are prepared
+- [ ] Support/escalation procedures are documented
 
 ### Communication Timeline
 - **Today**: Phase 5 completion notification
-- **Tomorrow**: Phase 6 feature selection request
+- **Tomorrow**: Owner finalizes Phase 6 feature selection
 - **Day 3**: Planning & resource allocation
-- **Day 5**: Team kickoff for selected feature
+- **Day 5**: Implementation kickoff for selected feature
 - **Day 7**: Go-live decision execution
 
 ---
@@ -294,7 +298,7 @@ Setup communication plan
 ## ✅ Sign-Off
 
 **Phase 5 Status**: ✅ **COMPLETE - PRODUCTION READY**
-**Phase 6 Status**: 📋 **PLANNING - AWAITING STAKEHOLDER DECISION**
+**Phase 6 Status**: 📋 **Historical planning snapshot — owner decision model now documented in `UNIFIED_WORK_PLAN.md`**
 **Recommendation**: Proceed with Phase 6 Option 1 (Production Deployment) + parallel planning for Option 2/3/4
 
 ---
@@ -309,7 +313,7 @@ Setup communication plan
 
 ---
 
-**Status**: Ready for Phase 6 execution
-**Approved**: Yes
+**Status**: Historical reference only
+**Approved**: Historical planning snapshot
 **Date**: January 31, 2026
 **Next Review**: February 1, 2026

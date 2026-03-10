@@ -9,6 +9,8 @@
 
 This guide provides step-by-step instructions for deploying the Advanced Search & Filtering feature in production and development environments.
 
+> **Workflow note**: For the current repository deployment workflow, use `NATIVE.ps1` for development/testing and `DOCKER.ps1` for production deployment. Treat this file as a feature-specific deployment guide, not the primary deployment authority.
+
 ## Pre-Deployment Checklist
 
 Before deploying Feature #128, verify:
@@ -20,7 +22,7 @@ Before deploying Feature #128, verify:
 - [ ] Staging environment validated
 - [ ] Release notes prepared
 - [ ] Documentation reviewed
-- [ ] Team notified of deployment
+- [ ] Owner/affected users notified of deployment window as needed
 
 ---
 
@@ -545,7 +547,7 @@ tail -f logs/application.log | grep -i search
 
 ### Deployment Day
 
-- [ ] Communication sent to stakeholders
+- [ ] Owner confirms deployment communication needs are covered
 - [ ] Maintenance window scheduled
 - [ ] Monitor deployed (Prometheus/Grafana ready)
 - [ ] Rollback plan reviewed with team
@@ -679,10 +681,10 @@ After deployment, verify these baseline metrics:
 4. Review application logs
 
 **Emergency Rollback**:
-- Contact DevOps team
+- Contact the owner/on-call operator
 - Execute rollback procedure (Part 7)
 - Restore from backup
-- Notify stakeholders
+- Notify affected users/operators as needed
 
 ---
 

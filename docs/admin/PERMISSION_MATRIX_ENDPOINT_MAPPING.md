@@ -1,10 +1,15 @@
 # Permission Matrix - Complete Endpoint Mapping
 
 **Created**: January 11, 2026
-**Status**: PHASE 2 STEP 1 - DESIGN COMPLETE
+**Status**: ⚠️ Historical RBAC design snapshot
 **Version**: 1.0
 **Total Endpoints Mapped**: 79 admin endpoints
 **Permission Coverage**: 100% of admin operations
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical RBAC design reference only
 
 ---
 
@@ -242,7 +247,7 @@ This document provides a complete mapping of all 79 admin endpoints to their req
 
 ## 🚀 Next Steps (Phase 2 Step 2)
 
-After this design is approved:
+After this design is owner-approved:
 
 1. **Database Schema** (#90) - Create Permission + RolePermission tables
 2. **Data Seeding** - Seed 25 permissions + role mappings
@@ -253,6 +258,6 @@ After this design is approved:
 
 ---
 
-**Status**: ✅ PHASE 2 STEP 1 - COMPLETE
-**Approved**: Pending stakeholder review
+**Status**: ✅ PHASE 2 STEP 1 - COMPLETE (historical)
+**Approved**: Historical design review state
 **Date**: January 11, 2026

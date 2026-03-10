@@ -1,10 +1,12 @@
 # Deployment Runbook
 
-**Status**: Production Ready ($11.18.3)
+**Status**: Historical production-ready runbook snapshot ($11.18.3)
 **Last Updated**: 2025-12-11
 **Applies To**: $11.18.3+
 
 This runbook provides a concise, operational sequence for deploying, verifying, and rolling back the Student Management System (SMS).
+
+> **Solo developer note**: In current project operation, the owner acts as the primary decision-maker and on-call operator. References below to roles/teams should be interpreted operationally, not as separate stakeholder groups.
 
 ---
 
@@ -185,7 +187,7 @@ docker exec sms-fullstack sqlite3 /data/student_management.db "
 Compare against pre-incident baseline. If counts are unexpectedly low:
 - Log the issue for investigation
 - Consider restoring from earlier backup
-- Escalate to development team
+- Escalate into the owner/development work queue
 
 ---
 
@@ -197,7 +199,7 @@ Compare against pre-incident baseline. If counts are unexpectedly low:
 | DB schema (downgrade) | 5-10 min | Ops | Alembic downgrade + restart |
 | Full restore (backup) | 10-15 min | Ops | Includes DB integrity check |
 | Post-incident validation | +5 min | QA | Health checks + smoke tests |
-| **Total RTO** | **20 min** | - | From incident detection to production ready |
+| **Total RTO** | **20 min** | - | From incident detection to historical production-ready state |
 
 ---
 
@@ -207,10 +209,10 @@ Compare against pre-incident baseline. If counts are unexpectedly low:
 
 | Severity | Description | Examples | Response Time | Escalation |
 |----------|-------------|----------|---|---|
-| **Critical** | Service unavailable; data loss risk; widespread user impact | API down (500s); DB corruption; secrets exposed | <15 min | CTO + On-call DevOps |
-| **High** | Partial service degradation; temporary user impact | Slow API (>2s); auth failures for subset; 100+ rate limit errors | <30 min | Team Lead + DevOps |
-| **Medium** | Isolated issue; workaround available | Single feature broken; slow page (500-1000ms) | <1 hour | Team Lead |
-| **Low** | Cosmetic or non-critical; no user impact | UI typo; log message format issue | <1 day | Developer |
+| **Critical** | Service unavailable; data loss risk; widespread user impact | API down (500s); DB corruption; secrets exposed | <15 min | Owner + on-call operator |
+| **High** | Partial service degradation; temporary user impact | Slow API (>2s); auth failures for subset; 100+ rate limit errors | <30 min | Owner |
+| **Medium** | Isolated issue; workaround available | Single feature broken; slow page (500-1000ms) | <1 hour | Owner |
+| **Low** | Cosmetic or non-critical; no user impact | UI typo; log message format issue | <1 day | Owner/developer |
 
 ---
 
@@ -223,7 +225,7 @@ Compare against pre-incident baseline. If counts are unexpectedly low:
   - Check `docker ps` for container status
   - Review `docker logs sms-fullstack` (last 50 lines)
 - **Classify severity** using table above
-- **Notify stakeholders** via Slack incident channel
+- **Notify the owner and affected users** via the chosen incident channel
 
 **Minute 2-5: Immediate Mitigation**
 - If **Critical**: Initiate rollback procedure (section 4)
@@ -401,10 +403,10 @@ docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
 
 | Issue Type | Level 1 (First Response) | Level 2 (Escalate if) | Level 3 (Final) |
 |---|---|---|---|
-| Service Down | On-call Ops | Not resolved in 15 min | CTO + DB Admin |
-| Data Integrity | On-call Ops | Integrity check fails | CTO + Database Specialist |
-| Security (Secrets exposed) | On-call Ops | Confirmed exposure | CISO + CTO |
-| Unknown Error | On-call DevOps | Root cause not found in 20 min | Dev Team Lead |
+| Service Down | On-call operator | Not resolved in 15 min | Owner + database specialist support as needed |
+| Data Integrity | On-call operator | Integrity check fails | Owner + database specialist support as needed |
+| Security (Secrets exposed) | On-call operator | Confirmed exposure | Owner + security response workflow |
+| Unknown Error | On-call operator | Root cause not found in 20 min | Owner |
 
 ---
 
@@ -419,7 +421,7 @@ docker exec sms-fullstack curl -i http://localhost:8000/  # Check HTML response
 | **RTO (Recovery Time Objective)** | ≤ 20 minutes | 2-15 min depending on scenario | Ops |
 | **RPO (Recovery Point Objective)** | ≤ 1 hour | ~15 min (backups run every 15 min) | DevOps |
 | **MTTR (Mean Time To Repair)** | ≤ 30 minutes | ~20-25 min average | On-call |
-| **MTBF (Mean Time Between Failures)** | ≥ 720 hours (30 days) | ~200 hours (8+ days) during testing | Product |
+| **MTBF (Mean Time Between Failures)** | ≥ 720 hours (30 days) | ~200 hours (8+ days) during testing | Owner |
 
 ---
 
@@ -573,8 +575,8 @@ python -c "import secrets; print(secrets.token_urlsafe(48))"
 | Archive prior releases (≤ threshold) | Ops | Weekly batch or on major release | Weekly |
 | Dependency audit (`pip-audit`, `npm audit`) | CI | Automatic | Every commit |
 | **Backup verification** | Ops | Monthly restore test | Monthly |
-| **Disaster recovery drill** | Team | Full rollback/restore simulation | Quarterly |
-| **Security audit** | Security Team | Code review + secrets scan | Quarterly |
+| **Disaster recovery drill** | Owner | Full rollback/restore simulation | Quarterly |
+| **Security audit** | Owner | Code review + secrets scan | Quarterly |
 
 ---
 

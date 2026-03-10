@@ -454,7 +454,7 @@ Use this template in GitHub issue comments to track weekly progress:
 - [ ] 24-hour production monitoring plan
 - [ ] Rollback procedures documented
 - [ ] Release notes prepared
-- [ ] Team/stakeholder sign-off
+- [ ] Owner sign-off / verification recorded
 
 ---
 

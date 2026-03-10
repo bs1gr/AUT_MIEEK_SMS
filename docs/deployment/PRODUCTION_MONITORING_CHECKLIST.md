@@ -1,8 +1,12 @@
 # Production Monitoring Checklist
 
+> **Historical document (Jan 2026):** This checklist captures a production monitoring routine written for the early 2026 deployment context.
+> Role labels, escalation wording, and deployment references below are historical and should not be treated as current operating instructions.
+> For current status and active guidance, use `docs/plans/UNIFIED_WORK_PLAN.md`, `docs/DOCUMENTATION_INDEX.md`, and the active monitoring runbooks.
+
 **Version**: 1.0
 **Created**: January 31, 2026
-**For**: $11.18.3 Production Deployment
+**For**: Historical `$11.18.3` production deployment context
 
 ---
 
@@ -187,7 +191,7 @@
 1. Check Slack/Teams notifications
 2. Open incident response runbook: `docs/deployment/INCIDENT_RESPONSE_RUNBOOK.md`
 3. Follow emergency procedures
-4. Notify stakeholders immediately
+4. Notify the owner and any required external contacts immediately
 
 ### High Priority (Response within 5-15 min)
 

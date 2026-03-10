@@ -25,7 +25,7 @@
 
 3. ✅ **STAGING_DEPLOYMENT_PLAN_$11.18.3.md** (9,629 bytes)
    - Governance and timeline document
-   - Stakeholder communication plan
+   - Historical communication plan
    - Committed: `1328e76c5`
 
 4. ✅ **PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md** (7,451 bytes)
@@ -59,7 +59,7 @@
 8. ✅ **EXECUTIVE_SUMMARY_PHASE2_READY.md** (10,644 bytes)
    - High-level status summary
    - Immediate next steps by date
-   - Stakeholder action items
+   - Historical rollout action items
    - Committed: `1b7e5bce0`
 
 9. ✅ **PHASE2_DOCUMENTATION_HANDOFF.md** (New, 433 insertions)
@@ -162,7 +162,7 @@ docs/deployment/
 
 **Team Readiness**:
 - ✅ QUICK_REFERENCE_PHASE2.md ready for distribution (2-min read)
-- ✅ EXECUTIVE_SUMMARY available for stakeholders (5-min read)
+- ✅ EXECUTIVE_SUMMARY available for historical executive/archive readers (5-min read)
 - ✅ All role-specific documents prepared
 - ✅ Navigation established via DOCUMENTATION_INDEX.md
 - ✅ FAQ and troubleshooting included
@@ -199,7 +199,7 @@ docs/deployment/
 3. [ ] Approve pre-deployment procedures (15 min)
 4. [ ] Send team notification with links (5 min)
 
-### For DevOps Lead (Jan 7-8 Morning):
+### For Historical Deployment Operator (Jan 7-8 Morning):
 
 1. [ ] Read STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md (20 min)
 2. [ ] Verify all PowerShell/Docker commands (15 min)
@@ -231,7 +231,7 @@ docs/deployment/
 
 **Jan 10-20**: Validation & Sign-Off Period
 - Use: 24-hour monitoring checklist
-- Tech Lead approval for $11.18.3 readiness
+- Historical rollout owner approval for $11.18.3 readiness
 
 **Jan 20-24**: Phase 2 Preparation Week
 - Use: PHASE2_KICKOFF_TRANSITION_DOCUMENT.md
@@ -277,9 +277,9 @@ docs/deployment/
 - Risk tracking: PHASE2_RISK_REGISTER.md weekly dashboard
 
 **Escalation**:
-- Tech Lead (all technical decisions)
-- Project Manager (timeline and stakeholders)
-- DevOps Lead (infrastructure and deployment)
+- Historical rollout owner (all technical decisions)
+- Historical rollout coordinator (timeline and communications)
+- Historical deployment operator (infrastructure and deployment)
 
 ---
 
@@ -290,7 +290,7 @@ docs/deployment/
 - ✅ Deployment execution: All steps completed
 - ✅ Testing: 19/19 E2E tests passing
 - ✅ Monitoring: 24-hour validation successful
-- ✅ Sign-off: Tech Lead approval obtained
+- ✅ Sign-off: Historical rollout owner approval obtained
 
 **Team Preparation Success (Jan 20-24)**:
 - ✅ All team members read Phase 2 documentation
@@ -310,7 +310,7 @@ docs/deployment/
 
 ## 📌 Key Documents to Share
 
-**For Executive/Stakeholders**:
+**For Executive/Historical Archive Readers**:
 → EXECUTIVE_SUMMARY_PHASE2_READY.md (5 min, shows status + next steps)
 
 **For Team Members** (first read):

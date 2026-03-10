@@ -1,9 +1,13 @@
 # Staging Deployment Execution Playbook (Jan 8-9, 2026)
 
+> **Historical document (Jan 2026):** This playbook documents a specific January 2026 staging deployment runbook.
+> The timing, sign-off, and notification steps below are preserved for historical context and are not the current deployment authority model.
+> For current deployment workflow, use `DOCKER.ps1`, `NATIVE.ps1`, `docs/plans/UNIFIED_WORK_PLAN.md`, and `docs/DOCUMENTATION_INDEX.md`.
+
 **Timeline**: January 8-9, 2026 (45 minutes + 24 hours monitoring)
-**Owner**: DevOps Lead + QA
+**Owner**: Historical staging deployment execution record
 **Reference**: STAGING_DEPLOYMENT_PLAN_$11.18.3.md
-**Status**: Ready for execution
+**Status**: ⚠️ Historical execution playbook
 
 ---
 
@@ -81,8 +85,8 @@ Test-Path "NATIVE.ps1"                  # Should exist
 ```text
 ✓ Checklist complete
 ✓ No blockers identified
-✓ Tech lead approval obtained
-✓ Stakeholders notified
+✓ Owner approval obtained
+✓ Historical notification step completed
 
 Proceed with deployment? YES ✓
 
@@ -505,7 +509,7 @@ Invoke-WebRequest -Uri "http://localhost:8080/health" | Select-Object StatusCode
 ✓ Metrics baseline recorded
 ✓ Team notified of success
 
-Approved By: _________________ (Tech Lead)
+Approved By: _________________ (Owner)
 Date/Time: _________________
 Status: ✅ APPROVED FOR PRODUCTION
 
@@ -560,6 +564,6 @@ Write-Host "Rollback complete - $11.18.3 restored"
 ```text
 ---
 
-**Playbook Status**: ✅ Ready for execution
+**Playbook Status**: ⚠️ Historical playbook retained for reference
 **Created**: January 7, 2026
 **Execution Date**: January 8-9, 2026

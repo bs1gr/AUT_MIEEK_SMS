@@ -1,9 +1,13 @@
 # Pre-Deployment Validation Checklist - $11.18.3
 
+> **Historical document (Jan 2026):** This checklist records a January 2026 pre-deployment validation workflow.
+> The version targets, escalation labels, and go/no-go process below are historical and should not be treated as current release instructions.
+> For current deployment workflow, use `DOCKER.ps1`, `NATIVE.ps1`, `docs/plans/UNIFIED_WORK_PLAN.md`, and `docs/DOCUMENTATION_INDEX.md`.
+
 **Date**: January 7, 2026
 **Version**: 1.17.2
 **Environment**: Staging (Pre-Deployment)
-**Status**: Ready for Execution
+**Status**: ⚠️ Historical validation checklist
 
 ---
 
@@ -311,18 +315,18 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 
 → Review and fix issues
 → Update this checklist
-→ Escalate to Tech Lead if needed
+→ Escalate to the owner if needed
 
 ### If No-Go Conditions Found ❌
 
 → Do NOT proceed with deployment
 → Document issues
-→ Escalate to DevOps Lead
+→ Escalate to the owner / deployment operator
 → Reschedule deployment
 
 ---
 
-**Checklist Status**: Ready for Use
+**Checklist Status**: ⚠️ Historical checklist retained for reference
 **Created**: January 7, 2026
 **Last Updated**: January 7, 2026
-**Next Review**: Before staging deployment (Jan 8)
+**Next Review**: Historical snapshot — no scheduled review

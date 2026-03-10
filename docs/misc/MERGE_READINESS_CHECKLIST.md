@@ -1,9 +1,12 @@
 # Merge Readiness Checklist - feature/69-realtime-notifications
 
+> **Historical document:** This checklist reflects a past feature-merge workflow and is preserved for archive/reference only.
+> For current branch status and merge authority, use the active git state and `docs/plans/UNIFIED_WORK_PLAN.md`.
+
 **Target Branch:** `main`
 **Source Branch:** `feature/69-realtime-notifications`
 **Date:** 2025 (Current Session)
-**Status:** ✅ **READY FOR MERGE**
+**Status:** ⚠️ **HISTORICAL MERGE READINESS CHECKLIST**
 
 ---
 
@@ -353,7 +356,7 @@ git push origin main
 1. **Update VERSION file** to reflect new release (e.g., 1.14.0)
 2. **Generate release notes** highlighting notification feature
 3. **Deploy to staging** and run E2E tests
-4. **Notify stakeholders** of new feature availability
+4. **Notify owner/external recipients** of new feature availability
 5. **Monitor logs** for any issues in first 24 hours
 
 ---
@@ -379,7 +382,7 @@ git push origin main
 
 ---
 
-**Status:** ✅ **READY FOR MERGE TO MAIN**
+**Status:** ⚠️ **HISTORICAL MERGE PACKAGE PREPARED**
 
 All criteria met. No blockers. Feature is production-ready with comprehensive test coverage across all layers.
 

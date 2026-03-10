@@ -1,8 +1,13 @@
 # Documentation Consolidation Complete ✅
 
 **Date**: January 5, 2026
-**Status**: COMPLETED & COMMITTED
-**Impact**: Clearer documentation hierarchy, reduced cognitive load for team
+**Status**: ⚠️ Historical completion summary
+**Impact**: Clearer documentation hierarchy, reduced documentation sprawl
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical consolidation summary only
 
 ---
 
@@ -72,7 +77,7 @@ These documented specific fixes that are now baked into the system:
 - **Single entry point for agents**: `docs/AGENT_QUICK_START.md` (5 minutes to understand state)
 - **Single consolidated testing guide**: `docs/E2E_TESTING_GUIDE.md` (comprehensive, includes troubleshooting)
 - **Phase 1 team ready**: `docs/PHASE1_TEAM_ONBOARDING.md` (current, detailed, team-focused)
-- **Current work tracking**: `docs/ACTIVE_WORK_STATUS.md` (Phase 1 status and blockers)
+- **Current work tracking at the time**: `docs/ACTIVE_WORK_STATUS.md` (now historical only)
 - **Audit findings & patterns**: `docs/IMPLEMENTATION_PATTERNS.md` (copy-paste code patterns)
 
 ---
@@ -120,7 +125,7 @@ These documented specific fixes that are now baked into the system:
 
 ### `docs/ACTIVE_WORK_STATUS.md`
 
-**Purpose**: Single source of truth for what work is being done now
+**Purpose at the time**: Single source of truth for what work was being done then
 **Content**:
 - Current Phase 1 status
 - GitHub issues with status & owners
@@ -133,7 +138,7 @@ These documented specific fixes that are now baked into the system:
 
 ### `docs/PHASE1_TEAM_ONBOARDING.md`
 
-**Purpose**: Help new team member get started on Phase 1 work
+**Purpose**: Help a new contributor get started on Phase 1 work
 **Content**:
 - 5-minute quick start
 - Sprint assignments and schedule
@@ -217,14 +222,14 @@ These documented specific fixes that are now baked into the system:
 ### If you're an AI agent continuing work:
 
 1. ✅ Documentation is now clean (no confusion about which guide to use)
-2. ✅ ACTIVE_WORK_STATUS.md is your single source of truth
-3. ✅ Use AGENT_QUICK_START.md to understand state
+2. ✅ `docs/plans/UNIFIED_WORK_PLAN.md` is now the active source of truth
+3. ✅ Use `docs/AGENT_QUICK_START.md` plus `docs/DOCUMENTATION_INDEX.md` to understand state
 4. ✅ Archive folder preserved for historical reference if needed
 
-### If you're a new Phase 1 team member (Jan 7+):
+### If you're a new contributor reviewing this historical phase (Jan 7+ context):
 
 1. ✅ Start with PHASE1_TEAM_ONBOARDING.md (clearer than old quick reference)
-2. ✅ Check ACTIVE_WORK_STATUS.md for your assignments
+2. ✅ Check `docs/plans/UNIFIED_WORK_PLAN.md` for current assignments/status
 3. ✅ Reference IMPLEMENTATION_PATTERNS.md for your improvement's code examples
 4. ✅ Use E2E_TESTING_GUIDE.md if you hit test issues (now consolidated)
 
@@ -263,7 +268,7 @@ Before (Confusing):
 
 After (Clear & Organized):
 ├─ docs/AGENT_QUICK_START.md ← Single entry for agents
-├─ docs/ACTIVE_WORK_STATUS.md ← Current work tracking
+├─ docs/plans/UNIFIED_WORK_PLAN.md ← Current work tracking
 ├─ docs/PHASE1_TEAM_ONBOARDING.md ← Team ready
 ├─ docs/E2E_TESTING_GUIDE.md ← Comprehensive testing
 ├─ docs/IMPLEMENTATION_PATTERNS.md ← Code examples

@@ -1,10 +1,15 @@
 # Phase 3 Planning - Student Management System
 
 **Version**: 1.0
-**Status**: Planning (Not Started)
+**Status**: ⚠️ Historical roadmap snapshot
 **Date Created**: January 11, 2026
 **Target Start**: Q2 2026 (February-March) or when ready
 **Development Mode**: 🧑‍💻 Solo Developer + AI Assistant
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical planning reference only
 
 ---
 
@@ -425,7 +430,7 @@ Release $11.18.3 (Mar 10, 2026)
 
 ## 📝 Next Steps
 
-1. **Get stakeholder feedback** - Which features are most valuable?
+1. **Get owner feedback** - Which features are most valuable?
 2. **Finalize scope** - Pick 2-3 key features
 3. **Create GitHub issues** - One per feature
 4. **Design architecture** - Plan technical approach

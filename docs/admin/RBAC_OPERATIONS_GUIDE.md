@@ -824,7 +824,7 @@ ORDER BY status, email;
 - [ ] Expired permissions cleaned up
 - [ ] Permission matrix documented
 - [ ] Audit trail preserved (backup history)
-- [ ] No permissions granted without approval
+- [ ] No permissions granted without owner approval
 - [ ] Role definitions align with job functions
 
 ---
@@ -1136,9 +1136,9 @@ sqlite3 data/student_management.db "PRAGMA index_list(permissions);"
 
 ### Contact Information
 
-- **Tier 1 Support**: DevOps team (`devops@example.com`)
-- **Tier 2 Support**: Backend team (`backend@example.com`)
-- **Tier 3 Support**: Security team (`security@example.com`)
+- **Tier 1 Support**: Owner / on-call operator
+- **Tier 2 Support**: Owner development queue
+- **Tier 3 Support**: Security-response workflow / specialist support if required
 
 ### Escalation Criteria
 

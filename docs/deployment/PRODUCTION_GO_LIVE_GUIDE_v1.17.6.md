@@ -1,9 +1,13 @@
 # Production Go-Live Guide - Student Management System $11.18.3
 
+> **Historical document (Jan 2026):** This guide describes a planned early-2026 production go-live procedure for a training-ready build.
+> The deployment readiness, stakeholder/training rollout language, and environment assumptions below are preserved as historical context and are not current operating instructions.
+> For current project status and active guidance, use `docs/plans/UNIFIED_WORK_PLAN.md`, `docs/DOCUMENTATION_INDEX.md`, and the current deployment scripts.
+
 **Version**: 1.0
 **Release Date**: January 31, 2026
 **System Version**: $11.18.3 (Training Environment Ready)
-**Status**: ✅ READY FOR PRODUCTION DEPLOYMENT
+**Status**: ⚠️ Historical go-live guide
 
 ---
 
@@ -39,7 +43,7 @@ This guide provides step-by-step procedures to deploy the Student Management Sys
 - [ ] Network connectivity verified
 - [ ] SSL certificate acquired (for production HTTPS)
 - [ ] Backup of any existing student data
-- [ ] Training materials distributed to stakeholders
+- [ ] Training materials distributed to the owner and any required external recipients
 
 ### Verification Steps
 

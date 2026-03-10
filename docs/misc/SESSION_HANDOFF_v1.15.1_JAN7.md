@@ -1,8 +1,11 @@
 # Session Handoff - $11.18.3 Production Deployment Complete
 
+> **Historical session document (Jan 2026):** This handoff captures a past production-deployment checkpoint and is preserved for audit/reference only.
+> For current project and deployment status, use `docs/plans/UNIFIED_WORK_PLAN.md` and `docs/DOCUMENTATION_INDEX.md`.
+
 **Session Date**: January 7, 2026
 **Duration**: ~5 hours (deployment + validation + monitoring setup)
-**Final Status**: ✅ Production Ready
+**Final Status**: ⚠️ Historical production-readiness checkpoint
 **Version**: 1.15.1
 
 ---

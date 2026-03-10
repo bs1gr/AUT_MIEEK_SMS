@@ -1,9 +1,13 @@
 # $11.18.3 Staging Deployment Plan
 
+> **Historical document (Jan 2026):** This plan captures a January 2026 staging deployment plan for `$11.18.3` / `1.15.1` validation.
+> The readiness, escalation, and production-approval language below is preserved as historical context and is not the current deployment authority model.
+> For current deployment workflow, use `DOCKER.ps1`, `NATIVE.ps1`, `docs/plans/UNIFIED_WORK_PLAN.md`, and `docs/DOCUMENTATION_INDEX.md`.
+
 **Date**: January 7, 2026
 **Version**: 1.15.1
 **Environment**: Staging
-**Status**: ⏳ Ready to Deploy
+**Status**: ⚠️ Historical staging deployment plan
 
 ---
 
@@ -402,8 +406,8 @@ curl -s http://localhost:8080/api/v1/version | jq .
 ### Jan 10-14 (Week 2)
 
 - [ ] Fix any staging issues
-- [ ] Get production approval
-- [ ] Schedule production deployment
+- [ ] Record the historical production approval outcome
+- [ ] Schedule the historical production deployment window
 
 ### Jan 15+ (Production Deploy)
 
@@ -413,14 +417,14 @@ curl -s http://localhost:8080/api/v1/version | jq .
 
 ---
 
-## 📞 Escalation Contacts
+## 📞 Historical Escalation Routing
 
-| Role | Contact | Response Time |
+| Historical Role | Contact | Response Time |
 |------|---------|----------------|
-| DevOps Lead | TBD | <30 min |
-| QA Lead | TBD | <1 hour |
-| Backend Lead | TBD | <2 hours |
-| Tech Lead | TBD | <4 hours |
+| Deployment operator | TBD | <30 min |
+| QA reviewer | TBD | <1 hour |
+| Backend maintainer | TBD | <2 hours |
+| Rollout owner | TBD | <4 hours |
 
 ---
 
@@ -449,7 +453,7 @@ curl -s http://localhost:8080/api/v1/version | jq .
 
 ---
 
-**Deployment Plan Status**: ✅ **READY TO EXECUTE**
+**Deployment Plan Status**: ⚠️ Historical deployment plan retained for reference
 **Target Date**: January 8, 2026
 **Environment**: Staging
 **Version**: 1.15.1

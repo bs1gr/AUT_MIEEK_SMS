@@ -2,9 +2,14 @@
 
 **Version**: 1.0
 **Date**: February 1, 2026
-**Status**: 📋 PROPOSAL - Awaiting Approval
+**Status**: ⚠️ Historical proposal snapshot
 **Target Timeline**: 4-6 weeks
 **Effort Estimate**: 120-160 hours
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical proposal reference only
 
 ---
 
@@ -532,7 +537,7 @@ If timeline is constrained, deliver **Minimal MVP** first:
 
 ## 📋 Next Steps
 
-1. **Review this proposal** with stakeholders
+1. **Review this proposal** with the owner
 2. **Approve scope** (full or MVP)
 3. **Confirm timeline** (weeks 1-5 of next sprint)
 4. **Create GitHub issues** for each component
@@ -548,7 +553,7 @@ If timeline is constrained, deliver **Minimal MVP** first:
 
 ---
 
-**Status**: 📋 Ready for approval
+**Status**: Historical proposal reference only
 **Date**: February 1, 2026
 **Prepared by**: AI Agent
 **Version**: $11.18.3

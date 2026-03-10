@@ -255,7 +255,7 @@ These improve existing features:
 **Sequence**:
 1. ML Architecture research (1 week)
 2. Calendar API exploration (3-4 days)
-3. Stakeholder interviews (2-3 days)
+3. Owner/user-priority review (2-3 days)
 
 **Outcome**: Decision framework for Tier 2 features + prototypes
 

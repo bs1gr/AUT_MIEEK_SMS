@@ -1,8 +1,12 @@
 # Staging Deployment Validation - Phase 2 RBAC (Jan 8, 2026)
 
-**Status**: Ready for execution
+> **Historical document (Jan 2026):** This file records a planned staging validation workflow for the Phase 2 RBAC backend.
+> The execution steps, role labels, and production-approval wording below are preserved as historical reference material.
+> For current status and active deployment guidance, use `DOCKER.ps1`, `NATIVE.ps1`, `docs/plans/UNIFIED_WORK_PLAN.md`, and `docs/DOCUMENTATION_INDEX.md`.
+
+**Status**: ⚠️ Historical staging validation checklist
 **Timeline**: 1-2 hours
-**Owner**: DevOps/QA
+**Owner**: Historical staging validation record
 **Objective**: Verify Phase 2 RBAC backend on staging before production deployment
 
 ---
@@ -449,4 +453,4 @@ Once all checks pass:
 
 **Created:** January 8, 2026
 **Updated:** January 8, 2026
-**Status:** Ready for execution
+**Status:** Historical checklist retained for reference

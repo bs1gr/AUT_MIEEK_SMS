@@ -1,7 +1,10 @@
-# GitHub CI/CD Fixes - Next Steps Checklist
+# GitHub CI/CD Fixes - Historical Next Steps Checklist
+
+> **Historical document (Jan 2026):** This checklist captures a past CI/CD follow-up workflow and is preserved for archive/reference only.
+> For current merge and workflow status, use the active git state and `docs/plans/UNIFIED_WORK_PLAN.md`.
 
 **Date:** January 4, 2026
-**Status:** ✅ All Fixes Complete - Ready to Merge
+**Status:** ⚠️ Historical fix packet complete - merge path archived
 
 ---
 
@@ -101,7 +104,7 @@ git push origin main
 
 ### Documentation (Ongoing)
 
-- [ ] Share CI_FIXES_APPLIED.md with team
+- [ ] Share CI_FIXES_APPLIED.md with the owner/operator group
 - [ ] Reference GITHUB_CI_QUICK_REFERENCE.md in onboarding
 - [ ] Use GITHUB_CI_FIXES_COMPREHENSIVE.md as technical reference
 
@@ -199,7 +202,7 @@ git push origin main
 ✅ All 4 documentation files added
 ✅ GitHub Actions runs without errors
 ✅ No new workflow failures introduced
-✅ Team updated on changes and guidelines
+✅ Owner/external recipients updated on changes and guidelines
 
 ---
 
@@ -222,7 +225,7 @@ For questions or issues:
 ✅ Fixes Applied                   - COMPLETE
 ✅ Validation                      - COMPLETE
 ✅ Documentation                   - COMPLETE
-⏳ Merge to Main Branch            - READY
+⏳ Merge to Main Branch            - HISTORICAL NEXT STEP
 ⏳ Monitor Workflow Execution      - POST-MERGE
 ⏳ Team Communication              - POST-MERGE
 ⏳ Close Issues (if any)           - FOLLOW-UP
@@ -230,7 +233,7 @@ For questions or issues:
 ```text
 ---
 
-**Next Action:** Review changes and merge to main branch
+**Historical Next Action:** Review changes and merge to main branch
 
 **Estimated Time:** 5-10 minutes for merge, 15-20 minutes for monitoring
 

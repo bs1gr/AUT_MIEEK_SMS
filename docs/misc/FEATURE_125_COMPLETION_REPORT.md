@@ -1,7 +1,10 @@
-# Feature #125: Analytics Dashboard - Implementation Complete ✅
+# Feature #125: Analytics Dashboard - Historical Completion Snapshot ✅
+
+> **Historical document (Jan 2026):** This report captures a past feature-completion state and is preserved for archive/reference only.
+> For current feature planning and release state, use `docs/plans/UNIFIED_WORK_PLAN.md`.
 
 **Date**: January 16, 2026
-**Status**: 🟢 **COMPLETE** - Ready for deployment
+**Status**: ⚠️ **HISTORICAL COMPLETION REPORT**
 **Branch**: `feature/analytics-dashboard`
 **Commits**:
 - `70398ce82` - Frontend implementation + RBAC fixes
@@ -262,11 +265,11 @@ Feature #125 Analytics Dashboard is **100% complete** with:
 - ✅ Comprehensive E2E test coverage
 - ✅ Complete documentation
 - ✅ All pre-commit checks passing
-- ✅ Ready for deployment
+- ✅ Historical deployment package prepared
 
-The feature is ready to merge to `main` and deploy to production. All deliverables are complete and tested.
+The feature's historical merge/deploy packet was prepared for `main` and production deployment. All deliverables were complete and tested for that window.
 
-**Status**: 🟢 **READY FOR PRODUCTION**
+**Status**: ⚠️ **HISTORICAL PRODUCTION-READINESS SNAPSHOT**
 
 ---
 

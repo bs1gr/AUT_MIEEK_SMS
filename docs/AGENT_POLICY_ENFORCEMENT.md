@@ -290,8 +290,8 @@ When tests are running in background (`isBackground: true`), follow this STRICTL
 - Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
 - Check work plan BEFORE starting any work
 - Update work plan AFTER completing tasks
-- Verify version from `VERSION` file (current: 1.17.2)
-- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., $11.18.3)
+- Verify version directly from `VERSION` file
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., `v1.18.12`)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `v1.x.x`, or any format other than `v1.x.x`
 
 **Why This Exists:**
@@ -624,22 +624,6 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 
 ---
 
-### Policy 9: Session Start Instruction Review - MANDATORY for ALL Agents
-
-**✅ REQUIRED (every session, no exceptions):**
-1. Read `.github/copilot-instructions.md` and this document **at the start of every session**.
-2. Explicitly confirm compliance before doing any work.
-3. **Multi-agent requirement:** The primary agent must ensure **every subagent** is instructed to read and follow these policies before they begin tasks.
-
-**Why This Exists:**
-- Prevents policy drift across sessions
-- Ensures consistent behavior across multiple agents
-- Avoids repeated mistakes when context changes
-
-**Enforcement:** Any work started without this review is considered non-compliant.
-
----
-
 ## 🔍 How to Verify Compliance
 
 ### For Agents Starting Work
@@ -652,7 +636,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 
 **Step 2: Check Current State (3 min)**
 1. Read `docs/plans/UNIFIED_WORK_PLAN.md` (current priorities)
-2. Read `docs/ACTIVE_WORK_STATUS.md` (work in progress)
+2. Read `docs/DOCUMENTATION_INDEX.md` (documentation navigation)
 
 **Step 3: Verify Policies (2 min)**
 1. Review this document (`docs/AGENT_POLICY_ENFORCEMENT.md`)
@@ -697,8 +681,8 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 | **Fix linting** | `python -m ruff check --fix` | Commit with linting errors |
 | **Format code** | `npm --prefix frontend run lint -- --fix` | Commit unformatted code |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new backlog docs |
-| **Check version** | Read `VERSION` file (1.17.6) | Invent version numbers |
-| **Use version** | **ONLY `v1.x.x`** ($11.18.3) | **NEVER `v11.x.x`, `v1.x.x`, `v2.x.x`** |
+| **Check version** | Read `VERSION` file directly | Invent version numbers |
+| **Use version** | **ONLY `v1.x.x`** (example: `v1.18.12`) | **NEVER `v11.x.x`, `$11.18.3`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |
@@ -770,7 +754,7 @@ An agent has successfully integrated when they:
 ✅ **Repeat instruction review every session** (including subagents)
 ✅ **Run tests using batch runner** (no crashes)
 ✅ **Update work plan** (no duplicate trackers)
-✅ **Use correct versioning** (1.17.1 from VERSION file)
+✅ **Use correct versioning** (from `VERSION` file)
 ✅ **Verify clean state before new tasks** (no uncommitted work)
 ✅ **Use Alembic migrations** (no direct DB edits)
 ✅ **Use i18n for all strings** (no hardcoded text)

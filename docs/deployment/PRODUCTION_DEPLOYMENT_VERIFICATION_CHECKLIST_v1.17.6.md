@@ -124,7 +124,7 @@ Database:   SQLite (data/student_management.db)
 - Training accounts: ✅ 18 accounts, all tested
 - API endpoints: ✅ All responsive
 
-### Prepared Docker Environment (Ready to Deploy)
+### Prepared Docker Environment (Historical Deployment Snapshot)
 ```
 Docker Compose Stack:
   - Backend:    sms-backend:1.17.6 (FastAPI on gunicorn)
@@ -307,7 +307,7 @@ Sample Courses (4):
 
 ## 🎯 Deployment Sign-Off
 
-**System Status**: ✅ **PRODUCTION READY**
+**System Status**: ⚠️ **HISTORICAL PRODUCTION-READINESS SNAPSHOT**
 
 ### Verified Components
 - [x] Backend API: Operational

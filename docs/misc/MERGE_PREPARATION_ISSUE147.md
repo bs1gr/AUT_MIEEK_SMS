@@ -1,8 +1,11 @@
 # Merge Preparation Guide: Issue #147 Frontend Advanced Search
 
+> **Historical document (Jan 2026):** This merge-preparation guide reflects a past feature-merge workflow and is preserved for archive/reference only.
+> For current branch, planning, and release authority, use `docs/plans/UNIFIED_WORK_PLAN.md` and the active git state.
+
 **Date**: January 26, 2026
 **Branch**: `feature/phase4-advanced-search` → `main`
-**Status**: ✅ READY FOR MERGE
+**Status**: ⚠️ HISTORICAL MERGE PREPARATION SNAPSHOT
 
 ---
 
@@ -56,7 +59,7 @@ git push origin main
 ```
 
 ### Option B: GitHub Pull Request (For Review)
-**When**: Team review required
+**When**: Historical review workflow required
 **Process**: Create PR on GitHub
 
 ```powershell
@@ -163,7 +166,7 @@ git push origin main
 - [ ] Tag release if applicable: `git tag -a $11.18.3 -m "Frontend Advanced Search Complete"`
 - [ ] Close Issue #147 on GitHub
 - [ ] Update UNIFIED_WORK_PLAN.md with merge completion status
-- [ ] Notify team/stakeholders of merge
+- [ ] Notify owner/external recipients of merge
 
 ### Optional (Cleanup)
 - [ ] Delete feature branch locally: `git branch -d feature/phase4-advanced-search`
@@ -260,4 +263,4 @@ gh pr view 150
 
 **Prepared by**: AI Agent
 **Date**: January 26, 2026
-**Status**: ✅ Ready for execution
+**Status**: ⚠️ Historical execution packet prepared

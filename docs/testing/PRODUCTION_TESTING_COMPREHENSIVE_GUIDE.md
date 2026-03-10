@@ -755,7 +755,7 @@ def clean_db():
 - [ ] E2E tests passing (19+ tests)
 - [ ] Load tests meet SLA (p95 < 500ms)
 - [ ] Security tests pass (20 tests)
-- [ ] UAT approved by stakeholder
+- [ ] Owner/UAT sign-off recorded
 - [ ] Database migrations tested
 - [ ] Rollback procedure tested
 

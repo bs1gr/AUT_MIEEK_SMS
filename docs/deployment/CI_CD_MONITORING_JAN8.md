@@ -1,6 +1,10 @@
 # CI/CD Pipeline Monitoring - Phase 2 RBAC (Jan 8, 2026)
 
-**Current Status**: Main branch deployable
+> **Historical document (Jan 2026):** This monitoring note captures a point-in-time CI/CD watch plan for the January 2026 Phase 2 rollout.
+> The readiness language and role routing below are retained for archival reference and are not current operating instructions.
+> For current status and active guidance, use `docs/plans/UNIFIED_WORK_PLAN.md` and `docs/DOCUMENTATION_INDEX.md`.
+
+**Current Status**: Historical CI/CD monitoring snapshot
 **Latest Commits**:
 - `ca8b2db2f` - docs: add Phase 2 RBAC merge summary
 - `989e56793` - docs: Add Phase 2 RBAC merge status reference guide
@@ -229,7 +233,7 @@ Once all CI/CD checks pass, verify:
 2. **Short-term (30 min)**
    - Review deployment readiness
    - Check staging capacity
-   - Notify team of ready status
+   - Record the historical ready-state outcome for the rollout log
 
 3. **Medium-term (2-4 hours)**
    - Deploy to staging
@@ -243,16 +247,16 @@ Once all CI/CD checks pass, verify:
 
 ---
 
-## 📞 Escalation Contacts
+## 📞 Historical Escalation Routing
 
-If CI/CD pipeline fails:
+If this historical CI/CD pipeline reference shows a failure:
 
-| Role | Contact | Availability |
+| Historical Role | Contact | Availability |
 |------|---------|---------------|
-| **DevOps Lead** | Check team list | Business hours |
-| **Backend Lead** | Check team list | Business hours |
-| **QA Lead** | Check team list | Business hours |
-| **Tech Lead** | Check team list | Always |
+| **Deployment operator** | Check archived rollout list | Business hours |
+| **Backend maintainer** | Check archived rollout list | Business hours |
+| **QA reviewer** | Check archived rollout list | Business hours |
+| **Rollout owner** | Check archived rollout list | Historical on-call reference |
 
 ---
 
@@ -267,4 +271,4 @@ If CI/CD pipeline fails:
 
 **Last Checked**: January 8, 2026 21:30 UTC+2
 **Next Check**: January 8, 2026 22:00 UTC+2
-**Status**: ✅ Ready for monitoring and deployment
+**Status**: ⚠️ Historical monitoring-and-deployment reference snapshot

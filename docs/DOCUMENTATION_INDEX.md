@@ -19,6 +19,10 @@ This document serves as the single source of truth for all project documentation
 > - Changelog/work plan/index updated with v1.18.7 changes
 > - All tests passing, repository clean and synced
 > - See plans/UNIFIED_WORK_PLAN.md for details
+> **Current authority note**:
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - `docs/ACTIVE_WORK_STATUS.md` is retained as a historical stub only
 
 ---
 
@@ -61,6 +65,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)** - Current task list and project roadmap
+- **[ACTIVE_WORK_STATUS.md](ACTIVE_WORK_STATUS.md)** - Historical compatibility stub; do not use for active planning
 - **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2026-02-15)
 
 ### Audit & Improvement Planning (1.15.0 - COMPLETE ✅)

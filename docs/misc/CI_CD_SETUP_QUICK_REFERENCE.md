@@ -255,7 +255,7 @@ curl -I https://prod.example.com/health
 ### Status
 
 - [ ] Setup complete and verified
-- [ ] Ready for production use
+- [ ] Historically documented as production-capable
 
 ---
 

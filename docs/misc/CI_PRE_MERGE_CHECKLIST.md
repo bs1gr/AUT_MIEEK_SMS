@@ -1,9 +1,12 @@
-# Pre-Merge Checklist - CI Fixes Ready for Production
+# Pre-Merge Checklist - Historical CI Fixes Snapshot
+
+> **Historical document (Jan 2026):** This checklist reflects a past CI merge-preparation workflow and is preserved for archive/reference only.
+> For current repository status and merge authority, use the active git state plus `docs/plans/UNIFIED_WORK_PLAN.md`.
 
 **Session:** GitHub CI Review & Fixes Complete
 **Date:** January 4, 2026
 **Target Branch:** `main`
-**Status:** ✅ **READY TO MERGE**
+**Status:** ⚠️ **HISTORICAL MERGE CHECKLIST**
 
 ---
 
@@ -141,7 +144,7 @@ Documented in CI_FIXES_*.md and CI_RUNTIME_VALIDATION.md"
 - Title: `fix: Correct GitHub Actions workflow syntax errors`
 - Link to: Related issue (if applicable)
 - Description: Reference `CI_FIXES_APPLIED.md` for details
-- Reviewers: Assign to team leads
+- Reviewers: Assign to the current owner/operator reviewers
 - Labels: `bug`, `ci`, `github-actions`
 
 ### 3. **Review Process**
@@ -297,9 +300,9 @@ git push origin main --force-with-lease  # (not recommended, use revert instead)
 - ✅ Comprehensive documentation provided
 - ✅ Low risk, high confidence
 
-### Decision: **🟢 GO FOR MERGE**
+### Decision: **🟢 HISTORICAL GO-FOR-MERGE RECORD**
 
-All criteria met. Changes are ready for production. Proceed with merge to main.
+All criteria were documented as met at the time. Changes were recorded as acceptable for production use and merge to `main` in this historical packet.
 
 ---
 
@@ -308,18 +311,18 @@ All criteria met. Changes are ready for production. Proceed with merge to main.
 **If Issues Arise:**
 
 1. **Workflow Syntax Issues**
-   - Contact: DevOps Team
+  - Contact: Historical deployment/CI owner
    - Escalate to: GitHub Actions admin
    - Reference: `GITHUB_CI_FIXES_COMPREHENSIVE.md`
 
 2. **E2E Test Failures**
-   - Contact: QA Team
-   - Escalate to: Frontend Lead
+  - Contact: Historical QA reviewer
+  - Escalate to: Historical frontend owner
    - Reference: `CI_RUNTIME_VALIDATION.md`
 
 3. **Database Initialization Issues**
-   - Contact: Database Admin
-   - Escalate to: Backend Lead
+  - Contact: Historical database admin
+  - Escalate to: Historical backend owner
    - Reference: `CI_RUNTIME_VALIDATION.md` (Database section)
 
 4. **Health Check Timeouts**
@@ -333,9 +336,9 @@ All criteria met. Changes are ready for production. Proceed with merge to main.
 
 **All pre-merge criteria satisfied.**
 
-**Status:** ✅ **READY FOR MERGE TO MAIN**
+**Status:** ⚠️ **HISTORICAL MERGE PACKAGE PREPARED**
 
-**Next Action:** Submit pull request and request code review.
+**Historical Next Action:** Submit pull request and request code review.
 
 ---
 

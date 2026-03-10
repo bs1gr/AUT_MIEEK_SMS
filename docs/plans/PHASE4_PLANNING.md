@@ -2,16 +2,21 @@
 
 **Version**: 1.0
 **Date**: January 17, 2026
-**Status**: 📋 PLANNING - Ready for stakeholder review
+**Status**: ⚠️ Historical planning snapshot — use `docs/plans/UNIFIED_WORK_PLAN.md` for current status
 **Timeline**: Q1 2026+ (after Phase 3 complete)
 **Previous Release**: $11.18.3 (Production stable, Jan 12, 2026)
 **Target Release**: $11.18.3+ (Phase 4 features)
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical planning reference only
 
 ---
 
 ## Executive Summary
 
-Phase 4 represents the next evolution of the Student Management System, focusing on **advanced features**, **user experience enhancements**, and **operational efficiency**. This document consolidates stakeholder feedback, technical assessments, and strategic recommendations into a prioritized roadmap for Phase 4 and beyond.
+Phase 4 represents the next evolution of the Student Management System, focusing on **advanced features**, **user experience enhancements**, and **operational efficiency**. This document consolidates historical planning inputs, technical assessments, and strategic recommendations into a prioritized roadmap snapshot for Phase 4 and beyond.
 
 **Current State**:
 - ✅ $11.18.3 production-ready and stable
@@ -350,7 +355,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 
 ### Before Week 1
 
-- ✅ Stakeholder approval on Option C (or alternative)
+- ✅ Owner decision on Option C (or alternative)
 - ✅ GitHub issues #138-#140 created (Search, PWA, Calendar)
 - ✅ Dev environment verified stable
 
@@ -447,6 +452,6 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 
 ---
 
-**Document Status**: 📋 READY FOR STAKEHOLDER REVIEW
-**Next Update**: After stakeholder feedback collected
+**Document Status**: ⚠️ HISTORICAL PLANNING SNAPSHOT
+**Next Update**: If reused, reconcile with `UNIFIED_WORK_PLAN.md` first
 **Maintainer**: Solo Developer + AI Assistant

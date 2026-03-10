@@ -146,9 +146,9 @@ Then: Take a break, review what happened, try again tomorrow.
 - [ ] I'll clear calendar for Jan 8, 08:00-11:00 UTC
 - [ ] I'll get 8+ hours of sleep
 - [ ] I'm confident in this process
-- [ ] I'm ready to deploy Jan 8
+- [ ] I'm historically prepared for the Jan 8 deployment window
 
-**All checked?** → **You're ready!** ✅
+**All checked?** → **The historical checklist is satisfied.** ✅
 
 ---
 

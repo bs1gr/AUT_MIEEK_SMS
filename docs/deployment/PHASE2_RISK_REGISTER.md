@@ -1,10 +1,13 @@
 # Phase 2 Risk Register (Jan 27 - Mar 7, 2026)
 
+> **Historical document (Jan 2026):** This risk register reflects Phase 2 planning assumptions and role assignments from January 2026.
+> For current status and decision authority, use `docs/plans/UNIFIED_WORK_PLAN.md` and `docs/DOCUMENTATION_INDEX.md`.
+
 **Document**: Phase 2 Risk Assessment & Mitigation
 **Timeline**: January 7, 2026 (before Phase 2 starts Jan 27)
-**Owner**: Tech Lead / Risk Manager
+**Owner**: Historical Phase 2 risk-planning record
 **Source**: [PHASE2_CONSOLIDATED_PLAN.md](PHASE2_CONSOLIDATED_PLAN.md)
-**Status**: ✅ Ready for review
+**Status**: ⚠️ Historical planning snapshot
 
 ---
 
@@ -78,7 +81,7 @@ New permission decorator in Week 1 could have logic errors that allow unauthoriz
 2. **Non-critical**: Create issue, fix in maintenance release
 3. **Document**: Post-incident review within 24 hours
 
-**Owner**: Security-focused backend dev + Tech lead
+**Owner**: Historical security reviewer + rollout owner
 
 ---
 
@@ -129,10 +132,10 @@ Similar to R2, but more specific: An attacker could gain access to data they sho
 1. Stop all deployments
 2. Patch vulnerability
 3. Audit logs for any abuse
-4. Notify stakeholders if data exposed
+4. Notify the owner and any required external contacts if data was exposed
 5. Post-incident report
 
-**Owner**: Tech lead + one senior backend dev (dedicated)
+**Owner**: Historical rollout owner + senior backend maintainer
 
 ---
 
@@ -290,7 +293,7 @@ If one of the 2-3 backend developers is unavailable during critical weeks:
 2. Adjust timeline (push deadline back)
 3. Reduce scope if needed (defer nice-to-haves)
 
-**Owner**: Project Manager / Tech Lead
+**Owner**: Historical rollout coordination owner
 
 ---
 
@@ -388,7 +391,7 @@ Timeline could slip due to:
 2. Add resources (bring in another dev)
 3. Extend timeline (negotiate deadline)
 
-**Owner**: Project Manager / Tech Lead
+**Owner**: Historical rollout coordination owner
 
 ---
 
@@ -435,7 +438,7 @@ New RBAC code has untested edge cases:
 - Write tests before fixing code
 - Add to regression test suite
 
-**Owner**: QA + backend developer
+**Owner**: Historical QA reviewer + backend maintainer
 
 ---
 
@@ -480,7 +483,7 @@ GitHub Actions or Docker could have issues:
 3. If still failing, use manual deployment
 4. File issue with GitHub/Docker if infrastructure problem
 
-**Owner**: DevOps / Infrastructure
+**Owner**: Historical deployment operator / infrastructure maintainer
 
 ---
 
@@ -521,7 +524,7 @@ Third-party services go down:
 3. Retry deployment
 4. If critical: Use cached versions and retry later
 
-**Owner**: DevOps / Infrastructure
+**Owner**: Historical deployment operator / infrastructure maintainer
 
 ---
 
@@ -603,16 +606,16 @@ R7: Test coverage
 
 | Risk ID | Primary Owner | Secondary Owner | Review Cadence |
 |---------|---------------|-----------------|-----------------|
-| R1 | Database Expert | Tech Lead | Weekly |
-| R2 | Security Dev | Tech Lead | 2x per week |
-| R3 | Performance Dev | Backend Lead | Weekly |
-| R4 | Project Manager | Tech Lead | Weekly |
-| R5 | Project Manager | HR/Management | Ad-hoc |
-| R6 | DevOps | Backend Lead | Weekly |
-| R7 | QA Lead | Backend Lead | Weekly |
-| R8 | Tech Lead | Security Dev | 2x per week |
-| R9 | Database Expert | DevOps | Pre-deployment |
-| R10 | DevOps | Tech Lead | Ad-hoc |
+| R1 | Database maintainer | Historical rollout owner | Weekly |
+| R2 | Security reviewer | Historical rollout owner | 2x per week |
+| R3 | Performance reviewer | Backend maintainer | Weekly |
+| R4 | Historical rollout coordination owner | Historical rollout owner | Weekly |
+| R5 | Historical rollout coordination owner | Historical management contact | Ad-hoc |
+| R6 | Deployment operator | Backend maintainer | Weekly |
+| R7 | QA reviewer | Backend maintainer | Weekly |
+| R8 | Historical rollout owner | Security reviewer | 2x per week |
+| R9 | Database maintainer | Deployment operator | Pre-deployment |
+| R10 | Deployment operator | Historical rollout owner | Ad-hoc |
 
 ---
 
@@ -622,22 +625,22 @@ R7: Test coverage
 
 ```text
 ☐ All risks identified and assessed
-☐ Mitigation strategies approved by tech lead
+☐ Mitigation strategies recorded as approved in the historical rollout plan
 ☐ Monitoring procedures documented
 ☐ Owners assigned and notified
 ☐ Budget approved for external security audit (if R8 critical)
 ☐ Backup and rollback procedures ready
 ☐ Team trained on risk response procedures
-☐ Stakeholders aware of critical risks
+☐ Owner aware of critical risks and any required external notifications
 
-Signed Off By: _________________ (Tech Lead)
+Signed Off By: _________________ (Historical rollout owner)
 Date: _________________
-Status: ✅ APPROVED
+Status: ✅ HISTORICALLY APPROVED
 
 ```text
 ---
 
-**Document Status**: ✅ Complete and ready for review
+**Document Status**: ⚠️ Complete historical snapshot retained for reference
 **Created**: January 7, 2026
 **Review Cycle**: Weekly during Phase 2
 **Next Review**: January 20, 2026 (Phase 2 prep final check)

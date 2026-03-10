@@ -2,7 +2,12 @@
 
 **Start Date**: January 7, 2026
 **Target Release Date**: January 15-24, 2026 (Staging first)
-**Current Status**: ✅ PRE-DEPLOYMENT READY
+**Current Status**: ⚠️ Historical deployment tracker
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical deployment tracker only
 
 ---
 
@@ -11,19 +16,19 @@
 ### Phase 0: Pre-Deployment Verification (Jan 8)
 
 **Status**: ⏳ READY - Checklist Created
-**Owner**: DevOps/Tech Lead
+**Owner**: Historical deployment owner record
 **Effort**: 1-2 hours
 
 **Tasks**:
 - [ ] Run PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md (30 checklist items)
 - [ ] Verify all checklist items pass
-- [ ] Get stakeholder sign-off
+- [ ] Record owner sign-off
 - [ ] Schedule deployment window
 
 **Success Criteria**:
 - ✅ All 30 checklist items verified
 - ✅ Go/No-Go decision documented
-- ✅ Team available for deployment
+- ✅ Owner/operator availability confirmed for deployment
 - ✅ Backup verified (>100KB, accessible)
 
 **Reference**: `docs/deployment/PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md`
@@ -33,7 +38,7 @@
 ### Phase 1: Staging Deployment (Jan 8-9)
 
 **Status**: ⏳ READY - Plan Created
-**Owner**: DevOps Engineer
+**Owner**: Historical deployment operator record
 **Effort**: 45 minutes to 1.5 hours
 
 **Tasks**:
@@ -56,7 +61,7 @@
 ### Phase 2: Smoke Testing (Jan 9)
 
 **Status**: ⏳ READY - Tests Defined
-**Owner**: QA Engineer
+**Owner**: Historical verification owner record
 **Effort**: 30-45 minutes
 
 **Test Suite**:
@@ -82,7 +87,7 @@
 ### Phase 3: Monitoring Validation (Jan 9)
 
 **Status**: ⏳ READY - Infrastructure Ready
-**Owner**: DevOps + QA
+**Owner**: Historical operator + verification record
 **Effort**: 15-20 minutes
 
 **Validation Tasks**:
@@ -105,7 +110,7 @@
 ### Phase 4: Rollback Readiness (Jan 9)
 
 **Status**: ⏳ READY - Procedure Documented
-**Owner**: DevOps Lead
+**Owner**: Historical deployment lead record
 **Effort**: 5 minutes (should not be needed)
 
 **Rollback Tasks** (if needed):
@@ -158,12 +163,12 @@
 **Response Time**: Immediate (5 minutes)
 **Action**: STOP deployment, execute rollback
 **Contact**:
-- Primary: DevOps Lead
-- Secondary: Tech Lead
-- Tertiary: Project Manager
+- Primary: Owner / on-call operator
+- Secondary: Owner development queue
+- Tertiary: Specialist support if required
 
 **Steps**:
-1. Notify team on Slack (URGENT tag)
+1. Notify the owner/on-call operator immediately
 2. Execute rollback: `DOCKER.ps1 -Stop` + restore backup
 3. Open incident ticket
 4. Document root cause
@@ -174,7 +179,7 @@
 **Definition**: Non-critical feature broken or significant degradation
 **Response Time**: 15 minutes
 **Action**: Investigate, decide go/no-go
-**Contact**: Tech Lead
+**Contact**: Owner
 
 **Steps**:
 1. Log issue details
@@ -188,7 +193,7 @@
 **Definition**: Edge case bug or cosmetic issue
 **Response Time**: 30 minutes
 **Action**: Document, create bug ticket for $11.18.3
-**Contact**: QA Lead
+**Contact**: Owner / verification lead for the task
 
 **Steps**:
 1. Create GitHub issue ($11.18.3 milestone)
@@ -204,7 +209,7 @@
 
 - [ ] Verification checklist completed (30/30 items)
 - [ ] Backup verified and accessible
-- [ ] All team members notified
+- [ ] Required owner/operator notifications completed
 - [ ] Rollback procedure reviewed
 - [ ] **Status**: GO/NO-GO: _______
 
@@ -288,7 +293,7 @@ Jan 15-24, 2026 (Production Window)
 
 ---
 
-**Document Owner**: DevOps / Tech Lead
+**Document Owner**: Historical deployment planning record
 **Created**: January 7, 2026
 **Last Updated**: January 7, 2026
-**Status**: Ready for Execution
+**Status**: Historical execution tracker

@@ -2,8 +2,13 @@
 
 **Created**: January 8, 2026
 **Branch**: `feature/phase2-rbac-prep`
-**Status**: Early Preparation (Phase 2 officially starts Jan 27)
+**Status**: ⚠️ Historical preparation snapshot
 **Purpose**: Get ahead on planning and design before official kickoff
+
+> **Current authority note**
+> - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
+> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
+> - This file is retained as a historical planning reference only
 
 ---
 
@@ -331,10 +336,10 @@ def test_permission_check_denies_unauthorized_user():
 
 **Steps**:
 1. [x] Review all design docs (matrix, schema, code review, decorators, migration strategy, test templates)
-2. [x] Get stakeholder sign-off (Tech Lead + Backend + QA) on prep package
+2. [x] Historical prep-package approval recorded
 3. [x] Create Week 1 implementation checklist (seed data, migrate routers by domain, run RBAC tests, update docs)
 4. [x] Prepare dev environment for coding (scripts validated: `NATIVE.ps1 -Setup`, lint hooks pass, pytest green with skips)
-5. [x] Schedule Phase 2 kickoff meeting (Jan 27, agenda: seed script run, router migration plan, doc updates)
+5. [x] Historical kickoff session scheduled (Jan 27, agenda: seed script run, router migration plan, doc updates)
 
 **Final Checklist**:
 - [x] Permission matrix approved

@@ -1,7 +1,10 @@
-# Feature #125 Deployment Checklist - $11.18.3
+# Feature #125 Deployment Checklist - Historical $11.18.3 Snapshot
+
+> **Historical document (Jan 2026):** This checklist records the archived Feature #125 rollout path and is preserved for reference only.
+> For current feature planning and release state, use `docs/plans/UNIFIED_WORK_PLAN.md` and `docs/DOCUMENTATION_INDEX.md`.
 
 **Date Created**: January 16, 2026
-**Status**: 🟢 **READY FOR DEPLOYMENT**
+**Status**: ⚠️ **HISTORICAL DEPLOYMENT CHECKLIST**
 **Feature**: Analytics Dashboard (React + Recharts + React Query)
 **Branch**: `feature/analytics-dashboard`
 **Commits**: 2 new commits (70398ce82 + a19ee3855)
@@ -67,7 +70,7 @@ git push origin feature/analytics-dashboard
 git log --oneline origin/feature/analytics-dashboard -3
 ```
 
-**Status**: ⏹ **PENDING** - Ready to execute
+**Status**: ⏹ **PENDING** - Historical execution step
 
 ---
 
@@ -132,7 +135,7 @@ Add to "Quick Navigation" section under "For Phase 2 RBAC & Administration":
 - **Recharts Visualization?** → `frontend/src/features/dashboard/components/AnalyticsCharts.tsx` (component reference)
 ```
 
-**Status**: ⏹ **PENDING** - Ready to execute
+**Status**: ⏹ **PENDING** - Historical execution step
 
 ---
 
@@ -189,7 +192,7 @@ Implemented a complete React-based analytics dashboard with Recharts data visual
 - Recharts dependency added to frontend
 - No breaking changes
 - No database migrations needed
-- Ready for production deployment
+- Historically recorded as production-capable for deployment
 
 ## Testing Results
 - Backend: 370/370 tests ✅
@@ -204,7 +207,7 @@ Implemented a complete React-based analytics dashboard with Recharts data visual
 Reviewers: @solo-developer
 ```
 
-**Status**: ⏹ **PENDING** - Ready to execute
+**Status**: ⏹ **PENDING** - Historical execution step
 
 ---
 
@@ -260,7 +263,7 @@ git tag -l $11.18.3 -n
 - Add feature highlights and installation guide
 - Mark as "Latest release"
 
-**Status**: ⏹ **PENDING** - Ready to execute after PR merge
+**Status**: ⏹ **PENDING** - Historical execution step after PR merge
 
 ---
 
@@ -346,7 +349,7 @@ git push origin --delete $11.18.3
 git checkout $11.18.3
 .\DOCKER.ps1 -Start
 
-# Step 6: Notify stakeholders with incident report
+# Step 6: Notify owner/external recipients with incident report
 ```
 
 ---
@@ -395,7 +398,7 @@ For questions or issues:
 
 ---
 
-**Status**: 🟢 **DEPLOYMENT READY**
+**Status**: ⚠️ **HISTORICAL DEPLOYMENT PACKAGE READY AT THAT TIME**
 **Last Updated**: January 16, 2026 14:36 UTC
 **Prepared By**: AI Agent + Solo Developer
-**Ready for**: Immediate Production Deployment
+**Prepared for**: Historical production deployment window

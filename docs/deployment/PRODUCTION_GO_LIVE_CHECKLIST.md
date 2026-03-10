@@ -1,8 +1,12 @@
 # Production Go-Live Checklist
 ## SMS $11.18.3 - Phase 5 Production Launch
 
+> **Historical document (Jan 2026):** This checklist captures a planned production go-live process from early 2026.
+> The staffing, approval, and launch readiness items below are historical operating assumptions and should not be treated as the current project authority model.
+> For current status and active guidance, use `docs/plans/UNIFIED_WORK_PLAN.md` and `docs/DOCUMENTATION_INDEX.md`.
+
 **Document Version**: 1.0
-**Status**: ✅ Ready for execution
+**Status**: ⚠️ Historical go-live checklist
 **Go-Live Date**: TBD (Target: February 7-8, 2026)
 **Go-Live Time**: TBD (Recommend: 8:00 AM for system stability before business hours)
 **Backup Date**: TBD (Recommend: One week before go-live)
@@ -407,13 +411,13 @@
 
 ## ✅ Sign-Off
 
-### Project Leadership Approval
-- [ ] **Project Manager**: _________________ Date: _______
-- [ ] **IT Director**: _________________ Date: _______
-- [ ] **Department Head**: _________________ Date: _______
-- [ ] **System Owner**: _________________ Date: _______
+### Historical approval record
+- [ ] **Rollout coordinator**: _________________ Date: _______
+- [ ] **IT sponsor**: _________________ Date: _______
+- [ ] **Department representative**: _________________ Date: _______
+- [ ] **System owner**: _________________ Date: _______
 
-### Go-Live Team Confirmation
+### Historical go-live confirmation
 - [ ] **IT Lead**: Ready for go-live? [ ] Yes [ ] No
 - [ ] **Support Lead**: Ready for go-live? [ ] Yes [ ] No
 - [ ] **Database Admin**: Ready for go-live? [ ] Yes [ ] No
@@ -425,13 +429,13 @@
 
 ## 📞 Critical Contact Information
 
-| Role | Name | Phone | Email |
+| Historical Role | Name | Phone | Email |
 |------|------|-------|-------|
-| Project Manager | TBD | TBD | TBD |
-| IT Director | TBD | TBD | TBD |
-| Support Lead | TBD | TBD | TBD |
-| Database Admin | TBD | TBD | TBD |
-| On-Call Support | TBD | TBD | TBD |
+| Rollout coordinator | TBD | TBD | TBD |
+| IT sponsor | TBD | TBD | TBD |
+| Support lead | TBD | TBD | TBD |
+| Database admin | TBD | TBD | TBD |
+| On-call support | TBD | TBD | TBD |
 
 ---
 
@@ -467,6 +471,6 @@
 
 ---
 
-**Go-Live Status**: ✅ Ready for execution
+**Go-Live Status**: ⚠️ Historical checklist retained for reference
 **Last Updated**: January 30, 2026
-**Next Review**: Go-Live minus 3 days
+**Next Review**: Historical snapshot — no scheduled review

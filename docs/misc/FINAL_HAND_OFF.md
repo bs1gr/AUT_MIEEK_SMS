@@ -163,10 +163,10 @@ Before you read the docs tonight, verify you're ready:
 - [ ] I have all documents accessible
 - [ ] I'm willing to follow procedures exactly
 - [ ] I understand recovery is always possible
-- [ ] I'm ready to read the docs tonight
-- [ ] I'm ready to deploy tomorrow
+- [ ] I'm prepared to read the docs in the historical rollout window
+- [ ] I'm historically prepared for the next-day deployment window
 
-**All YES?** → You're perfectly ready! ✅
+**All YES?** → The historical handoff checklist is satisfied. ✅
 
 ---
 
