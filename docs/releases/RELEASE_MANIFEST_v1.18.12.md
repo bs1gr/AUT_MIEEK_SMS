@@ -1,0 +1,80 @@
+# Release Manifest - Version 1.18.12
+
+**Release Date**: March 10, 2026
+**Tag**: v1.18.12
+**Branch**: main
+**Previous Tag**: v1.18.11
+**Previous Live Release**: v1.18.9
+
+---
+
+## 📦 Release Artifacts
+
+### Required Assets
+
+| Artifact | Filename | Description |
+|----------|----------|-------------|
+| Installer | `SMS_Installer_1.18.12.exe` | Windows installer (Inno Setup) |
+
+### Asset Allowlist (Installer-only policy)
+
+Only the following asset is permitted on the GitHub Release:
+- `SMS_Installer_<version>.exe`
+
+GitHub release digest metadata is the authoritative SHA256 source for this release line. A downloadable `.sha256` sidecar is no longer required.
+
+---
+
+## 🔖 Version References
+
+| File | Expected Value |
+|------|---------------|
+| `VERSION` | `v1.18.12` |
+| `frontend/package.json` | `"version": "1.18.12"` |
+| `backend/main.py` | `Version: 1.18.12` |
+| `INSTALLER_BUILDER.ps1` | `Version: 1.18.12` |
+| `docs/DOCUMENTATION_INDEX.md` | `1.18.12` |
+| `CHANGELOG.md` | `[1.18.12]` entry present |
+
+---
+
+## 📋 Commit Range
+
+**Base Tag**: v1.18.11
+**Head Commit**: `a2da597da` (`main`)
+**Live Fallback Context**: `v1.18.9` remains the last live non-archived release until publication completes.
+
+### Commit Categories
+
+| Category | Count | Scope |
+|----------|-------|-------|
+| Corrective Release Prep | 1 | verified `v1.18.12` candidate packaging |
+| Release Guardrails | 2 | installer tracked-input guardrails + release documentation |
+| Release State Recording | 1 | publication/cleanup state capture |
+
+---
+
+## ✅ Validation Gates
+
+### Pre-Release Checks
+
+- [ ] `VERSION` file contains `v1.18.12`
+- [ ] `frontend/package.json` version is `1.18.12`
+- [ ] `backend/main.py` version header is `1.18.12`
+- [ ] `INSTALLER_BUILDER.ps1` version header is `1.18.12`
+- [ ] `CHANGELOG.md` has `[1.18.12]` section
+- [ ] `git status` is clean before tag creation
+- [ ] `scripts/VERIFY_VERSION.ps1 -CheckOnly` passes
+- [ ] `COMMIT_READY.ps1 -Quick -Snapshot` passes
+- [ ] Local installer build/sign/smoke verification completed for `SMS_Installer_1.18.12.exe`
+
+### Post-Release Checks
+
+- [ ] GitHub Release page published at `/releases/tag/v1.18.12`
+- [ ] `Create GitHub Release on tag` workflow succeeds
+- [ ] `Release - Build & Upload Installer with SHA256` workflow succeeds
+- [ ] `Release Asset Sanitizer` workflow succeeds
+- [ ] `SMS_Installer_1.18.12.exe` present in release assets
+- [ ] No non-allowlisted assets present on the release
+- [ ] GitHub digest metadata shown for the installer asset
+- [ ] Downloaded installer signature is valid (`AUT MIEEK` certificate)
