@@ -53,7 +53,7 @@ If any verification step is incomplete, **do not commit**.
 **✅ REQUIRED:**
 - Release from corrected lineage only (current `main` + current `VERSION` tag)
 - Allow release asset mutation only in installer workflow (`release-installer-with-sha.yml`)
-- Keep release assets installer-only (`SMS_Installer_<version>.exe` + `.sha256`)
+- Keep release assets installer-only (`SMS_Installer_<version>.exe`) and rely on GitHub release digest metadata for SHA256 verification
 
 **❌ FORBIDDEN:**
 - Re-dispatching release automation for old tags to "fix" historical releases
@@ -504,8 +504,8 @@ Phase 4: DEPLOYMENT (AFTER verification passes)
 $sig = Get-AuthenticodeSignature "SMS_Installer_X.X.X.exe"
 if ($sig.Status -ne 'Valid') { Write-Error "Invalid signature!" }
 
-# 2. Verify checksum
-Get-FileHash "SMS_Installer_X.X.X.exe" -Algorithm SHA256 > "SMS_Installer_X.X.X.exe.sha256"
+# 2. Verify checksum locally (compare this with GitHub's asset digest after upload)
+$hash = (Get-FileHash "SMS_Installer_X.X.X.exe" -Algorithm SHA256).Hash
 
 # 3. Automated smoke test
 .\INSTALLER_BUILDER.ps1 -Action test -Version "X.X.X"
@@ -518,7 +518,6 @@ Get-FileHash "SMS_Installer_X.X.X.exe" -Algorithm SHA256 > "SMS_Installer_X.X.X.
 
 # 5. ONLY THEN upload to GitHub release
 gh release upload vX.X.X SMS_Installer_X.X.X.exe
-gh release upload vX.X.X SMS_Installer_X.X.X.exe.sha256
 ```
 
 **Why This Exists:**
