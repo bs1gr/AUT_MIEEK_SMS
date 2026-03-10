@@ -59,7 +59,7 @@
 2. **Build Installer**
    ```powershell
    .\INSTALLER_BUILDER.ps1 -Action build
-   # Outputs: SMS_Installer_X.X.X.exe + .sha256
+   # Output: SMS_Installer_X.X.X.exe
    ```
 
 3. **Comprehensive Validation** (95+ checkpoints)
@@ -72,7 +72,7 @@
 
 4. **Upload to GitHub Release**
    ```powershell
-   gh release upload vX.X.X SMS_Installer_X.X.X.exe SMS_Installer_X.X.X.exe.sha256
+   gh release upload vX.X.X SMS_Installer_X.X.X.exe
    ```
 
 **Verification Gates** (EACH MUST PASS):
@@ -223,7 +223,7 @@ gh release create v1.18.5          # Create GitHub release
 .\RELEASE_HELPER.ps1 -Action verify-installer    # Check infrastructure
 .\INSTALLER_BUILDER.ps1 -Action build            # Build installer
 # Then: Run 95+ verification checkpoints manually
-gh release upload v1.18.5 SMS_Installer_1.18.5.exe SMS_Installer_1.18.5.exe.sha256
+gh release upload v1.18.5 SMS_Installer_1.18.5.exe
 
 # Phase 3: Production Deployment (⏳ AFTER PHASE 2)
 # Download installer from GitHub release

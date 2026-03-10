@@ -86,10 +86,9 @@ jobs:
           set -euo pipefail
 
           ALLOWED_EXE="SMS_Installer_${VERSION}.exe"
-          ALLOWED_SHA="SMS_Installer_${VERSION}.exe.sha256"
 
           echo "Sanitizing release '$TAG' in $REPO"
-          echo "Allowed assets: $ALLOWED_EXE, $ALLOWED_SHA"
+          echo "Allowed asset: $ALLOWED_EXE"
 
           mapfile -t ASSETS < <(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name')
 
@@ -99,7 +98,7 @@ jobs:
 
           REMOVED=0
           for ASSET in "${ASSETS[@]}"; do
-            if [ "$ASSET" != "$ALLOWED_EXE" ] && [ "$ASSET" != "$ALLOWED_SHA" ]; then
+            if [ "$ASSET" != "$ALLOWED_EXE" ]; then
               echo "Deleting non-allowlisted asset: $ASSET"
               gh release delete-asset "$TAG" "$ASSET" --repo "$REPO" --yes
               REMOVED=$((REMOVED + 1))
@@ -119,7 +118,6 @@ jobs:
           set -euo pipefail
 
           ALLOWED_EXE="SMS_Installer_${VERSION}.exe"
-          ALLOWED_SHA="SMS_Installer_${VERSION}.exe.sha256"
 
           mapfile -t FINAL_ASSETS < <(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name')
 
@@ -129,21 +127,19 @@ jobs:
           done
 
           for A in "${FINAL_ASSETS[@]}"; do
-            if [ "$A" != "$ALLOWED_EXE" ] && [ "$A" != "$ALLOWED_SHA" ]; then
+            if [ "$A" != "$ALLOWED_EXE" ]; then
               echo "❌ Unexpected asset remains: $A"
               exit 1
             fi
           done
 
           HAS_EXE=false
-          HAS_SHA=false
           for A in "${FINAL_ASSETS[@]}"; do
             [ "$A" = "$ALLOWED_EXE" ] && HAS_EXE=true
-            [ "$A" = "$ALLOWED_SHA" ] && HAS_SHA=true
           done
 
-          if [ "$HAS_EXE" != true ] || [ "$HAS_SHA" != true ]; then
-            echo "❌ Required installer assets are missing after sanitization."
+          if [ "$HAS_EXE" != true ]; then
+            echo "❌ Required installer asset is missing after sanitization."
             exit 1
           fi
 

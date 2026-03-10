@@ -252,9 +252,9 @@ git status
 Get-AuthenticodeSignature "installer\Output\SMS_Installer_1.18.5.exe"
 # Should show: Status=Valid, Subject="AUT MIEEK"
 
-# 2.3 Verify SHA-256 checksum
+# 2.3 Verify SHA-256 checksum locally
 $hash = Get-FileHash "installer\Output\SMS_Installer_1.18.5.exe" -Algorithm SHA256
-$hash.Hash > "installer\Output\SMS_Installer_1.18.5.exe.sha256"
+$hash.Hash
 
 # 2.4 Smoke test (automated)
 .\INSTALLER_BUILDER.ps1 -Action test -Version "1.18.5"
@@ -306,9 +306,8 @@ git push origin v1.18.5
 
 # 4.2 Upload installer to GitHub Release
 gh release upload v1.18.5 "installer\Output\SMS_Installer_1.18.5.exe"
-gh release upload v1.18.5 "installer\Output\SMS_Installer_1.18.5.exe.sha256"
 
-# 4.3 Verify release assets
+# 4.3 Verify release assets and GitHub digest metadata
 gh release view v1.18.5
 
 # 4.4 Deploy to production
@@ -471,7 +470,6 @@ gh release view v1.18.5
 4. **Upload verified artifacts**:
    ```powershell
    gh release upload v1.18.5 SMS_Installer_1.18.5.exe
-   gh release upload v1.18.5 SMS_Installer_1.18.5.exe.sha256
    ```
 
 ### Long-term (Documentation Updates)

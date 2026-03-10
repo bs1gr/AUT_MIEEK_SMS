@@ -59,7 +59,7 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 **✅ REQUIRED:**
 1. Treat historical tags (already published releases) as immutable legacy execution context
 2. Run manual release dispatch only for the current `VERSION` tag on corrected lineage (`main`)
-3. Keep release assets installer-only (`SMS_Installer_<version>.exe` + `.sha256`)
+3. Keep release assets installer-only (`SMS_Installer_<version>.exe`) and use GitHub release digest metadata for SHA256 verification
 4. Allow release asset mutation only via installer workflow policy path
 
 **❌ FORBIDDEN:**
