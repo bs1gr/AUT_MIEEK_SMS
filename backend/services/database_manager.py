@@ -57,8 +57,8 @@ def _validate_backup_filename(filename: str) -> str:
     return filename
 
 
-def _resolve_backup_path(filename: str) -> Path:
-    """Resolve a validated backup filename within the backup directory."""
+def _find_existing_backup_path(filename: str) -> Path | None:
+    """Find an existing validated backup file within the backup directory."""
     backup_dir = _get_backup_dir().resolve()
     safe_filename = Path(_validate_backup_filename(filename)).name
     for candidate in backup_dir.iterdir():
@@ -72,11 +72,11 @@ def _resolve_backup_path(filename: str) -> Path:
             continue
         return resolved_candidate
 
-    return backup_dir / safe_filename
+    return None
 
 
-def _resolve_metadata_path(filepath: Path) -> Path:
-    """Resolve the metadata sidecar path for a validated backup path."""
+def _build_metadata_path(filepath: Path) -> Path:
+    """Build a metadata sidecar path for a validated backup path."""
     backup_dir = _get_backup_dir().resolve()
     resolved_filepath = filepath.resolve()
     try:
@@ -85,6 +85,15 @@ def _resolve_metadata_path(filepath: Path) -> Path:
         raise ValueError("Metadata path escaped backup directory") from exc
 
     meta_filename = Path(f"{resolved_filepath.name}.meta.json").name
+    return backup_dir / meta_filename
+
+
+def _find_metadata_path(filepath: Path) -> Path | None:
+    """Find an existing metadata sidecar path for a validated backup path."""
+    backup_dir = _get_backup_dir().resolve()
+    meta_path = _build_metadata_path(filepath)
+    meta_filename = meta_path.name
+
     for candidate in backup_dir.iterdir():
         if not candidate.is_file() or candidate.name != meta_filename:
             continue
@@ -96,7 +105,7 @@ def _resolve_metadata_path(filepath: Path) -> Path:
             continue
         return resolved_candidate
 
-    return backup_dir / meta_filename
+    return None
 
 
 def _pg_dump_available() -> bool:
@@ -511,16 +520,16 @@ def list_backups(instance_name: str | None = None) -> list[dict[str, Any]]:
 def delete_backup(filename: str) -> bool:
     """Delete a backup file and its metadata."""
     try:
-        filepath = _resolve_backup_path(filename)
+        filepath = _find_existing_backup_path(filename)
     except ValueError:
         raise ValueError("Invalid backup filename")
 
-    if not filepath.exists():
+    if filepath is None or not filepath.exists():
         return False
 
     filepath.unlink()
-    meta_path = _resolve_metadata_path(filepath)
-    if meta_path.exists():
+    meta_path = _find_metadata_path(filepath)
+    if meta_path is not None and meta_path.exists():
         meta_path.unlink()
 
     return True
@@ -529,10 +538,10 @@ def delete_backup(filename: str) -> bool:
 def get_backup_path(filename: str) -> Path | None:
     """Get the full path to a backup file for download."""
     try:
-        filepath = _resolve_backup_path(filename)
+        filepath = _find_existing_backup_path(filename)
     except ValueError:
         return None
-    if not filepath.exists():
+    if filepath is None or not filepath.exists():
         return None
     return filepath
 
@@ -549,10 +558,10 @@ def restore_backup(instance: dict[str, Any], filename: str) -> dict[str, Any]:
     Only supports uncompressed .sql files or .sql.gz (auto-decompressed).
     """
     try:
-        filepath = _resolve_backup_path(filename)
+        filepath = _find_existing_backup_path(filename)
     except ValueError:
         raise ValueError("Invalid backup filename")
-    if not filepath.exists():
+    if filepath is None or not filepath.exists():
         raise FileNotFoundError(f"Backup file not found: {filename}")
 
     # Read SQL content
@@ -680,17 +689,17 @@ def _write_backup_metadata(
         "size_bytes": size,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
-    meta_path = _resolve_metadata_path(filepath)
+    meta_path = _build_metadata_path(filepath)
     meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
 
 
 def _read_backup_metadata(filepath: Path) -> dict[str, Any]:
     """Read backup metadata sidecar if it exists."""
     try:
-        meta_path = _resolve_metadata_path(filepath)
+        meta_path = _find_metadata_path(filepath)
     except ValueError:
         return {}
-    if meta_path.exists():
+    if meta_path is not None and meta_path.exists():
         try:
             return json.loads(meta_path.read_text(encoding="utf-8"))
         except Exception:

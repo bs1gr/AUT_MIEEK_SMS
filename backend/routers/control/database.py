@@ -230,10 +230,11 @@ async def download_backup(
     if path is None:
         raise HTTPException(status_code=404, detail="Backup file not found")
 
-    media_type = "application/gzip" if filename.endswith(".gz") else "application/sql"
+    resolved_name = path.name
+    media_type = "application/gzip" if resolved_name.endswith(".gz") else "application/sql"
     return FileResponse(
         path=str(path),
-        filename=filename,
+        filename=resolved_name,
         media_type=media_type,
     )
 
