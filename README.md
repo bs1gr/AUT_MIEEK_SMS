@@ -168,6 +168,22 @@ Then double-click "Student Management System" on your Desktop:
 .\NATIVE.ps1 -Help           # Command reference
 ```
 
+**Native desktop toggle (Windows):**
+
+```powershell
+.\CREATE_NATIVE_SHORTCUT.ps1   # Create or refresh the "SMS Native Toggle" desktop shortcut
+.\NATIVE_TOGGLE.ps1 status     # Show native status
+.\NATIVE_TOGGLE.ps1 toggle     # Toggle native backend + frontend
+.\NATIVE_TOGGLE.ps1 toggle -Explain  # Show why it chose start vs stop
+```
+
+What it does:
+
+- Creates a dedicated `SMS Native Toggle` desktop shortcut for the native workflow only
+- Uses the custom `SMS_Native_Toggle.ico` icon generated from `AUT_Logo.png`
+- Starts or stops native backend/frontend with one double-click
+- Automatically hides/removes the shortcut if `backend\.venv` or `frontend\node_modules` is missing
+
 > **📖 Full Cleanup Guide:** See [docs/reference/DOCKER_CLEANUP_GUIDE.md](docs/reference/DOCKER_CLEANUP_GUIDE.md) for detailed instructions
 
 **Requirements:**
@@ -1136,6 +1152,10 @@ For development with hot-reload (requires Python 3.11+ and Node.js 18+):
 student-management-system/
 ├── DOCKER.ps1                # Docker deployment (install, start, stop, update)
 ├── NATIVE.ps1                # Native development (hot-reload backend + frontend)
+├── NATIVE_TOGGLE.ps1         # Native start/stop toggle helper
+├── NATIVE_TOGGLE.cmd         # Double-click wrapper for the native toggle
+├── CREATE_NATIVE_SHORTCUT.ps1 # Creates the native desktop shortcut
+├── SMS_Native_Toggle.ico     # Native shortcut icon
 ├── DOCKER_TOGGLE.vbs         # Desktop shortcut toggle script
 ├── CREATE_DESKTOP_SHORTCUT.ps1  # Creates desktop shortcut
 ├── BUILD_DISTRIBUTION.ps1    # Build installer and ZIP distribution
