@@ -1,39 +1,57 @@
-# First Official Public Release - Draft Metadata & Release Body
+# First Official Public Release - v1.18.12 Draft Metadata & Release Body
 
-**Status**: Draft template prepared on 2026-03-11
-**Purpose**: Reusable release metadata/body template for the first official public release
-**Current Release Posture**: All existing `v1.18.x` releases are archived as prereleases
+**Status**: Concrete publication draft prepared on 2026-03-11
+**Purpose**: Finalized release metadata/body draft for designating `v1.18.12` as the first official public release
+**Current Release Posture**: All existing `v1.18.x` releases remain archived as prereleases until the explicit publication step is executed
 
 ---
 
 ## Metadata Checklist
 
-Replace the placeholders below only after the owner selects the official public version.
+This path reuses the already-verified `v1.18.12` tag instead of minting a new version.
 
-- **Tag**: `<vNEXT>`
-- **Release Title**: `<vNEXT> - First Official Public Release`
+- **Tag**: `v1.18.12`
+- **Release Title**: `v1.18.12 - First Official Public Release`
 - **Release Type**: Official Public Release
 - **Target Branch**: `main`
 - **Baseline Candidate**: `v1.18.12`
 - **Previous Published Prerelease Reference**: `v1.18.12`
-- **Asset Policy**: Installer-only (`SMS_Installer_<version>.exe`)
+- **Asset Policy**: Installer-only (`SMS_Installer_1.18.12.exe`)
 - **Digest Source**: GitHub release asset digest metadata
+- **Publication Action**: Edit the existing GitHub release for `v1.18.12` from prerelease → official/latest
 
 ## Required Evidence Before Publication
 
-- `VERSION` file updated to the chosen public tag
-- `frontend/package.json` updated to the chosen public version
+- `VERSION` file remains `v1.18.12`
+- `frontend/package.json` remains `1.18.12`
 - `scripts/VERIFY_VERSION.ps1 -CheckOnly` passes
 - `COMMIT_READY.ps1 -Quick -Snapshot` passes
 - Scope-appropriate backend/frontend tests pass with output reviewed
 - Local installer build, signing, and smoke verification pass
 - Archived prerelease state remains intact for historical tags
+- Release body is updated to remove the archival banner from `v1.18.12` only at publication time
+- GitHub release is marked latest/non-prerelease only after the owner explicitly chooses to publish
+
+## Verified Evidence Already Recorded
+
+- Focused backend verification passed: `20 passed`
+  - `backend/tests/test_control_maintenance.py`
+  - `backend/tests/test_database_manager_security.py`
+- `COMMIT_READY.ps1 -Quick -Snapshot` passed
+- Fresh state snapshot recorded: `artifacts/state/STATE_2026-03-10_101933.md`
+- Additional verification snapshot recorded: `artifacts/state/STATE_2026-03-11_231419.md`
+- Local installer verification passed for `v1.18.12`
+  - built artifact: `dist/SMS_Installer_1.18.12.exe`
+  - Authenticode signing succeeded (`AUT MIEEK`)
+  - installer smoke validation passed
+- GitHub installer asset digest metadata:
+  - `sha256:5a6e9a5ec5380ed5884ec6e455ba09156d2382282918c8ba10801e8b4d2b1fb1`
 
 ---
 
 ## Draft GitHub Release Body
 
-## 🎉 First Official Public Release: `<vNEXT>`
+## 🎉 First Official Public Release: `v1.18.12`
 
 This release is the **first official public release** of the Student Management System.
 
@@ -42,7 +60,7 @@ All earlier `v1.18.x` GitHub releases were retained as **archived prereleases** 
 ### ✅ Public Release Baseline
 
 - Built from the corrected current lineage on `main`
-- Based on the verified `v1.18.12` candidate scope, plus any explicitly approved final adjustments
+- Uses the exact verified `v1.18.12` candidate scope without introducing a new tag/version
 - Publishes only installer allowlisted assets for release consistency
 
 ### 🔒 Stability & Release Integrity
@@ -56,20 +74,21 @@ All earlier `v1.18.x` GitHub releases were retained as **archived prereleases** 
 
 - Version consistency verification passed
 - Pre-commit quick snapshot passed
-- Scope-appropriate automated tests passed
+- Focused backend verification passed (`20 passed`)
 - Local installer build, signing, and smoke validation passed
+- Installer asset digest metadata verified on GitHub
 
 ### 📦 Installation
 
-- **Windows**: Download `SMS_Installer_<version>.exe` from the release assets
+- **Windows**: Download `SMS_Installer_1.18.12.exe` from the release assets
 - **Docker (production)**: `./DOCKER.ps1 -Update`
 - **Native (development)**: `./NATIVE.ps1 -Start`
 
-### 📝 Replace Before Publishing
+### 🚦 Controlled Publication Step
 
-Update these placeholders before use:
+When the owner is ready to publish, execute only these release-state changes:
 
-- `<vNEXT>`
-- `<version>`
-- candidate-scope wording if additional fixes are included
-- validation bullets with exact evidence
+- remove the `ARCHIVED` banner from the `v1.18.12` GitHub release body
+- replace the current prerelease notes with the body above
+- mark `v1.18.12` as non-prerelease/latest
+- leave all earlier `v1.18.0` through `v1.18.11` releases archived as prereleases

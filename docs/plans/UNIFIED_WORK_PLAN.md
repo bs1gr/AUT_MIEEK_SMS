@@ -2,9 +2,9 @@
 
 **Current Version**: 1.18.12
 **Last Updated**: March 11, 2026
-**Status**: ⚠️ **ALL EXISTING `v1.18.x` RELEASES ARCHIVED AS PRERELEASES** | **NO OFFICIAL PUBLIC RELEASE DESIGNATED YET**
+**Status**: ⚠️ **ALL EXISTING `v1.18.x` RELEASES ARCHIVED AS PRERELEASES** | **`v1.18.12` SELECTED AS FIRST OFFICIAL PUBLIC RELEASE PATH**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Release Inventory Cleanup Complete | Awaiting First Official Public Release Decision**
+**Current Phase**: **Release Inventory Cleanup Complete | `v1.18.12` Official Publication Path Finalized**
 **Current Branch**: `main` (HEAD: e30df0b63 - docs historicize legacy coordination and rollout notes)
 
 ---
@@ -56,20 +56,17 @@
 
 ### Follow-Up Path
 
-- 🎯 Decide whether the first official public release should reuse `v1.18.12` content or ship as a new tag/version
+- ✅ Selected `v1.18.12` as the first official public release path (reuse exact verified tag rather than minting a new version)
 - 🎯 Keep installer-only current-lineage policy explicit in workflow comments and release notes
 - 🎯 Re-enable or explicitly defer scheduled production health automation based on owner intent
-- 🎯 Reserve the next public version tag for the first official release rather than re-promoting archived prereleases ad hoc
+- 🎯 Execute the final publication-state flip for `v1.18.12` only after owner confirmation (remove archival banner + mark latest/non-prerelease)
 
 ### First Official Public Release Preparation
 
 - ✅ Prepared reusable draft metadata/body template: `docs/releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md`
-- ✅ Recorded official-release posture: all existing `v1.18.x` tags remain archived prereleases until a deliberate public designation is made
-- 🎯 When owner selects the public version, finalize the draft with:
-  - chosen tag/version
-  - exact commit range and release scope
-  - final validation evidence
-  - installer asset filename and GitHub digest metadata
+- ✅ Finalized the draft around `v1.18.12` as the chosen first official public release path
+- ✅ Recorded official-release posture: all earlier `v1.18.x` tags remain archived prereleases until `v1.18.12` is explicitly promoted
+- 🎯 Final execution step pending: convert the existing `v1.18.12` GitHub release from prerelease to official/latest without changing the tag or artifact lineage
 
 ---
 
