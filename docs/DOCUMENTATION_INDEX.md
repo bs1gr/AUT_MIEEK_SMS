@@ -521,7 +521,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[releases/GITHUB_RELEASE_v1.18.5.md](releases/GITHUB_RELEASE_v1.18.5.md)** - publish-ready GitHub release body for v1.18.5
 - **[releases/RELEASE_MANIFEST_v1.18.5.md](releases/RELEASE_MANIFEST_v1.18.5.md)** - artifact manifest and integrity gates for v1.18.5
 - **[releases/DEPLOYMENT_CHECKLIST_v1.18.5.md](releases/DEPLOYMENT_CHECKLIST_v1.18.5.md)** - deployment and post-release verification checklist for v1.18.5
-- **[releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md](releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md)** - executed `v1.18.12` publication draft and release-body source for the first official public release
+- **[releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md](releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md)** - executed `v1.18.12` publication record and release-body source for the first official public release
 - **[releases/RELEASE_NOTES_v1.18.4.md](releases/RELEASE_NOTES_v1.18.4.md)** - v1.18.4 release notes (prepared)
 - **[releases/GITHUB_RELEASE_v1.18.4.md](releases/GITHUB_RELEASE_v1.18.4.md)** - publish-ready GitHub release body for v1.18.4
 - **[releases/RELEASE_MANIFEST_v1.18.4.md](releases/RELEASE_MANIFEST_v1.18.4.md)** - artifact manifest and integrity gates for v1.18.4

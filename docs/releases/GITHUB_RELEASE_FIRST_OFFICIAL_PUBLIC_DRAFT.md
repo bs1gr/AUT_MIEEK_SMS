@@ -1,6 +1,6 @@
 # First Official Public Release - v1.18.12 Metadata & Release Body Record
 
-**Status**: Executed publication draft on 2026-03-11
+**Status**: Executed publication record on 2026-03-11
 **Purpose**: Recorded release metadata/body source used to designate `v1.18.12` as the first official public release
 **Current Release Posture**: `v1.18.12` is latest/official; earlier `v1.18.x` releases remain archived as prereleases
 
