@@ -1,11 +1,11 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.12
-**Last Updated**: March 11, 2026
+**Last Updated**: March 12, 2026
 **Status**: ✅ **`v1.18.12` IS NOW THE FIRST OFFICIAL PUBLIC RELEASE** | ⚠️ **EARLIER `v1.18.x` RELEASES REMAIN ARCHIVED AS PRERELEASES**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **First Official Public Release Published | Post-Publication Documentation Alignment**
-**Current Branch**: `main` (HEAD: e30df0b63 - docs historicize legacy coordination and rollout notes)
+**Current Branch**: `main` (HEAD: 6e0c7a7a1 - docs(release): record executed v1.18.12 checklist state)
 
 ---
 
@@ -22,7 +22,7 @@
 - ✅ Standardized all prerelease GitHub release bodies with an explicit `ARCHIVED` banner for visual consistency
 - ✅ Promoted the existing `v1.18.12` release from prerelease to latest official public release
 
-### Verified Candidate Scope (staged)
+### Verified Release Scope (staged before promotion)
 
 - ✅ **Security hardening**
   - `backend/services/database_manager.py`
@@ -63,7 +63,7 @@
 - 🎯 Re-enable or explicitly defer scheduled production health automation based on owner intent
 - 🎯 Align remaining release-status references across historical docs only when worth the churn
 
-### First Official Public Release Preparation
+### First Official Public Release Execution Record
 
 - ✅ Prepared reusable draft metadata/body template: `docs/releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md`
 - ✅ Finalized the draft around `v1.18.12` as the chosen first official public release path

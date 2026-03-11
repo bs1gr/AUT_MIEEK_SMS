@@ -14,7 +14,7 @@ This path reuses the already-verified `v1.18.12` tag instead of minting a new ve
 - **Release Title**: `v1.18.12 - First Official Public Release`
 - **Release Type**: Official Public Release
 - **Target Branch**: `main`
-- **Baseline Candidate**: `v1.18.12`
+- **Baseline Release Tag**: `v1.18.12`
 - **Previous Published Prerelease Reference**: `v1.18.12`
 - **Asset Policy**: Installer-only (`SMS_Installer_1.18.12.exe`)
 - **Digest Source**: GitHub release asset digest metadata
@@ -55,12 +55,12 @@ This path reuses the already-verified `v1.18.12` tag instead of minting a new ve
 
 This release is the **first official public release** of the Student Management System.
 
-All earlier `v1.18.x` GitHub releases were retained as **archived prereleases** to preserve the historical corrective and candidate lineage while keeping this publication as the first intentionally designated public release.
+All earlier `v1.18.x` GitHub releases were retained as **archived prereleases** to preserve the historical corrective lineage while keeping this publication as the first intentionally designated public release.
 
 ### ✅ Public Release Baseline
 
 - Built from the corrected current lineage on `main`
-- Uses the exact verified `v1.18.12` candidate scope without introducing a new tag/version
+- Uses the exact verified `v1.18.12` release scope without introducing a new tag/version
 - Publishes only installer allowlisted assets for release consistency
 
 ### 🔒 Stability & Release Integrity

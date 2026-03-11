@@ -1,6 +1,6 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-11
+**Last Updated**: 2026-03-12
 **Project Version (documented)**: 1.18.12
 **Version**: 1.18.12
 **Current Branch**: `main`
@@ -10,7 +10,7 @@ This document serves as the single source of truth for all project documentation
 
 > **Current Status (Mar 11, 2026)**: ✅ **`v1.18.12` is now the live/latest first official public release**
 > - `v1.18.0` through `v1.18.11` remain archived as prereleases for historical reference
-> - `v1.18.12` was promoted from the verified candidate line to the official public release without changing tag or artifact lineage
+> - `v1.18.12` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
 > - `v1.18.12` restores generated Greek `.rtf` installer assets in the build pipeline
 > - `v1.18.12` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
 > - Fresh local installer build, signing, and smoke verification completed successfully for `v1.18.12` before official publication
