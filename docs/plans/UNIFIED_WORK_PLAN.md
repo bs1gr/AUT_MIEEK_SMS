@@ -1,23 +1,23 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.12 (next corrective candidate staging in progress)
-**Last Updated**: March 10, 2026
-**Status**: ⚠️ `v1.18.10` + `v1.18.11` ARCHIVED AS PRERELEASES | ✅ `v1.18.9` retained live pending next corrective patch
+**Current Version**: 1.18.12
+**Last Updated**: March 11, 2026
+**Status**: ✅ `v1.18.12` PUBLISHED LIVE | ⚠️ `v1.18.10` + `v1.18.11` ARCHIVED AS PRERELEASES
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Next Corrective Release Candidate Preparation**
-**Current Branch**: `main` (HEAD: fabbae5dc - installer tracked-input guardrails)
+**Current Phase**: **Post-Publication CI/CD Alignment & Release Hygiene Follow-Up**
+**Current Branch**: `main` (HEAD: e30df0b63 - docs historicize legacy coordination and rollout notes)
 
 ---
 
-## 🚀 Next Corrective Release Candidate (March 10, 2026)
+## 🚀 v1.18.12 Publication & Follow-Up (March 10-11, 2026)
 
-**Status**: ✅ **VERIFIED SCOPE STAGED | RELEASE PATH PREPARED**
+**Status**: ✅ **PUBLISHED LIVE | FOLLOW-UP ALIGNMENT IN PROGRESS**
 
 ### Exact-Tag Release Cleanup
 
 - ✅ Archived `v1.18.10` as a prerelease with an `ARCHIVED – Legacy release` banner
 - ✅ Archived `v1.18.11` as a prerelease with an `ARCHIVED – Legacy release` banner
-- ✅ Confirmed `v1.18.9` remains the live fallback release while the next corrective patch is prepared
+- ✅ Published `v1.18.12` as the current live/latest release on corrected lineage
 
 ### Verified Candidate Scope (staged)
 
@@ -47,13 +47,17 @@
   - Local build produced `dist/SMS_Installer_1.18.12.exe`
   - Authenticode signing succeeded (`AUT MIEEK`)
   - Installer smoke validation passed
+- ✅ GitHub release published live as `v1.18.12` (latest, non-prerelease)
+- ✅ Published asset uses installer-only policy for current lineage
+  - `SMS_Installer_1.18.12.exe`
+  - GitHub release digest metadata: `sha256:5a6e9a5ec5380ed5884ec6e455ba09156d2382282918c8ba10801e8b4d2b1fb1`
 
-### Next Release Path
+### Follow-Up Path
 
-- 🎯 Prepare the next patch from the staged verified scope only
-- 🎯 Keep unrelated workflow/doc-policy edits and CSV drift out of the release candidate commit
-- 🎯 Bump version metadata for the next corrective patch after final scope confirmation
-- 🎯 Run installer build/sign/smoke verification again on the final tagged candidate before publication
+- 🎯 Align documentation and workflow commentary with the live `v1.18.12` publication state
+- 🎯 Keep installer-only current-lineage policy explicit in workflow comments and release notes
+- 🎯 Re-enable or explicitly defer scheduled production health automation based on owner intent
+- 🎯 Reserve the next patch version for new scoped fixes only (not for documenting the already-published `v1.18.12` state)
 
 ---
 
@@ -806,7 +810,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 3. ✅ **Monitoring framework deployed** (Feb 5) - [monitoring/STABILITY_MONITORING.md](../../monitoring/STABILITY_MONITORING.md)
 4. ✅ **Feature roadmap planning framework prepared** (Feb 5) - [docs/plans/FEATURE_ROADMAP_PLANNING.md](../../docs/plans/FEATURE_ROADMAP_PLANNING.md)
 5. 📦 **ARCHIVED (for now)**: Installer testing (owner deferred; not required at this time)
-6. ✅ **COMPLETE** (Feb 28, 2026): **Production monitoring phase concluded** - Manual monitoring cycle complete with successful stability verification. Production restart after 18-hour idle, container verified healthy with successful PostgreSQL migration, health endpoint responding 200. Automated CI/CD hourly health checks continue (5 consecutive successful checks, 100% pass rate over 5-hour observation window). Monitoring logged in `monitoring/STABILITY_MONITORING.md`.
+6. ✅ **COMPLETE** (Feb 28, 2026): **Production monitoring phase concluded** - Manual monitoring cycle complete with successful stability verification. Production restart after 18-hour idle, container verified healthy with successful PostgreSQL migration, health endpoint responding 200. Historical hourly GitHub Actions checkpoints were verified during rollout; as of Mar 11, 2026 the `Scheduled Production Health Check` workflow is manually disabled, so automated cadence is currently paused until explicitly re-enabled. Monitoring evidence remains logged in `monitoring/STABILITY_MONITORING.md`.
 7. ✅ **COMPLETE**: OPTIONAL-002 email report delivery (SMTP integration for scheduled/on-demand reports)
 8. ✅ **COMPLETE**: User feedback collection (in-app feedback modal + `/api/v1/feedback` endpoint + operations feedback inbox)
 9. ✅ **COMPLETE**: Candidate 2 - ESLint code health refactoring batch (frontend lint clean; commit 836c1dccb)

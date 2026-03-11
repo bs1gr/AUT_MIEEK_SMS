@@ -1,4 +1,12 @@
-name: Release - Build & Upload Installer
+name: Release - Build & Upload Installer (GitHub Digest)
+
+# Compatibility note:
+# - The filename remains `release-installer-with-sha.yml` because other workflows
+#   dispatch it by path/name today.
+# - Current corrected-lineage policy publishes the installer asset itself and then
+#   relies on GitHub release digest metadata for integrity verification.
+# - We retain local SHA256 calculation inside the workflow as a verification gate,
+#   not as a requirement to publish a .sha256 sidecar asset.
 
 on:
   workflow_dispatch:
@@ -70,11 +78,11 @@ jobs:
           $releaseId = ""
 
           if ("${{ github.event.inputs.tag }}" -ne "") {
-            # Manual dispatch with explicit tag
+            # Manual dispatch with explicit tag for corrected-lineage repair/retry.
             $tag = "${{ github.event.inputs.tag }}"
             Write-Host "Manual dispatch with tag: $tag"
           } else {
-            # No tag provided: get the latest release
+            # No tag provided: resolve the latest release and verify it already exists.
             Write-Host "No tag specified, fetching latest release..."
             try {
               $latest = gh release view --json tagName,id -q '.tagName,.id'
@@ -103,7 +111,9 @@ jobs:
             exit 1
           }
 
-          # Strict mode: the release must already exist for this tag
+          # Strict mode: the release must already exist for this tag.
+          # This workflow publishes the installer to an existing release and does
+          # not create releases on its own.
           try {
             $releaseId = (gh release view $tag --json id -q .id).Trim()
           } catch {
@@ -452,7 +462,7 @@ jobs:
           $localHash = (Get-FileHash $installerPath -Algorithm SHA256).Hash.ToLowerInvariant()
           $localDigest = "sha256:$localHash"
 
-          Write-Host "Uploading $assetName to release..."
+          Write-Host "Uploading $assetName to release (installer-only current-lineage policy)..."
           Write-Host "Tag: $tag"
           Write-Host "Installer path: $installerPath"
           Write-Host "Asset name: $assetName"
@@ -635,7 +645,7 @@ jobs:
           **Installer**: SMS_Installer_${version}.exe
           **Version**: ${version}
           **Size**: ${size} MB
-          **SHA256**: ${sha256}
+          **Local SHA256 (verification gate)**: ${sha256}
 
           ### Verify Installer Integrity
 
@@ -647,8 +657,9 @@ jobs:
           Expected SHA256:
           \`${sha256}\`
 
-          The installer is available as a release asset.
+          The installer is published as the canonical release asset.
           Compare the local hash above with the GitHub release asset digest shown in the release UI/API.
+          Current corrected-lineage releases do not require a separate `.sha256` sidecar asset.
           "@
 
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value $summary

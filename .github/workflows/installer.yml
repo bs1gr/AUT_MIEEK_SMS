@@ -1,9 +1,13 @@
 name: Windows Installer Build
 
+# Manual-only validation workflow:
+# - This workflow is retained for ad hoc installer verification builds.
+# - Canonical release publication is handled by `release-on-tag.yml` plus
+#   `release-installer-with-sha.yml`.
+# - Keeping this workflow off tag triggers avoids duplicate release-time Windows
+#   builds and reduces confusion about which workflow owns published assets.
+
 on:
-  push:
-    tags:
-      - 'v1.*.*'
   workflow_dispatch:
 
 jobs:

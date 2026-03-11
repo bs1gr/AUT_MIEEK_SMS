@@ -1,23 +1,24 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-10
+**Last Updated**: 2026-03-11
 **Project Version (documented)**: 1.18.12
 **Version**: 1.18.12
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE** | ⚠️ **v1.18.12 CORRECTIVE CANDIDATE STAGING**
+**Status**: ✅ **PRODUCTION LIVE ON v1.18.12** | ⚠️ **POST-PUBLICATION CI/CD ALIGNMENT IN PROGRESS**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 10, 2026)**: ⚠️ **Production live on fallback `v1.18.9` while corrective `v1.18.12` candidate is being prepared**
+> **Current Status (Mar 11, 2026)**: ✅ **`v1.18.12` is published live as the current latest release**
 > - `v1.18.10` and `v1.18.11` were archived as prereleases after exact-tag cleanup
-> - The next corrective candidate restores generated Greek `.rtf` installer assets in the build pipeline
-> - The next corrective candidate hardens backup/update path handling and supports installer digest metadata without requiring `.sha256` sidecars
-> - A fresh local installer build, signing, and smoke verification completed successfully for `v1.18.12`
+> - `v1.18.12` restores generated Greek `.rtf` installer assets in the build pipeline
+> - `v1.18.12` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
+> - Fresh local installer build, signing, and smoke verification completed successfully for `v1.18.12` before publication
+> - The scheduled production checkpoint workflow exists but is currently manually disabled; rely on recorded monitoring evidence and manual/on-demand verification until re-enabled
 > - v1.18.7: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
 > - v1.18.6: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
 > - Post-release development: Type safety improvements, testing stability, ESLint cleanup
-> - Changelog/work plan/index updated with v1.18.7 changes
-> - All tests passing, repository clean and synced
+> - Changelog/work plan/index are being aligned with the live `v1.18.12` publication state
+> - All recent core CI validations reviewed during the audit were passing
 > - See plans/UNIFIED_WORK_PLAN.md for details
 > **Current authority note**:
 > - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
