@@ -2,22 +2,24 @@
 
 **Current Version**: 1.18.12
 **Last Updated**: March 11, 2026
-**Status**: ✅ `v1.18.12` PUBLISHED LIVE | ⚠️ `v1.18.10` + `v1.18.11` ARCHIVED AS PRERELEASES
+**Status**: ⚠️ **ALL EXISTING `v1.18.x` RELEASES ARCHIVED AS PRERELEASES** | **NO OFFICIAL PUBLIC RELEASE DESIGNATED YET**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Post-Publication CI/CD Alignment & Release Hygiene Follow-Up**
+**Current Phase**: **Release Inventory Cleanup Complete | Awaiting First Official Public Release Decision**
 **Current Branch**: `main` (HEAD: e30df0b63 - docs historicize legacy coordination and rollout notes)
 
 ---
 
 ## 🚀 v1.18.12 Publication & Follow-Up (March 10-11, 2026)
 
-**Status**: ✅ **PUBLISHED LIVE | FOLLOW-UP ALIGNMENT IN PROGRESS**
+**Status**: ⚠️ **ARCHIVED AS PRERELEASE | RELEASE INVENTORY CLEANUP COMPLETE**
 
 ### Exact-Tag Release Cleanup
 
 - ✅ Archived `v1.18.10` as a prerelease with an `ARCHIVED – Legacy release` banner
 - ✅ Archived `v1.18.11` as a prerelease with an `ARCHIVED – Legacy release` banner
-- ✅ Published `v1.18.12` as the current live/latest release on corrected lineage
+- ✅ Published `v1.18.12` on corrected lineage with installer-only assets and verified digest metadata
+- ✅ Archived all existing `v1.18.0` through `v1.18.12` releases as prereleases pending the first official public release decision
+- ✅ Standardized all prerelease GitHub release bodies with an explicit `ARCHIVED` banner for visual consistency
 
 ### Verified Candidate Scope (staged)
 
@@ -47,17 +49,27 @@
   - Local build produced `dist/SMS_Installer_1.18.12.exe`
   - Authenticode signing succeeded (`AUT MIEEK`)
   - Installer smoke validation passed
-- ✅ GitHub release published live as `v1.18.12` (latest, non-prerelease)
+- ✅ `v1.18.12` was published successfully and later reclassified as a prerelease during release inventory cleanup
 - ✅ Published asset uses installer-only policy for current lineage
   - `SMS_Installer_1.18.12.exe`
   - GitHub release digest metadata: `sha256:5a6e9a5ec5380ed5884ec6e455ba09156d2382282918c8ba10801e8b4d2b1fb1`
 
 ### Follow-Up Path
 
-- 🎯 Align documentation and workflow commentary with the live `v1.18.12` publication state
+- 🎯 Decide whether the first official public release should reuse `v1.18.12` content or ship as a new tag/version
 - 🎯 Keep installer-only current-lineage policy explicit in workflow comments and release notes
 - 🎯 Re-enable or explicitly defer scheduled production health automation based on owner intent
-- 🎯 Reserve the next patch version for new scoped fixes only (not for documenting the already-published `v1.18.12` state)
+- 🎯 Reserve the next public version tag for the first official release rather than re-promoting archived prereleases ad hoc
+
+### First Official Public Release Preparation
+
+- ✅ Prepared reusable draft metadata/body template: `docs/releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md`
+- ✅ Recorded official-release posture: all existing `v1.18.x` tags remain archived prereleases until a deliberate public designation is made
+- 🎯 When owner selects the public version, finalize the draft with:
+  - chosen tag/version
+  - exact commit range and release scope
+  - final validation evidence
+  - installer asset filename and GitHub digest metadata
 
 ---
 

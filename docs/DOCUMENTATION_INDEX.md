@@ -4,15 +4,17 @@
 **Project Version (documented)**: 1.18.12
 **Version**: 1.18.12
 **Current Branch**: `main`
-**Status**: ✅ **PRODUCTION LIVE ON v1.18.12** | ⚠️ **POST-PUBLICATION CI/CD ALIGNMENT IN PROGRESS**
+**Status**: ⚠️ **ALL EXISTING `v1.18.x` RELEASES ARCHIVED AS PRERELEASES** | **NO OFFICIAL PUBLIC RELEASE YET**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 11, 2026)**: ✅ **`v1.18.12` is published live as the current latest release**
-> - `v1.18.10` and `v1.18.11` were archived as prereleases after exact-tag cleanup
+> **Current Status (Mar 11, 2026)**: ⚠️ **All currently published `v1.18.x` releases are archived as prereleases**
+> - `v1.18.0` through `v1.18.12` are now marked as prereleases pending the first official public release
+> - `v1.18.12` remains the most recent verified candidate build, but it is no longer marked as the live/latest official release
 > - `v1.18.12` restores generated Greek `.rtf` installer assets in the build pipeline
 > - `v1.18.12` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
-> - Fresh local installer build, signing, and smoke verification completed successfully for `v1.18.12` before publication
+> - Fresh local installer build, signing, and smoke verification completed successfully for `v1.18.12` before archival reclassification
+> - All archived prerelease bodies now carry an explicit `ARCHIVED` banner for visual consistency in the GitHub Releases UI
 > - The scheduled production checkpoint workflow exists but is currently manually disabled; rely on recorded monitoring evidence and manual/on-demand verification until re-enabled
 > - v1.18.7: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
 > - v1.18.6: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
@@ -519,6 +521,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[releases/GITHUB_RELEASE_v1.18.5.md](releases/GITHUB_RELEASE_v1.18.5.md)** - publish-ready GitHub release body for v1.18.5
 - **[releases/RELEASE_MANIFEST_v1.18.5.md](releases/RELEASE_MANIFEST_v1.18.5.md)** - artifact manifest and integrity gates for v1.18.5
 - **[releases/DEPLOYMENT_CHECKLIST_v1.18.5.md](releases/DEPLOYMENT_CHECKLIST_v1.18.5.md)** - deployment and post-release verification checklist for v1.18.5
+- **[releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md](releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md)** - reusable draft metadata/body template for the first official public release
 - **[releases/RELEASE_NOTES_v1.18.4.md](releases/RELEASE_NOTES_v1.18.4.md)** - v1.18.4 release notes (prepared)
 - **[releases/GITHUB_RELEASE_v1.18.4.md](releases/GITHUB_RELEASE_v1.18.4.md)** - publish-ready GitHub release body for v1.18.4
 - **[releases/RELEASE_MANIFEST_v1.18.4.md](releases/RELEASE_MANIFEST_v1.18.4.md)** - artifact manifest and integrity gates for v1.18.4
