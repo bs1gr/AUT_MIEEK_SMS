@@ -1,9 +1,9 @@
 # Version History
 
 **Current repository version**: `v1.18.12`
-**Current status**: corrective candidate staging on `main`
-**Live fallback release**: `v1.18.9` (per current release/work-plan docs)
-**Last Updated**: 2026-03-10
+**Current status**: `v1.18.12` is the live/latest first official public release
+**Archived prerelease lineage**: `v1.18.0` through `v1.18.11`
+**Last Updated**: 2026-03-12
 
 ---
 
@@ -23,12 +23,12 @@ Use these sources for the current truth:
 
 ## Current release context
 
-As of March 10, 2026:
+As of March 12, 2026:
 
 - the repository version is `v1.18.12`
-- production remains live on fallback `v1.18.9`
-- `v1.18.10` and `v1.18.11` were archived as prereleases after exact-tag cleanup
-- the next corrective release candidate is being prepared from verified staged scope
+- `v1.18.12` is the live/latest first official public release
+- `v1.18.0` through `v1.18.11` remain archived as prereleases for historical reference
+- the official release was promoted from the verified `v1.18.12` candidate line without changing tag or artifact lineage
 
 For full details, see:
 

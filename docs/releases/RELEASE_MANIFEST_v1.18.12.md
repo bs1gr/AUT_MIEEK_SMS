@@ -1,10 +1,11 @@
 # Release Manifest - Version 1.18.12
 
 **Release Date**: March 10, 2026
+**Official Public Release Designation**: March 11, 2026
 **Tag**: v1.18.12
 **Branch**: main
 **Previous Tag**: v1.18.11
-**Previous Live Release**: v1.18.9
+**Previous Archived Prerelease Reference**: v1.18.11
 
 ---
 
@@ -42,15 +43,15 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 **Base Tag**: v1.18.11
 **Head Commit**: `a2da597da` (`main`)
-**Live Fallback Context**: `v1.18.9` remains the last live non-archived release until publication completes.
+**Official Release Context**: `v1.18.12` is now the live/latest first official public release.
 
 ### Commit Categories
 
 | Category | Count | Scope |
 |----------|-------|-------|
-| Corrective Release Prep | 1 | verified `v1.18.12` candidate packaging |
+| Corrective Release Prep | 1 | verified `v1.18.12` release packaging |
 | Release Guardrails | 2 | installer tracked-input guardrails + release documentation |
-| Release State Recording | 1 | publication/cleanup state capture |
+| Release State Recording | 1 | publication, archival cleanup, and official-release promotion |
 
 ---
 
@@ -71,6 +72,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 ### Post-Release Checks
 
 - [ ] GitHub Release page published at `/releases/tag/v1.18.12`
+- [ ] GitHub release marked latest/non-prerelease
 - [ ] `Create GitHub Release on tag` workflow succeeds
 - [ ] `Release - Build & Upload Installer with SHA256` workflow succeeds
 - [ ] `Release Asset Sanitizer` workflow succeeds
