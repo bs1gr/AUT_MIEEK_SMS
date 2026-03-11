@@ -1,4 +1,4 @@
-# First Official Public Release - v1.18.12 Draft Metadata & Release Body
+# First Official Public Release - v1.18.12 Metadata & Release Body Record
 
 **Status**: Executed publication draft on 2026-03-11
 **Purpose**: Recorded release metadata/body source used to designate `v1.18.12` as the first official public release
@@ -49,7 +49,7 @@ This path reuses the already-verified `v1.18.12` tag instead of minting a new ve
 
 ---
 
-## Draft GitHub Release Body
+## Published GitHub Release Body
 
 ## 🎉 First Official Public Release: `v1.18.12`
 
