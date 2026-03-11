@@ -1,8 +1,8 @@
 # First Official Public Release - v1.18.12 Draft Metadata & Release Body
 
-**Status**: Concrete publication draft prepared on 2026-03-11
-**Purpose**: Finalized release metadata/body draft for designating `v1.18.12` as the first official public release
-**Current Release Posture**: All existing `v1.18.x` releases remain archived as prereleases until the explicit publication step is executed
+**Status**: Executed publication draft on 2026-03-11
+**Purpose**: Recorded release metadata/body source used to designate `v1.18.12` as the first official public release
+**Current Release Posture**: `v1.18.12` is latest/official; earlier `v1.18.x` releases remain archived as prereleases
 
 ---
 
@@ -18,7 +18,7 @@ This path reuses the already-verified `v1.18.12` tag instead of minting a new ve
 - **Previous Published Prerelease Reference**: `v1.18.12`
 - **Asset Policy**: Installer-only (`SMS_Installer_1.18.12.exe`)
 - **Digest Source**: GitHub release asset digest metadata
-- **Publication Action**: Edit the existing GitHub release for `v1.18.12` from prerelease → official/latest
+- **Publication Action**: Completed — existing GitHub release for `v1.18.12` promoted from prerelease → official/latest
 
 ## Required Evidence Before Publication
 
@@ -29,8 +29,8 @@ This path reuses the already-verified `v1.18.12` tag instead of minting a new ve
 - Scope-appropriate backend/frontend tests pass with output reviewed
 - Local installer build, signing, and smoke verification pass
 - Archived prerelease state remains intact for historical tags
-- Release body is updated to remove the archival banner from `v1.18.12` only at publication time
-- GitHub release is marked latest/non-prerelease only after the owner explicitly chooses to publish
+- Release body was updated to remove the archival banner from `v1.18.12`
+- GitHub release is now marked latest/non-prerelease
 
 ## Verified Evidence Already Recorded
 
@@ -84,11 +84,11 @@ All earlier `v1.18.x` GitHub releases were retained as **archived prereleases** 
 - **Docker (production)**: `./DOCKER.ps1 -Update`
 - **Native (development)**: `./NATIVE.ps1 -Start`
 
-### 🚦 Controlled Publication Step
+### ✅ Publication Execution Record
 
-When the owner is ready to publish, execute only these release-state changes:
+Executed release-state changes:
 
-- remove the `ARCHIVED` banner from the `v1.18.12` GitHub release body
-- replace the current prerelease notes with the body above
-- mark `v1.18.12` as non-prerelease/latest
-- leave all earlier `v1.18.0` through `v1.18.11` releases archived as prereleases
+- removed the `ARCHIVED` banner from the `v1.18.12` GitHub release body
+- replaced the prerelease notes with the official public release body
+- marked `v1.18.12` as non-prerelease/latest
+- left `v1.18.0` through `v1.18.11` archived as prereleases
