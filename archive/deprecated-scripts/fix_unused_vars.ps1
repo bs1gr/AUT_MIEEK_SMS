@@ -1,3 +1,6 @@
+# Historical archive: redundant frontend lint wrapper retained for traceability.
+# Original active path: scripts/fix_unused_vars.ps1
+
 # Script to automatically fix unused variables using ESLint
 $ErrorActionPreference = "Stop"
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path

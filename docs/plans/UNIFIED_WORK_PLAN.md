@@ -310,17 +310,9 @@
    - Enforces: Installer-only policy
    - Removes: Non-approved assets
 
-**Verification Commands**:
-```powershell
-# Comprehensive verification script (all tasks)
-.\scripts\VERIFY_RELEASE_v1.18.6.ps1 -Task all
-
-# Check GitHub Actions workflow status
-.\scripts\VERIFY_RELEASE_v1.18.6.ps1 -Task workflows
-
-# Verify code signing and checksums (after download)
-.\scripts\VERIFY_RELEASE_v1.18.6.ps1 -Task signing -InstallerPath ".\SMS_Installer_1.18.6.exe"
-```
+**Historical verification helper used during the release audit**:
+- Archived helper: `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.6.ps1`
+- It was used at the time to check workflows, signing, and release assets for the `v1.18.6` publication window.
 
 **Manual Verification Links**:
 - Release Page: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.6
@@ -402,7 +394,7 @@
 
 **Phase 3: Monitoring & Verification** ⏳ IN PROGRESS
 - Workflows building installer and creating release
-- Verification script ready: `scripts/VERIFY_RELEASE_v1.18.6.ps1`
+- Historical verification helper was prepared for this release window (now archived at `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.6.ps1`)
 - Expected completion: ~10-15 minutes from tag push
 
 **Post-Release Validation** ⏳ PENDING
@@ -476,9 +468,7 @@
    - Confirm 3 workflows succeed for v1.18.6 (Create Release, Build Installer, Sanitizer)
 
 2. **Run Verification Script**:
-   ```powershell
-   .\scripts\VERIFY_RELEASE_v1.18.6.ps1 -Task all
-   ```
+   - Historical note: this release used a version-pinned verification helper, now archived at `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.6.ps1`
 
 3. **Download and Test Installer**:
    - Download: SMS_Installer_1.18.6.exe + .sha256
@@ -1003,6 +993,220 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - Ran additional live production checkpoint (`DOCKER.ps1 -Status`, restart counter, container health state, start timestamp, `/health` probe on `:8080`).
 - Confirmed continued stability (sustained ~13-hour healthy runtime window, restart count `0`, container health `healthy`, startup timestamp unchanged, `/health` → `200`).
 - Logged post-automation follow-up checkpoint evidence in `monitoring/STABILITY_MONITORING.md`.
+
+### Next Cleanup Scope (March 12, 2026) - Obsolete Active-Code Review
+
+**Status**: ✅ **SCOPES 1-4 COMPLETE**
+
+**Goal**: Remove or archive remaining active-repo scripts that are obsolete, version-pinned, or duplicated by newer canonical workflows without breaking documented developer paths.
+
+**Execution Order (must follow in order):**
+
+1. **Lowest-risk first: archive version-specific emergency cleanup script**
+    - **Primary candidate**: `EMERGENCY_FIX_400_ERROR.ps1`
+    - **Why first**: Version-pinned to `v1.17.7`, references legacy Docker image tags (`1.12.3`, `1.17.6`), and appears to be a one-off incident utility rather than a current workflow.
+    - ✅ **Completed file edits**:
+       - Moved `EMERGENCY_FIX_400_ERROR.ps1` → `archive/deprecated-scripts/EMERGENCY_FIX_400_ERROR.ps1`
+       - Updated `installer/INSTALLER_CRITICAL_FIX_400_ERROR.md`
+          - Replaced active execution guidance with historical note + current recovery path
+          - Pointed active recovery steps to `UNINSTALL_SMS_MANUALLY.ps1`
+          - Corrected stale `scripts/EMERGENCY_FIX_400_ERROR.ps1` path references to archived-path wording
+    - ✅ **Verification evidence**:
+       - No active workflows/tasks/scripts were found to reference the root-level file; active references were limited to installer documentation and this work plan
+       - Installer documentation still provides a valid recovery path after archival (`UNINSTALL_SMS_MANUALLY.ps1` + reinstall flow)
+
+2. **Second scope: consolidate duplicate E2E direct runner**
+    - **Candidate**: `RUN_E2E_DIRECT.ps1`
+    - **Why second**: Functionality overlaps with `RUN_E2E_TESTS.ps1 -SkipChecks`; low risk after canonical path is made explicit.
+      - ✅ **Completed file edits**:
+         - Added `-Direct` alias to `RUN_E2E_TESTS.ps1`
+         - Moved `RUN_E2E_DIRECT.ps1` → `archive/deprecated-scripts/RUN_E2E_DIRECT.ps1`
+         - Updated `docs/development/TEST_RUNNERS_GUIDE.md`
+            - Replaced `RUN_E2E_DIRECT.ps1` usage examples with `RUN_E2E_TESTS.ps1 -Direct`
+            - Updated quick-reference and best-practices tables accordingly
+      - ✅ **Verification evidence**:
+         - Active references to `RUN_E2E_DIRECT.ps1` were limited to `TEST_RUNNERS_GUIDE.md` and this work plan; no workflows or tasks depended on the root-level file
+         - `RUN_E2E_TESTS.ps1` now exposes both `-SkipChecks` and `-Direct` for manual-service E2E execution paths
+
+3. **Third scope: consolidate duplicate frontend Vitest wrappers**
+    - **Candidates**: `RUN_FRONTEND_TESTS_SIMPLE.ps1`, `RUN_FRONTEND_TESTS_SUMMARY.ps1`
+    - **Why third**: Lower urgency because docs still rely on them for UTF-8 handling and captured summaries; best treated as consolidation, not blind archival.
+      - ✅ **Completed file edits**:
+         - Created canonical wrapper `RUN_FRONTEND_TESTS.ps1` with `-Mode Verbose|Summary`, optional `-Pattern`, and `-SkipRun`
+         - Moved `RUN_FRONTEND_TESTS_SIMPLE.ps1` → `archive/deprecated-scripts/RUN_FRONTEND_TESTS_SIMPLE.ps1`
+         - Moved `RUN_FRONTEND_TESTS_SUMMARY.ps1` → `archive/deprecated-scripts/RUN_FRONTEND_TESTS_SUMMARY.ps1`
+         - Updated `docs/development/TEST_RUNNERS_GUIDE.md`
+            - Replaced dual-runner guidance with the canonical wrapper
+            - Preserved UTF-8 and summary-output guidance in the new runner description
+      - ✅ **Verification evidence**:
+         - The canonical wrapper preserves both UTF-8 console handling and summary artifact output (`test-results/frontend/vitest_output.txt`, `test-results/frontend/summary.txt`)
+         - Active runner documentation now points to `RUN_FRONTEND_TESTS.ps1`; the remaining old wrapper references are historical records only
+         - Focused validation passed via `RUN_FRONTEND_TESTS.ps1 -Pattern "RBACPanel.test" -Mode Summary` (`Test Files 1 passed`, `Tests 2 passed`)
+
+4. **Fourth scope: archive legacy CI/CD setup helper**
+    - **Candidate**: `CI_CD_SETUP_HELPER.ps1`
+    - **Why fourth**: Safe after review because the script targets an older SSH/deploy-key based setup flow that no longer matches the live pipeline contract.
+      - ✅ **Completed file edits**:
+         - Moved `CI_CD_SETUP_HELPER.ps1` → `archive/deprecated-scripts/CI_CD_SETUP_HELPER.ps1`
+         - Updated `docs/misc/CI_CD_SETUP_QUICK_REFERENCE.md`
+            - Removed legacy helper command usage
+            - Replaced helper verification with direct guidance based on current workflow variables/runners
+      - ✅ **Verification evidence**:
+         - Active references to `CI_CD_SETUP_HELPER.ps1` were limited to the root script itself and `docs/misc/CI_CD_SETUP_QUICK_REFERENCE.md`
+         - The live `ci-cd-pipeline.yml` now uses repository variables/secrets such as `DEPLOY_HOST`, `DEPLOY_USER`, `STAGING_URL`, and `PROD_URL`, plus self-hosted runner labels, instead of the archived helper's `DEPLOY_KEY`/placeholder-host assumptions
+         - Current CI/CD validation and operational coverage is provided by dedicated workflows including `commit-ready.yml`, `native-setup-smoke.yml`, and `scheduled-production-health-check.yml`
+
+### Ranked Follow-Up Sequence (evidence-based, March 12, 2026)
+
+**Archive now - safest next two candidates:**
+
+1. **Empty version-pinned deploy stub**
+    - **Candidate**: `scripts/deploy_v1.18.0.ps1`
+    - **Exact move**: `scripts/deploy_v1.18.0.ps1` → `archive/deprecated-scripts/deploy_v1.18.0.ps1`
+    - **Why this ranks first**:
+       - File is empty
+       - No active references were found in docs, workflows, tasks, or code
+       - Version-pinned filename indicates one-off historical intent
+    - **Required companion edits**: none expected beyond this work plan entry because no active references were found
+
+2. **PR-specific merge helper**
+    - **Candidate**: `scripts/merge_pr_132.ps1`
+    - **Exact move**: `scripts/merge_pr_132.ps1` → `archive/deprecated-scripts/merge_pr_132.ps1`
+    - **Why this ranks second**:
+       - Hardcoded to PR `#132`
+       - Performs one-time branch-protection/merge operations tied to that historical PR
+       - Active references were limited to historical/archive analysis, not live workflows or current operator docs
+    - **Required companion edits**: none required for active docs/workflows; only historical records mention it
+
+### Archive-Now Execution Progress (March 12, 2026)
+
+- ✅ Moved `scripts/deploy_v1.18.0.ps1` → `archive/deprecated-scripts/deploy_v1.18.0.ps1`
+- ✅ Moved `scripts/merge_pr_132.ps1` → `archive/deprecated-scripts/merge_pr_132.ps1`
+- ✅ Verification evidence:
+  - Final pre-move reference sweep found only this work plan plus archived analysis references for the two candidates
+  - No active docs, tasks, workflows, or code paths referenced `scripts/deploy_v1.18.0.ps1`
+  - No active docs, tasks, workflows, or operator guides referenced `scripts/merge_pr_132.ps1`
+
+**Review later - likely obsolete, but hold for one more confirmation pass:**
+
+3. **Backend test import migration helper**
+    - **Candidate**: `scripts/fix_test_imports.ps1`
+    - **Planned move**: `scripts/fix_test_imports.ps1` → `archive/deprecated-scripts/fix_test_imports.ps1`
+    - **Why not archive immediately**:
+       - No active references were found beyond the file itself
+       - Script contains real one-time migration logic for `backend.tests.conftest` → `backend.tests.db_setup`
+       - Safer to first confirm the migration pattern is no longer needed anywhere in current tests
+    - **Confirmation gate before move**:
+       - Search current `backend/tests/**` for the old import pattern and verify there is no remaining migration need
+
+4. **Redundant frontend lint wrapper**
+    - **Candidate**: `scripts/fix_unused_vars.ps1`
+    - **Planned move**: `scripts/fix_unused_vars.ps1` → `archive/deprecated-scripts/fix_unused_vars.ps1`
+    - **Why not archive immediately**:
+       - No active references were found beyond archived analysis
+       - Functionality is redundant with canonical commands already documented (`npm --prefix frontend run lint -- --fix`)
+       - Safe, but worth moving in a wrapper-consolidation pass rather than mixing with today’s stronger archive-now candidates
+    - **Confirmation gate before move**:
+       - Verify no hidden task/docs still call the wrapper and then replace any remaining mentions with canonical lint commands if found
+
+### Review-Later Execution Progress (March 12, 2026)
+
+- ✅ Moved `scripts/fix_test_imports.ps1` → `archive/deprecated-scripts/fix_test_imports.ps1`
+- ✅ Moved `scripts/fix_unused_vars.ps1` → `archive/deprecated-scripts/fix_unused_vars.ps1`
+- ✅ Confirmation gates satisfied:
+  - No `backend/tests/**` files still import `TestingSessionLocal` or `engine` from `backend.tests.conftest`
+  - Remaining `backend.tests.conftest` imports are for active helper functions only (`get_error_message`, `get_error_detail`, `get_error_code`)
+  - No active docs, tasks, workflows, or code paths referenced `fix_unused_vars.ps1`; only archived analysis plus this work plan mentioned it
+
+### Updated Cleanup Sweep Status (March 12, 2026)
+
+- ✅ Archived in this sweep:
+  - `EMERGENCY_FIX_400_ERROR.ps1`
+  - `RUN_E2E_DIRECT.ps1`
+  - `RUN_FRONTEND_TESTS_SIMPLE.ps1`
+  - `RUN_FRONTEND_TESTS_SUMMARY.ps1`
+  - `CI_CD_SETUP_HELPER.ps1`
+  - `scripts/deploy_v1.18.0.ps1`
+  - `scripts/merge_pr_132.ps1`
+  - `scripts/fix_test_imports.ps1`
+  - `scripts/fix_unused_vars.ps1`
+  - `scripts/prepare_release.ps1`
+
+**Keep active for now:**
+
+- `scripts/trigger_branch_protection.ps1`
+  - keep because it still maps to the live `.github/workflows/apply-branch-protection.yml` workflow
+
+**Historical but not part of the immediate archive-now wave:**
+
+- `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.6.ps1`
+  - ✅ Archived from `scripts/VERIFY_RELEASE_v1.18.6.ps1` after confirming it had no live workflow or documentation-index usage and was referenced only by historical `v1.18.6` work-plan sections
+
+### Release-Doc Alignment Follow-Up (March 12, 2026)
+
+- ✅ Aligned active release-script hierarchy docs so `RELEASE_READY.ps1` is documented as the primary orchestrator and `RELEASE_WITH_DOCS.ps1` as the secondary wrapper
+- ✅ Corrected active documentation drift in:
+  - `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md`
+  - `docs/development/RELEASE_DOCS_GENERATOR_INTEGRATION.md`
+  - `docs/RELEASE_PROCEDURE_MANDATORY.md`
+- ✅ Verified `RELEASE_HELPER.ps1` does **not** expose a `verify-installer` action; active procedure now points to `INSTALLER_BUILDER.ps1 -Action validate` for prerequisite validation instead
+- ✅ Identified the remaining `RELEASE_PREPARATION.ps1` references as living mainly in the unindexed legacy bundle under `docs/development/release-workflow/`
+- ✅ Added explicit historical/current-path notices to the most likely landing docs in that bundle instead of rewriting the entire legacy set during active-surface cleanup
+- ✅ Marked `docs/releases/MAJOR_RELEASE_PREPARATION_PLAN.md` as a historical version-specific planning artifact so it no longer reads like current release guidance
+- ✅ Archived `scripts/VERIFY_RELEASE_v1.18.6.ps1` and converted its remaining mentions into explicit release-history evidence rather than active guidance
+
+**Deferred / Keep for now:**
+- `RUN_TESTS_CATEGORY.ps1` - keep until `RUN_TESTS_BATCH.ps1` gains category parity
+- `NATIVE_TOGGLE.ps1` / `NATIVE_TOGGLE.cmd` - keep until user-facing install/runtime docs are audited
+
+### Active Utility Overlap Audit (March 12, 2026)
+
+- ✅ Archived `scripts/prepare_release.ps1` → `archive/deprecated-scripts/prepare_release.ps1`
+- ✅ Verification evidence for `prepare_release.ps1` archival:
+  - The active file was empty
+  - No live references were found in current docs, workflows, tasks, or operator guidance; only archived analysis mentioned it
+  - Active release tooling already flows through `RELEASE_READY.ps1`, `RELEASE_WITH_DOCS.ps1`, `GENERATE_RELEASE_DOCS.ps1`, and `scripts/generate-release-github-description.ps1`
+- ✅ Archived `scripts/setup_git_hooks.ps1` → `archive/deprecated-scripts/setup_git_hooks.ps1`
+- ✅ Verification evidence for `setup_git_hooks.ps1` archival:
+  - Active contributor docs already documented the canonical `.githooks` sample installer path via `scripts/install-git-hooks.ps1` / `scripts/install-git-hooks.sh`
+  - The retired script referenced a `pre-commit-deprecation-check` hook file that is not present in the current tracked hook sample surface
+  - Active docs were aligned to the canonical install path in `docs/development/GIT_WORKFLOW.md` and `docs/development/AUTOMATED_DEPRECATION_CHECKS.md` before archival
+- ✅ Historical pre-commit debugging/session docs relabeled so they no longer read like active operator guidance:
+  - `docs/development/SESSION_SUMMARY_JAN14_2026.md`
+  - `docs/development/PRE_COMMIT_HOOK_RECURSION_FIX.md`
+  - `docs/development/PRE_COMMIT_HOOK_FIX_FEB13.md`
+  - `docs/development/WORKSPACE_MANAGEMENT_TOOLKIT.md`
+- ✅ Documentation index active-surface polish completed:
+  - Added the canonical `.githooks` + `scripts/install-git-hooks.ps1` / `scripts/install-git-hooks.sh` hook-install path to `docs/DOCUMENTATION_INDEX.md`
+  - Clarified that legacy custom-hook debugging records are historical-only within the index
+  - Clarified that `docs/development/release-workflow/` is a release-history bundle and not the current operator path
+  - Removed a duplicate `Admin Documentation` heading from `docs/DOCUMENTATION_INDEX.md`
+
+### Final Repo-Surface Closure Snapshot (March 12, 2026)
+
+**Active root/script surface intentionally retained:**
+- `scripts/trigger_branch_protection.ps1`
+  - keep because it directly maps to the live `.github/workflows/apply-branch-protection.yml` manual workflow and still has a real operator use case
+- `RUN_TESTS_CATEGORY.ps1`
+  - keep because active docs still document category-based backend testing and `RUN_TESTS_BATCH.ps1` does not yet expose category parity
+  - evidence: still referenced in `docs/development/TEST_RUNNERS_GUIDE.md`, `docs/development/BATCH_TEST_RUNNERS.md`, and deployment-readiness docs
+- `NATIVE_TOGGLE.ps1` / `NATIVE_TOGGLE.cmd`
+  - keep because the native desktop-toggle workflow is still documented and live
+  - evidence: `README.md` documents toggle commands and `CREATE_NATIVE_SHORTCUT.ps1` still targets `NATIVE_TOGGLE.cmd`
+
+**Not part of this obsolete-surface cleanup wave:**
+- Generated runtime/log noise at repo root (for example `commit_ready_*.log`, `.uvicorn_pid`, `dist/` contents)
+  - treat under cleanup/ignore policy rather than deprecated-script archival
+- Historical/versioned release notes and reports under `docs/releases/` and `docs/archive/`
+  - preserve as release history unless they create active-surface confusion
+
+**Closure outcome:**
+- The low-risk obsolete root/script candidates have been archived or consolidated
+- The remaining active scripts now have explicit evidence-based reasons to stay
+- The remaining historical references in active docs are either retirement notes or clearly labeled historical records
+
+**Recommended first execution scope**:
+- Start with **Scope 1 only** (`EMERGENCY_FIX_400_ERROR.ps1`) because it offers the cleanest archive candidate with the lowest coupling to current workflows.
 
 **Cleanup Consolidation Opportunities (Owner Decision)**:
 - ✅ **DONE**: Consolidate cleanup scripts into a single entry point (WORKSPACE_CLEANUP.ps1 + cleanup_pre_release.ps1 + CLEAR_PYCACHE.ps1).

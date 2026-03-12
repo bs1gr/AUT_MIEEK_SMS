@@ -202,8 +202,6 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Admin Documentation (Phase 2 - NEW $11.18.3+)
 
-### Admin Documentation (Phase 2 - NEW $11.18.3+)
-
 - **[admin/PERMISSION_MANAGEMENT_GUIDE.md](admin/PERMISSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Complete permission management guide (930 lines)
   - Permission seeding workflows (full, dry-run, verify modes)
   - Role management procedures (create, grant, revoke)
@@ -443,6 +441,12 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[development/PRE_COMMIT_GUIDE.md](development/PRE_COMMIT_GUIDE.md)** ⭐ NEW - Unified pre-commit workflow
   - Replaces PRE_COMMIT_AUTOMATION.md, PRECOMMIT_INSTRUCTIONS.md, pre-commit-workflow.md (archived to `archive/pre-commit-2025-12-06/`)
   - Covers COMMIT_READY.ps1 modes, hooks installation, DEV_EASE policy, troubleshooting
+- **Current hook install path** - Use `.githooks/commit-ready-precommit.sample` via
+  `scripts/install-git-hooks.ps1` (Windows) or `scripts/install-git-hooks.sh` (POSIX)
+  as documented in `CONTRIBUTING.md`, `docs/development/PRE_COMMIT_GUIDE.md`, and
+  `docs/development/GIT_WORKFLOW.md`
+  - Legacy custom-hook debugging records under `docs/development/SESSION_SUMMARY_JAN14_2026.md`,
+    `PRE_COMMIT_HOOK_RECURSION_FIX.md`, and `PRE_COMMIT_HOOK_FIX_FEB13.md` are historical only
 - **[development/VERSION_MANAGEMENT_GUIDE.md](development/VERSION_MANAGEMENT_GUIDE.md)** ⭐ NEW - Version automation (VERIFY_VERSION.ps1) + CI/hooks/pip note
   - Replaces VERSION_AUTOMATION_GUIDE.md, VERSION_MANAGEMENT_QUICK_REF.md, version-automation.md, PIP_VERSION.md (archived to `archive/version-management-2025-12-06/`)
 - **[development/AUTOSAVE_PATTERN.md](development/AUTOSAVE_PATTERN.md)** - Canonical autosave pattern (coverage, auth review, troubleshooting)
@@ -517,6 +521,11 @@ This map complements the top-level structure and ensures stray Markdown files ar
 
 ### Release Automation
 
+- **[processes/RELEASE_SCRIPTS_OVERVIEW.md](processes/RELEASE_SCRIPTS_OVERVIEW.md)** - Current release-script hierarchy and roles (`RELEASE_READY.ps1` primary, `RELEASE_WITH_DOCS.ps1` secondary, `RELEASE_HELPER.ps1` fallback)
+- **[RELEASE_PROCEDURE_MANDATORY.md](RELEASE_PROCEDURE_MANDATORY.md)** - Mandatory three-phase release verification gates and active installer-validation path
+- **[RELEASE_PROCEDURE_CORRECT.md](RELEASE_PROCEDURE_CORRECT.md)** - Release incident audit and corrected script-based workflow rationale
+- **[development/RELEASE_DOCS_GENERATOR_INTEGRATION.md](development/RELEASE_DOCS_GENERATOR_INTEGRATION.md)** - Integration notes for release-doc generation within the current release workflow
+- **Historical release-workflow bundle** - `docs/development/release-workflow/` is retained for release-history reference; prefer the four documents above for current operator guidance
 - **[releases/RELEASE_NOTES_v1.18.5.md](releases/RELEASE_NOTES_v1.18.5.md)** - v1.18.5 release notes
 - **[releases/GITHUB_RELEASE_v1.18.5.md](releases/GITHUB_RELEASE_v1.18.5.md)** - publish-ready GitHub release body for v1.18.5
 - **[releases/RELEASE_MANIFEST_v1.18.5.md](releases/RELEASE_MANIFEST_v1.18.5.md)** - artifact manifest and integrity gates for v1.18.5

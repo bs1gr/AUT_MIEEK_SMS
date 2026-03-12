@@ -193,13 +193,13 @@ end;
 
 ### 3. Emergency Cleanup Script (Commit ad5dcae86)
 
-**What**: Created `scripts/EMERGENCY_FIX_400_ERROR.ps1`
-**Why**: Allows manual cleanup if installer fails
-**Result**: Can remove locked files manually
+**What**: Created `EMERGENCY_FIX_400_ERROR.ps1` (now archived at `archive/deprecated-scripts/EMERGENCY_FIX_400_ERROR.ps1`)
+**Why**: Provided a manual cleanup path during the `v1.17.7` incident window
+**Result**: Retained only as historical traceability; current recovery should use the supported uninstall/reinstall flow
 
-**Usage**:
+**Historical usage**:
 ```powershell
-.\scripts\EMERGENCY_FIX_400_ERROR.ps1
+.\archive\deprecated-scripts\EMERGENCY_FIX_400_ERROR.ps1
 ```
 
 ---
@@ -233,13 +233,13 @@ end;
 
 ### If Upgrade Still Fails
 
-**Option 1: Emergency Cleanup Script**
+**Option 1: Current supported recovery path**
 ```powershell
-# Run emergency cleanup script
-.\scripts\EMERGENCY_FIX_400_ERROR.ps1
+# Use the canonical manual uninstaller / cleanup flow
+.\UNINSTALL_SMS_MANUALLY.ps1
 
-# Then reinstall with new installer
-.\SMS_Installer_1.17.7.exe
+# Then reinstall using the current supported installer
+# (replace with the current version you are deploying)
 ```
 
 **Option 2: Manual Cleanup**
@@ -306,14 +306,14 @@ Start-Process "C:\Program Files\SMS\unins1.17.7.exe" -Wait
 **If issues persist after fix:**
 1. Check installer file size (must be 8.01 MB from Feb 3, 2026)
 2. Check .env file timestamps (must be today's date)
-3. Run emergency cleanup script
+3. Use `UNINSTALL_SMS_MANUALLY.ps1` or follow the current installer recovery workflow
 4. Check installer logs at: `C:\Users\<user>\AppData\Local\Temp\Setup Log YYYY-MM-DD #000.txt`
 
 **Related Documentation:**
 - `installer/INSTALLER_LOCKED_FILES_FIX.md` - File locking documentation
-- `scripts/EMERGENCY_FIX_400_ERROR.ps1` - Emergency cleanup script
+- `archive/deprecated-scripts/EMERGENCY_FIX_400_ERROR.ps1` - Archived emergency cleanup script (historical only)
 - `installer/INSTALLER_UPGRADE_FIX_ANALYSIS.md` - Original analysis
 
 ---
 
-**This fix is CRITICAL and MANDATORY for all v1.17.7 installations.**
+**Historical note**: This document records the `v1.17.7` incident fix. Use current installer and uninstall/recovery scripts for active versions.

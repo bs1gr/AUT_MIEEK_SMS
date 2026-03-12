@@ -31,7 +31,8 @@ To integrate this into the automated release process, update `GENERATE_RELEASE_D
 $githubRelease = Get-GitHubReleaseDescription -Version $Version -Categorized $categorized `
     -BreakingChanges $breakingChanges -Unrecognized $unrecognized
 
-```text
+```
+
 ### Step 2: Replace with Helper Script Call
 
 Replace the two lines above with:
@@ -48,20 +49,27 @@ if (Test-Path $helperPath) {
         -BreakingChanges $breakingChanges -Unrecognized $unrecognized
 }
 
-```text
+```
+
 ### Step 3: Remove or Deprecate Old Function
 
 The old `Get-GitHubReleaseDescription` function (lines 347-410) can now be removed since the helper script replaces it.
 
 ## Usage
 
-Once integrated, run the normal release workflow:
+Once integrated, use the standard release workflow:
 
 ```powershell
-.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.14.0" -Mode Quick
+.\RELEASE_READY.ps1 -ReleaseVersion "1.18.12" -TagRelease
+```
 
-```text
-The script will automatically call the new helper to generate comprehensive release documentation.
+This is the primary release path. If you specifically want the wrapper flow, you can still use:
+
+```powershell
+.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.18.12" -Mode Quick
+```
+
+The documentation generator is part of that broader release flow rather than a separate primary path.
 
 ## Future Enhancements
 
@@ -76,4 +84,5 @@ The helper script is modular and can be enhanced to:
 
 - **Helper Script:** `scripts/generate-release-github-description.ps1` (156 lines, well-documented)
 - **Main Script:** `GENERATE_RELEASE_DOCS.ps1` (needs integration, 505 lines)
-- **Used by:** `RELEASE_WITH_DOCS.ps1` → `RELEASE_PREPARATION.ps1` → `GENERATE_RELEASE_DOCS.ps1`
+- **Primary path:** `RELEASE_READY.ps1` (policy-primary orchestrator)
+- **Alternative wrapper:** `RELEASE_WITH_DOCS.ps1` → `GENERATE_RELEASE_DOCS.ps1` → delegated release execution

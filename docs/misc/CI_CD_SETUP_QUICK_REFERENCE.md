@@ -55,10 +55,6 @@ Value: [PASTE WEBHOOK URL]
 
 ssh-keygen -t ed25519 -f deploy_key -N ""
 
-# Or use helper script
-
-.\CI_CD_SETUP_HELPER.ps1 -Action generate_ssh
-
 ```text
 ### 2️⃣ Add Private Key to GitHub
 
@@ -93,12 +89,6 @@ chmod 600 ~/.ssh/authorized_keys
 
 ssh -i deploy_key deploy@staging.example.com "echo OK"
 ssh -i deploy_key deploy@prod.example.com "echo OK"
-
-# Or use helper
-
-.\CI_CD_SETUP_HELPER.ps1 -Action test_connections `
-  -StagingHost staging.example.com `
-  -ProductionHost prod.example.com
 
 ```text
 ---
@@ -188,34 +178,11 @@ curl -I https://prod.example.com/health
 ### Test 4: Helper Script Verification
 
 ```powershell
-.\CI_CD_SETUP_HELPER.ps1 -Action verify_setup
-.\CI_CD_SETUP_HELPER.ps1 -Action validate_workflow
-
-```text
----
-
-## 🛠️ Helper Script Commands
-
-```powershell
-# Generate SSH key
-
-.\CI_CD_SETUP_HELPER.ps1 -Action generate_ssh
-
-# Verify setup completeness
-
-.\CI_CD_SETUP_HELPER.ps1 -Action verify_setup
-
-# Test SSH connections
-
-.\CI_CD_SETUP_HELPER.ps1 -Action test_connections `
-  -StagingHost staging.example.com `
-  -ProductionHost prod.example.com `
-  -DeployUser deploy `
-  -KeyPath ./deploy_key
-
-# Validate workflow YAML
-
-.\CI_CD_SETUP_HELPER.ps1 -Action validate_workflow
+# Legacy helper archived.
+# Verify current CI/CD setup by checking:
+# - repository variables/secrets referenced by ci-cd-pipeline.yml
+# - self-hosted runner labels for enabled deployment jobs
+# - the latest GitHub Actions workflow summary/output
 
 ```text
 ---

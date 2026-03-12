@@ -1,8 +1,22 @@
 <#
 .SYNOPSIS
-    Comprehensive verification script for v1.18.6 release
+    ARCHIVED historical verification helper for the v1.18.6 release window
+
+.NOTES
+    Archived: March 12, 2026
+    Status: Historical evidence only - do not use for current releases
+    Current release guidance:
+      - docs/processes/RELEASE_SCRIPTS_OVERVIEW.md
+      - docs/RELEASE_PROCEDURE_MANDATORY.md
+      - docs/RELEASE_PROCEDURE_CORRECT.md
+
+    This script was retained only to preserve the exact helper used during the
+    v1.18.6 release audit. It is version-pinned and intentionally removed from
+    the active scripts surface.
 
 .DESCRIPTION
+    Comprehensive verification script for v1.18.6 release.
+
     Performs three verification tasks:
     1. Checks GitHub Actions workflow status for v1.18.6 tag
     2. Verifies code signing and SHA256 checksums for installer

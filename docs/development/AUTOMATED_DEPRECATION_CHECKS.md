@@ -9,13 +9,17 @@
 
 ### 1. Local Pre-Commit Hook
 
-**Location**: `.git/hooks/pre-commit-deprecation-check`
-**Installed by**: `scripts/setup_git_hooks.ps1`
+**Location**: `.githooks/commit-ready-precommit.sample` → copied to `.git/hooks/pre-commit`
+**Installed by**: `scripts/install-git-hooks.ps1` / `scripts/install-git-hooks.sh`
 
 **What it checks**:
-- ✅ Prevents committing deprecated scripts to root directory
-- ✅ Blocks re-addition of archived scripts (`RELEASE_PREPARATION.ps1`, etc.)
-- ✅ Detects deprecated/obsolete/legacy file patterns
+- ✅ Runs `COMMIT_READY.ps1 -Mode quick` automatically before commit
+- ✅ Enforces version-format validation through the active pre-commit path
+- ✅ Keeps local pre-commit behavior aligned with the current consolidated workflow
+
+> **Historical note:** Earlier hook experiments referenced a dedicated
+> `.git/hooks/pre-commit-deprecation-check` file via `scripts/setup_git_hooks.ps1`.
+> That helper is now archived; the current supported path is the `.githooks` sample installer.
 
 **Bypass** (emergency only):
 ```powershell
@@ -173,7 +177,7 @@ Warnings:   1
 
 If hooks get corrupted or need updating:
 ```powershell
-.\scripts\setup_git_hooks.ps1
+pwsh ./scripts/install-git-hooks.ps1 -Force
 ```
 
 ### Test Audit Without Committing

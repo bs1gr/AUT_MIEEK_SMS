@@ -2,6 +2,8 @@
 
 Quick navigation for all release workflow documentation.
 
+> **Historical bundle notice (March 12, 2026):** This `docs/development/release-workflow/` set documents an older release-automation iteration and still contains historical references to `RELEASE_PREPARATION.ps1`. For the current policy-primary workflow, use `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md`, `docs/RELEASE_PROCEDURE_MANDATORY.md`, and `docs/RELEASE_PROCEDURE_CORRECT.md`.
+
 ## 🚀 Start Here
 
 **First time releasing?**

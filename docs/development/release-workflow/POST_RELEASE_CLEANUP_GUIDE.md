@@ -1,5 +1,7 @@
 # Post-Release Cleanup Guide
 
+> **Historical workflow notice (March 12, 2026):** This guide belongs to the older `docs/development/release-workflow/` bundle. Use it as background only; the active release-script hierarchy is documented in `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md`, with `RELEASE_READY.ps1` as the current primary orchestrator.
+
 ## Overview
 
 After completing a release, use **post-release mode** to organize artifacts and residual files.

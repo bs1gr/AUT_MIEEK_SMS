@@ -1,8 +1,11 @@
 # ============================================================================
 # EMERGENCY FIX - 400 Bad Request Error on Login
+# ARCHIVED: March 12, 2026
 # ============================================================================
-# This script completely cleans your existing SMS installation and prepares
-# it for a fresh start with the new installer.
+# Historical version-pinned cleanup utility retained for traceability only.
+# Original purpose: clean v1.17.7-era installation remnants before reinstall.
+# Current recovery path: use UNINSTALL_SMS_MANUALLY.ps1 or the current
+# installer/recovery workflow documented in active installer guides.
 # ============================================================================
 
 Write-Host @"

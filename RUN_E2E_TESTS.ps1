@@ -6,16 +6,25 @@ Run E2E tests
 Starts services and runs Playwright E2E tests
 .PARAMETER SpecFile
 Optional path to specific test file (e.g., tests/e2e/feature_127.spec.ts)
+.PARAMETER SkipChecks
+Assume services are already running and skip orchestration checks
+.PARAMETER Direct
+Alias for direct execution mode; equivalent to -SkipChecks
 #>
 
 param(
     [string]$SpecFile,
-    [switch]$SkipChecks
+    [switch]$SkipChecks,
+    [switch]$Direct
 )
 
 $ErrorActionPreference = "Continue"
 $RootPath = "D:\SMS\student-management-system"
 $FrontendPath = "$RootPath\frontend"
+
+if ($Direct) {
+    $SkipChecks = $true
+}
 
 Write-Host "=== E2E Test Execution ===" -ForegroundColor Green
 Write-Host "Date: $(Get-Date)" -ForegroundColor Cyan
@@ -35,7 +44,11 @@ function Test-Http {
 }
 
 if ($SkipChecks) {
-    Write-Host "Skipping service checks (-SkipChecks active)..." -ForegroundColor Yellow
+    if ($Direct) {
+        Write-Host "Direct execution mode active (-Direct alias; skipping service checks)..." -ForegroundColor Yellow
+    } else {
+        Write-Host "Skipping service checks (-SkipChecks active)..." -ForegroundColor Yellow
+    }
     $frontendPort = 8080
     $workingHost = "127.0.0.1"
 } else {

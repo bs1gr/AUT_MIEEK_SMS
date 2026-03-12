@@ -108,12 +108,12 @@ Complete set of workspace management tools for maintaining a clean, organized, a
 
 ### Pre-commit Hooks
 
-**Deprecation Check** (`.git/hooks/pre-commit-deprecation-check`):
-- Blocks deprecated scripts in root
-- Prevents RELEASE_PREPARATION.ps1 re-addition
-- Runs in 1-2 seconds
+**Current supported path**: install `.githooks/commit-ready-precommit.sample` via
+`scripts/install-git-hooks.ps1` (Windows) or `scripts/install-git-hooks.sh` (POSIX).
 
-**Integration**: Part of 3-layer pre-commit chain (version → deprecation → COMMIT_READY)
+> **Historical note:** Earlier hook experiments used a dedicated
+> `.git/hooks/pre-commit-deprecation-check` component as part of a custom hook chain.
+> That path is preserved only in historical debugging/session records.
 
 ---
 

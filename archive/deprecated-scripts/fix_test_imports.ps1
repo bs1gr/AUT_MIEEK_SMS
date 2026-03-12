@@ -1,3 +1,6 @@
+# Historical archive: one-time backend test import migration helper retained for traceability.
+# Original active path: scripts/fix_test_imports.ps1
+
 # Script to fix imports in backend tests to use db_setup instead of conftest
 # Run from repository root: .\scripts\fix_test_imports.ps1
 $ErrorActionPreference = 'Stop'

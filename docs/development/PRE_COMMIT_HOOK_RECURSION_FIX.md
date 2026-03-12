@@ -1,5 +1,10 @@
 # Pre-Commit Hook Recursion Fix
 
+> **Historical debugging record:** This document describes a Feb 13, 2026
+> incident in a legacy custom-hook chain. The current supported install path is
+> the `.githooks` sample hook via `scripts/install-git-hooks.ps1` /
+> `scripts/install-git-hooks.sh`.
+
 **Date**: February 13, 2026
 **Issue**: Pre-commit hook infinite recursion loop
 **Status**: ✅ FIXED
@@ -31,7 +36,7 @@ fi
 ```
 pre-commit
 ├─ validate_version_format.ps1 ✅
-├─ pre-commit-deprecation-check ✅
+├─ pre-commit-deprecation-check ✅ *(historical custom-hook path)*
 └─ pre-commit-legacy
    ├─ ENFORCE_COMMIT_READY_GUARD.ps1 ✅
    ├─ validate_version_format.ps1 ✅
@@ -74,7 +79,7 @@ exit 0
 ```
 pre-commit
 ├─ validate_version_format.ps1 ✅ (runs once)
-├─ pre-commit-deprecation-check ✅ (runs once)
+├─ pre-commit-deprecation-check ✅ (runs once, historical custom-hook path)
 └─ pre-commit-legacy ✅ (runs once, then exits cleanly)
    ├─ ENFORCE_COMMIT_READY_GUARD.ps1 ✅
    └─ validate_version_format.ps1 ✅ (acceptable second validation)
@@ -144,10 +149,10 @@ Current: 1.17.8
 **Hook Files**:
 - `.git/hooks/pre-commit` - Main hook orchestrator
 - `.git/hooks/pre-commit-legacy` - COMMIT_READY + version validation (FIXED)
-- `.git/hooks/pre-commit-deprecation-check` - Deprecation policy enforcer
+- `.git/hooks/pre-commit-deprecation-check` - Deprecation policy enforcer *(historical hook-chain component)*
 
 **Setup Script**:
-- `scripts/setup_git_hooks.ps1` - Hook installer and chain manager
+- `scripts/setup_git_hooks.ps1` - Hook installer and chain manager *(now archived)*
 
 **Validation Scripts**:
 - `scripts/validate_version_format.ps1` - Version format enforcer (Policy 2)

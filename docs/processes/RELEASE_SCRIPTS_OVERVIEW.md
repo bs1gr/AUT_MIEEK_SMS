@@ -1,35 +1,58 @@
 # Release Scripts Overview
 
-**Last Updated**: January 6, 2026
-**Purpose**: Clarify the purpose and relationship between all release-related scripts
+**Last Updated**: March 12, 2026
+**Purpose**: Clarify the current purpose and relationship between active release-related scripts
 
 ---
 
 ## 📋 Script Inventory
 
-### 1. RELEASE_WITH_DOCS.ps1 ⭐ **PRIMARY ORCHESTRATOR**
+### 1. RELEASE_READY.ps1 ⭐ **PRIMARY ORCHESTRATOR**
 
-**Purpose**: Complete end-to-end release automation from preparation to GitHub Release creation
-**Created**: Previous session ($11.18.3 era)
-**Scope**: Full release workflow
+**Purpose**: Primary policy-aligned release orchestrator
+**Current Status**: Active and authoritative
+**Scope**: End-to-end release validation, tagging, installer workflow trigger, and release execution
 
 **What it does**:
-1. Runs release preparation validation (`RELEASE_PREPARATION.ps1`)
-2. Generates release documentation (`GENERATE_RELEASE_DOCS.ps1`)
-3. Commits documentation changes
-4. Creates git tag and triggers release workflows (`RELEASE_READY.ps1`)
+1. Runs release validation and version checks
+2. Updates version references
+3. Coordinates installer build/verification flow
+4. Runs workspace/release preparation steps
+5. Tags the release and triggers GitHub Actions release workflows
 
-**Use when**: You want a fully automated release from start to finish
+**Use when**: You are performing the standard production release path
 
 **Command**:
 
 ```powershell
-.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.16.0" -Mode Quick
+.\RELEASE_READY.ps1 -ReleaseVersion "1.18.12" -TagRelease
 
 ```text
 ---
 
-### 2. ~~RELEASE_PREPARATION.ps1~~ (DEPRECATED)
+### 2. RELEASE_WITH_DOCS.ps1 ⭐ **ALTERNATIVE WRAPPER**
+
+**Purpose**: Convenience wrapper around release-doc generation plus `RELEASE_READY.ps1`
+**Current Status**: Active, but secondary to `RELEASE_READY.ps1`
+**Scope**: Combined documentation generation + release execution workflow
+
+**What it does**:
+1. Organizes documentation/cleanup pre-steps
+2. Generates release documentation (`GENERATE_RELEASE_DOCS.ps1`)
+3. Optionally commits documentation changes
+4. Delegates final release execution to `RELEASE_READY.ps1`
+
+**Use when**: You specifically want the combined wrapper workflow instead of running `RELEASE_READY.ps1` directly
+
+**Command**:
+
+```powershell
+.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.18.12" -Mode Quick
+
+```text
+---
+
+### 3. ~~RELEASE_PREPARATION.ps1~~ (DEPRECATED)
 
 **⚠️ DEPRECATED**: Archived Feb 13, 2026 - **Use RELEASE_READY.ps1 instead**
 
@@ -48,17 +71,17 @@
 - `Full`: All checks + all tests (~15-40 min)
 - `Tests`: Only run tests (~10-20 min)
 
-**Use when**: You want to validate readiness before release
+**Use when**: Historical reference only; do not run it from the active workflow surface. Use `RELEASE_READY.ps1` instead.
 
-**Command**:
+**Current equivalent**:
 
 ```powershell
-.\RELEASE_PREPARATION.ps1 -Mode Quick -AutoFix
+.\RELEASE_READY.ps1 -ReleaseVersion "1.18.12" -TagRelease
+```
 
-```text
 ---
 
-### 3. GENERATE_RELEASE_DOCS.ps1
+### 4. GENERATE_RELEASE_DOCS.ps1
 
 **Purpose**: Automatic documentation generation from git commits
 **Scope**: Release notes and changelog creation
@@ -79,45 +102,24 @@
 ```text
 ---
 
-### 4. RELEASE_READY.ps1
+### 5. RELEASE_HELPER.ps1 ⭐ **FALLBACK / MANUAL HELPER**
 
-**Purpose**: Git tagging and release workflow trigger
-**Scope**: Final release execution step
-
-**What it does**:
-- Updates version references across all files
-- Creates git tag (if `-TagRelease` specified)
-- Triggers GitHub Actions release workflow
-- Updates documentation version references
-
-**Use when**: All checks passed, docs committed, ready to tag and release
-
-**Command**:
-
-```powershell
-.\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
-
-```text
----
-
-### 5. RELEASE_HELPER.ps1 ⭐ **POST-RELEASE ASSISTANT**
-
-**Purpose**: Interactive helper for GitHub Release creation/update
-**Created**: January 6, 2026 (this session)
-**Scope**: GitHub Release management only
+**Purpose**: Manual/fallback release helper utilities
+**Current Status**: Active helper, not the primary release path
+**Scope**: Validation, GitHub release interaction, convenience actions
 
 **What it does**:
 - Validates release readiness
 - Copies release body to clipboard (manual workflow)
 - Opens GitHub Release UI
-- **Creates GitHub Release via gh CLI** (automated workflow)
+- Can create/update GitHub Release via `gh` when needed
 - Updates existing GitHub Releases
 - Helps create GitHub Issues from templates
 
 **Use when**:
-- Code is already tagged/released
-- Need to create/update the GitHub Release UI
-- Want to create Phase 2 issues
+- Automation needs manual assistance or fallback actions
+- Code is already tagged/released and you need GitHub UI or CLI assistance
+- You need helper actions outside the main orchestrator flow
 
 **Commands**:
 
@@ -130,161 +132,73 @@
 
 # Automated workflow (NEW - Jan 6, 2026)
 
-.\RELEASE_HELPER.ps1 -Action CreateRelease          # Current version
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3  # Custom version
+.\RELEASE_HELPER.ps1 -Action CreateRelease
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12
 
 ```text
----
-
-### 6. UPDATE_RELEASE.ps1 ⚠️ **ONE-TIME USE - CAN DELETE**
-
-**Purpose**: One-off script to update $11.18.3 GitHub Release
-**Created**: January 6, 2026 (this session)
-**Scope**: Single-use for $11.18.3 only
-
-**What it does**:
-- Hardcoded to update $11.18.3 specifically
-- Extracts release body from `GITHUB_RELEASE_$11.18.3.md`
-- Updates GitHub Release via gh CLI
-
-**Status**: ⚠️ **DEPRECATED** - Functionality now in `RELEASE_HELPER.ps1 -Action CreateRelease`
-
-**Recommendation**: **DELETE THIS FILE** - Use `RELEASE_HELPER.ps1` instead
-
 ---
 
 ## 🎯 Complete Release Workflows
 
-### Workflow A: Fully Automated (Recommended)
+### Workflow A: Primary policy-aligned release workflow (Recommended)
 
-**Use Case**: New release from scratch
+**Use Case**: Standard release from corrected lineage
 
 ```powershell
-# One command does everything
+# Primary release command
 
-.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.16.0" -Mode Quick
+.\RELEASE_READY.ps1 -ReleaseVersion "1.18.12" -TagRelease
 
 # What happens:
 
-# 1. Validates code quality ✅
-# 2. Generates release docs ✅
-
-# 3. Commits documentation ✅
-# 4. Creates git tag ✅
-
-# 5. Triggers GitHub Actions ✅
-# → GitHub Actions creates installer + draft release
-
-# Then manually:
-
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3  # Publish GitHub Release
+# 1. Validates release readiness ✅
+# 2. Coordinates version/release preparation ✅
+# 3. Tags the release ✅
+# 4. Triggers GitHub Actions release workflows ✅
 
 ```text
-**Timeline**: ~10 minutes (Quick mode)
+**Timeline**: Depends on installer/release workflow completion
 
 ---
 
-### Workflow B: Step-by-Step (More Control)
+### Workflow B: Wrapper-assisted release flow
 
-**Use Case**: You want to review each step
+**Use Case**: You want docs generation + release execution in one wrapper
 
 ```powershell
-# Step 1: Validate
-
-.\RELEASE_PREPARATION.ps1 -Mode Quick -AutoFix
-
-# Step 2: Generate docs
-
-.\GENERATE_RELEASE_DOCS.ps1 -Version "1.16.0"
-
-# Step 3: Review and commit docs
-
-git add CHANGELOG.md docs/releases/
-git commit -m "docs: release notes for $11.18.3"
-
-# Step 4: Tag and trigger release
-
-.\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
-
-# Step 5: Create GitHub Release (after Actions complete)
-
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3
+.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.18.12" -Mode Quick
 
 ```text
-**Timeline**: ~15 minutes (with review time)
+**Note**: This remains an alternative convenience path, not the policy-primary one.
 
 ---
 
-### Workflow C: Manual Documentation
+### Workflow C: Manual/fallback helper actions
 
-**Use Case**: You wrote release notes manually
+**Use Case**: GitHub release interaction or recovery-oriented helper tasks
 
 ```powershell
-# Step 1: Validate
-
-.\RELEASE_PREPARATION.ps1 -Mode Quick
-
-# Step 2: Skip auto-generation, write manually:
-
-# - Create docs/releases/RELEASE_NOTES_$11.18.3.md
-# - Create docs/releases/GITHUB_RELEASE_$11.18.3.md
-
-# - Update CHANGELOG.md
-
-# Step 3: Commit
-
-git add CHANGELOG.md docs/releases/
-git commit -m "docs: release notes for $11.18.3"
-
-# Step 4: Tag
-
-.\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease
-
-# Step 5: Create GitHub Release
-
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3
+.\RELEASE_HELPER.ps1 -Action ValidateRelease
+.\RELEASE_HELPER.ps1 -Action OpenGitHub
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12
 
 ```text
 ---
 
 ## 🔄 Differences Between Scripts
 
-| Feature | RELEASE_WITH_DOCS.ps1 | RELEASE_HELPER.ps1 | UPDATE_RELEASE.ps1 |
-|---------|----------------------|-------------------|-------------------|
-| **Purpose** | Full release automation | Post-release GitHub UI | One-time $11.18.3 update |
-| **Scope** | Pre-release → Git tag | GitHub Release only | Single release update |
-| **When to use** | New release prep | After code tagged | **NEVER (deprecated)** |
-| **Validates code** | ✅ Yes | ❌ No | ❌ No |
-| **Generates docs** | ✅ Yes (from commits) | ❌ No | ❌ No |
-| **Creates git tag** | ✅ Yes | ❌ No | ❌ No |
-| **Creates GitHub Release** | ❌ No (Actions does) | ✅ Yes (via gh CLI) | ✅ Yes (hardcoded) |
-| **Updates GitHub Release** | ❌ No | ✅ Yes | ✅ Yes ($11.18.3 only) |
-| **Interactive** | ❌ No | ✅ Yes | ❌ No |
-| **Reusable** | ✅ Yes | ✅ Yes | ❌ No ($11.18.3 only) |
-| **Status** | ✅ Active | ✅ Active | ⚠️ **DELETE** |
-
----
-
-## 🧹 Cleanup Recommendation
-
-**DELETE** `UPDATE_RELEASE.ps1` - It's now redundant:
-
-```powershell
-# Old way (UPDATE_RELEASE.ps1 - hardcoded $11.18.3):
-
-.\UPDATE_RELEASE.ps1
-
-# New way (RELEASE_HELPER.ps1 - any version):
-
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3
-
-```text
-The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
-- ✅ Version flexibility (not hardcoded)
-- ✅ Error handling (checks if release exists)
-- ✅ Validation (checks gh CLI auth)
-- ✅ Help system (`-Action Help`)
-- ✅ Multiple modes (create/update/validate)
+| Feature | RELEASE_READY.ps1 | RELEASE_WITH_DOCS.ps1 | RELEASE_HELPER.ps1 |
+|---------|-------------------|-----------------------|--------------------|
+| **Purpose** | Primary release orchestration | Convenience wrapper | Manual/fallback helper |
+| **Scope** | Validation → tag/workflows | Docs + delegated release | GitHub/helper actions |
+| **When to use** | Standard release path | Optional combined wrapper | Recovery/manual assistance |
+| **Validates code** | ✅ Yes | ✅ Via delegated flow | ⚠️ Limited helper validation |
+| **Generates docs** | ⚠️ Indirect workflow support | ✅ Yes | ❌ No |
+| **Creates git tag** | ✅ Yes | ✅ Via delegated flow | ❌ No |
+| **Triggers release workflows** | ✅ Yes | ✅ Via delegated flow | ❌ No |
+| **Creates/updates GitHub Release UI** | ❌ Workflow-driven | ❌ Not primary responsibility | ✅ Yes |
+| **Interactive** | ❌ No | ❌ No | ✅ Yes |
+| **Status** | ✅ Primary | ✅ Active alternative | ✅ Active fallback |
 
 ---
 
@@ -292,39 +206,37 @@ The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
 
 ### I want to...
 
-**Start a new release**: `.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.16.0"`
+**Run the standard release path**: `.\RELEASE_READY.ps1 -ReleaseVersion "1.18.12" -TagRelease`
 
-**Check if ready to release**: `.\RELEASE_PREPARATION.ps1 -Mode Quick`
+**Run the combined wrapper flow**: `.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.18.12" -Mode Quick`
 
-**Generate release notes**: `.\GENERATE_RELEASE_DOCS.ps1 -Version "1.16.0"`
+**Generate release notes/docs only**: `.\GENERATE_RELEASE_DOCS.ps1 -Version "1.18.12"`
 
-**Tag the release**: `.\RELEASE_READY.ps1 -ReleaseVersion "1.16.0" -TagRelease`
-
-**Create GitHub Release**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3`
-
-**Update existing GitHub Release**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3` (detects existing)
+**Create/update GitHub Release manually**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12`
 
 **Create Phase 2 issues**: `.\RELEASE_HELPER.ps1 -Action CopyIssue`
 
 ---
 
-## 🎯 Recommended Workflow for $11.18.3+
+## 🎯 Recommended Workflow for current releases
 
 ```powershell
-# 1. Complete automation
+# 1. Standard primary path
 
-.\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.16.0" -Mode Quick
+.\RELEASE_READY.ps1 -ReleaseVersion "1.18.12" -TagRelease
 
-# 2. Wait for GitHub Actions to build installer (~5 min)
+# Optional: if you specifically want docs generation wrapped in the same command
+# .\RELEASE_WITH_DOCS.ps1 -ReleaseVersion "1.18.12" -Mode Quick
 
-# 3. Create/publish GitHub Release
+# Optional fallback/helper actions
 
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag $11.18.3
+.\RELEASE_HELPER.ps1 -Action ValidateRelease
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12
 
 # Done! 🎉
 
 ```text
-**Total time**: ~15 minutes from start to published release
+**Note**: Prefer the script-based release workflow documented in policy docs and `.github/copilot-instructions.md`.
 
 ---
 
@@ -332,15 +244,19 @@ The functionality is fully replicated in `RELEASE_HELPER.ps1` with better:
 
 When automating releases, always follow this sequence and avoid duplicating logic:
 
-1. **Primary orchestrator**: `RELEASE_WITH_DOCS.ps1`
-   - Runs preparation, generates docs, commits, tags
+1. **Primary orchestrator**: `RELEASE_READY.ps1`
+   - This is the current primary release method
 
-2. **GitHub Release**: `RELEASE_HELPER.ps1 -Action CreateRelease -Tag <version>`
-   - Publishes/updates the GitHub Release UI via gh CLI
+2. **Documentation generation when needed**: `GENERATE_RELEASE_DOCS.ps1`
+   - Use directly or via `RELEASE_WITH_DOCS.ps1`
 
-3. **Never recreate** one-off scripts (e.g., `UPDATE_RELEASE.ps1` was removed)
+3. **Alternative wrapper**: `RELEASE_WITH_DOCS.ps1`
+   - Valid convenience wrapper, but not the policy-primary path
 
-Agents must use these two scripts instead of writing new release scripts. If a release already exists, `RELEASE_HELPER.ps1` will offer to update it automatically.
+4. **Fallback/manual helper**: `RELEASE_HELPER.ps1`
+   - Use only for helper/recovery/manual GitHub release actions
+
+Agents must not invent new release scripts when these existing roles already cover the workflow.
 
 ---
 

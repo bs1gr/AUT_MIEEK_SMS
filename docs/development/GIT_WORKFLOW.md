@@ -10,7 +10,7 @@ This document consolidates all git workflow procedures, commit standards, and au
 ### 1. Automated Pre-Commit Workflow (Recommended)
 
 First, ensure you have installed the git hooks (one-time setup):
-`.\scripts\setup_git_hooks.ps1`
+`pwsh ./scripts/install-git-hooks.ps1`
 
 ```powershell
 # Run comprehensive pre-commit checks and generate commit message
@@ -282,6 +282,11 @@ git push origin main
 
 ```text
 ## Release Workflow
+
+> **Hook installation note:** The canonical local hook path is the sample hook in
+> `.githooks/commit-ready-precommit.sample`, installed via
+> `scripts/install-git-hooks.ps1` (Windows) or `scripts/install-git-hooks.sh` (POSIX).
+> The older `scripts/setup_git_hooks.ps1` helper has been retired to the archive.
 
 ### Workflow Version Contract (CI/CD)
 

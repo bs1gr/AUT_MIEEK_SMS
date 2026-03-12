@@ -52,8 +52,8 @@
 **What Happens**:
 1. **Build Infrastructure Check**
    ```powershell
-   .\RELEASE_HELPER.ps1 -Action verify-installer
-   # Validates InnoSetup, signing certs, build environment
+   .\INSTALLER_BUILDER.ps1 -Action validate -Version "X.X.X"
+   # Validates installer inputs and build prerequisites before compiling
    ```
 
 2. **Build Installer**
@@ -220,7 +220,7 @@ git tag v1.18.5                    # Create release tag
 gh release create v1.18.5          # Create GitHub release
 
 # Phase 2: Installer Build & Verify (⏳ NEXT)
-.\RELEASE_HELPER.ps1 -Action verify-installer    # Check infrastructure
+.\INSTALLER_BUILDER.ps1 -Action validate -Version "X.X.X"     # Check build prerequisites
 .\INSTALLER_BUILDER.ps1 -Action build            # Build installer
 # Then: Run 95+ verification checkpoints manually
 gh release upload v1.18.5 SMS_Installer_1.18.5.exe

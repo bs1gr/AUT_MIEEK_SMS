@@ -1,14 +1,14 @@
 # Test Runners Guide
 
-**Last Updated**: March 9, 2026
-**Version**: 1.18.9
-**Status**: ✅ ACTIVE - Specialized scripts maintained separately
+**Last Updated**: March 12, 2026
+**Version**: 1.18.12
+**Status**: ✅ ACTIVE - Specialized scripts maintained separately after targeted wrapper consolidation
 
 ---
 
 ## Overview
 
-The project maintains **7 specialized test runner scripts** at the repository root. After comprehensive analysis (March 2026), these scripts are intentionally kept separate rather than consolidated due to their distinct execution contexts, parameter sets, and purposes.
+The project maintains **5 active specialized test runner scripts** at the repository root. After comprehensive analysis (March 2026), the old direct E2E wrapper and duplicate frontend Vitest wrappers were consolidated into canonical runners.
 
 ---
 
@@ -65,6 +65,7 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 ```powershell
 -SpecFile <string>  # Optional: path to specific test file
 -SkipChecks         # Bypass service verification (assume services running)
+-Direct             # Alias for direct E2E execution without orchestration
 ```
 
 **Example Usage**:
@@ -77,6 +78,9 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 
 # Skip service checks (services already running)
 .\RUN_E2E_TESTS.ps1 -SkipChecks
+
+# Direct iterative mode (preferred replacement for RUN_E2E_DIRECT.ps1)
+.\RUN_E2E_TESTS.ps1 -Direct
 ```
 
 ---
@@ -96,61 +100,42 @@ The project maintains **7 specialized test runner scripts** at the repository ro
 
 ---
 
-### 🔀 Frontend Test Runners
+### 🔀 Frontend Test Runner
 
-#### 4. RUN_FRONTEND_TESTS_SIMPLE.ps1
-**Purpose**: Simple vitest runner with proper output capture
-**Use Case**: Quick frontend test execution (1813+ tests)
+#### 4. RUN_FRONTEND_TESTS.ps1
+**Purpose**: Canonical Vitest runner with UTF-8 handling and optional summary output
+**Use Case**: All frontend test execution paths (quick local runs, targeted checks, summary capture)
 **Key Features**:
 - **UTF-8 encoding handling** for console output
 - Sets `SMS_ALLOW_DIRECT_VITEST=1` environment variable
-- **Verbose reporter** with detailed test results
-- Non-watch mode (runs once and exits)
+- **Verbose mode** for detailed local debugging
+- **Summary mode** for condensed console output plus artifact capture
+- Writes `test-results/frontend/vitest_output.txt` and `test-results/frontend/summary.txt`
 
-**Parameters**: None (simple execution)
-
-**Example Usage**:
+**Parameters**:
 ```powershell
-.\RUN_FRONTEND_TESTS_SIMPLE.ps1
+-Pattern <string>   # Optional test pattern or file fragment
+-Mode <string>      # Verbose (default) or Summary
+-SkipRun            # Skip Vitest execution and refresh summary artifacts only
 ```
 
----
-
-#### 5. RUN_FRONTEND_TESTS_SUMMARY.ps1
-**Purpose**: Frontend test execution with summary output
-**Use Case**: CI/CD or when detailed output not needed
-**Key Features**:
-- Summary reporter (condensed output)
-- Faster execution than verbose mode
-- Suitable for automated pipelines
-
 **Example Usage**:
 ```powershell
-.\RUN_FRONTEND_TESTS_SUMMARY.ps1
+# Detailed local run
+.\RUN_FRONTEND_TESTS.ps1
+
+# Summary-oriented validation
+.\RUN_FRONTEND_TESTS.ps1 -Mode Summary
+
+# Focused file/pattern run
+.\RUN_FRONTEND_TESTS.ps1 -Pattern "RBACPanel.test" -Mode Summary
 ```
 
 ---
 
 ### 🎭 Alternative Test Runners
 
-#### 6. RUN_E2E_DIRECT.ps1
-**Purpose**: Direct E2E execution without service orchestration
-**Use Case**: When services already running manually
-**Key Features**:
-- Skips NATIVE.ps1 service checks
-- Direct Playwright invocation
-- Faster for iterative test development
-
-**Example Usage**:
-```powershell
-# Services must be running separately
-.\NATIVE.ps1 -Start  # In separate terminal
-.\RUN_E2E_DIRECT.ps1
-```
-
----
-
-#### 7. RUN_TESTS_CATEGORY.ps1
+#### 5. RUN_TESTS_CATEGORY.ps1
 **Purpose**: Category-based backend test execution
 **Use Case**: Run specific test categories/modules
 **Key Features**:
@@ -197,9 +182,9 @@ After comprehensive analysis, these scripts remain separate for these reasons:
 
 These pairs could be merged with low risk:
 - `RUN_FRONTEND_TESTS_SIMPLE.ps1` + `RUN_FRONTEND_TESTS_SUMMARY.ps1`
-  → Single `RUN_FRONTEND_TESTS.ps1 -Mode [Simple|Summary]`
+   → ✅ Consolidated into `RUN_FRONTEND_TESTS.ps1 -Mode [Verbose|Summary]` (March 12, 2026)
 
-- `RUN_E2E_DIRECT.ps1` → Merge into `RUN_E2E_TESTS.ps1 -Direct`
+- `RUN_E2E_DIRECT.ps1` → ✅ Consolidated into `RUN_E2E_TESTS.ps1 -Direct` (March 12, 2026)
 
 - `RUN_TESTS_CATEGORY.ps1` → Merge into `RUN_TESTS_BATCH.ps1 -Category`
 
@@ -215,9 +200,7 @@ These pairs could be merged with low risk:
 | RUN_TESTS_BATCH.ps1 | Backend | 3-5 min | Primary backend testing |
 | RUN_E2E_TESTS.ps1 | E2E | 2-3 min | Full E2E test suite |
 | RUN_CURATED_LOAD_TEST.ps1 | Load | Varies | Performance testing |
-| RUN_FRONTEND_TESTS_SIMPLE.ps1 | Frontend | 45-60s | Detailed frontend testing |
-| RUN_FRONTEND_TESTS_SUMMARY.ps1 | Frontend | 30-45s | Quick frontend validation |
-| RUN_E2E_DIRECT.ps1 | E2E | 1-2 min | Iterative E2E development |
+| RUN_FRONTEND_TESTS.ps1 | Frontend | 30-60s | Canonical frontend testing |
 | RUN_TESTS_CATEGORY.ps1 | Backend | 30-90s | Targeted backend testing |
 
 ---
@@ -228,7 +211,7 @@ These pairs could be merged with low risk:
 ```powershell
 # Full validation
 .\RUN_TESTS_BATCH.ps1
-.\RUN_FRONTEND_TESTS_SUMMARY.ps1  # Faster than Simple
+.\RUN_FRONTEND_TESTS.ps1 -Mode Summary
 .\RUN_E2E_TESTS.ps1
 ```
 
@@ -236,8 +219,8 @@ These pairs could be merged with low risk:
 ```powershell
 # Quick iteration
 .\RUN_TESTS_CATEGORY.ps1 -Category <module>
-.\RUN_FRONTEND_TESTS_SIMPLE.ps1  # Better error output
-.\RUN_E2E_DIRECT.ps1  # After starting NATIVE.ps1 manually
+.\RUN_FRONTEND_TESTS.ps1 -Mode Verbose
+.\RUN_E2E_TESTS.ps1 -Direct  # After starting services manually
 ```
 
 ### For Debugging Failures
@@ -272,7 +255,7 @@ npm run test -- ComponentName.test --run
 
 ### Frontend Tests Encoding Errors
 **Issue**: Garbled output or encoding warnings
-**Solution**: Use `RUN_FRONTEND_TESTS_SIMPLE.ps1` (has UTF-8 handling)
+**Solution**: Use `RUN_FRONTEND_TESTS.ps1` (has UTF-8 handling in both modes)
 
 ### E2E Tests Fail with "Service Not Running"
 **Issue**: Backend/frontend services not detected

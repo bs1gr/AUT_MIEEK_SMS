@@ -1,5 +1,7 @@
 # Complete Release Workflow - Prerequisites & Execution Guide
 
+> **Historical workflow notice (March 12, 2026):** This guide captures a prior release-flow design and includes historical `RELEASE_PREPARATION.ps1` steps. For the active release path, prefer `RELEASE_READY.ps1` plus the current guidance in `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md` and `docs/RELEASE_PROCEDURE_MANDATORY.md`.
+
 ## Overview
 
 The complete release process now includes comprehensive prerequisite checking to ensure code quality before releasing.

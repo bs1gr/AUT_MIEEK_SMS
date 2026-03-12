@@ -1,3 +1,21 @@
+<#
+.SYNOPSIS
+    ARCHIVED legacy git-hook installer
+
+.NOTES
+    Archived: March 12, 2026
+    Status: Historical script - superseded by `.githooks` sample installation
+            via `scripts/install-git-hooks.ps1` / `scripts/install-git-hooks.sh`
+
+    Why archived:
+    - Active contributor docs now point to the canonical `.githooks` sample path
+    - This script referenced a `pre-commit-deprecation-check` hook file that is
+      not present in the current tracked hook sample surface
+    - COMMIT_READY.ps1 already manages the active lightweight hook guard path
+#>
+
+# Original file preserved below for historical reference.
+
 # d:\SMS\student-management-system\scripts\setup_git_hooks.ps1
 <#
 .SYNOPSIS

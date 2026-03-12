@@ -1,3 +1,6 @@
+# Historical archive: one-off PR-specific merge helper retained for traceability.
+# Original active path: scripts/merge_pr_132.ps1
+
 # Merge PR #132 - Option 1 Strategy
 # This script automates the merge process using temporary enforce_admins disable
 

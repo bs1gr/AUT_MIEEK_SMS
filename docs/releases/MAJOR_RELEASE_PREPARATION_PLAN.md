@@ -1,5 +1,7 @@
 # Major Release Preparation Plan 1.14.0
 
+> **Historical planning notice (March 12, 2026):** This document is a version-specific planning artifact for the old `1.14.0` release line and is not part of the current release workflow. For active release execution guidance, use `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md`, `docs/RELEASE_PROCEDURE_MANDATORY.md`, and `docs/RELEASE_PROCEDURE_CORRECT.md`.
+
 **Created:** 2025-12-29
 **Target Release:** 1.14.0 (Next Major Release)
 **Current Version:** 1.12.9
