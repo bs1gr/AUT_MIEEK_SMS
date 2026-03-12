@@ -1,11 +1,11 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.12
-**Last Updated**: March 12, 2026
+**Last Updated**: March 13, 2026
 **Status**: ✅ **`v1.18.12` IS NOW THE FIRST OFFICIAL PUBLIC RELEASE** | ⚠️ **EARLIER `v1.18.x` RELEASES REMAIN ARCHIVED AS PRERELEASES**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **First Official Public Release Published | Post-Publication Documentation Alignment**
-**Current Branch**: `main` (HEAD: 6e0c7a7a1 - docs(release): record executed v1.18.12 checklist state)
+**Current Phase**: **First Official Public Release Published | Post-Publication Hardening & Documentation Alignment**
+**Current Branch**: `main` (HEAD: 77fcdb4eb - fix(qnap): harden postgres-only deployment path)
 
 ---
 
@@ -59,6 +59,12 @@
 
 - ✅ Selected `v1.18.12` as the first official public release path (reuse exact verified tag rather than minting a new version)
 - ✅ Executed the final publication-state flip for `v1.18.12` (archival banner removed, release body updated, latest/non-prerelease restored)
+- ✅ Hardened the QNAP PostgreSQL-only deployment path after publication (`77fcdb4eb`)
+  - Added installer preflight validation for bind IP, port sanity, writable paths, Docker reachability, and live PostgreSQL health checks
+  - Hardened NAS backup operations with gzip validation, `.sha256` checksum output, and retention pruning via `QNAP_POSTGRES_BACKUP_KEEP`
+  - Redacted `psql-url` output by default and aligned docs/env examples to the canonical `DATABASE_ENGINE=postgresql` + `POSTGRES_*` runtime path
+  - Corrected multi-PC shared-database `SECRET_KEY` guidance to use a shared trusted key across installations
+  - Verified via `COMMIT_READY.ps1 -Quick -Snapshot` (`artifacts/state/STATE_2026-03-13_001936.md`)
 - 🎯 Keep installer-only current-lineage policy explicit in workflow comments and release notes
 - 🎯 Re-enable or explicitly defer scheduled production health automation based on owner intent
 - 🎯 Align remaining release-status references across historical docs only when worth the churn
