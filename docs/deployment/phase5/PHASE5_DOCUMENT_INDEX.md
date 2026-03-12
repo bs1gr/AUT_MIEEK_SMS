@@ -2,6 +2,7 @@
 
 > **Historical document (Jan 2026):** This index captures a past Phase 5 rollout documentation packet and is preserved for archive/reference only.
 > For current status and active planning, use `docs/plans/UNIFIED_WORK_PLAN.md` and `docs/DOCUMENTATION_INDEX.md`.
+> For current deployment/operations guidance, start with `docs/deployment/INDEX.md`, `docs/deployment/RUNBOOK.md`, and the root `DEPLOYMENT_GUIDE.md` / `DEPLOYMENT_CHECKLIST.md` instead of following this archived rollout packet as a live procedure.
 
 **Date**: January 31, 2026
 **Version**: $11.18.3
@@ -9,7 +10,7 @@
 
 ---
 
-## 🎯 START HERE - Choose Your Role
+## 🎯 START HERE - If You Are Reviewing This Historical Packet
 
 ### I'm reviewing this historical packet as a decision-maker
 1. Read: [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) (5 min)
@@ -30,7 +31,7 @@
 4. Monitor: [docs/deployment/MONITORING_SETUP.md](./docs/deployment/MONITORING_SETUP.md)
 
 ### I'm a Trainer / User Support
-1. Review: [docs/training/TRAINING_CREDENTIALS.md](./scripts/training/TRAINING_CREDENTIALS.md) (account details)
+1. Generate local credentials with: [scripts/training/Setup-TrainingEnvironment.ps1](./scripts/training/Setup-TrainingEnvironment.ps1) (writes account details to `artifacts/training/TRAINING_CREDENTIALS.local.md`)
 2. Use: [docs/training/PRE_READING_MATERIALS.md](./docs/training/PRE_READING_MATERIALS.md) (user prep materials)
 3. Send: [docs/training/EMAIL_TEMPLATES.md](./docs/training/EMAIL_TEMPLATES.md) (communication templates)
 4. Train: [docs/user/USER_GUIDE_COMPLETE.md](./docs/user/USER_GUIDE_COMPLETE.md) (comprehensive user guide)
@@ -79,7 +80,7 @@
 
 **Training Setup**
 - [scripts/training/Setup-TrainingEnvironment.ps1](./scripts/training/Setup-TrainingEnvironment.ps1) - Automated account creation
-- [scripts/training/TRAINING_CREDENTIALS.md](./scripts/training/TRAINING_CREDENTIALS.md) - All account details (18 users)
+- Local generated credentials artifact - `artifacts/training/TRAINING_CREDENTIALS.local.md` (created by setup script; not committed)
 
 **Training Materials**
 - [docs/training/PRE_READING_MATERIALS.md](./docs/training/PRE_READING_MATERIALS.md) - User preparation guide
@@ -129,7 +130,7 @@ Is this an owner decision in the historical rollout packet?
   └─ NO → What's your role?
            ├─ Operations → Read: GOLIVE_QUICK_REFERENCE.md
            ├─ Admin → Read: PHASE5_GOLIVE_SUMMARY_JAN31.md
-           ├─ Trainer → Use: TRAINING_CREDENTIALS.md + EMAIL_TEMPLATES.md
+           ├─ Trainer → Use: generated local credentials artifact + EMAIL_TEMPLATES.md
            ├─ Developer → Read: PHASE6_FEATURE_SELECTION.md
            └─ User → Read: USER_GUIDE_COMPLETE.md
 ```
@@ -150,7 +151,7 @@ Is this an owner decision in the historical rollout packet?
 
 ---
 
-## 🚀 Deployment Command
+## 🚀 Historical Deployment Command Reference
 
 ```powershell
 # For the historical go-live window:
@@ -179,15 +180,13 @@ curl http://localhost:8080/api/v1/health
 
 ---
 
-## ✅ Next Steps
+## ✅ Historical Packet Next Steps
 
-1. **Review** the appropriate documents for your role (above)
-2. **Verify** system is ready using checklists
-3. **Approve** go-live when ready
-4. **Execute** deployment: `.\DOCKER.ps1 -Start`
-5. **Train** users using provided materials
-6. **Monitor** first 24 hours closely
-7. **Plan** Phase 6 using feature selection guide
+1. **Review** the appropriate documents for historical context
+2. **Cross-check** current status in `docs/plans/UNIFIED_WORK_PLAN.md`
+3. **Use current deployment guidance** from `docs/deployment/INDEX.md` and `docs/deployment/RUNBOOK.md`
+4. **Treat any go-live approvals or commands here as archived rollout history**
+5. **Use current user/developer docs** only if you need present-day operational guidance
 
 ---
 

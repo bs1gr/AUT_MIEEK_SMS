@@ -712,7 +712,7 @@ Approved By: ________________  Date: ________________
 **Production Test Data**:
 - 18 training accounts (3 admin, 5 teacher, 10 student)
 - 5 sample courses
-- Credentials documented in `docs/operations/TRAINING_CREDENTIALS.md`
+- Credentials generated locally in `artifacts/training/TRAINING_CREDENTIALS.local.md`
 
 **Test Data Refresh Procedure**:
 ```powershell

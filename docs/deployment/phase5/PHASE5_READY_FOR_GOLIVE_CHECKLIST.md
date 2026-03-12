@@ -58,9 +58,9 @@
 
 ### Training Accounts Created & Verified
 - [x] Admin accounts: 3 total
-  - [ ] Admin1 - credentials in TRAINING_CREDENTIALS.md
-  - [ ] Admin2 - credentials in TRAINING_CREDENTIALS.md
-  - [ ] Admin3 - credentials in TRAINING_CREDENTIALS.md
+  - [ ] Admin1 - credentials in local generated training credentials artifact
+  - [ ] Admin2 - credentials in local generated training credentials artifact
+  - [ ] Admin3 - credentials in local generated training credentials artifact
 - [x] Teacher accounts: 5 total
   - [ ] Teacher1-5 - all verified working
 - [x] Student accounts: 10 total

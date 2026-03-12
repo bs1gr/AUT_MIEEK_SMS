@@ -49,7 +49,7 @@
 
 .NOTES
     Version: 1.0
-    Integrates with RELEASE_PREPARATION.ps1 and RELEASE_READY.ps1
+    Integrates with the active release workflow via RELEASE_READY.ps1 and RELEASE_WITH_DOCS.ps1
 #>
 
 [CmdletBinding()]

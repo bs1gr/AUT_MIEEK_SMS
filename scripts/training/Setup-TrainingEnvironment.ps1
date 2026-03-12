@@ -62,13 +62,15 @@ function Get-EnvValue {
     return $Default
 }
 
-Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-Write-Host "║   Training Environment Setup          ║" -ForegroundColor Cyan
-Write-Host "║   SMS v1.17.6 - Phase 5               ║" -ForegroundColor Cyan
-Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
-
 $projectRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $backendDir = Join-Path $projectRoot "backend"
+$versionFile = Join-Path $projectRoot "VERSION"
+$currentVersion = if (Test-Path $versionFile) { (Get-Content $versionFile -Raw).Trim() } else { "unknown" }
+
+Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
+Write-Host "║   Training Environment Setup          ║" -ForegroundColor Cyan
+Write-Host (("║   SMS {0,-29}║" -f $currentVersion)) -ForegroundColor Cyan
+Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
 
 # Verify backend directory exists
 if (-not (Test-Path $backendDir)) {
@@ -150,13 +152,14 @@ Write-Info "Creating admin accounts ($($trainingAccounts.admins.Count))..."
 Write-Info "Creating teacher accounts ($($trainingAccounts.teachers.Count))..."
 Write-Info "Creating student accounts ($($trainingAccounts.students.Count))..."
 
-# Save credentials to file for trainer reference
-$credentialsFile = Join-Path $projectRoot "docs/training/TRAINING_CREDENTIALS.md"
+# Save credentials to a local ignored artifact for trainer reference
+$credentialsFile = Join-Path $projectRoot "artifacts/training/TRAINING_CREDENTIALS.local.md"
 $credentialsContent = @"
 # Training Environment Credentials
-## SMS v1.17.6 - Phase 5 Training
+## SMS $currentVersion - Training Environment
 
 **CONFIDENTIAL - FOR TRAINER USE ONLY**
+**Local generated file - do not commit**
 **Generated**: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 
 ---
@@ -225,7 +228,7 @@ $credentialsContent += @"
 ## Security Notes
 
 - **DO NOT** share these credentials with participants before training
-- **DO NOT** commit this file to git (already in .gitignore)
+- **DO NOT** commit this file to git (generated under ignored `artifacts/training/`)
 - **ROTATE** all passwords after training completion
 - **DELETE** test accounts when ready for production
 
@@ -392,7 +395,7 @@ Write-Info "`nNext Steps:"
 Write-Host "  1. Review credentials file: $credentialsFile" -ForegroundColor Cyan
 Write-Host "  2. Test login with each account type" -ForegroundColor Cyan
 Write-Host "  3. Verify all features working in browser" -ForegroundColor Cyan
-Write-Host "  4. Prepare printed handouts with credentials" -ForegroundColor Cyan
+Write-Host "  4. Export or print credentials from the local artifact only if needed" -ForegroundColor Cyan
 Write-Host "  5. Ready for training delivery when scheduled`n" -ForegroundColor Cyan
 
 Write-Warning "SECURITY: Delete test accounts after training with:"

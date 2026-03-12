@@ -41,7 +41,7 @@
 .NOTES
     Version: 1.1
     This is a convenience wrapper around:
-    - RELEASE_READY.ps1 (includes validation from deprecated RELEASE_PREPARATION.ps1)
+    - RELEASE_READY.ps1 (canonical release validation and execution)
     - GENERATE_RELEASE_DOCS.ps1
 #>
 
@@ -97,7 +97,7 @@ Write-Host "╚═════════════════════�
 # PHASE 1: PREPARATION (now handled by RELEASE_READY.ps1)
 Write-PhaseHeader "PHASE 1/4: PREPARATION" "Validating codebase is release-ready"
 
-# NOTE: RELEASE_PREPARATION.ps1 deprecated Feb 4, 2026 - validation now in RELEASE_READY.ps1
+# NOTE: Validation is handled by the canonical RELEASE_READY.ps1 workflow.
 # Validation happens in PHASE 3 via RELEASE_READY.ps1 -ReleaseVersion
 Write-Info "Validation will be performed by RELEASE_READY.ps1 in Phase 3"
 Write-Success "Preparation complete"

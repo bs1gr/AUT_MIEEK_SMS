@@ -10,7 +10,7 @@
     4. Commit and tag creation
     5. Push to remote and trigger GitHub Actions
 
-    Replaces: RELEASE_PREPARATION.ps1 (validation moved here)
+    Consolidates the active release validation and execution workflow in one script.
 
 .PARAMETER ReleaseVersion
     Target release version (e.g., "1.17.7")
@@ -55,7 +55,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 # ============================================================================
-# VALIDATION FUNCTIONS (from RELEASE_PREPARATION.ps1)
+# VALIDATION FUNCTIONS
 # ============================================================================
 
 function Write-Step {
@@ -187,11 +187,6 @@ function Update-VersionReferences {
         } finally {
             Pop-Location
         }
-    }
-
-    # Update TODO.md (if present)
-    if (Test-Path "TODO.md") {
-        (Get-Content "TODO.md") -replace '\*\*Current Version\*\*: [0-9\.]+' , "**Current Version**: $NewVersion" | Set-Content "TODO.md"
     }
 
     # Update DOCUMENTATION_INDEX.md

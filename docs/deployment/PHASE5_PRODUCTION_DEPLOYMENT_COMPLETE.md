@@ -29,7 +29,7 @@
 - 5 Teacher accounts (teacher.demo[1-5]@mieek.edu.cy)
 - 10 Student accounts (student.demo[1-10]@mieek.edu.cy)
 - All accounts verified working with authentication API
-- Credentials stored in `docs/training/TRAINING_CREDENTIALS.md`
+- Credentials now generated locally to `artifacts/training/TRAINING_CREDENTIALS.local.md`
 
 ✅ **Created 4 Sample Training Courses**
 - CS102: Data Structures
@@ -183,7 +183,7 @@ curl http://localhost:8000/health
 - ✅ Role-based permissions verified
 - ✅ Credentials documented and secure
 
-**Credentials Location**: `docs/training/TRAINING_CREDENTIALS.md`
+**Credentials Location**: local generated artifact `artifacts/training/TRAINING_CREDENTIALS.local.md`
 
 ### Sample Courses ✅
 

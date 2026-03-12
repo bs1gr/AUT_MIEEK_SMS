@@ -5,9 +5,6 @@ import apiClient from '@/api/api';
  * Hook for exporting analytics data
  */
 export function useAnalyticsExport() {
-  // TODO: Add notification support when useNotificationStore is available
-  // const { addNotification } = useNotificationStore();
-
   const exportDashboardMutation = useMutation({
     mutationFn: async (format: 'pdf' | 'excel' = 'pdf') => {
       try {
@@ -46,7 +43,6 @@ export function useAnalyticsExport() {
         throw new Error(`Failed to export as ${format}: ${message}`);
       }
     },
-    // TODO: Add notification callbacks when useNotificationStore is available
   });
 
   return {

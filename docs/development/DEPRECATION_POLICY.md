@@ -242,7 +242,7 @@ Every deprecation **must** include:
 
 ### Template Structure
 
-See `docs/development/release-workflow/RELEASE_PREPARATION_DEPRECATED.md` for reference:
+For the current replacement path, see `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md` and `docs/RELEASE_PROCEDURE_MANDATORY.md`:
 - Deprecation notice (status, dates, reason)
 - Migration guide (old → new workflow)
 - Command equivalents table
@@ -321,7 +321,7 @@ Use `WORKSPACE_CLEANUP.ps1` to verify:
 - **Jan 6, 2026**: Functionality consolidated into `RELEASE_READY.ps1`
 - **Feb 4, 2026**: Deprecation notice added to script header
 - **Feb 13, 2026**: Sunset period complete (40 days), script archived
-- **Migration guide**: `docs/development/release-workflow/RELEASE_PREPARATION_DEPRECATED.md`
+- **Current workflow docs**: `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md`, `docs/RELEASE_PROCEDURE_MANDATORY.md`
 - **Archive location**: `archive/cleanup-feb2026/legacy-scripts/RELEASE_PREPARATION.ps1`
 
 **Results**:

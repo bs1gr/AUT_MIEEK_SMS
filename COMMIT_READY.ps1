@@ -2046,7 +2046,7 @@ function Invoke-DocumentationCheck {
         # Release workflow - consolidated release automation docs
         $allowed = @(
             # Essential project files
-            'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
+            'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md','AGENTS.md',
             # High-level navigation
             'DOCUMENTATION_INDEX.md',
             # Release guides

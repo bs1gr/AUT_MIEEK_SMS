@@ -54,26 +54,15 @@
 
 ### 3. ~~RELEASE_PREPARATION.ps1~~ (DEPRECATED)
 
-**⚠️ DEPRECATED**: Archived Feb 13, 2026 - **Use RELEASE_READY.ps1 instead**
+**⚠️ DEPRECATED**: Archived Feb 13, 2026 - **Use `RELEASE_READY.ps1` instead**
 
-**Historical Purpose**: Pre-release validation and quality checks
-**Current Replacement**: `RELEASE_READY.ps1` consolidates all validation functionality
+This script is no longer part of the active release surface.
 
-**What it does**:
-- Git status checks (clean working directory)
-- Version verification across all files
-- Pre-commit checks (format, lint, organize imports)
-- Test suites (backend + frontend)
-- Installer builder verification
+- **Historical role**: pre-release validation before consolidation
+- **Current replacement**: `RELEASE_READY.ps1`
+- **Where to look if needed**: this document plus `docs/RELEASE_PROCEDURE_MANDATORY.md`; consult the historical deprecation notice only when auditing archive-era references
 
-**Modes**:
-- `Quick`: Basic checks + pre-commit (~5 min)
-- `Full`: All checks + all tests (~15-40 min)
-- `Tests`: Only run tests (~10-20 min)
-
-**Use when**: Historical reference only; do not run it from the active workflow surface. Use `RELEASE_READY.ps1` instead.
-
-**Current equivalent**:
+**Operator guidance**: do not follow old `RELEASE_PREPARATION.ps1` commands from historical docs; use the canonical current release flow instead:
 
 ```powershell
 .\RELEASE_READY.ps1 -ReleaseVersion "1.18.12" -TagRelease

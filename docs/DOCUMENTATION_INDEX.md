@@ -525,7 +525,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[RELEASE_PROCEDURE_MANDATORY.md](RELEASE_PROCEDURE_MANDATORY.md)** - Mandatory three-phase release verification gates and active installer-validation path
 - **[RELEASE_PROCEDURE_CORRECT.md](RELEASE_PROCEDURE_CORRECT.md)** - Release incident audit and corrected script-based workflow rationale
 - **[development/RELEASE_DOCS_GENERATOR_INTEGRATION.md](development/RELEASE_DOCS_GENERATOR_INTEGRATION.md)** - Integration notes for release-doc generation within the current release workflow
-- **Historical release-workflow bundle** - `docs/development/release-workflow/` is retained for release-history reference; prefer the four documents above for current operator guidance
+- **Historical release-workflow bundle** - `docs/development/release-workflow/` is retained for release-history reference only; commands and examples inside that bundle are archival and should not be used as the current operator path. Prefer the four documents above for active release work.
 - **[releases/RELEASE_NOTES_v1.18.5.md](releases/RELEASE_NOTES_v1.18.5.md)** - v1.18.5 release notes
 - **[releases/GITHUB_RELEASE_v1.18.5.md](releases/GITHUB_RELEASE_v1.18.5.md)** - publish-ready GitHub release body for v1.18.5
 - **[releases/RELEASE_MANIFEST_v1.18.5.md](releases/RELEASE_MANIFEST_v1.18.5.md)** - artifact manifest and integrity gates for v1.18.5
@@ -535,7 +535,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[releases/GITHUB_RELEASE_v1.18.4.md](releases/GITHUB_RELEASE_v1.18.4.md)** - publish-ready GitHub release body for v1.18.4
 - **[releases/RELEASE_MANIFEST_v1.18.4.md](releases/RELEASE_MANIFEST_v1.18.4.md)** - artifact manifest and integrity gates for v1.18.4
 - **[releases/DEPLOYMENT_CHECKLIST_v1.18.4.md](releases/DEPLOYMENT_CHECKLIST_v1.18.4.md)** - deployment and post-release verification checklist for v1.18.4
-- **Legacy v1.18.3 release bundle (consolidated references)**
+- **Legacy v1.18.3 release bundle (consolidated references, historical evidence only)**
   - **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - v1.18.3 release notes
   - **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - v1.18.3 GitHub release body
   - **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - v1.18.3 artifact manifest

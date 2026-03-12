@@ -115,8 +115,8 @@ git add . # Stage deletion from root
 ```
 
 **Fix**: Don't re-add! Use the replacement instead.
-- See migration guide: `docs/development/release-workflow/RELEASE_PREPARATION_DEPRECATED.md`
-- New workflow: Use `RELEASE_READY.ps1` instead
+- Current workflow: Use `RELEASE_READY.ps1` instead
+- Current release guidance: `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md` and `docs/RELEASE_PROCEDURE_MANDATORY.md`
 
 ### Warning: Undocumented deprecation marker
 ```
@@ -200,7 +200,7 @@ View past audit runs:
 - **Deprecation Policy**: `docs/development/DEPRECATION_POLICY.md`
 - **Archive Guide**: `archive/README.md`
 - **Git Workflow**: `docs/development/GIT_WORKFLOW.md`
-- **Migration Guides**: `docs/development/release-workflow/RELEASE_PREPARATION_DEPRECATED.md`
+- **Release workflow guidance**: `docs/processes/RELEASE_SCRIPTS_OVERVIEW.md`, `docs/RELEASE_PROCEDURE_MANDATORY.md`
 
 ---
 

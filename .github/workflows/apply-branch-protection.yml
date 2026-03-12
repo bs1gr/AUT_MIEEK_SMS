@@ -21,7 +21,7 @@ jobs:
       - name: Apply branch protection via octokit
         uses: actions/github-script@v6
         env:
-          ADMIN_PAT: ${{ secrets.ADMIN_GH_PAT }}
+          ADMIN_PAT: ${{ secrets['ADMIN_GH_PAT'] }}
         with:
           # Use ADMIN_GH_PAT from env if available, otherwise fall back to GITHUB_TOKEN
           # ADMIN_GH_PAT should be a classic personal access token with `repo` scope.

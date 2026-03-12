@@ -2,6 +2,9 @@
 
 Documentation for deploying and operating the Student Management System in production.
 
+> **Current operator note:** Use this index, `RUNBOOK.md`, and the root deployment guides for present-day deployment and operations work.
+> Historical rollout packets under `docs/deployment/phase5/` and older phase-transition documents in this folder are preserved for reference only and should not be treated as the current execution path.
+
 ## 🚀 Deployment
 
 ### Runbook
@@ -24,6 +27,11 @@ Documentation for deploying and operating the Student Management System in produ
   - Pre-deployment checks
   - Post-deployment validation
   - Smoke tests
+
+### Historical Rollout Packets
+
+- **[phase5/PHASE5_DOCUMENT_INDEX.md](phase5/PHASE5_DOCUMENT_INDEX.md)** - Historical Phase 5 rollout packet index (reference only)
+- Older `PHASE2_*`, `PRE_DEPLOYMENT_*`, and historical go-live/checklist documents in this folder are archival snapshots, not current operator instructions
 
 - **[QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)** - Consolidated QNAP Container Station guide (standard, ARM/TS-431P3, virtual host)
 
@@ -229,6 +237,7 @@ DATABASE_URL=sqlite:////data/student_management.db
 
 - **[../releases/](../releases/)** - Version-specific release notes
 - **Asset Tracking**: [../DEPLOYMENT_ASSET_TRACKER.md](../DEPLOYMENT_ASSET_TRACKER.md)
+- **Current release workflow**: [../processes/RELEASE_SCRIPTS_OVERVIEW.md](../processes/RELEASE_SCRIPTS_OVERVIEW.md)
 
 ## 🔒 Security Operations
 

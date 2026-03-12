@@ -52,7 +52,7 @@ This guide provides step-by-step procedures to deploy the Student Management Sys
 curl http://localhost:8000/health
 
 # Step 2: Verify training accounts can login
-# (Use credentials from docs/training/TRAINING_CREDENTIALS.md)
+# (Use credentials from artifacts/training/TRAINING_CREDENTIALS.local.md)
 # Test with admin, teacher, and student accounts
 
 # Step 3: Verify courses are accessible
@@ -329,7 +329,7 @@ student.demo2@mieek.edu.cy / Training2026!
 ... (10 total)
 ```
 
-*Full credentials available in: `docs/training/TRAINING_CREDENTIALS.md` (⚠️ Keep confidential, not in git)*
+*Full credentials are generated locally in: `artifacts/training/TRAINING_CREDENTIALS.local.md` (⚠️ Keep confidential, not in git)*
 
 ### Training Sample Data
 

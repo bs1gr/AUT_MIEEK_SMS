@@ -957,6 +957,112 @@ jobs:
 
           echo "✅ Release asset mutation policy passed (upload: installer only, delete: installer/sanitizer only)"
 
+  # Gate job pattern (reuse for future deploy/release gates):
+  # 1. Keep policy evaluation in a small ubuntu-latest job.
+  # 2. Read event/inputs/vars/secrets into env once.
+  # 3. Emit normalized outputs such as should_deploy and resolved URLs.
+  # 4. Let self-hosted execution jobs depend on gate outputs only.
+  # This keeps execution jobs readable and isolates optional-config warning noise.
+
+  staging-deploy-gate:
+    name: 🚦 Evaluate Staging Deployment Gate
+    runs-on: ubuntu-latest
+    needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
+    # Pattern: evaluate policy once, then export normalized values for the real deploy job.
+    outputs:
+      should_deploy: ${{ steps.gate.outputs.should_deploy }}
+      staging_url: ${{ steps.gate.outputs.staging_url }}
+    env:
+      EVENT_NAME: ${{ github.event_name }}
+      REF_NAME: ${{ github.ref }}
+      ACTOR: ${{ github.actor }}
+      INPUT_DEPLOY_ENV: ${{ inputs.deploy_environment || '' }}
+      AUTO_DEPLOY_ON_PUSH: ${{ vars['AUTO_DEPLOY_ON_PUSH'] }}
+      STAGING_DEPLOY_ENABLED: ${{ vars['STAGING_DEPLOY_ENABLED'] }}
+      STAGING_URL_RAW: ${{ vars['STAGING_URL'] }}
+      DEPLOY_HOST_RAW: ${{ secrets['DEPLOY_HOST'] || vars['DEPLOY_HOST'] }}
+    steps:
+      - name: Resolve staging gate
+        id: gate
+        shell: pwsh
+        run: |
+          $shouldDeploy = $false
+          $stagingUrl = $env:STAGING_URL_RAW
+          $deployHost = $env:DEPLOY_HOST_RAW
+
+          if ([string]::IsNullOrWhiteSpace($stagingUrl) -and -not [string]::IsNullOrWhiteSpace($deployHost)) {
+            $stagingUrl = "https://$deployHost"
+          }
+
+          if ($env:EVENT_NAME -eq 'workflow_dispatch' -and $env:INPUT_DEPLOY_ENV -eq 'staging') {
+            $shouldDeploy = $true
+          }
+          elseif ($env:EVENT_NAME -eq 'workflow_call' -and $env:INPUT_DEPLOY_ENV -eq 'staging') {
+            $shouldDeploy = $true
+          }
+          elseif (
+            $env:EVENT_NAME -eq 'push' -and
+            $env:REF_NAME -eq 'refs/heads/main' -and
+            $env:ACTOR -eq 'bs1gr' -and
+            $env:STAGING_DEPLOY_ENABLED -eq 'true' -and
+            $env:AUTO_DEPLOY_ON_PUSH -eq 'true' -and
+            -not [string]::IsNullOrWhiteSpace($stagingUrl)
+          ) {
+            $shouldDeploy = $true
+          }
+
+          "should_deploy=$($shouldDeploy.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "staging_url=$stagingUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
+  production-deploy-gate:
+    name: 🚦 Evaluate Production Deployment Gate
+    runs-on: ubuntu-latest
+    needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
+    # Pattern: evaluate policy once, then export normalized values for the real deploy job.
+    outputs:
+      should_deploy: ${{ steps.gate.outputs.should_deploy }}
+      prod_url: ${{ steps.gate.outputs.prod_url }}
+      deploy_host: ${{ steps.gate.outputs.deploy_host }}
+    env:
+      EVENT_NAME: ${{ github.event_name }}
+      REF_NAME: ${{ github.ref }}
+      INPUT_DEPLOY_ENV: ${{ inputs.deploy_environment || '' }}
+      AUTO_DEPLOY_ON_PUSH: ${{ vars['AUTO_DEPLOY_ON_PUSH'] }}
+      PROD_DEPLOY_ENABLED: ${{ vars['PROD_DEPLOY_ENABLED'] }}
+      PROD_URL_RAW: ${{ vars['PROD_URL'] }}
+      DEPLOY_HOST_RAW: ${{ secrets['DEPLOY_HOST'] || vars['DEPLOY_HOST'] }}
+    steps:
+      - name: Resolve production gate
+        id: gate
+        shell: pwsh
+        run: |
+          $shouldDeploy = $false
+          $prodUrl = $env:PROD_URL_RAW
+          $deployHost = $env:DEPLOY_HOST_RAW
+
+          if ([string]::IsNullOrWhiteSpace($prodUrl) -and -not [string]::IsNullOrWhiteSpace($deployHost)) {
+            $prodUrl = "https://$deployHost"
+          }
+
+          if ($env:EVENT_NAME -eq 'workflow_dispatch' -and $env:INPUT_DEPLOY_ENV -eq 'production' -and $env:PROD_DEPLOY_ENABLED -eq 'true') {
+            $shouldDeploy = $true
+          }
+          elseif ($env:EVENT_NAME -eq 'workflow_call' -and $env:INPUT_DEPLOY_ENV -eq 'production' -and $env:PROD_DEPLOY_ENABLED -eq 'true') {
+            $shouldDeploy = $true
+          }
+          elseif (
+            $env:EVENT_NAME -eq 'push' -and
+            $env:REF_NAME -eq 'refs/heads/main' -and
+            $env:PROD_DEPLOY_ENABLED -eq 'true' -and
+            $env:AUTO_DEPLOY_ON_PUSH -eq 'true'
+          ) {
+            $shouldDeploy = $true
+          }
+
+          "should_deploy=$($shouldDeploy.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "prod_url=$prodUrl" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "deploy_host=$deployHost" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+
   # ============================================================================
   # PHASE 7: DEPLOYMENT TO STAGING
   # ============================================================================
@@ -964,22 +1070,14 @@ jobs:
   deploy-staging:
     name: 🚀 Deploy to Staging
     runs-on: [self-hosted, windows, staging-lan]
-    needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
-    # Push auto-deploy safety gate:
-    # - vars.AUTO_DEPLOY_ON_PUSH == 'true' enables push-triggered deployment globally
-    # - vars.STAGING_DEPLOY_ENABLED == 'true' enables staging on push specifically
-    # Manual dispatch/call with deploy_environment=staging still works regardless of AUTO_DEPLOY_ON_PUSH.
-    if: |
-      (github.event_name == 'workflow_dispatch' && inputs.deploy_environment == 'staging') ||
-      (github.event_name == 'workflow_call' && inputs.deploy_environment == 'staging') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' && github.actor == 'bs1gr' && vars.STAGING_DEPLOY_ENABLED == 'true' && vars.AUTO_DEPLOY_ON_PUSH == 'true' && (vars.STAGING_URL != '' || vars.DEPLOY_HOST != ''))
+    needs: [staging-deploy-gate]
+    # Execution job pattern: consume gate outputs only; avoid embedding policy logic here.
+    if: needs.staging-deploy-gate.outputs.should_deploy == 'true'
     environment:
       name: staging
-      url: ${{ vars.STAGING_URL }}
+      url: ${{ needs.staging-deploy-gate.outputs.staging_url }}
     env:
-      STAGING_URL: ${{ vars.STAGING_URL || format('https://{0}', secrets.DEPLOY_HOST || vars.DEPLOY_HOST) }}
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER || 'deploy' }}
+      STAGING_URL: ${{ needs.staging-deploy-gate.outputs.staging_url }}
     steps:
       - name: Normalize Git settings (self-hosted runner)
         shell: pwsh
@@ -1176,22 +1274,15 @@ jobs:
   deploy-production:
     name: 🎯 Deploy to Production
     runs-on: [self-hosted, windows, production-lan]
-    needs: [build-docker-images, security-scan-docker, cleanup-and-docs]
-    # Push auto-deploy safety gate:
-    # - vars.AUTO_DEPLOY_ON_PUSH == 'true' enables push-triggered deployment globally
-    # - vars.PROD_DEPLOY_ENABLED == 'true' enables production deployment (manual + push)
-    # Manual dispatch/call with deploy_environment=production still requires PROD_DEPLOY_ENABLED=true.
-    if: |
-      (github.event_name == 'workflow_dispatch' && inputs.deploy_environment == 'production' && vars.PROD_DEPLOY_ENABLED == 'true') ||
-      (github.event_name == 'workflow_call' && inputs.deploy_environment == 'production' && vars.PROD_DEPLOY_ENABLED == 'true') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PROD_DEPLOY_ENABLED == 'true' && vars.AUTO_DEPLOY_ON_PUSH == 'true')
+    needs: [production-deploy-gate]
+    # Execution job pattern: consume gate outputs only; avoid embedding policy logic here.
+    if: needs.production-deploy-gate.outputs.should_deploy == 'true'
     environment:
       name: production
-      url: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
+      url: ${{ needs.production-deploy-gate.outputs.prod_url }}
     env:
-      PROD_URL: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
-      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST || vars.DEPLOY_HOST }}
-      DEPLOY_USER: ${{ secrets.DEPLOY_USER || vars.DEPLOY_USER || 'deploy' }}
+      PROD_URL: ${{ needs.production-deploy-gate.outputs.prod_url }}
+      DEPLOY_HOST: ${{ needs.production-deploy-gate.outputs.deploy_host }}
     steps:
       - name: Check production deployment prerequisites
         shell: pwsh
@@ -1529,10 +1620,11 @@ jobs:
     name: 📊 Post-Deployment Monitoring
     runs-on: ubuntu-latest
     continue-on-error: true
-    needs: [deploy-production]
+    needs: [production-deploy-gate, deploy-production]
+    # Monitoring reuses the normalized production URL from the gate job.
     if: startsWith(github.ref, 'refs/tags/v1.') && needs.deploy-production.result == 'success'
     env:
-      PROD_URL: ${{ vars.PROD_URL || (vars.DEPLOY_HOST && format('https://{0}', vars.DEPLOY_HOST)) || '' }}
+      PROD_URL: ${{ needs.production-deploy-gate.outputs.prod_url }}
     steps:
       - name: Monitor application health
         run: |
@@ -1619,6 +1711,8 @@ jobs:
         security-scan-docker,
         cleanup-and-docs,
         release-asset-lock,
+        staging-deploy-gate,
+        production-deploy-gate,
         create-release,
         deploy-staging,
         deploy-production,
@@ -1631,7 +1725,7 @@ jobs:
       - name: Determine pipeline status
         id: status
         run: |
-          RESULTS="${{ needs.version-verification.result }} ${{ needs.workflow-version-policy.result }} ${{ needs.lint-backend.result }} ${{ needs.lint-frontend.result }} ${{ needs.secret-scan.result }} ${{ needs.test-backend.result }} ${{ needs.test-frontend.result }} ${{ needs.smoke-tests.result }} ${{ needs.build-frontend.result }} ${{ needs.build-docker-images.result }} ${{ needs.security-scan-backend.result }} ${{ needs.security-scan-frontend.result }} ${{ needs.security-scan-docker.result }} ${{ needs.cleanup-and-docs.result }} ${{ needs.release-asset-lock.result }} ${{ needs.create-release.result }} ${{ needs.deploy-staging.result }} ${{ needs.deploy-production.result }} ${{ needs.post-deployment-monitoring.result }}"
+          RESULTS="${{ needs.version-verification.result }} ${{ needs.workflow-version-policy.result }} ${{ needs.lint-backend.result }} ${{ needs.lint-frontend.result }} ${{ needs.secret-scan.result }} ${{ needs.test-backend.result }} ${{ needs.test-frontend.result }} ${{ needs.smoke-tests.result }} ${{ needs.build-frontend.result }} ${{ needs.build-docker-images.result }} ${{ needs.security-scan-backend.result }} ${{ needs.security-scan-frontend.result }} ${{ needs.security-scan-docker.result }} ${{ needs.cleanup-and-docs.result }} ${{ needs.release-asset-lock.result }} ${{ needs.staging-deploy-gate.result }} ${{ needs.production-deploy-gate.result }} ${{ needs.create-release.result }} ${{ needs.deploy-staging.result }} ${{ needs.deploy-production.result }} ${{ needs.post-deployment-monitoring.result }}"
           if echo "$RESULTS" | grep -Eq "failure|cancelled"; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "emoji=❌" >> $GITHUB_OUTPUT

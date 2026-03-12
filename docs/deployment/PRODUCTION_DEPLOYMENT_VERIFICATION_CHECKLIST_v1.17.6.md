@@ -22,7 +22,7 @@
   - 18 test accounts created (3 admin, 5 teacher, 10 student)
   - 4 sample courses created (CS102, WEB201, DB301, NET202)
   - 54 total courses available in system
-  - Credentials stored in `docs/training/TRAINING_CREDENTIALS.md`
+  - Credentials generated locally to `artifacts/training/TRAINING_CREDENTIALS.local.md`
 
 - [x] Git repository clean
   - Commits pushed: Backend config fix + Training script enhancement

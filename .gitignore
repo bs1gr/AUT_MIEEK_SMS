@@ -128,6 +128,9 @@ artifacts_run_*
 run*.log
 run_*.log
 
+# Generated local-only training credentials
+artifacts/training/
+
 # Generated artifacts to untrack
 setup.log
 bfg.jar

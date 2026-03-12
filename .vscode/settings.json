@@ -64,6 +64,23 @@
 "python.analysis.typeCheckingMode": "standard",
 
 // Copilot chat preferences
+"chat.useAgentsMdFile": true,
+"github.copilot.chat.commitMessageGeneration.instructions": [
+{
+"file": ".github/instructions/git-message.instructions.md"
+}
+],
+"github.copilot.chat.reviewSelection.enabled": true,
+"github.copilot.chat.reviewSelection.instructions": [
+{
+"file": ".github/instructions/code-review.instructions.md"
+}
+],
+"github.copilot.chat.testGeneration.instructions": [
+{
+"file": ".github/instructions/test-generation.instructions.md"
+}
+],
 "github.copilot.chat.languageContext.typescript.includeDocumentation": true,
 "github.copilot.chat.languageContext.fix.typescript.enabled": true,
 "github.copilot.chat.languageContext.inline.typescript.enabled": true,

@@ -152,7 +152,7 @@ The Student Management System **$11.18.3 reached a historical production-readine
 - ✅ **5 Teacher accounts** - All authenticated and tested
 - ✅ **10 Student accounts** - All authenticated and tested
 - ✅ **54 courses** - Available for student enrollment
-- ✅ **TRAINING_CREDENTIALS.md** - All credentials documented
+- ✅ **Local training credentials artifact** - Generated outside tracked docs when needed
 
 ### Training Materials Ready
 - ✅ User guides (comprehensive, EN/EL)
