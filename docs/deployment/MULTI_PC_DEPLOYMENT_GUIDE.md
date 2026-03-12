@@ -188,7 +188,7 @@ DEFAULT_ADMIN_AUTO_RESET=true
 # === Authentication ===
 AUTH_ENABLED=true
 AUTH_MODE=permissive
-SECRET_KEY=<generate_unique_key_per_pc>
+SECRET_KEY=<shared_secret_key_across_trusted_pcs>
 ```
 
 **Important**: The `SECRET_KEY` should be the **same across PCs** if you want JWT tokens to be valid across installations. Generate one with:

@@ -1,7 +1,7 @@
 # QNAP Deployment Guide (Consolidated)
 
-**Version:** 1.9.9
-**Last Updated:** 2025-12-06
+**Version:** 1.18.12
+**Last Updated:** 2026-03-13
 **Scope:** All QNAP Container Station deployments (basic, ARM/TS-431P3, virtual host)
 
 ---
@@ -67,12 +67,25 @@ cp .env.qnap.postgres-only.example .env.qnap.postgres-only
 - Bind to private/VPN interface only (`QNAP_PG_BIND_IP`).
 - Allow access only from app host IP/VPN peers via firewall rules.
 - Use strong `POSTGRES_PASSWORD` and SCRAM auth (enabled in compose).
+- `./scripts/qnap/manage-qnap-postgres-only.sh psql-url` now redacts the password by default; use `--show-password` only when you explicitly need the full URL.
 
 ### App connection (VPS/backend)
 
-Set backend `DATABASE_URL` to:
+Prefer backend `.env` settings in this shape:
 
-`postgresql://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<QNAP_PRIVATE_OR_VPN_IP>:<QNAP_PG_PORT>/<POSTGRES_DB>`
+```ini
+DATABASE_ENGINE=postgresql
+POSTGRES_HOST=<QNAP_PRIVATE_OR_VPN_IP>
+POSTGRES_PORT=<QNAP_PG_PORT>
+POSTGRES_USER=<POSTGRES_USER>
+POSTGRES_PASSWORD=<POSTGRES_PASSWORD>
+POSTGRES_DB=<POSTGRES_DB>
+POSTGRES_SSLMODE=prefer
+```
+
+If you need a raw URL, use:
+
+`postgresql+psycopg://<POSTGRES_USER>:<POSTGRES_PASSWORD>@<QNAP_PRIVATE_OR_VPN_IP>:<QNAP_PG_PORT>/<POSTGRES_DB>`
 
 Then run normal app deployment on VPS side.
 
@@ -81,14 +94,14 @@ Then run normal app deployment on VPS side.
 **Upgrade / restart:**
 
 ```bash
-docker compose -f docker-compose.qnap.yml pull
-docker compose -f docker-compose.qnap.yml up -d --build
+docker compose -f docker/docker-compose.qnap.postgres-only.yml --env-file .env.qnap.postgres-only pull
+docker compose -f docker/docker-compose.qnap.postgres-only.yml --env-file .env.qnap.postgres-only up -d
 
 ```text
 **Uninstall:**
 
 ```bash
-docker compose -f docker-compose.qnap.yml down
+docker compose -f docker/docker-compose.qnap.postgres-only.yml --env-file .env.qnap.postgres-only down
 
 ```text
 ---
@@ -114,7 +127,7 @@ docker compose -f docker-compose.qnap.yml down
 ## 🔧 Configuration Notes
 
 - **CORS & VITE_API_URL:** default `VITE_API_URL="/api"` so same-origin via NGINX proxy inside the container.
-- **Database:** SQLite volume by default; switch to Postgres by adding a `postgres` service and updating `DATABASE_URL`.
+- **Database:** for the shared-DB architecture, prefer the PostgreSQL-only QNAP stack above. Treat SQLite-on-QNAP as a simpler legacy/local mode, not the preferred common-database path.
 - **Volumes:** Convert `sms_data_qnap` to a bind mount for easier backups:
 
   ```yaml
@@ -138,6 +151,7 @@ docker compose -f docker-compose.qnap.yml down
 ## 🛡️ Maintenance & Recovery
 
 - **Backups:** Use QNAP snapshots or copy `sms_data_qnap` (or bind mount path). For Postgres, back up the DB volume as well.
+- **PostgreSQL-only backups:** `./scripts/qnap/manage-qnap-postgres-only.sh backup` now creates a compressed dump, validates the gzip archive, writes a `.sha256` checksum, and prunes older backups based on `QNAP_POSTGRES_BACKUP_KEEP`.
 - **Logs:** `docker compose -f docker-compose.qnap.yml logs -f` for live tail; export before pruning.
 - **Cleanup:** If space is tight, run `./DOCKER.ps1 -Prune` from a dev machine (or equivalent Docker prune on the NAS). Avoid deleting volumes unless you have a backup.
 - **Reset admin password:**
@@ -154,6 +168,7 @@ docker compose -f docker-compose.qnap.yml down
 ## 🧭 Troubleshooting Cheatsheet
 
 - **Container won’t start:** check `docker compose ... logs`, verify `DATABASE_URL` and available disk space.
+- **PostgreSQL-only installer fails preflight:** verify `QNAP_PG_BIND_IP` is set to a real private/VPN interface address, the port is available, and QNAP data/backup folders are writable.
 - **Port already in use:** adjust `ports:` in `docker-compose.qnap.yml` or stop conflicting services.
 - **ARM image errors:** rebuild using the ARM compose file; ensure `docker buildx` is available if cross-building.
 - **Frontend 404s behind virtual host:** confirm `/api` proxy rule and that SPA fallback is enabled in QNAP Web Server.

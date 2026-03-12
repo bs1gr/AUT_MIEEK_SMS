@@ -76,7 +76,8 @@ This directory contains scripts for deploying and managing the Student Managemen
 **Key Commands**:
 - `start`, `stop`, `restart`, `status`, `logs`
 - `backup` / `restore <file.sql.gz>`
-- `psql-url` (prints `DATABASE_URL` template)
+- `backup` now validates gzip output, writes a `.sha256` checksum, and applies retention via `QNAP_POSTGRES_BACKUP_KEEP`
+- `psql-url` prints a redacted app `DATABASE_URL` by default (`--show-password` reveals the full value)
 
 #### `manage-qnap.sh`
 
