@@ -16,31 +16,31 @@
 1. Read: [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) (5 min)
 2. Review: [PHASE5_READY_FOR_GOLIVE_CHECKLIST.md](./PHASE5_READY_FOR_GOLIVE_CHECKLIST.md) (Quick verification)
 3. Approve: Go-live when ready
-4. Plan: [PHASE6_FEATURE_SELECTION.md](./docs/plans/PHASE6_FEATURE_SELECTION.md) (next phase options)
+4. Plan: [PHASE6_FEATURE_SELECTION.md](../../plans/PHASE6_FEATURE_SELECTION.md) (next phase options)
 
 ### I'm an Operations Lead
 1. Start: [GOLIVE_QUICK_REFERENCE.md](./GOLIVE_QUICK_REFERENCE.md) (1 page, print & post)
-2. Read: [docs/deployment/PRODUCTION_GO_LIVE_GUIDE_$11.18.3.md](./docs/deployment/PRODUCTION_GO_LIVE_GUIDE_$11.18.3.md) (step-by-step)
-3. Reference: [docs/deployment/RUNBOOK.md](./docs/deployment/RUNBOOK.md) (operational reference)
-4. Use: [docs/deployment/DAILY_OPERATIONS_CHECKLIST.md](./docs/deployment/DAILY_OPERATIONS_CHECKLIST.md) (daily procedures)
+2. Read: [PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md](../PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md) (step-by-step)
+3. Reference: [RUNBOOK.md](../RUNBOOK.md) (operational reference)
+4. Use: [DAILY_OPERATIONS_CHECKLIST.md](../../operations/DAILY_OPERATIONS_CHECKLIST.md) (daily procedures)
 
 ### I'm a System Administrator
-1. Read: [PHASE5_GOLIVE_SUMMARY_JAN31.md](./docs/deployment/PHASE5_GOLIVE_SUMMARY_JAN31.md) (comprehensive overview)
-2. Review: [docs/deployment/PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_$11.18.3.md](./docs/deployment/PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_$11.18.3.md)
-3. Use: [docs/deployment/INCIDENT_RESPONSE_RUNBOOK.md](./docs/deployment/INCIDENT_RESPONSE_RUNBOOK.md) (emergency procedures)
-4. Monitor: [docs/deployment/MONITORING_SETUP.md](./docs/deployment/MONITORING_SETUP.md)
+1. Read: [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) (comprehensive overview)
+2. Review: [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.17.6.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.17.6.md)
+3. Use: [INCIDENT_RESPONSE_RUNBOOK.md](../../operations/INCIDENT_RESPONSE_RUNBOOK.md) (emergency procedures)
+4. Monitor: [MONITORING_SETUP.md](../../operations/MONITORING_SETUP.md)
 
 ### I'm a Trainer / User Support
-1. Generate local credentials with: [scripts/training/Setup-TrainingEnvironment.ps1](./scripts/training/Setup-TrainingEnvironment.ps1) (writes account details to `artifacts/training/TRAINING_CREDENTIALS.local.md`)
-2. Use: [docs/training/PRE_READING_MATERIALS.md](./docs/training/PRE_READING_MATERIALS.md) (user prep materials)
-3. Send: [docs/training/EMAIL_TEMPLATES.md](./docs/training/EMAIL_TEMPLATES.md) (communication templates)
-4. Train: [docs/user/USER_GUIDE_COMPLETE.md](./docs/user/USER_GUIDE_COMPLETE.md) (comprehensive user guide)
+1. Generate local credentials with: [Setup-TrainingEnvironment.ps1](../../../scripts/training/Setup-TrainingEnvironment.ps1) (writes account details to `artifacts/training/TRAINING_CREDENTIALS.local.md`)
+2. Use: [PRE_READING_MATERIALS.md](../../training/PRE_READING_MATERIALS.md) (user prep materials)
+3. Send: [EMAIL_TEMPLATES.md](../../training/EMAIL_TEMPLATES.md) (communication templates)
+4. Train: [USER_GUIDE_COMPLETE.md](../../user/USER_GUIDE_COMPLETE.md) (comprehensive user guide)
 
 ### I'm a Developer
 1. Review: [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) (status overview)
-2. Plan: [docs/plans/PHASE6_FEATURE_SELECTION.md](./docs/plans/PHASE6_FEATURE_SELECTION.md) (next features)
-3. Reference: [docs/development/DEVELOPER_GUIDE_COMPLETE.md](./docs/development/DEVELOPER_GUIDE_COMPLETE.md)
-4. Work Plan: [docs/plans/UNIFIED_WORK_PLAN.md](./docs/plans/UNIFIED_WORK_PLAN.md)
+2. Plan: [PHASE6_FEATURE_SELECTION.md](../../plans/PHASE6_FEATURE_SELECTION.md) (next features)
+3. Reference: [DEVELOPER_GUIDE_COMPLETE.md](../../development/DEVELOPER_GUIDE_COMPLETE.md)
+4. Work Plan: [UNIFIED_WORK_PLAN.md](../../plans/UNIFIED_WORK_PLAN.md)
 
 ---
 
@@ -54,66 +54,66 @@
 - [PHASE5_READY_FOR_GOLIVE_CHECKLIST.md](./PHASE5_READY_FOR_GOLIVE_CHECKLIST.md) ⭐ **Master checklist** - Complete verification
 
 **Comprehensive Guides** (30+ minutes)
-- [docs/deployment/PHASE5_GOLIVE_SUMMARY_JAN31.md](./docs/deployment/PHASE5_GOLIVE_SUMMARY_JAN31.md) - Full technical summary
-- [docs/deployment/PRODUCTION_GO_LIVE_GUIDE_$11.18.3.md](./docs/deployment/PRODUCTION_GO_LIVE_GUIDE_$11.18.3.md) - 1,500+ lines of procedures
-- [docs/deployment/PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_$11.18.3.md](./docs/deployment/PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_$11.18.3.md) - Detailed pre/post checks
+- [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) - Full technical summary
+- [PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md](../PRODUCTION_GO_LIVE_GUIDE_v1.17.6.md) - 1,500+ lines of procedures
+- [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.17.6.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.17.6.md) - Detailed pre/post checks
 
 ---
 
 ### 📋 OPERATIONS & PROCEDURES
 
 **Daily Operations**
-- [docs/deployment/RUNBOOK.md](./docs/deployment/RUNBOOK.md) - Quick reference for common tasks
-- [docs/deployment/DAILY_OPERATIONS_CHECKLIST.md](./docs/deployment/DAILY_OPERATIONS_CHECKLIST.md) - Daily procedures
+- [RUNBOOK.md](../RUNBOOK.md) - Quick reference for common tasks
+- [DAILY_OPERATIONS_CHECKLIST.md](../../operations/DAILY_OPERATIONS_CHECKLIST.md) - Daily procedures
 
 **Emergency & Incident Response**
-- [docs/deployment/INCIDENT_RESPONSE_RUNBOOK.md](./docs/deployment/INCIDENT_RESPONSE_RUNBOOK.md) - Emergency procedures
-- [docs/deployment/BACKUP_RESTORE_PROCEDURES.md](./docs/deployment/BACKUP_RESTORE_PROCEDURES.md) - Data recovery
+- [INCIDENT_RESPONSE_RUNBOOK.md](../../operations/INCIDENT_RESPONSE_RUNBOOK.md) - Emergency procedures
+- [BACKUP_RESTORE_PROCEDURES.md](../../operations/BACKUP_RESTORE_PROCEDURES.md) - Data recovery
 
 **Monitoring & Health**
-- [docs/deployment/MONITORING_SETUP.md](./docs/deployment/MONITORING_SETUP.md) - Prometheus/Grafana setup
-- [docs/deployment/DOCKER_OPERATIONS.md](./docs/deployment/DOCKER_OPERATIONS.md) - Docker command reference
+- [MONITORING_SETUP.md](../../operations/MONITORING_SETUP.md) - Prometheus/Grafana setup
+- [DOCKER_OPERATIONS.md](../DOCKER_OPERATIONS.md) - Docker command reference
 
 ---
 
 ### 🎓 TRAINING & USER MATERIALS
 
 **Training Setup**
-- [scripts/training/Setup-TrainingEnvironment.ps1](./scripts/training/Setup-TrainingEnvironment.ps1) - Automated account creation
+- [Setup-TrainingEnvironment.ps1](../../../scripts/training/Setup-TrainingEnvironment.ps1) - Automated account creation
 - Local generated credentials artifact - `artifacts/training/TRAINING_CREDENTIALS.local.md` (created by setup script; not committed)
 
 **Training Materials**
-- [docs/training/PRE_READING_MATERIALS.md](./docs/training/PRE_READING_MATERIALS.md) - User preparation guide
-- [docs/training/EMAIL_TEMPLATES.md](./docs/training/EMAIL_TEMPLATES.md) - Communication templates
+- [PRE_READING_MATERIALS.md](../../training/PRE_READING_MATERIALS.md) - User preparation guide
+- [EMAIL_TEMPLATES.md](../../training/EMAIL_TEMPLATES.md) - Communication templates
 
 **User Guides**
-- [docs/user/USER_GUIDE_COMPLETE.md](./docs/user/USER_GUIDE_COMPLETE.md) - Comprehensive manual (EN)
-- [docs/user/QUICK_START_GUIDE.md](./docs/user/QUICK_START_GUIDE.md) - 5-minute quick start
-- [docs/user/RBAC_GUIDE.md](./docs/user/RBAC_GUIDE.md) - Roles & permissions guide
+- [USER_GUIDE_COMPLETE.md](../../user/USER_GUIDE_COMPLETE.md) - Comprehensive manual (EN)
+- [QUICK_START_GUIDE.md](../../user/QUICK_START_GUIDE.md) - 5-minute quick start
+- [RBAC_GUIDE.md](../../user/RBAC_GUIDE.md) - Roles & permissions guide
 
 ---
 
 ### 🛠️ TECHNICAL REFERENCE
 
 **Architecture & Design**
-- [docs/development/ARCHITECTURE_DIAGRAMS.md](./docs/development/ARCHITECTURE_DIAGRAMS.md) - System architecture
-- [docs/development/DEVELOPER_GUIDE_COMPLETE.md](./docs/development/DEVELOPER_GUIDE_COMPLETE.md) - Complete dev guide
-- [docs/development/API_EXAMPLES.md](./docs/development/API_EXAMPLES.md) - API usage examples
+- [ARCHITECTURE_DIAGRAMS.md](../../development/ARCHITECTURE_DIAGRAMS.md) - System architecture
+- [DEVELOPER_GUIDE_COMPLETE.md](../../development/DEVELOPER_GUIDE_COMPLETE.md) - Complete dev guide
+- [API_EXAMPLES.md](../../development/API_EXAMPLES.md) - API usage examples
 
 **Testing & Quality**
-- [E2E_TESTING_GUIDE.md](./E2E_TESTING_GUIDE.md) - End-to-end testing
-- [docs/development/LOAD_TEST_PLAYBOOK.md](./docs/development/LOAD_TEST_PLAYBOOK.md) - Performance testing
+- [E2E_TESTING_GUIDE.md](../../E2E_TESTING_GUIDE.md) - End-to-end testing
+- [LOAD_TEST_PLAYBOOK.md](../../development/LOAD_TEST_PLAYBOOK.md) - Performance testing
 
 ---
 
 ### 📊 PLANNING & ROADMAP
 
 **Current Status**
-- [docs/plans/UNIFIED_WORK_PLAN.md](./docs/plans/UNIFIED_WORK_PLAN.md) - **Master work plan** - Single source of truth
-- [docs/DOCUMENTATION_INDEX.md](./docs/DOCUMENTATION_INDEX.md) - All documentation index
+- [UNIFIED_WORK_PLAN.md](../../plans/UNIFIED_WORK_PLAN.md) - **Master work plan** - Single source of truth
+- [DOCUMENTATION_INDEX.md](../../DOCUMENTATION_INDEX.md) - All documentation index
 
 **Next Phase**
-- [docs/plans/PHASE6_FEATURE_SELECTION.md](./docs/plans/PHASE6_FEATURE_SELECTION.md) ⭐ **Feature options** - Five options analyzed with ROI
+- [PHASE6_FEATURE_SELECTION.md](../../plans/PHASE6_FEATURE_SELECTION.md) ⭐ **Feature options** - Five options analyzed with ROI
 
 ---
 
@@ -129,7 +129,7 @@ Is this an owner decision in the historical rollout packet?
   │
   └─ NO → What's your role?
            ├─ Operations → Read: GOLIVE_QUICK_REFERENCE.md
-           ├─ Admin → Read: PHASE5_GOLIVE_SUMMARY_JAN31.md
+           ├─ Admin → Read: PHASE5_COMPLETION_OVERVIEW.md
            ├─ Trainer → Use: generated local credentials artifact + EMAIL_TEMPLATES.md
            ├─ Developer → Read: PHASE6_FEATURE_SELECTION.md
            └─ User → Read: USER_GUIDE_COMPLETE.md
@@ -167,16 +167,16 @@ curl http://localhost:8080/api/v1/health
 ## 📞 Support & Help
 
 **For Deployment Issues**
-→ See: [docs/deployment/INCIDENT_RESPONSE_RUNBOOK.md](./docs/deployment/INCIDENT_RESPONSE_RUNBOOK.md)
+→ See: [INCIDENT_RESPONSE_RUNBOOK.md](../../operations/INCIDENT_RESPONSE_RUNBOOK.md)
 
 **For Operational Questions**
-→ See: [docs/deployment/RUNBOOK.md](./docs/deployment/RUNBOOK.md)
+→ See: [RUNBOOK.md](../RUNBOOK.md)
 
 **For User Support**
-→ See: [docs/user/USER_GUIDE_COMPLETE.md](./docs/user/USER_GUIDE_COMPLETE.md)
+→ See: [USER_GUIDE_COMPLETE.md](../../user/USER_GUIDE_COMPLETE.md)
 
 **For Technical Questions**
-→ See: [docs/development/DEVELOPER_GUIDE_COMPLETE.md](./docs/development/DEVELOPER_GUIDE_COMPLETE.md)
+→ See: [DEVELOPER_GUIDE_COMPLETE.md](../../development/DEVELOPER_GUIDE_COMPLETE.md)
 
 ---
 
@@ -193,7 +193,7 @@ curl http://localhost:8080/api/v1/health
 ## 📚 Master Document Index
 
 All documentation organized by audience:
-- [docs/DOCUMENTATION_INDEX.md](./docs/DOCUMENTATION_INDEX.md) - Complete index
+- [DOCUMENTATION_INDEX.md](../../DOCUMENTATION_INDEX.md) - Complete index
 
 ---
 
