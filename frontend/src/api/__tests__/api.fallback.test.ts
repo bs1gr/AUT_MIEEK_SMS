@@ -30,6 +30,17 @@ describe('API dynamic fallback', () => {
     expect(finalBase).toBe('/api/v1');
   });
 
+  it('forces canonical relative base for localhost:8001 fallback target', async () => {
+    __test_forceOriginalBase('http://127.0.0.1:8001/api/v1');
+    const getSpy = vi.spyOn(axios, 'get');
+
+    const finalBase = await preflightAPI();
+
+    expect(finalBase).toBe('/api/v1');
+    expect(apiClient.defaults.baseURL).toBe('/api/v1');
+    expect(getSpy).not.toHaveBeenCalled();
+  });
+
   it('does not switch if health succeeds for absolute base', async () => {
     __test_forceOriginalBase('http://example.com/api/v1');
     vi.spyOn(axios, 'get').mockResolvedValue({ status: 200, data: { status: 'ok' } });

@@ -96,6 +96,7 @@ $FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
 $BACKEND_PID_FILE = Join-Path $SCRIPT_DIR ".backend.pid"
 $FRONTEND_PID_FILE = Join-Path $SCRIPT_DIR ".frontend.pid"
 $BACKEND_PORT = 8000
+$BACKEND_FALLBACK_PORT = 8001
 $FRONTEND_PORT = 5173  # Use standard Vite port (do not override - vite.config.ts sets this)
 $MIN_PYTHON_VERSION = [version]"3.11"
 $MIN_NODE_VERSION = [version]"18.0"
@@ -129,6 +130,81 @@ function Write-Info {
 function Write-Warning {
     param([string]$Message)
     Write-Host "⚠️  $Message" -ForegroundColor Yellow
+}
+
+function Test-HealthEndpointReachable {
+    param(
+        [int]$Port,
+        [int]$TimeoutSec = 3
+    )
+
+    try {
+        $uri = "http://127.0.0.1:$Port/health"
+        $response = Invoke-WebRequest -UseBasicParsing -Uri $uri -TimeoutSec $TimeoutSec -ErrorAction Stop
+        return ($response.StatusCode -ge 200 -and $response.StatusCode -lt 500)
+    }
+    catch {
+        return $false
+    }
+}
+
+function Invoke-FallbackPortDiagnostic {
+    param(
+        [string]$Phase = "startup",
+        [switch]$HardFail
+    )
+
+    $fallbackReachable = Test-HealthEndpointReachable -Port $BACKEND_FALLBACK_PORT -TimeoutSec 3
+    if (-not $fallbackReachable) {
+        return $false
+    }
+
+    Write-Host "`n╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+    Write-Host "║  🚨 CRITICAL NATIVE DIAGNOSTIC: PORT 8001 IS REACHABLE 🚨    ║" -ForegroundColor Red
+    Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host "⚠️  Phase: $Phase" -ForegroundColor Yellow
+    Write-Host "⚠️  Detected reachable endpoint: http://127.0.0.1:$BACKEND_FALLBACK_PORT/health" -ForegroundColor Yellow
+    Write-Host "⚠️  This can cause split-runtime behavior and stale report generation paths." -ForegroundColor Yellow
+    Write-Host "⚠️  Recommended immediate action: .\NATIVE.ps1 -Stop, then ensure port 8001 is not reachable." -ForegroundColor Yellow
+
+    try {
+        $listeners = Get-NetTCPConnection -LocalPort $BACKEND_FALLBACK_PORT -State Listen -ErrorAction SilentlyContinue
+        if ($listeners) {
+            $pids = @($listeners | Where-Object { $_.OwningProcess -gt 0 } | Select-Object -ExpandProperty OwningProcess | Sort-Object -Unique)
+            if ($pids.Count -gt 0) {
+                Write-Host "⚠️  Listener PID candidates on port ${BACKEND_FALLBACK_PORT}: $($pids -join ', ')" -ForegroundColor Yellow
+            }
+        }
+    }
+    catch {
+        Write-Warning "Could not enumerate listener PIDs on port $BACKEND_FALLBACK_PORT"
+    }
+
+    if ($HardFail -and $env:SMS_NATIVE_ALLOW_8001_REACHABLE -ne '1') {
+        Write-Error-Message "Startup blocked: fallback port $BACKEND_FALLBACK_PORT is reachable."
+        Write-Info "Set SMS_NATIVE_ALLOW_8001_REACHABLE=1 only if you intentionally accept split-runtime risk."
+        return $true
+    }
+
+    return $false
+}
+
+function Show-FallbackGuardRecovery {
+    param([string]$Stage = "startup")
+
+    Write-Host "`n╔══════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+    Write-Host "║   STARTUP BLOCKED: FALLBACK PORT SAFETY GUARD (8001)       ║" -ForegroundColor Red
+    Write-Host "╚══════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+    Write-Host "⚠️  Stage: $Stage" -ForegroundColor Yellow
+    Write-Host "⚠️  Reason: port $BACKEND_FALLBACK_PORT is reachable and can cause split-runtime behavior." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "Recovery steps:" -ForegroundColor Cyan
+    Write-Host "  1) Run: .\NATIVE.ps1 -Stop" -ForegroundColor White
+    Write-Host "  2) Ensure no listener remains on port $BACKEND_FALLBACK_PORT" -ForegroundColor White
+    Write-Host "  3) Retry: .\NATIVE.ps1 -Start" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Override (only if intentional):" -ForegroundColor Cyan
+    Write-Host "  Set SMS_NATIVE_ALLOW_8001_REACHABLE=1 and rerun startup." -ForegroundColor White
 }
 
 function Test-Python {
@@ -243,6 +319,60 @@ function Test-Npm {
     } catch {
         return $false
     }
+}
+
+function Stop-BackendUvicornBySignature {
+    <#
+    .SYNOPSIS
+    Stop stale backend uvicorn processes by command-line signature
+    .DESCRIPTION
+    Some Windows environments can leave listeners bound to port 8000 where PID
+    lookups intermittently fail. This helper targets python processes whose
+    command line matches the backend uvicorn entrypoint and force-terminates
+    them (including child processes) to prevent stale code paths.
+    #>
+    param([switch]$Quiet)
+
+    $killedCount = 0
+
+    try {
+        $candidates = Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object {
+            $_.Name -ieq 'python.exe' -and
+            $_.CommandLine -and
+            $_.CommandLine -match 'uvicorn\s+backend\.main:app'
+        }
+
+        foreach ($candidate in $candidates) {
+            $targetPid = [int]$candidate.ProcessId
+            if ($targetPid -le 0) {
+                continue
+            }
+
+            try {
+                cmd /c "taskkill /PID $targetPid /F /T" 2>$null | Out-Null
+                $killedCount++
+                if (-not $Quiet) {
+                    Write-Info "Stopped stale backend uvicorn process (PID $targetPid)"
+                }
+            }
+            catch {
+                if (-not $Quiet) {
+                    Write-Warning "Failed to stop stale backend uvicorn process (PID $targetPid)"
+                }
+            }
+        }
+    }
+    catch {
+        if (-not $Quiet) {
+            Write-Warning "Could not enumerate backend uvicorn processes by signature: $_"
+        }
+    }
+
+    if ($killedCount -gt 0) {
+        Start-Sleep -Milliseconds 500
+    }
+
+    return $killedCount
 }
 
 function Enable-NativeProcessGuards {
@@ -558,8 +688,38 @@ function Stop-ProcessByPort {
 
         Start-Sleep -Milliseconds 300
         if (Test-PortInUse -Port $Port) {
-            Write-Warning "$($Name): Port $Port remains in use after stop attempt"
-            return $false
+            Write-Warning "$($Name): Port $Port still busy after initial stop attempt; running aggressive listener cleanup..."
+
+            $released = $false
+            for ($attempt = 1; $attempt -le 6; $attempt++) {
+                $listeners = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue
+                if (-not $listeners) {
+                    $released = $true
+                    break
+                }
+
+                $activePids = @($listeners | Where-Object { $_.OwningProcess -gt 0 } | Select-Object -ExpandProperty OwningProcess | Sort-Object -Unique)
+                if (-not $activePids -or $activePids.Count -eq 0) {
+                    Start-Sleep -Milliseconds 250
+                    continue
+                }
+
+                foreach ($activePid in $activePids) {
+                    try {
+                        cmd /c "taskkill /PID $activePid /F /T" 2>$null | Out-Null
+                    }
+                    catch {
+                        # best effort; retry loop handles churn
+                    }
+                }
+
+                Start-Sleep -Milliseconds 400
+            }
+
+            if (-not $released -and (Test-PortInUse -Port $Port)) {
+                Write-Warning "$($Name): Port $Port remains in use after aggressive cleanup"
+                return $false
+            }
         }
 
         if ($allStopped) {
@@ -936,6 +1096,10 @@ function Setup-Environment {
 function Start-Backend {
     Write-Header "Starting Backend (FastAPI)"
 
+    if (Invoke-FallbackPortDiagnostic -Phase "pre-backend-start" -HardFail) {
+        return 1
+    }
+
     # Check if already running
     $process = Get-ProcessFromPidFile -PidFile $BACKEND_PID_FILE
     if ($process) {
@@ -944,17 +1108,28 @@ function Start-Backend {
         return 0
     }
 
+    # Proactively clear stale uvicorn workers that can survive PID-file cleanup
+    # and keep serving old code paths on port 8000.
+    $staleKilled = Stop-BackendUvicornBySignature -Quiet
+    if ($staleKilled -gt 0) {
+        Write-Info "Cleared $staleKilled stale backend worker(s) by signature before startup"
+    }
+
+    $targetBackendPort = $BACKEND_PORT
+
     # Check port
-    if (Test-PortInUse -Port $BACKEND_PORT) {
-        Write-Warning "Port $BACKEND_PORT is in use. Attempting automatic cleanup..."
-        $recovered = Stop-ProcessByPort -Port $BACKEND_PORT -Name "Backend"
+    if (Test-PortInUse -Port $targetBackendPort) {
+        Write-Warning "Port $targetBackendPort is in use. Attempting automatic cleanup..."
+        $recovered = Stop-ProcessByPort -Port $targetBackendPort -Name "Backend"
         Start-Sleep -Milliseconds 500
-        if ((-not $recovered) -or (Test-PortInUse -Port $BACKEND_PORT)) {
-            Write-Error-Message "Port $BACKEND_PORT is already in use"
-            Write-Info "Run .\NATIVE.ps1 -Stop and retry, or free the port manually"
+        if ((-not $recovered) -or (Test-PortInUse -Port $targetBackendPort)) {
+            Write-Error-Message "Port $BACKEND_PORT remains busy"
+            Write-Info "Native mode now enforces a single canonical backend port (8000) to avoid split runtime behavior"
+            Write-Info "Run .\NATIVE.ps1 -Stop and retry, or free port 8000 manually"
             return 1
         }
-        Write-Success "Recovered port $BACKEND_PORT"
+
+        Write-Success "Recovered port $targetBackendPort"
     }
 
     # Check venv
@@ -980,9 +1155,9 @@ function Start-Backend {
 
         # Always use backend.main:app since WorkingDirectory is $SCRIPT_DIR (project root)
         $module = 'backend.main:app'
-        $args = @($module, "--host", "127.0.0.1", "--port", $BACKEND_PORT)
+        $args = @($module, "--host", "127.0.0.1", "--port", $targetBackendPort)
         if (-not $NoReload) {
-            $args = @($module, "--reload", "--host", "127.0.0.1", "--port", $BACKEND_PORT)
+            $args = @($module, "--reload", "--host", "127.0.0.1", "--port", $targetBackendPort)
         }
 
         # Set PYTHONPATH and SMS environment variables for the backend process
@@ -1055,13 +1230,22 @@ function Start-Backend {
         }
 
         Write-Success "Backend started (PID $($processInfo.Id))"
-        Write-Info "API: http://localhost:$BACKEND_PORT"
-        Write-Info "Docs: http://localhost:$BACKEND_PORT/docs"
+        Write-Info "API: http://localhost:$targetBackendPort"
+        Write-Info "Docs: http://localhost:$targetBackendPort/docs"
         if ($NoReload) {
             Write-Info "Hot-reload disabled (stable mode). Use CTRL+C in window to stop or .\NATIVE.ps1 -Stop"
         } else {
             Write-Info "Hot-reload enabled"
         }
+
+        if (Invoke-FallbackPortDiagnostic -Phase "post-backend-start" -HardFail) {
+            Write-Info "Stopping backend due to fallback-port hard-fail guard..."
+            Stop-ProcessFromPidFile -PidFile $BACKEND_PID_FILE -Name "Backend" | Out-Null
+            return 1
+        }
+
+        # Persist active backend port for frontend/API targeting in this workspace
+        Set-Content -Path (Join-Path $SCRIPT_DIR ".backend.port") -Value "$targetBackendPort"
 
         return 0
     }
@@ -1077,6 +1261,10 @@ function Start-Backend {
 
 function Start-Frontend {
     Write-Header "Starting Frontend (Vite)"
+
+    if (Invoke-FallbackPortDiagnostic -Phase "pre-frontend-start" -HardFail) {
+        return 1
+    }
 
     # Check if already running
     $process = Get-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE
@@ -1161,6 +1349,47 @@ function Start-Frontend {
         $npmCmd = Get-Command npm.cmd -ErrorAction SilentlyContinue
         $npmExecutable = if ($npmCmd -and $npmCmd.Source) { $npmCmd.Source } else { "npm" }
 
+        # Resolve backend API target dynamically (single canonical backend port)
+        $activeBackendPort = $BACKEND_PORT
+        $backendPortFromFile = $false
+        $backendPortFile = Join-Path $SCRIPT_DIR ".backend.port"
+        if (Test-Path $backendPortFile) {
+            try {
+                $parsedPort = [int](Get-Content $backendPortFile -Raw).Trim()
+                if ($parsedPort -gt 0) {
+                    $activeBackendPort = $parsedPort
+                    $backendPortFromFile = $true
+                }
+            }
+            catch {
+                # ignore parse errors and fall back to defaults below
+            }
+        }
+
+        if ($backendPortFromFile) {
+            # Give backend a brief moment to bind on the persisted port before any fallback.
+            for ($wait = 1; $wait -le 8; $wait++) {
+                if (Test-PortInUse -Port $activeBackendPort) {
+                    break
+                }
+                Start-Sleep -Milliseconds 250
+            }
+        }
+
+        if (-not (Test-PortInUse -Port $activeBackendPort)) {
+            if (Test-PortInUse -Port $BACKEND_PORT) {
+                $activeBackendPort = $BACKEND_PORT
+            }
+        }
+
+        # Always keep frontend API base relative to avoid stale absolute targets
+        # (e.g., lingering fallback listeners on 8001). Route selection is handled
+        # by Vite proxy target below.
+        $env:VITE_API_URL = "/api/v1"
+        $env:VITE_DEV_PROXY_TARGET = "http://127.0.0.1:$activeBackendPort"
+        Write-Info "Frontend API base: $($env:VITE_API_URL)"
+        Write-Info "Frontend dev proxy target: $($env:VITE_DEV_PROXY_TARGET)"
+
         if ($pwsh) {
             $processInfo = Start-Process -FilePath "pwsh" `
                 -ArgumentList "-NoProfile", "-ExecutionPolicy", "Bypass", "-NoExit", "-Command", "cd '$FRONTEND_DIR'; & '$npmExecutable' run dev -- --host 127.0.0.1" `
@@ -1190,6 +1419,12 @@ function Start-Frontend {
         Write-Info "Web: http://localhost:$FRONTEND_PORT"
         Write-Info "HMR enabled"
 
+        if (Invoke-FallbackPortDiagnostic -Phase "post-frontend-start" -HardFail) {
+            Write-Info "Stopping frontend due to fallback-port hard-fail guard..."
+            Stop-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE -Name "Frontend" | Out-Null
+            return 1
+        }
+
         return 0
     }
         catch {
@@ -1208,8 +1443,17 @@ function Stop-All {
     $backendStopped = Stop-ProcessFromPidFile -PidFile $BACKEND_PID_FILE -Name "Backend"
     $frontendStopped = Stop-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE -Name "Frontend"
 
+    $signatureKilled = Stop-BackendUvicornBySignature -Quiet
+    if ($signatureKilled -gt 0) {
+        Write-Info "Stopped $signatureKilled additional backend worker(s) by signature"
+    }
+
     if (Test-PortInUse -Port $BACKEND_PORT) {
         $backendStopped = (Stop-ProcessByPort -Port $BACKEND_PORT -Name "Backend") -and $backendStopped
+    }
+
+    if (Test-PortInUse -Port $BACKEND_FALLBACK_PORT) {
+        $backendStopped = (Stop-ProcessByPort -Port $BACKEND_FALLBACK_PORT -Name "Backend (fallback)") -and $backendStopped
     }
 
     if (Test-PortInUse -Port $FRONTEND_PORT) {
@@ -1240,6 +1484,7 @@ function Stop-All {
     }
 
     if ($backendStopped -and $frontendStopped) {
+        Remove-Item (Join-Path $SCRIPT_DIR ".backend.port") -Force -ErrorAction SilentlyContinue
         Write-Host ""
         Write-Success "All processes stopped"
         return 0
@@ -1525,6 +1770,9 @@ if ($Start -or (-not $Stop -and -not $Status -and -not $Backend -and -not $Front
     # Start backend
     $backendCode = Start-Backend
     if ($backendCode -ne 0) {
+        if (Test-HealthEndpointReachable -Port $BACKEND_FALLBACK_PORT -TimeoutSec 2) {
+            Show-FallbackGuardRecovery -Stage "backend-start"
+        }
         Write-Error-Message "Failed to start backend"
         exit $backendCode
     }
@@ -1534,6 +1782,9 @@ if ($Start -or (-not $Stop -and -not $Status -and -not $Backend -and -not $Front
     # Start frontend
     $frontendCode = Start-Frontend
     if ($frontendCode -ne 0) {
+        if (Test-HealthEndpointReachable -Port $BACKEND_FALLBACK_PORT -TimeoutSec 2) {
+            Show-FallbackGuardRecovery -Stage "frontend-start"
+        }
         Write-Error-Message "Failed to start frontend"
         Write-Info "Stopping backend..."
         Stop-ProcessFromPidFile -PidFile $BACKEND_PID_FILE -Name "Backend" | Out-Null

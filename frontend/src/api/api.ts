@@ -133,12 +133,19 @@ const logApiDebug = (...args: unknown[]) => {
     console.warn(...args);
   }
 };
+const LOCALHOST_FALLBACK_8001_API_PATTERN = /^https?:\/\/(localhost|127\.0\.0\.1):8001\/?api\/v1\/?$/i;
+const FORCE_CANONICAL_RELATIVE_BASE = Boolean(
+  typeof RAW_API_BASE_URL === 'string' &&
+  LOCALHOST_FALLBACK_8001_API_PATTERN.test(RAW_API_BASE_URL)
+);
 const USE_DEV_PROXY = Boolean(
   IS_DEV &&
   typeof RAW_API_BASE_URL === 'string' &&
   /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?\/?api\/v1\/?$/i.test(RAW_API_BASE_URL)
 );
-const API_BASE_URL = USE_DEV_PROXY ? '/api/v1' : (RAW_API_BASE_URL || '/api/v1');
+const API_BASE_URL = FORCE_CANONICAL_RELATIVE_BASE
+  ? '/api/v1'
+  : (USE_DEV_PROXY ? '/api/v1' : (RAW_API_BASE_URL || '/api/v1'));
 logApiDebug('[API Client] VITE_API_URL env var:', RAW_API_BASE_URL);
 logApiDebug('[API Client] Using API_BASE_URL:', API_BASE_URL);
 if (!RAW_API_BASE_URL) {
@@ -146,6 +153,9 @@ if (!RAW_API_BASE_URL) {
 }
 if (USE_DEV_PROXY) {
   logApiDebug('Using Vite dev proxy for localhost API (CORS-safe): /api/v1');
+}
+if (FORCE_CANONICAL_RELATIVE_BASE) {
+  logApiDebug('Detected localhost:8001 API base; forcing canonical relative base /api/v1');
 }
 
 // Canonical Control API base (backend mounts control router without /api/v1 prefix)
@@ -413,6 +423,18 @@ let ORIGINAL_API_BASE_URL: string | undefined = API_BASE_URL;
 
 export async function preflightAPI(): Promise<string> {
   const currentBase = apiClient.defaults?.baseURL || API_BASE_URL;
+  if (
+    typeof currentBase === 'string' &&
+    LOCALHOST_FALLBACK_8001_API_PATTERN.test(currentBase)
+  ) {
+    if (!apiClient.defaults) {
+      (apiClient as unknown as { defaults?: Record<string, unknown> }).defaults = {
+        baseURL: '/api/v1'
+      } as unknown as Record<string, unknown>;
+    }
+    (apiClient.defaults as unknown as { baseURL?: string }).baseURL = '/api/v1';
+    return '/api/v1';
+  }
   const rootBase = (currentBase || '').replace(/\/api\/v1\/?$/i, '');
   const healthUrl = rootBase ? `${rootBase}/health` : '/health';
   try {
