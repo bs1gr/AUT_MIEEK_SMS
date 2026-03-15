@@ -177,3 +177,33 @@ def test_generated_report_and_stats(db):
     stats_after = service.get_report_statistics(user.id)
     assert stats_after["total_generated_reports"] == 2
     assert stats_after["generated_reports_last_30_days"] == 1
+
+
+def test_import_default_templates_uses_current_grade_field_names(db):
+    service = CustomReportService(db)
+
+    imported_count = service.import_default_templates()
+
+    assert imported_count >= 0
+
+    grade_templates = (
+        db.query(ReportTemplate).filter(ReportTemplate.report_type == "grade", ReportTemplate.is_system.is_(True)).all()
+    )
+
+    assert grade_templates
+    for template in grade_templates:
+        template_fields = template.fields if isinstance(template.fields, list) else []
+        assert "grade_value" not in template_fields
+        assert "exam_date" not in template_fields
+        assert "id" not in template_fields
+
+    attendance_templates = (
+        db.query(ReportTemplate)
+        .filter(ReportTemplate.name.like("%Attendance%"), ReportTemplate.is_system.is_(True))
+        .all()
+    )
+
+    assert attendance_templates
+    for template in attendance_templates:
+        template_fields = template.fields if isinstance(template.fields, list) else []
+        assert "id" not in template_fields

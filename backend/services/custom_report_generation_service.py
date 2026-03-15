@@ -10,6 +10,7 @@ from __future__ import annotations
 import csv
 import logging
 import os
+import re
 import time
 from datetime import date, datetime, timezone
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
@@ -44,6 +45,33 @@ logger = logging.getLogger(__name__)
 class CustomReportGenerationService:
     """Generate report files for custom report definitions."""
 
+    STUDENT_IDENTIFIER_REPORT_TYPES = {"student", "grade", "attendance", "daily_performance"}
+    RELATIONAL_STUDENT_REPORT_TYPES = {"grade", "attendance", "daily_performance"}
+    COMPUTED_STUDENT_FIELDS = {
+        "attendance_rate",
+        "total_classes",
+        "attended",
+        "gpa",
+        "passed_courses",
+        "failed_courses",
+    }
+
+    LEGACY_FIELD_ALIASES = {
+        "grade_value": "grade",
+        "exam_date": "date_submitted",
+        "attendance_percentage": "attendance_rate",
+        "attendance_percent": "attendance_rate",
+        "year_of_study": "study_year",
+        "enrollment_status": "is_active",
+    }
+
+    REPORT_TYPE_FIELD_ALIASES: Dict[str, Dict[str, str]] = {
+        "course": {
+            "name": "course_name",
+            "code": "course_code",
+        },
+    }
+
     FIELD_LABELS = {
         "first_name": {"en": "First Name", "el": "Όνομα"},
         "last_name": {"en": "Last Name", "el": "Επώνυμο"},
@@ -64,8 +92,13 @@ class CustomReportGenerationService:
         "weight": {"en": "Weight", "el": "Βαρύτητα"},
         "date_assigned": {"en": "Date Assigned", "el": "Ημερομηνία Ανάθεσης"},
         "date_submitted": {"en": "Date Submitted", "el": "Ημερομηνία Υποβολής"},
+        "grade_value": {"en": "Grade", "el": "Βαθμός"},
+        "exam_date": {"en": "Exam Date", "el": "Ημερομηνία Εξέτασης"},
         "date": {"en": "Date", "el": "Ημερομηνία"},
         "status": {"en": "Status", "el": "Κατάσταση"},
+        "attendance_rate": {"en": "Attendance Rate", "el": "Ποσοστό Παρουσιών"},
+        "total_classes": {"en": "Total Classes", "el": "Σύνολο Μαθημάτων"},
+        "attended": {"en": "Attended", "el": "Παρουσίες"},
         "score": {"en": "Score", "el": "Βαθμολογία"},
         "max_score": {"en": "Max Score", "el": "Μέγιστη Βαθμολογία"},
         "percentage": {"en": "Percentage", "el": "Ποσοστό"},
@@ -246,7 +279,35 @@ class CustomReportGenerationService:
 
     @staticmethod
     def _normalize_field_key(field: str) -> str:
-        return (field or "").strip().lower()
+        raw = (field or "").strip()
+        if not raw:
+            return ""
+
+        def _normalize_segment(segment: str) -> str:
+            normalized = segment.strip().replace("-", "_").replace(" ", "_")
+            normalized = re.sub(r"(.)([A-Z][a-z]+)", r"\1_\2", normalized)
+            normalized = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", normalized)
+            normalized = re.sub(r"_+", "_", normalized)
+            return normalized.lower()
+
+        if "." in raw:
+            return ".".join(_normalize_segment(part) for part in raw.split("."))
+        return _normalize_segment(raw)
+
+    @classmethod
+    def _canonical_field_key(cls, field: str) -> str:
+        normalized = cls._normalize_field_key(field)
+        return cls.LEGACY_FIELD_ALIASES.get(normalized, normalized)
+
+    @classmethod
+    def _normalize_report_field_key(cls, report_type: str, field: str) -> str:
+        canonical = cls._canonical_field_key(field)
+        normalized_report_type = (report_type or "").strip().lower()
+        report_aliases = cls.REPORT_TYPE_FIELD_ALIASES.get(normalized_report_type, {})
+        canonical = report_aliases.get(canonical, canonical)
+        if canonical == "id" and normalized_report_type in cls.STUDENT_IDENTIFIER_REPORT_TYPES:
+            return "student_id"
+        return canonical
 
     @classmethod
     def _is_sensitive_field(cls, field: str) -> bool:
@@ -451,21 +512,26 @@ class CustomReportGenerationService:
         self.db.commit()
 
     def _build_report_rows(self, report: Report) -> Tuple[List[List[Any]], List[str]]:
+        report_type = str(report.report_type or "").lower()
         model, query = self._build_query(report)
         # Handle filters as a list of filter objects or dict
         filters_list: list = report.filters or []  # type: ignore[assignment]
         sort_list: list = report.sort_by or []  # type: ignore[assignment]
 
-        query = self._apply_filters(query, model, filters_list)
-        query = self._apply_sort(query, model, sort_list)
+        query = self._apply_filters(query, model, filters_list, report_type)
+        query = self._apply_sort(query, model, sort_list, report_type)
 
-        columns = self._normalize_columns(str(report.report_type), report.fields)  # type: ignore[arg-type]
+        columns = self._normalize_columns(report_type, report.fields)
         if not self._allow_sensitive_fields:
             columns = [(key, label) for key, label in columns if not self._is_sensitive_field(key)]
         headers = [label for _, label in columns]
 
+        records = query.all()
+        records = self._apply_post_filters(records, filters_list, report_type)
+        records = self._apply_post_sort(records, sort_list, report_type)
+
         rows: List[List[Any]] = []
-        for record in query.all():
+        for record in records:
             row = [self._resolve_field(record, key) for key, _ in columns]
             rows.append(row)
 
@@ -475,7 +541,7 @@ class CustomReportGenerationService:
         report_type = str(report.report_type or "").lower()
 
         if report_type == "student":
-            query = self.db.query(Student).filter(Student.deleted_at.is_(None))
+            query = self.db.query(Student).options(joinedload(Student.attendances)).filter(Student.deleted_at.is_(None))
             return Student, query
 
         if report_type == "course":
@@ -508,7 +574,15 @@ class CustomReportGenerationService:
 
         raise ValueError(f"Unsupported report type: {report.report_type}")
 
-    def _apply_filters(self, query, model, filters: Any) -> Any:  # type: ignore[no-untyped-def]
+    def _can_apply_query_field(self, model: Any, report_type: str, field: str) -> bool:
+        normalized_report_type = (report_type or "").strip().lower()
+        if normalized_report_type in self.RELATIONAL_STUDENT_REPORT_TYPES and field == "student_id":
+            return False
+        if normalized_report_type == "student" and field in self.COMPUTED_STUDENT_FIELDS:
+            return False
+        return hasattr(model, field)
+
+    def _apply_filters(self, query, model, filters: Any, report_type: str) -> Any:  # type: ignore[no-untyped-def]
         """Apply filters to the query. Handles multiple filter formats."""
         if not filters:
             return query
@@ -522,11 +596,12 @@ class CustomReportGenerationService:
                 field = filter_obj.get("field")
                 operator = filter_obj.get("operator", "equals")
                 value = filter_obj.get("value")
+                normalized_field = self._normalize_report_field_key(report_type, str(field or ""))
 
-                if not field or not hasattr(model, field):
+                if not field or not self._can_apply_query_field(model, report_type, normalized_field):
                     continue
 
-                column = getattr(model, field)
+                column = getattr(model, normalized_field)
 
                 # Apply operator-specific logic
                 if operator == "equals":
@@ -559,15 +634,16 @@ class CustomReportGenerationService:
         # Nested dict format: {"grade": {"operator": "less_than", "value": 60}}
         elif isinstance(filters, dict):
             for field_name, filter_spec in filters.items():
+                normalized_field = self._normalize_report_field_key(report_type, str(field_name))
                 # If value is a dict with operator/value, it's the new format
                 if isinstance(filter_spec, dict) and "operator" in filter_spec and "value" in filter_spec:
                     operator = filter_spec.get("operator", "equals")
                     value = filter_spec.get("value")
 
-                    if not hasattr(model, field_name):
+                    if not self._can_apply_query_field(model, report_type, normalized_field):
                         continue
 
-                    column = getattr(model, field_name)
+                    column = getattr(model, normalized_field)
 
                     # Apply operator-specific logic
                     if operator == "equals":
@@ -598,13 +674,13 @@ class CustomReportGenerationService:
                             query = query.filter(column.between(value["from"], value["to"]))  # type: ignore[operator]
                 # Legacy simple format: {"field_name": value}
                 else:
-                    if hasattr(model, field_name):
-                        column = getattr(model, field_name)
+                    if self._can_apply_query_field(model, report_type, normalized_field):
+                        column = getattr(model, normalized_field)
                         query = query.filter(column == filter_spec)  # type: ignore[operator]
 
         return query
 
-    def _apply_sort(self, query, model, sort_by: Any) -> Any:  # type: ignore[no-untyped-def]
+    def _apply_sort(self, query, model, sort_by: Any, report_type: str) -> Any:  # type: ignore[no-untyped-def]
         """Apply sorting to the query. Handles both list and dict formats."""
         # Handle list of sort objects
         if isinstance(sort_by, list):
@@ -614,17 +690,19 @@ class CustomReportGenerationService:
 
                 field = sort_obj.get("field")
                 order = str(sort_obj.get("order", "asc")).lower()
+                normalized_field = self._normalize_report_field_key(report_type, str(field or ""))
 
-                if field and hasattr(model, field):
-                    column = getattr(model, field)
+                if field and self._can_apply_query_field(model, report_type, normalized_field):
+                    column = getattr(model, normalized_field)
                     query = query.order_by(column.desc() if order == "desc" else column.asc())  # type: ignore[operator]
 
         # Legacy dict format support
         elif isinstance(sort_by, dict):
             field = sort_by.get("field") if isinstance(sort_by, dict) else None
             direction = str(sort_by.get("direction", "asc")).lower() if isinstance(sort_by, dict) else "asc"
-            if field and hasattr(model, field):
-                column = getattr(model, field)
+            normalized_field = self._normalize_report_field_key(report_type, str(field or ""))
+            if field and self._can_apply_query_field(model, report_type, normalized_field):
+                column = getattr(model, normalized_field)
                 query = query.order_by(column.desc() if direction == "desc" else column.asc())  # type: ignore[operator]
 
         return query
@@ -632,7 +710,15 @@ class CustomReportGenerationService:
     def _normalize_columns(self, report_type: str, fields: Any) -> List[Tuple[str, str]]:  # type: ignore[no-untyped-def]
         columns = self._extract_columns(fields)
         if columns:
-            return columns
+            normalized_columns: List[Tuple[str, str]] = []
+            for key, label in columns:
+                normalized_key = self._normalize_report_field_key(report_type, key)
+                original_default_label = self._label_from_key(key, self._language)
+                normalized_label = label
+                if not label or label == original_default_label:
+                    normalized_label = self._label_from_key(normalized_key, self._language)
+                normalized_columns.append((normalized_key, normalized_label))
+            return normalized_columns
 
         defaults: Dict[str, List[str]] = {
             "student": ["first_name", "last_name", "email", "student_id", "is_active"],
@@ -651,6 +737,171 @@ class CustomReportGenerationService:
         }
         fallback = defaults.get(report_type.lower(), [])
         return [(key, self._label_from_key(key, self._language)) for key in fallback]
+
+    def _get_student_attendance_metrics(self, student: Student) -> Dict[str, float | int]:
+        attendance_records = [
+            attendance
+            for attendance in getattr(student, "attendances", []) or []
+            if getattr(attendance, "deleted_at", None) is None
+        ]
+
+        total_classes = len(attendance_records)
+        attended = sum(
+            1
+            for attendance in attendance_records
+            if str(getattr(attendance, "status", "")).lower() in {"present", "late"}
+        )
+        attendance_rate = round((attended / total_classes) * 100, 1) if total_classes > 0 else 0.0
+
+        return {
+            "attendance_rate": attendance_rate,
+            "total_classes": total_classes,
+            "attended": attended,
+        }
+
+    def _get_student_grade_metrics(self, student: Student) -> Dict[str, float | int]:
+        grade_records = [
+            grade for grade in getattr(student, "grades", []) or [] if getattr(grade, "deleted_at", None) is None
+        ]
+
+        percentages: List[float] = []
+        passed_courses = 0
+        failed_courses = 0
+
+        for grade in grade_records:
+            grade_value = getattr(grade, "grade", None)
+            max_grade = getattr(grade, "max_grade", None)
+            if grade_value is None or not max_grade:
+                continue
+            try:
+                percentage = (float(grade_value) / float(max_grade)) * 100
+            except Exception:
+                continue
+
+            percentages.append(percentage)
+            if percentage >= 50:
+                passed_courses += 1
+            else:
+                failed_courses += 1
+
+        gpa = round(sum(percentages) / len(percentages), 1) if percentages else 0.0
+        return {
+            "gpa": gpa,
+            "passed_courses": passed_courses,
+            "failed_courses": failed_courses,
+        }
+
+    def _get_course_metrics(self, course: Course) -> Dict[str, int]:
+        enrollments = [
+            enrollment
+            for enrollment in getattr(course, "enrollments", []) or []
+            if getattr(enrollment, "deleted_at", None) is None
+        ]
+        return {
+            "enrollment_count": len(enrollments),
+        }
+
+    def _get_resolved_filter_value(self, record: Any, report_type: str, field: str) -> Any:
+        normalized_field = self._normalize_report_field_key(report_type, field)
+        return self._resolve_field(record, normalized_field)
+
+    @staticmethod
+    def _coerce_comparable_value(value: Any) -> Any:
+        if value is None or value == "":
+            return ""
+        if isinstance(value, str):
+            stripped = value.strip()
+            try:
+                return float(stripped)
+            except ValueError:
+                return stripped.lower()
+        return value
+
+    def _matches_filter(self, record: Any, report_type: str, field: str, operator: str, expected: Any) -> bool:
+        actual = self._get_resolved_filter_value(record, report_type, field)
+        normalized_operator = str(operator or "equals").lower()
+
+        actual_cmp = self._coerce_comparable_value(actual)
+        expected_cmp = self._coerce_comparable_value(expected)
+
+        if normalized_operator in {"equals", "eq"}:
+            return actual_cmp == expected_cmp
+        if normalized_operator in {"not_equals", "ne"}:
+            return actual_cmp != expected_cmp
+        if normalized_operator == "contains":
+            return str(expected_cmp) in str(actual_cmp)
+        if normalized_operator == "not_contains":
+            return str(expected_cmp) not in str(actual_cmp)
+        if normalized_operator == "starts_with":
+            return str(actual_cmp).startswith(str(expected_cmp))
+        if normalized_operator == "ends_with":
+            return str(actual_cmp).endswith(str(expected_cmp))
+        if normalized_operator in {"greater_than", "gt"}:
+            return actual_cmp > expected_cmp
+        if normalized_operator in {"greater_than_or_equal", "gte"}:
+            return actual_cmp >= expected_cmp
+        if normalized_operator in {"less_than", "lt"}:
+            return actual_cmp < expected_cmp
+        if normalized_operator in {"less_than_or_equal", "lte"}:
+            return actual_cmp <= expected_cmp
+        if normalized_operator == "in":
+            return actual_cmp in (expected_cmp if isinstance(expected_cmp, (list, tuple, set)) else [expected_cmp])
+        return True
+
+    def _apply_post_filters(self, records: List[Any], filters: Any, report_type: str) -> List[Any]:
+        if not filters:
+            return records
+
+        normalized_filters: List[Tuple[str, str, Any]] = []
+        if isinstance(filters, list):
+            for filter_obj in filters:
+                if isinstance(filter_obj, dict) and filter_obj.get("field"):
+                    normalized_filters.append(
+                        (
+                            str(filter_obj.get("field")),
+                            str(filter_obj.get("operator", "equals")),
+                            filter_obj.get("value"),
+                        )
+                    )
+        elif isinstance(filters, dict):
+            for field_name, filter_spec in filters.items():
+                if isinstance(filter_spec, dict) and "value" in filter_spec:
+                    normalized_filters.append(
+                        (str(field_name), str(filter_spec.get("operator", "equals")), filter_spec.get("value"))
+                    )
+                else:
+                    normalized_filters.append((str(field_name), "equals", filter_spec))
+
+        filtered_records = records
+        for field, operator, value in normalized_filters:
+            filtered_records = [
+                record
+                for record in filtered_records
+                if self._matches_filter(record, report_type, field, operator, value)
+            ]
+        return filtered_records
+
+    def _apply_post_sort(self, records: List[Any], sort_by: Any, report_type: str) -> List[Any]:
+        if not sort_by:
+            return records
+
+        sort_rules: List[Tuple[str, str]] = []
+        if isinstance(sort_by, list):
+            for sort_obj in sort_by:
+                if isinstance(sort_obj, dict) and sort_obj.get("field"):
+                    sort_rules.append((str(sort_obj.get("field")), str(sort_obj.get("order", "asc")).lower()))
+        elif isinstance(sort_by, dict) and sort_by.get("field"):
+            sort_rules.append((str(sort_by.get("field")), str(sort_by.get("direction", "asc")).lower()))
+
+        sorted_records = list(records)
+        for field, direction in reversed(sort_rules):
+            sorted_records.sort(
+                key=lambda record: self._coerce_comparable_value(
+                    self._get_resolved_filter_value(record, report_type, field)
+                ),
+                reverse=direction == "desc",
+            )
+        return sorted_records
 
     def _extract_columns(self, fields: Any) -> List[Tuple[str, str]]:
         columns: Sequence[Any] = []
@@ -675,8 +926,11 @@ class CustomReportGenerationService:
 
     def _label_from_key(self, key: str, language: Optional[str] = None) -> str:
         normalized = self._normalize_field_key(key)
+        canonical_key = self._canonical_field_key(key)
         labels = self.FIELD_LABELS.get(normalized)
-        default_label = key.replace("_", " ").replace(".", " ").title()
+        if not labels and canonical_key != normalized:
+            labels = self.FIELD_LABELS.get(canonical_key)
+        default_label = canonical_key.replace("_", " ").replace(".", " ").title()
         if not labels:
             return default_label
 
@@ -694,17 +948,36 @@ class CustomReportGenerationService:
 
         english_default = self._label_from_key(key, "en")
         normalized_label = label.strip().lower()
+        normalized_key = self._normalize_field_key(key)
+        canonical_key = self._canonical_field_key(key)
+        normalized_candidates = {
+            normalized_key,
+            normalized_key.replace("_", " ").replace(".", " "),
+            canonical_key,
+            canonical_key.replace("_", " ").replace(".", " "),
+            english_default.strip().lower(),
+        }
+        if normalized_label in normalized_candidates:
+            return self._label_from_key(key, self._language)
         if normalized_label == english_default.strip().lower():
             return self._label_from_key(key, "el")
         return label
 
+    @staticmethod
+    def _format_temporal_value(value: Any) -> Any:
+        if isinstance(value, (datetime, date)):
+            return value.isoformat()
+        return value
+
     def _resolve_field(self, record: Any, field: str) -> Any:
         """Resolve a field value from a record, handling relationships and nested fields."""
+
+        canonical_field = self._canonical_field_key(field)
 
         if not self._allow_sensitive_fields and self._is_sensitive_field(field):
             return ""
 
-        if field == "percentage":
+        if canonical_field == "percentage":
             value = None
             if hasattr(record, "score") and hasattr(record, "max_score"):
                 score = getattr(record, "score", None)
@@ -733,7 +1006,7 @@ class CustomReportGenerationService:
             return f"{value:.2f}%"
 
         # Special handling for computed fields
-        if field == "student_name":
+        if canonical_field == "student_name":
             student = getattr(record, "student", None)
             if student:
                 return f"{student.first_name} {student.last_name}".strip()
@@ -741,7 +1014,29 @@ class CustomReportGenerationService:
                 return f"{record.first_name} {record.last_name}".strip()
             return ""
 
-        if field == "course_code":
+        if canonical_field == "student_id":
+            student = getattr(record, "student", None)
+            if student and hasattr(student, "student_id"):
+                external_student_id = getattr(student, "student_id", None)
+                if external_student_id is not None:
+                    return external_student_id
+            if hasattr(record, "student_id"):
+                return getattr(record, "student_id", "") or ""
+            return ""
+
+        if isinstance(record, Student) and canonical_field in self.COMPUTED_STUDENT_FIELDS:
+            attendance_metrics = self._get_student_attendance_metrics(record)
+            if canonical_field in attendance_metrics:
+                return attendance_metrics.get(canonical_field, "")
+
+            grade_metrics = self._get_student_grade_metrics(record)
+            return grade_metrics.get(canonical_field, "")
+
+        if isinstance(record, Course) and canonical_field == "enrollment_count":
+            course_metrics = self._get_course_metrics(record)
+            return course_metrics.get(canonical_field, "")
+
+        if canonical_field == "course_code":
             course = getattr(record, "course", None)
             if course and hasattr(course, "course_code"):
                 return course.course_code
@@ -749,7 +1044,7 @@ class CustomReportGenerationService:
                 return record.course_code
             return ""
 
-        if field == "course_name":
+        if canonical_field == "course_name":
             course = getattr(record, "course", None)
             if course and hasattr(course, "course_name"):
                 return course.course_name
@@ -757,47 +1052,53 @@ class CustomReportGenerationService:
                 return record.course_name
             return ""
 
+        if canonical_field == "date_submitted":
+            submitted_value = getattr(record, "date_submitted", None)
+            if submitted_value is None:
+                assigned_value = getattr(record, "date_assigned", None)
+                if isinstance(assigned_value, (datetime, date)):
+                    return self._format_temporal_value(assigned_value)
+                if assigned_value is not None:
+                    return assigned_value
+
         # Handle nested dot notation
-        if "." in field:
+        if "." in canonical_field:
             value = record
-            for part in field.split("."):
+            for part in canonical_field.split("."):
                 value = getattr(value, part, None)
                 if value is None:
                     return ""
             return value
 
         # Try to get directly from record
-        if hasattr(record, field):
-            value = getattr(record, field, None)
+        if hasattr(record, canonical_field):
+            value = getattr(record, canonical_field, None)
             if value is None:
                 return ""
-            if isinstance(value, (datetime, date)):
-                return value.isoformat()
+            value = self._format_temporal_value(value)
             # Translate value if applicable (category, status, assignment_name)
-            return self._translate_value(value, field)
+            return self._translate_value(value, canonical_field)
 
         # For Grade records, try to resolve from related models
         # e.g., first_name -> student.first_name, last_name -> student.last_name
         if hasattr(record, "student"):
             student = getattr(record, "student", None)
-            if student and hasattr(student, field):
-                value = getattr(student, field, None)
+            if student and hasattr(student, canonical_field):
+                value = getattr(student, canonical_field, None)
                 if value is None:
                     return ""
-                if isinstance(value, (datetime, date)):
-                    return value.isoformat()
-                return self._translate_value(value, field)
+                value = self._format_temporal_value(value)
+                return self._translate_value(value, canonical_field)
 
         # Try Course relationship
         if hasattr(record, "course"):
             course = getattr(record, "course", None)
-            if course and hasattr(course, field):
-                value = getattr(course, field, None)
+            if course and hasattr(course, canonical_field):
+                value = getattr(course, canonical_field, None)
                 if value is None:
                     return ""
-                if isinstance(value, (datetime, date)):
-                    return value.isoformat()
-                return self._translate_value(value, field)
+                value = self._format_temporal_value(value)
+                return self._translate_value(value, canonical_field)
 
         return ""
 
@@ -925,8 +1226,30 @@ class CustomReportGenerationService:
 
         table_data: List[List[Flowable]] = [safe_headers] + safe_rows
         col_count = max(len(headers), 1)
-        col_width = doc.width / col_count
-        col_widths = [col_width for _ in range(col_count)]
+
+        def _estimate_column_width(index: int) -> float:
+            header_length = len(str(headers[index]))
+            row_lengths = [len(str(self._stringify_value(row[index]))) for row in rows if index < len(row)]
+            max_length = max([header_length, *row_lengths, 6])
+            font_factor = body_font_size * 0.62
+            return max(72.0, max_length * font_factor + 12)
+
+        estimated_widths = [_estimate_column_width(index) for index in range(col_count)]
+        total_estimated_width = sum(estimated_widths) or doc.width
+        scale = min(1.0, doc.width / total_estimated_width)
+
+        min_col_width = 20.0
+        col_widths = [max(min_col_width, width * scale) for width in estimated_widths]
+
+        total_width = sum(col_widths)
+        if total_width > doc.width and total_width > 0:
+            rescale = doc.width / total_width
+            col_widths = [max(min_col_width, width * rescale) for width in col_widths]
+            total_width = sum(col_widths)
+
+        if total_width < doc.width:
+            extra = (doc.width - total_width) / col_count
+            col_widths = [width + extra for width in col_widths]
 
         table = Table(table_data, repeatRows=1, colWidths=col_widths)
         table.setStyle(
@@ -941,6 +1264,8 @@ class CustomReportGenerationService:
                     ("FONTNAME", (0, 1), (-1, -1), base_font),
                     ("FONTSIZE", (0, 0), (-1, 0), body_font_size),
                     ("FONTSIZE", (0, 1), (-1, -1), body_font_size),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
                     ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
                     ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
                     ("TOPPADDING", (0, 1), (-1, -1), 6),

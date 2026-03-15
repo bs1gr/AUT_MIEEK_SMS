@@ -29,6 +29,7 @@ export const ReportList: React.FC<ReportListProps> = ({
   const [selectedReports, setSelectedReports] = useState<number[]>([]);
   const [expandedMenu, setExpandedMenu] = useState<number | null>(null);
   const [expandedReports, setExpandedReports] = useState<Set<number>>(new Set());
+  const [latestGeneratedByReport, setLatestGeneratedByReport] = useState<Record<number, number>>({});
 
   const showToast = (message: string, variant: 'success' | 'error' = 'success') => {
     try {
@@ -102,11 +103,45 @@ export const ReportList: React.FC<ReportListProps> = ({
   };
 
   const handleGenerateReport = (reportId: number) => {
-    generateMutation.mutate({ reportId });
+    generateMutation.mutate(
+      { reportId },
+      {
+        onSuccess: (data) => {
+          if (data?.generated_report_id) {
+            setLatestGeneratedByReport((prev) => ({
+              ...prev,
+              [reportId]: data.generated_report_id,
+            }));
+          }
+          setExpandedReports((prev) => {
+            const next = new Set(prev);
+            next.add(reportId);
+            return next;
+          });
+        },
+      }
+    );
   };
 
   const handleGenerateReportNoEmail = (reportId: number) => {
-    generateMutation.mutate({ reportId, options: { email_enabled: false } });
+    generateMutation.mutate(
+      { reportId, options: { email_enabled: false } },
+      {
+        onSuccess: (data) => {
+          if (data?.generated_report_id) {
+            setLatestGeneratedByReport((prev) => ({
+              ...prev,
+              [reportId]: data.generated_report_id,
+            }));
+          }
+          setExpandedReports((prev) => {
+            const next = new Set(prev);
+            next.add(reportId);
+            return next;
+          });
+        },
+      }
+    );
   };
 
   const handleGenerateReportWithEmail = (report: CustomReport) => {
@@ -133,13 +168,30 @@ export const ReportList: React.FC<ReportListProps> = ({
       return;
     }
 
-    generateMutation.mutate({
-      reportId: report.id,
-      options: {
-        email_recipients: recipients,
-        email_enabled: true,
+    generateMutation.mutate(
+      {
+        reportId: report.id,
+        options: {
+          email_recipients: recipients,
+          email_enabled: true,
+        },
       },
-    });
+      {
+        onSuccess: (data) => {
+          if (data?.generated_report_id) {
+            setLatestGeneratedByReport((prev) => ({
+              ...prev,
+              [report.id]: data.generated_report_id,
+            }));
+          }
+          setExpandedReports((prev) => {
+            const next = new Set(prev);
+            next.add(report.id);
+            return next;
+          });
+        },
+      }
+    );
   };
 
   const handleBulkExportSelected = () => {
@@ -407,7 +459,11 @@ export const ReportList: React.FC<ReportListProps> = ({
               </tr>
               {/* Generated Reports Row */}
               {expandedReports.has(report.id) && (
-                <GeneratedReportsRow reportId={report.id} downloadMutation={downloadMutation} />
+                <GeneratedReportsRow
+                  reportId={report.id}
+                  downloadMutation={downloadMutation}
+                  latestGeneratedId={latestGeneratedByReport[report.id]}
+                />
               )}
             </React.Fragment>
             ))}
@@ -422,13 +478,28 @@ export const ReportList: React.FC<ReportListProps> = ({
 interface GeneratedReportsRowProps {
   reportId: number;
   downloadMutation: ReturnType<typeof useDownloadReport>;
+  latestGeneratedId?: number;
 }
 
-const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, downloadMutation }) => {
+const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({
+  reportId,
+  downloadMutation,
+  latestGeneratedId,
+}) => {
   const { data: generatedReports, isLoading } = useGeneratedReports(reportId);
   const deleteMutation = useDeleteGeneratedReport();
   const { t } = useTranslation();
   const { formatDateTime } = useDateTimeFormatter();
+
+  const sortedGeneratedReports = generatedReports
+    ? [...generatedReports].sort((a, b) => {
+        if (latestGeneratedId) {
+          if (a.id === latestGeneratedId && b.id !== latestGeneratedId) return -1;
+          if (b.id === latestGeneratedId && a.id !== latestGeneratedId) return 1;
+        }
+        return b.id - a.id;
+      })
+    : [];
 
   return (
     <tr className="bg-blue-50">
@@ -439,10 +510,11 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
           {!isLoading && (!generatedReports || generatedReports.length === 0) && (
             <p className="text-xs text-gray-500">{t('noGeneratedReports', { ns: 'customReports' })}</p>
           )}
-          {!isLoading && generatedReports && generatedReports.length > 0 && (
+          {!isLoading && sortedGeneratedReports.length > 0 && (
             <div className="space-y-2">
-              {generatedReports.map((generated: GeneratedReport) => {
+              {sortedGeneratedReports.map((generated: GeneratedReport) => {
                 const formattedGeneratedAt = formatDateTime(generated.generated_at, { includeSeconds: true });
+                const isLatestRequested = latestGeneratedId === generated.id;
 
                 return (
                   <div key={generated.id} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
@@ -451,6 +523,9 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({ reportId, dow
                         {formattedGeneratedAt
                           ? `${t('generatedLabel', { ns: 'customReports' })} ${formattedGeneratedAt}`
                           : t('generatedNow', { ns: 'customReports' })}
+                        {isLatestRequested
+                          ? ` • ${t('latestRequest', { ns: 'customReports' })}`
+                          : ''}
                       </p>
                       <p className="text-gray-600">
                         {t('status', { ns: 'customReports' })}: <span className="font-semibold">{generated.status?.toUpperCase() || 'UNKNOWN'}</span>

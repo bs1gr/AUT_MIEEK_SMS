@@ -15,18 +15,22 @@ interface SortBuilderProps {
   fields: string[];
   sorting: SortRule[];
   onChange: (sorting: SortRule[]) => void;
+  getFieldLabel?: (field: string) => string;
 }
 
 export const SortBuilder: React.FC<SortBuilderProps> = ({
   fields,
   sorting,
   onChange,
+  getFieldLabel,
 }) => {
   const { t } = useTranslation();
   const [newSort, setNewSort] = useState<SortRule>({
     field: fields[0] || '',
     order: 'asc',
   });
+
+  const resolveFieldLabel = (field: string) => (getFieldLabel ? getFieldLabel(field) : field);
 
   const handleAddSort = () => {
     if (newSort.field && !sorting.some((s) => s.field === newSort.field)) {
@@ -86,7 +90,7 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
                   .filter((f) => !sorting.some((s, i) => s.field === f && i !== index))
                   .map((field) => (
                     <option key={field} value={field}>
-                      {field}
+                      {resolveFieldLabel(field)}
                     </option>
                   ))}
               </select>
@@ -146,7 +150,7 @@ export const SortBuilder: React.FC<SortBuilderProps> = ({
                 .filter((f) => !sorting.some((s) => s.field === f))
                 .map((field) => (
                   <option key={field} value={field}>
-                    {field}
+                    {resolveFieldLabel(field)}
                   </option>
                 ))}
             </select>

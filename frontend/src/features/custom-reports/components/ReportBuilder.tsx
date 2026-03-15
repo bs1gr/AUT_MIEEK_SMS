@@ -161,6 +161,29 @@ const normalizeTemplateSorting = (value: unknown): SortingRule[] => {
   return [];
 };
 
+const LEGACY_FIELD_ALIASES: Record<string, string> = {
+  grade_value: 'grade',
+  exam_date: 'date_submitted',
+};
+
+const STUDENT_IDENTIFIER_REPORT_TYPES = new Set(['student', 'grade', 'attendance', 'daily_performance']);
+
+const normalizeFieldKey = (field: string, entityType?: string): string => {
+  const aliasedField = LEGACY_FIELD_ALIASES[field] || field;
+  if (aliasedField === 'id' && entityType && STUDENT_IDENTIFIER_REPORT_TYPES.has(entityType)) {
+    return 'student_id';
+  }
+  return aliasedField;
+};
+
+const normalizeFieldList = (fields: string[], entityType?: string): string[] => {
+  const normalized = fields
+    .map((field) => normalizeFieldKey(field, entityType))
+    .filter(Boolean);
+
+  return Array.from(new Set(normalized));
+};
+
 const areConfigsEqual = (left: ReportConfig, right: ReportConfig): boolean =>
   JSON.stringify(left) === JSON.stringify(right);
 
@@ -209,12 +232,14 @@ const OUTPUT_FORMATS = [
 
 const ENTITY_FIELDS: Record<string, string[]> = {
   student: [
-    'id',
     'student_id',
     'first_name',
     'last_name',
     'email',
     'enrollment_date',
+    'attendance_rate',
+    'total_classes',
+    'attended',
     'is_active',
     'father_name',
     'mobile_phone',
@@ -238,7 +263,6 @@ const ENTITY_FIELDS: Record<string, string[]> = {
     'teaching_schedule',
   ],
   grade: [
-    'id',
     'student_id',
     'course_id',
     'assignment_name',
@@ -254,7 +278,6 @@ const ENTITY_FIELDS: Record<string, string[]> = {
     'course_name',
   ],
   attendance: [
-    'id',
     'student_id',
     'course_id',
     'date',
@@ -266,7 +289,6 @@ const ENTITY_FIELDS: Record<string, string[]> = {
     'course_name',
   ],
   daily_performance: [
-    'id',
     'student_id',
     'course_id',
     'date',
@@ -341,9 +363,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         description: baseDescription,
         entity_type: (templateMeta.report_type || templateMeta.entity_type || 'student') as string,
         output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as 'pdf' | 'excel' | 'csv',
-        selected_fields: Array.isArray(templateMeta.fields)
-          ? templateMeta.fields
-          : (templateMeta.selected_fields || []),
+        selected_fields: normalizeFieldList(
+          Array.isArray(templateMeta.fields)
+            ? templateMeta.fields
+            : (templateMeta.selected_fields || []),
+          (templateMeta.report_type || templateMeta.entity_type || 'student') as string
+        ),
         filters: mergeFilters(normalizeTemplateFilters(templateMeta.filters), normalizedPrefillFilters),
         sorting_rules: normalizeTemplateSorting(templateMeta.sort_by ?? templateMeta.sorting_rules),
         template_name: templateMeta.template_name || templateMeta.name,
@@ -422,7 +447,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       description: (reportRecord.description as string) || '',
       entity_type: (reportRecord.report_type as string) || 'student',
       output_format: (reportRecord.export_format as 'pdf' | 'excel' | 'csv') || 'pdf',
-      selected_fields: fields,
+      selected_fields: normalizeFieldList(fields, (reportRecord.report_type as string) || 'student'),
       filters,
       sorting_rules: sortingRules,
       email_enabled: Boolean(reportRecord.email_enabled),
@@ -527,9 +552,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         description: baseDescription,
         entity_type: (templateMeta.report_type || templateMeta.entity_type || 'student') as string,
         output_format: (templateMeta.default_export_format || templateMeta.output_format || 'pdf') as 'pdf' | 'excel' | 'csv',
-        selected_fields: Array.isArray(templateMeta.fields)
-          ? templateMeta.fields
-          : (templateMeta.selected_fields || []),
+        selected_fields: normalizeFieldList(
+          Array.isArray(templateMeta.fields)
+            ? templateMeta.fields
+            : (templateMeta.selected_fields || []),
+          (templateMeta.report_type || templateMeta.entity_type || 'student') as string
+        ),
         filters: mergeFilters(normalizeTemplateFilters(templateMeta.filters), normalizedPrefillFilters),
         sorting_rules: normalizeTemplateSorting(templateMeta.sort_by ?? templateMeta.sorting_rules),
         template_name: templateMeta.template_name || templateMeta.name,
@@ -686,8 +714,11 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
 
   const availableFields = ENTITY_FIELDS[config.entity_type] || [];
   const getFieldLabel = useCallback(
-    (field: string) => t(`field_${field}`, { ns: 'customReports', defaultValue: field }),
-    [t]
+    (field: string) => {
+      const normalizedField = normalizeFieldKey(field, config.entity_type);
+      return t(`field_${normalizedField}`, { ns: 'customReports', defaultValue: normalizedField });
+    },
+    [config.entity_type, t]
   );
 
   const handleConfigChange = useCallback(
@@ -705,7 +736,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
   );
 
   const handleFieldsChange = useCallback((fields: string[]) => {
-    setConfig((prev) => ({ ...prev, selected_fields: fields }));
+    setConfig((prev) => ({ ...prev, selected_fields: normalizeFieldList(fields, prev.entity_type) }));
   }, []);
 
   const handleFiltersChange = useCallback((filters: FilterRule[]) => {
@@ -776,7 +807,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         .map((recipient) => recipient.trim())
         .filter((recipient) => recipient.length > 0);
 
-      const columns = config.selected_fields.map((field) => ({
+      const normalizedSelectedFields = normalizeFieldList(config.selected_fields, config.entity_type);
+
+      const columns = normalizedSelectedFields.map((field) => ({
         key: field,
         label: getFieldLabel(field),
       }));
@@ -789,7 +822,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         template_id: undefined,
         fields: {
           columns,
-          fields: config.selected_fields,
+          fields: normalizedSelectedFields,
         },
         filters: filtersDict || undefined,
         aggregations: undefined,
@@ -1037,6 +1070,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 fields={availableFields}
                 sorting={config.sorting_rules}
                 onChange={handleSortingChange}
+                getFieldLabel={getFieldLabel}
               />
             </div>
           </div>
