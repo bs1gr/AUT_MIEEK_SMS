@@ -193,3 +193,44 @@ def test_custom_report_flow(client: TestClient, db):
     deleted_data = deleted.json()
     assert deleted_data["success"] is True
     assert "Report" in deleted_data["data"]["message"]
+
+
+def test_generated_reports_endpoint_filters_superseded_by_default(client: TestClient, db):
+    token = _create_admin_token(client, db)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    create = client.post(
+        "/api/v1/custom-reports", json=_report_payload(name="Superseded Router Report"), headers=headers
+    )
+    assert create.status_code == 200
+    report_id = create.json()["data"]["id"]
+
+    generated = client.post(
+        f"/api/v1/custom-reports/{report_id}/generate",
+        json={"export_format": "pdf", "include_charts": False},
+        headers=headers,
+    )
+    assert generated.status_code == 200
+    generated_id = generated.json()["data"]["generated_report_id"]
+
+    patched = client.patch(
+        f"/api/v1/custom-reports/{report_id}/generated/{generated_id}",
+        json={"status": "superseded"},
+        headers=headers,
+    )
+    assert patched.status_code == 200
+
+    default_history = client.get(f"/api/v1/custom-reports/{report_id}/generated", headers=headers)
+    assert default_history.status_code == 200
+    default_data = default_history.json()
+    assert default_data["success"] is True
+    assert all(item["status"] != "superseded" for item in default_data["data"])
+
+    full_history = client.get(
+        f"/api/v1/custom-reports/{report_id}/generated?include_superseded=true",
+        headers=headers,
+    )
+    assert full_history.status_code == 200
+    full_data = full_history.json()
+    assert full_data["success"] is True
+    assert any(item["status"] == "superseded" for item in full_data["data"])

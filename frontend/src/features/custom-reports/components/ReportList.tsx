@@ -486,7 +486,10 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({
   downloadMutation,
   latestGeneratedId,
 }) => {
-  const { data: generatedReports, isLoading } = useGeneratedReports(reportId);
+  const [includeSuperseded, setIncludeSuperseded] = useState(false);
+  const { data: generatedReports, isLoading } = useGeneratedReports(reportId, {
+    includeSuperseded,
+  });
   const deleteMutation = useDeleteGeneratedReport();
   const { t } = useTranslation();
   const { formatDateTime } = useDateTimeFormatter();
@@ -505,7 +508,18 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({
     <tr className="bg-blue-50">
       <td colSpan={6} className="px-6 py-4">
         <div className="space-y-3">
-          <h4 className="font-semibold text-sm text-gray-700">{t('generatedReportsTitle', { ns: 'customReports' })}</h4>
+          <div className="flex items-center justify-between gap-4">
+            <h4 className="font-semibold text-sm text-gray-700">{t('generatedReportsTitle', { ns: 'customReports' })}</h4>
+            <label className="flex items-center gap-2 text-xs text-gray-700 select-none">
+              <input
+                type="checkbox"
+                checked={includeSuperseded}
+                onChange={(e) => setIncludeSuperseded(e.target.checked)}
+                className="rounded"
+              />
+              {t('showSupersededHistory', { ns: 'customReports' })}
+            </label>
+          </div>
           {isLoading && <p className="text-xs text-gray-500">{t('loading', { ns: 'customReports' })}</p>}
           {!isLoading && (!generatedReports || generatedReports.length === 0) && (
             <p className="text-xs text-gray-500">{t('noGeneratedReports', { ns: 'customReports' })}</p>

@@ -407,6 +407,7 @@ class CustomReportGenerationService:
             generated.error_message = None  # type: ignore[assignment]
 
             report.last_run_at = datetime.now(timezone.utc)  # type: ignore[assignment]
+            self._supersede_prior_generated_reports(report_id, user_id, generated_report_id)
             self.db.commit()
 
             self._send_report_email(
@@ -510,6 +511,23 @@ class CustomReportGenerationService:
         generated.status = "failed"  # type: ignore[assignment]
         generated.error_message = message  # type: ignore[assignment]
         self.db.commit()
+
+    def _supersede_prior_generated_reports(self, report_id: int, user_id: int, generated_report_id: int) -> None:
+        superseded_at = datetime.now(timezone.utc).isoformat()
+        prior_completed_reports = (
+            self.db.query(GeneratedReport)
+            .filter(
+                GeneratedReport.report_id == report_id,
+                GeneratedReport.user_id == user_id,
+                GeneratedReport.id != generated_report_id,
+                GeneratedReport.status == "completed",
+            )
+            .all()
+        )
+
+        for previous_report in prior_completed_reports:
+            previous_report.status = "superseded"  # type: ignore[assignment]
+            previous_report.error_message = f"Superseded by generated report {generated_report_id} at {superseded_at}"  # type: ignore[assignment]
 
     def _build_report_rows(self, report: Report) -> Tuple[List[List[Any]], List[str]]:
         report_type = str(report.report_type or "").lower()

@@ -231,14 +231,21 @@ class CustomReportService:
         self.db.refresh(generated)
         return generated
 
-    def list_generated_reports(self, report_id: int, user_id: int, limit: int = 100) -> List[GeneratedReport]:
-        return (
-            self.db.query(GeneratedReport)
-            .filter(GeneratedReport.report_id == report_id, GeneratedReport.user_id == user_id)
-            .order_by(desc(GeneratedReport.generated_at))
-            .limit(limit)
-            .all()
+    def list_generated_reports(
+        self,
+        report_id: int,
+        user_id: int,
+        limit: int = 100,
+        include_superseded: bool = False,
+    ) -> List[GeneratedReport]:
+        query = self.db.query(GeneratedReport).filter(
+            GeneratedReport.report_id == report_id,
+            GeneratedReport.user_id == user_id,
         )
+        if not include_superseded:
+            query = query.filter(GeneratedReport.status != "superseded")
+
+        return query.order_by(desc(GeneratedReport.generated_at)).limit(limit).all()
 
     def get_generated_report(self, report_id: int, report_instance_id: int, user_id: int) -> Optional[GeneratedReport]:
         return (

@@ -336,6 +336,7 @@ export default {
   generatedLabel: 'Δημιουργήθηκε',
   generatedNow: 'Δημιουργήθηκε μόλις τώρα',
   latestRequest: 'τελευταίο αίτημα',
+  showSupersededHistory: 'Προβολή ιστορικού αντικατασταθέντων',
   download: 'Λήψη',
   downloadTooltip: 'Λήψη αρχείου αναφοράς',
   deleteGeneratedTooltip: 'Διαγραφή δημιουργημένης αναφοράς',

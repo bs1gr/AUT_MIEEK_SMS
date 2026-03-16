@@ -546,6 +546,10 @@ async def list_generated_reports(
     request: Request,
     report_id: int,
     limit: int = Query(100, ge=1, le=500, description="Max generated reports to return"),
+    include_superseded: bool = Query(
+        False,
+        description="Include superseded generated artifacts in response history",
+    ),
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
 ) -> APIResponse[List[Dict[str, Any]]]:
@@ -559,7 +563,12 @@ async def list_generated_reports(
                 request_id=request.state.request_id,
             )
 
-        reports = service.list_generated_reports(report_id, current_user.id, limit=limit)
+        reports = service.list_generated_reports(
+            report_id,
+            current_user.id,
+            limit=limit,
+            include_superseded=include_superseded,
+        )
         result = [GeneratedReportResponse.model_validate(r).model_dump() for r in reports]
         return success_response(result, request_id=request.state.request_id)
     except Exception as e:

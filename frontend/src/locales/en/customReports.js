@@ -337,6 +337,7 @@ export default {
   generatedLabel: 'Generated',
   generatedNow: 'Generated just now',
   latestRequest: 'latest request',
+  showSupersededHistory: 'Show superseded history',
   download: 'Download',
   downloadTooltip: 'Download generated report file',
   deleteGeneratedTooltip: 'Delete generated report',

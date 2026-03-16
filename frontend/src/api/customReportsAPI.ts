@@ -303,9 +303,17 @@ export const customReportsAPI = {
   /**
    * Get generated reports for a report
    */
-  getGeneratedReports: async (id: number) => {
+  getGeneratedReports: async (
+    id: number,
+    options: { include_superseded?: boolean; limit?: number } = {}
+  ) => {
     try {
-      const response = await apiClient.get(`/custom-reports/${id}/generated`);
+      const response = await apiClient.get(`/custom-reports/${id}/generated`, {
+        params: {
+          include_superseded: options.include_superseded ?? false,
+          ...(typeof options.limit === 'number' ? { limit: options.limit } : {}),
+        },
+      });
       return extractAPIResponseData(response.data) as GeneratedReport[];
     } catch (error) {
       console.error(`[customReportsAPI] Error fetching generated reports for ${id}:`, error);

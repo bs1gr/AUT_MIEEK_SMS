@@ -81,6 +81,51 @@ def test_generate_report_csv_creates_file(db, tmp_path: Path):
     assert "Jane" in content
 
 
+def test_successful_generation_supersedes_prior_completed_artifacts(db, tmp_path: Path):
+    user_id = 1
+    _create_student(db)
+    report = _create_report(db, user_id)
+    report_id = cast(int, report.id)
+
+    first_generated = GeneratedReport(  # type: ignore[call-arg]
+        report_id=report_id,
+        user_id=user_id,
+        file_name="report_first.csv",
+        export_format="csv",
+        status="pending",
+    )
+    db.add(first_generated)
+    db.commit()
+    db.refresh(first_generated)
+
+    second_generated = GeneratedReport(  # type: ignore[call-arg]
+        report_id=report_id,
+        user_id=user_id,
+        file_name="report_second.csv",
+        export_format="csv",
+        status="pending",
+    )
+    db.add(second_generated)
+    db.commit()
+    db.refresh(second_generated)
+
+    service = CustomReportGenerationService(db)
+    service.reports_dir = str(tmp_path)
+
+    service.generate_report(report_id, cast(int, first_generated.id), user_id, "csv", include_charts=False)
+    db.refresh(first_generated)
+    assert first_generated.status == "completed"
+
+    service.generate_report(report_id, cast(int, second_generated.id), user_id, "csv", include_charts=False)
+    db.refresh(first_generated)
+    db.refresh(second_generated)
+
+    assert second_generated.status == "completed"
+    assert first_generated.status == "superseded"
+    assert first_generated.error_message is not None
+    assert str(cast(int, second_generated.id)) in first_generated.error_message
+
+
 def test_generate_grade_report_supports_legacy_field_aliases(db, tmp_path: Path):
     user_id = 1
     student = _create_student(db)

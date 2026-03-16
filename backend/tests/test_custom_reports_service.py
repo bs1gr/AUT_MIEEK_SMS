@@ -179,6 +179,60 @@ def test_generated_report_and_stats(db):
     assert stats_after["generated_reports_last_30_days"] == 1
 
 
+def test_list_generated_reports_excludes_superseded_by_default(db):
+    user = _create_user(db, email="superseded-default@example.com")
+    service = CustomReportService(db)
+    report = service.create_report(user.id, _report_payload(name="Superseded Default Filter"))
+
+    completed = GeneratedReport(
+        report_id=report.id,
+        user_id=user.id,
+        file_name="completed.pdf",
+        export_format="pdf",
+        status="completed",
+    )
+    superseded = GeneratedReport(
+        report_id=report.id,
+        user_id=user.id,
+        file_name="superseded.pdf",
+        export_format="pdf",
+        status="superseded",
+    )
+    db.add_all([completed, superseded])
+    db.commit()
+
+    listed = service.list_generated_reports(report.id, user.id)
+    assert len(listed) == 1
+    assert listed[0].status == "completed"
+
+
+def test_list_generated_reports_can_include_superseded(db):
+    user = _create_user(db, email="superseded-include@example.com")
+    service = CustomReportService(db)
+    report = service.create_report(user.id, _report_payload(name="Superseded Include Filter"))
+
+    completed = GeneratedReport(
+        report_id=report.id,
+        user_id=user.id,
+        file_name="completed.pdf",
+        export_format="pdf",
+        status="completed",
+    )
+    superseded = GeneratedReport(
+        report_id=report.id,
+        user_id=user.id,
+        file_name="superseded.pdf",
+        export_format="pdf",
+        status="superseded",
+    )
+    db.add_all([completed, superseded])
+    db.commit()
+
+    listed = service.list_generated_reports(report.id, user.id, include_superseded=True)
+    statuses = {item.status for item in listed}
+    assert statuses == {"completed", "superseded"}
+
+
 def test_import_default_templates_uses_current_grade_field_names(db):
     service = CustomReportService(db)
 

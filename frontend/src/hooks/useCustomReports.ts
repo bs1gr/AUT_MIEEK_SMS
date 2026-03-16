@@ -39,7 +39,9 @@ export const customReportKeys = {
   template: (id: number) => [...customReportKeys.templates(), id] as const,
   reports: () => [...customReportKeys.all, 'reports'] as const,
   report: (id: number) => [...customReportKeys.reports(), id] as const,
-  generated: (reportId: number) => [...customReportKeys.report(reportId), 'generated'] as const,
+  generatedBase: (reportId: number) => [...customReportKeys.report(reportId), 'generated'] as const,
+  generated: (reportId: number, includeSuperseded: boolean = false) =>
+    [...customReportKeys.generatedBase(reportId), { includeSuperseded }] as const,
   statistics: () => [...customReportKeys.all, 'statistics'] as const,
 };
 
@@ -254,7 +256,7 @@ export function useGenerateReport() {
       });
     },
     onSuccess: (data: GenerateReportResponse, variables) => {
-      queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
+      queryClient.invalidateQueries({ queryKey: customReportKeys.generatedBase(variables.reportId) });
       // Show success feedback
       if (typeof window !== 'undefined') {
 
@@ -292,10 +294,14 @@ export function useGenerateReport() {
 /**
  * Fetch generated reports for a report
  */
-export function useGeneratedReports(reportId: number) {
+export function useGeneratedReports(reportId: number, options?: { includeSuperseded?: boolean }) {
+  const includeSuperseded = options?.includeSuperseded ?? false;
   return useQuery({
-    queryKey: customReportKeys.generated(reportId),
-    queryFn: () => customReportsAPI.getGeneratedReports(reportId),
+    queryKey: customReportKeys.generated(reportId, includeSuperseded),
+    queryFn: () =>
+      customReportsAPI.getGeneratedReports(reportId, {
+        include_superseded: includeSuperseded,
+      }),
     enabled: !!reportId,
     refetchInterval: 5000, // Poll every 5s for status updates
   });
@@ -336,7 +342,7 @@ export function useDeleteGeneratedReport() {
       customReportsAPI.deleteGenerated(reportId, generatedId),
     onSuccess: (_data, variables) => {
       void _data;
-      queryClient.invalidateQueries({ queryKey: customReportKeys.generated(variables.reportId) });
+      queryClient.invalidateQueries({ queryKey: customReportKeys.generatedBase(variables.reportId) });
       // Show success feedback
       if (typeof window !== 'undefined') {
         try {
