@@ -163,67 +163,19 @@ def _generate_recommendations(report_data: dict) -> List[str]:
     return recommendations
 
 
-@router.post("/student-performance", response_model=StudentPerformanceReport)
-@limiter.limit(RATE_LIMIT_WRITE)
-@require_permission("reports:generate")
-async def generate_student_performance_report(
-    request: Request,
+def _build_student_report(
+    student: Student,
     report_request: PerformanceReportRequest,
-    db: Session = Depends(get_session),
-):
+    db: Session,
+    start_date: date,
+    end_date: date,
+) -> StudentPerformanceReport:
+    """Build student performance report data.
+
+    Shared by both the JSON endpoint and the download endpoint
+    to ensure consistent data building logic.
     """
-    Generate comprehensive performance report for a student.
-
-    Includes:
-    - Overall attendance and grade summaries
-    - Course-by-course breakdown
-    - Performance trends
-    - Highlights and recommendations
-
-    **Caching**: Reports are cached for 15 minutes
-    **Rate limit**: 10 requests per minute
-    """
-    # Build cache key from request parameters
-    cache_key_parts = [
-        "student_report",
-        str(report_request.student_id),
-        report_request.period.value,
-        str(report_request.start_date) if report_request.start_date else "none",
-        str(report_request.end_date) if report_request.end_date else "none",
-        str(report_request.include_attendance),
-        str(report_request.include_grades),
-        str(report_request.include_daily_performance),
-        str(report_request.include_highlights),
-        ":".join(str(c) for c in (report_request.course_ids or [])),
-    ]
-    report_cache_key = cache_key(*cache_key_parts)
-
-    # Try to get from cache
-    cached_report = redis_cache.get(report_cache_key)
-    if cached_report:
-        logger.info(f"Cache HIT: Returning cached report for student {report_request.student_id}")
-        return StudentPerformanceReport(**cached_report)
-
-    logger.info(f"Cache MISS: Generating new report for student {report_request.student_id}")
-
-    # Validate student exists
-    student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
-
-    if not student:
-        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.STUDENT_NOT_FOUND, lang="en"))
-
-    # Calculate date range
-    start_date, end_date = _calculate_period_dates(
-        report_request.period, report_request.start_date, report_request.end_date
-    )
-
-    logger.info(
-        f"Generating performance report for student {student.id} "
-        f"from {start_date} to {end_date} (period={report_request.period.value})"
-    )
-
-    # Initialize report data
-    report_data = {
+    report_data: dict = {
         "student_id": student.id,
         "student_name": f"{student.first_name} {student.last_name}",
         "student_email": student.email,
@@ -266,9 +218,8 @@ async def generate_student_performance_report(
                 unexcused_absences=max(0, unexcused),
             )
 
-    # Get grades summary
+    # Get grades summary using date_submitted with fallback to date_assigned
     if report_request.include_grades:
-        # Use date_submitted or fallback to date_assigned for filtering
         grade_records = (
             db.query(Grade)
             .filter(
@@ -312,7 +263,7 @@ async def generate_student_performance_report(
     courses = courses_query.all()
 
     for course in courses:
-        course_summary = {
+        course_summary: dict = {
             "course_id": course.id,
             "course_code": course.course_code,
             "course_name": course.course_name,
@@ -407,7 +358,7 @@ async def generate_student_performance_report(
             )
 
             # Group by category
-            category_data = {}
+            category_data: dict = {}
             for perf in performance_records:
                 if perf.category not in category_data:
                     category_data[perf.category] = []
@@ -469,8 +420,70 @@ async def generate_student_performance_report(
     # Generate recommendations
     report_data["recommendations"] = _generate_recommendations(report_data)
 
-    # Create response model
-    report_response = StudentPerformanceReport(**report_data)
+    return StudentPerformanceReport(**report_data)
+
+
+@router.post("/student-performance", response_model=StudentPerformanceReport)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("reports:generate")
+async def generate_student_performance_report(
+    request: Request,
+    report_request: PerformanceReportRequest,
+    db: Session = Depends(get_session),
+):
+    """
+    Generate comprehensive performance report for a student.
+
+    Includes:
+    - Overall attendance and grade summaries
+    - Course-by-course breakdown
+    - Performance trends
+    - Highlights and recommendations
+
+    **Caching**: Reports are cached for 15 minutes
+    **Rate limit**: 10 requests per minute
+    """
+    # Build cache key from request parameters
+    cache_key_parts = [
+        "student_report",
+        str(report_request.student_id),
+        report_request.period.value,
+        str(report_request.start_date) if report_request.start_date else "none",
+        str(report_request.end_date) if report_request.end_date else "none",
+        str(report_request.include_attendance),
+        str(report_request.include_grades),
+        str(report_request.include_daily_performance),
+        str(report_request.include_highlights),
+        ":".join(str(c) for c in (report_request.course_ids or [])),
+    ]
+    report_cache_key = cache_key(*cache_key_parts)
+
+    # Try to get from cache
+    cached_report = redis_cache.get(report_cache_key)
+    if cached_report:
+        logger.info(f"Cache HIT: Returning cached report for student {report_request.student_id}")
+        return StudentPerformanceReport(**cached_report)
+
+    logger.info(f"Cache MISS: Generating new report for student {report_request.student_id}")
+
+    # Validate student exists
+    student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
+
+    if not student:
+        raise HTTPException(status_code=404, detail=get_error_message(ErrorCode.STUDENT_NOT_FOUND, lang="en"))
+
+    # Calculate date range
+    start_date, end_date = _calculate_period_dates(
+        report_request.period, report_request.start_date, report_request.end_date
+    )
+
+    logger.info(
+        f"Generating performance report for student {student.id} "
+        f"from {start_date} to {end_date} (period={report_request.period.value})"
+    )
+
+    # Build report using shared helper
+    report_response = _build_student_report(student, report_request, db, start_date, end_date)
 
     # Cache the result (serialize to dict for storage)
     redis_cache.set(report_cache_key, report_response.model_dump(), CacheConfig.STUDENT_REPORT)
@@ -511,7 +524,6 @@ async def download_student_performance_report(
 
     **Rate limit**: 10 requests per minute
     """
-    # First generate the report data using the existing endpoint logic
     # Validate student exists
     student = db.query(Student).filter(Student.id == report_request.student_id, Student.deleted_at.is_(None)).first()
 
@@ -528,179 +540,9 @@ async def download_student_performance_report(
         f"from {start_date} to {end_date} in format {report_request.format.value}"
     )
 
-    # Generate report data (reuse logic from main endpoint)
-    report_data = {
-        "student_id": student.id,
-        "student_name": f"{student.first_name} {student.last_name}",
-        "student_email": student.email,
-        "report_period": report_request.period.value,
-        "start_date": start_date.isoformat(),
-        "end_date": end_date.isoformat(),
-        "overall_attendance": None,
-        "overall_grades": None,
-        "courses": [],
-        "highlights": [],
-        "recommendations": [],
-    }
-
-    # Get course filter
-    course_ids = report_request.course_ids if report_request.course_ids else None
-
-    # Build overall attendance summary
-    if report_request.include_attendance:
-        att_query = db.query(Attendance).filter(
-            Attendance.student_id == student.id,
-            Attendance.date >= start_date,
-            Attendance.date <= end_date,
-            Attendance.deleted_at.is_(None),
-        )
-        if course_ids:
-            att_query = att_query.filter(Attendance.course_id.in_(course_ids))
-
-        attendances = att_query.all()
-
-        if attendances:
-            total_days = len(attendances)
-            present = sum(1 for a in attendances if a.status.lower() in ["present", "late"])
-            absent = sum(1 for a in attendances if a.status.lower() in ["absent", "excused"])
-            unexcused = sum(1 for a in attendances if a.status.lower() == "absent")
-            attendance_rate = (present / total_days * 100) if total_days > 0 else 0
-
-            report_data["overall_attendance"] = {
-                "total_days": total_days,
-                "present": present,
-                "absent": absent,
-                "attendance_rate": round(attendance_rate, 1),
-                "unexcused_absences": unexcused,
-            }
-
-    # Build overall grades summary
-    if report_request.include_grades:
-        grade_query = db.query(Grade).filter(
-            Grade.student_id == student.id,
-            Grade.date_assigned >= start_date,
-            Grade.date_assigned <= end_date,
-            Grade.deleted_at.is_(None),
-        )
-        if course_ids:
-            grade_query = grade_query.filter(Grade.course_id.in_(course_ids))
-
-        grades = grade_query.all()
-
-        if grades:
-            percentages = [(g.grade / g.max_grade * 100) for g in grades if g.max_grade > 0]
-            if percentages:
-                avg_percentage = sum(percentages) / len(percentages)
-                trend = _calculate_trend(percentages)
-
-                report_data["overall_grades"] = {
-                    "total_assignments": len(grades),
-                    "average_grade": sum(g.grade for g in grades) / len(grades),
-                    "average_percentage": round(avg_percentage, 1),
-                    "highest_grade": max(g.grade for g in grades),
-                    "lowest_grade": min(g.grade for g in grades),
-                    "grade_trend": trend,
-                }
-
-    # Get courses for breakdown
-    if course_ids:
-        courses = db.query(Course).filter(Course.id.in_(course_ids), Course.deleted_at.is_(None)).all()
-    else:
-        # Get all courses student is enrolled in
-        from backend.models import CourseEnrollment
-
-        enrollments = (
-            db.query(CourseEnrollment)
-            .filter(CourseEnrollment.student_id == student.id, CourseEnrollment.deleted_at.is_(None))
-            .all()
-        )
-        course_ids = [e.course_id for e in enrollments]
-        courses = (
-            db.query(Course).filter(Course.id.in_(course_ids), Course.deleted_at.is_(None)).all() if course_ids else []
-        )
-
-    # Build course summaries (simplified version)
-    for course in courses:
-        course_data = {
-            "course_code": course.course_code,
-            "course_title": course.course_name,
-            "attendance": None,
-            "grades": None,
-        }
-
-        # Course attendance
-        if report_request.include_attendance:
-            course_att = [
-                a
-                for a in db.query(Attendance)
-                .filter(
-                    Attendance.student_id == student.id,
-                    Attendance.course_id == course.id,
-                    Attendance.date >= start_date,
-                    Attendance.date <= end_date,
-                    Attendance.deleted_at.is_(None),
-                )
-                .all()
-            ]
-            if course_att:
-                total = len(course_att)
-                present = sum(1 for a in course_att if a.status.lower() in ["present", "late"])
-                course_data["attendance"] = {
-                    "total_days": total,
-                    "present": present,
-                    "absent": total - present,
-                    "attendance_rate": round((present / total * 100) if total > 0 else 0, 1),
-                }
-
-        # Course grades
-        if report_request.include_grades:
-            course_grades = [
-                g
-                for g in db.query(Grade)
-                .filter(
-                    Grade.student_id == student.id,
-                    Grade.course_id == course.id,
-                    Grade.date_assigned >= start_date,
-                    Grade.date_assigned <= end_date,
-                    Grade.deleted_at.is_(None),
-                )
-                .all()
-            ]
-            if course_grades:
-                percentages = [(g.grade / g.max_grade * 100) for g in course_grades if g.max_grade > 0]
-                if percentages:
-                    course_data["grades"] = {
-                        "total_assignments": len(course_grades),
-                        "average_percentage": round(sum(percentages) / len(percentages), 1),
-                        "grade_trend": _calculate_trend(percentages),
-                    }
-
-        report_data["courses"].append(course_data)
-
-    # Add highlights
-    if report_request.include_highlights:
-        highlights = (
-            db.query(Highlight)
-            .filter(
-                Highlight.student_id == student.id,
-                Highlight.date_created >= start_date,
-                Highlight.date_created <= end_date,
-                Highlight.deleted_at.is_(None),
-            )
-            .all()
-        )
-
-        report_data["highlights"] = [
-            {
-                "date": str(h.date_created),
-                "category": h.category,
-                "description": h.highlight_text,
-            }
-            for h in highlights
-        ]
-
-    # Generate recommendations
-    report_data["recommendations"] = _generate_recommendations(report_data)
+    # Build report using shared helper (same data as JSON endpoint)
+    report_response = _build_student_report(student, report_request, db, start_date, end_date)
+    report_data = report_response.model_dump(mode="json")
 
     # Generate format-specific response
     if report_request.format == ReportFormat.PDF:

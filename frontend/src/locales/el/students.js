@@ -50,6 +50,7 @@ export default {
   highlightCategoryBehavior: 'Συμπεριφορά',
   highlightCategoryExtracurricular: 'Εξωσχολικά',
   highlightCategoryNote: 'Σημείωση',
+  highlightCategoryExcellence: 'Αριστεία',
   highlightCategoryFallback: 'Επίτευγμα',
   highlightRatingLabel: 'Βαθμολογία (0-10)',
   highlightRatingPlaceholder: 'Προαιρετικό',

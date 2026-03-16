@@ -230,6 +230,7 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
     if (normalized === 'behavior') return t('highlightCategoryBehavior', { ns: 'students' });
     if (normalized === 'extracurricular') return t('highlightCategoryExtracurricular', { ns: 'students' });
     if (normalized === 'note') return t('highlightCategoryNote', { ns: 'students' });
+    if (normalized === 'excellence') return t('highlightCategoryExcellence', { ns: 'students' });
     return category;
   };
 

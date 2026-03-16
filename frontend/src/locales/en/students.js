@@ -50,6 +50,7 @@ export default {
   highlightCategoryBehavior: 'Behavior',
   highlightCategoryExtracurricular: 'Extracurricular',
   highlightCategoryNote: 'Note',
+  highlightCategoryExcellence: 'Excellence',
   highlightCategoryFallback: 'Highlight',
   highlightRatingLabel: 'Rating (0-10)',
   highlightRatingPlaceholder: 'Optional',

@@ -414,7 +414,7 @@ def generate_pdf_report(report_data: Dict[str, Any], language: str = "en") -> by
     if report_data.get("highlights"):
         elements.append(Paragraph(get_label("highlights", language), heading_style))
         for highlight in report_data["highlights"][:10]:  # Limit to 10
-            highlight_text = f"<b>{highlight['date']}</b> - {highlight['category']}: {highlight['description']}"
+            highlight_text = f"<b>{highlight['date_created']}</b> - {highlight['category']}: {highlight['text']}"
             elements.append(Paragraph(f"• {highlight_text}", normal_style))
         elements.append(Spacer(1, 0.2 * inch))
 
@@ -527,7 +527,7 @@ def generate_csv_report(report_data: Dict[str, Any], language: str = "en") -> st
             [get_label("date", language), get_label("category", language), get_label("description", language)]
         )
         for highlight in report_data["highlights"]:
-            writer.writerow([highlight["date"], highlight["category"], highlight["description"]])
+            writer.writerow([highlight["date_created"], highlight["category"], highlight["text"]])
         writer.writerow([])
 
     csv_string = output.getvalue()

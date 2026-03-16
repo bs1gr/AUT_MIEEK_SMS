@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '../LanguageContext';
 import { reportsAPI } from '@/api/api';
 import { getLocalizedCategory } from '@/utils/categoryLabels';
@@ -37,9 +38,9 @@ interface CourseDetail {
 }
 
 interface Highlight {
-  date: string;
+  date_created: string;
   category: string;
-  description: string;
+  text: string;
 }
 
 interface ReportData {
@@ -98,6 +99,7 @@ const getErrorMessage = (error: unknown, fallback: string): string => {
  */
 const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ studentId, onClose }) => {
   const langContext = useLanguage();
+  const navigate = useNavigate();
 
 
   // Wrapper for translation that supports both namespace format and legacy format
@@ -111,6 +113,18 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
     }
     return langContext.t(key, options);
   };
+  const translateHighlightCategory = (category?: string | null): string => {
+    if (!category) return t('highlightCategoryFallback', { ns: 'students' });
+    const normalized = category.toLowerCase();
+    if (normalized === 'academic') return t('highlightCategoryAcademic', { ns: 'students' });
+    if (normalized === 'achievement') return t('highlightCategoryAchievement', { ns: 'students' });
+    if (normalized === 'behavior') return t('highlightCategoryBehavior', { ns: 'students' });
+    if (normalized === 'extracurricular') return t('highlightCategoryExtracurricular', { ns: 'students' });
+    if (normalized === 'note') return t('highlightCategoryNote', { ns: 'students' });
+    if (normalized === 'excellence') return t('highlightCategoryExcellence', { ns: 'students' });
+    return category;
+  };
+
   const [loading, setLoading] = useState(false);
   const [report, setReport] = useState<ReportData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -519,7 +533,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                             onClick={() => {
                               sessionStorage.setItem('attendance_recall_course', course.course_code);
                               if (config.startDate) sessionStorage.setItem('attendance_recall_date', config.startDate);
-                              window.location.hash = '#/attendance';
+                              navigate('/attendance');
                             }}
                             className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
                           >
@@ -541,7 +555,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                             onClick={() => {
                               sessionStorage.setItem('grading_filter_course', course.course_code);
                               if (config.startDate) sessionStorage.setItem('grading_history_date', config.startDate);
-                              window.location.hash = '#/grading';
+                              navigate('/grading');
                             }}
                             className="ml-2 px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
                           >
@@ -610,11 +624,11 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                   <div className="space-y-2">
                     {report.highlights.map((highlight, idx) => (
                       <div key={idx} className="text-sm">
-                        <span className="font-medium">{highlight.date}</span>
+                        <span className="font-medium">{highlight.date_created}</span>
                         <span className="mx-2">•</span>
-                        <span className="text-blue-600">{highlight.category}</span>
+                        <span className="text-blue-600">{translateHighlightCategory(highlight.category)}</span>
                         <span className="mx-2">•</span>
-                        <span>{highlight.description}</span>
+                        <span>{highlight.text}</span>
                       </div>
                     ))}
                   </div>
