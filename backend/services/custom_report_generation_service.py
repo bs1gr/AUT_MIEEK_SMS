@@ -559,11 +559,25 @@ class CustomReportGenerationService:
         report_type = str(report.report_type or "").lower()
 
         if report_type == "student":
-            query = self.db.query(Student).options(joinedload(Student.attendances)).filter(Student.deleted_at.is_(None))
+            query = (
+                self.db.query(Student)
+                .options(
+                    joinedload(Student.attendances),
+                    joinedload(Student.grades),
+                    joinedload(Student.enrollments),
+                )
+                .filter(Student.deleted_at.is_(None))
+            )
             return Student, query
 
         if report_type == "course":
-            query = self.db.query(Course).filter(Course.deleted_at.is_(None))
+            query = (
+                self.db.query(Course)
+                .options(
+                    joinedload(Course.enrollments),
+                )
+                .filter(Course.deleted_at.is_(None))
+            )
             return Course, query
 
         if report_type == "grade":
@@ -1078,6 +1092,8 @@ class CustomReportGenerationService:
                     return self._format_temporal_value(assigned_value)
                 if assigned_value is not None:
                     return assigned_value
+                return ""
+            return self._format_temporal_value(submitted_value)
 
         # Handle nested dot notation
         if "." in canonical_field:

@@ -2,7 +2,7 @@
  * ReportList Component - Display and manage custom reports
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Edit, Copy, Download, RefreshCw, ChevronDown, Upload } from 'lucide-react';
 import { useCustomReports, useCreateTemplate, useDeleteReport, useGenerateReport, useGeneratedReports, useDownloadReport, useDeleteGeneratedReport, useImportDefaultTemplates } from '@/hooks/useCustomReports';
@@ -30,6 +30,20 @@ export const ReportList: React.FC<ReportListProps> = ({
   const [expandedMenu, setExpandedMenu] = useState<number | null>(null);
   const [expandedReports, setExpandedReports] = useState<Set<number>>(new Set());
   const [latestGeneratedByReport, setLatestGeneratedByReport] = useState<Record<number, number>>({});
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  const closeMenu = useCallback(() => setExpandedMenu(null), []);
+
+  useEffect(() => {
+    if (expandedMenu === null) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        closeMenu();
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [expandedMenu, closeMenu]);
 
   const showToast = (message: string, variant: 'success' | 'error' = 'success') => {
     try {
@@ -303,7 +317,7 @@ export const ReportList: React.FC<ReportListProps> = ({
       </div>
 
       {/* Reports Table */}
-      <div className="bg-white rounded-lg border overflow-x-auto">
+      <div className="bg-white rounded-lg border overflow-visible">
         <table className="w-full text-sm">
           <thead className="bg-gray-50 border-b">
             <tr>
@@ -405,7 +419,7 @@ export const ReportList: React.FC<ReportListProps> = ({
                       </button>
 
                       {/* More Actions Menu */}
-                      <div className="relative">
+                      <div className="relative" ref={expandedMenu === report.id ? menuRef : undefined}>
                         <button
                           onClick={() => setExpandedMenu(expandedMenu === report.id ? null : report.id)}
                           className="p-2 text-gray-600 hover:bg-gray-100 rounded transition-colors"
@@ -414,45 +428,51 @@ export const ReportList: React.FC<ReportListProps> = ({
                         </button>
 
                         {expandedMenu === report.id && (
-                          <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-10 min-w-48">
+                          <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-50 min-w-48">
                             <button
-                              onClick={() => handleGenerateReportNoEmail(report.id)}
+                              onClick={() => { closeMenu(); handleGenerateReportNoEmail(report.id); }}
                               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm"
                             >
                               <RefreshCw size={14} />
                               {t('generateWithoutEmail', { ns: 'customReports' })}
                             </button>
                             <button
-                              onClick={() => handleGenerateReportWithEmail(report)}
+                              onClick={() => { closeMenu(); handleGenerateReportWithEmail(report); }}
                               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
                             >
                               <RefreshCw size={14} />
                               {t('generateWithEmail', { ns: 'customReports' })}
                             </button>
-                            <button className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm">
-                            <Copy size={14} />
-                            {t('share', { ns: 'customReports' })}
-                          </button>
                             <button
-                              onClick={() => handleSaveAsTemplate(report)}
+                              onClick={closeMenu}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
+                            >
+                              <Copy size={14} />
+                              {t('share', { ns: 'customReports' })}
+                            </button>
+                            <button
+                              onClick={() => { closeMenu(); handleSaveAsTemplate(report); }}
                               className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
                             >
                               <Copy size={14} />
                               {t('saveAsTemplate', { ns: 'customReports' })}
                             </button>
-                          <button className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t">
-                            <Download size={14} />
-                            {t('export', { ns: 'customReports' })}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteReport(report.id)}
-                            className="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center gap-2 text-sm text-red-600 border-t"
-                          >
-                            <Trash2 size={14} />
-                            {t('delete', { ns: 'customReports' })}
-                          </button>
-                        </div>
-                      )}
+                            <button
+                              onClick={closeMenu}
+                              className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-2 text-sm border-t"
+                            >
+                              <Download size={14} />
+                              {t('export', { ns: 'customReports' })}
+                            </button>
+                            <button
+                              onClick={() => { closeMenu(); handleDeleteReport(report.id); }}
+                              className="w-full text-left px-4 py-2 hover:bg-red-50 flex items-center gap-2 text-sm text-red-600 border-t"
+                            >
+                              <Trash2 size={14} />
+                              {t('delete', { ns: 'customReports' })}
+                            </button>
+                          </div>
+                        )}
                     </div>
                   </div>
                 </td>
@@ -506,9 +526,9 @@ const GeneratedReportsRow: React.FC<GeneratedReportsRowProps> = ({
 
   return (
     <tr className="bg-blue-50">
-      <td colSpan={6} className="px-6 py-4">
+      <td colSpan={6} className="px-6 py-6">
         <div className="space-y-3">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between gap-4 pb-2">
             <h4 className="font-semibold text-sm text-gray-700">{t('generatedReportsTitle', { ns: 'customReports' })}</h4>
             <label className="flex items-center gap-2 text-xs text-gray-700 select-none">
               <input
