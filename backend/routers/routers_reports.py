@@ -545,9 +545,14 @@ async def download_student_performance_report(
     report_data = report_response.model_dump(mode="json")
 
     # Generate format-specific response
+    # Inject course notes into report data if provided
+    course_notes = None
+    if report_request.course_notes:
+        course_notes = report_request.course_notes
+
     if report_request.format == ReportFormat.PDF:
         try:
-            pdf_bytes = generate_pdf_report(report_data, report_request.language)
+            pdf_bytes = generate_pdf_report(report_data, report_request.language, course_notes=course_notes)
             filename = f"student_performance_{student.id}_{start_date}_{end_date}.pdf"
             return Response(
                 content=pdf_bytes,
@@ -561,7 +566,7 @@ async def download_student_performance_report(
             ) from e
 
     elif report_request.format == ReportFormat.CSV:
-        csv_string = generate_csv_report(report_data, report_request.language)
+        csv_string = generate_csv_report(report_data, report_request.language, course_notes=course_notes)
         filename = f"student_performance_{student.id}_{start_date}_{end_date}.csv"
         return Response(
             content=csv_string,

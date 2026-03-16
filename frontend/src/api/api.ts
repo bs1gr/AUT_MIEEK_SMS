@@ -822,6 +822,7 @@ export type StudentPerformanceReportRequest = {
   include_highlights: boolean;
   format: string;
   language: string;
+  course_notes?: Record<string, string>;
 };
 
 export const reportsAPI = {

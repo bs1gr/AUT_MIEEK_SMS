@@ -11,7 +11,7 @@ import csv
 import io
 from datetime import date
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 try:
     from reportlab.lib import colors
@@ -70,6 +70,7 @@ REPORT_LABELS = {
         "course_breakdown": "Course-by-Course Breakdown",
         "course_code": "Course Code",
         "course_title": "Course Title",
+        "course_notes": "Course Notes",
         "recommendations": "Recommendations",
         "highlights": "Highlights",
         "date": "Date",
@@ -124,6 +125,7 @@ REPORT_LABELS = {
         "course_breakdown": "Ανάλυση ανά Μάθημα",
         "course_code": "Κωδικός Μαθήματος",
         "course_title": "Τίτλος Μαθήματος",
+        "course_notes": "Σημειώσεις Μαθήματος",
         "recommendations": "Συστάσεις",
         "highlights": "Σημαντικά Σημεία",
         "date": "Ημερομηνία",
@@ -246,7 +248,7 @@ def translate_trend(trend: str, language: str = "en") -> str:
     return get_label(key, language)
 
 
-def generate_pdf_report(report_data: Dict[str, Any], language: str = "en") -> bytes:
+def generate_pdf_report(report_data: Dict[str, Any], language: str = "en", *, course_notes: Optional[Dict[str, str]] = None) -> bytes:
     """
     Generate PDF report from report data.
 
@@ -421,6 +423,11 @@ def generate_pdf_report(report_data: Dict[str, Any], language: str = "en") -> by
                     [get_label("trend", language), translate_trend(course["grades"]["grade_trend"], language)]
                 )
 
+            # Add course notes if provided
+            note_text = (course_notes or {}).get(course['course_code'], '')
+            if note_text:
+                course_data.append([get_label('course_notes', language), note_text])
+
             if len(course_data) > 1:  # If we have data beyond header
                 course_table = Table(course_data, colWidths=[2.5 * inch, 3.5 * inch])
                 course_table.setStyle(
@@ -470,7 +477,7 @@ def generate_pdf_report(report_data: Dict[str, Any], language: str = "en") -> by
     return pdf_bytes
 
 
-def generate_csv_report(report_data: Dict[str, Any], language: str = "en") -> str:
+def generate_csv_report(report_data: Dict[str, Any], language: str = "en", *, course_notes: Optional[Dict[str, str]] = None) -> str:
     """
     Generate CSV report from report data.
 
@@ -552,6 +559,11 @@ def generate_csv_report(report_data: Dict[str, Any], language: str = "en") -> st
             trend = translate_trend(grades.get("grade_trend", "N/A"), language)
 
             writer.writerow([course["course_code"], course["course_title"], att_rate, avg_grade, trend])
+
+            # Add course notes row if provided
+            note_text = (course_notes or {}).get(course["course_code"], "")
+            if note_text:
+                writer.writerow([get_label("course_notes", language), note_text])
         writer.writerow([])
 
     # Recommendations

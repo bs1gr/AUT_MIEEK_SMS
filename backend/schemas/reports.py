@@ -4,7 +4,7 @@ Report schemas for student performance and progress reports.
 
 from datetime import date
 from enum import Enum
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -44,6 +44,7 @@ class PerformanceReportRequest(BaseModel):
     include_daily_performance: bool = Field(True, description="Include daily performance scores")
     include_highlights: bool = Field(True, description="Include semester highlights")
     language: str = Field("en", description="Language for report output (en or el)")
+    course_notes: Optional[Dict[str, str]] = Field(None, description="Optional notes per course keyed by course_code")
 
 
 class PerformanceSummary(BaseModel):

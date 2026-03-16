@@ -189,7 +189,8 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
         include_daily_performance: config.includePerformance,
         include_highlights: config.includeHighlights,
         format: format,
-        language: langContext.language
+        language: langContext.language,
+        course_notes: Object.keys(courseNotes).length > 0 ? courseNotes : undefined
       };
       const blob = await reportsAPI.downloadStudentReport(reportRequest);
 
@@ -638,7 +639,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
               {/* Action Buttons */}
               <div className="flex gap-2 pt-4 border-t border-gray-200">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => handleDownloadReport('pdf')}
                   className="flex-1 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition-colors"
                 >
                   {t('print', { ns: 'reports' })}
