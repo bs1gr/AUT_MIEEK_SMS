@@ -48,6 +48,7 @@ export default {
   previewFields: 'Fields',
   previewFilters: 'Filters',
   previewSorting: 'Sorting',
+  previewGroupBy: 'Group By',
   previewNone: 'None',
   previewNotAvailable: 'N/A',
   previewFiltersCount: '{{count}} filter(s)',
@@ -137,6 +138,9 @@ export default {
   field_total_classes: 'Total Classes',
   field_attended: 'Attended',
   field_period_number: 'Period Number',
+  field_gpa: 'GPA',
+  field_passed_courses: 'Active Participation',
+  field_failed_courses: 'Failed Courses',
   field_score: 'Score',
   field_max_score: 'Max Score',
   field_percentage: 'Percentage',
@@ -161,6 +165,10 @@ export default {
   operator_less_than_or_equal: 'Less Than or Equal',
   operator_between: 'Between',
   operator_in: 'In List',
+
+  // Grouping
+  groupBy: 'Group By',
+  groupByNone: 'None (no grouping)',
 
   // Sorting
   sortBy: 'Sort By',

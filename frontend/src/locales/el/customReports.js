@@ -48,6 +48,7 @@ export default {
   previewFields: 'Πεδία',
   previewFilters: 'Φίλτρα',
   previewSorting: 'Ταξινόμηση',
+  previewGroupBy: 'Ομαδοποίηση Κατά',
   previewNone: 'Κανένα',
   previewNotAvailable: 'N/A',
   previewFiltersCount: '{{count}} φίλτρο(α)',
@@ -137,6 +138,9 @@ export default {
   field_total_classes: 'Σύνολο Μαθημάτων',
   field_attended: 'Παρουσίες',
   field_period_number: 'Αριθμός Περιόδου',
+  field_gpa: 'Μ.Ο. Βαθμολογίας',
+  field_passed_courses: 'Ενεργή Συμμετοχή',
+  field_failed_courses: 'Αποτυχημένα Μαθήματα',
   field_score: 'Βαθμός',
   field_max_score: 'Μέγιστος Βαθμός',
   field_percentage: 'Ποσοστό',
@@ -160,6 +164,10 @@ export default {
   operator_less_than_or_equal: 'Μικρότερο ή Ίσο',
   operator_between: 'Μεταξύ',
   operator_in: 'Στη Λίστα',
+
+  // Grouping
+  groupBy: 'Ομαδοποίηση Κατά',
+  groupByNone: 'Κανένα (χωρίς ομαδοποίηση)',
 
   // Sorting
   sortBy: 'Ταξινόμηση Κατά',

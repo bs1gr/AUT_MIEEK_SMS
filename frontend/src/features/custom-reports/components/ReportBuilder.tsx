@@ -67,6 +67,7 @@ interface ReportConfig {
   filters: FilterRule[];
   sorting_rules: SortingRule[];
   sort_by?: SortingRule[]; // from template
+  group_by: string;
   default_include_charts?: boolean;
   template_name?: string;
   template_description?: string;
@@ -237,6 +238,9 @@ const ENTITY_FIELDS: Record<string, string[]> = {
     'last_name',
     'email',
     'enrollment_date',
+    'gpa',
+    'passed_courses',
+    'failed_courses',
     'attendance_rate',
     'total_classes',
     'attended',
@@ -376,6 +380,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         is_copy: templateMeta.is_copy,
         email_enabled: false,
         email_recipients: '',
+        group_by: '',
       };
       return normalized;
     }
@@ -391,6 +396,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       sorting_rules: [],
       email_enabled: false,
       email_recipients: '',
+      group_by: '',
     };
   });
 
@@ -454,6 +460,13 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       email_recipients: Array.isArray(reportRecord.email_recipients)
         ? reportRecord.email_recipients.join(', ')
         : '',
+      group_by: (() => {
+        if (reportFields && typeof reportFields === 'object' && !Array.isArray(reportFields)) {
+          const rf = reportFields as Record<string, unknown>;
+          return typeof rf.group_by === 'string' ? rf.group_by : '';
+        }
+        return '';
+      })(),
     };
   }, []);
 
@@ -565,6 +578,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         is_copy: templateMeta.is_copy,
         email_enabled: false,
         email_recipients: '',
+        group_by: '',
       };
       if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
         console.warn('[ReportBuilder] Template config normalized, checking equality...');
@@ -823,6 +837,7 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         fields: {
           columns,
           fields: normalizedSelectedFields,
+          group_by: config.group_by || null,
         },
         filters: filtersDict || undefined,
         aggregations: undefined,
@@ -1073,6 +1088,23 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 getFieldLabel={getFieldLabel}
               />
             </div>
+            <div>
+              <h2 className="text-lg font-semibold mb-4 mt-8">
+                {t('groupBy', { ns: 'customReports' })}
+              </h2>
+              <select
+                value={config.group_by}
+                onChange={(e) => setConfig(prev => ({ ...prev, group_by: e.target.value }))}
+                className="w-full max-w-xs border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">{t('groupByNone', { ns: 'customReports' })}</option>
+                {availableFields.map((field) => (
+                  <option key={field} value={field}>
+                    {getFieldLabel(field)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         )}
 
@@ -1117,6 +1149,12 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                 <span className="font-medium">{t('previewSorting', { ns: 'customReports' })}: </span>
                 {config.sorting_rules.length > 0
                   ? t('previewSortingCount', { ns: 'customReports', count: config.sorting_rules.length })
+                  : t('previewNone', { ns: 'customReports' })}
+              </div>
+              <div>
+                <span className="font-medium">{t('previewGroupBy', { ns: 'customReports' })}: </span>
+                {config.group_by
+                  ? getFieldLabel(config.group_by)
                   : t('previewNone', { ns: 'customReports' })}
               </div>
               <div>

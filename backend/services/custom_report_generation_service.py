@@ -105,6 +105,9 @@ class CustomReportGenerationService:
         "study_year": {"en": "Study Year", "el": "Έτος Σπουδών"},
         "academic_year": {"en": "Academic Year", "el": "Ακαδημαϊκό Έτος"},
         "class_division": {"en": "Class Division", "el": "Τμήμα"},
+        "gpa": {"en": "GPA", "el": "Μ.Ο. Βαθμολογίας"},
+        "passed_courses": {"en": "Active Participation", "el": "Ενεργή Συμμετοχή"},
+        "failed_courses": {"en": "Failed Courses", "el": "Αποτυχημένα Μαθήματα"},
     }
 
     # Translation dictionary for data values (categories, statuses, etc.)
@@ -390,12 +393,32 @@ class CustomReportGenerationService:
 
         try:
             rows, headers = self._build_report_rows(report)
+
+            # Extract group_by from report fields
+            group_by_field = None
+            group_by_col_index = None
+            report_fields = report.fields or {}
+            if isinstance(report_fields, dict):
+                group_by_field = report_fields.get("group_by")
+            if group_by_field and isinstance(group_by_field, str):
+                # Find the column index matching the group_by field
+                report_type_str = str(report.report_type or "").lower()
+                normalized_group_by = self._normalize_report_field_key(
+                    report_type_str, group_by_field
+                )
+                columns = self._normalize_columns(report_type_str, report.fields)
+                for idx, (key, _label) in enumerate(columns):
+                    if key == normalized_group_by:
+                        group_by_col_index = idx
+                        break
+
             file_path = self._export_report(
                 rows,
                 headers,
                 export_format,
                 str(generated.file_name),
                 title=str(report.name) if report.name else None,
+                group_by_col_index=group_by_col_index,
             )  # type: ignore[arg-type]
             duration = time.perf_counter() - start_time
 
@@ -1143,47 +1166,91 @@ class CustomReportGenerationService:
         export_format: str,
         file_name: str,
         title: Optional[str] = None,
+        group_by_col_index: Optional[int] = None,
     ) -> str:  # type: ignore[override]
         format_lower = (export_format or "pdf").lower()
         file_path = os.path.join(self.reports_dir, file_name)
 
+        # Sort rows by group column so groups are contiguous
+        if group_by_col_index is not None and rows:
+            rows = sorted(rows, key=lambda r: str(r[group_by_col_index]) if group_by_col_index < len(r) else "")
+
         if format_lower == "csv":
-            self._export_csv(rows, headers, file_path)
+            self._export_csv(rows, headers, file_path, group_by_col_index=group_by_col_index)
             return file_path
 
         if format_lower == "excel":
-            self._export_excel(rows, headers, file_path)
+            self._export_excel(rows, headers, file_path, group_by_col_index=group_by_col_index)
             return file_path
 
         if format_lower == "pdf":
-            self._export_pdf(rows, headers, file_path, title=title)
+            self._export_pdf(rows, headers, file_path, title=title, group_by_col_index=group_by_col_index)
             return file_path
 
         raise ValueError(f"Unsupported export format: {export_format}")
 
-    def _export_csv(self, rows: Iterable[Sequence[Any]], headers: Sequence[str], file_path: str) -> None:
+    def _export_csv(
+        self,
+        rows: Iterable[Sequence[Any]],
+        headers: Sequence[str],
+        file_path: str,
+        group_by_col_index: Optional[int] = None,
+    ) -> None:
         with open(file_path, "w", newline="", encoding="utf-8") as handle:
             writer = csv.writer(handle)
             writer.writerow(headers)
+            current_group = None
             for row in rows:
+                if group_by_col_index is not None and group_by_col_index < len(row):
+                    group_val = self._stringify_value(row[group_by_col_index])
+                    if group_val != current_group:
+                        current_group = group_val
+                        group_label = f"--- {headers[group_by_col_index]}: {group_val} ---"
+                        writer.writerow([group_label] + [""] * (len(headers) - 1))
                 writer.writerow([self._stringify_value(value) for value in row])
 
-    def _export_excel(self, rows: Iterable[Sequence[Any]], headers: Sequence[str], file_path: str) -> None:
+    def _export_excel(
+        self,
+        rows: Iterable[Sequence[Any]],
+        headers: Sequence[str],
+        file_path: str,
+        group_by_col_index: Optional[int] = None,
+    ) -> None:
         wb = Workbook()
         ws = wb.active
         ws.title = "Report"
 
         header_fill = PatternFill(start_color="4F46E5", end_color="4F46E5", fill_type="solid")
         header_font = Font(bold=True, color="FFFFFF")
+        group_fill = PatternFill(start_color="E0E7FF", end_color="E0E7FF", fill_type="solid")
+        group_font = Font(bold=True, color="1E40AF")
+
         for col_index, header in enumerate(headers, 1):
             cell = ws.cell(row=1, column=col_index, value=header)
             cell.font = header_font
             cell.fill = header_fill
             cell.alignment = Alignment(horizontal="center")
 
-        for row_index, row in enumerate(rows, 2):
+        current_row = 2
+        current_group = None
+        for row in rows:
+            if group_by_col_index is not None and group_by_col_index < len(row):
+                group_val = self._stringify_value(row[group_by_col_index])
+                if group_val != current_group:
+                    current_group = group_val
+                    group_label = f"{headers[group_by_col_index]}: {group_val}"
+                    cell = ws.cell(row=current_row, column=1, value=group_label)
+                    cell.font = group_font
+                    cell.fill = group_fill
+                    ws.merge_cells(
+                        start_row=current_row, start_column=1,
+                        end_row=current_row, end_column=len(headers),
+                    )
+                    current_row += 1
+
             for col_index, value in enumerate(row, 1):
-                ws.cell(row=row_index, column=col_index, value=self._stringify_value(value))
+                ws.cell(row=current_row, column=col_index, value=self._stringify_value(value))
+            current_row += 1
 
         for col_index, header in enumerate(headers, 1):
             width = max(len(str(header)), 10)
@@ -1192,7 +1259,12 @@ class CustomReportGenerationService:
         wb.save(file_path)
 
     def _export_pdf(
-        self, rows: List[List[Any]], headers: List[str], file_path: str, title: Optional[str] = None
+        self,
+        rows: List[List[Any]],
+        headers: List[str],
+        file_path: str,
+        title: Optional[str] = None,
+        group_by_col_index: Optional[int] = None,
     ) -> None:
         if not REPORTLAB_AVAILABLE:
             raise ImportError("ReportLab is required for PDF generation. Install with: pip install reportlab")
@@ -1244,6 +1316,14 @@ class CustomReportGenerationService:
             fontSize=body_font_size,
             leading=body_font_size + 2,
         )
+        group_style = ParagraphStyle(
+            "GroupHeader",
+            parent=styles["BodyText"],
+            fontName=base_font_bold,
+            fontSize=body_font_size,
+            leading=body_font_size + 2,
+            textColor=colors.HexColor("#1E40AF"),
+        )
 
         report_title = title
         if not report_title:
@@ -1251,15 +1331,28 @@ class CustomReportGenerationService:
         elements: List[Flowable] = [Paragraph(report_title, title_style), Spacer(1, 0.2 * inch)]
 
         safe_headers: List[Flowable] = [Paragraph(escape(str(header)), header_style) for header in headers]
-        safe_rows: List[List[Flowable]] = []
+        col_count = max(len(headers), 1)
+
+        # Build table_data with optional group header rows
+        table_data: List[List[Flowable]] = [safe_headers]
+        group_row_indices: List[int] = []  # 0-based indices in table_data
+        current_group = None
+
         for row in rows:
+            if group_by_col_index is not None and group_by_col_index < len(row):
+                group_val = str(self._stringify_value(row[group_by_col_index]))
+                if group_val != current_group:
+                    current_group = group_val
+                    group_label = f"{headers[group_by_col_index]}: {group_val}"
+                    group_row: List[Flowable] = [Paragraph(escape(group_label), group_style)]
+                    group_row += [Paragraph("", cell_style)] * (col_count - 1)
+                    group_row_indices.append(len(table_data))
+                    table_data.append(group_row)
+
             safe_row: List[Flowable] = [
                 Paragraph(escape(str(self._stringify_value(value))), cell_style) for value in row
             ]
-            safe_rows.append(safe_row)
-
-        table_data: List[List[Flowable]] = [safe_headers] + safe_rows
-        col_count = max(len(headers), 1)
+            table_data.append(safe_row)
 
         def _estimate_column_width(index: int) -> float:
             header_length = len(str(headers[index]))
@@ -1286,28 +1379,45 @@ class CustomReportGenerationService:
             col_widths = [width + extra for width in col_widths]
 
         table = Table(table_data, repeatRows=1, colWidths=col_widths)
-        table.setStyle(
-            TableStyle(
-                [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f77b4")),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                    ("ALIGN", (0, 0), (-1, 0), "CENTER"),
-                    ("ALIGN", (0, 1), (-1, -1), "LEFT"),
-                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
-                    ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
-                    ("FONTNAME", (0, 1), (-1, -1), base_font),
-                    ("FONTSIZE", (0, 0), (-1, 0), body_font_size),
-                    ("FONTSIZE", (0, 1), (-1, -1), body_font_size),
-                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
-                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-                    ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
-                    ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-                    ("TOPPADDING", (0, 1), (-1, -1), 6),
-                    ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-                    ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
-                ]
+
+        style_commands: list = [
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1f77b4")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+            ("ALIGN", (0, 1), (-1, -1), "LEFT"),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
+            ("FONTNAME", (0, 1), (-1, -1), base_font),
+            ("FONTSIZE", (0, 0), (-1, 0), body_font_size),
+            ("FONTSIZE", (0, 1), (-1, -1), body_font_size),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 8),
+            ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
+            ("TOPPADDING", (0, 1), (-1, -1), 6),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ]
+
+        if group_row_indices:
+            # Per-row alternating backgrounds, skipping group headers
+            data_row_counter = 0
+            for i in range(1, len(table_data)):
+                if i in group_row_indices:
+                    continue
+                bg = colors.white if data_row_counter % 2 == 0 else colors.HexColor("#F3F4F6")
+                style_commands.append(("BACKGROUND", (0, i), (-1, i), bg))
+                data_row_counter += 1
+            # Style group header rows
+            for gi in group_row_indices:
+                style_commands.append(("BACKGROUND", (0, gi), (-1, gi), colors.HexColor("#DBEAFE")))
+                style_commands.append(("SPAN", (0, gi), (-1, gi)))
+                style_commands.append(("FONTNAME", (0, gi), (-1, gi), base_font_bold))
+        else:
+            style_commands.append(
+                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")])
             )
-        )
+
+        table.setStyle(TableStyle(style_commands))
         elements.append(table)
         doc.build(elements)
 
