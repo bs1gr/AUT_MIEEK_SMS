@@ -148,6 +148,34 @@ function Test-HealthEndpointReachable {
     }
 }
 
+function Get-HealthEndpointSignature {
+    param(
+        [int]$Port,
+        [int]$TimeoutSec = 3
+    )
+
+    try {
+        $uri = "http://127.0.0.1:$Port/health"
+        $response = Invoke-WebRequest -UseBasicParsing -Uri $uri -TimeoutSec $TimeoutSec -ErrorAction Stop
+        if (-not $response.Content) {
+            return $null
+        }
+
+        $health = $response.Content | ConvertFrom-Json -ErrorAction Stop
+
+        $status = [string]$health.status
+        $environment = [string]$health.environment
+        $version = [string]$health.version
+        $dbStatus = [string]$health.checks.database.status
+        $dialect = [string]$health.checks.database.dialect
+
+        return "$status|$environment|$version|$dbStatus|$dialect"
+    }
+    catch {
+        return $null
+    }
+}
+
 function Invoke-FallbackPortDiagnostic {
     param(
         [string]$Phase = "startup",
@@ -181,6 +209,17 @@ function Invoke-FallbackPortDiagnostic {
     }
 
     if ($HardFail -and $env:SMS_NATIVE_ALLOW_8001_REACHABLE -ne '1') {
+        $canonicalReachable = Test-HealthEndpointReachable -Port $BACKEND_PORT -TimeoutSec 3
+        if ($canonicalReachable) {
+            $canonicalDigest = Get-HealthEndpointSignature -Port $BACKEND_PORT -TimeoutSec 3
+            $fallbackDigest = Get-HealthEndpointSignature -Port $BACKEND_FALLBACK_PORT -TimeoutSec 3
+
+            if ($canonicalDigest -and $fallbackDigest -and $canonicalDigest -eq $fallbackDigest) {
+                Write-Warning "Fallback port $BACKEND_FALLBACK_PORT mirrors the canonical backend health payload on port $BACKEND_PORT; startup guard will not hard-block."
+                return $false
+            }
+        }
+
         Write-Error-Message "Startup blocked: fallback port $BACKEND_FALLBACK_PORT is reachable."
         Write-Info "Set SMS_NATIVE_ALLOW_8001_REACHABLE=1 only if you intentionally accept split-runtime risk."
         return $true
@@ -1119,6 +1158,12 @@ function Start-Backend {
 
     # Check port
     if (Test-PortInUse -Port $targetBackendPort) {
+        if (Test-HealthEndpointReachable -Port $targetBackendPort -TimeoutSec 3) {
+            Write-Warning "Port $targetBackendPort is already serving a healthy backend; adopting existing runtime."
+            Set-Content -Path (Join-Path $SCRIPT_DIR ".backend.port") -Value "$targetBackendPort"
+            return 0
+        }
+
         Write-Warning "Port $targetBackendPort is in use. Attempting automatic cleanup..."
         $recovered = Stop-ProcessByPort -Port $targetBackendPort -Name "Backend"
         Start-Sleep -Milliseconds 500
