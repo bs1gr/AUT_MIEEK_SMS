@@ -467,7 +467,7 @@ def test_generate_student_report_supports_legacy_study_year_status_and_gpa_alias
     content = Path(cast(str, generated.file_path)).read_text(encoding="utf-8")
     lines = [line.strip() for line in content.splitlines() if line.strip()]
 
-    assert lines[0].startswith("Student ID,Study Year,Active,Gpa")
+    assert lines[0].startswith("Student ID,Study Year,Active,GPA")
     assert "S-100,3,Yes,80.0" in lines[1]
 
 

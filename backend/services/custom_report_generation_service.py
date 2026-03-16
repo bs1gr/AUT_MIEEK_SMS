@@ -397,15 +397,14 @@ class CustomReportGenerationService:
             # Extract group_by from report fields
             group_by_field = None
             group_by_col_index = None
-            report_fields = report.fields or {}
-            if isinstance(report_fields, dict):
+            raw_report_fields = report.fields
+            report_fields: Dict[str, Any] = raw_report_fields if isinstance(raw_report_fields, dict) else {}
+            if report_fields:
                 group_by_field = report_fields.get("group_by")
             if group_by_field and isinstance(group_by_field, str):
                 # Find the column index matching the group_by field
                 report_type_str = str(report.report_type or "").lower()
-                normalized_group_by = self._normalize_report_field_key(
-                    report_type_str, group_by_field
-                )
+                normalized_group_by = self._normalize_report_field_key(report_type_str, group_by_field)
                 columns = self._normalize_columns(report_type_str, report.fields)
                 for idx, (key, _label) in enumerate(columns):
                     if key == normalized_group_by:
@@ -1243,8 +1242,10 @@ class CustomReportGenerationService:
                     cell.font = group_font
                     cell.fill = group_fill
                     ws.merge_cells(
-                        start_row=current_row, start_column=1,
-                        end_row=current_row, end_column=len(headers),
+                        start_row=current_row,
+                        start_column=1,
+                        end_row=current_row,
+                        end_column=len(headers),
                     )
                     current_row += 1
 
@@ -1413,9 +1414,7 @@ class CustomReportGenerationService:
                 style_commands.append(("SPAN", (0, gi), (-1, gi)))
                 style_commands.append(("FONTNAME", (0, gi), (-1, gi), base_font_bold))
         else:
-            style_commands.append(
-                ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")])
-            )
+            style_commands.append(("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]))
 
         table.setStyle(TableStyle(style_commands))
         elements.append(table)
