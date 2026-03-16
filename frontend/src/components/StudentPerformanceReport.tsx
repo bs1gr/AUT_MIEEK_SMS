@@ -628,7 +628,7 @@ const StudentPerformanceReport: React.FC<StudentPerformanceReportProps> = ({ stu
                         <span className="mx-2">•</span>
                         <span className="text-blue-600">{translateHighlightCategory(highlight.category)}</span>
                         <span className="mx-2">•</span>
-                        <span>{highlight.text}</span>
+                        <span>{highlight.text?.replace(new RegExp(`^${highlight.category}:\\s*`), '') ?? ''}</span>
                       </div>
                     ))}
                   </div>

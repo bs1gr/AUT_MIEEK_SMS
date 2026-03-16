@@ -167,6 +167,45 @@ def get_label(key: str, language: str = "en") -> str:
     return lang_dict.get(key, key)
 
 
+# Category translations for highlight entries
+CATEGORY_TRANSLATIONS: Dict[str, Dict[str, str]] = {
+    "en": {
+        "excellence": "Excellence",
+        "academic": "Academic",
+        "achievement": "Achievement",
+        "behavior": "Behavior",
+        "extracurricular": "Extracurricular",
+        "note": "Note",
+    },
+    "el": {
+        "excellence": "Αριστεία",
+        "academic": "Ακαδημαϊκά",
+        "achievement": "Επίτευγμα",
+        "behavior": "Συμπεριφορά",
+        "extracurricular": "Εξωσχολικά",
+        "note": "Σημείωση",
+    },
+}
+
+
+def translate_category(category: str, language: str = "en") -> str:
+    """Translate a highlight category name."""
+    lang_dict = CATEGORY_TRANSLATIONS.get(language, CATEGORY_TRANSLATIONS["en"])
+    return lang_dict.get(category.lower(), category)
+
+
+def strip_category_prefix(text: str, category: str) -> str:
+    """Strip the redundant English category prefix from highlight text.
+
+    Stored text is e.g. 'Excellence: Εργασία (A, 96.0%) in AUT0206'.
+    Since the category is shown separately, remove the leading 'Excellence: '.
+    """
+    prefix = f"{category}: "
+    if text.startswith(prefix):
+        return text[len(prefix):]
+    return text
+
+
 def translate_recommendation(rec_key: str, language: str = "en") -> str:
     """
     Translate recommendation key from format 'reports:rec_key' or 'reports:rec_key||data'.
@@ -414,7 +453,10 @@ def generate_pdf_report(report_data: Dict[str, Any], language: str = "en") -> by
     if report_data.get("highlights"):
         elements.append(Paragraph(get_label("highlights", language), heading_style))
         for highlight in report_data["highlights"][:10]:  # Limit to 10
-            highlight_text = f"<b>{highlight['date_created']}</b> - {highlight['category']}: {highlight['text']}"
+            cat = highlight['category']
+            translated_cat = translate_category(cat, language)
+            clean_text = strip_category_prefix(highlight['text'], cat)
+            highlight_text = f"<b>{highlight['date_created']}</b> - {translated_cat}: {clean_text}"
             elements.append(Paragraph(f"• {highlight_text}", normal_style))
         elements.append(Spacer(1, 0.2 * inch))
 
@@ -527,7 +569,10 @@ def generate_csv_report(report_data: Dict[str, Any], language: str = "en") -> st
             [get_label("date", language), get_label("category", language), get_label("description", language)]
         )
         for highlight in report_data["highlights"]:
-            writer.writerow([highlight["date_created"], highlight["category"], highlight["text"]])
+            cat = highlight["category"]
+            translated_cat = translate_category(cat, language)
+            clean_text = strip_category_prefix(highlight["text"], cat)
+            writer.writerow([highlight["date_created"], translated_cat, clean_text])
         writer.writerow([])
 
     csv_string = output.getvalue()

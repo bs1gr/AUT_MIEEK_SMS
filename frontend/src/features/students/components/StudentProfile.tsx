@@ -664,7 +664,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                   <React.Fragment key={highlight.id}>
                     {(() => {
                       const ratingValue = Math.min(5, Math.round(highlight.rating ?? 0));
-                      const highlightText = highlight.highlight_text || highlight.description || '';
+                      const rawText = highlight.highlight_text || highlight.description || '';
+                      const highlightText = rawText.replace(new RegExp(`^${highlight.category}:\\s*`), '');
                       return (
                     <div
                       className={`p-4 rounded-lg border-l-4 ${
