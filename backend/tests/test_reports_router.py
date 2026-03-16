@@ -143,7 +143,31 @@ def test_generate_student_performance_report(client: TestClient, clean_db):
     # Verify courses breakdown
     assert "courses" in data
     assert len(data["courses"]) == 1
-    assert data["courses"][0]["course_code"] == "CS101"
+    course = data["courses"][0]
+    assert course["course_code"] == "CS101"
+    assert course["course_title"] == "Test Course"
+
+    # Verify nested attendance summary per course
+    assert course["attendance"] is not None
+    assert course["attendance"]["total_days"] == 5
+    assert course["attendance"]["present"] == 4
+    assert course["attendance"]["absent"] == 1
+    assert course["attendance"]["attendance_rate"] == 80.0
+
+    # Verify nested grades summary per course
+    assert course["grades"] is not None
+    assert course["grades"]["total_assignments"] == 2
+    assert course["grades"]["average_grade"] == 17.0  # (18+16)/2
+    assert course["grades"]["highest_grade"] == 18.0
+    assert course["grades"]["lowest_grade"] == 16.0
+
+    # Verify performance categories with score field
+    assert len(course["performance_categories"]) == 1
+    perf = course["performance_categories"][0]
+    assert perf["category"] == "participation"
+    assert perf["score"] == 8.0
+    assert perf["max_score"] == 10.0
+    assert perf["total_entries"] == 1
 
     # Verify highlights
     assert "highlights" in data

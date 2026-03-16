@@ -52,25 +52,11 @@ class PerformanceSummary(BaseModel):
     category: str
     total_entries: int
     average_score: float
+    score: Optional[float] = None
     min_score: float
     max_score: float
     average_percentage: float
     trend: str  # "improving", "declining", "stable"
-
-
-class CourseSummary(BaseModel):
-    """Course-level summary in performance report."""
-
-    course_id: int
-    course_code: str
-    course_name: str
-    grade_average: Optional[float] = None
-    grade_percentage: Optional[float] = None
-    attendance_rate: Optional[float] = None
-    total_absences: Optional[int] = None
-    performance_categories: List[PerformanceSummary] = []
-    latest_grade: Optional[float] = None
-    weighted_grade: Optional[float] = None
 
 
 class AttendanceSummary(BaseModel):
@@ -79,10 +65,10 @@ class AttendanceSummary(BaseModel):
     total_days: int
     present: int
     absent: int
-    late: int
-    excused: int
+    late: int = 0
+    excused: int = 0
     attendance_rate: float
-    unexcused_absences: int
+    unexcused_absences: int = 0
 
 
 class GradeSummary(BaseModel):
@@ -94,6 +80,24 @@ class GradeSummary(BaseModel):
     highest_grade: float
     lowest_grade: float
     grade_trend: str  # "improving", "declining", "stable"
+
+
+class CourseSummary(BaseModel):
+    """Course-level summary in performance report."""
+
+    course_id: int
+    course_code: str
+    course_name: str
+    course_title: Optional[str] = None
+    grade_average: Optional[float] = None
+    grade_percentage: Optional[float] = None
+    attendance_rate: Optional[float] = None
+    total_absences: Optional[int] = None
+    performance_categories: List[PerformanceSummary] = []
+    latest_grade: Optional[float] = None
+    weighted_grade: Optional[float] = None
+    attendance: Optional[AttendanceSummary] = None
+    grades: Optional[GradeSummary] = None
 
 
 class HighlightSummary(BaseModel):

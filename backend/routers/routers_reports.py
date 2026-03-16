@@ -316,6 +316,7 @@ async def generate_student_performance_report(
             "course_id": course.id,
             "course_code": course.course_code,
             "course_name": course.course_name,
+            "course_title": course.course_name,
             "performance_categories": [],
         }
 
@@ -344,11 +345,20 @@ async def generate_student_performance_report(
             )
 
             if course_grades:
+                course_percentages = [g.percentage for g in course_grades]
                 course_summary["grade_average"] = round(sum(g.grade for g in course_grades) / len(course_grades), 2)
                 course_summary["grade_percentage"] = round(
-                    sum(g.percentage for g in course_grades) / len(course_grades), 1
+                    sum(course_percentages) / len(course_percentages), 1
                 )
                 course_summary["latest_grade"] = course_grades[-1].grade if course_grades else None
+                course_summary["grades"] = GradeSummary(
+                    total_assignments=len(course_grades),
+                    average_grade=round(sum(g.grade for g in course_grades) / len(course_grades), 2),
+                    average_percentage=round(sum(course_percentages) / len(course_percentages), 1),
+                    highest_grade=max(g.grade for g in course_grades),
+                    lowest_grade=min(g.grade for g in course_grades),
+                    grade_trend=_calculate_trend(course_percentages),
+                )
 
         # Course attendance
         if report_request.include_attendance:
@@ -367,8 +377,20 @@ async def generate_student_performance_report(
             if course_attendance:
                 total = len(course_attendance)
                 present_count = len([a for a in course_attendance if a.status == "Present"])
+                absent_count = len([a for a in course_attendance if a.status == "Absent"])
+                late_count = len([a for a in course_attendance if a.status == "Late"])
+                excused_count = len([a for a in course_attendance if a.status == "Excused"])
                 course_summary["attendance_rate"] = round((present_count / total) * 100, 1) if total > 0 else 0
                 course_summary["total_absences"] = total - present_count
+                course_summary["attendance"] = AttendanceSummary(
+                    total_days=total,
+                    present=present_count,
+                    absent=absent_count,
+                    late=late_count,
+                    excused=excused_count,
+                    attendance_rate=round((present_count / total) * 100, 1) if total > 0 else 0,
+                    unexcused_absences=max(0, absent_count - excused_count),
+                )
 
         # Daily performance
         if report_request.include_daily_performance:
@@ -394,13 +416,15 @@ async def generate_student_performance_report(
             for category, records in category_data.items():
                 scores = [r.score for r in records]
                 percentages = [r.percentage for r in records]
+                max_possible = max(r.max_score for r in records)
 
                 perf_summary = PerformanceSummary(
                     category=category,
                     total_entries=len(records),
                     average_score=round(sum(scores) / len(scores), 2),
+                    score=round(sum(scores) / len(scores), 2),
                     min_score=min(scores),
-                    max_score=max(scores),
+                    max_score=max_possible,
                     average_percentage=round(sum(percentages) / len(percentages), 1),
                     trend=_calculate_trend(percentages),
                 )
