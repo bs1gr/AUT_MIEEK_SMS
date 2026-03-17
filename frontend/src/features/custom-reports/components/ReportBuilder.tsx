@@ -42,6 +42,7 @@ type BackendReportPayload = {
     | {
         columns: Array<{ key: string; label: string }>;
         fields?: string[];
+        group_by?: string | null;
       };
   filters?: Record<string, { operator?: string; value?: unknown }>;
   aggregations?: Record<string, unknown>;

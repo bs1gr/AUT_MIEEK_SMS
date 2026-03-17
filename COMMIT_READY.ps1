@@ -1332,21 +1332,14 @@ function Invoke-CodeQualityChecks {
     Write-Section "Frontend: TypeScript Type Checking"
     try {
         Push-Location $FRONTEND_DIR
-        if ($Mode -eq 'quick') {
-            Write-Info "Skipping TypeScript type checking in quick mode (temporary)"
-            $output = "SKIPPED"
-            # Ensure the step is treated as successful when skipped
-            $LASTEXITCODE = 0
+        Write-Info "Running TypeScript compiler..."
+        $npxAvailable = Test-CommandAvailable -Name "npx"
+        if ($npxAvailable) {
+            $output = npx tsc --noEmit 2>&1
         } else {
-            Write-Info "Running TypeScript compiler..."
-            $npxAvailable = Test-CommandAvailable -Name "npx"
-            if ($npxAvailable) {
-                $output = npx tsc --noEmit 2>&1
-            } else {
-                Write-Warning-Msg "npx is not available; skipping TypeScript type check"
-                $LASTEXITCODE = 0
-                $output = "SKIPPED"
-            }
+            Write-Warning-Msg "npx is not available; skipping TypeScript type check"
+            $LASTEXITCODE = 0
+            $output = "SKIPPED"
         }
 
         if ($LASTEXITCODE -eq 0) {
