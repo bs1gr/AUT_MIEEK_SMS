@@ -98,6 +98,31 @@ This document establishes **non-negotiable policies** that **EVERY AI agent** wo
 
 ---
 
+### Policy 0.4: INSTRUCTION-FIRST EXECUTION LOCK (NEW - STRICT MANDATORY)
+
+**🔴 NON-NEGOTIABLE RULE:** **NEVER execute a generic release sequence or generic task sequence before reading repository rules for the current session.**
+
+**✅ REQUIRED (before any release/task execution):**
+1. Re-read `.github/copilot-instructions.md`
+2. Re-read `docs/AGENT_POLICY_ENFORCEMENT.md`
+3. Re-check owner-provided ordered steps for the current request
+4. Only then execute task flow in that exact order
+
+**❌ FORBIDDEN:**
+- Starting from a default/generic workflow pattern (for example: commit → tag → publish) before instruction re-read
+- Reusing prior-session release habits without current-session policy check
+- Running convenience wrappers as first action if owner ordered a different sequence
+- Claiming policy compliance without evidence that instruction-read gates were completed first
+
+**Release-specific hard stop:**
+- If the owner requires installer-first verification, then **no commit/tag/publish actions may occur before installer build + verification evidence is produced**.
+
+**Enforcement:**
+- Any action taken before instruction-first gates are completed is policy non-compliance and must be corrected immediately.
+- Agent must explicitly report: "Instruction-first gates completed" before continuing with release execution.
+
+---
+
 ### Policy 0.5: SOLO DEVELOPER - NO STAKEHOLDERS (NEW - MANDATORY)
 
 **🔴 CRITICAL CLARIFICATION**: This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**.

@@ -1,14 +1,14 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-12
-**Project Version (documented)**: 1.18.12
-**Version**: 1.18.12
+**Last Updated**: 2026-03-17
+**Project Version (documented)**: 1.18.13
+**Version**: 1.18.13
 **Current Branch**: `main`
 **Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ⚠️ **EARLIER `v1.18.x` RELEASES REMAIN ARCHIVED AS PRERELEASES**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 11, 2026)**: ✅ **`v1.18.12` is now the live/latest first official public release**
+> **Current Status (Mar 17, 2026)**: ✅ **`v1.18.12` is now the live/latest first official public release**
 > - `v1.18.0` through `v1.18.11` remain archived as prereleases for historical reference
 > - `v1.18.12` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
 > - `v1.18.12` restores generated Greek `.rtf` installer assets in the build pipeline
@@ -19,6 +19,7 @@ This document serves as the single source of truth for all project documentation
 > - v1.18.7: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
 > - v1.18.6: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
 > - Post-release development: Type safety improvements, testing stability, ESLint cleanup
+> - Post-`v1.18.12` code review snapshot added (34 commits, 192 files changed) with consolidated Unreleased summary in `CHANGELOG.md`
 > - Changelog/work plan/index are aligned with the live `v1.18.12` publication state
 > - All recent core CI validations reviewed during the audit were passing
 > - See plans/UNIFIED_WORK_PLAN.md for details
@@ -69,7 +70,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)** - Current task list and project roadmap
 - **[ACTIVE_WORK_STATUS.md](ACTIVE_WORK_STATUS.md)** - Historical compatibility stub; do not use for active planning
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2026-02-15)
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2026-03-17)
 
 ### Audit & Improvement Planning (1.15.0 - COMPLETE ✅)
 

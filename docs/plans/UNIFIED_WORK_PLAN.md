@@ -1,11 +1,77 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.12
-**Last Updated**: March 13, 2026
-**Status**: ✅ **`v1.18.12` IS NOW THE FIRST OFFICIAL PUBLIC RELEASE** | ⚠️ **EARLIER `v1.18.x` RELEASES REMAIN ARCHIVED AS PRERELEASES**
+**Current Version**: 1.18.13 (pre-release prep)
+**Last Updated**: March 17, 2026
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | 🚧 **`v1.18.13` RELEASE PREPARATION IN PROGRESS**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **First Official Public Release Published | Post-Publication Hardening & Documentation Alignment**
-**Current Branch**: `main` (HEAD: 77fcdb4eb - fix(qnap): harden postgres-only deployment path)
+**Current Branch**: `main` (HEAD: 0d65f157c - fix(reports): resolve mypy typing and align GPA header assertion)
+
+---
+
+## 🚀 v1.18.13 Release Preparation Snapshot (March 17, 2026)
+
+**Status**: ✅ **PREP + VALIDATION COMPLETE | TAG/PUBLISH PENDING**
+
+- ✅ Version metadata aligned to `v1.18.13` (`VERSION`, `frontend/package.json`, key docs/script references)
+- ✅ Release docs prepared:
+  - `docs/releases/RELEASE_NOTES_v1.18.13.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.13.md`
+  - `.github/RELEASE_NOTES_v1.18.13.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.13.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.13.md`
+- ✅ `scripts/VERIFY_VERSION.ps1 -CheckOnly` passed
+- ✅ `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-03-17_095642.md`)
+- ✅ Scope-appropriate test confirmation completed (`RUN_TESTS_BATCH.ps1`: 21/21 batches passed; frontend quick Vitest pass)
+- ✅ Installer-first validation completed for `dist/SMS_Installer_1.18.13.exe`
+  - Signature: `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
+  - SHA256: `E1D41BC9C25E1D4B0DABC53B25F25D83381604BD8576660645DA1E71B148D872`
+- ⏳ Pending before publish:
+  - release-prep commit (scoped files only)
+  - tag creation + release workflow verification
+
+---
+
+## 🧾 Post-v1.18.12 Code Review Snapshot (March 17, 2026)
+
+**Status**: ✅ **REVIEWED & DOCUMENTED (baseline: `v1.18.12..HEAD`)**
+
+### Scope Evidence
+
+- ✅ Reviewed git range: `v1.18.12..HEAD`
+- ✅ Commit count: `34`
+- ✅ Diff footprint: `192 files changed, 6057 insertions, 5620 deletions`
+- ✅ Code-heavy areas touched: backend (`15 files`), frontend (`17 files`), scripts/workflows/docs (remaining scope)
+
+### Updated Code Summary (since `v1.18.12`)
+
+- ✅ **Custom Reports pipeline hardening (backend/frontend)**
+  - Added and stabilized grouped reporting support (including GPA-related grouping fields/labels)
+  - Fixed empty-cell data pipeline behavior in generated reports
+  - Expanded data loading and nested aggregation for course breakdown reporting
+  - Improved report export/download behavior (PDF/CSV), including course notes coverage
+  - Aligned report payload typing and tests (`mypy` + CSV header expectation updates)
+
+- ✅ **Native/runtime reliability**
+  - Hardened startup fallback-port/proxy-port routing paths
+  - Reduced false startup-block conditions when backend health is already valid
+
+- ✅ **Security and backup-path hardening**
+  - Tightened path-containment handling around backup paths
+  - Reduced sensitive backup metadata exposure in operational flows
+
+- ✅ **QNAP PostgreSQL-only deployment hardening**
+  - Strengthened preflight validation and backup handling in QNAP install/manage scripts
+  - Aligned env/docs guidance with canonical PostgreSQL deployment path
+
+- ✅ **Tooling consolidation and script cleanup**
+  - Added canonical frontend test runner wrapper (`RUN_FRONTEND_TESTS.ps1`)
+  - Archived duplicate/legacy wrappers and obsolete one-off scripts
+
+### Documentation Alignment Completed in This Update
+
+- ✅ Added consolidated **Unreleased** summary in `CHANGELOG.md` for post-`v1.18.12` code changes
+- ✅ Updated this work-plan header and recorded reviewed change scope for traceability
 
 ---
 

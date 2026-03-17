@@ -14,6 +14,8 @@ When working in this repository, follow instructions in this order:
 ## Repository essentials
 
 - This is a **solo-developer** project. Do not refer to stakeholders, committees, or external approval gates.
+- **Instruction-first lock (mandatory):** never run a generic task/release sequence before re-reading `.github/copilot-instructions.md` and `docs/AGENT_POLICY_ENFORCEMENT.md` for the current session.
+- **Order lock (mandatory):** if the owner provides ordered steps (for example installer-first), execute in that exact order and provide evidence per step before claiming completion.
 - Use `docs/plans/UNIFIED_WORK_PLAN.md` as the single planning source of truth.
 - Do not claim success without real verification evidence.
 - Use `./NATIVE.ps1 -Start` for development verification.

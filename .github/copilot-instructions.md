@@ -46,6 +46,23 @@
 
 If any verification step is incomplete, **do not commit**.
 
+### 🔴 HARD STOP: INSTRUCTION-FIRST ONLY (NO GENERIC SEQUENCES)
+
+**Non-negotiable requirement:** Never start from a generic/default release or task sequence before reading repository rules for the current session.
+
+**✅ REQUIRED BEFORE EXECUTION:**
+1. Re-read this file (`.github/copilot-instructions.md`)
+2. Re-read `docs/AGENT_POLICY_ENFORCEMENT.md`
+3. Apply owner-provided ordered steps exactly as given
+
+**❌ FORBIDDEN:**
+- Starting with a default pattern like `commit → tag → publish` before instruction-read gates
+- Reusing prior-session flow without re-checking current instructions
+- Running wrappers first when owner ordered a different gate sequence
+
+**Release-order hard stop:**
+- If owner says installer-first, then no commit/tag/publish action may run before installer build + verification evidence.
+
 ### 🔴 RELEASE LINEAGE RULE: OLD TAG WORKFLOWS ARE IMMUTABLE LEGACY
 
 **Non-negotiable requirement:** Treat workflows stored in old release tags as immutable legacy behavior.

@@ -8,6 +8,78 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.18.13] - 2026-03-17
+
+### Features
+- **reports**: add group-by support with GPA fields and label rename
+- **reports**: include course notes in PDF/CSV exports and fix Print button
+- **native-launcher**: add desktop native toggle shortcut
+
+### Bug Fixes
+- **reports**: resolve mypy typing and align GPA header assertion
+- **i18n**: translate highlight category prefix and strip duplication
+- **reports**: fix PDF download, highlight field names, and Excellence translation
+- **reports**: populate course breakdown with nested attendance, grades, and scores
+- **reports**: add missing joinedloads and fix panel expansion
+- **native**: avoid false startup block on healthy backend
+- **reports**: supersede stale artifacts and add history toggle
+- **reports**: resolve data-pipeline root cause for empty report cells
+- **native**: harden fallback-port guard and proxy port routing
+- **qnap**: harden postgres-only deployment path
+- **release**: stabilize migration validation and finalize publication wording
+- **security**: minimize backup artifact metadata
+- **security**: remove sensitive backup metadata
+- **security**: limit backup path resolution to existing files
+- **security**: avoid user-driven path joins
+- **security**: tighten path containment for CodeQL
+- **release**: enforce installer-only asset policy
+
+### Documentation
+- **work-plan**: record qnap hardening follow-up
+- **phase5**: fix historical index links
+- **release**: rename publication draft references
+- **release**: record executed v1.18.12 checklist state
+- **release**: align remaining v1.18.12 state references
+- **release**: sync official v1.18.12 publication state
+- **release**: finalize v1.18.12 official publication path
+- **release**: prepare first official public release draft
+- **ci**: align release state and workflow guidance
+- historicize legacy coordination and rollout notes
+- **readme**: document native toggle shortcut
+- **instructions**: align release asset policy guidance
+
+### Chores
+- **maintenance**: add Copilot guidance and clean legacy workflow docs
+- **cleanup**: archive obsolete scripts and align active docs
+
+## [Unreleased]
+
+### Reviewed Baseline
+- Change review performed against `v1.18.12..HEAD` (34 commits, 192 files changed).
+
+### Added
+- **reports/backend**: add report `group_by` support including GPA fields and updated label handling in generation/export flows.
+- **reports/frontend**: add report-builder/list coverage for grouping workflows and custom report interactions.
+- **native-launcher**: add desktop-native toggle tooling (`NATIVE_TOGGLE.ps1`, `NATIVE_TOGGLE.cmd`, shortcut helper) and related documentation wiring.
+- **testing-workflows**: add unified `RUN_FRONTEND_TESTS.ps1` wrapper and retire duplicate simple/summary runners.
+
+### Changed
+- **reports data pipeline**:
+  - fix empty report-cell root cause in report data assembly,
+  - improve joined-load coverage for custom reports,
+  - populate course breakdown from nested attendance/grades/score data,
+  - include course notes in PDF/CSV exports,
+  - align PDF download and print behavior,
+  - normalize highlight category translation/prefix handling.
+- **custom report UX**: improve panel expansion behavior, history toggles, and report generation payload alignment across frontend/backend hooks.
+- **native runtime**: harden startup fallback-port/proxy-port routing and reduce false startup blocks when backend health is already valid.
+- **qnap postgres-only path**: harden install/manage scripts with stronger preflight checks, safer backup validation, and docs/env alignment for PostgreSQL-first deployment.
+
+### Fixed
+- **security/path handling**: tighten backup path containment and reduce sensitive backup metadata exposure.
+- **reports typing/tests**: resolve mypy typing around grouped fields and align GPA CSV header expectations in report-generation tests.
+
 ## [1.18.12] - 2026-03-10
 
 ### Fixed
@@ -279,14 +351,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 **Languages**: Full bilingual support (English/Greek)
 
 ---
-## [Unreleased]
-
-### Notes
-- All features from previous [Unreleased] section have been moved to [1.18.7] above.
-- This section is reserved for future development work.
-
----
-
 ## [1.18.5] - 2026-03-01
 
 ### Security Fixes
