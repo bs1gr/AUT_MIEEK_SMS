@@ -1,17 +1,22 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.14 (pre-release prep)
-**Last Updated**: March 19, 2026
+**Current Version**: 1.18.14
+**Last Updated**: March 20, 2026
 **Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.14` RELEASE PUBLISHED (maintenance/hardening line)**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **First Official Public Release Published | Post-Publication Hardening & Documentation Alignment**
-**Current Branch**: `main` (HEAD: c13ceec5e - docs(release): record v1.18.14 publication verification evidence)
+**Current Branch**: `main` (HEAD: f91bf7ad4 - style(reports): normalize formatting and trim v1.18.13 notes)
 
 ---
 
 ## 🚀 v1.18.14 Release Publication Snapshot (March 19, 2026)
 
 **Status**: ✅ **PUBLISHED + VERIFIED**
+
+- ✅ Post-tag follow-up commits recorded on `main` after `v1.18.14` tag:
+  - `c13ceec5e` — publication verification evidence
+  - `8d076ed61` — security refresh closure docs
+  - `f91bf7ad4` — report-formatting and `v1.18.13` note cleanup
 
 - ✅ Version metadata aligned to `v1.18.14` (`VERSION`, `frontend/package.json`, key docs/script references)
 - ✅ Release docs prepared:
