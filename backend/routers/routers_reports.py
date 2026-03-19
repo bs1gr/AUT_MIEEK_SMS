@@ -298,9 +298,7 @@ def _build_student_report(
             if course_grades:
                 course_percentages = [g.percentage for g in course_grades]
                 course_summary["grade_average"] = round(sum(g.grade for g in course_grades) / len(course_grades), 2)
-                course_summary["grade_percentage"] = round(
-                    sum(course_percentages) / len(course_percentages), 1
-                )
+                course_summary["grade_percentage"] = round(sum(course_percentages) / len(course_percentages), 1)
                 course_summary["latest_grade"] = course_grades[-1].grade if course_grades else None
                 course_summary["grades"] = GradeSummary(
                     total_assignments=len(course_grades),

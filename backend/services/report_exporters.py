@@ -204,7 +204,7 @@ def strip_category_prefix(text: str, category: str) -> str:
     """
     prefix = f"{category}: "
     if text.startswith(prefix):
-        return text[len(prefix):]
+        return text[len(prefix) :]
     return text
 
 
@@ -248,7 +248,9 @@ def translate_trend(trend: str, language: str = "en") -> str:
     return get_label(key, language)
 
 
-def generate_pdf_report(report_data: Dict[str, Any], language: str = "en", *, course_notes: Optional[Dict[str, str]] = None) -> bytes:
+def generate_pdf_report(
+    report_data: Dict[str, Any], language: str = "en", *, course_notes: Optional[Dict[str, str]] = None
+) -> bytes:
     """
     Generate PDF report from report data.
 
@@ -424,9 +426,9 @@ def generate_pdf_report(report_data: Dict[str, Any], language: str = "en", *, co
                 )
 
             # Add course notes if provided
-            note_text = (course_notes or {}).get(course['course_code'], '')
+            note_text = (course_notes or {}).get(course["course_code"], "")
             if note_text:
-                course_data.append([get_label('course_notes', language), note_text])
+                course_data.append([get_label("course_notes", language), note_text])
 
             if len(course_data) > 1:  # If we have data beyond header
                 course_table = Table(course_data, colWidths=[2.5 * inch, 3.5 * inch])
@@ -460,9 +462,9 @@ def generate_pdf_report(report_data: Dict[str, Any], language: str = "en", *, co
     if report_data.get("highlights"):
         elements.append(Paragraph(get_label("highlights", language), heading_style))
         for highlight in report_data["highlights"][:10]:  # Limit to 10
-            cat = highlight['category']
+            cat = highlight["category"]
             translated_cat = translate_category(cat, language)
-            clean_text = strip_category_prefix(highlight['text'], cat)
+            clean_text = strip_category_prefix(highlight["text"], cat)
             highlight_text = f"<b>{highlight['date_created']}</b> - {translated_cat}: {clean_text}"
             elements.append(Paragraph(f"• {highlight_text}", normal_style))
         elements.append(Spacer(1, 0.2 * inch))
@@ -477,7 +479,9 @@ def generate_pdf_report(report_data: Dict[str, Any], language: str = "en", *, co
     return pdf_bytes
 
 
-def generate_csv_report(report_data: Dict[str, Any], language: str = "en", *, course_notes: Optional[Dict[str, str]] = None) -> str:
+def generate_csv_report(
+    report_data: Dict[str, Any], language: str = "en", *, course_notes: Optional[Dict[str, str]] = None
+) -> str:
     """
     Generate CSV report from report data.
 

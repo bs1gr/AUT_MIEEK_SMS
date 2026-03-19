@@ -28,5 +28,3 @@ Native development path: `./NATIVE.ps1 -Start`
 - `docs/releases/RELEASE_NOTES_v1.18.13.md`
 - `docs/releases/RELEASE_MANIFEST_v1.18.13.md`
 - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.13.md`
-
-
