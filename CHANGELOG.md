@@ -70,6 +70,14 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
   - updated `frontend/package-lock.json` to bump transitive `socket.io-parser` from `4.2.5` to `4.2.6`
     (aligns with open dependency PR scope).
 
+### Backend Dependency Hardening (2026-03-19, follow-up)
+- **requirements constraints updated**:
+  - `backend/requirements.txt`: `werkzeug>=3.1.6`
+  - `backend/requirements-dev.txt`: `pypdf>=6.9.1`, `werkzeug>=3.1.6`
+- **audit delta**:
+  - `pip_audit` findings reduced from 4 affected packages to 1 (`pip` toolchain package in local venv only).
+  - project/runtime manifests no longer report `PyJWT`, `pypdf`, or `werkzeug` vulnerability findings in the audited environment.
+
 ### Verification Evidence (2026-03-19)
 - Backend focused tests passed (`25 passed`) for:
   - `backend/tests/test_database_manager_security.py`

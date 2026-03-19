@@ -39,6 +39,16 @@
 - ✅ Backend batch-run evidence present (`34/34 batches`):
   - `test-results/backend_batch_run_20260319_162940.txt`
 
+### Follow-up Dependency Audit (Mar 19)
+
+- ✅ Updated backend dependency constraints:
+  - `backend/requirements.txt` → `werkzeug>=3.1.6`
+  - `backend/requirements-dev.txt` → `pypdf>=6.9.1`, `werkzeug>=3.1.6`
+- ✅ Re-audited backend environment with `pip_audit`:
+  - previous findings: 4 vulnerable packages (`pip`, `PyJWT`, `pypdf`, `werkzeug`)
+  - current findings: 1 vulnerable package (`pip` tooling package in local virtualenv)
+  - `PyJWT`, `pypdf`, and `werkzeug` findings resolved in the audited environment
+
 ---
 
 ## 🚀 v1.18.13 Release Preparation Snapshot (March 17, 2026)
