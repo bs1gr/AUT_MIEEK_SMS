@@ -2,16 +2,16 @@
 
 **Current Version**: 1.18.14 (pre-release prep)
 **Last Updated**: March 19, 2026
-**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | 🚧 **`v1.18.14` RELEASE PREPARATION IN PROGRESS**
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.14` RELEASE PUBLISHED (maintenance/hardening line)**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **First Official Public Release Published | Post-Publication Hardening & Documentation Alignment**
 **Current Branch**: `main` (HEAD: 84405d5f7 - fix(deps-dev): bump flatted lockfile to 3.4.2)
 
 ---
 
-## 🚀 v1.18.14 Release Preparation Snapshot (March 19, 2026)
+## 🚀 v1.18.14 Release Publication Snapshot (March 19, 2026)
 
-**Status**: ✅ **PREP + VALIDATION COMPLETE | TAG/PUBLISH PENDING**
+**Status**: ✅ **PUBLISHED + VERIFIED**
 
 - ✅ Version metadata aligned to `v1.18.14` (`VERSION`, `frontend/package.json`, key docs/script references)
 - ✅ Release docs prepared:
@@ -29,9 +29,15 @@
   - Signature: `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
   - SHA256: `78B10CA0D5A4F9E8C2A46C29ADBC4210BF66C275165E0678DC44CA55C898E9D6`
 - ✅ Snapshot evidence recorded: `artifacts/state/STATE_2026-03-19_204251.md`
-- ⏳ Pending before publish:
-  - release-prep commit (scoped files only)
-  - tag creation + release workflow verification
+- ✅ Release-prep commit created and pushed: `a69644838`
+- ✅ Tag `v1.18.14` created/pushed and release workflow chain executed:
+  - `Create GitHub Release on tag` run `23313536112` (success)
+  - `Release - Build & Upload Installer (GitHub Digest)` run `23313558162` (success)
+- ✅ Published release: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.14`
+- ✅ Published installer asset verified post-publish:
+  - `SMS_Installer_1.18.14.exe`
+  - digest metadata `sha256:63dfccbe64f8a9cecc3089780e004bdac9139234a333805c3c84e2b81c88816a`
+  - downloaded-signature status `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
 
 ---
 

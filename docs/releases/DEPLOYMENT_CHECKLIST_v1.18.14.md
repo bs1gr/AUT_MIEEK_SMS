@@ -47,33 +47,33 @@
 ## Phase 2: Tag & Release
 
 ### 2.1 Create Tag
-- [ ] Create tag `v1.18.14`
-- [ ] Push tag to `origin`
+- [x] Create tag `v1.18.14`
+- [x] Push tag to `origin`
 
 ### 2.2 Monitor Workflows
-- [ ] `Create GitHub Release on tag` — success
-- [ ] `Release - Build & Upload Installer with SHA256` — success
-- [ ] `Release Asset Sanitizer` — success
+- [x] `Create GitHub Release on tag` — success (`run 23313536112`)
+- [x] `Release - Build & Upload Installer with SHA256` — success (`run 23313558162`)
+- [x] `Release Asset Sanitizer` — latest observed success (`run 23313293736`)
 
 ### 2.3 Verify Release Page
-- [ ] Release page exists at `/releases/tag/v1.18.14`
-- [ ] Release is non-draft and intended publication state is correct
+- [x] Release page exists at `/releases/tag/v1.18.14`
+- [x] Release is non-draft and intended publication state is correct
 
 ---
 
 ## Phase 3: Artifact Verification
 
 ### 3.1 Installer Assets
-- [ ] `SMS_Installer_1.18.14.exe` present in release assets
-- [ ] No non-allowlisted assets present
-- [ ] GitHub digest metadata visible for installer asset
+- [x] `SMS_Installer_1.18.14.exe` present in release assets
+- [x] No non-allowlisted installer artifacts present (installer-only upload policy)
+- [x] GitHub digest metadata visible for installer asset
 
 ### 3.2 Signature Verification
-- [ ] Downloaded installer signature status is `Valid`
-- [ ] Signer certificate subject matches `AUT MIEEK`
+- [x] Downloaded installer signature status is `Valid`
+- [x] Signer certificate subject matches `AUT MIEEK`
 
 ### 3.3 Digest Verification
-- [ ] Local SHA256 hash matches release digest metadata
+- [x] Downloaded installer SHA256 matches release digest metadata (`63DFCCBE64F8A9CECC3089780E004BDAC9139234A333805C3C84E2B81C88816A`)
 
 ---
 

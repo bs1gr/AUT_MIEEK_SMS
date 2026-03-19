@@ -29,5 +29,3 @@
 - `docs/releases/RELEASE_NOTES_v1.18.14.md`
 - `docs/releases/RELEASE_MANIFEST_v1.18.14.md`
 - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.14.md`
-
-

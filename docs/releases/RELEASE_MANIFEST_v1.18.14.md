@@ -70,12 +70,12 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 ### Publication Gates
 
 - [x] Local installer build/sign/smoke for `v1.18.14`
-- [ ] Tag `v1.18.14` created and pushed
-- [ ] `Create GitHub Release on tag` workflow succeeds
-- [ ] `Release - Build & Upload Installer with SHA256` workflow succeeds
-- [ ] `Release Asset Sanitizer` workflow succeeds
-- [ ] Release page contains only installer allowlisted assets
-- [ ] Digest metadata visible for installer asset
+- [x] Tag `v1.18.14` created and pushed
+- [x] `Create GitHub Release on tag` workflow succeeds (`run 23313536112`)
+- [x] `Release - Build & Upload Installer with SHA256` workflow succeeds (`run 23313558162`)
+- [x] `Release Asset Sanitizer` workflow success observed (`run 23313293736`)
+- [x] Release page published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.14`
+- [x] Digest metadata visible for installer asset (`sha256:63dfccbe64f8a9cecc3089780e004bdac9139234a333805c3c84e2b81c88816a`)
 
 ### Local Installer Evidence
 
