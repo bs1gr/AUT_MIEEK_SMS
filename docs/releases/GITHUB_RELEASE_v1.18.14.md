@@ -16,6 +16,7 @@
 - Frontend audit: **0 vulnerabilities**.
 - Backend environment audit (`pip_audit`): **no known vulnerabilities**.
 - Installer build/sign/smoke: **passed** (`SMS_Installer_1.18.14.exe`, signature `Valid`, SHA256 `78B10CA0D5A4F9E8C2A46C29ADBC4210BF66C275165E0678DC44CA55C898E9D6`).
+- Post-publication security refresh: **Trivy rerun succeeded** and GitHub code scanning shows **0 open alerts**.
 
 ### Installation
 

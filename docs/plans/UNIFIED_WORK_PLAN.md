@@ -5,7 +5,7 @@
 **Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.14` RELEASE PUBLISHED (maintenance/hardening line)**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **First Official Public Release Published | Post-Publication Hardening & Documentation Alignment**
-**Current Branch**: `main` (HEAD: 84405d5f7 - fix(deps-dev): bump flatted lockfile to 3.4.2)
+**Current Branch**: `main` (HEAD: c13ceec5e - docs(release): record v1.18.14 publication verification evidence)
 
 ---
 
@@ -43,7 +43,7 @@
 
 ## 🔐 Security Code-Scanning + PR Remediation Snapshot (March 19, 2026)
 
-**Status**: ✅ **IMPLEMENTED + VERIFIED LOCALLY (awaiting push/merge action)**
+**Status**: ✅ **IMPLEMENTED + VERIFIED LOCALLY + CLEARED IN GITHUB SECURITY**
 
 - ✅ Reviewed public PR surface: open dependency PR `#169` (`socket.io-parser` bump).
 - ✅ Reviewed latest local code-scanning artifact summary (`artifacts/code_scanning_open_summary_2026-03-10.json`):
@@ -59,6 +59,10 @@
   - `backend/tests/test_control_database_credentials.py` (`download` traversal rejection).
 - ✅ PR/dependency alignment implemented locally:
   - `frontend/package-lock.json` now resolves `socket.io-parser@4.2.6`.
+- ✅ Remaining Trivy dependency alert `#1681` (`CVE-2026-32597`, `PyJWT`) confirmed stale against older commit `47538bbe4`.
+- ✅ Current `main` already pins `PyJWT==2.12.0` in both `backend/requirements.txt` and `pyproject.toml`.
+- ✅ Manual refresh completed by dispatching `.github/workflows/trivy-scan.yml` on `main`.
+- ✅ GitHub code scanning now reports zero open alerts; alert `#1681` transitioned to `fixed` at `2026-03-19T20:00:37Z`.
 
 ### Verification Evidence (Mar 19)
 
@@ -80,6 +84,9 @@
   - previous findings: 4 vulnerable packages (`pip`, `PyJWT`, `pypdf`, `werkzeug`)
   - current findings: 1 vulnerable package (`pip` tooling package in local virtualenv)
   - `PyJWT`, `pypdf`, and `werkzeug` findings resolved in the audited environment
+- ✅ Post-refresh evidence recorded:
+  - Trivy workflow run `23314331549` (success on `main` @ `c13ceec5e`)
+  - state snapshot `artifacts/state/STATE_2026-03-19_220131.md`
 
 ---
 

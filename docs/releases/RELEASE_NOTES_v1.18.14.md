@@ -1,7 +1,7 @@
 # Release Notes - Version 1.18.14
 
-**Status**: Release preparation in progress
-**Release Date (target)**: 2026-03-19
+**Status**: Published and verified
+**Release Date**: 2026-03-19
 **Previous Version**: v1.18.13
 **Scope Baseline**: `v1.18.13..HEAD`
 
@@ -40,7 +40,7 @@
 
 ---
 
-## Verification Status (pre-release)
+## Verification Status
 
 - [x] Backend focused tests passed (`25 passed`):
   - `backend/tests/test_database_manager_security.py`
@@ -58,4 +58,14 @@
   - `dist/SMS_Installer_1.18.14.exe`
   - Signature: `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
   - SHA256: `78B10CA0D5A4F9E8C2A46C29ADBC4210BF66C275165E0678DC44CA55C898E9D6`
-- [ ] Tag creation + release workflow verification
+- [x] Tag creation + release workflow verification
+  - `Create GitHub Release on tag` (`run 23313536112`) — success
+  - `Release - Build & Upload Installer (GitHub Digest)` (`run 23313558162`) — success
+  - Published installer digest verified: `sha256:63dfccbe64f8a9cecc3089780e004bdac9139234a333805c3c84e2b81c88816a`
+
+## Post-Publication Follow-up
+
+- [x] Published installer signature re-verified from downloaded release asset (`Valid`)
+- [x] GitHub code scanning refreshed on `main` via `Trivy Security Scan` (`run 23314331549`)
+- [x] Stale dependency alert `#1681` (`CVE-2026-32597`, `PyJWT`) confirmed fixed after rescan
+- [x] Follow-up snapshot recorded: `artifacts/state/STATE_2026-03-19_220131.md`

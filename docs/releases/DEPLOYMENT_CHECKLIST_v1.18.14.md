@@ -79,6 +79,8 @@
 
 ## Phase 4: Post-Release Documentation
 
-- [ ] `CHANGELOG.md` released-state review completed for `1.18.14`
-- [ ] `docs/plans/UNIFIED_WORK_PLAN.md` release status updated
-- [ ] `docs/DOCUMENTATION_INDEX.md` publication-state references reviewed
+- [x] `CHANGELOG.md` released-state review completed for `1.18.14`
+- [x] `docs/plans/UNIFIED_WORK_PLAN.md` release status updated
+- [x] `docs/DOCUMENTATION_INDEX.md` publication-state references reviewed
+- [x] Post-release security refresh completed (`Trivy Security Scan` run `23314331549`)
+- [x] GitHub security state rechecked: zero open code-scanning alerts; stale alert `#1681` fixed at `2026-03-19T20:00:37Z`

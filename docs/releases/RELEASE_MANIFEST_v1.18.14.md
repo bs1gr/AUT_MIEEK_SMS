@@ -1,6 +1,6 @@
 # Release Manifest - Version 1.18.14
 
-**Release Date (target)**: March 19, 2026
+**Release Date**: March 19, 2026
 **Tag**: v1.18.14
 **Branch**: main
 **Previous Tag**: v1.18.13
@@ -40,7 +40,8 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 ## 📋 Commit Range
 
 **Base Tag**: v1.18.13
-**Head Commit (prep)**: `84405d5f7`
+**Head Commit (prep)**: `a69644838`
+**Post-Publication Evidence Commit**: `c13ceec5e`
 
 ### Scope Highlights
 
@@ -76,6 +77,8 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 - [x] `Release Asset Sanitizer` workflow success observed (`run 23313293736`)
 - [x] Release page published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.14`
 - [x] Digest metadata visible for installer asset (`sha256:63dfccbe64f8a9cecc3089780e004bdac9139234a333805c3c84e2b81c88816a`)
+- [x] Post-release Trivy refresh succeeded (`run 23314331549` on `main` @ `c13ceec5e`)
+- [x] GitHub code scanning rechecked: zero open alerts; stale `PyJWT` alert `#1681` marked `fixed`
 
 ### Local Installer Evidence
 
@@ -83,3 +86,8 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 - Signature status: `Valid`
 - Signer: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
 - SHA256: `78B10CA0D5A4F9E8C2A46C29ADBC4210BF66C275165E0678DC44CA55C898E9D6`
+
+### Post-Publication Evidence
+
+- State snapshot: `artifacts/state/STATE_2026-03-19_220131.md`
+- Security refresh result: alert `#1681` (`CVE-2026-32597`, `PyJWT`) cleared after rescan
