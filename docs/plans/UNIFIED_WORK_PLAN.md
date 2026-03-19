@@ -1,11 +1,37 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.13 (pre-release prep)
-**Last Updated**: March 17, 2026
-**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | 🚧 **`v1.18.13` RELEASE PREPARATION IN PROGRESS**
+**Current Version**: 1.18.14 (pre-release prep)
+**Last Updated**: March 19, 2026
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | 🚧 **`v1.18.14` RELEASE PREPARATION IN PROGRESS**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: **First Official Public Release Published | Post-Publication Hardening & Documentation Alignment**
-**Current Branch**: `main` (HEAD: 0d65f157c - fix(reports): resolve mypy typing and align GPA header assertion)
+**Current Branch**: `main` (HEAD: 84405d5f7 - fix(deps-dev): bump flatted lockfile to 3.4.2)
+
+---
+
+## 🚀 v1.18.14 Release Preparation Snapshot (March 19, 2026)
+
+**Status**: ✅ **PREP + VALIDATION COMPLETE | TAG/PUBLISH PENDING**
+
+- ✅ Version metadata aligned to `v1.18.14` (`VERSION`, `frontend/package.json`, key docs/script references)
+- ✅ Release docs prepared:
+  - `docs/releases/RELEASE_NOTES_v1.18.14.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.14.md`
+  - `.github/RELEASE_NOTES_v1.18.14.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.14.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.14.md`
+- ✅ Security/dependency verification completed:
+  - backend targeted security tests (`25 passed`)
+  - backend batch-run (`34/34` batches)
+  - frontend full Vitest (`112 files`, `1900 tests`)
+  - `npm audit` clean and `pip_audit` clean in verified environment
+- ✅ Installer-first validation completed for `dist/SMS_Installer_1.18.14.exe`
+  - Signature: `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
+  - SHA256: `78B10CA0D5A4F9E8C2A46C29ADBC4210BF66C275165E0678DC44CA55C898E9D6`
+- ✅ Snapshot evidence recorded: `artifacts/state/STATE_2026-03-19_204251.md`
+- ⏳ Pending before publish:
+  - release-prep commit (scoped files only)
+  - tag creation + release workflow verification
 
 ---
 

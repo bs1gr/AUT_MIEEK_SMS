@@ -1,8 +1,8 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-17
-**Project Version (documented)**: 1.18.13
-**Version**: 1.18.13
+**Last Updated**: 2026-03-19
+**Project Version (documented)**: 1.18.14
+**Version**: 1.18.14
 **Current Branch**: `main`
 **Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ⚠️ **EARLIER `v1.18.x` RELEASES REMAIN ARCHIVED AS PRERELEASES**
 
@@ -70,7 +70,7 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[README.md](../README.md)** - Main project documentation, features, quick start
 - **[UNIFIED_WORK_PLAN.md](plans/UNIFIED_WORK_PLAN.md)** - Current task list and project roadmap
 - **[ACTIVE_WORK_STATUS.md](ACTIVE_WORK_STATUS.md)** - Historical compatibility stub; do not use for active planning
-- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2026-03-17)
+- **[CHANGELOG.md](../CHANGELOG.md)** - Version history and release notes (Updated 2026-03-19)
 
 ### Audit & Improvement Planning (1.15.0 - COMPLETE ✅)
 

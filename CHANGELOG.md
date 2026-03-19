@@ -9,6 +9,27 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.18.14] - 2026-03-19
+
+### Bug Fixes
+- **deps-dev**: bump flatted lockfile to 3.4.2
+- **deps**: raise werkzeug and pypdf minimums after audit
+- **security**: harden control path validation and align parser lockfile
+- **frontend**: fix TS2322 group_by type error and enforce tsc in quick mode
+- **deps**: revert unresolvable CVE pin constraints to latest installable versions
+- **security**: bump pyjwt to 2.12.0
+
+### Security
+- fix flatted GHSA-25h7-pfq9-p65f and sync requirements.txt CVE pins
+- update cryptography (GHSA-r6ph-v2qm-q3c2) and python-multipart (CVE-2024-24762)
+
+### Verification
+- backend targeted security validation passed (`25 passed`)
+- backend batch validation passed (`34/34` batches)
+- frontend full Vitest passed (`112 files`, `1900 tests`)
+- dependency audits clean (`npm audit`: 0 vulnerabilities; `pip_audit`: no known vulnerabilities in verified environment)
+
 ## [1.18.13] - 2026-03-17
 
 ### Features
@@ -55,63 +76,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
-### Security & Dependency Remediation (2026-03-19)
-- **security/code-scanning hardening**:
-  - added explicit trust-boundary validation for backup filenames in
-    `backend/services/database_manager.py` (`delete_backup`, `get_backup_path`, `restore_backup`),
-  - added explicit route-level backup filename validation in
-    `backend/routers/control/database.py` for download/delete/restore endpoints,
-  - tightened updater status endpoint invalid-ID handling in
-    `backend/routers/control/maintenance.py` to fail closed before any path sync.
-- **tests**:
-  - added traversal regression coverage for control database download endpoint in
-    `backend/tests/test_control_database_credentials.py`.
-- **dependency/PR alignment**:
-  - updated `frontend/package-lock.json` to bump transitive `socket.io-parser` from `4.2.5` to `4.2.6`
-    (aligns with open dependency PR scope).
-
-### Backend Dependency Hardening (2026-03-19, follow-up)
-- **requirements constraints updated**:
-  - `backend/requirements.txt`: `werkzeug>=3.1.6`
-  - `backend/requirements-dev.txt`: `pypdf>=6.9.1`, `werkzeug>=3.1.6`
-- **audit delta**:
-  - `pip_audit` findings reduced from 4 affected packages to 1 (`pip` toolchain package in local venv only).
-  - project/runtime manifests no longer report `PyJWT`, `pypdf`, or `werkzeug` vulnerability findings in the audited environment.
-
-### Verification Evidence (2026-03-19)
-- Backend focused tests passed (`25 passed`) for:
-  - `backend/tests/test_database_manager_security.py`
-  - `backend/tests/test_control_database_credentials.py`
-  - `backend/tests/test_control_maintenance.py`
-- Frontend full Vitest suite passed (`112 files`, `1900 tests`)
-  - log: `test-results/frontend_vitest_batch_20260319_165300.txt`
-- Backend batch-run evidence present (`34/34 batches`) from:
-  - `test-results/backend_batch_run_20260319_162940.txt`
-
-### Reviewed Baseline
-- Change review performed against `v1.18.12..HEAD` (34 commits, 192 files changed).
-
-### Added
-- **reports/backend**: add report `group_by` support including GPA fields and updated label handling in generation/export flows.
-- **reports/frontend**: add report-builder/list coverage for grouping workflows and custom report interactions.
-- **native-launcher**: add desktop-native toggle tooling (`NATIVE_TOGGLE.ps1`, `NATIVE_TOGGLE.cmd`, shortcut helper) and related documentation wiring.
-- **testing-workflows**: add unified `RUN_FRONTEND_TESTS.ps1` wrapper and retire duplicate simple/summary runners.
-
-### Changed
-- **reports data pipeline**:
-  - fix empty report-cell root cause in report data assembly,
-  - improve joined-load coverage for custom reports,
-  - populate course breakdown from nested attendance/grades/score data,
-  - include course notes in PDF/CSV exports,
-  - align PDF download and print behavior,
-  - normalize highlight category translation/prefix handling.
-- **custom report UX**: improve panel expansion behavior, history toggles, and report generation payload alignment across frontend/backend hooks.
-- **native runtime**: harden startup fallback-port/proxy-port routing and reduce false startup blocks when backend health is already valid.
-- **qnap postgres-only path**: harden install/manage scripts with stronger preflight checks, safer backup validation, and docs/env alignment for PostgreSQL-first deployment.
-
-### Fixed
-- **security/path handling**: tighten backup path containment and reduce sensitive backup metadata exposure.
-- **reports typing/tests**: resolve mypy typing around grouped fields and align GPA CSV header expectations in report-generation tests.
+- No unreleased changes.
 
 ## [1.18.12] - 2026-03-10
 
