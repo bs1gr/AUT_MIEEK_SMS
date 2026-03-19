@@ -518,8 +518,14 @@ def list_backups(instance_name: str | None = None) -> list[dict[str, Any]]:
 
 def delete_backup(filename: str) -> bool:
     """Delete a backup file and its metadata."""
+    # CodeQL [python/path-injection]: Safe - validate route input at boundary,
+    # then resolve strictly within backup directory.
     try:
-        filepath = _find_existing_backup_path(filename)
+        safe_filename = _validate_backup_filename(filename)
+    except ValueError as exc:
+        raise ValueError("Invalid backup filename") from exc
+    try:
+        filepath = _find_existing_backup_path(safe_filename)
     except ValueError:
         raise ValueError("Invalid backup filename")
 
@@ -536,8 +542,14 @@ def delete_backup(filename: str) -> bool:
 
 def get_backup_path(filename: str) -> Path | None:
     """Get the full path to a backup file for download."""
+    # CodeQL [python/path-injection]: Safe - validate route input at boundary,
+    # then resolve strictly within backup directory.
     try:
-        filepath = _find_existing_backup_path(filename)
+        safe_filename = _validate_backup_filename(filename)
+    except ValueError:
+        return None
+    try:
+        filepath = _find_existing_backup_path(safe_filename)
     except ValueError:
         return None
     if filepath is None or not filepath.exists():
@@ -556,15 +568,22 @@ def restore_backup(instance: dict[str, Any], filename: str) -> dict[str, Any]:
     Uses psql subprocess when available, otherwise psycopg execute.
     Only supports uncompressed .sql files or .sql.gz (auto-decompressed).
     """
+    # CodeQL [python/path-injection]: Safe - validate route input at boundary,
+    # then resolve strictly within backup directory.
     try:
-        filepath = _find_existing_backup_path(filename)
+        safe_filename = _validate_backup_filename(filename)
+    except ValueError as exc:
+        raise ValueError("Invalid backup filename") from exc
+
+    try:
+        filepath = _find_existing_backup_path(safe_filename)
     except ValueError:
         raise ValueError("Invalid backup filename")
     if filepath is None or not filepath.exists():
-        raise FileNotFoundError(f"Backup file not found: {filename}")
+        raise FileNotFoundError(f"Backup file not found: {safe_filename}")
 
     # Read SQL content
-    if filename.endswith(".gz"):
+    if filepath.name.endswith(".gz"):
         with gzip.open(filepath, "rt", encoding="utf-8") as f:
             sql_content = f.read()
     else:

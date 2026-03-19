@@ -55,6 +55,31 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ## [Unreleased]
 
+### Security & Dependency Remediation (2026-03-19)
+- **security/code-scanning hardening**:
+  - added explicit trust-boundary validation for backup filenames in
+    `backend/services/database_manager.py` (`delete_backup`, `get_backup_path`, `restore_backup`),
+  - added explicit route-level backup filename validation in
+    `backend/routers/control/database.py` for download/delete/restore endpoints,
+  - tightened updater status endpoint invalid-ID handling in
+    `backend/routers/control/maintenance.py` to fail closed before any path sync.
+- **tests**:
+  - added traversal regression coverage for control database download endpoint in
+    `backend/tests/test_control_database_credentials.py`.
+- **dependency/PR alignment**:
+  - updated `frontend/package-lock.json` to bump transitive `socket.io-parser` from `4.2.5` to `4.2.6`
+    (aligns with open dependency PR scope).
+
+### Verification Evidence (2026-03-19)
+- Backend focused tests passed (`25 passed`) for:
+  - `backend/tests/test_database_manager_security.py`
+  - `backend/tests/test_control_database_credentials.py`
+  - `backend/tests/test_control_maintenance.py`
+- Frontend full Vitest suite passed (`112 files`, `1900 tests`)
+  - log: `test-results/frontend_vitest_batch_20260319_165300.txt`
+- Backend batch-run evidence present (`34/34 batches`) from:
+  - `test-results/backend_batch_run_20260319_162940.txt`
+
 ### Reviewed Baseline
 - Change review performed against `v1.18.12..HEAD` (34 commits, 192 files changed).
 

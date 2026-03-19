@@ -9,6 +9,38 @@
 
 ---
 
+## 🔐 Security Code-Scanning + PR Remediation Snapshot (March 19, 2026)
+
+**Status**: ✅ **IMPLEMENTED + VERIFIED LOCALLY (awaiting push/merge action)**
+
+- ✅ Reviewed public PR surface: open dependency PR `#169` (`socket.io-parser` bump).
+- ✅ Reviewed latest local code-scanning artifact summary (`artifacts/code_scanning_open_summary_2026-03-10.json`):
+  - 17 open alerts previously mapped to:
+    - `backend/services/database_manager.py` (14)
+    - `backend/routers/control/maintenance.py` (2)
+    - `backend/routers/control/database.py` (1)
+- ✅ Applied hardening updates:
+  - explicit boundary validation in `database_manager.py` for backup filename entry points,
+  - explicit route-level filename validation in `routers/control/database.py`,
+  - fail-closed invalid updater job-id behavior in `routers/control/maintenance.py`.
+- ✅ Added regression test:
+  - `backend/tests/test_control_database_credentials.py` (`download` traversal rejection).
+- ✅ PR/dependency alignment implemented locally:
+  - `frontend/package-lock.json` now resolves `socket.io-parser@4.2.6`.
+
+### Verification Evidence (Mar 19)
+
+- ✅ Targeted backend tests passed (`25 passed`):
+  - `backend/tests/test_database_manager_security.py`
+  - `backend/tests/test_control_database_credentials.py`
+  - `backend/tests/test_control_maintenance.py`
+- ✅ Frontend full Vitest passed (`112 files`, `1900 tests`):
+  - `test-results/frontend_vitest_batch_20260319_165300.txt`
+- ✅ Backend batch-run evidence present (`34/34 batches`):
+  - `test-results/backend_batch_run_20260319_162940.txt`
+
+---
+
 ## 🚀 v1.18.13 Release Preparation Snapshot (March 17, 2026)
 
 **Status**: ✅ **PREP + VALIDATION COMPLETE | TAG/PUBLISH PENDING**

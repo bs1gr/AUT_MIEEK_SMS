@@ -20,6 +20,7 @@ from pydantic import BaseModel, Field
 
 from backend.control_auth import require_control_admin
 from backend.services.database_manager import (
+    _validate_backup_filename,
     _find_instance,
     check_instance_health,
     create_backup,
@@ -226,7 +227,14 @@ async def download_backup(
     _auth=Depends(require_control_admin),
 ):
     """Download a backup file."""
-    path = get_backup_path(filename)
+    # CodeQL [python/path-injection]: Safe - validate route input before any
+    # filesystem lookup and rely on service-side path containment checks.
+    try:
+        safe_filename = _validate_backup_filename(filename)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    path = get_backup_path(safe_filename)
     if path is None:
         raise HTTPException(status_code=404, detail="Backup file not found")
 
@@ -246,11 +254,18 @@ async def delete_database_backup(
     _auth=Depends(require_control_admin),
 ):
     """Delete a backup file."""
+    # CodeQL [python/path-injection]: Safe - validate route input before any
+    # filesystem lookup and rely on service-side path containment checks.
     try:
-        deleted = delete_backup(filename)
+        safe_filename = _validate_backup_filename(filename)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+    try:
+        deleted = delete_backup(safe_filename)
         if not deleted:
             raise HTTPException(status_code=404, detail="Backup file not found")
-        return {"success": True, "message": f"Backup '{filename}' deleted"}
+        return {"success": True, "message": f"Backup '{safe_filename}' deleted"}
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
@@ -263,9 +278,16 @@ async def restore_database_backup(
     _auth=Depends(require_control_admin),
 ):
     """Restore a backup to a database instance."""
+    # CodeQL [python/path-injection]: Safe - validate route input before any
+    # filesystem lookup and rely on service-side path containment checks.
+    try:
+        safe_filename = _validate_backup_filename(filename)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
     try:
         inst = _find_instance(instance_name)
-        result = restore_backup(inst, filename)
+        result = restore_backup(inst, safe_filename)
         return RestoreResult(**result)
     except HTTPException:
         raise

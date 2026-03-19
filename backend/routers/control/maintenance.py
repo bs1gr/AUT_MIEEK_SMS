@@ -1002,7 +1002,15 @@ def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends
     try:
         safe_job_id = _validate_auto_update_job_id(job_id)
     except ValueError:
-        safe_job_id = job_id
+        return AutoUpdateStatusResponse(
+            job_id=job_id,
+            status="not_found",
+            phase="not_found",
+            progress_percent=0,
+            message="No updater job found for the requested id.",
+            error="not_found",
+            phase_history=[],
+        )
 
     _sync_job_from_host_updater_status(safe_job_id)
     job = _get_auto_update_job(safe_job_id)
