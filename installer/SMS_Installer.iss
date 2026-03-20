@@ -241,11 +241,16 @@ var
   DockerInfoLabel: TLabel;
   RefreshButton: TButton;
   PostgresPage: TWizardPage;
+  DbProfileInfoLabel: TLabel;
+  LocalSQLiteRadio: TRadioButton;
+  QnapPostgresRadio: TRadioButton;
+  QnapConfigLabel: TLabel;
   PgHostEdit: TEdit;
   PgPortEdit: TEdit;
   PgDbEdit: TEdit;
   PgUserEdit: TEdit;
   PgPassEdit: TEdit;
+  PgSslLabel: TLabel;
   PgSslEdit: TComboBox;
   DockerBuildPage: TWizardPage;
   DockerBuildStatusLabel: TLabel;
@@ -259,6 +264,7 @@ var
   PgUser: String;
   PgPass: String;
   PgSsl: String;
+  SelectedDatabaseProfile: String;
 
 // Forward declarations
 function UrlEncode(const S: String): String; forward;
@@ -266,6 +272,7 @@ function StringReplaceAll(const Source, OldPattern, NewPattern: AnsiString): Ans
 function TestPostgresTcpConnection(Host: String; Port: String): Boolean; forward;
 function TestDockerReady: Boolean; forward;
 function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
+procedure UpdateDatabaseProfileUI(Sender: TObject); forward;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -787,9 +794,102 @@ begin
 
   UpdateDockerStatus(nil);
 
-  // External PostgreSQL page removed in v1.18.1 integrity sweep.
-  // PostgreSQL setup and migration are handled automatically by DOCKER.ps1.
-  PostgresPage := nil;
+  // Database profile page (Local SQLite vs QNAP PostgreSQL)
+  PostgresPage := CreateCustomPage(DockerPage.ID,
+    'Database Configuration',
+    'Choose local SQLite or connect to your QNAP PostgreSQL database.');
+
+  DbProfileInfoLabel := TLabel.Create(PostgresPage);
+  DbProfileInfoLabel.Parent := PostgresPage.Surface;
+  DbProfileInfoLabel.Left := 0;
+  DbProfileInfoLabel.Top := 10;
+  DbProfileInfoLabel.Width := PostgresPage.SurfaceWidth;
+  DbProfileInfoLabel.Height := 42;
+  DbProfileInfoLabel.WordWrap := True;
+  DbProfileInfoLabel.Caption :=
+    'Recommended for laptops: Local SQLite. Choose QNAP PostgreSQL only if your NAS DB is already configured and reachable.';
+
+  LocalSQLiteRadio := TRadioButton.Create(PostgresPage);
+  LocalSQLiteRadio.Parent := PostgresPage.Surface;
+  LocalSQLiteRadio.Left := 0;
+  LocalSQLiteRadio.Top := 58;
+  LocalSQLiteRadio.Width := PostgresPage.SurfaceWidth;
+  LocalSQLiteRadio.Caption := 'Local SQLite (single-machine, easiest setup)';
+  LocalSQLiteRadio.Checked := True;
+  LocalSQLiteRadio.OnClick := @UpdateDatabaseProfileUI;
+
+  QnapPostgresRadio := TRadioButton.Create(PostgresPage);
+  QnapPostgresRadio.Parent := PostgresPage.Surface;
+  QnapPostgresRadio.Left := 0;
+  QnapPostgresRadio.Top := 84;
+  QnapPostgresRadio.Width := PostgresPage.SurfaceWidth;
+  QnapPostgresRadio.Caption := 'QNAP PostgreSQL (shared NAS database)';
+  QnapPostgresRadio.OnClick := @UpdateDatabaseProfileUI;
+
+  QnapConfigLabel := TLabel.Create(PostgresPage);
+  QnapConfigLabel.Parent := PostgresPage.Surface;
+  QnapConfigLabel.Left := 0;
+  QnapConfigLabel.Top := 114;
+  QnapConfigLabel.Width := PostgresPage.SurfaceWidth;
+  QnapConfigLabel.Height := 18;
+  QnapConfigLabel.Caption := 'QNAP PostgreSQL connection settings:';
+  QnapConfigLabel.Font.Style := [fsBold];
+
+  PgHostEdit := TEdit.Create(PostgresPage);
+  PgHostEdit.Parent := PostgresPage.Surface;
+  PgHostEdit.Left := 0;
+  PgHostEdit.Top := 138;
+  PgHostEdit.Width := 300;
+  PgHostEdit.Text := 'qnap.local';
+
+  PgPortEdit := TEdit.Create(PostgresPage);
+  PgPortEdit.Parent := PostgresPage.Surface;
+  PgPortEdit.Left := 312;
+  PgPortEdit.Top := 138;
+  PgPortEdit.Width := 90;
+  PgPortEdit.Text := '5432';
+
+  PgDbEdit := TEdit.Create(PostgresPage);
+  PgDbEdit.Parent := PostgresPage.Surface;
+  PgDbEdit.Left := 0;
+  PgDbEdit.Top := 168;
+  PgDbEdit.Width := 200;
+  PgDbEdit.Text := 'student_management';
+
+  PgUserEdit := TEdit.Create(PostgresPage);
+  PgUserEdit.Parent := PostgresPage.Surface;
+  PgUserEdit.Left := 212;
+  PgUserEdit.Top := 168;
+  PgUserEdit.Width := 190;
+  PgUserEdit.Text := 'sms_user';
+
+  PgPassEdit := TEdit.Create(PostgresPage);
+  PgPassEdit.Parent := PostgresPage.Surface;
+  PgPassEdit.Left := 0;
+  PgPassEdit.Top := 198;
+  PgPassEdit.Width := 300;
+  PgPassEdit.PasswordChar := '*';
+
+  PgSslLabel := TLabel.Create(PostgresPage);
+  PgSslLabel.Parent := PostgresPage.Surface;
+  PgSslLabel.Left := 312;
+  PgSslLabel.Top := 202;
+  PgSslLabel.Width := 90;
+  PgSslLabel.Caption := 'SSL mode';
+
+  PgSslEdit := TComboBox.Create(PostgresPage);
+  PgSslEdit.Parent := PostgresPage.Surface;
+  PgSslEdit.Left := 312;
+  PgSslEdit.Top := 218;
+  PgSslEdit.Width := 90;
+  PgSslEdit.Style := csDropDownList;
+  PgSslEdit.Items.Add('disable');
+  PgSslEdit.Items.Add('prefer');
+  PgSslEdit.Items.Add('require');
+  PgSslEdit.ItemIndex := 1;
+
+  LoadPostgresDefaults;
+  UpdateDatabaseProfileUI(nil);
 
   // Create Docker build progress page (AFTER file copy, before finish)
   DockerBuildPage := CreateCustomPage(wpInstalling + 1, 'Completing Installation', 'Building SMS Docker container. This may take several minutes on first install.');
@@ -835,10 +935,75 @@ begin
   end;
 end;
 
+function UpsertEnvValue(const Content, Key, Value: String): String;
+var
+  Lines: TStringList;
+  i: Integer;
+  Prefix: String;
+  Trimmed: String;
+  Found: Boolean;
+begin
+  Lines := TStringList.Create;
+  try
+    Lines.Text := Content;
+    Prefix := Key + '=';
+    Found := False;
+
+    for i := 0 to Lines.Count - 1 do
+    begin
+      Trimmed := Trim(Lines[i]);
+      if Pos(Prefix, Trimmed) = 1 then
+      begin
+        Lines[i] := Prefix + Value;
+        Found := True;
+        Break;
+      end;
+    end;
+
+    if not Found then
+      Lines.Add(Prefix + Value);
+
+    Result := Lines.Text;
+  finally
+    Lines.Free;
+  end;
+end;
+
+procedure UpdateDatabaseProfileUI(Sender: TObject);
+var
+  IsQnapMode: Boolean;
+begin
+  IsQnapMode := QnapPostgresRadio.Checked;
+
+  QnapConfigLabel.Visible := IsQnapMode;
+  PgHostEdit.Visible := IsQnapMode;
+  PgPortEdit.Visible := IsQnapMode;
+  PgDbEdit.Visible := IsQnapMode;
+  PgUserEdit.Visible := IsQnapMode;
+  PgPassEdit.Visible := IsQnapMode;
+  PgSslLabel.Visible := IsQnapMode;
+  PgSslEdit.Visible := IsQnapMode;
+
+  if IsQnapMode then
+    SelectedDatabaseProfile := 'remote'
+  else
+    SelectedDatabaseProfile := 'local';
+end;
+
+function GetSelectedDatabaseProfileSummary: String;
+begin
+  if SelectedDatabaseProfile = 'remote' then
+    Result := 'Database profile: QNAP PostgreSQL (' + Trim(PgHostEdit.Text) + ':' + Trim(PgPortEdit.Text) + '/' + Trim(PgDbEdit.Text) + ')'
+  else
+    Result := 'Database profile: Local SQLite (embedded file database)';
+end;
+
 procedure LoadPostgresDefaults;
 var
   EnvPath: String;
   InstallDir: String;
+  ExistingProfile: String;
+  ExistingEngine: String;
 begin
   // Check if we're in an upgrade scenario with existing installation
   InstallDir := WizardDirValue;
@@ -847,7 +1012,24 @@ begin
 
   EnvPath := AddBackslash(InstallDir) + '.env';
   if not FileExists(EnvPath) then
+  begin
+    SelectedDatabaseProfile := 'local';
     Exit;  // No existing .env file to load from
+  end;
+
+  ExistingProfile := Lowercase(ReadEnvValue(EnvPath, 'SMS_DATABASE_PROFILE'));
+  ExistingEngine := Lowercase(ReadEnvValue(EnvPath, 'DATABASE_ENGINE'));
+
+  if (ExistingProfile = 'remote') or (ExistingEngine = 'postgresql') then
+  begin
+    QnapPostgresRadio.Checked := True;
+    SelectedDatabaseProfile := 'remote';
+  end
+  else
+  begin
+    LocalSQLiteRadio.Checked := True;
+    SelectedDatabaseProfile := 'local';
+  end;
 
   PgHost := ReadEnvValue(EnvPath, 'POSTGRES_HOST');
   PgPort := ReadEnvValue(EnvPath, 'POSTGRES_PORT');
@@ -878,57 +1060,52 @@ var
   EncUser: String;
   EncPass: String;
   EncDb: String;
-  DummyResult: Integer;
 begin
   InstallDir := GetInstallDirSafe;
   EnvPath := AddBackslash(InstallDir) + '.env';
   ExamplePath := AddBackslash(InstallDir) + '.env.example';
 
-  PgHost := Trim(PgHostEdit.Text);
-  PgPort := Trim(PgPortEdit.Text);
-  PgDb := Trim(PgDbEdit.Text);
-  PgUser := Trim(PgUserEdit.Text);
-  PgPass := Trim(PgPassEdit.Text);
-  PgSsl := PgSslEdit.Items[PgSslEdit.ItemIndex];
+  if FileExists(EnvPath) then
+    LoadStringFromFile(EnvPath, Content)
+  else if FileExists(ExamplePath) then
+    LoadStringFromFile(ExamplePath, Content)
+  else
+    Content := '';
 
-  EncUser := UrlEncode(PgUser);
-  EncPass := UrlEncode(PgPass);
-  EncDb := UrlEncode(PgDb);
-  DbUrl := 'postgresql://' + EncUser + ':' + EncPass + '@' + PgHost + ':' + PgPort + '/' + EncDb;
+  Content := UpsertEnvValue(Content, 'SMS_DEPLOYMENT_MODE', 'single');
 
-  if FileExists(ExamplePath) then
+  if LocalSQLiteRadio.Checked then
   begin
-    LoadStringFromFile(ExamplePath, Content);
-    Content := StringReplaceAll(Content, 'DATABASE_ENGINE=postgresql', 'DATABASE_ENGINE=postgresql');
-    if Pos('DATABASE_URL=', Content) = 0 then
-      Content := Content + #13#10 + 'DATABASE_URL=' + DbUrl + #13#10
-    else
-      Content := StringReplaceAll(Content, 'DATABASE_URL=', 'DATABASE_URL=' + DbUrl + #13#10);
-    Content := StringReplaceAll(Content, 'POSTGRES_HOST=postgres', 'POSTGRES_HOST=' + PgHost);
-    Content := StringReplaceAll(Content, 'POSTGRES_PORT=5432', 'POSTGRES_PORT=' + PgPort);
-    Content := StringReplaceAll(Content, 'POSTGRES_DB=student_management', 'POSTGRES_DB=' + PgDb);
-    Content := StringReplaceAll(Content, 'POSTGRES_USER=sms_user', 'POSTGRES_USER=' + PgUser);
-    if Pos('POSTGRES_PASSWORD=', Content) = 0 then
-      Content := Content + #13#10 + 'POSTGRES_PASSWORD=' + PgPass + #13#10
-    else begin
-      Content := StringReplaceAll(Content, 'POSTGRES_PASSWORD=CHANGE_ME_STRONG_PASSWORD_HERE', 'POSTGRES_PASSWORD=' + PgPass);
-      Content := StringReplaceAll(Content, 'POSTGRES_PASSWORD=SecurePassword2026!', 'POSTGRES_PASSWORD=' + PgPass);
-    end;
-    Content := StringReplaceAll(Content, 'POSTGRES_SSLMODE=prefer', 'POSTGRES_SSLMODE=' + PgSsl);
-    SaveStringToFile(EnvPath, Content, False);
+    Content := UpsertEnvValue(Content, 'SMS_DATABASE_PROFILE', 'local');
+    Content := UpsertEnvValue(Content, 'DATABASE_ENGINE', 'sqlite');
+    Content := UpsertEnvValue(Content, 'DATABASE_URL', 'sqlite:////data/student_management.db');
   end
   else
   begin
-    Content := 'DATABASE_ENGINE=postgresql' + #13#10 +
-      'DATABASE_URL=' + DbUrl + #13#10 +
-      'POSTGRES_HOST=' + PgHost + #13#10 +
-      'POSTGRES_PORT=' + PgPort + #13#10 +
-      'POSTGRES_DB=' + PgDb + #13#10 +
-      'POSTGRES_USER=' + PgUser + #13#10 +
-      'POSTGRES_PASSWORD=' + PgPass + #13#10 +
-      'POSTGRES_SSLMODE=' + PgSsl + #13#10;
-    SaveStringToFile(EnvPath, Content, False);
+    PgHost := Trim(PgHostEdit.Text);
+    PgPort := Trim(PgPortEdit.Text);
+    PgDb := Trim(PgDbEdit.Text);
+    PgUser := Trim(PgUserEdit.Text);
+    PgPass := Trim(PgPassEdit.Text);
+    PgSsl := PgSslEdit.Items[PgSslEdit.ItemIndex];
+
+    EncUser := UrlEncode(PgUser);
+    EncPass := UrlEncode(PgPass);
+    EncDb := UrlEncode(PgDb);
+    DbUrl := 'postgresql://' + EncUser + ':' + EncPass + '@' + PgHost + ':' + PgPort + '/' + EncDb;
+
+    Content := UpsertEnvValue(Content, 'SMS_DATABASE_PROFILE', 'remote');
+    Content := UpsertEnvValue(Content, 'DATABASE_ENGINE', 'postgresql');
+    Content := UpsertEnvValue(Content, 'POSTGRES_HOST', PgHost);
+    Content := UpsertEnvValue(Content, 'POSTGRES_PORT', PgPort);
+    Content := UpsertEnvValue(Content, 'POSTGRES_DB', PgDb);
+    Content := UpsertEnvValue(Content, 'POSTGRES_USER', PgUser);
+    Content := UpsertEnvValue(Content, 'POSTGRES_PASSWORD', PgPass);
+    Content := UpsertEnvValue(Content, 'POSTGRES_SSLMODE', PgSsl);
+    Content := UpsertEnvValue(Content, 'DATABASE_URL', DbUrl);
   end;
+
+  SaveStringToFile(EnvPath, Content, False);
 end;
 
 procedure CurPageChanged(CurPageID: Integer);
@@ -936,11 +1113,13 @@ var
   ResultCode: Integer;
   Cmd: String;
   InstallDir: String;
+  SummaryLine: String;
 begin
   if CurPageID = DockerPage.ID then
     UpdateDockerStatus(nil);
   if (CurPageID = DockerBuildPage.ID) then
   begin
+    WritePostgresEnv;
     WizardForm.NextButton.Enabled := False;
     DockerBuildStatusLabel.Caption := 'Building SMS Docker container...';
     try
@@ -967,16 +1146,20 @@ begin
     end;
     WizardForm.NextButton.Enabled := True;
   end;
+
+  if CurPageID = wpFinished then
+  begin
+    SummaryLine := GetSelectedDatabaseProfileSummary;
+    if Pos(SummaryLine, WizardForm.FinishedLabel.Caption) = 0 then
+      WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 + SummaryLine;
+  end;
 end;
 
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
-  // PostgreSQL setup is automated via bundled scripts; do not prompt for manual DB fields.
-  if (PostgresPage <> nil) and (PageID = PostgresPage.ID) then
-    Result := True
   // Skip Docker page if Docker is already installed and running
-  else if PageID = DockerPage.ID then
+  if PageID = DockerPage.ID then
     Result := IsDockerInstalled and IsDockerRunning
   // Do not skip Docker build/setup page.
   // Even during upgrades, PrepareToInstall may stop/remove the previous container,
@@ -1000,6 +1183,52 @@ begin
         ShellExec('open', 'https://www.docker.com/products/docker-desktop/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
       end;
       // Allow continue - user can install Docker later
+    end;
+  end;
+
+  if CurPageID = PostgresPage.ID then
+  begin
+    if QnapPostgresRadio.Checked then
+    begin
+      if Trim(PgHostEdit.Text) = '' then
+      begin
+        MsgBox('Please enter your QNAP PostgreSQL host.', mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+      if Trim(PgPortEdit.Text) = '' then
+      begin
+        MsgBox('Please enter your PostgreSQL port (usually 5432).', mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+      if Trim(PgDbEdit.Text) = '' then
+      begin
+        MsgBox('Please enter your PostgreSQL database name.', mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+      if Trim(PgUserEdit.Text) = '' then
+      begin
+        MsgBox('Please enter your PostgreSQL username.', mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+      if Trim(PgPassEdit.Text) = '' then
+      begin
+        MsgBox('Please enter your PostgreSQL password.', mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+
+      if not TestPostgresTcpConnection(Trim(PgHostEdit.Text), Trim(PgPortEdit.Text)) then
+      begin
+        if MsgBox('Could not verify TCP connectivity to the QNAP PostgreSQL host now. Continue anyway?', mbConfirmation, MB_YESNO) = IDNO then
+        begin
+          Result := False;
+          Exit;
+        end;
+      end;
     end;
   end;
 end;

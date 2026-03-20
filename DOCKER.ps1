@@ -530,7 +530,7 @@ function Ensure-SingleModePostgresRuntime {
         return $false
     }
 
-    $managedHostNames = @("", "postgres", "postgresql", "sms-postgres")
+    $managedHostNames = @("", "localhost", "127.0.0.1", "::1", "postgres", "postgresql", "sms-postgres")
     $normalizedHost = if ($pgHost) { $pgHost.Trim().ToLower() } else { "" }
     $useManagedPostgres = $managedHostNames -contains $normalizedHost
 
@@ -1473,20 +1473,23 @@ function Initialize-EnvironmentFiles {
     $postgresPassword = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 32 | ForEach-Object { [char]$_ })
 
     # Root .env
-    if (-not (Test-Path $ROOT_ENV)) {
+    $rootEnvExistedBefore = Test-Path $ROOT_ENV
+    if (-not $rootEnvExistedBefore) {
         if (Test-Path $ROOT_ENV_EXAMPLE) {
             Write-Info "Creating root .env from template..."
             $envContent = Get-Content $ROOT_ENV_EXAMPLE -Raw
             $envContent = $envContent -replace 'SECRET_KEY=.*', "SECRET_KEY=$secretKey"
             $envContent = $envContent -replace 'VERSION=.*', "VERSION=$VERSION"
             $envContent = $envContent -replace 'SMS_DEPLOYMENT_MODE=.*', "SMS_DEPLOYMENT_MODE=single"
-            $envContent = $envContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=postgresql"
+            $envContent = $envContent -replace 'SMS_DATABASE_PROFILE=.*', "SMS_DATABASE_PROFILE=local"
+            $envContent = $envContent -replace 'DATABASE_ENGINE=.*', "DATABASE_ENGINE=sqlite"
+            $envContent = $envContent -replace 'DATABASE_URL=.*', "DATABASE_URL=sqlite:////data/student_management.db"
             Set-Content -Path $ROOT_ENV -Value $envContent
-            Write-Success "Root .env created with secure SECRET_KEY (single-image + PostgreSQL)"
+            Write-Success "Root .env created with secure SECRET_KEY (single-image + local SQLite)"
             $configured = $true
         } else {
             Write-Warning ".env.example not found, creating minimal .env..."
-            # Minimal .env for fresh install: single image + PostgreSQL.
+            # Minimal .env for fresh install: single image + local SQLite.
             $minimalEnv = @"
 VERSION=$VERSION
 SECRET_KEY=$secretKey
@@ -1496,15 +1499,12 @@ DEFAULT_ADMIN_PASSWORD=YourSecurePassword123!
 DEFAULT_ADMIN_FULL_NAME=System Administrator
 DEFAULT_ADMIN_FORCE_RESET=False
 SMS_DEPLOYMENT_MODE=single
-DATABASE_ENGINE=postgresql
-POSTGRES_HOST=sms-postgres
-POSTGRES_PORT=5432
-POSTGRES_DB=student_management
-POSTGRES_USER=sms_user
-POSTGRES_PASSWORD=$postgresPassword
+SMS_DATABASE_PROFILE=local
+DATABASE_ENGINE=sqlite
+DATABASE_URL=sqlite:////data/student_management.db
 "@
             Set-Content -Path $ROOT_ENV -Value $minimalEnv
-            Write-Success "Minimal .env created (single-image + PostgreSQL)"
+            Write-Success "Minimal .env created (single-image + local SQLite)"
             $configured = $true
         }
     } else {
@@ -1594,7 +1594,12 @@ POSTGRES_PASSWORD=$postgresPassword
 
     $dbProfile = Get-EnvVarValue -Name "SMS_DATABASE_PROFILE"
     if ([string]::IsNullOrWhiteSpace($dbProfile)) {
-        if ($existingLooksPostgres) {
+        $safeLocalHosts = @("", "localhost", "127.0.0.1", "::1", "postgres", "postgresql", "sms-postgres")
+        $normalizedPgHostForInference = if ($pgHost) { $pgHost.Trim().ToLower() } else { "" }
+        $hasPlaceholderPgPassword = if ($pgPassword) { $pgPassword.Trim().ToUpper().Contains("CHANGE_ME") } else { $true }
+        $looksLocalPostgresBootstrap = ($safeLocalHosts -contains $normalizedPgHostForInference) -or $hasPlaceholderPgPassword
+
+        if ($existingLooksPostgres -and -not ($Silent -and $looksLocalPostgresBootstrap)) {
             $dbProfile = "remote"
             Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
             Write-Info "SMS_DATABASE_PROFILE inferred as remote from existing PostgreSQL configuration."
@@ -1602,7 +1607,11 @@ POSTGRES_PASSWORD=$postgresPassword
         } elseif ($Silent) {
             $dbProfile = "local"
             Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
-            Write-Info "SMS_DATABASE_PROFILE not set. Defaulting to secure local mode for unattended install."
+            if ($existingLooksPostgres -and $looksLocalPostgresBootstrap) {
+                Write-Warning "Detected local/placeholder PostgreSQL settings with missing SMS_DATABASE_PROFILE; defaulting to secure local mode for unattended install."
+            } else {
+                Write-Info "SMS_DATABASE_PROFILE not set. Defaulting to secure local mode for unattended install."
+            }
             $configured = $true
         } else {
             Write-Host ""
@@ -1641,7 +1650,7 @@ POSTGRES_PASSWORD=$postgresPassword
             -not [string]::IsNullOrWhiteSpace($pgDb)
         )
 
-        if ($existingLooksPostgres -or $hasRemoteCredentialShape) {
+        if ($hasRemoteCredentialShape) {
             Write-Warning "Detected PostgreSQL upgrade profile drift. Switching SMS_DATABASE_PROFILE to remote."
             $dbProfile = "remote"
             Set-RootEnvVarValue -Name "SMS_DATABASE_PROFILE" -Value $dbProfile
