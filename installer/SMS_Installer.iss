@@ -128,13 +128,31 @@ english.InstallDockerOnly=Docker Production Only (Recommended)
 english.InstallDockerOnlyDesc=Minimal installation with Docker container (fastest, cleanest)
 english.InstallDevEnvironment=Include Development Environment
 english.InstallDevEnvironmentDesc=Add Node.js, Python, and native development files for local development
+english.DbConfigPageTitle=Database Configuration
+english.DbConfigPageSubtitle=Choose local SQLite or connect to your QNAP PostgreSQL database.
+english.DbConfigIntro=Pick the database mode you want to use for this installation.
+english.DbLocalOption=Local SQLite (single-machine, easiest setup)
+english.DbLocalHint=Recommended for most users. No extra settings are required.
+english.DbRemoteOption=QNAP PostgreSQL (shared NAS database)
+english.DbRemoteHint=Use this only if your NAS PostgreSQL server is already configured and reachable from this PC.
+english.DbCredentialsSection=QNAP PostgreSQL credentials file
+english.DbCredentialsFile=Credentials file (.json or .env)
+english.DbBrowse=Browse...
+english.DbCredentialsHint=Use the same credentials file accepted in the Database Management panel.
+english.DbNoFileSelected=No credentials file selected.
+english.DbLoadedCredentials=Loaded credentials: %1:%2 / %3 (%4)
+english.DbLoadedExistingCredentials=Using existing saved remote credentials: %1:%2 / %3 (%4)
+english.DbLocalSummary=Database profile: Local SQLite (embedded file database)
+english.DbRemoteSummary=Database profile: QNAP PostgreSQL (%1:%2/%3)
+english.DbFileRequired=Please select a database credentials file (.json or .env).
+english.DbFileMissing=Selected credentials file was not found.
+english.DbFileUnsupported=Unsupported file format. Use a .json or .env credentials file.
+english.DbFileLoadFailed=Failed to read the credentials file.
+english.DbMissingRequired=Missing required credentials (host and password are mandatory).
+english.DbFileDialogTitle=Select database credentials file
+english.DbFileBrowseFilter=Credentials files|*.json;*.env;*.txt|JSON files|*.json|ENV files|*.env;*.txt|All files|*.*
 
-; Greek translations
-greek.InstallationType=Τύπος Εγκατάστασης
-greek.InstallDockerOnly=Μόνο Docker Production (Συνιστάται)
-greek.InstallDockerOnlyDesc=Ελάχιστη εγκατάσταση με Docker container (ταχύτερη, καθαρότερη)
-greek.InstallDevEnvironment=Συμπερίληψη Περιβάλλοντος Ανάπτυξης
-greek.InstallDevEnvironmentDesc=Προσθήκη Node.js, Python και αρχείων για τοπική ανάπτυξη
+; Greek translations for these keys are defined in installer\Greek.isl [CustomMessages]
 
 [Tasks]
 Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
@@ -145,7 +163,7 @@ Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{c
 [Files]
 ; Core application files - backend/frontend ALWAYS needed for Docker build
 Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv"
-Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,playwright.config.ts"
+Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts"
 Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -243,8 +261,20 @@ var
   PostgresPage: TWizardPage;
   DbProfileInfoLabel: TLabel;
   LocalSQLiteRadio: TRadioButton;
+  LocalSQLiteHintLabel: TLabel;
   QnapPostgresRadio: TRadioButton;
+  QnapPostgresHintLabel: TLabel;
   QnapConfigLabel: TLabel;
+  CredentialsFileLabel: TLabel;
+  CredentialsFileEdit: TEdit;
+  CredentialsBrowseButton: TButton;
+  CredentialsHintLabel: TLabel;
+  CredentialsStatusLabel: TLabel;
+  PgHostLabel: TLabel;
+  PgPortLabel: TLabel;
+  PgDbLabel: TLabel;
+  PgUserLabel: TLabel;
+  PgPassLabel: TLabel;
   PgHostEdit: TEdit;
   PgPortEdit: TEdit;
   PgDbEdit: TEdit;
@@ -274,6 +304,10 @@ function TestDockerReady: Boolean; forward;
 function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
 procedure UpdateDatabaseProfileUI(Sender: TObject); forward;
 procedure LoadPostgresDefaults; forward;
+procedure BrowseCredentialsFile(Sender: TObject); forward;
+function LoadCredentialsFromSelectedFile(ShowErrors: Boolean): Boolean; forward;
+procedure UpdateCredentialsStatus; forward;
+function GetPowerShellExe: String; forward;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -797,97 +831,208 @@ begin
 
   // Database profile page (Local SQLite vs QNAP PostgreSQL)
   PostgresPage := CreateCustomPage(DockerPage.ID,
-    'Database Configuration',
-    'Choose local SQLite or connect to your QNAP PostgreSQL database.');
+    CustomMessage('DbConfigPageTitle'),
+    CustomMessage('DbConfigPageSubtitle'));
 
   DbProfileInfoLabel := TLabel.Create(PostgresPage);
   DbProfileInfoLabel.Parent := PostgresPage.Surface;
+  DbProfileInfoLabel.AutoSize := False;
   DbProfileInfoLabel.Left := 0;
   DbProfileInfoLabel.Top := 10;
   DbProfileInfoLabel.Width := PostgresPage.SurfaceWidth;
-  DbProfileInfoLabel.Height := 42;
+  DbProfileInfoLabel.Height := 32;
   DbProfileInfoLabel.WordWrap := True;
-  DbProfileInfoLabel.Caption :=
-    'Recommended for laptops: Local SQLite. Choose QNAP PostgreSQL only if your NAS DB is already configured and reachable.';
+  DbProfileInfoLabel.Caption := CustomMessage('DbConfigIntro');
 
   LocalSQLiteRadio := TRadioButton.Create(PostgresPage);
   LocalSQLiteRadio.Parent := PostgresPage.Surface;
   LocalSQLiteRadio.Left := 0;
-  LocalSQLiteRadio.Top := 58;
+  LocalSQLiteRadio.Top := 52;
   LocalSQLiteRadio.Width := PostgresPage.SurfaceWidth;
-  LocalSQLiteRadio.Caption := 'Local SQLite (single-machine, easiest setup)';
+  LocalSQLiteRadio.Caption := CustomMessage('DbLocalOption');
   LocalSQLiteRadio.Checked := True;
   LocalSQLiteRadio.OnClick := @UpdateDatabaseProfileUI;
+
+  LocalSQLiteHintLabel := TLabel.Create(PostgresPage);
+  LocalSQLiteHintLabel.Parent := PostgresPage.Surface;
+  LocalSQLiteHintLabel.AutoSize := False;
+  LocalSQLiteHintLabel.Left := 20;
+  LocalSQLiteHintLabel.Top := 76;
+  LocalSQLiteHintLabel.Width := PostgresPage.SurfaceWidth - 20;
+  LocalSQLiteHintLabel.Height := 18;
+  LocalSQLiteHintLabel.Caption := CustomMessage('DbLocalHint');
 
   QnapPostgresRadio := TRadioButton.Create(PostgresPage);
   QnapPostgresRadio.Parent := PostgresPage.Surface;
   QnapPostgresRadio.Left := 0;
-  QnapPostgresRadio.Top := 84;
+  QnapPostgresRadio.Top := 104;
   QnapPostgresRadio.Width := PostgresPage.SurfaceWidth;
-  QnapPostgresRadio.Caption := 'QNAP PostgreSQL (shared NAS database)';
+  QnapPostgresRadio.Caption := CustomMessage('DbRemoteOption');
   QnapPostgresRadio.OnClick := @UpdateDatabaseProfileUI;
+
+  QnapPostgresHintLabel := TLabel.Create(PostgresPage);
+  QnapPostgresHintLabel.Parent := PostgresPage.Surface;
+  QnapPostgresHintLabel.AutoSize := False;
+  QnapPostgresHintLabel.Left := 20;
+  QnapPostgresHintLabel.Top := 128;
+  QnapPostgresHintLabel.Width := PostgresPage.SurfaceWidth - 20;
+  QnapPostgresHintLabel.Height := 32;
+  QnapPostgresHintLabel.WordWrap := True;
+  QnapPostgresHintLabel.Caption := CustomMessage('DbRemoteHint');
 
   QnapConfigLabel := TLabel.Create(PostgresPage);
   QnapConfigLabel.Parent := PostgresPage.Surface;
   QnapConfigLabel.Left := 0;
-  QnapConfigLabel.Top := 114;
+  QnapConfigLabel.AutoSize := False;
+  QnapConfigLabel.Top := 172;
   QnapConfigLabel.Width := PostgresPage.SurfaceWidth;
   QnapConfigLabel.Height := 18;
-  QnapConfigLabel.Caption := 'QNAP PostgreSQL connection settings:';
+  QnapConfigLabel.Caption := CustomMessage('DbCredentialsSection');
   QnapConfigLabel.Font.Style := [fsBold];
+
+  CredentialsFileLabel := TLabel.Create(PostgresPage);
+  CredentialsFileLabel.Parent := PostgresPage.Surface;
+  CredentialsFileLabel.Left := 0;
+  CredentialsFileLabel.Top := 196;
+  CredentialsFileLabel.Width := PostgresPage.SurfaceWidth;
+  CredentialsFileLabel.Caption := CustomMessage('DbCredentialsFile');
+
+  CredentialsFileEdit := TEdit.Create(PostgresPage);
+  CredentialsFileEdit.Parent := PostgresPage.Surface;
+  CredentialsFileEdit.Left := 0;
+  CredentialsFileEdit.Top := 214;
+  CredentialsFileEdit.Width := 290;
+  CredentialsFileEdit.ReadOnly := True;
+
+  CredentialsBrowseButton := TButton.Create(PostgresPage);
+  CredentialsBrowseButton.Parent := PostgresPage.Surface;
+  CredentialsBrowseButton.Left := 300;
+  CredentialsBrowseButton.Top := 212;
+  CredentialsBrowseButton.Width := 92;
+  CredentialsBrowseButton.Height := 24;
+  CredentialsBrowseButton.Caption := CustomMessage('DbBrowse');
+  CredentialsBrowseButton.OnClick := @BrowseCredentialsFile;
+
+  CredentialsHintLabel := TLabel.Create(PostgresPage);
+  CredentialsHintLabel.Parent := PostgresPage.Surface;
+  CredentialsHintLabel.AutoSize := False;
+  CredentialsHintLabel.Left := 0;
+  CredentialsHintLabel.Top := 244;
+  CredentialsHintLabel.Width := PostgresPage.SurfaceWidth;
+  CredentialsHintLabel.Height := 32;
+  CredentialsHintLabel.WordWrap := True;
+  CredentialsHintLabel.Caption := CustomMessage('DbCredentialsHint');
+
+  CredentialsStatusLabel := TLabel.Create(PostgresPage);
+  CredentialsStatusLabel.Parent := PostgresPage.Surface;
+  CredentialsStatusLabel.AutoSize := False;
+  CredentialsStatusLabel.Left := 0;
+  CredentialsStatusLabel.Top := 280;
+  CredentialsStatusLabel.Width := PostgresPage.SurfaceWidth;
+  CredentialsStatusLabel.Height := 48;
+  CredentialsStatusLabel.WordWrap := True;
+  CredentialsStatusLabel.Caption := CustomMessage('DbNoFileSelected');
+
+  PgHostLabel := TLabel.Create(PostgresPage);
+  PgHostLabel.Parent := PostgresPage.Surface;
+  PgHostLabel.Left := 0;
+  PgHostLabel.Top := 196;
+  PgHostLabel.Width := 280;
+  PgHostLabel.Caption := 'Host (NAS IP or DNS name)';
+
+  PgPortLabel := TLabel.Create(PostgresPage);
+  PgPortLabel.Parent := PostgresPage.Surface;
+  PgPortLabel.Left := 292;
+  PgPortLabel.Top := 196;
+  PgPortLabel.Width := 100;
+  PgPortLabel.Caption := 'Port';
 
   PgHostEdit := TEdit.Create(PostgresPage);
   PgHostEdit.Parent := PostgresPage.Surface;
   PgHostEdit.Left := 0;
-  PgHostEdit.Top := 138;
-  PgHostEdit.Width := 300;
+  PgHostEdit.Top := 212;
+  PgHostEdit.Width := 280;
   PgHostEdit.Text := 'qnap.local';
 
   PgPortEdit := TEdit.Create(PostgresPage);
   PgPortEdit.Parent := PostgresPage.Surface;
-  PgPortEdit.Left := 312;
-  PgPortEdit.Top := 138;
-  PgPortEdit.Width := 90;
+  PgPortEdit.Left := 292;
+  PgPortEdit.Top := 212;
+  PgPortEdit.Width := 100;
   PgPortEdit.Text := '5432';
+
+  PgDbLabel := TLabel.Create(PostgresPage);
+  PgDbLabel.Parent := PostgresPage.Surface;
+  PgDbLabel.Left := 0;
+  PgDbLabel.Top := 244;
+  PgDbLabel.Width := 180;
+  PgDbLabel.Caption := 'Database name';
+
+  PgUserLabel := TLabel.Create(PostgresPage);
+  PgUserLabel.Parent := PostgresPage.Surface;
+  PgUserLabel.Left := 202;
+  PgUserLabel.Top := 244;
+  PgUserLabel.Width := 190;
+  PgUserLabel.Caption := 'Username';
 
   PgDbEdit := TEdit.Create(PostgresPage);
   PgDbEdit.Parent := PostgresPage.Surface;
   PgDbEdit.Left := 0;
-  PgDbEdit.Top := 168;
-  PgDbEdit.Width := 200;
+  PgDbEdit.Top := 260;
+  PgDbEdit.Width := 190;
   PgDbEdit.Text := 'student_management';
 
   PgUserEdit := TEdit.Create(PostgresPage);
   PgUserEdit.Parent := PostgresPage.Surface;
-  PgUserEdit.Left := 212;
-  PgUserEdit.Top := 168;
+  PgUserEdit.Left := 202;
+  PgUserEdit.Top := 260;
   PgUserEdit.Width := 190;
   PgUserEdit.Text := 'sms_user';
+
+  PgPassLabel := TLabel.Create(PostgresPage);
+  PgPassLabel.Parent := PostgresPage.Surface;
+  PgPassLabel.Left := 0;
+  PgPassLabel.Top := 292;
+  PgPassLabel.Width := 180;
+  PgPassLabel.Caption := 'Password';
 
   PgPassEdit := TEdit.Create(PostgresPage);
   PgPassEdit.Parent := PostgresPage.Surface;
   PgPassEdit.Left := 0;
-  PgPassEdit.Top := 198;
-  PgPassEdit.Width := 300;
+  PgPassEdit.Top := 308;
+  PgPassEdit.Width := 280;
   PgPassEdit.PasswordChar := '*';
 
   PgSslLabel := TLabel.Create(PostgresPage);
   PgSslLabel.Parent := PostgresPage.Surface;
-  PgSslLabel.Left := 312;
-  PgSslLabel.Top := 202;
-  PgSslLabel.Width := 90;
+  PgSslLabel.Left := 292;
+  PgSslLabel.Top := 292;
+  PgSslLabel.Width := 100;
   PgSslLabel.Caption := 'SSL mode';
 
   PgSslEdit := TComboBox.Create(PostgresPage);
   PgSslEdit.Parent := PostgresPage.Surface;
-  PgSslEdit.Left := 312;
-  PgSslEdit.Top := 218;
-  PgSslEdit.Width := 90;
+  PgSslEdit.Left := 292;
+  PgSslEdit.Top := 308;
+  PgSslEdit.Width := 100;
   PgSslEdit.Style := csDropDownList;
   PgSslEdit.Items.Add('disable');
   PgSslEdit.Items.Add('prefer');
   PgSslEdit.Items.Add('require');
   PgSslEdit.ItemIndex := 1;
+
+  PgHostLabel.Visible := False;
+  PgPortLabel.Visible := False;
+  PgDbLabel.Visible := False;
+  PgUserLabel.Visible := False;
+  PgPassLabel.Visible := False;
+  PgHostEdit.Visible := False;
+  PgPortEdit.Visible := False;
+  PgDbEdit.Visible := False;
+  PgUserEdit.Visible := False;
+  PgPassEdit.Visible := False;
+  PgSslLabel.Visible := False;
+  PgSslEdit.Visible := False;
 
   LoadPostgresDefaults;
   UpdateDatabaseProfileUI(nil);
@@ -977,13 +1122,25 @@ begin
   IsQnapMode := QnapPostgresRadio.Checked;
 
   QnapConfigLabel.Visible := IsQnapMode;
-  PgHostEdit.Visible := IsQnapMode;
-  PgPortEdit.Visible := IsQnapMode;
-  PgDbEdit.Visible := IsQnapMode;
-  PgUserEdit.Visible := IsQnapMode;
-  PgPassEdit.Visible := IsQnapMode;
-  PgSslLabel.Visible := IsQnapMode;
-  PgSslEdit.Visible := IsQnapMode;
+  LocalSQLiteHintLabel.Visible := True;
+  QnapPostgresHintLabel.Visible := True;
+  CredentialsFileLabel.Visible := IsQnapMode;
+  CredentialsFileEdit.Visible := IsQnapMode;
+  CredentialsBrowseButton.Visible := IsQnapMode;
+  CredentialsHintLabel.Visible := IsQnapMode;
+  CredentialsStatusLabel.Visible := IsQnapMode;
+  PgHostLabel.Visible := False;
+  PgPortLabel.Visible := False;
+  PgDbLabel.Visible := False;
+  PgUserLabel.Visible := False;
+  PgPassLabel.Visible := False;
+  PgHostEdit.Visible := False;
+  PgPortEdit.Visible := False;
+  PgDbEdit.Visible := False;
+  PgUserEdit.Visible := False;
+  PgPassEdit.Visible := False;
+  PgSslLabel.Visible := False;
+  PgSslEdit.Visible := False;
 
   if IsQnapMode then
     SelectedDatabaseProfile := 'remote'
@@ -994,9 +1151,9 @@ end;
 function GetSelectedDatabaseProfileSummary: String;
 begin
   if SelectedDatabaseProfile = 'remote' then
-    Result := 'Database profile: QNAP PostgreSQL (' + Trim(PgHostEdit.Text) + ':' + Trim(PgPortEdit.Text) + '/' + Trim(PgDbEdit.Text) + ')'
+    Result := FmtMessage(CustomMessage('DbRemoteSummary'), [PgHost, PgPort, PgDb])
   else
-    Result := 'Database profile: Local SQLite (embedded file database)';
+    Result := CustomMessage('DbLocalSummary');
 end;
 
 procedure LoadPostgresDefaults;
@@ -1015,6 +1172,7 @@ begin
   if not FileExists(EnvPath) then
   begin
     SelectedDatabaseProfile := 'local';
+    CredentialsFileEdit.Text := '';
     Exit;  // No existing .env file to load from
   end;
 
@@ -1049,6 +1207,161 @@ begin
     if PgSslEdit.Items.IndexOf(PgSsl) >= 0 then
       PgSslEdit.ItemIndex := PgSslEdit.Items.IndexOf(PgSsl);
   end;
+
+  if SelectedDatabaseProfile = 'remote' then
+  begin
+    CredentialsFileEdit.Text := '';
+    UpdateCredentialsStatus;
+  end;
+end;
+
+procedure UpdateCredentialsStatus;
+begin
+  if SelectedDatabaseProfile <> 'remote' then
+    Exit;
+
+  if Trim(CredentialsFileEdit.Text) <> '' then
+    CredentialsStatusLabel.Caption := FmtMessage(CustomMessage('DbLoadedCredentials'), [PgHost, PgPort, PgDb, PgUser])
+  else if (PgHost <> '') and (PgPass <> '') then
+    CredentialsStatusLabel.Caption := FmtMessage(CustomMessage('DbLoadedExistingCredentials'), [PgHost, PgPort, PgDb, PgUser])
+  else
+    CredentialsStatusLabel.Caption := CustomMessage('DbNoFileSelected');
+end;
+
+procedure BrowseCredentialsFile(Sender: TObject);
+var
+  SelectedFile: String;
+begin
+  SelectedFile := CredentialsFileEdit.Text;
+  if GetOpenFileName(CustomMessage('DbFileDialogTitle'), SelectedFile, '', CustomMessage('DbFileBrowseFilter'), '') then
+  begin
+    CredentialsFileEdit.Text := SelectedFile;
+    LoadCredentialsFromSelectedFile(True);
+  end;
+end;
+
+function LoadCredentialsFromSelectedFile(ShowErrors: Boolean): Boolean;
+var
+  FilePath: String;
+  LowerPath: String;
+  ResultCode: Integer;
+  PowerShellExe: String;
+  ScriptPath: String;
+  OutputPath: String;
+  ScriptContent: String;
+  Command: String;
+begin
+  Result := False;
+  FilePath := Trim(CredentialsFileEdit.Text);
+
+  if FilePath = '' then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileRequired'), mbError, MB_OK);
+    Exit;
+  end;
+
+  if not FileExists(FilePath) then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileMissing'), mbError, MB_OK);
+    Exit;
+  end;
+
+  LowerPath := Lowercase(FilePath);
+  if (Pos('.json', LowerPath) = 0) and (Pos('.env', LowerPath) = 0) and (Pos('.txt', LowerPath) = 0) then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileUnsupported'), mbError, MB_OK);
+    Exit;
+  end;
+
+  PowerShellExe := GetPowerShellExe;
+  if PowerShellExe = '' then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileLoadFailed'), mbError, MB_OK);
+    Exit;
+  end;
+
+  ScriptPath := ExpandConstant('{tmp}\sms_parse_db_credentials.ps1');
+  OutputPath := ExpandConstant('{tmp}\sms_parsed_db_credentials.env');
+  if FileExists(OutputPath) then
+    DeleteFile(OutputPath);
+
+  ScriptContent :=
+    'param([string]$InputPath,[string]$OutputPath)' + #13#10 +
+    '$ext = [System.IO.Path]::GetExtension($InputPath).ToLowerInvariant()' + #13#10 +
+    '$raw = Get-Content -LiteralPath $InputPath -Raw -Encoding UTF8' + #13#10 +
+    'function Get-JsonValue($obj, [string[]]$names, $default) {' + #13#10 +
+    '  foreach ($name in $names) {' + #13#10 +
+    '    if ($obj.PSObject.Properties.Name -contains $name) {' + #13#10 +
+    '      $value = $obj.$name' + #13#10 +
+    '      if ($null -ne $value -and ("$value") -ne "") { return "$value" }' + #13#10 +
+    '    }' + #13#10 +
+    '  }' + #13#10 +
+    '  return $default' + #13#10 +
+    '}' + #13#10 +
+    'if ($ext -eq ''.json'') {' + #13#10 +
+    '  $data = $raw | ConvertFrom-Json' + #13#10 +
+    '  $dbHost = Get-JsonValue $data @(''host'',''POSTGRES_HOST'') ''localhost''' + #13#10 +
+    '  $dbPort = Get-JsonValue $data @(''port'',''POSTGRES_PORT'') ''5432''' + #13#10 +
+    '  $dbName = Get-JsonValue $data @(''dbname'',''POSTGRES_DB'') ''student_management''' + #13#10 +
+    '  $dbUser = Get-JsonValue $data @(''user'',''POSTGRES_USER'') ''sms_user''' + #13#10 +
+    '  $dbPassword = Get-JsonValue $data @(''password'',''POSTGRES_PASSWORD'') ''''' + #13#10 +
+    '  $dbSslMode = Get-JsonValue $data @(''sslmode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
+    '} else {' + #13#10 +
+    '  $map = @{}' + #13#10 +
+    '  foreach ($line in ($raw -split "`r?`n")) {' + #13#10 +
+    '    $trimmed = $line.Trim()' + #13#10 +
+    '    if ($trimmed -and -not $trimmed.StartsWith(''#'') -and $trimmed.Contains(''='')) {' + #13#10 +
+    '      $parts = $trimmed.Split(''='',2)' + #13#10 +
+    '      $map[$parts[0].Trim()] = $parts[1].Trim().Trim(''"'').Trim("''")' + #13#10 +
+    '    }' + #13#10 +
+    '  }' + #13#10 +
+    '  $dbHost = if ($map.ContainsKey(''POSTGRES_HOST'')) { $map[''POSTGRES_HOST''] } else { ''localhost'' }' + #13#10 +
+    '  $dbPort = if ($map.ContainsKey(''POSTGRES_PORT'')) { $map[''POSTGRES_PORT''] } else { ''5432'' }' + #13#10 +
+    '  $dbName = if ($map.ContainsKey(''POSTGRES_DB'')) { $map[''POSTGRES_DB''] } else { ''student_management'' }' + #13#10 +
+    '  $dbUser = if ($map.ContainsKey(''POSTGRES_USER'')) { $map[''POSTGRES_USER''] } else { ''sms_user'' }' + #13#10 +
+    '  $dbPassword = if ($map.ContainsKey(''POSTGRES_PASSWORD'')) { $map[''POSTGRES_PASSWORD''] } else { '''' }' + #13#10 +
+    '  $dbSslMode = if ($map.ContainsKey(''POSTGRES_SSLMODE'')) { $map[''POSTGRES_SSLMODE''] } else { ''prefer'' }' + #13#10 +
+    '}' + #13#10 +
+    'if ([string]::IsNullOrWhiteSpace($dbHost) -or [string]::IsNullOrWhiteSpace($dbPassword)) { throw ''Missing required credentials (host and password are mandatory).'' }' + #13#10 +
+    '@(' + #13#10 +
+    '  "POSTGRES_HOST=$dbHost"' + #13#10 +
+    '  "POSTGRES_PORT=$dbPort"' + #13#10 +
+    '  "POSTGRES_DB=$dbName"' + #13#10 +
+    '  "POSTGRES_USER=$dbUser"' + #13#10 +
+    '  "POSTGRES_PASSWORD=$dbPassword"' + #13#10 +
+    '  "POSTGRES_SSLMODE=$dbSslMode"' + #13#10 +
+    ') | Set-Content -LiteralPath $OutputPath -Encoding UTF8';
+
+  SaveStringToFile(ScriptPath, ScriptContent, False);
+
+  Command := '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" -InputPath "' + FilePath + '" -OutputPath "' + OutputPath + '"';
+  if not Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileLoadFailed'), mbError, MB_OK);
+    Exit;
+  end;
+
+  PgHost := ReadEnvValue(OutputPath, 'POSTGRES_HOST');
+  PgPort := ReadEnvValue(OutputPath, 'POSTGRES_PORT');
+  PgDb := ReadEnvValue(OutputPath, 'POSTGRES_DB');
+  PgUser := ReadEnvValue(OutputPath, 'POSTGRES_USER');
+  PgPass := ReadEnvValue(OutputPath, 'POSTGRES_PASSWORD');
+  PgSsl := ReadEnvValue(OutputPath, 'POSTGRES_SSLMODE');
+
+  if (PgHost = '') or (PgPass = '') then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbMissingRequired'), mbError, MB_OK);
+    Exit;
+  end;
+
+  Result := True;
+  UpdateCredentialsStatus;
 end;
 
 procedure WritePostgresEnv;
@@ -1083,12 +1396,10 @@ begin
   end
   else
   begin
-    PgHost := Trim(PgHostEdit.Text);
-    PgPort := Trim(PgPortEdit.Text);
-    PgDb := Trim(PgDbEdit.Text);
-    PgUser := Trim(PgUserEdit.Text);
-    PgPass := Trim(PgPassEdit.Text);
-    PgSsl := PgSslEdit.Items[PgSslEdit.ItemIndex];
+    if PgPort = '' then PgPort := '5432';
+    if PgDb = '' then PgDb := 'student_management';
+    if PgUser = '' then PgUser := 'sms_user';
+    if PgSsl = '' then PgSsl := 'prefer';
 
     EncUser := UrlEncode(PgUser);
     EncPass := UrlEncode(PgPass);
@@ -1191,44 +1502,29 @@ begin
   begin
     if QnapPostgresRadio.Checked then
     begin
-      if Trim(PgHostEdit.Text) = '' then
+      if (Trim(CredentialsFileEdit.Text) <> '') or (PgHost = '') or (PgPass = '') then
       begin
-        MsgBox('Please enter your QNAP PostgreSQL host.', mbError, MB_OK);
-        Result := False;
-        Exit;
-      end;
-      if Trim(PgPortEdit.Text) = '' then
-      begin
-        MsgBox('Please enter your PostgreSQL port (usually 5432).', mbError, MB_OK);
-        Result := False;
-        Exit;
-      end;
-      if Trim(PgDbEdit.Text) = '' then
-      begin
-        MsgBox('Please enter your PostgreSQL database name.', mbError, MB_OK);
-        Result := False;
-        Exit;
-      end;
-      if Trim(PgUserEdit.Text) = '' then
-      begin
-        MsgBox('Please enter your PostgreSQL username.', mbError, MB_OK);
-        Result := False;
-        Exit;
-      end;
-      if Trim(PgPassEdit.Text) = '' then
-      begin
-        MsgBox('Please enter your PostgreSQL password.', mbError, MB_OK);
-        Result := False;
-        Exit;
-      end;
-
-      if not TestPostgresTcpConnection(Trim(PgHostEdit.Text), Trim(PgPortEdit.Text)) then
-      begin
-        if MsgBox('Could not verify TCP connectivity to the QNAP PostgreSQL host now. Continue anyway?', mbConfirmation, MB_YESNO) = IDNO then
+        if not LoadCredentialsFromSelectedFile(True) then
         begin
           Result := False;
           Exit;
         end;
+      end;
+
+      if Lowercase(Trim(PgHost)) <> 'postgres' then
+      begin
+        if not TestPostgresTcpConnection(PgHost, PgPort) then
+        begin
+          if MsgBox('Could not verify TCP connectivity to the QNAP PostgreSQL host now. Continue anyway?', mbConfirmation, MB_YESNO) = IDNO then
+          begin
+            Result := False;
+            Exit;
+          end;
+        end;
+      end
+      else
+      begin
+        Log('Skipping TCP pre-check for docker-internal host alias "postgres".');
       end;
     end;
   end;

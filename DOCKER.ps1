@@ -1033,6 +1033,24 @@ function Invoke-SqliteToPostgresMigration {
     $output = & docker @migrateCmd 2>&1
     if ($LASTEXITCODE -ne 0) {
         $outputText = ($output | Out-String)
+        $isAuthIssue = (
+            $outputText -match 'password authentication failed for user' -or
+            $outputText -match 'FATAL:\s+password authentication failed'
+        )
+
+        if ($isAuthIssue) {
+            Write-Warning "Detected PostgreSQL authentication mismatch during migration. Attempting credential repair..."
+            if (Invoke-SingleModePostgresCredentialRepair) {
+                Write-Info "Retrying SQLite migration after credential repair..."
+                $output = & docker @migrateCmd 2>&1
+                $outputText = ($output | Out-String)
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "SQLite migration succeeded after PostgreSQL credential repair"
+                }
+            }
+        }
+
+        if ($LASTEXITCODE -ne 0) {
         $isSourceAccessIssue = (
             $outputText -match 'sqlite3\.OperationalError:\s+unable to open database file' -or
             $outputText -match 'sqlalchemy\.exc\.OperationalError: \(sqlite3\.OperationalError\) unable to open database file' -or
@@ -1110,6 +1128,7 @@ function Invoke-SqliteToPostgresMigration {
             Write-Host $output -ForegroundColor Yellow
         }
         return $false
+        }
     }
 
     if ($useHostSqlite) {
@@ -1428,6 +1447,122 @@ function Invoke-ComposeAuthRecoveryAndRetry {
     }
 
     return (Wait-ForComposeHealthy -ServiceName "backend" -TimeoutSeconds 90)
+}
+
+function Test-SingleModePostgresAuthFailure {
+        param([int]$Tail = 200)
+
+        $appLogs = docker logs --tail $Tail $CONTAINER_NAME 2>&1
+        if (-not $appLogs) {
+                return $false
+        }
+
+        $appText = ($appLogs | Out-String)
+        return ($appText -match 'password authentication failed for user' -or $appText -match 'FATAL:\s+password authentication failed')
+}
+
+function Invoke-SingleModePostgresCredentialRepair {
+        $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
+        $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+        $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+
+        if (-not (Test-SafePostgresIdentifier -Value $pgUser) -or -not (Test-SafePostgresIdentifier -Value $pgDb)) {
+                Write-Warning "Skipping automatic single-mode PostgreSQL credential repair: unsupported POSTGRES_USER/POSTGRES_DB format."
+                return $false
+        }
+
+        if ([string]::IsNullOrWhiteSpace($pgPassword)) {
+                Write-Warning "Skipping automatic single-mode PostgreSQL credential repair: POSTGRES_PASSWORD is empty."
+                return $false
+        }
+
+        $passwordSql = $pgPassword -replace "'", "''"
+        $repairScript = @"
+set -e
+ADMIN_USER=""
+PGDATA_DIR="`${PGDATA:-/var/lib/postgresql/data/pgdata}"
+HBA_FILE="`$PGDATA_DIR/pg_hba.conf"
+HBA_BACKUP=""
+
+restore_hba() {
+    if [ -n "`$HBA_BACKUP" ] && [ -f "`$HBA_BACKUP" ]; then
+        cp "`$HBA_BACKUP" "`$HBA_FILE"
+        rm -f "`$HBA_BACKUP"
+        kill -HUP 1 >/dev/null 2>&1 || true
+    fi
+}
+
+trap restore_hba EXIT
+
+for candidate in "$pgUser" postgres; do
+    if psql -U "`$candidate" -d postgres -tAc "SELECT 1" >/dev/null 2>&1; then
+        ADMIN_USER="`$candidate"
+        break
+    fi
+done
+
+if [ -z "`$ADMIN_USER" ] && [ -f "`$HBA_FILE" ]; then
+    HBA_BACKUP="`$HBA_FILE.sms-repair.bak"
+    cp "`$HBA_FILE" "`$HBA_BACKUP"
+    {
+        echo "local all all trust"
+        echo "host all all 127.0.0.1/32 trust"
+        echo "host all all ::1/128 trust"
+        cat "`$HBA_BACKUP"
+    } > "`$HBA_FILE"
+    kill -HUP 1 >/dev/null 2>&1 || true
+
+    if psql -U "$pgUser" -d postgres -tAc "SELECT 1" >/dev/null 2>&1; then
+        ADMIN_USER="$pgUser"
+    fi
+fi
+
+if [ -z "`$ADMIN_USER" ]; then
+    echo "Unable to find an accessible administrative PostgreSQL role for repair."
+    exit 1
+fi
+
+if ! psql -U "`$ADMIN_USER" -d postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='$pgUser'" | grep -q 1; then
+    psql -U "`$ADMIN_USER" -d postgres -v ON_ERROR_STOP=1 -c "CREATE ROLE $pgUser LOGIN PASSWORD '$passwordSql';" >/dev/null
+fi
+
+psql -U "`$ADMIN_USER" -d postgres -v ON_ERROR_STOP=1 -c "ALTER ROLE $pgUser WITH LOGIN PASSWORD '$passwordSql';" >/dev/null
+if ! psql -U "`$ADMIN_USER" -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$pgDb'" | grep -q 1; then
+    createdb -U "`$ADMIN_USER" -O $pgUser $pgDb
+fi
+"@
+
+        Write-Warning "Attempting automatic single-mode PostgreSQL credential repair for existing volume..."
+        $repairOutput = docker exec sms-postgres sh -lc $repairScript 2>&1
+        if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Automatic single-mode PostgreSQL credential repair failed."
+                if ($repairOutput) {
+                        $repairOutput | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
+                }
+                return $false
+        }
+
+        Write-Success "Single-mode PostgreSQL credentials reconciled with .env values."
+        return $true
+}
+
+function Invoke-SingleModeAuthRecoveryAndRetry {
+        if (-not (Test-SingleModePostgresAuthFailure)) {
+                return $false
+        }
+
+        if (-not (Invoke-SingleModePostgresCredentialRepair)) {
+                return $false
+        }
+
+        Write-Info "Retrying single-image backend startup after PostgreSQL credential repair..."
+        docker restart $CONTAINER_NAME 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+                Write-Warning "Failed to restart single-image container after credential repair."
+                return $false
+        }
+
+        return (Wait-ForHealthy -TimeoutSeconds 90)
 }
 
 function Show-ComposeFailureDiagnostics {
@@ -2657,6 +2792,14 @@ function Start-Application {
     }
 
     if (Wait-ForHealthy) {
+        if ($withMonitoringBool) {
+            Start-MonitoringStack -GrafanaPortOverride $GrafanaPort | Out-Null
+        }
+        Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
+        return 0
+    }
+
+    if (($singleDbEngine -eq "postgresql") -and (Invoke-SingleModeAuthRecoveryAndRetry)) {
         if ($withMonitoringBool) {
             Start-MonitoringStack -GrafanaPortOverride $GrafanaPort | Out-Null
         }
