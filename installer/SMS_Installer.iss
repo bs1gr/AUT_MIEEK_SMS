@@ -273,6 +273,7 @@ function TestPostgresTcpConnection(Host: String; Port: String): Boolean; forward
 function TestDockerReady: Boolean; forward;
 function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
 procedure UpdateDatabaseProfileUI(Sender: TObject); forward;
+procedure LoadPostgresDefaults; forward;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
