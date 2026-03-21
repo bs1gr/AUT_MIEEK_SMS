@@ -80,6 +80,8 @@ frontend_dev_error.log
 *.log.*
 commit_ready_*.log
 code-scanning-sarif/
+# Root-level generated copy of docs/DOCUMENTATION_INDEX.md (canonical path is docs/)
+DOCUMENTATION_INDEX.md
 
 # Node / Frontend
 frontend/node_modules/
