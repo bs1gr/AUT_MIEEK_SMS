@@ -9,6 +9,23 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+## [1.18.15] - 2026-03-21
+
+### Bug Fixes
+- **installer**: add SQLite/QNAP DB selection and harden startup profile defaults
+- **installer**: add missing forward declaration for database profile defaults
+- **installer**: recover PostgreSQL auth drift during single-mode startup
+- **rbac**: ensure user permissions table exists before permission operations
+- **validation**: harden installer tooling and batch retest flows
+
+### CI/CD
+- **ci**: update `aquasecurity/trivy-action` to `v0.35.0`
+
+### Chores
+- **gitignore**: ignore root-level generated `DOCUMENTATION_INDEX.md` duplicate
+- **docs**: record post-`v1.18.14` accumulation metadata for release preparation
+
+
 
 ## [1.18.14] - 2026-03-19
 

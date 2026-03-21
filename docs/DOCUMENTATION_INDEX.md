@@ -1,17 +1,18 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-19
-**Project Version (documented)**: 1.18.14
-**Version**: 1.18.14
+**Last Updated**: 2026-03-21
+**Project Version (documented)**: 1.18.15
+**Version**: 1.18.15
 **Current Branch**: `main`
-**Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.14` PUBLISHED AS THE CURRENT MAINTENANCE/HARDENING LINE**
+**Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | 🔄 **`v1.18.15` RELEASE PREPARATION IN PROGRESS**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 19, 2026)**: ✅ **`v1.18.12` remains the first official public release and `v1.18.14` is now published on the maintenance/hardening line**
+> **Current Status (Mar 21, 2026)**: ✅ **`v1.18.12` remains the first official public release, `v1.18.14` remains the latest published maintenance release, and `v1.18.15` preparation is now in progress**
 > - `v1.18.0` through `v1.18.11` remain archived as prereleases for historical reference
 > - `v1.18.12` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
 > - `v1.18.14` release publication, installer verification, and post-release security refresh were completed successfully
+> - `v1.18.15` preparation scope currently packages installer/QNAP hardening, RBAC table guardrails, Trivy action pinning, and installer validation improvements
 > - GitHub code scanning now reports zero open alerts after the `main`-branch Trivy refresh
 > - `v1.18.12` restores generated Greek `.rtf` installer assets in the build pipeline
 > - `v1.18.12` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata

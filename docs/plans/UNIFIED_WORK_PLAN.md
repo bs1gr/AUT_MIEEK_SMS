@@ -1,17 +1,62 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.14
+**Current Version**: 1.18.15
 **Last Updated**: March 21, 2026
-**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.14` RELEASE PUBLISHED (maintenance/hardening line)**
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.15` RELEASE PREPARATION COMPLETE — PENDING TAG/PUSH**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Post-v1.18.14 Accumulation | Maintenance & Stability**
-**Current Branch**: `main` (HEAD: 1a5fe6cd4 - chore(gitignore): ignore root-level DOCUMENTATION_INDEX.md duplicate)
+**Current Phase**: **v1.18.15 Release Preparation | Maintenance/Hardening Patch**
+**Current Branch**: `main`
+
+---
+
+## 🚀 v1.18.15 Release Preparation (March 21, 2026)
+
+**Status**: ✅ **PREP COMPLETE — PENDING COMMIT/TAG/PUSH**
+
+### Release Scope (from v1.18.14)
+
+| Hash | Description |
+|------|-------------|
+| `1a5fe6cd4` | chore(gitignore): ignore root-level DOCUMENTATION_INDEX.md duplicate |
+| `370f23403` | fix(rbac): ensure user permissions table exists |
+| `ee748b7e8` | fix(validation): harden installer tooling and batch retests |
+| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to v0.35.0 to resolve unresolvable tag |
+| `a42e0a2bb` | fix(installer): recover postgres auth drift during single-mode startup |
+| `b9151554b` | fix(installer): add missing forward declaration for db profile defaults |
+| `5ddd772f4` | fix(installer): add SQLite/QNAP DB selection and harden startup profile defaults |
+
+### Validation Evidence
+
+- ✅ Version verification: `VERIFY_VERSION.ps1 -CheckOnly` — 8/8 checks passed
+- ✅ Backend Ruff, MyPy, ESLint, Markdown lint, TypeScript — all clean
+- ✅ Translation integrity verified
+- ✅ Backend pytest: 21/21 batches, 102 test files — all passing
+- ✅ Frontend Vitest: passed
+- ✅ Installer built: `dist/SMS_Installer_1.18.15.exe` (27,024,096 bytes)
+- ✅ Installer SHA256: `E7428BC4CD1924FB912DE59E0056D9109673572667B13C7849C8E5455BEA80CE`
+- ✅ Authenticode: Valid (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
+- ✅ Installer smoke test: passed
+- ✅ `COMMIT_READY.ps1 -Quick -Snapshot` completed (after root DOCUMENTATION_INDEX.md fix)
+
+### Release Docs Created
+
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.15.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.15.md`
+- ✅ `.github/RELEASE_NOTES_v1.18.15.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.15.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.15.md`
+
+### Pending Steps
+
+- ⏳ Release-prep commit
+- ⏳ `git tag v1.18.15` + `git push origin main && git push origin v1.18.15`
+- ⏳ GitHub release publication
 
 ---
 
 ## 📋 Post-v1.18.14 Accumulation (March 21, 2026)
 
-**Status**: 🔄 **ACCUMULATING — 7 commits since `v1.18.14` tag**
+**Status**: ✅ **PACKAGED AS v1.18.15** — 7 commits accumulated and released
 
 ### Commits Since `v1.18.14`
 
@@ -31,9 +76,6 @@
 - **Validation tooling**: Installer tooling hardening and batch retest fixes (`ee748b7e8`)
 - **RBAC**: Permissions table existence guard (`370f23403`)
 - **Cleanup**: Gitignore dedup for DOCUMENTATION_INDEX.md (`1a5fe6cd4`)
-
-### Next Decision
-- Owner to decide: package as `v1.18.15` patch release OR continue accumulating
 
 ---
 
