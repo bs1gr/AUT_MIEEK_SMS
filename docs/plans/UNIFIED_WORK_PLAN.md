@@ -1,11 +1,39 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.14
-**Last Updated**: March 20, 2026
+**Last Updated**: March 21, 2026
 **Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.14` RELEASE PUBLISHED (maintenance/hardening line)**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **First Official Public Release Published | Post-Publication Hardening & Documentation Alignment**
-**Current Branch**: `main` (HEAD: f91bf7ad4 - style(reports): normalize formatting and trim v1.18.13 notes)
+**Current Phase**: **Post-v1.18.14 Accumulation | Maintenance & Stability**
+**Current Branch**: `main` (HEAD: 1a5fe6cd4 - chore(gitignore): ignore root-level DOCUMENTATION_INDEX.md duplicate)
+
+---
+
+## 📋 Post-v1.18.14 Accumulation (March 21, 2026)
+
+**Status**: 🔄 **ACCUMULATING — 7 commits since `v1.18.14` tag**
+
+### Commits Since `v1.18.14`
+
+| Hash | Description |
+|------|-------------|
+| `1a5fe6cd4` | chore(gitignore): ignore root-level DOCUMENTATION_INDEX.md duplicate |
+| `370f23403` | fix(rbac): ensure user permissions table exists |
+| `ee748b7e8` | fix(validation): harden installer tooling and batch retests |
+| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to v0.35.0 to resolve unresolvable tag |
+| `a42e0a2bb` | fix(installer): recover postgres auth drift during single-mode startup |
+| `b9151554b` | fix(installer): add missing forward declaration for db profile defaults |
+| `5ddd772f4` | fix(installer): add SQLite/QNAP DB selection and harden startup profile defaults |
+
+### Change Categories
+- **CI hardening**: Trivy action version pin (`5e5241a9c`)
+- **Installer/QNAP fixes**: DB selection, profile defaults, auth drift recovery (`5ddd772f4`, `b9151554b`, `a42e0a2bb`)
+- **Validation tooling**: Installer tooling hardening and batch retest fixes (`ee748b7e8`)
+- **RBAC**: Permissions table existence guard (`370f23403`)
+- **Cleanup**: Gitignore dedup for DOCUMENTATION_INDEX.md (`1a5fe6cd4`)
+
+### Next Decision
+- Owner to decide: package as `v1.18.15` patch release OR continue accumulating
 
 ---
 
