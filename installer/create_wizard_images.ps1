@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Creates wizard images for the Inno Setup installer (v2.0 - Modern Design).
 

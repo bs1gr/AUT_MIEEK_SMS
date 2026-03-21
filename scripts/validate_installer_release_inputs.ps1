@@ -1,4 +1,4 @@
-<#!
+﻿<#!
 .SYNOPSIS
     Validates that installer compile-time inputs exist and are source-controlled.
 
@@ -44,8 +44,25 @@ $generatedAllowlist = @(
 
 function Get-RepoRelativePath {
     param([string]$AbsolutePath)
-    $relative = [System.IO.Path]::GetRelativePath($RepoRoot, $AbsolutePath)
-    return ($relative -replace '/', '\\')
+
+    $absolutePath = [System.IO.Path]::GetFullPath($AbsolutePath)
+
+    if ([System.IO.Path].GetMethod('GetRelativePath', [type[]]@([string], [string]))) {
+        $relative = [System.IO.Path]::GetRelativePath($RepoRoot, $absolutePath)
+    } else {
+        $repoRootWithSeparator = $RepoRoot
+        if (-not $repoRootWithSeparator.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
+            $repoRootWithSeparator += [System.IO.Path]::DirectorySeparatorChar
+        }
+
+        $repoUri = [System.Uri]$repoRootWithSeparator
+        $absoluteUri = [System.Uri]$absolutePath
+        $relative = [System.Uri]::UnescapeDataString($repoUri.MakeRelativeUri($absoluteUri).ToString())
+    }
+
+    $relative = $relative -replace '[\\/]+', '\'
+    $relative = $relative -replace '^[.][\\/]+', ''
+    return $relative
 }
 
 function Test-GitTracked {

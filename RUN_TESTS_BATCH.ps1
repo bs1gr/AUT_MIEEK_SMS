@@ -149,21 +149,40 @@ if (-not (Test-Path "$projectRoot/backend/tests")) {
     }
 }
 
+$failureFilePath = if ([System.IO.Path]::IsPathRooted($FailureFile)) {
+    [System.IO.Path]::GetFullPath($FailureFile)
+} else {
+    [System.IO.Path]::GetFullPath((Join-Path $projectRoot $FailureFile))
+}
+
+$legacyFailureFilePath = $null
+if (-not [System.IO.Path]::IsPathRooted($FailureFile)) {
+    $cwdFailureFilePath = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $FailureFile))
+    if (-not [string]::Equals($cwdFailureFilePath, $failureFilePath, [System.StringComparison]::OrdinalIgnoreCase)) {
+        $legacyFailureFilePath = $cwdFailureFilePath
+    }
+}
+
 # Get all test files
 Write-Info "Scanning for test files..."
-$testFiles = Get-ChildItem -Path "$projectRoot/backend/tests" -Filter "test_*.py" -File |
+$testFiles = @(Get-ChildItem -Path "$projectRoot/backend/tests" -Filter "test_*.py" -File |
     Where-Object { $_.Name -ne "test_main.py" } |  # Exclude if needed
-    Sort-Object Name
+    Sort-Object Name)
 
 # NEW: Check for failed tests if -RetestFailed flag provided (AFTER testFiles is discovered)
-if ($RetestFailed -and (Test-Path $FailureFile)) {
+if ($RetestFailed -and -not (Test-Path $failureFilePath) -and $legacyFailureFilePath -and (Test-Path $legacyFailureFilePath)) {
+    Write-Warning "Using legacy failure file path from current directory: $legacyFailureFilePath"
+    $failureFilePath = $legacyFailureFilePath
+}
+
+if ($RetestFailed -and (Test-Path $failureFilePath)) {
     Write-Info "🔄 RETEST MODE: Running only previously failed tests"
-    Write-Info "Reading failed tests from: $FailureFile"
-    $failedTestFiles = Get-Content $FailureFile -ErrorAction SilentlyContinue | Where-Object { $_ -and -not $_.StartsWith("#") }
+    Write-Info "Reading failed tests from: $failureFilePath"
+    $failedTestFiles = @(Get-Content $failureFilePath -ErrorAction SilentlyContinue | Where-Object { $_ -and -not $_.StartsWith("#") })
     if ($failedTestFiles) {
         Write-Info "Found $($failedTestFiles.Count) failed test file(s) to retest"
         # Filter testFiles to only include those that failed
-        $testFiles = $testFiles | Where-Object { $_.Name -in $failedTestFiles }
+        $testFiles = @($testFiles | Where-Object { $_.Name -in $failedTestFiles })
         Write-Success "Filtered to $($testFiles.Count) test files for re-execution`n"
     }
 }
@@ -329,8 +348,11 @@ if ($failedCount -eq 0 -and $failedFiles.Count -eq 0) {
     Write-Success "All tests passed! 🎉"
     Write-Log "✓ All tests passed! 🎉`n" Green
     # Clear failure file since all tests passed
-    if (Test-Path $FailureFile) {
-        Remove-Item $FailureFile -Force
+    if (Test-Path $failureFilePath) {
+        Remove-Item $failureFilePath -Force
+    }
+    if ($legacyFailureFilePath -and (Test-Path $legacyFailureFilePath)) {
+        Remove-Item $legacyFailureFilePath -Force
     }
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
     Write-Log "`n✓ Test log completed: $logPath`n" Green
@@ -349,12 +371,15 @@ if ($failedCount -eq 0 -and $failedFiles.Count -eq 0) {
         $failureContent = @(
             "# Failed test files (generated $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'))"
             "# To retest only these files, run: .\RUN_TESTS_BATCH.ps1 -RetestFailed"
-            "# To clear this file, run: Remove-Item $FailureFile"
+            "# To clear this file, run: Remove-Item '$failureFilePath'"
             ""
         ) + $failedFiles
 
-        Set-Content -Path $FailureFile -Value $failureContent -Force
-        Write-Success "Failed files saved to: $FailureFile ($($failedFiles.Count) files)"
+        Set-Content -Path $failureFilePath -Value $failureContent -Force
+        if ($legacyFailureFilePath -and (Test-Path $legacyFailureFilePath)) {
+            Remove-Item $legacyFailureFilePath -Force
+        }
+        Write-Success "Failed files saved to: $failureFilePath ($($failedFiles.Count) files)"
     }
 
     Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Consolidated Installer Production & Versioning Pipeline - Student Management System
 
@@ -419,7 +419,8 @@ function Invoke-InstallerCompilation {
         }
 
         Push-Location $InstallerDir
-        & $iscc "SMS_Installer.iss" | Out-String | Tee-Object -Variable output
+        Write-Result Info "Running Inno Setup compiler. This can take a few minutes..."
+        & $iscc "SMS_Installer.iss" 2>&1 | ForEach-Object { Write-Result Info "  $_" }
         Pop-Location
 
         # Cleanup staged file
@@ -470,8 +471,44 @@ function Invoke-SmsManagerBuild {
 
     try {
         Write-Result Info "Building SMS_Manager.exe..."
-        & dotnet restore $SmsManagerProject | Out-Null
-        & dotnet publish $SmsManagerProject -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true | Out-Null
+        Write-Result Info "Running dotnet restore for SMS_Manager..."
+        & dotnet restore $SmsManagerProject --verbosity minimal 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+        if ($LASTEXITCODE -ne 0) {
+            Write-Result Error "dotnet restore failed (exit code: $LASTEXITCODE)"
+            return $false
+        }
+
+        $publishArgs = @(
+            $SmsManagerProject,
+            '-c', 'Release',
+            '-r', 'win-x64',
+            '--self-contained', 'true',
+            '-p:PublishSingleFile=true',
+            '-p:PublishTrimmed=false',
+            '-p:IncludeNativeLibrariesForSelfExtract=true',
+            '--verbosity', 'minimal'
+        )
+
+        Write-Result Info "Running dotnet publish for SMS_Manager. This can take a few minutes..."
+        $publishOutput = @()
+        & dotnet publish @publishArgs 2>&1 | Tee-Object -Variable publishOutput | ForEach-Object { Write-Result Info "  $_" }
+        $publishExitCode = $LASTEXITCODE
+
+        if ($publishExitCode -ne 0) {
+            $publishText = ($publishOutput | Out-String)
+            if ($publishText -match 'NETSDK1096' -or $publishText -match '0x80070005' -or $publishText -match 'CrossGen') {
+                Write-Result Warning "ReadyToRun publish failed. Retrying with PublishReadyToRun=false..."
+                $publishOutput = @()
+                $fallbackPublishArgs = $publishArgs + '-p:PublishReadyToRun=false'
+                & dotnet publish @fallbackPublishArgs 2>&1 | Tee-Object -Variable publishOutput | ForEach-Object { Write-Result Info "  $_" }
+                $publishExitCode = $LASTEXITCODE
+            }
+        }
+
+        if ($publishExitCode -ne 0) {
+            Write-Result Error "dotnet publish failed (exit code: $publishExitCode)"
+            return $false
+        }
 
         if (-not (Test-Path $SmsManagerExe)) {
             Write-Result Error "SMS_Manager.exe not produced at: $SmsManagerExe"

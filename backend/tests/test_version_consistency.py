@@ -145,9 +145,12 @@ def test_root_documentation_index_version(project_root: Path, version_core: str)
 
     content = index_path.read_text(encoding="utf-8")
 
-    # Extract only header versions (first 20 lines) - matches "**Version:** X.X.X" or "(vX.X.X)"
+    # Extract only header versions (first 20 lines) - matches "**Version**: X.X.X" or "(vX.X.X)"
     header_lines = "\n".join(content.split("\n")[:20])
-    extracted_versions = re.findall(r"\*\*Version:\*\*\s*(\d+\.\d+\.\d+)|\(v(\d+\.\d+\.\d+)\)", header_lines)
+    extracted_versions = re.findall(
+        r"\*\*Version\*\*:\s*(\d+\.\d+\.\d+)|\(v(\d+\.\d+\.\d+)\)",
+        header_lines,
+    )
 
     # Flatten tuples from findall
     versions_found = [v for group in extracted_versions for v in group if v]

@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Greek Language File Encoding Audit and Fix - Inno Setup Installer
 

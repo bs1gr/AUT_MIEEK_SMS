@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Signs the SMS Installer executable with the AUT MIEEK code signing certificate.
