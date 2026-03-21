@@ -78,6 +78,7 @@ def test_run_migrations_creates_tables(monkeypatch, tmp_path):
     cur = con.cursor()
     tables = [row[0] for row in cur.execute("SELECT name FROM sqlite_master WHERE type='table';").fetchall()]
     assert "alembic_version" in tables or "courses" in tables
+    assert "user_permissions" in tables
 
 
 def test_alembic_config_uses_application_settings(monkeypatch):
