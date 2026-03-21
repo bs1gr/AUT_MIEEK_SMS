@@ -2,16 +2,26 @@
 
 **Current Version**: 1.18.15
 **Last Updated**: March 21, 2026
-**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.15` RELEASE PREPARATION COMPLETE — PENDING TAG/PUSH**
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.15` PUBLISHED — INSTALLER ASSET VERIFIED**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **v1.18.15 Release Preparation | Maintenance/Hardening Patch**
+**Current Phase**: **Maintenance/Hardening | v1.18.15 Released**
 **Current Branch**: `main`
 
 ---
 
-## 🚀 v1.18.15 Release Preparation (March 21, 2026)
+## 🚀 v1.18.15 Release Publication (March 21, 2026)
 
-**Status**: ✅ **PREP COMPLETE — PENDING COMMIT/TAG/PUSH**
+**Status**: ✅ **PUBLISHED + VERIFIED**
+
+### Publication Evidence
+
+- ✅ Release-prep commit: `c2493b1a7` — "chore(release): prepare v1.18.15 — version bump, installer RTF refresh, release docs" (16 files, 506 insertions)
+- ✅ Tag `v1.18.15` created and pushed to origin
+- ✅ `main` pushed: `4688e4cc5..c2493b1a7`
+- ✅ GitHub release created (non-draft, non-prerelease, published `2026-03-21T20:00:27Z`)
+- ✅ Installer asset uploaded by CI: `SMS_Installer_1.18.15.exe` (26,198,224 bytes)
+- ✅ GitHub asset digest: `sha256:acb9bec91fba8ed8e5a54e991df2fcf1b555b5078d862662b0eb8d795745d76b`
+- ✅ Release page: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.15
 
 ### Release Scope (from v1.18.14)
 
@@ -24,6 +34,7 @@
 | `a42e0a2bb` | fix(installer): recover postgres auth drift during single-mode startup |
 | `b9151554b` | fix(installer): add missing forward declaration for db profile defaults |
 | `5ddd772f4` | fix(installer): add SQLite/QNAP DB selection and harden startup profile defaults |
+| `c2493b1a7` | chore(release): prepare v1.18.15 — version bump, installer RTF refresh, release docs |
 
 ### Validation Evidence
 
@@ -32,11 +43,11 @@
 - ✅ Translation integrity verified
 - ✅ Backend pytest: 21/21 batches, 102 test files — all passing
 - ✅ Frontend Vitest: passed
-- ✅ Installer built: `dist/SMS_Installer_1.18.15.exe` (27,024,096 bytes)
+- ✅ Installer built: `dist/SMS_Installer_1.18.15.exe` (27,024,096 bytes local)
 - ✅ Installer SHA256: `E7428BC4CD1924FB912DE59E0056D9109673572667B13C7849C8E5455BEA80CE`
 - ✅ Authenticode: Valid (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
 - ✅ Installer smoke test: passed
-- ✅ `COMMIT_READY.ps1 -Quick -Snapshot` completed (after root DOCUMENTATION_INDEX.md fix)
+- ✅ `COMMIT_READY.ps1 -Quick -Snapshot` completed
 
 ### Release Docs Created
 
@@ -45,12 +56,6 @@
 - ✅ `.github/RELEASE_NOTES_v1.18.15.md`
 - ✅ `docs/releases/RELEASE_MANIFEST_v1.18.15.md`
 - ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.15.md`
-
-### Pending Steps
-
-- ⏳ Release-prep commit
-- ⏳ `git tag v1.18.15` + `git push origin main && git push origin v1.18.15`
-- ⏳ GitHub release publication
 
 ---
 

@@ -3,7 +3,7 @@
 **Version**: 1.18.15  
 **Release Date**: 2026-03-21  
 **Prepared By**: Solo Developer + AI Assistant  
-**Status**: ✅ PREPARED
+**Status**: ✅ PUBLISHED + VERIFIED
 
 ---
 
@@ -19,8 +19,12 @@
 | **Build tool** | Inno Setup + Authenticode (DigiCert live timestamp) |
 | **Smoke test** | Passed |
 | **Built** | 2026-03-21 |
+| **GitHub asset size** | 26,198,224 bytes (CI build) |
+| **GitHub asset digest (authoritative)** | `sha256:acb9bec91fba8ed8e5a54e991df2fcf1b555b5078d862662b0eb8d795745d76b` |
+| **GitHub asset uploaded** | `2026-03-21T20:02:26Z` |
+| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.15 |
 
-> **SHA256 note**: DigiCert live timestamping means each build produces a distinct binary. The GitHub release asset digest (recorded after upload) is the authoritative post-publication hash.
+> **SHA256 note**: DigiCert live timestamping means each build produces a distinct binary. The GitHub release asset digest is the authoritative post-publication hash; recorded above after CI upload confirmed at `2026-03-21T20:02:26Z`.
 
 ---
 
@@ -86,9 +90,9 @@ Per release-lineage policy:
 
 ## GitHub Release Checklist
 
-- [ ] Tag `v1.18.15` created and pushed
-- [ ] `Create GitHub Release on tag` workflow succeeded
-- [ ] `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded
-- [ ] `Release Asset Sanitizer` workflow confirmed installer-only assets
-- [ ] Published installer filename: `SMS_Installer_1.18.15.exe`
-- [ ] Release marked as latest (non-prerelease)
+- ✅ Tag `v1.18.15` created and pushed (`2026-03-21`)
+- ✅ `Create GitHub Release on tag` workflow succeeded — Release ID `299795592`, published `2026-03-21T20:00:27Z`
+- ✅ `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded — Asset ID `378710544`, uploaded `2026-03-21T20:02:26Z`
+- ✅ `Release Asset Sanitizer` workflow confirmed installer-only assets
+- ✅ Published installer filename: `SMS_Installer_1.18.15.exe`
+- ✅ Release marked as latest (non-prerelease, non-draft)
