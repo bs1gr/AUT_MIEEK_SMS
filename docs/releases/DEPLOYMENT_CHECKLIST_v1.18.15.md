@@ -1,8 +1,8 @@
 # Deployment Checklist — v1.18.15
 
-**Version**: 1.18.15  
-**Release Date**: 2026-03-21  
-**Environment Targets**: Docker (production), Native (development)  
+**Version**: 1.18.15
+**Release Date**: 2026-03-21
+**Environment Targets**: Docker (production), Native (development)
 **Status**: ✅ PREPARED
 
 ---
@@ -145,5 +145,5 @@ If deployment fails at any step:
 | RBAC functional | |  |
 | Observation period clear | |  |
 
-**Date**: _______________  
+**Date**: _______________
 **Verified by**: Owner

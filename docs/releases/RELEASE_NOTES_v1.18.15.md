@@ -1,9 +1,9 @@
 # Release Notes - v1.18.15
 
-**Version**: 1.18.15  
-**Release Date**: 2026-03-21  
-**Type**: Maintenance / Hardening Patch  
-**Branch**: `main`  
+**Version**: 1.18.15
+**Release Date**: 2026-03-21
+**Type**: Maintenance / Hardening Patch
+**Branch**: `main`
 **Status**: ✅ PREPARED — Installer built, signed, and validated
 
 ---

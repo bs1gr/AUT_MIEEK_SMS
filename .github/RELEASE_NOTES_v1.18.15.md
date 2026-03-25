@@ -1,6 +1,6 @@
 ## v1.18.15 — Maintenance & Hardening Patch
 
-**Release Date**: March 21, 2026  
+**Release Date**: March 21, 2026
 **Type**: Maintenance patch — installer/QNAP hardening, RBAC guardrail, Trivy CI pin
 
 ### What's Changed

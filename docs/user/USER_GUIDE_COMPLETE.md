@@ -213,6 +213,42 @@ npm run dev
 .\NATIVE.ps1 -Status   # Native mode
 
 ```text
+### Database Configuration
+
+**One Database Rule:** All installations connect to a single shared QNAP PostgreSQL database. This ensures data consistency across multiple computers and prevents synchronization issues.
+
+**Default Behavior:**
+- **Fresh Installs:** Automatically configured for QNAP PostgreSQL (remote-first)
+- **Upgrades:** Preserve existing database choice (no forced migration)
+- **Fallback:** Local SQLite available when QNAP is unreachable
+
+**Manual Data Synchronization:**
+
+If you need to manually sync data between installations:
+
+1. **Export Data** from source installation:
+   - Go to **Control Panel** → **Maintenance** → **Data Export**
+   - Select all data types (students, courses, grades, attendance)
+   - Export to Excel format
+
+2. **Import Data** to target installation:
+   - Go to **Control Panel** → **Maintenance** → **Data Import**
+   - Upload the exported Excel file
+   - Review and confirm import
+
+**Migration Tools:**
+
+For special cases (QNAP unreachable, data recovery):
+
+```powershell
+## Run manual migration script
+
+cd backend
+python scripts/migrate_sqlite_to_postgres.py
+
+```text
+**Note:** Manual migration is for proactive data transfer when automatic sync is not possible. Contact administrator for assistance.
+
 ---
 
 ## User Interface Overview

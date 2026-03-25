@@ -1,9 +1,16 @@
 """Utility to migrate SMS data from SQLite to PostgreSQL.
 
 This script copies every SQLAlchemy model defined in ``backend.models`` from a
-source SQLite database into a PostgreSQL database. It is intended to be run
-once when upgrading an existing installation from the default SQLite store to a
-managed PostgreSQL instance.
+source SQLite database into a PostgreSQL database. It is a SPECIAL-CASE tool
+for MANUAL data migration when the QNAP PostgreSQL database is unreachable.
+
+**IMPORTANT:** Under the "one database" rule, all installations should connect
+to the shared QNAP PostgreSQL database. This script is only for:
+- Proactive data transfer when QNAP is temporarily unreachable
+- Data recovery scenarios
+- Special administrative cases
+
+For normal operations, use the app's built-in import/export features instead.
 
 Typical usage::
 

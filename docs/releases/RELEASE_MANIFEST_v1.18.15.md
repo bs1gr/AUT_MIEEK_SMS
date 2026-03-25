@@ -1,8 +1,8 @@
 # Release Manifest — v1.18.15
 
-**Version**: 1.18.15  
-**Release Date**: 2026-03-21  
-**Prepared By**: Solo Developer + AI Assistant  
+**Version**: 1.18.15
+**Release Date**: 2026-03-21
+**Prepared By**: Solo Developer + AI Assistant
 **Status**: ✅ PUBLISHED + VERIFIED
 
 ---

@@ -129,12 +129,12 @@ english.InstallDockerOnlyDesc=Minimal installation with Docker container (fastes
 english.InstallDevEnvironment=Include Development Environment
 english.InstallDevEnvironmentDesc=Add Node.js, Python, and native development files for local development
 english.DbConfigPageTitle=Database Configuration
-english.DbConfigPageSubtitle=Choose local SQLite or connect to your QNAP PostgreSQL database.
-english.DbConfigIntro=Pick the database mode you want to use for this installation.
-english.DbLocalOption=Local SQLite (single-machine, easiest setup)
-english.DbLocalHint=Recommended for most users. No extra settings are required.
-english.DbRemoteOption=QNAP PostgreSQL (shared NAS database)
-english.DbRemoteHint=Use this only if your NAS PostgreSQL server is already configured and reachable from this PC.
+english.DbConfigPageSubtitle=Connect to your shared QNAP PostgreSQL database (recommended) or use local SQLite as fallback.
+english.DbConfigIntro=Choose how to connect to your student data. The shared QNAP database is recommended for most installations.
+english.DbLocalOption=Local SQLite (fallback when QNAP unreachable)
+english.DbLocalHint=Use only when your QNAP PostgreSQL server is not available. Data will be stored locally and can be migrated later.
+english.DbRemoteOption=QNAP PostgreSQL (shared NAS database - recommended)
+english.DbRemoteHint=Connect to the shared PostgreSQL database on your QNAP NAS. This is the primary database for all installations.
 english.DbCredentialsSection=QNAP PostgreSQL credentials file
 english.DbCredentialsFile=Credentials file (.json or .env)
 english.DbBrowse=Browse...
@@ -850,7 +850,6 @@ begin
   LocalSQLiteRadio.Top := 52;
   LocalSQLiteRadio.Width := PostgresPage.SurfaceWidth;
   LocalSQLiteRadio.Caption := CustomMessage('DbLocalOption');
-  LocalSQLiteRadio.Checked := True;
   LocalSQLiteRadio.OnClick := @UpdateDatabaseProfileUI;
 
   LocalSQLiteHintLabel := TLabel.Create(PostgresPage);
@@ -868,6 +867,7 @@ begin
   QnapPostgresRadio.Top := 104;
   QnapPostgresRadio.Width := PostgresPage.SurfaceWidth;
   QnapPostgresRadio.Caption := CustomMessage('DbRemoteOption');
+  QnapPostgresRadio.Checked := True;
   QnapPostgresRadio.OnClick := @UpdateDatabaseProfileUI;
 
   QnapPostgresHintLabel := TLabel.Create(PostgresPage);

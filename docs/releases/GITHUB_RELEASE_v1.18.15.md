@@ -1,7 +1,7 @@
 ## v1.18.15 — Maintenance & Hardening Patch
 
-**Release Date**: March 21, 2026  
-**Type**: Maintenance patch  
+**Release Date**: March 21, 2026
+**Type**: Maintenance patch
 **Installer**: `SMS_Installer_1.18.15.exe`
 
 ---

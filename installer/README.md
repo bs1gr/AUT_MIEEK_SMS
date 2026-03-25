@@ -8,7 +8,7 @@ This directory contains the Inno Setup installer configuration and code signing 
 
 - ✅ **Upgrade Profile-Drift Prevention**: Installer now preserves existing PostgreSQL configuration during upgrades (prevents silent switch to local SQLite)
 - ✅ **Release Build Alignment**: Greek installer info pages are regenerated as `.rtf` assets during installer builds for reliable CI compilation and correct CP1253 rendering
-- ✅ **Secure Profile Defaults**: Fresh installs stay local-first while remote PostgreSQL remains explicit opt-in
+- ✅ **Secure Profile Defaults**: Fresh installs default to QNAP PostgreSQL (remote-first) while local SQLite remains as fallback when remote is unreachable
 - ✅ **Control Panel Auto-Updater**: Threaded download with SHA256 verification and installer launch
 - ✅ **Database Management Panel**: Backup, diagnostics, and user admin consolidated in Control Panel
 - ✅ **Offline Support**: Centralized network status hook, offline banner, and reconnect sync queues
@@ -53,6 +53,18 @@ This installer is for a **Student Management System** built for teachers at:
 **Developer:** Independent teacher at ΜΙΕΕΚ
 
 - GitHub Repository: <https://github.com/bs1gr/AUT_MIEEK_SMS>
+
+## Database Configuration
+
+**One Database Rule:** All installations connect to a single shared QNAP PostgreSQL database for centralized data management.
+
+- **Default:** QNAP PostgreSQL (recommended for data sharing across multiple PCs)
+- **Fallback:** Local SQLite (when QNAP is unreachable)
+- **Migration:** Manual tools available for proactive data sync when needed
+
+**Fresh Installs:** Default to QNAP PostgreSQL with SQLite as fallback option.
+
+**Upgrades:** Preserve existing database configuration (no silent switches).
 
 ## Files
 
