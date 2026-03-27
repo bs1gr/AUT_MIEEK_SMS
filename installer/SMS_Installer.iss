@@ -190,6 +190,9 @@ Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
+; Production deployment docs referenced by installer README
+Source: "..\docs\deployment\QNAP_POSTGRES_SINGLE_SOURCE.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
+Source: "..\docs\deployment\QNAP_RECONCILE_RUNBOOK.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
 
 ; Environment file template - needed for DOCKER.ps1 to create .env on first run
 Source: "..\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion

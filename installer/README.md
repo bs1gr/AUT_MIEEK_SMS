@@ -66,6 +66,25 @@ This installer is for a **Student Management System** built for teachers at:
 
 **Upgrades:** Preserve existing database configuration (no silent switches).
 
+### Central QNAP PostgreSQL (single-source policy)
+
+This project enforces a central QNAP PostgreSQL instance as the canonical production database. See the full policy and operational guidance:
+
+- `docs/deployment/QNAP_POSTGRES_SINGLE_SOURCE.md`
+
+Key behaviors:
+
+- If the operator selects the QNAP option, the installer loads a selected `.json`, `.env`, or `.txt` credential file and will NOT create new PostgreSQL databases on the QNAP host.
+- If QNAP connectivity cannot be verified, the installer warns the operator before continuing; switching to local SQLite remains an explicit manual choice on the profile page.
+
+See also the reconciliation runbook for approved manual sync and migration procedures:
+
+- `docs/deployment/QNAP_RECONCILE_RUNBOOK.md`
+
+Localization note
+-----------------
+Greek translations have been updated to recommend the QNAP remote-first option and explain the SQLite fallback; see `installer/Greek.isl` for details.
+
 ## Files
 
 | File | Description |
@@ -184,7 +203,7 @@ dist\SMS_Installer_1.18.11.exe
 
 ### Database Profile Behavior
 
-Version 1.18.11 keeps **secure local SQLite** as the default profile for fresh installs while preserving existing PostgreSQL configurations during upgrades.
+Current installer builds default fresh installs to **QNAP PostgreSQL** (remote-first) while preserving the existing database profile during upgrades.
 
 **Upgrade Profile-Drift Prevention:**
 - Installer now detects existing PostgreSQL configuration in `.env` and preserves it
@@ -192,9 +211,9 @@ Version 1.18.11 keeps **secure local SQLite** as the default profile for fresh i
 - Recovery helper available: `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1`
 
 **Database Configuration:**
-- `SMS_DATABASE_PROFILE=local` uses SQLite for secure local-first installs
-- `SMS_DATABASE_PROFILE=remote` uses PostgreSQL with explicit `POSTGRES_*` credentials
-- Existing PostgreSQL installs are preserved and auto-inferred during upgrades
+- `SMS_DATABASE_PROFILE=local` uses SQLite when the operator explicitly selects the local fallback profile
+- `SMS_DATABASE_PROFILE=remote` uses PostgreSQL with explicit `POSTGRES_*` credentials and is the default fresh-install selection
+- Existing remote and local installs are preserved and auto-inferred during upgrades
 
 ### Uninstaller Behavior
 

@@ -1,0 +1,144 @@
+audit	UNKNOWN STEP	﻿2026-03-25T09:39:24.3766685Z Current runner version: '2.333.0'
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3790764Z ##[group]Runner Image Provisioner
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3791838Z Hosted Compute Agent
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3792555Z Version: 20260213.493
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3793231Z Commit: 5c115507f6dd24b8de37d8bbe0bb4509d0cc0fa3
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3793918Z Build Date: 2026-02-13T00:28:41Z
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3794530Z Worker ID: {e8a01dfe-11e4-4281-91e2-6a2871fa38ca}
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3795250Z Azure Region: eastus2
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3795753Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3797219Z ##[group]Operating System
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3797829Z Ubuntu
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3798315Z 24.04.4
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3798730Z LTS
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3799209Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3799706Z ##[group]Runner Image
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3800233Z Image: ubuntu-24.04
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3800763Z Version: 20260323.65.1
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3802104Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260323.65/images/ubuntu/Ubuntu2404-Readme.md
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3803556Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260323.65
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3804491Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3807014Z ##[group]GITHUB_TOKEN Permissions
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3808988Z Actions: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3809582Z ArtifactMetadata: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3810078Z Attestations: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3810676Z Checks: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3811155Z Contents: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3811983Z Deployments: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3812571Z Discussions: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3813075Z Issues: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3813532Z Metadata: read
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3814069Z Models: read
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3814581Z Packages: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3815041Z Pages: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3815683Z PullRequests: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3816186Z RepositoryProjects: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3816751Z SecurityEvents: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3817274Z Statuses: write
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3817825Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3819808Z Secret source: Actions
+audit	UNKNOWN STEP	2026-03-25T09:39:24.3820520Z Prepare workflow directory
+audit	UNKNOWN STEP	2026-03-25T09:39:24.4159165Z Prepare all required actions
+audit	UNKNOWN STEP	2026-03-25T09:39:24.4197924Z Getting action download info
+audit	UNKNOWN STEP	2026-03-25T09:39:24.7931240Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+audit	UNKNOWN STEP	2026-03-25T09:39:25.5838673Z Complete job name: audit
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6788679Z ##[group]Run actions/checkout@v4
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6790062Z with:
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6790855Z   repository: bs1gr/AUT_MIEEK_SMS
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6792394Z   token: ***
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6793155Z   ssh-strict: true
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6793971Z   ssh-user: git
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6794791Z   persist-credentials: true
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6795732Z   clean: true
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6796555Z   sparse-checkout-cone-mode: true
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6797553Z   fetch-depth: 1
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6798347Z   fetch-tags: false
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6799164Z   show-progress: true
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6800001Z   lfs: false
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6800787Z   submodules: false
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6801774Z   set-safe-directory: true
+audit	UNKNOWN STEP	2026-03-25T09:39:25.6802964Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:25.7890379Z Syncing repository: bs1gr/AUT_MIEEK_SMS
+audit	UNKNOWN STEP	2026-03-25T09:39:25.7893891Z ##[group]Getting Git version info
+audit	UNKNOWN STEP	2026-03-25T09:39:25.7895423Z Working directory is '/home/runner/work/AUT_MIEEK_SMS/AUT_MIEEK_SMS'
+audit	UNKNOWN STEP	2026-03-25T09:39:25.7897565Z [command]/usr/bin/git version
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8404208Z git version 2.53.0
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8430568Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8445376Z Temporarily overriding HOME='/home/runner/work/_temp/7ab4de57-6f74-4891-983b-90ef9a66d629' before making global git config changes
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8448309Z Adding repository directory to the temporary git global config as a safe directory
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8458693Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AUT_MIEEK_SMS/AUT_MIEEK_SMS
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8491082Z Deleting the contents of '/home/runner/work/AUT_MIEEK_SMS/AUT_MIEEK_SMS'
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8494865Z ##[group]Initializing the repository
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8498920Z [command]/usr/bin/git init /home/runner/work/AUT_MIEEK_SMS/AUT_MIEEK_SMS
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8685755Z hint: Using 'master' as the name for the initial branch. This default branch name
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8689065Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8692718Z hint: to use in all of your new repositories, which will suppress this warning,
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8695472Z hint: call:
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8696770Z hint:
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8698456Z hint: 	git config --global init.defaultBranch <name>
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8700635Z hint:
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8702813Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8705996Z hint: 'development'. The just-created branch can be renamed via this command:
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8708137Z hint:
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8708904Z hint: 	git branch -m <name>
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8709814Z hint:
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8711020Z hint: Disable this message with "git config set advice.defaultBranchName false"
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8714465Z Initialized empty Git repository in /home/runner/work/AUT_MIEEK_SMS/AUT_MIEEK_SMS/.git/
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8719129Z [command]/usr/bin/git remote add origin https://github.com/bs1gr/AUT_MIEEK_SMS
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8733864Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8736418Z ##[group]Disabling automatic garbage collection
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8738730Z [command]/usr/bin/git config --local gc.auto 0
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8767694Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8770014Z ##[group]Setting up auth
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8775433Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+audit	UNKNOWN STEP	2026-03-25T09:39:25.8806841Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+audit	UNKNOWN STEP	2026-03-25T09:39:25.9924025Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+audit	UNKNOWN STEP	2026-03-25T09:39:25.9954689Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+audit	UNKNOWN STEP	2026-03-25T09:39:26.0173117Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+audit	UNKNOWN STEP	2026-03-25T09:39:26.0204531Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+audit	UNKNOWN STEP	2026-03-25T09:39:26.0444964Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+audit	UNKNOWN STEP	2026-03-25T09:39:26.0485267Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:26.0486649Z ##[group]Fetching the repository
+audit	UNKNOWN STEP	2026-03-25T09:39:26.0493384Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +8099ebed8485d64bf591c772db7439a96b657388:refs/remotes/origin/main
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2439629Z From https://github.com/bs1gr/AUT_MIEEK_SMS
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2440608Z  * [new ref]         8099ebed8485d64bf591c772db7439a96b657388 -> origin/main
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2469099Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2469850Z ##[group]Determining the checkout info
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2478028Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2478405Z [command]/usr/bin/git sparse-checkout disable
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2516915Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2545268Z ##[group]Checking out the ref
+audit	UNKNOWN STEP	2026-03-25T09:39:27.2550279Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0160896Z Switched to a new branch 'main'
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0165773Z branch 'main' set up to track 'origin/main'.
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0474098Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0513556Z [command]/usr/bin/git log -1 --format=%H
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0537861Z 8099ebed8485d64bf591c772db7439a96b657388
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0728643Z ##[group]Run ./scripts/docs/audit-docs.ps1 -MaxAgeDays 180
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0729179Z [36;1m./scripts/docs/audit-docs.ps1 -MaxAgeDays 180[0m
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0766263Z shell: /usr/bin/pwsh -command ". '{0}'"
+audit	UNKNOWN STEP	2026-03-25T09:39:28.0766581Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:30.8942005Z [audit] Starting documentation audit...
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8013113Z [audit] No issues detected.
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8014926Z [audit] Completed.
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8504472Z ##[group]Run echo 'Documentation audit passed with no issues.'
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8504999Z [36;1mecho 'Documentation audit passed with no issues.'[0m
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8531294Z shell: /usr/bin/bash -e {0}
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8531795Z ##[endgroup]
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8578549Z Documentation audit passed with no issues.
+audit	UNKNOWN STEP	2026-03-25T09:39:34.8662077Z Post job cleanup.
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9597947Z [command]/usr/bin/git version
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9633604Z git version 2.53.0
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9677697Z Temporarily overriding HOME='/home/runner/work/_temp/9537528d-803d-4e86-899a-ec30515ba22e' before making global git config changes
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9679115Z Adding repository directory to the temporary git global config as a safe directory
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9684415Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/AUT_MIEEK_SMS/AUT_MIEEK_SMS
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9719122Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9749702Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9971358Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+audit	UNKNOWN STEP	2026-03-25T09:39:34.9991320Z http.https://github.com/.extraheader
+audit	UNKNOWN STEP	2026-03-25T09:39:35.0003637Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+audit	UNKNOWN STEP	2026-03-25T09:39:35.0033275Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+audit	UNKNOWN STEP	2026-03-25T09:39:35.0249159Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+audit	UNKNOWN STEP	2026-03-25T09:39:35.0278136Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+audit	UNKNOWN STEP	2026-03-25T09:39:35.0601820Z Cleaning up orphan processes
+audit	UNKNOWN STEP	2026-03-25T09:39:35.0981394Z ##[warning]Node.js 20 actions are deprecated. The following actions are running on Node.js 20 and may not work as expected: actions/checkout@v4. Actions will be forced to run with Node.js 24 by default starting June 2nd, 2026. Node.js 20 will be removed from the runner on September 16th, 2026. Please check if updated versions of these actions are available that support Node.js 24. To opt into Node.js 24 now, set the FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true environment variable on the runner or in your workflow file. Once Node.js 24 becomes the default, you can temporarily opt out by setting ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
