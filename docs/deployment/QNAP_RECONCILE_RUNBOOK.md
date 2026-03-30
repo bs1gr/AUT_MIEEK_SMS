@@ -1,5 +1,7 @@
 # QNAP Reconciliation Runbook (Quick)
 
+**Status**: Active QNAP reconciliation runbook
+
 This runbook provides a concise, operator-focused checklist for reconciling temporary local-fallback installs (SQLite) back into the central QNAP PostgreSQL instance.
 
 Warning: Follow the full policy in `QNAP_POSTGRES_SINGLE_SOURCE.md` before performing any migration. Always create backups and run with `--dry-run` before applying changes.
