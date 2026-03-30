@@ -108,7 +108,7 @@
     "vitest": "^4.0.8"
   },
   "overrides": {
-    "serialize-javascript": "^7.0.3",
+    "serialize-javascript": "^7.0.5",
     "flatted": ">=3.4.0"
   }
 }

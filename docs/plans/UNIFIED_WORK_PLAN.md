@@ -9,6 +9,31 @@
 
 ---
 
+## 🔐 Dependabot Remediation Snapshot (March 30, 2026)
+
+**Status**: ✅ **LOCAL FIX COMPLETE** | ⏳ **GitHub alert closure pending push/default-branch refresh**
+
+- ✅ Reviewed live open GitHub Dependabot alerts on `main`:
+  - `#136` — `backend/requirements.txt` — `cryptography` `< 46.0.6`
+  - `#137` — `pyproject.toml` — `cryptography` `< 46.0.6`
+  - `#139` — `frontend/package-lock.json` — `serialize-javascript` `< 7.0.5`
+- ✅ Updated Python runtime manifests:
+  - `backend/requirements.txt` → `cryptography==46.0.6`
+  - `pyproject.toml` → `cryptography==46.0.6`
+- ✅ Updated frontend dependency override and lock resolution:
+  - `frontend/package.json` → `serialize-javascript` override `^7.0.5`
+  - `frontend/package-lock.json` → resolved `serialize-javascript@7.0.5`
+- ✅ Verification evidence:
+  - `.\.venv\Scripts\python -m pip_audit -r backend/requirements.txt` → `No known vulnerabilities found`
+  - `npm --prefix frontend ls serialize-javascript` → resolved `serialize-javascript@7.0.5`
+  - `npm --prefix frontend audit --omit=optional --json` → `serialize-javascript` no longer present in vulnerability list
+  - `.\RUN_TESTS_BATCH.ps1` → `34/34` batches passed (`test-results/backend_batch_run_20260330_230141.txt`)
+  - `npm --prefix frontend run build` → passed with PWA asset generation
+- ℹ️ Residual local audit note:
+  - `npm audit` still reports 1 unrelated dev-only `brace-expansion` finding; this was **not** one of the 3 open GitHub Dependabot alerts requested in this task
+
+---
+
 ## 🚀 v1.18.15 Release Publication (March 21, 2026)
 
 **Status**: ✅ **PUBLISHED + VERIFIED**
