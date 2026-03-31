@@ -13,7 +13,7 @@ This document serves as the single source of truth for all project documentation
 > - `v1.18.12` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
 > - `v1.18.16` release publication, installer verification, GitHub digest verification, and post-release evidence were completed successfully
 > - `v1.18.16` packages QNAP PostgreSQL defaulting, dependency/security refreshes, installer credential-file parsing parity, manual-only CI cadence updates, and deployment runbooks
-> - GitHub code scanning now reports zero open alerts after the `main`-branch Trivy refresh
+> - GitHub code scanning and Dependabot now both report zero open alerts after the `main`-branch dependency refresh
 > - `v1.18.12` restores generated Greek `.rtf` installer assets in the build pipeline
 > - `v1.18.12` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
 > - Fresh local installer build, signing, and smoke verification completed successfully for `v1.18.12` before official publication

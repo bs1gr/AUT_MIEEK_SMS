@@ -52,9 +52,9 @@
   - authoritative GitHub digest: `sha256:7eb8c32d1b6cf1a012e3b6d6c57210a9b29235f11c70b4783603e88ca0bb945d`
   - downloaded published installer hash matched the GitHub digest and `Get-AuthenticodeSignature` returned `Valid`
 
-## 🔐 Dependabot Remediation Snapshot (March 30, 2026)
+## 🔐 Dependabot Remediation Snapshot (March 30-31, 2026)
 
-**Status**: ✅ **LOCAL FIX COMPLETE** | ⏳ **GitHub alert closure pending push/default-branch refresh**
+**Status**: ✅ **CLOSED + VERIFIED ON GITHUB**
 
 - ✅ Reviewed live open GitHub Dependabot alerts on `main`:
   - `#136` — `backend/requirements.txt` — `cryptography` `< 46.0.6`
@@ -72,6 +72,9 @@
   - `npm --prefix frontend audit --omit=optional --json` → `serialize-javascript` no longer present in vulnerability list
   - `.\RUN_TESTS_BATCH.ps1` → `34/34` batches passed (`test-results/backend_batch_run_20260330_230141.txt`)
   - `npm --prefix frontend run build` → passed with PWA asset generation
+- ✅ GitHub-hosted alert state after push/default-branch refresh:
+  - `gh api "repos/bs1gr/AUT_MIEEK_SMS/dependabot/alerts?state=open&per_page=100"` → `[]`
+  - `gh api "repos/bs1gr/AUT_MIEEK_SMS/code-scanning/alerts?state=open&per_page=100"` → `[]`
 - ℹ️ Residual local audit note:
   - `npm audit` still reports 1 unrelated dev-only `brace-expansion` finding; this was **not** one of the 3 open GitHub Dependabot alerts requested in this task
 
