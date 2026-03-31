@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Consolidated Installer Production & Versioning Pipeline - Student Management System
 
@@ -79,7 +79,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: 1.18.15
+Version: 1.18.16
     Created: 2025-12-04
     Updated: 2026-03-09
 

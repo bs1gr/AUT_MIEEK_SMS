@@ -6,7 +6,7 @@ const versionFile = path.resolve(__dirname, '../VERSION');
 const packageJsonFile = path.resolve(__dirname, './package.json');
 
 try {
-  const version = fs.readFileSync(versionFile, 'utf-8').trim();
+  const version = fs.readFileSync(versionFile, 'utf-8').trim().replace(/^v/, '');
   const pkg = JSON.parse(fs.readFileSync(packageJsonFile, 'utf-8'));
   if (pkg.version !== version) {
     pkg.version = version;

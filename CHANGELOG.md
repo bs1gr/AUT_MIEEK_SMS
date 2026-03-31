@@ -8,6 +8,31 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [1.18.16] - 2026-03-31
+
+### Features
+- **installer**: default fresh installs to the shared QNAP PostgreSQL profile while keeping local SQLite as the explicit fallback path
+- **deployment**: add QNAP single-source policy and reconciliation runbook documentation for centralized PostgreSQL installs
+
+### Bug Fixes
+- **installer**: accept flat `host` / `port` / `dbname` / `user` / `password` / `sslmode` keys in `.env` and `.txt` credential files, matching the documented installer formats
+- **docs**: render the user guide database-configuration section as prose instead of a stray fenced block
+
+### Security
+- **deps**: update `cryptography` to `46.0.6`
+- **deps**: update `serialize-javascript` to `7.0.5`
+
+### CI/CD
+- **ci**: reduce `release-asset-sanitizer` to a daily schedule
+- **ci**: disable automatic scheduled production health-check and load-testing runs in favor of manual dispatch
+
+### Documentation
+- **installer**: clarify `.json`, `.env`, and `.txt` credential-file support in English and Greek installer copy
+- **user**: add database-configuration and manual reconciliation guidance for QNAP-backed installs
+
+### Chores
+- **release**: remove tracked local run-log artifacts from the repository before tagging
+
 
 ## [1.18.15] - 2026-03-21
 

@@ -1,6 +1,6 @@
 # Complete User Guide - Student Management System
 
-**Version:** 1.18.15
+**Version:** 1.18.16
 **Last Updated:** March 5, 2026
 **Status:** ✅ Active
 
@@ -212,7 +212,8 @@ npm run dev
 .\DOCKER.ps1 -Status   # Docker mode
 .\NATIVE.ps1 -Status   # Native mode
 
-```text
+```
+
 ### Database Configuration
 
 **One Database Rule:** All installations connect to a single shared QNAP PostgreSQL database. This ensures data consistency across multiple computers and prevents synchronization issues.
@@ -246,7 +247,8 @@ For special cases (QNAP unreachable, data recovery):
 cd backend
 python scripts/migrate_sqlite_to_postgres.py
 
-```text
+```
+
 **Note:** Manual migration is for proactive data transfer when automatic sync is not possible. Contact administrator for assistance.
 
 ---

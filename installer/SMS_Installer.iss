@@ -136,7 +136,7 @@ english.DbLocalHint=Use only when your QNAP PostgreSQL server is not available. 
 english.DbRemoteOption=QNAP PostgreSQL (shared NAS database - recommended)
 english.DbRemoteHint=Connect to the shared PostgreSQL database on your QNAP NAS. This is the primary database for all installations.
 english.DbCredentialsSection=QNAP PostgreSQL credentials file
-english.DbCredentialsFile=Credentials file (.json or .env)
+english.DbCredentialsFile=Credentials file (.json, .env, or .txt)
 english.DbBrowse=Browse...
 english.DbCredentialsHint=Use the same credentials file accepted in the Database Management panel.
 english.DbNoFileSelected=No credentials file selected.
@@ -144,9 +144,9 @@ english.DbLoadedCredentials=Loaded credentials: %1:%2 / %3 (%4)
 english.DbLoadedExistingCredentials=Using existing saved remote credentials: %1:%2 / %3 (%4)
 english.DbLocalSummary=Database profile: Local SQLite (embedded file database)
 english.DbRemoteSummary=Database profile: QNAP PostgreSQL (%1:%2/%3)
-english.DbFileRequired=Please select a database credentials file (.json or .env).
+english.DbFileRequired=Please select a database credentials file (.json, .env, or .txt).
 english.DbFileMissing=Selected credentials file was not found.
-english.DbFileUnsupported=Unsupported file format. Use a .json or .env credentials file.
+english.DbFileUnsupported=Unsupported file format. Use a .json, .env, or .txt credentials file.
 english.DbFileLoadFailed=Failed to read the credentials file.
 english.DbMissingRequired=Missing required credentials (host and password are mandatory).
 english.DbFileDialogTitle=Select database credentials file
@@ -1305,6 +1305,15 @@ begin
     '  }' + #13#10 +
     '  return $default' + #13#10 +
     '}' + #13#10 +
+    'function Get-MapValue($map, [string[]]$names, $default) {' + #13#10 +
+    '  foreach ($name in $names) {' + #13#10 +
+    '    if ($map.ContainsKey($name)) {' + #13#10 +
+    '      $value = $map[$name]' + #13#10 +
+    '      if ($null -ne $value -and ("$value") -ne "") { return "$value" }' + #13#10 +
+    '    }' + #13#10 +
+    '  }' + #13#10 +
+    '  return $default' + #13#10 +
+    '}' + #13#10 +
     'if ($ext -eq ''.json'') {' + #13#10 +
     '  $data = $raw | ConvertFrom-Json' + #13#10 +
     '  $dbHost = Get-JsonValue $data @(''host'',''POSTGRES_HOST'') ''localhost''' + #13#10 +
@@ -1322,12 +1331,12 @@ begin
     '      $map[$parts[0].Trim()] = $parts[1].Trim().Trim(''"'').Trim("''")' + #13#10 +
     '    }' + #13#10 +
     '  }' + #13#10 +
-    '  $dbHost = if ($map.ContainsKey(''POSTGRES_HOST'')) { $map[''POSTGRES_HOST''] } else { ''localhost'' }' + #13#10 +
-    '  $dbPort = if ($map.ContainsKey(''POSTGRES_PORT'')) { $map[''POSTGRES_PORT''] } else { ''5432'' }' + #13#10 +
-    '  $dbName = if ($map.ContainsKey(''POSTGRES_DB'')) { $map[''POSTGRES_DB''] } else { ''student_management'' }' + #13#10 +
-    '  $dbUser = if ($map.ContainsKey(''POSTGRES_USER'')) { $map[''POSTGRES_USER''] } else { ''sms_user'' }' + #13#10 +
-    '  $dbPassword = if ($map.ContainsKey(''POSTGRES_PASSWORD'')) { $map[''POSTGRES_PASSWORD''] } else { '''' }' + #13#10 +
-    '  $dbSslMode = if ($map.ContainsKey(''POSTGRES_SSLMODE'')) { $map[''POSTGRES_SSLMODE''] } else { ''prefer'' }' + #13#10 +
+    '  $dbHost = Get-MapValue $map @(''host'',''POSTGRES_HOST'') ''localhost''' + #13#10 +
+    '  $dbPort = Get-MapValue $map @(''port'',''POSTGRES_PORT'') ''5432''' + #13#10 +
+    '  $dbName = Get-MapValue $map @(''dbname'',''POSTGRES_DB'') ''student_management''' + #13#10 +
+    '  $dbUser = Get-MapValue $map @(''user'',''POSTGRES_USER'') ''sms_user''' + #13#10 +
+    '  $dbPassword = Get-MapValue $map @(''password'',''POSTGRES_PASSWORD'') ''''' + #13#10 +
+    '  $dbSslMode = Get-MapValue $map @(''sslmode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
     '}' + #13#10 +
     'if ([string]::IsNullOrWhiteSpace($dbHost) -or [string]::IsNullOrWhiteSpace($dbPassword)) { throw ''Missing required credentials (host and password are mandatory).'' }' + #13#10 +
     '@(' + #13#10 +

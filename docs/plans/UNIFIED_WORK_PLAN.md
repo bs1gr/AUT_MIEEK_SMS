@@ -1,13 +1,51 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.15
-**Last Updated**: March 21, 2026
-**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.15` PUBLISHED — INSTALLER ASSET VERIFIED**
+**Current Version**: 1.18.16
+**Last Updated**: March 31, 2026
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | 🔄 **`v1.18.16` RELEASE PREPARATION IN PROGRESS**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Maintenance/Hardening | v1.18.15 Released**
+**Current Phase**: **Maintenance/Hardening | v1.18.16 Release Prep**
 **Current Branch**: `main`
 
 ---
+
+## 🚀 v1.18.16 Release Preparation (March 31, 2026)
+
+**Status**: ✅ **LOCALLY VALIDATED** | baseline `v1.18.15..HEAD` | publication pending
+
+- ✅ Reviewed the 7 commits accumulated since `v1.18.15` on `main`
+- ✅ Retained the current CI cadence adjustments for this release:
+  - `release-asset-sanitizer` daily schedule
+  - production health checks manual-only
+  - load testing manual-only
+- ✅ Removed tracked local run-log artifacts from the release tree:
+  - `ci_pipeline_23534452328.log`
+  - `docs_audit_23534452333.log`
+  - `sanitizer_23534806307.log`
+- ✅ Cleared the local `.backend.port` artifact before release preparation
+- ✅ Corrected installer credential parsing so `.env` and `.txt` files now accept both flat keys (`host`, `port`, `dbname`, `user`, `password`, `sslmode`) and `POSTGRES_*` keys
+- ✅ Aligned installer EN/EL copy with actual `.json`, `.env`, and `.txt` credential-file support
+- ✅ Fixed the user-guide database-configuration section so it renders as normal prose
+- ✅ Validation completed:
+  - `scripts/VERIFY_VERSION.ps1 -CheckOnly` passed
+  - `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-03-31_145504.md`)
+  - backend batch suite passed during commit gate (`21/21` batches; `backend/test-results/backend_batch_run_20260331_145047.txt`)
+  - frontend build passed
+  - frontend Vitest passed (`112` files / `1900` tests)
+  - native development smoke returned HTTP 200 for backend and frontend
+  - docker production smoke returned healthy container state and HTTP 200 `/health`
+  - installer build/signature/smoke all passed for `SMS_Installer_1.18.16.exe`
+- ✅ Release docs prepared:
+  - `docs/releases/RELEASE_NOTES_v1.18.16.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.16.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.16.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.16.md`
+  - `.github/RELEASE_NOTES_v1.18.16.md`
+- 🔄 Remaining publication gates:
+  - `COMMIT_READY.ps1 -Quick -Snapshot`
+  - commit + push `main`
+  - tag `v1.18.16` + push
+  - GitHub release / installer workflow verification
 
 ## 🔐 Dependabot Remediation Snapshot (March 30, 2026)
 
