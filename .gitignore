@@ -99,6 +99,9 @@ docker/.env
 .env.qnap  # QNAP-specific config with secrets (was mistakenly tracked)
 .env.production.SECURE  # Production secrets file (DO NOT COMMIT)
 
+# Local credentials / secret bundles
+local-secrets/
+
 # Ignore release artifacts
 dist/
 

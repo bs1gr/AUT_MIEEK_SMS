@@ -400,6 +400,233 @@ function Set-RootEnvVarValue {
     Set-Content -Path $ROOT_ENV -Value $content
 }
 
+function Get-ContainerEnvMap {
+    param([string]$ContainerName)
+
+    $envLines = docker inspect --format "{{range .Config.Env}}{{println .}}{{end}}" $ContainerName 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $envLines) {
+        return $null
+    }
+
+    $envMap = @{}
+    foreach ($line in @($envLines)) {
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            continue
+        }
+
+        $separatorIndex = $line.IndexOf("=")
+        if ($separatorIndex -lt 0) {
+            continue
+        }
+
+        $key = $line.Substring(0, $separatorIndex)
+        $value = $line.Substring($separatorIndex + 1)
+        $envMap[$key] = $value
+    }
+
+    return $envMap
+}
+
+function Get-LocalPostgresHostNames {
+    return @("", "localhost", "127.0.0.1", "::1", "postgres", "postgresql", "sms-postgres")
+}
+
+function Test-RemoteSingleImagePostgresProfile {
+    $deploymentMode = Get-DeploymentMode
+    if ($deploymentMode -ne "single") {
+        return $false
+    }
+
+    $dbProfile = Get-EnvVarValue -Name "SMS_DATABASE_PROFILE"
+    if ([string]::IsNullOrWhiteSpace($dbProfile) -or $dbProfile.Trim().ToLower() -ne "remote") {
+        return $false
+    }
+
+    $dbEngine = Get-EnvVarValue -Name "DATABASE_ENGINE"
+    if ([string]::IsNullOrWhiteSpace($dbEngine) -or $dbEngine.Trim().ToLower() -ne "postgresql") {
+        return $false
+    }
+
+    $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
+    $normalizedHost = if ($pgHost) { $pgHost.Trim().ToLower() } else { "" }
+    return -not ((Get-LocalPostgresHostNames) -contains $normalizedHost)
+}
+
+function Get-DesiredRemoteSingleImageEnv {
+    if (-not (Test-RemoteSingleImagePostgresProfile)) {
+        return $null
+    }
+
+    $pgHost = Get-EnvVarValue -Name "POSTGRES_HOST"
+    $pgPort = Get-EnvVarValue -Name "POSTGRES_PORT"
+    $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
+    $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
+    $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+    $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
+
+    if ([string]::IsNullOrWhiteSpace($pgPort)) {
+        $pgPort = "5432"
+    }
+
+    if ([string]::IsNullOrWhiteSpace($dbUrl) -and $pgHost -and $pgDb -and $pgUser -and $pgPassword) {
+        $dbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+    }
+
+    return @{
+        "SMS_DATABASE_PROFILE" = "remote"
+        "DATABASE_ENGINE" = "postgresql"
+        "POSTGRES_HOST" = "$pgHost"
+        "POSTGRES_PORT" = "$pgPort"
+        "POSTGRES_DB" = "$pgDb"
+        "POSTGRES_USER" = "$pgUser"
+        "DATABASE_URL" = "$dbUrl"
+    }
+}
+
+function Get-RemoteSingleImageDriftSummary {
+    param([string]$ContainerName)
+
+    $desiredEnv = Get-DesiredRemoteSingleImageEnv
+    if (-not $desiredEnv) {
+        return $null
+    }
+
+    $actualEnv = Get-ContainerEnvMap -ContainerName $ContainerName
+    if (-not $actualEnv) {
+        return "Could not read container environment."
+    }
+
+    $mismatches = @()
+    foreach ($key in $desiredEnv.Keys) {
+        $desiredValue = "$($desiredEnv[$key])"
+        $actualValue = ""
+        if ($actualEnv.ContainsKey($key)) {
+            $actualValue = "$($actualEnv[$key])"
+        }
+
+        if ($actualValue -ne $desiredValue) {
+            if ($key -eq "DATABASE_URL") {
+                $mismatches += "$key mismatch"
+            } else {
+                $displayActual = if ($actualValue) { $actualValue } else { "<missing>" }
+                $displayDesired = if ($desiredValue) { $desiredValue } else { "<missing>" }
+                $mismatches += "$key=$displayActual -> $displayDesired"
+            }
+        }
+    }
+
+    if ($mismatches.Count -eq 0) {
+        return $null
+    }
+
+    return ($mismatches -join "; ")
+}
+
+function Get-ContainersReferencingVolume {
+    param([string]$VolumeName)
+
+    $raw = docker ps -a --filter "volume=$VolumeName" --format "{{.Names}}" 2>$null
+    if ($LASTEXITCODE -ne 0 -or -not $raw) {
+        return @()
+    }
+
+    return @(
+        $raw |
+            Where-Object { $_ -and -not [string]::IsNullOrWhiteSpace($_) } |
+            ForEach-Object { $_.Trim() }
+    )
+}
+
+function Test-DockerResourceExists {
+    param(
+        [ValidateSet("container", "volume", "network")]
+        [string]$ResourceType,
+        [string]$Name
+    )
+
+    switch ($ResourceType) {
+        "container" {
+            $raw = docker ps -a --filter "name=^${Name}$" --format "{{.ID}}" 2>$null
+            return ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace(($raw | Out-String).Trim()))
+        }
+        "volume" {
+            docker volume inspect $Name 2>$null | Out-Null
+            return ($LASTEXITCODE -eq 0)
+        }
+        "network" {
+            docker network inspect $Name 2>$null | Out-Null
+            return ($LASTEXITCODE -eq 0)
+        }
+    }
+
+    return $false
+}
+
+function Remove-DockerContainerIfPresent {
+    param([string]$ContainerName)
+
+    if (-not (Test-DockerResourceExists -ResourceType "container" -Name $ContainerName)) {
+        return $false
+    }
+
+    Write-Info "Removing obsolete container '$ContainerName'..."
+    docker rm -f $ContainerName 2>$null | Out-Null
+    if ($LASTEXITCODE -eq 0) {
+        Write-Success "Removed obsolete container '$ContainerName'"
+        return $true
+    }
+
+    Write-Warning "Failed to remove obsolete container '$ContainerName'"
+    return $false
+}
+
+function Invoke-RemoteSingleImageObsoleteCleanup {
+    if (-not (Test-RemoteSingleImagePostgresProfile)) {
+        return
+    }
+
+    # Remote-QNAP mode should not keep the managed internal PostgreSQL stack around.
+    foreach ($containerName in @("sms-postgres", "sms-db-backup")) {
+        Remove-DockerContainerIfPresent -ContainerName $containerName | Out-Null
+    }
+
+    $volumeBackedContainers = Get-ContainersReferencingVolume -VolumeName "sms_postgres_data"
+    foreach ($containerName in $volumeBackedContainers) {
+        Remove-DockerContainerIfPresent -ContainerName $containerName | Out-Null
+    }
+
+    if (Test-DockerResourceExists -ResourceType "volume" -Name "sms_postgres_data") {
+        $volumeConsumers = Get-ContainersReferencingVolume -VolumeName "sms_postgres_data"
+        if ($volumeConsumers.Count -eq 0) {
+            if (-not (Test-VolumeHasContent -VolumeName "sms_postgres_data")) {
+                Write-Info "Removing empty obsolete volume 'sms_postgres_data'..."
+                docker volume rm sms_postgres_data 2>$null | Out-Null
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "Removed empty obsolete volume 'sms_postgres_data'"
+                } else {
+                    Write-Warning "Failed to remove empty obsolete volume 'sms_postgres_data'"
+                }
+            } else {
+                Write-Warning "Retaining obsolete volume 'sms_postgres_data' because it still contains data."
+            }
+        }
+    }
+
+    if (Test-DockerResourceExists -ResourceType "network" -Name "sms-single-net") {
+        $networkConsumers = docker network inspect sms-single-net --format "{{range \$id, \$config := .Containers}}{{println \$config.Name}}{{end}}" 2>$null
+        $inUse = ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace(($networkConsumers | Out-String).Trim()))
+        if (-not $inUse) {
+            Write-Info "Removing obsolete network 'sms-single-net'..."
+            docker network rm sms-single-net 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) {
+                Write-Success "Removed obsolete network 'sms-single-net'"
+            } else {
+                Write-Warning "Failed to remove obsolete network 'sms-single-net'"
+            }
+        }
+    }
+}
+
 function Get-DeploymentMode {
     $rawMode = Get-EnvVarValue -Name "SMS_DEPLOYMENT_MODE"
     if ([string]::IsNullOrWhiteSpace($rawMode)) {
@@ -2534,22 +2761,37 @@ function Start-Application {
 
     Write-DebugInfo "Docker available - proceeding with startup"
 
+    # Initialize env files before evaluating runtime drift so installer-driven
+    # credential changes can force a safe container recreation.
+    Initialize-EnvironmentFiles | Out-Null
+
     # Check if already running
     $status = Get-ContainerStatus
     $withMonitoringBool = $false
     if ($null -ne $WithMonitoring -and $WithMonitoring) { $withMonitoringBool = $true }
     if ($status -and $status.IsRunning) {
-        if ($status.IsHealthy) {
-            Write-Success "SMS is already running!"
-            Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
-            return 0
+        $remoteDriftSummary = Get-RemoteSingleImageDriftSummary -ContainerName $CONTAINER_NAME
+        if ($remoteDriftSummary) {
+            Write-Warning "Detected stale single-image runtime configuration. Recreating '$CONTAINER_NAME' to apply the remote PostgreSQL profile."
+            Write-Info $remoteDriftSummary
+            docker stop $CONTAINER_NAME 2>$null | Out-Null
+            docker rm $CONTAINER_NAME 2>$null | Out-Null
+            $status = $null
         } else {
-            Write-Info "SMS is starting up..."
-            if (Wait-ForHealthy) {
+            if ($status.IsHealthy) {
+                Invoke-RemoteSingleImageObsoleteCleanup
+                Write-Success "SMS is already running!"
                 Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
                 return 0
             } else {
-                return 1
+                Write-Info "SMS is starting up..."
+                if (Wait-ForHealthy) {
+                    Invoke-RemoteSingleImageObsoleteCleanup
+                    Show-AccessInfo -MonitoringEnabled:$withMonitoringBool
+                    return 0
+                } else {
+                    return 1
+                }
             }
         }
     }
@@ -2579,9 +2821,6 @@ function Start-Application {
     if ($status -and -not $status.IsRunning) {
         docker rm $CONTAINER_NAME 2>$null | Out-Null
     }
-
-    # Initialize env files
-    Initialize-EnvironmentFiles | Out-Null
 
     # One-time migration of legacy Docker volumes to canonical names
     # (handles project-name-prefixed legacy volumes from installer/compose contexts)
@@ -2792,6 +3031,7 @@ function Start-Application {
     }
 
     if (Wait-ForHealthy) {
+        Invoke-RemoteSingleImageObsoleteCleanup
         if ($withMonitoringBool) {
             Start-MonitoringStack -GrafanaPortOverride $GrafanaPort | Out-Null
         }
@@ -2800,6 +3040,7 @@ function Start-Application {
     }
 
     if (($singleDbEngine -eq "postgresql") -and (Invoke-SingleModeAuthRecoveryAndRetry)) {
+        Invoke-RemoteSingleImageObsoleteCleanup
         if ($withMonitoringBool) {
             Start-MonitoringStack -GrafanaPortOverride $GrafanaPort | Out-Null
         }
