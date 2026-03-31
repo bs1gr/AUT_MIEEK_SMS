@@ -38,7 +38,8 @@ This maintenance release packages the QNAP/PostgreSQL installer defaults, fixes 
 | Property | Value |
 |---|---|
 | File | `SMS_Installer_1.18.16.exe` |
-| SHA256 | `6FA36356C80A69BB1E43A11851B0E2EEFB9B31AA0726C7C5493E3A9FE13A12C4` (local build; GitHub digest becomes authoritative after upload) |
+| Local SHA256 | `6FA36356C80A69BB1E43A11851B0E2EEFB9B31AA0726C7C5493E3A9FE13A12C4` |
+| GitHub digest | `sha256:7eb8c32d1b6cf1a012e3b6d6c57210a9b29235f11c70b4783603e88ca0bb945d` |
 | Signature | Valid - `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY` |
 
 > **Upgrade**: Drop-in from v1.18.15. No migration steps required.

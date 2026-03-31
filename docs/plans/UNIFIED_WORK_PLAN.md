@@ -2,16 +2,16 @@
 
 **Current Version**: 1.18.16
 **Last Updated**: March 31, 2026
-**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | 🔄 **`v1.18.16` RELEASE PREPARATION IN PROGRESS**
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.16` PUBLISHED + VERIFIED**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Maintenance/Hardening | v1.18.16 Release Prep**
+**Current Phase**: **Maintenance/Hardening | v1.18.16 Published**
 **Current Branch**: `main`
 
 ---
 
-## 🚀 v1.18.16 Release Preparation (March 31, 2026)
+## 🚀 v1.18.16 Release Publication (March 31, 2026)
 
-**Status**: ✅ **LOCALLY VALIDATED** | baseline `v1.18.15..HEAD` | publication pending
+**Status**: ✅ **PUBLISHED + VERIFIED** | baseline `v1.18.15..HEAD`
 
 - ✅ Reviewed the 7 commits accumulated since `v1.18.15` on `main`
 - ✅ Retained the current CI cadence adjustments for this release:
@@ -41,11 +41,16 @@
   - `docs/releases/RELEASE_MANIFEST_v1.18.16.md`
   - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.16.md`
   - `.github/RELEASE_NOTES_v1.18.16.md`
-- 🔄 Remaining publication gates:
-  - `COMMIT_READY.ps1 -Quick -Snapshot`
-  - commit + push `main`
-  - tag `v1.18.16` + push
-  - GitHub release / installer workflow verification
+- ✅ Publication evidence:
+  - release-prep commit `fcb2570f6` pushed to `main`
+  - tag `v1.18.16` pushed to origin
+  - GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.16
+  - release workflow succeeded (`23796230467`)
+  - installer upload workflow succeeded (`23796249268`)
+  - release sanitizer succeeded (`23796614869`)
+  - published asset: `SMS_Installer_1.18.16.exe` (26,202,544 bytes)
+  - authoritative GitHub digest: `sha256:7eb8c32d1b6cf1a012e3b6d6c57210a9b29235f11c70b4783603e88ca0bb945d`
+  - downloaded published installer hash matched the GitHub digest and `Get-AuthenticodeSignature` returned `Valid`
 
 ## 🔐 Dependabot Remediation Snapshot (March 30, 2026)
 

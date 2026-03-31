@@ -3,7 +3,7 @@
 **Version**: 1.18.16
 **Release Date**: 2026-03-31
 **Prepared By**: Solo Developer + AI Assistant
-**Status**: ✅ PREPARED - local validation and commit gate complete, publication pending
+**Status**: ✅ PUBLISHED + VERIFIED
 
 ---
 
@@ -19,10 +19,12 @@
 | **Build tool** | Inno Setup + Authenticode (DigiCert live timestamp) |
 | **Smoke test** | Passed |
 | **Built** | 2026-03-31 |
-| **GitHub asset size** | Pending tag push |
-| **GitHub asset digest (authoritative)** | Pending tag push |
-| **GitHub asset uploaded** | Pending tag push |
-| **Release URL** | Pending tag push |
+| **GitHub asset size** | 26,202,544 bytes |
+| **GitHub asset digest (authoritative)** | `sha256:7eb8c32d1b6cf1a012e3b6d6c57210a9b29235f11c70b4783603e88ca0bb945d` |
+| **GitHub asset uploaded** | 2026-03-31T12:04:18Z |
+| **Downloaded release asset hash** | `7EB8C32D1B6CF1A012E3B6D6C57210A9B29235F11C70B4783603E88CA0BB945D` |
+| **Downloaded release asset signature** | Valid |
+| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.16 |
 
 > **SHA256 note**: DigiCert live timestamping means each build produces a distinct binary. The GitHub release asset digest becomes the authoritative post-publication hash once the installer workflow uploads the signed release artifact.
 
@@ -80,6 +82,7 @@
 | `6ac9863c6` | maintenance fixes |
 | `c5115b812` | fix(security): resolve open dependabot alerts |
 | `49ddd3c66` | docs(deployment): add runbook status banner |
+| `fcb2570f6` | chore(release): prepare v1.18.16 |
 
 ---
 
@@ -94,10 +97,11 @@ Per release-lineage policy:
 
 ## GitHub Release Checklist
 
-- [ ] Commit `chore(release): prepare v1.18.16` created and pushed to `main`
-- [ ] Tag `v1.18.16` created and pushed
-- [ ] `Create GitHub Release on tag` workflow succeeded
-- [ ] `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded
-- [ ] `Release Asset Sanitizer` confirmed installer-only assets
-- [ ] Published installer filename is `SMS_Installer_1.18.16.exe`
-- [ ] GitHub release digest recorded
+- ✅ Commit `fcb2570f6` (`chore(release): prepare v1.18.16`) pushed to `main`
+- ✅ Tag `v1.18.16` created and pushed (`2026-03-31`)
+- ✅ `Create GitHub Release on tag` workflow succeeded — Run `23796230467`, published `2026-03-31T12:02:29Z`
+- ✅ `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded — Run `23796249268`
+- ✅ `Release Asset Sanitizer` confirmed installer-only assets — Run `23796614869`
+- ✅ Published installer filename is `SMS_Installer_1.18.16.exe` (asset ID `385505550`)
+- ✅ GitHub release digest recorded and matched downloaded asset hash
+- ✅ Downloaded published installer verified with `Get-AuthenticodeSignature` → `Valid`

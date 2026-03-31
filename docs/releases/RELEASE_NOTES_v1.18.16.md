@@ -4,7 +4,7 @@
 **Release Date**: 2026-03-31
 **Type**: Maintenance / Security / Installer Alignment Patch
 **Branch**: `main`
-**Status**: ✅ PREPARED - locally validated, commit gate passed, awaiting tag push and publication
+**Status**: ✅ PUBLISHED + VERIFIED
 
 ---
 
@@ -82,6 +82,8 @@ v1.18.16 packages the QNAP/PostgreSQL defaulting work, closes the installer cred
 | **Signer** | `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY` |
 | **Build** | Inno Setup + Authenticode (DigiCert live timestamp) |
 | **Smoke test** | Passed |
+| **GitHub asset digest** | `sha256:7eb8c32d1b6cf1a012e3b6d6c57210a9b29235f11c70b4783603e88ca0bb945d` |
+| **Published release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.16 |
 
 > **Note**: SHA256 may differ from the GitHub release digest after CI upload because live timestamping produces a distinct signed binary. The GitHub release asset digest is the authoritative post-upload hash.
 
@@ -99,6 +101,10 @@ v1.18.16 packages the QNAP/PostgreSQL defaulting work, closes the installer cred
 - ✅ Installer build - `dist/SMS_Installer_1.18.16.exe` built successfully
 - ✅ Authenticode signature - `Valid`
 - ✅ Installer smoke test - passed
+- ✅ GitHub release workflow - succeeded
+- ✅ GitHub installer upload workflow - succeeded
+- ✅ Release asset sanitizer - confirmed installer-only asset set
+- ✅ Downloaded published installer - hash matched GitHub digest and signature verified as `Valid`
 
 ---
 

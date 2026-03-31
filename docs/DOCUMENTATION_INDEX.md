@@ -4,15 +4,15 @@
 **Project Version (documented)**: 1.18.16
 **Version**: 1.18.16
 **Current Branch**: `main`
-**Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | 🔄 **`v1.18.16` RELEASE PREPARATION IN PROGRESS**
+**Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.16` IS THE LATEST PUBLISHED MAINTENANCE RELEASE**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 31, 2026)**: ✅ **`v1.18.12` remains the first official public release, `v1.18.15` is the latest published maintenance release, and `v1.18.16` preparation is now in progress**
+> **Current Status (Mar 31, 2026)**: ✅ **`v1.18.12` remains the first official public release and `v1.18.16` is now the latest published maintenance release**
 > - `v1.18.0` through `v1.18.11` remain archived as prereleases for historical reference
 > - `v1.18.12` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
-> - `v1.18.15` release publication, installer verification, and post-release evidence were completed successfully
-> - `v1.18.16` preparation packages QNAP PostgreSQL defaulting, dependency/security refreshes, installer credential-file parsing parity, manual-only CI cadence updates, and deployment runbooks
+> - `v1.18.16` release publication, installer verification, GitHub digest verification, and post-release evidence were completed successfully
+> - `v1.18.16` packages QNAP PostgreSQL defaulting, dependency/security refreshes, installer credential-file parsing parity, manual-only CI cadence updates, and deployment runbooks
 > - GitHub code scanning now reports zero open alerts after the `main`-branch Trivy refresh
 > - `v1.18.12` restores generated Greek `.rtf` installer assets in the build pipeline
 > - `v1.18.12` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
