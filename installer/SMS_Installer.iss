@@ -148,7 +148,9 @@ english.DbFileRequired=Please select a database credentials file (.json, .env, o
 english.DbFileMissing=Selected credentials file was not found.
 english.DbFileUnsupported=Unsupported file format. Use a .json, .env, or .txt credentials file.
 english.DbFileLoadFailed=Failed to read the credentials file.
-english.DbMissingRequired=Missing required credentials (host and password are mandatory).
+english.DbMissingRequired=Missing required credentials. The credentials file must define host, port, dbname, user, and password.
+english.DbAuthValidationFailed=Could not verify authentication to the QNAP PostgreSQL database using the loaded host, port, dbname, user, password, and SSL mode. This usually means the credentials file points to the wrong database, username, password, or SSL mode.%n%nContinue anyway?
+english.DbTcpValidationFailed=Could not verify TCP connectivity to the QNAP PostgreSQL host now. Continue anyway?
 english.DbFileDialogTitle=Select database credentials file
 english.DbFileBrowseFilter=Credentials files|*.json;*.env;*.txt|JSON files|*.json|ENV files|*.env;*.txt|All files|*.*
 
@@ -162,9 +164,10 @@ Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{c
 
 [Files]
 ; Core application files - backend/frontend ALWAYS needed for Docker build
-Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv"
+; Exclude local runtime/test DB artifacts so workstation-only files cannot leak into installer builds.
+Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
 Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts"
-Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
 Source: "..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; DEPLOYMENT OPTIMIZATION: Scripts folder excluded - only backup-database.sh needed (99% size reduction)
@@ -311,6 +314,7 @@ procedure BrowseCredentialsFile(Sender: TObject); forward;
 function LoadCredentialsFromSelectedFile(ShowErrors: Boolean): Boolean; forward;
 procedure UpdateCredentialsStatus; forward;
 function GetPowerShellExe: String; forward;
+function HasRequiredRemoteCredentials: Boolean; forward;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -1159,6 +1163,16 @@ begin
     Result := CustomMessage('DbLocalSummary');
 end;
 
+function HasRequiredRemoteCredentials: Boolean;
+begin
+  Result :=
+    (Trim(PgHost) <> '') and
+    (Trim(PgPort) <> '') and
+    (Trim(PgDb) <> '') and
+    (Trim(PgUser) <> '') and
+    (Trim(PgPass) <> '');
+end;
+
 procedure LoadPostgresDefaults;
 var
   EnvPath: String;
@@ -1225,8 +1239,10 @@ begin
 
   if Trim(CredentialsFileEdit.Text) <> '' then
     CredentialsStatusLabel.Caption := FmtMessage(CustomMessage('DbLoadedCredentials'), [PgHost, PgPort, PgDb, PgUser])
-  else if (PgHost <> '') and (PgPass <> '') then
+  else if HasRequiredRemoteCredentials then
     CredentialsStatusLabel.Caption := FmtMessage(CustomMessage('DbLoadedExistingCredentials'), [PgHost, PgPort, PgDb, PgUser])
+  else if (Trim(PgHost) <> '') or (Trim(PgPort) <> '') or (Trim(PgDb) <> '') or (Trim(PgUser) <> '') or (Trim(PgPass) <> '') then
+    CredentialsStatusLabel.Caption := CustomMessage('DbMissingRequired')
   else
     CredentialsStatusLabel.Caption := CustomMessage('DbNoFileSelected');
 end;
@@ -1316,12 +1332,12 @@ begin
     '}' + #13#10 +
     'if ($ext -eq ''.json'') {' + #13#10 +
     '  $data = $raw | ConvertFrom-Json' + #13#10 +
-    '  $dbHost = Get-JsonValue $data @(''host'',''POSTGRES_HOST'') ''localhost''' + #13#10 +
-    '  $dbPort = Get-JsonValue $data @(''port'',''POSTGRES_PORT'') ''5432''' + #13#10 +
-    '  $dbName = Get-JsonValue $data @(''dbname'',''POSTGRES_DB'') ''student_management''' + #13#10 +
-    '  $dbUser = Get-JsonValue $data @(''user'',''POSTGRES_USER'') ''sms_user''' + #13#10 +
-    '  $dbPassword = Get-JsonValue $data @(''password'',''POSTGRES_PASSWORD'') ''''' + #13#10 +
-    '  $dbSslMode = Get-JsonValue $data @(''sslmode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
+    '  $dbHost = Get-JsonValue $data @(''host'',''hostname'',''server'',''POSTGRES_HOST'') $null' + #13#10 +
+    '  $dbPort = Get-JsonValue $data @(''port'',''POSTGRES_PORT'') $null' + #13#10 +
+    '  $dbName = Get-JsonValue $data @(''dbname'',''database'',''db'',''POSTGRES_DB'') $null' + #13#10 +
+    '  $dbUser = Get-JsonValue $data @(''user'',''username'',''POSTGRES_USER'') $null' + #13#10 +
+    '  $dbPassword = Get-JsonValue $data @(''password'',''pass'',''POSTGRES_PASSWORD'') $null' + #13#10 +
+    '  $dbSslMode = Get-JsonValue $data @(''sslmode'',''ssl_mode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
     '} else {' + #13#10 +
     '  $map = @{}' + #13#10 +
     '  foreach ($line in ($raw -split "`r?`n")) {' + #13#10 +
@@ -1331,14 +1347,14 @@ begin
     '      $map[$parts[0].Trim()] = $parts[1].Trim().Trim(''"'').Trim("''")' + #13#10 +
     '    }' + #13#10 +
     '  }' + #13#10 +
-    '  $dbHost = Get-MapValue $map @(''host'',''POSTGRES_HOST'') ''localhost''' + #13#10 +
-    '  $dbPort = Get-MapValue $map @(''port'',''POSTGRES_PORT'') ''5432''' + #13#10 +
-    '  $dbName = Get-MapValue $map @(''dbname'',''POSTGRES_DB'') ''student_management''' + #13#10 +
-    '  $dbUser = Get-MapValue $map @(''user'',''POSTGRES_USER'') ''sms_user''' + #13#10 +
-    '  $dbPassword = Get-MapValue $map @(''password'',''POSTGRES_PASSWORD'') ''''' + #13#10 +
-    '  $dbSslMode = Get-MapValue $map @(''sslmode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
+    '  $dbHost = Get-MapValue $map @(''host'',''hostname'',''server'',''POSTGRES_HOST'') $null' + #13#10 +
+    '  $dbPort = Get-MapValue $map @(''port'',''POSTGRES_PORT'') $null' + #13#10 +
+    '  $dbName = Get-MapValue $map @(''dbname'',''database'',''db'',''POSTGRES_DB'') $null' + #13#10 +
+    '  $dbUser = Get-MapValue $map @(''user'',''username'',''POSTGRES_USER'') $null' + #13#10 +
+    '  $dbPassword = Get-MapValue $map @(''password'',''pass'',''POSTGRES_PASSWORD'') $null' + #13#10 +
+    '  $dbSslMode = Get-MapValue $map @(''sslmode'',''ssl_mode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
     '}' + #13#10 +
-    'if ([string]::IsNullOrWhiteSpace($dbHost) -or [string]::IsNullOrWhiteSpace($dbPassword)) { throw ''Missing required credentials (host and password are mandatory).'' }' + #13#10 +
+    'if ([string]::IsNullOrWhiteSpace($dbHost) -or [string]::IsNullOrWhiteSpace($dbPort) -or [string]::IsNullOrWhiteSpace($dbName) -or [string]::IsNullOrWhiteSpace($dbUser) -or [string]::IsNullOrWhiteSpace($dbPassword)) { throw ''Missing required credentials. The credentials file must define host, port, dbname, user, and password.'' }' + #13#10 +
     '@(' + #13#10 +
     '  "POSTGRES_HOST=$dbHost"' + #13#10 +
     '  "POSTGRES_PORT=$dbPort"' + #13#10 +
@@ -1365,12 +1381,15 @@ begin
   PgPass := ReadEnvValue(OutputPath, 'POSTGRES_PASSWORD');
   PgSsl := ReadEnvValue(OutputPath, 'POSTGRES_SSLMODE');
 
-  if (PgHost = '') or (PgPass = '') then
+  if (PgHost = '') or (PgPort = '') or (PgDb = '') or (PgUser = '') or (PgPass = '') then
   begin
     if ShowErrors then
       MsgBox(CustomMessage('DbMissingRequired'), mbError, MB_OK);
     Exit;
   end;
+
+  if PgSsl = '' then
+    PgSsl := 'prefer';
 
   Result := True;
   UpdateCredentialsStatus;
@@ -1409,14 +1428,12 @@ begin
   else
   begin
     if PgPort = '' then PgPort := '5432';
-    if PgDb = '' then PgDb := 'student_management';
-    if PgUser = '' then PgUser := 'sms_user';
     if PgSsl = '' then PgSsl := 'prefer';
 
     EncUser := UrlEncode(PgUser);
     EncPass := UrlEncode(PgPass);
     EncDb := UrlEncode(PgDb);
-    DbUrl := 'postgresql://' + EncUser + ':' + EncPass + '@' + PgHost + ':' + PgPort + '/' + EncDb;
+    DbUrl := 'postgresql://' + EncUser + ':' + EncPass + '@' + PgHost + ':' + PgPort + '/' + EncDb + '?sslmode=' + UrlEncode(PgSsl);
 
     Content := UpsertEnvValue(Content, 'SMS_DATABASE_PROFILE', 'remote');
     Content := UpsertEnvValue(Content, 'DATABASE_ENGINE', 'postgresql');
@@ -1523,14 +1540,50 @@ begin
         end;
       end;
 
+      if not HasRequiredRemoteCredentials then
+      begin
+        MsgBox(CustomMessage('DbMissingRequired'), mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+
+      if PgSsl = '' then
+        PgSsl := 'prefer';
+
       if Lowercase(Trim(PgHost)) <> 'postgres' then
       begin
-        if not TestPostgresTcpConnection(PgHost, PgPort) then
+        if TestDockerReady then
         begin
-          if MsgBox('Could not verify TCP connectivity to the QNAP PostgreSQL host now. Continue anyway?', mbConfirmation, MB_YESNO) = IDNO then
+          if not TestPostgresAuthConnection(PgHost, PgPort, PgDb, PgUser, PgPass, PgSsl) then
           begin
-            Result := False;
-            Exit;
+            if TestPostgresTcpConnection(PgHost, PgPort) then
+            begin
+              if MsgBox(CustomMessage('DbAuthValidationFailed'), mbConfirmation, MB_YESNO) = IDNO then
+              begin
+                Result := False;
+                Exit;
+              end;
+            end
+            else
+            begin
+              if MsgBox(CustomMessage('DbTcpValidationFailed'), mbConfirmation, MB_YESNO) = IDNO then
+              begin
+                Result := False;
+                Exit;
+              end;
+            end;
+          end;
+        end
+        else
+        begin
+          Log('Docker not ready during PostgreSQL validation; falling back to TCP pre-check.');
+          if not TestPostgresTcpConnection(PgHost, PgPort) then
+          begin
+            if MsgBox(CustomMessage('DbTcpValidationFailed'), mbConfirmation, MB_YESNO) = IDNO then
+            begin
+              Result := False;
+              Exit;
+            end;
           end;
         end;
       end

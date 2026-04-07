@@ -10,6 +10,8 @@
     Prebuild mode validates tracked/static inputs only.
     Postbuild mode (-RequireGeneratedArtifacts) additionally requires generated
     compile-time assets (wizard bitmaps, SMS_Manager.exe) to exist.
+    Wildcard Source roots are also scanned for ignored local database payloads
+    that would otherwise leak into local installer builds.
 #>
 
 [CmdletBinding()]
@@ -42,20 +44,32 @@ $generatedAllowlist = @(
     'installer\dist\SMS_Manager.exe'
 )
 
-function Get-RepoRelativePath {
-    param([string]$AbsolutePath)
+$dangerousPayloadPatterns = @(
+    '*.db',
+    '*.db-shm',
+    '*.db-wal',
+    '*.sqlite',
+    '*.sqlite3'
+)
 
+function Get-NormalizedRelativePath {
+    param(
+        [string]$BasePath,
+        [string]$AbsolutePath
+    )
+
+    $basePath = [System.IO.Path]::GetFullPath($BasePath)
     $absolutePath = [System.IO.Path]::GetFullPath($AbsolutePath)
 
     if ([System.IO.Path].GetMethod('GetRelativePath', [type[]]@([string], [string]))) {
-        $relative = [System.IO.Path]::GetRelativePath($RepoRoot, $absolutePath)
+        $relative = [System.IO.Path]::GetRelativePath($basePath, $absolutePath)
     } else {
-        $repoRootWithSeparator = $RepoRoot
-        if (-not $repoRootWithSeparator.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
-            $repoRootWithSeparator += [System.IO.Path]::DirectorySeparatorChar
+        $basePathWithSeparator = $basePath
+        if (-not $basePathWithSeparator.EndsWith([System.IO.Path]::DirectorySeparatorChar)) {
+            $basePathWithSeparator += [System.IO.Path]::DirectorySeparatorChar
         }
 
-        $repoUri = [System.Uri]$repoRootWithSeparator
+        $repoUri = [System.Uri]$basePathWithSeparator
         $absoluteUri = [System.Uri]$absolutePath
         $relative = [System.Uri]::UnescapeDataString($repoUri.MakeRelativeUri($absoluteUri).ToString())
     }
@@ -63,6 +77,11 @@ function Get-RepoRelativePath {
     $relative = $relative -replace '[\\/]+', '\'
     $relative = $relative -replace '^[.][\\/]+', ''
     return $relative
+}
+
+function Get-RepoRelativePath {
+    param([string]$AbsolutePath)
+    return Get-NormalizedRelativePath -BasePath $RepoRoot -AbsolutePath $AbsolutePath
 }
 
 function Test-GitTracked {
@@ -82,8 +101,79 @@ function Resolve-InstallerReference {
     return [System.IO.Path]::GetFullPath((Join-Path $InstallerDir $Reference))
 }
 
+function Split-InstallerExcludePatterns {
+    param([string]$ExcludeValue)
+
+    if ([string]::IsNullOrWhiteSpace($ExcludeValue)) {
+        return @()
+    }
+
+    return @(
+        $ExcludeValue -split ',' |
+            ForEach-Object { $_.Trim() } |
+            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+    )
+}
+
+function Get-InstallerSourceRoot {
+    param([string]$Reference)
+
+    $sourceDir = Split-Path -Path $Reference -Parent
+    if ([string]::IsNullOrWhiteSpace($sourceDir)) {
+        $sourceDir = '.'
+    }
+
+    return Resolve-InstallerReference -Reference $sourceDir
+}
+
+function Test-AnyWildcardMatch {
+    param(
+        [string]$Value,
+        [string[]]$Patterns
+    )
+
+    foreach ($pattern in $Patterns) {
+        if ($Value -like $pattern) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
+function Test-InstallerExcludeMatch {
+    param(
+        [string]$RelativePath,
+        [string[]]$ExcludePatterns
+    )
+
+    $normalizedRelativePath = ($RelativePath -replace '[\\/]+', '\').TrimStart('\')
+    $leafName = Split-Path -Path $normalizedRelativePath -Leaf
+
+    foreach ($pattern in $ExcludePatterns) {
+        $normalizedPattern = ($pattern -replace '[\\/]+', '\').Trim()
+        if ([string]::IsNullOrWhiteSpace($normalizedPattern)) {
+            continue
+        }
+
+        if ($normalizedPattern.Contains('\')) {
+            if ($normalizedRelativePath -like $normalizedPattern) {
+                return $true
+            }
+            continue
+        }
+
+        if ($leafName -like $normalizedPattern -or $normalizedRelativePath -like $normalizedPattern) {
+            return $true
+        }
+    }
+
+    return $false
+}
+
 $content = Get-Content $InstallerScriptPath
 $references = New-Object System.Collections.Generic.List[object]
+$wildcardSources = New-Object System.Collections.Generic.List[object]
 $seen = @{}
 
 for ($i = 0; $i -lt $content.Count; $i++) {
@@ -121,7 +211,24 @@ for ($i = 0; $i -lt $content.Count; $i++) {
 
     foreach ($match in [regex]::Matches($line, '(?i)Source:\s*"([^"]+)"')) {
         $refValue = $match.Groups[1].Value
+        $excludeMatch = [regex]::Match($line, '(?i)\bExcludes:\s*"([^"]*)"')
+        $excludePatterns = if ($excludeMatch.Success) {
+            Split-InstallerExcludePatterns -ExcludeValue $excludeMatch.Groups[1].Value
+        } else {
+            @()
+        }
+
         if ($refValue.Contains('*') -or $refValue.Contains('?')) {
+            $wildcardKey = "SourceWildcard|$refValue|$($excludePatterns -join ',')"
+            if (-not $seen.ContainsKey($wildcardKey)) {
+                $seen[$wildcardKey] = $true
+                $wildcardSources.Add([pscustomobject]@{
+                    Kind = 'SourceWildcard'
+                    Reference = $refValue
+                    Line = $lineNo
+                    ExcludePatterns = @($excludePatterns)
+                })
+            }
             continue
         }
         $key = "Source|$refValue"
@@ -185,6 +292,44 @@ foreach ($reference in $references) {
     }
 
     Write-Host "✅ [tracked] $repoRelative" -ForegroundColor Green
+}
+
+foreach ($wildcardSource in $wildcardSources) {
+    $sourceRoot = Get-InstallerSourceRoot -Reference $wildcardSource.Reference
+    $repoRelativeRoot = Get-RepoRelativePath -AbsolutePath $sourceRoot
+
+    if (-not (Test-Path $sourceRoot)) {
+        $failures.Add("$($wildcardSource.Kind) line $($wildcardSource.Line): $($wildcardSource.Reference) -> $repoRelativeRoot (wildcard source root missing from workspace)")
+        continue
+    }
+
+    $leakedPayloads = New-Object System.Collections.Generic.List[string]
+    $candidateFiles = Get-ChildItem -LiteralPath $sourceRoot -Recurse -File -ErrorAction SilentlyContinue |
+        Where-Object { Test-AnyWildcardMatch -Value $_.Name -Patterns $dangerousPayloadPatterns }
+
+    foreach ($candidate in $candidateFiles) {
+        $repoRelative = Get-RepoRelativePath -AbsolutePath $candidate.FullName
+        if (Test-GitTracked -RepoRelativePath $repoRelative) {
+            continue
+        }
+
+        $relativeToSourceRoot = Get-NormalizedRelativePath -BasePath $sourceRoot -AbsolutePath $candidate.FullName
+        if (Test-InstallerExcludeMatch -RelativePath $relativeToSourceRoot -ExcludePatterns $wildcardSource.ExcludePatterns) {
+            continue
+        }
+
+        $ignoreState = if (Test-GitIgnored -RepoRelativePath $repoRelative) {
+            'ignored by git'
+        } else {
+            'untracked in git'
+        }
+        $leakedPayloads.Add("$repoRelative ($ignoreState)")
+    }
+
+    if ($leakedPayloads.Count -gt 0) {
+        $examples = ($leakedPayloads | Select-Object -First 3) -join ', '
+        $failures.Add("$($wildcardSource.Kind) line $($wildcardSource.Line): $($wildcardSource.Reference) -> $repoRelativeRoot includes $($leakedPayloads.Count) local database artifact(s) not excluded (examples: $examples)")
+    }
 }
 
 if ($failures.Count -gt 0) {

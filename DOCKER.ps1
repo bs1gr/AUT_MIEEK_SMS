@@ -462,14 +462,19 @@ function Get-DesiredRemoteSingleImageEnv {
     $pgDb = Get-EnvVarValue -Name "POSTGRES_DB"
     $pgUser = Get-EnvVarValue -Name "POSTGRES_USER"
     $pgPassword = Get-EnvVarValue -Name "POSTGRES_PASSWORD"
+    $pgSslMode = Get-EnvVarValue -Name "POSTGRES_SSLMODE"
     $dbUrl = Get-EnvVarValue -Name "DATABASE_URL"
 
     if ([string]::IsNullOrWhiteSpace($pgPort)) {
         $pgPort = "5432"
     }
 
+    if ([string]::IsNullOrWhiteSpace($pgSslMode)) {
+        $pgSslMode = "prefer"
+    }
+
     if ([string]::IsNullOrWhiteSpace($dbUrl) -and $pgHost -and $pgDb -and $pgUser -and $pgPassword) {
-        $dbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+        $dbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb -SslMode $pgSslMode
     }
 
     return @{
@@ -479,6 +484,7 @@ function Get-DesiredRemoteSingleImageEnv {
         "POSTGRES_PORT" = "$pgPort"
         "POSTGRES_DB" = "$pgDb"
         "POSTGRES_USER" = "$pgUser"
+        "POSTGRES_SSLMODE" = "$pgSslMode"
         "DATABASE_URL" = "$dbUrl"
     }
 }
@@ -706,7 +712,8 @@ function New-PostgresDatabaseUrl {
         [string]$Port,
         [string]$User,
         [string]$Password,
-        [string]$Database
+        [string]$Database,
+        [string]$SslMode
     )
 
     $safeHost = $DbHost
@@ -721,8 +728,13 @@ function New-PostgresDatabaseUrl {
     $encodedUser = ConvertTo-UriComponent -Value $User
     $encodedPassword = ConvertTo-UriComponent -Value $Password
     $encodedDatabase = ConvertTo-UriComponent -Value $Database
+    $normalizedSslMode = if ($SslMode) { $SslMode.Trim() } else { "" }
+    $query = ""
+    if ($normalizedSslMode) {
+        $query = "?sslmode=$(ConvertTo-UriComponent -Value $normalizedSslMode)"
+    }
 
-    return "postgresql://${encodedUser}:${encodedPassword}@${safeHost}:${Port}/${encodedDatabase}"
+    return "postgresql://${encodedUser}:${encodedPassword}@${safeHost}:${Port}/${encodedDatabase}${query}"
 }
 
 function Set-ComposeProfileEnvironment {
@@ -2077,7 +2089,7 @@ DATABASE_URL=sqlite:////data/student_management.db
         Set-RootEnvVarValue -Name "POSTGRES_PASSWORD" -Value $pgPassword
         Set-RootEnvVarValue -Name "POSTGRES_SSLMODE" -Value $pgSslMode
 
-        $remoteDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+        $remoteDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb -SslMode $pgSslMode
         if ($dbUrl -ne $remoteDbUrl) {
             Set-RootEnvVarValue -Name "DATABASE_URL" -Value $remoteDbUrl
             $dbUrl = $remoteDbUrl
@@ -2091,7 +2103,7 @@ DATABASE_URL=sqlite:////data/student_management.db
         # Keep compatibility with legacy auto-generated URLs while fixing URI encoding
         # for credentials that contain reserved characters.
         $rawDbUrl = "postgresql://$pgUser`:$pgPassword@$pgHost`:$pgPort/$pgDb"
-        $encodedDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb
+        $encodedDbUrl = New-PostgresDatabaseUrl -DbHost $pgHost -Port $pgPort -User $pgUser -Password $pgPassword -Database $pgDb -SslMode $pgSslMode
 
         $needsUrlWrite = $false
         $writeReason = $null

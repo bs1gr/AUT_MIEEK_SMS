@@ -126,10 +126,86 @@ def test_import_credentials_json_auto_connect_updates_env(client, monkeypatch, t
     assert "DATABASE_URL=postgresql://sms_user:P%40ss%21@10.0.0.10:55433/student_management?sslmode=disable" in env_text
 
 
-def test_import_credentials_unsupported_format(client):
+def test_import_credentials_txt_aliases_auto_connect_updates_env(client, monkeypatch, tmp_path):
+    from backend.routers.control import database as db_router
+
+    monkeypatch.setattr(
+        db_router,
+        "check_instance_health",
+        lambda instance: {
+            "status": "healthy",
+            "version": "PostgreSQL 16",
+            "size_bytes": 654321,
+            "size_human": "639 KB",
+            "error": None,
+        },
+    )
+
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".env").write_text("DATABASE_ENGINE=sqlite\n", encoding="utf-8")
+
+    payload = "\n".join(
+        [
+            "host=10.0.0.11",
+            "port=55433",
+            "database=sms_central",
+            "username=sms_app",
+            "password=P@ss!",
+            "ssl_mode=require",
+        ]
+    )
+
     files = {
         "file": (
             "credentials.txt",
+            io.BytesIO(payload.encode("utf-8")),
+            "text/plain",
+        )
+    }
+
+    resp = client.post("/control/api/database/import-credentials?auto_connect=true", files=files)
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert data["success"] is True
+    assert data["credentials_saved"] is True
+
+    env_text = (tmp_path / ".env").read_text(encoding="utf-8")
+    assert "POSTGRES_HOST=10.0.0.11" in env_text
+    assert "POSTGRES_PORT=55433" in env_text
+    assert "POSTGRES_DB=sms_central" in env_text
+    assert "POSTGRES_USER=sms_app" in env_text
+    assert "POSTGRES_PASSWORD=P@ss!" in env_text
+    assert "POSTGRES_SSLMODE=require" in env_text
+    assert "DATABASE_URL=postgresql://sms_app:P%40ss%21@10.0.0.11:55433/sms_central?sslmode=require" in env_text
+
+
+def test_import_credentials_requires_explicit_db_and_user(client):
+    payload = {
+        "host": "127.0.0.1",
+        "port": 5432,
+        "password": "P@ss!",
+    }
+
+    files = {
+        "file": (
+            "credentials.json",
+            io.BytesIO(json.dumps(payload).encode("utf-8")),
+            "application/json",
+        )
+    }
+
+    resp = client.post("/control/api/database/import-credentials?auto_connect=false", files=files)
+    assert resp.status_code == 200, resp.text
+    data = resp.json()
+    assert data["success"] is False
+    assert "host, port, dbname, user, and password" in data["message"]
+    assert "dbname, user" in data["message"]
+
+
+def test_import_credentials_unsupported_format(client):
+    files = {
+        "file": (
+            "credentials.ini",
             io.BytesIO(b"not a supported format"),
             "text/plain",
         )

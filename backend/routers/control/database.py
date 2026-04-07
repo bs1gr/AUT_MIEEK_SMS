@@ -12,7 +12,7 @@ from __future__ import annotations
 import json
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Mapping, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import FileResponse
@@ -34,6 +34,71 @@ from backend.services.database_manager import (
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
+
+
+def _coerce_credential_value(value: Any) -> str | None:
+    if value is None:
+        return None
+    normalized = str(value).strip().strip('"').strip("'")
+    return normalized or None
+
+
+def _get_first_credential_value(data: Mapping[str, Any], *keys: str) -> str | None:
+    for key in keys:
+        value = _coerce_credential_value(data.get(key))
+        if value:
+            return value
+    return None
+
+
+def _parse_env_like_credentials(content: str) -> dict[str, str]:
+    env_vars: dict[str, str] = {}
+    for line in content.splitlines():
+        stripped = line.strip()
+        if stripped and not stripped.startswith("#") and "=" in stripped:
+            key, value = stripped.split("=", 1)
+            env_vars[key.strip()] = value.strip()
+    return env_vars
+
+
+def _normalize_imported_credentials(data: Mapping[str, Any]) -> dict[str, Any]:
+    host = _get_first_credential_value(data, "host", "hostname", "server", "POSTGRES_HOST")
+    port_raw = _get_first_credential_value(data, "port", "POSTGRES_PORT")
+    dbname = _get_first_credential_value(data, "dbname", "database", "db", "POSTGRES_DB")
+    user = _get_first_credential_value(data, "user", "username", "POSTGRES_USER")
+    password = _get_first_credential_value(data, "password", "pass", "POSTGRES_PASSWORD")
+    sslmode = _get_first_credential_value(data, "sslmode", "ssl_mode", "POSTGRES_SSLMODE") or "prefer"
+
+    missing_fields = [
+        field_name
+        for field_name, value in (
+            ("host", host),
+            ("port", port_raw),
+            ("dbname", dbname),
+            ("user", user),
+            ("password", password),
+        )
+        if not value
+    ]
+    if missing_fields:
+        missing_csv = ", ".join(missing_fields)
+        raise ValueError(
+            f"Missing required credentials. Provide host, port, dbname, user, and password. Missing: {missing_csv}."
+        )
+
+    try:
+        port = int(str(port_raw))
+    except (TypeError, ValueError) as exc:
+        raise ValueError("Invalid PostgreSQL port in credentials file.") from exc
+
+    return {
+        "host": host,
+        "port": port,
+        "dbname": dbname,
+        "user": user,
+        "password": password,
+        "sslmode": sslmode,
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -360,7 +425,7 @@ async def import_database_credentials(
 
     Supported file formats:
     - JSON: {"host": "...", "port": 5432, "dbname": "...", "user": "...", "password": "..."}
-    - .env format: POSTGRES_HOST=..., POSTGRES_PORT=..., etc.
+    - .env/.txt format: POSTGRES_HOST=..., POSTGRES_PORT=..., etc.
 
     Process:
     1. Parse uploaded file
@@ -387,59 +452,44 @@ async def import_database_credentials(
             # Parse JSON format
             try:
                 data = json.loads(content.decode("utf-8"))
-                credentials = {
-                    "host": data.get("host", data.get("POSTGRES_HOST", "localhost")),
-                    "port": int(data.get("port", data.get("POSTGRES_PORT", 5432))),
-                    "dbname": data.get("dbname", data.get("POSTGRES_DB", "student_management")),
-                    "user": data.get("user", data.get("POSTGRES_USER", "sms_user")),
-                    "password": data.get("password", data.get("POSTGRES_PASSWORD", "")),
-                    "sslmode": data.get("sslmode", data.get("POSTGRES_SSLMODE", "prefer")),
-                }
-            except (json.JSONDecodeError, ValueError) as exc:
+                if not isinstance(data, dict):
+                    raise ValueError("JSON credentials must be a flat object.")
+                credentials = _normalize_imported_credentials(data)
+            except json.JSONDecodeError as exc:
                 return ImportCredentialsResult(
                     success=False,
                     message="Invalid JSON format",
                     error=str(exc),
                 )
+            except ValueError as exc:
+                return ImportCredentialsResult(
+                    success=False,
+                    message=str(exc),
+                    error=str(exc),
+                )
 
-        elif filename_lower.endswith(".env") or "env" in filename_lower:
+        elif filename_lower.endswith(".env") or filename_lower.endswith(".txt") or "env" in filename_lower:
             # Parse .env format
             try:
-                lines = content.decode("utf-8").splitlines()
-                env_vars = {}
-                for line in lines:
-                    line = line.strip()
-                    if line and not line.startswith("#") and "=" in line:
-                        key, value = line.split("=", 1)
-                        env_vars[key.strip()] = value.strip().strip('"').strip("'")
-
-                credentials = {
-                    "host": env_vars.get("POSTGRES_HOST", "localhost"),
-                    "port": int(env_vars.get("POSTGRES_PORT", "5432")),
-                    "dbname": env_vars.get("POSTGRES_DB", "student_management"),
-                    "user": env_vars.get("POSTGRES_USER", "sms_user"),
-                    "password": env_vars.get("POSTGRES_PASSWORD", ""),
-                    "sslmode": env_vars.get("POSTGRES_SSLMODE", "prefer"),
-                }
-            except (ValueError, UnicodeDecodeError) as exc:
+                env_vars = _parse_env_like_credentials(content.decode("utf-8"))
+                credentials = _normalize_imported_credentials(env_vars)
+            except UnicodeDecodeError as exc:
                 return ImportCredentialsResult(
                     success=False,
                     message="Invalid .env format",
                     error=str(exc),
                 )
+            except ValueError as exc:
+                return ImportCredentialsResult(
+                    success=False,
+                    message=str(exc),
+                    error=str(exc),
+                )
         else:
             return ImportCredentialsResult(
                 success=False,
-                message="Unsupported file format. Use .json or .env files.",
+                message="Unsupported file format. Use .json, .env, or .txt files.",
                 error=f"File type not recognized: {file.filename}",
-            )
-
-        # Validate required fields
-        if not credentials or not credentials.get("host") or not credentials.get("password"):
-            return ImportCredentialsResult(
-                success=False,
-                message="Missing required credentials (host and password are mandatory)",
-                error="Incomplete credential data",
             )
 
         # Test connection
