@@ -21,7 +21,7 @@ This maintenance release strengthens two operational paths that matter most for 
 | File | `SMS_Installer_1.18.17.exe` |
 | Local SHA256 | `D181AD51D75CD7618E0B4CDD7C38EBB59C773C00B6182F8EBCA5A4D9E3E59E68` |
 | Signature | Valid - `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY` |
-| GitHub digest | Added automatically after CI upload |
+| GitHub digest | `sha256:71c15e3bdc910f379b23bc73cb67aeec1f6a8efaebad98f85e47910676d8481a` |
 
 > **Upgrade**: Drop-in from `v1.18.16`. No database migration steps are required.
 
@@ -30,6 +30,7 @@ This maintenance release strengthens two operational paths that matter most for 
 - Local installer build, signature verification, and smoke test passed
 - Native smoke passed (`8000` backend / `5173` frontend)
 - Docker smoke passed (`sms-app` healthy and `/health` HTTP 200 on `8080`)
+- GitHub release workflow `24142472615` and installer workflow `24142499707` both completed successfully
 
 ### Full Changelog
 

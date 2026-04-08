@@ -4,7 +4,7 @@
 **Release Date**: 2026-04-08
 **Type**: Maintenance / Runtime Recovery / Installer Hardening Patch
 **Branch**: `main`
-**Status**: ✅ LOCAL INSTALLER VERIFIED | ⏳ GITHUB PUBLISH PENDING
+**Status**: ✅ PUBLISHED + VERIFIED
 
 ---
 
@@ -70,7 +70,7 @@ v1.18.17 packages the remote PostgreSQL runtime recovery work for Docker single-
 | **Signer** | `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY` |
 | **Signer Thumbprint** | `2693C1B15C8A8E5E45614308489DC6F4268B075D` |
 | **Smoke test** | Passed |
-| **GitHub asset digest** | Pending CI upload |
+| **GitHub asset digest** | `sha256:71c15e3bdc910f379b23bc73cb67aeec1f6a8efaebad98f85e47910676d8481a` |
 
 > **Note**: GitHub release digest metadata becomes the authoritative post-publication hash after the installer upload workflow completes.
 
@@ -84,6 +84,11 @@ v1.18.17 packages the remote PostgreSQL runtime recovery work for Docker single-
 - ✅ Installer smoke test passed
 - ✅ Native development smoke passed: backend `/health` returned HTTP 200 on port `8000` and frontend returned HTTP 200 on port `5173`
 - ✅ Docker production smoke passed via `.\DOCKER.ps1 -Start`: container became healthy and `/health` returned HTTP 200 on port `8080`
+- ✅ `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-04-08_175612.md`)
+- ✅ Backend batch validation passed (`21/21` batches; `backend/test-results/backend_batch_run_20260408_175209.txt`)
+- ✅ GitHub release workflow succeeded (`24142472615`)
+- ✅ GitHub installer upload workflow succeeded (`24142499707`)
+- ✅ Downloaded published installer hash matched the GitHub digest and signature verified as `Valid`
 
 ---
 

@@ -3,7 +3,7 @@
 **Version**: 1.18.17
 **Release Date**: 2026-04-08
 **Prepared By**: Solo Developer + AI Assistant
-**Status**: ✅ PREPARED | ⏳ TAG / GITHUB PUBLISH PENDING
+**Status**: ✅ PUBLISHED + VERIFIED
 
 ---
 
@@ -20,8 +20,11 @@
 | **Build tool** | Inno Setup + Authenticode (DigiCert live timestamp) |
 | **Smoke test** | Passed |
 | **Built** | 2026-04-08 |
-| **GitHub asset digest (authoritative)** | Pending CI upload |
-| **Release URL** | Pending tag push |
+| **GitHub asset size** | `26,206,640` bytes |
+| **GitHub asset digest (authoritative)** | `sha256:71c15e3bdc910f379b23bc73cb67aeec1f6a8efaebad98f85e47910676d8481a` |
+| **Downloaded release asset hash** | `71C15E3BDC910F379B23BC73CB67AEEC1F6A8EFAEBAD98F85E47910676D8481A` |
+| **Downloaded release asset signature** | Valid |
+| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.17 |
 
 > **SHA256 note**: DigiCert live timestamping means each build produces a distinct binary. The GitHub release asset digest becomes the authoritative post-publication hash once the installer workflow uploads the signed release artifact.
 
@@ -52,6 +55,9 @@
 | Local installer smoke test | ✅ Passed |
 | Native smoke | ✅ backend `/health` 200 and frontend 200 |
 | Docker smoke | ✅ `sms-app` healthy and `/health` 200 |
+| `scripts/VERIFY_VERSION.ps1 -CheckOnly` | ✅ Passed |
+| `COMMIT_READY.ps1 -Quick -Snapshot` | ✅ Passed (`artifacts/state/STATE_2026-04-08_175612.md`) |
+| Backend batch tests | ✅ `21/21` batches passed (`backend/test-results/backend_batch_run_20260408_175209.txt`) |
 
 ---
 
@@ -74,3 +80,15 @@ Per release-lineage policy:
 - **Allowed**: `SMS_Installer_1.18.17.exe` (installer only)
 - **Allowed**: GitHub release digest metadata (SHA256 via GitHub asset digest)
 - **Not allowed**: generic CI artifacts, source archives, or additional binaries
+
+---
+
+## GitHub Release Checklist
+
+- ✅ Commit `c1e576e44` (`chore(release): prepare v1.18.17`) pushed to `main`
+- ✅ Tag `v1.18.17` created and pushed (`2026-04-08`)
+- ✅ `Create GitHub Release on tag` workflow succeeded — Run `24142472615`, published `2026-04-08T15:03:11Z`
+- ✅ `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded — Run `24142499707`
+- ✅ Published installer filename is `SMS_Installer_1.18.17.exe`
+- ✅ GitHub release digest recorded and matched downloaded asset hash
+- ✅ Downloaded published installer verified with `Get-AuthenticodeSignature` -> `Valid`

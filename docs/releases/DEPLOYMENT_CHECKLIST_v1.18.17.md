@@ -3,7 +3,7 @@
 **Version**: 1.18.17
 **Release Date**: 2026-04-08
 **Environment Targets**: Docker (production), Native (development)
-**Status**: ✅ PREPARED
+**Status**: ✅ PUBLISHED
 
 ---
 

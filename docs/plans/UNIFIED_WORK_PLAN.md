@@ -1,13 +1,48 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.16
-**Last Updated**: March 31, 2026
-**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.16` PUBLISHED + VERIFIED**
+**Current Version**: 1.18.17
+**Last Updated**: April 8, 2026
+**Status**: ✅ **`v1.18.12` REMAINS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.17` PUBLISHED + VERIFIED**
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: **Maintenance/Hardening | v1.18.16 Published**
+**Current Phase**: **Maintenance/Hardening | v1.18.17 Published**
 **Current Branch**: `main`
 
 ---
+
+## 🚀 v1.18.17 Release Publication (April 8, 2026)
+
+**Status**: ✅ **PUBLISHED + VERIFIED** | baseline `v1.18.16..HEAD`
+
+- ✅ Reviewed the 6 commits accumulated since `v1.18.16` on `main`
+- ✅ Version alignment completed for `v1.18.17` across canonical files and release metadata
+- ✅ Local installer-first verification completed before tag/publish:
+  - `SMS_Installer_1.18.17.exe` built locally
+  - local SHA256: `D181AD51D75CD7618E0B4CDD7C38EBB59C773C00B6182F8EBCA5A4D9E3E59E68`
+  - local signature: `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
+  - local smoke test: passed
+- ✅ Runtime verification completed:
+  - native development smoke returned HTTP 200 for backend (`8000`) and frontend (`5173`)
+  - docker production smoke returned healthy `sms-app` state and HTTP 200 `/health` on `8080`
+- ✅ Validation completed:
+  - `scripts/VERIFY_VERSION.ps1 -CheckOnly` passed
+  - `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-04-08_175612.md`)
+  - backend batch suite passed during commit gate (`21/21` batches; `backend/test-results/backend_batch_run_20260408_175209.txt`)
+  - frontend Vitest passed during commit gate
+- ✅ Release docs prepared:
+  - `docs/releases/RELEASE_NOTES_v1.18.17.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.17.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.17.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.17.md`
+  - `.github/RELEASE_NOTES_v1.18.17.md`
+- ✅ Publication evidence:
+  - release-prep commit `c1e576e44` pushed to `main`
+  - tag `v1.18.17` pushed to origin
+  - GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.17
+  - release workflow succeeded (`24142472615`)
+  - installer upload workflow succeeded (`24142499707`)
+  - published asset: `SMS_Installer_1.18.17.exe` (26,206,640 bytes)
+  - authoritative GitHub digest: `sha256:71c15e3bdc910f379b23bc73cb67aeec1f6a8efaebad98f85e47910676d8481a`
+  - downloaded published installer hash matched the GitHub digest and `Get-AuthenticodeSignature` returned `Valid`
 
 ## 🚀 v1.18.16 Release Publication (March 31, 2026)
 

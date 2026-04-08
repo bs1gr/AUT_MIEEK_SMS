@@ -1,14 +1,14 @@
 # Documentation Index
 
-**Last Updated**: 2026-03-31
+**Last Updated**: 2026-04-08
 **Project Version (documented)**: 1.18.17
 **Version**: 1.18.17
 **Current Branch**: `main`
-**Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.16` IS THE LATEST PUBLISHED MAINTENANCE RELEASE**
+**Status**: ✅ **`v1.18.12` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`v1.18.17` IS THE LATEST PUBLISHED MAINTENANCE RELEASE**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Mar 31, 2026)**: ✅ **`v1.18.12` remains the first official public release and `v1.18.16` is now the latest published maintenance release**
+> **Current Status (Apr 8, 2026)**: ✅ **`v1.18.12` remains the first official public release and `v1.18.17` is now the latest published maintenance release**
 > - `v1.18.0` through `v1.18.11` remain archived as prereleases for historical reference
 > - `v1.18.12` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
 > - `v1.18.16` release publication, installer verification, GitHub digest verification, and post-release evidence were completed successfully
