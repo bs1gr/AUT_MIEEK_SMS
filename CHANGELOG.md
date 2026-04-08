@@ -8,6 +8,21 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
+## [1.18.17] - 2026-04-08
+
+### Bug Fixes
+- **frontend**: override lodash for dependabot
+- **frontend**: upgrade vite to 7.3.2 for dependabot
+- **installer**: harden db packaging and remote postgres setup
+- **docker**: self-heal remote qnap runtime
+
+### Documentation
+- **status**: close post-release security alert follow-up
+
+### Chores
+- **release**: record v1.18.16 publication evidence
+
 ## [1.18.16] - 2026-03-31
 
 ### Features
