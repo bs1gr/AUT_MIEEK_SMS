@@ -10,6 +10,23 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.19] - 2026-04-17
+
+### Bug Fixes
+- **release**: keep version checks green
+
+## [1.18.19] - 2026-04-17
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.18] - 2026-04-17
 
 ### Bug Fixes
