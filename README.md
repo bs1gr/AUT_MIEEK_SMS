@@ -9,7 +9,7 @@
 **Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)
 **Location:** Limassol, Cyprus
 **Developer:** Teacher at ΜΙΕΕΚ
-**Current Version**: 1.18.8 (Production Ready)
+$11.18.18 (Production Ready)
 
 ---
 

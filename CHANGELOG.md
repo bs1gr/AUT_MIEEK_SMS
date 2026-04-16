@@ -9,6 +9,27 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.18.18] - 2026-04-17
+
+### Bug Fixes
+- **release**: safe version propagation
+
+### Chores
+- **deps**: fix dependabot security alerts
+- **release**: record v1.18.17 publication evidence
+
+## [1.18.18] - 2026-04-17
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.17] - 2026-04-08
 
 ### Bug Fixes
