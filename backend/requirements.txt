@@ -1,16 +1,16 @@
 # Main dependencies for Student Management System
 # Generated from pyproject.toml [project.dependencies]
-# Last updated: 2026-03-30
+# Last updated: 2026-04-16
 
 fastapi==0.121.2
 starlette==0.49.1
 uvicorn[standard]==0.38.0
 sqlalchemy==2.0.44
 psycopg[binary]==3.2.12
-cryptography==46.0.6  # GHSA-m959-cc7f-wv43 fixed in 46.0.6
+cryptography==46.0.7  # CVE-2026-39892 fixed in 46.0.7
 pydantic==2.12.3
 email-validator==2.3.0
-python-multipart==0.0.22  # CVE-2024-24762: fix pending in 0.0.23 (not yet released)
+python-multipart==0.0.26  # CVE-2024-24762 fixed in >=0.0.23
 openpyxl==3.1.5
 reportlab==4.4.4
 pydantic-settings==2.11.0
