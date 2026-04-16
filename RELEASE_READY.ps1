@@ -167,7 +167,9 @@ function Update-VersionReferences {
     Write-Host "Updating version references to $NewVersion..."
 
     # Update VERSION file
-    Set-Content -Path "VERSION" -Value $NewVersion
+    # Repo policy expects VERSION to be in `v1.x.x` format, while most other places use `1.x.x`.
+    $versionTag = if ($NewVersion -match '^v[0-9]+\.[0-9]+\.[0-9]+$') { $NewVersion } else { "v$NewVersion" }
+    Set-Content -Path "VERSION" -Value $versionTag
 
 
     # Update backend/main.py docstring
@@ -205,7 +207,8 @@ function Update-VersionReferences {
     (Get-Content "INSTALLER_BUILDER.ps1") -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content "INSTALLER_BUILDER.ps1"
 
     # Optionally update README.md (if version appears)
-    (Get-Content "README.md") -replace '[0-9]+\.[0-9]+\.[0-9]+', $NewVersion | Set-Content "README.md"
+    # Avoid rewriting historical/version-example text in README; only bump the explicit current version field.
+    (Get-Content "README.md") -replace '(\*\*Current Version\*\*:\s*)[0-9]+\.[0-9]+\.[0-9]+', ('$1' + $NewVersion) | Set-Content "README.md"
 
     # Add new section to CHANGELOG.md
     $changelogLines = Get-Content "CHANGELOG.md"
@@ -438,6 +441,14 @@ if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
         Write-Error "Version verification failed after re-sync. Aborting release."
         exit 1
     }
+}
+
+# Final gate after docs/version rewrites.
+Write-Host "Running final pre-commit validation after documentation generation..."
+& .\COMMIT_READY.ps1 -Quick
+if ($LASTEXITCODE -ne 0) {
+    Write-Error "Pre-commit validation failed after documentation generation. Aborting release."
+    exit 1
 }
 
 # ============================================================================
