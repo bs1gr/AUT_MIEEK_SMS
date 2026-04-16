@@ -85,6 +85,13 @@ function Invoke-PreReleaseValidation {
     }
     Write-Host "✓ Working tree clean" -ForegroundColor Green
 
+    # Avoid stale/generated root DOCUMENTATION_INDEX.md affecting version-consistency tests.
+    # The canonical index is `docs/DOCUMENTATION_INDEX.md`; installer build will stage a root copy if needed.
+    $rootDocIndex = Join-Path $PSScriptRoot "DOCUMENTATION_INDEX.md"
+    if (Test-Path $rootDocIndex) {
+        try { Remove-Item $rootDocIndex -Force } catch { }
+    }
+
     # Step 2: Check branch
     Write-Step 2 6 "Checking branch..."
     $branch = git rev-parse --abbrev-ref HEAD 2>$null
@@ -195,19 +202,7 @@ function Update-VersionReferences {
     (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\*\*Version\*\*: [0-9\.]+', "**Version**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"
     (Get-Content "docs/DOCUMENTATION_INDEX.md") -replace '\*\*Project Version \(documented\)\*\*: [0-9\.]+', "**Project Version (documented)**: $NewVersion" | Set-Content "docs/DOCUMENTATION_INDEX.md"
 
-    # Update root DOCUMENTATION_INDEX.md (if present)
-    if (Test-Path "DOCUMENTATION_INDEX.md") {
-        # Root index contains many historical version examples; only update the header section.
-        $rootIndexLines = Get-Content "DOCUMENTATION_INDEX.md"
-        $headerLimit = [Math]::Min(40, $rootIndexLines.Count)
-        for ($i = 0; $i -lt $headerLimit; $i++) {
-            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '(\*\*Project Version \(documented\)\*\*:\s*)\d+\.\d+\.\d+', ('$1' + $NewVersion)
-            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '(\*\*Version\*\*:\s*)\d+\.\d+\.\d+', ('$1' + $NewVersion)
-            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '\\(v\\d+\\.\\d+\\.\\d+\\)', ('(v' + $NewVersion + ')')
-            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '`v\\d+\\.\\d+\\.\\d+`', ('`v' + $NewVersion + '`')
-        }
-        Set-Content "DOCUMENTATION_INDEX.md" -Value ($rootIndexLines -join "`n")
-    }
+    # Root DOCUMENTATION_INDEX.md is a generated/staged artifact (ignored in git); keep canonical index under docs/.
 
     # Update scripts
     (Get-Content "COMMIT_READY.ps1") -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content "COMMIT_READY.ps1"
