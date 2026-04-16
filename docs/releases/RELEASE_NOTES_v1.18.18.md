@@ -18,5 +18,3 @@
 
 - **Total Commits**: 3
 - **Contributors**: 1
-
-

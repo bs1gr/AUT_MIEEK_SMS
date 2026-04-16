@@ -197,9 +197,16 @@ function Update-VersionReferences {
 
     # Update root DOCUMENTATION_INDEX.md (if present)
     if (Test-Path "DOCUMENTATION_INDEX.md") {
-        (Get-Content "DOCUMENTATION_INDEX.md") -replace '\*\*Version:\*\* [0-9\.]+' , "**Version:** $NewVersion" | Set-Content "DOCUMENTATION_INDEX.md"
-        (Get-Content "DOCUMENTATION_INDEX.md") -replace '\(v[0-9\.]+\)', "(v$NewVersion)" | Set-Content "DOCUMENTATION_INDEX.md"
-        (Get-Content "DOCUMENTATION_INDEX.md") -replace '\*\*Documentation Version:\*\* v[0-9\.]+' , "**Documentation Version:** v$NewVersion" | Set-Content "DOCUMENTATION_INDEX.md"
+        # Root index contains many historical version examples; only update the header section.
+        $rootIndexLines = Get-Content "DOCUMENTATION_INDEX.md"
+        $headerLimit = [Math]::Min(40, $rootIndexLines.Count)
+        for ($i = 0; $i -lt $headerLimit; $i++) {
+            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '(\*\*Project Version \(documented\)\*\*:\s*)\d+\.\d+\.\d+', ('$1' + $NewVersion)
+            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '(\*\*Version\*\*:\s*)\d+\.\d+\.\d+', ('$1' + $NewVersion)
+            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '\\(v\\d+\\.\\d+\\.\\d+\\)', ('(v' + $NewVersion + ')')
+            $rootIndexLines[$i] = $rootIndexLines[$i] -replace '`v\\d+\\.\\d+\\.\\d+`', ('`v' + $NewVersion + '`')
+        }
+        Set-Content "DOCUMENTATION_INDEX.md" -Value ($rootIndexLines -join "`n")
     }
 
     # Update scripts

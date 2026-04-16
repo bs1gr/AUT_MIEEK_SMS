@@ -8,6 +8,7 @@ TODO.md
 
 # COMMIT_READY enforcement checkpoint (local validation only, not committed)
 .commit-ready-validated
+.test-failures
 
 # Temporary scripts
 tmp_*.ps1

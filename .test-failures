@@ -1,6 +1,0 @@
-# Failed test files (generated 2026-04-17 00:54:04)
-# To retest only these files, run: .\RUN_TESTS_BATCH.ps1 -RetestFailed
-# To clear this file, run: Remove-Item 'D:\SMS\student-management-system\.test-failures'
-
-test_version_consistency.py
-test_websocket.py
