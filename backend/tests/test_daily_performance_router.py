@@ -185,3 +185,40 @@ def test_update_daily_performance_not_found(client):
     """Test updating a non-existent record returns 404."""
     response = client.put("/api/v1/daily-performance/99999", json={"score": 8.0})
     assert response.status_code == 404
+
+
+def test_delete_daily_performance_soft_deletes_and_hides_from_queries(client, db):
+    """Delete should soft-delete the record and remove it from list endpoints."""
+    from backend.import_resolver import import_names
+
+    (DailyPerformance,) = import_names("models", "DailyPerformance")
+
+    student = _create_student(client, 10)
+    course = _create_course(client, 10)
+    created = _create_daily_performance(client, student["id"], course["id"], category="No participation", score=0.0)
+    record_id = created["id"]
+
+    delete_response = client.delete(f"/api/v1/daily-performance/{record_id}")
+    assert delete_response.status_code == 204, delete_response.text
+
+    # Soft-delete assertion at DB layer
+    deleted = db.query(DailyPerformance).filter(DailyPerformance.id == record_id).first()
+    assert deleted is not None
+    assert deleted.deleted_at is not None
+
+    # Ensure API list endpoints hide soft-deleted rows
+    list_student = client.get(f"/api/v1/daily-performance/student/{student['id']}")
+    assert list_student.status_code == 200
+    assert all(item["id"] != record_id for item in list_student.json())
+
+    list_course_date = client.get(
+        f"/api/v1/daily-performance/date/{date.today().isoformat()}/course/{course['id']}"
+    )
+    assert list_course_date.status_code == 200
+    assert all(item["id"] != record_id for item in list_course_date.json())
+
+
+def test_delete_daily_performance_not_found(client):
+    """Deleting a non-existent record should return 404."""
+    response = client.delete("/api/v1/daily-performance/99999")
+    assert response.status_code == 404

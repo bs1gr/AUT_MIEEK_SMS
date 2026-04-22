@@ -4,6 +4,7 @@ export interface AttendanceSyncSnapshot {
   date: string;
   attendanceRecords: Record<string, string>;
   dailyPerformance: Record<string, number>;
+  dailyPerformanceDeletes?: string[];
   enqueuedAt: string;
 }
 
@@ -24,7 +25,9 @@ const parseQueue = (raw: string | null): AttendanceSyncSnapshot[] => {
         item !== null &&
         typeof (item as AttendanceSyncSnapshot).id === 'string' &&
         typeof (item as AttendanceSyncSnapshot).courseId === 'number' &&
-        typeof (item as AttendanceSyncSnapshot).date === 'string'
+        typeof (item as AttendanceSyncSnapshot).date === 'string' &&
+        ((item as AttendanceSyncSnapshot).dailyPerformanceDeletes === undefined ||
+          Array.isArray((item as AttendanceSyncSnapshot).dailyPerformanceDeletes))
       );
     });
   } catch {
@@ -62,6 +65,7 @@ export const enqueueAttendanceSyncSnapshot = (
     date: input.date,
     attendanceRecords: input.attendanceRecords,
     dailyPerformance: input.dailyPerformance,
+    dailyPerformanceDeletes: input.dailyPerformanceDeletes || [],
     enqueuedAt: new Date().toISOString(),
   };
 

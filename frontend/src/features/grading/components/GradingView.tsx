@@ -28,6 +28,24 @@ type CourseWithEvaluationRules = Course & { evaluation_rules?: EvaluationRule[] 
 interface CategoryOption { value: string; label: string }
 
 const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api/v1';
+const SPECIAL_PARTICIPATION_CATEGORIES = [
+  'No participation',
+  'Minor participation',
+  'Minor participation (mobile usage)',
+] as const;
+
+const normalizeCategoryName = (value?: string) => (value || '').trim().toLowerCase();
+
+const isSpecialParticipationCategory = (value?: string): boolean =>
+  SPECIAL_PARTICIPATION_CATEGORIES.some((category) => normalizeCategoryName(category) === normalizeCategoryName(value));
+
+const isBaseParticipationCategory = (value?: string): boolean => {
+  const normalized = normalizeCategoryName(value);
+  return normalized === 'class participation'
+    || normalized === 'participation'
+    || normalized === 'συμμετοχή'
+    || normalized === 'συμμετοχη';
+};
 
 interface GradingViewProps {
   students: Student[];
@@ -53,6 +71,9 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
       'Midterm Exam': t('midtermExam'),
       'Final Exam': t('finalExam'),
       'Final': t('final'),
+      'No participation': t('noParticipationOption') || 'No participation',
+      'Minor participation': t('minorParticipationOption') || 'Minor participation',
+      'Minor participation (mobile usage)': t('minorParticipationMobileOption') || 'Minor participation (mobile usage)',
     };
     return categoryMap[category] || category;
   };
@@ -112,6 +133,10 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   const [editingGradeId, setEditingGradeId] = useState<number | null>(null);
   const [historyDate, setHistoryDate] = useState<string>('');
   const [pendingSyncCount, setPendingSyncCount] = useState<number>(() => getQueuedGradeMutationCount());
+  const [rulesByCourseOverride, setRulesByCourseOverride] = useState<Record<number, EvaluationRule[]>>({});
+  const [specialWeights, setSpecialWeights] = useState<Record<string, string>>({});
+  const [savingSpecialWeights, setSavingSpecialWeights] = useState(false);
+  const [specialWeightsMessage, setSpecialWeightsMessage] = useState<string | null>(null);
   const todayStr = formatLocalDate(new Date());
   const isHistoricalMode = Boolean(historyDate && historyDate !== todayStr);
   const summaryReportLink = useMemo(() => {
@@ -387,7 +412,79 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
   }, [category, grades, studentId, courseId]);
 
   const selectedCourse = useMemo(() => courses.find((c) => c.id === courseId), [courses, courseId]);
-  const evaluationRules: EvaluationRule[] = useMemo(() => Array.isArray(selectedCourse?.evaluation_rules) ? (selectedCourse!.evaluation_rules as EvaluationRule[]) : [], [selectedCourse]);
+  const evaluationRules: EvaluationRule[] = useMemo(() => {
+    if (!courseId) return [];
+    if (rulesByCourseOverride[courseId]) return rulesByCourseOverride[courseId];
+    return Array.isArray(selectedCourse?.evaluation_rules) ? (selectedCourse.evaluation_rules as EvaluationRule[]) : [];
+  }, [courseId, rulesByCourseOverride, selectedCourse]);
+
+  useEffect(() => {
+    const next: Record<string, string> = {};
+    SPECIAL_PARTICIPATION_CATEGORIES.forEach((categoryName) => {
+      const existing = evaluationRules.find((rule) => normalizeCategoryName(rule.category) === normalizeCategoryName(categoryName));
+      const value = Number(existing?.weight ?? 0);
+      next[categoryName] = Number.isFinite(value) ? String(value) : '0';
+    });
+    setSpecialWeights(next);
+    setSpecialWeightsMessage(null);
+  }, [evaluationRules, courseId]);
+
+  const setSpecialWeightValue = useCallback((categoryName: string, value: string) => {
+    setSpecialWeights((prev) => ({ ...prev, [categoryName]: value }));
+  }, []);
+
+  const saveSpecialParticipationWeights = useCallback(async () => {
+    if (!courseId) {
+      setSpecialWeightsMessage('Select a course first.');
+      return;
+    }
+
+    const parsedSpecialWeights = SPECIAL_PARTICIPATION_CATEGORIES.map((categoryName) => {
+      const parsed = Number(String(specialWeights[categoryName] ?? '0').replace(',', '.'));
+      return {
+        category: categoryName,
+        weight: Number.isFinite(parsed) && parsed >= 0 ? parsed : 0,
+      };
+    });
+
+    const baseRules = evaluationRules.filter((rule) => !isSpecialParticipationCategory(rule.category));
+    const participationRule = baseRules.find((rule) => isBaseParticipationCategory(rule.category));
+    const otherRules = baseRules.filter((rule) => !isBaseParticipationCategory(rule.category));
+
+    const otherTotal = otherRules.reduce((sum, rule) => sum + Number(rule.weight || 0), 0);
+    const specialTotal = parsedSpecialWeights.reduce((sum, rule) => sum + Number(rule.weight || 0), 0);
+    const remainingParticipationWeight = Number((100 - otherTotal - specialTotal).toFixed(2));
+
+    if (remainingParticipationWeight < -0.01) {
+      setSpecialWeightsMessage('Special participation weights are too high for this course structure.');
+      return;
+    }
+
+    const normalizedParticipationWeight = Math.max(0, remainingParticipationWeight);
+    const mergedRules: EvaluationRule[] = [
+      ...otherRules,
+      {
+        category: participationRule?.category || 'Class Participation',
+        weight: normalizedParticipationWeight,
+        description: participationRule?.description,
+      },
+      ...parsedSpecialWeights,
+    ];
+
+    try {
+      setSavingSpecialWeights(true);
+      setSpecialWeightsMessage(null);
+      await apiClient.put(`/courses/${courseId}`, { evaluation_rules: mergedRules });
+      setRulesByCourseOverride((prev) => ({ ...prev, [courseId]: mergedRules }));
+      setSpecialWeightsMessage('Special participation weights saved.');
+      await loadFinal();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to save special participation weights.';
+      setSpecialWeightsMessage(message);
+    } finally {
+      setSavingSpecialWeights(false);
+    }
+  }, [courseId, evaluationRules, loadFinal, specialWeights]);
 
   // Category options with display names
   const categoryOptions: CategoryOption[] = useMemo(() => {
@@ -771,6 +868,45 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
                 {r.description && <div className="text-xs text-gray-500 mt-1">{r.description}</div>}
               </div>
             ))}
+          </div>
+          <div className="mt-5 border-t pt-4 space-y-3">
+            <h4 className="text-sm font-semibold text-slate-900">
+              {t('specialParticipationWeightsTitle') || 'Special Participation Weights'}
+            </h4>
+            <p className="text-xs text-slate-500">
+              {t('specialParticipationWeightsDescription') || 'Configure weights for attendance incident options. Remaining weight is assigned to Class Participation automatically.'}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {SPECIAL_PARTICIPATION_CATEGORIES.map((categoryName) => (
+                <div key={categoryName} className="border rounded-lg p-3">
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    {translateCategory(categoryName)}
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={specialWeights[categoryName] ?? '0'}
+                    onChange={(e) => setSpecialWeightValue(categoryName, e.target.value)}
+                    className="w-full border rounded px-2 py-1.5 text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              {specialWeightsMessage && (
+                <p className="text-xs text-slate-600">{specialWeightsMessage}</p>
+              )}
+              <button
+                type="button"
+                onClick={saveSpecialParticipationWeights}
+                disabled={savingSpecialWeights || !courseId}
+                className="sm:ml-auto bg-indigo-600 text-white px-3 py-2 rounded text-sm hover:bg-indigo-700 disabled:opacity-50"
+              >
+                {savingSpecialWeights ? (t('saving') || 'Saving...') : (t('saveSpecialWeights') || 'Save Special Weights')}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -64,6 +64,9 @@ export function getCanonicalCategory(category: unknown, t: (key: string) => stri
     project: 'Project',
     presentation: 'Presentation',
     homework: 'Homework/Assignments',
+    noParticipationOption: 'No participation',
+    minorParticipationOption: 'Minor participation',
+    minorParticipationMobileOption: 'Minor participation (mobile usage)',
   };
 
   // First, try matching against translations (EL/EN) via t(key)
@@ -83,6 +86,9 @@ export function getCanonicalCategory(category: unknown, t: (key: string) => stri
   if (normalizedInput.includes('τελικ') || normalizedInput.includes('τελική') || normalizedInput.includes('final')) return 'Final Exam';
   if (normalizedInput.includes('ενδιά') || normalizedInput.includes('midterm')) return 'Midterm Exam';
   if (normalizedInput.includes('εργαστηρ') || normalizedInput.includes('lab')) return 'Lab Work';
+  if (normalizedInput.includes('no participation')) return 'No participation';
+  if (normalizedInput.includes('minor participation') && normalizedInput.includes('mobile')) return 'Minor participation (mobile usage)';
+  if (normalizedInput.includes('minor participation')) return 'Minor participation';
   if (normalizedInput.includes('παρουσι') || normalizedInput.includes('participation')) return 'Class Participation';
   if (normalizedInput.includes('εργασ') || normalizedInput.includes('homework') || normalizedInput.includes('assignment')) return 'Homework/Assignments';
 

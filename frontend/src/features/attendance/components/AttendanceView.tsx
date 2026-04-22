@@ -45,6 +45,25 @@ type Props = { courses: Course[]; students?: Student[] };
 type EvaluationRule = { category: string; weight?: number };
 type RawAttendanceRecord = { student_id: number; period_number?: number; date?: string; status: string };
 type RawDailyPerformanceRecord = { student_id: number; category: string; score: number };
+type SpecialParticipationOption = { category: string; scoreWhenChecked: number };
+
+const SPECIAL_PARTICIPATION_OPTIONS: SpecialParticipationOption[] = [
+  { category: 'No participation', scoreWhenChecked: 0 },
+  { category: 'Minor participation', scoreWhenChecked: 4 },
+  { category: 'Minor participation (mobile usage)', scoreWhenChecked: 2 },
+];
+
+const SPECIAL_PARTICIPATION_SCORE_MAP: Record<string, number> = SPECIAL_PARTICIPATION_OPTIONS.reduce(
+  (acc, option) => ({ ...acc, [option.category]: option.scoreWhenChecked }),
+  {}
+);
+
+const getSpecialParticipationScore = (category: string): number | null => {
+  if (Object.prototype.hasOwnProperty.call(SPECIAL_PARTICIPATION_SCORE_MAP, category)) {
+    return SPECIAL_PARTICIPATION_SCORE_MAP[category];
+  }
+  return null;
+};
 
 const ATTENDANCE_STATES = ['Present', 'Absent', 'Late', 'Excused'] as const;
 type AttendanceState = typeof ATTENDANCE_STATES[number];
@@ -79,6 +98,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const [attendanceRecordIds, setAttendanceRecordIds] = useState<Record<string, number>>({}); // Track API record IDs
   const [dailyPerformance, setDailyPerformance] = useState<Record<string, number>>({});
   const [dailyPerformanceIds, setDailyPerformanceIds] = useState<Record<string, number>>({}); // Track API record IDs
+  const [pendingPerformanceDeleteKeys, setPendingPerformanceDeleteKeys] = useState<Set<string>>(new Set());
 
   // Persisted state from backend (used to detect dirty/pending changes)
   const [persistedAttendanceRecords, setPersistedAttendanceRecords] = useState<Record<string, string>>({});
@@ -268,6 +288,16 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     };
   }, []);
 
+  const parseDailyPerformanceKey = useCallback((key: string) => {
+    const separatorIdx = key.indexOf('-');
+    if (separatorIdx <= 0) {
+      return { studentId: NaN, category: '' };
+    }
+    const studentId = parseInt(key.slice(0, separatorIdx), 10);
+    const category = key.slice(separatorIdx + 1);
+    return { studentId, category };
+  }, []);
+
   const isOfflineNetworkError = useCallback((error: unknown) => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) return true;
     if (typeof error !== 'object' || error === null) return false;
@@ -297,13 +327,14 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       date: snapshotDate,
       attendanceRecords: { ...attendanceRecords },
       dailyPerformance: { ...dailyPerformance },
+      dailyPerformanceDeletes: Array.from(pendingPerformanceDeleteKeys),
     });
 
     setPersistedAttendanceRecords({ ...attendanceRecords });
     setPersistedDailyPerformance({ ...dailyPerformance });
     updatePendingSyncCount();
     return true;
-  }, [selectedCourse, attendanceRecords, dailyPerformance, updatePendingSyncCount]);
+  }, [selectedCourse, attendanceRecords, dailyPerformance, pendingPerformanceDeleteKeys, updatePendingSyncCount]);
 
   const syncSnapshotToServer = useCallback(async (snapshot: AttendanceSyncSnapshot) => {
     const attendanceIdMap: Record<string, number> = {};
@@ -377,8 +408,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     });
 
     const performancePromises = Object.entries(snapshot.dailyPerformance).map(([key, score]) => {
-      const [studentIdStr, category] = key.split('-');
-      const studentId = parseInt(studentIdStr, 10);
+      const { studentId, category } = parseDailyPerformanceKey(key);
       if (!studentId || !category) return Promise.resolve(null);
 
       const recordId = performanceIdMap[key];
@@ -410,7 +440,18 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       });
     });
 
-    const allPromises = [...attendancePromises, ...performancePromises];
+    const performanceDeletePromises = (snapshot.dailyPerformanceDeletes || []).map((key) => {
+      const recordId = performanceIdMap[key];
+      if (!recordId) return Promise.resolve(null);
+      return apiClient.delete(`/daily-performance/${recordId}`).catch((error) => {
+        if (isResponseLike(error) && error.response?.status === 404) {
+          return Promise.resolve(null);
+        }
+        throw error;
+      });
+    });
+
+    const allPromises = [...attendancePromises, ...performancePromises, ...performanceDeletePromises];
     const CHUNK_SIZE = 30;
     for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
       await Promise.all(allPromises.slice(i, i + CHUNK_SIZE));
@@ -418,7 +459,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
-  }, [parseAttendanceKey]);
+  }, [parseAttendanceKey, parseDailyPerformanceKey]);
 
   const refreshAttendancePrefill = useCallback(async () => {
     if (!selectedCourse || !selectedDateStr) return;
@@ -482,6 +523,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       }
       setDailyPerformance(dp);
       setDailyPerformanceIds(dpIds);
+      setPendingPerformanceDeleteKeys(new Set());
       setPersistedDailyPerformance(dp);
     } catch (error) {
       console.error('[AttendanceView] Error fetching attendance:', error);
@@ -489,6 +531,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+      setPendingPerformanceDeleteKeys(new Set());
       setPersistedAttendanceRecords({});
       setPersistedDailyPerformance({});
     } finally {
@@ -505,6 +548,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       setAttendanceRecordIds({});
       setDailyPerformance({});
       setDailyPerformanceIds({});
+      setPendingPerformanceDeleteKeys(new Set());
       setPersistedAttendanceRecords({});
       setPersistedDailyPerformance({});
       // Fetch new data
@@ -598,7 +642,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     'Continuous Assessment', t('continuousAssessment'),
     'Quizzes', t('quizzes'),
     'Project', t('project'),
-    'Presentation', t('presentation')
+    'Presentation', t('presentation'),
+    ...SPECIAL_PARTICIPATION_OPTIONS.map((option) => option.category),
   ], [t]);
 
   // Helper function to translate category names
@@ -612,6 +657,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       'Quizzes': t('quizzes') || 'Quizzes',
       'Project': t('project') || 'Project',
       'Presentation': t('presentation') || 'Presentation',
+      'No participation': t('noParticipationOption') || 'No participation',
+      'Minor participation': t('minorParticipationOption') || 'Minor participation',
+      'Minor participation (mobile usage)': t('minorParticipationMobileOption') || 'Minor participation (mobile usage)',
     };
     return categoryMap[category] || category;
   };
@@ -675,6 +723,16 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
   const clearPerformanceForStudents = (studentIds: number[]) => {
     if (!studentIds?.length) return;
+    const keysToDelete: string[] = [];
+    studentIds.forEach((studentId) => {
+      evaluationCategories.forEach((rule) => {
+        const key = `${studentId}-${rule.category}`;
+        if (dailyPerformanceIds[key]) {
+          keysToDelete.push(key);
+        }
+      });
+    });
+
     setDailyPerformance((prev) => {
       const updated = { ...prev };
       studentIds.forEach((studentId) => {
@@ -685,6 +743,14 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       });
       return updated;
     });
+
+    if (keysToDelete.length > 0) {
+      setPendingPerformanceDeleteKeys((prev) => {
+        const next = new Set(prev);
+        keysToDelete.forEach((key) => next.add(key));
+        return next;
+      });
+    }
   };
 
   const clearPerformanceForStudent = (studentId: number) => {
@@ -718,9 +784,13 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         const dailyCats = (course.evaluation_rules as EvaluationRule[]).filter((rule) =>
           dailyTrackableCategories.some((cat) => rule.category?.includes(cat) || rule.category?.toLowerCase?.().includes(cat.toLowerCase()))
         );
-        setEvaluationCategories(dailyCats);
+        const existingSpecials = new Set(dailyCats.map((rule) => rule.category));
+        const missingSpecials: EvaluationRule[] = SPECIAL_PARTICIPATION_OPTIONS
+          .filter((option) => !existingSpecials.has(option.category))
+          .map((option) => ({ category: option.category, weight: 0 }));
+        setEvaluationCategories([...dailyCats, ...missingSpecials]);
       } else {
-        setEvaluationCategories([]);
+        setEvaluationCategories(SPECIAL_PARTICIPATION_OPTIONS.map((option) => ({ category: option.category, weight: 0 })));
       }
     } catch {
       setEvaluationCategories([]);
@@ -1130,7 +1200,43 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
   const setPerformanceScore = (studentId: number, category: string, score: number | string) => {
     const key = `${studentId}-${category}`;
     const val = typeof score === 'string' ? parseFloat(score) : score;
+    setPendingPerformanceDeleteKeys((prev) => {
+      if (!prev.has(key)) return prev;
+      const next = new Set(prev);
+      next.delete(key);
+      return next;
+    });
     setDailyPerformance((prev) => ({ ...prev, [key]: val }));
+  };
+
+  const setSpecialParticipationOption = (studentId: number, category: string, checked: boolean) => {
+    const key = `${studentId}-${category}`;
+    const scoreWhenChecked = getSpecialParticipationScore(category);
+    if (scoreWhenChecked === null) return;
+    if (checked) {
+      setPendingPerformanceDeleteKeys((prev) => {
+        if (!prev.has(key)) return prev;
+        const next = new Set(prev);
+        next.delete(key);
+        return next;
+      });
+      setDailyPerformance((prev) => ({ ...prev, [key]: scoreWhenChecked }));
+      return;
+    }
+
+    setDailyPerformance((prev) => {
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+
+    if (dailyPerformanceIds[key]) {
+      setPendingPerformanceDeleteKeys((prev) => {
+        const next = new Set(prev);
+        next.add(key);
+        return next;
+      });
+    }
   };
 
   const performSave = useCallback(async () => {
@@ -1201,7 +1307,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
       const performancePromises = Object.entries(dailyPerformance).map(([key, score]) => {
         const recordId = dailyPerformanceIds[key];
-        const [studentIdStr, category] = key.split('-');
+        const { studentId, category } = parseDailyPerformanceKey(key);
+        if (!studentId || !category) return Promise.resolve(null);
         // Validate recordId: must be a positive integer
         const isValidId = Number.isInteger(recordId) && recordId > 0;
         console.warn(`[Performance] recordId for key '${key}':`, recordId, 'isValidId:', isValidId);
@@ -1218,7 +1325,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
               if (isResponseLike(error) && error.response?.status === 404) {
                 console.warn(`[Performance] Record ${recordId} not found, creating new record`);
                 return apiClient.post(`/daily-performance/`, {
-                  student_id: parseInt(studentIdStr, 10),
+                  student_id: studentId,
                   course_id: selectedCourse,
                   date: dateStr,
                   category,
@@ -1238,7 +1345,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         } else {
           // Always use POST if recordId is not valid
           return apiClient.post(`/daily-performance/`, {
-            student_id: parseInt(studentIdStr, 10),
+            student_id: studentId,
             course_id: selectedCourse,
             date: dateStr,
             category,
@@ -1255,9 +1362,22 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         }
       });
 
+      const performanceDeletePromises = Array.from(pendingPerformanceDeleteKeys).map((key) => {
+        const recordId = dailyPerformanceIds[key];
+        if (!(Number.isInteger(recordId) && (recordId as number) > 0)) {
+          return Promise.resolve(null);
+        }
+        return apiClient.delete(`/daily-performance/${recordId}`).catch((error) => {
+          if (isResponseLike(error) && error.response?.status === 404) {
+            return Promise.resolve(null);
+          }
+          throw error;
+        });
+      });
+
       // Process requests in chunks to avoid overwhelming the server
       // With 200/min limit, we can safely process 30 concurrent requests
-      const allPromises = [...attendancePromises, ...performancePromises];
+      const allPromises = [...attendancePromises, ...performancePromises, ...performanceDeletePromises];
       const CHUNK_SIZE = 30; // Process 30 at a time for faster saves
 
       for (let i = 0; i < allPromises.length; i += CHUNK_SIZE) {
@@ -1279,7 +1399,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
         if (studentId) affectedStudentIds.add(studentId);
       });
       Object.keys(dailyPerformance).forEach(key => {
-        const studentId = parseInt(key.split('-')[0], 10);
+        const { studentId } = parseDailyPerformanceKey(key);
+        if (studentId) affectedStudentIds.add(studentId);
+      });
+      Array.from(pendingPerformanceDeleteKeys).forEach((key) => {
+        const { studentId } = parseDailyPerformanceKey(key);
         if (studentId) affectedStudentIds.add(studentId);
       });
 
@@ -1290,6 +1414,16 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
       // Mark current state as persisted before attempting a refresh; this prevents the
       // autosave banner from sticking if a post-save refresh fails intermittently.
+      if (pendingPerformanceDeleteKeys.size > 0) {
+        setDailyPerformanceIds((prev) => {
+          const next = { ...prev };
+          pendingPerformanceDeleteKeys.forEach((key) => {
+            delete next[key];
+          });
+          return next;
+        });
+        setPendingPerformanceDeleteKeys(new Set());
+      }
       setPersistedAttendanceRecords(attendanceRecords);
       setPersistedDailyPerformance(dailyPerformance);
 
@@ -1309,7 +1443,7 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       showToast(t('saveFailed') || 'Save failed', 'error');
       throw e; // Re-throw for autosave error handling
     } finally { setLoading(false); }
-  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, t, refreshAttendancePrefill, isOfflineNetworkError, queueAttendanceSnapshot]);
+  }, [selectedCourse, selectedDate, attendanceRecords, attendanceRecordIds, dailyPerformance, dailyPerformanceIds, pendingPerformanceDeleteKeys, t, refreshAttendancePrefill, isOfflineNetworkError, parseDailyPerformanceKey, queueAttendanceSnapshot]);
 
   // Autosave when attendance or performance changes
   // Only show pending if there are unsaved changes (local state differs from last fetched DB state)
@@ -1719,7 +1853,14 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                   <div className="space-y-4">
                     {evaluationCategories.map((rule, idx) => {
                       const key = `${selectedStudentForPerformance.id}-${rule.category}`;
-                      const curr = dailyPerformance[key] || 0;
+                      const existingScore = dailyPerformance[key];
+                      const curr = typeof existingScore === 'number' ? existingScore : 0;
+                      const specialScoreWhenChecked = getSpecialParticipationScore(rule.category);
+                      const isSpecialOption = specialScoreWhenChecked !== null;
+                      const isChecked = typeof existingScore === 'number' ? existingScore < 10 : false;
+                      const displayScore = isSpecialOption
+                        ? (typeof existingScore === 'number' ? existingScore : 10)
+                        : curr;
                       return (
                         <div key={idx} className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}>
                           <div className="flex items-center justify-between mb-2">
@@ -1728,23 +1869,44 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                               <div className="text-xs text-gray-500">{t('weightInFinalGrade') || 'Weight in final grade'}: {rule.weight}%</div>
                             </div>
                             <div className="text-right">
-                              <div className={`text-2xl font-bold ${isAbsent ? 'text-gray-400' : 'text-indigo-600'}`}>{curr}</div>
+                              <div className={`text-2xl font-bold ${isAbsent ? 'text-gray-400' : 'text-indigo-600'}`}>{displayScore}</div>
                               <div className="text-[11px] text-indigo-700">{t('outOf10') || 'out of 10'}</div>
                             </div>
                           </div>
-                          <input
-                            type="range"
-                            min={0}
-                            max={10}
-                            step={0.5}
-                            value={curr}
-                            onChange={(e) => setPerformanceScore(selectedStudentForPerformance.id, rule.category, e.target.value)}
-                            disabled={isAbsent}
-                            aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                            title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
-                            className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`}
-                          />
-                          <div className="flex justify-between text-[11px] text-indigo-700"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
+                          {isSpecialOption ? (
+                            <label className="flex items-center gap-3 text-sm text-gray-700">
+                              <input
+                                type="checkbox"
+                                checked={isChecked}
+                                onChange={(e) => setSpecialParticipationOption(selectedStudentForPerformance.id, rule.category, e.target.checked)}
+                                disabled={isAbsent}
+                                aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
+                                title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
+                                className={`w-4 h-4 text-indigo-600 border-gray-300 rounded ${isAbsent ? 'cursor-not-allowed' : ''}`}
+                              />
+                              <span>
+                                {isChecked
+                                  ? `Applied (${specialScoreWhenChecked}/10)`
+                                  : 'Not applied (10/10)'}
+                              </span>
+                            </label>
+                          ) : (
+                            <>
+                              <input
+                                type="range"
+                                min={0}
+                                max={10}
+                                step={0.5}
+                                value={curr}
+                                onChange={(e) => setPerformanceScore(selectedStudentForPerformance.id, rule.category, e.target.value)}
+                                disabled={isAbsent}
+                                aria-label={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
+                                title={`${t('dailyPerformance') || 'Daily Performance'}: ${translateCategory(rule.category)}`}
+                                className={`w-full ${isAbsent ? 'cursor-not-allowed' : ''}`}
+                              />
+                              <div className="flex justify-between text-[11px] text-indigo-700"><span>{t('poor') || 'Poor'} (0)</span><span>{t('averageRating') || t('average') || 'Average'} (5)</span><span>{t('excellent') || 'Excellent'} (10)</span></div>
+                            </>
+                          )}
                         </div>
                       );
                     })}

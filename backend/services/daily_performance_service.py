@@ -75,6 +75,20 @@ class DailyPerformanceService:
         return record
 
     @staticmethod
+    def delete(db: Session, record_id: int, request=None) -> None:
+        """Soft delete a DailyPerformance entry."""
+        (DailyPerformance,) = import_names("models", "DailyPerformance")
+        record = get_by_id_or_404(db, DailyPerformance, record_id)
+        record.mark_deleted()
+        db.flush()
+        logger.info(
+            "Deleted daily performance id=%s for student=%s course=%s",
+            record_id,
+            record.student_id,
+            record.course_id,
+        )
+
+    @staticmethod
     def list_for_student(db: Session, student_id: int) -> List:
         (DailyPerformance,) = import_names("models", "DailyPerformance")
         return (

@@ -795,6 +795,10 @@ class AnalyticsService:
                 "participation": "participation",
                 "συμμετοχή": "participation",
                 "συμμετοχη": "participation",
+                "no participation": "no participation",
+                "minor participation": "minor participation",
+                "minor participation mobile usage": "minor participation (mobile usage)",
+                "minor participation with mobile usage": "minor participation (mobile usage)",
                 "attendance": "attendance",
                 "παρουσία": "attendance",
                 "παρουσια": "attendance",
@@ -806,6 +810,14 @@ class AnalyticsService:
 
             # Heuristic contains-based mapping
             contains_map = {
+                "minor participation (mobile usage)": [
+                    "minor participation mobile usage",
+                    "minor participation with mobile usage",
+                    "mobile usage participation",
+                    "mobile use participation",
+                ],
+                "no participation": ["no participation"],
+                "minor participation": ["minor participation"],
                 "midterm": ["midterm", "ενδιάμεση", "ενδιαμεση"],
                 "final": ["final", "τελική", "τελικη"],
                 "homework": ["homework", "assignment", "εργασ", "άσκη", "ασκη"],

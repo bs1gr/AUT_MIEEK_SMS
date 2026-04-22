@@ -139,6 +139,34 @@ def update_daily_performance(
         raise internal_server_error(request=request) from exc
 
 
+@router.delete("/{id}", status_code=204)
+@limiter.limit(RATE_LIMIT_WRITE)
+@require_permission("students:edit")
+def delete_daily_performance(
+    id: int = Path(..., description="DailyPerformance record ID"),
+    request: Request = None,
+    db: Session = Depends(get_db),
+):
+    """Soft-delete an existing daily performance record."""
+    try:
+        import_names("models", "DailyPerformance")
+        with transaction(db):
+            DailyPerformanceService.delete(db, id, request)
+            db.flush()
+        return None
+    except HTTPException:
+        raise
+    except Exception as exc:
+        from backend.logging_config import safe_log_context
+
+        logger.error(
+            "Error deleting daily performance",
+            extra=safe_log_context(daily_performance_id=id, error=str(exc)),
+            exc_info=True,
+        )
+        raise internal_server_error(request=request) from exc
+
+
 @router.get("/student/{student_id}", response_model=List[DailyPerformanceResponse])
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("students:view", allow_self_access=True)
