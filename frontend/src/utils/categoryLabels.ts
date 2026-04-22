@@ -20,6 +20,9 @@ export function getLocalizedCategory(category: unknown, t: (key: string) => stri
     'quiz': 'quizzes',
     'project': 'project',
     'presentation': 'presentation',
+    'no participation': 'noParticipationOption',
+    'minor participation': 'minorParticipationOption',
+    'minor participation (mobile usage)': 'minorParticipationMobileOption',
     // Consolidate similar categories to Homework/Assignments
     'homework/assignments': 'homework',
     'homework assignments': 'homework',

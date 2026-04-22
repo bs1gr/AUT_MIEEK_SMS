@@ -14,6 +14,9 @@ describe('categoryLabels', () => {
       'project': 'Project',
       'presentation': 'Presentation',
       'homework': 'Homework/Assignments',
+      'noParticipationOption': 'No participation',
+      'minorParticipationOption': 'Minor participation',
+      'minorParticipationMobileOption': 'Minor participation (mobile usage)',
     };
     return translations[key] || key;
   };
@@ -29,6 +32,9 @@ describe('categoryLabels', () => {
       'project': 'Έργο',
       'presentation': 'Παρουσίαση',
       'homework': 'Εργασίες',
+      'noParticipationOption': 'Καμία συμμετοχή',
+      'minorParticipationOption': 'Μικρή συμμετοχή',
+      'minorParticipationMobileOption': 'Μικρή συμμετοχή (χρήση κινητού)',
     };
     return greekTranslations[key] || key;
   };
@@ -64,6 +70,13 @@ describe('categoryLabels', () => {
     it('handles participation variants', () => {
       expect(getLocalizedCategory('participation', mockT)).toBe('Class Participation');
       expect(getLocalizedCategory('class participation', mockT)).toBe('Class Participation');
+    });
+
+    it('localizes special participation options', () => {
+      expect(getLocalizedCategory('no participation', mockT)).toBe('No participation');
+      expect(getLocalizedCategory('minor participation', mockT)).toBe('Minor participation');
+      expect(getLocalizedCategory('minor participation (mobile usage)', mockT)).toBe('Minor participation (mobile usage)');
+      expect(getLocalizedCategory('minor participation (mobile usage)', mockGreekT)).toBe('Μικρή συμμετοχή (χρήση κινητού)');
     });
 
     it('falls back to exam category for generic "exam"', () => {
@@ -138,6 +151,13 @@ describe('categoryLabels', () => {
       expect(getCanonicalCategory('participation grade', mockT)).toBe('Class Participation');
       expect(getCanonicalCategory('homework set', mockT)).toBe('Homework/Assignments');
       expect(getCanonicalCategory('assignment 1', mockT)).toBe('Homework/Assignments');
+    });
+
+    it('canonicalizes special participation options', () => {
+      expect(getCanonicalCategory('No participation', mockT)).toBe('No participation');
+      expect(getCanonicalCategory('Minor participation', mockT)).toBe('Minor participation');
+      expect(getCanonicalCategory('Minor participation (mobile usage)', mockT)).toBe('Minor participation (mobile usage)');
+      expect(getCanonicalCategory('minor participation with mobile usage', mockT)).toBe('Minor participation (mobile usage)');
     });
 
     it('normalizes diacritics and whitespace', () => {
