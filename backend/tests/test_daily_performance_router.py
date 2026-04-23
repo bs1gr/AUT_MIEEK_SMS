@@ -211,9 +211,7 @@ def test_delete_daily_performance_soft_deletes_and_hides_from_queries(client, db
     assert list_student.status_code == 200
     assert all(item["id"] != record_id for item in list_student.json())
 
-    list_course_date = client.get(
-        f"/api/v1/daily-performance/date/{date.today().isoformat()}/course/{course['id']}"
-    )
+    list_course_date = client.get(f"/api/v1/daily-performance/date/{date.today().isoformat()}/course/{course['id']}")
     assert list_course_date.status_code == 200
     assert all(item["id"] != record_id for item in list_course_date.json())
 
