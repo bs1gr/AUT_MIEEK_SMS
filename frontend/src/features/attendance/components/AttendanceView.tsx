@@ -1861,6 +1861,10 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                       const displayScore = isSpecialOption
                         ? (typeof existingScore === 'number' ? existingScore : 10)
                         : curr;
+                      const isCustomSpecialScore = isSpecialOption
+                        && typeof existingScore === 'number'
+                        && existingScore < 10
+                        && Math.abs(existingScore - specialScoreWhenChecked) > 0.01;
                       return (
                         <div key={idx} className={`rounded p-4 border ${isAbsent ? 'bg-gray-100 border-gray-300 opacity-60' : 'bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200'}`}>
                           <div className="flex items-center justify-between mb-2">
@@ -1886,7 +1890,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                               />
                               <span>
                                 {isChecked
-                                  ? `Applied (${specialScoreWhenChecked}/10)`
+                                  ? (isCustomSpecialScore
+                                    ? `Applied (${displayScore}/10, custom)`
+                                    : `Applied (${specialScoreWhenChecked}/10)`)
                                   : 'Not applied (10/10)'}
                               </span>
                             </label>
