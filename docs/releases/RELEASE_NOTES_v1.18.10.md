@@ -1,12 +1,12 @@
 # Release Notes - Version 1.18.10
 
 **Release Date**: 2026-03-09
-**Previous Version**: v1.18.9
+**Previous Version**: vv1.18.21
 **Release Type**: Patch Release
 
 ## Summary
 
-Version 1.18.10 packages the post-v1.18.9 installer patch work into a clean release lineage. The focus is preserving existing PostgreSQL profile settings during upgrades, avoiding silent fallback to local SQLite, and shipping a refreshed installer artifact that matches the corrected upgrade behavior.
+Version 1.18.10 packages the post-vv1.18.21 installer patch work into a clean release lineage. The focus is preserving existing PostgreSQL profile settings during upgrades, avoiding silent fallback to local SQLite, and shipping a refreshed installer artifact that matches the corrected upgrade behavior.
 
 ## 🔧 Installer & Upgrade Reliability
 
@@ -20,7 +20,7 @@ Version 1.18.10 packages the post-v1.18.9 installer patch work into a clean rele
 - Updated `DOCKER.ps1` to infer and preserve valid remote PostgreSQL profile settings when `DATABASE_ENGINE` / `DATABASE_URL` already indicate a remote deployment.
 - Added recovery helper `scripts/ops/REPAIR_LAPTOP_ENV_PROFILE.ps1` for field repair of affected laptop environments.
 
-## 🧹 Repository Maintenance Since v1.18.9
+## 🧹 Repository Maintenance Since vv1.18.21
 
 - Archived deprecated scripts and lint report artifacts.
 - Added test runner guidance and workspace cleanup session documentation.
@@ -28,15 +28,15 @@ Version 1.18.10 packages the post-v1.18.9 installer patch work into a clean rele
 
 ## ✅ Verification Scope
 
-- Release/tag lineage reviewed: `v1.18.9..HEAD`
+- Release/tag lineage reviewed: `vv1.18.21..HEAD`
 - Post-release commits reviewed: 5
-- Confirmed that prior installer rebuild commit was **not** inside `v1.18.9` tag lineage
-- Version metadata updated for `v1.18.10` release preparation
+- Confirmed that prior installer rebuild commit was **not** inside `vv1.18.21` tag lineage
+- Version metadata updated for `vv1.18.21` release preparation
 
 ## Commits in Scope
 
-- `500147165` — `build(installer): rebuild v1.18.9 installer with profile-drift fix and updated docs`
+- `500147165` — `build(installer): rebuild vv1.18.21 installer with profile-drift fix and updated docs`
 - `471a3dd30` — `fix(installer): preserve postgres profile on upgrade and add env repair helper`
 - `68f3bffd9` — `docs: add test runners guide and workspace cleanup session summary`
 - `2b03d6a06` — `chore: archive deprecated scripts and lint reports to archive/`
-- `d555722b4` — `style(docs): fix release notes formatting and CSV newlines for v1.18.9`
+- `d555722b4` — `style(docs): fix release notes formatting and CSV newlines for vv1.18.21`

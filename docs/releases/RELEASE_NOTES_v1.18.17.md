@@ -1,4 +1,4 @@
-# Release Notes - v1.18.17
+# Release Notes - vv1.18.21
 
 **Version**: 1.18.17
 **Release Date**: 2026-04-08
@@ -10,7 +10,7 @@
 
 ## Summary
 
-v1.18.17 packages the remote PostgreSQL runtime recovery work for Docker single-image deployments, hardens installer/database credential packaging so workstation-only database artifacts cannot leak into release payloads, and refreshes the frontend dependency baseline for the current Dependabot window. No breaking changes are intended; this is a drop-in upgrade from v1.18.16.
+vv1.18.21 packages the remote PostgreSQL runtime recovery work for Docker single-image deployments, hardens installer/database credential packaging so workstation-only database artifacts cannot leak into release payloads, and refreshes the frontend dependency baseline for the current Dependabot window. No breaking changes are intended; this is a drop-in upgrade from vv1.18.21.
 
 ---
 
@@ -37,7 +37,7 @@ v1.18.17 packages the remote PostgreSQL runtime recovery work for Docker single-
 
 ### Documentation / Release Hygiene
 
-- **Post-release status cleanup**: closed the outstanding follow-up status note after `v1.18.16` publication evidence landed.
+- **Post-release status cleanup**: closed the outstanding follow-up status note after `vv1.18.21` publication evidence landed.
 
 ---
 
@@ -78,7 +78,7 @@ v1.18.17 packages the remote PostgreSQL runtime recovery work for Docker single-
 
 ## Local Verification Evidence
 
-- ✅ Version alignment updated to `v1.18.17` across canonical files (`VERSION`, `frontend/package.json`, `frontend/package-lock.json`, `backend/main.py`, docs indexes/guides, installer builder header)
+- ✅ Version alignment updated to `vv1.18.21` across canonical files (`VERSION`, `frontend/package.json`, `frontend/package-lock.json`, `backend/main.py`, docs indexes/guides, installer builder header)
 - ✅ Installer build completed locally via `.\INSTALLER_BUILDER.ps1 -Action build -Version 1.18.17 -AutoFix`
 - ✅ Authenticode signature verified as `Valid`
 - ✅ Installer smoke test passed
@@ -94,7 +94,7 @@ v1.18.17 packages the remote PostgreSQL runtime recovery work for Docker single-
 
 ## Upgrade Notes
 
-- Drop-in upgrade from `v1.18.16`. No database migration is required for this release.
+- Drop-in upgrade from `vv1.18.21`. No database migration is required for this release.
 - Remote QNAP PostgreSQL installs should retain the shared-database profile more reliably during single-image restarts and updates.
 - Installer credential files may continue using `.json`, `.env`, or `.txt`; remote setup now rejects incomplete credentials earlier and preserves the selected `sslmode`.
 
@@ -102,4 +102,4 @@ v1.18.17 packages the remote PostgreSQL runtime recovery work for Docker single-
 
 ## Compare Link
 
-- **Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.18.16...v1.18.17
+- **Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vv1.18.21...vv1.18.21

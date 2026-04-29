@@ -2,10 +2,10 @@
 
 **Release Date**: March 10, 2026
 **Official Public Release Designation**: March 11, 2026
-**Tag**: v1.18.12
+**Tag**: vv1.18.21
 **Branch**: main
-**Previous Tag**: v1.18.11
-**Previous Archived Prerelease Reference**: v1.18.11
+**Previous Tag**: vv1.18.21
+**Previous Archived Prerelease Reference**: vv1.18.21
 
 ---
 
@@ -30,7 +30,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 | File | Expected Value |
 |------|---------------|
-| `VERSION` | `v1.18.12` |
+| `VERSION` | `vv1.18.21` |
 | `frontend/package.json` | `"version": "1.18.12"` |
 | `backend/main.py` | `Version: 1.18.12` |
 | `INSTALLER_BUILDER.ps1` | `Version: 1.18.12` |
@@ -41,15 +41,15 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ## 📋 Commit Range
 
-**Base Tag**: v1.18.11
+**Base Tag**: vv1.18.21
 **Head Commit**: `a2da597da` (`main`)
-**Official Release Context**: `v1.18.12` is now the live/latest first official public release.
+**Official Release Context**: `vv1.18.21` is now the live/latest first official public release.
 
 ### Commit Categories
 
 | Category | Count | Scope |
 |----------|-------|-------|
-| Corrective Release Prep | 1 | verified `v1.18.12` release packaging |
+| Corrective Release Prep | 1 | verified `vv1.18.21` release packaging |
 | Release Guardrails | 2 | installer tracked-input guardrails + release documentation |
 | Release State Recording | 1 | publication, archival cleanup, and official-release promotion |
 
@@ -59,7 +59,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Pre-Release Checks
 
-- [ ] `VERSION` file contains `v1.18.12`
+- [ ] `VERSION` file contains `vv1.18.21`
 - [ ] `frontend/package.json` version is `1.18.12`
 - [ ] `backend/main.py` version header is `1.18.12`
 - [ ] `INSTALLER_BUILDER.ps1` version header is `1.18.12`
@@ -71,7 +71,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Post-Release Checks
 
-- [ ] GitHub Release page published at `/releases/tag/v1.18.12`
+- [ ] GitHub Release page published at `/releases/tag/vv1.18.21`
 - [ ] GitHub release marked latest/non-prerelease
 - [ ] `Create GitHub Release on tag` workflow succeeds
 - [ ] `Release - Build & Upload Installer with SHA256` workflow succeeds

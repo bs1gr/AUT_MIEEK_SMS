@@ -1,4 +1,4 @@
-## What's New in v1.18.9
+## What's New in vv1.18.21
 
 ### 🔐 Security + Deployment Hardening
 

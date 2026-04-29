@@ -1,35 +1,35 @@
-# First Official Public Release - v1.18.12 Metadata & Release Body Record
+# First Official Public Release - vv1.18.21 Metadata & Release Body Record
 
 **Status**: Executed publication record on 2026-03-11
-**Purpose**: Recorded release metadata/body source used to designate `v1.18.12` as the first official public release
-**Current Release Posture**: `v1.18.12` is latest/official; earlier `v1.18.x` releases remain archived as prereleases
+**Purpose**: Recorded release metadata/body source used to designate `vv1.18.21` as the first official public release
+**Current Release Posture**: `vv1.18.21` is latest/official; earlier `v1.18.x` releases remain archived as prereleases
 
 ---
 
 ## Metadata Checklist
 
-This path reuses the already-verified `v1.18.12` tag instead of minting a new version.
+This path reuses the already-verified `vv1.18.21` tag instead of minting a new version.
 
-- **Tag**: `v1.18.12`
-- **Release Title**: `v1.18.12 - First Official Public Release`
+- **Tag**: `vv1.18.21`
+- **Release Title**: `vv1.18.21 - First Official Public Release`
 - **Release Type**: Official Public Release
 - **Target Branch**: `main`
-- **Baseline Release Tag**: `v1.18.12`
-- **Previous Published Prerelease Reference**: `v1.18.12`
+- **Baseline Release Tag**: `vv1.18.21`
+- **Previous Published Prerelease Reference**: `vv1.18.21`
 - **Asset Policy**: Installer-only (`SMS_Installer_1.18.12.exe`)
 - **Digest Source**: GitHub release asset digest metadata
-- **Publication Action**: Completed — existing GitHub release for `v1.18.12` promoted from prerelease → official/latest
+- **Publication Action**: Completed — existing GitHub release for `vv1.18.21` promoted from prerelease → official/latest
 
 ## Required Evidence Before Publication
 
-- `VERSION` file remains `v1.18.12`
+- `VERSION` file remains `vv1.18.21`
 - `frontend/package.json` remains `1.18.12`
 - `scripts/VERIFY_VERSION.ps1 -CheckOnly` passes
 - `COMMIT_READY.ps1 -Quick -Snapshot` passes
 - Scope-appropriate backend/frontend tests pass with output reviewed
 - Local installer build, signing, and smoke verification pass
 - Archived prerelease state remains intact for historical tags
-- Release body was updated to remove the archival banner from `v1.18.12`
+- Release body was updated to remove the archival banner from `vv1.18.21`
 - GitHub release is now marked latest/non-prerelease
 
 ## Verified Evidence Already Recorded
@@ -40,7 +40,7 @@ This path reuses the already-verified `v1.18.12` tag instead of minting a new ve
 - `COMMIT_READY.ps1 -Quick -Snapshot` passed
 - Fresh state snapshot recorded: `artifacts/state/STATE_2026-03-10_101933.md`
 - Additional verification snapshot recorded: `artifacts/state/STATE_2026-03-11_231419.md`
-- Local installer verification passed for `v1.18.12`
+- Local installer verification passed for `vv1.18.21`
   - built artifact: `dist/SMS_Installer_1.18.12.exe`
   - Authenticode signing succeeded (`AUT MIEEK`)
   - installer smoke validation passed
@@ -51,7 +51,7 @@ This path reuses the already-verified `v1.18.12` tag instead of minting a new ve
 
 ## Published GitHub Release Body
 
-## 🎉 First Official Public Release: `v1.18.12`
+## 🎉 First Official Public Release: `vv1.18.21`
 
 This release is the **first official public release** of the Student Management System.
 
@@ -60,7 +60,7 @@ All earlier `v1.18.x` GitHub releases were retained as **archived prereleases** 
 ### ✅ Public Release Baseline
 
 - Built from the corrected current lineage on `main`
-- Uses the exact verified `v1.18.12` release scope without introducing a new tag/version
+- Uses the exact verified `vv1.18.21` release scope without introducing a new tag/version
 - Publishes only installer allowlisted assets for release consistency
 
 ### 🔒 Stability & Release Integrity
@@ -88,7 +88,7 @@ All earlier `v1.18.x` GitHub releases were retained as **archived prereleases** 
 
 Executed release-state changes:
 
-- removed the `ARCHIVED` banner from the `v1.18.12` GitHub release body
+- removed the `ARCHIVED` banner from the `vv1.18.21` GitHub release body
 - replaced the prerelease notes with the official public release body
-- marked `v1.18.12` as non-prerelease/latest
-- left `v1.18.0` through `v1.18.11` archived as prereleases
+- marked `vv1.18.21` as non-prerelease/latest
+- left `vv1.18.21` through `vv1.18.21` archived as prereleases

@@ -1,8 +1,8 @@
-## What's New in v1.18.12
+## What's New in vv1.18.21
 
 ### 🔧 Corrective Release Cleanup
 
-- Publishes the next clean corrective patch after `v1.18.10` and `v1.18.11` were archived as prereleases.
+- Publishes the next clean corrective patch after `vv1.18.21` and `vv1.18.21` were archived as prereleases.
 - Restores generated Greek `.rtf` installer assets in the release pipeline.
 - Fixes installer validation to use the wizard image version cache and keeps generated installer inputs guarded.
 

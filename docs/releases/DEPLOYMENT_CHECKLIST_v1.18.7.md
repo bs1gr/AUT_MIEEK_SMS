@@ -1,18 +1,18 @@
 # Deployment Checklist - Version 1.18.7
 
 **Release Date**: March 5, 2026
-**Tag**: v1.18.7
-**Previous Version**: v1.18.6
+**Tag**: vv1.18.21
+**Previous Version**: vv1.18.21
 
 ---
 
 ## Phase 1: Pre-Release Validation
 
 ### 1.1 Version Consistency
-- [ ] `VERSION` file reads `v1.18.7`
+- [ ] `VERSION` file reads `vv1.18.21`
 - [ ] `frontend/package.json` version is `1.18.7`
 - [ ] `backend/main.py` version header is `1.18.7`
-- [ ] `COMMIT_READY.ps1` version reference is `v1.18.7`
+- [ ] `COMMIT_READY.ps1` version reference is `vv1.18.21`
 - [ ] `CHANGELOG.md` contains `[1.18.7] - 2026-03-05` section
 
 ### 1.2 Code Quality
@@ -36,8 +36,8 @@
 
 ### 2.1 Create Tag
 ```powershell
-git tag -a v1.18.7 -m "v1.18.7: Control Panel Auto-Updater, Offline Sync, Health Diagnostics"
-git push origin v1.18.7
+git tag -a vv1.18.21 -m "vv1.18.21: Control Panel Auto-Updater, Offline Sync, Health Diagnostics"
+git push origin vv1.18.21
 ```
 
 ### 2.2 Monitor Workflows
@@ -46,8 +46,8 @@ git push origin v1.18.7
 - [ ] `Release Asset Sanitizer` — SUCCESS
 
 ### 2.3 Verify Release Page
-- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.7`
-- [ ] Release body populated from `GITHUB_RELEASE_v1.18.7.md`
+- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.21`
+- [ ] Release body populated from `GITHUB_RELEASE_vv1.18.21.md`
 - [ ] Not marked as draft
 
 ---
@@ -84,8 +84,8 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 - [ ] Login page accessible
 - [ ] Health endpoint responds 200
 
-### 4.2 Upgrade from v1.18.6 (Manual)
-- [ ] Run installer over existing v1.18.6 installation
+### 4.2 Upgrade from vv1.18.21 (Manual)
+- [ ] Run installer over existing vv1.18.21 installation
 - [ ] Data preserved after upgrade
 - [ ] Application starts without errors
 - [ ] New features accessible (auto-updater panel, offline indicators)
@@ -117,7 +117,7 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 
 ## Phase 6: Documentation
 
-- [ ] Work plan updated with v1.18.7 release status
+- [ ] Work plan updated with vv1.18.21 release status
 - [ ] CHANGELOG.md reflects released version
 - [ ] Release docs committed (4 files in `docs/releases/`)
 
@@ -131,9 +131,9 @@ If critical issues are found:
 # Docker rollback
 .\DOCKER.ps1 -Stop
 # Checkout previous version
-git checkout v1.18.6
+git checkout vv1.18.21
 .\DOCKER.ps1 -Start
 
 # Installer rollback
-# Use v1.18.6 installer from previous release
+# Use vv1.18.21 installer from previous release
 ```

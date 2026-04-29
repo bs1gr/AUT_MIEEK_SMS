@@ -1,4 +1,4 @@
-# Release Manifest: v1.18.5 - Security & Stability Patch
+# Release Manifest: vv1.18.21 - Security & Stability Patch
 
 **Release Date**: March 1, 2026
 **Release Type**: Patch (Security & Stability)
@@ -48,11 +48,11 @@
 3. **Documentation Consolidation**
    - CHANGELOG.md: Added [1.18.5] section
    - UNIFIED_WORK_PLAN.md: Updated with release decision
-   - DOCUMENTATION_INDEX.md: Aligned to clean v1.18.5
+   - DOCUMENTATION_INDEX.md: Aligned to clean vv1.18.21
 
 ### Deferred Features
 
-**Analytics Dashboard** (Not in v1.18.5)
+**Analytics Dashboard** (Not in vv1.18.21)
 - **Components**: 27 files (backend routers, services, frontend components, hooks, utils, translations)
 - **Reason**: CI pipeline failures (frontend linting + backend tests)
 - **Decision**: Reverted per Policy 0.1 to preserve release integrity
@@ -63,15 +63,15 @@
 ## 📦 Release Artifacts
 
 ### Git References
-- **Tag**: `v1.18.5`
+- **Tag**: `vv1.18.21`
 - **Branch**: `main`
 - **Commit**: TBD (analytics revert commit)
 
 ### Documentation Package
-- `docs/releases/RELEASE_NOTES_v1.18.5.md`
-- `docs/releases/GITHUB_RELEASE_v1.18.5.md`
-- `docs/releases/RELEASE_MANIFEST_v1.18.5.md` (this file)
-- `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.5.md`
+- `docs/releases/RELEASE_NOTES_vv1.18.21.md`
+- `docs/releases/GITHUB_RELEASE_vv1.18.21.md`
+- `docs/releases/RELEASE_MANIFEST_vv1.18.21.md` (this file)
+- `docs/releases/DEPLOYMENT_CHECKLIST_vv1.18.21.md`
 
 ### Release Assets (GitHub)
 - `SMS_Installer_1.18.5.exe` (Windows installer)
@@ -112,8 +112,8 @@
 
 ### Phase 4: Release Creation
 
-- [ ] Create git tag: `git tag -a v1.18.5 -m "v1.18.5 - Security & Stability"`
-- [ ] Push tag: `git push origin v1.18.5`
+- [ ] Create git tag: `git tag -a vv1.18.21 -m "vv1.18.21 - Security & Stability"`
+- [ ] Push tag: `git push origin vv1.18.21`
 - [ ] Monitor release workflows:
   - [ ] `release-on-tag.yml` completes successfully
   - [ ] `release-installer-with-sha.yml` completes successfully
@@ -148,8 +148,8 @@
 
 ### Planning
 
-- [ ] Document lessons learned from v1.18.5
-- [ ] Archive v1.18.5 release artifacts
+- [ ] Document lessons learned from vv1.18.21
+- [ ] Archive vv1.18.21 release artifacts
 
 ---
 

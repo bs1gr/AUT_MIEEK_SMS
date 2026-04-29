@@ -1,4 +1,4 @@
-# Deployment Checklist — v1.18.15
+# Deployment Checklist — vv1.18.21
 
 **Version**: 1.18.15
 **Release Date**: 2026-03-21
@@ -15,7 +15,7 @@
 - [ ] Confirm GitHub digest for published installer (authoritative post-upload SHA256)
 - [ ] Verify Authenticode signature: `Get-AuthenticodeSignature` → Status must be `Valid`
 - [ ] Signer must be: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
-- [ ] Confirm `VERSION` file reads `v1.18.15`
+- [ ] Confirm `VERSION` file reads `vv1.18.21`
 
 ### 2. Backup
 
@@ -27,11 +27,11 @@
 
 ## Standard Windows Deployment (Installer)
 
-### 3. Upgrade from v1.18.14
+### 3. Upgrade from vv1.18.21
 
 - [ ] Stop Docker if running: `.\DOCKER.ps1 -Stop`
 - [ ] Run installer: `SMS_Installer_1.18.15.exe`
-- [ ] Upgrade path: v1.18.14 → v1.18.15 (no database migration required)
+- [ ] Upgrade path: vv1.18.21 → vv1.18.21 (no database migration required)
 - [ ] Accept UAC prompt
 - [ ] Complete installer wizard
 - [ ] Installer auto-restores `sms-app` container
@@ -69,7 +69,7 @@
 ### 7. Native Update
 
 - [ ] `git pull origin main`
-- [ ] `git checkout v1.18.15` (or keep `main`)
+- [ ] `git checkout vv1.18.21` (or keep `main`)
 - [ ] `pip install -r backend/requirements.txt` (if dependencies changed)
 - [ ] `npm install --prefix frontend` (if dependencies changed)
 - [ ] `.\NATIVE.ps1 -Start`

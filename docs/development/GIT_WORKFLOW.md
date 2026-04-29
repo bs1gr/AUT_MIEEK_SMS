@@ -293,7 +293,7 @@ git push origin main
 To prevent version drift in workflows, use this contract everywhere:
 
 - `VERSION` file is the source of truth and **must** be `v1.x.x`
-- `version_tag` means release/tag format (example: `v1.18.6`)
+- `version_tag` means release/tag format (example: `vv1.18.21`)
 - `version_core` means semver core (example: `1.18.6`)
 - Use `version_tag` for tag checks/release references
 - Use `version_core` for package metadata, build args, and installer file names

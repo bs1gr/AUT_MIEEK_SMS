@@ -1,17 +1,17 @@
-# Analytics Feature Revival Plan - v1.18.6
+# Analytics Feature Revival Plan - vv1.18.21
 
 **Created**: March 1, 2026
 **Status**: 📋 PLANNING
-**Target Release**: v1.18.6
+**Target Release**: vv1.18.21
 **Current Version**: 1.18.5 (Analytics deferred)
 
 ---
 
 ## 🎯 Executive Summary
 
-The analytics feature (commit `adabae67e`) was reverted from v1.18.5 due to CI pipeline failures. This plan outlines a systematic approach to fix all issues, test comprehensively, and safely reintroduce the feature in v1.18.6.
+The analytics feature (commit `adabae67e`) was reverted from vv1.18.21 due to CI pipeline failures. This plan outlines a systematic approach to fix all issues, test comprehensively, and safely reintroduce the feature in vv1.18.21.
 
-**Decision Context** (from v1.18.5):
+**Decision Context** (from vv1.18.21):
 - Analytics introduced in commit `adabae67e` - 28 files, 4,474 lines added
 - CI pipeline failures detected: Frontend linting errors + Backend test failures
 - Last successful CI: commit `0395929bf`
@@ -166,7 +166,7 @@ git status
 # Should be clean (already verified)
 
 # 2. Create analytics revival branch
-git checkout -b feature/analytics-revival-v1.18.6
+git checkout -b feature/analytics-revival-vv1.18.21
 
 # 3. Restore analytics files from original commit
 git checkout adabae67e -- backend/routers/routers_analytics.py
@@ -467,7 +467,7 @@ describe('AnalyticsDashboard', () => {
 ```powershell
 git add .
 git commit -m "feat(analytics): restore analytics feature with comprehensive test coverage"
-git push origin feature/analytics-revival-v1.18.6
+git push origin feature/analytics-revival-vv1.18.21
 ```
 
 #### **Monitor CI pipeline** (15 min):
@@ -536,7 +536,7 @@ git push origin feature/analytics-revival-v1.18.6
 - [ ] Analytics feature documented
 - [ ] API endpoints documented
 - [ ] Usage guide updated
-- [ ] CHANGELOG.md updated with v1.18.6 entry
+- [ ] CHANGELOG.md updated with vv1.18.21 entry
 
 ---
 
@@ -559,7 +559,7 @@ git push origin feature/analytics-revival-v1.18.6
 **Option A: Start Now** (Full 10-12 hour effort)
 ```powershell
 # Execute Phase 1
-git checkout -b feature/analytics-revival-v1.18.6
+git checkout -b feature/analytics-revival-vv1.18.21
 # Follow plan phases
 ```
 
@@ -581,11 +581,11 @@ git checkout -b feature/analytics-revival-v1.18.6
 - **Work Plan**: `docs/plans/UNIFIED_WORK_PLAN.md`
 - **Policy 0.1**: `.github/copilot-instructions.md` (Verification before commit)
 - **Testing Policy**: `docs/AGENT_POLICY_ENFORCEMENT.md` (Policy 1)
-- **Release Notes**: `docs/releases/RELEASE_NOTES_v1.18.5.md`
+- **Release Notes**: `docs/releases/RELEASE_NOTES_vv1.18.21.md`
 
 ---
 
-## 🎯 Target Release: v1.18.6
+## 🎯 Target Release: vv1.18.21
 
 **After successful revival**:
 - Merge feature branch to main

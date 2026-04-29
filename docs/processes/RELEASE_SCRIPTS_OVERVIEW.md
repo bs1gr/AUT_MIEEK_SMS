@@ -122,7 +122,7 @@ This script is no longer part of the active release surface.
 # Automated workflow (NEW - Jan 6, 2026)
 
 .\RELEASE_HELPER.ps1 -Action CreateRelease
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vv1.18.21
 
 ```text
 ---
@@ -169,7 +169,7 @@ This script is no longer part of the active release surface.
 ```powershell
 .\RELEASE_HELPER.ps1 -Action ValidateRelease
 .\RELEASE_HELPER.ps1 -Action OpenGitHub
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vv1.18.21
 
 ```text
 ---
@@ -201,7 +201,7 @@ This script is no longer part of the active release surface.
 
 **Generate release notes/docs only**: `.\GENERATE_RELEASE_DOCS.ps1 -Version "1.18.12"`
 
-**Create/update GitHub Release manually**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12`
+**Create/update GitHub Release manually**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vv1.18.21`
 
 **Create Phase 2 issues**: `.\RELEASE_HELPER.ps1 -Action CopyIssue`
 
@@ -220,7 +220,7 @@ This script is no longer part of the active release surface.
 # Optional fallback/helper actions
 
 .\RELEASE_HELPER.ps1 -Action ValidateRelease
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag v1.18.12
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vv1.18.21
 
 # Done! 🎉
 

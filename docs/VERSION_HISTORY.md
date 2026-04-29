@@ -1,8 +1,8 @@
 # Version History
 
-**Current repository version**: `v1.18.12`
-**Current status**: `v1.18.12` is the live/latest first official public release
-**Archived prerelease lineage**: `v1.18.0` through `v1.18.11`
+**Current repository version**: `vv1.18.21`
+**Current status**: `vv1.18.21` is the live/latest first official public release
+**Archived prerelease lineage**: `vv1.18.21` through `vv1.18.21`
 **Last Updated**: 2026-03-12
 
 ---
@@ -25,10 +25,10 @@ Use these sources for the current truth:
 
 As of March 12, 2026:
 
-- the repository version is `v1.18.12`
-- `v1.18.12` is the live/latest first official public release
-- `v1.18.0` through `v1.18.11` remain archived as prereleases for historical reference
-- the official release was promoted from the exact verified `v1.18.12` tag without changing tag or artifact lineage
+- the repository version is `vv1.18.21`
+- `vv1.18.21` is the live/latest first official public release
+- `vv1.18.21` through `vv1.18.21` remain archived as prereleases for historical reference
+- the official release was promoted from the exact verified `vv1.18.21` tag without changing tag or artifact lineage
 
 For full details, see:
 

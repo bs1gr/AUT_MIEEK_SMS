@@ -1,4 +1,4 @@
-## 🎉 Analytics Revival - v1.18.6
+## 🎉 Analytics Revival - vv1.18.21
 
 **Release Date**: March 2, 2026
 
@@ -129,7 +129,7 @@ Download `SMS_Installer_1.18.6.exe` from the assets below.
 
 ## 🔄 Upgrade Notes
 
-### From v1.18.5
+### From vv1.18.21
 
 **No Breaking Changes**:
 - Analytics is a new feature with no existing dependencies
@@ -165,9 +165,9 @@ Download `SMS_Installer_1.18.6.exe` from the assets below.
 ## 📚 Documentation
 
 **Release Documentation**:
-- [Release Notes](docs/releases/RELEASE_NOTES_v1.18.6.md) - Complete changelog
-- [Release Manifest](docs/releases/RELEASE_MANIFEST_v1.18.6.md) - Artifact verification
-- [Deployment Checklist](docs/releases/DEPLOYMENT_CHECKLIST_v1.18.6.md) - Verification steps
+- [Release Notes](docs/releases/RELEASE_NOTES_vv1.18.21.md) - Complete changelog
+- [Release Manifest](docs/releases/RELEASE_MANIFEST_vv1.18.21.md) - Artifact verification
+- [Deployment Checklist](docs/releases/DEPLOYMENT_CHECKLIST_vv1.18.21.md) - Verification steps
 
 **Analytics Documentation**:
 - [Analytics Feature Guide](docs/analytics/) - User guides and tutorials
@@ -194,28 +194,28 @@ Download `SMS_Installer_1.18.6.exe` from the assets below.
 - Verify installer build (SMS_Installer_1.18.6.exe)
 - Check SHA256 checksum accuracy
 - Test fresh installation scenario
-- Validate upgrade from v1.18.5
+- Validate upgrade from vv1.18.21
 
 ---
 
 ## 📝 Release History
 
-**v1.18.5 → v1.18.6**:
-- **v1.18.5** (March 1, 2026): Security fixes (minimatch, markdown-it), analytics deferred
-- **v1.18.6** (March 2, 2026): Analytics revival with 100% test pass rate
+**vv1.18.21 → vv1.18.21**:
+- **vv1.18.21** (March 1, 2026): Security fixes (minimatch, markdown-it), analytics deferred
+- **vv1.18.21** (March 2, 2026): Analytics revival with 100% test pass rate
 
 **Development Timeline**:
 - Analytics feature developed and tested
 - CI pipeline validated (all tests passing)
-- Feature integrated via `feature/analytics-revival-v1.18.6` branch
+- Feature integrated via `feature/analytics-revival-vv1.18.21` branch
 - Fast-forward merge to main (36 files, 5,587+ lines)
-- Tag v1.18.6 created and pushed
+- Tag vv1.18.21 created and pushed
 
 ---
 
 ## 🔗 Links
 
-- **Release Page**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.6
+- **Release Page**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.21
 - **Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS
 - **Issues**: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
 - **Documentation**: https://github.com/bs1gr/AUT_MIEEK_SMS/tree/main/docs

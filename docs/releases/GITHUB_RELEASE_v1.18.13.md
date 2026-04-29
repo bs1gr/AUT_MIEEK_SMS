@@ -1,4 +1,4 @@
-## What's New in v1.18.13
+## What's New in vv1.18.21
 
 ### Highlights
 
@@ -10,7 +10,7 @@
 
 ### Scope
 
-- Baseline: `v1.18.12..HEAD`
+- Baseline: `vv1.18.21..HEAD`
 - 34 commits reviewed
 - 192 files changed
 
@@ -25,6 +25,6 @@ Native development path: `./NATIVE.ps1 -Start`
 ### Documentation
 
 - `CHANGELOG.md`
-- `docs/releases/RELEASE_NOTES_v1.18.13.md`
-- `docs/releases/RELEASE_MANIFEST_v1.18.13.md`
-- `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.13.md`
+- `docs/releases/RELEASE_NOTES_vv1.18.21.md`
+- `docs/releases/RELEASE_MANIFEST_vv1.18.21.md`
+- `docs/releases/DEPLOYMENT_CHECKLIST_vv1.18.21.md`
