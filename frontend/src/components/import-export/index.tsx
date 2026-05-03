@@ -23,7 +23,12 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({ type, onCancel }) =>
   const { t } = useTranslation();
 
   return (
-    <div className="rounded-lg bg-white p-6 shadow-xl" data-testid={`import-wizard-${type}`}>
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="rounded-lg bg-white p-6 shadow-xl"
+      data-testid={`import-wizard-${type}`}
+    >
       <FeatureImportWizard />
       <div className="mt-6 flex justify-end">
         <button

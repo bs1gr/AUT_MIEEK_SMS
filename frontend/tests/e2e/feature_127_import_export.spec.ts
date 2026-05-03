@@ -17,7 +17,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
     await expect(page.getByRole('button', { name: /Import Data/i })).toBeVisible();
 
     // Verify History Table
-    await expect(page.getByText(/History/i)).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
     await expect(page.getByTestId('history-table-root')).toBeVisible();
   });
 
@@ -44,16 +44,16 @@ test.describe('Feature #127: Bulk Import/Export', () => {
     await page.getByRole('button', { name: /Import Data/i }).click();
 
     // Select Students Import
-    await page.getByText(/Import Students/i).click();
+    await page.getByRole('menuitem', { name: /Import Students/i }).click();
 
     // Verify Wizard Steps
     // Step 1: Upload
-    await expect(page.getByText(/Select File/i)).toBeVisible();
+    await expect(page.getByTestId('step-0')).toBeVisible();
     await expect(page.getByTestId('file-input')).toBeAttached();
 
     // Verify Cancel works
     await page.getByRole('button', { name: /Cancel/i }).click();
-    await expect(page.getByText(/Select File/i)).not.toBeVisible();
+    await expect(page.getByTestId('file-input')).not.toBeAttached();
   });
 
   test('History table loads data', async ({ page }) => {

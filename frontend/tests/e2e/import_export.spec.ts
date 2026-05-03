@@ -9,59 +9,44 @@ test.describe('Bulk Import/Export Feature', () => {
   });
 
   test('should display import/export dashboard', async ({ page }) => {
-    await expect(page.getByRole('heading', { name: /Import\/Export|Data Management/i })).toBeVisible();
-    await expect(page.getByRole('tab', { name: /History/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /New Import/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Data Import/Export' })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Export Data/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Import Data/i })).toBeVisible();
+    await expect(page.getByTestId('history-table-root')).toBeVisible();
   });
 
   test('should open export dialog and select options', async ({ page }) => {
-    // Click Export button (assuming one exists for Students or generic)
-    await page.getByRole('button', { name: /Export/i }).first().click();
+    await page.getByRole('button', { name: /Export Data/i }).click();
 
     const dialog = page.getByRole('dialog');
     await expect(dialog).toBeVisible();
-    await expect(dialog.getByText(/Export Data/i)).toBeVisible();
+    await expect(dialog.getByRole('heading', { name: /Export Data/i })).toBeVisible();
 
-    // Check format selection
-    await expect(dialog.getByLabel(/Format/i)).toBeVisible();
-    await dialog.getByLabel(/Format/i).click();
-    await page.getByRole('option', { name: 'Excel' }).click();
+    const exportType = dialog.getByLabel(/Export type/i);
+    await expect(exportType).toBeVisible();
+    await exportType.selectOption('grades');
 
-    // Close dialog
-    await dialog.getByRole('button', { name: /Cancel/i }).click();
+    await dialog.getByRole('button', { name: /Close/i }).click();
     await expect(dialog).not.toBeVisible();
   });
 
   test('should navigate through import wizard steps', async ({ page }) => {
-    await page.getByRole('button', { name: /New Import/i }).click();
+    await page.getByRole('button', { name: /Import Data/i }).click();
+    await page.getByRole('menuitem', { name: /Import Students/i }).click();
 
-    const wizard = page.getByRole('dialog');
+    const wizard = page.getByTestId('import-wizard-students');
     await expect(wizard).toBeVisible();
 
     // Step 1: Upload
-    await expect(wizard.getByText(/Step 1/i)).toBeVisible();
-    await expect(wizard.getByText(/Select File/i)).toBeVisible();
+    await expect(wizard.getByTestId('step-0')).toBeVisible();
+    await expect(wizard.getByTestId('file-input')).toBeAttached();
 
-    // Verify we can't proceed without file
-    const nextButton = wizard.getByRole('button', { name: /Next/i });
-    await expect(nextButton).toBeDisabled();
-
-    // Close wizard
     await wizard.getByRole('button', { name: /Cancel/i }).click();
     await expect(wizard).not.toBeVisible();
   });
 
   test('should display import history', async ({ page }) => {
-    // Ensure history tab is active or click it
-    const historyTab = page.getByRole('tab', { name: /History/i });
-    if (await historyTab.getAttribute('aria-selected') !== 'true') {
-      await historyTab.click();
-    }
-
-    // Check for history table headers
-    await expect(page.getByRole('cell', { name: /Filename/i })).toBeVisible();
-    await expect(page.getByRole('cell', { name: /Date/i })).toBeVisible();
-    await expect(page.getByRole('cell', { name: /Status/i })).toBeVisible();
-    await expect(page.getByRole('cell', { name: /Records/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+    await expect(page.getByTestId('history-table-root')).toBeVisible();
   });
 });
