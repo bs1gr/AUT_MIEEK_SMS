@@ -100,13 +100,15 @@ class BackupServiceEncrypted:
         # Reject paths containing obvious traversal patterns
         dangerous_patterns = [
             "..",  # Parent directory traversal
-            "~",  # Home directory expansion
             "\x00",  # Null byte
         ]
 
         for pattern in dangerous_patterns:
             if pattern in path_str:
                 raise ValueError(f"Path traversal detected: contains '{pattern}'")
+
+        if any(part.startswith("~") for part in Path(output_path).parts):
+            raise ValueError("Path traversal detected: contains '~'")
 
         # CodeQL [python/path-injection]: Safe - path already validated for traversal patterns
         # Resolve path to absolute form to prevent symlink attacks
