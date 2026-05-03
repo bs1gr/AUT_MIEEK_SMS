@@ -2,6 +2,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import './index.css';
+import './mobile.css';
 import './i18n/config'; // Initialize i18n before rendering
 // import './pwa-register'; // DISABLED for development - causes MIME type errors
 import { AuthProvider } from '@/contexts/AuthContext';

@@ -19,6 +19,8 @@ import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptM
 import BackendStatusBanner from './components/common/BackendStatusBanner';
 import OfflineBanner from './components/common/OfflineBanner';
 import UserFeedbackModal from './components/UserFeedbackModal';
+import PwaReloadPrompt from './components/common/PwaReloadPrompt';
+import PwaInstallPrompt from './components/common/PwaInstallPrompt';
 
 interface NavigationTabConfig {
   key: NavigationView;
@@ -208,6 +210,8 @@ function AppLayout({ children }: AppLayoutProps) {
         onClose={() => setShowFeedback(false)}
         onSubmit={handleSubmitFeedback}
       />
+      <PwaReloadPrompt />
+      <PwaInstallPrompt />
       <Footer />
     </div>
   );

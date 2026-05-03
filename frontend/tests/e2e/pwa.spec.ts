@@ -43,11 +43,11 @@ test.describe('PWA Compliance & Features', () => {
   test('should show install prompt on event', async ({ page }) => {
     // Simulate the beforeinstallprompt event
     await page.evaluate(() => {
-      const event = new Event('beforeinstallprompt');
+      const event = new Event('sms:e2e-beforeinstallprompt');
       // @ts-ignore
       event.prompt = async () => {};
       // @ts-ignore
-      event.userChoice = Promise.resolve({ outcome: 'accepted' });
+      event.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
       window.dispatchEvent(event);
     });
 
