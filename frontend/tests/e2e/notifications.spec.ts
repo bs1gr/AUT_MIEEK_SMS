@@ -92,6 +92,20 @@ async function getUnreadCount(page: Page): Promise<number> {
   }
 }
 
+async function openNotificationCenter(page: Page) {
+  const bellButton = page.locator('button[title="Notifications"]');
+  await bellButton.click();
+  await expect(page.getByTestId('notification-dropdown')).toBeVisible({ timeout: 5000 });
+  await page.getByRole('button', { name: /view all/i }).click();
+  const center = page.getByTestId('notification-center');
+  await expect(center).toBeVisible({ timeout: 5000 });
+  return center;
+}
+
+function notificationRow(page: Page, title: string) {
+  return page.locator('[role="button"]').filter({ hasText: title }).first();
+}
+
 test.describe('Real-Time Notifications E2E', () => {
   test.beforeEach(async ({ page }) => {
     // Login before each test
@@ -117,27 +131,22 @@ test.describe('Real-Time Notifications E2E', () => {
     expect(unreadCount).toBeGreaterThanOrEqual(0);
   });
 
-  test('should open notification center when bell is clicked', async ({ page }) => {
+  test('should open notification dropdown when bell is clicked', async ({ page }) => {
     // Click the bell icon
     const bellButton = page.locator('button[title="Notifications"]');
     await bellButton.click();
 
-    // Wait for notification center to appear
-    const center = page.locator('.fixed.inset-0.bg-black.bg-opacity-50').first();
-    await expect(center).toBeVisible({ timeout: 5000 });
+    // Wait for notification dropdown to appear
+    await expect(page.getByTestId('notification-dropdown')).toBeVisible({ timeout: 5000 });
   });
 
   test('should close notification center when close button is clicked', async ({ page }) => {
-    // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await broadcastNotification(page, `Closable Notification ${Date.now()}`, 'Open the center', 'test');
+    await page.waitForTimeout(1000);
+    const center = await openNotificationCenter(page);
 
-    // Wait for it to appear
-    const center = page.locator('.fixed.inset-0.bg-black.bg-opacity-50').first();
-    await expect(center).toBeVisible({ timeout: 5000 });
-
-    // Click close button (×)
-    const closeButton = page.locator('button:has-text("×")').first();
+    // Click close button
+    const closeButton = page.getByRole('button', { name: /close/i });
     await closeButton.click();
 
     // Wait for it to disappear
@@ -162,8 +171,7 @@ test.describe('Real-Time Notifications E2E', () => {
     expect(newCount).toBeGreaterThan(initialCount);
 
     // Open notification center to verify notification appears
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Wait for notification center to appear and find our notification
     const notificationTitle = page.locator(`text="${testTitle}"`);
@@ -185,11 +193,10 @@ test.describe('Real-Time Notifications E2E', () => {
     const countBefore = await getUnreadCount(page);
 
     // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Wait for notification center and find the notification
-    const notification = page.locator(`text="${testTitle}"`).locator('..').first();
+    const notification = notificationRow(page, testTitle);
     await expect(notification).toBeVisible({ timeout: 5000 });
 
     // Click the notification to mark as read
@@ -199,7 +206,7 @@ test.describe('Real-Time Notifications E2E', () => {
     await page.waitForTimeout(500);
 
     // Close notification center
-    const closeButton = page.locator('button:has-text("×")').first();
+    const closeButton = page.getByRole('button', { name: /close/i });
     await closeButton.click();
 
     // Wait for close
@@ -219,15 +226,14 @@ test.describe('Real-Time Notifications E2E', () => {
     await page.waitForTimeout(1000);
 
     // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Find the notification
-    const notification = page.locator(`text="${testTitle}"`).locator('..').first();
+    const notification = notificationRow(page, testTitle);
     await expect(notification).toBeVisible({ timeout: 5000 });
 
     // Find and click the delete button within this notification
-    const deleteButton = notification.locator('button[class*="text-red"]').first();
+    const deleteButton = notification.getByRole('button', { name: /delete/i });
     await deleteButton.click();
 
     // Wait for deletion
@@ -281,8 +287,7 @@ test.describe('Real-Time Notifications E2E', () => {
     expect(countAfter).toBe(countBefore);
 
     // Notification should still be in the center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     const notification = page.locator(`text="${testTitle}"`);
     await expect(notification).toBeVisible({ timeout: 5000 });
@@ -315,8 +320,7 @@ test.describe('Real-Time Notifications E2E', () => {
     expect(finalCount).toBeGreaterThan(initialCount);
 
     // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Verify at least some of them are visible
     for (const title of notificationTitles.slice(0, 3)) {
@@ -343,16 +347,15 @@ test.describe('Real-Time Notifications E2E', () => {
     await page.waitForTimeout(1000);
 
     // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Verify notifications are displayed with icons
     for (const { title } of types) {
-      const notification = page.locator(`text="${title}"`);
+      const notification = notificationRow(page, title);
       await expect(notification).toBeVisible({ timeout: 5000 });
 
       // Check for icon (emoji or symbol)
-      const iconSpan = notification.locator('..').first().locator('span').first();
+      const iconSpan = notification.locator('span').first();
       const text = await iconSpan.textContent();
       expect(text).toMatch(/[\p{Emoji}]/u); // Should contain emoji
     }
@@ -368,12 +371,11 @@ test.describe('Real-Time Notifications E2E', () => {
     await page.waitForTimeout(1000);
 
     // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Look for "Mark All as Read" or similar button
     // The button text depends on i18n, so look for "mark" or similar
-    const markAllButton = page.locator('button:has-text(/[Mm]ark [Aa]ll|[Mm]ark [Aa]s [Rr]ead/)').first();
+    const markAllButton = page.getByRole('button', { name: /mark all|mark as read/i }).first();
     const isVisible = await markAllButton.isVisible().catch(() => false);
 
     // If button exists, clicking it should work
@@ -411,7 +413,7 @@ test.describe('Real-Time Notifications E2E', () => {
     await page.waitForTimeout(1000);
 
     // Verify we can see the second notification
-    await bellButton.click();
+    await openNotificationCenter(page);
     const notification = page.locator(`text="${testTitle2}"`);
     await expect(notification).toBeVisible({ timeout: 10000 });
   });
@@ -425,11 +427,10 @@ test.describe('Real-Time Notifications E2E', () => {
     await page.waitForTimeout(1000);
 
     // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Find the notification
-    const notification = page.locator(`text="${testTitle}"`).locator('..').first();
+    const notification = notificationRow(page, testTitle);
     await expect(notification).toBeVisible({ timeout: 5000 });
 
     // Look for timestamp text (date/time format)
@@ -457,11 +458,10 @@ test.describe('Real-Time Notifications E2E', () => {
     await page.waitForTimeout(2000);
 
     // Open notification center
-    const bellButton = page.locator('button[title="Notifications"]');
-    await bellButton.click();
+    await openNotificationCenter(page);
 
     // Look for pagination controls (Next, Previous buttons)
-    const nextButton = page.locator('button:has-text(/[Nn]ext|>/)').last();
+    const nextButton = page.getByRole('button', { name: /next|>/i }).last();
     const isVisible = await nextButton.isVisible().catch(() => false);
 
     if (isVisible && !await nextButton.isDisabled()) {

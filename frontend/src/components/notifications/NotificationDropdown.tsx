@@ -87,6 +87,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
       className={`notification-dropdown ${isOpen ? 'open' : ''}`}
       ref={dropdownRef}
       role="region"
+      data-testid="notification-dropdown"
       aria-label={t('dropdown.ariaLabel')}
     >
       {/* Header */}

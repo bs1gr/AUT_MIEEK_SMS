@@ -17,7 +17,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
     await expect(page.getByRole('button', { name: /Import Data/i })).toBeVisible();
 
     // Verify History Table
-    await expect(page.getByRole('heading', { name: 'History' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'History', exact: true })).toBeVisible();
     await expect(page.getByTestId('history-table-root')).toBeVisible();
   });
 
