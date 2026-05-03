@@ -6,12 +6,14 @@ const ImportExportPage: React.FC = () => {
     const { t } = useTranslation();
     const [isImportOpen, setIsImportOpen] = useState(false);
     const [isExportOpen, setIsExportOpen] = useState(false);
+    const [isImportMenuOpen, setIsImportMenuOpen] = useState(false);
     const [importType, setImportType] = useState<'students' | 'courses' | 'grades'>('students');
     // Key to force re-render of history table after operations
     const [historyKey, setHistoryKey] = useState(0);
 
     const handleImportClick = (type: 'students' | 'courses' | 'grades') => {
         setImportType(type);
+        setIsImportMenuOpen(false);
         setIsImportOpen(true);
     };
 
@@ -33,6 +35,10 @@ const ImportExportPage: React.FC = () => {
 
                     <div className="relative inline-block text-left group">
                         <button
+                            type="button"
+                            aria-expanded={isImportMenuOpen}
+                            aria-haspopup="menu"
+                            onClick={() => setIsImportMenuOpen(prev => !prev)}
                             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm text-sm font-medium flex items-center"
                         >
                             {t('importData', { ns: 'export' })}
@@ -40,21 +46,30 @@ const ImportExportPage: React.FC = () => {
                                 <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
                             </svg>
                         </button>
-                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg hidden group-hover:block z-10 border border-gray-200">
+                        <div
+                            role="menu"
+                            className={`absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200 ${isImportMenuOpen ? 'block' : 'hidden group-hover:block'}`}
+                        >
                             <div className="py-1">
                                 <button
+                                    type="button"
+                                    role="menuitem"
                                     onClick={() => handleImportClick('students')}
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                     {t('importStudents', { ns: 'export' })}
                                 </button>
                                 <button
+                                    type="button"
+                                    role="menuitem"
                                     onClick={() => handleImportClick('courses')}
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >
                                     {t('importCourses', { ns: 'export' })}
                                 </button>
                                 <button
+                                    type="button"
+                                    role="menuitem"
                                     onClick={() => handleImportClick('grades')}
                                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                                 >

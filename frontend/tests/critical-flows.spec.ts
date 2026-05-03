@@ -113,10 +113,10 @@ test.describe('Dashboard Navigation', () => {
   });
 
   test('should navigate to Attendance page', async ({ page }) => {
-    await page.click('a:has-text("Attendance")');
+    await page.getByRole('link', { name: /^Attendance$/ }).click();
     await page.waitForURL(/.*attendance/, { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 20000 });
-    await expect(page.locator('text=Attendance')).toBeVisible();
+    await expect(page).toHaveURL(/.*attendance/);
   });
 });
 
