@@ -29,7 +29,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
   test.describe('Page Load & Basic Rendering', () => {
     test('should load analytics page successfully', async () => {
       // Check page title/header exists
-      await expect(page.locator('text=Analytics')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Analytics Dashboard' })).toBeVisible();
       // Page should not have error messages
       await expect(page.locator('[role="alert"]')).not.toBeVisible();
     });
@@ -40,27 +40,27 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       await expect(summaryCards).toHaveCount(4);
 
       // Verify card titles
-      await expect(page.locator('text=Students')).toBeVisible();
-      await expect(page.locator('text=Courses')).toBeVisible();
-      await expect(page.locator('text=Average Grade')).toBeVisible();
-      await expect(page.locator('text=Attendance')).toBeVisible();
+      await expect(summaryCards.nth(0)).toContainText('Total Students');
+      await expect(summaryCards.nth(1)).toContainText('Total Courses');
+      await expect(summaryCards.nth(2)).toContainText('Average Grade');
+      await expect(summaryCards.nth(3)).toContainText('Average Attendance');
     });
 
     test('should display all chart sections', async () => {
       // Performance Chart
-      await expect(page.locator('text=Performance')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Student Performance' })).toBeVisible();
 
       // Grade Distribution Chart
-      await expect(page.locator('text=Grade Distribution')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Grade Distribution' })).toBeVisible();
 
       // Attendance Chart
-      await expect(page.locator('text=Attendance')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Attendance Rate' })).toBeVisible();
 
       // Trend Chart
-      await expect(page.locator('text=Trend')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Performance Trend' })).toBeVisible();
 
       // Stats Chart
-      await expect(page.locator('text=Student Status')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Student Status' })).toBeVisible();
     });
 
     test('should not show loading spinner after page load', async () => {
@@ -309,7 +309,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       await expect(page.locator('body')).toBeVisible();
 
       // All main sections should be visible
-      await expect(page.locator('text=Analytics')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Analytics Dashboard' })).toBeVisible();
     });
 
     test('should be responsive on desktop (1920px)', async () => {
