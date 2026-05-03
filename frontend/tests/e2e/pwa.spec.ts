@@ -1,10 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { loginAsTestUser } from './helpers';
 
 test.describe('PWA Compliance & Features', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to app root
-    await page.goto('/');
-    // Wait for hydration/network idle to ensure SW registration logic runs
+    await loginAsTestUser(page);
     await page.waitForLoadState('networkidle');
   });
 
@@ -52,8 +51,7 @@ test.describe('PWA Compliance & Features', () => {
       window.dispatchEvent(event);
     });
 
-    // The PwaInstallPrompt component should appear
-    await expect(page.getByText('Install App')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Install App' })).toBeVisible();
   });
 
   test('should apply mobile optimizations', async ({ page }) => {
