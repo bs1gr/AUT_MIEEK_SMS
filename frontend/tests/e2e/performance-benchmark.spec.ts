@@ -1,13 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { loginAsTestUser } from './helpers';
 
 test.describe('Performance Benchmark', () => {
   test('measure student list render time', async ({ page }) => {
-    // Login
-    await page.goto('/login');
-    await page.getByLabel('Email').fill('teacher1@example.com');
-    await page.getByLabel('Password').fill('password123');
-    await page.getByRole('button', { name: 'Login' }).click();
-    await page.waitForURL('/dashboard');
+    await loginAsTestUser(page);
 
     // Measure navigation to students list
     const startTime = Date.now();

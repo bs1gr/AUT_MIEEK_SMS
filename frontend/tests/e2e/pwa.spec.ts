@@ -10,7 +10,7 @@ test.describe('PWA Compliance & Features', () => {
 
   test('should have valid web app manifest', async ({ page }) => {
     // Vite PWA plugin injects this
-    const manifestLink = page.locator('link[rel="manifest"]');
+    const manifestLink = page.locator('link[rel="manifest"]').first();
     await expect(manifestLink).toBeAttached();
 
     const href = await manifestLink.getAttribute('href');
