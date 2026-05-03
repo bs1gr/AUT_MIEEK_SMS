@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { loginViaUI } from './helpers';
 
 /**
  * E2E Tests for Analytics Dashboard (Feature #125)
@@ -15,17 +16,14 @@ import { test, expect, Page } from '@playwright/test';
 test.describe('Analytics Dashboard - Feature #125', () => {
   let page: Page;
 
-  test.beforeEach(async ({ browser }) => {
-    page = await browser.newPage();
+  test.beforeEach(async ({ page: testPage }) => {
+    page = testPage;
     // Set viewport to desktop for initial tests
     await page.setViewportSize({ width: 1280, height: 720 });
+    await loginViaUI(page, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
     await page.goto('/analytics');
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
-  });
-
-  test.afterEach(async () => {
-    await page.close();
   });
 
   test.describe('Page Load & Basic Rendering', () => {
@@ -44,7 +42,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       // Verify card titles
       await expect(page.locator('text=Students')).toBeVisible();
       await expect(page.locator('text=Courses')).toBeVisible();
-      await expect(page.locator('text=Avg Grade')).toBeVisible();
+      await expect(page.locator('text=Average Grade')).toBeVisible();
       await expect(page.locator('text=Attendance')).toBeVisible();
     });
 
@@ -62,7 +60,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       await expect(page.locator('text=Trend')).toBeVisible();
 
       // Stats Chart
-      await expect(page.locator('text=Statistics')).toBeVisible();
+      await expect(page.locator('text=Student Status')).toBeVisible();
     });
 
     test('should not show loading spinner after page load', async () => {
@@ -386,13 +384,13 @@ test.describe('Analytics Dashboard - Feature #125', () => {
 
   test.describe('Performance', () => {
     test('should load initial page within 3 seconds', async ({ context }) => {
-      const startTime = Date.now();
-
       const newPage = await context.newPage();
+      await loginViaUI(newPage, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
+      const authenticatedStartTime = Date.now();
       await newPage.goto('/analytics');
       await newPage.waitForLoadState('networkidle');
 
-      const loadTime = Date.now() - startTime;
+      const loadTime = Date.now() - authenticatedStartTime;
       expect(loadTime).toBeLessThan(3000);
 
       await newPage.close();
