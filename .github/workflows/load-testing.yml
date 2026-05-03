@@ -66,7 +66,7 @@ jobs:
     - name: Resolve load testing paths
       id: loadtest
       run: |
-        if [ -d "load-testing" ]; then
+        if [ -f "load-testing/requirements.txt" ] && [ -f "load-testing/scripts/run_load_tests.py" ]; then
           echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
           echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
           echo "results=load-testing/results" >> $GITHUB_OUTPUT
@@ -74,7 +74,7 @@ jobs:
           echo "baseline=load-testing/baseline.json" >> $GITHUB_OUTPUT
           echo "pythonpath=load-testing" >> $GITHUB_OUTPUT
           echo "rootdir=load-testing" >> $GITHUB_OUTPUT
-        elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
+        elif [ -f "archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" ] && [ -f "archive/cleanup-feb2026/legacy-load-testing/scripts/run_load_tests.py" ]; then
           echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
           echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
           echo "results=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
@@ -206,12 +206,12 @@ jobs:
     - name: Resolve load testing paths
       id: loadtest
       run: |
-        if [ -d "load-testing" ]; then
+        if [ -f "load-testing/requirements.txt" ] && [ -f "load-testing/scripts/generate_report.py" ]; then
           echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
           echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
           echo "results=load-testing/results" >> $GITHUB_OUTPUT
           echo "rootdir=load-testing" >> $GITHUB_OUTPUT
-        elif [ -d "archive/cleanup-feb2026/legacy-load-testing" ]; then
+        elif [ -f "archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" ] && [ -f "archive/cleanup-feb2026/legacy-load-testing/scripts/generate_report.py" ]; then
           echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
           echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
           echo "results=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT

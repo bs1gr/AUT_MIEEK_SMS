@@ -39,7 +39,10 @@ interface SummaryCardProps {
 }
 
 const SummaryCard: React.FC<SummaryCardProps> = ({ icon: Icon, label, value, unit }) => (
-  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+  <div
+    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
+    data-testid="summary-card"
+  >
     <div className="flex items-center gap-4">
       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100">
         <Icon size={24} className="text-indigo-600" />
@@ -797,7 +800,7 @@ export const AnalyticsDashboard: React.FC = () => {
             alt="MIEEK Logo"
             className="h-10 w-auto object-contain"
           />
-          <div>
+          <div data-testid="analytics-dashboard">
             <h2 className="text-3xl font-semibold text-slate-900">
               {t('analytics.dashboardTitle')}
             </h2>

@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { loginViaUI } from './helpers';
 
 /**
  * E2E Tests for Analytics Dashboard (Feature #125)
@@ -15,23 +16,20 @@ import { test, expect, Page } from '@playwright/test';
 test.describe('Analytics Dashboard - Feature #125', () => {
   let page: Page;
 
-  test.beforeEach(async ({ browser }) => {
-    page = await browser.newPage();
+  test.beforeEach(async ({ page: testPage }) => {
+    page = testPage;
     // Set viewport to desktop for initial tests
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('http://localhost:5173/analytics');
+    await loginViaUI(page, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
+    await page.goto('/analytics');
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
-  });
-
-  test.afterEach(async () => {
-    await page.close();
   });
 
   test.describe('Page Load & Basic Rendering', () => {
     test('should load analytics page successfully', async () => {
       // Check page title/header exists
-      await expect(page.locator('text=Analytics')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Analytics Dashboard' })).toBeVisible();
       // Page should not have error messages
       await expect(page.locator('[role="alert"]')).not.toBeVisible();
     });
@@ -42,34 +40,34 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       await expect(summaryCards).toHaveCount(4);
 
       // Verify card titles
-      await expect(page.locator('text=Students')).toBeVisible();
-      await expect(page.locator('text=Courses')).toBeVisible();
-      await expect(page.locator('text=Avg Grade')).toBeVisible();
-      await expect(page.locator('text=Attendance')).toBeVisible();
+      await expect(summaryCards.nth(0)).toContainText('Total Students');
+      await expect(summaryCards.nth(1)).toContainText('Total Courses');
+      await expect(summaryCards.nth(2)).toContainText('Average Grade');
+      await expect(summaryCards.nth(3)).toContainText('Average Attendance');
     });
 
     test('should display all chart sections', async () => {
       // Performance Chart
-      await expect(page.locator('text=Performance')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Student Performance' })).toBeVisible();
 
       // Grade Distribution Chart
-      await expect(page.locator('text=Grade Distribution')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Grade Distribution' })).toBeVisible();
 
       // Attendance Chart
-      await expect(page.locator('text=Attendance')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Attendance Rate' })).toBeVisible();
 
       // Trend Chart
-      await expect(page.locator('text=Trend')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Performance Trend' })).toBeVisible();
 
       // Stats Chart
-      await expect(page.locator('text=Statistics')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Student Status' })).toBeVisible();
     });
 
     test('should not show loading spinner after page load', async () => {
       // Initial page load might show spinner, wait for it to disappear
       const spinner = page.locator('[role="status"]');
-      if (await spinner.isVisible()) {
-        await expect(spinner).toBeHidden({ timeout: 5000 });
+      if (await spinner.count() > 0) {
+        await expect(spinner.first()).toBeHidden({ timeout: 5000 });
       }
     });
   });
@@ -118,16 +116,9 @@ test.describe('Analytics Dashboard - Feature #125', () => {
 
   test.describe('Filter Controls', () => {
     test('should display date range filter selector', async () => {
-      // Look for filter buttons/controls
-      const weekButton = page.locator('button:has-text("Week")');
-      const monthButton = page.locator('button:has-text("Month")');
-      const semesterButton = page.locator('button:has-text("Semester")');
-
-      // At least one should be visible
-      const filterExists = await weekButton.isVisible() ||
-                          await monthButton.isVisible() ||
-                          await semesterButton.isVisible();
-      expect(filterExists).toBeTruthy();
+      await expect(page.getByText('Time Period')).toBeVisible();
+      await expect(page.getByRole('combobox').nth(3)).toBeVisible();
+      await expect(page.getByRole('combobox').nth(3)).toContainText('Semester');
     });
 
     test('should allow date range selection', async () => {
@@ -311,7 +302,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       await expect(page.locator('body')).toBeVisible();
 
       // All main sections should be visible
-      await expect(page.locator('text=Analytics')).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Analytics Dashboard' })).toBeVisible();
     });
 
     test('should be responsive on desktop (1920px)', async () => {
@@ -386,13 +377,12 @@ test.describe('Analytics Dashboard - Feature #125', () => {
 
   test.describe('Performance', () => {
     test('should load initial page within 3 seconds', async ({ context }) => {
-      const startTime = Date.now();
-
       const newPage = await context.newPage();
-      await newPage.goto('http://localhost:5173/analytics');
+      const authenticatedStartTime = Date.now();
+      await newPage.goto('/analytics');
       await newPage.waitForLoadState('networkidle');
 
-      const loadTime = Date.now() - startTime;
+      const loadTime = Date.now() - authenticatedStartTime;
       expect(loadTime).toBeLessThan(3000);
 
       await newPage.close();

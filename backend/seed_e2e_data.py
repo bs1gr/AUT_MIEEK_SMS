@@ -1,4 +1,5 @@
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 # Ensure we can import backend modules FIRST
@@ -9,7 +10,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from backend.config import settings
-from backend.models import Base, Course, CourseEnrollment, Role, Student, User, UserRole
+from backend.models import Attendance, Base, Course, CourseEnrollment, Grade, Role, Student, User, UserRole
 from backend.routers.routers_rbac import ensure_defaults_startup
 from backend.security.password_hash import get_password_hash
 
@@ -176,6 +177,62 @@ def seed_e2e_data(force: bool = False):
                     db.add(enrollment)
                     enrollment_count += 1
 
+        today = date.today()
+        grade_values = [88.0, 76.0, 93.0, 68.0]
+        grade_count = 0
+        attendance_count = 0
+        for student_index, student in enumerate(students):
+            for course_index, course in enumerate(courses):
+                assignment_name = f"E2E Analytics Assessment {course.course_code}"
+                existing_grade = (
+                    db.query(Grade)
+                    .filter(
+                        Grade.student_id == student.id,
+                        Grade.course_id == course.id,
+                        Grade.assignment_name == assignment_name,
+                    )
+                    .first()
+                )
+                if not existing_grade:
+                    db.add(
+                        Grade(
+                            student_id=student.id,
+                            course_id=course.id,
+                            assignment_name=assignment_name,
+                            category="Exam" if course_index == 0 else "Coursework",
+                            grade=grade_values[(student_index + course_index) % len(grade_values)],
+                            max_grade=100.0,
+                            weight=1.0,
+                            date_assigned=today - timedelta(days=14 + course_index),
+                            date_submitted=today - timedelta(days=7 + course_index),
+                        )
+                    )
+                    grade_count += 1
+
+                for day_offset in range(3):
+                    attendance_date = today - timedelta(days=day_offset)
+                    existing_attendance = (
+                        db.query(Attendance)
+                        .filter(
+                            Attendance.student_id == student.id,
+                            Attendance.course_id == course.id,
+                            Attendance.date == attendance_date,
+                        )
+                        .first()
+                    )
+                    if not existing_attendance:
+                        db.add(
+                            Attendance(
+                                student_id=student.id,
+                                course_id=course.id,
+                                date=attendance_date,
+                                status="Absent" if (student_index + day_offset) % 5 == 0 else "Present",
+                                period_number=1,
+                                notes="E2E analytics seed",
+                            )
+                        )
+                        attendance_count += 1
+
         db.commit()
 
         # Validate seeded data
@@ -184,6 +241,8 @@ def seed_e2e_data(force: bool = False):
         final_students = db.query(Student).all()
         final_courses = db.query(Course).all()
         final_enrollments = db.query(CourseEnrollment).all()
+        final_grades = db.query(Grade).all()
+        final_attendance = db.query(Attendance).all()
 
         print("[OK] E2E test data seeded successfully")
         print("\n=== SEED DATA VALIDATION ===")
@@ -203,6 +262,8 @@ def seed_e2e_data(force: bool = False):
             print(f"   - {c.course_code}: {c.course_name} (Semester: {c.semester})")
         print(f"\n✅ Enrollments in database: {len(final_enrollments)}")
         print(f"   - Average enrollments per student: {len(final_enrollments) / max(len(final_students), 1):.1f}")
+        print(f"\n✅ Grades in database: {len(final_grades)} ({grade_count} new)")
+        print(f"✅ Attendance records in database: {len(final_attendance)} ({attendance_count} new)")
         print("\n=== END VALIDATION ===\n")
 
         # Verification checks
@@ -212,6 +273,10 @@ def seed_e2e_data(force: bool = False):
             raise RuntimeError("CRITICAL: No students were created!")
         if len(final_courses) == 0:
             raise RuntimeError("CRITICAL: No courses were created!")
+        if len(final_grades) == 0:
+            raise RuntimeError("CRITICAL: No grades were created!")
+        if len(final_attendance) == 0:
+            raise RuntimeError("CRITICAL: No attendance records were created!")
 
         print("[SUCCESS] All validation checks passed ✅")
 

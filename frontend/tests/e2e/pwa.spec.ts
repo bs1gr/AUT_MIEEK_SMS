@@ -1,16 +1,15 @@
 import { test, expect } from '@playwright/test';
+import { loginAsTestUser } from './helpers';
 
 test.describe('PWA Compliance & Features', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to app root
-    await page.goto('/');
-    // Wait for hydration/network idle to ensure SW registration logic runs
+    await loginAsTestUser(page);
     await page.waitForLoadState('networkidle');
   });
 
   test('should have valid web app manifest', async ({ page }) => {
     // Vite PWA plugin injects this
-    const manifestLink = page.locator('link[rel="manifest"]');
+    const manifestLink = page.locator('link[rel="manifest"]').first();
     await expect(manifestLink).toBeAttached();
 
     const href = await manifestLink.getAttribute('href');
@@ -44,16 +43,15 @@ test.describe('PWA Compliance & Features', () => {
   test('should show install prompt on event', async ({ page }) => {
     // Simulate the beforeinstallprompt event
     await page.evaluate(() => {
-      const event = new Event('beforeinstallprompt');
+      const event = new Event('sms:e2e-beforeinstallprompt');
       // @ts-ignore
       event.prompt = async () => {};
       // @ts-ignore
-      event.userChoice = Promise.resolve({ outcome: 'accepted' });
+      event.userChoice = Promise.resolve({ outcome: 'accepted', platform: 'web' });
       window.dispatchEvent(event);
     });
 
-    // The PwaInstallPrompt component should appear
-    await expect(page.getByText('Install App')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Install App' })).toBeVisible();
   });
 
   test('should apply mobile optimizations', async ({ page }) => {

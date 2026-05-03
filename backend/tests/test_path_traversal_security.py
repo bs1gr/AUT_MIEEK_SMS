@@ -20,7 +20,7 @@ class TestBackupServicePathTraversal:
     def setup_method(self):
         """Set up temporary backup directory for tests."""
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.backup_dir = Path(self.temp_dir.name)
+        self.backup_dir = Path(self.temp_dir.name).resolve()
         self.service = BackupServiceEncrypted(
             backup_dir=self.backup_dir,
             enable_encryption=False,  # Simplify for path tests
@@ -160,7 +160,7 @@ class TestPathTraversalVectors:
     def setup_method(self):
         """Set up service for testing."""
         self.temp_dir = tempfile.TemporaryDirectory()
-        self.backup_dir = Path(self.temp_dir.name)
+        self.backup_dir = Path(self.temp_dir.name).resolve()
         self.service = BackupServiceEncrypted(
             backup_dir=self.backup_dir,
             enable_encryption=False,

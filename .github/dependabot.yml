@@ -15,6 +15,30 @@ updates:
     labels:
       - "dependencies"
       - "security"
+    groups:
+      backend-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  # Root npm tooling dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    allow:
+      - dependency-type: "all"
+    commit-message:
+      prefix: "deps"
+    labels:
+      - "dependencies"
+      - "security"
+    groups:
+      root-npm-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # Frontend npm dependencies
   - package-ecosystem: "npm"
@@ -29,6 +53,11 @@ updates:
     labels:
       - "dependencies"
       - "security"
+    groups:
+      frontend-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
 
   # GitHub Actions
   - package-ecosystem: "github-actions"
@@ -41,7 +70,8 @@ updates:
     labels:
       - "ci"
       - "dependencies"
-
-# Enable security updates
-security-updates:
-  enable: true
+    groups:
+      github-actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"

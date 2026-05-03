@@ -19,9 +19,11 @@ export function usePwaInstall() {
     };
 
     window.addEventListener('beforeinstallprompt', handler);
+    window.addEventListener('sms:e2e-beforeinstallprompt', handler);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
+      window.removeEventListener('sms:e2e-beforeinstallprompt', handler);
     };
   }, []);
 

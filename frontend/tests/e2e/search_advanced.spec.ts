@@ -1,4 +1,5 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { loginAsTestUser } from './helpers';
 
 test.describe('Search Feature E2E Tests', () => {
   let page: Page;
@@ -6,16 +7,9 @@ test.describe('Search Feature E2E Tests', () => {
   test.beforeEach(async ({ browser }) => {
     page = await browser.newPage();
 
-    // Login before each test
-    await page.goto('http://localhost:5173/login');
-    await page.fill('input[type="email"]', 'admin@example.com');
-    await page.fill('input[type="password"]', 'admin123');
-    await page.click('button[type="submit"]');
-    await page.waitForNavigation();
-
-    // Navigate to search
-    await page.goto('http://localhost:5173/search');
-    await page.waitForSelector('[data-testid="student-search-input"]', { timeout: 5000 });
+    await loginAsTestUser(page);
+    await page.goto('/search');
+    await expect(page.getByTestId('student-search-input')).toBeVisible({ timeout: 10000 });
   });
 
   test.afterEach(async () => {
@@ -255,8 +249,8 @@ test.describe('Search Feature E2E Tests', () => {
       await page.click('button:has-text("Save")');
 
       // Step 3: Navigate away and back
-      await page.goto('http://localhost:5173/dashboard');
-      await page.goto('http://localhost:5173/search');
+      await page.goto('/dashboard');
+      await page.goto('/search');
 
       // Step 4: Verify saved search still available
       const savedSearchButton = page.locator('button:has-text("Saved Search 1")');

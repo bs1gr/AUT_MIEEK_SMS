@@ -1,52 +1,74 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
+import { generateTeacherUser, loginViaAPI, registerUser } from './helpers';
+
+const getAccessToken = async (page: Page) =>
+  page.evaluate(() => window.localStorage.getItem('sms_access_token') || '');
+
+const getApiBase = (page: Page) => {
+  const apiBase = new URL('/api/v1', page.url()).toString();
+  return apiBase.replace(/\/$/, '');
+};
+
+const unwrapData = async <T>(response: Awaited<ReturnType<Page['request']['get']>>): Promise<T> => {
+  const json = await response.json();
+  return (json?.data ?? json) as T;
+};
 
 test.describe('Saved Search Authorization', () => {
-  // Unique search name to avoid collisions
-  const searchName = `Private Search ${Date.now()}`;
-
   test('users should not see searches created by others', async ({ browser }) => {
-    // 1. Login as User A (Teacher)
     const contextA = await browser.newContext();
     const pageA = await contextA.newPage();
-
-    // Assuming a helper or direct login flow
-    await pageA.goto('/login');
-    await pageA.getByLabel('Email').fill('teacher1@example.com');
-    await pageA.getByLabel('Password').fill('password123');
-    await pageA.getByRole('button', { name: 'Login' }).click();
-
-    // 2. User A creates a saved search
-    await pageA.goto('/students');
-    // Open advanced search (assuming UI flow)
-    await pageA.getByRole('button', { name: /advanced search/i }).click();
-    await pageA.getByLabel(/name/i).fill('Test Student');
-    await pageA.getByRole('button', { name: /save search/i }).click();
-
-    await pageA.getByLabel(/search name/i).fill(searchName);
-    await pageA.getByRole('button', { name: /save/i }).click();
-
-    // Verify it exists for User A
-    await pageA.goto('/saved-searches');
-    await expect(pageA.getByText(searchName)).toBeVisible();
-
-    // 3. Login as User B (Admin or another Teacher)
     const contextB = await browser.newContext();
     const pageB = await contextB.newPage();
+    const userA = generateTeacherUser();
+    const userB = generateTeacherUser();
+    const searchName = `Private Search ${Date.now()}`;
 
-    await pageB.goto('/login');
-    await pageB.getByLabel('Email').fill('admin@example.com');
-    await pageB.getByLabel('Password').fill('password123');
-    await pageB.getByRole('button', { name: 'Login' }).click();
+    try {
+      await registerUser(pageA, userA);
+      await registerUser(pageB, userB);
+      await loginViaAPI(pageA, userA.email, userA.password);
+      await loginViaAPI(pageB, userB.email, userB.password);
 
-    // 4. Verify User B CANNOT see User A's search
-    await pageB.goto('/saved-searches');
-    await expect(pageB.getByText(searchName)).not.toBeVisible();
+      const apiBase = getApiBase(pageA);
+      const tokenA = await getAccessToken(pageA);
+      const tokenB = await getAccessToken(pageB);
 
-    // Cleanup (User A deletes the search)
-    await pageA.getByRole('button', { name: `Delete ${searchName}` }).click();
-    await pageA.getByRole('button', { name: /confirm/i }).click();
+      const createResponse = await pageA.request.post(`${apiBase}/search/saved`, {
+        headers: { Authorization: `Bearer ${tokenA}` },
+        data: {
+          name: searchName,
+          description: 'Private E2E saved search',
+          search_type: 'students',
+          query: 'Test Student',
+          filters: {},
+          is_favorite: false,
+        },
+      });
+      expect(createResponse.ok()).toBeTruthy();
+      const created = await unwrapData<{ id: number; name: string }>(createResponse);
+      expect(created.name).toBe(searchName);
 
-    await contextA.close();
-    await contextB.close();
+      const ownResponse = await pageA.request.get(`${apiBase}/search/saved`, {
+        headers: { Authorization: `Bearer ${tokenA}` },
+      });
+      expect(ownResponse.ok()).toBeTruthy();
+      const ownSearches = await unwrapData<Array<{ name: string }>>(ownResponse);
+      expect(ownSearches.some((search) => search.name === searchName)).toBeTruthy();
+
+      const otherResponse = await pageB.request.get(`${apiBase}/search/saved`, {
+        headers: { Authorization: `Bearer ${tokenB}` },
+      });
+      expect(otherResponse.ok()).toBeTruthy();
+      const otherSearches = await unwrapData<Array<{ name: string }>>(otherResponse);
+      expect(otherSearches.some((search) => search.name === searchName)).toBeFalsy();
+
+      await pageA.request.delete(`${apiBase}/search/saved/${created.id}`, {
+        headers: { Authorization: `Bearer ${tokenA}` },
+      });
+    } finally {
+      await contextA.close();
+      await contextB.close();
+    }
   });
 });

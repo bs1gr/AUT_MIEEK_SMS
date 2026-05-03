@@ -42,11 +42,20 @@ jobs:
           KEEP_COUNT: ${{ inputs.keep_count || 1 }}
           DRY_RUN: ${{ inputs.dry_run || false }}
         run: |
+          TARGET_ENV="${TARGET_ENV:-production}"
+          KEEP_COUNT="${KEEP_COUNT:-1}"
+          DRY_RUN="${DRY_RUN:-false}"
+
           echo "Target environment: $TARGET_ENV"
           echo "Keep count: $KEEP_COUNT"
           echo "Dry run: $DRY_RUN"
 
-          DEPLOY_IDS=$(gh api "repos/$GH_REPO/deployments?environment=$TARGET_ENV&per_page=100" --jq '.[].id')
+          if ! [[ "$KEEP_COUNT" =~ ^[0-9]+$ ]] || [ "$KEEP_COUNT" -lt 0 ]; then
+            echo "::error::keep_count must be a non-negative integer."
+            exit 1
+          fi
+
+          DEPLOY_IDS=$(gh api --paginate "repos/$GH_REPO/deployments?environment=$TARGET_ENV&per_page=100" --jq '.[].id')
 
           if [ -z "$DEPLOY_IDS" ]; then
             echo "No deployments found for $TARGET_ENV"
@@ -73,6 +82,12 @@ jobs:
 
           echo "$TO_DELETE" | while read -r id; do
             if [ -n "$id" ]; then
+              echo "Marking deployment $id inactive..."
+              gh api -X POST "repos/$GH_REPO/deployments/$id/statuses" \
+                -f state=inactive \
+                -f environment="$TARGET_ENV" \
+                -f auto_inactive=false >/dev/null
+
               echo "Deleting deployment $id..."
               gh api -X DELETE "repos/$GH_REPO/deployments/$id"
             fi
