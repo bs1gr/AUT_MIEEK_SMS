@@ -7,14 +7,14 @@ test.describe('Search Feature E2E Tests', () => {
     page = await browser.newPage();
 
     // Login before each test
-    await page.goto('http://localhost:5173/login');
+    await page.goto('/login');
     await page.fill('input[type="email"]', 'admin@example.com');
     await page.fill('input[type="password"]', 'admin123');
     await page.click('button[type="submit"]');
     await page.waitForNavigation();
 
     // Navigate to search
-    await page.goto('http://localhost:5173/search');
+    await page.goto('/search');
     await page.waitForSelector('[data-testid="student-search-input"]', { timeout: 5000 });
   });
 
@@ -255,8 +255,8 @@ test.describe('Search Feature E2E Tests', () => {
       await page.click('button:has-text("Save")');
 
       // Step 3: Navigate away and back
-      await page.goto('http://localhost:5173/dashboard');
-      await page.goto('http://localhost:5173/search');
+      await page.goto('/dashboard');
+      await page.goto('/search');
 
       // Step 4: Verify saved search still available
       const savedSearchButton = page.locator('button:has-text("Saved Search 1")');

@@ -23,7 +23,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
 
     // 1. Navigate to app
     try {
-      await page.goto('http://localhost:5173', { waitUntil: 'networkidle' });
+      await page.goto('/', { waitUntil: 'networkidle' });
     } catch (error) {
       console.log('Note: Could not reach localhost:5173, will test with mock data instead');
     }

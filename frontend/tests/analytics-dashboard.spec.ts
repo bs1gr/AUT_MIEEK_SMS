@@ -19,7 +19,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
     page = await browser.newPage();
     // Set viewport to desktop for initial tests
     await page.setViewportSize({ width: 1280, height: 720 });
-    await page.goto('http://localhost:5173/analytics');
+    await page.goto('/analytics');
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
   });
@@ -389,7 +389,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       const startTime = Date.now();
 
       const newPage = await context.newPage();
-      await newPage.goto('http://localhost:5173/analytics');
+      await newPage.goto('/analytics');
       await newPage.waitForLoadState('networkidle');
 
       const loadTime = Date.now() - startTime;
