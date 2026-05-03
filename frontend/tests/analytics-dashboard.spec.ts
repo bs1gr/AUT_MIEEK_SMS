@@ -66,8 +66,8 @@ test.describe('Analytics Dashboard - Feature #125', () => {
     test('should not show loading spinner after page load', async () => {
       // Initial page load might show spinner, wait for it to disappear
       const spinner = page.locator('[role="status"]');
-      if (await spinner.isVisible()) {
-        await expect(spinner).toBeHidden({ timeout: 5000 });
+      if (await spinner.count() > 0) {
+        await expect(spinner.first()).toBeHidden({ timeout: 5000 });
       }
     });
   });
@@ -116,16 +116,9 @@ test.describe('Analytics Dashboard - Feature #125', () => {
 
   test.describe('Filter Controls', () => {
     test('should display date range filter selector', async () => {
-      // Look for filter buttons/controls
-      const weekButton = page.locator('button:has-text("Week")');
-      const monthButton = page.locator('button:has-text("Month")');
-      const semesterButton = page.locator('button:has-text("Semester")');
-
-      // At least one should be visible
-      const filterExists = await weekButton.isVisible() ||
-                          await monthButton.isVisible() ||
-                          await semesterButton.isVisible();
-      expect(filterExists).toBeTruthy();
+      await expect(page.getByText('Time Period')).toBeVisible();
+      await expect(page.getByRole('combobox').nth(3)).toBeVisible();
+      await expect(page.getByRole('combobox').nth(3)).toContainText('Semester');
     });
 
     test('should allow date range selection', async () => {
@@ -385,7 +378,6 @@ test.describe('Analytics Dashboard - Feature #125', () => {
   test.describe('Performance', () => {
     test('should load initial page within 3 seconds', async ({ context }) => {
       const newPage = await context.newPage();
-      await loginViaUI(newPage, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
       const authenticatedStartTime = Date.now();
       await newPage.goto('/analytics');
       await newPage.waitForLoadState('networkidle');
