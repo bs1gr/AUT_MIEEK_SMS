@@ -19,21 +19,21 @@ sys.path.insert(0, str(project_root))
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+from backend.config import settings
 from backend.models import Course, CourseEnrollment, Student, User
 
 
 def validate_e2e_data():
     """Validate that E2E test data exists and is accessible."""
-    # Use the same database path logic as the main application
-    is_docker = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
-    if is_docker:
-        db_path = "/data/student_management.db"
-    else:
-        db_path = str(Path(__file__).parent.parent / "data" / "student_management.db")
-    DATABASE_URL = f"sqlite:///{db_path}"
+    database_url = os.environ.get("DATABASE_URL") or settings.DATABASE_URL
+    if not database_url:
+        is_docker = os.environ.get("SMS_EXECUTION_MODE", "native").lower() == "docker"
+        db_path = "/data/student_management.db" if is_docker else str(project_root / "data" / "student_management.db")
+        database_url = f"sqlite:///{db_path}"
 
     try:
-        engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+        connect_args = {"check_same_thread": False} if database_url.startswith("sqlite") else {}
+        engine = create_engine(database_url, connect_args=connect_args)
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         db = SessionLocal()
 
