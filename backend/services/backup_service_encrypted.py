@@ -71,7 +71,11 @@ class BackupServiceEncrypted:
         """Resolve a backup path safely within the allowed directory."""
         base_dir = base_dir or self.backup_dir
         resolved_base = base_dir.resolve()
-        candidate = (resolved_base / f"{backup_name}{suffix}").resolve()
+        # backup_name is validated as a bare filename before this helper is used.
+        # Avoid resolving the final, usually non-existent file on Windows because
+        # pathlib can expand 8.3 short-name segments (for example RUNNER~1) in the
+        # candidate but not the base directory, producing a false containment miss.
+        candidate = resolved_base / f"{backup_name}{suffix}"
 
         try:
             candidate.relative_to(resolved_base)
