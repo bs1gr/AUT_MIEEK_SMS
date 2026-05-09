@@ -69,16 +69,13 @@ class BackupServiceEncrypted:
 
     def _resolve_backup_path(self, backup_name: str, suffix: str, base_dir: Optional[Path] = None) -> Path:
         """Resolve a backup path safely within the allowed directory."""
-        base_dir = base_dir or self.backup_dir
-        resolved_base = base_dir.resolve()
-        # backup_name is validated as a bare filename before this helper is used.
-        # Avoid resolving the final, usually non-existent file on Windows because
-        # pathlib can expand 8.3 short-name segments (for example RUNNER~1) in the
-        # candidate but not the base directory, producing a false containment miss.
-        candidate = resolved_base / f"{backup_name}{suffix}"
+        base_dir = Path(base_dir or self.backup_dir)
+        backup_name = self._validate_backup_name(backup_name)
+        candidate = base_dir / f"{backup_name}{suffix}"
 
         try:
-            candidate.relative_to(resolved_base)
+            if not os.path.samefile(candidate.parent, base_dir.resolve()):
+                raise ValueError
         except (ValueError, OSError):
             raise ValueError("Backup path outside allowed directory")
 
@@ -204,8 +201,8 @@ class BackupServiceEncrypted:
         return {
             "success": True,
             "backup_name": backup_name,
-            "backup_path": str(backup_path),
-            "metadata_path": str(metadata_path),
+            "backup_path": backup_path.as_posix(),
+            "metadata_path": metadata_path.as_posix(),
             "original_size": source_path.stat().st_size,
             "encrypted_size": backup_size,
             "compression_ratio": f"{(backup_size / source_path.stat().st_size * 100):.1f}%",

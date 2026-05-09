@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 
 from backend.db import get_session as get_db
 from backend.models import ImportJob, ExportJob
+from backend.rate_limiting import RATE_LIMIT_HEAVY, limiter
 from backend.rbac import require_permission
 from backend.security.current_user import get_current_user
 from backend.schemas import (
@@ -39,6 +40,7 @@ async_export_service = AsyncExportService()
 
 
 @router.post("/imports/students", response_model=APIResponse[ImportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
 async def create_student_import(
     request: Request,
@@ -106,6 +108,7 @@ async def create_student_import(
 
 
 @router.post("/imports/courses", response_model=APIResponse[ImportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
 async def create_course_import(
     request: Request,
@@ -164,6 +167,7 @@ async def create_course_import(
 
 
 @router.post("/imports/grades", response_model=APIResponse[ImportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("imports:create")
 async def create_grade_import(
     request: Request,
@@ -362,6 +366,7 @@ async def commit_import_job(
 
 
 @router.post("/exports", response_model=APIResponse[ExportJobResponse])
+@limiter.limit(RATE_LIMIT_HEAVY)
 @require_permission("exports:generate")
 async def create_export(
     request: Request,

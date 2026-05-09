@@ -283,9 +283,11 @@ export const SearchView: React.FC = () => {
                 <h3 className="text-base font-semibold text-slate-900">
                   {t('resultsTitle', { defaultValue: 'Results' })}
                 </h3>
-                <p className="text-sm text-gray-500">
-                  {t('resultsSummary', { defaultValue: '{{count}} total results', count: totalResults })}
-                </p>
+                {totalResults > 0 ? (
+                  <p className="text-sm text-gray-500">
+                    {t('resultsSummary', { defaultValue: '{{count}} total results', count: totalResults })}
+                  </p>
+                ) : null}
               </div>
               {searchType === 'grades' && (gradeDateFrom || gradeDateTo) && (
                 <div className="flex flex-wrap gap-2">
@@ -309,9 +311,9 @@ export const SearchView: React.FC = () => {
               </div>
             )}
 
-            {!error && searchResults.length === 0 && !isLoading && (
+            {!error && totalResults === 0 && !isLoading && (
               <div className="p-4 text-sm text-gray-600 border border-gray-200 rounded-md bg-gray-50">
-                {t('noResults', { defaultValue: 'No results found' })}
+                {t('search.noResults', 'No results found')}
               </div>
             )}
 

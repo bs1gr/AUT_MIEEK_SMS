@@ -306,7 +306,7 @@ async def download_backup(
     resolved_name = path.name
     media_type = "application/gzip" if resolved_name.endswith(".gz") else "application/sql"
     return FileResponse(
-        path=str(path),
+        path=path.as_posix(),
         filename=resolved_name,
         media_type=media_type,
     )
