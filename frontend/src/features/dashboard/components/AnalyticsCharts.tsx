@@ -43,8 +43,11 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-8">
-        <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
       </div>
     );
   }
@@ -109,8 +112,11 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-8">
-        <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
       </div>
     );
   }
@@ -164,8 +170,11 @@ export const AttendanceChart: React.FC<AttendanceChartProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-8">
-        <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
       </div>
     );
   }
@@ -218,8 +227,11 @@ export const TrendChart: React.FC<TrendChartProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-8">
-        <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
       </div>
     );
   }
@@ -294,8 +306,11 @@ export const StatsPieChart: React.FC<StatsPieChartProps> = ({
 
   if (!data || data.length === 0 || totalValue <= 0) {
     return (
-      <div className="flex items-center justify-center rounded-lg border border-gray-200 bg-gray-50 p-8">
-        <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
       </div>
     );
   }

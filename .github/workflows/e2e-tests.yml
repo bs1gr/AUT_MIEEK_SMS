@@ -24,6 +24,8 @@ jobs:
     # E2E tests must pass - they verify end-to-end functionality
     # If tests fail, the issue must be fixed before merge
     continue-on-error: false
+    env:
+      DATABASE_URL: sqlite:///${{ github.workspace }}/data/student_management.db
 
     steps:
       - uses: actions/checkout@v4
@@ -123,7 +125,6 @@ jobs:
           AUTH_LOGIN_THROTTLE_ENABLED: '0'
           AUTH_USER_LOCKOUT_ENABLED: '0'
           SERVE_FRONTEND: '1'
-          DATABASE_URL: sqlite:///./data/student_management.db
         run: |
           echo "Starting backend server..."
           echo "Frontend build exists: $(test -f frontend/dist/index.html && echo 'YES' || echo 'NO')"

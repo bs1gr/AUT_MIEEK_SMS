@@ -71,7 +71,11 @@ class BackupServiceEncrypted:
         """Resolve a backup path safely within the allowed directory."""
         base_dir = base_dir or self.backup_dir
         resolved_base = base_dir.resolve()
-        candidate = (resolved_base / f"{backup_name}{suffix}").resolve()
+        # backup_name is validated as a bare filename before this helper is used.
+        # Avoid resolving the final, usually non-existent file on Windows because
+        # pathlib can expand 8.3 short-name segments (for example RUNNER~1) in the
+        # candidate but not the base directory, producing a false containment miss.
+        candidate = resolved_base / f"{backup_name}{suffix}"
 
         try:
             candidate.relative_to(resolved_base)
@@ -100,13 +104,15 @@ class BackupServiceEncrypted:
         # Reject paths containing obvious traversal patterns
         dangerous_patterns = [
             "..",  # Parent directory traversal
-            "~",  # Home directory expansion
             "\x00",  # Null byte
         ]
 
         for pattern in dangerous_patterns:
             if pattern in path_str:
                 raise ValueError(f"Path traversal detected: contains '{pattern}'")
+
+        if any(part.startswith("~") for part in Path(output_path).parts):
+            raise ValueError("Path traversal detected: contains '~'")
 
         # CodeQL [python/path-injection]: Safe - path already validated for traversal patterns
         # Resolve path to absolute form to prevent symlink attacks
