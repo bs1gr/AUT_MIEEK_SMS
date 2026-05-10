@@ -14,7 +14,7 @@ jobs:
       operator: ${{ steps.filter.outputs.operator }}
     steps:
       - name: Detect operator script changes
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         id: filter
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +48,7 @@ jobs:
       contents: read
     steps:
       - name: Check PR for operator script changes and labels
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
