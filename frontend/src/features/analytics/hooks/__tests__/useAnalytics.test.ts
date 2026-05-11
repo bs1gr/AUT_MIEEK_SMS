@@ -58,6 +58,28 @@ describe("useAnalytics Hook", () => {
     expect(result.current.error).toBe(null);
   });
 
+  it("unwraps APIResponse wrapper nested inside an Axios response", async () => {
+    const performanceData = { overall_average: 85, period_days: 30, courses: {} };
+    const trendsData = { trend_data: [], overall_trend: "stable", moving_average: 85 };
+    const attendanceData = { overall_attendance_rate: 90, total_classes: 20, courses: {} };
+
+    mockGet
+      .mockResolvedValueOnce({ data: { success: true, data: performanceData } })
+      .mockResolvedValueOnce({ data: { success: true, data: trendsData } })
+      .mockResolvedValueOnce({ data: { success: true, data: attendanceData } });
+
+    const { result } = renderHook(() => useAnalytics(1));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    expect(result.current.performance).toEqual(performanceData);
+    expect(result.current.trends).toEqual(trendsData);
+    expect(result.current.attendance).toEqual(attendanceData);
+    expect(result.current.error).toBe(null);
+  });
+
   it("fetches course analytics data", async () => {
     const distributionData = {
       distribution: { "A (90-100%)": 5 },

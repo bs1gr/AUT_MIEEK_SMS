@@ -46,9 +46,22 @@ export const useAnalytics = (
   const [errorCategory, setErrorCategory] = useState<ErrorCategory>(ErrorCategory.UNKNOWN);
 
   const normalize = (res: unknown) => {
-    if (res && typeof res === "object" && "data" in (res as Record<string, unknown>)) {
-      return (res as { data: unknown }).data;
+    if (!res || typeof res !== "object") {
+      return res ?? null;
     }
+
+    const asRecord = res as Record<string, unknown>;
+    if ("data" in asRecord) {
+      const data = asRecord.data;
+      if (data && typeof data === "object") {
+        const inner = data as Record<string, unknown>;
+        if ("success" in inner && "data" in inner) {
+          return inner.data ?? null;
+        }
+      }
+      return data ?? null;
+    }
+
     return res ?? null;
   };
 
