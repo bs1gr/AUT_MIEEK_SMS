@@ -19,6 +19,15 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
 
+      - name: Check GitHub CLI availability
+        shell: bash
+        run: |
+          if ! command -v gh >/dev/null 2>&1; then
+            echo 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for Dependabot automation.'
+            exit 1
+          fi
+          gh --version
+
       - name: Auto-approve minor/patch updates
         if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
         run: gh pr review --approve "$PR_URL"

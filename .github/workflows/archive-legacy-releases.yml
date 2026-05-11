@@ -27,6 +27,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Check GitHub CLI availability
+        shell: pwsh
+        run: |
+          $gh = Get-Command gh -ErrorAction SilentlyContinue
+          if (-not $gh) {
+            Write-Error 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for release archiving.'
+            exit 1
+          }
+          gh --version
+
       - name: Show gh auth status
         shell: pwsh
         run: gh auth status --show-token-scopes

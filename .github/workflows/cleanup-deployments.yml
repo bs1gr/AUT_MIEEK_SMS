@@ -33,6 +33,15 @@ jobs:
       deployments: write
       contents: read
     steps:
+      - name: Check GitHub CLI availability
+        shell: bash
+        run: |
+          if ! command -v gh >/dev/null 2>&1; then
+            echo 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for deployment cleanup.'
+            exit 1
+          fi
+          gh --version
+
       - name: Delete old deployments
         shell: bash
         env:

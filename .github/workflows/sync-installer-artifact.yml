@@ -200,6 +200,17 @@ jobs:
           Copy-Item -Path $distPath -Destination $repoPath -Force
           Write-Host "Synced installer to tracked path: $repoPath"
 
+      - name: Check GitHub CLI availability
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $gh = Get-Command gh -ErrorAction SilentlyContinue
+          if (-not $gh) {
+            Write-Error 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for PR creation fallback.'
+            exit 1
+          }
+          gh --version
+
       - name: Commit and push if changed
         shell: pwsh
         env:

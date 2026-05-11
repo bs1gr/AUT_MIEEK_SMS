@@ -26,6 +26,15 @@ jobs:
   sanitize:
     runs-on: ubuntu-latest
     steps:
+      - name: Check GitHub CLI availability
+        run: |
+          set -euo pipefail
+          if ! command -v gh >/dev/null 2>&1; then
+            echo 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for release sanitization.'
+            exit 1
+          fi
+          gh --version
+
       - name: Resolve target release tag
         id: resolve
         env:

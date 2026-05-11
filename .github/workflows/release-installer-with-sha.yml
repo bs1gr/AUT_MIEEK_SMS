@@ -45,6 +45,21 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref }}
 
+      - name: Check GitHub CLI availability
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $gh = Get-Command gh -ErrorAction SilentlyContinue
+          if (-not $gh) {
+            Write-Error 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for release verification and asset management.'
+            exit 1
+          }
+          gh --version
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error 'GitHub CLI is installed but failed to report its version.'
+            exit 1
+          }
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
