@@ -65,7 +65,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { formatDate } = useDateTimeFormatter();
-  const { exportPDF, exportExcel, isExporting } = useAnalyticsExport();
+  const { exportPDF, exportExcel, isExporting, exportError } = useAnalyticsExport();
   const MAX_ANALYTICS_PAGE_SIZE = 1000;
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -1099,6 +1099,11 @@ export const AnalyticsDashboard: React.FC = () => {
           {t('analytics.back')}
         </button>
       </div>
+      {exportError && (
+        <p className="text-sm text-red-600" role="alert">
+          {exportError}
+        </p>
+      )}
     </div>
   );
 };

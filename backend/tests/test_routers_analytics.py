@@ -197,3 +197,31 @@ class TestAnalyticsRouter:
             response = client.get("/api/v1/analytics/dashboard", params={"format": format_type}, headers=admin_headers)
             # Should either accept or gracefully reject
             assert response.status_code in [200, 400, 501]
+
+    def test_export_dashboard_excel(self, client, admin_headers, clean_db):
+        """Test POST /analytics/export/excel returns a workbook download."""
+        student = Student(student_id="EXP001", first_name="Export", last_name="Student", email="exp1@test.com")
+        course = Course(course_code="EXP101", course_name="Export Course", semester="Fall 2024", credits=3)
+        clean_db.add_all([student, course])
+        clean_db.commit()
+
+        response = client.post("/api/v1/analytics/export/excel", headers=admin_headers)
+
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+        assert response.content.startswith(b"PK")
+
+    def test_export_dashboard_pdf(self, client, admin_headers, clean_db):
+        """Test POST /analytics/export/pdf returns a PDF download."""
+        student = Student(student_id="EXP002", first_name="Export", last_name="Pdf", email="exp2@test.com")
+        course = Course(course_code="EXP102", course_name="PDF Course", semester="Fall 2024", credits=3)
+        clean_db.add_all([student, course])
+        clean_db.commit()
+
+        response = client.post("/api/v1/analytics/export/pdf", headers=admin_headers)
+
+        assert response.status_code == 200
+        assert response.headers["content-type"].startswith("application/pdf")
+        assert response.content.startswith(b"%PDF")

@@ -258,6 +258,116 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
         raise internal_server_error("Analytics lookups failed", request)
 
 
+def _build_dashboard_export_data(db: Session) -> dict:
+    """Build dashboard export data from the current analytics schema."""
+    from sqlalchemy import func
+
+    service = AnalyticsService(db)
+    summary = service.get_dashboard_summary()
+
+    students_query = db.query(Student).order_by(Student.last_name.asc(), Student.first_name.asc())
+    if hasattr(Student, "deleted_at"):
+        students_query = students_query.filter(Student.deleted_at.is_(None))
+    students = students_query.all()
+
+    courses_query = db.query(Course).order_by(Course.course_name.asc())
+    if hasattr(Course, "deleted_at"):
+        courses_query = courses_query.filter(Course.deleted_at.is_(None))
+    courses = courses_query.all()
+
+    student_by_id = {student.id: student for student in students}
+
+    def class_label(student: Student) -> str:
+        if getattr(student, "academic_year", None):
+            return str(student.academic_year)
+        if student.study_year in (1, 2):
+            return "A" if student.study_year == 1 else "B"
+        if student.study_year:
+            return f"Year {student.study_year}"
+        return "Unknown Class"
+
+    class_counts: dict[str, int] = {}
+    for student in students:
+        label = class_label(student)
+        class_counts[label] = class_counts.get(label, 0) + 1
+
+    grade_filter = Grade.deleted_at.is_(None) if hasattr(Grade, "deleted_at") else True
+    valid_grade_filter = (Grade.max_grade.isnot(None)) & (Grade.max_grade > 0)
+    grade_percentage = (Grade.grade / Grade.max_grade) * 100
+
+    class_grade_totals: dict[str, dict[str, float]] = {}
+    student_grade_query = (
+        db.query(Student.id, Grade.grade, Grade.max_grade)
+        .join(Grade, Student.id == Grade.student_id)
+        .filter(
+            (Student.deleted_at.is_(None) if hasattr(Student, "deleted_at") else True),
+            grade_filter,
+            valid_grade_filter,
+        )
+        .all()
+    )
+
+    for student_id, grade_value, max_grade in student_grade_query:
+        student = student_by_id.get(student_id)
+        if not student or not max_grade or max_grade <= 0:
+            continue
+        label = class_label(student)
+        stats = class_grade_totals.setdefault(label, {"count": 0.0, "total": 0.0})
+        stats["count"] += 1
+        stats["total"] += (grade_value / max_grade) * 100
+
+    class_averages = []
+    for label, count in class_counts.items():
+        stats = class_grade_totals.get(label, {"count": 0.0, "total": 0.0})
+        class_averages.append(
+            {
+                "label": label,
+                "count": count,
+                "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
+            }
+        )
+    class_averages.sort(key=lambda item: item["count"], reverse=True)
+
+    enrollment_query = db.query(CourseEnrollment.course_id, func.count(CourseEnrollment.id).label("count"))
+    if hasattr(CourseEnrollment, "deleted_at"):
+        enrollment_query = enrollment_query.filter(CourseEnrollment.deleted_at.is_(None))
+    enrollment_counts = {course_id: count for course_id, count in enrollment_query.group_by(CourseEnrollment.course_id).all()}
+
+    course_grade_query = (
+        db.query(Grade.course_id, func.count(Grade.id).label("count"), func.avg(grade_percentage).label("avg_pct"))
+        .filter(grade_filter, valid_grade_filter)
+        .group_by(Grade.course_id)
+        .all()
+    )
+    grade_stats_by_course = {
+        course_id: {"count": count or 0, "average": float(avg_pct or 0.0)}
+        for course_id, count, avg_pct in course_grade_query
+    }
+
+    course_averages = []
+    for course in courses:
+        stats = grade_stats_by_course.get(course.id, {"count": 0, "average": 0.0})
+        course_averages.append(
+            {
+                "label": course.course_name,
+                "count": enrollment_counts.get(course.id, 0),
+                "average": stats["average"],
+            }
+        )
+    course_averages.sort(key=lambda item: item["count"], reverse=True)
+
+    return {
+        "summary": {
+            "total_students": summary.get("total_students", 0),
+            "total_courses": summary.get("total_courses", 0),
+            "average_grade": summary.get("average_grade", 0),
+            "average_attendance": summary.get("average_attendance", 0),
+        },
+        "class_averages": class_averages,
+        "course_averages": course_averages,
+    }
+
+
 @router.get("/student/{student_id}/performance")
 @limiter.limit(RATE_LIMIT_READ)
 @require_permission("reports:generate")
@@ -467,25 +577,7 @@ async def export_dashboard_excel(
         StreamingResponse: Excel file with dashboard summary data
     """
     try:
-        service = AnalyticsService(db)
-
-        # Get dashboard data
-        lookups = service.get_analytics_lookups()
-        dashboard = service.get_dashboard()
-
-        # Prepare export data
-        export_data = {
-            "summary": {
-                "total_students": lookups.get("students_count", 0),
-                "total_courses": lookups.get("courses_count", 0),
-                "average_grade": dashboard.get("class_average_summary", {}).get("average", 0),
-                "average_attendance": dashboard.get("course_average_summary", {}).get("average", 0),
-            },
-            "class_averages": dashboard.get("class_average_summary", {}).get("data", []),
-            "course_averages": dashboard.get("course_average_summary", {}).get("data", []),
-        }
-
-        # Generate Excel
+        export_data = _build_dashboard_export_data(db)
         export_service = AnalyticsExportService(db)
         excel_data = export_service.export_dashboard_to_excel(data=export_data)
 
@@ -520,25 +612,7 @@ async def export_dashboard_pdf(
         StreamingResponse: PDF file with dashboard summary data
     """
     try:
-        service = AnalyticsService(db)
-
-        # Get dashboard data
-        lookups = service.get_analytics_lookups()
-        dashboard = service.get_dashboard()
-
-        # Prepare export data
-        export_data = {
-            "summary": {
-                "total_students": lookups.get("students_count", 0),
-                "total_courses": lookups.get("courses_count", 0),
-                "average_grade": dashboard.get("class_average_summary", {}).get("average", 0),
-                "average_attendance": dashboard.get("course_average_summary", {}).get("average", 0),
-            },
-            "class_averages": dashboard.get("class_average_summary", {}).get("data", []),
-            "course_averages": dashboard.get("course_average_summary", {}).get("data", []),
-        }
-
-        # Generate PDF
+        export_data = _build_dashboard_export_data(db)
         export_service = AnalyticsExportService(db)
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
 

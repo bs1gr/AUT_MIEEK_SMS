@@ -49,5 +49,8 @@ export function useAnalyticsExport() {
     exportPDF: () => exportDashboardMutation.mutate('pdf'),
     exportExcel: () => exportDashboardMutation.mutate('excel'),
     isExporting: exportDashboardMutation.isPending,
+    exportError: exportDashboardMutation.error instanceof Error
+      ? exportDashboardMutation.error.message
+      : null,
   };
 }
