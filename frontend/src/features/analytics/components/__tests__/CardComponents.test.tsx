@@ -11,6 +11,8 @@ import { PerformanceCard } from "../PerformanceCard";
 import { AttendanceCard } from "../AttendanceCard";
 import { TrendsChart } from "../TrendsChart";
 import { GradeDistributionChart } from "../GradeDistributionChart";
+import analyticsEn from "../../../../locales/en/analytics.js";
+import commonEn from "../../../../locales/en/common.js";
 
 // Initialize i18n for tests
 i18n.init({
@@ -18,25 +20,8 @@ i18n.init({
   fallbackLng: "en",
   resources: {
     en: {
-      translation: {
-        "analytics.performance_title": "Performance",
-        "analytics.attendance_title": "Attendance",
-        "analytics.trends_title": "Trends",
-        "analytics.grade_distribution_title": "Grade Distribution",
-        "analytics.attendance_good": "Good",
-        "analytics.attendance_warning": "Warning",
-        "analytics.trend_improving": "Improving",
-        "analytics.trend_declining": "Declining",
-        "analytics.no_distribution_data": "No distribution data",
-        "analytics.gradeA": "A (90-100%)",
-        "analytics.gradeB": "B (80-89%)",
-        "analytics.gradeC": "C (70-79%)",
-        "analytics.gradeD": "D (60-69%)",
-        "analytics.gradeF": "F (<60%)",
-        "analytics.overall_average": "Overall Average",
-        "analytics.period": "Period",
-        "days": "days",
-      },
+      analytics: analyticsEn,
+      common: commonEn,
     },
   },
 });
@@ -147,7 +132,9 @@ describe("Analytics Component Cards", () => {
 
     it("renders attendance card with title", () => {
       renderWithProviders(<AttendanceCard data={mockAttendanceData} />);
-      expect(screen.getByText("Attendance")).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: "Attendance", level: 3 })
+      ).toBeInTheDocument();
     });
 
     it("displays overall attendance percentage", () => {
@@ -265,7 +252,7 @@ describe("Analytics Component Cards", () => {
       };
       renderWithProviders(<GradeDistributionChart data={data} />);
       expect(
-        screen.getByText("No distribution data")
+        screen.getByText(/No distribution data/i)
       ).toBeInTheDocument();
     });
   });

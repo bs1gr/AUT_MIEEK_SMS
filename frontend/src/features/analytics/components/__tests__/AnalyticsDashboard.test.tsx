@@ -11,6 +11,8 @@ import i18n from "i18next";
 import { I18nextProvider } from "react-i18next";
 import AnalyticsDashboard from "../AnalyticsDashboard";
 import { useAnalytics } from "../../hooks/useAnalytics";
+import analyticsEn from "../../../../locales/en/analytics.js";
+import commonEn from "../../../../locales/en/common.js";
 
 // Initialize i18n for tests
 i18n.init({
@@ -18,17 +20,8 @@ i18n.init({
   fallbackLng: "en",
   resources: {
     en: {
-      translation: {
-        "analytics.title": "Analytics Dashboard",
-        "analytics.performance_title": "Performance",
-        "analytics.attendance_title": "Attendance",
-        "analytics.trends_title": "Trends",
-        "analytics.grade_distribution_title": "Grade Distribution",
-        "analytics.error_title": "Error Loading Analytics",
-        "common.loading": "Loading",
-        "common.error": "Error",
-        "common.refresh": "Refresh",
-      },
+      analytics: analyticsEn,
+      common: commonEn,
     },
   },
 });
@@ -232,7 +225,7 @@ describe("AnalyticsDashboard", () => {
     );
 
     const refreshButton = screen.getByRole("button", {
-      name: "Loading",
+      name: /Loading/,
     });
     expect(refreshButton).toBeDisabled();
   });

@@ -34,7 +34,7 @@ interface AttendanceCardProps {
  * Shows overall attendance rate and course breakdown
  */
 export const AttendanceCard: React.FC<AttendanceCardProps> = ({ data }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation("analytics");
 
   // Determine attendance status color
   const getAttendanceColor = (rate: number): string => {
@@ -48,7 +48,7 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({ data }) => {
 
   return (
     <div className="attendance-card widget-card">
-      <h3>{t("analytics.attendance_title")}</h3>
+      <h3>{t("attendance_title")}</h3>
 
       <div className="attendance-main">
         <div
@@ -59,18 +59,18 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({ data }) => {
         >
           <div className="attendance-circle-inner">
             <div className="attendance-percentage">{data.overall_attendance_rate.toFixed(1)}%</div>
-            <div className="attendance-label">{t("analytics.attendance")}</div>
+            <div className="attendance-label">{t("attendance")}</div>
           </div>
         </div>
 
         <div className="attendance-stats">
           <div className="stat-item">
-            <span className="stat-label">{t("analytics.total_classes")}</span>
+            <span className="stat-label">{t("total_classes")}</span>
             <span className="stat-value">{data.total_classes}</span>
           </div>
           {data.courses && Object.keys(data.courses).length > 0 && (
             <div className="stat-item">
-              <span className="stat-label">{t("analytics.courses")}</span>
+              <span className="stat-label">{t("courses")}</span>
               <span className="stat-value">{Object.keys(data.courses).length}</span>
             </div>
           )}
@@ -80,7 +80,7 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({ data }) => {
       {/* Course breakdown */}
       {data.courses && Object.keys(data.courses).length > 0 && (
         <div className="course-attendance">
-          <h4>{t("analytics.by_course")}</h4>
+          <h4>{t("by_course")}</h4>
           <div className="course-list">
             {Object.entries(data.courses).map(([courseId, course]) => (
               <div
@@ -108,9 +108,9 @@ export const AttendanceCard: React.FC<AttendanceCardProps> = ({ data }) => {
       {/* Status indicator */}
       <div className="attendance-status">
         {data.overall_attendance_rate >= 75 ? (
-          <span className="status-good">{t("analytics.attendance_good")}</span>
+          <span className="status-good">{t("attendance_good")}</span>
         ) : (
-          <span className="status-warning">{t("analytics.attendance_warning")}</span>
+          <span className="status-warning">{t("attendance_warning")}</span>
         )}
       </div>
     </div>

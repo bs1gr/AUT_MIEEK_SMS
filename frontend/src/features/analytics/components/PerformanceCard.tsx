@@ -33,7 +33,7 @@ interface PerformanceCardProps {
  * Shows overall average and breakdown by course
  */
 export const PerformanceCard: React.FC<PerformanceCardProps> = ({ data }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(["analytics", "common"]);
 
   // Grade scale: A (90-100), B (80-89), C (70-79), D (60-69), F (<60)
   const getGradeLevel = (percentage: number): string => {
@@ -69,7 +69,7 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({ data }) => {
 
   return (
     <div className="performance-card widget-card">
-      <h3>{t("analytics.performance_title")}</h3>
+      <h3>{t("performance_title", { ns: "analytics" })}</h3>
 
       <div className="performance-main">
         <div
@@ -86,16 +86,20 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({ data }) => {
 
         <div className="performance-stats">
           <div className="stat-item">
-            <span className="stat-label">{t("analytics.overall_average")}</span>
+            <span className="stat-label">
+              {t("overall_average", { ns: "analytics" })}
+            </span>
             <span className="stat-value">{percentage.toFixed(1)}%</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">{t("analytics.period")}</span>
-            <span className="stat-value">{data.period_days} {t('days')}</span>
+            <span className="stat-label">{t("period", { ns: "analytics" })}</span>
+            <span className="stat-value">
+              {data.period_days} {t("days", { ns: "common" })}
+            </span>
           </div>
           {data.courses && Object.keys(data.courses).length > 0 && (
             <div className="stat-item">
-              <span className="stat-label">{t("analytics.courses")}</span>
+              <span className="stat-label">{t("courses", { ns: "analytics" })}</span>
               <span className="stat-value">{Object.keys(data.courses).length}</span>
             </div>
           )}
@@ -105,7 +109,7 @@ export const PerformanceCard: React.FC<PerformanceCardProps> = ({ data }) => {
       {/* Course breakdown */}
       {data.courses && Object.keys(data.courses).length > 0 && (
         <div className="course-breakdown">
-          <h4>{t("analytics.by_course")}</h4>
+          <h4>{t("by_course", { ns: "analytics" })}</h4>
           <div className="course-list">
             {Object.entries(data.courses).map(([courseId, course]) => (
               <div key={courseId} className="course-item">

@@ -42,7 +42,7 @@ interface TrendsChartProps {
  * Line chart showing grade progression and moving average
  */
 export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(["analytics", "common"]);
 
   // Get trend icon
   const getTrendIcon = (trend: string): string => {
@@ -67,10 +67,10 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
   return (
     <div className="trends-chart widget-card">
       <div className="chart-header">
-        <h3>{t("analytics.trends_title")}</h3>
+        <h3>{t("trends_title", { ns: "analytics" })}</h3>
         <div className="trend-badge" style={{ color: trendColor }}>
           {getTrendIcon(data.overall_trend)}{" "}
-          {t(`analytics.trend_${data.overall_trend}`)}
+          {t(`trend_${data.overall_trend}`, { ns: "analytics" })}
         </div>
       </div>
 
@@ -86,10 +86,19 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
                 textAnchor="end"
                 height={80}
               />
-              <YAxis domain={[0, 100]} label={{ value: t('gradePercentage'), angle: -90, position: "insideLeft" }} />
+              <YAxis
+                domain={[0, 100]}
+                label={{
+                  value: t("gradePercentage", { ns: "common" }),
+                  angle: -90,
+                  position: "insideLeft",
+                }}
+              />
               <Tooltip
                 formatter={(value: number | undefined) => `${Number(value ?? 0).toFixed(1)}%`}
-                labelFormatter={(label) => `${t('dateLabel')}${label}`}
+                labelFormatter={(label) =>
+                  `${t("dateLabel", { ns: "common" })}${label}`
+                }
               />
               <Legend />
               <Line
@@ -97,7 +106,7 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
                 dataKey="grade"
                 stroke="#2196F3"
                 dot={{ fill: "#2196F3", r: 4 }}
-                name={t("analytics.grade")}
+                name={t("grade", { ns: "analytics" })}
                 isAnimationActive={false}
               />
               {data.trend_data.some((d) => d.moving_average !== undefined) && (
@@ -107,7 +116,7 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
                   stroke="#FF9800"
                   dot={false}
                   strokeDasharray="5 5"
-                  name={t("analytics.moving_average")}
+                  name={t("moving_average", { ns: "analytics" })}
                   isAnimationActive={false}
                 />
               )}
@@ -116,18 +125,22 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
 
           <div className="chart-stats">
             <div className="stat-item">
-              <span className="stat-label">{t("analytics.current_moving_average")}</span>
+              <span className="stat-label">
+                {t("current_moving_average", { ns: "analytics" })}
+              </span>
               <span className="stat-value">{data.moving_average.toFixed(1)}%</span>
             </div>
             <div className="stat-item">
-              <span className="stat-label">{t("analytics.data_points")}</span>
+              <span className="stat-label">
+                {t("data_points", { ns: "analytics" })}
+              </span>
               <span className="stat-value">{data.trend_data.length}</span>
             </div>
           </div>
         </>
       ) : (
         <div className="no-data-message">
-          {t("analytics.no_trends_data")}
+          {t("no_trends_data", { ns: "analytics" })}
         </div>
       )}
     </div>

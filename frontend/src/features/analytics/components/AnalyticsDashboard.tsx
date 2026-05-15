@@ -25,7 +25,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   studentId,
   courseId,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(["analytics", "common"]);
   const {
     performance,
     trends,
@@ -51,7 +51,7 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   if (error) {
     return (
       <div className="analytics-error">
-        <h3>{t("analytics.error_title")}</h3>
+        <h3>{t("error_title", { ns: "analytics" })}</h3>
         <p>{error.message}</p>
       </div>
     );
@@ -60,17 +60,23 @@ export const AnalyticsDashboard: React.FC<AnalyticsDashboardProps> = ({
   return (
     <div className="analytics-dashboard" key={refreshKey}>
       <div className="dashboard-header">
-        <h1>{t("analytics.title")}</h1>
+        <h1>{t("dashboardTitle", { ns: "analytics" })}</h1>
         <button
           onClick={handleRefresh}
           disabled={isLoading}
           className="refresh-button"
         >
-          {isLoading ? t("common.loading") : t("common.refresh")}
+          {isLoading
+            ? t("loading", { ns: "common" })
+            : t("refresh", { ns: "analytics" })}
         </button>
       </div>
 
-      {isLoading && <div className="loading-spinner">{t("common.loading")}...</div>}
+      {isLoading && (
+        <div className="loading-spinner">
+          {t("loading", { ns: "common" })}
+        </div>
+      )}
 
       {!isLoading && (
         <div className="dashboard-grid">

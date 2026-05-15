@@ -43,7 +43,7 @@ interface GradeDistributionChartProps {
 export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
   data,
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation(["analytics", "common"]);
 
   // Convert distribution to chart data
   const getChartData = (): DistributionBucket[] => {
@@ -62,7 +62,7 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
 
   return (
     <div className="grade-distribution-chart widget-card">
-      <h3>{t("analytics.grade_distribution_title")}</h3>
+      <h3>{t("grade_distribution_title", { ns: "analytics" })}</h3>
 
       {chartData.length > 0 ? (
         <>
@@ -73,16 +73,24 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
                 dataKey="range"
                 tick={{ fontSize: 12 }}
               />
-              <YAxis label={{ value: t('count'), angle: -90, position: "insideLeft" }} />
+              <YAxis
+                label={{
+                  value: t("count", { ns: "common" }),
+                  angle: -90,
+                  position: "insideLeft",
+                }}
+              />
               <Tooltip
                 formatter={(value: number | undefined) => value ?? 0}
-                labelFormatter={(label) => `${t('rangeLabel')}${label}`}
+                labelFormatter={(label) =>
+                  `${t("rangeLabel", { ns: "common" })}${label}`
+                }
               />
               <Legend />
               <Bar
                 dataKey="count"
                 fill="#2196F3"
-                name={t("analytics.grade_count")}
+                name={t("grade_count", { ns: "analytics" })}
                 radius={[8, 8, 0, 0]}
               />
             </BarChart>
@@ -90,12 +98,16 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
 
           <div className="distribution-stats">
             <div className="stat-item">
-              <span className="stat-label">{t("analytics.total_grades")}</span>
+              <span className="stat-label">
+                {t("total_grades", { ns: "analytics" })}
+              </span>
               <span className="stat-value">{data.total_grades}</span>
             </div>
             {data.average_percentage !== undefined && (
               <div className="stat-item">
-                <span className="stat-label">{t("analytics.class_average")}</span>
+                <span className="stat-label">
+                  {t("class_average", { ns: "analytics" })}
+                </span>
                 <span className="stat-value">
                   {data.average_percentage.toFixed(1)}%
                 </span>
@@ -107,29 +119,29 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
           <div className="distribution-legend">
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#4CAF50" }}></span>
-              <span>{t('analytics.gradeA')}</span>
+              <span>{t("gradeA", { ns: "analytics" })}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#8BC34A" }}></span>
-              <span>{t('analytics.gradeB')}</span>
+              <span>{t("gradeB", { ns: "analytics" })}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#FFC107" }}></span>
-              <span>{t('analytics.gradeC')}</span>
+              <span>{t("gradeC", { ns: "analytics" })}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#FF9800" }}></span>
-              <span>{t('analytics.gradeD')}</span>
+              <span>{t("gradeD", { ns: "analytics" })}</span>
             </div>
             <div className="legend-item">
               <span className="legend-color" style={{ backgroundColor: "#F44336" }}></span>
-              <span>{t('analytics.gradeF')}</span>
+              <span>{t("gradeF", { ns: "analytics" })}</span>
             </div>
           </div>
         </>
       ) : (
         <div className="no-data-message">
-          {t("analytics.no_distribution_data")}
+          {t("no_distribution_data", { ns: "analytics" })}
         </div>
       )}
     </div>
