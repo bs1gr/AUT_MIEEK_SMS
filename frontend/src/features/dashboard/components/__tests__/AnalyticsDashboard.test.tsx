@@ -2,7 +2,7 @@
  * Tests for AnalyticsDashboard component
  */
 
-import { render, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { AnalyticsDashboard } from '../AnalyticsDashboard';
@@ -19,6 +19,21 @@ const stableDateTimeMock = {
   formatTime: (date: Date | string) => new Date(date).toLocaleTimeString(),
   formatDateTime: (date: Date | string) => new Date(date).toISOString(),
 };
+
+const dashboardRefetchMock = vi.hoisted(() => vi.fn());
+const dashboardDataState = vi.hoisted(() => ({
+  dashboard: {
+    total_students: 150,
+    total_courses: 12,
+    total_grades: 500,
+    total_attendance_records: 450,
+    average_grade: 82.5,
+    average_attendance: 0.9,
+    timestamp: new Date().toISOString(),
+  },
+  isLoading: false,
+  error: null as Error | null,
+}));
 
 // Mock React Router
 vi.mock('react-router-dom', () => ({
@@ -39,18 +54,10 @@ vi.mock('@/api/api', () => ({
 // Mock the analytics hooks
 vi.mock('@/api/hooks/useAnalytics', () => ({
   useDashboardData: () => ({
-    dashboard: {
-      total_students: 150,
-      total_courses: 12,
-      total_grades: 500,
-      total_attendance_records: 450,
-      average_grade: 82.5,
-      average_attendance: 0.9,
-      timestamp: new Date().toISOString(),
-    },
-    isLoading: false,
-    error: null,
-    refetch: vi.fn(),
+    dashboard: dashboardDataState.dashboard,
+    isLoading: dashboardDataState.isLoading,
+    error: dashboardDataState.error,
+    refetch: dashboardRefetchMock,
   }),
 }));
 
@@ -91,6 +98,18 @@ describe('AnalyticsDashboard', () => {
         queries: { retry: false },
       },
     });
+    dashboardDataState.dashboard = {
+      total_students: 150,
+      total_courses: 12,
+      total_grades: 500,
+      total_attendance_records: 450,
+      average_grade: 82.5,
+      average_attendance: 0.9,
+      timestamp: new Date().toISOString(),
+    };
+    dashboardDataState.isLoading = false;
+    dashboardDataState.error = null;
+    dashboardRefetchMock.mockReset();
   });
 
   it('renders dashboard without crashing', () => {
@@ -165,16 +184,19 @@ describe('AnalyticsDashboard', () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
-  it('handles error state gracefully', async () => {
-    const { container } = render(
+  it('renders the dashboard when the summary endpoint fails', async () => {
+    dashboardDataState.dashboard = undefined as never;
+    dashboardDataState.error = new Error('summary failed');
+
+    render(
       <QueryClientProvider client={queryClient}>
         <AnalyticsDashboard />
       </QueryClientProvider>
     );
 
     await waitFor(() => {
-      // Component should render even with error
-      expect(container.firstChild).toBeInTheDocument();
+      expect(screen.getByText('analytics.dashboardTitle')).toBeInTheDocument();
     });
+    expect(screen.queryByText('analytics.dashboardError')).not.toBeInTheDocument();
   });
 });

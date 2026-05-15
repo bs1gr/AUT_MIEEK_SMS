@@ -84,7 +84,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
 
-  const { dashboard, isLoading, error, refetch } = useDashboardData();
+  const { dashboard, isLoading, refetch } = useDashboardData();
 
   const activeStudents = useMemo(
     () => students.filter((student) => student.is_active !== false),
@@ -772,24 +772,6 @@ export const AnalyticsDashboard: React.FC = () => {
 
     loadCourseDistribution();
   }, [effectiveSelectedCourse]);
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600">
-            {t('analytics.dashboardError')}
-          </p>
-          <button
-            onClick={() => refetch()}
-            className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-          >
-            {t('analytics.retry')}
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6 pb-10">
