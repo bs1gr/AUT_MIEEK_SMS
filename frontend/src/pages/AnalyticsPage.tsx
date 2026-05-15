@@ -1,3 +1,3 @@
-import { AnalyticsDashboard } from '@/features/dashboard';
+import { AnalyticsDashboard } from '@/features/analytics';
 
 export default AnalyticsDashboard;
