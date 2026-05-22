@@ -331,7 +331,9 @@ def _build_dashboard_export_data(db: Session) -> dict:
     enrollment_query = db.query(CourseEnrollment.course_id, func.count(CourseEnrollment.id).label("count"))
     if hasattr(CourseEnrollment, "deleted_at"):
         enrollment_query = enrollment_query.filter(CourseEnrollment.deleted_at.is_(None))
-    enrollment_counts = {course_id: count for course_id, count in enrollment_query.group_by(CourseEnrollment.course_id).all()}
+    enrollment_counts = {
+        course_id: count for course_id, count in enrollment_query.group_by(CourseEnrollment.course_id).all()
+    }
 
     course_grade_query = (
         db.query(Grade.course_id, func.count(Grade.id).label("count"), func.avg(grade_percentage).label("avg_pct"))
@@ -560,7 +562,7 @@ def clear_course_analytics_cache(
 
 @router.post("/export/excel")
 @limiter.limit(RATE_LIMIT_READ)
-@require_permission("reports:generate")
+@require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_excel(
     request: Request,
     db: Session = Depends(get_db),
@@ -568,7 +570,9 @@ async def export_dashboard_excel(
     """
     Export dashboard analytics data to Excel format.
 
-    **Permission** (requires admin or reports:generate permission):
+    **Permission** (requires one of):
+    - analytics:export
+    - reports:export
     - reports:generate
 
     **Rate limit**: 60 requests per minute (read limit)
@@ -595,7 +599,7 @@ async def export_dashboard_excel(
 
 @router.post("/export/pdf")
 @limiter.limit(RATE_LIMIT_READ)
-@require_permission("reports:generate")
+@require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_pdf(
     request: Request,
     db: Session = Depends(get_db),
@@ -603,7 +607,9 @@ async def export_dashboard_pdf(
     """
     Export dashboard analytics data to PDF format.
 
-    **Permission** (requires admin or reports:generate permission):
+    **Permission** (requires one of):
+    - analytics:export
+    - reports:export
     - reports:generate
 
     **Rate limit**: 60 requests per minute (read limit)

@@ -55,13 +55,15 @@ This guide covers Role-Based Access Control (RBAC) administration for SMS $11.18
 | `attendance:view` | Attendance | View | Read attendance records | admin, teacher, viewer |
 | `attendance:edit` | Attendance | Edit | Log/modify attendance | admin, teacher |
 
-#### Reporting & Analytics (4 permissions)
+#### Reporting & Analytics (6 permissions)
 
 | Permission | Resource | Action | Scope | Assigned To |
 |-----------|----------|--------|-------|------------|
 | `reports:view` | Reports | View | Read reports | admin, teacher, viewer |
-| `reports:generate` | Reports | Generate | Create new reports | admin, teacher |
-| `analytics:view` | Analytics | View | Read analytics data | admin, teacher, viewer |
+| `reports:generate` | Reports | Generate | Create new reports | admin, staff, teacher |
+| `reports:export` | Reports | Export | Export reports as PDF/Excel | admin, staff, teacher |
+| `analytics:view` | Analytics | View | Read analytics data | admin, staff, teacher, viewer |
+| `analytics:export` | Analytics | Export | Export analytics data | admin, staff |
 | `metrics:view` | Metrics | View | Read metrics dashboards | admin, teacher, viewer |
 
 #### System Administration (6 permissions)
@@ -107,14 +109,14 @@ notifications:*, diagnostics:*, sessions:*
 ### Teacher Role
 
 **Purpose**: Manage classes, grades, and attendance
-**Permissions** (11 total):
+**Permissions** (12 total):
 
 ```text
 students:view,           (read student info)
 courses:view,            (read courses)
 grades:view, grades:edit, (view and submit grades)
 attendance:view, attendance:edit, (view and log attendance)
-reports:view, reports:generate, (view and create reports)
+reports:view, reports:generate, reports:export, (view, create, and export reports)
 analytics:view, metrics:view (read analytics)
 
 ```text

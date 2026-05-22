@@ -1,7 +1,7 @@
 # API Permissions Reference
 
-**Version**: 1.15.1
-**Last Updated**: January 8, 2026
+**Version**: 1.18.21
+**Last Updated**: May 22, 2026
 
 This document provides a complete reference of all API endpoints and their required permissions after Phase 2 RBAC implementation.
 
@@ -61,11 +61,14 @@ The API supports three authentication modes via the `AUTH_MODE` environment vari
 | `attendance:view` | View attendance records | Read-only access |
 | `attendance:edit` | Log and update attendance | Write access |
 
-### 5. Reporting & Analytics (`reports:*`)
+### 5. Reporting & Analytics (`reports:*`, `analytics:*`)
 
 | Permission | Description | Scope |
 |-----------|-------------|-------|
-| `reports:generate` | Generate reports and analytics | Read-only access to aggregated data |
+| `reports:generate` | Generate reports and analytics views | Read-only access to aggregated data |
+| `reports:export` | Export reports as files | PDF/Excel report exports |
+| `analytics:view` | View analytics dashboards | Read-only analytics access |
+| `analytics:export` | Export analytics dashboard data | PDF/Excel analytics exports |
 
 ### 6. Audit Logs (`audit:*`)
 
@@ -196,6 +199,8 @@ The API supports three authentication modes via the `AUTH_MODE` environment vari
 | GET | `/analytics/course/{course_id}` | `reports:generate` | No |
 | GET | `/analytics/cohort` | `reports:generate` | No |
 | GET | `/analytics/at-risk` | `reports:generate` | No |
+| POST | `/analytics/export/excel` | One of `analytics:export`, `reports:export`, `reports:generate` | No |
+| POST | `/analytics/export/pdf` | One of `analytics:export`, `reports:export`, `reports:generate` | No |
 
 **Self-Access Rules**:
 - Students can view their own analytics
@@ -386,7 +391,8 @@ After migration, assign these default roles:
 | User Type | Recommended Role | Permissions |
 |-----------|------------------|-------------|
 | Administrator | `admin` | All permissions (`*:*`) |
-| Teacher/Instructor | `teacher` | `courses:view`, `students:view`, `grades:edit`, `attendance:edit`, `reports:generate` |
+| Staff | `staff` | `students:create`, `grades:edit`, `attendance:edit`, `reports:generate`, `reports:export`, `analytics:export` |
+| Teacher/Instructor | `teacher` | `courses:view`, `students:view`, `grades:edit`, `attendance:edit`, `reports:generate`, `reports:export` |
 | Student | `student` | Self-access only (no explicit permissions needed) |
 | Auditor | `auditor` | `students:view`, `courses:view`, `grades:view`, `attendance:view`, `reports:generate`, `audit:view` |
 
@@ -399,5 +405,5 @@ After migration, assign these default roles:
 
 ---
 
-**Last reviewed**: January 8, 2026
-**Next review**: February 2026 (post Phase 2 completion)
+**Last reviewed**: May 22, 2026
+**Next review**: As part of the next RBAC permission audit

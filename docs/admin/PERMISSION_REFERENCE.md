@@ -216,6 +216,17 @@ All permissions in SMS follow the format: **`resource:action`**
 - **Assigned By Default To**: admin, teacher
 - **Required For**: Running report generation jobs
 
+#### `reports:export`
+
+- **Resource**: Reports
+- **Action**: Export
+- **Description**: Export reports as PDF/Excel files
+- **Applies to Endpoints**:
+  - POST /api/v1/analytics/export/excel (accepted as a compatibility permission)
+  - POST /api/v1/analytics/export/pdf (accepted as a compatibility permission)
+- **Assigned By Default To**: admin, staff, teacher
+- **Required For**: Downloadable report and dashboard export flows
+
 #### `analytics:view`
 
 - **Resource**: Analytics
@@ -227,6 +238,17 @@ All permissions in SMS follow the format: **`resource:action`**
   - GET /api/v1/analytics/student-performance
 - **Assigned By Default To**: admin, teacher, viewer
 - **Scope**: Teachers see only their class analytics
+
+#### `analytics:export`
+
+- **Resource**: Analytics
+- **Action**: Export
+- **Description**: Export analytics dashboard data as PDF/Excel files
+- **Applies to Endpoints**:
+  - POST /api/v1/analytics/export/excel
+  - POST /api/v1/analytics/export/pdf
+- **Assigned By Default To**: admin, staff
+- **Required For**: Analytics-specific dashboard export access
 
 #### `metrics:view`
 
@@ -430,7 +452,9 @@ courses:view, courses:create, courses:edit, courses:delete,
 grades:view, grades:edit,
 attendance:view, attendance:edit,
 reports:view, reports:generate,
+reports:export,
 analytics:view, metrics:view,
+analytics:export,
 audit:view,
 permissions:view, permissions:manage,
 jobs:manage, imports:manage, exports:generate,
@@ -448,6 +472,7 @@ courses:view,
 grades:view, grades:edit,
 attendance:view, attendance:edit,
 reports:view, reports:generate,
+reports:export,
 analytics:view, metrics:view
 
 ```text

@@ -377,16 +377,90 @@ def test_014_require_permission_logs_request_id(db):
     ...
 
 
-@pytest.mark.skip(reason="require_any_permission decorator not implemented")
-def test_015_require_any_permission_allows_on_any_match(db):
-    """Any-permission decorator should allow when at least one matches."""
-    ...
+def test_015_require_permission_allows_on_any_match(clean_db, monkeypatch):
+    """Decorator allows when any listed permission matches."""
+    from fastapi import APIRouter, Request
+    from backend.rbac import require_permission
+    from backend.db import get_session
+    from backend.app_factory import create_app
+    from backend.routers.routers_auth import create_access_token
+    from starlette.testclient import TestClient
+
+    perm = create_permission(clean_db, "reports:export")
+    clean_db.add(perm)
+    clean_db.flush()
+
+    user = User(email="any-match@test.com", hashed_password="dummy", is_active=True, role="none")
+    clean_db.add(user)
+    clean_db.flush()
+    clean_db.add(UserPermission(user_id=user.id, permission_id=perm.id))
+    clean_db.commit()
+    clean_db.refresh(user)
+
+    router = APIRouter()
+
+    @router.get("/any-perm")
+    @require_permission(("analytics:export", "reports:export", "reports:generate"))
+    async def any_perm(request: Request, db=Depends(get_session)):
+        return {"status": "ok"}
+
+    app = create_app()
+
+    def override_get_session():
+        yield clean_db
+
+    app.dependency_overrides[get_session] = override_get_session
+    app.include_router(router)
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+
+    token = create_access_token(subject=user.email, role=user.role)
+    test_client = TestClient(app)
+    response = test_client.get("/any-perm", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
 
 
-@pytest.mark.skip(reason="require_any_permission decorator not implemented")
-def test_016_require_any_permission_denies_when_none_match(db):
-    """Any-permission decorator should deny when none match."""
-    ...
+def test_016_require_permission_denies_when_none_match(clean_db, monkeypatch):
+    """Decorator denies when none of the listed permissions match."""
+    from fastapi import APIRouter, Request
+    from backend.rbac import require_permission
+    from backend.db import get_session
+    from backend.app_factory import create_app
+    from backend.routers.routers_auth import create_access_token
+    from starlette.testclient import TestClient
+
+    user = User(email="no-any-match@test.com", hashed_password="dummy", is_active=True, role="none")
+    clean_db.add(user)
+    clean_db.commit()
+    clean_db.refresh(user)
+
+    router = APIRouter()
+
+    @router.get("/any-perm-denied")
+    @require_permission(("analytics:export", "reports:export", "reports:generate"))
+    async def any_perm_denied(request: Request, db=Depends(get_session)):
+        return {"status": "ok"}
+
+    app = create_app()
+
+    def override_get_session():
+        yield clean_db
+
+    app.dependency_overrides[get_session] = override_get_session
+    app.include_router(router)
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+
+    token = create_access_token(subject=user.email, role=user.role)
+    test_client = TestClient(app)
+    response = test_client.get("/any-perm-denied", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 403
+    data = response.json()
+    assert "error" in data
+    assert "analytics:export" in data["error"]["message"]
+    assert "reports:export" in data["error"]["message"]
+    assert "reports:generate" in data["error"]["message"]
 
 
 @pytest.mark.skip(reason="require_all_permissions decorator not implemented")
@@ -472,6 +546,46 @@ def test_026_teacher_has_expected_subset(db):
     assert "courses:view" in teacher_defaults
     assert "grades:view" in teacher_defaults
     assert "grades:edit" in teacher_defaults
+    assert "reports:generate" in teacher_defaults
+    assert "reports:export" in teacher_defaults
+
+
+def test_026_staff_has_expected_export_subset(db):
+    """Staff fallback should match seeded reporting/export permissions."""
+    from backend.rbac import _default_role_permissions
+
+    staff_defaults = _default_role_permissions("staff")
+
+    assert "students:create" in staff_defaults
+    assert "reports:generate" in staff_defaults
+    assert "reports:export" in staff_defaults
+    assert "analytics:view" in staff_defaults
+    assert "analytics:export" in staff_defaults
+    assert "reports:schedule" not in staff_defaults
+
+
+def test_026b_legacy_role_drift_uses_legacy_defaults(db, monkeypatch):
+    """Legacy role should repair stale RBAC role assignment drift at check time."""
+    from backend.rbac import get_user_permissions
+
+    monkeypatch.setattr("backend.config.settings.AUTH_MODE", "permissive")
+
+    teacher_role = Role(name="teacher", description="Teacher role")
+    students_view = create_permission(db, "students:view")
+    db.add_all([teacher_role, students_view])
+    db.flush()
+    db.add(RolePermission(role_id=teacher_role.id, permission_id=students_view.id))
+
+    user = User(email="drift-admin@test.com", hashed_password="dummy", is_active=True, role="admin")
+    db.add(user)
+    db.flush()
+    db.add(UserRole(user_id=user.id, role_id=teacher_role.id))
+    db.commit()
+    db.refresh(user)
+
+    assert has_permission(user, "students:view", db) is True
+    assert has_permission(user, "analytics:export", db) is True
+    assert "*:*" in get_user_permissions(user, db)
 
 
 def test_027_viewer_has_expected_subset(db):
