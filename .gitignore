@@ -120,6 +120,7 @@ installer/wizard_image.bmp
 installer/wizard_small.bmp
 installer/installer_welcome_el.txt
 installer/installer_complete_el.txt
+installer/SMS_Manager/*.lscache
 
 # Local installer diagnostics bundles
 installer_diag_*.zip
