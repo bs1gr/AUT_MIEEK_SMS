@@ -14,6 +14,40 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.22] - 2026-05-24
+
+### Features
+- **analytics**: fix nested APIResponse wrapper unwrapping and add regression test
+
+### Bug Fixes
+- **rbac**: restore analytics export access
+- **analytics**: route /analytics to analytics feature page
+
+### Build System
+- **deps-dev**: bump @babel/plugin-transform-modules-systemjs to 7.29.4
+- **deps**: bump fast-uri from 3.1.0 to 3.1.2 (security release)
+- **deps**: bump python-multipart from 0.0.26 to 0.0.27
+- **deps**: bump axios from 1.15.0 to 1.15.2 in /frontend
+
+### CI/CD
+- update GitHub Actions workflows for Node.js v24 compatibility and fix deprecations
+
+### Chores
+- **release**: bump version to v1.18.22 and update docs/scripts headers
+- **workflows**: add GitHub CLI availability guard for gh-dependent workflow steps
+
+## [1.18.22] - 2026-05-24
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.21] - 2026-04-29
 
 ### Documentation
