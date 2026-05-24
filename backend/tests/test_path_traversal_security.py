@@ -117,8 +117,9 @@ class TestBackupServicePathTraversal:
         validated_name = self.service._validate_backup_name("valid_backup")
         backup_path = self.service._resolve_backup_path(validated_name, ".enc")
 
-        # Verify path is within backup_dir
-        assert backup_path.is_relative_to(self.backup_dir)
+        # Compare normalized/resolved paths so the assertion is stable on Windows
+        # where temporary directories may be represented with short-name aliases.
+        assert backup_path.resolve().is_relative_to(self.backup_dir.resolve())
 
     def test_resolve_backup_path_detects_escape_attempts(self):
         """Test that malicious names attempting to escape are caught."""

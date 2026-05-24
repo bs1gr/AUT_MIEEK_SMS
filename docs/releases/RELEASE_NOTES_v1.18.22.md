@@ -72,5 +72,3 @@
 
 - **Total Commits**: 45
 - **Contributors**: 5
-
-
