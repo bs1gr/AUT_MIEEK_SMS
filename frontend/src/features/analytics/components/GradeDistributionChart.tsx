@@ -81,7 +81,9 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
                 }}
               />
               <Tooltip
-                formatter={(value: number | undefined) => value ?? 0}
+                formatter={(value) =>
+                  typeof value === "number" ? value : Number(value ?? 0)
+                }
                 labelFormatter={(label) =>
                   `${t("rangeLabel", { ns: "common" })}${label}`
                 }

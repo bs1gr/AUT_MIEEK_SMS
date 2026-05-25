@@ -95,7 +95,9 @@ export const TrendsChart: React.FC<TrendsChartProps> = ({ data }) => {
                 }}
               />
               <Tooltip
-                formatter={(value: number | undefined) => `${Number(value ?? 0).toFixed(1)}%`}
+                formatter={(value) =>
+                  `${Number(typeof value === "number" ? value : Number(value ?? 0)).toFixed(1)}%`
+                }
                 labelFormatter={(label) =>
                   `${t("dateLabel", { ns: "common" })}${label}`
                 }

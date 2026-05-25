@@ -2,8 +2,8 @@
 # Generated from pyproject.toml [project.dependencies]
 # Last updated: 2026-04-16
 
-fastapi==0.121.2
-starlette==0.49.1
+fastapi==0.136.3
+starlette==1.0.1
 uvicorn[standard]==0.38.0
 sqlalchemy==2.0.44
 psycopg[binary]==3.2.12
@@ -24,7 +24,6 @@ passlib[bcrypt]==1.7.4
 PyJWT==2.12.0
 docker==7.1.0
 prometheus-client==0.21.0
-prometheus-fastapi-instrumentator==7.0.0
 opentelemetry-api==1.39.1
 opentelemetry-sdk==1.39.1
 opentelemetry-exporter-otlp==1.39.1

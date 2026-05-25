@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type KeyboardEvent, type MouseEvent } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -112,7 +112,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
         exit="exit"
         onClick={onClose}
         tabIndex={-1}
-        onKeyDown={(e) => {
+        onKeyDown={(e: KeyboardEvent<HTMLDivElement>) => {
           if (e.key === 'Escape') onClose();
           if (e.key === 'Enter' || e.key === ' ') onClose();
         }}
@@ -123,7 +123,7 @@ const AddCourseModal: React.FC<AddCourseModalProps> = ({ onClose, onAdd }) => {
           initial="hidden"
           animate="visible"
           exit="exit"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
         >
           <h2 className="text-xl font-bold mb-6">{t('addNewCourse')}</h2>
         <Form {...form}>

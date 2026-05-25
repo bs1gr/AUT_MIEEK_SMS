@@ -1,4 +1,4 @@
-// Note: no React hooks needed here
+import { type MouseEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -80,7 +80,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
           initial="hidden"
           animate="visible"
           exit="exit"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: MouseEvent<HTMLDivElement>) => e.stopPropagation()}
         >
           <h2 className="text-xl font-bold mb-6">{t('addNewStudent')}</h2>
         <Form {...form}>

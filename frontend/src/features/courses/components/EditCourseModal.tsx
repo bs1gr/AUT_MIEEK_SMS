@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type MouseEvent as ReactMouseEvent } from 'react';
 import { useForm, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -155,7 +155,7 @@ const EditCourseModal: React.FC<EditCourseModalProps> = ({ course, onClose, onUp
           initial="hidden"
           animate="visible"
           exit="exit"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e: ReactMouseEvent<HTMLDivElement>) => e.stopPropagation()}
         >
           <h2 className="text-xl font-bold mb-6">{t('editCourse')}</h2>
         <Form {...form}>

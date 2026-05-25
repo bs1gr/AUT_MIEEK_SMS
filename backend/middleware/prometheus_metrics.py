@@ -14,13 +14,7 @@ import time
 from typing import Callable
 
 from fastapi import FastAPI, Request
-from prometheus_client import (
-    Counter,
-    Gauge,
-    Histogram,
-    Info,
-)
-from prometheus_fastapi_instrumentator import Instrumentator, metrics
+from prometheus_client import Counter, Gauge, Histogram, Info
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -137,8 +131,66 @@ app_info = Info(
     "Application information",
 )
 
+# HTTP metrics
+http_request_size_bytes = Histogram(
+    "sms_http_request_size_bytes",
+    "Size of HTTP requests in bytes",
+    ["endpoint", "method", "status"],
+    buckets=(100, 500, 1000, 5000, 10000, 50000, 100000, 500000),
+)
 
+http_response_size_bytes = Histogram(
+    "sms_http_response_size_bytes",
+    "Size of HTTP responses in bytes",
+    ["endpoint", "method", "status"],
+    buckets=(100, 500, 1000, 5000, 10000, 50000, 100000, 500000),
+)
+
+http_request_duration_seconds = Histogram(
+    "sms_http_request_duration_seconds",
+    "Duration of HTTP requests in seconds",
+    ["endpoint", "method", "status"],
+    buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
+)
+
+http_requests_total = Counter(
+    "sms_http_requests_total",
+    "Total number of HTTP requests",
+    ["endpoint", "method", "status"],
+)
+
+http_requests_inprogress = Gauge(
+    "sms_http_requests_inprogress",
+    "Current number of in-progress HTTP requests",
+    ["endpoint", "method"],
+)
+
+
+# ==========================================================================
+# METRICS HELPERS
 # ============================================================================
+
+
+def _get_endpoint_label(request: Request) -> str:
+    """Resolve a stable endpoint label for metrics."""
+    route = getattr(request.scope, "route", None)
+    if route is not None and getattr(route, "path", None):
+        return str(route.path)
+    return request.url.path
+
+
+def _parse_content_length(value: str | None) -> int | None:
+    """Parse a Content-Length header into an integer, if present."""
+    if not value:
+        return None
+
+    try:
+        return max(int(value), 0)
+    except (TypeError, ValueError):
+        return None
+
+
+# ==========================================================================
 # METRICS COLLECTION FUNCTIONS
 # ============================================================================
 
@@ -256,86 +308,56 @@ def setup_metrics(app: FastAPI, version: str = "unknown") -> None:
             }
         )
 
-        # Configure instrumentator with custom settings
-        instrumentator = Instrumentator(
-            should_group_status_codes=True,
-            should_ignore_untemplated=False,
-            should_respect_env_var=True,
-            should_instrument_requests_inprogress=True,
-            excluded_handlers=[
-                "/metrics",  # Don't track metrics endpoint itself
-                "/health/live",  # High-frequency health checks
-            ],
-            env_var_name="ENABLE_METRICS",
-            inprogress_name="sms_http_requests_inprogress",
-            inprogress_labels=True,
-        )
-
-        # Add default metrics
-        instrumentator.add(
-            metrics.request_size(
-                should_include_handler=True,
-                should_include_method=True,
-                should_include_status=True,
-                metric_name="sms_http_request_size_bytes",
-                metric_doc="Size of HTTP requests in bytes",
-            )
-        )
-
-        instrumentator.add(
-            metrics.response_size(
-                should_include_handler=True,
-                should_include_method=True,
-                should_include_status=True,
-                metric_name="sms_http_response_size_bytes",
-                metric_doc="Size of HTTP responses in bytes",
-            )
-        )
-
-        instrumentator.add(
-            metrics.latency(
-                should_include_handler=True,
-                should_include_method=True,
-                should_include_status=True,
-                metric_name="sms_http_request_duration_seconds",
-                metric_doc="Duration of HTTP requests in seconds",
-                buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0),
-            )
-        )
-
-        instrumentator.add(
-            metrics.requests(
-                should_include_handler=True,
-                should_include_method=True,
-                should_include_status=True,
-                metric_name="sms_http_requests_total",
-                metric_doc="Total number of HTTP requests",
-            )
-        )
-
-        # Add custom middleware to track slow requests
         @app.middleware("http")
-        async def track_slow_requests(request: Request, call_next):
-            start_time = time.time()
-            response = await call_next(request)
-            duration = time.time() - start_time
+        async def track_http_metrics(request: Request, call_next):
+            endpoint = _get_endpoint_label(request)
+            method = request.method
+            excluded = {"/metrics", "/health/live"}
+            if endpoint in excluded:
+                return await call_next(request)
 
-            # Track slow requests (>1 second)
-            if duration > 1.0:
-                endpoint = request.url.path
-                method = request.method
-                api_slow_requests_total.labels(
-                    endpoint=endpoint,
-                    method=method,
-                ).inc()
+            request_size = _parse_content_length(request.headers.get("content-length"))
+            inprogress_labels = {"endpoint": endpoint, "method": method}
+            http_requests_inprogress.labels(**inprogress_labels).inc()
+            start_time = time.perf_counter()
+            status = "500"
 
-            return response
+            try:
+                response = await call_next(request)
+                status = str(response.status_code)
 
-        # Instrument the app
-        instrumentator.instrument(app)
+                duration = time.perf_counter() - start_time
+                http_requests_total.labels(endpoint=endpoint, method=method, status=status).inc()
+                http_request_duration_seconds.labels(endpoint=endpoint, method=method, status=status).observe(duration)
+
+                if request_size is not None:
+                    http_request_size_bytes.labels(endpoint=endpoint, method=method, status=status).observe(
+                        request_size
+                    )
+
+                response_size = _parse_content_length(response.headers.get("content-length"))
+                if response_size is not None:
+                    http_response_size_bytes.labels(endpoint=endpoint, method=method, status=status).observe(
+                        response_size
+                    )
+
+                if duration > 1.0:
+                    api_slow_requests_total.labels(endpoint=endpoint, method=method).inc()
+
+                return response
+            except Exception:
+                duration = time.perf_counter() - start_time
+                http_requests_total.labels(endpoint=endpoint, method=method, status=status).inc()
+                http_request_duration_seconds.labels(endpoint=endpoint, method=method, status=status).observe(duration)
+                if request_size is not None:
+                    http_request_size_bytes.labels(endpoint=endpoint, method=method, status=status).observe(
+                        request_size
+                    )
+                raise
+            finally:
+                http_requests_inprogress.labels(**inprogress_labels).dec()
 
         logger.info("Prometheus metrics instrumentation completed")
-        logger.info("Metrics endpoint will be manually added in main.py (instrumentator.expose has issues)")
 
     except Exception as e:
         logger.error(f"Failed to setup Prometheus metrics: {e}")
