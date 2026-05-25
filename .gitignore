@@ -49,6 +49,10 @@ trivy-results.*
 backend/exports/
 backend/reports/
 
+# Local test import fixtures
+data/imports/*.csv
+backend/data/imports/*.csv
+
 # Course PDFs and course data
 pdfs-courses/
 
