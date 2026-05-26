@@ -112,7 +112,7 @@ export default defineConfig({
     },
   },
   server: {
-    host: 'localhost',
+    host: '127.0.0.1',
     port: 5173, // Standard Vite dev port for local development
     strictPort: true, // Fail if port is in use (prevents silent port changes)
     proxy: {
