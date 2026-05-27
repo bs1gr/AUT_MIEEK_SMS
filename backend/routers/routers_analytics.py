@@ -565,6 +565,7 @@ def clear_course_analytics_cache(
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_excel(
     request: Request,
+    language: str = "en",
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -582,7 +583,7 @@ async def export_dashboard_excel(
     """
     try:
         export_data = _build_dashboard_export_data(db)
-        export_service = AnalyticsExportService(db)
+        export_service = AnalyticsExportService(db, language=language)
         excel_data = export_service.export_dashboard_to_excel(data=export_data)
 
         logger.info("Analytics dashboard exported to Excel by %s", request.state.request_id)
@@ -602,6 +603,7 @@ async def export_dashboard_excel(
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_pdf(
     request: Request,
+    language: str = "en",
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -619,7 +621,7 @@ async def export_dashboard_pdf(
     """
     try:
         export_data = _build_dashboard_export_data(db)
-        export_service = AnalyticsExportService(db)
+        export_service = AnalyticsExportService(db, language=language)
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
 
         logger.info("Analytics dashboard exported to PDF by %s", request.state.request_id)

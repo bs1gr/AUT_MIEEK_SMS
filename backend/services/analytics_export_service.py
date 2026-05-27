@@ -23,8 +23,46 @@ logger = logging.getLogger(__name__)
 class AnalyticsExportService:
     """Service for exporting analytics data to various formats."""
 
-    def __init__(self, db: Session):
+    # Localization strings
+    TRANSLATIONS = {
+        "en": {
+            "title": "Analytics Dashboard Report",
+            "exported": "Exported",
+            "generated": "Generated",
+            "summary_statistics": "Summary Statistics",
+            "total_students": "Total Students",
+            "total_courses": "Total Courses",
+            "average_grade": "Average Grade %",
+            "average_attendance": "Average Attendance %",
+            "class_averages": "Class Averages",
+            "class": "Class",
+            "student_count": "Student Count",
+            "course_averages": "Course Averages",
+            "course_name": "Course Name",
+            "enrollments": "Enrollments",
+        },
+        "el": {
+            "title": "Αναφορά Αναλυτικών Δεδομένων",
+            "exported": "Εξαγωγή",
+            "generated": "Δημιουργήθηκε",
+            "summary_statistics": "Στατιστικά Σύνοψης",
+            "total_students": "Σύνολο Φοιτητών",
+            "total_courses": "Σύνολο Μαθημάτων",
+            "average_grade": "Μέσος Όρος Βαθμών %",
+            "average_attendance": "Μέσος Όρος Παρουσίας %",
+            "class_averages": "Μέσοι Όροι Τάξης",
+            "class": "Τάξη",
+            "student_count": "Αριθμός Φοιτητών",
+            "course_averages": "Μέσοι Όροι Μαθήματος",
+            "course_name": "Όνομα Μαθήματος",
+            "enrollments": "Εγγραφές",
+        },
+    }
+
+    def __init__(self, db: Session, language: str = "en"):
         self.db = db
+        self.language = language if language in self.TRANSLATIONS else "en"
+        self.t = self.TRANSLATIONS[self.language]
 
     def export_dashboard_to_excel(
         self,
@@ -50,12 +88,12 @@ class AnalyticsExportService:
             )
 
             # Title
-            ws["A1"] = "Analytics Dashboard Report"
+            ws["A1"] = self.t["title"]
             ws["A1"].font = Font(bold=True, size=14)
             ws.merge_cells("A1:D1")
 
             # Date exported
-            ws["A2"] = f"Exported: {dt.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            ws["A2"] = f"{self.t['exported']}: {dt.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
             ws["A2"].font = Font(italic=True, size=10)
             ws.merge_cells("A2:D2")
 
@@ -64,17 +102,17 @@ class AnalyticsExportService:
             # Summary Section
             if data and "summary" in data:
                 summary = data["summary"]
-                ws[f"A{row}"] = "Summary Statistics"
+                ws[f"A{row}"] = self.t["summary_statistics"]
                 ws[f"A{row}"].fill = subheader_fill
                 ws[f"A{row}"].font = subheader_font
                 ws.merge_cells(f"A{row}:B{row}")
                 row += 1
 
                 summary_items = [
-                    ("Total Students", summary.get("total_students", 0)),
-                    ("Total Courses", summary.get("total_courses", 0)),
-                    ("Average Grade %", f"{summary.get('average_grade', 0):.2f}%"),
-                    ("Average Attendance %", f"{summary.get('average_attendance', 0):.2f}%"),
+                    (self.t["total_students"], summary.get("total_students", 0)),
+                    (self.t["total_courses"], summary.get("total_courses", 0)),
+                    (self.t["average_grade"], f"{summary.get('average_grade', 0):.2f}%"),
+                    (self.t["average_attendance"], f"{summary.get('average_attendance', 0):.2f}%"),
                 ]
 
                 for label, value in summary_items:
@@ -88,14 +126,14 @@ class AnalyticsExportService:
             # Class Averages Section
             if data and "class_averages" in data:
                 row += 1
-                ws[f"A{row}"] = "Class Averages"
+                ws[f"A{row}"] = self.t["class_averages"]
                 ws[f"A{row}"].fill = subheader_fill
                 ws[f"A{row}"].font = subheader_font
                 ws.merge_cells(f"A{row}:C{row}")
                 row += 1
 
                 # Headers
-                headers = ["Class", "Student Count", "Average Grade %"]
+                headers = [self.t["class"], self.t["student_count"], self.t["average_grade"]]
                 for col, header in enumerate(headers, 1):
                     cell = ws.cell(row=row, column=col)
                     cell.value = header
@@ -119,14 +157,14 @@ class AnalyticsExportService:
             # Course Averages Section
             if data and "course_averages" in data:
                 row += 1
-                ws[f"A{row}"] = "Course Averages"
+                ws[f"A{row}"] = self.t["course_averages"]
                 ws[f"A{row}"].fill = subheader_fill
                 ws[f"A{row}"].font = subheader_font
                 ws.merge_cells(f"A{row}:C{row}")
                 row += 1
 
                 # Headers
-                headers = ["Course Name", "Enrollments", "Average Grade %"]
+                headers = [self.t["course_name"], self.t["enrollments"], self.t["average_grade"]]
                 for col, header in enumerate(headers, 1):
                     cell = ws.cell(row=row, column=col)
                     cell.value = header
@@ -201,20 +239,20 @@ class AnalyticsExportService:
             elements: List[Flowable] = []
 
             # Title
-            elements.append(Paragraph("Analytics Dashboard Report", title_style))
-            elements.append(Paragraph(f"Generated: {dt.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}", styles["Normal"]))
+            elements.append(Paragraph(self.t["title"], title_style))
+            elements.append(Paragraph(f"{self.t['generated']}: {dt.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}", styles["Normal"]))
             elements.append(Spacer(1, 0.3 * inch))
 
             # Summary Section
             if data and "summary" in data:
                 summary = data["summary"]
-                elements.append(Paragraph("Summary Statistics", heading_style))
+                elements.append(Paragraph(self.t["summary_statistics"], heading_style))
 
                 summary_data = [
-                    ["Total Students", str(summary.get("total_students", 0))],
-                    ["Total Courses", str(summary.get("total_courses", 0))],
-                    ["Average Grade", f"{summary.get('average_grade', 0):.2f}%"],
-                    ["Average Attendance", f"{summary.get('average_attendance', 0):.2f}%"],
+                    [self.t["total_students"], str(summary.get("total_students", 0))],
+                    [self.t["total_courses"], str(summary.get("total_courses", 0))],
+                    [self.t["average_grade"], f"{summary.get('average_grade', 0):.2f}%"],
+                    [self.t["average_attendance"], f"{summary.get('average_attendance', 0):.2f}%"],
                 ]
 
                 summary_table = Table(summary_data, colWidths=[3.5 * inch, 2 * inch])
@@ -237,9 +275,9 @@ class AnalyticsExportService:
 
             # Class Averages Section
             if data and "class_averages" in data:
-                elements.append(Paragraph("Class Averages", heading_style))
+                elements.append(Paragraph(self.t["class_averages"], heading_style))
 
-                class_data = [["Class", "Student Count", "Average Grade %"]]
+                class_data = [[self.t["class"], self.t["student_count"], self.t["average_grade"]]]
                 for item in data["class_averages"][:10]:  # Limit to first 10
                     class_data.append(
                         [
@@ -273,9 +311,9 @@ class AnalyticsExportService:
 
             # Course Averages Section
             if data and "course_averages" in data:
-                elements.append(Paragraph("Course Averages", heading_style))
+                elements.append(Paragraph(self.t["course_averages"], heading_style))
 
-                course_data = [["Course Name", "Enrollments", "Average Grade %"]]
+                course_data = [[self.t["course_name"], self.t["enrollments"], self.t["average_grade"]]]
                 for item in data["course_averages"][:15]:  # Limit to first 15
                     course_data.append(
                         [

@@ -1,10 +1,12 @@
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/api/api';
+import { useLanguage } from '@/LanguageContext';
 
 /**
  * Hook for exporting analytics data
  */
 export function useAnalyticsExport() {
+  const { language } = useLanguage();
   const exportDashboardMutation = useMutation({
     mutationFn: async (format: 'pdf' | 'excel' = 'pdf') => {
       try {
@@ -13,6 +15,7 @@ export function useAnalyticsExport() {
         const response = await apiClient({
           method: 'POST',
           url: endpoint,
+          params: { language },
           responseType: 'arraybuffer',
         });
 
