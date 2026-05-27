@@ -6,7 +6,7 @@ Optimized with eager loading to prevent N+1 query problems.
 
 import logging
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -565,7 +565,7 @@ def clear_course_analytics_cache(
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_excel(
     request: Request,
-    language: str = "en",
+    language: str = Query("en"),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -603,7 +603,7 @@ async def export_dashboard_excel(
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_pdf(
     request: Request,
-    language: str = "en",
+    language: str = Query("en"),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """

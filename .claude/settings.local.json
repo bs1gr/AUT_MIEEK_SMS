@@ -27,7 +27,9 @@
       "PowerShell(netsh int ip reset resetlog.txt)",
       "Bash(xargs grep -l \"footerCredits\")",
       "PowerShell(head -20)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "WebFetch(domain:127.0.0.1)",
+      "Bash(git add *)"
     ],
     "deny": [],
     "ask": []
