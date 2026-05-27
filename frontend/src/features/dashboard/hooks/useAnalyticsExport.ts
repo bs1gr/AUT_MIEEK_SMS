@@ -11,12 +11,12 @@ export function useAnalyticsExport() {
     mutationFn: async (format: 'pdf' | 'excel' = 'pdf') => {
       try {
         const endpoint = format === 'pdf' ? '/analytics/export/pdf' : '/analytics/export/excel';
-        console.log('[Analytics Export] Sending language:', language);
+        const urlWithLanguage = `${endpoint}?language=${encodeURIComponent(language)}`;
+        console.log('[Analytics Export] Sending to URL:', urlWithLanguage);
 
         const response = await apiClient({
           method: 'POST',
-          url: endpoint,
-          params: { language },
+          url: urlWithLanguage,
           responseType: 'arraybuffer',
         });
         console.log('[Analytics Export] Response received for', format);
