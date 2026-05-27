@@ -87,7 +87,7 @@ export default {
     lastUpdated: 'Τελευταία ενημέρωση',
   uptime: 'Χρόνος Λειτουργίας',
   uptimeFormatShort: '{{h}}h {{m}}m {{s}}s',
-  versionShort: 'v{{version}}',
+  versionShort: '{{version}}',
   environmentDocker: '🐳 Docker',
   environmentNative: '💻 Εγγενής Λειτουργία',
   timeoutSeconds: '{{s}}s',

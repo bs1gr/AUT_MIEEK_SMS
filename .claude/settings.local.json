@@ -19,7 +19,15 @@
       "Bash(dir /B /A \"d:\\SMS\\student-management-system\")",
       "Skill(update-config)",
       "Skill(update-config:*)",
-      "PowerShell(Get-Process -Name node -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-Process -Name node -ErrorAction SilentlyContinue)",
+      "PowerShell(cd \"d:\\\\SMS\\\\student-management-system\"; Get-Item -Path \".backend.pid\", \".frontend.pid\" -ErrorAction SilentlyContinue | ForEach-Object { Write-Host \"$\\($_.Name\\): $\\(Get-Content $_\\)\" })",
+      "PowerShell(cd \"d:\\\\SMS\\\\student-management-system\"; pwsh -NoProfile -File \".\\\\NATIVE_TOGGLE.ps1\" -Action status -Explain)",
+      "PowerShell(netstat -ano | Select-String \":5173\" | Where-Object { $_ -match 'LISTENING' })",
+      "PowerShell(Start-Sleep 5; netstat -ano | Select-String \":5173\" | Where-Object { $_ -match 'LISTENING' })",
+      "PowerShell(netsh int ip reset resetlog.txt)",
+      "Bash(xargs grep -l \"footerCredits\")",
+      "PowerShell(head -20)",
+      "Bash(npm run *)"
     ],
     "deny": [],
     "ask": []

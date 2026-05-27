@@ -87,7 +87,7 @@ export default {
   lastUpdated: 'Last updated',
   uptime: 'Uptime',
   uptimeFormatShort: '{{h}}h {{m}}m {{s}}s',
-  versionShort: 'v{{version}}',
+  versionShort: '{{version}}',
   environmentDocker: '🐳 Docker',
   environmentNative: '💻 Native Mode',
   timeoutSeconds: '{{s}}s',
