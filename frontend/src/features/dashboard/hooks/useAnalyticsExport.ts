@@ -11,6 +11,7 @@ export function useAnalyticsExport() {
     mutationFn: async (format: 'pdf' | 'excel' = 'pdf') => {
       try {
         const endpoint = format === 'pdf' ? '/analytics/export/pdf' : '/analytics/export/excel';
+        console.log('[Analytics Export] Sending language:', language);
 
         const response = await apiClient({
           method: 'POST',
@@ -18,6 +19,7 @@ export function useAnalyticsExport() {
           params: { language },
           responseType: 'arraybuffer',
         });
+        console.log('[Analytics Export] Response received for', format);
 
         // Generate filename with timestamp
         const timestamp = new Date().toISOString().split('T')[0];
