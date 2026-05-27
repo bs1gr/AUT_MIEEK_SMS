@@ -323,11 +323,12 @@ class AnalyticsExportService:
                 summary = data["summary"]
                 elements.append(Paragraph(self.t["summary_statistics"], heading_style))
 
+                # Use Paragraph objects to ensure proper Unicode rendering
                 summary_data = [
-                    [self.t["total_students"], str(summary.get("total_students", 0))],
-                    [self.t["total_courses"], str(summary.get("total_courses", 0))],
-                    [self.t["average_grade"], f"{summary.get('average_grade', 0):.2f}%"],
-                    [self.t["average_attendance"], f"{summary.get('average_attendance', 0):.2f}%"],
+                    [Paragraph(self.t["total_students"], normal_style), Paragraph(str(summary.get("total_students", 0)), normal_style)],
+                    [Paragraph(self.t["total_courses"], normal_style), Paragraph(str(summary.get("total_courses", 0)), normal_style)],
+                    [Paragraph(self.t["average_grade"], normal_style), Paragraph(f"{summary.get('average_grade', 0):.2f}%", normal_style)],
+                    [Paragraph(self.t["average_attendance"], normal_style), Paragraph(f"{summary.get('average_attendance', 0):.2f}%", normal_style)],
                 ]
 
                 summary_table = Table(summary_data, colWidths=[3 * inch, 3 * inch])
@@ -337,9 +338,6 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, -1), base_font),
-                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
-                            ("FONTSIZE", (0, 0), (-1, -1), 10),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
@@ -354,13 +352,20 @@ class AnalyticsExportService:
             if data and "class_averages" in data:
                 elements.append(Paragraph(self.t["class_averages"], heading_style))
 
-                class_data = [[self.t["class"], self.t["student_count"], self.t["average_grade"]]]
+                # Use Paragraph objects to ensure proper Unicode rendering
+                class_data = [
+                    [
+                        Paragraph(self.t["class"], normal_style),
+                        Paragraph(self.t["student_count"], normal_style),
+                        Paragraph(self.t["average_grade"], normal_style),
+                    ]
+                ]
                 for item in data["class_averages"][:10]:
                     class_data.append(
                         [
-                            item.get("label", ""),
-                            str(item.get("count", 0)),
-                            f"{item.get('average', 0):.2f}%",
+                            Paragraph(item.get("label", ""), normal_style),
+                            Paragraph(str(item.get("count", 0)), normal_style),
+                            Paragraph(f"{item.get('average', 0):.2f}%", normal_style),
                         ]
                     )
 
@@ -371,9 +376,6 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, -1), base_font),
-                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
-                            ("FONTSIZE", (0, 0), (-1, -1), 10),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
@@ -388,13 +390,20 @@ class AnalyticsExportService:
             if data and "course_averages" in data:
                 elements.append(Paragraph(self.t["course_averages"], heading_style))
 
-                course_data = [[self.t["course_name"], self.t["enrollments"], self.t["average_grade"]]]
+                # Use Paragraph objects to ensure proper Unicode rendering
+                course_data = [
+                    [
+                        Paragraph(self.t["course_name"], normal_style),
+                        Paragraph(self.t["enrollments"], normal_style),
+                        Paragraph(self.t["average_grade"], normal_style),
+                    ]
+                ]
                 for item in data["course_averages"][:15]:
                     course_data.append(
                         [
-                            item.get("label", "")[:30],
-                            str(item.get("count", 0)),
-                            f"{item.get('average', 0):.2f}%",
+                            Paragraph(item.get("label", "")[:30], normal_style),
+                            Paragraph(str(item.get("count", 0)), normal_style),
+                            Paragraph(f"{item.get('average', 0):.2f}%", normal_style),
                         ]
                     )
 
@@ -405,9 +414,6 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, -1), base_font),
-                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
-                            ("FONTSIZE", (0, 0), (-1, -1), 10),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
