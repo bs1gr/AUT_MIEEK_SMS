@@ -12,12 +12,15 @@ export function useAnalyticsExport() {
       try {
         const endpoint = format === 'pdf' ? '/analytics/export/pdf' : '/analytics/export/excel';
         const urlWithLanguage = `${endpoint}?language=${encodeURIComponent(language)}`;
-        console.log('[Analytics Export] Sending to URL:', urlWithLanguage);
+        console.log('[Analytics Export] Sending to URL with language:', urlWithLanguage, 'language value:', language);
 
         const response = await apiClient({
           method: 'POST',
           url: urlWithLanguage,
           responseType: 'arraybuffer',
+          headers: {
+            'Accept-Language': language === 'el' ? 'el-GR' : 'en-US',
+          },
         });
         console.log('[Analytics Export] Response received for', format);
 

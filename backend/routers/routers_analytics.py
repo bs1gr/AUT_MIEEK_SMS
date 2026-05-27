@@ -5,6 +5,7 @@ Optimized with eager loading to prevent N+1 query problems.
 """
 
 import logging
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
@@ -565,7 +566,7 @@ def clear_course_analytics_cache(
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_excel(
     request: Request,
-    language: str = Query("en"),
+    language: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -582,10 +583,18 @@ async def export_dashboard_excel(
         StreamingResponse: Excel file with dashboard summary data
     """
     try:
-        logger.info(f"Excel export requested - language={language}, url_query={request.url.query}")
+        # Try to get language from query param, then from Accept-Language header
+        final_language = language or "en"
+        if not language:
+            accept_lang = request.headers.get("accept-language", "").split(",")[0].lower()
+            if "el" in accept_lang:
+                final_language = "el"
+            elif "en" in accept_lang:
+                final_language = "en"
+
+        logger.info(f"Excel export - query_language={language}, accept_lang={request.headers.get('accept-language')}, final={final_language}")
         export_data = _build_dashboard_export_data(db)
-        export_service = AnalyticsExportService(db, language=language)
-        logger.info(f"AnalyticsExportService initialized with language={language}")
+        export_service = AnalyticsExportService(db, language=final_language)
         excel_data = export_service.export_dashboard_to_excel(data=export_data)
 
         logger.info("Analytics dashboard exported to Excel by %s with language %s", request.state.request_id, language)
@@ -605,7 +614,7 @@ async def export_dashboard_excel(
 @require_permission(("analytics:export", "reports:export", "reports:generate"))
 async def export_dashboard_pdf(
     request: Request,
-    language: str = Query("en"),
+    language: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -622,10 +631,18 @@ async def export_dashboard_pdf(
         StreamingResponse: PDF file with dashboard summary data
     """
     try:
-        logger.info(f"PDF export requested - language={language}, url_query={request.url.query}")
+        # Try to get language from query param, then from Accept-Language header
+        final_language = language or "en"
+        if not language:
+            accept_lang = request.headers.get("accept-language", "").split(",")[0].lower()
+            if "el" in accept_lang:
+                final_language = "el"
+            elif "en" in accept_lang:
+                final_language = "en"
+
+        logger.info(f"PDF export - query_language={language}, accept_lang={request.headers.get('accept-language')}, final={final_language}")
         export_data = _build_dashboard_export_data(db)
-        export_service = AnalyticsExportService(db, language=language)
-        logger.info(f"AnalyticsExportService initialized with language={language}")
+        export_service = AnalyticsExportService(db, language=final_language)
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
 
         logger.info("Analytics dashboard exported to PDF by %s with language %s", request.state.request_id, language)

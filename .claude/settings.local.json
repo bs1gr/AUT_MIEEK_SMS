@@ -29,7 +29,13 @@
       "PowerShell(head -20)",
       "Bash(npm run *)",
       "WebFetch(domain:127.0.0.1)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(find /d/SMS -name \"*.log\" -type f 2>/dev/null | grep -i backend | head -5)",
+      "Read(//d/SMS/**)",
+      "PowerShell(Select-String -Path \"d:\\\\SMS\\\\student-management-system\\\\NATIVE.ps1\" -Pattern \"\\\\.CommandLine\" | Where-Object {$_.LineNumber -gt 1500})",
+      "PowerShell(Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process -Id 31176 -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Process python)"
     ],
     "deny": [],
     "ask": []
