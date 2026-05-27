@@ -96,7 +96,10 @@ function Get-ListeningProcessIds {
 
             $portOwningProcess = 0
             if ([int]::TryParse($parts[-1], [ref]$portOwningProcess) -and $portOwningProcess -gt 0) {
-                $listeningProcessIds += $portOwningProcess
+                # Verify process actually exists before including it (filters out zombie processes)
+                if (Get-Process -Id $portOwningProcess -ErrorAction SilentlyContinue) {
+                    $listeningProcessIds += $portOwningProcess
+                }
             }
         }
     }
