@@ -68,6 +68,17 @@ class AnalyticsExportService:
         self.t = self.TRANSLATIONS[self.language]
         logger.info(f"AnalyticsExportService initialized with language={language}, timezone={timezone}")
 
+    def _get_bold_font_name(self, font_name: str) -> str:
+        """Get the appropriate bold font name for the given font."""
+        if font_name == "ArialUnicodeMS":
+            # Arial Unicode MS doesn't have a separate bold variant
+            # ReportLab will use the font and apply synthetic bolding
+            return font_name
+        elif "-Bold" in font_name:
+            return font_name
+        else:
+            return f"{font_name}-Bold"
+
     def format_datetime(self, dt_obj: Optional[Any] = None) -> str:
         """Format datetime with localized date format matching frontend settings."""
         if dt_obj is None:
@@ -243,12 +254,14 @@ class AnalyticsExportService:
     ) -> bytes:
         """Export dashboard summary data to PDF format."""
         try:
-            # Register a Unicode-aware font that supports Greek characters
+            # Register a Unicode-aware font that supports Greek diacriticals
             font_name = "Helvetica"
             try:
                 import os
                 font_paths_to_try = [
-                    # DejaVuSans (most common Linux font)
+                    # Arial Unicode MS (Windows - best for Greek diacriticals)
+                    ("C:\\Windows\\Fonts\\ARIALUNI.TTF", "ArialUnicodeMS"),
+                    # DejaVuSans (Linux - supports Greek diacriticals)
                     ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "DejaVuSans"),
                     # Segoe UI (Windows Unicode font)
                     ("C:\\Windows\\Fonts\\segoeui.ttf", "SegoeUI"),
@@ -267,6 +280,10 @@ class AnalyticsExportService:
                                 bold_path = font_path.replace("segoeui.ttf", "segoeuib.ttf")
                                 if os.path.exists(bold_path):
                                     pdfmetrics.registerFont(TTFont(f"{font_register_name}-Bold", bold_path))
+                            elif font_register_name == "ArialUnicodeMS":
+                                # ArialUnicodeMS doesn't have separate bold variant
+                                # Will fall back to regular font for bold
+                                pass
                             font_name = font_register_name
                             logger.info(f"Registered {font_register_name} font from {font_path} for PDF export")
                             break
@@ -275,7 +292,7 @@ class AnalyticsExportService:
                             continue
 
                 if font_name == "Helvetica":
-                    logger.info("Using Helvetica fallback for PDF export (Greek text may not render)")
+                    logger.info("Using Helvetica fallback for PDF export (Greek diacriticals may not render)")
             except Exception as e:
                 logger.warning(f"Error setting up fonts: {e}, using Helvetica fallback")
                 font_name = "Helvetica"
@@ -336,7 +353,7 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), f"{font_name}-Bold" if "-Bold" not in font_name else font_name),
+                            ("FONTNAME", (0, 0), (-1, 0), self._get_bold_font_name(font_name)),
                             ("FONTSIZE", (0, 0), (-1, 0), 12),
                             ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                             ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
@@ -368,7 +385,7 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), f"{font_name}-Bold" if "-Bold" not in font_name else font_name),
+                            ("FONTNAME", (0, 0), (-1, 0), self._get_bold_font_name(font_name)),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
                             ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                             ("GRID", (0, 0), (-1, -1), 1, colors.black),
@@ -404,7 +421,7 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), f"{font_name}-Bold" if "-Bold" not in font_name else font_name),
+                            ("FONTNAME", (0, 0), (-1, 0), self._get_bold_font_name(font_name)),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
                             ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                             ("GRID", (0, 0), (-1, -1), 1, colors.black),
