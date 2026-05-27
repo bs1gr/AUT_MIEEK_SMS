@@ -567,6 +567,7 @@ def clear_course_analytics_cache(
 async def export_dashboard_excel(
     request: Request,
     language: Optional[str] = Query(None),
+    timezone: Optional[str] = Query("Europe/Athens"),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -592,9 +593,9 @@ async def export_dashboard_excel(
             elif "en" in accept_lang:
                 final_language = "en"
 
-        logger.info(f"Excel export - query_language={language}, accept_lang={request.headers.get('accept-language')}, final={final_language}")
+        logger.info(f"Excel export - query_language={language}, timezone={timezone}, final={final_language}")
         export_data = _build_dashboard_export_data(db)
-        export_service = AnalyticsExportService(db, language=final_language)
+        export_service = AnalyticsExportService(db, language=final_language, timezone=timezone)
         excel_data = export_service.export_dashboard_to_excel(data=export_data)
 
         logger.info("Analytics dashboard exported to Excel by %s with language %s", request.state.request_id, language)
@@ -615,6 +616,7 @@ async def export_dashboard_excel(
 async def export_dashboard_pdf(
     request: Request,
     language: Optional[str] = Query(None),
+    timezone: Optional[str] = Query("Europe/Athens"),
     db: Session = Depends(get_db),
 ) -> StreamingResponse:
     """
@@ -640,9 +642,9 @@ async def export_dashboard_pdf(
             elif "en" in accept_lang:
                 final_language = "en"
 
-        logger.info(f"PDF export - query_language={language}, accept_lang={request.headers.get('accept-language')}, final={final_language}")
+        logger.info(f"PDF export - query_language={language}, timezone={timezone}, final={final_language}")
         export_data = _build_dashboard_export_data(db)
-        export_service = AnalyticsExportService(db, language=final_language)
+        export_service = AnalyticsExportService(db, language=final_language, timezone=timezone)
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
 
         logger.info("Analytics dashboard exported to PDF by %s with language %s", request.state.request_id, language)

@@ -61,23 +61,43 @@ class AnalyticsExportService:
         },
     }
 
-    def __init__(self, db: Session, language: str = "en"):
+    def __init__(self, db: Session, language: str = "en", timezone: str = "Europe/Athens"):
         self.db = db
         self.language = language if language in self.TRANSLATIONS else "en"
+        self.timezone = timezone
         self.t = self.TRANSLATIONS[self.language]
-        logger.info(f"AnalyticsExportService initialized with language={language}, resolved to={self.language}")
+        logger.info(f"AnalyticsExportService initialized with language={language}, timezone={timezone}")
 
     def format_datetime(self, dt_obj: Optional[Any] = None) -> str:
         """Format datetime with localized date format matching frontend settings."""
         if dt_obj is None:
             dt_obj = dt.utcnow()
 
-        if self.language == "el":
-            # Greek date format: DD/MM/YYYY HH:MM:SS UTC (matching gr-ddmmyyyy frontend setting)
-            return dt_obj.strftime('%d/%m/%Y %H:%M:%S UTC')
-        else:
-            # English date format: MM/DD/YYYY HH:MM:SS UTC (matching en-us frontend setting)
-            return dt_obj.strftime('%m/%d/%Y %H:%M:%S UTC')
+        try:
+            from zoneinfo import ZoneInfo
+            # Convert UTC to the specified timezone
+            utc_tz = ZoneInfo('UTC')
+            local_tz = ZoneInfo(self.timezone)
+
+            # If dt_obj is naive, assume it's UTC
+            if dt_obj.tzinfo is None:
+                dt_obj = dt_obj.replace(tzinfo=utc_tz)
+
+            local_dt = dt_obj.astimezone(local_tz)
+            tz_abbr = local_dt.strftime('%Z')  # e.g., 'EEST' or 'EET'
+
+            if self.language == "el":
+                # Greek date format: DD/MM/YYYY HH:MM:SS TZ (matching gr-ddmmyyyy frontend setting)
+                return local_dt.strftime(f'%d/%m/%Y %H:%M:%S {tz_abbr}')
+            else:
+                # English date format: MM/DD/YYYY HH:MM:SS TZ (matching en-us frontend setting)
+                return local_dt.strftime(f'%m/%d/%Y %H:%M:%S {tz_abbr}')
+        except Exception as e:
+            logger.warning(f"Failed to format datetime with timezone {self.timezone}: {e}, falling back to UTC")
+            if self.language == "el":
+                return dt_obj.strftime('%d/%m/%Y %H:%M:%S UTC')
+            else:
+                return dt_obj.strftime('%m/%d/%Y %H:%M:%S UTC')
 
     def export_dashboard_to_excel(
         self,

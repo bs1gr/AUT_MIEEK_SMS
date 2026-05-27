@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import apiClient from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
+import { getStoredDateTimeSettings } from '@/utils/dateTime';
 
 /**
  * Hook for exporting analytics data
@@ -11,8 +12,9 @@ export function useAnalyticsExport() {
     mutationFn: async (format: 'pdf' | 'excel' = 'pdf') => {
       try {
         const endpoint = format === 'pdf' ? '/analytics/export/pdf' : '/analytics/export/excel';
-        const urlWithLanguage = `${endpoint}?language=${encodeURIComponent(language)}`;
-        console.log('[Analytics Export] Sending to URL with language:', urlWithLanguage, 'language value:', language);
+        const dateTimeSettings = getStoredDateTimeSettings();
+        const urlWithLanguage = `${endpoint}?language=${encodeURIComponent(language)}&timezone=${encodeURIComponent(dateTimeSettings.timeZone)}`;
+        console.log('[Analytics Export] Sending to URL with language:', language, 'timezone:', dateTimeSettings.timeZone);
 
         const response = await apiClient({
           method: 'POST',
