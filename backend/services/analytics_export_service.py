@@ -68,23 +68,16 @@ class AnalyticsExportService:
         logger.info(f"AnalyticsExportService initialized with language={language}, resolved to={self.language}")
 
     def format_datetime(self, dt_obj: Optional[Any] = None) -> str:
-        """Format datetime with localized date format."""
+        """Format datetime with localized date format matching frontend settings."""
         if dt_obj is None:
             dt_obj = dt.utcnow()
 
         if self.language == "el":
-            # Greek date format: DD/MM/YYYY HH:MM:SS UTC
-            # Greek month names
-            months_el = {
-                1: "Ιανουαρίου", 2: "Φεβρουαρίου", 3: "Μαρτίου", 4: "Απριλίου",
-                5: "Μαΐου", 6: "Ιουνίου", 7: "Ιουλίου", 8: "Αυγούστου",
-                9: "Σεπτεμβρίου", 10: "Οκτωβρίου", 11: "Νοεμβρίου", 12: "Δεκεμβρίου"
-            }
-            month_name = months_el.get(dt_obj.month, "")
-            return f"{dt_obj.day} {month_name} {dt_obj.year}, {dt_obj.strftime('%H:%M:%S UTC')}"
+            # Greek date format: DD/MM/YYYY HH:MM:SS UTC (matching gr-ddmmyyyy frontend setting)
+            return dt_obj.strftime('%d/%m/%Y %H:%M:%S UTC')
         else:
-            # English date format: YYYY-MM-DD HH:MM:SS UTC
-            return dt_obj.strftime('%Y-%m-%d %H:%M:%S UTC')
+            # English date format: MM/DD/YYYY HH:MM:SS UTC (matching en-us frontend setting)
+            return dt_obj.strftime('%m/%d/%Y %H:%M:%S UTC')
 
     def export_dashboard_to_excel(
         self,
