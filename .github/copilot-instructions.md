@@ -1,6 +1,6 @@
 # Copilot Instructions for Student Management System
 
-**Version**: v1.17.2 (Jan 2026) | **Status**: ✅ STABLE (Released Jan 14, 2026)
+**Version**: v1.18.22 | **Status**: ✅ ACTIVE
 **Development Mode**: 🧑‍💻 **SOLO DEVELOPER** (Single developer + AI assistant only)
 
 ## ⚡ Quick Onboarding
@@ -21,13 +21,14 @@
 
 **First Steps for AI Agents**:
 0. Record a workspace snapshot: run COMMIT_READY Quick with -Snapshot or use the VS Code task "Record State Snapshot" (artifacts/state)
-0a. **Session start (mandatory):** Re-read this file and `docs/AGENT_POLICY_ENFORCEMENT.md` every session. Primary agent must ensure subagents do the same.
+0a. **Session start (mandatory):** Re-read this file, `docs/AGENT_POLICY_ENFORCEMENT.md`, and `docs/misc/AGENTS.md` every session. Primary agent must ensure subagents do the same.
 0b. **Instruction-order lock (mandatory):** **Use instruction-order lock + evidence gates.** Execute owner instructions in the exact order provided; do not declare completion until evidence for each ordered gate is shown.
+0c. **Session handoff and compliance review:** review all active agent/task files and prompts in `.github/agents/`, `.github/prompts/`, and `.github/instructions/` before taking action.
 1. Check current status in [docs/plans/UNIFIED_WORK_PLAN.md](../docs/plans/UNIFIED_WORK_PLAN.md) (single source of truth)
 2. Read [DOCUMENTATION_INDEX.md](../docs/DOCUMENTATION_INDEX.md) for navigation
 3. Follow [docs/AGENT_POLICY_ENFORCEMENT.md](../docs/AGENT_POLICY_ENFORCEMENT.md) (prevents crashes & duplication)
 
-**Current Version**: v1.17.2 (stored in `VERSION` file - **always check this first**)
+**Current Version**: v1.18.22 (stored in `VERSION` file - **always check this first**)
 
 ---
 
@@ -237,8 +238,8 @@ python -m pytest
 **✅ REQUIRED:**
 - Update `docs/plans/UNIFIED_WORK_PLAN.md` for ALL planning
 - Check work plan BEFORE starting work, update AFTER completing tasks
-- Verify version from `VERSION` file (current: 1.17.2)
-- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.17.1)
+- Verify version from `VERSION` file (current: 1.18.22)
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., v1.18.22)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `$11.x.x`, or any format other than `v1.x.x`
 
 **Why**: Multiple plans create confusion. Incorrect version format breaks all version tracking.
