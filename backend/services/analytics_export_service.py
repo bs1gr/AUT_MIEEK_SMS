@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Analytics Export Service
 Provides functionality to export analytics data to PDF and Excel formats.
@@ -20,6 +21,27 @@ from reportlab.pdfbase.ttfonts import TTFont
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
+
+
+def _register_analytics_fonts() -> tuple[str, str]:
+    """Register Unicode-capable fonts for PDF rendering - exact pattern from report_exporters.py"""
+    font_regular = "DejaVuSans"
+    font_bold = "DejaVuSans-Bold"
+
+    from pathlib import Path
+    fonts_dir = Path(__file__).resolve().parents[1] / "fonts"
+    regular_path = fonts_dir / "DejaVuSans.ttf"
+    bold_path = fonts_dir / "DejaVuSans-Bold.ttf"
+
+    if regular_path.exists() and bold_path.exists():
+        registered = set(pdfmetrics.getRegisteredFontNames())
+        if font_regular not in registered:
+            pdfmetrics.registerFont(TTFont(font_regular, str(regular_path)))
+        if font_bold not in registered:
+            pdfmetrics.registerFont(TTFont(font_bold, str(bold_path)))
+        return font_regular, font_bold
+
+    return "Helvetica", "Helvetica-Bold"
 
 
 class AnalyticsExportService:
@@ -70,10 +92,10 @@ class AnalyticsExportService:
 
     def _get_bold_font_name(self, font_name: str) -> str:
         """Get the appropriate bold font name for the given font."""
-        if font_name == "ArialUnicodeMS":
-            # Arial Unicode MS doesn't have a separate bold variant
-            # ReportLab will use the font and apply synthetic bolding
-            return font_name
+        if font_name == "DejaVuSans":
+            return "DejaVuSans-Bold"
+        elif font_name == "Helvetica":
+            return "Helvetica-Bold"
         elif "-Bold" in font_name:
             return font_name
         else:
@@ -252,66 +274,49 @@ class AnalyticsExportService:
         filename: str = "analytics_dashboard.pdf",
         data: Optional[Dict[str, Any]] = None,
     ) -> bytes:
-        """Export dashboard summary data to PDF format."""
+        """Export dashboard summary data to PDF format using proven report_exporters pattern."""
         try:
-            # Register DejaVuSans font - same as report_exporters.py for consistency
-            font_name = "Helvetica"
-            try:
-                from pathlib import Path
-                fonts_dir = Path(__file__).resolve().parents[1] / "fonts"
-                regular_path = fonts_dir / "DejaVuSans.ttf"
-                bold_path = fonts_dir / "DejaVuSans-Bold.ttf"
-
-                if regular_path.exists() and bold_path.exists():
-                    registered = set(pdfmetrics.getRegisteredFontNames())
-                    if "DejaVuSans" not in registered:
-                        pdfmetrics.registerFont(TTFont("DejaVuSans", str(regular_path)))
-                    if "DejaVuSans-Bold" not in registered:
-                        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", str(bold_path)))
-                    font_name = "DejaVuSans"
-                    logger.info("Registered DejaVuSans font from local fonts directory")
-                else:
-                    logger.warning(f"DejaVuSans fonts not found in {fonts_dir}, falling back to Helvetica")
-            except Exception as e:
-                logger.warning(f"Error registering DejaVuSans fonts: {e}, using Helvetica fallback")
-                font_name = "Helvetica"
+            # Register fonts each time (same as report_exporters.py)
+            base_font, base_font_bold = _register_analytics_fonts()
 
             output = io.BytesIO()
             doc = SimpleDocTemplate(
                 output,
                 pagesize=letter,
-                rightMargin=0.5 * inch,
-                leftMargin=0.5 * inch,
-                topMargin=0.75 * inch,
-                bottomMargin=0.75 * inch,
+                topMargin=0.5 * inch,
+                bottomMargin=0.5 * inch,
             )
 
-            # Styles
+            elements: List[Flowable] = []
             styles = getSampleStyleSheet()
+
+            # Styles - matching report_exporters.py pattern
             title_style = ParagraphStyle(
                 "CustomTitle",
                 parent=styles["Heading1"],
-                fontSize=18,
+                fontSize=24,
                 textColor=colors.HexColor("#4472C4"),
                 spaceAfter=12,
-                fontName=font_name,
+                fontName=base_font,
             )
             heading_style = ParagraphStyle(
                 "CustomHeading",
                 parent=styles["Heading2"],
-                fontSize=14,
+                fontSize=16,
                 textColor=colors.HexColor("#2F5496"),
                 spaceAfter=10,
-                spaceBefore=6,
-                fontName=font_name,
+                spaceBefore=10,
+                fontName=base_font,
             )
-
-            elements: List[Flowable] = []
+            normal_style = ParagraphStyle(
+                "Normal",
+                parent=styles["Normal"],
+                fontName=base_font,
+            )
 
             # Title
             elements.append(Paragraph(self.t["title"], title_style))
-            elements.append(Paragraph(f"{self.t['generated']}: {self.format_datetime()}", styles["Normal"]))
-            elements.append(Spacer(1, 0.3 * inch))
+            elements.append(Spacer(1, 0.2 * inch))
 
             # Summary Section
             if data and "summary" in data:
@@ -325,18 +330,20 @@ class AnalyticsExportService:
                     [self.t["average_attendance"], f"{summary.get('average_attendance', 0):.2f}%"],
                 ]
 
-                summary_table = Table(summary_data, colWidths=[3.5 * inch, 2 * inch])
+                summary_table = Table(summary_data, colWidths=[3 * inch, 3 * inch])
                 summary_table.setStyle(
                     TableStyle(
                         [
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), self._get_bold_font_name(font_name)),
-                            ("FONTSIZE", (0, 0), (-1, 0), 12),
-                            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-                            ("GRID", (0, 0), (-1, -1), 1, colors.black),
+                            ("FONTNAME", (0, 0), (-1, -1), base_font),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
+                            ("FONTSIZE", (0, 0), (-1, -1), 10),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                            ("TOPPADDING", (0, 0), (-1, -1), 8),
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
                         ]
                     )
                 )
@@ -348,7 +355,7 @@ class AnalyticsExportService:
                 elements.append(Paragraph(self.t["class_averages"], heading_style))
 
                 class_data = [[self.t["class"], self.t["student_count"], self.t["average_grade"]]]
-                for item in data["class_averages"][:10]:  # Limit to first 10
+                for item in data["class_averages"][:10]:
                     class_data.append(
                         [
                             item.get("label", ""),
@@ -364,30 +371,28 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), self._get_bold_font_name(font_name)),
+                            ("FONTNAME", (0, 0), (-1, -1), base_font),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
-                            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                            ("TOPPADDING", (0, 0), (-1, -1), 8),
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
                         ]
                     )
                 )
                 elements.append(class_table)
                 elements.append(Spacer(1, 0.3 * inch))
 
-                # Page break if we have more data
-                if data.get("course_averages"):
-                    elements.append(PageBreak())
-
             # Course Averages Section
             if data and "course_averages" in data:
                 elements.append(Paragraph(self.t["course_averages"], heading_style))
 
                 course_data = [[self.t["course_name"], self.t["enrollments"], self.t["average_grade"]]]
-                for item in data["course_averages"][:15]:  # Limit to first 15
+                for item in data["course_averages"][:15]:
                     course_data.append(
                         [
-                            item.get("label", "")[:30],  # Truncate long names
+                            item.get("label", "")[:30],
                             str(item.get("count", 0)),
                             f"{item.get('average', 0):.2f}%",
                         ]
@@ -400,17 +405,22 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), self._get_bold_font_name(font_name)),
+                            ("FONTNAME", (0, 0), (-1, -1), base_font),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
-                            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-                            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-                            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.lightgrey]),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                            ("TOPPADDING", (0, 0), (-1, -1), 8),
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+                            ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#F3F4F6")]),
                         ]
                     )
                 )
                 elements.append(course_table)
+                elements.append(Spacer(1, 0.2 * inch))
 
-            # Build PDF
+            # Add generated timestamp at end
+            elements.append(Paragraph(f"{self.t['generated']}: {self.format_datetime()}", normal_style))
+
             doc.build(elements)
             output.seek(0)
             return output.getvalue()

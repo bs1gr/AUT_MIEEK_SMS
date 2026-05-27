@@ -259,7 +259,7 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
         raise internal_server_error("Analytics lookups failed", request)
 
 
-def _build_dashboard_export_data(db: Session) -> dict:
+def _build_dashboard_export_data(db: Session, language: str = "en") -> dict:
     """Build dashboard export data from the current analytics schema."""
     from sqlalchemy import func
 
@@ -282,10 +282,15 @@ def _build_dashboard_export_data(db: Session) -> dict:
         if getattr(student, "academic_year", None):
             return str(student.academic_year)
         if student.study_year in (1, 2):
-            return "A" if student.study_year == 1 else "B"
+            base = "A" if student.study_year == 1 else "B"
+            if language == "el":
+                return "Τάξη " + ("Α" if student.study_year == 1 else "Β")
+            return base
         if student.study_year:
+            if language == "el":
+                return f"Έτος {student.study_year}"
             return f"Year {student.study_year}"
-        return "Unknown Class"
+        return "Άγνωστη Τάξη" if language == "el" else "Unknown Class"
 
     class_counts: dict[str, int] = {}
     for student in students:
@@ -643,7 +648,7 @@ async def export_dashboard_pdf(
                 final_language = "en"
 
         logger.info(f"PDF export - query_language={language}, timezone={timezone}, final={final_language}")
-        export_data = _build_dashboard_export_data(db)
+        export_data = _build_dashboard_export_data(db, language=final_language)
         export_service = AnalyticsExportService(db, language=final_language, timezone=timezone)
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
 
