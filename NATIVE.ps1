@@ -1509,17 +1509,32 @@ function Stop-All {
     try {
         $venvPython = Join-Path $SCRIPT_DIR ".venv\Scripts\python.exe"
         if (Test-Path $venvPython) {
-            $strayProcs = Get-Process python -ErrorAction SilentlyContinue | Where-Object {
-                $_.Path -eq $venvPython -or $_.CommandLine -like "*uvicorn*" -or $_.CommandLine -like "*$BACKEND_DIR*"
-            }
-            if ($strayProcs) {
-                Write-Info "Cleaning up stray Python processes from backend..."
-                foreach ($proc in $strayProcs) {
+            $pythonProcs = Get-Process python -ErrorAction SilentlyContinue
+            if ($pythonProcs) {
+                $strayProcs = @()
+                foreach ($proc in @($pythonProcs)) {
                     try {
-                        Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
-                        Write-Info "Stopped stray Python process (PID $($proc.Id))"
+                        # Use WMI to get command line since Get-Process doesn't have CommandLine property
+                        $cimProc = Get-CimInstance Win32_Process -Filter "ProcessId = $($proc.Id)" -ErrorAction SilentlyContinue
+                        $cmdLine = if ($cimProc) { [string]$cimProc.CommandLine } else { "" }
+
+                        if ($proc.Path -eq $venvPython -or $cmdLine -like "*uvicorn*" -or $cmdLine -like "*$BACKEND_DIR*") {
+                            $strayProcs += $proc.Id
+                        }
                     } catch {
-                        # Ignore errors, process may have already exited
+                        # Ignore lookup errors
+                    }
+                }
+
+                if ($strayProcs.Count -gt 0) {
+                    Write-Info "Cleaning up stray Python processes from backend..."
+                    foreach ($procId in $strayProcs) {
+                        try {
+                            Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
+                            Write-Info "Stopped stray Python process (PID $procId)"
+                        } catch {
+                            # Ignore errors, process may have already exited
+                        }
                     }
                 }
             }
