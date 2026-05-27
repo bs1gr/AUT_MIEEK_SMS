@@ -5,11 +5,11 @@ import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
 import { readFileSync } from 'fs'
 
-// Inject version from package.json
+// Inject version from package.json (strip 'v' prefix if present)
 let version = 'dev';
 try {
   const pkg = JSON.parse(readFileSync('./package.json', 'utf-8'));
-  version = pkg.version || 'dev';
+  version = (pkg.version || 'dev').replace(/^v/, '');
 } catch {}
 
 const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://127.0.0.1:8000';
