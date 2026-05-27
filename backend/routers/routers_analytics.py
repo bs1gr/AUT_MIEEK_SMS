@@ -582,11 +582,12 @@ async def export_dashboard_excel(
         StreamingResponse: Excel file with dashboard summary data
     """
     try:
+        logger.debug(f"Export Excel requested with language: {language}")
         export_data = _build_dashboard_export_data(db)
         export_service = AnalyticsExportService(db, language=language)
         excel_data = export_service.export_dashboard_to_excel(data=export_data)
 
-        logger.info("Analytics dashboard exported to Excel by %s", request.state.request_id)
+        logger.info("Analytics dashboard exported to Excel by %s with language %s", request.state.request_id, language)
 
         return StreamingResponse(
             iter([excel_data]),
@@ -620,11 +621,12 @@ async def export_dashboard_pdf(
         StreamingResponse: PDF file with dashboard summary data
     """
     try:
+        logger.debug(f"Export PDF requested with language: {language}")
         export_data = _build_dashboard_export_data(db)
         export_service = AnalyticsExportService(db, language=language)
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
 
-        logger.info("Analytics dashboard exported to PDF by %s", request.state.request_id)
+        logger.info("Analytics dashboard exported to PDF by %s with language %s", request.state.request_id, language)
 
         return StreamingResponse(
             iter([pdf_data]),
