@@ -62,14 +62,11 @@ function Test-IsFrontendProcess {
     }
 
     $commandLine = Get-ProcessCommandLine -TargetProcessNumber $TargetProcessNumber
-    $exePath = [string]$process.Path
 
     return (
-        $commandLine -match 'vite' -or
-        $commandLine -match 'npm(\.cmd)?\s+run\s+dev' -or
-        $commandLine -match [regex]::Escape($frontendRootPath) -or
-        $exePath -match 'node(\.exe)?$' -or
-        $exePath -match 'pwsh(\.exe)?$'
+        ($commandLine -match 'vite' -and $commandLine -match 'frontend') -or
+        ($commandLine -match 'npm(\.cmd)?\s+run\s+dev' -and $commandLine -match 'frontend') -or
+        $commandLine -match [regex]::Escape($frontendRootPath)
     )
 }
 
