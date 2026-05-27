@@ -254,47 +254,26 @@ class AnalyticsExportService:
     ) -> bytes:
         """Export dashboard summary data to PDF format."""
         try:
-            # Register a Unicode-aware font that supports Greek diacriticals
+            # Register DejaVuSans font - same as report_exporters.py for consistency
             font_name = "Helvetica"
             try:
-                import os
-                font_paths_to_try = [
-                    # Arial Unicode MS (Windows - best for Greek diacriticals)
-                    ("C:\\Windows\\Fonts\\ARIALUNI.TTF", "ArialUnicodeMS"),
-                    # DejaVuSans (Linux - supports Greek diacriticals)
-                    ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "DejaVuSans"),
-                    # Segoe UI (Windows Unicode font)
-                    ("C:\\Windows\\Fonts\\segoeui.ttf", "SegoeUI"),
-                    # Liberation Sans (Linux alternative)
-                    ("/usr/share/fonts/liberation/LiberationSans-Regular.ttf", "LiberationSans"),
-                    # macOS Helvetica Neue Unicode
-                    ("/System/Library/Fonts/Helvetica.ttc", "Helvetica"),
-                ]
+                from pathlib import Path
+                fonts_dir = Path(__file__).resolve().parents[1] / "fonts"
+                regular_path = fonts_dir / "DejaVuSans.ttf"
+                bold_path = fonts_dir / "DejaVuSans-Bold.ttf"
 
-                for font_path, font_register_name in font_paths_to_try:
-                    if os.path.exists(font_path):
-                        try:
-                            pdfmetrics.registerFont(TTFont(font_register_name, font_path))
-                            # Try to register bold variant if it exists
-                            if font_register_name == "SegoeUI":
-                                bold_path = font_path.replace("segoeui.ttf", "segoeuib.ttf")
-                                if os.path.exists(bold_path):
-                                    pdfmetrics.registerFont(TTFont(f"{font_register_name}-Bold", bold_path))
-                            elif font_register_name == "ArialUnicodeMS":
-                                # ArialUnicodeMS doesn't have separate bold variant
-                                # Will fall back to regular font for bold
-                                pass
-                            font_name = font_register_name
-                            logger.info(f"Registered {font_register_name} font from {font_path} for PDF export")
-                            break
-                        except Exception as e:
-                            logger.debug(f"Failed to register {font_register_name} font: {e}")
-                            continue
-
-                if font_name == "Helvetica":
-                    logger.info("Using Helvetica fallback for PDF export (Greek diacriticals may not render)")
+                if regular_path.exists() and bold_path.exists():
+                    registered = set(pdfmetrics.getRegisteredFontNames())
+                    if "DejaVuSans" not in registered:
+                        pdfmetrics.registerFont(TTFont("DejaVuSans", str(regular_path)))
+                    if "DejaVuSans-Bold" not in registered:
+                        pdfmetrics.registerFont(TTFont("DejaVuSans-Bold", str(bold_path)))
+                    font_name = "DejaVuSans"
+                    logger.info("Registered DejaVuSans font from local fonts directory")
+                else:
+                    logger.warning(f"DejaVuSans fonts not found in {fonts_dir}, falling back to Helvetica")
             except Exception as e:
-                logger.warning(f"Error setting up fonts: {e}, using Helvetica fallback")
+                logger.warning(f"Error registering DejaVuSans fonts: {e}, using Helvetica fallback")
                 font_name = "Helvetica"
 
             output = io.BytesIO()
