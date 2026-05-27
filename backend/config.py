@@ -187,6 +187,9 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     COOKIE_SECURE: bool = False
+    # Optional domain for refresh_token cookies (defaults to None for same-site-only cookies)
+    # Set to ".localhost" to allow cookies across both 127.0.0.1 and localhost in development
+    REFRESH_TOKEN_COOKIE_DOMAIN: str | None = None
     # Refresh token expiry (days); used for cookie max_age and refresh token rotation
     REFRESH_TOKEN_EXPIRE_DAYS: int = 30
 

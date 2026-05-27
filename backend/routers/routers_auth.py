@@ -611,6 +611,7 @@ async def login(
                 except Exception:
                     _days_val = 7
                 max_age_val = int(_days_val * 24 * 60 * 60) if _days_val > 0 else None
+                cookie_domain = getattr(settings, "REFRESH_TOKEN_COOKIE_DOMAIN", None)
                 response.set_cookie(
                     key="refresh_token",
                     value=refresh_token,
@@ -618,6 +619,8 @@ async def login(
                     secure=secure_flag,
                     samesite="lax",
                     max_age=max_age_val,
+                    path="/",
+                    domain=cookie_domain,
                 )
         except Exception:
             logger.exception("Failed to set refresh token cookie")
@@ -743,6 +746,7 @@ async def refresh(
             except Exception:
                 _days_val = 7
             max_age_val = int(_days_val * 24 * 60 * 60) if _days_val > 0 else None
+            cookie_domain = getattr(settings, "REFRESH_TOKEN_COOKIE_DOMAIN", None)
             response.set_cookie(
                 key="refresh_token",
                 value=new_refresh,
@@ -750,6 +754,8 @@ async def refresh(
                 secure=secure_flag,
                 samesite="lax",
                 max_age=max_age_val,
+                path="/",
+                domain=cookie_domain,
             )
             issue_csrf_cookie(response, include_header=True)
         return Token(access_token=new_access)

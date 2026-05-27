@@ -16,7 +16,10 @@
       "Bash(powershell -Command \"Remove-Item ''d:\\SMS\\student-management-system\\frontend\\src\\StudentManagementApp.jsx'' -Force\")",
       "Bash(powershell -Command:*)",
       "Bash(npm run dev:*)",
-      "Bash(dir /B /A \"d:\\SMS\\student-management-system\")"
+      "Bash(dir /B /A \"d:\\SMS\\student-management-system\")",
+      "Skill(update-config)",
+      "Skill(update-config:*)",
+      "PowerShell(Get-Process -Name node -ErrorAction SilentlyContinue)"
     ],
     "deny": [],
     "ask": []
