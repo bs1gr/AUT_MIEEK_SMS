@@ -15,6 +15,8 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Flowable
 from reportlab.lib import colors
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
@@ -63,6 +65,26 @@ class AnalyticsExportService:
         self.db = db
         self.language = language if language in self.TRANSLATIONS else "en"
         self.t = self.TRANSLATIONS[self.language]
+        logger.info(f"AnalyticsExportService initialized with language={language}, resolved to={self.language}")
+
+    def format_datetime(self, dt_obj: Optional[Any] = None) -> str:
+        """Format datetime with localized date format."""
+        if dt_obj is None:
+            dt_obj = dt.utcnow()
+
+        if self.language == "el":
+            # Greek date format: DD/MM/YYYY HH:MM:SS UTC
+            # Greek month names
+            months_el = {
+                1: "Ιανουαρίου", 2: "Φεβρουαρίου", 3: "Μαρτίου", 4: "Απριλίου",
+                5: "Μαΐου", 6: "Ιουνίου", 7: "Ιουλίου", 8: "Αυγούστου",
+                9: "Σεπτεμβρίου", 10: "Οκτωβρίου", 11: "Νοεμβρίου", 12: "Δεκεμβρίου"
+            }
+            month_name = months_el.get(dt_obj.month, "")
+            return f"{dt_obj.day} {month_name} {dt_obj.year}, {dt_obj.strftime('%H:%M:%S UTC')}"
+        else:
+            # English date format: YYYY-MM-DD HH:MM:SS UTC
+            return dt_obj.strftime('%Y-%m-%d %H:%M:%S UTC')
 
     def export_dashboard_to_excel(
         self,
@@ -93,7 +115,7 @@ class AnalyticsExportService:
             ws.merge_cells("A1:D1")
 
             # Date exported
-            ws["A2"] = f"{self.t['exported']}: {dt.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}"
+            ws["A2"] = f"{self.t['exported']}: {self.format_datetime()}"
             ws["A2"].font = Font(italic=True, size=10)
             ws.merge_cells("A2:D2")
 
@@ -208,6 +230,43 @@ class AnalyticsExportService:
     ) -> bytes:
         """Export dashboard summary data to PDF format."""
         try:
+            # Register a Unicode-aware font that supports Greek characters
+            font_name = "Helvetica"
+            try:
+                import os
+                font_paths_to_try = [
+                    # DejaVuSans (most common Linux font)
+                    ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", "DejaVuSans"),
+                    # Segoe UI (Windows Unicode font)
+                    ("C:\\Windows\\Fonts\\segoeui.ttf", "SegoeUI"),
+                    # Liberation Sans (Linux alternative)
+                    ("/usr/share/fonts/liberation/LiberationSans-Regular.ttf", "LiberationSans"),
+                    # macOS Helvetica Neue Unicode
+                    ("/System/Library/Fonts/Helvetica.ttc", "Helvetica"),
+                ]
+
+                for font_path, font_register_name in font_paths_to_try:
+                    if os.path.exists(font_path):
+                        try:
+                            pdfmetrics.registerFont(TTFont(font_register_name, font_path))
+                            # Try to register bold variant if it exists
+                            if font_register_name == "SegoeUI":
+                                bold_path = font_path.replace("segoeui.ttf", "segoeuib.ttf")
+                                if os.path.exists(bold_path):
+                                    pdfmetrics.registerFont(TTFont(f"{font_register_name}-Bold", bold_path))
+                            font_name = font_register_name
+                            logger.info(f"Registered {font_register_name} font from {font_path} for PDF export")
+                            break
+                        except Exception as e:
+                            logger.debug(f"Failed to register {font_register_name} font: {e}")
+                            continue
+
+                if font_name == "Helvetica":
+                    logger.info("Using Helvetica fallback for PDF export (Greek text may not render)")
+            except Exception as e:
+                logger.warning(f"Error setting up fonts: {e}, using Helvetica fallback")
+                font_name = "Helvetica"
+
             output = io.BytesIO()
             doc = SimpleDocTemplate(
                 output,
@@ -226,6 +285,7 @@ class AnalyticsExportService:
                 fontSize=18,
                 textColor=colors.HexColor("#4472C4"),
                 spaceAfter=12,
+                fontName=font_name,
             )
             heading_style = ParagraphStyle(
                 "CustomHeading",
@@ -234,13 +294,14 @@ class AnalyticsExportService:
                 textColor=colors.HexColor("#2F5496"),
                 spaceAfter=10,
                 spaceBefore=6,
+                fontName=font_name,
             )
 
             elements: List[Flowable] = []
 
             # Title
             elements.append(Paragraph(self.t["title"], title_style))
-            elements.append(Paragraph(f"{self.t['generated']}: {dt.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}", styles["Normal"]))
+            elements.append(Paragraph(f"{self.t['generated']}: {self.format_datetime()}", styles["Normal"]))
             elements.append(Spacer(1, 0.3 * inch))
 
             # Summary Section
@@ -262,7 +323,7 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                            ("FONTNAME", (0, 0), (-1, 0), f"{font_name}-Bold" if "-Bold" not in font_name else font_name),
                             ("FONTSIZE", (0, 0), (-1, 0), 12),
                             ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                             ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
@@ -294,7 +355,7 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                            ("FONTNAME", (0, 0), (-1, 0), f"{font_name}-Bold" if "-Bold" not in font_name else font_name),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
                             ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                             ("GRID", (0, 0), (-1, -1), 1, colors.black),
@@ -330,7 +391,7 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                            ("FONTNAME", (0, 0), (-1, 0), f"{font_name}-Bold" if "-Bold" not in font_name else font_name),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
                             ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
                             ("GRID", (0, 0), (-1, -1), 1, colors.black),
