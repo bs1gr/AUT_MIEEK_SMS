@@ -37,16 +37,18 @@ def _register_analytics_fonts() -> tuple[str, str]:
     bold_path = fonts_dir / "DejaVuSans-Bold.ttf"
 
     if regular_path.exists() and bold_path.exists():
-        registered = set(pdfmetrics.getRegisteredFontNames())
-        if font_regular not in registered:
-            pdfmetrics.registerFont(TTFont(font_regular, str(regular_path)))
-        if font_bold not in registered:
-            pdfmetrics.registerFont(TTFont(font_bold, str(bold_path)))
-        return font_regular, font_bold
+        try:
+            registered = set(pdfmetrics.getRegisteredFontNames())
+            if font_regular not in registered:
+                pdfmetrics.registerFont(TTFont(font_regular, str(regular_path)))
+            if font_bold not in registered:
+                pdfmetrics.registerFont(TTFont(font_bold, str(bold_path)))
+            return font_regular, font_bold
+        except Exception as e:
+            logger.error(f"Failed to register DejaVuSans fonts: {e}. Using Helvetica fallback.")
+            return "Helvetica", "Helvetica-Bold"
 
     logger.warning(f"DejaVuSans fonts not found at {fonts_dir}. Greek PDFs will render with Helvetica fallback.")
-    return "Helvetica", "Helvetica-Bold"
-
     return "Helvetica", "Helvetica-Bold"
 
 

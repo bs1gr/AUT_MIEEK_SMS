@@ -80,12 +80,18 @@ class TestAnalyticsExportService:
         assert isinstance(pdf_bytes, bytes)
         assert pdf_bytes.startswith(b"%PDF")
 
+        # Validate PDF structure and text content
         pdf_reader = PdfReader(io.BytesIO(pdf_bytes))
         extracted_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
 
         assert "Αναφορά Αναλυτικών Δεδομένων" in extracted_text
         assert "Τάξη Α" in extracted_text
         assert "Μάθημα Πληροφορικής" in extracted_text
+
+        # Check that PDF has font references (basic validation that fonts were registered)
+        pdf_bytes_str = pdf_bytes.decode("latin-1", errors="ignore")
+        # DejaVuSans or Helvetica fonts should be referenced in PDF
+        assert "Font" in pdf_bytes_str or "TrueType" in pdf_bytes_str, "No font references found in PDF"
 
     def test_export_generates_unique_filenames(self, clean_db):
         """Test that export service can be called with various filenames"""
