@@ -1,9 +1,9 @@
 # Release Manifest - Version 1.18.7
 
 **Release Date**: March 5, 2026
-**Tag**: vv1.18.21
+**Tag**: vvv1.18.22
 **Branch**: main
-**Previous Release**: vv1.18.21 (March 2, 2026)
+**Previous Release**: vvv1.18.22 (March 2, 2026)
 
 ---
 
@@ -30,18 +30,18 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 | File | Expected Value |
 |------|---------------|
-| `VERSION` | `vv1.18.21` |
+| `VERSION` | `vvv1.18.22` |
 | `frontend/package.json` | `"version": "1.18.7"` |
 | `backend/main.py` | `Version: 1.18.7` |
-| `COMMIT_READY.ps1` | `Version: vv1.18.21` |
+| `COMMIT_READY.ps1` | `Version: vvv1.18.22` |
 | `docs/DOCUMENTATION_INDEX.md` | `1.18.7` |
 
 ---
 
 ## 📋 Commit Range
 
-**Base**: vv1.18.21 (`e1d83fe2a`)
-**Head**: vv1.18.21 (current `main` HEAD)
+**Base**: vvv1.18.22 (`e1d83fe2a`)
+**Head**: vvv1.18.22 (current `main` HEAD)
 **Total Commits**: 18
 
 ### Commit Categories
@@ -60,7 +60,7 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ### Pre-Release Checks
 
-- [ ] `VERSION` file contains `vv1.18.21`
+- [ ] `VERSION` file contains `vvv1.18.22`
 - [ ] `frontend/package.json` version is `1.18.7`
 - [ ] `backend/main.py` version header is `1.18.7`
 - [ ] `CHANGELOG.md` has `[1.18.7]` section
@@ -70,7 +70,7 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ### Post-Release Checks
 
-- [ ] GitHub Release page published at `/releases/tag/vv1.18.21`
+- [ ] GitHub Release page published at `/releases/tag/vvv1.18.22`
 - [ ] Installer workflow completed successfully
 - [ ] Release-asset-sanitizer workflow passed
 - [ ] `SMS_Installer_1.18.7.exe` present in release assets

@@ -54,7 +54,13 @@
       "PowerShell(cd d:\\\\SMS\\\\student-management-system; $runId = \\(gh run list --workflow docs-organization.yml --limit 1 --json databaseId -q '.[0].databaseId'\\); gh run view $runId)",
       "PowerShell(cd d:\\\\SMS\\\\student-management-system; $runId = \\(gh run list --workflow docs-organization.yml --limit 1 --json databaseId -q '.[0].databaseId'\\); gh run view $runId --log-failed 2>&1 | Select-Object -Last 100)",
       "Bash(gh run *)",
-      "PowerShell(git add .claude/settings.local.json)"
+      "PowerShell(git add .claude/settings.local.json)",
+      "PowerShell(git add .github/workflows/)",
+      "PowerShell(git restore .claude/settings.local.json)",
+      "PowerShell(git push origin main)",
+      "Bash(Get-ChildItem -Path \".github\\\\workflows\" -Filter \"*release*\")",
+      "Bash(Select-Object Name)",
+      "PowerShell(tail -5)"
     ],
     "deny": [],
     "ask": [],

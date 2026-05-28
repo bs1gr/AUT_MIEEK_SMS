@@ -34,7 +34,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - update GitHub Actions workflows for Node.js v24 compatibility and fix deprecations
 
 ### Chores
-- **release**: bump version to v1.18.22 and update docs/scripts headers
+- **release**: bump version to vv1.18.22 and update docs/scripts headers
 - **workflows**: add GitHub CLI availability guard for gh-dependent workflow steps
 
 ## [1.18.22] - 2026-05-24
@@ -51,8 +51,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.18.21] - 2026-04-29
 
 ### Documentation
-- add release documentation for v1.18.21
-- update changelog for v1.18.21 release
+- add release documentation for vv1.18.22
+- update changelog for vv1.18.22 release
 
 ## [1.18.21] - 2026-04-29
 
@@ -116,7 +116,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Chores
 - **deps**: fix dependabot security alerts
-- **release**: record vv1.18.21 publication evidence
+- **release**: record vvv1.18.22 publication evidence
 
 ## [1.18.18] - 2026-04-17
 
@@ -141,7 +141,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **status**: close post-release security alert follow-up
 
 ### Chores
-- **release**: record vv1.18.21 publication evidence
+- **release**: record vvv1.18.22 publication evidence
 
 ## [1.18.16] - 2026-03-31
 
@@ -179,11 +179,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **validation**: harden installer tooling and batch retest flows
 
 ### CI/CD
-- **ci**: update `aquasecurity/trivy-action` to `vv1.18.21`
+- **ci**: update `aquasecurity/trivy-action` to `vvv1.18.22`
 
 ### Chores
 - **gitignore**: ignore root-level generated `DOCUMENTATION_INDEX.md` duplicate
-- **docs**: record post-`vv1.18.21` accumulation metadata for release preparation
+- **docs**: record post-`vvv1.18.22` accumulation metadata for release preparation
 
 
 
@@ -237,10 +237,10 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **work-plan**: record qnap hardening follow-up
 - **phase5**: fix historical index links
 - **release**: rename publication draft references
-- **release**: record executed vv1.18.21 checklist state
-- **release**: align remaining vv1.18.21 state references
-- **release**: sync official vv1.18.21 publication state
-- **release**: finalize vv1.18.21 official publication path
+- **release**: record executed vvv1.18.22 checklist state
+- **release**: align remaining vvv1.18.22 state references
+- **release**: sync official vvv1.18.22 publication state
+- **release**: finalize vvv1.18.22 official publication path
 - **release**: prepare first official public release draft
 - **ci**: align release state and workflow guidance
 - historicize legacy coordination and rollout notes
@@ -260,11 +260,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Fixed
 - **security**: harden maintenance/update path handling and backup path validation against uncontrolled path input
 - **installer**: restore generated Greek RTF pipeline for Inno Setup builds and align builder validation with version cache
-- **release**: prepare corrective patch release after `vv1.18.21` published without installer assets
+- **release**: prepare corrective patch release after `vvv1.18.22` published without installer assets
 - **guardrails**: add tracked-input validation for installer assets in pre-commit checks, local installer builds, and release CI to block local-only file references before publication
 
 ### Verification
-- **installer**: fresh local `vv1.18.21` installer build, signing, and smoke validation completed successfully
+- **installer**: fresh local `vvv1.18.22` installer build, signing, and smoke validation completed successfully
 - **backend**: targeted maintenance/database security regression tests passing
 
 ## [1.18.10] - 2026-03-09
@@ -280,7 +280,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **installer**: rebuild Windows installer for the profile-drift fix lineage and refresh bundled installer metadata/docs
 
 ### Documentation
-- **release**: prepare `vv1.18.21` release notes for the post-`vv1.18.21` installer/profile-drift patch scope
+- **release**: prepare `vvv1.18.22` release notes for the post-`vvv1.18.22` installer/profile-drift patch scope
 
 ## [1.18.9] - 2026-03-09
 
@@ -305,7 +305,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Chores
 - **env**: update `.env.example` to local-first secure profile defaults with explicit remote opt-in
-- **installer**: Add build metadata tracking for vv1.18.21
+- **installer**: Add build metadata tracking for vvv1.18.22
 
 ## [1.18.8] - 2026-03-08
 
@@ -334,7 +334,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **database**: fix download auth, DRY instance lookup, fix param ordering
 
 ### Documentation
-- update work plan, changelog, and index to reflect vv1.18.21 release status
+- update work plan, changelog, and index to reflect vvv1.18.22 release status
 - **deployment**: add multi-PC deployment guide for hybrid QNAP architecture
 
 ### Tests
@@ -432,7 +432,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Documentation
 
-- **Release Docs**: Comprehensive vv1.18.21 release documentation set
+- **Release Docs**: Comprehensive vvv1.18.22 release documentation set
 - **QNAP Guide**: postgres-only ARMv7 deployment instructions
 - **Multi-PC Deployment**: Hybrid architecture guide
 
@@ -446,9 +446,9 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Version references updated across codebase (VERSION, package.json, docs)
 - Visual Studio solution files added to .gitignore
 
-### Post-Release (vv1.18.21+)
+### Post-Release (vvv1.18.22+)
 
-**Quality & Type Safety** (18 commits after vv1.18.21 tag):
+**Quality & Type Safety** (18 commits after vvv1.18.22 tag):
 - **Analytics Type Safety**: Eliminated `any` types from hooks, components, utilities
 - **Dashboard TypeScript**: Resolved CI lint job typing failures
 - **Error Handling**: Recovered error handling flow and aligned search analytics hooks
@@ -516,7 +516,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Changed
 - Version references updated across codebase (VERSION, package.json, docs)
-- Documentation index updated to vv1.18.21
+- Documentation index updated to vvv1.18.22
 
 ### Summary
 **Total Impact**: 36 files changed, 5,587+ lines added
@@ -562,7 +562,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **release-assets**: keep installer-only allowlist policy (`SMS_Installer_<version>.exe` + `.sha256`) with digest verification gates.
 
 ### Documentation
-- **release-docs**: prepared complete vv1.18.21 release package (notes, GitHub body, manifest, deployment checklist).
+- **release-docs**: prepared complete vvv1.18.22 release package (notes, GitHub body, manifest, deployment checklist).
 - **pre-release**: recorded validation summary and synchronized release metadata across planning/index documents.
 
 

@@ -1,7 +1,7 @@
 # Release Notes - Version 1.18.9
 
 **Release Date**: 2026-03-09
-**Previous Version**: vv1.18.21
+**Previous Version**: vvv1.18.22
 
 ## 🔐 Security & Database Profile Hardening
 

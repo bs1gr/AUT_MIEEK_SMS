@@ -1,9 +1,9 @@
 # Release Manifest - Version 1.18.13
 
 **Release Date (target)**: March 17, 2026
-**Tag**: vv1.18.21
+**Tag**: vvv1.18.22
 **Branch**: main
-**Previous Tag**: vv1.18.21
+**Previous Tag**: vvv1.18.22
 
 ---
 
@@ -28,18 +28,18 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 | File | Expected Value |
 |------|---------------|
-| `VERSION` | `vv1.18.21` |
+| `VERSION` | `vvv1.18.22` |
 | `frontend/package.json` | `"version": "1.18.13"` |
 | `backend/main.py` | `Version: 1.18.13` |
 | `INSTALLER_BUILDER.ps1` | `Version: 1.18.13` |
 | `docs/DOCUMENTATION_INDEX.md` | `1.18.13` |
-| `CHANGELOG.md` | post-`vv1.18.21` Unreleased summary present |
+| `CHANGELOG.md` | post-`vvv1.18.22` Unreleased summary present |
 
 ---
 
 ## 📋 Commit Range
 
-**Base Tag**: vv1.18.21
+**Base Tag**: vvv1.18.22
 **Head Commit (prep start)**: `0d65f157c`
 
 ### Scope Evidence
@@ -62,7 +62,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Pre-Release Gates
 
-- [x] Version metadata aligned to `vv1.18.21`
+- [x] Version metadata aligned to `vvv1.18.22`
 - [x] Release notes generated (`RELEASE_NOTES`, `GITHUB_RELEASE`, `.github/RELEASE_NOTES`)
 - [x] `scripts/VERIFY_VERSION.ps1 -CheckOnly` passed
 - [x] `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-03-17_095642.md`)
@@ -78,7 +78,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Publication Gates
 
-- [ ] Tag `vv1.18.21` created and pushed
+- [ ] Tag `vvv1.18.22` created and pushed
 - [ ] `Create GitHub Release on tag` workflow succeeds
 - [ ] `Release - Build & Upload Installer with SHA256` workflow succeeds
 - [ ] `Release Asset Sanitizer` workflow succeeds

@@ -2,16 +2,16 @@
 
 **Release Date**: March 10, 2026
 **Official Public Release Designation**: March 11, 2026
-**Tag**: vv1.18.21
-**Previous Tag**: vv1.18.21
-**Previous Archived Prerelease Reference**: vv1.18.21
+**Tag**: vvv1.18.22
+**Previous Tag**: vvv1.18.22
+**Previous Archived Prerelease Reference**: vvv1.18.22
 
 ---
 
 ## Phase 1: Pre-Release Validation
 
 ### 1.1 Version Consistency
-- [x] `VERSION` file reads `vv1.18.21`
+- [x] `VERSION` file reads `vvv1.18.22`
 - [x] `frontend/package.json` version is `1.18.12`
 - [x] `backend/main.py` version header is `1.18.12`
 - [x] `INSTALLER_BUILDER.ps1` version reference is `1.18.12`
@@ -37,8 +37,8 @@
 
 ### 2.1 Create Tag
 ```powershell
-git tag -a vv1.18.21 -m "vv1.18.21: corrective release for installer pipeline and path hardening"
-git push origin vv1.18.21
+git tag -a vvv1.18.22 -m "vvv1.18.22: corrective release for installer pipeline and path hardening"
+git push origin vvv1.18.22
 ```
 
 Completed on the original release date; the same tag was later promoted to the first official public release without minting a new version.
@@ -49,7 +49,7 @@ Completed on the original release date; the same tag was later promoted to the f
 - [x] `Release Asset Sanitizer` — SUCCESS
 
 ### 2.3 Verify Release Page
-- [x] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.21`
+- [x] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22`
 - [x] Release body was later replaced with the first official public release body during publication-state promotion
 - [x] Not marked as draft
 - [x] Marked latest/non-prerelease as the first official public release
@@ -80,14 +80,14 @@ $hash = (Get-FileHash "SMS_Installer_1.18.12.exe" -Algorithm SHA256).Hash
 
 ## Phase 4: Documentation
 
-- [x] Work plan updated with `vv1.18.21` publication status
+- [x] Work plan updated with `vvv1.18.22` publication status
 - [x] `CHANGELOG.md` reflects released version
 - [x] Release docs committed (`RELEASE_NOTES`, `GITHUB_RELEASE`, `RELEASE_MANIFEST`, `DEPLOYMENT_CHECKLIST`)
-- [x] `.github/RELEASE_NOTES_vv1.18.21.md` present for workflow consumption
+- [x] `.github/RELEASE_NOTES_vvv1.18.22.md` present for workflow consumption
 
 ## Phase 5: Official Public Release Promotion
 
-- [x] Existing `vv1.18.21` GitHub release promoted from prerelease to latest/non-prerelease
-- [x] Archived banner removed from `vv1.18.21` release body
+- [x] Existing `vvv1.18.22` GitHub release promoted from prerelease to latest/non-prerelease
+- [x] Archived banner removed from `vvv1.18.22` release body
 - [x] Official public release body applied
-- [x] `vv1.18.21` through `vv1.18.21` remained archived as prereleases
+- [x] `vvv1.18.22` through `vvv1.18.22` remained archived as prereleases

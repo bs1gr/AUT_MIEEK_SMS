@@ -1,18 +1,18 @@
 # Deployment Checklist - Version 1.18.7
 
 **Release Date**: March 5, 2026
-**Tag**: vv1.18.21
-**Previous Version**: vv1.18.21
+**Tag**: vvv1.18.22
+**Previous Version**: vvv1.18.22
 
 ---
 
 ## Phase 1: Pre-Release Validation
 
 ### 1.1 Version Consistency
-- [ ] `VERSION` file reads `vv1.18.21`
+- [ ] `VERSION` file reads `vvv1.18.22`
 - [ ] `frontend/package.json` version is `1.18.7`
 - [ ] `backend/main.py` version header is `1.18.7`
-- [ ] `COMMIT_READY.ps1` version reference is `vv1.18.21`
+- [ ] `COMMIT_READY.ps1` version reference is `vvv1.18.22`
 - [ ] `CHANGELOG.md` contains `[1.18.7] - 2026-03-05` section
 
 ### 1.2 Code Quality
@@ -36,8 +36,8 @@
 
 ### 2.1 Create Tag
 ```powershell
-git tag -a vv1.18.21 -m "vv1.18.21: Control Panel Auto-Updater, Offline Sync, Health Diagnostics"
-git push origin vv1.18.21
+git tag -a vvv1.18.22 -m "vvv1.18.22: Control Panel Auto-Updater, Offline Sync, Health Diagnostics"
+git push origin vvv1.18.22
 ```
 
 ### 2.2 Monitor Workflows
@@ -46,8 +46,8 @@ git push origin vv1.18.21
 - [ ] `Release Asset Sanitizer` — SUCCESS
 
 ### 2.3 Verify Release Page
-- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.21`
-- [ ] Release body populated from `GITHUB_RELEASE_vv1.18.21.md`
+- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22`
+- [ ] Release body populated from `GITHUB_RELEASE_vvv1.18.22.md`
 - [ ] Not marked as draft
 
 ---
@@ -84,8 +84,8 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 - [ ] Login page accessible
 - [ ] Health endpoint responds 200
 
-### 4.2 Upgrade from vv1.18.21 (Manual)
-- [ ] Run installer over existing vv1.18.21 installation
+### 4.2 Upgrade from vvv1.18.22 (Manual)
+- [ ] Run installer over existing vvv1.18.22 installation
 - [ ] Data preserved after upgrade
 - [ ] Application starts without errors
 - [ ] New features accessible (auto-updater panel, offline indicators)
@@ -117,7 +117,7 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 
 ## Phase 6: Documentation
 
-- [ ] Work plan updated with vv1.18.21 release status
+- [ ] Work plan updated with vvv1.18.22 release status
 - [ ] CHANGELOG.md reflects released version
 - [ ] Release docs committed (4 files in `docs/releases/`)
 
@@ -131,9 +131,9 @@ If critical issues are found:
 # Docker rollback
 .\DOCKER.ps1 -Stop
 # Checkout previous version
-git checkout vv1.18.21
+git checkout vvv1.18.22
 .\DOCKER.ps1 -Start
 
 # Installer rollback
-# Use vv1.18.21 installer from previous release
+# Use vvv1.18.22 installer from previous release
 ```

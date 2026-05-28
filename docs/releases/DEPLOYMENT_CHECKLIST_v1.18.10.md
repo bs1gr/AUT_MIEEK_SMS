@@ -1,15 +1,15 @@
 # Deployment Checklist - Version 1.18.10
 
 **Release Date**: March 9, 2026
-**Tag**: vv1.18.21
-**Previous Version**: vv1.18.21
+**Tag**: vvv1.18.22
+**Previous Version**: vvv1.18.22
 
 ---
 
 ## Phase 1: Pre-Release Validation
 
 ### 1.1 Version Consistency
-- [ ] `VERSION` file reads `vv1.18.21`
+- [ ] `VERSION` file reads `vvv1.18.22`
 - [ ] `frontend/package.json` version is `1.18.10`
 - [ ] `backend/main.py` version header is `1.18.10`
 - [ ] `INSTALLER_BUILDER.ps1` version reference is `1.18.10`
@@ -30,8 +30,8 @@
 
 ### 2.1 Create Tag
 ```powershell
-git tag -a vv1.18.21 -m "vv1.18.21: installer profile-drift fix and release alignment"
-git push origin vv1.18.21
+git tag -a vvv1.18.22 -m "vvv1.18.22: installer profile-drift fix and release alignment"
+git push origin vvv1.18.22
 ```
 
 ### 2.2 Monitor Workflows
@@ -40,8 +40,8 @@ git push origin vv1.18.21
 - [ ] `Release Asset Sanitizer` — SUCCESS
 
 ### 2.3 Verify Release Page
-- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.21`
-- [ ] Release body populated from `GITHUB_RELEASE_vv1.18.21.md`
+- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22`
+- [ ] Release body populated from `GITHUB_RELEASE_vvv1.18.22.md`
 - [ ] Not marked as draft
 
 ---
@@ -77,8 +77,8 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 - [ ] Login page accessible
 - [ ] Health endpoint responds 200
 
-### 4.2 Upgrade from vv1.18.21 (Manual)
-- [ ] Run installer over existing vv1.18.21 installation
+### 4.2 Upgrade from vvv1.18.22 (Manual)
+- [ ] Run installer over existing vvv1.18.22 installation
 - [ ] PostgreSQL profile preserved after upgrade
 - [ ] No silent fallback to local SQLite
 - [ ] Application starts without errors
@@ -106,6 +106,6 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 
 ## Phase 6: Documentation
 
-- [ ] Work plan updated with vv1.18.21 release prep / publication state
+- [ ] Work plan updated with vvv1.18.22 release prep / publication state
 - [ ] CHANGELOG.md reflects released version
 - [ ] Release docs committed (`RELEASE_NOTES`, `GITHUB_RELEASE`, `RELEASE_MANIFEST`, `DEPLOYMENT_CHECKLIST`)

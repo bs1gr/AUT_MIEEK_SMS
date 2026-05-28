@@ -2,8 +2,8 @@
 
 **Status**: Published and verified
 **Release Date**: 2026-03-19
-**Previous Version**: vv1.18.21
-**Scope Baseline**: `vv1.18.21..HEAD`
+**Previous Version**: vvv1.18.22
+**Scope Baseline**: `vvv1.18.22..HEAD`
 
 ---
 
@@ -54,7 +54,7 @@
 - [x] Backend environment audit clean after remediation (`pip_audit`: no known vulnerabilities)
 - [x] State snapshot recorded:
   - `artifacts/state/STATE_2026-03-19_204251.md`
-- [x] Local installer build/sign/smoke for `vv1.18.21`
+- [x] Local installer build/sign/smoke for `vvv1.18.22`
   - `dist/SMS_Installer_1.18.14.exe`
   - Signature: `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
   - SHA256: `78B10CA0D5A4F9E8C2A46C29ADBC4210BF66C275165E0678DC44CA55C898E9D6`

@@ -1,4 +1,4 @@
-## What's New in vv1.18.21
+## What's New in vvv1.18.22
 
 ### 🔐 Security + Deployment Hardening
 

@@ -526,5 +526,5 @@ gh run list --watch
 
 ---
 
-**Status:** ✅ All workflows operational and triggerable  
+**Status:** ✅ All workflows operational and triggerable
 **Last Review:** 2026-05-28

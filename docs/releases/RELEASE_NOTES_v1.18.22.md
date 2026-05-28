@@ -1,7 +1,7 @@
 # Release Notes - Version 1.18.22
 
 **Release Date**: 2026-05-24
-**Previous Version**: v1.18.21
+**Previous Version**: vv1.18.22
 
 ## ✨ Features
 
@@ -25,7 +25,7 @@
 
 ## 🧹 Chores
 
-- **release**: bump version to v1.18.22 and update docs/scripts headers [2da52b1]
+- **release**: bump version to vv1.18.22 and update docs/scripts headers [2da52b1]
 - **workflows**: add GitHub CLI availability guard for gh-dependent workflow steps [131f0c2]
 
 ## 📦 Other Changes

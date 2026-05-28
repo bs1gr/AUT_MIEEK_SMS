@@ -1,4 +1,4 @@
-# Release Manifest: vv1.18.21 - Security & Stability Patch
+# Release Manifest: vvv1.18.22 - Security & Stability Patch
 
 **Release Date**: March 1, 2026
 **Release Type**: Patch (Security & Stability)
@@ -48,11 +48,11 @@
 3. **Documentation Consolidation**
    - CHANGELOG.md: Added [1.18.5] section
    - UNIFIED_WORK_PLAN.md: Updated with release decision
-   - DOCUMENTATION_INDEX.md: Aligned to clean vv1.18.21
+   - DOCUMENTATION_INDEX.md: Aligned to clean vvv1.18.22
 
 ### Deferred Features
 
-**Analytics Dashboard** (Not in vv1.18.21)
+**Analytics Dashboard** (Not in vvv1.18.22)
 - **Components**: 27 files (backend routers, services, frontend components, hooks, utils, translations)
 - **Reason**: CI pipeline failures (frontend linting + backend tests)
 - **Decision**: Reverted per Policy 0.1 to preserve release integrity
@@ -63,15 +63,15 @@
 ## 📦 Release Artifacts
 
 ### Git References
-- **Tag**: `vv1.18.21`
+- **Tag**: `vvv1.18.22`
 - **Branch**: `main`
 - **Commit**: TBD (analytics revert commit)
 
 ### Documentation Package
-- `docs/releases/RELEASE_NOTES_vv1.18.21.md`
-- `docs/releases/GITHUB_RELEASE_vv1.18.21.md`
-- `docs/releases/RELEASE_MANIFEST_vv1.18.21.md` (this file)
-- `docs/releases/DEPLOYMENT_CHECKLIST_vv1.18.21.md`
+- `docs/releases/RELEASE_NOTES_vvv1.18.22.md`
+- `docs/releases/GITHUB_RELEASE_vvv1.18.22.md`
+- `docs/releases/RELEASE_MANIFEST_vvv1.18.22.md` (this file)
+- `docs/releases/DEPLOYMENT_CHECKLIST_vvv1.18.22.md`
 
 ### Release Assets (GitHub)
 - `SMS_Installer_1.18.5.exe` (Windows installer)
@@ -112,8 +112,8 @@
 
 ### Phase 4: Release Creation
 
-- [ ] Create git tag: `git tag -a vv1.18.21 -m "vv1.18.21 - Security & Stability"`
-- [ ] Push tag: `git push origin vv1.18.21`
+- [ ] Create git tag: `git tag -a vvv1.18.22 -m "vvv1.18.22 - Security & Stability"`
+- [ ] Push tag: `git push origin vvv1.18.22`
 - [ ] Monitor release workflows:
   - [ ] `release-on-tag.yml` completes successfully
   - [ ] `release-installer-with-sha.yml` completes successfully
@@ -148,8 +148,8 @@
 
 ### Planning
 
-- [ ] Document lessons learned from vv1.18.21
-- [ ] Archive vv1.18.21 release artifacts
+- [ ] Document lessons learned from vvv1.18.22
+- [ ] Archive vvv1.18.22 release artifacts
 
 ---
 

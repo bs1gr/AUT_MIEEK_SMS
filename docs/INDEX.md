@@ -15,7 +15,7 @@ This is the main entry point for navigating all project documentation. For detai
   - RBAC guides
   - Session management guides
 
-### Development Documentation  
+### Development Documentation
 - **[Development Guides](development/INDEX.md)** - Technical documentation, architecture, and APIs
   - Architecture and design documents
   - API documentation
@@ -57,8 +57,8 @@ This is the main entry point for navigating all project documentation. For detai
 
 ### Release Documentation
 - **[Releases](releases/)** - Release notes and version history
-  - [Release Notes](releases/RELEASE_NOTES_v1.14.1.md) - Latest release notes
-  - [GitHub Releases](releases/GITHUB_RELEASE_v1.14.3.md) - GitHub release documentation
+  - [Release Notes](releases/RELEASE_NOTES_vv1.18.22.md) - Latest release notes
+  - [GitHub Releases](releases/GITHUB_RELEASE_vv1.18.22.md) - GitHub release documentation
   - [Release Reports](releases/reports/) - Release verification reports
 
 ### CI/CD Documentation

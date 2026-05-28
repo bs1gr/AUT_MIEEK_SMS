@@ -1,4 +1,4 @@
-# Release Notes - vv1.18.21
+# Release Notes - vvv1.18.22
 
 **Version**: 1.18.15
 **Release Date**: 2026-03-21
@@ -10,7 +10,7 @@
 
 ## Summary
 
-vv1.18.21 is a maintenance patch that packages the installer/QNAP hardening fixes, RBAC permissions-table guardrail, Trivy CI pin, and validation tooling improvements accumulated since the vv1.18.21 release. No breaking changes — this is a drop-in upgrade from vv1.18.21.
+vvv1.18.22 is a maintenance patch that packages the installer/QNAP hardening fixes, RBAC permissions-table guardrail, Trivy CI pin, and validation tooling improvements accumulated since the vvv1.18.22 release. No breaking changes — this is a drop-in upgrade from vvv1.18.22.
 
 ---
 
@@ -24,7 +24,7 @@ vv1.18.21 is a maintenance patch that packages the installer/QNAP hardening fixe
 
 ### CI / Security
 
-- **Trivy action version pin**: Updated `trivy-action` from unpinned `0.20.0` to `vv1.18.21` to resolve unresolvable-tag failures in the security-scanning workflow.
+- **Trivy action version pin**: Updated `trivy-action` from unpinned `0.20.0` to `vvv1.18.22` to resolve unresolvable-tag failures in the security-scanning workflow.
 
 ### RBAC
 
@@ -40,7 +40,7 @@ vv1.18.21 is a maintenance patch that packages the installer/QNAP hardening fixe
 
 ---
 
-## Files Changed (since vv1.18.21)
+## Files Changed (since vvv1.18.22)
 
 **Backend:**
 - `backend/rbac.py` — user permissions table existence guard
@@ -50,10 +50,10 @@ vv1.18.21 is a maintenance patch that packages the installer/QNAP hardening fixe
 - `INSTALLER_BUILDER.ps1` — version bump to 1.18.15; tooling hardening
 
 **CI:**
-- `.github/workflows/trivy-scan.yml` — trivy-action pin to vv1.18.21
+- `.github/workflows/trivy-scan.yml` — trivy-action pin to vvv1.18.22
 
 **Documentation / Config:**
-- `VERSION` → `vv1.18.21`
+- `VERSION` → `vvv1.18.22`
 - `frontend/package.json` → `1.18.15`
 - `backend/main.py` — version docstring
 - `CHANGELOG.md` — new [1.18.15] section
@@ -97,7 +97,7 @@ vv1.18.21 is a maintenance patch that packages the installer/QNAP hardening fixe
 
 ## Upgrade Notes
 
-- Drop-in upgrade from vv1.18.21. No migration steps required.
+- Drop-in upgrade from vvv1.18.22. No migration steps required.
 - If upgrading a QNAP/NAS deployment: the new installer SQLite/QNAP detection path activates automatically.
 - PostgreSQL auth-drift recovery is passive — no action needed unless connection failures were occurring.
 
@@ -105,4 +105,4 @@ vv1.18.21 is a maintenance patch that packages the installer/QNAP hardening fixe
 
 ## Previous Release
 
-- [vv1.18.21 Release Notes](RELEASE_NOTES_vv1.18.21.md)
+- [vvv1.18.22 Release Notes](RELEASE_NOTES_vvv1.18.22.md)
