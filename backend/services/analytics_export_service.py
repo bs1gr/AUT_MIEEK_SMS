@@ -23,8 +23,6 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 
-
-
 def _register_analytics_fonts() -> tuple[str, str]:
     """Register Unicode-capable fonts for PDF rendering - exact pattern from report_exporters.py"""
     font_regular = "DejaVuSans"

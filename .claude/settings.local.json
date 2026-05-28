@@ -35,9 +35,27 @@
       "PowerShell(Select-String -Path \"d:\\\\SMS\\\\student-management-system\\\\NATIVE.ps1\" -Pattern \"\\\\.CommandLine\" | Where-Object {$_.LineNumber -gt 1500})",
       "PowerShell(Get-NetTCPConnection -LocalPort 8000 -State Listen -ErrorAction SilentlyContinue)",
       "PowerShell(Get-Process -Id 31176 -ErrorAction SilentlyContinue)",
-      "PowerShell(Get-Process python)"
+      "PowerShell(Get-Process python)",
+      "PowerShell(Start-Process \"C:\\\\temp\\\\final_dejavu_greek.pdf\")",
+      "Bash(cd /d d:\\\\SMS\\\\student-management-system)",
+      "Bash(.\\\\NATIVE.ps1 -Stop)",
+      "Bash(ls -lart d:\\\\\\\\SMS\\\\\\\\student-management-system\\\\\\\\.backend.* d:\\\\\\\\SMS\\\\\\\\student-management-system\\\\\\\\backend.log*)",
+      "Read(//d/SMS/student-management-system/backend/fonts/**)",
+      "PowerShell(cd D:\\\\SMS\\\\student-management-system && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 2>&1 | Select-Object -First 20 &)",
+      "PowerShell(Start-Sleep -Seconds 5; $response = Invoke-WebRequest -Uri \"http://127.0.0.1:8000/analytics/export/pdf?language=el\" -Method POST -UseBasicParsing -Headers @{\"Accept-Language\" = \"el\"} -OutFile \"test_export_el.pdf\" 2>&1; if \\(Test-Path \"test_export_el.pdf\"\\) { \"PDF downloaded: $\\(Get-Item test_export_el.pdf | Select-Object -ExpandProperty Length\\) bytes\" } else { \"Failed to download PDF\"; $response })",
+      "PowerShell(Stop-Job -Id 1)",
+      "PowerShell(Get-Job -Id 1)",
+      "PowerShell(Remove-Job)",
+      "PowerShell(python -c \"from reportlab.pdfbase import ttfonts; help\\(ttfonts.TTFont.__init__\\)\" 2>&1)",
+      "PowerShell(head -40)",
+      "Bash(find /c/Users/Vasilis/.claude/projects -type f -name \"*.md\" 2>/dev/null | head -20)",
+      "Read(//c/Users/Vasilis/.claude/projects/**)",
+      "PowerShell($memoryPath = \"C:\\\\Users\\\\Vasilis\\\\.claude\\\\projects\\\\d--SMS-student-management-system\\\\memory\"; if \\(Test-Path $memoryPath\\) { Get-ChildItem $memoryPath -Recurse -File | Select-Object Name, FullName } else { \"Memory directory does not exist at: $memoryPath\" })"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "d:\\tmp"
+    ]
   }
 }
