@@ -1,7 +1,7 @@
 # API Examples
 
 **Status**: Draft (Initial Skeleton)
-**Last Updated**: 2025-11-16
+**Last Updated**: 2026-05-28
 **Applies To**: $11.18.3+
 
 Concise examples of common API interactions. Replace placeholder values where noted.

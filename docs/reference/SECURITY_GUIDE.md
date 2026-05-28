@@ -250,5 +250,5 @@ Monthly maintenance:
 
 ---
 
-**Last Updated**: November 20, 2025
+**Last Updated**: May 28, 2026
 **Repository**: bs1gr/AUT_MIEEK_SMS (Public)

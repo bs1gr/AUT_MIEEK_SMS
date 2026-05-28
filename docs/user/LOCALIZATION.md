@@ -408,6 +408,6 @@ For questions or issues with localization:
 
 ---
 
-**Last Updated**: 2025-11-15
+**Last Updated**: 2026-05-28
 **Version**: 1.2 (1.9.7 alignment)
 **Languages Supported**: English (EN), Greek (EL)
