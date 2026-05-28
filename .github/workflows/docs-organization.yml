@@ -22,10 +22,13 @@ jobs:
 
       - name: Create documentation index
         run: |
+          set -euo pipefail
+
           echo "📂 Organizing documentation structure..."
 
-          # Create index of all docs
-          cat > docs/INDEX.md << 'EOF'
+          # Only create INDEX.md if it doesn't exist (preserve manually maintained index)
+          if [ ! -f "docs/INDEX.md" ]; then
+            cat > docs/INDEX.md << 'EOF'
           # Documentation Index
 
           **Last Updated:** $(date -u)
@@ -45,8 +48,12 @@ jobs:
 
           EOF
 
-          # List recent documentation files
-          find docs -name "*.md" -type f -mtime -7 -exec basename {} \; | head -10 >> docs/INDEX.md
+            # List recent documentation files
+            find docs -name "*.md" -type f -mtime -7 -exec basename {} \; | head -10 >> docs/INDEX.md
+            echo "✅ Created new documentation index"
+          else
+            echo "✅ Using existing documentation index"
+          fi
 
       - name: Archive outdated docs
         run: |
@@ -93,19 +100,52 @@ jobs:
 
       - name: Check for orphaned docs
         run: |
+          set -euo pipefail
+
           echo "🔍 Checking for orphaned documentation..."
 
-          # Find docs not referenced in README or INDEX
+          # Files/patterns that are intentionally organized in subdirectories
+          EXCLUDED_PATTERNS=(
+            "INDEX.md"
+            "DOCUMENTATION_INDEX.md"
+            "AUDIT_INDEX.md"
+            "PHASE5_DOCUMENT_INDEX.md"
+            "FRONTEND_DOCUMENTATION_INDEX.md"
+            "WORKFLOW_CONSOLIDATION_INDEX.md"
+            "WORKFLOW_DOCUMENTATION_INDEX.md"
+            "CI_CD_INDEX.md"
+            "CI_DOCUMENTATION_INDEX.md"
+            "COMPLETE_DELIVERY_INDEX.md"
+            "GITHUB_CI_MASTER_INDEX.md"
+            "QUICK_START_INDEX.md"
+            "README.md"
+          )
+
           ORPHANED=0
           for doc in docs/**/*.md; do
-            if ! grep -q "$(basename $doc)" docs/INDEX.md && [ "$(basename $doc)" != "INDEX.md" ]; then
-              echo "⚠️  Orphaned: $doc"
-              ((ORPHANED++))
+            BASENAME=$(basename "$doc")
+            SKIP=0
+
+            # Check if file should be skipped
+            for pattern in "${EXCLUDED_PATTERNS[@]}"; do
+              if [[ "$BASENAME" == "$pattern" ]]; then
+                SKIP=1
+                break
+              fi
+            done
+
+            if [ $SKIP -eq 0 ]; then
+              # Check if referenced in any INDEX file
+              if ! grep -r -q "$BASENAME" docs/*INDEX*.md 2>/dev/null; then
+                echo "⚠️  Orphaned: $doc"
+                ((ORPHANED++))
+              fi
             fi
           done
 
           if [ $ORPHANED -gt 0 ]; then
             echo "⚠️  Found $ORPHANED potentially orphaned documentation files"
+            echo "Tip: Add references to docs/INDEX.md or relevant INDEX files in subdirectories"
           else
             echo "✅ No orphaned documentation found"
           fi
