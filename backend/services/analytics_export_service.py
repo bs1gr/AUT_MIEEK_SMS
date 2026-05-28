@@ -4,7 +4,6 @@ Analytics Export Service
 Provides functionality to export analytics data to PDF and Excel formats.
 """
 
-import html
 import io
 import logging
 from datetime import datetime as dt
@@ -15,7 +14,7 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, PageBreak, Flowable
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Flowable
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -36,6 +35,7 @@ def _register_analytics_fonts() -> tuple[str, str]:
     font_bold = "DejaVuSans-Bold"
 
     from pathlib import Path
+
     fonts_dir = Path(__file__).resolve().parents[1] / "fonts"
     regular_path = fonts_dir / "DejaVuSans.ttf"
     bold_path = fonts_dir / "DejaVuSans-Bold.ttf"
@@ -115,8 +115,9 @@ class AnalyticsExportService:
 
         try:
             from zoneinfo import ZoneInfo
+
             # Convert UTC to the specified timezone
-            utc_tz = ZoneInfo('UTC')
+            utc_tz = ZoneInfo("UTC")
             local_tz = ZoneInfo(self.timezone)
 
             # If dt_obj is naive, assume it's UTC
@@ -124,20 +125,20 @@ class AnalyticsExportService:
                 dt_obj = dt_obj.replace(tzinfo=utc_tz)
 
             local_dt = dt_obj.astimezone(local_tz)
-            tz_abbr = local_dt.strftime('%Z')  # e.g., 'EEST' or 'EET'
+            tz_abbr = local_dt.strftime("%Z")  # e.g., 'EEST' or 'EET'
 
             if self.language == "el":
                 # Greek date format: DD/MM/YYYY HH:MM:SS TZ (matching gr-ddmmyyyy frontend setting)
-                return local_dt.strftime(f'%d/%m/%Y %H:%M:%S {tz_abbr}')
+                return local_dt.strftime(f"%d/%m/%Y %H:%M:%S {tz_abbr}")
             else:
                 # English date format: MM/DD/YYYY HH:MM:SS TZ (matching en-us frontend setting)
-                return local_dt.strftime(f'%m/%d/%Y %H:%M:%S {tz_abbr}')
+                return local_dt.strftime(f"%m/%d/%Y %H:%M:%S {tz_abbr}")
         except Exception as e:
             logger.warning(f"Failed to format datetime with timezone {self.timezone}: {e}, falling back to UTC")
             if self.language == "el":
-                return dt_obj.strftime('%d/%m/%Y %H:%M:%S UTC')
+                return dt_obj.strftime("%d/%m/%Y %H:%M:%S UTC")
             else:
-                return dt_obj.strftime('%m/%d/%Y %H:%M:%S UTC')
+                return dt_obj.strftime("%m/%d/%Y %H:%M:%S UTC")
 
     def export_dashboard_to_excel(
         self,
@@ -316,9 +317,28 @@ class AnalyticsExportService:
                 fontName=base_font,
             )
             normal_style = ParagraphStyle(
-                "Normal",
+                "AnalyticsNormal",
                 parent=styles["Normal"],
                 fontName=base_font,
+                fontSize=10,
+                leading=12,
+            )
+            table_header_style = ParagraphStyle(
+                "AnalyticsTableHeader",
+                parent=styles["Normal"],
+                fontName=base_font_bold,
+                fontSize=10,
+                leading=12,
+                alignment=1,
+                textColor=colors.whitesmoke,
+            )
+            table_cell_style = ParagraphStyle(
+                "AnalyticsTableCell",
+                parent=styles["Normal"],
+                fontName=base_font,
+                fontSize=10,
+                leading=12,
+                alignment=1,
             )
 
             # Title
@@ -331,10 +351,22 @@ class AnalyticsExportService:
                 elements.append(Paragraph(self.t["summary_statistics"], heading_style))
 
                 summary_data = [
-                    [self.t["total_students"], str(summary.get("total_students", 0))],
-                    [self.t["total_courses"], str(summary.get("total_courses", 0))],
-                    [self.t["average_grade"], f"{summary.get('average_grade', 0):.2f}%"],
-                    [self.t["average_attendance"], f"{summary.get('average_attendance', 0):.2f}%"],
+                    [
+                        Paragraph(self.t["total_students"], table_header_style),
+                        Paragraph(str(summary.get("total_students", 0)), table_cell_style),
+                    ],
+                    [
+                        Paragraph(self.t["total_courses"], table_header_style),
+                        Paragraph(str(summary.get("total_courses", 0)), table_cell_style),
+                    ],
+                    [
+                        Paragraph(self.t["average_grade"], table_header_style),
+                        Paragraph(f"{summary.get('average_grade', 0):.2f}%", table_cell_style),
+                    ],
+                    [
+                        Paragraph(self.t["average_attendance"], table_header_style),
+                        Paragraph(f"{summary.get('average_attendance', 0):.2f}%", table_cell_style),
+                    ],
                 ]
 
                 summary_table = Table(summary_data, colWidths=[3 * inch, 3 * inch])
@@ -344,8 +376,9 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONT", (0, 0), (-1, -1), base_font, 10),
-                            ("FONT", (0, 0), (-1, 0), base_font_bold, 10),
+                            ("FONTNAME", (0, 0), (-1, -1), base_font),
+                            ("FONTSIZE", (0, 0), (-1, -1), 10),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
@@ -360,13 +393,19 @@ class AnalyticsExportService:
             if data and "class_averages" in data:
                 elements.append(Paragraph(self.t["class_averages"], heading_style))
 
-                class_data = [[self.t["class"], self.t["student_count"], self.t["average_grade"]]]
+                class_data = [
+                    [
+                        Paragraph(self.t["class"], table_header_style),
+                        Paragraph(self.t["student_count"], table_header_style),
+                        Paragraph(self.t["average_grade"], table_header_style),
+                    ]
+                ]
                 for item in data["class_averages"][:10]:
                     class_data.append(
                         [
-                            item.get("label", ""),
-                            str(item.get("count", 0)),
-                            f"{item.get('average', 0):.2f}%",
+                            Paragraph(item.get("label", ""), table_cell_style),
+                            Paragraph(str(item.get("count", 0)), table_cell_style),
+                            Paragraph(f"{item.get('average', 0):.2f}%", table_cell_style),
                         ]
                     )
 
@@ -377,8 +416,9 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONT", (0, 0), (-1, -1), base_font, 10),
-                            ("FONT", (0, 0), (-1, 0), base_font_bold, 10),
+                            ("FONTNAME", (0, 0), (-1, -1), base_font),
+                            ("FONTSIZE", (0, 0), (-1, -1), 10),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
@@ -393,13 +433,19 @@ class AnalyticsExportService:
             if data and "course_averages" in data:
                 elements.append(Paragraph(self.t["course_averages"], heading_style))
 
-                course_data = [[self.t["course_name"], self.t["enrollments"], self.t["average_grade"]]]
+                course_data = [
+                    [
+                        Paragraph(self.t["course_name"], table_header_style),
+                        Paragraph(self.t["enrollments"], table_header_style),
+                        Paragraph(self.t["average_grade"], table_header_style),
+                    ]
+                ]
                 for item in data["course_averages"][:15]:
                     course_data.append(
                         [
-                            item.get("label", "")[:30],
-                            str(item.get("count", 0)),
-                            f"{item.get('average', 0):.2f}%",
+                            Paragraph(item.get("label", "")[:30], table_cell_style),
+                            Paragraph(str(item.get("count", 0)), table_cell_style),
+                            Paragraph(f"{item.get('average', 0):.2f}%", table_cell_style),
                         ]
                     )
 
@@ -410,8 +456,9 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("FONT", (0, 0), (-1, -1), base_font, 10),
-                            ("FONT", (0, 0), (-1, 0), base_font_bold, 10),
+                            ("FONTNAME", (0, 0), (-1, -1), base_font),
+                            ("FONTSIZE", (0, 0), (-1, -1), 10),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),

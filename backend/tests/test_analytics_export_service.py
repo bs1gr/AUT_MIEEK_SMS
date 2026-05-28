@@ -3,7 +3,9 @@ Tests for Analytics Export Service (analytics_export_service.py)
 Tests for Excel and PDF export functionality
 """
 
-import pytest
+import io
+
+from pypdf import PdfReader
 
 
 class TestAnalyticsExportService:
@@ -42,20 +44,40 @@ class TestAnalyticsExportService:
         assert isinstance(result, bytes)
         assert len(result) > 0
 
-    @pytest.mark.skip(reason="Test mocks non-existent method export_to_excel - needs rewrite to use actual service API")
-    def test_export_handles_empty_data(self, clean_db):
-        """Test that export functions handle empty data gracefully (requires API rewrite)"""
-        pass
+    def test_export_to_pdf_preserves_greek_text(self, clean_db):
+        """Test that export_dashboard_to_pdf renders Greek text with a Unicode font."""
+        from backend.services.analytics_export_service import AnalyticsExportService
 
-    @pytest.mark.skip(reason="Test mocks non-existent method export_to_excel - needs rewrite to use actual service API")
-    def test_export_applies_formatting(self, clean_db):
-        """Test that Excel export applies proper formatting (requires API rewrite)"""
-        pass
+        service = AnalyticsExportService(db=clean_db, language="el")
 
-    @pytest.mark.skip(reason="Test mocks non-existent method export_to_excel - needs rewrite to use actual service API")
-    def test_export_validates_data_structure(self, clean_db):
-        """Test that export validates data structure (requires API rewrite)"""
-        pass
+        pdf_bytes = service.export_dashboard_to_pdf(
+            filename="test_report.pdf",
+            data={
+                "summary": {
+                    "total_students": 42,
+                    "total_courses": 7,
+                    "average_grade": 78.5,
+                    "average_attendance": 91.3,
+                },
+                "class_averages": [
+                    {"label": "Τάξη Α", "count": 18, "average": 83.4},
+                ],
+                "course_averages": [
+                    {"label": "Μάθημα Πληροφορικής", "count": 10, "average": 88.6},
+                ],
+            },
+        )
+
+        assert pdf_bytes is not None
+        assert isinstance(pdf_bytes, bytes)
+        assert pdf_bytes.startswith(b"%PDF")
+
+        pdf_reader = PdfReader(io.BytesIO(pdf_bytes))
+        extracted_text = "\n".join(page.extract_text() or "" for page in pdf_reader.pages)
+
+        assert "Αναφορά Αναλυτικών Δεδομένων" in extracted_text
+        assert "Τάξη Α" in extracted_text
+        assert "Μάθημα Πληροφορικής" in extracted_text
 
     def test_export_generates_unique_filenames(self, clean_db):
         """Test that export service can be called with various filenames"""
@@ -69,18 +91,3 @@ class TestAnalyticsExportService:
 
         assert result1 is not None
         assert result2 is not None
-
-    @pytest.mark.skip(reason="Test mocks non-existent method export_to_pdf - needs rewrite to use actual service API")
-    def test_pdf_export_includes_charts(self, clean_db):
-        """Test that PDF export can include chart images (requires API rewrite)"""
-        pass
-
-    @pytest.mark.skip(reason="Test mocks non-existent method export_to_excel - needs rewrite to use actual service API")
-    def test_export_handles_large_datasets(self, clean_db):
-        """Test that export can handle large datasets (requires API rewrite)"""
-        pass
-
-    @pytest.mark.skip(reason="Method signature mismatch: requires student_id and performance_data parameters")
-    def test_export_student_performance_to_excel(self, clean_db):
-        """Test student performance export (requires proper parameters)"""
-        pass
