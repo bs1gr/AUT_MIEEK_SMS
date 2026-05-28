@@ -22,6 +22,8 @@ jobs:
       - name: Check GitHub CLI availability
         shell: bash
         run: |
+          set -euo pipefail
+
           if ! command -v gh >/dev/null 2>&1; then
             echo 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for Dependabot automation.'
             exit 1

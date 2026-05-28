@@ -254,20 +254,30 @@ jobs:
         if: always()
         id: test-results
         run: |
+          set -euo pipefail
+
           echo "Extracting test results..."
           if [ -f frontend/playwright-report/index.html ]; then
-            # Try to extract test counts from report
-            PASSED=$(grep -o 'passed">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
-            FAILED=$(grep -o 'failed">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
-            SKIPPED=$(grep -o 'skipped">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
-            TOTAL=$((PASSED + FAILED + SKIPPED))
+            # Extract test counts from JSON summary if available, fall back to HTML parsing
+            if [ -f frontend/test-results/summary.json ]; then
+              PASSED=$(jq -r '.stats.expected // 0' frontend/test-results/summary.json 2>/dev/null || echo "0")
+              FAILED=$(jq -r '.stats.unexpected // 0' frontend/test-results/summary.json 2>/dev/null || echo "0")
+              SKIPPED=$(jq -r '.stats.skipped // 0' frontend/test-results/summary.json 2>/dev/null || echo "0")
+            else
+              # Fallback to HTML parsing (fragile but better than silent failure)
+              PASSED=$(grep -o 'passed">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
+              FAILED=$(grep -o 'failed">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
+              SKIPPED=$(grep -o 'skipped">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
+            fi
 
-            echo "passed=$PASSED" >> $GITHUB_OUTPUT
-            echo "failed=$FAILED" >> $GITHUB_OUTPUT
-            echo "skipped=$SKIPPED" >> $GITHUB_OUTPUT
+            TOTAL=$(( ${PASSED:-0} + ${FAILED:-0} + ${SKIPPED:-0} ))
+
+            echo "passed=${PASSED:-0}" >> $GITHUB_OUTPUT
+            echo "failed=${FAILED:-0}" >> $GITHUB_OUTPUT
+            echo "skipped=${SKIPPED:-0}" >> $GITHUB_OUTPUT
             echo "total=$TOTAL" >> $GITHUB_OUTPUT
 
-            echo "Test Results: $PASSED passed, $FAILED failed, $SKIPPED skipped (Total: $TOTAL)"
+            echo "Test Results: ${PASSED:-0} passed, ${FAILED:-0} failed, ${SKIPPED:-0} skipped (Total: $TOTAL)"
           else
             echo "passed=0" >> $GITHUB_OUTPUT
             echo "failed=0" >> $GITHUB_OUTPUT

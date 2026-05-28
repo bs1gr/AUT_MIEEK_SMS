@@ -40,7 +40,12 @@ jobs:
             echo 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for deployment cleanup.'
             exit 1
           fi
+          if ! command -v jq >/dev/null 2>&1; then
+            echo 'jq is not installed or not available on PATH. This workflow requires jq to parse GitHub CLI JSON output.'
+            exit 1
+          fi
           gh --version
+          jq --version
 
       - name: Delete old deployments
         shell: bash
@@ -51,6 +56,8 @@ jobs:
           KEEP_COUNT: ${{ inputs.keep_count || 1 }}
           DRY_RUN: ${{ inputs.dry_run || false }}
         run: |
+          set -euo pipefail
+
           echo "Target environment: $TARGET_ENV"
           echo "Keep count: $KEEP_COUNT"
           echo "Dry run: $DRY_RUN"
@@ -62,7 +69,7 @@ jobs:
             exit 0
           fi
 
-          TOTAL=$(echo "$DEPLOY_IDS" | wc -l | xargs)
+          TOTAL=$(echo "$DEPLOY_IDS" | wc -l)
           echo "Found $TOTAL deployments for $TARGET_ENV"
 
           TO_DELETE=$(echo "$DEPLOY_IDS" | tail -n +$((KEEP_COUNT + 1)))
@@ -80,11 +87,11 @@ jobs:
             exit 0
           fi
 
-          echo "$TO_DELETE" | while read -r id; do
+          while IFS= read -r id; do
             if [ -n "$id" ]; then
               echo "Deleting deployment $id..."
-              gh api -X DELETE "repos/$GH_REPO/deployments/$id"
+              gh api -X DELETE "repos/$GH_REPO/deployments/$id" || echo "Warning: failed to delete $id"
             fi
-          done
+          done <<< "$TO_DELETE"
 
           echo "Cleanup complete."

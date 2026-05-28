@@ -92,6 +92,11 @@ jobs:
           $tag = ""
           $releaseId = ""
 
+          if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
+            Write-Error "jq is not installed or not available on PATH. This workflow requires jq for GitHub CLI JSON parsing."
+            exit 1
+          }
+
           if ("${{ github.event.inputs.tag }}" -ne "") {
             # Manual dispatch with explicit tag for corrected-lineage repair/retry.
             $tag = "${{ github.event.inputs.tag }}"
@@ -100,11 +105,11 @@ jobs:
             # No tag provided: resolve the latest release and verify it already exists.
             Write-Host "No tag specified, fetching latest release..."
             try {
-              $latest = gh release view --json tagName,id -q '.tagName,.id'
+              $latest = gh release view --json tagName,id | jq -r '.tagName, .id'
               if ($LASTEXITCODE -eq 0 -and $latest) {
                 $lines = $latest -split "`n"
-                $tag = $lines[0]
-                $releaseId = $lines[1]
+                $tag = $lines[0].Trim()
+                $releaseId = $lines[1].Trim()
                 Write-Host "Latest release: $tag (ID: $releaseId)"
               } else {
                 Write-Error "No releases found. Please provide a tag."
@@ -130,7 +135,7 @@ jobs:
           # This workflow publishes the installer to an existing release and does
           # not create releases on its own.
           try {
-            $releaseId = (gh release view $tag --json id -q .id).Trim()
+            $releaseId = (gh release view $tag --json id | jq -r '.id').Trim()
           } catch {
             Write-Error "Release for tag '$tag' was not found. Aborting installer upload to prevent lineage drift."
             exit 1

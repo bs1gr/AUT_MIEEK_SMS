@@ -44,6 +44,8 @@ jobs:
 
       - name: Install backend dependencies (fast)
         run: |
+          set -euo pipefail
+
           python -m pip install --upgrade pip
           pip install ruff pytest mypy
           # Install full backend requirements to avoid missing optional deps
@@ -51,10 +53,15 @@ jobs:
 
       - name: Install backend dev dependencies
         if: hashFiles('backend/requirements-dev.txt') != ''
-        run: pip install -r backend/requirements-dev.txt
+        run: |
+          set -euo pipefail
+
+          pip install -r backend/requirements-dev.txt
 
       - name: Install frontend deps
         run: |
+          set -euo pipefail
+
           cd frontend
           npm ci --prefer-offline --no-audit
 
@@ -63,12 +70,16 @@ jobs:
           AUTH_MODE: strict
           DATABASE_URL: "sqlite:///:memory:"
         run: |
+          set -euo pipefail
+
           echo "Running backend fast tests..."
           cd backend
           python -m pytest tests/ -m "not slow" -q --tb=short --junitxml=pytest-results.xml
 
       - name: Run frontend fast tests (vitest) and produce JUnit
         run: |
+          set -euo pipefail
+
           echo "Running frontend fast tests..."
           cd frontend
           npx vitest run --reporter=junit --outputFile=vitest-results.xml

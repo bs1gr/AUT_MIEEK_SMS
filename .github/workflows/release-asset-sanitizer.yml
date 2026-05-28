@@ -33,7 +33,12 @@ jobs:
             echo 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for release sanitization.'
             exit 1
           fi
+          if ! command -v jq >/dev/null 2>&1; then
+            echo 'jq is not installed or not available on PATH. This workflow requires jq to parse GitHub CLI JSON output.'
+            exit 1
+          fi
           gh --version
+          jq --version
 
       - name: Resolve target release tag
         id: resolve
@@ -64,7 +69,7 @@ jobs:
           fi
 
           if [ -z "$TAG" ]; then
-            TAG=$(gh release view --repo "$REPO" --json tagName --jq '.tagName')
+            TAG=$(gh release view --repo "$REPO" --json tagName | jq -r '.tagName')
           fi
 
           if [ -z "$TAG" ]; then
@@ -99,7 +104,7 @@ jobs:
           echo "Sanitizing release '$TAG' in $REPO"
           echo "Allowed asset: $ALLOWED_EXE"
 
-          mapfile -t ASSETS < <(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name')
+          mapfile -t ASSETS < <(gh release view "$TAG" --repo "$REPO" --json assets | jq -r '.assets[].name')
 
           if [ "${#ASSETS[@]}" -eq 0 ]; then
             echo "No assets found on release '$TAG'."
@@ -128,7 +133,7 @@ jobs:
 
           ALLOWED_EXE="SMS_Installer_${VERSION}.exe"
 
-          mapfile -t FINAL_ASSETS < <(gh release view "$TAG" --repo "$REPO" --json assets --jq '.assets[].name')
+          mapfile -t FINAL_ASSETS < <(gh release view "$TAG" --repo "$REPO" --json assets | jq -r '.assets[].name')
 
           printf 'Final assets on %s:\n' "$TAG"
           for A in "${FINAL_ASSETS[@]}"; do

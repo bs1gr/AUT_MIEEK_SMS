@@ -40,8 +40,13 @@ jobs:
         id: count
         shell: bash
         run: |
+          set -euo pipefail
+
           if [ -f docs/markdown_lint_report.md ]; then
             ISSUES=$(grep -E '^Total issues:' docs/markdown_lint_report.md | awk '{print $3}')
+            if [ -z "$ISSUES" ]; then
+              ISSUES="n/a"
+            fi
           else
             ISSUES="n/a"
           fi
@@ -85,10 +90,16 @@ jobs:
       - name: Evaluate lint issue count
         shell: bash
         run: |
+          set -euo pipefail
+
           if [ -f lint-artifacts/markdown_lint_report.md ]; then
             issues=$(grep -E '^Total issues:' lint-artifacts/markdown_lint_report.md | awk '{print $3}')
+            if [ -z "$issues" ] || ! [[ "$issues" =~ ^[0-9]+$ ]]; then
+              echo "Report missing or invalid issue count; defaulting issues to 0"
+              issues=0
+            fi
           else
-            echo "Report missing; defaulting issues to 0";
+            echo "Report missing; defaulting issues to 0"
             issues=0
           fi
           echo "Detected issues: $issues"

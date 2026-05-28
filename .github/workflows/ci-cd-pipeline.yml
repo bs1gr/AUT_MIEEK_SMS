@@ -846,6 +846,8 @@ jobs:
 
       - name: Verify documentation consistency
         run: |
+          set -euo pipefail
+
           echo "🔍 Checking documentation TODOs..."
           TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" docs/ \
             --exclude-dir=node_modules \
@@ -855,20 +857,22 @@ jobs:
             --exclude-dir=docs/reports \
             --exclude-dir=docs/releases/reports \
             --exclude-dir=docs/development/sessions \
-            | wc -l || true)
+            2>/dev/null | wc -l || echo 0)
           echo "Found $TODO_COUNT TODO items in documentation"
 
-          if [ $TODO_COUNT -gt 50 ]; then
+          if [ "$TODO_COUNT" -gt 50 ]; then
             echo "::warning::High number of TODO items in documentation ($TODO_COUNT)"
           fi
 
       - name: Check for obsolete files
         run: |
+          set -euo pipefail
+
           echo "🧹 Checking for deprecated/obsolete files..."
-          find . -type f -name "*.deprecated" -o -name "*.obsolete" -o -name "*.bak" | tee obsolete-files.txt
+          find . -type f \( -name "*.deprecated" -o -name "*.obsolete" -o -name "*.bak" \) | tee obsolete-files.txt || true
 
           OBSOLETE_COUNT=$(wc -l < obsolete-files.txt)
-          if [ $OBSOLETE_COUNT -gt 0 ]; then
+          if [ "$OBSOLETE_COUNT" -gt 0 ]; then
             echo "::warning::Found $OBSOLETE_COUNT obsolete files"
             cat obsolete-files.txt
           fi

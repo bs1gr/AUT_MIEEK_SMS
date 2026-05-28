@@ -35,12 +35,23 @@ jobs:
         run: |
           echo "🧹 Cleaning up workflow runs older than 30 days..."
 
+          if ! command -v jq >/dev/null 2>&1; then
+            echo 'jq is not installed or not available on PATH. This workflow requires jq to parse GitHub CLI JSON output.'
+            exit 1
+          fi
+
           # Get current timestamp
           CUTOFF_DATE=$(date -u -d "30 days ago" +%Y-%m-%dT%H:%M:%SZ)
           echo "Cutoff date: $CUTOFF_DATE"
 
           # List all workflow runs and delete old ones
-          gh run list --repo ${{ github.repository }} --json databaseId,createdAt --jq '.[] | select(.createdAt < "'$CUTOFF_DATE'") | .databaseId' > /tmp/old_runs.txt
+          RUN_DATA=$(gh run list --repo ${{ github.repository }} --json databaseId,createdAt)
+          if [ $? -ne 0 ]; then
+            echo "Failed to fetch workflow runs"
+            exit 1
+          fi
+
+          echo "$RUN_DATA" | jq -r --arg cutoff "$CUTOFF_DATE" '.[] | select(.createdAt < $cutoff) | .databaseId' > /tmp/old_runs.txt
 
           DELETED=0
           while IFS= read -r RUN_ID; do
@@ -64,16 +75,27 @@ jobs:
         run: |
           echo "📦 Cleaning up artifacts older than 14 days..."
 
+          if ! command -v jq >/dev/null 2>&1; then
+            echo 'jq is not installed or not available on PATH. This workflow requires jq to parse GitHub CLI JSON output.'
+            exit 1
+          fi
+
           CUTOFF_DATE=$(date -u -d "14 days ago" +%Y-%m-%dT%H:%M:%SZ)
           echo "Cutoff date: $CUTOFF_DATE"
 
-          gh run list --repo ${{ github.repository }} --json databaseId,createdAt --jq '.[] | select(.createdAt < "'$CUTOFF_DATE'") | .databaseId' > /tmp/artifact_runs.txt
+          RUN_DATA=$(gh run list --repo ${{ github.repository }} --json databaseId,createdAt)
+          if [ $? -ne 0 ]; then
+            echo "Failed to fetch workflow runs"
+            exit 1
+          fi
+
+          echo "$RUN_DATA" | jq -r --arg cutoff "$CUTOFF_DATE" '.[] | select(.createdAt < $cutoff) | .databaseId' > /tmp/artifact_runs.txt
 
           DELETED=0
           while IFS= read -r RUN_ID; do
             if [ -n "$RUN_ID" ]; then
               # Delete artifacts from this run
-              for ARTIFACT_ID in $(gh run view $RUN_ID --repo ${{ github.repository }} --json artifacts --jq '.artifacts[].databaseId'); do
+              for ARTIFACT_ID in $(gh run view $RUN_ID --repo ${{ github.repository }} --json artifacts | jq -r '.artifacts[].databaseId'); do
                 echo "Deleting artifact: $ARTIFACT_ID"
                 gh api repos/${{ github.repository }}/actions/artifacts/$ARTIFACT_ID -X DELETE || true
                 ((DELETED++))
