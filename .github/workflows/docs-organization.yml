@@ -99,6 +99,7 @@ jobs:
           EOF
 
       - name: Check for orphaned docs
+        continue-on-error: true
         run: |
           set -euo pipefail
 
@@ -146,6 +147,7 @@ jobs:
           if [ $ORPHANED -gt 0 ]; then
             echo "⚠️  Found $ORPHANED potentially orphaned documentation files"
             echo "Tip: Add references to docs/INDEX.md or relevant INDEX files in subdirectories"
+            exit 1
           else
             echo "✅ No orphaned documentation found"
           fi
