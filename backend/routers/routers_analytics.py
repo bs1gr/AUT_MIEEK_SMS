@@ -648,8 +648,10 @@ async def export_dashboard_pdf(
                 final_language = "en"
 
         logger.info(f"PDF export - query_language={language}, timezone={timezone}, final={final_language}")
+        # IMPORTANT: Both must use same language to ensure consistent output (data + export service)
         export_data = _build_dashboard_export_data(db, language=final_language)
         export_service = AnalyticsExportService(db, language=final_language, timezone=timezone)
+        assert export_service.language == final_language, "Language mismatch between data and service"
         pdf_data = export_service.export_dashboard_to_pdf(data=export_data)
 
         logger.info("Analytics dashboard exported to PDF by %s with language %s", request.state.request_id, language)

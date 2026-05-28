@@ -382,9 +382,10 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            # Apply base font to all cells, then override header with bold
                             ("FONTNAME", (0, 0), (-1, -1), base_font),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
-                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),  # Overrides above for row 0
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
@@ -422,9 +423,10 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            # Apply base font to all cells, then override header with bold
                             ("FONTNAME", (0, 0), (-1, -1), base_font),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
-                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),  # Overrides above for row 0
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
@@ -462,9 +464,10 @@ class AnalyticsExportService:
                             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#4472C4")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            # Apply base font to all cells, then override header with bold
                             ("FONTNAME", (0, 0), (-1, -1), base_font),
                             ("FONTSIZE", (0, 0), (-1, -1), 10),
-                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),
+                            ("FONTNAME", (0, 0), (-1, 0), base_font_bold),  # Overrides above for row 0
                             ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
                             ("TOPPADDING", (0, 0), (-1, -1), 8),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
