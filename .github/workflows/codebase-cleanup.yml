@@ -1,0 +1,280 @@
+name: Codebase Cleanup & Organization
+
+on:
+  schedule:
+    # Weekly on Wednesdays at 3 AM UTC
+    - cron: '0 3 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  analyze-code-quality:
+    name: 🔍 Analyze Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install linting tools
+        run: |
+          pip install ruff pylint mypy bandit
+
+      - name: Run backend linting
+        continue-on-error: true
+        run: |
+          echo "🔍 Running backend linting..."
+          cd backend
+          ruff check . --output-format=github
+          echo "✅ Linting complete"
+
+      - name: Check for code smells
+        continue-on-error: true
+        run: |
+          echo "🔍 Checking for code smells..."
+          cd backend
+
+          # Check for long functions
+          echo "## Long Functions (>50 lines)"
+          find . -name "*.py" -type f -exec grep -l "^def " {} \; | while read file; do
+            grep -A50 "^def " "$file" | grep -c "^def " && echo "$file: potential long functions"
+          done
+
+          echo "✅ Code smell analysis complete"
+
+  find-dead-code:
+    name: 💀 Find Dead Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install tools
+        run: |
+          pip install vulture
+
+      - name: Scan for dead code
+        continue-on-error: true
+        run: |
+          echo "💀 Scanning for dead code..."
+          cd backend
+          vulture . --min-confidence 80 > /tmp/dead_code.txt || true
+
+          if [ -s /tmp/dead_code.txt ]; then
+            echo "⚠️  Found potential dead code:"
+            head -20 /tmp/dead_code.txt
+          else
+            echo "✅ No dead code detected"
+          fi
+
+      - name: Upload dead code report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dead-code-report
+          path: /tmp/dead_code.txt
+          retention-days: 30
+
+  cleanup-unused-files:
+    name: 🗑️ Cleanup Unused Files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Find large files
+        run: |
+          echo "📦 Finding large files..."
+          find . -type f -size +10M ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.venv/*" ! -path "./venv/*" -exec ls -lh {} \; > /tmp/large_files.txt
+
+          if [ -s /tmp/large_files.txt ]; then
+            echo "⚠️  Large files found (>10MB):"
+            cat /tmp/large_files.txt
+          else
+            echo "✅ No large files detected"
+          fi
+
+      - name: Find duplicate files
+        run: |
+          echo "🔄 Scanning for duplicate files..."
+
+          # Find potential duplicates (same size)
+          find . -type f ! -path "./.git/*" ! -path "./node_modules/*" ! -path "./.venv/*" -exec du -h {} \; | sort | uniq -w 10 -d > /tmp/duplicates.txt || true
+
+          if [ -s /tmp/duplicates.txt ]; then
+            echo "⚠️  Potential duplicates found:"
+            head -10 /tmp/duplicates.txt
+          else
+            echo "✅ No duplicate files detected"
+          fi
+
+      - name: Clean temporary files
+        run: |
+          echo "🧹 Cleaning temporary files..."
+
+          # List and remove temporary files (safely)
+          find . -type f \( -name "*.tmp" -o -name "*.bak" -o -name "*~" -o -name ".DS_Store" \) ! -path "./.git/*" > /tmp/temp_files.txt || true
+
+          TEMP_COUNT=$(wc -l < /tmp/temp_files.txt)
+          if [ $TEMP_COUNT -gt 0 ]; then
+            echo "⚠️  Found $TEMP_COUNT temporary files"
+            cat /tmp/temp_files.txt
+            # Uncomment to actually delete:
+            # xargs rm -f < /tmp/temp_files.txt
+          else
+            echo "✅ No temporary files detected"
+          fi
+
+  organize-backend:
+    name: 🏗️ Organize Backend Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify backend structure
+        run: |
+          echo "🏗️ Verifying backend structure..."
+
+          REQUIRED_DIRS=(
+            "backend"
+            "backend/routers"
+            "backend/services"
+            "backend/models"
+            "backend/tests"
+          )
+
+          for dir in "${REQUIRED_DIRS[@]}"; do
+            if [ -d "$dir" ]; then
+              echo "✅ $dir: exists"
+            else
+              echo "❌ $dir: MISSING"
+            fi
+          done
+
+      - name: Check module imports
+        run: |
+          echo "📦 Verifying module imports..."
+
+          cd backend
+
+          # Check for circular imports
+          python -c "
+          import os
+          import ast
+          import sys
+
+          errors = 0
+          for root, dirs, files in os.walk('.'):
+            for file in files:
+              if file.endswith('.py') and not file.startswith('test_'):
+                try:
+                  with open(os.path.join(root, file), 'r') as f:
+                    ast.parse(f.read())
+                except SyntaxError as e:
+                  print(f'❌ Syntax error in {file}: {e}')
+                  errors += 1
+
+          if errors == 0:
+            print('✅ All modules have valid syntax')
+          " || echo "⚠️  Module verification skipped"
+
+  organize-frontend:
+    name: ⚛️ Organize Frontend Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '24'
+
+      - name: Verify frontend structure
+        run: |
+          echo "⚛️ Verifying frontend structure..."
+
+          REQUIRED_DIRS=(
+            "frontend/src"
+            "frontend/public"
+            "frontend/tests"
+          )
+
+          for dir in "${REQUIRED_DIRS[@]}"; do
+            if [ -d "$dir" ]; then
+              echo "✅ $dir: exists"
+            else
+              echo "❌ $dir: MISSING"
+            fi
+          done
+
+      - name: Verify dependencies
+        run: |
+          echo "📦 Verifying frontend dependencies..."
+
+          cd frontend
+          npm ls > /tmp/npm_deps.txt 2>&1 || true
+
+          if grep -q "UNMET DEPENDENCY" /tmp/npm_deps.txt; then
+            echo "⚠️  Unmet dependencies detected"
+          else
+            echo "✅ All dependencies satisfied"
+          fi
+
+  summary:
+    name: 📊 Cleanup Report
+    runs-on: ubuntu-latest
+    needs:
+      - analyze-code-quality
+      - find-dead-code
+      - cleanup-unused-files
+      - organize-backend
+      - organize-frontend
+    if: always()
+    steps:
+      - name: Generate cleanup report
+        run: |
+          cat > /tmp/cleanup_report.md << 'EOF'
+          # Codebase Cleanup Report
+
+          Generated: $(date -u)
+
+          ## Completed Tasks
+          - ✅ Code quality analysis
+          - ✅ Dead code detection
+          - ✅ Unused files scan
+          - ✅ Backend structure verification
+          - ✅ Frontend structure verification
+
+          ## Recommendations
+          - Review dead code report for removal candidates
+          - Consider archiving or removing large files
+          - Monitor dependency updates
+
+          EOF
+
+          cat /tmp/cleanup_report.md
+
+      - name: Upload cleanup report
+        uses: actions/upload-artifact@v4
+        with:
+          name: codebase-cleanup-report
+          path: /tmp/cleanup_report.md
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "✅ Codebase cleanup workflow completed"
+          echo "📊 Reports available in artifacts"

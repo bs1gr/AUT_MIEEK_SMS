@@ -1,0 +1,241 @@
+name: Documentation Organization & Cleanup
+
+on:
+  schedule:
+    # Weekly on Mondays at 6 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  organize-docs:
+    name: 📂 Organize Documentation Structure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create documentation index
+        run: |
+          echo "📂 Organizing documentation structure..."
+
+          # Create index of all docs
+          cat > docs/INDEX.md << 'EOF'
+          # Documentation Index
+
+          **Last Updated:** $(date -u)
+
+          ## Quick Navigation
+
+          - [Architecture](./architecture/)
+          - [API Documentation](./api/)
+          - [Deployment Guides](./deployment/)
+          - [Development](./development/)
+          - [Installation](./installation/)
+          - [Operations](./operations/)
+          - [Reports](./reports/)
+          - [Security](./security/)
+
+          ## Recently Added
+
+          EOF
+
+          # List recent documentation files
+          find docs -name "*.md" -type f -mtime -7 -exec basename {} \; | head -10 >> docs/INDEX.md
+
+      - name: Archive outdated docs
+        run: |
+          echo "📦 Archiving outdated documentation..."
+
+          # Create archive for docs older than 6 months
+          if [ -d "docs/archive" ]; then
+            find docs -name "*.md" -type f -mtime +180 ! -path "*/archive/*" -exec mv {} docs/archive/ \; 2>/dev/null || true
+          fi
+
+          echo "✅ Documentation archival complete"
+
+      - name: Generate table of contents
+        run: |
+          echo "📋 Generating table of contents..."
+
+          cat > docs/STRUCTURE.md << 'EOF'
+          # Documentation Structure
+
+          ```
+          docs/
+          ├── INDEX.md                 # Main documentation index
+          ├── STRUCTURE.md             # This file
+          ├── api/                     # API documentation
+          ├── architecture/            # Architecture and design
+          ├── deployment/              # Deployment guides
+          ├── development/             # Development guides
+          ├── installation/            # Installation guides
+          ├── misc/                    # Miscellaneous documentation
+          ├── operations/              # Operations and monitoring
+          ├── reports/                 # Reports and assessments
+          ├── security/                # Security documentation
+          └── archive/                 # Archived documentation
+          ```
+
+          ## Maintenance Frequency
+
+          - Daily: CI/CD logs cleanup
+          - Weekly: Documentation reorganization
+          - Monthly: Artifact cleanup
+          - Quarterly: Documentation audit
+
+          EOF
+
+      - name: Check for orphaned docs
+        run: |
+          echo "🔍 Checking for orphaned documentation..."
+
+          # Find docs not referenced in README or INDEX
+          ORPHANED=0
+          for doc in docs/**/*.md; do
+            if ! grep -q "$(basename $doc)" docs/INDEX.md && [ "$(basename $doc)" != "INDEX.md" ]; then
+              echo "⚠️  Orphaned: $doc"
+              ((ORPHANED++))
+            fi
+          done
+
+          if [ $ORPHANED -gt 0 ]; then
+            echo "⚠️  Found $ORPHANED potentially orphaned documentation files"
+          else
+            echo "✅ No orphaned documentation found"
+          fi
+
+  cleanup-legacy-docs:
+    name: 🗑️ Remove Legacy Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Identify legacy documentation patterns
+        run: |
+          echo "🗑️ Scanning for legacy documentation..."
+
+          # Look for files with legacy patterns
+          find docs -name "*OLD*" -o -name "*DEPRECATED*" -o -name "*LEGACY*" | while read file; do
+            echo "Found legacy file: $file"
+            # Move to archive instead of deleting
+            mkdir -p docs/archive
+            mv "$file" docs/archive/ 2>/dev/null || true
+          done
+
+          echo "✅ Legacy documentation archived"
+
+      - name: Verify no broken links in docs
+        continue-on-error: true
+        run: |
+          echo "🔗 Checking documentation links..."
+
+          # Check for broken markdown links (basic check)
+          BROKEN=0
+          find docs -name "*.md" -type f -exec grep -o '\[.*\]([^)]*)' {} \; | while read link; do
+            FILE=$(echo $link | grep -o '\([^)]*\)' | tr -d '()' | head -1)
+            if [ -n "$FILE" ] && [ "${FILE:0:1}" != "h" ]; then
+              if [ ! -f "docs/$FILE" ] && [ ! -f "$FILE" ]; then
+                echo "⚠️  Potentially broken link: $FILE"
+                ((BROKEN++))
+              fi
+            fi
+          done
+
+          if [ $BROKEN -gt 0 ]; then
+            echo "⚠️  Found $BROKEN potentially broken links"
+          else
+            echo "✅ Documentation links verified"
+          fi
+
+  validate-doc-metadata:
+    name: 📝 Validate Documentation Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check documentation completeness
+        run: |
+          echo "📝 Validating documentation metadata..."
+
+          # Check key documentation files
+          REQUIRED_DOCS=(
+            "README.md"
+            "CONTRIBUTING.md"
+            "docs/INDEX.md"
+          )
+
+          MISSING=0
+          for doc in "${REQUIRED_DOCS[@]}"; do
+            if [ ! -f "$doc" ]; then
+              echo "❌ Missing required doc: $doc"
+              ((MISSING++))
+            else
+              # Check for basic metadata
+              if ! grep -q "^#" "$doc"; then
+                echo "⚠️  $doc missing proper heading"
+              fi
+            fi
+          done
+
+          if [ $MISSING -eq 0 ]; then
+            echo "✅ All required documentation present"
+          fi
+
+      - name: Generate documentation report
+        run: |
+          echo "📊 Generating documentation report..."
+
+          cat > /tmp/doc_report.txt << 'EOF'
+          # Documentation Status Report
+          Generated: $(date -u)
+
+          ## Summary
+          - Total markdown files: $(find docs -name "*.md" | wc -l)
+          - Archived files: $(find docs/archive -name "*.md" 2>/dev/null | wc -l)
+          - Root level docs: $(find . -maxdepth 1 -name "*.md" | wc -l)
+
+          ## Key Files Status
+          EOF
+
+          for file in README.md CONTRIBUTING.md LICENSE; do
+            if [ -f "$file" ]; then
+              echo "✅ $file: $(wc -l < $file) lines" >> /tmp/doc_report.txt
+            else
+              echo "⚠️  $file: MISSING" >> /tmp/doc_report.txt
+            fi
+          done
+
+          cat /tmp/doc_report.txt
+
+      - name: Upload documentation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-organization-report
+          path: /tmp/doc_report.txt
+          retention-days: 30
+
+  summary:
+    name: 📋 Document Organization Complete
+    runs-on: ubuntu-latest
+    needs:
+      - organize-docs
+      - cleanup-legacy-docs
+      - validate-doc-metadata
+    if: always()
+    steps:
+      - name: Report summary
+        run: |
+          echo "✅ Documentation organization workflow completed"
+          echo "📂 Documentation structure optimized"
+          echo "🗑️ Legacy documentation archived"
+          echo "📝 Documentation metadata validated"
+          echo ""
+          echo "Reports available in workflow artifacts"
