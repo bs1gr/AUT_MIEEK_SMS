@@ -50,7 +50,11 @@
       "PowerShell(head -40)",
       "Bash(find /c/Users/Vasilis/.claude/projects -type f -name \"*.md\" 2>/dev/null | head -20)",
       "Read(//c/Users/Vasilis/.claude/projects/**)",
-      "PowerShell($memoryPath = \"C:\\\\Users\\\\Vasilis\\\\.claude\\\\projects\\\\d--SMS-student-management-system\\\\memory\"; if \\(Test-Path $memoryPath\\) { Get-ChildItem $memoryPath -Recurse -File | Select-Object Name, FullName } else { \"Memory directory does not exist at: $memoryPath\" })"
+      "PowerShell($memoryPath = \"C:\\\\Users\\\\Vasilis\\\\.claude\\\\projects\\\\d--SMS-student-management-system\\\\memory\"; if \\(Test-Path $memoryPath\\) { Get-ChildItem $memoryPath -Recurse -File | Select-Object Name, FullName } else { \"Memory directory does not exist at: $memoryPath\" })",
+      "PowerShell(cd d:\\\\SMS\\\\student-management-system; $runId = \\(gh run list --workflow docs-organization.yml --limit 1 --json databaseId -q '.[0].databaseId'\\); gh run view $runId)",
+      "PowerShell(cd d:\\\\SMS\\\\student-management-system; $runId = \\(gh run list --workflow docs-organization.yml --limit 1 --json databaseId -q '.[0].databaseId'\\); gh run view $runId --log-failed 2>&1 | Select-Object -Last 100)",
+      "Bash(gh run *)",
+      "PowerShell(git add .claude/settings.local.json)"
     ],
     "deny": [],
     "ask": [],
