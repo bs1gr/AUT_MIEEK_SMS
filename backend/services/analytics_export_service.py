@@ -6,7 +6,7 @@ Provides functionality to export analytics data to PDF and Excel formats.
 
 import io
 import logging
-from datetime import datetime as dt
+from datetime import datetime as dt, timezone
 from typing import Any, Dict, List, Optional
 
 from openpyxl import Workbook
@@ -23,10 +23,6 @@ from sqlalchemy.orm import Session
 logger = logging.getLogger(__name__)
 
 
-def _escape_unicode_for_paragraph(text: str) -> str:
-    """Escape Unicode text for use in ReportLab Paragraphs to preserve accented characters."""
-    # Wrap in tags with explicit font to ensure proper rendering
-    return text
 
 
 def _register_analytics_fonts() -> tuple[str, str]:
@@ -47,6 +43,9 @@ def _register_analytics_fonts() -> tuple[str, str]:
         if font_bold not in registered:
             pdfmetrics.registerFont(TTFont(font_bold, str(bold_path)))
         return font_regular, font_bold
+
+    logger.warning(f"DejaVuSans fonts not found at {fonts_dir}. Greek PDFs will render with Helvetica fallback.")
+    return "Helvetica", "Helvetica-Bold"
 
     return "Helvetica", "Helvetica-Bold"
 
@@ -111,7 +110,11 @@ class AnalyticsExportService:
     def format_datetime(self, dt_obj: Optional[Any] = None) -> str:
         """Format datetime with localized date format matching frontend settings."""
         if dt_obj is None:
-            dt_obj = dt.utcnow()
+            dt_obj = dt.now(timezone.utc).replace(tzinfo=None)
+
+        if not isinstance(dt_obj, dt):
+            logger.error(f"format_datetime called with non-datetime: {type(dt_obj)}")
+            return "Invalid date"
 
         try:
             from zoneinfo import ZoneInfo
@@ -135,10 +138,13 @@ class AnalyticsExportService:
                 return local_dt.strftime(f"%m/%d/%Y %H:%M:%S {tz_abbr}")
         except Exception as e:
             logger.warning(f"Failed to format datetime with timezone {self.timezone}: {e}, falling back to UTC")
-            if self.language == "el":
-                return dt_obj.strftime("%d/%m/%Y %H:%M:%S UTC")
-            else:
-                return dt_obj.strftime("%m/%d/%Y %H:%M:%S UTC")
+            try:
+                if self.language == "el":
+                    return dt_obj.strftime("%d/%m/%Y %H:%M:%S UTC")
+                else:
+                    return dt_obj.strftime("%m/%d/%Y %H:%M:%S UTC")
+            except (AttributeError, TypeError):
+                return "Invalid date"
 
     def export_dashboard_to_excel(
         self,

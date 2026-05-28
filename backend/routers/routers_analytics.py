@@ -284,7 +284,7 @@ def _build_dashboard_export_data(db: Session, language: str = "en") -> dict:
         if student.study_year in (1, 2):
             base = "A" if student.study_year == 1 else "B"
             if language == "el":
-                return "Τάξη " + ("Α" if student.study_year == 1 else "Β")
+                return f"Τάξη {'Α' if student.study_year == 1 else 'Β'}"
             return base
         if student.study_year:
             if language == "el":

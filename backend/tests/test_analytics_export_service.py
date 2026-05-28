@@ -5,7 +5,10 @@ Tests for Excel and PDF export functionality
 
 import io
 
-from pypdf import PdfReader
+try:
+    from pypdf import PdfReader
+except ImportError:
+    PdfReader = None  # pypdf is optional for some test runs
 
 
 class TestAnalyticsExportService:
@@ -46,6 +49,11 @@ class TestAnalyticsExportService:
 
     def test_export_to_pdf_preserves_greek_text(self, clean_db):
         """Test that export_dashboard_to_pdf renders Greek text with a Unicode font."""
+        import pytest
+
+        if PdfReader is None:
+            pytest.skip("pypdf not installed - skipping PDF text extraction test")
+
         from backend.services.analytics_export_service import AnalyticsExportService
 
         service = AnalyticsExportService(db=clean_db, language="el")
