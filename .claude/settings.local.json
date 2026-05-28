@@ -60,7 +60,9 @@
       "PowerShell(git push origin main)",
       "Bash(Get-ChildItem -Path \".github\\\\workflows\" -Filter \"*release*\")",
       "Bash(Select-Object Name)",
-      "PowerShell(tail -5)"
+      "PowerShell(tail -5)",
+      "PowerShell(.\\\\WORKSPACE_CLEANUP.ps1 -Mode standard -NonInteractive)",
+      "PowerShell(.\\\\WORKSPACE_CLEANUP.ps1 -Mode standard)"
     ],
     "deny": [],
     "ask": [],
