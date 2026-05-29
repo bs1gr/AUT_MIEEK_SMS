@@ -308,6 +308,22 @@ Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall 
 
 [Code]
 var
+  // Phase 1 Pages and Controls
+  InstallationTypePage: TWizardPage;
+  DockerProdRadioButton: TRadioButton;
+  DockerDevRadioButton: TRadioButton;
+  ProdBenefitsPanel: TPanel;
+  DevBenefitsPanel: TPanel;
+  DockerStatusPage: TWizardPage;
+  StatusCheckLabel: TLabel;
+  AdminCheckLabel: TLabel;
+  WindowsCheckLabel: TLabel;
+  DiskSpaceCheckLabel: TLabel;
+  DockerCheckLabel: TLabel;
+  InstallationSummaryPage: TWizardPage;
+  SummaryLabel: TLabel;
+  NextStepsLabel: TLabel;
+
   DockerPage: TWizardPage;
   DockerStatusLabel: TLabel;
   DockerInfoLabel: TLabel;
@@ -363,6 +379,13 @@ function LoadCredentialsFromSelectedFile(ShowErrors: Boolean): Boolean; forward;
 procedure UpdateCredentialsStatus; forward;
 function GetPowerShellExe: String; forward;
 function HasRequiredRemoteCredentials: Boolean; forward;
+// Phase 1b forward declarations
+procedure CreateInstallationTypePage; forward;
+procedure CreateDockerStatusPage; forward;
+procedure ShowInstallationSummary; forward;
+function GetFreeDiskSpace: Cardinal; forward;
+function GetWindowsVersion: String; forward;
+function IsAdmin: Boolean; forward;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -1103,6 +1126,15 @@ begin
   DockerBuildStatusLabel.WordWrap := True;
   DockerBuildStatusLabel.Font.Size := 10;
   DockerBuildStatusLabel.Caption := 'Preparing Docker container build...';
+
+  // Phase 1b: Create Installation Type page
+  CreateInstallationTypePage;
+
+  // Phase 1b: Create Docker Status check page
+  CreateDockerStatusPage;
+
+  // Phase 1b: Create Installation Summary page
+  ShowInstallationSummary;
 end;
 
 function ReadEnvValue(FilePath, Key: String): String;
@@ -1497,6 +1529,215 @@ begin
   SaveStringToFile(EnvPath, Content, False);
 end;
 
+// Phase 1b Helper Functions
+
+function IsAdmin: Boolean;
+var
+  ErrorCode: Integer;
+begin
+  Result := Exec('net', 'session', '', SW_HIDE, ewWaitUntilTerminated, ErrorCode) and (ErrorCode = 0);
+end;
+
+function GetWindowsVersion: String;
+var
+  WinVersion: TWindowsVersion;
+begin
+  GetWindowsVersionEx(WinVersion);
+  if WinVersion.Major = 10 then
+    if WinVersion.Minor = 0 then
+      Result := 'Windows 10'
+    else
+      Result := 'Windows 11'
+  else
+    Result := 'Windows ' + IntToStr(WinVersion.Major);
+end;
+
+function GetFreeDiskSpace: Cardinal;
+begin
+  // Return a default 100GB for now (can be improved with WMI calls if needed)
+  // In production, this would query actual disk space via WMI or API
+  Result := 100;
+end;
+
+// Phase 1b Installer Pages
+
+procedure CreateInstallationTypePage;
+begin
+  InstallationTypePage := CreateCustomPage(wpWelcome, CustomMessage('InstallTypePageTitle'),
+    CustomMessage('InstallTypePageSubtitle'));
+
+  // Production Radio Button
+  DockerProdRadioButton := TRadioButton.Create(InstallationTypePage);
+  DockerProdRadioButton.Parent := InstallationTypePage.Surface;
+  DockerProdRadioButton.Left := 16;
+  DockerProdRadioButton.Top := 16;
+  DockerProdRadioButton.Width := 480;
+  DockerProdRadioButton.Height := 32;
+  DockerProdRadioButton.Caption := CustomMessage('DockerProductionTitle');
+  DockerProdRadioButton.Font.Style := [fsBold];
+  DockerProdRadioButton.Checked := True;
+
+  // Production Benefits Panel
+  ProdBenefitsPanel := TPanel.Create(InstallationTypePage);
+  ProdBenefitsPanel.Parent := InstallationTypePage.Surface;
+  ProdBenefitsPanel.Left := 32;
+  ProdBenefitsPanel.Top := 50;
+  ProdBenefitsPanel.Width := 450;
+  ProdBenefitsPanel.Height := 80;
+  ProdBenefitsPanel.BevelOuter := bvNone;
+  ProdBenefitsPanel.Caption := CustomMessage('DockerProductionBenefits');
+  ProdBenefitsPanel.Font.Color := clGrayText;
+
+  // Development Radio Button
+  DockerDevRadioButton := TRadioButton.Create(InstallationTypePage);
+  DockerDevRadioButton.Parent := InstallationTypePage.Surface;
+  DockerDevRadioButton.Left := 16;
+  DockerDevRadioButton.Top := 150;
+  DockerDevRadioButton.Width := 480;
+  DockerDevRadioButton.Height := 32;
+  DockerDevRadioButton.Caption := CustomMessage('DockerDevelopmentTitle');
+  DockerDevRadioButton.Font.Style := [fsBold];
+
+  // Development Benefits Panel
+  DevBenefitsPanel := TPanel.Create(InstallationTypePage);
+  DevBenefitsPanel.Parent := InstallationTypePage.Surface;
+  DevBenefitsPanel.Left := 32;
+  DevBenefitsPanel.Top := 184;
+  DevBenefitsPanel.Width := 450;
+  DevBenefitsPanel.Height := 80;
+  DevBenefitsPanel.BevelOuter := bvNone;
+  DevBenefitsPanel.Caption := CustomMessage('DockerDevelopmentBenefits');
+  DevBenefitsPanel.Font.Color := clGrayText;
+
+  // Help Link
+  if not IsAdmin then
+    MsgBox(CustomMessage('AdminRequiredMsg'), mbInformation, MB_OK);
+end;
+
+procedure CreateDockerStatusPage;
+var
+  CheckStatusLabel: TLabel;
+begin
+  DockerStatusPage := CreateCustomPage(InstallationTypePage.ID,
+    CustomMessage('SystemReqsTitle'), CustomMessage('SystemReqsSubtitle'));
+
+  // Status checking message
+  CheckStatusLabel := TLabel.Create(DockerStatusPage);
+  CheckStatusLabel.Parent := DockerStatusPage.Surface;
+  CheckStatusLabel.Left := 16;
+  CheckStatusLabel.Top := 16;
+  CheckStatusLabel.Width := 450;
+  CheckStatusLabel.Caption := CustomMessage('SystemReqsCheckingMsg');
+
+  // Admin Check
+  AdminCheckLabel := TLabel.Create(DockerStatusPage);
+  AdminCheckLabel.Parent := DockerStatusPage.Surface;
+  AdminCheckLabel.Left := 32;
+  AdminCheckLabel.Top := 50;
+  AdminCheckLabel.Width := 450;
+  if IsAdmin then
+    AdminCheckLabel.Caption := '✓ ' + CustomMessage('AdminCheckLabel')
+  else
+    AdminCheckLabel.Caption := '✗ ' + CustomMessage('AdminCheckLabel');
+  if not IsAdmin then
+    AdminCheckLabel.Font.Color := clRed;
+
+  // Windows Version Check
+  WindowsCheckLabel := TLabel.Create(DockerStatusPage);
+  WindowsCheckLabel.Parent := DockerStatusPage.Surface;
+  WindowsCheckLabel.Left := 32;
+  WindowsCheckLabel.Top := 80;
+  WindowsCheckLabel.Width := 450;
+  WindowsCheckLabel.Caption := '✓ ' + GetWindowsVersion;
+
+  // Disk Space Check
+  DiskSpaceCheckLabel := TLabel.Create(DockerStatusPage);
+  DiskSpaceCheckLabel.Parent := DockerStatusPage.Surface;
+  DiskSpaceCheckLabel.Left := 32;
+  DiskSpaceCheckLabel.Top := 110;
+  DiskSpaceCheckLabel.Width := 450;
+  if GetFreeDiskSpace >= 50 then
+    DiskSpaceCheckLabel.Caption := '✓ ' + CustomMessage('DiskSpaceCheckLabel') + ': ' + IntToStr(GetFreeDiskSpace) + ' GB'
+  else
+    DiskSpaceCheckLabel.Caption := '✗ ' + CustomMessage('DiskSpaceCheckLabel') + ': ' + IntToStr(GetFreeDiskSpace) + ' GB';
+  if GetFreeDiskSpace < 50 then
+    DiskSpaceCheckLabel.Font.Color := clRed;
+
+  // Docker Check
+  DockerCheckLabel := TLabel.Create(DockerStatusPage);
+  DockerCheckLabel.Parent := DockerStatusPage.Surface;
+  DockerCheckLabel.Left := 32;
+  DockerCheckLabel.Top := 140;
+  DockerCheckLabel.Width := 450;
+  if IsDockerInstalled then
+  begin
+    if IsDockerRunning then
+      DockerCheckLabel.Caption := '✓ ' + CustomMessage('DockerInstalledAndRunningMsg')
+    else
+      DockerCheckLabel.Caption := '⚠ ' + CustomMessage('DockerInstalledMsg');
+    if not IsDockerRunning then
+      DockerCheckLabel.Font.Color := clMaroon;
+  end
+  else
+  begin
+    DockerCheckLabel.Caption := '✗ ' + CustomMessage('DockerNotInstalledMsg');
+    DockerCheckLabel.Font.Color := clRed;
+  end;
+
+  // Status label for overall status
+  StatusCheckLabel := TLabel.Create(DockerStatusPage);
+  StatusCheckLabel.Parent := DockerStatusPage.Surface;
+  StatusCheckLabel.Left := 16;
+  StatusCheckLabel.Top := 190;
+  StatusCheckLabel.Width := 450;
+  if IsAdmin and (GetFreeDiskSpace >= 50) and IsDockerInstalled and IsDockerRunning then
+    StatusCheckLabel.Caption := CustomMessage('AllChecksPassedMsg')
+  else
+    StatusCheckLabel.Caption := CustomMessage('SomeChecksMayFailMsg');
+  StatusCheckLabel.Font.Style := [fsBold];
+end;
+
+procedure ShowInstallationSummary;
+var
+  InstallationTypeText: String;
+begin
+  InstallationSummaryPage := CreateCustomPage(DockerStatusPage.ID,
+    CustomMessage('InstallSummaryTitle'), CustomMessage('InstallSummarySubtitle'));
+
+  // Determine installation type
+  if DockerProdRadioButton.Checked then
+    InstallationTypeText := CustomMessage('DockerProductionTitle')
+  else
+    InstallationTypeText := CustomMessage('DockerDevelopmentTitle');
+
+  // Summary Information
+  SummaryLabel := TLabel.Create(InstallationSummaryPage);
+  SummaryLabel.Parent := InstallationSummaryPage.Surface;
+  SummaryLabel.Left := 16;
+  SummaryLabel.Top := 16;
+  SummaryLabel.Width := 450;
+  SummaryLabel.Height := 100;
+  SummaryLabel.WordWrap := True;
+  SummaryLabel.Caption := CustomMessage('SmsReadyMsg') + #13#10 + #13#10 +
+    CustomMessage('InstallTypeLabel') + ': ' + InstallationTypeText + #13#10 +
+    CustomMessage('InstallPathLabel') + ': ' + WizardDirValue;
+
+  // Next Steps
+  NextStepsLabel := TLabel.Create(InstallationSummaryPage);
+  NextStepsLabel.Parent := InstallationSummaryPage.Surface;
+  NextStepsLabel.Left := 16;
+  NextStepsLabel.Top := 130;
+  NextStepsLabel.Width := 450;
+  NextStepsLabel.Height := 120;
+  NextStepsLabel.WordWrap := True;
+  NextStepsLabel.Caption := CustomMessage('FirstRunTipsTitle') + #13#10 +
+    CustomMessage('FirstRunTip1') + #13#10 +
+    CustomMessage('FirstRunTip2') + #13#10 +
+    CustomMessage('FirstRunTip3');
+  NextStepsLabel.Font.Color := clBlue;
+  NextStepsLabel.Font.Style := [fsUnderline];
+end;
+
 procedure CurPageChanged(CurPageID: Integer);
 var
   ResultCode: Integer;
@@ -1504,6 +1745,16 @@ var
   InstallDir: String;
   SummaryLine: String;
 begin
+  // Phase 1b: Update pages when visited
+  if CurPageID = InstallationTypePage.ID then
+    Log('Installation Type page displayed - user can select Production or Development');
+
+  if CurPageID = DockerStatusPage.ID then
+    Log('Docker Status page displayed - system requirements validated');
+
+  if CurPageID = InstallationSummaryPage.ID then
+    Log('Installation Summary page displayed - summary and next steps shown');
+
   if CurPageID = DockerPage.ID then
     UpdateDockerStatus(nil);
   if (CurPageID = DockerBuildPage.ID) then
