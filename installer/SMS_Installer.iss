@@ -910,7 +910,10 @@ var
   DockerOnlyDesc: TLabel;
   DevEnvDesc: TLabel;
 begin
-  // Skip Installation Type page since only Docker-only is available for production
+  // Initialize InstallationType to default (Docker Production)
+  InstallationType := 'docker';
+  IncludeDevelopmentTools := False;
+
   // Create custom Docker Prerequisites page (early in wizard)
   DockerPage := CreateCustomPage(wpLicense, 'Prerequisites Check',
     'Verifying Docker Desktop installation and status');
@@ -1918,6 +1921,7 @@ begin
   // Phase 1b: Update pages when visited
   if CurPageID = InstallationTypePage.ID then
   begin
+    Log('=== INSTALLATION TYPE PAGE ===');
     Log('Installation Type page displayed - user can select three installation types');
     // Initialize install type based on radio button selection
     if DockerProdRadioButton.Checked then
@@ -1930,12 +1934,40 @@ begin
   end;
 
   if CurPageID = DockerStatusPage.ID then
+  begin
+    Log('=== DOCKER STATUS PAGE ===');
     Log('Docker Status page displayed - system requirements validated');
+  end;
+
+  if CurPageID = NativeProductionPrereqsPage.ID then
+  begin
+    Log('=== NATIVE PRODUCTION PREREQS PAGE ===');
+    Log('Native Production Prerequisites page displayed');
+  end;
+
+  if CurPageID = NativeLitePrereqsPage.ID then
+  begin
+    Log('=== NATIVE LITE PREREQS PAGE ===');
+    Log('Native Lite Prerequisites page displayed');
+  end;
+
+  if CurPageID = PostgresPage.ID then
+  begin
+    Log('=== POSTGRESQL/DATABASE CONFIG PAGE ===');
+    Log('Database configuration page displayed');
+  end;
 
   if CurPageID = InstallationSummaryPage.ID then
   begin
+    Log('=== INSTALLATION SUMMARY PAGE ===');
     Log('Installation Summary page displayed - summary and next steps shown');
     Log('Installation type at summary: ' + InstallationType);
+  end;
+
+  if CurPageID = DockerBuildPage.ID then
+  begin
+    Log('=== DOCKER BUILD PAGE ===');
+    Log('Docker Build page displayed');
   end;
 
   if CurPageID = DockerPage.ID then
@@ -1998,14 +2030,29 @@ begin
     // Only show Native Lite Prereqs for Native Lite type
     Result := (InstallationType <> 'native_lite');
   end
-  // Skip Docker page if Docker is already installed and running
+  else if PageID = PostgresPage.ID then
+  begin
+    // Only show PostgreSQL configuration for Docker Production
+    // Native Production and Lite types don't need this page
+    Result := (InstallationType <> 'docker');
+  end
+  // Skip Docker page based on type AND Docker status
   else if PageID = DockerPage.ID then
-    Result := IsDockerInstalled and IsDockerRunning
-  // Do not skip Docker build/setup page.
-  // Even during upgrades, PrepareToInstall may stop/remove the previous container,
-  // so we must always run run_docker_install.cmd to recreate/start the stack.
+  begin
+    // Skip for non-Docker types
+    if InstallationType <> 'docker' then
+      Result := True
+    // For Docker type, skip if already installed and running
+    else
+      Result := IsDockerInstalled and IsDockerRunning;
+  end
+  // Docker build/setup page - only for Docker Production
+  // For other types, skip this page entirely
   else if PageID = DockerBuildPage.ID then
-    Result := False;
+  begin
+    // Only show for Docker Production type
+    Result := (InstallationType <> 'docker');
+  end;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
