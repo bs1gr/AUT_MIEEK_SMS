@@ -154,6 +154,54 @@ english.DbTcpValidationFailed=Could not verify TCP connectivity to the QNAP Post
 english.DbFileDialogTitle=Select database credentials file
 english.DbFileBrowseFilter=Credentials files|*.json;*.env;*.txt|JSON files|*.json|ENV files|*.env;*.txt|All files|*.*
 
+; ===== PHASE 1: Installation Type & Status Pages =====
+english.InstallTypePageTitle=Installation Type
+english.InstallTypePageSubtitle=Choose how you want to use SMS
+
+english.DockerProductionTitle=Docker Production (RECOMMENDED FOR MOST USERS)
+english.DockerProductionBenefits=• Fast: Installation takes 5-10 minutes%n• Small: Uses only ~300 MB on your disk%n• Simple: One-click start and stop%n• Best for: Teachers, school administrators
+english.DockerProductionDiskSize=~300 MB total disk space
+
+english.DevelopmentTitle=Development Setup (FOR SOFTWARE DEVELOPERS)
+english.DevelopmentBenefits=• Full source code access%n• Live code reload (Vite, hot-reload)%n• Local debugging tools%n• Best for: Contributing to SMS, custom features
+english.DevelopmentDiskSize=~2 GB (includes Python, Node.js, build tools)
+
+english.WhatIsDocker=What is Docker?
+english.DockerExplanation=Docker is a container platform that packages SMS with everything it needs.%n%nBenefits:%n• Easy updates (just reinstall)%n• No conflicts with other programs%n• Same setup on every PC%n%nVisit https://www.docker.com for more info
+
+english.SystemReqsTitle=System Requirements Check
+english.SystemReqsSubtitle=Verifying Docker and system compatibility
+english.SystemReqsCheckingMsg=Checking your system...
+english.WindowsVersionCheck=Windows 10 or later:
+english.DiskSpaceCheck=Disk Space (need ~1 GB):
+english.DockerInstalledCheck=Docker Desktop:
+english.DockerRunningCheck=Docker Running:
+english.AdminPrivCheck=Admin Privileges:
+english.SystemReqsOK=✓ OK
+english.SystemReqsWarning=⚠ Warning
+english.SystemReqsError=✗ Not compatible
+english.DiskSpaceOK=Sufficient
+english.DockerNotInstalledMsg=Not installed - [Download Docker]
+english.DockerNotRunningMsg=Not running - Start Docker Desktop
+english.SystemReqsIssuesFound=%1 issue(s) found before installing
+
+english.InstallSummaryTitle=Installation Complete!
+english.InstallSummarySubtitle=(Status)
+english.SmsReadyMsg=Student Management System is ready to use.
+english.InstallationSummaryLabel=INSTALLATION SUMMARY
+english.ComponentsLabel=Components to Install:
+english.NextStepsLabel=NEXT STEPS
+english.Step1StartContainer=1. Click below to START SMS
+english.Step1BuildNote=   (This will build Docker image ~5-10 min)
+english.Step2OpenBrowser=2. Open in Browser
+english.Step3Help=3. Need Help?
+english.ViewQuickStart=View Quick Start Guide
+english.FirstRunTipsLabel=FIRST-RUN TIPS
+english.FirstRunTip1=First start includes Docker build (5-10 min)
+english.FirstRunTip2=Check SMS_Manager.exe window for progress
+english.FirstRunTip3=Login with default credentials (see README)
+english.FirstRunTip4=Keep Docker Desktop running while using SMS
+
 ; Greek translations for these keys are defined in installer\Greek.isl [CustomMessages]
 
 [Tasks]

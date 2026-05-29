@@ -503,3 +503,51 @@ DbAuthValidationFailed=Δεν ήταν δυνατή η επαλήθευση αυ
 DbTcpValidationFailed=Δεν ήταν δυνατή η επαλήθευση TCP συνδεσιμότητας προς τον QNAP PostgreSQL host αυτή τη στιγμή. Να συνεχιστεί παρ' όλα αυτά;
 DbFileDialogTitle=Επιλογή αρχείου διαπιστευτηρίων βάσης
 DbFileBrowseFilter=Αρχεία διαπιστευτηρίων|*.json;*.env;*.txt|Αρχεία JSON|*.json|Αρχεία ENV|*.env;*.txt|Όλα τα αρχεία|*.*
+
+; ===== PHASE 1: Installation Type & Status Pages (Greek) =====
+InstallTypePageTitle=Τύπος Εγκατάστασης
+InstallTypePageSubtitle=Επιλέξτε πώς θέλετε να χρησιμοποιήσετε το SMS
+
+DockerProductionTitle=Docker Production (ΣΥΝΙΣΤΆΤΑΙ ΓΙΑ ΤΗ ΠΛΕΙΟΨΗΦΊΑ)
+DockerProductionBenefits=• Γρήγορη: Εγκατάσταση σε 5-10 λεπτά%n• Μικρή: Χρησιμοποιεί μόνο ~300 MB στο δίσκο σας%n• Απλή: Εναρξη και διακοπή με ένα κλικ%n• Καλύτερο για: Εκπαιδευτικούς, διαχειριστές σχολείου
+DockerProductionDiskSize=~300 MB συνολικό χώρο δίσκου
+
+DevelopmentTitle=Ρύθμιση Ανάπτυξης (ΓΙΑ ΠΡΟΓΡΑΜΜΑΤΙΣΤΈΣ ΛΟΓΙΣΜΙΚΟΎ)
+DevelopmentBenefits=• Πρόσβαση στον πλήρη κώδικα πηγής%n• Ζωντανή επαναφόρτωση κώδικα (Vite, hot-reload)%n• Εργαλεία τοπικής εντοπισμού σφαλμάτων%n• Καλύτερο για: Συμβολή στο SMS, προσαρμοσμένες δυνατότητες
+DevelopmentDiskSize=~2 GB (περιλαμβάνει Python, Node.js, εργαλεία δημιουργίας)
+
+WhatIsDocker=Τι είναι το Docker;
+DockerExplanation=Το Docker είναι μια πλατφόρμα δοχείου που συσκευάζει το SMS με όλα όσα χρειάζεται.%n%nΠλεονεκτήματα:%n• Εύκολες ενημερώσεις (απλή επανεγκατάσταση)%n• Χωρίς συγκρούσεις με άλλα προγράμματα%n• Ίδια ρύθμιση σε κάθε PC%n%nΕπισκεφθείτε https://www.docker.com για περισσότερες πληροφορίες
+
+SystemReqsTitle=Έλεγχος Απαιτήσεων Συστήματος
+SystemReqsSubtitle=Επαλήθευση συμβατότητας Docker και συστήματος
+SystemReqsCheckingMsg=Έλεγχος του συστήματος σας...
+WindowsVersionCheck=Windows 10 ή νεότερο:
+DiskSpaceCheck=Χώρος δίσκου (απαιτείται ~1 GB):
+DockerInstalledCheck=Docker Desktop:
+DockerRunningCheck=Docker εκτελείται:
+AdminPrivCheck=Δικαιώματα διαχειριστή:
+SystemReqsOK=✓ OK
+SystemReqsWarning=⚠ Προειδοποίηση
+SystemReqsError=✗ Μη συμβατό
+DiskSpaceOK=Επαρκής
+DockerNotInstalledMsg=Δεν είναι εγκατεστημένο - [Λήψη Docker]
+DockerNotRunningMsg=Δεν εκτελείται - Ξεκινήστε το Docker Desktop
+SystemReqsIssuesFound=%1 θέμα(τα) εντοπίστηκε(αν) πριν από την εγκατάσταση
+
+InstallSummaryTitle=Εγκατάσταση ολοκληρώθηκε!
+InstallSummarySubtitle=(Κατάσταση)
+SmsReadyMsg=Το Σύστημα Διαχείρισης Μαθητών είναι έτοιμο για χρήση.
+InstallationSummaryLabel=ΠΕΡΊΛΗΨΗ ΕΓΚΑΤΆΣΤΑΣΗΣ
+ComponentsLabel=Συστατικά προς εγκατάσταση:
+NextStepsLabel=ΕΠΌΜΕΝΑ ΒΉΜΑΤΑ
+Step1StartContainer=1. Κάντε κλικ παρακάτω για να ΞΕΚΙΝΉΣΕΤΕ το SMS
+Step1BuildNote=   (Αυτό θα δημιουργήσει την εικόνα Docker ~5-10 λεπτά)
+Step2OpenBrowser=2. Ανοίξτε στον πρόγραμμα περιήγησης
+Step3Help=3. Χρειάζεστε βοήθεια;
+ViewQuickStart=Προβολή Γρήγορης Εκκίνησης
+FirstRunTipsLabel=ΣΥΜΒΟΥΛΕΣ ΠΡΏΤΗΣ ΕΚΤΈΛΕΣΗΣ
+FirstRunTip1=Η πρώτη εκτέλεση περιλαμβάνει δημιουργία Docker (5-10 λεπτά)
+FirstRunTip2=Ελέγξτε το παράθυρο SMS_Manager.exe για την πρόοδο
+FirstRunTip3=Συνδεθείτε με προεπιλεγμένα διαπιστευτήρια (δείτε README)
+FirstRunTip4=Διατηρήστε το Docker Desktop να εκτελείται ενώ χρησιμοποιείτε το SMS
