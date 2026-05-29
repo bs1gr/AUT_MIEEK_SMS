@@ -498,6 +498,35 @@ DbFileRequired=Παρακαλώ επιλέξτε αρχείο διαπιστευ
 DbFileMissing=Το επιλεγμένο αρχείο διαπιστευτηρίων δεν βρέθηκε.
 DbFileUnsupported=Μη υποστηριζόμενη μορφή αρχείου. Χρησιμοποιήστε αρχείο .json, .env ή .txt.
 DbFileLoadFailed=Αποτυχία ανάγνωσης του αρχείου διαπιστευτηρίων.
+
+; ===== PHASE 1b Part 2: Three Installation Types =====
+InstallTypePageTitle=Τύπος Εγκατάστασης
+InstallTypePageSubtitle=Επιλέξτε πώς θέλετε να χρησιμοποιήσετε το SMS
+
+; Three installation type options
+InstallTypeDockerProd=Docker Production (Συνιστάται)
+InstallTypeDockerProdDesc=Προ-κατασκευασμένο container, γρήγορη ρύθμιση, ελάχιστη διαμόρφωση
+InstallTypeDockerProdDisk=~300 MB
+
+InstallTypeNativeProd=Native Production (Πλήρης Εγκατάσταση)
+InstallTypeNativeProdDesc=Πλήρης εγχώρια εφαρμογή με Python, Node.js και βάση δεδομένων
+InstallTypeNativeProdDisk=~2-3 GB
+
+InstallTypeNativeLite=Native Lite (Ελαφρά Έκδοση)
+InstallTypeNativeLiteDesc=Αυτόνομη εφαρμογή με ενσωματωμένη SQLite
+InstallTypeNativeLiteDisk=~100-200 MB
+
+IncludeDevTools=Συμπερίληψη Εργαλείων Ανάπτυξης (πηγαίος κώδικας, εντοπισμός σφαλμάτων, hot-reload)
+
+NativeProdPrereqsTitle=Προαπαιτούμενα Native Production
+NativeProdPrereqsSubtitle=Ελεγχος για απαιτούμενο Python και Node.js
+
+NativeLitePrereqsTitle=Προαπαιτούμενα Native Lite
+NativeLitePrereqsSubtitle=Επαλήθευση συμβατότητας συστήματος
+
+PythonCheck=Python 3.10+
+NodeJsCheck=Node.js 18+
+PostgreSqlCheck=PostgreSQL (Προαιρετικό)
 DbMissingRequired=Λείπουν υποχρεωτικά διαπιστευτήρια. Το αρχείο πρέπει να ορίζει host, port, dbname, user και password.
 DbAuthValidationFailed=Δεν ήταν δυνατή η επαλήθευση αυθεντικοποίησης στη βάση QNAP PostgreSQL με τα φορτωμένα host, port, dbname, user, password και SSL mode. Αυτό συνήθως σημαίνει ότι το αρχείο διαπιστευτηρίων δείχνει σε λάθος βάση, όνομα χρήστη, κωδικό ή SSL mode.%n%nΝα συνεχιστεί παρ' όλα αυτά;
 DbTcpValidationFailed=Δεν ήταν δυνατή η επαλήθευση TCP συνδεσιμότητας προς τον QNAP PostgreSQL host αυτή τη στιγμή. Να συνεχιστεί παρ' όλα αυτά;
