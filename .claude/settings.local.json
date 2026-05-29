@@ -173,7 +173,8 @@
       "PowerShell(cd \"d:\\\\SMS\\\\student-management-system\"; Select-String \"Page := CreateCustomPage\" installer/SMS_Installer.iss | Select-Object -ExpandProperty Line | ForEach-Object { $_ -replace '\\\\s+', ' ' })",
       "PowerShell(\\(Get-Content \"d:\\\\SMS\\\\student-management-system\\\\installer\\\\Greek.isl\" | Measure-Object -Line\\).Lines)",
       "Bash(\"C:\\\\Program Files \\(x86\\)\\\\Inno Setup 6\\\\compil32.exe\" /cc installer/SMS_Installer.iss)",
-      "Bash(git commit -m 'feat\\(installer\\): Phase 2 preparation - add type-specific file inclusion and post-install setup scaffolding *)"
+      "Bash(git commit -m 'feat\\(installer\\): Phase 2 preparation - add type-specific file inclusion and post-install setup scaffolding *)",
+      "PowerShell(& \"d:\\\\SMS\\\\student-management-system\\\\dist\\\\SMS_Installer_1.18.23.exe\")"
     ],
     "deny": [],
     "ask": [],
