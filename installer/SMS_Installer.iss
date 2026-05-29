@@ -1742,6 +1742,7 @@ var
 begin
   // Native Production Prerequisites page
   // Parent is InstallationTypePage, will be skipped for non-Native-Prod types
+  // This page will be parent to InstallationSummaryPage for Native Production flow
   NativeProductionPrereqsPage := CreateCustomPage(InstallationTypePage.ID,
     CustomMessage('NativeProdPrereqsTitle'), CustomMessage('NativeProdPrereqsSubtitle'));
 
@@ -1826,14 +1827,34 @@ end;
 procedure ShowInstallationSummary;
 var
   InstallationTypeText: String;
+  ParentPageID: Integer;
 begin
-  InstallationSummaryPage := CreateCustomPage(DockerStatusPage.ID,
+  // Determine parent page based on installation type
+  if InstallationType = 'docker' then
+    ParentPageID := DockerStatusPage.ID
+  else if InstallationType = 'native_prod' then
+    ParentPageID := NativeProductionPrereqsPage.ID
+  else if InstallationType = 'native_lite' then
+    ParentPageID := NativeLitePrereqsPage.ID
+  else
+    ParentPageID := DockerStatusPage.ID; // Default to Docker
+
+  InstallationSummaryPage := CreateCustomPage(ParentPageID,
     CustomMessage('InstallSummaryTitle'), CustomMessage('InstallSummarySubtitle'));
 
-  if DockerProdRadioButton.Checked then
-    InstallationTypeText := CustomMessage('DockerProductionTitle')
+  // Determine installation type text for display
+  if InstallationType = 'docker' then
+    InstallationTypeText := 'Docker Production'
+  else if InstallationType = 'native_prod' then
+  begin
+    InstallationTypeText := 'Native Production';
+    if IncludeDevelopmentTools then
+      InstallationTypeText := InstallationTypeText + ' (with Development Tools)';
+  end
+  else if InstallationType = 'native_lite' then
+    InstallationTypeText := 'Native Lite (Lightweight)'
   else
-    InstallationTypeText := CustomMessage('DevelopmentTitle');
+    InstallationTypeText := 'Unknown';
 
   SummaryLabel := TLabel.Create(InstallationSummaryPage);
   SummaryLabel.Parent := InstallationSummaryPage.Surface;
