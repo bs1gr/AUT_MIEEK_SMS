@@ -320,6 +320,8 @@ var
   WindowsCheckLabel: TLabel;
   DiskSpaceCheckLabel: TLabel;
   DockerCheckLabel: TLabel;
+  NativeProductionPrereqsPage: TWizardPage;
+  NativeLitePrereqsPage: TWizardPage;
   InstallationSummaryPage: TWizardPage;
   SummaryLabel: TLabel;
   NextStepsLabel: TLabel;
@@ -385,9 +387,16 @@ function HasRequiredRemoteCredentials: Boolean; forward;
 procedure CreateInstallationTypePage; forward;
 procedure CreateDockerStatusPage; forward;
 procedure ShowInstallationSummary; forward;
+procedure CreateNativeProductionPrereqsPage; forward;
+procedure CreateNativeLitePrereqsPage; forward;
 function GetFreeDiskSpace: Cardinal; forward;
 function GetWindowsVersion: String; forward;
 function IsAdmin: Boolean; forward;
+function IsPythonInstalled: Boolean; forward;
+function GetPythonVersion: String; forward;
+function IsNodeInstalled: Boolean; forward;
+function GetNodeVersion: String; forward;
+function IsPostgreSqlInstalled: Boolean; forward;
 
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
@@ -909,11 +918,15 @@ begin
 
   UpdateDockerStatus(nil);
 
-  // Phase 1b: Create Installation Type page (Production vs Development)
+  // Phase 1b Part 2: Create Installation Type page (3 installation types)
   CreateInstallationTypePage;
 
   // Phase 1b: Create Docker Status page (System requirements check)
   CreateDockerStatusPage;
+
+  // Phase 1b Part 2: Create type-specific prerequisite pages
+  CreateNativeProductionPrereqsPage;
+  CreateNativeLitePrereqsPage;
 
   // Phase 1b: Create Installation Summary page (post-install guidance)
   ShowInstallationSummary;
@@ -1559,6 +1572,39 @@ begin
   Result := 100;
 end;
 
+function IsPythonInstalled: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('python', '--version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function GetPythonVersion: String;
+begin
+  // Placeholder - will be set dynamically later if needed
+  Result := '3.10+';
+end;
+
+function IsNodeInstalled: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('node', '--version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function GetNodeVersion: String;
+begin
+  // Placeholder - will be set dynamically later if needed
+  Result := '18+';
+end;
+
+function IsPostgreSqlInstalled: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('psql', '--version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
 // Phase 1b Installer Pages
 
 procedure CreateInstallationTypePage;
@@ -1687,6 +1733,96 @@ begin
   StatusCheckLabel.Font.Style := [fsBold];
 end;
 
+procedure CreateNativeProductionPrereqsPage;
+var
+  TitleLabel: TLabel;
+  PythonCheckLabel: TLabel;
+  NodeCheckLabel: TLabel;
+  PostgresCheckLabel: TLabel;
+begin
+  // Native Production Prerequisites page
+  // Parent is InstallationTypePage, will be skipped for non-Native-Prod types
+  NativeProductionPrereqsPage := CreateCustomPage(InstallationTypePage.ID,
+    CustomMessage('NativeProdPrereqsTitle'), CustomMessage('NativeProdPrereqsSubtitle'));
+
+  TitleLabel := TLabel.Create(NativeProductionPrereqsPage);
+  TitleLabel.Parent := NativeProductionPrereqsPage.Surface;
+  TitleLabel.Left := 16;
+  TitleLabel.Top := 16;
+  TitleLabel.Width := 450;
+  TitleLabel.Caption := CustomMessage('SystemReqsCheckingMsg');
+
+  PythonCheckLabel := TLabel.Create(NativeProductionPrereqsPage);
+  PythonCheckLabel.Parent := NativeProductionPrereqsPage.Surface;
+  PythonCheckLabel.Left := 32;
+  PythonCheckLabel.Top := 50;
+  PythonCheckLabel.Width := 450;
+  if IsPythonInstalled then
+    PythonCheckLabel.Caption := '✓ ' + CustomMessage('PythonCheck') + ' (' + GetPythonVersion + ')'
+  else
+    PythonCheckLabel.Caption := '✗ ' + CustomMessage('PythonCheck') + ' (Required)';
+  if not IsPythonInstalled then
+    PythonCheckLabel.Font.Color := clRed;
+
+  NodeCheckLabel := TLabel.Create(NativeProductionPrereqsPage);
+  NodeCheckLabel.Parent := NativeProductionPrereqsPage.Surface;
+  NodeCheckLabel.Left := 32;
+  NodeCheckLabel.Top := 80;
+  NodeCheckLabel.Width := 450;
+  if IsNodeInstalled then
+    NodeCheckLabel.Caption := '✓ ' + CustomMessage('NodeJsCheck') + ' (' + GetNodeVersion + ')'
+  else
+    NodeCheckLabel.Caption := '✗ ' + CustomMessage('NodeJsCheck') + ' (Required)';
+  if not IsNodeInstalled then
+    NodeCheckLabel.Font.Color := clRed;
+
+  PostgresCheckLabel := TLabel.Create(NativeProductionPrereqsPage);
+  PostgresCheckLabel.Parent := NativeProductionPrereqsPage.Surface;
+  PostgresCheckLabel.Left := 32;
+  PostgresCheckLabel.Top := 110;
+  PostgresCheckLabel.Width := 450;
+  if IsPostgreSqlInstalled then
+    PostgresCheckLabel.Caption := '✓ ' + CustomMessage('PostgreSqlCheck') + ' (Optional, SQLite fallback)'
+  else
+    PostgresCheckLabel.Caption := '○ ' + CustomMessage('PostgreSqlCheck') + ' (Optional, SQLite fallback)';
+end;
+
+procedure CreateNativeLitePrereqsPage;
+var
+  TitleLabel: TLabel;
+  MinimalCheckLabel: TLabel;
+begin
+  // Native Lite Prerequisites page (minimal requirements)
+  // Parent is InstallationTypePage, will be skipped for non-Lite types
+  NativeLitePrereqsPage := CreateCustomPage(InstallationTypePage.ID,
+    CustomMessage('NativeLitePrereqsTitle'), CustomMessage('NativeLitePrereqsSubtitle'));
+
+  TitleLabel := TLabel.Create(NativeLitePrereqsPage);
+  TitleLabel.Parent := NativeLitePrereqsPage.Surface;
+  TitleLabel.Left := 16;
+  TitleLabel.Top := 16;
+  TitleLabel.Width := 450;
+  TitleLabel.Caption := 'Native Lite requires minimal system resources. All prerequisites are met.';
+
+  MinimalCheckLabel := TLabel.Create(NativeLitePrereqsPage);
+  MinimalCheckLabel.Parent := NativeLitePrereqsPage.Surface;
+  MinimalCheckLabel.Left := 32;
+  MinimalCheckLabel.Top := 50;
+  MinimalCheckLabel.Width := 450;
+  MinimalCheckLabel.Caption := '✓ ' + GetWindowsVersion + ' detected';
+
+  // Add disk space check for Lite (only needs ~200MB)
+  MinimalCheckLabel := TLabel.Create(NativeLitePrereqsPage);
+  MinimalCheckLabel.Parent := NativeLitePrereqsPage.Surface;
+  MinimalCheckLabel.Left := 32;
+  MinimalCheckLabel.Top := 80;
+  MinimalCheckLabel.Width := 450;
+  if GetFreeDiskSpace >= 1 then
+    MinimalCheckLabel.Caption := '✓ Sufficient disk space (' + IntToStr(GetFreeDiskSpace) + ' GB available)'
+  else
+    MinimalCheckLabel.Caption := '✗ Insufficient disk space (< 500 MB available)';
+end;
+
 procedure ShowInstallationSummary;
 var
   InstallationTypeText: String;
@@ -1798,8 +1934,25 @@ end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
+
+  // Phase 1b Part 2: Skip pages based on installation type
+  if PageID = DockerStatusPage.ID then
+  begin
+    // Only show Docker Status page for Docker Production
+    Result := (InstallationType <> 'docker');
+  end
+  else if PageID = NativeProductionPrereqsPage.ID then
+  begin
+    // Only show Native Production Prereqs for Native Production type
+    Result := (InstallationType <> 'native_prod');
+  end
+  else if PageID = NativeLitePrereqsPage.ID then
+  begin
+    // Only show Native Lite Prereqs for Native Lite type
+    Result := (InstallationType <> 'native_lite');
+  end
   // Skip Docker page if Docker is already installed and running
-  if PageID = DockerPage.ID then
+  else if PageID = DockerPage.ID then
     Result := IsDockerInstalled and IsDockerRunning
   // Do not skip Docker build/setup page.
   // Even during upgrades, PrepareToInstall may stop/remove the previous container,
