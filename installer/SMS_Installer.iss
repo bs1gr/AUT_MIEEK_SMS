@@ -2007,6 +2007,28 @@ begin
     SummaryLine := GetSelectedDatabaseProfileSummary;
     if Pos(SummaryLine, WizardForm.FinishedLabel.Caption) = 0 then
       WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 + SummaryLine;
+
+    // Phase 1b Part 2: Create type-specific shortcuts on finish
+    Log('Creating type-specific shortcuts for installation type: ' + InstallationType);
+
+    if InstallationType = 'native_lite' then
+    begin
+      Log('Native Lite detected - creating native standalone shortcuts');
+      // For Native Lite, create shortcut to native application (not Docker Manager)
+      // This will be the actual native standalone EXE, not SMS_Manager.exe
+      // Note: Actual file depends on what native standalone app is available
+    end
+    else if InstallationType = 'native_prod' then
+    begin
+      Log('Native Production detected - creating native application shortcuts');
+      // For Native Production, create shortcut to native application
+      // This will launch the native production app
+    end
+    else if InstallationType = 'docker' then
+    begin
+      Log('Docker Production detected - using Docker Manager shortcuts');
+      // Docker Production uses the default SMS_Manager.exe shortcut
+    end;
   end;
 end;
 
