@@ -154,10 +154,36 @@ english.DbTcpValidationFailed=Could not verify TCP connectivity to the QNAP Post
 english.DbFileDialogTitle=Select database credentials file
 english.DbFileBrowseFilter=Credentials files|*.json;*.env;*.txt|JSON files|*.json|ENV files|*.env;*.txt|All files|*.*
 
-; ===== PHASE 1: Installation Type & Status Pages =====
+; ===== PHASE 1b Part 2: Three Installation Types =====
 english.InstallTypePageTitle=Installation Type
 english.InstallTypePageSubtitle=Choose how you want to use SMS
 
+; Three installation type options
+english.InstallTypeDockerProd=Docker Production (Recommended)
+english.InstallTypeDockerProdDesc=Pre-built container, fast setup, minimal configuration
+english.InstallTypeDockerProdDisk=~300 MB
+
+english.InstallTypeNativeProd=Native Production (Full Installation)
+english.InstallTypeNativeProdDesc=Full native application with Python, Node.js, and database
+english.InstallTypeNativeProdDisk=~2-3 GB
+
+english.InstallTypeNativeLite=Native Lite (Lightweight)
+english.InstallTypeNativeLiteDesc=Standalone application with embedded SQLite
+english.InstallTypeNativeLiteDisk=~100-200 MB
+
+english.IncludeDevTools=Include Development Tools (source code, debugging, hot-reload)
+
+english.NativeProdPrereqsTitle=Native Production Requirements
+english.NativeProdPrereqsSubtitle=Checking for required Python and Node.js
+
+english.NativeLitePrereqsTitle=Native Lite Requirements
+english.NativeLitePrereqsSubtitle=Verifying system compatibility
+
+english.PythonCheck=Python 3.10+
+english.NodeJsCheck=Node.js 18+
+english.PostgreSqlCheck=PostgreSQL (Optional)
+
+; Legacy messages (kept for compatibility)
 english.DockerProductionTitle=Docker Production (RECOMMENDED FOR MOST USERS)
 english.DockerProductionBenefits=• Fast: Installation takes 5-10 minutes%n• Small: Uses only ~300 MB on your disk%n• Simple: One-click start and stop%n• Best for: Teachers, school administrators
 english.DockerProductionDiskSize=~300 MB total disk space
