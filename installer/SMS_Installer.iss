@@ -311,9 +311,9 @@ var
   // Phase 1b Pages and Controls
   InstallationTypePage: TWizardPage;
   DockerProdRadioButton: TRadioButton;
-  DockerDevRadioButton: TRadioButton;
-  ProdBenefitsPanel: TPanel;
-  DevBenefitsPanel: TPanel;
+  NativeProdTypeButton: TRadioButton;
+  NativeLiteTypeButton: TRadioButton;
+  DevToolsCheckbox: TCheckBox;
   DockerStatusPage: TWizardPage;
   StatusCheckLabel: TLabel;
   AdminCheckLabel: TLabel;
@@ -323,6 +323,8 @@ var
   InstallationSummaryPage: TWizardPage;
   SummaryLabel: TLabel;
   NextStepsLabel: TLabel;
+  InstallationType: String;
+  IncludeDevelopmentTools: Boolean;
 
   DockerPage: TWizardPage;
   DockerStatusLabel: TLabel;
@@ -1564,44 +1566,48 @@ begin
   InstallationTypePage := CreateCustomPage(wpWelcome, CustomMessage('InstallTypePageTitle'),
     CustomMessage('InstallTypePageSubtitle'));
 
+  // Option 1: Docker Production
   DockerProdRadioButton := TRadioButton.Create(InstallationTypePage);
   DockerProdRadioButton.Parent := InstallationTypePage.Surface;
   DockerProdRadioButton.Left := 16;
   DockerProdRadioButton.Top := 16;
   DockerProdRadioButton.Width := 480;
-  DockerProdRadioButton.Height := 32;
-  DockerProdRadioButton.Caption := CustomMessage('DockerProductionTitle');
+  DockerProdRadioButton.Height := 24;
+  DockerProdRadioButton.Caption := CustomMessage('InstallTypeDockerProd') + ' - ' + CustomMessage('InstallTypeDockerProdDisk');
   DockerProdRadioButton.Font.Style := [fsBold];
   DockerProdRadioButton.Checked := True;
+  InstallationType := 'docker';
 
-  ProdBenefitsPanel := TPanel.Create(InstallationTypePage);
-  ProdBenefitsPanel.Parent := InstallationTypePage.Surface;
-  ProdBenefitsPanel.Left := 32;
-  ProdBenefitsPanel.Top := 50;
-  ProdBenefitsPanel.Width := 450;
-  ProdBenefitsPanel.Height := 80;
-  ProdBenefitsPanel.BevelOuter := bvNone;
-  ProdBenefitsPanel.Caption := CustomMessage('DockerProductionBenefits');
-  ProdBenefitsPanel.Font.Color := clGrayText;
+  // Option 2: Native Production
+  NativeProdTypeButton := TRadioButton.Create(InstallationTypePage);
+  NativeProdTypeButton.Parent := InstallationTypePage.Surface;
+  NativeProdTypeButton.Left := 16;
+  NativeProdTypeButton.Top := 50;
+  NativeProdTypeButton.Width := 480;
+  NativeProdTypeButton.Height := 24;
+  NativeProdTypeButton.Caption := CustomMessage('InstallTypeNativeProd') + ' - ' + CustomMessage('InstallTypeNativeProdDisk');
+  NativeProdTypeButton.Font.Style := [fsBold];
 
-  DockerDevRadioButton := TRadioButton.Create(InstallationTypePage);
-  DockerDevRadioButton.Parent := InstallationTypePage.Surface;
-  DockerDevRadioButton.Left := 16;
-  DockerDevRadioButton.Top := 150;
-  DockerDevRadioButton.Width := 480;
-  DockerDevRadioButton.Height := 32;
-  DockerDevRadioButton.Caption := CustomMessage('DevelopmentTitle');
-  DockerDevRadioButton.Font.Style := [fsBold];
+  // Option 3: Native Lite
+  NativeLiteTypeButton := TRadioButton.Create(InstallationTypePage);
+  NativeLiteTypeButton.Parent := InstallationTypePage.Surface;
+  NativeLiteTypeButton.Left := 16;
+  NativeLiteTypeButton.Top := 84;
+  NativeLiteTypeButton.Width := 480;
+  NativeLiteTypeButton.Height := 24;
+  NativeLiteTypeButton.Caption := CustomMessage('InstallTypeNativeLite') + ' - ' + CustomMessage('InstallTypeNativeLiteDisk');
+  NativeLiteTypeButton.Font.Style := [fsBold];
 
-  DevBenefitsPanel := TPanel.Create(InstallationTypePage);
-  DevBenefitsPanel.Parent := InstallationTypePage.Surface;
-  DevBenefitsPanel.Left := 32;
-  DevBenefitsPanel.Top := 184;
-  DevBenefitsPanel.Width := 450;
-  DevBenefitsPanel.Height := 80;
-  DevBenefitsPanel.BevelOuter := bvNone;
-  DevBenefitsPanel.Caption := CustomMessage('DevelopmentBenefits');
-  DevBenefitsPanel.Font.Color := clGrayText;
+  // Dev Tools checkbox for Native Production
+  DevToolsCheckbox := TCheckBox.Create(InstallationTypePage);
+  DevToolsCheckbox.Parent := InstallationTypePage.Surface;
+  DevToolsCheckbox.Left := 32;
+  DevToolsCheckbox.Top := 118;
+  DevToolsCheckbox.Width := 450;
+  DevToolsCheckbox.Height := 20;
+  DevToolsCheckbox.Caption := CustomMessage('IncludeDevTools');
+  DevToolsCheckbox.Font.Size := 9;
+  IncludeDevelopmentTools := False;
 end;
 
 procedure CreateDockerStatusPage;
@@ -1728,13 +1734,26 @@ var
 begin
   // Phase 1b: Update pages when visited
   if CurPageID = InstallationTypePage.ID then
-    Log('Installation Type page displayed - user can select Production or Development');
+  begin
+    Log('Installation Type page displayed - user can select three installation types');
+    // Initialize install type based on radio button selection
+    if DockerProdRadioButton.Checked then
+      InstallationType := 'docker'
+    else if NativeProdTypeButton.Checked then
+      InstallationType := 'native_prod'
+    else if NativeLiteTypeButton.Checked then
+      InstallationType := 'native_lite';
+    Log('Selected installation type: ' + InstallationType);
+  end;
 
   if CurPageID = DockerStatusPage.ID then
     Log('Docker Status page displayed - system requirements validated');
 
   if CurPageID = InstallationSummaryPage.ID then
+  begin
     Log('Installation Summary page displayed - summary and next steps shown');
+    Log('Installation type at summary: ' + InstallationType);
+  end;
 
   if CurPageID = DockerPage.ID then
     UpdateDockerStatus(nil);
@@ -1794,6 +1813,23 @@ var
   ErrorCode: Integer;
 begin
   Result := True;
+
+  // Phase 1b: Handle Installation Type page transitions
+  if CurPageID = InstallationTypePage.ID then
+  begin
+    // Update install type based on current selection
+    if DockerProdRadioButton.Checked then
+      InstallationType := 'docker'
+    else if NativeProdTypeButton.Checked then
+      InstallationType := 'native_prod'
+    else if NativeLiteTypeButton.Checked then
+      InstallationType := 'native_lite';
+
+    // For now, all types proceed to Docker Status page (placeholder)
+    // Later: type-specific pages will be handled here
+    Log('Installation Type selected: ' + InstallationType + ' - proceeding to next page');
+    Result := True;
+  end;
 
   if CurPageID = DockerPage.ID then
   begin
