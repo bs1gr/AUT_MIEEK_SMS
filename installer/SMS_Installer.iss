@@ -167,8 +167,8 @@ english.InstallTypeNativeProd=Native Production (Full Installation)
 english.InstallTypeNativeProdDesc=Full native application with Python, Node.js, and database
 english.InstallTypeNativeProdDisk=~2-3 GB
 
-english.InstallTypeNativeLite=Native Lite (Lightweight)
-english.InstallTypeNativeLiteDesc=Standalone application with embedded SQLite
+english.InstallTypeNativeLite=Native Lite (Compact Standalone)
+english.InstallTypeNativeLiteDesc=Complete fully-functional application, standalone with embedded database
 english.InstallTypeNativeLiteDisk=~100-200 MB
 
 english.IncludeDevTools=Include Development Tools (source code, debugging, hot-reload)
@@ -176,8 +176,8 @@ english.IncludeDevTools=Include Development Tools (source code, debugging, hot-r
 english.NativeProdPrereqsTitle=Native Production Requirements
 english.NativeProdPrereqsSubtitle=Checking for required Python and Node.js
 
-english.NativeLitePrereqsTitle=Native Lite Requirements
-english.NativeLitePrereqsSubtitle=Verifying system compatibility
+english.NativeLitePrereqsTitle=Native Lite System Check
+english.NativeLitePrereqsSubtitle=Verifying Windows compatibility - no additional software needed
 
 english.PythonCheck=Python 3.10+
 english.NodeJsCheck=Node.js 18+
