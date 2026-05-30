@@ -254,12 +254,13 @@ Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: I
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerTypeSelected
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerTypeSelected
 
-; Phase 2: Native Production executable (when available)
-; Source: "dist\SMS_Native_Prod.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeProductionTypeSelected
-; Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeProductionTypeSelected
+; Phase 2: Native Production executable
+Source: "dist\SMS_Native_Prod_stub.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeProductionTypeSelected
+Source: "..\NATIVE_SETUP.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeProductionTypeSelected
 
-; Phase 2: Native Lite executable (when available)
-; Source: "dist\SMS_Native_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeLiteTypeSelected
+; Phase 2: Native Lite executable
+Source: "dist\SMS_Native_Lite_stub.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeLiteTypeSelected
+Source: "..\LITE_SETUP.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeLiteTypeSelected
 
 ; Common scripts for all types
 Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion
@@ -323,11 +324,11 @@ Type: files; Name: "{app}\docker_manager.cmd"
 ; Docker Production - SMS_Manager.exe
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Check: IsDockerTypeSelected
 
-; Phase 2: Native Production shortcut (when executable is available)
-; Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Native_Prod.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Native Production"; Check: IsNativeProductionTypeSelected
+; Phase 2: Native Production shortcut
+Name: "{group}\{#MyAppName}"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\SMS_Native_Prod_stub.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Native Production"; Check: IsNativeProductionTypeSelected
 
-; Phase 2: Native Lite shortcut (when executable is available)
-; Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Native_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS"; Check: IsNativeLiteTypeSelected
+; Phase 2: Native Lite shortcut
+Name: "{group}\{#MyAppName}"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\SMS_Native_Lite_stub.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Native Lite"; Check: IsNativeLiteTypeSelected
 
 ; Common shortcuts for all types
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
@@ -348,11 +349,11 @@ Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-de
 ; Docker Production: Launch SMS_Manager after install
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsDockerTypeSelected
 
-; Phase 2: Native Production post-install setup (when available)
-; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\NATIVE_SETUP.ps1"""; Flags: postinstall waituntilterminated runascurrentuser; Check: IsNativeProductionTypeSelected
+; Phase 2: Native Production post-install setup
+Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\NATIVE_SETUP.ps1"""; Flags: postinstall waituntilterminated runascurrentuser; Check: IsNativeProductionTypeSelected
 
-; Phase 2: Native Lite post-install setup (when available)
-; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\LITE_SETUP.ps1"""; Flags: postinstall waituntilterminated runascurrentuser; Check: IsNativeLiteTypeSelected
+; Phase 2: Native Lite post-install setup
+Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\LITE_SETUP.ps1"""; Flags: postinstall waituntilterminated runascurrentuser; Check: IsNativeLiteTypeSelected
 
 ; Common for all types: Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
