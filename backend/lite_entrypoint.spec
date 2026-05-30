@@ -3,23 +3,24 @@
 PyInstaller spec for SMS_Native_Lite.exe
 Bundles Python runtime, FastAPI backend, and React frontend into single executable.
 """
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
 import os
 
 block_cipher = None
 
+# Collect all webview dependencies (modules, data, binaries)
+webview_datas, webview_binaries, webview_hiddenimports = collect_all('webview')
+
 a = Analysis(
     ['lite_entrypoint.py'],
     pathex=[],
-    binaries=[
-        # PyWebView requires pythonnet and bottle for Windows
-    ] + collect_data_files('pywebview', includes=['**/*']),
+    binaries=webview_binaries,
     datas=[
         # Frontend React build (dist_lite/)
         ('../frontend/dist_lite', 'frontend/dist'),
         # Database migrations (Alembic)
         ('alembic', 'alembic'),
-    ] + collect_data_files('bottle', includes=['**/*']),
+    ] + webview_datas + collect_data_files('bottle', includes=['**/*']),
     hiddenimports=[
         # Core dependencies
         'backend',
@@ -42,13 +43,12 @@ a = Analysis(
         'passlib',
         'passlib.context',
         'jwt',
-        'pywebview',
-        'webview',  # Alias used by pywebview
         'bottle',
-        'pythonnet',
-        'clr_loader',
         'proxy_tools',
         'requests',
+        # PyWebView platform backends (Windows) - EdgeChromium is preferred
+        'webview.platforms.edgechromium',
+    ] + webview_hiddenimports + [
         # Service layer
         'backend.services',
         'backend.services.student_service',
@@ -64,7 +64,7 @@ a = Analysis(
         # Scheduler
         'apscheduler',
     ] + collect_submodules('backend'),
-    hookspath=[],
+    hookspath=['backend/pyinstaller_hooks'],  # Use custom hooks to override problematic ones
     hooksconfig={},
     runtime_hooks=[],
     excludedimports=[
@@ -78,6 +78,9 @@ a = Analysis(
         'matplotlib',
         'numpy',
         'pandas',
+        'pythoncom',
+        'win32com',
+        'pywintypes',
         'torch',
         'tensorflow',
     ],
