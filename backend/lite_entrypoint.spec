@@ -11,13 +11,15 @@ block_cipher = None
 a = Analysis(
     ['lite_entrypoint.py'],
     pathex=[],
-    binaries=[],
+    binaries=[
+        # PyWebView requires pythonnet and bottle for Windows
+    ] + collect_data_files('pywebview', includes=['**/*']),
     datas=[
         # Frontend React build (dist_lite/)
         ('../frontend/dist_lite', 'frontend/dist'),
         # Database migrations (Alembic)
         ('alembic', 'alembic'),
-    ],
+    ] + collect_data_files('bottle', includes=['**/*']),
     hiddenimports=[
         # Core dependencies
         'backend',
@@ -41,6 +43,11 @@ a = Analysis(
         'passlib.context',
         'jwt',
         'pywebview',
+        'webview',  # Alias used by pywebview
+        'bottle',
+        'pythonnet',
+        'clr_loader',
+        'proxy_tools',
         'requests',
         # Service layer
         'backend.services',
