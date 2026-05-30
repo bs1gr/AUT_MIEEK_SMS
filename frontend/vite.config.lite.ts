@@ -55,21 +55,6 @@ export default defineConfig({
     terserOptions: {
       compress: { drop_console: true },
     },
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          'react-vendors': ['react', 'react-dom', 'react-router-dom'],
-          'http-vendors': ['axios', '@tanstack/react-query'],
-          'ui-vendors': ['clsx', 'zustand'],
-          'features-students': ['./src/features/students'],
-          'features-courses': ['./src/features/courses'],
-          'features-grades': ['./src/features/grades'],
-          'features-attendance': ['./src/features/attendance'],
-          'features-analytics': ['./src/features/analytics'],
-          'features-auth': ['./src/features/auth'],
-        },
-      },
-    },
   },
 
   server: {

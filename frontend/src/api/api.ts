@@ -473,7 +473,7 @@ function unwrapResponse<T>(response: unknown): T {
 
 // ==================== STUDENTS API ====================
 
-export const studentsAPI = {
+const _studentsAPI = {
   // Historically getAll normalized results to return an array of Student.
   // Keep that behaviour for backward compatibility with tests and callers.
   getAll: async (skip = 0, limit = 100): Promise<Student[]> => {
@@ -515,7 +515,7 @@ export const studentsAPI = {
 
 // ==================== COURSES API ====================
 
-export const coursesAPI = {
+const _coursesAPI = {
   // Return array (normalized) to stay compatible with the legacy JS client behaviour
   getAll: async (skip = 0, limit = 100): Promise<Course[]> => {
     const data = await cachedGet<unknown>('/courses/', { params: { skip, limit } }, 10000);
@@ -607,7 +607,7 @@ export const attendanceAPI = {
 
 // ==================== GRADES API ====================
 
-export const gradesAPI = {
+const _gradesAPI = {
   getAll: async (skip = 0, limit = 100): Promise<PaginatedResponse<Grade>> => {
     const response = await apiClient.get<PaginatedResponse<Grade>>('/grades/', {
       params: { skip, limit }
