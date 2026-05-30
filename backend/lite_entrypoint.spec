@@ -17,8 +17,6 @@ a = Analysis(
         ('../frontend/dist_lite', 'frontend/dist'),
         # Database migrations (Alembic)
         ('alembic', 'alembic'),
-        # Email templates (if used)
-        ('templates', 'templates'),
     ],
     hiddenimports=[
         # Core dependencies
