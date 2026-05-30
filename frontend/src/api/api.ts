@@ -1320,5 +1320,20 @@ export function extractAPIResponseData<T = unknown>(response: unknown, defaultVa
   return defaultValue ?? (response as T);
 }
 
+// ========== LITE MODE BRIDGE INTEGRATION ==========
+
+import { IS_LITE_MODE } from './lite_mode';
+import {
+  liteBridgeStudentsAPI,
+  liteBridgeGradesAPI,
+  liteBridgeCoursesAPI,
+  liteBridgeSystemAPI,
+} from './lite_bridge';
+
+// Override API exports when running in PyWebView lite mode
+export const studentsAPI = IS_LITE_MODE ? liteBridgeStudentsAPI : _studentsAPI;
+export const gradesAPI = IS_LITE_MODE ? liteBridgeGradesAPI : _gradesAPI;
+export const coursesAPI = IS_LITE_MODE ? liteBridgeCoursesAPI : _coursesAPI;
+
 export default apiClient;
 export { apiClient };

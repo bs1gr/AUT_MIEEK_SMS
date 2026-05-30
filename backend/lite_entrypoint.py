@@ -12,12 +12,13 @@ from pathlib import Path
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
 os.environ.setdefault('DATABASE_URL', 'sqlite:///./data/sms_lite.db')
 os.environ.setdefault('SMS_ENV', 'development')
-os.environ.setdefault('DISABLE_STARTUP_TASKS', '1')
+# Note: DISABLE_STARTUP_TASKS is NOT set — migrations run automatically on startup via lifespan
 
 import requests
 import uvicorn
 import webview
 from backend.app_factory import create_app
+from backend.lite_api_bridge import LiteApiBridge
 
 
 def get_project_root() -> Path:
@@ -79,10 +80,14 @@ def main() -> None:
         print('Run: npm --prefix frontend run build -- --config vite.config.lite.ts', file=sys.stderr)
         sys.exit(1)
 
-    # Open PyWebView window
+    # Create API bridge instance
+    api_bridge = LiteApiBridge()
+
+    # Open PyWebView window with API bridge
     webview.create_window(
         title='Student Management System - Native Lite',
         url=f'file:///{frontend_path.as_posix()}',
+        js_api=api_bridge,
         width=1280,
         height=800,
         min_size=(800, 600),
