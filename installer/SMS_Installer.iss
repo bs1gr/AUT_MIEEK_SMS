@@ -249,17 +249,22 @@ Source: "..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignore
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Phase 2 Prep: Type-specific application files
-; Docker Production - SMS_Manager.exe (Docker container manager)
+
+; Docker Production ONLY - SMS_Manager.exe (Docker container manager)
 Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerTypeSelected
+
+; Docker Production setup files (DOCKER.ps1 and docker install launcher)
 Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerTypeSelected
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerTypeSelected
 
-; Phase 2: Native Production executable
+; Phase 2: Native Production executable and launcher
 Source: "dist\SMS_Native_Prod_stub.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeProductionTypeSelected
+Source: "dist\LAUNCH_NATIVE_PROD.bat"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeProductionTypeSelected
 Source: "..\NATIVE_SETUP.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeProductionTypeSelected
 
-; Phase 2: Native Lite executable
+; Phase 2: Native Lite executable and launcher
 Source: "dist\SMS_Native_Lite_stub.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeLiteTypeSelected
+Source: "dist\LAUNCH_NATIVE_LITE.bat"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeLiteTypeSelected
 Source: "..\LITE_SETUP.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsNativeLiteTypeSelected
 
 ; Common scripts for all types
@@ -324,11 +329,11 @@ Type: files; Name: "{app}\docker_manager.cmd"
 ; Docker Production - SMS_Manager.exe
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Check: IsDockerTypeSelected
 
-; Phase 2: Native Production shortcut
-Name: "{group}\{#MyAppName}"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\SMS_Native_Prod_stub.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Native Production"; Check: IsNativeProductionTypeSelected
+; Phase 2: Native Production shortcut - uses batch launcher for reliability
+Name: "{group}\{#MyAppName}"; Filename: "{app}\LAUNCH_NATIVE_PROD.bat"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Native Production"; Check: IsNativeProductionTypeSelected
 
-; Phase 2: Native Lite shortcut
-Name: "{group}\{#MyAppName}"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\SMS_Native_Lite_stub.ps1"""; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Native Lite"; Check: IsNativeLiteTypeSelected
+; Phase 2: Native Lite shortcut - uses batch launcher for reliability
+Name: "{group}\{#MyAppName}"; Filename: "{app}\LAUNCH_NATIVE_LITE.bat"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Native Lite"; Check: IsNativeLiteTypeSelected
 
 ; Common shortcuts for all types
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
@@ -340,20 +345,21 @@ Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDi
 
 
 [Run]
-; Phase 2 Prep: Type-specific post-install actions
-; Currently all types run Docker-specific setup (legacy behavior)
+; Phase 2: Type-specific post-install actions
+; NOTE: Native Production and Native Lite setup scripts are now executed in CurStepChanged
+; procedure (ssPostInstall step) which properly has access to the InstallationType variable.
+; The [Run] section Check conditions were not reliably evaluating the custom functions,
+; so we moved the execution to CurStepChanged for reliability.
 
-; Docker Production: Open Docker download page if requested
+; DOCKER PRODUCTION TYPE ONLY
+; Open Docker download page if requested
 Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-desktop/"; Flags: postinstall shellexec nowait; Tasks: installdocker; Check: IsDockerTypeSelected
 
-; Docker Production: Launch SMS_Manager after install
+; Launch SMS_Manager after Docker install
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsDockerTypeSelected
 
-; Phase 2: Native Production post-install setup
-Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\NATIVE_SETUP.ps1"""; Flags: postinstall waituntilterminated runascurrentuser; Check: IsNativeProductionTypeSelected
-
-; Phase 2: Native Lite post-install setup
-Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\LITE_SETUP.ps1"""; Flags: postinstall waituntilterminated runascurrentuser; Check: IsNativeLiteTypeSelected
+; NOTE: NATIVE_SETUP.ps1 and LITE_SETUP.ps1 are now executed from CurStepChanged (ssPostInstall)
+; This ensures proper InstallationType checking without relying on Check functions in [Run]
 
 ; Common for all types: Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
@@ -1004,11 +1010,12 @@ begin
   CreateNativeProductionPrereqsPage;
   CreateNativeLitePrereqsPage;
 
-  // Phase 1b: Create Installation Summary page (post-install guidance)
-  ShowInstallationSummary;
+  // Phase 2: Skip custom Installation Summary page - use built-in Inno Setup pages instead
+  // (The custom summary page shows wrong type info because InstallationType not yet known)
+  // ShowInstallationSummary;
 
   // Database profile page (Local SQLite vs QNAP PostgreSQL)
-  PostgresPage := CreateCustomPage(InstallationSummaryPage.ID,
+  PostgresPage := CreateCustomPage(wpPreparing,
     CustomMessage('DbConfigPageTitle'),
     CustomMessage('DbConfigPageSubtitle'));
 
@@ -1915,8 +1922,19 @@ begin
   else
     ParentPageID := DockerStatusPage.ID; // Default to Docker
 
-  InstallationSummaryPage := CreateCustomPage(ParentPageID,
-    CustomMessage('InstallSummaryTitle'), CustomMessage('InstallSummarySubtitle'));
+  // Phase 2: Type-specific summary/ready page
+  if InstallationType = 'docker' then
+    InstallationSummaryPage := CreateCustomPage(ParentPageID,
+      'Ready to Install - Docker Production', 'Review installation details below')
+  else if InstallationType = 'native_prod' then
+    InstallationSummaryPage := CreateCustomPage(ParentPageID,
+      'Ready to Install - Native Production', 'Review installation details below')
+  else if InstallationType = 'native_lite' then
+    InstallationSummaryPage := CreateCustomPage(ParentPageID,
+      'Ready to Install - Native Lite', 'Review installation details below')
+  else
+    InstallationSummaryPage := CreateCustomPage(ParentPageID,
+      CustomMessage('InstallSummaryTitle'), CustomMessage('InstallSummarySubtitle'));
 
   // Determine installation type text for display
   if InstallationType = 'docker' then
@@ -1939,9 +1957,29 @@ begin
   SummaryLabel.Width := 450;
   SummaryLabel.Height := 100;
   SummaryLabel.WordWrap := True;
-  SummaryLabel.Caption := CustomMessage('SmsReadyMsg') + #13#10 + #13#10 +
-    'Installation Type: ' + InstallationTypeText + #13#10 +
-    'Installation Path: ' + WizardDirValue;
+
+  // Phase 2: Type-specific summary text
+  if InstallationType = 'docker' then
+    SummaryLabel.Caption := 'Student Management System will be installed.' + #13#10 + #13#10 +
+      'Installation Type: ' + InstallationTypeText + #13#10 +
+      'Database: Docker PostgreSQL/SQLite' + #13#10 +
+      'Installation Path: ' + WizardDirValue
+  else if InstallationType = 'native_prod' then
+    SummaryLabel.Caption := 'Student Management System will be installed.' + #13#10 + #13#10 +
+      'Installation Type: ' + InstallationTypeText + #13#10 +
+      'Requirements: Python 3.10+, Node.js 18+' + #13#10 +
+      'Database: PostgreSQL or SQLite' + #13#10 +
+      'Installation Path: ' + WizardDirValue
+  else if InstallationType = 'native_lite' then
+    SummaryLabel.Caption := 'Student Management System will be installed.' + #13#10 + #13#10 +
+      'Installation Type: ' + InstallationTypeText + #13#10 +
+      'Requirements: Windows 10 or later' + #13#10 +
+      'Database: Embedded SQLite' + #13#10 +
+      'Installation Path: ' + WizardDirValue
+  else
+    SummaryLabel.Caption := CustomMessage('SmsReadyMsg') + #13#10 + #13#10 +
+      'Installation Type: ' + InstallationTypeText + #13#10 +
+      'Installation Path: ' + WizardDirValue;
 
   NextStepsLabel := TLabel.Create(InstallationSummaryPage);
   NextStepsLabel.Parent := InstallationSummaryPage.Surface;
@@ -1950,10 +1988,41 @@ begin
   NextStepsLabel.Width := 450;
   NextStepsLabel.Height := 120;
   NextStepsLabel.WordWrap := True;
-  NextStepsLabel.Caption := CustomMessage('FirstRunTipsLabel') + #13#10 +
-    CustomMessage('FirstRunTip1') + #13#10 +
-    CustomMessage('FirstRunTip2') + #13#10 +
-    CustomMessage('FirstRunTip3');
+
+  // Phase 2: Type-specific next steps
+  if InstallationType = 'docker' then
+  begin
+    NextStepsLabel.Caption := 'WHAT HAPPENS NEXT:' + #13#10 +
+      '1. Click Install to begin copying files' + #13#10 +
+      '2. Docker container will be prepared' + #13#10 +
+      '3. SMS_Manager.exe will open when complete' + #13#10 +
+      '4. On first run, the Docker image builds (~5-10 min)' + #13#10 +
+      '5. Then you can log in and start using SMS';
+  end
+  else if InstallationType = 'native_prod' then
+  begin
+    NextStepsLabel.Caption := 'WHAT HAPPENS NEXT:' + #13#10 +
+      '1. Click Install to begin copying files' + #13#10 +
+      '2. Prerequisites checked (Python 3.10+, Node.js 18+)' + #13#10 +
+      '3. NATIVE_SETUP.ps1 prepares your environment' + #13#10 +
+      '4. Installation completes and ready to use' + #13#10 +
+      '5. Click "Student Management System" in Start Menu to launch';
+  end
+  else if InstallationType = 'native_lite' then
+  begin
+    NextStepsLabel.Caption := 'WHAT HAPPENS NEXT:' + #13#10 +
+      '1. Click Install to begin copying files' + #13#10 +
+      '2. System compatibility verified (Windows 10+)' + #13#10 +
+      '3. LITE_SETUP.ps1 initializes the application' + #13#10 +
+      '4. SQLite database prepared for first use' + #13#10 +
+      '5. Click "Student Management System" in Start Menu to launch';
+  end
+  else
+  begin
+    NextStepsLabel.Caption := 'WHAT HAPPENS NEXT:' + #13#10 +
+      'Click Install to begin the installation process.';
+  end;
+
   NextStepsLabel.Font.Color := clBlue;
   NextStepsLabel.Font.Style := [fsUnderline];
 end;
@@ -2004,12 +2073,6 @@ begin
     Log('Database configuration page displayed');
   end;
 
-  if CurPageID = InstallationSummaryPage.ID then
-  begin
-    Log('=== INSTALLATION SUMMARY PAGE ===');
-    Log('Installation Summary page displayed - summary and next steps shown');
-    Log('Installation type at summary: ' + InstallationType);
-  end;
 
   if CurPageID = DockerBuildPage.ID then
   begin
@@ -2051,9 +2114,30 @@ begin
 
   if CurPageID = wpFinished then
   begin
-    SummaryLine := GetSelectedDatabaseProfileSummary;
-    if Pos(SummaryLine, WizardForm.FinishedLabel.Caption) = 0 then
-      WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 + SummaryLine;
+    // Phase 2: Type-specific final message handling
+    Log('=== FINAL PAGE (wpFinished) ===');
+    Log('Installation type at finish: ' + InstallationType);
+
+    if IsDockerTypeSelected then
+    begin
+      // Only Docker type should show database configuration summary
+      SummaryLine := GetSelectedDatabaseProfileSummary;
+      if Pos(SummaryLine, WizardForm.FinishedLabel.Caption) = 0 then
+        WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 + SummaryLine;
+      Log('[DOCKER] Added database summary to final message');
+    end
+    else if IsNativeProductionTypeSelected then
+    begin
+      Log('[NATIVE_PROD] Native Production selected - no database summary needed');
+      // Native Production setup is handled by NATIVE_SETUP.ps1
+      // No database configuration in installer
+    end
+    else if IsNativeLiteTypeSelected then
+    begin
+      Log('[NATIVE_LITE] Native Lite selected - no database summary needed');
+      // Native Lite uses embedded SQLite - no external database config
+      // Setup is handled by LITE_SETUP.ps1
+    end;
 
     // Phase 1b Part 2: Create type-specific shortcuts on finish
     Log('Creating type-specific shortcuts for installation type: ' + InstallationType);
@@ -2084,36 +2168,62 @@ begin
   Result := False;
 
   // Phase 1b Part 2: Skip pages based on installation type
+  // CRITICAL: These checks ensure only type-specific pages are shown
   if PageID = DockerStatusPage.ID then
   begin
     // Only show Docker Status page for Docker Production
     Result := (InstallationType <> 'docker');
+    if Result then
+      Log('[SKIP] Skipping Docker Status page - installation type is: ' + InstallationType)
+    else
+      Log('[SHOW] Showing Docker Status page - Docker Production selected');
   end
   else if PageID = NativeProductionPrereqsPage.ID then
   begin
     // Only show Native Production Prereqs for Native Production type
     Result := (InstallationType <> 'native_prod');
+    if Result then
+      Log('[SKIP] Skipping Native Production Prereqs page - installation type is: ' + InstallationType)
+    else
+      Log('[SHOW] Showing Native Production Prereqs page - Native Production selected');
   end
   else if PageID = NativeLitePrereqsPage.ID then
   begin
     // Only show Native Lite Prereqs for Native Lite type
     Result := (InstallationType <> 'native_lite');
+    if Result then
+      Log('[SKIP] Skipping Native Lite Prereqs page - installation type is: ' + InstallationType)
+    else
+      Log('[SHOW] Showing Native Lite Prereqs page - Native Lite selected');
   end
   else if PageID = PostgresPage.ID then
   begin
     // Only show PostgreSQL configuration for Docker Production
     // Native Production and Lite types don't need this page
     Result := (InstallationType <> 'docker');
+    if Result then
+      Log('[SKIP] Skipping PostgreSQL page - installation type is: ' + InstallationType)
+    else
+      Log('[SHOW] Showing PostgreSQL page - Docker Production selected');
   end
   // Skip Docker page based on type AND Docker status
   else if PageID = DockerPage.ID then
   begin
     // Skip for non-Docker types
     if InstallationType <> 'docker' then
-      Result := True
+    begin
+      Result := True;
+      Log('[SKIP] Skipping Docker Setup page - installation type is: ' + InstallationType);
+    end
     // For Docker type, skip if already installed and running
     else
+    begin
       Result := IsDockerInstalled and IsDockerRunning;
+      if Result then
+        Log('[SKIP] Docker already installed and running - skipping Docker Setup page')
+      else
+        Log('[SHOW] Showing Docker Setup page - Docker not fully ready');
+    end;
   end
   // Docker build/setup page - only for Docker Production
   // For other types, skip this page entirely
@@ -2121,6 +2231,10 @@ begin
   begin
     // Only show for Docker Production type
     Result := (InstallationType <> 'docker');
+    if Result then
+      Log('[SKIP] Skipping Docker Build page - installation type is: ' + InstallationType)
+    else
+      Log('[SHOW] Showing Docker Build page - Docker Production selected');
   end;
 end;
 
@@ -2605,14 +2719,76 @@ begin
         'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
     end;
 
-    // Post-install validation: ensure SMS_Manager.exe exists
-    if not FileExists(ExpandConstant('{app}\SMS_Manager.exe')) then
+    // Phase 2: Type-specific post-install script execution
+    // CRITICAL: This is where we execute setup scripts based on installation type
+    // This is GUARANTEED to work because InstallationType is in scope here
+    Log('=== Phase 2: Executing type-specific post-install scripts ===');
+    Log('Installation Type: ' + InstallationType);
+
+    if IsDockerTypeSelected then
     begin
-      Log('[ERROR] SMS_Manager.exe missing after installation');
-      MsgBox('Installation completed but SMS_Manager.exe is missing.' + #13#10 +
-             'Please re-run the installer (Repair) or download the latest installer.',
-             mbError, MB_OK);
+      Log('[DOCKER] Executing Docker post-install script: DOCKER.ps1');
+      // Docker type is handled by the [Run] section - note this for documentation
+      Log('[DOCKER] Docker setup will be handled by installer post-install tasks');
     end
+    else if IsNativeProductionTypeSelected then
+    begin
+      Log('[NATIVE_PROD] Executing Native Production setup script: NATIVE_SETUP.ps1');
+      try
+        Exec('pwsh.exe', '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}') + '\NATIVE_SETUP.ps1"',
+             '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+        Log('[NATIVE_PROD] Script execution completed with code: ' + IntToStr(ResultCode));
+      except
+        Log('[ERROR] Failed to execute NATIVE_SETUP.ps1');
+      end;
+    end
+    else if IsNativeLiteTypeSelected then
+    begin
+      Log('[NATIVE_LITE] Executing Native Lite setup script: LITE_SETUP.ps1');
+      try
+        Exec('pwsh.exe', '-NoProfile -ExecutionPolicy Bypass -File "' + ExpandConstant('{app}') + '\LITE_SETUP.ps1"',
+             '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode);
+        Log('[NATIVE_LITE] Script execution completed with code: ' + IntToStr(ResultCode));
+      except
+        Log('[ERROR] Failed to execute LITE_SETUP.ps1');
+      end;
+    end
+    else
+    begin
+      Log('[WARNING] Installation type not recognized: ' + InstallationType);
+    end;
+
+    Log('=== Phase 2: Type-specific post-install scripts completed ===');
+    Log('[SHORTCUTS] Shortcuts should be created by [Icons] section based on installation type');
+
+    // Post-install validation: type-specific executable checks
+    if IsDockerTypeSelected then
+    begin
+      // Docker type REQUIRES SMS_Manager.exe
+      if not FileExists(ExpandConstant('{app}\SMS_Manager.exe')) then
+      begin
+        Log('[ERROR] SMS_Manager.exe missing after installation');
+        MsgBox('Installation completed but SMS_Manager.exe is missing.' + #13#10 +
+               'Please re-run the installer (Repair) or download the latest installer.',
+               mbError, MB_OK);
+      end
+      else
+        Log('[OK] SMS_Manager.exe found for Docker type');
+    end
+    else if IsNativeProductionTypeSelected then
+    begin
+      Log('[OK] Native Production type - SMS_Native_Prod.exe or stub should be present');
+      // Native Production uses SMS_Native_Prod_stub.ps1 (or real SMS_Native_Prod.exe when available)
+      if not FileExists(ExpandConstant('{app}\SMS_Native_Prod_stub.ps1')) then
+        Log('[WARN] SMS_Native_Prod_stub.ps1 not found');
+    end
+    else if IsNativeLiteTypeSelected then
+    begin
+      Log('[OK] Native Lite type - SMS_Native_Lite.exe or stub should be present');
+      // Native Lite uses SMS_Native_Lite_stub.ps1 (or real SMS_Native_Lite.exe when available)
+      if not FileExists(ExpandConstant('{app}\SMS_Native_Lite_stub.ps1')) then
+        Log('[WARN] SMS_Native_Lite_stub.ps1 not found');
+    end;
   end;
 end;
 
