@@ -18,13 +18,32 @@ if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
 from pathlib import Path
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
-# Handle PyInstaller bundled execution (use AppData for database)
-if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
-    # Running as PyInstaller bundle
+# Check if QNAP PostgreSQL credentials exist
+qnap_creds_file = Path(__file__).parent.parent / 'local-secrets' / 'qnap-credentials.json'
+if qnap_creds_file.exists():
+    # Use QNAP PostgreSQL database
+    try:
+        import json
+        with open(qnap_creds_file) as f:
+            creds = json.load(f)
+        os.environ['DATABASE_URL'] = (
+            f'postgresql+psycopg://{creds["user"]}:{creds["password"]}'
+            f'@{creds["host"]}:{creds["port"]}/{creds["dbname"]}'
+        )
+        os.environ['POSTGRES_SSLMODE'] = creds.get('sslmode', 'disable')
+    except Exception as e:
+        print(f"WARNING: Failed to load QNAP credentials: {e}, falling back to SQLite")
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            appdata = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite'
+            os.environ['DATABASE_URL'] = f'sqlite:///{appdata / "sms_lite.db"}'
+        else:
+            os.environ.setdefault('DATABASE_URL', 'sqlite:///./data/sms_lite.db')
+elif getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # Running as PyInstaller bundle without QNAP - use local SQLite
     appdata = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite'
     os.environ['DATABASE_URL'] = f'sqlite:///{appdata / "sms_lite.db"}'
 else:
-    # Running from source
+    # Running from source without QNAP - use local SQLite
     os.environ.setdefault('DATABASE_URL', 'sqlite:///./data/sms_lite.db')
 
 os.environ.setdefault('SMS_ENV', 'development')
