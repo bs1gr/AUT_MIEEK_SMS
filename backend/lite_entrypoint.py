@@ -1,20 +1,19 @@
 """
 SMS Native Lite - Entry Point for SMS_Native_Lite.exe
 
-Starts FastAPI backend in a daemon thread and opens PyWebView window with React frontend.
+Direct Python↔JavaScript bridge via PyWebView. No HTTP server.
 """
 import os
 import sys
 import io
 
-# Force UTF-8 encoding to avoid Unicode errors in Greek locale when logging emoji
+# Force UTF-8 encoding to avoid Unicode errors in Greek locale
 if sys.stdout and not hasattr(sys.stdout, 'reconfigure'):
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 import time
-import threading
 from pathlib import Path
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
@@ -28,54 +27,9 @@ else:
     os.environ.setdefault('DATABASE_URL', 'sqlite:///./data/sms_lite.db')
 
 os.environ.setdefault('SMS_ENV', 'development')
-# Note: DISABLE_STARTUP_TASKS is NOT set — migrations run automatically on startup via lifespan
 
-import requests
-import uvicorn
 import webview
-from backend.app_factory import create_app
 from backend.lite_api_bridge import LiteApiBridge
-
-
-def get_project_root() -> Path:
-    """Get absolute path to project root."""
-    return Path(__file__).parent.parent
-
-
-def wait_for_backend(host: str = '127.0.0.1', port: int = 8765, timeout: int = 30) -> bool:
-    """Poll backend health endpoint until ready, with timeout."""
-    url = f'http://{host}:{port}/health'
-    start = time.time()
-    while time.time() - start < timeout:
-        try:
-            response = requests.get(url, timeout=2)
-            if response.status_code == 200:
-                return True
-        except (requests.RequestException, ConnectionError):
-            pass
-        time.sleep(0.5)
-    return False
-
-
-def run_backend(app, host: str = '127.0.0.1', port: int = 8765) -> None:
-    """Run FastAPI server in this thread using uvicorn.run()."""
-    try:
-        _debug_log(f'[run_backend] Starting uvicorn on {host}:{port}...')
-        # Use uvicorn.run() which handles event loop management properly in threads
-        uvicorn.run(
-            app,
-            host=host,
-            port=port,
-            log_level='error',
-            access_log=False,
-        )
-        _debug_log('[run_backend] Server exited (normal shutdown)')
-    except KeyboardInterrupt:
-        _debug_log('[run_backend] Keyboard interrupt')
-    except Exception as e:
-        import traceback as _tb
-        _debug_log(f'[run_backend] EXCEPTION: {type(e).__name__}: {str(e)[:200]}')
-        _debug_log(_tb.format_exc()[:300])
 
 
 def _debug_log(msg: str) -> None:
@@ -92,6 +46,7 @@ def _debug_log(msg: str) -> None:
 
 def main() -> None:
     """Main entry point for SMS Native Lite."""
+
     # Ensure data directory exists
     if getattr(sys, 'frozen', False):
         data_dir = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite'
@@ -100,34 +55,16 @@ def main() -> None:
 
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    # Run migrations explicitly before app creation (in case lifespan doesn't fire)
+    # Run migrations explicitly before PyWebView startup
     _debug_log('[lite_entrypoint] Running migrations...')
     try:
         from backend.scripts.migrate.runner import run_migrations
         import traceback as _tb
-        migrations_ok = run_migrations(verbose=False)
-        _debug_log(f'[lite_entrypoint] Migrations: {migrations_ok}')
+        result = run_migrations(verbose=False)
+        _debug_log(f'[lite_entrypoint] Migrations: {result}')
     except Exception as e:
         _debug_log(f'[lite_entrypoint] Migration error: {type(e).__name__}: {str(e)[:300]}')
         _debug_log(_tb.format_exc()[:500])
-
-    # Create and configure FastAPI app
-    _debug_log('[lite_entrypoint] Creating app...')
-    app = create_app()
-    _debug_log('[lite_entrypoint] App created')
-
-    # Start backend in non-daemon thread (daemon threads don't get CPU time in PyInstaller)
-    _debug_log('[lite_entrypoint] Starting backend thread...')
-    backend_thread = threading.Thread(target=run_backend, args=(app,), daemon=False)
-    backend_thread.start()
-    _debug_log('[lite_entrypoint] Backend thread started, waiting for health...')
-
-    # Wait longer for backend to be ready (migrations can take time)
-    if not wait_for_backend(timeout=120):
-        _debug_log('ERROR: Backend failed to start within 120 seconds')
-        sys.exit(1)
-
-    _debug_log('[lite_entrypoint] Backend ready!')
 
     # Determine frontend path (bundled mode uses _MEIPASS)
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
@@ -136,7 +73,7 @@ def main() -> None:
         frontend_path = bundle_root / 'frontend' / 'dist' / 'index.html'
     else:
         # Running from source
-        project_root = get_project_root()
+        project_root = Path(__file__).parent.parent
         frontend_path = project_root / 'frontend' / 'dist_lite' / 'index.html'
         if not frontend_path.exists():
             frontend_path = project_root / 'frontend' / 'dist' / 'index.html'
@@ -146,37 +83,41 @@ def main() -> None:
         _debug_log('Run: npm --prefix frontend run build -- --config vite.config.lite.ts')
         sys.exit(1)
 
+    _debug_log(f'[lite_entrypoint] Frontend path: {frontend_path}')
+
     # Create API bridge instance
     api_bridge = LiteApiBridge()
+    _debug_log('[lite_entrypoint] API bridge created')
 
-    # Check if running in a non-interactive environment (server/CI/testing)
-    import os as _os_check
-    is_interactive = (
-        _os_check.environ.get('TERM') and
-        not _os_check.environ.get('CI') and
-        not _os_check.environ.get('HEADLESS')
-    )
-
-    if is_interactive and _os_check.name != 'nt':
-        # Open PyWebView window with API bridge (interactive Linux mode)
-        webview.create_window(
-            title='Student Management System - Native Lite',
-            url=f'file:///{frontend_path.as_posix()}',
-            js_api=api_bridge,
-            width=1280,
-            height=800,
-            min_size=(800, 600),
-        )
-        webview.start(debug=False)
-    else:
-        # Headless/Windows mode: keep backend running, don't try to open window
-        print(f'SMS Native Lite running on http://127.0.0.1:8765')
+    # Check if running in CI/headless mode
+    if os.environ.get('CI') or os.environ.get('HEADLESS'):
+        # Non-interactive mode: just keep backend alive
+        _debug_log('[lite_entrypoint] Running in headless mode (CI/HEADLESS set)')
         try:
             while True:
-                import time as _time_wait
-                _time_wait.sleep(1)
+                time.sleep(1)
         except KeyboardInterrupt:
-            print('Shutting down...')
+            _debug_log('[lite_entrypoint] Headless shutdown')
+    else:
+        # Interactive mode: open PyWebView window
+        _debug_log('[lite_entrypoint] Opening PyWebView window...')
+        try:
+            webview.create_window(
+                title='Student Management System - Native Lite',
+                url=f'file:///{frontend_path.as_posix()}',
+                js_api=api_bridge,
+                width=1280,
+                height=800,
+                min_size=(800, 600),
+            )
+            _debug_log('[lite_entrypoint] Window created, starting event loop...')
+            webview.start(debug=False)
+            _debug_log('[lite_entrypoint] Window closed, shutting down')
+        except Exception as e:
+            import traceback as _tb
+            _debug_log(f'[lite_entrypoint] WebView error: {type(e).__name__}: {str(e)[:300]}')
+            _debug_log(_tb.format_exc()[:500])
+            sys.exit(1)
 
 
 if __name__ == '__main__':

@@ -549,7 +549,7 @@ const _coursesAPI = {
 
 // ==================== ATTENDANCE API ====================
 
-export const attendanceAPI = {
+const _attendanceAPI = {
   getAll: async (skip = 0, limit = 100): Promise<PaginatedResponse<Attendance>> => {
     const response = await apiClient.get('/attendance/', {
       params: { skip, limit }
@@ -844,7 +844,7 @@ export const reportsAPI = {
 
 // ==================== ENROLLMENTS API ====================
 
-export const enrollmentsAPI = {
+const _enrollmentsAPI = {
   enrollStudents: async (courseId: number, studentIds: number[]): Promise<EnrollmentResponse> => {
     const response = await apiClient.post<EnrollmentResponse>(
       `/enrollments/course/${courseId}`,
@@ -1328,12 +1328,17 @@ import {
   liteBridgeGradesAPI,
   liteBridgeCoursesAPI,
   liteBridgeSystemAPI,
+  liteBridgeEnrollmentsAPI,
+  liteBridgeAttendanceAPI,
 } from './lite_bridge';
 
-// Override API exports when running in PyWebView lite mode
+// Simple dynamic selection: IS_LITE_MODE is evaluated when module loads
+// PyWebView injects window.pywebview before React mounts, so by module load time, it's available
 export const studentsAPI = IS_LITE_MODE ? liteBridgeStudentsAPI : _studentsAPI;
 export const gradesAPI = IS_LITE_MODE ? liteBridgeGradesAPI : _gradesAPI;
 export const coursesAPI = IS_LITE_MODE ? liteBridgeCoursesAPI : _coursesAPI;
+export const enrollmentsAPI = IS_LITE_MODE ? liteBridgeEnrollmentsAPI : _enrollmentsAPI;
+export const attendanceAPI = IS_LITE_MODE ? liteBridgeAttendanceAPI : _attendanceAPI;
 
 export default apiClient;
 export { apiClient };

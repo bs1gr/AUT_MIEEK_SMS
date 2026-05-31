@@ -13,6 +13,8 @@ from backend.services import (
     StudentService,
     GradeService,
     CourseService,
+    EnrollmentService,
+    AttendanceService,
 )
 from backend.schemas import (
     StudentCreate,
@@ -22,6 +24,9 @@ from backend.schemas import (
     CourseCreate,
     CourseUpdate,
 )
+from backend.schemas.enrollments import EnrollmentCreate
+from backend.schemas.attendance import AttendanceCreate, AttendanceUpdate
+from backend.schemas.common import PaginationParams
 from backend.main import get_version
 
 
@@ -329,6 +334,196 @@ class LiteApiBridge:
             return {"message": f"Course {course_id} deleted"}
         except Exception as e:
             db.rollback()
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    # ========== ENROLLMENTS ==========
+
+    def get_enrollments(self, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
+        """Get all enrollments paginated."""
+        db = SessionLocal()
+        try:
+            pagination = PaginationParams(skip=skip, limit=limit)
+            result = EnrollmentService.get_all_enrollments(db, pagination)
+            # Handle both dict and object returns
+            if isinstance(result, dict):
+                items = result.get('items', [])
+                total = result.get('total', 0)
+            else:
+                items = result.items if hasattr(result, 'items') else result
+                total = result.total if hasattr(result, 'total') else len(items)
+            return {
+                "items": [self._model_to_dict(e) for e in items],
+                "total": total,
+                "skip": skip,
+                "limit": limit,
+            }
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def get_enrollments_by_course(self, course_id: int) -> Any:
+        """Get enrollments for a specific course."""
+        db = SessionLocal()
+        try:
+            enrollments = EnrollmentService.list_course_enrollments(db, course_id)
+            return [self._model_to_dict(e) for e in enrollments]
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def get_enrollments_by_student(self, student_id: int) -> Any:
+        """Get enrollments for a specific student."""
+        db = SessionLocal()
+        try:
+            enrollments = EnrollmentService.list_student_enrollments(db, student_id)
+            return [self._model_to_dict(e) for e in enrollments]
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def get_enrolled_students(self, course_id: int) -> Any:
+        """Get students enrolled in a course."""
+        db = SessionLocal()
+        try:
+            students = EnrollmentService.list_enrolled_students(db, course_id)
+            return [self._model_to_dict(s) for s in students]
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def enroll_students(self, course_id: int, student_ids: List[int]) -> Dict[str, Any]:
+        """Enroll students in a course."""
+        db = SessionLocal()
+        try:
+            payload = EnrollmentCreate(student_ids=student_ids)
+            result = EnrollmentService.enroll_students(db, course_id, payload)
+            db.commit()
+            return result
+        except Exception as e:
+            db.rollback()
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def unenroll_student(self, course_id: int, student_id: int) -> Dict[str, Any]:
+        """Unenroll a student from a course."""
+        db = SessionLocal()
+        try:
+            result = EnrollmentService.unenroll_student(db, course_id, student_id)
+            db.commit()
+            return result
+        except Exception as e:
+            db.rollback()
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    # ========== ATTENDANCE ==========
+
+    def get_attendance(
+        self,
+        skip: int = 0,
+        limit: int = 100,
+        student_id: Optional[int] = None,
+        course_id: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """Get attendance records with optional filters."""
+        db = SessionLocal()
+        try:
+            svc = AttendanceService(db)
+            result = svc.list_attendance(
+                skip=skip,
+                limit=limit,
+                student_id=student_id,
+                course_id=course_id,
+            )
+            return {
+                "items": [self._model_to_dict(a) for a in result.items],
+                "total": result.total,
+                "skip": skip,
+                "limit": limit,
+            }
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def get_attendance_record(self, attendance_id: int) -> Any:
+        """Get single attendance record by ID."""
+        db = SessionLocal()
+        try:
+            svc = AttendanceService(db)
+            record = svc.get_attendance(attendance_id)
+            return self._model_to_dict(record)
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def create_attendance(self, data: Dict[str, Any]) -> Any:
+        """Create attendance record."""
+        db = SessionLocal()
+        try:
+            svc = AttendanceService(db)
+            attendance_create = AttendanceCreate(**data)
+            record = svc.create_attendance(attendance_create)
+            return self._model_to_dict(record)
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def update_attendance(self, attendance_id: int, data: Dict[str, Any]) -> Any:
+        """Update attendance record."""
+        db = SessionLocal()
+        try:
+            svc = AttendanceService(db)
+            attendance_update = AttendanceUpdate(**data)
+            record = svc.update_attendance(attendance_id, attendance_update)
+            return self._model_to_dict(record)
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def delete_attendance(self, attendance_id: int) -> Dict[str, Any]:
+        """Soft-delete attendance record."""
+        db = SessionLocal()
+        try:
+            svc = AttendanceService(db)
+            svc.delete_attendance(attendance_id)
+            return {"message": f"Attendance {attendance_id} deleted"}
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def get_attendance_by_student(self, student_id: int) -> Any:
+        """Get all attendance for a student."""
+        db = SessionLocal()
+        try:
+            svc = AttendanceService(db)
+            result = svc.list_attendance(skip=0, limit=10000, student_id=student_id)
+            return [self._model_to_dict(a) for a in result.items]
+        except Exception as e:
+            return self._error_response(e)
+        finally:
+            db.close()
+
+    def get_attendance_by_course(self, course_id: int) -> Any:
+        """Get all attendance for a course."""
+        db = SessionLocal()
+        try:
+            svc = AttendanceService(db)
+            result = svc.list_attendance(skip=0, limit=10000, course_id=course_id)
+            return [self._model_to_dict(a) for a in result.items]
+        except Exception as e:
             return self._error_response(e)
         finally:
             db.close()

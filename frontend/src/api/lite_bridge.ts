@@ -89,3 +89,56 @@ export const liteBridgeSystemAPI = {
 
   getHealth: (): any => callBridge('get_health'),
 };
+
+// ========== ENROLLMENTS API ==========
+
+export const liteBridgeEnrollmentsAPI = {
+  getAll: (skip = 0, limit = 100): any =>
+    callBridge('get_enrollments', skip, limit),
+
+  getByCourse: (courseId: number): any[] =>
+    callBridge('get_enrollments_by_course', courseId),
+
+  getByStudent: (studentId: number): any[] =>
+    callBridge('get_enrollments_by_student', studentId),
+
+  getEnrolledStudents: (courseId: number): any[] =>
+    callBridge('get_enrolled_students', courseId),
+
+  enrollStudents: (courseId: number, studentIds: number[]): any =>
+    callBridge('enroll_students', courseId, studentIds),
+
+  unenrollStudent: (courseId: number, studentId: number): any =>
+    callBridge('unenroll_student', courseId, studentId),
+};
+
+// ========== ATTENDANCE API ==========
+
+export const liteBridgeAttendanceAPI = {
+  getAll: (skip = 0, limit = 100): any =>
+    callBridge('get_attendance', skip, limit, null, null),
+
+  getById: (id: number): any =>
+    callBridge('get_attendance_record', id),
+
+  create: (data: any): any =>
+    callBridge('create_attendance', data),
+
+  update: (id: number, data: any): any =>
+    callBridge('update_attendance', id, data),
+
+  delete: (id: number): any =>
+    callBridge('delete_attendance', id),
+
+  getByStudent: (studentId: number): any[] =>
+    callBridge('get_attendance_by_student', studentId),
+
+  getByCourse: (courseId: number): any[] =>
+    callBridge('get_attendance_by_course', courseId),
+
+  getByStudentAndCourse: (studentId: number, courseId: number): any[] =>
+    callBridge('get_attendance', 0, 10000, studentId, courseId),
+
+  bulkCreate: (records: any[]): Promise<any[]> =>
+    Promise.all(records.map((r: any) => callBridge('create_attendance', r))),
+};
