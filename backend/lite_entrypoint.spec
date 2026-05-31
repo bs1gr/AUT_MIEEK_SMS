@@ -23,6 +23,7 @@ a = Analysis(
         ('../frontend/dist_lite', 'frontend/dist'),
         # Database migrations (Alembic)
         ('alembic', 'alembic'),
+        ('alembic.ini', '.'),  # Copy alembic.ini to root (migrations/env.py looks here)
         ('migrations', 'backend/migrations'),
     ] + webview_datas + collect_data_files('bottle', includes=['**/*']),
     hiddenimports=[

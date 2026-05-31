@@ -49,24 +49,28 @@ def _debug_log(msg: str) -> None:
 def main() -> None:
     """Main entry point for SMS Native Lite."""
 
-    # Ensure data directory exists
+    # Ensure data directory exists and database path is correct
     if getattr(sys, 'frozen', False):
         data_dir = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite'
     else:
         data_dir = Path('./data')
 
     data_dir.mkdir(parents=True, exist_ok=True)
+    _debug_log(f'[lite_entrypoint] Data dir: {data_dir}')
+    _debug_log(f'[lite_entrypoint] Data dir exists: {data_dir.exists()}')
 
     # Run migrations explicitly before PyWebView startup
     _debug_log('[lite_entrypoint] Running migrations...')
+    _debug_log(f'[lite_entrypoint] DATABASE_URL={os.environ.get("DATABASE_URL", "NOT SET")}')
     try:
         from backend.scripts.migrate.runner import run_migrations
         import traceback as _tb
-        result = run_migrations(verbose=False)
-        _debug_log(f'[lite_entrypoint] Migrations: {result}')
+        result = run_migrations(verbose=True)  # Enable verbose to get more details
+        _debug_log(f'[lite_entrypoint] Migrations result: {result}')
     except Exception as e:
-        _debug_log(f'[lite_entrypoint] Migration error: {type(e).__name__}: {str(e)[:300]}')
-        _debug_log(_tb.format_exc()[:500])
+        import traceback as _tb
+        _debug_log(f'[lite_entrypoint] Migration error: {type(e).__name__}: {str(e)[:500]}')
+        _debug_log(f'[lite_entrypoint] Traceback: {_tb.format_exc()[:1000]}')
 
     # Determine frontend path (bundled mode uses _MEIPASS)
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
