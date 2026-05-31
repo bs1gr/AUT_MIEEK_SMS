@@ -7,6 +7,9 @@ Auto-connects to QNAP PostgreSQL if credentials available, otherwise uses SQLite
 import os
 import sys
 import io
+import time
+import webbrowser
+import threading
 from pathlib import Path
 
 # Force UTF-8 encoding to avoid Unicode errors in Greek locale
@@ -62,6 +65,16 @@ def _debug_log(msg: str) -> None:
                 f.flush()
         except Exception:
             pass
+
+
+def _open_browser_async() -> None:
+    """Open browser after server startup (runs in background thread)."""
+    try:
+        time.sleep(3)
+        _debug_log('[lite_simple_entrypoint] Opening browser to http://127.0.0.1:8000')
+        webbrowser.open('http://127.0.0.1:8000')
+    except Exception as e:
+        _debug_log(f'[lite_simple_entrypoint] Browser open failed (non-critical): {e}')
 
 
 def main() -> None:
@@ -157,6 +170,14 @@ def main() -> None:
         print("\n" + "="*60 + "\n")
     except Exception:
         pass
+
+    # Launch browser in background thread (non-blocking)
+    try:
+        browser_thread = threading.Thread(target=_open_browser_async, daemon=True)
+        browser_thread.start()
+        _debug_log('[lite_simple_entrypoint] Browser launch thread started')
+    except Exception as e:
+        _debug_log(f'[lite_simple_entrypoint] Failed to start browser thread: {e}')
 
     try:
         import uvicorn
