@@ -1,11 +1,13 @@
 """
 SMS Native Lite - Entry Point for SMS_Native_Lite.exe
 
-Direct Python↔JavaScript bridge via PyWebView. No HTTP server.
+Simple HTTP server + PyWebView with optional direct bridge.
 """
 import os
 import sys
 import io
+import threading
+import time
 
 # Force UTF-8 encoding to avoid Unicode errors in Greek locale
 if sys.stdout and not hasattr(sys.stdout, 'reconfigure'):
@@ -13,7 +15,6 @@ if sys.stdout and not hasattr(sys.stdout, 'reconfigure'):
 if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
-import time
 from pathlib import Path
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
@@ -30,6 +31,7 @@ os.environ.setdefault('SMS_ENV', 'development')
 
 import webview
 from backend.lite_api_bridge import LiteApiBridge
+from backend.lite_http_server import run_server_in_thread
 
 
 def _debug_log(msg: str) -> None:
@@ -99,12 +101,39 @@ def main() -> None:
         except KeyboardInterrupt:
             _debug_log('[lite_entrypoint] Headless shutdown')
     else:
-        # Interactive mode: open PyWebView window
-        _debug_log('[lite_entrypoint] Opening PyWebView window...')
+        # Interactive mode: start FastAPI server + open PyWebView window
+        _debug_log('[lite_entrypoint] Starting API server...')
         try:
+            from backend.app_factory import create_app
+            import uvicorn
+
+            app = create_app()
+
+            # Start FastAPI in a daemon thread with proper logging suppression
+            def run_fastapi():
+                try:
+                    _debug_log('[lite_entrypoint] FastAPI uvicorn.run() starting...')
+                    uvicorn.run(
+                        app,
+                        host='127.0.0.1',
+                        port=8765,
+                        log_level='critical',
+                        access_log=False,
+                        lifespan='off',
+                    )
+                except Exception as e:
+                    _debug_log(f'[lite_entrypoint] FastAPI error: {type(e).__name__}: {str(e)[:200]}')
+
+            api_thread = threading.Thread(target=run_fastapi, daemon=True)
+            api_thread.start()
+            _debug_log('[lite_entrypoint] API server thread started (daemon)')
+            time.sleep(3)  # Give uvicorn time to bind
+
+            # Open PyWebView window
+            _debug_log('[lite_entrypoint] Opening PyWebView window...')
             webview.create_window(
                 title='Student Management System - Native Lite',
-                url=f'file:///{frontend_path.as_posix()}',
+                url='http://127.0.0.1:8765',
                 js_api=api_bridge,
                 width=1280,
                 height=800,
@@ -115,7 +144,7 @@ def main() -> None:
             _debug_log('[lite_entrypoint] Window closed, shutting down')
         except Exception as e:
             import traceback as _tb
-            _debug_log(f'[lite_entrypoint] WebView error: {type(e).__name__}: {str(e)[:300]}')
+            _debug_log(f'[lite_entrypoint] Error: {type(e).__name__}: {str(e)[:300]}')
             _debug_log(_tb.format_exc()[:500])
             sys.exit(1)
 

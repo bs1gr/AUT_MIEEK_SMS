@@ -101,51 +101,10 @@
         }
       })();
     </script>
-    <script type="module" crossorigin src="/assets/index-Bi_HTx3R.js"></script>
+    <script type="module" crossorigin src="/assets/index-DANCRKhG.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-zOcyW4PM.css">
   <link rel="manifest" href="/manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="/registerSW.js"></script></head>
   <body>
     <div id="root"></div>
-    <script>
-      window._appLoadedAt = Date.now();
-      window._appDebugLogs = [];
-
-      function addLog(msg) {
-        window._appDebugLogs.push(msg);
-        console.log('[SMS-Debug]', msg);
-      }
-
-      // Show loading indicator while React loads
-      const root = document.getElementById('root');
-      root.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; color: #666; flex-direction: column;"><div style="text-align: center;"><p style="margin: 0 0 20px 0; font-size: 18px; font-weight: 500;">Loading Student Management System</p><div style="width: 200px; height: 4px; background: #e0e0e0; border-radius: 2px; overflow: hidden;"><div style="width: 30%; height: 100%; background: #4F46E5; border-radius: 2px; animation: slide 1.5s ease-in-out infinite;"></div></div></div></div><style>@keyframes slide { 0% { width: 30%; } 50% { width: 70%; } 100% { width: 30%; } }</style>';
-      addLog('Loading indicator rendered at ' + new Date().toISOString());
-
-      // Listen for errors
-      window.addEventListener('error', (e) => {
-        addLog('Error: ' + (e.error?.message || e.message || 'Unknown error'));
-      });
-      window.addEventListener('unhandledrejection', (e) => {
-        addLog('Promise rejection: ' + (e.reason?.message || e.reason || 'Unknown'));
-      });
-
-      // Timeout safety: if React hasn't rendered in 15 seconds, show error
-      const timeoutId = setTimeout(() => {
-        if (!root.querySelector('[data-reactroot]') && !root.querySelector('[data-react-root]')) {
-          const elapsed = ((Date.now() - window._appLoadedAt) / 1000).toFixed(1);
-          const logs = window._appDebugLogs.slice(-5).join('\n');
-          root.innerHTML = '<div style="display: flex; align-items: center; justify-content: center; height: 100vh; font-family: system-ui; color: #d32f2f; flex-direction: column; padding: 20px;"><div style="text-align: center;"><p style="margin: 0 0 20px 0; font-size: 18px; font-weight: 500;">⚠️ Application failed to load</p><p style="margin: 0 0 10px 0; font-size: 14px; color: #999;">Elapsed: ' + elapsed + 's</p><pre style="text-align: left; font-size: 12px; color: #666; background: #f5f5f5; padding: 10px; border-radius: 4px; max-height: 200px; overflow-y: auto;">' + logs + '</pre></div></div>';
-        }
-      }, 15000);
-
-      // Clear timeout once React renders
-      const observer = new MutationObserver(() => {
-        if (root.querySelector('[data-reactroot]') || root.querySelector('[data-react-root]')) {
-          addLog('React app rendered successfully');
-          clearTimeout(timeoutId);
-          observer.disconnect();
-        }
-      });
-      observer.observe(root, { childList: true, subtree: true });
-    </script>
   </body>
 </html>

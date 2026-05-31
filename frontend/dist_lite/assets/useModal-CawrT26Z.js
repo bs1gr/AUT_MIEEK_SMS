@@ -1,0 +1,1 @@
+import{Z as e}from"./index-DANCRKhG.js";function s(s=!1){const[a,l]=e.useState(s);return{isOpen:a,open:e.useCallback(()=>{l(!0)},[]),close:e.useCallback(()=>{l(!1)},[]),toggle:e.useCallback(()=>{l(e=>!e)},[])}}export{s as u};

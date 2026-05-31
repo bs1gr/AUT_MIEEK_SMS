@@ -540,3 +540,28 @@ class LiteApiBridge:
     def get_health(self) -> Dict[str, str]:
         """Health check endpoint."""
         return {"status": "healthy"}
+
+    # ========== AUTH (Lite Mode Support) ==========
+
+    def auth_login(self, email: str, password: str) -> Dict[str, Any]:
+        """Login user (lite mode auth)."""
+        try:
+            from backend.services.auth import AuthService
+            service = AuthService()
+            result = service.login(email, password)
+            return result
+        except Exception as e:
+            return self._error_response(e)
+
+    def auth_me(self) -> Dict[str, Any]:
+        """Get current user info."""
+        try:
+            from backend.services.auth import AuthService
+            service = AuthService()
+            return service.get_current_user()
+        except Exception as e:
+            return self._error_response(e)
+
+    def auth_logout(self) -> Dict[str, str]:
+        """Logout user."""
+        return {"message": "Logged out"}
