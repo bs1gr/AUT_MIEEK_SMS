@@ -66,6 +66,15 @@ a = Analysis(
         'backend.services.analytics_service',
         # Routers (will be discovered but explicit for safety)
         'backend.routers',
+        'backend.routers.routers_auth',
+        'backend.routers.routers_admin',
+        'backend.routers.routers_students',
+        'backend.routers.routers_courses',
+        'backend.routers.routers_grades',
+        'backend.routers.routers_attendance',
+        'backend.routers.routers_enrollments',
+        'backend.routers.routers_imports',
+        'backend.routers.routers_exports',
         # Rate limiting
         'slowapi',
         # Scheduler
