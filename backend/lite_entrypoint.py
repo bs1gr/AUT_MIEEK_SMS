@@ -105,14 +105,44 @@ def main() -> None:
         _debug_log('[lite_entrypoint] Starting API server...')
         try:
             from backend.app_factory import create_app
+            from fastapi.staticfiles import StaticFiles
+            from fastapi.responses import FileResponse
             import uvicorn
 
             app = create_app()
 
-            # Start FastAPI in a daemon thread with proper logging suppression
+            # Mount static files for frontend serving
+            frontend_dist = frontend_path.parent
+            _debug_log(f'[lite_entrypoint] Mounting static files from {frontend_dist}')
+
+            # Serve index.html for SPA root and routing
+            @app.get('/')
+            async def serve_root():
+                return FileResponse(frontend_path)
+
+            # Mount /assets for static files
+            try:
+                if (frontend_dist / 'assets').exists():
+                    app.mount('/assets', StaticFiles(directory=frontend_dist / 'assets'), name='assets')
+                    _debug_log('[lite_entrypoint] Mounted /assets')
+            except Exception as e:
+                _debug_log(f'[lite_entrypoint] Warning: assets mount failed: {e}')
+
+            # Start FastAPI in a daemon thread with detailed logging
             def run_fastapi():
+                import socket
                 try:
                     _debug_log('[lite_entrypoint] FastAPI uvicorn.run() starting...')
+
+                    # Check if port is already in use
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    result = sock.connect_ex(('127.0.0.1', 8765))
+                    sock.close()
+                    if result == 0:
+                        _debug_log('[lite_entrypoint] Port 8765 already in use')
+                    else:
+                        _debug_log('[lite_entrypoint] Port 8765 is free, starting uvicorn...')
+
                     uvicorn.run(
                         app,
                         host='127.0.0.1',
@@ -121,13 +151,34 @@ def main() -> None:
                         access_log=False,
                         lifespan='off',
                     )
+                    _debug_log('[lite_entrypoint] uvicorn.run() returned (shouldn\'t happen)')
                 except Exception as e:
-                    _debug_log(f'[lite_entrypoint] FastAPI error: {type(e).__name__}: {str(e)[:200]}')
+                    import traceback as _tb
+                    _debug_log(f'[lite_entrypoint] FastAPI error: {type(e).__name__}: {str(e)[:300]}')
+                    _debug_log(_tb.format_exc()[:500])
 
-            api_thread = threading.Thread(target=run_fastapi, daemon=True)
+            api_thread = threading.Thread(target=run_fastapi, daemon=False)  # Non-daemon
             api_thread.start()
-            _debug_log('[lite_entrypoint] API server thread started (daemon)')
-            time.sleep(3)  # Give uvicorn time to bind
+            _debug_log('[lite_entrypoint] API server thread started (non-daemon)')
+
+            # Wait longer and check multiple times for port to bind
+            _debug_log('[lite_entrypoint] Waiting for port 8765 to bind...')
+            import socket
+            port_open = False
+            for attempt in range(15):  # Try for up to 7.5 seconds
+                time.sleep(0.5)
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                result = sock.connect_ex(('127.0.0.1', 8765))
+                sock.close()
+                if result == 0:
+                    _debug_log(f'[lite_entrypoint] ✓ Port 8765 OPEN after {attempt * 0.5:.1f}s')
+                    port_open = True
+                    break
+                elif attempt % 3 == 0:
+                    _debug_log(f'[lite_entrypoint] Waiting... attempt {attempt + 1}/15')
+
+            if not port_open:
+                _debug_log('[lite_entrypoint] ✗ Port 8765 did NOT bind after 7.5 seconds')
 
             # Open PyWebView window
             _debug_log('[lite_entrypoint] Opening PyWebView window...')
