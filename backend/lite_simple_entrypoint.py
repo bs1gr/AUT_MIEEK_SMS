@@ -145,17 +145,21 @@ def main() -> None:
     _debug_log('[lite_simple_entrypoint] Starting FastAPI server on port 8000...')
     try:
         import uvicorn
+        _debug_log('[lite_simple_entrypoint] About to call uvicorn.run()...')
         uvicorn.run(
             app,
             host='0.0.0.0',
             port=8000,
-            log_level='info',
-            access_log=True,
+            log_level='warning',
+            access_log=False,
         )
+        _debug_log('[lite_simple_entrypoint] uvicorn.run() returned (should not happen)')
+    except KeyboardInterrupt:
+        _debug_log('[lite_simple_entrypoint] Keyboard interrupt - shutting down')
     except Exception as e:
         import traceback as _tb
-        _debug_log(f'[lite_simple_entrypoint] Server error: {type(e).__name__}: {str(e)[:300]}')
-        _debug_log(_tb.format_exc()[:500])
+        _debug_log(f'[lite_simple_entrypoint] Server error: {type(e).__name__}: {str(e)[:500]}')
+        _debug_log(_tb.format_exc()[:1000])
         sys.exit(1)
 
 
