@@ -109,24 +109,21 @@ def main() -> None:
             from fastapi.responses import FileResponse
             import uvicorn
 
-            app = create_app()
-
-            # Mount static files for frontend serving
-            frontend_dist = frontend_path.parent
-            _debug_log(f'[lite_entrypoint] Mounting static files from {frontend_dist}')
-
-            # Serve index.html for SPA root and routing
-            @app.get('/')
-            async def serve_root():
-                return FileResponse(frontend_path)
-
-            # Mount /assets for static files
             try:
-                if (frontend_dist / 'assets').exists():
-                    app.mount('/assets', StaticFiles(directory=frontend_dist / 'assets'), name='assets')
-                    _debug_log('[lite_entrypoint] Mounted /assets')
+                _debug_log('[lite_entrypoint] Creating FastAPI app...')
+                app = create_app()
+                _debug_log(f'[lite_entrypoint] App created. Routes: {len(app.routes)}')
             except Exception as e:
-                _debug_log(f'[lite_entrypoint] Warning: assets mount failed: {e}')
+                import traceback as _tb
+                _debug_log(f'[lite_entrypoint] ERROR creating app: {type(e).__name__}: {str(e)[:300]}')
+                _debug_log(_tb.format_exc()[:1000])
+                raise
+
+            # NOTE: Frontend serving is handled by register_root_endpoints() in create_app()
+            # Don't override root here - it might interfere with FastAPI routing
+            # Just ensure assets are accessible if needed
+            frontend_dist = frontend_path.parent
+            _debug_log(f'[lite_entrypoint] Frontend path: {frontend_dist}')
 
             # Start FastAPI in a daemon thread with detailed logging
             def run_fastapi():
