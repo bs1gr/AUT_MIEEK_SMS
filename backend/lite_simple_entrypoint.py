@@ -143,6 +143,21 @@ def main() -> None:
 
     # Start FastAPI server
     _debug_log('[lite_simple_entrypoint] Starting FastAPI server on port 8000...')
+
+    # Print startup message
+    try:
+        print("\n" + "="*60)
+        print("✅ SMS Student Management System is READY")
+        print("="*60)
+        print("\n📱 Open your browser and go to:")
+        print("   👉 http://127.0.0.1:8000")
+        print("\n🔐 Login with:")
+        print("   Email:    admin@sms-lite.app")
+        print("   Password: AdminPassword123!")
+        print("\n" + "="*60 + "\n")
+    except Exception:
+        pass
+
     try:
         import uvicorn
         _debug_log('[lite_simple_entrypoint] About to call uvicorn.run()...')
