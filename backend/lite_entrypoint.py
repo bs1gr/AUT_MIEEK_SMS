@@ -62,6 +62,18 @@ def run_backend(app, host: str = '127.0.0.1', port: int = 8765) -> None:
     server.run()
 
 
+def _debug_log(msg: str) -> None:
+    """Write debug log to file instead of stderr (which may not exist in GUI mode)."""
+    if getattr(sys, 'frozen', False):
+        log_path = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite' / 'debug.log'
+        try:
+            with open(log_path, 'a') as f:
+                f.write(f'{msg}\n')
+                f.flush()
+        except Exception:
+            pass
+
+
 def main() -> None:
     """Main entry point for SMS Native Lite."""
     # Ensure data directory exists
@@ -73,29 +85,38 @@ def main() -> None:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     # Create and configure FastAPI app
-    print('[lite_entrypoint] Creating app...', file=_sys_debug.stderr, flush=True)
+    _debug_log('[lite_entrypoint] Creating app...')
     app = create_app()
-    print('[lite_entrypoint] App created', file=_sys_debug.stderr, flush=True)
+    _debug_log('[lite_entrypoint] App created')
 
-    # Start backend in daemon thread
-    print('[lite_entrypoint] Starting backend thread...', file=_sys_debug.stderr, flush=True)
-    backend_thread = threading.Thread(target=run_backend, args=(app,), daemon=True)
+    # Start backend in non-daemon thread (daemon threads don't get CPU time in PyInstaller)
+    _debug_log('[lite_entrypoint] Starting backend thread...')
+    backend_thread = threading.Thread(target=run_backend, args=(app,), daemon=False)
     backend_thread.start()
-    print('[lite_entrypoint] Backend thread started, waiting for health...', file=_sys_debug.stderr, flush=True)
+    _debug_log('[lite_entrypoint] Backend thread started, waiting for health...')
 
     # Wait longer for backend to be ready (migrations can take time)
     if not wait_for_backend(timeout=60):
-        print('ERROR: Backend failed to start within 60 seconds', file=sys.stderr)
+        _debug_log('ERROR: Backend failed to start within 60 seconds')
         sys.exit(1)
 
-    print('[lite_entrypoint] Backend ready!', file=_sys_debug.stderr, flush=True)
+    _debug_log('[lite_entrypoint] Backend ready!')
 
-    # Determine frontend path
-    project_root = get_project_root()
-    frontend_path = project_root / 'frontend' / 'dist' / 'index.html'
+    # Determine frontend path (bundled mode uses _MEIPASS)
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        # Running from PyInstaller bundle
+        bundle_root = Path(sys._MEIPASS)
+        frontend_path = bundle_root / 'frontend' / 'dist' / 'index.html'
+    else:
+        # Running from source
+        project_root = get_project_root()
+        frontend_path = project_root / 'frontend' / 'dist_lite' / 'index.html'
+        if not frontend_path.exists():
+            frontend_path = project_root / 'frontend' / 'dist' / 'index.html'
+
     if not frontend_path.exists():
-        print(f'ERROR: Frontend build not found at {frontend_path}', file=sys.stderr)
-        print('Run: npm --prefix frontend run build -- --config vite.config.lite.ts', file=sys.stderr)
+        _debug_log(f'ERROR: Frontend build not found at {frontend_path}')
+        _debug_log('Run: npm --prefix frontend run build -- --config vite.config.lite.ts')
         sys.exit(1)
 
     # Create API bridge instance

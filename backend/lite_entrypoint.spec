@@ -6,6 +6,9 @@ Bundles Python runtime, FastAPI backend, and React frontend into single executab
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
 import os
 
+# Collect passlib submodules (handlers, etc.)
+passlib_hiddenimports = collect_submodules('passlib')
+
 block_cipher = None
 
 # Collect all webview dependencies (modules, data, binaries)
@@ -42,6 +45,7 @@ a = Analysis(
         'pydantic_settings',
         'passlib',
         'passlib.context',
+        'passlib.handlers.pbkdf2',
         'jwt',
         'bottle',
         'proxy_tools',
@@ -63,7 +67,7 @@ a = Analysis(
         'slowapi',
         # Scheduler
         'apscheduler',
-    ] + collect_submodules('backend'),
+    ] + collect_submodules('backend') + passlib_hiddenimports,
     hookspath=['backend/pyinstaller_hooks'],  # Use custom hooks to override problematic ones
     hooksconfig={},
     runtime_hooks=[],
