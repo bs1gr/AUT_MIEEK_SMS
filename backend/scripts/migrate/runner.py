@@ -53,26 +53,35 @@ def _alembic_config(backend_dir: Path) -> Config:
     return cfg
 
 
+def _safe_print(msg: str) -> None:
+    """Print safely - in bundled/GUI mode, print may fail."""
+    try:
+        print(msg)
+    except (OSError, ValueError):
+        # In bundled GUI mode, stdout/stderr may not be writable
+        pass
+
+
 def run_migrations(verbose: bool = False) -> bool:
     """Run Alembic migrations (upgrade head) using the Alembic API.
 
     Returns True on success, False on failure.
     """
-    print("[run_migrations] ENTER", flush=True)
+    _safe_print("[run_migrations] ENTER")
     logger.info("[run_migrations] ENTER")
     try:
         backend_dir = Path(__file__).parent.parent.parent
         cfg = _alembic_config(backend_dir)
         if verbose:
-            print("=" * 60, flush=True)
-            print("DATABASE MIGRATION CHECK", flush=True)
-            print("=" * 60, flush=True)
-            print(f"Backend directory: {backend_dir}", flush=True)
+            _safe_print("=" * 60)
+            _safe_print("DATABASE MIGRATION CHECK")
+            _safe_print("=" * 60)
+            _safe_print(f"Backend directory: {backend_dir}")
             try:
                 url = cfg.get_main_option("sqlalchemy.url")
             except Exception:
                 url = None
-            print(f"Using DATABASE_URL: {url}", flush=True)
+            _safe_print(f"Using DATABASE_URL: {url}")
 
         try:
 
@@ -84,7 +93,12 @@ def run_migrations(verbose: bool = False) -> bool:
                 return fallback
 
             repo_root = _find_repo_root(backend_dir)
-            logs_dir = repo_root / "logs"
+            # Use AppData for logs in bundled/native-lite mode
+            import sys as _sys_migrate
+            if getattr(_sys_migrate, 'frozen', False):
+                logs_dir = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite'
+            else:
+                logs_dir = repo_root / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
             fh = logging.FileHandler(logs_dir / "migrations.log", mode="a")
             fh.setLevel(logging.INFO)
@@ -109,7 +123,7 @@ def run_migrations(verbose: bool = False) -> bool:
                     pass
                 root_logger.addHandler(fh)
         except Exception as log_ex:
-            print(f"[run_migrations] Logging setup failed: {log_ex}", flush=True)
+            _safe_print(f"[run_migrations] Logging setup failed: {log_ex}")
             logger.warning(f"[run_migrations] Logging setup failed: {log_ex}")
 
         try:
@@ -130,15 +144,15 @@ def run_migrations(verbose: bool = False) -> bool:
                     e,
                 )
                 if verbose:
-                    print(f"WARNING: Migration raised benign error: {e}", flush=True)
-                print(f"[run_migrations] benign error: {e}", flush=True)
+                    _safe_print(f"WARNING: Migration raised benign error: {e}")
+                _safe_print(f"[run_migrations] benign error: {e}")
                 return True
 
             logger.warning("Initial Alembic upgrade(head) failed: %s", e)
-            print(f"[run_migrations] upgrade(head) failed: {e}", flush=True)
+            _safe_print(f"[run_migrations] upgrade(head) failed: {e}")
             try:
                 logger.info("Attempting Alembic upgrade to 'heads' as a fallback")
-                print("[run_migrations] Attempting upgrade to 'heads'", flush=True)
+                _safe_print("[run_migrations] Attempting upgrade to 'heads'")
                 command.upgrade(cfg, "heads")
             except Exception as e2:
                 msg2 = str(e2).lower()
@@ -156,43 +170,31 @@ def run_migrations(verbose: bool = False) -> bool:
                         e2,
                     )
                     if verbose:
-                        print(
-                            f"WARNING: Migration raised benign error on fallback: {e2}",
-                            flush=True,
-                        )
-                    print(f"[run_migrations] benign error on fallback: {e2}", flush=True)
+                        _safe_print(f"WARNING: Migration raised benign error on fallback: {e2}")
+                    _safe_print(f"[run_migrations] benign error on fallback: {e2}")
                     return True
                 logger.exception("Fallback upgrade to 'heads' also failed: %s", e2)
-                print(
-                    f"[run_migrations] Fallback upgrade to 'heads' failed: {e2}",
-                    flush=True,
-                )
+                _safe_print(f"[run_migrations] Fallback upgrade to 'heads' failed: {e2}")
                 raise
 
         if verbose:
-            print("\nOK: Database migrations applied successfully", flush=True)
-            print("=" * 60, flush=True)
-        print(
-            "[run_migrations] DEBUG: About to log Alembic migrations applied successfully",
-            flush=True,
-        )
+            _safe_print("\nOK: Database migrations applied successfully")
+            _safe_print("=" * 60)
+        _safe_print("[run_migrations] DEBUG: About to log Alembic migrations applied successfully")
         logger.info("Alembic migrations applied successfully")
-        print(
-            "[run_migrations] DEBUG: Logged Alembic migrations applied successfully",
-            flush=True,
-        )
-        print("[run_migrations] EXIT OK", flush=True)
+        _safe_print("[run_migrations] DEBUG: Logged Alembic migrations applied successfully")
+        _safe_print("[run_migrations] EXIT OK")
         return True
     except Exception as e:
         logger.exception("Failed to apply Alembic migrations: %s", e)
-        print(f"[run_migrations] EXCEPTION: {e}", flush=True)
+        _safe_print(f"[run_migrations] EXCEPTION: {e}")
         import traceback
 
         traceback.print_exc()
         sys.stdout.flush()
         sys.stderr.flush()
         if verbose:
-            print(f"ERROR: Migration error: {e}", file=sys.stderr, flush=True)
+            _safe_print(f"ERROR: Migration error: {e}", file=sys.stderr)
         return False
 
 

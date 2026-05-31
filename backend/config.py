@@ -391,10 +391,11 @@ class Settings(BaseSettings):
                     pass
                 if os.environ.get("SMS_EXECUTION_MODE", "").lower() == "docker":
                     allowed_roots.append(Path("/data"))
-                # Allow AppData directory for PyInstaller bundled mode
+                # Allow AppData directory for PyInstaller bundled mode or when explicitly configured
                 import sys as _sys_check
-                if getattr(_sys_check, 'frozen', False):
-                    allowed_roots.append(Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite')
+                appdata_lite = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite'
+                if getattr(_sys_check, 'frozen', False) or db_path.parent == appdata_lite:
+                    allowed_roots.append(appdata_lite)
 
                 if not any(_path_within(db_path, root) for root in allowed_roots):
                     allowed_desc = ", ".join(str(root) for root in allowed_roots)

@@ -31,7 +31,27 @@ def get_lifespan():
 
         migrations_ok = True
         if not (disable_startup or is_pytest_run):
+            # Debug: log to file for bundled mode
+            import sys as _sys_lifespan
+            if getattr(_sys_lifespan, 'frozen', False):
+                try:
+                    from pathlib import Path as _Path_lifespan
+                    debug_log = _Path_lifespan.home() / 'AppData' / 'Local' / 'SMS_Native_Lite' / 'debug.log'
+                    with open(debug_log, 'a') as f:
+                        f.write('[lifespan] About to run migrations...\n')
+                        f.flush()
+                except Exception:
+                    pass
+
             migrations_ok = run_migrations(False)
+
+            if getattr(_sys_lifespan, 'frozen', False):
+                try:
+                    with open(debug_log, 'a') as f:
+                        f.write(f'[lifespan] Migrations completed: {migrations_ok}\n')
+                        f.flush()
+                except Exception:
+                    pass
 
             if migrations_ok:
                 try:

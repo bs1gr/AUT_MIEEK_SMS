@@ -1,0 +1,1 @@
+import{W as e}from"./index-B5tA5ubx.js";const s=()=>e.jsx("div",{className:"flex justify-center items-center py-6",children:e.jsx("div",{className:"animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"})});export{s as S};

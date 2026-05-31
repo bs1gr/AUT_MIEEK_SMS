@@ -84,6 +84,17 @@ def main() -> None:
 
     data_dir.mkdir(parents=True, exist_ok=True)
 
+    # Run migrations explicitly before app creation (in case lifespan doesn't fire)
+    _debug_log('[lite_entrypoint] Running migrations...')
+    try:
+        from backend.scripts.migrate.runner import run_migrations
+        import traceback as _tb
+        migrations_ok = run_migrations(verbose=False)
+        _debug_log(f'[lite_entrypoint] Migrations: {migrations_ok}')
+    except Exception as e:
+        _debug_log(f'[lite_entrypoint] Migration error: {type(e).__name__}: {str(e)[:300]}')
+        _debug_log(_tb.format_exc()[:500])
+
     # Create and configure FastAPI app
     _debug_log('[lite_entrypoint] Creating app...')
     app = create_app()

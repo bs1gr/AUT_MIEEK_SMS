@@ -23,6 +23,7 @@ a = Analysis(
         ('../frontend/dist_lite', 'frontend/dist'),
         # Database migrations (Alembic)
         ('alembic', 'alembic'),
+        ('migrations', 'backend/migrations'),
     ] + webview_datas + collect_data_files('bottle', includes=['**/*']),
     hiddenimports=[
         # Core dependencies
