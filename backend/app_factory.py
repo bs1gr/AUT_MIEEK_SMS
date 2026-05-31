@@ -179,9 +179,9 @@ def create_app() -> FastAPI:
                 app.mount("/socket.io", sio.asgi_app)
             else:
                 raise AttributeError("AsyncServer has no 'asgi_app' attribute; upgrade python-socketio")
-        logger.info("✅ WebSocket server mounted at /socket.io")
+        logger.info("[OK] WebSocket server mounted at /socket.io")
     except Exception as e:
-        logger.warning("⚠️  Failed to mount WebSocket server: %s", e)
+        logger.warning("[WARN] Failed to mount WebSocket server: %s", e)
 
     logger.info("FastAPI application created successfully (version=%s)", VERSION)
 
@@ -492,6 +492,6 @@ def _register_metrics_endpoint(app: FastAPI):
                     media_type=CONTENT_TYPE_LATEST,
                 )
 
-            logger.info("✅ /metrics endpoint registered")
+            logger.info("[OK] /metrics endpoint registered")
         except Exception as e:
             logger.warning("Failed to register /metrics endpoint: %s", e)

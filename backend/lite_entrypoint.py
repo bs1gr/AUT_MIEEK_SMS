@@ -5,6 +5,14 @@ Starts FastAPI backend in a daemon thread and opens PyWebView window with React 
 """
 import os
 import sys
+import io
+
+# Force UTF-8 encoding to avoid Unicode errors in Greek locale when logging emoji
+if sys.stdout and not hasattr(sys.stdout, 'reconfigure'):
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 import time
 import threading
 from pathlib import Path
@@ -50,16 +58,24 @@ def wait_for_backend(host: str = '127.0.0.1', port: int = 8765, timeout: int = 3
 
 
 def run_backend(app, host: str = '127.0.0.1', port: int = 8765) -> None:
-    """Run FastAPI server in this thread (daemon)."""
-    config = uvicorn.Config(
-        app=app,
-        host=host,
-        port=port,
-        log_level='error',  # Suppress uvicorn logs
-        access_log=False,
-    )
-    server = uvicorn.Server(config)
-    server.run()
+    """Run FastAPI server in this thread using uvicorn.run()."""
+    try:
+        _debug_log(f'[run_backend] Starting uvicorn on {host}:{port}...')
+        # Use uvicorn.run() which handles event loop management properly in threads
+        uvicorn.run(
+            app,
+            host=host,
+            port=port,
+            log_level='error',
+            access_log=False,
+        )
+        _debug_log('[run_backend] Server exited (normal shutdown)')
+    except KeyboardInterrupt:
+        _debug_log('[run_backend] Keyboard interrupt')
+    except Exception as e:
+        import traceback as _tb
+        _debug_log(f'[run_backend] EXCEPTION: {type(e).__name__}: {str(e)[:200]}')
+        _debug_log(_tb.format_exc()[:300])
 
 
 def _debug_log(msg: str) -> None:
@@ -107,8 +123,8 @@ def main() -> None:
     _debug_log('[lite_entrypoint] Backend thread started, waiting for health...')
 
     # Wait longer for backend to be ready (migrations can take time)
-    if not wait_for_backend(timeout=60):
-        _debug_log('ERROR: Backend failed to start within 60 seconds')
+    if not wait_for_backend(timeout=120):
+        _debug_log('ERROR: Backend failed to start within 120 seconds')
         sys.exit(1)
 
     _debug_log('[lite_entrypoint] Backend ready!')
