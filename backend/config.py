@@ -391,6 +391,16 @@ class Settings(BaseSettings):
                     pass
                 if os.environ.get("SMS_EXECUTION_MODE", "").lower() == "docker":
                     allowed_roots.append(Path("/data"))
+                # Allow AppData when running as bundled executable (PyInstaller)
+                if getattr(sys, "frozen", False):
+                    appdata_local = Path.home() / "AppData" / "Local"
+                    allowed_roots.append(appdata_local)
+                    # Also check if db_path is under AppData
+                    try:
+                        db_path.relative_to(appdata_local)
+                        return v  # Path is within AppData, allow it
+                    except ValueError:
+                        pass
 
                 if not any(_path_within(db_path, root) for root in allowed_roots):
                     allowed_desc = ", ".join(str(root) for root in allowed_roots)

@@ -17,8 +17,8 @@ a = Analysis(
     pathex=[],
     binaries=[],
     datas=[
-        # Frontend React build (dist_lite/)
-        ('../frontend/dist_lite', 'frontend/dist'),
+        # Frontend React build (dist or dist_lite/)
+        ('../frontend/dist', 'frontend/dist'),
         # Database migrations (Alembic)
         ('alembic', 'alembic'),
         ('alembic.ini', '.'),  # Copy alembic.ini to root (migrations/env.py looks here)
