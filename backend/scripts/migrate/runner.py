@@ -183,6 +183,24 @@ def run_migrations(verbose: bool = False) -> bool:
         _safe_print("[run_migrations] DEBUG: About to log Alembic migrations applied successfully")
         logger.info("Alembic migrations applied successfully")
         _safe_print("[run_migrations] DEBUG: Logged Alembic migrations applied successfully")
+
+        # Bootstrap default admin account if credentials are configured
+        try:
+            from backend.scripts.admin.bootstrap import ensure_default_admin_account
+            from backend.db import SessionLocal
+
+            _safe_print("[run_migrations] Bootstrapping admin account...")
+            ensure_default_admin_account(
+                settings=Settings(),
+                session_factory=SessionLocal,
+                logger=logger,
+                close_session=True,
+            )
+            _safe_print("[run_migrations] Admin bootstrap complete")
+        except Exception as e:
+            logger.warning(f"Admin bootstrap failed (non-critical): {e}")
+            _safe_print(f"[run_migrations] Admin bootstrap warning: {e}")
+
         _safe_print("[run_migrations] EXIT OK")
         return True
     except Exception as e:

@@ -29,6 +29,11 @@ else:
 
 os.environ.setdefault('SMS_ENV', 'development')
 
+# Set default admin credentials for Native Lite (auto-create on first run)
+os.environ.setdefault('DEFAULT_ADMIN_EMAIL', 'admin@sms-lite.app')
+os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
+os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
+
 import webview
 from backend.lite_api_bridge import LiteApiBridge
 from backend.lite_http_server import run_server_in_thread

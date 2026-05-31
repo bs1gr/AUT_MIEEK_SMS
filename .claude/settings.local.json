@@ -218,7 +218,8 @@
       "PowerShell(cd \"d:\\\\SMS\\\\student-management-system\"; Remove-Item \"C:\\\\Users\\\\Vasilis\\\\AppData\\\\Local\\\\SMS_Native_Lite\" -Recurse -Force -ErrorAction SilentlyContinue; $job = Start-Job -ScriptBlock { .\\\\dist\\\\SMS_Native_Lite.exe }; Start-Sleep -Seconds 15; if \\(Test-Path \"C:\\\\Users\\\\Vasilis\\\\AppData\\\\Local\\\\SMS_Native_Lite\\\\debug.log\"\\) { Get-Content \"C:\\\\Users\\\\Vasilis\\\\AppData\\\\Local\\\\SMS_Native_Lite\\\\debug.log\" } else { Write-Host \"Debug log not found\" }; Stop-Job $job 2>&1 | Out-Null)",
       "PowerShell(cd \"d:\\\\SMS\\\\student-management-system\" && Get-Process | Where-Object {$_.ProcessName -match \"SMS|python\"} | Stop-Process -Force -ErrorAction SilentlyContinue 2>&1; .\\\\.venv\\\\Scripts\\\\python.exe -m PyInstaller backend/lite_entrypoint.spec --noconfirm 2>&1 | Select-Object -Last 5)",
       "PowerShell(Get-Process SMS_Native_Lite -ErrorAction SilentlyContinue)",
-      "PowerShell(Stop-Process -Force 2>&1)"
+      "PowerShell(Stop-Process -Force 2>&1)",
+      "Bash(pyinstaller --clean backend/lite_entrypoint.spec)"
     ],
     "deny": [],
     "ask": [],

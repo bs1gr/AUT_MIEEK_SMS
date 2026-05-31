@@ -37,6 +37,7 @@ a = Analysis(
         'backend.db',
         'backend.config',
         'backend.environment',
+        'backend.health_checks',
         # Key packages
         'fastapi',
         'uvicorn',
