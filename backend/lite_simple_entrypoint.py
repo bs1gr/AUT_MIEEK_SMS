@@ -98,6 +98,17 @@ def main() -> None:
         import traceback as _tb
         result = run_migrations(verbose=True)
         _debug_log(f'[lite_simple_entrypoint] Migrations result: {result}')
+        if not result:
+            _debug_log('[lite_simple_entrypoint] WARNING: Migrations returned False - check migrations.log')
+            # Try to read the migrations log for more details
+            try:
+                migrations_log = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'migrations.log'
+                if migrations_log.exists():
+                    with open(migrations_log, 'r') as f:
+                        log_content = f.read()[-2000:]  # Last 2000 chars
+                        _debug_log(f'[lite_simple_entrypoint] Migrations log tail:\n{log_content}')
+            except Exception as log_err:
+                _debug_log(f'[lite_simple_entrypoint] Could not read migrations log: {log_err}')
     except Exception as e:
         import traceback as _tb
         _debug_log(f'[lite_simple_entrypoint] Migration error: {type(e).__name__}: {str(e)[:500]}')
