@@ -5,9 +5,14 @@
 The SMS Native Lite edition can run in two modes:
 
 1. **SQLite Mode** (default) - Local database on each PC, no connection to QNAP
-2. **QNAP Mode** - Connects to your central QNAP PostgreSQL database
+2. **QNAP Mode** - Connects to your central QNAP PostgreSQL database (local LAN or public IP)
 
 This guide shows how to configure **QNAP Mode** so the lite edition uses the same database as your main admin interface.
+
+### Connection Options
+
+- **Local LAN:** `172.16.0.2:55433` (fast, on same network)
+- **External/Web:** `77.83.249.220:55433` (remote access, uses public IP)
 
 ---
 
@@ -21,10 +26,14 @@ cd D:\SMS\student-management-system
 ```
 
 This will:
-- ✅ Read credentials from `local-secrets/qnap-credentials.json`
+- ✅ Detect if you're using local LAN or external/web access
+- ✅ Read credentials from `local-secrets/qnap-db-external.env` (preferred) or `local-secrets/qnap-credentials.json`
+- ✅ Convert to secure JSON format
 - ✅ Copy to `C:\Users\[YourName]\AppData\Local\SMS_Native_Lite_Simple\`
 - ✅ Set secure file permissions (user-only access)
 - ✅ Verify configuration
+
+**Important:** The script automatically uses `qnap-db-external.env` if available, which contains the public IP (`77.83.249.220`) for accessing QNAP over the internet.
 
 Then restart `SMS_Native_Lite_Simple.exe` and it will connect to QNAP.
 
@@ -41,8 +50,18 @@ If you're installing on a **different PC** (like bs1gr) that doesn't have the so
    ```powershell
    .\setup_lite_qnap_remote.ps1
    ```
-3. Enter your QNAP credentials when prompted:
-   - Host: `172.16.0.2`
+3. Enter your QNAP credentials when prompted. Choose based on your network:
+   
+   **For external/web access (recommended for remote PCs):**
+   - Host: `77.83.249.220` (public IP)
+   - Port: `55433`
+   - User: `sms_user`
+   - Password: `TestAdmin2026!`
+   - Database: `student_management`
+   - SSL Mode: `prefer`
+   
+   **For local LAN only:**
+   - Host: `172.16.0.2` (local IP)
    - Port: `55433`
    - User: `sms_user`
    - Password: `TestAdmin2026!`
@@ -70,7 +89,19 @@ If you prefer to configure manually:
 
 On your PC, create: `C:\Users\bs1gr\AppData\Local\SMS_Native_Lite_Simple\qnap-credentials.json`
 
-**Content:**
+**For external/web access (recommended):**
+```json
+{
+  "host": "77.83.249.220",
+  "port": 55433,
+  "dbname": "student_management",
+  "user": "sms_user",
+  "password": "TestAdmin2026!",
+  "sslmode": "prefer"
+}
+```
+
+**For local LAN only:**
 ```json
 {
   "host": "172.16.0.2",
@@ -159,8 +190,13 @@ Once connected to QNAP:
 - Check debug log for the expected path
 
 ### "Connection refused to QNAP"
-- Verify host/port are correct: `172.16.0.2:55433`
-- Check if QNAP is reachable: `ping 172.16.0.2`
+- Verify host/port are correct:
+  - **Local:** `172.16.0.2:55433` (LAN only)
+  - **External:** `77.83.249.220:55433` (web access)
+- Check if QNAP is reachable:
+  - `ping 172.16.0.2` (if on local LAN)
+  - `ping 77.83.249.220` (if accessing from external network)
+- Verify you're using the correct IP for your network location
 - Verify database credentials with your admin
 
 ### "Database migrations failed"

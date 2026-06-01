@@ -24,12 +24,28 @@ Write-Host "SMS NATIVE LITE - QNAP PostgreSQL SETUP" -ForegroundColor Cyan
 Write-Host "=======================================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Find credentials file
-$credFile = Join-Path (Get-Location) "local-secrets" "qnap-credentials.json"
+# Find credentials file (use external IP version for remote access)
+# Try external IP first (for accessing from outside the LAN), then fall back to local
+$credFileExternal = Join-Path (Get-Location) "local-secrets" "qnap-db-external.env"
+$credFileLocal = Join-Path (Get-Location) "local-secrets" "qnap-credentials.json"
 
-if (-not (Test-Path $credFile)) {
-    Write-Host "❌ ERROR: Credentials file not found!" -ForegroundColor Red
-    Write-Host "   Expected: $credFile" -ForegroundColor Red
+# Determine which credentials to use
+$credFile = $null
+$isExternal = $false
+
+if (Test-Path $credFileExternal) {
+    # Convert .env file to JSON
+    Write-Host "🌐 Using external IP credentials for remote access" -ForegroundColor Cyan
+    $isExternal = $true
+    $credFile = $credFileExternal
+} elseif (Test-Path $credFileLocal) {
+    Write-Host "🏠 Using local IP credentials (LAN only)" -ForegroundColor Cyan
+    $credFile = $credFileLocal
+} else {
+    Write-Host "❌ ERROR: No credentials file found!" -ForegroundColor Red
+    Write-Host "   Looked for:" -ForegroundColor Red
+    Write-Host "   - $credFileExternal" -ForegroundColor Red
+    Write-Host "   - $credFileLocal" -ForegroundColor Red
     exit 1
 }
 
@@ -37,17 +53,45 @@ Write-Host "✅ Found credentials file: $credFile" -ForegroundColor Green
 
 # Read and validate credentials
 try {
-    $creds = Get-Content $credFile | ConvertFrom-Json
+    if ($isExternal) {
+        # Parse .env file format
+        $envLines = Get-Content $credFile | Where-Object { $_ -match "^(host|port|dbname|user|password|sslmode)=" }
+        $creds = @{}
+        foreach ($line in $envLines) {
+            $parts = $line -split "=", 2
+            if ($parts.Count -eq 2) {
+                $creds[$parts[0]] = $parts[1]
+            }
+        }
+    } else {
+        # Parse JSON file format
+        $creds = Get-Content $credFile | ConvertFrom-Json
+        $creds = $creds | Get-Member -MemberType NoteProperty | ForEach-Object {
+            @{ $_.Name = $creds.($_.Name) }
+        } | Merge-Object
+        # Convert object to hashtable
+        $creds = @{}
+        (Get-Content $credFile | ConvertFrom-Json).PSObject.Properties | ForEach-Object {
+            $creds[$_.Name] = $_.Value
+        }
+    }
+
     Write-Host "✅ Credentials loaded successfully" -ForegroundColor Green
     Write-Host ""
     Write-Host "Database Configuration:" -ForegroundColor Yellow
-    Write-Host "  Host: $($creds.host)"
-    Write-Host "  Port: $($creds.port)"
-    Write-Host "  Database: $($creds.dbname)"
-    Write-Host "  User: $($creds.user)"
+    Write-Host "  Host: $($creds['host'])"
+    Write-Host "  Port: $($creds['port'])"
+    Write-Host "  Database: $($creds['dbname'])"
+    Write-Host "  User: $($creds['user'])"
+    Write-Host "  SSL Mode: $($creds['sslmode'])"
+    if ($isExternal) {
+        Write-Host "  🌐 External (web) access" -ForegroundColor Cyan
+    } else {
+        Write-Host "  🏠 Local LAN access" -ForegroundColor Gray
+    }
     Write-Host ""
 } catch {
-    Write-Host "❌ ERROR: Failed to parse credentials JSON" -ForegroundColor Red
+    Write-Host "❌ ERROR: Failed to parse credentials" -ForegroundColor Red
     Write-Host "   Error: $_" -ForegroundColor Red
     exit 1
 }
@@ -64,16 +108,27 @@ if (-not (Test-Path $appDataDir)) {
     Write-Host "✅ Directory already exists: $appDataDir" -ForegroundColor Green
 }
 
-# Copy credentials file
+# Convert to JSON format and save
 $destFile = Join-Path $appDataDir "qnap-credentials.json"
 Write-Host ""
-Write-Host "📋 Copying credentials..." -ForegroundColor Cyan
+Write-Host "📋 Converting and saving credentials..." -ForegroundColor Cyan
 
 try {
-    Copy-Item -Path $credFile -Destination $destFile -Force
-    Write-Host "✅ Credentials copied to: $destFile" -ForegroundColor Green
+    # Create JSON object
+    $jsonCreds = @{
+        host = $creds['host']
+        port = $creds['port']
+        dbname = $creds['dbname']
+        user = $creds['user']
+        password = $creds['password']
+        sslmode = $creds['sslmode']
+    } | ConvertTo-Json
+
+    # Write JSON to file
+    $jsonCreds | Out-File -FilePath $destFile -Encoding UTF8 -Force
+    Write-Host "✅ Credentials saved to: $destFile" -ForegroundColor Green
 } catch {
-    Write-Host "❌ ERROR: Failed to copy credentials" -ForegroundColor Red
+    Write-Host "❌ ERROR: Failed to save credentials" -ForegroundColor Red
     Write-Host "   Error: $_" -ForegroundColor Red
     exit 1
 }
