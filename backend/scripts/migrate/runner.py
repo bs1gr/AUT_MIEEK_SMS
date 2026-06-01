@@ -84,7 +84,12 @@ def run_migrations(verbose: bool = False) -> bool:
                 return fallback
 
             repo_root = _find_repo_root(backend_dir)
-            logs_dir = repo_root / "logs"
+
+            # For bundled PyInstaller apps, use AppData instead of repo root
+            if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+                logs_dir = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'logs'
+            else:
+                logs_dir = repo_root / "logs"
             logs_dir.mkdir(parents=True, exist_ok=True)
             fh = logging.FileHandler(logs_dir / "migrations.log", mode="a")
             fh.setLevel(logging.INFO)
@@ -115,6 +120,7 @@ def run_migrations(verbose: bool = False) -> bool:
         try:
             command.upgrade(cfg, "head")
         except Exception as e:
+            import traceback
             msg = str(e).lower()
             if any(
                 substr in msg
@@ -135,12 +141,15 @@ def run_migrations(verbose: bool = False) -> bool:
                 return True
 
             logger.warning("Initial Alembic upgrade(head) failed: %s", e)
+            logger.warning("Full traceback: %s", traceback.format_exc())
             print(f"[run_migrations] upgrade(head) failed: {e}", flush=True)
+            print(f"[run_migrations] Full traceback:\n{traceback.format_exc()}", flush=True)
             try:
                 logger.info("Attempting Alembic upgrade to 'heads' as a fallback")
                 print("[run_migrations] Attempting upgrade to 'heads'", flush=True)
                 command.upgrade(cfg, "heads")
             except Exception as e2:
+                import traceback
                 msg2 = str(e2).lower()
                 if any(
                     substr in msg2
@@ -163,10 +172,12 @@ def run_migrations(verbose: bool = False) -> bool:
                     print(f"[run_migrations] benign error on fallback: {e2}", flush=True)
                     return True
                 logger.exception("Fallback upgrade to 'heads' also failed: %s", e2)
+                logger.warning("Full traceback: %s", traceback.format_exc())
                 print(
                     f"[run_migrations] Fallback upgrade to 'heads' failed: {e2}",
                     flush=True,
                 )
+                print(f"[run_migrations] Full traceback:\n{traceback.format_exc()}", flush=True)
                 raise
 
         if verbose:

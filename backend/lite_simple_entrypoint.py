@@ -93,15 +93,65 @@ def main() -> None:
     # Run migrations explicitly before server startup
     _debug_log('[lite_simple_entrypoint] Running migrations...')
     _debug_log(f'[lite_simple_entrypoint] DATABASE_URL={os.environ.get("DATABASE_URL", "NOT SET")}')
+    migrations_ok = False
     try:
         from backend.scripts.migrate.runner import run_migrations
         import traceback as _tb
         result = run_migrations(verbose=True)
         _debug_log(f'[lite_simple_entrypoint] Migrations result: {result}')
+        if not result:
+            _debug_log('[lite_simple_entrypoint] WARNING: Migrations returned False - attempting fallback schema creation')
+            # Try to read the migrations log for more details
+            try:
+                migrations_log = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'logs' / 'migrations.log'
+                if migrations_log.exists():
+                    with open(migrations_log, 'r') as f:
+                        log_content = f.read()[-2000:]  # Last 2000 chars
+                        _debug_log(f'[lite_simple_entrypoint] Migrations log tail:\n{log_content}')
+            except Exception as log_err:
+                _debug_log(f'[lite_simple_entrypoint] Could not read migrations log: {log_err}')
+        else:
+            migrations_ok = True
     except Exception as e:
         import traceback as _tb
         _debug_log(f'[lite_simple_entrypoint] Migration error: {type(e).__name__}: {str(e)[:500]}')
         _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[:1000]}')
+
+    # Fallback: if migrations failed, try to create schema directly using SQLAlchemy
+    if not migrations_ok:
+        _debug_log('[lite_simple_entrypoint] Attempting fallback: direct schema creation with SQLAlchemy...')
+        try:
+            from backend.db import engine
+            from backend.models import Base
+            Base.metadata.create_all(engine)
+            _debug_log('[lite_simple_entrypoint] ✅ Schema created via SQLAlchemy fallback')
+            migrations_ok = True
+        except Exception as fallback_err:
+            import traceback as _tb
+            _debug_log(f'[lite_simple_entrypoint] Fallback also failed: {type(fallback_err).__name__}: {str(fallback_err)[:500]}')
+            _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[:1000]}')
+            _debug_log('[lite_simple_entrypoint] ⚠️  WARNING: Schema initialization failed - app may not work')
+
+    # Ensure default admin account exists (even if migrations were skipped)
+    if migrations_ok:
+        _debug_log('[lite_simple_entrypoint] Creating/ensuring default admin account...')
+        try:
+            from backend.scripts.admin.bootstrap import ensure_default_admin_account
+            from backend.config import settings
+            from backend.db import SessionLocal
+            import logging
+            bootstrap_logger = logging.getLogger('lite_admin_bootstrap')
+            ensure_default_admin_account(
+                settings=settings,
+                session_factory=SessionLocal,
+                logger=bootstrap_logger,
+                close_session=False,
+            )
+            _debug_log('[lite_simple_entrypoint] ✅ Admin account created/verified')
+        except Exception as admin_err:
+            import traceback as _tb
+            _debug_log(f'[lite_simple_entrypoint] Admin bootstrap warning: {type(admin_err).__name__}: {str(admin_err)[:500]}')
+            _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[:500]}')
 
     # Create FastAPI app
     _debug_log('[lite_simple_entrypoint] Creating FastAPI app...')

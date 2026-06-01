@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.config import get_settings
-from backend.security.path_validation import validate_filename
+from backend.security.path_validation import validate_filename, ensure_safe_path
 
 logger = logging.getLogger(__name__)
 
@@ -52,15 +52,14 @@ def _get_backup_dir() -> Path:
 
 
 def _validate_backup_filename(filename: str) -> str:
-    """Validate a backup filename before any filesystem usage."""
-    validate_filename(filename, _ALLOWED_BACKUP_EXTENSIONS)
-    return filename
+    """Validate a backup filename before any filesystem usage. Returns the validated filename."""
+    return validate_filename(filename, _ALLOWED_BACKUP_EXTENSIONS)
 
 
 def _find_existing_backup_path(filename: str) -> Path | None:
     """Find an existing validated backup file within the backup directory."""
     backup_dir = _get_backup_dir().resolve()
-    safe_filename = Path(_validate_backup_filename(filename)).name
+    safe_filename = _validate_backup_filename(filename)
     for candidate in backup_dir.iterdir():
         if not candidate.is_file() or candidate.name != safe_filename:
             continue
