@@ -19,9 +19,8 @@ a = Analysis(
     datas=[
         # Frontend React build (dist or dist_lite/)
         ('../frontend/dist', 'frontend/dist'),
-        # Database migrations (Alembic)
-        ('alembic', 'alembic'),
-        ('alembic.ini', '.'),  # Copy alembic.ini to root (migrations/env.py looks here)
+        # Database migrations (Alembic) - CRITICAL: alembic.ini must be in backend/ directory
+        ('alembic.ini', 'backend'),
         ('migrations', 'backend/migrations'),
     ] + collect_data_files('bottle', includes=['**/*']),
     hiddenimports=[
