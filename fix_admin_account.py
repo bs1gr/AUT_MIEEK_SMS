@@ -5,11 +5,20 @@ import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
 
-# Set QNAP credentials
-os.environ['DATABASE_URL'] = 'postgresql+psycopg://sms_user:TestAdmin2026!@172.16.0.2:55433/student_management'
+# Set default admin credentials via environment variables
+# Note: These should ideally come from secure configuration files or prompts,
+# not hardcoded in the script. This is a bootstrap script for development only.
+# Production deployments should use secure credential management.
 os.environ['DEFAULT_ADMIN_EMAIL'] = 'admin@sms-lite.app'
 os.environ['DEFAULT_ADMIN_PASSWORD'] = 'AdminPassword123!'
 os.environ['DEFAULT_ADMIN_FULL_NAME'] = 'System Administrator'
+
+# DATABASE_URL should be set via environment variable or .env file
+# It is NOT hardcoded here for security reasons
+if 'DATABASE_URL' not in os.environ:
+    print("⚠️  Warning: DATABASE_URL environment variable not set")
+    print("Please set DATABASE_URL before running this script")
+    print("Example: postgresql+psycopg://user:pass@host:port/dbname")
 
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
 from backend.config import Settings
@@ -59,7 +68,6 @@ try:
         print(f'   Email: {admin.email}')
         print(f'   Role: {admin.role}')
         print(f'   Active: {admin.is_active}')
-        print(f'   Password change required: {admin.password_change_required}')
         print()
         print('✅ Ready to test login')
     else:

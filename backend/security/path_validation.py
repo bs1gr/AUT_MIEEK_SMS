@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 
-def validate_filename(filename: str, allowed_extensions: Optional[list[str]] = None) -> bool:
+def validate_filename(filename: str, allowed_extensions: Optional[list[str]] = None) -> str:
     """
     Validate a filename for safe filesystem usage.
 
@@ -19,14 +19,14 @@ def validate_filename(filename: str, allowed_extensions: Optional[list[str]] = N
                           If None, all extensions allowed
 
     Returns:
-        True if valid, raises ValueError otherwise
+        The validated filename string if valid, raises ValueError otherwise
 
     Raises:
         ValueError: If filename contains invalid characters or patterns
 
     Examples:
         >>> validate_filename("backup_20260118.enc", [".enc"])
-        True
+        'backup_20260118.enc'
         >>> validate_filename("../../../etc/passwd")
         ValueError: Path traversal detected
     """
@@ -101,7 +101,7 @@ def validate_filename(filename: str, allowed_extensions: Optional[list[str]] = N
     if not re.match(r"^[a-zA-Z0-9._\-()[\]+= ]+$", filename):
         raise ValueError(f"Filename contains invalid characters: {filename}")
 
-    return True
+    return filename
 
 
 def sanitize_filename(filename: str, replacement: str = "_") -> str:
@@ -174,6 +174,38 @@ def validate_path(base_dir: Union[str, Path], target_path: Union[str, Path]) -> 
         raise ValueError(f"Path escape detected: {target} is not within {base}")
 
 
+def ensure_safe_path(base_dir: Union[str, Path], filename: str, allowed_extensions: Optional[list[str]] = None) -> Path:
+    """
+    Ensure a path is safe and return the resolved Path.
+
+    Validates the filename and verifies the resulting path stays within base_dir.
+
+    Args:
+        base_dir: The allowed base directory
+        filename: The filename to validate
+        allowed_extensions: List of allowed file extensions
+
+    Returns:
+        The resolved path if safe, raises ValueError otherwise
+
+    Raises:
+        ValueError: If path validation fails or path escapes base_dir
+    """
+    base_path = Path(base_dir).resolve()
+    if not base_path.exists():
+        raise ValueError(f"Base directory does not exist: {base_path}")
+
+    safe_filename = validate_filename(filename, allowed_extensions)
+    full_path = (base_path / safe_filename).resolve()
+
+    try:
+        full_path.relative_to(base_path)
+    except ValueError as exc:
+        raise ValueError(f"Path escape detected: {full_path} is not within {base_path}") from exc
+
+    return full_path
+
+
 class PathValidator:
     """Context manager for safe path operations."""
 
@@ -185,8 +217,7 @@ class PathValidator:
 
     def validate_filename(self, filename: str, allowed_extensions: Optional[list[str]] = None) -> str:
         """Validate filename and return it if valid."""
-        validate_filename(filename, allowed_extensions)
-        return filename
+        return validate_filename(filename, allowed_extensions)
 
     def validate_path(self, relative_path: Union[str, Path]) -> Path:
         """Validate path is within base_dir and return full path."""
@@ -209,16 +240,16 @@ class PathValidator:
 
 
 # Predefined validators for common use cases
-def validate_backup_filename(filename: str) -> bool:
-    """Validate backup filenames (.enc, .db, .backup extensions)."""
+def validate_backup_filename(filename: str) -> str:
+    """Validate backup filenames (.enc, .db, .backup extensions). Returns validated filename."""
     return validate_filename(filename, [".enc", ".db", ".backup"])
 
 
-def validate_export_filename(filename: str) -> bool:
-    """Validate export filenames (.csv, .xlsx, .json, .pdf extensions)."""
+def validate_export_filename(filename: str) -> str:
+    """Validate export filenames (.csv, .xlsx, .json, .pdf extensions). Returns validated filename."""
     return validate_filename(filename, [".csv", ".xlsx", ".json", ".pdf"])
 
 
-def validate_config_filename(filename: str) -> bool:
-    """Validate config filenames (.json, .yml, .yaml, .toml extensions)."""
+def validate_config_filename(filename: str) -> str:
+    """Validate config filenames (.json, .yml, .yaml, .toml extensions). Returns validated filename."""
     return validate_filename(filename, [".json", ".yml", ".yaml", ".toml"])
