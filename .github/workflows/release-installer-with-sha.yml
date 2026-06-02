@@ -82,6 +82,11 @@ jobs:
             }
           }
 
+      - name: Install PyInstaller for SMS_Lite.exe build
+        shell: pwsh
+        run: |
+          pip install -q pyinstaller
+
       - name: Resolve release tag
         id: resolve_tag
         shell: pwsh
@@ -255,6 +260,32 @@ jobs:
           } else {
             Write-Warning "Version verification script not found, skipping..."
           }
+
+      - name: Build SMS_Lite.exe (PyInstaller)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Write-Host "Building SMS_Lite.exe from backend\lite_simple_entrypoint.spec..."
+
+          $specPath = "backend\lite_simple_entrypoint.spec"
+          if (-not (Test-Path $specPath)) {
+            Write-Error "PyInstaller spec file not found: $specPath"
+            exit 1
+          }
+
+          python -m PyInstaller $specPath --distpath ./dist --buildpath ./build
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "PyInstaller build failed for SMS_Lite.exe"
+            exit 1
+          }
+
+          if (-not (Test-Path "dist\SMS_Lite.exe")) {
+            Write-Error "SMS_Lite.exe was not created by PyInstaller"
+            exit 1
+          }
+
+          $size = [math]::Round((Get-Item "dist\SMS_Lite.exe").Length / 1MB, 2)
+          Write-Host "✓ SMS_Lite.exe built successfully ($size MB)"
 
       - name: Validate installer tracked inputs
         shell: pwsh
