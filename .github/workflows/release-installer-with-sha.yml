@@ -284,9 +284,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          Write-Host "Building SMS_Lite.exe from backend\lite_simple_entrypoint.spec..."
+          Write-Host "Building SMS_Lite.exe from backend\lite_entrypoint.spec..."
 
-          $specPath = "backend\lite_simple_entrypoint.spec"
+          $specPath = "backend\lite_entrypoint.spec"
           if (-not (Test-Path $specPath)) {
             Write-Error "PyInstaller spec file not found: $specPath"
             exit 1
