@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 os.environ['DEFAULT_ADMIN_EMAIL'] = 'admin@sms-lite.app'
 os.environ['DEFAULT_ADMIN_PASSWORD'] = 'AdminPassword123!'
 os.environ['DEFAULT_ADMIN_FULL_NAME'] = 'System Administrator'
+# Do not log credentials to avoid security vulnerability
 
 # DATABASE_URL should be set via environment variable or .env file
 # It is NOT hardcoded here for security reasons
