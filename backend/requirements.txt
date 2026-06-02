@@ -1,6 +1,6 @@
 # Main dependencies for Student Management System
 # Generated from pyproject.toml [project.dependencies]
-# Last updated: 2026-04-16
+# Last updated: 2026-06-02 (Security fixes applied)
 
 fastapi==0.136.3
 starlette==1.0.1
