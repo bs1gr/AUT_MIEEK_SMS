@@ -247,10 +247,11 @@ Type: files; Name: "{app}\docker_manager.cmd"
 ; to give user choice whether to keep or delete them
 
 [Icons]
+; Start Menu shortcut - Docker Edition or Lite Edition (only one will be created based on installation type)
 ; Docker Edition - Start Menu
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Check: IsDockerInstall
-; Lite Edition - Start Menu
-Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Lite Edition"; Check: IsLiteInstall
+; Lite Edition - Start Menu (overrides Docker shortcut for Lite installs)
+Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Lite Edition"; Check: IsLiteInstall
 
 ; Documentation shortcut (both editions)
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
@@ -264,7 +265,7 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 ; Desktop shortcut (optional) - Docker Edition
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon; Check: IsDockerInstall
 ; Desktop shortcut (optional) - Lite Edition
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Lite Edition"; Tasks: desktopicon; Check: IsLiteInstall
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Lite Edition"; Tasks: desktopicon; Check: IsLiteInstall
 
 
 [Run]
