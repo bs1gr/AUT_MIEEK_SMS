@@ -2075,14 +2075,27 @@ begin
         'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
     end;
 
-    // Post-install validation: ensure SMS_Manager.exe exists
-    if not FileExists(ExpandConstant('{app}\SMS_Manager.exe')) then
+    // Post-install validation: ensure correct executable exists based on edition
+    if IsDockerInstall then
     begin
-      Log('[ERROR] SMS_Manager.exe missing after installation');
-      MsgBox('Installation completed but SMS_Manager.exe is missing.' + #13#10 +
-             'Please re-run the installer (Repair) or download the latest installer.',
-             mbError, MB_OK);
+      if not FileExists(ExpandConstant('{app}\SMS_Manager.exe')) then
+      begin
+        Log('[ERROR] SMS_Manager.exe missing after Docker installation');
+        MsgBox('Installation completed but SMS_Manager.exe is missing.' + #13#10 +
+               'Please re-run the installer (Repair) or download the latest installer.',
+               mbError, MB_OK);
+      end;
     end
+    else if IsLiteInstall then
+    begin
+      if not FileExists(ExpandConstant('{app}\SMS_Native_Lite.exe')) then
+      begin
+        Log('[ERROR] SMS_Native_Lite.exe missing after Lite installation');
+        MsgBox('Installation completed but SMS_Native_Lite.exe is missing.' + #13#10 +
+               'Please re-run the installer (Repair) or download the latest installer.',
+               mbError, MB_OK);
+      end;
+    end;
   end;
 end;
 
