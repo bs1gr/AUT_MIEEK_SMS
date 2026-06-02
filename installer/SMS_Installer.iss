@@ -187,10 +187,13 @@ Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: I
 Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
-; Native Lite Edition - standalone executable and setup scripts
-Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
-Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
-Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+; NOTE: Native Lite Edition support is currently development-only.
+; SMS_Lite.exe is built locally via PyInstaller but not included in automated CI releases.
+; Lite Edition support can be enabled by building PyInstaller spec and uncommenting lines below:
+;
+; Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
+; Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+; Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 
 ; Development scripts - only for dev environment
 Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
@@ -875,8 +878,9 @@ begin
   LiteEditionRadio.Left := 0;
   LiteEditionRadio.Top := 136;
   LiteEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
-  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition');
+  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition') + ' (Currently unavailable - development only)';
   LiteEditionRadio.Checked := False;
+  LiteEditionRadio.Enabled := False;  // Disable Lite Edition option for release builds
 
   DevEnvDesc := TLabel.Create(InstallTypeSelectionPage);
   DevEnvDesc.Parent := InstallTypeSelectionPage.Surface;
