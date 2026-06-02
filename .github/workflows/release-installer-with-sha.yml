@@ -82,10 +82,18 @@ jobs:
             }
           }
 
-      - name: Install PyInstaller for SMS_Lite.exe build
+      - name: Install PyInstaller and backend dependencies
         shell: pwsh
         run: |
+          Write-Host "Installing PyInstaller..."
           pip install -q pyinstaller
+          Write-Host "Installing backend Python dependencies for bundling..."
+          pip install -q -r backend/requirements.txt
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Failed to install backend dependencies"
+            exit 1
+          }
+          Write-Host "✓ All dependencies installed"
 
       - name: Setup Node.js for frontend build
         uses: actions/setup-node@v4
