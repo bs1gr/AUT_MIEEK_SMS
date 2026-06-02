@@ -92,12 +92,30 @@ jobs:
         with:
           node-version: '18'
 
+      - name: Install frontend dependencies
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Write-Host "Installing frontend dependencies..."
+          Push-Location frontend
+          npm ci --no-audit --silent
+          Pop-Location
+
+      - name: Build frontend distribution
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Write-Host "Building frontend distribution..."
+          Push-Location frontend
+          npm run ci:build
+          Pop-Location
+
       - name: Verify frontend dist exists
         shell: pwsh
         run: |
           Write-Host "Checking for frontend/dist directory..."
           if (-not (Test-Path "frontend/dist")) {
-            Write-Error "frontend/dist directory not found. Run: cd frontend && npm ci && npm run build"
+            Write-Error "frontend/dist directory not found after build. Verify frontend build succeeded."
             exit 1
           }
           Write-Host "✓ Frontend dist directory exists"
