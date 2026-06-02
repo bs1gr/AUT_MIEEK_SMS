@@ -187,9 +187,10 @@ Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: I
 Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
-; NOTE: Native Lite Edition is currently development-only and not included in automated CI releases.
-; Lite Edition requires PyInstaller build: python -m PyInstaller lite_simple_entrypoint.spec
-; To enable Lite in future releases, add Source directives for SMS_Lite.exe and supporting files.
+; Native Lite Edition - standalone executable and setup scripts
+Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
+Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 
 ; Development scripts - only for dev environment
 Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
@@ -874,9 +875,9 @@ begin
   LiteEditionRadio.Left := 0;
   LiteEditionRadio.Top := 136;
   LiteEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
-  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition') + ' (Currently unavailable - development only)';
+  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition');
   LiteEditionRadio.Checked := False;
-  LiteEditionRadio.Enabled := False;  // Disable Lite Edition option for release builds
+  LiteEditionRadio.Enabled := True;  // Lite Edition now available
 
   DevEnvDesc := TLabel.Create(InstallTypeSelectionPage);
   DevEnvDesc.Parent := InstallTypeSelectionPage.Surface;
