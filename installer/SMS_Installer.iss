@@ -188,7 +188,7 @@ Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion;
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
 ; Native Lite Edition - standalone executable and setup scripts
-Source: "dist\SMS_Native_Lite_Simple.exe"; DestDir: "{app}"; DestName: "SMS_Native_Lite.exe"; Flags: ignoreversion; Check: IsLiteInstall
+Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
 Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 
@@ -250,7 +250,7 @@ Type: files; Name: "{app}\docker_manager.cmd"
 ; Docker Edition - Start Menu
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Check: IsDockerInstall
 ; Lite Edition - Start Menu
-Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Native_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Native Lite Edition"; Check: IsLiteInstall
+Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Lite Edition"; Check: IsLiteInstall
 
 ; Documentation shortcut (both editions)
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
@@ -264,7 +264,7 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 ; Desktop shortcut (optional) - Docker Edition
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon; Check: IsDockerInstall
 ; Desktop shortcut (optional) - Lite Edition
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\SMS_Native_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Native Lite Edition"; Tasks: desktopicon; Check: IsLiteInstall
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Lite Edition"; Tasks: desktopicon; Check: IsLiteInstall
 
 
 [Run]
@@ -275,7 +275,7 @@ Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-de
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsDockerInstall
 
 ; Option to launch Lite Edition app after install
-Filename: "{app}\SMS_Native_Lite.exe"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsLiteInstall
+Filename: "{app}\SMS_Lite.exe"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsLiteInstall
 
 ; Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
@@ -2088,10 +2088,10 @@ begin
     end
     else if IsLiteInstall then
     begin
-      if not FileExists(ExpandConstant('{app}\SMS_Native_Lite.exe')) then
+      if not FileExists(ExpandConstant('{app}\SMS_Lite.exe')) then
       begin
-        Log('[ERROR] SMS_Native_Lite.exe missing after Lite installation');
-        MsgBox('Installation completed but SMS_Native_Lite.exe is missing.' + #13#10 +
+        Log('[ERROR] SMS_Lite.exe missing after Lite installation');
+        MsgBox('Installation completed but SMS_Lite.exe is missing.' + #13#10 +
                'Please re-run the installer (Repair) or download the latest installer.',
                mbError, MB_OK);
       end;

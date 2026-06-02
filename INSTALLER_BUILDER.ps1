@@ -459,20 +459,20 @@ function Copy-NativeLiteExecutable {
     Write-Result Info "NATIVE LITE EDITION SETUP"
     Write-Result Info "═══════════════════════════════════════════════════════════════"
 
-    $LiteSourcePath = Join-Path $DistDir "SMS_Native_Lite_Simple.exe"
+    $LiteSourcePath = Join-Path $DistDir "SMS_Lite.exe"
     $InstallerDistDir = Join-Path $InstallerDir "dist"
-    $LiteDestPath = Join-Path $InstallerDistDir "SMS_Native_Lite_Simple.exe"
+    $LiteDestPath = Join-Path $InstallerDistDir "SMS_Lite.exe"
 
     # Verify Lite executable exists
     if (-not (Test-Path $LiteSourcePath)) {
-        Write-Result Error "SMS_Native_Lite_Simple.exe not found: $LiteSourcePath"
+        Write-Result Error "SMS_Lite.exe not found: $LiteSourcePath"
         Write-Result Info "Build Native Lite Edition first:"
         Write-Result Info "  python -m PyInstaller lite_simple_entrypoint.spec"
         return $false
     }
 
     $liteSize = (Get-Item $LiteSourcePath).Length / 1MB
-    Write-Result Success "SMS_Native_Lite_Simple.exe found ($([Math]::Round($liteSize, 2)) MB)"
+    Write-Result Success "SMS_Lite.exe found ($([Math]::Round($liteSize, 2)) MB)"
 
     # Ensure installer dist directory exists
     if (-not (Test-Path $InstallerDistDir)) {
@@ -482,7 +482,7 @@ function Copy-NativeLiteExecutable {
 
     # Copy Lite executable to installer dist for Inno Setup inclusion
     try {
-        Write-Result Info "Copying SMS_Native_Lite_Simple.exe to installer dist..."
+        Write-Result Info "Copying SMS_Lite.exe to installer dist..."
         Copy-Item -Path $LiteSourcePath -Destination $LiteDestPath -Force
         Write-Result Success "Lite Edition executable ready for Inno Setup ✓"
         Write-Result Info "Both editions will be available in installer:"
