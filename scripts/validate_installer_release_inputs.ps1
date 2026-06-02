@@ -41,8 +41,9 @@ $generatedAllowlist = @(
     'installer\installer_complete_el.rtf',
     'installer\wizard_image.bmp',
     'installer\wizard_small.bmp',
-    'installer\dist\SMS_Manager.exe',
-    'installer\dist\SMS_Lite.exe'
+    'installer\dist\SMS_Manager.exe'
+    # NOTE: SMS_Lite.exe is not included in CI releases since it requires a separate PyInstaller build.
+    # Uncomment when SMS_Lite.exe is available: 'installer\dist\SMS_Lite.exe'
 )
 
 $dangerousPayloadPatterns = @(

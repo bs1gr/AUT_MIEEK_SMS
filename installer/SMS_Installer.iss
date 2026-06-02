@@ -187,10 +187,14 @@ Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: I
 Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
-; Native Lite Edition - standalone executable and setup scripts
-Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
-Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
-Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+; NOTE: Native Lite Edition (SMS_Lite.exe) is built locally via PyInstaller
+; For automated GitHub Actions CI/CD releases, Lite support is disabled since
+; SMS_Lite.exe requires a separate build: python -m PyInstaller lite_simple_entrypoint.spec
+; To include Lite Edition, uncomment these lines and ensure SMS_Lite.exe exists:
+;
+; Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
+; Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+; Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 
 ; Development scripts - only for dev environment
 Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
@@ -875,9 +879,9 @@ begin
   LiteEditionRadio.Left := 0;
   LiteEditionRadio.Top := 136;
   LiteEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
-  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition');
+  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition') + ' (Available in local builds only)';
   LiteEditionRadio.Checked := False;
-  LiteEditionRadio.Enabled := True;  // Lite Edition now available
+  LiteEditionRadio.Enabled := False;  // Lite Edition disabled in CI releases; enable when SMS_Lite.exe is available
 
   DevEnvDesc := TLabel.Create(InstallTypeSelectionPage);
   DevEnvDesc.Parent := InstallTypeSelectionPage.Surface;
