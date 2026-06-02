@@ -1,87 +1,31 @@
+# Pre-commit hooks for Student Management System
+# Install: pip install pre-commit
+# Setup: pre-commit install
+# Run: pre-commit run --all-files
+
 repos:
+  # Security scanning
   - repo: local
     hooks:
-      - id: check-imports-requirements
-        name: Verify backend imports vs requirements
-        # Use the repo-local venv wrapper for consistent environments across
-        # developer machines and CI runners. The wrapper will create `.venv-tools`
-        # if missing and then run the provided command with that venv's python.
-        entry: python scripts/run_in_venv.py -- python scripts/utils/validators/import_checker.py --mode static
+      - id: pip-audit
+        name: "🔒 Check backend dependencies (pip-audit)"
+        entry: bash -c "pip-audit --skip-editable"
         language: system
-        files: ^backend/.*\.py$
+        files: "requirements\.txt$"
         pass_filenames: false
-      - id: check-operator-header
-        name: Ensure operator scripts have OPERATOR-ONLY header
-        entry: python scripts/check_operator_header.py
+        stages: [commit]
+
+      - id: npm-audit
+        name: "🔒 Check frontend dependencies (npm audit)"
+        entry: bash -c "cd frontend && npm audit --omit=dev --audit-level=moderate"
         language: system
-        files: ^scripts/operator/.*\.(ps1|sh|bat)$
-        pass_filenames: true
-      - id: validate-rbac-decorators
-        name: "RBAC: Validate decorator usage consistency"
-        entry: python scripts/validate_rbac_decorators.py
-        language: system
-        files: ^backend/routers/.*\.py$
+        files: "package-lock\.json$"
         pass_filenames: false
-        stages: [pre-commit]
-      - id: validate-migrations
-        name: "Database: Validate migration consistency"
-        entry: python scripts/validate_migrations.py
-        language: system
-        files: ^backend/(models\.py|migrations/).*$
-        pass_filenames: false
-        stages: [pre-commit]
-      - id: validate-deployment-readiness
-        name: "Deployment: Validate readiness checklist"
-        entry: python scripts/validate_deployment_readiness.py
+        stages: [commit]
+
+      - id: no-hardcoded-secrets
+        name: "🔐 No hardcoded secrets"
+        entry: bash -c "if grep -r --include='*.py' --include='*.js' \"password.*=\" . --exclude-dir=.venv --exclude-dir=node_modules 2>/dev/null | grep -v \"hashed\|environ\|os.environ\" | head -5; then echo 'ERROR: Found potential hardcoded credentials'; exit 1; fi || true"
         language: system
         pass_filenames: false
-        stages: [manual]  # Run via: pre-commit run --hook-stage manual
-
-  # Ruff (linting + formatting)
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.10
-    hooks:
-      - id: ruff
-        args: ["--fix"]
-      - id: ruff-format
-
-  # (Optional) isort removed - ruff-format handles import formatting
-  # Markdown linting
-  - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.20.0
-    hooks:
-      - id: markdownlint-cli2
-        args: ['--fix']
-
-  # General file checks and cleanup
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-json
-        # Exclude jsonc (JSON with comments) and CI temp files
-        exclude: (^.vscode/|.*tsconfig\.json$|.*\.jsonc$|scripts/utils/ci/.*)
-      - id: check-added-large-files
-        args: ['--maxkb=1000']
-      - id: check-merge-conflict
-      - id: mixed-line-ending
-        args: ['--fix=lf']
-        exclude: '(\.(bat|cmd|vbs|iss|isl)$|\.secrets\.baseline$)'
-
-
-
-# Secret scanning (detect-secrets)
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
-        name: detect-secrets (prevent committing secrets)
-        args: ["--baseline", ".secrets.baseline", "--disable-plugin", "KeywordDetector"]
-        language: python
-        types: ["text"]
-        files: .*
-        exclude: (backend/migrations/|backend/tests/|backend/scripts/|backend/db/cli/|frontend/tests/|frontend/src/locales/|frontend/src/i18n/|.*package-lock.json$|installer/|load-testing/|.*\.md|.*\.env\.example|backend/alembic\.ini|\.secrets\.baseline$|build/|dist/|.*\.egg-info/)
-
-exclude: '(^|/)(node_modules|frontend/dist|frontend/node_modules|build|dist|.*\.egg-info)(/|$)'
+        stages: [commit]

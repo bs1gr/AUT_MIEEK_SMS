@@ -332,6 +332,23 @@ jobs:
           cd backend
           pytest -v --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing --html=pytest-report.html --self-contained-html --json-report --json-report-file=pytest-report.json
 
+      - name: 🔒 Run path traversal security tests
+        env:
+          DISABLE_STARTUP_TASKS: '1'
+          CSRF_ENABLED: '0'
+          AUTH_MODE: 'strict'
+          SMS_ALLOW_DIRECT_PYTEST: '1'
+        run: |
+          cd backend
+          echo "Running path traversal security tests..."
+          pytest tests/test_control_path_traversal.py -v --tb=short
+          if [ $? -eq 0 ]; then
+            echo "✅ Path traversal security tests PASSED"
+          else
+            echo "❌ Path traversal security tests FAILED"
+            exit 1
+          fi
+
       - name: Publish backend failing tests summary
         if: always()
         run: |
@@ -729,13 +746,18 @@ jobs:
 
       - name: Install dependencies (with cache)
         run: |
-          pip install safety bandit
+          pip install safety bandit pip-audit
           pip install -r backend/requirements.txt
 
       - name: Run Safety check
         run: |
           cd backend
           safety check --file requirements.txt --json
+
+      - name: Run pip-audit for additional CVE detection
+        run: |
+          pip-audit --desc --format json > pip-audit-report.json || true
+          echo "pip-audit report generated"
 
       - name: Run Bandit security scanner
         continue-on-error: true
@@ -757,6 +779,7 @@ jobs:
           path: |
             backend/bandit-report.csv
             backend/bandit-report.json
+            pip-audit-report.json
           retention-days: 30
 
   security-scan-frontend:
