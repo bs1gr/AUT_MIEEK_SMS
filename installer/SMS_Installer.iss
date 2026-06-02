@@ -174,12 +174,16 @@ Source: "..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignorev
 Source: "..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsProductionInstall
 Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 
-; Main scripts - Docker-only scripts always installed
-Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion
-Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion
+; Main scripts and executables - Docker-only or Lite Edition
+Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
-Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion
+; Native Lite Edition - standalone executable and setup scripts
+Source: "dist\SMS_Native_Lite_Simple.exe"; DestDir: "{app}"; DestName: "SMS_Native_Lite.exe"; Flags: ignoreversion; Check: IsLiteInstall
+Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 
 ; Development scripts - only for dev environment
 Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
@@ -236,24 +240,35 @@ Type: files; Name: "{app}\docker_manager.cmd"
 ; to give user choice whether to keep or delete them
 
 [Icons]
-; Start Menu - Docker Manager with proper container control
-Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"
+; Docker Edition - Start Menu
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Check: IsDockerInstall
+; Lite Edition - Start Menu
+Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Native_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Native Lite Edition"; Check: IsLiteInstall
+
+; Documentation shortcut (both editions)
 Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
-Name: "{group}\Manual Uninstaller (for broken installations)"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\UNINSTALL_SMS_MANUALLY.ps1"""; WorkingDir: "{app}"; IconFilename: "{sys}\shell32.dll"; IconIndex: 31; Comment: "Remove SMS if standard uninstall fails"
+
+; Docker Edition - Manual Uninstaller
+Name: "{group}\Manual Uninstaller (for broken installations)"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\UNINSTALL_SMS_MANUALLY.ps1"""; WorkingDir: "{app}"; IconFilename: "{sys}\shell32.dll"; IconIndex: 31; Comment: "Remove SMS if standard uninstall fails"; Check: IsDockerInstall
+
+; Uninstall shortcut (both editions)
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 
-; Desktop shortcut (optional) - Docker Manager with elevated privileges
-Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon
+; Desktop shortcut (optional) - Docker Edition
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon; Check: IsDockerInstall
+; Desktop shortcut (optional) - Lite Edition
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\SMS_Native_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Run SMS Native Lite Edition"; Tasks: desktopicon; Check: IsLiteInstall
 
 
 [Run]
-; Open Docker download page if requested
-Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-desktop/"; Flags: postinstall shellexec nowait; Tasks: installdocker
+; Open Docker download page if requested (Docker Edition only)
+Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-desktop/"; Flags: postinstall shellexec nowait; Tasks: installdocker; Check: IsDockerInstall
 
-; --- Docker build and install: always use the batch file, never call PowerShell directly ---
+; Option to launch Docker app after install
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsDockerInstall
 
-; Option to launch app after install (only if Docker is running)
-Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"
+; Option to launch Lite Edition app after install
+Filename: "{app}\SMS_Native_Lite.exe"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsLiteInstall
 
 ; Open README
 Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
@@ -264,6 +279,9 @@ var
   DockerStatusLabel: TLabel;
   DockerInfoLabel: TLabel;
   RefreshButton: TButton;
+  InstallTypeSelectionPage: TWizardPage;
+  DockerEditionRadio: TRadioButton;
+  LiteEditionRadio: TRadioButton;
   PostgresPage: TWizardPage;
   DbProfileInfoLabel: TLabel;
   LocalSQLiteRadio: TRadioButton;
@@ -301,6 +319,7 @@ var
   PgPass: String;
   PgSsl: String;
   SelectedDatabaseProfile: String;
+  SelectedInstallationType: String;
 
 // Forward declarations
 function UrlEncode(const S: String): String; forward;
@@ -316,22 +335,28 @@ procedure UpdateCredentialsStatus; forward;
 function GetPowerShellExe: String; forward;
 function HasRequiredRemoteCredentials: Boolean; forward;
 
+// Function to check if this is a Lite Edition install
+function IsLiteInstall: Boolean;
+begin
+  Result := (SelectedInstallationType = 'lite');
+end;
+
+// Function to check if this is a Docker Edition install
+function IsDockerInstall: Boolean;
+begin
+  Result := (SelectedInstallationType = 'docker');
+end;
+
 // Function to check if this is a dev environment install
 function IsDevInstall: Boolean;
 begin
-  Result := False; // Production installer only supports Docker-only
+  Result := False; // Production installer does not support dev environment
 end;
 
 // Function to check if this is a production install (always true)
 function IsProductionInstall: Boolean;
 begin
   Result := True; // Production installer - always include production files
-end;
-
-// Function to check if this is a Docker install (always true for production)
-function IsDockerInstall: Boolean;
-begin
-  Result := True; // Always Docker install for production
 end;
 
 // Function to check if this is an upgrade (for Tasks Check)
@@ -801,10 +826,63 @@ procedure InitializeWizard;
 var
   DockerOnlyDesc: TLabel;
   DevEnvDesc: TLabel;
+  InstallTypeDesc: TLabel;
 begin
-  // Skip Installation Type page since only Docker-only is available for production
-  // Create custom Docker Prerequisites page (early in wizard)
-  DockerPage := CreateCustomPage(wpLicense, 'Prerequisites Check',
+  // Initialize default installation type
+  SelectedInstallationType := 'docker';
+
+  // Create custom Installation Type selection page (early in wizard)
+  InstallTypeSelectionPage := CreateCustomPage(wpLicense, 'Installation Type',
+    'Choose which version of SMS to install');
+
+  InstallTypeDesc := TLabel.Create(InstallTypeSelectionPage);
+  InstallTypeDesc.Parent := InstallTypeSelectionPage.Surface;
+  InstallTypeDesc.AutoSize := False;
+  InstallTypeDesc.Left := 0;
+  InstallTypeDesc.Top := 10;
+  InstallTypeDesc.Width := InstallTypeSelectionPage.SurfaceWidth;
+  InstallTypeDesc.Height := 32;
+  InstallTypeDesc.WordWrap := True;
+  InstallTypeDesc.Caption := 'Select the edition of Student Management System (SMS) you want to install:';
+
+  DockerEditionRadio := TRadioButton.Create(InstallTypeSelectionPage);
+  DockerEditionRadio.Parent := InstallTypeSelectionPage.Surface;
+  DockerEditionRadio.Left := 0;
+  DockerEditionRadio.Top := 52;
+  DockerEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
+  DockerEditionRadio.Caption := 'Docker Production Edition (Recommended)';
+  DockerEditionRadio.Checked := True;
+
+  DockerOnlyDesc := TLabel.Create(InstallTypeSelectionPage);
+  DockerOnlyDesc.Parent := InstallTypeSelectionPage.Surface;
+  DockerOnlyDesc.AutoSize := False;
+  DockerOnlyDesc.Left := 20;
+  DockerOnlyDesc.Top := 76;
+  DockerOnlyDesc.Width := InstallTypeSelectionPage.SurfaceWidth - 20;
+  DockerOnlyDesc.Height := 48;
+  DockerOnlyDesc.WordWrap := True;
+  DockerOnlyDesc.Caption := 'Full-featured production deployment with Docker containers. Includes all features, automatic updates, and containerized environment. Requires Docker Desktop.';
+
+  LiteEditionRadio := TRadioButton.Create(InstallTypeSelectionPage);
+  LiteEditionRadio.Parent := InstallTypeSelectionPage.Surface;
+  LiteEditionRadio.Left := 0;
+  LiteEditionRadio.Top := 136;
+  LiteEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
+  LiteEditionRadio.Caption := 'Native Lite Edition (Lightweight Standalone)';
+  LiteEditionRadio.Checked := False;
+
+  DevEnvDesc := TLabel.Create(InstallTypeSelectionPage);
+  DevEnvDesc.Parent := InstallTypeSelectionPage.Surface;
+  DevEnvDesc.AutoSize := False;
+  DevEnvDesc.Left := 20;
+  DevEnvDesc.Top := 160;
+  DevEnvDesc.Width := InstallTypeSelectionPage.SurfaceWidth - 20;
+  DevEnvDesc.Height := 48;
+  DevEnvDesc.WordWrap := True;
+  DevEnvDesc.Caption := 'Lightweight standalone executable (68 MB). Runs natively on Windows without Docker. Supports local SQLite and optional QNAP PostgreSQL integration. Perfect for individual PCs.';
+
+  // Create custom Docker Prerequisites page (after installation type selection)
+  DockerPage := CreateCustomPage(InstallTypeSelectionPage.ID, 'Prerequisites Check',
     'Verifying Docker Desktop installation and status');
 
   DockerStatusLabel := TLabel.Create(DockerPage);
@@ -1456,9 +1534,12 @@ var
   InstallDir: String;
   SummaryLine: String;
 begin
-  if CurPageID = DockerPage.ID then
+  // Update Docker status only for Docker Edition
+  if (CurPageID = DockerPage.ID) and IsDockerInstall then
     UpdateDockerStatus(nil);
-  if (CurPageID = DockerBuildPage.ID) then
+
+  // Handle Docker build page (Docker Edition only)
+  if (CurPageID = DockerBuildPage.ID) and IsDockerInstall then
   begin
     WritePostgresEnv;
     WizardForm.NextButton.Enabled := False;
@@ -1499,14 +1580,16 @@ end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
-  // Skip Docker page if Docker is already installed and running
+
+  // Skip Docker page if Lite Edition is selected
   if PageID = DockerPage.ID then
-    Result := IsDockerInstalled and IsDockerRunning
-  // Do not skip Docker build/setup page.
-  // Even during upgrades, PrepareToInstall may stop/remove the previous container,
-  // so we must always run run_docker_install.cmd to recreate/start the stack.
+    Result := IsLiteInstall
+  // Skip Docker build/setup page if Lite Edition is selected
   else if PageID = DockerBuildPage.ID then
-    Result := False;
+    Result := IsLiteInstall
+  // Skip Database config page if Docker Edition (docker handles its own database)
+  else if PageID = PostgresPage.ID then
+    Result := IsDockerInstall;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -1514,6 +1597,18 @@ var
   ErrorCode: Integer;
 begin
   Result := True;
+
+  // Capture installation type selection
+  if CurPageID = InstallTypeSelectionPage.ID then
+  begin
+    if DockerEditionRadio.Checked then
+      SelectedInstallationType := 'docker'
+    else if LiteEditionRadio.Checked then
+      SelectedInstallationType := 'lite'
+    else
+      SelectedInstallationType := 'docker'; // Default to Docker
+    Log('User selected installation type: ' + SelectedInstallationType);
+  end;
 
   if CurPageID = DockerPage.ID then
   begin
