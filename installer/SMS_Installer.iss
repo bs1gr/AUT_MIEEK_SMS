@@ -1596,9 +1596,9 @@ begin
   // Skip Docker build/setup page if Lite Edition is selected
   else if PageID = DockerBuildPage.ID then
     Result := IsLiteInstall
-  // Skip Database config page if Docker Edition (docker handles its own database)
+  // Skip Database config page if Lite Edition (Lite uses built-in SQLite)
   else if PageID = PostgresPage.ID then
-    Result := IsDockerInstall;
+    Result := IsLiteInstall;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
