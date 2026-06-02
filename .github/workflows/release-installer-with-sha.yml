@@ -92,19 +92,16 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Build frontend (required for SMS_Lite.exe)
+      - name: Verify frontend dist exists
         shell: pwsh
         run: |
-          Write-Host "Building frontend for SMS_Lite.exe..."
-          cd frontend
-          npm ci --no-audit --silent
-          npm run build
-          if ($LASTEXITCODE -ne 0) {
-            Write-Error "Frontend build failed"
+          Write-Host "Checking for frontend/dist directory..."
+          if (-not (Test-Path "frontend/dist")) {
+            Write-Error "frontend/dist directory not found. Run: cd frontend && npm ci && npm run build"
             exit 1
           }
-          cd ..
-          Write-Host "✓ Frontend built successfully"
+          Write-Host "✓ Frontend dist directory exists"
+          Get-ChildItem "frontend/dist" -Recurse -File | Measure-Object | Select-Object -ExpandProperty Count | ForEach-Object { Write-Host "  Total files: $_" }
 
       - name: Resolve release tag
         id: resolve_tag
