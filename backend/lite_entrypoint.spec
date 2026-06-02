@@ -7,10 +7,16 @@ Listens on http://0.0.0.0:8000
 from PyInstaller.utils.hooks import collect_submodules, collect_data_files, collect_all
 import os
 
-# Collect passlib submodules (handlers, etc.)
-passlib_hiddenimports = collect_submodules('passlib')
-
 block_cipher = None
+
+# Collect all submodules for critical packages to ensure they're bundled
+backend_hiddenimports = collect_submodules('backend')
+passlib_all = collect_all('passlib')
+fastapi_all = collect_all('fastapi')
+uvicorn_all = collect_all('uvicorn')
+sqlalchemy_all = collect_all('sqlalchemy')
+pydantic_all = collect_all('pydantic')
+starlette_all = collect_all('starlette')
 
 a = Analysis(
     ['lite_simple_entrypoint.py'],
@@ -22,9 +28,15 @@ a = Analysis(
         # Database migrations (Alembic) - CRITICAL: alembic.ini must be in backend/ directory
         ('alembic.ini', 'backend'),
         ('migrations', 'backend/migrations'),
-    ] + collect_data_files('bottle', includes=['**/*']),
+    ] + collect_data_files('bottle', includes=['**/*'])
+      + collect_data_files('fastapi')
+      + collect_data_files('uvicorn')
+      + collect_data_files('sqlalchemy')
+      + collect_data_files('passlib')
+      + collect_data_files('pydantic')
+      + collect_data_files('starlette'),
     hiddenimports=[
-        # Core dependencies
+        # Core backend modules
         'backend',
         'backend.app_factory',
         'backend.lifespan',
@@ -35,45 +47,15 @@ a = Analysis(
         'backend.config',
         'backend.environment',
         'backend.health_checks',
-        # Key packages
-        'fastapi',
-        'uvicorn',
-        'uvicorn.config',
-        'sqlalchemy',
-        'sqlalchemy.orm',
-        'pydantic',
-        'pydantic_settings',
-        'passlib',
-        'passlib.context',
-        'passlib.handlers.pbkdf2',
-        'jwt',
-        'bottle',
-        'proxy_tools',
-        'requests',
-        # Service layer
-        'backend.services',
-        'backend.services.student_service',
-        'backend.services.grade_service',
-        'backend.services.course_service',
-        'backend.services.enrollment_service',
-        'backend.services.attendance_service',
-        'backend.services.analytics_service',
-        # Routers (will be discovered but explicit for safety)
-        'backend.routers',
-        'backend.routers.routers_auth',
-        'backend.routers.routers_admin',
-        'backend.routers.routers_students',
-        'backend.routers.routers_courses',
-        'backend.routers.routers_grades',
-        'backend.routers.routers_attendance',
-        'backend.routers.routers_enrollments',
-        'backend.routers.routers_imports',
-        'backend.routers.routers_exports',
-        # Rate limiting
-        'slowapi',
-        # Scheduler
-        'apscheduler',
-    ] + collect_submodules('backend') + passlib_hiddenimports,
+        'backend.scripts.admin.bootstrap',
+        # Key packages - use collect_all results
+    ] + backend_hiddenimports
+      + passlib_all[1]  # passlib hiddenimports
+      + fastapi_all[1]  # fastapi hiddenimports
+      + uvicorn_all[1]  # uvicorn hiddenimports
+      + sqlalchemy_all[1]  # sqlalchemy hiddenimports
+      + pydantic_all[1]  # pydantic hiddenimports
+      + starlette_all[1],  # starlette hiddenimports
     hookspath=['backend/pyinstaller_hooks'],  # Use custom hooks to override problematic ones
     hooksconfig={},
     runtime_hooks=[],
