@@ -87,6 +87,25 @@ jobs:
         run: |
           pip install -q pyinstaller
 
+      - name: Setup Node.js for frontend build
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Build frontend (required for SMS_Lite.exe)
+        shell: pwsh
+        run: |
+          Write-Host "Building frontend for SMS_Lite.exe..."
+          cd frontend
+          npm ci --no-audit --silent
+          npm run build
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Frontend build failed"
+            exit 1
+          }
+          cd ..
+          Write-Host "✓ Frontend built successfully"
+
       - name: Resolve release tag
         id: resolve_tag
         shell: pwsh
