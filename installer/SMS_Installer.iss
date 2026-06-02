@@ -187,13 +187,16 @@ Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: I
 Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
-; NOTE: Native Lite Edition support is currently development-only.
-; SMS_Lite.exe is built locally via PyInstaller but not included in automated CI releases.
-; Lite Edition support can be enabled by building PyInstaller spec and uncommenting lines below:
-;
-; Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
-; Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
-; Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+{
+NOTE: Native Lite Edition support is currently development-only.
+SMS_Lite.exe is built locally via PyInstaller but not included in automated CI releases.
+To enable Lite Edition in future releases:
+1. Build SMS_Lite_Simple.exe via: python -m PyInstaller lite_simple_entrypoint.spec
+2. Uncomment these lines and replace [[ and ]] with proper Inno Source syntax:
+   [[ Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall ]]
+   [[ Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall ]]
+   [[ Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall ]]
+}
 
 ; Development scripts - only for dev environment
 Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
