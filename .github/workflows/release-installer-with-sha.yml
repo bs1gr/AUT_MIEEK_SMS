@@ -273,7 +273,7 @@ jobs:
             exit 1
           }
 
-          python -m PyInstaller $specPath --distpath ./dist --buildpath ./build
+          python -m PyInstaller $specPath --distpath ./dist --workpath ./build
           if ($LASTEXITCODE -ne 0) {
             Write-Error "PyInstaller build failed for SMS_Lite.exe"
             exit 1
