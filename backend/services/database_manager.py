@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any
 
 from backend.config import get_settings
-from backend.security.path_validation import validate_filename, ensure_safe_path
+from backend.security.path_validation import validate_filename
 
 logger = logging.getLogger(__name__)
 
