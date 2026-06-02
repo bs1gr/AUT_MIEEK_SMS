@@ -41,7 +41,8 @@ $generatedAllowlist = @(
     'installer\installer_complete_el.rtf',
     'installer\wizard_image.bmp',
     'installer\wizard_small.bmp',
-    'installer\dist\SMS_Manager.exe'
+    'installer\dist\SMS_Manager.exe',
+    'installer\dist\SMS_Native_Lite_Simple.exe'
 )
 
 $dangerousPayloadPatterns = @(

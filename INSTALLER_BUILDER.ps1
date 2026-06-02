@@ -751,6 +751,12 @@ switch ($Action) {
             }
         }
 
+        # Copy Native Lite Edition executable FIRST (needed for validation to succeed)
+        if (-not (Copy-NativeLiteExecutable)) {
+            Write-Result Warning "Native Lite Edition will not be included in installer"
+            # Non-blocking: Docker Edition can still be installed
+        }
+
         if (-not (Invoke-InstallerReleaseInputValidation)) {
             exit 1
         }
@@ -765,12 +771,6 @@ switch ($Action) {
 
         if (-not (Invoke-SmsManagerBuild)) {
             exit 1
-        }
-
-        # Copy Native Lite Edition executable for dual-edition installer
-        if (-not (Copy-NativeLiteExecutable)) {
-            Write-Result Warning "Native Lite Edition will not be included in installer"
-            # Non-blocking: Docker Edition can still be installed
         }
 
         if (Invoke-WizardImageRegeneration) {
@@ -810,6 +810,12 @@ switch ($Action) {
 
     'release' {
         # Complete release flow
+        # Copy Native Lite Edition executable FIRST (needed for validation to succeed)
+        if (-not (Copy-NativeLiteExecutable)) {
+            Write-Result Warning "Native Lite Edition will not be included in installer"
+            # Non-blocking: Docker Edition can still be released
+        }
+
         if (-not (Invoke-InstallerReleaseInputValidation)) {
             exit 1
         }
@@ -824,12 +830,6 @@ switch ($Action) {
 
         if (-not (Invoke-SmsManagerBuild)) {
             exit 1
-        }
-
-        # Copy Native Lite Edition executable for dual-edition installer
-        if (-not (Copy-NativeLiteExecutable)) {
-            Write-Result Warning "Native Lite Edition will not be included in installer"
-            # Non-blocking: Docker Edition can still be released
         }
 
         if (Invoke-WizardImageRegeneration) {
