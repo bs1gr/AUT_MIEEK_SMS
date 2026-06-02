@@ -191,6 +191,7 @@ Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check:
 Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
 Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+Source: "SaveLiteEditionQnapCredentials.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Development scripts - only for dev environment
 Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
@@ -1596,9 +1597,9 @@ begin
   // Skip Docker build/setup page if Lite Edition is selected
   else if PageID = DockerBuildPage.ID then
     Result := IsLiteInstall
-  // Skip Database config page if Lite Edition (Lite uses built-in SQLite)
+  // Database config page for both editions (Lite can optionally use QNAP, Docker requires it)
   else if PageID = PostgresPage.ID then
-    Result := IsLiteInstall;
+    Result := False;  // Never skip - both editions need database config
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -1931,6 +1932,56 @@ begin
     DeleteFile(TempEnv);
 end;
 
+procedure SaveLiteEditionQnapCredentials(InstallPath, PgHost, PgPort, PgDb, PgUser, PgPass, PgSsl: String);
+var
+  PowerShellExe: String;
+  ScriptPath: String;
+  Command: String;
+  ResultCode: Integer;
+begin
+  // Get PowerShell executable path
+  PowerShellExe := GetPowerShellExe;
+  if PowerShellExe = '' then
+  begin
+    Log('[WARN] PowerShell not found - QNAP credentials not saved');
+    Exit;
+  end;
+
+  // Build command to call SaveLiteEditionQnapCredentials.ps1
+  ScriptPath := InstallPath + '\SaveLiteEditionQnapCredentials.ps1';
+
+  if not FileExists(ScriptPath) then
+  begin
+    Log('[WARN] SaveLiteEditionQnapCredentials.ps1 not found at ' + ScriptPath);
+    Exit;
+  end;
+
+  // Escape credentials for PowerShell
+  // Note: Using single quotes to prevent variable expansion
+  Command := '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" ' +
+    '-InstallPath "' + InstallPath + '" ' +
+    '-PgHost "' + PgHost + '" ' +
+    '-PgPort "' + PgPort + '" ' +
+    '-PgDb "' + PgDb + '" ' +
+    '-PgUser "' + PgUser + '" ' +
+    '-PgPass "' + PgPass + '" ' +
+    '-PgSSLMode "' + PgSsl + '"';
+
+  Log('Executing: ' + PowerShellExe + ' ' + Command);
+
+  if Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    if ResultCode = 0 then
+      Log('[OK] QNAP credentials saved successfully')
+    else
+      Log('[WARN] SaveLiteEditionQnapCredentials.ps1 exited with code ' + IntToStr(ResultCode));
+  end
+  else
+  begin
+    Log('[ERROR] Failed to execute SaveLiteEditionQnapCredentials.ps1');
+  end;
+end;
+
 procedure CurStepChanged(CurStep: TSetupStep);
 var
   EnvContent: String;
@@ -2096,6 +2147,25 @@ begin
         MsgBox('Installation completed but SMS_Lite.exe is missing.' + #13#10 +
                'Please re-run the installer (Repair) or download the latest installer.',
                mbError, MB_OK);
+      end;
+
+      // Save QNAP PostgreSQL credentials for Lite Edition if user selected QNAP option
+      if QnapPostgresRadio.Checked and (Trim(PgHost) <> '') then
+      begin
+        Log('Lite Edition: Saving QNAP PostgreSQL credentials for runtime use...');
+        SaveLiteEditionQnapCredentials(
+          ExpandConstant('{app}'),
+          PgHost,
+          PgPort,
+          PgDb,
+          PgUser,
+          PgPass,
+          PgSsl
+        );
+      end
+      else
+      begin
+        Log('Lite Edition: Using local SQLite (QNAP credentials not provided)');
       end;
     end;
   end;
