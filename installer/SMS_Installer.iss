@@ -2150,6 +2150,12 @@ begin
       end;
 
       // Save QNAP PostgreSQL credentials for Lite Edition if user selected QNAP option
+      Log('Lite Edition Post-Install: QnapPostgresRadio.Checked=' + Format('%d', [Integer(QnapPostgresRadio.Checked)]));
+      Log('Lite Edition Post-Install: PgHost="' + PgHost + '"');
+      Log('Lite Edition Post-Install: PgPort="' + PgPort + '"');
+      Log('Lite Edition Post-Install: PgDb="' + PgDb + '"');
+      Log('Lite Edition Post-Install: PgUser="' + PgUser + '"');
+
       if QnapPostgresRadio.Checked and (Trim(PgHost) <> '') then
       begin
         Log('Lite Edition: Saving QNAP PostgreSQL credentials for runtime use...');
@@ -2166,6 +2172,7 @@ begin
       else
       begin
         Log('Lite Edition: Using local SQLite (QNAP credentials not provided)');
+        Log('  Reason: QnapPostgresRadio.Checked=' + Format('%d', [Integer(QnapPostgresRadio.Checked)]) + ', PgHost empty=' + Format('%d', [Integer(Trim(PgHost) = '')]));
       end;
     end;
   end;
