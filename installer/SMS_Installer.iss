@@ -123,11 +123,18 @@ english.KeepDataPrompt=Do you want to keep your data (database, backups, setting
 english.ViewReadme=View README documentation
 english.DockerStatusTitle=Docker Desktop Check
 english.DockerRefreshButton=Refresh
+; Installation Type Selection (Phase 1 - Native Lite Edition Support)
 english.InstallationType=Installation Type
+english.InstallTypeDesc=Choose which version of SMS to install
+english.InstallTypeIntro=Select the edition of Student Management System (SMS) you want to install:
+english.InstallDockerEdition=Docker Production Edition (Recommended)
+english.InstallDockerEditionDesc=Full-featured production deployment with Docker containers. Includes all features, automatic updates, and containerized environment. Requires Docker Desktop.
 english.InstallDockerOnly=Docker Production Only (Recommended)
 english.InstallDockerOnlyDesc=Minimal installation with Docker container (fastest, cleanest)
 english.InstallDevEnvironment=Include Development Environment
 english.InstallDevEnvironmentDesc=Add Node.js, Python, and native development files for local development
+english.InstallLiteEdition=Native Lite Edition (Lightweight Standalone)
+english.InstallLiteEditionDesc=Lightweight standalone executable (68 MB). Runs natively on Windows without Docker. Supports local SQLite and optional QNAP PostgreSQL integration. Perfect for individual PCs.
 english.DbConfigPageTitle=Database Configuration
 english.DbConfigPageSubtitle=Connect to your shared QNAP PostgreSQL database (recommended) or use local SQLite as fallback.
 english.DbConfigIntro=Choose how to connect to your student data. The shared QNAP database is recommended for most installations.
@@ -832,8 +839,8 @@ begin
   SelectedInstallationType := 'docker';
 
   // Create custom Installation Type selection page (early in wizard)
-  InstallTypeSelectionPage := CreateCustomPage(wpLicense, 'Installation Type',
-    'Choose which version of SMS to install');
+  InstallTypeSelectionPage := CreateCustomPage(wpLicense, CustomMessage('InstallationType'),
+    CustomMessage('InstallTypeDesc'));
 
   InstallTypeDesc := TLabel.Create(InstallTypeSelectionPage);
   InstallTypeDesc.Parent := InstallTypeSelectionPage.Surface;
@@ -843,14 +850,14 @@ begin
   InstallTypeDesc.Width := InstallTypeSelectionPage.SurfaceWidth;
   InstallTypeDesc.Height := 32;
   InstallTypeDesc.WordWrap := True;
-  InstallTypeDesc.Caption := 'Select the edition of Student Management System (SMS) you want to install:';
+  InstallTypeDesc.Caption := CustomMessage('InstallTypeIntro');
 
   DockerEditionRadio := TRadioButton.Create(InstallTypeSelectionPage);
   DockerEditionRadio.Parent := InstallTypeSelectionPage.Surface;
   DockerEditionRadio.Left := 0;
   DockerEditionRadio.Top := 52;
   DockerEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
-  DockerEditionRadio.Caption := 'Docker Production Edition (Recommended)';
+  DockerEditionRadio.Caption := CustomMessage('InstallDockerEdition');
   DockerEditionRadio.Checked := True;
 
   DockerOnlyDesc := TLabel.Create(InstallTypeSelectionPage);
@@ -861,14 +868,14 @@ begin
   DockerOnlyDesc.Width := InstallTypeSelectionPage.SurfaceWidth - 20;
   DockerOnlyDesc.Height := 48;
   DockerOnlyDesc.WordWrap := True;
-  DockerOnlyDesc.Caption := 'Full-featured production deployment with Docker containers. Includes all features, automatic updates, and containerized environment. Requires Docker Desktop.';
+  DockerOnlyDesc.Caption := CustomMessage('InstallDockerEditionDesc');
 
   LiteEditionRadio := TRadioButton.Create(InstallTypeSelectionPage);
   LiteEditionRadio.Parent := InstallTypeSelectionPage.Surface;
   LiteEditionRadio.Left := 0;
   LiteEditionRadio.Top := 136;
   LiteEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
-  LiteEditionRadio.Caption := 'Native Lite Edition (Lightweight Standalone)';
+  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition');
   LiteEditionRadio.Checked := False;
 
   DevEnvDesc := TLabel.Create(InstallTypeSelectionPage);
@@ -879,7 +886,7 @@ begin
   DevEnvDesc.Width := InstallTypeSelectionPage.SurfaceWidth - 20;
   DevEnvDesc.Height := 48;
   DevEnvDesc.WordWrap := True;
-  DevEnvDesc.Caption := 'Lightweight standalone executable (68 MB). Runs natively on Windows without Docker. Supports local SQLite and optional QNAP PostgreSQL integration. Perfect for individual PCs.';
+  DevEnvDesc.Caption := CustomMessage('InstallLiteEditionDesc');
 
   // Create custom Docker Prerequisites page (after installation type selection)
   DockerPage := CreateCustomPage(InstallTypeSelectionPage.ID, 'Prerequisites Check',
