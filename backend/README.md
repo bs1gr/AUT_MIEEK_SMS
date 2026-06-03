@@ -167,3 +167,5 @@ Small checklist:
 
 - [ ] Do NOT enable `ALLOW_EXTERNAL_DB_PATH` in production unless absolutely necessary.
 - [ ] Ensure `DATABASE_URL` points to the correct production DB in CI/deploy workflows.
+
+# API enhancement
