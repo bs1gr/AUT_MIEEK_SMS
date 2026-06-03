@@ -1597,9 +1597,10 @@ begin
   // Skip Docker build/setup page if Lite Edition is selected
   else if PageID = DockerBuildPage.ID then
     Result := IsLiteInstall
-  // Database config page for both editions (Lite can optionally use QNAP, Docker requires it)
+  // Skip database config page for Lite Edition (uses local SQLite by default)
+  // Docker Edition requires QNAP PostgreSQL configuration
   else if PageID = PostgresPage.ID then
-    Result := False;  // Never skip - both editions need database config
+    Result := IsLiteInstall;  // Skip for Lite - it uses SQLite by default
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
@@ -2149,14 +2150,15 @@ begin
                mbError, MB_OK);
       end;
 
-      // Save QNAP PostgreSQL credentials for Lite Edition if user selected QNAP option
+      // Save QNAP PostgreSQL credentials for Lite Edition if user selected QNAP option AND loaded credentials file
       Log('Lite Edition Post-Install: QnapPostgresRadio.Checked=' + Format('%d', [Integer(QnapPostgresRadio.Checked)]));
       Log('Lite Edition Post-Install: PgHost="' + PgHost + '"');
       Log('Lite Edition Post-Install: PgPort="' + PgPort + '"');
       Log('Lite Edition Post-Install: PgDb="' + PgDb + '"');
       Log('Lite Edition Post-Install: PgUser="' + PgUser + '"');
+      Log('Lite Edition Post-Install: CredentialsFileEdit.Text="' + CredentialsFileEdit.Text + '"');
 
-      if QnapPostgresRadio.Checked and (Trim(PgHost) <> '') then
+      if QnapPostgresRadio.Checked and (Trim(PgHost) <> '') and (Trim(PgPort) <> '') and (Trim(PgDb) <> '') and (Trim(PgUser) <> '') and (Trim(PgPass) <> '') then
       begin
         Log('Lite Edition: Saving QNAP PostgreSQL credentials for runtime use...');
         SaveLiteEditionQnapCredentials(
@@ -2171,8 +2173,14 @@ begin
       end
       else
       begin
-        Log('Lite Edition: Using local SQLite (QNAP credentials not provided)');
-        Log('  Reason: QnapPostgresRadio.Checked=' + Format('%d', [Integer(QnapPostgresRadio.Checked)]) + ', PgHost empty=' + Format('%d', [Integer(Trim(PgHost) = '')]));
+        Log('Lite Edition: Using local SQLite (QNAP credentials not complete)');
+        Log('  QnapPostgresRadio.Checked=' + Format('%d', [Integer(QnapPostgresRadio.Checked)]));
+        Log('  PgHost empty=' + Format('%d', [Integer(Trim(PgHost) = '')]));
+        Log('  PgPort empty=' + Format('%d', [Integer(Trim(PgPort) = '')]));
+        Log('  PgDb empty=' + Format('%d', [Integer(Trim(PgDb) = '')]));
+        Log('  PgUser empty=' + Format('%d', [Integer(Trim(PgUser) = '')]));
+        Log('  PgPass empty=' + Format('%d', [Integer(Trim(PgPass) = '')]));
+        Log('  CredentialsFile="' + CredentialsFileEdit.Text + '"');
       end;
     end;
   end;
