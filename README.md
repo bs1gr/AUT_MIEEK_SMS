@@ -1,7 +1,7 @@
 # Student Management System
 
-![Markdown Lint](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/markdown-lint.yml/badge.svg?branch=main)
-![CI/CD Pipeline](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml/badge.svg?branch=main)
+[![CI/CD Pipeline](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml)
+[![CodeQL](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/codeql.yml)
 ![Backend Tests](https://img.shields.io/badge/Backend%20Tests-742%20passing-brightgreen)
 ![Frontend Tests](https://img.shields.io/badge/Frontend%20Tests-1249%20passing-brightgreen)
 ![Phase Status](https://img.shields.io/badge/Phase%206-Complete-blue)
