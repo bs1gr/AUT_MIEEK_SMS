@@ -1,6 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 """
-PyInstaller spec for SMS_Native_Lite_Simple.exe
+PyInstaller spec for SMS_Lite.exe
 Headless FastAPI server (no PyWebView). Bundles Python runtime, FastAPI backend, and React frontend.
 Listens on http://0.0.0.0:8000
 """
@@ -110,7 +110,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='SMS_Native_Lite_Simple',
+    name='SMS_Lite',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
