@@ -173,3 +173,5 @@ Small checklist:
 # Phase 4 E2E Testing
 
 # Re-triggering workflow with fixed label detection
+
+# Testing GitHub Actions contains() for label detection
