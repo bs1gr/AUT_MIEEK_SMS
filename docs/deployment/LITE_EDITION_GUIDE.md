@@ -50,7 +50,11 @@ If you have a QNAP NAS with PostgreSQL, you can optionally configure it here.
 
 [x] No, use local SQLite database (default - recommended)
 [ ] Yes, I want to use QNAP PostgreSQL
-    └─ Enter credentials: Host, Port, Database, Username, Password
+    └─ Option A: Select credentials file (.json or .env)
+       └─ [Browse...] button to select file
+    └─ OR
+    └─ Option B: Enter credentials manually
+       └─ Host, Port, Database, Username, Password fields
 ```
 
 **Step 3: Installation Complete**
@@ -147,9 +151,39 @@ Password: AdminPassword123!
 
 **How to Configure:**
 
-1. **During Installation**
-   - At "QNAP Configuration" step, select "Yes"
-   - Enter QNAP details:
+1. **During Installation - Option A: Using Credentials File (Recommended)**
+   - At "QNAP Configuration" step, select "Yes, I want to use QNAP PostgreSQL"
+   - Click "Browse..." button
+   - Select your QNAP credentials file (`.json` or `.env`)
+   - Credentials are automatically loaded and filled
+   - Click Next to proceed
+
+   **Supported File Formats:**
+   
+   **JSON Format (.qnap-credentials.json):**
+   ```json
+   {
+     "host": "192.168.1.100",
+     "port": 5432,
+     "dbname": "student_management",
+     "user": "postgres",
+     "password": "your_password",
+     "sslmode": "prefer"
+   }
+   ```
+   
+   **ENV Format (.env):**
+   ```
+   POSTGRES_HOST=192.168.1.100
+   POSTGRES_PORT=5432
+   POSTGRES_DB=student_management
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=your_password
+   ```
+
+2. **During Installation - Option B: Manual Entry (Fallback)**
+   - At "QNAP Configuration" step, select "Yes, I want to use QNAP PostgreSQL"
+   - Or if no credentials file selected, manually enter:
      - **Host:** QNAP IP or DNS name (e.g., `192.168.1.100` or `qnap.local`)
      - **Port:** PostgreSQL port (default: `5432`)
      - **Database:** Database name (e.g., `student_management`)

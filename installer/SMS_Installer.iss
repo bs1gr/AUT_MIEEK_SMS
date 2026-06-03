@@ -295,6 +295,11 @@ var
   LiteQnapLabel: TLabel;
   LiteQnapYesRadio: TRadioButton;
   LiteQnapNoRadio: TRadioButton;
+  LiteQnapFileLabel: TLabel;
+  LiteQnapFileEdit: TEdit;
+  LiteQnapFileBrowseButton: TButton;
+  LiteQnapOrLabel: TLabel;
+  LiteQnapManualLabel: TLabel;
   LiteQnapHostLabel: TLabel;
   LiteQnapHostEdit: TEdit;
   LiteQnapPortLabel: TLabel;
@@ -347,10 +352,13 @@ var
 // Forward declarations
 function UrlEncode(const S: String): String; forward;
 function StringReplaceAll(const Source, OldPattern, NewPattern: AnsiString): AnsiString; forward;
+function ExtractJsonValue(const JsonContent: String; const Key: String): String; forward;
 function TestPostgresTcpConnection(Host: String; Port: String): Boolean; forward;
 function TestDockerReady: Boolean; forward;
 function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
 procedure UpdateLiteQnapUI(Sender: TObject); forward;
+procedure BrowseLiteQnapCredentialsFile(Sender: TObject); forward;
+procedure LoadLiteQnapCredentialsFromFile(FileName: String); forward;
 procedure UpdateDatabaseProfileUI(Sender: TObject); forward;
 procedure LoadPostgresDefaults; forward;
 procedure BrowseCredentialsFile(Sender: TObject); forward;
@@ -417,6 +425,62 @@ var
   ResultCode: Integer;
 begin
   Result := Exec('cmd', '/c docker inspect sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function ExtractJsonValue(const JsonContent: String; const Key: String): String;
+var
+  SearchStr: String;
+  StartPos: Integer;
+  EndPos: Integer;
+  ValueStr: String;
+  i: Integer;
+  InQuotes: Boolean;
+begin
+  Result := '';
+  SearchStr := '"' + Key + '":';
+  StartPos := Pos(SearchStr, JsonContent);
+
+  if StartPos = 0 then
+    Exit;
+
+  // Move past the key and colon
+  StartPos := StartPos + Length(SearchStr);
+
+  // Skip whitespace
+  while (StartPos <= Length(JsonContent)) and (JsonContent[StartPos] in [' ', #9]) do
+    Inc(StartPos);
+
+  // Check if value is quoted
+  if (StartPos <= Length(JsonContent)) and (JsonContent[StartPos] = '"') then
+  begin
+    // Skip opening quote
+    Inc(StartPos);
+    EndPos := StartPos;
+    InQuotes := True;
+
+    // Find closing quote
+    while (EndPos <= Length(JsonContent)) and InQuotes do
+    begin
+      if JsonContent[EndPos] = '"' then
+        InQuotes := False
+      else if JsonContent[EndPos] = '\' then
+        Inc(EndPos); // Skip escaped character
+      if InQuotes then
+        Inc(EndPos);
+    end;
+
+    if EndPos > StartPos then
+      Result := Copy(JsonContent, StartPos, EndPos - StartPos);
+  end
+  else if (StartPos <= Length(JsonContent)) and (JsonContent[StartPos] <> '{') then
+  begin
+    // Unquoted value (number, null, etc.)
+    EndPos := StartPos;
+    while (EndPos <= Length(JsonContent)) and not (JsonContent[EndPos] in [',', '}', ']', #13, #10]) do
+      Inc(EndPos);
+
+    Result := Trim(Copy(JsonContent, StartPos, EndPos - StartPos));
+  end;
 end;
 
 function GetUninstallString: String;
@@ -972,65 +1036,103 @@ begin
   LiteQnapNoRadio.Checked := True;
   LiteQnapNoRadio.OnClick := @UpdateLiteQnapUI;
 
+  // File selection section
+  LiteQnapFileLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapFileLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapFileLabel.Left := 0;
+  LiteQnapFileLabel.Top := 120;
+  LiteQnapFileLabel.Width := 280;
+  LiteQnapFileLabel.Caption := 'Select credentials file (.json or .env):';
+
+  LiteQnapFileEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapFileEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapFileEdit.Left := 0;
+  LiteQnapFileEdit.Top := 138;
+  LiteQnapFileEdit.Width := 280;
+  LiteQnapFileEdit.ReadOnly := True;
+
+  LiteQnapFileBrowseButton := TButton.Create(LiteQnapPage);
+  LiteQnapFileBrowseButton.Parent := LiteQnapPage.Surface;
+  LiteQnapFileBrowseButton.Left := 292;
+  LiteQnapFileBrowseButton.Top := 138;
+  LiteQnapFileBrowseButton.Width := 80;
+  LiteQnapFileBrowseButton.Height := 23;
+  LiteQnapFileBrowseButton.Caption := 'Browse...';
+  LiteQnapFileBrowseButton.OnClick := @BrowseLiteQnapCredentialsFile;
+
+  // OR separator
+  LiteQnapOrLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapOrLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapOrLabel.Left := 0;
+  LiteQnapOrLabel.Top := 170;
+  LiteQnapOrLabel.Caption := '— OR —';
+
+  // Manual entry section
+  LiteQnapManualLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapManualLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapManualLabel.Left := 0;
+  LiteQnapManualLabel.Top := 190;
+  LiteQnapManualLabel.Caption := 'Or enter credentials manually:';
+
   LiteQnapHostLabel := TLabel.Create(LiteQnapPage);
   LiteQnapHostLabel.Parent := LiteQnapPage.Surface;
   LiteQnapHostLabel.Left := 0;
-  LiteQnapHostLabel.Top := 120;
+  LiteQnapHostLabel.Top := 215;
   LiteQnapHostLabel.Width := 200;
   LiteQnapHostLabel.Caption := 'QNAP IP or DNS name:';
 
   LiteQnapHostEdit := TEdit.Create(LiteQnapPage);
   LiteQnapHostEdit.Parent := LiteQnapPage.Surface;
   LiteQnapHostEdit.Left := 0;
-  LiteQnapHostEdit.Top := 138;
+  LiteQnapHostEdit.Top := 233;
   LiteQnapHostEdit.Width := 280;
   LiteQnapHostEdit.Text := 'qnap.local';
 
   LiteQnapPortLabel := TLabel.Create(LiteQnapPage);
   LiteQnapPortLabel.Parent := LiteQnapPage.Surface;
   LiteQnapPortLabel.Left := 292;
-  LiteQnapPortLabel.Top := 120;
+  LiteQnapPortLabel.Top := 215;
   LiteQnapPortLabel.Width := 80;
   LiteQnapPortLabel.Caption := 'Port:';
 
   LiteQnapPortEdit := TEdit.Create(LiteQnapPage);
   LiteQnapPortEdit.Parent := LiteQnapPage.Surface;
   LiteQnapPortEdit.Left := 292;
-  LiteQnapPortEdit.Top := 138;
+  LiteQnapPortEdit.Top := 233;
   LiteQnapPortEdit.Width := 80;
   LiteQnapPortEdit.Text := '5432';
 
   LiteQnapDbLabel := TLabel.Create(LiteQnapPage);
   LiteQnapDbLabel.Parent := LiteQnapPage.Surface;
   LiteQnapDbLabel.Left := 0;
-  LiteQnapDbLabel.Top := 170;
+  LiteQnapDbLabel.Top := 265;
   LiteQnapDbLabel.Width := 200;
   LiteQnapDbLabel.Caption := 'Database name:';
 
   LiteQnapDbEdit := TEdit.Create(LiteQnapPage);
   LiteQnapDbEdit.Parent := LiteQnapPage.Surface;
   LiteQnapDbEdit.Left := 0;
-  LiteQnapDbEdit.Top := 188;
+  LiteQnapDbEdit.Top := 283;
   LiteQnapDbEdit.Width := 280;
   LiteQnapDbEdit.Text := 'student_management';
 
   LiteQnapUserLabel := TLabel.Create(LiteQnapPage);
   LiteQnapUserLabel.Parent := LiteQnapPage.Surface;
   LiteQnapUserLabel.Left := 0;
-  LiteQnapUserLabel.Top := 220;
+  LiteQnapUserLabel.Top := 315;
   LiteQnapUserLabel.Width := 200;
   LiteQnapUserLabel.Caption := 'Username:';
 
   LiteQnapUserEdit := TEdit.Create(LiteQnapPage);
   LiteQnapUserEdit.Parent := LiteQnapPage.Surface;
   LiteQnapUserEdit.Left := 0;
-  LiteQnapUserEdit.Top := 238;
+  LiteQnapUserEdit.Top := 333;
   LiteQnapUserEdit.Width := 280;
 
   LiteQnapPassLabel := TLabel.Create(LiteQnapPage);
   LiteQnapPassLabel.Parent := LiteQnapPage.Surface;
   LiteQnapPassLabel.Left := 292;
-  LiteQnapPassLabel.Top := 220;
+  LiteQnapPassLabel.Top := 315;
   LiteQnapPassLabel.Width := 200;
   LiteQnapPassLabel.Caption := 'Password:';
 
@@ -1335,6 +1437,13 @@ var
 begin
   UseQnap := LiteQnapYesRadio.Checked;
 
+  // Show/hide file selection and manual entry sections
+  LiteQnapFileLabel.Visible := UseQnap;
+  LiteQnapFileEdit.Visible := UseQnap;
+  LiteQnapFileBrowseButton.Visible := UseQnap;
+  LiteQnapOrLabel.Visible := UseQnap;
+  LiteQnapManualLabel.Visible := UseQnap;
+
   // Show/hide QNAP credential fields based on selection
   LiteQnapHostLabel.Visible := UseQnap;
   LiteQnapHostEdit.Visible := UseQnap;
@@ -1471,6 +1580,106 @@ begin
     CredentialsStatusLabel.Caption := CustomMessage('DbMissingRequired')
   else
     CredentialsStatusLabel.Caption := CustomMessage('DbNoFileSelected');
+end;
+
+procedure BrowseLiteQnapCredentialsFile(Sender: TObject);
+var
+  SelectedFile: String;
+begin
+  SelectedFile := LiteQnapFileEdit.Text;
+  if GetOpenFileName('Select QNAP Credentials File', SelectedFile, '', 'JSON Files (*.json)|*.json|ENV Files (*.env)|*.env|All Files (*.*)|*.*', '') then
+  begin
+    LiteQnapFileEdit.Text := SelectedFile;
+    LoadLiteQnapCredentialsFromFile(SelectedFile);
+  end;
+end;
+
+procedure LoadLiteQnapCredentialsFromFile(FileName: String);
+var
+  FileContent: String;
+  JsonValue: String;
+  EnvValue: String;
+  Lines: TStringList;
+  i: Integer;
+  Line: String;
+  Key: String;
+  Value: String;
+  EqPos: Integer;
+begin
+  if not FileExists(FileName) then
+  begin
+    MsgBox('File not found: ' + FileName, mbError, MB_OK);
+    Exit;
+  end;
+
+  FileContent := '';
+  Lines := TStringList.Create;
+  try
+    Lines.LoadFromFile(FileName);
+    FileContent := Lines.Text;
+
+    // Try JSON format first (look for "host" key)
+    if Pos('"host"', FileContent) > 0 then
+    begin
+      // JSON format - extract values using simple pattern matching
+      // "host": "value"
+      JsonValue := ExtractJsonValue(FileContent, 'host');
+      if JsonValue <> '' then
+        LiteQnapHostEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'port');
+      if JsonValue <> '' then
+        LiteQnapPortEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'dbname');
+      if JsonValue <> '' then
+        LiteQnapDbEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'user');
+      if JsonValue <> '' then
+        LiteQnapUserEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'password');
+      if JsonValue <> '' then
+        LiteQnapPassEdit.Text := JsonValue;
+    end
+    else
+    begin
+      // ENV format - KEY=VALUE
+      for i := 0 to Lines.Count - 1 do
+      begin
+        Line := Trim(Lines[i]);
+        if (Line = '') or (Line[1] = '#') then
+          Continue;
+
+        EqPos := Pos('=', Line);
+        if EqPos > 0 then
+        begin
+          Key := LowerCase(Trim(Copy(Line, 1, EqPos - 1)));
+          Value := Trim(Copy(Line, EqPos + 1, 999));
+
+          // Remove quotes if present
+          if (Length(Value) >= 2) and ((Value[1] = '"') or (Value[1] = '''')) then
+            Value := Copy(Value, 2, Length(Value) - 2);
+
+          if Key = 'postgres_host' then
+            LiteQnapHostEdit.Text := Value
+          else if Key = 'postgres_port' then
+            LiteQnapPortEdit.Text := Value
+          else if Key = 'postgres_db' then
+            LiteQnapDbEdit.Text := Value
+          else if Key = 'postgres_user' then
+            LiteQnapUserEdit.Text := Value
+          else if Key = 'postgres_password' then
+            LiteQnapPassEdit.Text := Value;
+        end;
+      end;
+    end;
+  finally
+    Lines.Free;
+  end;
+
+  MsgBox('Credentials loaded from file.' + #13 + 'Please verify the values before continuing.', mbInformation, MB_OK);
 end;
 
 procedure BrowseCredentialsFile(Sender: TObject);
