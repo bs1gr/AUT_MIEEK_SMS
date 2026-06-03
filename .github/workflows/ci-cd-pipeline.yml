@@ -293,6 +293,60 @@ jobs:
           retention-days: 30
 
   # ============================================================================
+  # PHASE 2b: TEST SCOPE DETERMINATION (Conditional Testing)
+  # ============================================================================
+
+  determine-test-scope:
+    name: Determine Test Scope
+    runs-on: ubuntu-latest
+    outputs:
+      run_full_tests: ${{ steps.scope.outputs.run_full }}
+      run_e2e: ${{ steps.scope.outputs.run_e2e }}
+      run_load: ${{ steps.scope.outputs.run_load }}
+    steps:
+      - name: Determine test scope based on trigger
+        id: scope
+        shell: bash
+        run: |
+          # Default: unit tests only (fast path on PR)
+          RUN_FULL="false"
+          RUN_E2E="false"
+          RUN_LOAD="false"
+
+          # Full tests on main branch
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            RUN_FULL="true"
+            RUN_E2E="true"
+            RUN_LOAD="true"
+            echo "🔵 Main branch detected: Running full test suite"
+          fi
+
+          # Check for "requires:e2e" label on PR
+          if echo "${{ github.event.pull_request.labels }}" | grep -q "requires:e2e"; then
+            RUN_E2E="true"
+            echo "🟡 PR label 'requires:e2e' detected: Enabling E2E tests"
+          fi
+
+          # Check for "[full-test]" in PR title
+          if echo "${{ github.event.pull_request.title }}" | grep -q "\[full-test\]"; then
+            RUN_FULL="true"
+            RUN_E2E="true"
+            echo "🟡 PR title contains '[full-test]': Enabling all advanced tests"
+          fi
+
+          # Output results
+          echo "run_full=$RUN_FULL" >> $GITHUB_OUTPUT
+          echo "run_e2e=$RUN_E2E" >> $GITHUB_OUTPUT
+          echo "run_load=$RUN_LOAD" >> $GITHUB_OUTPUT
+
+          # Summary
+          echo ""
+          echo "📊 Test Scope Summary:"
+          echo "  Full tests: $RUN_FULL"
+          echo "  E2E tests: $RUN_E2E"
+          echo "  Load tests: $RUN_LOAD"
+
+  # ============================================================================
   # PHASE 3: AUTOMATED TESTING
   # ============================================================================
 
@@ -621,6 +675,77 @@ jobs:
           fi
 
   # ============================================================================
+  # PHASE 3b: CONDITIONAL E2E & LOAD TESTING
+  # ============================================================================
+
+  run-e2e-tests:
+    name: 🧪 End-to-End Tests (Conditional)
+    runs-on: ubuntu-latest
+    needs: [determine-test-scope, smoke-tests]
+    if: needs.determine-test-scope.outputs.run_e2e == 'true'
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: cd frontend && npm ci --silent
+
+      - name: Placeholder E2E test suite
+        run: |
+          echo "🧪 E2E Tests (Conditional)"
+          echo "When implemented, this will run:"
+          echo "  - Playwright/Cypress tests for UI flows"
+          echo "  - API integration tests"
+          echo "  - User journey workflows"
+          echo ""
+          echo "Triggered by:"
+          echo "  ✅ Main branch (always)"
+          echo "  ✅ PR with 'requires:e2e' label"
+          echo "  ✅ PR title contains '[full-test]'"
+          echo ""
+          # npm run test:e2e (when implemented)
+          echo "✅ E2E tests would run here (implementation pending)"
+
+  run-load-tests:
+    name: 📊 Load & Performance Tests (Conditional)
+    runs-on: ubuntu-latest
+    needs: [determine-test-scope, smoke-tests]
+    if: needs.determine-test-scope.outputs.run_load == 'true'
+    timeout-minutes: 30
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Placeholder load test suite
+        run: |
+          echo "📊 Load Tests (Conditional)"
+          echo "When implemented, this will run:"
+          echo "  - k6 performance testing"
+          echo "  - Concurrent user simulation"
+          echo "  - Latency and throughput benchmarks"
+          echo ""
+          echo "Triggered by:"
+          echo "  ✅ Main branch only"
+          echo ""
+          # npm run test:load (when implemented)
+          echo "✅ Load tests would run here (implementation pending)"
+
+  # ============================================================================
   # PHASE 4: BUILD & PACKAGE
   # ============================================================================
 
@@ -754,9 +879,59 @@ jobs:
 
       - name: Run pip-audit for CVE detection (primary security tool)
         run: |
-          pip-audit --desc --format json > pip-audit-report.json
-          pip-audit --desc --format markdown > pip-audit-report.md || true
+          pip-audit --desc --format json > backend-audit.json
+          pip-audit --desc --format markdown > backend-audit.md || true
           echo "✅ pip-audit scan complete"
+
+      - name: Convert pip-audit to SARIF format
+        run: |
+          python - <<'PY'
+          import json
+
+          # Load pip-audit JSON report
+          with open('backend-audit.json') as f:
+              data = json.load(f)
+
+          # Convert to SARIF format
+          sarif = {
+              'version': '2.1.0',
+              '$schema': 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+              'runs': [{
+                  'tool': {
+                      'driver': {
+                          'name': 'pip-audit',
+                          'version': '2.4.14',
+                          'informationUri': 'https://github.com/pypa/pip-audit'
+                      }
+                  },
+                  'results': []
+              }]
+          }
+
+          # Convert vulnerabilities to SARIF results
+          for vuln in data.get('vulnerabilities', []):
+              result = {
+                  'ruleId': vuln.get('id', 'CVE-UNKNOWN'),
+                  'message': {
+                      'text': f"{vuln.get('description', 'Security vulnerability')} (fix available: {vuln.get('fix_available', False)})"
+                  },
+                  'level': 'warning' if vuln.get('fix_available') else 'error',
+                  'locations': [{
+                      'physicalLocation': {
+                          'artifactLocation': {
+                              'uri': 'backend/requirements.txt'
+                          }
+                      }
+                  }]
+              }
+              sarif['runs'][0]['results'].append(result)
+
+          # Save SARIF
+          with open('backend-audit.sarif', 'w') as f:
+              json.dump(sarif, f, indent=2)
+
+          print(f"✅ Converted {len(data.get('vulnerabilities', []))} vulnerabilities to SARIF")
+          PY
 
       - name: Check for critical vulnerabilities
         run: |
@@ -791,8 +966,16 @@ jobs:
         with:
           name: backend-security-reports
           path: |
-            pip-audit-report.*
+            backend-audit.*
           retention-days: 30
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: backend-audit.sarif
+          category: 'backend-security'
+        continue-on-error: true
 
       - name: Publish security summary to GitHub
         if: always()
@@ -855,13 +1038,76 @@ jobs:
             exit 1
           fi
 
+      - name: Convert npm-audit to SARIF format
+        run: |
+          cd frontend
+          python - <<'PY'
+          import json
+
+          # Load npm audit JSON report
+          with open('npm-audit.json') as f:
+              data = json.load(f)
+
+          # Convert to SARIF format
+          sarif = {
+              'version': '2.1.0',
+              '$schema': 'https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json',
+              'runs': [{
+                  'tool': {
+                      'driver': {
+                          'name': 'npm-audit',
+                          'version': data.get('metadata', {}).get('npmVersion', 'unknown'),
+                          'informationUri': 'https://docs.npmjs.com/cli/audit'
+                      }
+                  },
+                  'results': []
+              }]
+          }
+
+          # Convert vulnerabilities to SARIF results
+          for vuln_key, vuln_data in data.get('vulnerabilities', {}).items():
+              for severity, count in vuln_data.items():
+                  if isinstance(count, int) and count > 0:
+                      result = {
+                          'ruleId': vuln_key,
+                          'message': {
+                              'text': f"NPM dependency vulnerability: {vuln_key} ({severity})"
+                          },
+                          'level': 'error' if severity in ['critical', 'high'] else 'warning',
+                          'locations': [{
+                              'physicalLocation': {
+                                  'artifactLocation': {
+                                      'uri': 'frontend/package.json'
+                                  }
+                              }
+                          }]
+                      }
+                      sarif['runs'][0]['results'].append(result)
+
+          # Save SARIF
+          with open('frontend-audit.sarif', 'w') as f:
+              json.dump(sarif, f, indent=2)
+
+          print(f"✅ Converted npm-audit to SARIF")
+          PY
+
       - name: Upload audit report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: frontend-security-reports
-          path: frontend/npm-audit.json
+          path: |
+            frontend/npm-audit.json
+            frontend/frontend-audit.sarif
           retention-days: 30
+
+      - name: Upload SARIF to GitHub Security tab
+        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: frontend/frontend-audit.sarif
+          category: 'frontend-security'
+        continue-on-error: true
 
   security-scan-docker:
     name: 🔒 Security Scan (Docker Images)
@@ -896,6 +1142,43 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
           category: 'trivy'
+        continue-on-error: true
+
+  # ============================================================================
+  # PHASE 5b: SARIF CONSOLIDATION (Phase 4 Feature)
+  # ============================================================================
+
+  consolidate-sarif-reports:
+    name: 🔐 Consolidate Security Scan Results
+    runs-on: ubuntu-latest
+    needs: [security-scan-backend, security-scan-frontend, security-scan-docker]
+    if: always()
+    permissions:
+      security-events: write
+    continue-on-error: true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download all SARIF artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: sarif-files
+
+      - name: Consolidate SARIF reports
+        run: |
+          python scripts/consolidate-sarif.py \
+            --backend sarif-files/backend-security-reports/backend-audit.sarif \
+            --frontend sarif-files/frontend-security-reports/frontend-audit.sarif \
+            --docker sarif-files/trivy-results/trivy-results.sarif \
+            --output unified-audit-results.sarif
+        continue-on-error: true
+
+      - name: Upload consolidated SARIF
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: unified-audit-results.sarif
+          category: 'unified-security-audit'
         continue-on-error: true
 
   # ============================================================================
@@ -1793,6 +2076,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       [
+        determine-test-scope,
         version-verification,
         workflow-version-policy,
         lint-backend,
@@ -1801,11 +2085,14 @@ jobs:
         test-backend,
         test-frontend,
         smoke-tests,
+        run-e2e-tests,
+        run-load-tests,
         build-frontend,
         build-docker-images,
         security-scan-backend,
         security-scan-frontend,
         security-scan-docker,
+        consolidate-sarif-reports,
         cleanup-and-docs,
         release-asset-lock,
         staging-deploy-gate,
