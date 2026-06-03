@@ -1928,9 +1928,32 @@ begin
 
   if CurPageID = wpFinished then
   begin
-    SummaryLine := GetSelectedDatabaseProfileSummary;
-    if Pos(SummaryLine, WizardForm.FinishedLabel.Caption) = 0 then
-      WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 + SummaryLine;
+    // For Lite Edition: Update completion message for Lite-specific content
+    if IsLiteInstall then
+    begin
+      // Replace Docker-focused message with Lite Edition message
+      WizardForm.FinishedLabel.Caption :=
+        'Files Installed Successfully' + chr(10) + chr(10) +
+        'SMS Lite Edition has been installed on your computer.' + chr(10) + chr(10) +
+        'Next Step: Launch SMS' + chr(10) +
+        'Click the desktop shortcut to start the application.' + chr(10) + chr(10) +
+        'First-time setup:' + chr(10) +
+        '- Log in with admin account (see documentation)' + chr(10) +
+        '- Change password immediately' + chr(10) +
+        '- Configure QNAP PostgreSQL if enabled (optional)' + chr(10) + chr(10) +
+        'Features:' + chr(10) +
+        '- Local SQLite database (default, works offline)' + chr(10) +
+        '- Optional QNAP PostgreSQL for data sharing' + chr(10) +
+        '- No Docker required - fully standalone application' + chr(10) +
+        '- Works without internet connection';
+    end
+    else
+    begin
+      // For Docker Edition: Add database profile summary
+      SummaryLine := GetSelectedDatabaseProfileSummary;
+      if Pos(SummaryLine, WizardForm.FinishedLabel.Caption) = 0 then
+        WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 + SummaryLine;
+    end;
   end;
 end;
 
