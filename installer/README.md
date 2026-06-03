@@ -1,6 +1,24 @@
-# SMS Installer - v1.18.11
+# SMS Installer - v1.18.24
 
 This directory contains the Inno Setup installer configuration and code signing certificates for the Student Management System.
+
+## Installation Types
+
+The installer supports **two editions**:
+
+### 1. **Lite Edition** (Recommended for individual teachers)
+- **Application:** SMS_Lite.exe (standalone, no Docker required)
+- **Database:** Local SQLite (default) or optional QNAP PostgreSQL
+- **File Size:** ~70 MB executable
+- **Setup Time:** ~2 minutes
+- **📖 Full Guide:** [LITE_EDITION_GUIDE.md](../docs/deployment/LITE_EDITION_GUIDE.md)
+
+### 2. **Docker Edition** (Recommended for institutions)
+- **Application:** Docker container with SMS_Manager.exe control panel
+- **Database:** QNAP PostgreSQL (required)
+- **File Size:** ~25-30 MB installer
+- **Setup Time:** ~10-15 minutes (includes Docker build)
+- **📖 Deployment Guide:** [DEPLOY_ON_NEW_PC.md](../DEPLOY_ON_NEW_PC.md)
 
 ## Recent Changes (v1.18.11)
 

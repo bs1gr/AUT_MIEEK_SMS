@@ -52,23 +52,29 @@ before working on this project.
 
 #### 🎯 Windows Installer (Easiest Method)
 
-**GUI Installer** - No PowerShell knowledge required!
+**GUI Installer** - Choose your edition:
 
-1. **Download** `SMS_Installer_X.X.X.exe` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
+1. **Download** `SMS_Installer_1.18.24.exe` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
 2. **Right-click** → **"Run as Administrator"**
 3. **Follow** the installation wizard
-4. **Install Docker Desktop** if prompted (the installer will check)
+4. **Choose Your Edition:**
+   - **Lite Edition (SMS_Lite.exe)** - Standalone app, no Docker needed ⭐ Recommended for individual teachers
+   - **Docker Edition** - Full deployment with Docker Desktop (required)
 5. **Launch** from the desktop shortcut
 
 **Features:**
 
+- ✅ Two installation options: Lite Edition (standalone) or Docker Edition
 - ✅ Professional Windows installer wizard
-- ✅ Automatic Docker Desktop detection
+- ✅ Automatic Docker Desktop detection (for Docker Edition)
+- ✅ Optional QNAP PostgreSQL configuration (Lite Edition)
 - ✅ Desktop and Start Menu shortcuts
 - ✅ Uninstaller included
 - ✅ No PowerShell execution policy issues
 
-> **Note:** Docker Desktop is required. The installer will guide you if it's not installed.
+**Edition Guide:**
+- 📖 **Lite Edition:** [LITE_EDITION_GUIDE.md](docs/deployment/LITE_EDITION_GUIDE.md) - Individual teachers, offline-friendly
+- 📖 **Docker Edition:** [DEPLOY_ON_NEW_PC.md](DEPLOY_ON_NEW_PC.md) - Schools/institutions, centralized data
 
 #### Alternative: ZIP Distribution
 
