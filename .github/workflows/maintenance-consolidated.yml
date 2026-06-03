@@ -1,0 +1,305 @@
+name: Consolidated Maintenance Tasks
+
+# Unified workflow for all scheduled maintenance operations
+# Replaces: stale.yml, cleanup-workflow-runs.yml, scheduled-production-health-check.yml
+
+on:
+  schedule:
+    # Daily maintenance: stale issues/PRs + workflow cleanup
+    - cron: '0 4 * * *'    # 04:00 UTC (aligns with stale.yml)
+  workflow_dispatch:
+    inputs:
+      task:
+        description: 'Maintenance task to run'
+        required: true
+        type: choice
+        default: all
+        options:
+          - all
+          - stale-cleanup
+          - workflow-cleanup
+          - production-health-check
+      dry_run:
+        description: 'Dry run for cleanup tasks (log only)'
+        required: false
+        type: boolean
+        default: false
+
+concurrency:
+  group: maintenance-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  # Determine which tasks to run
+  determine-tasks:
+    name: Determine Tasks to Run
+    runs-on: ubuntu-latest
+    outputs:
+      run_stale: ${{ steps.tasks.outputs.run_stale }}
+      run_workflow_cleanup: ${{ steps.tasks.outputs.run_workflow_cleanup }}
+      run_health_check: ${{ steps.tasks.outputs.run_health_check }}
+      dry_run: ${{ steps.tasks.outputs.dry_run }}
+    steps:
+      - name: Determine task selection
+        id: tasks
+        shell: bash
+        run: |
+          TASK="${{ github.event.inputs.task }}"
+          DRY_RUN="${{ github.event.inputs.dry_run }}"
+
+          # Default: scheduled runs daily, dispatch can select specific task
+          if [ -z "$TASK" ] || [ "$TASK" = "all" ]; then
+            echo "run_stale=true" >> $GITHUB_OUTPUT
+            echo "run_workflow_cleanup=true" >> $GITHUB_OUTPUT
+            echo "run_health_check=false" >> $GITHUB_OUTPUT  # Health check is manual-only
+          elif [ "$TASK" = "stale-cleanup" ]; then
+            echo "run_stale=true" >> $GITHUB_OUTPUT
+            echo "run_workflow_cleanup=false" >> $GITHUB_OUTPUT
+            echo "run_health_check=false" >> $GITHUB_OUTPUT
+          elif [ "$TASK" = "workflow-cleanup" ]; then
+            echo "run_stale=false" >> $GITHUB_OUTPUT
+            echo "run_workflow_cleanup=true" >> $GITHUB_OUTPUT
+            echo "run_health_check=false" >> $GITHUB_OUTPUT
+          elif [ "$TASK" = "production-health-check" ]; then
+            echo "run_stale=false" >> $GITHUB_OUTPUT
+            echo "run_workflow_cleanup=false" >> $GITHUB_OUTPUT
+            echo "run_health_check=true" >> $GITHUB_OUTPUT
+          fi
+
+          echo "dry_run=$DRY_RUN" >> $GITHUB_OUTPUT
+
+  # ============================================================================
+  # Task 1: Stale Issues and PRs Cleanup
+  # ============================================================================
+
+  stale-cleanup:
+    name: Close Stale Issues & PRs
+    runs-on: ubuntu-latest
+    needs: [determine-tasks]
+    if: needs.determine-tasks.outputs.run_stale == 'true'
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Close stale issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # Stale issues configuration
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had
+            recent activity. It will be closed in 14 days if no further activity occurs.
+            Thank you for your contributions!
+          stale-issue-label: 'stale'
+          days-before-issue-stale: 60
+          days-before-issue-close: 14
+          exempt-issue-labels: 'pinned,security,bug,enhancement'
+
+          # Stale PRs configuration
+          stale-pr-message: >
+            This pull request has been automatically marked as stale because it has not had
+            recent activity. It will be closed in 7 days if no further activity occurs.
+            Please update your PR or comment if it's still relevant.
+          stale-pr-label: 'stale'
+          days-before-pr-stale: 30
+          days-before-pr-close: 7
+          exempt-pr-labels: 'pinned,security,dependencies'
+
+          # Close messages
+          close-issue-message: 'This issue was closed due to inactivity. Feel free to reopen if needed.'
+          close-pr-message: 'This PR was closed due to inactivity. Feel free to reopen if still relevant.'
+
+          # Performance tuning
+          operations-per-run: 100
+
+  # ============================================================================
+  # Task 2: Workflow Run Cleanup
+  # ============================================================================
+
+  workflow-cleanup:
+    name: Delete Old Workflow Runs
+    runs-on: ubuntu-latest
+    needs: [determine-tasks]
+    if: needs.determine-tasks.outputs.run_workflow_cleanup == 'true'
+    permissions:
+      actions: write
+      contents: read
+
+    steps:
+      - name: Verify CLI tools availability
+        shell: bash
+        run: |
+          echo "Checking for required tools..."
+          gh --version
+          jq --version
+          echo "✅ All required tools available"
+
+      - name: Delete old workflow runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ needs.determine-tasks.outputs.dry_run }}
+          KEEP_COUNT: 5
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          echo "🧹 Cleaning up old workflow runs..."
+          CURRENT_ID="${{ github.run_id }}"
+          REPO="${{ github.repository }}"
+          KEEP_COUNT=5
+
+          # Fetch all workflow runs
+          echo "Fetching workflow runs (keeping last $KEEP_COUNT)..."
+          ALL_RUNS=$(gh run list --repo "$REPO" --limit 1000 --json databaseId,conclusion,status)
+
+          # Find runs to delete (skip current run and keep most recent N)
+          RUN_IDS=$(echo "$ALL_RUNS" | jq -r --arg current "$CURRENT_ID" --arg keep "$KEEP_COUNT" \
+            '.[] | select(.databaseId != ($current | tonumber)) | .databaseId' | \
+            tail -n +$((KEEP_COUNT + 1)))
+
+          if [ -z "$RUN_IDS" ]; then
+            echo "✅ No runs to delete (keeping last $KEEP_COUNT runs)"
+          else
+            COUNT=$(echo "$RUN_IDS" | wc -l)
+            echo "Found $COUNT runs to delete"
+
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "📋 DRY RUN - Would delete:"
+              echo "$RUN_IDS" | head -10
+              if [ $COUNT -gt 10 ]; then
+                echo "... and $((COUNT - 10)) more"
+              fi
+            else
+              echo "🗑️  Deleting runs..."
+              DELETED=0
+              FAILED=0
+              while IFS= read -r run_id; do
+                if gh run delete "$run_id" --repo "$REPO" 2>/dev/null; then
+                  ((DELETED++))
+                else
+                  ((FAILED++))
+                fi
+              done <<< "$RUN_IDS"
+
+              echo "✅ Cleanup complete: Deleted $DELETED runs"
+              if [ $FAILED -gt 0 ]; then
+                echo "⚠️  Failed to delete $FAILED runs"
+              fi
+            fi
+          fi
+
+  # ============================================================================
+  # Task 3: Production Health Check
+  # ============================================================================
+
+  production-health-check:
+    name: Production Health Checkpoint
+    runs-on: [self-hosted, windows, production-lan]
+    needs: [determine-tasks]
+    if: needs.determine-tasks.outputs.run_health_check == 'true'
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      actions: read
+    continue-on-error: true
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Run production health checkpoint
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'  # Don't fail on non-terminating errors
+
+          Write-Host "🏥 Running production health checkpoint..." -ForegroundColor Cyan
+
+          $timestamp = Get-Date -Format 'yyyy-MM-dd_HHmmss'
+          $artifactDir = Join-Path $PWD 'artifacts/monitoring'
+          New-Item -ItemType Directory -Force -Path $artifactDir | Out-Null
+
+          $health = @{
+            timestamp = $timestamp
+            status = 'unknown'
+            restartCount = 'unknown'
+            startedAt = 'unknown'
+            containerHealth = 'unknown'
+            issues = @()
+          }
+
+          # Get Docker status
+          try {
+            Write-Host "Checking Docker status..."
+            $statusOutput = & .\DOCKER.ps1 -Status 2>&1 | Out-String
+            $health.status = $statusOutput.Trim()
+            Write-Host "✅ Docker status retrieved"
+          } catch {
+            $health.issues += "DOCKER status command failed: $($_.Exception.Message)"
+            Write-Warning "Failed to get Docker status"
+          }
+
+          # Attempt to query container metrics
+          try {
+            Write-Host "Querying container metrics..."
+            $docker_health = docker ps --format "{{.Names}}\t{{.Status}}\t{{.Ports}}" 2>$null
+            if ($docker_health) {
+              $health.containerHealth = $docker_health
+              Write-Host "✅ Container metrics retrieved"
+            }
+          } catch {
+            Write-Warning "Could not query container metrics"
+          }
+
+          # Save health report
+          $reportPath = Join-Path $artifactDir "health_$timestamp.json"
+          $health | ConvertTo-Json | Set-Content $reportPath
+          Write-Host "📊 Health report saved to: $reportPath"
+
+          # Summary
+          if ($health.issues.Count -gt 0) {
+            Write-Host "⚠️  Found $($health.issues.Count) issue(s)" -ForegroundColor Yellow
+            $health.issues | ForEach-Object { Write-Host "  - $_" }
+          } else {
+            Write-Host "✅ Production health check passed" -ForegroundColor Green
+          }
+
+      - name: Upload health check artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-health-check-${{ github.run_id }}
+          path: artifacts/monitoring/
+          retention-days: 7
+
+  # ============================================================================
+  # Completion Notification
+  # ============================================================================
+
+  notify-completion:
+    name: Maintenance Completion Report
+    runs-on: ubuntu-latest
+    needs: [determine-tasks, stale-cleanup, workflow-cleanup, production-health-check]
+    if: always()
+
+    steps:
+      - name: Generate completion summary
+        shell: bash
+        run: |
+          echo "📋 Maintenance Tasks Summary"
+          echo "============================"
+          echo ""
+          echo "Stale Cleanup:        ${{ needs.determine-tasks.outputs.run_stale }}"
+          echo "Workflow Cleanup:     ${{ needs.determine-tasks.outputs.run_workflow_cleanup }}"
+          echo "Health Check:         ${{ needs.determine-tasks.outputs.run_health_check }}"
+          echo "Dry Run Mode:         ${{ needs.determine-tasks.outputs.dry_run }}"
+          echo ""
+          echo "Stale Job:     ${{ needs.stale-cleanup.result }}"
+          echo "Cleanup Job:   ${{ needs.workflow-cleanup.result }}"
+          echo "Health Job:    ${{ needs.production-health-check.result }}"
+          echo ""
+          echo "✅ Maintenance workflow complete"
