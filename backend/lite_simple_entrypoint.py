@@ -20,18 +20,38 @@ if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
 # Check if QNAP PostgreSQL credentials exist
-qnap_creds_file = Path(__file__).parent.parent / 'local-secrets' / 'qnap-credentials.json'
-if qnap_creds_file.exists():
+# Two possible locations: bundle-relative (dev) or AppData (installed)
+qnap_creds_file = None
+if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+    # Running as PyInstaller bundle - check AppData first
+    appdata_creds = Path.home() / 'AppData' / 'Local' / 'SMS_Native_Lite_Simple' / 'local-secrets' / 'qnap-credentials.json'
+    print(f"[DEBUG] Checking AppData credentials: {appdata_creds}", file=sys.stderr)
+    if appdata_creds.exists():
+        qnap_creds_file = appdata_creds
+        print(f"[DEBUG] Found credentials file at: {qnap_creds_file}", file=sys.stderr)
+    else:
+        print(f"[DEBUG] Credentials file NOT found at: {appdata_creds}", file=sys.stderr)
+else:
+    # Running from source - check relative to bundle
+    bundle_creds = Path(__file__).parent.parent / 'local-secrets' / 'qnap-credentials.json'
+    print(f"[DEBUG] Checking bundle credentials: {bundle_creds}", file=sys.stderr)
+    if bundle_creds.exists():
+        qnap_creds_file = bundle_creds
+        print(f"[DEBUG] Found credentials file at: {qnap_creds_file}", file=sys.stderr)
+
+if qnap_creds_file:
     # Use QNAP PostgreSQL database
     try:
         import json
         with open(qnap_creds_file) as f:
             creds = json.load(f)
+        print(f"[DEBUG] Loaded QNAP credentials from: {qnap_creds_file}", file=sys.stderr)
         os.environ['DATABASE_URL'] = (
             f'postgresql+psycopg://{creds["user"]}:{creds["password"]}'
             f'@{creds["host"]}:{creds["port"]}/{creds["dbname"]}'
         )
         os.environ['POSTGRES_SSLMODE'] = creds.get('sslmode', 'disable')
+        print(f"[DEBUG] DATABASE_URL set to PostgreSQL: {creds['host']}:{creds['port']}/{creds['dbname']}", file=sys.stderr)
     except Exception as e:
         print(f"WARNING: Failed to load QNAP credentials: {e}, falling back to SQLite")
         if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
