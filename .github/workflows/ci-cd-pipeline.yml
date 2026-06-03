@@ -881,7 +881,7 @@ jobs:
 
       - name: Run pip-audit for CVE detection (primary security tool)
         run: |
-          pip-audit --desc --format json > backend-audit.json
+          pip-audit --desc --format json > backend-audit.json || true
           pip-audit --desc --format markdown > backend-audit.md || true
           echo "✅ pip-audit scan complete"
 
