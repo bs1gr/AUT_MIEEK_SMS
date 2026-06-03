@@ -942,7 +942,7 @@ jobs:
           import sys
 
           try:
-              with open('pip-audit-report.json') as f:
+              with open('backend-audit.json') as f:
                   data = json.load(f)
                   vulns = data.get('vulnerabilities', [])
 
@@ -992,7 +992,7 @@ jobs:
               exit(0)
 
           try:
-              with open('pip-audit-report.json') as f:
+              with open('backend-audit.json') as f:
                   data = json.load(f)
                   vulns = data.get('vulnerabilities', [])
 
