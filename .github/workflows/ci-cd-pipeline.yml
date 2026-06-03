@@ -866,9 +866,9 @@ jobs:
   security-scan-docker:
     name: 🔒 Security Scan (Docker Images)
     runs-on: ubuntu-latest
-    needs: [version-verification, workflow-version-policy]
-    # Parallelized: runs after linting, can run independently of Docker build
-    # Note: may run before build-docker-images completes, using Dockerfile inspection instead
+    needs: [build-docker-images]
+    # CRITICAL: Must wait for Docker images to be built before scanning
+    # Ensures images are built AND security-scanned before deployment gates evaluate them
     if: github.event_name != 'pull_request'
     permissions:
       security-events: write
@@ -1310,9 +1310,9 @@ jobs:
         run: |
           Write-Host "🏥 Running health checks on staging..."
           $stagingUrl = $env:STAGING_URL
-          $maxAttempts = 30
-          $delayMs = 1000
-          $maxDelayMs = 30000
+          $maxAttempts = 20
+          $currentDelayMs = 1000
+          $maxDelayMs = 20000
 
           for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             Write-Host "Health check attempt $attempt/$maxAttempts at $(Get-Date -Format 'HH:mm:ss')..."
@@ -1327,12 +1327,13 @@ jobs:
               Write-Host "Attempt $attempt failed: $($_.Exception.Message)" -ForegroundColor Yellow
             }
 
-            # Exponential backoff: 1s → 1.5s → 2.25s → ... → capped at 30s
-            $nextDelayMs = [Math]::Min([int]($delayMs * 1.5), $maxDelayMs)
-            $delaySec = $nextDelayMs / 1000
+            # Exponential backoff with reduced window to maintain ~5 minute timeout
+            # Pattern: 1s, 1.5s, 2.25s, 3.375s, 5s, 7.5s, 11s, 16s, 20s, 20s...
+            $nextDelayMs = [Math]::Min([int]($currentDelayMs * 1.5), $maxDelayMs)
+            $delaySec = [Math]::Round($nextDelayMs / 1000, 1)
             Write-Host "Waiting ${delaySec}s before next attempt..." -ForegroundColor Gray
             Start-Sleep -Milliseconds $nextDelayMs
-            $delayMs = $nextDelayMs
+            $currentDelayMs = $nextDelayMs
           }
 
           Write-Error "❌ Staging health check failed after $maxAttempts attempts"
@@ -1525,9 +1526,9 @@ jobs:
         run: |
           Write-Host "🏥 Running production health checks..."
           $prodUrl = $env:PROD_URL
-          $maxAttempts = 30
-          $delayMs = 1000
-          $maxDelayMs = 30000
+          $maxAttempts = 20
+          $currentDelayMs = 1000
+          $maxDelayMs = 20000
 
           for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
             Write-Host "Health check attempt $attempt/$maxAttempts at $(Get-Date -Format 'HH:mm:ss')..."
@@ -1542,12 +1543,13 @@ jobs:
               Write-Host "Attempt $attempt failed: $($_.Exception.Message)" -ForegroundColor Yellow
             }
 
-            # Exponential backoff: 1s → 1.5s → 2.25s → ... → capped at 30s
-            $nextDelayMs = [Math]::Min([int]($delayMs * 1.5), $maxDelayMs)
-            $delaySec = $nextDelayMs / 1000
+            # Exponential backoff with reduced window to maintain ~5 minute timeout
+            # Pattern: 1s, 1.5s, 2.25s, 3.375s, 5s, 7.5s, 11s, 16s, 20s, 20s...
+            $nextDelayMs = [Math]::Min([int]($currentDelayMs * 1.5), $maxDelayMs)
+            $delaySec = [Math]::Round($nextDelayMs / 1000, 1)
             Write-Host "Waiting ${delaySec}s before next attempt..." -ForegroundColor Gray
             Start-Sleep -Milliseconds $nextDelayMs
-            $delayMs = $nextDelayMs
+            $currentDelayMs = $nextDelayMs
           }
 
           Write-Error "❌ Production health check failed after $maxAttempts attempts"
