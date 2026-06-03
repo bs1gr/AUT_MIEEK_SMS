@@ -291,6 +291,20 @@ var
   InstallTypeSelectionPage: TWizardPage;
   DockerEditionRadio: TRadioButton;
   LiteEditionRadio: TRadioButton;
+  LiteQnapPage: TWizardPage;
+  LiteQnapLabel: TLabel;
+  LiteQnapYesRadio: TRadioButton;
+  LiteQnapNoRadio: TRadioButton;
+  LiteQnapHostLabel: TLabel;
+  LiteQnapHostEdit: TEdit;
+  LiteQnapPortLabel: TLabel;
+  LiteQnapPortEdit: TEdit;
+  LiteQnapDbLabel: TLabel;
+  LiteQnapDbEdit: TEdit;
+  LiteQnapUserLabel: TLabel;
+  LiteQnapUserEdit: TEdit;
+  LiteQnapPassLabel: TLabel;
+  LiteQnapPassEdit: TEdit;
   PostgresPage: TWizardPage;
   DbProfileInfoLabel: TLabel;
   LocalSQLiteRadio: TRadioButton;
@@ -336,6 +350,7 @@ function StringReplaceAll(const Source, OldPattern, NewPattern: AnsiString): Ans
 function TestPostgresTcpConnection(Host: String; Port: String): Boolean; forward;
 function TestDockerReady: Boolean; forward;
 function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
+procedure UpdateLiteQnapUI(Sender: TObject); forward;
 procedure UpdateDatabaseProfileUI(Sender: TObject); forward;
 procedure LoadPostgresDefaults; forward;
 procedure BrowseCredentialsFile(Sender: TObject); forward;
@@ -924,7 +939,111 @@ begin
 
   UpdateDockerStatus(nil);
 
-  // Database profile page (Local SQLite vs QNAP PostgreSQL)
+  // Lite Edition QNAP Configuration page (for Lite Edition users who want QNAP PostgreSQL)
+  LiteQnapPage := CreateCustomPage(DockerPage.ID,
+    'QNAP Database Configuration (Optional)',
+    'Configure connection to QNAP PostgreSQL database');
+
+  LiteQnapLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapLabel.AutoSize := False;
+  LiteQnapLabel.Left := 0;
+  LiteQnapLabel.Top := 0;
+  LiteQnapLabel.Width := LiteQnapPage.SurfaceWidth;
+  LiteQnapLabel.Height := 48;
+  LiteQnapLabel.WordWrap := True;
+  LiteQnapLabel.Caption := 'SMS Lite Edition uses a local SQLite database by default. If you have a QNAP NAS with PostgreSQL, you can optionally configure it here.';
+
+  LiteQnapYesRadio := TRadioButton.Create(LiteQnapPage);
+  LiteQnapYesRadio.Parent := LiteQnapPage.Surface;
+  LiteQnapYesRadio.Left := 0;
+  LiteQnapYesRadio.Top := 60;
+  LiteQnapYesRadio.Width := LiteQnapPage.SurfaceWidth;
+  LiteQnapYesRadio.Caption := 'Yes, I want to use QNAP PostgreSQL';
+  LiteQnapYesRadio.Checked := False;
+  LiteQnapYesRadio.OnClick := @UpdateLiteQnapUI;
+
+  LiteQnapNoRadio := TRadioButton.Create(LiteQnapPage);
+  LiteQnapNoRadio.Parent := LiteQnapPage.Surface;
+  LiteQnapNoRadio.Left := 0;
+  LiteQnapNoRadio.Top := 85;
+  LiteQnapNoRadio.Width := LiteQnapPage.SurfaceWidth;
+  LiteQnapNoRadio.Caption := 'No, use local SQLite database';
+  LiteQnapNoRadio.Checked := True;
+  LiteQnapNoRadio.OnClick := @UpdateLiteQnapUI;
+
+  LiteQnapHostLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapHostLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapHostLabel.Left := 0;
+  LiteQnapHostLabel.Top := 120;
+  LiteQnapHostLabel.Width := 200;
+  LiteQnapHostLabel.Caption := 'QNAP IP or DNS name:';
+
+  LiteQnapHostEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapHostEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapHostEdit.Left := 0;
+  LiteQnapHostEdit.Top := 138;
+  LiteQnapHostEdit.Width := 280;
+  LiteQnapHostEdit.Text := 'qnap.local';
+
+  LiteQnapPortLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapPortLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapPortLabel.Left := 292;
+  LiteQnapPortLabel.Top := 120;
+  LiteQnapPortLabel.Width := 80;
+  LiteQnapPortLabel.Caption := 'Port:';
+
+  LiteQnapPortEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapPortEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapPortEdit.Left := 292;
+  LiteQnapPortEdit.Top := 138;
+  LiteQnapPortEdit.Width := 80;
+  LiteQnapPortEdit.Text := '5432';
+
+  LiteQnapDbLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapDbLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapDbLabel.Left := 0;
+  LiteQnapDbLabel.Top := 170;
+  LiteQnapDbLabel.Width := 200;
+  LiteQnapDbLabel.Caption := 'Database name:';
+
+  LiteQnapDbEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapDbEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapDbEdit.Left := 0;
+  LiteQnapDbEdit.Top := 188;
+  LiteQnapDbEdit.Width := 280;
+  LiteQnapDbEdit.Text := 'student_management';
+
+  LiteQnapUserLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapUserLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapUserLabel.Left := 0;
+  LiteQnapUserLabel.Top := 220;
+  LiteQnapUserLabel.Width := 200;
+  LiteQnapUserLabel.Caption := 'Username:';
+
+  LiteQnapUserEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapUserEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapUserEdit.Left := 0;
+  LiteQnapUserEdit.Top := 238;
+  LiteQnapUserEdit.Width := 280;
+
+  LiteQnapPassLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapPassLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapPassLabel.Left := 292;
+  LiteQnapPassLabel.Top := 220;
+  LiteQnapPassLabel.Width := 200;
+  LiteQnapPassLabel.Caption := 'Password:';
+
+  LiteQnapPassEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapPassEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapPassEdit.Left := 292;
+  LiteQnapPassEdit.Top := 238;
+  LiteQnapPassEdit.Width := 200;
+  LiteQnapPassEdit.PasswordChar := '*';
+
+  UpdateLiteQnapUI(nil);
+
+  // Database profile page (Local SQLite vs QNAP PostgreSQL) - FOR DOCKER EDITION
   PostgresPage := CreateCustomPage(DockerPage.ID,
     CustomMessage('DbConfigPageTitle'),
     CustomMessage('DbConfigPageSubtitle'));
@@ -1208,6 +1327,25 @@ begin
   finally
     Lines.Free;
   end;
+end;
+
+procedure UpdateLiteQnapUI(Sender: TObject);
+var
+  UseQnap: Boolean;
+begin
+  UseQnap := LiteQnapYesRadio.Checked;
+
+  // Show/hide QNAP credential fields based on selection
+  LiteQnapHostLabel.Visible := UseQnap;
+  LiteQnapHostEdit.Visible := UseQnap;
+  LiteQnapPortLabel.Visible := UseQnap;
+  LiteQnapPortEdit.Visible := UseQnap;
+  LiteQnapDbLabel.Visible := UseQnap;
+  LiteQnapDbEdit.Visible := UseQnap;
+  LiteQnapUserLabel.Visible := UseQnap;
+  LiteQnapUserEdit.Visible := UseQnap;
+  LiteQnapPassLabel.Visible := UseQnap;
+  LiteQnapPassEdit.Visible := UseQnap;
 end;
 
 procedure UpdateDatabaseProfileUI(Sender: TObject);
@@ -1597,6 +1735,9 @@ begin
   // Skip Docker build/setup page if Lite Edition is selected
   else if PageID = DockerBuildPage.ID then
     Result := IsLiteInstall
+  // Show Lite QNAP page ONLY for Lite Edition
+  else if PageID = LiteQnapPage.ID then
+    Result := not IsLiteInstall  // Show only for Lite, skip for Docker
   // Skip database config page for Lite Edition (uses local SQLite by default)
   // Docker Edition requires QNAP PostgreSQL configuration
   else if PageID = PostgresPage.ID then
@@ -2150,37 +2291,35 @@ begin
                mbError, MB_OK);
       end;
 
-      // Save QNAP PostgreSQL credentials for Lite Edition if user selected QNAP option AND loaded credentials file
-      Log('Lite Edition Post-Install: QnapPostgresRadio.Checked=' + Format('%d', [Integer(QnapPostgresRadio.Checked)]));
-      Log('Lite Edition Post-Install: PgHost="' + PgHost + '"');
-      Log('Lite Edition Post-Install: PgPort="' + PgPort + '"');
-      Log('Lite Edition Post-Install: PgDb="' + PgDb + '"');
-      Log('Lite Edition Post-Install: PgUser="' + PgUser + '"');
-      Log('Lite Edition Post-Install: CredentialsFileEdit.Text="' + CredentialsFileEdit.Text + '"');
+      // Save QNAP PostgreSQL credentials for Lite Edition if user selected QNAP option on the Lite QNAP page
+      Log('Lite Edition Post-Install: LiteQnapYesRadio.Checked=' + Format('%d', [Integer(LiteQnapYesRadio.Checked)]));
+      Log('Lite Edition Post-Install: LiteQnapHost="' + LiteQnapHostEdit.Text + '"');
+      Log('Lite Edition Post-Install: LiteQnapPort="' + LiteQnapPortEdit.Text + '"');
+      Log('Lite Edition Post-Install: LiteQnapDb="' + LiteQnapDbEdit.Text + '"');
+      Log('Lite Edition Post-Install: LiteQnapUser="' + LiteQnapUserEdit.Text + '"');
 
-      if QnapPostgresRadio.Checked and (Trim(PgHost) <> '') and (Trim(PgPort) <> '') and (Trim(PgDb) <> '') and (Trim(PgUser) <> '') and (Trim(PgPass) <> '') then
+      if LiteQnapYesRadio.Checked and (Trim(LiteQnapHostEdit.Text) <> '') and (Trim(LiteQnapPortEdit.Text) <> '') and (Trim(LiteQnapDbEdit.Text) <> '') and (Trim(LiteQnapUserEdit.Text) <> '') and (Trim(LiteQnapPassEdit.Text) <> '') then
       begin
         Log('Lite Edition: Saving QNAP PostgreSQL credentials for runtime use...');
         SaveLiteEditionQnapCredentials(
           ExpandConstant('{app}'),
-          PgHost,
-          PgPort,
-          PgDb,
-          PgUser,
-          PgPass,
-          PgSsl
+          LiteQnapHostEdit.Text,
+          LiteQnapPortEdit.Text,
+          LiteQnapDbEdit.Text,
+          LiteQnapUserEdit.Text,
+          LiteQnapPassEdit.Text,
+          'prefer'
         );
       end
       else
       begin
-        Log('Lite Edition: Using local SQLite (QNAP credentials not complete)');
-        Log('  QnapPostgresRadio.Checked=' + Format('%d', [Integer(QnapPostgresRadio.Checked)]));
-        Log('  PgHost empty=' + Format('%d', [Integer(Trim(PgHost) = '')]));
-        Log('  PgPort empty=' + Format('%d', [Integer(Trim(PgPort) = '')]));
-        Log('  PgDb empty=' + Format('%d', [Integer(Trim(PgDb) = '')]));
-        Log('  PgUser empty=' + Format('%d', [Integer(Trim(PgUser) = '')]));
-        Log('  PgPass empty=' + Format('%d', [Integer(Trim(PgPass) = '')]));
-        Log('  CredentialsFile="' + CredentialsFileEdit.Text + '"');
+        Log('Lite Edition: Using local SQLite (QNAP not selected or credentials incomplete)');
+        Log('  LiteQnapYesRadio.Checked=' + Format('%d', [Integer(LiteQnapYesRadio.Checked)]));
+        Log('  LiteQnapHost empty=' + Format('%d', [Integer(Trim(LiteQnapHostEdit.Text) = '')]));
+        Log('  LiteQnapPort empty=' + Format('%d', [Integer(Trim(LiteQnapPortEdit.Text) = '')]));
+        Log('  LiteQnapDb empty=' + Format('%d', [Integer(Trim(LiteQnapDbEdit.Text) = '')]));
+        Log('  LiteQnapUser empty=' + Format('%d', [Integer(Trim(LiteQnapUserEdit.Text) = '')]));
+        Log('  LiteQnapPass empty=' + Format('%d', [Integer(Trim(LiteQnapPassEdit.Text) = '')]));
       end;
     end;
   end;
