@@ -321,8 +321,8 @@ jobs:
             echo "🔵 Main branch detected: Running full test suite"
           fi
 
-          # Check for "requires:e2e" label on PR
-          if echo "${{ github.event.pull_request.labels }}" | grep -q "requires:e2e"; then
+          # Check for "requires:e2e" label on PR (contains() function works on all branches)
+          if [[ "${{ contains(github.event.pull_request.labels.*.name, 'requires:e2e') }}" == "true" ]]; then
             RUN_E2E="true"
             echo "🟡 PR label 'requires:e2e' detected: Enabling E2E tests"
           fi
