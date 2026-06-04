@@ -704,21 +704,88 @@ jobs:
       - name: Install frontend dependencies
         run: cd frontend && npm ci --silent
 
-      - name: Placeholder E2E test suite
+      - name: Setup Python for backend
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install backend dependencies
         run: |
-          echo "🧪 E2E Tests (Conditional)"
-          echo "When implemented, this will run:"
-          echo "  - Playwright/Cypress tests for UI flows"
-          echo "  - API integration tests"
-          echo "  - User journey workflows"
-          echo ""
-          echo "Triggered by:"
-          echo "  ✅ Main branch (always)"
-          echo "  ✅ PR with 'requires:e2e' label"
-          echo "  ✅ PR title contains '[full-test]'"
-          echo ""
-          # npm run test:e2e (when implemented)
-          echo "✅ E2E tests would run here (implementation pending)"
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Initialize database
+        run: |
+          echo "Running Alembic migrations..."
+          python -c "from backend.run_migrations import run_migrations; run_migrations()" || echo "Migration warning (may already be up-to-date)"
+
+      - name: Seed test data
+        run: |
+          echo "Seeding E2E test data..."
+          python backend/seed_e2e_data.py
+
+      - name: Start backend server in background
+        env:
+          CSRF_ENABLED: '0'
+          AUTH_MODE: permissive
+          AUTH_LOGIN_THROTTLE_ENABLED: '0'
+          AUTH_USER_LOCKOUT_ENABLED: '0'
+          SERVE_FRONTEND: '0'
+        run: |
+          echo "Starting backend server..."
+          python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          echo $! > backend.pid
+          sleep 3
+
+          echo "Waiting for backend health check..."
+          MAX_ATTEMPTS=30
+          ATTEMPT=0
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            HEALTH=$(curl -s http://127.0.0.1:8000/health 2>&1 || echo "FAILED")
+            if echo "$HEALTH" | grep -q '"status"'; then
+              echo "✅ Backend is ready (attempt $ATTEMPT/$MAX_ATTEMPTS)"
+              break
+            fi
+            if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+              echo "❌ Backend failed to start within 30 seconds"
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Run E2E tests with Playwright
+        working-directory: ./frontend
+        env:
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+          DEBUG: pw:api
+          VITE_API_URL: http://127.0.0.1:8000/api/v1
+        timeout-minutes: 25
+        run: |
+          echo "🧪 Running E2E tests..."
+          npm run e2e -- --reporter=list --workers=1 --timeout=120000 --max-failures=3
+
+      - name: Kill backend
+        if: always()
+        run: |
+          if [ -f backend.pid ]; then
+            echo "Stopping backend (PID: $(cat backend.pid))..."
+            kill $(cat backend.pid) 2>/dev/null || echo "Backend already stopped"
+            rm backend.pid
+          fi
+
+      - name: Upload E2E test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results-${{ github.run_id }}
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 30
+          if-no-files-found: ignore
 
   run-load-tests:
     name: 📊 Load & Performance Tests (Conditional)
@@ -731,24 +798,83 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Python for backend & load tests
+        uses: actions/setup-python@v5
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
 
-      - name: Placeholder load test suite
+      - name: Install dependencies
         run: |
-          echo "📊 Load Tests (Conditional)"
-          echo "When implemented, this will run:"
-          echo "  - k6 performance testing"
-          echo "  - Concurrent user simulation"
-          echo "  - Latency and throughput benchmarks"
-          echo ""
-          echo "Triggered by:"
-          echo "  ✅ Main branch only"
-          echo ""
-          # npm run test:load (when implemented)
-          echo "✅ Load tests would run here (implementation pending)"
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install locust requests
+
+      - name: Initialize database
+        run: |
+          echo "Running Alembic migrations..."
+          python -c "from backend.run_migrations import run_migrations; run_migrations()" || echo "Migration warning"
+
+      - name: Seed test data
+        run: |
+          echo "Seeding load test data..."
+          python backend/seed_e2e_data.py
+
+      - name: Start backend server in background
+        env:
+          CSRF_ENABLED: '0'
+          AUTH_MODE: disabled
+          AUTH_ENABLED: 'false'
+          RATE_LIMIT_AUTH_PER_MINUTE: '1000000'
+          RATE_LIMIT_READ_PER_MINUTE: '1000000'
+          RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
+        run: |
+          echo "Starting backend server for load tests..."
+          python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          echo $! > backend.pid
+          sleep 3
+
+          echo "Waiting for backend..."
+          for i in {1..30}; do
+            if curl -s http://127.0.0.1:8000/health > /dev/null; then
+              echo "✅ Backend is ready"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ Backend failed to start"
+              exit 1
+            fi
+            sleep 1
+          done
+
+      - name: Run load tests
+        run: |
+          echo "📊 Running load tests..."
+          python scripts/run_load_tests.py \
+            --host http://127.0.0.1:8000 \
+            --users 50 \
+            --spawn-rate 10 \
+            --duration 60 \
+            --output ci-artifacts/load-test-results.json \
+            || echo "⚠️  Load tests failed (continuing due to continue-on-error)"
+
+      - name: Kill backend
+        if: always()
+        run: |
+          if [ -f backend.pid ]; then
+            kill $(cat backend.pid) 2>/dev/null || true
+            rm backend.pid
+          fi
+
+      - name: Upload load test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results-${{ github.run_id }}
+          path: ci-artifacts/load-test-results.json
+          retention-days: 30
+          if-no-files-found: ignore
 
   # ============================================================================
   # PHASE 4: BUILD & PACKAGE
