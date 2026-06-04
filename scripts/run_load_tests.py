@@ -1,204 +1,202 @@
 #!/usr/bin/env python3
 """
-Load testing script for SMS backend using Locust.
-Measures API performance under concurrent user load.
+Load testing script for SMS backend.
+Measures API performance under concurrent user load using simple threading.
+No external concurrency library needed - portable and simple.
 """
 
 import argparse
 import json
 import sys
+import time
+import random
+import threading
 from datetime import datetime
 from pathlib import Path
+from collections import defaultdict
 import requests
-from locust import HttpUser, task, between, events
-from locust.env import Environment
-from locust.stats import StatsEntry
 
-class TeacherUser(HttpUser):
-    """Simulates a teacher using the SMS system."""
+class LoadTestMetrics:
+    """Collect and analyze load test metrics."""
 
-    wait_time = between(1, 2)
-    weight = 60  # 60% of users are teachers
+    def __init__(self):
+        self.lock = threading.Lock()
+        self.requests = []
+        self.start_time = None
+        self.end_time = None
 
-    def on_start(self):
-        """Initialize teacher session."""
-        self._login("teacher@example.com", "Teacher123!")
+    def record_request(self, method, endpoint, status_code, response_time_ms):
+        """Record a single request."""
+        with self.lock:
+            self.requests.append({
+                "method": method,
+                "endpoint": endpoint,
+                "status_code": status_code,
+                "response_time_ms": response_time_ms,
+                "success": 200 <= status_code < 300,
+                "timestamp": time.time()
+            })
 
-    def _login(self, email, password):
-        """Helper to login."""
-        try:
-            response = self.client.post(
-                "/api/v1/auth/login",
-                json={"email": email, "password": password},
-                timeout=10
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.client.headers.update({
-                    "Authorization": f"Bearer {data.get('access_token', '')}"
-                })
-                return True
-        except Exception as e:
-            print(f"Login warning: {e}")
-        return False
+    def get_endpoint_metrics(self):
+        """Calculate metrics per endpoint."""
+        endpoint_data = defaultdict(list)
 
-    @task(25)
-    def list_students(self):
-        """Teachers frequently view student lists."""
-        self.client.get("/api/v1/students?skip=0&limit=20")
+        with self.lock:
+            for req in self.requests:
+                key = f"{req['method']} {req['endpoint']}"
+                endpoint_data[key].append(req)
 
-    @task(15)
-    def search_students(self):
-        """Teachers search for specific students."""
-        self.client.get("/api/v1/students/search?q=test&limit=10")
+        results = {}
+        for endpoint, requests_list in endpoint_data.items():
+            times = [r['response_time_ms'] for r in requests_list]
+            times.sort()
 
-    @task(20)
-    def view_grades(self):
-        """Teachers review grades."""
-        self.client.get("/api/v1/grades?student_id=1&skip=0&limit=20")
+            failures = sum(1 for r in requests_list if not r['success'])
+            successes = len(requests_list) - failures
 
-    @task(15)
-    def update_grades(self):
-        """Teachers enter/update grades (write-intensive)."""
-        self.client.post(
-            "/api/v1/grades",
-            json={
-                "student_id": 1,
-                "subject": "Math",
-                "score": 85,
-                "date": "2026-06-04"
+            results[endpoint] = {
+                "num_requests": len(requests_list),
+                "num_failures": failures,
+                "min_response_time_ms": round(min(times), 2) if times else 0,
+                "avg_response_time_ms": round(sum(times) / len(times), 2) if times else 0,
+                "max_response_time_ms": round(max(times), 2) if times else 0,
+                "median_response_time_ms": round(times[len(times)//2], 2) if times else 0,
+                "p75_response_time_ms": round(times[int(len(times)*0.75)], 2) if times else 0,
+                "p90_response_time_ms": round(times[int(len(times)*0.90)], 2) if times else 0,
+                "p95_response_time_ms": round(times[int(len(times)*0.95)], 2) if times else 0,
+                "p99_response_time_ms": round(times[int(len(times)*0.99)], 2) if times else 0,
+                "requests_per_second": round(len(requests_list) / max(self.duration, 1), 2),
+                "failure_rate_percent": round((failures / len(requests_list) * 100) if requests_list else 0, 2),
+                "success_rate_percent": round((successes / len(requests_list) * 100) if requests_list else 0, 2)
             }
-        )
 
-    @task(10)
-    def analytics_dashboard(self):
-        """Teachers view class analytics."""
-        self.client.get("/api/v1/analytics/dashboard")
+        return results
 
-    @task(5)
-    def generate_report(self):
-        """Teachers generate reports."""
-        self.client.get("/api/v1/reports/grades?format=json")
+    def get_summary(self):
+        """Get overall test summary."""
+        with self.lock:
+            total_requests = len(self.requests)
+            total_failures = sum(1 for r in self.requests if not r['success'])
+
+        return {
+            "total_requests": total_requests,
+            "total_failures": total_failures,
+            "success_rate_percent": round(((total_requests - total_failures) / total_requests * 100) if total_requests > 0 else 0, 2),
+            "failure_rate_percent": round((total_failures / total_requests * 100) if total_requests > 0 else 0, 2),
+            "duration_seconds": round(self.duration, 2)
+        }
+
+    @property
+    def duration(self):
+        """Get test duration."""
+        if self.start_time and self.end_time:
+            return self.end_time - self.start_time
+        return 0
 
 
-class AdminUser(HttpUser):
-    """Simulates an administrator."""
+class LoadTestUser(threading.Thread):
+    """Simulates a single user making requests."""
 
-    wait_time = between(2, 4)
-    weight = 20  # 20% of users are admins
+    def __init__(self, user_id, host, metrics, duration, user_type="teacher"):
+        super().__init__(daemon=True)
+        self.user_id = user_id
+        self.host = host
+        self.metrics = metrics
+        self.duration = duration
+        self.user_type = user_type
+        self.session = requests.Session()
+        self.session.headers.update({"User-Agent": f"LoadTest-{user_type}-{user_id}"})
 
-    def on_start(self):
-        """Initialize admin session."""
+    def run(self):
+        """Run the user's load test."""
+        start = time.time()
+
+        # Try to login
         try:
-            response = self.client.post(
-                "/api/v1/auth/login",
-                json={
-                    "email": "admin@sms-lite.app",
-                    "password": "AdminPassword123!"
-                }
+            resp = self.session.post(
+                urljoin(self.host, "/api/v1/auth/login"),
+                json={"email": "test@example.com", "password": "test"},
+                timeout=5
             )
-            if response.status_code == 200:
-                data = response.json()
-                self.client.headers.update({
-                    "Authorization": f"Bearer {data.get('access_token', '')}"
-                })
-        except Exception as e:
-            print(f"Admin login warning: {e}")
+            if resp.status_code == 200:
+                data = resp.json()
+                token = data.get('access_token', '')
+                if token:
+                    self.session.headers.update({"Authorization": f"Bearer {token}"})
+        except Exception:
+            pass  # Auth may be disabled
 
-    @task(15)
-    def analytics_dashboard(self):
-        """Admins view system analytics."""
-        self.client.get("/api/v1/analytics/dashboard")
+        # Make requests until duration elapsed
+        while time.time() - start < self.duration:
+            try:
+                # Select endpoint based on user type
+                endpoint, method = self._select_endpoint()
 
-    @task(10)
-    def list_users(self):
-        """Admins manage users."""
-        self.client.get("/api/v1/users?skip=0&limit=20")
+                # Make request
+                request_start = time.time()
+                try:
+                    if method == "GET":
+                        resp = self.session.get(urljoin(self.host, endpoint), timeout=10)
+                    else:
+                        resp = self.session.post(urljoin(self.host, endpoint), json={}, timeout=10)
 
-    @task(10)
-    def list_courses(self):
-        """Admins manage courses."""
-        self.client.get("/api/v1/courses?skip=0&limit=20")
+                    response_time_ms = (time.time() - request_start) * 1000
+                    self.metrics.record_request(method, endpoint, resp.status_code, response_time_ms)
+                except requests.Timeout:
+                    response_time_ms = (time.time() - request_start) * 1000
+                    self.metrics.record_request(method, endpoint, 504, response_time_ms)
+                except Exception as e:
+                    response_time_ms = (time.time() - request_start) * 1000
+                    self.metrics.record_request(method, endpoint, 500, response_time_ms)
 
-    @task(5)
-    def system_health(self):
-        """Admins check system health."""
-        self.client.get("/health")
+                # Think time
+                time.sleep(random.uniform(0.5, 2))
+            except Exception:
+                time.sleep(0.1)
 
-    @task(5)
-    def export_data(self):
-        """Admins export data."""
-        self.client.get("/api/v1/reports/export?type=students&format=json")
+    def _select_endpoint(self):
+        """Select endpoint based on user type."""
+        # Weighted random selection of endpoints
+        if self.user_type == "teacher":
+            choices = [
+                ("GET", "/api/v1/students"),
+                ("GET", "/api/v1/students"),
+                ("GET", "/api/v1/students/search?q=test"),
+                ("GET", "/api/v1/grades"),
+                ("POST", "/api/v1/grades"),
+                ("GET", "/api/v1/analytics/dashboard"),
+                ("GET", "/api/v1/reports/grades"),
+                ("GET", "/health"),
+            ]
+        elif self.user_type == "admin":
+            choices = [
+                ("GET", "/api/v1/analytics/dashboard"),
+                ("GET", "/api/v1/users"),
+                ("GET", "/api/v1/courses"),
+                ("GET", "/health"),
+                ("GET", "/api/v1/audit"),
+            ]
+        else:  # student
+            choices = [
+                ("GET", "/api/v1/students/me/grades"),
+                ("GET", "/api/v1/students/me/schedule"),
+                ("GET", "/api/v1/notifications"),
+                ("GET", "/api/v1/announcements"),
+                ("GET", "/api/v1/students/me/assignments"),
+                ("GET", "/health"),
+            ]
 
-    @task(3)
-    def audit_log(self):
-        """Admins review audit logs."""
-        self.client.get("/api/v1/audit?skip=0&limit=50")
-
-
-class StudentUser(HttpUser):
-    """Simulates a student."""
-
-    wait_time = between(2, 5)
-    weight = 20  # 20% of users are students
-
-    def on_start(self):
-        """Initialize student session."""
-        try:
-            response = self.client.post(
-                "/api/v1/auth/login",
-                json={
-                    "email": "student@example.com",
-                    "password": "Student123!"
-                }
-            )
-            if response.status_code == 200:
-                data = response.json()
-                self.client.headers.update({
-                    "Authorization": f"Bearer {data.get('access_token', '')}"
-                })
-        except Exception as e:
-            print(f"Student login warning: {e}")
-
-    @task(30)
-    def view_own_grades(self):
-        """Students frequently view their grades."""
-        self.client.get("/api/v1/students/me/grades")
-
-    @task(20)
-    def view_schedule(self):
-        """Students view their schedule."""
-        self.client.get("/api/v1/students/me/schedule")
-
-    @task(15)
-    def notifications(self):
-        """Students check notifications."""
-        self.client.get("/api/v1/notifications?skip=0&limit=10")
-
-    @task(10)
-    def announcements(self):
-        """Students view announcements."""
-        self.client.get("/api/v1/announcements?skip=0&limit=10")
-
-    @task(10)
-    def view_assignments(self):
-        """Students view assignments."""
-        self.client.get("/api/v1/students/me/assignments")
-
-    @task(5)
-    def health_check(self):
-        """Baseline health check."""
-        self.client.get("/health")
+        return random.choice(choices)
 
 
-def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: int = 60, output: str = None):
+def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: int = 60, output: str | None = None):
     """
     Run load test against the SMS backend.
 
     Args:
         host: Base URL of the backend (e.g., http://localhost:8000)
         users: Number of concurrent users to simulate
-        spawn_rate: Users spawned per second
+        spawn_rate: Users spawned per second (approximate)
         duration: Test duration in seconds
         output: Path to save results JSON
     """
@@ -209,49 +207,45 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
     print(f"   Duration: {duration} seconds")
     print()
 
-    # Create environment
-    env = Environment(user_classes=[SMSUser], host=host)
-    stats = env.stats
+    metrics = LoadTestMetrics()
+    metrics.start_time = time.time()
 
-    # Collect metrics
-    metrics_data = {
-        "timestamp": datetime.utcnow().isoformat(),
-        "host": host,
-        "config": {
-            "users": users,
-            "spawn_rate": spawn_rate,
-            "duration": duration
-        },
-        "results": {}
-    }
+    # Spawn users gradually
+    user_threads = []
+    spawn_interval = 1.0 / spawn_rate if spawn_rate > 0 else 0.1
 
-    def on_test_stop(environment, **kwargs):
-        """Called when test stops - collect results."""
+    try:
+        for i in range(users):
+            # Select user type based on weight
+            rand = random.random()
+            if rand < 0.6:
+                user_type = "teacher"
+            elif rand < 0.8:
+                user_type = "admin"
+            else:
+                user_type = "student"
+
+            user = LoadTestUser(i, host, metrics, duration, user_type)
+            user.start()
+            user_threads.append(user)
+
+            # Spawn rate control
+            if i < users - 1:
+                time.sleep(spawn_interval)
+
+        # Wait for all users to complete
+        for user in user_threads:
+            user.join()
+
+        metrics.end_time = time.time()
+
+        # Collect and display results
         print("\n📊 Load Test Results:")
         print("=" * 80)
 
-        # Collect detailed metrics per endpoint
-        for endpoint, entry in stats.entries.items():
-            if entry.num_requests == 0:
-                continue
-
-            metrics_data["results"][endpoint] = {
-                "num_requests": entry.num_requests,
-                "num_failures": entry.num_failures,
-                "min_response_time_ms": round(entry.min_response_time, 2),
-                "avg_response_time_ms": round(entry.avg_response_time, 2),
-                "max_response_time_ms": round(entry.max_response_time, 2),
-                "median_response_time_ms": round(entry.get_response_time_percentile(0.5), 2),
-                "p75_response_time_ms": round(entry.get_response_time_percentile(0.75), 2),
-                "p90_response_time_ms": round(entry.get_response_time_percentile(0.90), 2),
-                "p95_response_time_ms": round(entry.get_response_time_percentile(0.95), 2),
-                "p99_response_time_ms": round(entry.get_response_time_percentile(0.99), 2),
-                "requests_per_second": round(entry.total_rps, 2),
-                "failure_rate_percent": round((entry.num_failures / entry.num_requests * 100) if entry.num_requests > 0 else 0, 2),
-                "success_rate_percent": round(((entry.num_requests - entry.num_failures) / entry.num_requests * 100) if entry.num_requests > 0 else 0, 2)
-            }
-
-            result = metrics_data["results"][endpoint]
+        results = metrics.get_endpoint_metrics()
+        for endpoint in sorted(results.keys()):
+            result = results[endpoint]
             print(f"\n{endpoint}")
             print(f"  ✓ Requests: {result['num_requests']} ({result['requests_per_second']:.2f} req/s)")
             print(f"  ✗ Failures: {result['num_failures']} ({result['failure_rate_percent']:.1f}%)")
@@ -265,82 +259,38 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
 
         print("\n" + "=" * 80)
 
-        # Determine pass/fail
-        total_requests = sum(e.num_requests for e in stats.entries.values())
-        total_failures = sum(e.num_failures for e in stats.entries.values())
-        failure_rate = (total_failures / total_requests * 100) if total_requests > 0 else 0
-
-        # Calculate overall P95 and P99
-        all_times = []
-        for entry in stats.entries.values():
-            for _ in range(entry.num_requests):
-                # Approximate using available percentiles
-                all_times.append(entry.avg_response_time)
-
+        summary = metrics.get_summary()
         print(f"\n📊 Overall Statistics:")
-        print(f"   Total Requests: {total_requests}")
-        print(f"   Total Failures: {total_failures}")
-        print(f"   Success Rate: {100 - failure_rate:.1f}%")
-        print(f"   Failure Rate: {failure_rate:.1f}%")
+        print(f"   Total Requests: {summary['total_requests']}")
+        print(f"   Total Failures: {summary['total_failures']}")
+        print(f"   Success Rate: {summary['success_rate_percent']:.1f}%")
+        print(f"   Failure Rate: {summary['failure_rate_percent']:.1f}%")
 
-        metrics_data["summary"] = {
-            "total_requests": total_requests,
-            "total_failures": total_failures,
-            "success_rate_percent": round(100 - failure_rate, 2),
-            "failure_rate_percent": round(failure_rate, 2),
-            "duration_seconds": duration
-        }
-
+        # Save results
         if output:
             Path(output).parent.mkdir(parents=True, exist_ok=True)
+            output_data = {
+                "timestamp": datetime.utcnow().isoformat(),
+                "host": host,
+                "config": {
+                    "users": users,
+                    "spawn_rate": spawn_rate,
+                    "duration": duration
+                },
+                "results": results,
+                "summary": summary
+            }
             with open(output, 'w') as f:
-                json.dump(metrics_data, f, indent=2)
+                json.dump(output_data, f, indent=2)
             print(f"\n✅ Results saved to {output}")
 
-        # Determine pass/fail with reasonable thresholds
-        regressions = []
-
-        # Check failure rate
+        # Determine pass/fail
+        failure_rate = summary['failure_rate_percent']
         if failure_rate > 2.0:
-            regressions.append(f"Failure rate {failure_rate:.1f}% exceeds 2% threshold")
-
-        # Check P95 for any endpoint
-        for endpoint, result in metrics_data["results"].items():
-            if result.get("p95_response_time_ms", 0) > 2000:  # >2s is slow
-                regressions.append(f"{endpoint} P95 {result['p95_response_time_ms']:.0f}ms exceeds 2000ms")
-
-        if regressions:
-            print(f"\n⚠️  Performance issues detected:")
-            for issue in regressions[:5]:  # Show first 5
-                print(f"   - {issue}")
-            if len(regressions) > 5:
-                print(f"   ... and {len(regressions) - 5} more")
-
-        # Overall result
-        if failure_rate > 2.0:
-            print(f"\n❌ Test failed: Failure rate {failure_rate:.1f}% exceeds threshold")
+            print(f"\n❌ Test failed: Failure rate {failure_rate:.1f}% exceeds 2% threshold")
             return False
 
         print(f"\n✅ Load test passed!")
-        return True
-
-    env.events.test_stop.add_listener(on_test_stop)
-
-    # Run the test
-    try:
-        runner = env.create_local_runner()
-        runner.spawn_locusts(user_count=users, spawn_rate=spawn_rate, wait=False)
-        runner.start_hatching(wait=False)
-
-        # Wait for specified duration
-        import time
-        time.sleep(duration)
-
-        # Stop the runner
-        runner.stop()
-        runner.quit()
-
-        print("\n✅ Load test completed successfully")
         return True
 
     except KeyboardInterrupt:
@@ -348,7 +298,16 @@ def run_load_test(host: str, users: int = 50, spawn_rate: float = 10, duration: 
         return False
     except Exception as e:
         print(f"\n❌ Load test failed with error: {e}")
+        import traceback
+        traceback.print_exc()
         return False
+
+
+def urljoin(base, path):
+    """Simple URL join."""
+    base = base.rstrip('/')
+    path = path.lstrip('/')
+    return f"{base}/{path}"
 
 
 def main():
