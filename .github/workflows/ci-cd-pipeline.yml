@@ -100,13 +100,9 @@ jobs:
         run: |
           Write-Host "Verifying version consistency across codebase..." -ForegroundColor Cyan
           if (Test-Path "scripts\VERIFY_VERSION.ps1") {
-            .\scripts\VERIFY_VERSION.ps1 -CheckOnly
+            .\scripts\VERIFY_VERSION.ps1 -CIMode
             if ($LASTEXITCODE -eq 1) {
               Write-Error "❌ Critical version inconsistencies found"
-              exit 1
-            } elseif ($LASTEXITCODE -eq 2) {
-              Write-Warning "⚠️  Version inconsistencies detected"
-              Write-Host "Run: .\scripts\VERIFY_VERSION.ps1 -Update" -ForegroundColor Yellow
               exit 1
             }
           } else {
