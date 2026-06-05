@@ -156,8 +156,8 @@ $versionChecks = @(
     },
     @{
         File = "frontend/package.json"
-        Pattern = '"version":\s*"\d+\.\d+\.\d+"'
-        Replace = "`"version`": `"$VersionCore`""
+        Pattern = '"version":\s*"v?\d+\.\d+\.\d+"'
+        Replace = "`"version`": `"v$VersionCore`""
         Description = "Frontend package.json"
         Critical = $true
     },
