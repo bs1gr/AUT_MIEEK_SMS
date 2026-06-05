@@ -41,8 +41,12 @@ $generatedAllowlist = @(
     'installer\installer_complete_el.rtf',
     'installer\wizard_image.bmp',
     'installer\wizard_small.bmp',
-    'installer\dist\SMS_Manager.exe',
-    'installer\dist\SMS_Lite.exe'
+    'installer\dist\SMS_Manager.exe'
+)
+
+# Optional generated artifacts (don't block build if missing)
+$optionalGeneratedAllowlist = @(
+    'installer\dist\SMS_Lite.exe'  # Built separately via PyInstaller, optional for Docker Edition
 )
 
 $dangerousPayloadPatterns = @(
@@ -259,13 +263,20 @@ foreach ($reference in $references) {
     $absolutePath = Resolve-InstallerReference -Reference $rawRef
     $repoRelative = Get-RepoRelativePath -AbsolutePath $absolutePath
     $isGenerated = $generatedAllowlist -contains $repoRelative
+    $isOptionalGenerated = $optionalGeneratedAllowlist -contains $repoRelative
 
-    if ($isGenerated -and -not $RequireGeneratedArtifacts) {
+    if (($isGenerated -or $isOptionalGenerated) -and -not $RequireGeneratedArtifacts) {
         Write-Host "ℹ️  [generated] $repoRelative (line $($reference.Line)) - skipped in prebuild mode" -ForegroundColor DarkYellow
         continue
     }
 
     if (-not (Test-Path $absolutePath)) {
+        # Optional generated artifacts (like SMS_Lite.exe) are allowed to be missing
+        if ($isOptionalGenerated) {
+            Write-Host "⚠️  [optional-generated] $repoRelative (not required for Docker Edition)" -ForegroundColor Yellow
+            continue
+        }
+
         $details = if ($isGenerated) {
             'required generated artifact is missing'
         } elseif (Test-GitIgnored -RepoRelativePath $repoRelative) {
@@ -277,7 +288,7 @@ foreach ($reference in $references) {
         continue
     }
 
-    if ($isGenerated) {
+    if ($isGenerated -or $isOptionalGenerated) {
         Write-Host "✅ [generated] $repoRelative" -ForegroundColor Green
         continue
     }
