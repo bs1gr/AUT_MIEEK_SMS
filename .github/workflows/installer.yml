@@ -9,6 +9,20 @@ name: Windows Installer Build
 
 on:
   workflow_dispatch:
+    inputs:
+      output_mode:
+        description: 'Output mode: release (publish as GitHub release) or repo-commit (commit to branch)'
+        required: false
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - repo-commit
+      target_branch:
+        description: '[Only for repo-commit mode] Target branch to commit installer to'
+        required: false
+        default: 'dist/installer'
+        type: string
 
 jobs:
   build:
@@ -120,9 +134,87 @@ jobs:
 
           "path=$expectedCore" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
-      - name: Upload Installer Artifact
+      - name: Upload Installer Artifact (For Access by Downstream Jobs)
         uses: actions/upload-artifact@v4
         with:
           name: SMS_Installer
           path: ${{ steps.resolve_installer.outputs.path }}
           if-no-files-found: error
+
+  # ============================================================================
+  # OUTPUT JOBS (Consolidation 2: Dual-mode publication)
+  # ============================================================================
+
+  publish-release:
+    name: 📦 Publish as GitHub Release
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event.inputs.output_mode == 'release' || github.event.inputs.output_mode == '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Download Installer Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SMS_Installer
+
+      - name: Create Release
+        run: |
+          VERSION=$(cat VERSION)
+          INSTALLER=$(ls SMS_Installer_*.exe 2>/dev/null | head -1)
+
+          if [ -z "$INSTALLER" ]; then
+            echo "❌ No installer found"
+            exit 1
+          fi
+
+          echo "📦 Publishing installer: $INSTALLER"
+          gh release create "$VERSION" "$INSTALLER" --generate-notes || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  commit-to-repo:
+    name: 💾 Commit Installer to Repository
+    runs-on: ubuntu-latest
+    needs: build
+    if: ${{ github.event.inputs.output_mode == 'repo-commit' }}
+    steps:
+      - name: Checkout Target Branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.inputs.target_branch || 'dist/installer' }}
+          fetch-depth: 0
+
+      - name: Download Installer Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SMS_Installer
+
+      - name: Commit and Push Installer
+        run: |
+          INSTALLER=$(ls SMS_Installer_*.exe 2>/dev/null | head -1)
+          VERSION=$(cat VERSION)
+
+          if [ -z "$INSTALLER" ]; then
+            echo "❌ No installer found"
+            exit 1
+          fi
+
+          echo "💾 Committing installer to ${{ github.event.inputs.target_branch || 'dist/installer' }}"
+          git config user.email "github-actions@github.com"
+          git config user.name "GitHub Actions"
+
+          git add "$INSTALLER"
+          git commit -m "chore: update installer $VERSION" || echo "No changes to commit"
+
+          # Try direct push first (for non-protected branches)
+          git push origin ${{ github.event.inputs.target_branch || 'dist/installer' }} || {
+            echo "⚠️  Direct push failed (protected branch?), attempting PR fallback..."
+            gh pr create --base ${{ github.event.inputs.target_branch || 'dist/installer' }} \
+              --head "installer-update-$(date +%s)" \
+              --title "chore: update installer $VERSION" \
+              --body "Automated installer update" || true
+          }
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

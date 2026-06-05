@@ -6,9 +6,24 @@ on:
     - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
+      task:
+        description: 'Maintenance task to run (or "all" for all tasks)'
+        required: false
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - stale-cleanup
+          - workflow-cleanup
+          - artifact-cleanup
+          - health-check
+          - deps-check
+          - docs-validate
+          - security-audit
+          - branch-protection
       cleanup_level:
-        description: 'Cleanup level'
-        required: true
+        description: '[DEPRECATED - use task parameter] Cleanup level'
+        required: false
         default: 'standard'
         type: choice
         options:
@@ -21,12 +36,59 @@ env:
 
 jobs:
   # ============================================================================
+  # TASK DETERMINATION (Consolidation 1: Unified task selector)
+  # ============================================================================
+
+  determine-tasks:
+    name: 🎯 Determine Tasks to Run
+    runs-on: ubuntu-latest
+    outputs:
+      run_stale: ${{ steps.tasks.outputs.run_stale }}
+      run_workflow_cleanup: ${{ steps.tasks.outputs.run_workflow_cleanup }}
+      run_artifact_cleanup: ${{ steps.tasks.outputs.run_artifact_cleanup }}
+      run_health_check: ${{ steps.tasks.outputs.run_health_check }}
+      run_deps_check: ${{ steps.tasks.outputs.run_deps_check }}
+      run_docs_validate: ${{ steps.tasks.outputs.run_docs_validate }}
+      run_security_audit: ${{ steps.tasks.outputs.run_security_audit }}
+      run_branch_protection: ${{ steps.tasks.outputs.run_branch_protection }}
+    steps:
+      - name: Determine which tasks to run
+        id: tasks
+        run: |
+          TASK="${{ github.event.inputs.task || 'all' }}"
+
+          # Default: run all if not specified
+          if [ "$TASK" = "all" ] || [ -z "$TASK" ]; then
+            echo "run_stale=true" >> $GITHUB_OUTPUT
+            echo "run_workflow_cleanup=true" >> $GITHUB_OUTPUT
+            echo "run_artifact_cleanup=true" >> $GITHUB_OUTPUT
+            echo "run_health_check=true" >> $GITHUB_OUTPUT
+            echo "run_deps_check=true" >> $GITHUB_OUTPUT
+            echo "run_docs_validate=true" >> $GITHUB_OUTPUT
+            echo "run_security_audit=true" >> $GITHUB_OUTPUT
+            echo "run_branch_protection=true" >> $GITHUB_OUTPUT
+            echo "🎯 Running all maintenance tasks"
+          else
+            # Run only specified task
+            echo "run_stale=$([ "$TASK" = "stale-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "run_workflow_cleanup=$([ "$TASK" = "workflow-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "run_artifact_cleanup=$([ "$TASK" = "artifact-cleanup" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "run_health_check=$([ "$TASK" = "health-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "run_deps_check=$([ "$TASK" = "deps-check" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "run_docs_validate=$([ "$TASK" = "docs-validate" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "run_security_audit=$([ "$TASK" = "security-audit" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "run_branch_protection=$([ "$TASK" = "branch-protection" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+            echo "🎯 Running task: $TASK"
+          fi
+  # ============================================================================
   # CLEANUP JOBS
   # ============================================================================
 
   cleanup-workflow-runs:
     name: 🧹 Cleanup Old Workflow Runs
     runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_workflow_cleanup == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -67,6 +129,8 @@ jobs:
   cleanup-artifacts:
     name: 📦 Cleanup Old Artifacts
     runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_artifact_cleanup == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -112,6 +176,8 @@ jobs:
   stale-cleanup:
     name: 👻 Close Stale Issues and PRs
     runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_stale == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -124,6 +190,8 @@ jobs:
   branch-protection:
     name: 🛡️ Apply Branch Protection
     runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_branch_protection == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -140,6 +208,8 @@ jobs:
   check-outdated-deps:
     name: 📊 Check for Outdated Dependencies
     runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_deps_check == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -172,6 +242,8 @@ jobs:
   validate-docs:
     name: 📚 Validate Documentation
     runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_docs_validate == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -218,6 +290,8 @@ jobs:
   security-audit:
     name: 🔒 Run Security Audit
     runs-on: ubuntu-latest
+    needs: determine-tasks
+    if: needs.determine-tasks.outputs.run_security_audit == 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v5
