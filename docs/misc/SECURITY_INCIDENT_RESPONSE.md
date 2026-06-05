@@ -142,7 +142,7 @@ For compromised credentials:
 Incident: SQL Injection in user search (SECURITY-2026-06-001)
 Impact: All user records potentially exposed
 Duration: 2024-06-01 10:30 to 10:45 (15 minutes)
-Affected: All users of SMS v1.18.24
+Affected: All users of SMS vv1.18.24
 Exploitation: No logs of malicious queries detected
 ```
 
@@ -535,3 +535,4 @@ During investigation, preserve:
 **Last Updated:** 2026-06-02  
 **Next Review:** 2026-09-02  
 **Status:** ACTIVE
+

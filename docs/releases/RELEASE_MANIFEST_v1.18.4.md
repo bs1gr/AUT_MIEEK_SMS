@@ -1,12 +1,12 @@
-# Release Manifest vvv1.18.22
+# Release Manifest vvvv1.18.24
 
-**Release Tag:** `vvv1.18.22`
+**Release Tag:** `vvvv1.18.24`
 **Branch:** `main`
 **Prepared On:** 2026-02-23
 
 ## Scope Baseline
 
-- Diff baseline: `vvv1.18.22..HEAD`
+- Diff baseline: `vvvv1.18.24..HEAD`
 - Primary themes:
   - Backup integrity fixes
   - Control API authorization hardening
@@ -41,12 +41,12 @@ No other release assets are permitted.
 - [x] `VERSION` = `1.18.4`
 - [x] `frontend/package.json` version = `1.18.4`
 - [x] `CHANGELOG.md` finalized with `[1.18.4]`
-- [x] `.github/RELEASE_NOTES_vvv1.18.22.md` prepared
+- [x] `.github/RELEASE_NOTES_vvvv1.18.24.md` prepared
 - [x] Release note/checklist/manifest docs created
 
 ## Post-Publish Verification Targets
 
-- [x] Release exists at tag `vvv1.18.22`
+- [x] Release exists at tag `vvvv1.18.24`
 - [x] Installer + `.sha256` sidecar present
 - [x] Asset digest matches workflow output
 - [x] No non-allowlisted assets remain
@@ -57,4 +57,5 @@ No other release assets are permitted.
 - `Create GitHub Release on tag` run `22315391846` — success
 - `Release - Build & Upload Installer with SHA256` run `22315419856` — success
 - `Release Asset Sanitizer` run `22315551253` — success
-- Release page: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22`
+- Release page: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24`
+

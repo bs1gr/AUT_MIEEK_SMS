@@ -20,13 +20,13 @@
 
 ### I'm an Operations Lead
 1. Start: [GOLIVE_QUICK_REFERENCE.md](./GOLIVE_QUICK_REFERENCE.md) (1 page, print & post)
-2. Read: [PRODUCTION_GO_LIVE_GUIDE_vvv1.18.22.md](../PRODUCTION_GO_LIVE_GUIDE_vvv1.18.22.md) (step-by-step)
+2. Read: [PRODUCTION_GO_LIVE_GUIDE_vvvv1.18.24.md](../PRODUCTION_GO_LIVE_GUIDE_vvvv1.18.24.md) (step-by-step)
 3. Reference: [RUNBOOK.md](../RUNBOOK.md) (operational reference)
 4. Use: [DAILY_OPERATIONS_CHECKLIST.md](../../operations/DAILY_OPERATIONS_CHECKLIST.md) (daily procedures)
 
 ### I'm a System Administrator
 1. Read: [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) (comprehensive overview)
-2. Review: [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvv1.18.22.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvv1.18.22.md)
+2. Review: [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvv1.18.24.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvv1.18.24.md)
 3. Use: [INCIDENT_RESPONSE_RUNBOOK.md](../../operations/INCIDENT_RESPONSE_RUNBOOK.md) (emergency procedures)
 4. Monitor: [MONITORING_SETUP.md](../../operations/MONITORING_SETUP.md)
 
@@ -55,8 +55,8 @@
 
 **Comprehensive Guides** (30+ minutes)
 - [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) - Full technical summary
-- [PRODUCTION_GO_LIVE_GUIDE_vvv1.18.22.md](../PRODUCTION_GO_LIVE_GUIDE_vvv1.18.22.md) - 1,500+ lines of procedures
-- [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvv1.18.22.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvv1.18.22.md) - Detailed pre/post checks
+- [PRODUCTION_GO_LIVE_GUIDE_vvvv1.18.24.md](../PRODUCTION_GO_LIVE_GUIDE_vvvv1.18.24.md) - 1,500+ lines of procedures
+- [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvv1.18.24.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvv1.18.24.md) - Detailed pre/post checks
 
 ---
 
@@ -212,3 +212,4 @@ All documentation organized by audience:
 **Created**: January 31, 2026
 **Status**: HISTORICAL FINAL
 **Next Review**: Only if revisiting the archived go-live packet
+

@@ -1,15 +1,15 @@
 # Deployment Checklist - Version 1.18.11
 
 **Release Date**: March 9, 2026
-**Tag**: vvv1.18.22
-**Previous Version**: vvv1.18.22
+**Tag**: vvvv1.18.24
+**Previous Version**: vvvv1.18.24
 
 ---
 
 ## Phase 1: Pre-Release Validation
 
 ### 1.1 Version Consistency
-- [ ] `VERSION` file reads `vvv1.18.22`
+- [ ] `VERSION` file reads `vvvv1.18.24`
 - [ ] `frontend/package.json` version is `1.18.11`
 - [ ] `backend/main.py` version header is `1.18.11`
 - [ ] `INSTALLER_BUILDER.ps1` version reference is `1.18.11`
@@ -30,8 +30,8 @@
 
 ### 2.1 Create Tag
 ```powershell
-git tag -a vvv1.18.22 -m "vvv1.18.22: corrective installer asset publication fix"
-git push origin vvv1.18.22
+git tag -a vvvv1.18.24 -m "vvvv1.18.24: corrective installer asset publication fix"
+git push origin vvvv1.18.24
 ```
 
 ### 2.2 Monitor Workflows
@@ -40,8 +40,8 @@ git push origin vvv1.18.22
 - [ ] `Release Asset Sanitizer` — SUCCESS
 
 ### 2.3 Verify Release Page
-- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22`
-- [ ] Release body populated from `GITHUB_RELEASE_vvv1.18.22.md`
+- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24`
+- [ ] Release body populated from `GITHUB_RELEASE_vvvv1.18.24.md`
 - [ ] Not marked as draft
 
 ---
@@ -71,6 +71,7 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 
 ## Phase 4: Documentation
 
-- [ ] Work plan updated with vvv1.18.22 corrective release state
+- [ ] Work plan updated with vvvv1.18.24 corrective release state
 - [ ] CHANGELOG.md reflects released version
 - [ ] Corrective release docs committed (`RELEASE_NOTES`, `GITHUB_RELEASE`, `RELEASE_MANIFEST`, `DEPLOYMENT_CHECKLIST`)
+

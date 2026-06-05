@@ -1,9 +1,9 @@
 # Release Manifest - Version 1.18.11
 
 **Release Date**: March 9, 2026
-**Tag**: vvv1.18.22
+**Tag**: vvvv1.18.24
 **Branch**: main
-**Previous Release**: vvv1.18.22 (release page published, installer assets missing)
+**Previous Release**: vvvv1.18.24 (release page published, installer assets missing)
 
 ---
 
@@ -30,7 +30,7 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 | File | Expected Value |
 |------|---------------|
-| `VERSION` | `vvv1.18.22` |
+| `VERSION` | `vvvv1.18.24` |
 | `frontend/package.json` | `"version": "1.18.11"` |
 | `backend/main.py` | `Version: 1.18.11` |
 | `INSTALLER_BUILDER.ps1` | `Version: 1.18.11` |
@@ -40,8 +40,8 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ## 📋 Commit Range
 
-**Base**: vvv1.18.22
-**Head**: vvv1.18.22 corrective release prep (`main` HEAD at release cut)
+**Base**: vvvv1.18.24
+**Head**: vvvv1.18.24 corrective release prep (`main` HEAD at release cut)
 
 ### Commit Categories
 
@@ -56,7 +56,7 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ### Pre-Release Checks
 
-- [ ] `VERSION` file contains `vvv1.18.22`
+- [ ] `VERSION` file contains `vvvv1.18.24`
 - [ ] `frontend/package.json` version is `1.18.11`
 - [ ] `backend/main.py` version header is `1.18.11`
 - [ ] `CHANGELOG.md` has `[1.18.11]` section
@@ -66,10 +66,11 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ### Post-Release Checks
 
-- [ ] GitHub Release page published at `/releases/tag/vvv1.18.22`
+- [ ] GitHub Release page published at `/releases/tag/vvvv1.18.24`
 - [ ] Installer workflow completed successfully
 - [ ] Release-asset-sanitizer workflow passed
 - [ ] `SMS_Installer_1.18.11.exe` present in release assets
 - [ ] `SMS_Installer_1.18.11.exe.sha256` present in release assets
 - [ ] SHA256 checksum matches downloaded installer
 - [ ] Authenticode signature valid (AUT MIEEK certificate)
+

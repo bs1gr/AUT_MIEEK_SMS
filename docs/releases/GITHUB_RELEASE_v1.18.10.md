@@ -1,4 +1,4 @@
-## What's New in vvv1.18.22
+## What's New in vvvv1.18.24
 
 ### 🔧 Installer Upgrade Reliability
 
@@ -15,16 +15,17 @@
 
 - Archived deprecated scripts and historical lint report artifacts.
 - Added test runner guidance and workspace-cleanup documentation.
-- Normalized release-note and CSV formatting drift after `vvv1.18.22`.
+- Normalized release-note and CSV formatting drift after `vvvv1.18.24`.
 
 ### ✅ Validation Snapshot
 
-- Post-release scope from `vvv1.18.22..HEAD` reviewed
-- Confirmed prior installer rebuild commit was outside `vvv1.18.22` tag lineage
-- Version metadata prepared for `vvv1.18.22`
+- Post-release scope from `vvvv1.18.24..HEAD` reviewed
+- Confirmed prior installer rebuild commit was outside `vvvv1.18.24` tag lineage
+- Version metadata prepared for `vvvv1.18.24`
 
 ### 📦 Installation
 
 - **Windows**: Download `SMS_Installer_1.18.10.exe` from release assets.
 - **Docker (production)**: `./DOCKER.ps1 -Update`
 - **Native (development)**: `./NATIVE.ps1 -Start`
+

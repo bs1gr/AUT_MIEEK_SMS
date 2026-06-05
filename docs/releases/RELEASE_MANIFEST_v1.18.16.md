@@ -1,4 +1,4 @@
-# Release Manifest - vvv1.18.22
+# Release Manifest - vvvv1.18.24
 
 **Version**: 1.18.16
 **Release Date**: 2026-03-31
@@ -24,7 +24,7 @@
 | **GitHub asset uploaded** | 2026-03-31T12:04:18Z |
 | **Downloaded release asset hash** | `7EB8C32D1B6CF1A012E3B6D6C57210A9B29235F11C70B4783603E88CA0BB945D` |
 | **Downloaded release asset signature** | Valid |
-| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22 |
+| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24 |
 
 > **SHA256 note**: DigiCert live timestamping means each build produces a distinct binary. The GitHub release asset digest becomes the authoritative post-publication hash once the installer workflow uploads the signed release artifact.
 
@@ -34,7 +34,7 @@
 
 | File | Version |
 |---|---|
-| `VERSION` | `vvv1.18.22` |
+| `VERSION` | `vvvv1.18.24` |
 | `frontend/package.json` | `1.18.16` |
 | `backend/main.py` | `1.18.16` |
 | `INSTALLER_BUILDER.ps1` | `1.18.16` |
@@ -51,7 +51,7 @@
 |---|---|
 | `scripts/VERIFY_VERSION.ps1 -CheckOnly` | ✅ Passed |
 | `COMMIT_READY.ps1 -Quick -Snapshot` | ✅ Passed (`artifacts/state/STATE_2026-03-31_145504.md`) |
-| Version format | ✅ `vvv1.18.22` |
+| Version format | ✅ `vvvv1.18.24` |
 | Installer release inputs | ✅ Validated during installer build |
 | Backend batch tests | ✅ `21/21` batches passed during commit gate |
 | Frontend build | ✅ Passed |
@@ -71,18 +71,18 @@
 
 ---
 
-## Commits Since vvv1.18.22
+## Commits Since vvvv1.18.24
 
 | Hash | Description |
 |---|---|
-| `336551437` | chore(release): record vvv1.18.22 publication evidence -- GitHub digest, state snapshot |
+| `336551437` | chore(release): record vvvv1.18.24 publication evidence -- GitHub digest, state snapshot |
 | `e4849ce7d` | ci: reduce release-asset-sanitizer frequency from hourly to daily |
 | `23a526859` | ci: disable excessive scheduled workflows - production health check (hourly), load testing (weekly) |
 | `8099ebed8` | feat(installer): default to QNAP PostgreSQL; docs(user,installer): add Database Configuration guidance; fix(migrate): clarify migrate_sqlite_to_postgres usage; i18n: update Greek translations |
 | `6ac9863c6` | maintenance fixes |
 | `c5115b812` | fix(security): resolve open dependabot alerts |
 | `49ddd3c66` | docs(deployment): add runbook status banner |
-| `fcb2570f6` | chore(release): prepare vvv1.18.22 |
+| `fcb2570f6` | chore(release): prepare vvvv1.18.24 |
 
 ---
 
@@ -97,11 +97,12 @@ Per release-lineage policy:
 
 ## GitHub Release Checklist
 
-- ✅ Commit `fcb2570f6` (`chore(release): prepare vvv1.18.22`) pushed to `main`
-- ✅ Tag `vvv1.18.22` created and pushed (`2026-03-31`)
+- ✅ Commit `fcb2570f6` (`chore(release): prepare vvvv1.18.24`) pushed to `main`
+- ✅ Tag `vvvv1.18.24` created and pushed (`2026-03-31`)
 - ✅ `Create GitHub Release on tag` workflow succeeded — Run `23796230467`, published `2026-03-31T12:02:29Z`
 - ✅ `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded — Run `23796249268`
 - ✅ `Release Asset Sanitizer` confirmed installer-only assets — Run `23796614869`
 - ✅ Published installer filename is `SMS_Installer_1.18.16.exe` (asset ID `385505550`)
 - ✅ GitHub release digest recorded and matched downloaded asset hash
 - ✅ Downloaded published installer verified with `Get-AuthenticodeSignature` → `Valid`
+

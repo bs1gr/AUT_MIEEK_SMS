@@ -4,26 +4,26 @@
 **Project Version (documented)**: 1.18.24
 **Version**: 1.18.24
 **Current Branch**: `main`
-**Status**: ✅ **`vvv1.18.22` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`vvv1.18.22` IS THE LATEST PUBLISHED MAINTENANCE RELEASE**
+**Status**: ✅ **`vvvv1.18.24` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`vvvv1.18.24` IS THE LATEST PUBLISHED MAINTENANCE RELEASE**
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Apr 8, 2026)**: ✅ **`vvv1.18.22` remains the first official public release and `vvv1.18.22` is now the latest published maintenance release**
-> - `vvv1.18.22` through `vvv1.18.22` remain archived as prereleases for historical reference
-> - `vvv1.18.22` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
-> - `vvv1.18.22` release publication, installer verification, GitHub digest verification, and post-release evidence were completed successfully
-> - `vvv1.18.22` packages QNAP PostgreSQL defaulting, dependency/security refreshes, installer credential-file parsing parity, manual-only CI cadence updates, and deployment runbooks
+> **Current Status (Apr 8, 2026)**: ✅ **`vvvv1.18.24` remains the first official public release and `vvvv1.18.24` is now the latest published maintenance release**
+> - `vvvv1.18.24` through `vvvv1.18.24` remain archived as prereleases for historical reference
+> - `vvvv1.18.24` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
+> - `vvvv1.18.24` release publication, installer verification, GitHub digest verification, and post-release evidence were completed successfully
+> - `vvvv1.18.24` packages QNAP PostgreSQL defaulting, dependency/security refreshes, installer credential-file parsing parity, manual-only CI cadence updates, and deployment runbooks
 > - GitHub code scanning and Dependabot now both report zero open alerts after the `main`-branch dependency refresh
-> - `vvv1.18.22` restores generated Greek `.rtf` installer assets in the build pipeline
-> - `vvv1.18.22` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
-> - Fresh local installer build, signing, and smoke verification completed successfully for `vvv1.18.22` before official publication
+> - `vvvv1.18.24` restores generated Greek `.rtf` installer assets in the build pipeline
+> - `vvvv1.18.24` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
+> - Fresh local installer build, signing, and smoke verification completed successfully for `vvvv1.18.24` before official publication
 > - All archived prerelease bodies now carry an explicit `ARCHIVED` banner for visual consistency in the GitHub Releases UI
 > - The scheduled production checkpoint workflow exists but is currently manually disabled; rely on recorded monitoring evidence and manual/on-demand verification until re-enabled
-> - vvv1.18.22: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
-> - vvv1.18.22: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
+> - vvvv1.18.24: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
+> - vvvv1.18.24: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
 > - Post-release development: Type safety improvements, testing stability, ESLint cleanup
-> - Post-`vvv1.18.22` code review snapshot added (34 commits, 192 files changed) with consolidated Unreleased summary in `CHANGELOG.md`
-> - Changelog/work plan/index are aligned with the live `vvv1.18.22` publication state
+> - Post-`vvvv1.18.24` code review snapshot added (34 commits, 192 files changed) with consolidated Unreleased summary in `CHANGELOG.md`
+> - Changelog/work plan/index are aligned with the live `vvvv1.18.24` publication state
 > - All recent core CI validations reviewed during the audit were passing
 > - See plans/UNIFIED_WORK_PLAN.md for details
 > **Current authority note**:
@@ -530,20 +530,20 @@ This map complements the top-level structure and ensures stray Markdown files ar
 - **[RELEASE_PROCEDURE_CORRECT.md](RELEASE_PROCEDURE_CORRECT.md)** - Release incident audit and corrected script-based workflow rationale
 - **[development/RELEASE_DOCS_GENERATOR_INTEGRATION.md](development/RELEASE_DOCS_GENERATOR_INTEGRATION.md)** - Integration notes for release-doc generation within the current release workflow
 - **Historical release-workflow bundle** - `docs/development/release-workflow/` is retained for release-history reference only; commands and examples inside that bundle are archival and should not be used as the current operator path. Prefer the four documents above for active release work.
-- **[releases/RELEASE_NOTES_vvv1.18.22.md](releases/RELEASE_NOTES_vvv1.18.22.md)** - vvv1.18.22 release notes
-- **[releases/GITHUB_RELEASE_vvv1.18.22.md](releases/GITHUB_RELEASE_vvv1.18.22.md)** - publish-ready GitHub release body for vvv1.18.22
-- **[releases/RELEASE_MANIFEST_vvv1.18.22.md](releases/RELEASE_MANIFEST_vvv1.18.22.md)** - artifact manifest and integrity gates for vvv1.18.22
-- **[releases/DEPLOYMENT_CHECKLIST_vvv1.18.22.md](releases/DEPLOYMENT_CHECKLIST_vvv1.18.22.md)** - deployment and post-release verification checklist for vvv1.18.22
-- **[releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md](releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md)** - executed `vvv1.18.22` publication record and release-body source for the first official public release
-- **[releases/RELEASE_NOTES_vvv1.18.22.md](releases/RELEASE_NOTES_vvv1.18.22.md)** - vvv1.18.22 release notes (prepared)
-- **[releases/GITHUB_RELEASE_vvv1.18.22.md](releases/GITHUB_RELEASE_vvv1.18.22.md)** - publish-ready GitHub release body for vvv1.18.22
-- **[releases/RELEASE_MANIFEST_vvv1.18.22.md](releases/RELEASE_MANIFEST_vvv1.18.22.md)** - artifact manifest and integrity gates for vvv1.18.22
-- **[releases/DEPLOYMENT_CHECKLIST_vvv1.18.22.md](releases/DEPLOYMENT_CHECKLIST_vvv1.18.22.md)** - deployment and post-release verification checklist for vvv1.18.22
-- **Legacy vvv1.18.22 release bundle (consolidated references, historical evidence only)**
-  - **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - vvv1.18.22 release notes
-  - **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - vvv1.18.22 GitHub release body
-  - **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - vvv1.18.22 artifact manifest
-  - **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - vvv1.18.22 deployment checklist
+- **[releases/RELEASE_NOTES_vvvv1.18.24.md](releases/RELEASE_NOTES_vvvv1.18.24.md)** - vvvv1.18.24 release notes
+- **[releases/GITHUB_RELEASE_vvvv1.18.24.md](releases/GITHUB_RELEASE_vvvv1.18.24.md)** - publish-ready GitHub release body for vvvv1.18.24
+- **[releases/RELEASE_MANIFEST_vvvv1.18.24.md](releases/RELEASE_MANIFEST_vvvv1.18.24.md)** - artifact manifest and integrity gates for vvvv1.18.24
+- **[releases/DEPLOYMENT_CHECKLIST_vvvv1.18.24.md](releases/DEPLOYMENT_CHECKLIST_vvvv1.18.24.md)** - deployment and post-release verification checklist for vvvv1.18.24
+- **[releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md](releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md)** - executed `vvvv1.18.24` publication record and release-body source for the first official public release
+- **[releases/RELEASE_NOTES_vvvv1.18.24.md](releases/RELEASE_NOTES_vvvv1.18.24.md)** - vvvv1.18.24 release notes (prepared)
+- **[releases/GITHUB_RELEASE_vvvv1.18.24.md](releases/GITHUB_RELEASE_vvvv1.18.24.md)** - publish-ready GitHub release body for vvvv1.18.24
+- **[releases/RELEASE_MANIFEST_vvvv1.18.24.md](releases/RELEASE_MANIFEST_vvvv1.18.24.md)** - artifact manifest and integrity gates for vvvv1.18.24
+- **[releases/DEPLOYMENT_CHECKLIST_vvvv1.18.24.md](releases/DEPLOYMENT_CHECKLIST_vvvv1.18.24.md)** - deployment and post-release verification checklist for vvvv1.18.24
+- **Legacy vvvv1.18.24 release bundle (consolidated references, historical evidence only)**
+  - **[releases/RELEASE_NOTES_$11.18.3.md](releases/RELEASE_NOTES_$11.18.3.md)** - vvvv1.18.24 release notes
+  - **[releases/GITHUB_RELEASE_$11.18.3.md](releases/GITHUB_RELEASE_$11.18.3.md)** - vvvv1.18.24 GitHub release body
+  - **[releases/RELEASE_MANIFEST_$11.18.3.md](releases/RELEASE_MANIFEST_$11.18.3.md)** - vvvv1.18.24 artifact manifest
+  - **[releases/DEPLOYMENT_CHECKLIST_$11.18.3.md](releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)** - vvvv1.18.24 deployment checklist
 - **[guides/MIGRATION_$11.18.3.md](guides/MIGRATION_$11.18.3.md)** - Migration guide for $11.18.3 breaking changes
 - **[releases/reports/RELEASE_REPORT_$11.18.3.md](releases/reports/RELEASE_REPORT_$11.18.3.md)** - Executive release report for $11.18.3
 - **[releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md](releases/reports/CLEANUP_EXECUTION_REPORT_$11.18.3.md)** - Cleanup execution report for $11.18.3
@@ -838,3 +838,4 @@ Session validation and E2E testing fix records are now consolidated in the dedic
 This structure ensures session records are organized chronologically by date, discoverable in a dedicated location, separate from primary documentation, and properly versioned and archived.
 
 See docs/DOCUMENTATION_CONSOLIDATION_PLAN.md for the consolidation strategy and rationale.
+

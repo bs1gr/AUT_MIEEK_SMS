@@ -1,4 +1,4 @@
-# User Training Guide - SMS Native Lite v1.18.24
+# User Training Guide - SMS Native Lite vv1.18.24
 
 **Target Audience:** End users, students, teachers, administrators  
 **Duration:** 30 minutes  
@@ -826,6 +826,7 @@ Start using SMS Native Lite right now:
 
 ---
 
-*SMS Native Lite v1.18.24 - User Training Guide*
+*SMS Native Lite vv1.18.24 - User Training Guide*
 
 *Welcome to the future of Student Management!* 🎓
+

@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document outlines the security practices, policies, and procedures for the Student Management System (SMS) v1.18.24+.
+This document outlines the security practices, policies, and procedures for the Student Management System (SMS) vv1.18.24+.
 
 ---
 
@@ -288,5 +288,6 @@ See **[SECURITY_RELEASE_CHECKLIST.md](SECURITY_RELEASE_CHECKLIST.md)** for:
 ---
 
 **Last Updated:** 2026-06-02  
-**Version:** v1.18.24  
+**Version:** vv1.18.24  
 **Status:** ACTIVE
+

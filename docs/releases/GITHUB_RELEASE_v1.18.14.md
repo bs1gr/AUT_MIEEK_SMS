@@ -1,4 +1,4 @@
-## What's New in vvv1.18.22
+## What's New in vvvv1.18.24
 
 ### Security and dependency hardening
 
@@ -27,6 +27,7 @@
 ### Documentation
 
 - `CHANGELOG.md`
-- `docs/releases/RELEASE_NOTES_vvv1.18.22.md`
-- `docs/releases/RELEASE_MANIFEST_vvv1.18.22.md`
-- `docs/releases/DEPLOYMENT_CHECKLIST_vvv1.18.22.md`
+- `docs/releases/RELEASE_NOTES_vvvv1.18.24.md`
+- `docs/releases/RELEASE_MANIFEST_vvvv1.18.24.md`
+- `docs/releases/DEPLOYMENT_CHECKLIST_vvvv1.18.24.md`
+

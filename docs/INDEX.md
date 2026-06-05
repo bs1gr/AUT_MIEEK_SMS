@@ -57,8 +57,8 @@ This is the main entry point for navigating all project documentation. For detai
 
 ### Release Documentation
 - **[Releases](releases/)** - Release notes and version history
-  - [Release Notes](releases/RELEASE_NOTES_vv1.18.22.md) - Latest release notes
-  - [GitHub Releases](releases/GITHUB_RELEASE_vv1.18.22.md) - GitHub release documentation
+  - [Release Notes](releases/RELEASE_NOTES_vvv1.18.24.md) - Latest release notes
+  - [GitHub Releases](releases/GITHUB_RELEASE_vvv1.18.24.md) - GitHub release documentation
   - [Release Reports](releases/reports/) - Release verification reports
 
 ### CI/CD Documentation
@@ -140,3 +140,4 @@ When adding new documentation:
 4. Ensure your document has a proper heading (# Title)
 
 For more information, see [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md).
+

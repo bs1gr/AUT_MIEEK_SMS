@@ -1,4 +1,4 @@
-# Deployment Security Runbook - SMS v1.18.24+
+# Deployment Security Runbook - SMS vv1.18.24+
 
 **Purpose:** Step-by-step guide for secure production deployment  
 **Audience:** DevOps Engineers, Release Managers  
@@ -148,7 +148,7 @@ echo "✓ Pre-deployment snapshot created: ${DEPLOYMENT_ID}"
 
 ```bash
 # Send notifications
-slack-notify "#deployments" ":rocket: Deploying SMS v1.18.24 in 20 minutes"
+slack-notify "#deployments" ":rocket: Deploying SMS vv1.18.24 in 20 minutes"
 status-page-update "Deployment in progress - brief outage expected"
 ```
 
@@ -186,14 +186,14 @@ docker exec sms_app alembic current
 git pull origin main
 
 # Build new image
-docker build -t sms:v1.18.24 .
+docker build -t sms:vv1.18.24 .
 
 # Tag for registry
-docker tag sms:v1.18.24 ghcr.io/bs1gr/sms:v1.18.24
-docker tag sms:v1.18.24 ghcr.io/bs1gr/sms:latest
+docker tag sms:vv1.18.24 ghcr.io/bs1gr/sms:vv1.18.24
+docker tag sms:vv1.18.24 ghcr.io/bs1gr/sms:latest
 
 # Push to registry
-docker push ghcr.io/bs1gr/sms:v1.18.24
+docker push ghcr.io/bs1gr/sms:vv1.18.24
 docker push ghcr.io/bs1gr/sms:latest
 
 # Stop old container
@@ -206,7 +206,7 @@ docker run -d \
   -e DATABASE_URL="${DATABASE_URL}" \
   -e JWT_SECRET="${JWT_SECRET}" \
   -p 8000:8000 \
-  ghcr.io/bs1gr/sms:v1.18.24
+  ghcr.io/bs1gr/sms:vv1.18.24
 
 # Wait for startup
 sleep 10
@@ -331,7 +331,7 @@ docker stats sms_app --no-stream
 #### Step 10: Final Notification (T+2 hours)
 
 ```bash
-slack-notify "#deployments" ":white_check_mark: Deployment complete! SMS v1.18.24 live."
+slack-notify "#deployments" ":white_check_mark: Deployment complete! SMS vv1.18.24 live."
 status-page-update "Deployment completed successfully"
 ```
 
@@ -587,3 +587,4 @@ If security breach suspected:
 **Last Updated:** 2026-06-02  
 **Status:** ACTIVE  
 **Next Review:** 2026-09-02
+

@@ -1,9 +1,9 @@
 # Release Manifest - Version 1.18.14
 
 **Release Date**: March 19, 2026
-**Tag**: vvv1.18.22
+**Tag**: vvvv1.18.24
 **Branch**: main
-**Previous Tag**: vvv1.18.22
+**Previous Tag**: vvvv1.18.24
 
 ---
 
@@ -28,7 +28,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 | File | Expected Value |
 |------|---------------|
-| `VERSION` | `vvv1.18.22` |
+| `VERSION` | `vvvv1.18.24` |
 | `frontend/package.json` | `"version": "1.18.14"` |
 | `backend/main.py` | `Version: 1.18.14` |
 | `INSTALLER_BUILDER.ps1` | `Version: 1.18.14` |
@@ -39,7 +39,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ## 📋 Commit Range
 
-**Base Tag**: vvv1.18.22
+**Base Tag**: vvvv1.18.24
 **Head Commit (prep)**: `a69644838`
 **Post-Publication Evidence Commit**: `c13ceec5e`
 
@@ -59,7 +59,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Pre-Release Gates
 
-- [x] Version metadata aligned to `vvv1.18.22`
+- [x] Version metadata aligned to `vvvv1.18.24`
 - [x] Release notes generated (`RELEASE_NOTES`, `GITHUB_RELEASE`, `.github/RELEASE_NOTES`)
 - [x] Security-focused backend tests passed (`25 passed`)
 - [x] Backend batch-run passed (`34/34` batches)
@@ -70,12 +70,12 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Publication Gates
 
-- [x] Local installer build/sign/smoke for `vvv1.18.22`
-- [x] Tag `vvv1.18.22` created and pushed
+- [x] Local installer build/sign/smoke for `vvvv1.18.24`
+- [x] Tag `vvvv1.18.24` created and pushed
 - [x] `Create GitHub Release on tag` workflow succeeds (`run 23313536112`)
 - [x] `Release - Build & Upload Installer with SHA256` workflow succeeds (`run 23313558162`)
 - [x] `Release Asset Sanitizer` workflow success observed (`run 23313293736`)
-- [x] Release page published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22`
+- [x] Release page published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24`
 - [x] Digest metadata visible for installer asset (`sha256:63dfccbe64f8a9cecc3089780e004bdac9139234a333805c3c84e2b81c88816a`)
 - [x] Post-release Trivy refresh succeeded (`run 23314331549` on `main` @ `c13ceec5e`)
 - [x] GitHub code scanning rechecked: zero open alerts; stale `PyJWT` alert `#1681` marked `fixed`
@@ -91,3 +91,4 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 - State snapshot: `artifacts/state/STATE_2026-03-19_220131.md`
 - Security refresh result: alert `#1681` (`CVE-2026-32597`, `PyJWT`) cleared after rescan
+

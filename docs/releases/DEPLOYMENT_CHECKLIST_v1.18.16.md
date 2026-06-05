@@ -1,4 +1,4 @@
-# Deployment Checklist - vvv1.18.22
+# Deployment Checklist - vvvv1.18.24
 
 **Version**: 1.18.16
 **Release Date**: 2026-03-31
@@ -15,7 +15,7 @@
 - [ ] Confirm GitHub digest for published installer (authoritative post-upload SHA256)
 - [ ] Verify Authenticode signature: `Get-AuthenticodeSignature` -> Status must be `Valid`
 - [ ] Signer must be: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
-- [ ] Confirm `VERSION` file reads `vvv1.18.22`
+- [ ] Confirm `VERSION` file reads `vvvv1.18.24`
 
 ### 2. Backup
 
@@ -27,11 +27,11 @@
 
 ## Standard Windows Deployment (Installer)
 
-### 3. Upgrade from vvv1.18.22
+### 3. Upgrade from vvvv1.18.24
 
 - [ ] Stop Docker if running: `.\DOCKER.ps1 -Stop`
 - [ ] Run installer: `SMS_Installer_1.18.16.exe`
-- [ ] Upgrade path: vvv1.18.22 -> vvv1.18.22 (no database migration required)
+- [ ] Upgrade path: vvvv1.18.24 -> vvvv1.18.24 (no database migration required)
 - [ ] Accept UAC prompt
 - [ ] Complete installer wizard
 - [ ] Installer auto-restores `sms-app` container
@@ -70,7 +70,7 @@
 ### 7. Native Update
 
 - [ ] `git pull origin main`
-- [ ] `git checkout vvv1.18.22` (or keep `main`)
+- [ ] `git checkout vvvv1.18.24` (or keep `main`)
 - [ ] `pip install -r backend/requirements.txt` (if dependencies changed)
 - [ ] `npm install --prefix frontend` (if dependencies changed)
 - [ ] `.\NATIVE.ps1 -Start`
@@ -142,3 +142,4 @@ If deployment fails at any step:
 
 **Date**: _______________
 **Verified by**: Owner
+

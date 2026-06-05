@@ -2,13 +2,13 @@
 
 **Release Date**: 2026-03-10
 **Official Public Release Designation**: 2026-03-11
-**Previous Tag**: vvv1.18.22
-**Previous Archived Prerelease Reference**: vvv1.18.22
+**Previous Tag**: vvvv1.18.24
+**Previous Archived Prerelease Reference**: vvvv1.18.24
 **Release Type**: Corrective Patch Release → First Official Public Release
 
 ## Summary
 
-Version 1.18.12 is the clean corrective release after the exact-tag cleanup that archived `vvv1.18.22` and `vvv1.18.22` as prereleases. It restores a reliable installer publication path, hardens security-sensitive maintenance and backup path handling, and aligns update metadata with installer-only GitHub releases that rely on GitHub digest metadata instead of `.sha256` sidecars. On March 11, 2026, this exact verified tag was promoted to become the **first official public release**.
+Version 1.18.12 is the clean corrective release after the exact-tag cleanup that archived `vvvv1.18.24` and `vvvv1.18.24` as prereleases. It restores a reliable installer publication path, hardens security-sensitive maintenance and backup path handling, and aligns update metadata with installer-only GitHub releases that rely on GitHub digest metadata instead of `.sha256` sidecars. On March 11, 2026, this exact verified tag was promoted to become the **first official public release**.
 
 ## 🔧 Installer Build & Release Corrections
 
@@ -17,7 +17,7 @@ Version 1.18.12 is the clean corrective release after the exact-tag cleanup that
 - Updated the Greek encoding audit to validate generated `.rtf` assets rather than deleted legacy `.txt` files.
 - Fixed installer builder validation to trust the wizard image `.version_cache` instead of stale timestamp heuristics.
 - Kept installer release input validation aligned with generated assets and blocked local-only installer references before publication.
-- Reused the verified `vvv1.18.22` tag as the official public release without minting a new version.
+- Reused the verified `vvvv1.18.24` tag as the official public release without minting a new version.
 
 ## 🔒 Security Hardening
 
@@ -33,7 +33,7 @@ Version 1.18.12 is the clean corrective release after the exact-tag cleanup that
   - `backend/tests/test_database_manager_security.py`
 - `COMMIT_READY.ps1 -Quick -Snapshot` completed successfully.
 - Fresh state snapshot recorded: `artifacts/state/STATE_2026-03-10_101933.md`
-- Fresh local installer verification for `vvv1.18.22` completed successfully:
+- Fresh local installer verification for `vvvv1.18.24` completed successfully:
   - local build produced `dist/SMS_Installer_1.18.12.exe`
   - Authenticode signing succeeded (`AUT MIEEK`)
   - installer smoke validation passed
@@ -41,9 +41,10 @@ Version 1.18.12 is the clean corrective release after the exact-tag cleanup that
 
 ## Commits in Scope
 
-- `fix(release): prepare verified vvv1.18.22 corrective candidate`
+- `fix(release): prepare verified vvvv1.18.24 corrective candidate`
 - `docs(release): record installer guardrails`
 - `build(release): add installer tracked-input guardrails`
-- `docs(release): record vvv1.18.22 publication status`
-- `docs(release): finalize vvv1.18.22 official publication path`
-- `docs(release): sync official vvv1.18.22 publication state`
+- `docs(release): record vvvv1.18.24 publication status`
+- `docs(release): finalize vvvv1.18.24 official publication path`
+- `docs(release): sync official vvvv1.18.24 publication state`
+

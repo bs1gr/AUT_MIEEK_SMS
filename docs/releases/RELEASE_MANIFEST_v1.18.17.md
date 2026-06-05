@@ -1,4 +1,4 @@
-# Release Manifest - vvv1.18.22
+# Release Manifest - vvvv1.18.24
 
 **Version**: 1.18.17
 **Release Date**: 2026-04-08
@@ -24,7 +24,7 @@
 | **GitHub asset digest (authoritative)** | `sha256:71c15e3bdc910f379b23bc73cb67aeec1f6a8efaebad98f85e47910676d8481a` |
 | **Downloaded release asset hash** | `71C15E3BDC910F379B23BC73CB67AEEC1F6A8EFAEBAD98F85E47910676D8481A` |
 | **Downloaded release asset signature** | Valid |
-| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.22 |
+| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24 |
 
 > **SHA256 note**: DigiCert live timestamping means each build produces a distinct binary. The GitHub release asset digest becomes the authoritative post-publication hash once the installer workflow uploads the signed release artifact.
 
@@ -34,7 +34,7 @@
 
 | File | Version |
 |---|---|
-| `VERSION` | `vvv1.18.22` |
+| `VERSION` | `vvvv1.18.24` |
 | `frontend/package.json` | `1.18.17` |
 | `frontend/package-lock.json` | `1.18.17` |
 | `backend/main.py` | `1.18.17` |
@@ -61,7 +61,7 @@
 
 ---
 
-## Commits Since vvv1.18.22
+## Commits Since vvvv1.18.24
 
 | Hash | Description |
 |---|---|
@@ -70,7 +70,7 @@
 | `c91257a57` | fix(installer): harden db packaging and remote postgres setup |
 | `aef71b3f9` | fix(docker): self-heal remote qnap runtime |
 | `de8a75527` | docs(status): close post-release security alert follow-up |
-| `38f2e39e1` | chore(release): record vvv1.18.22 publication evidence |
+| `38f2e39e1` | chore(release): record vvvv1.18.24 publication evidence |
 
 ---
 
@@ -85,10 +85,11 @@ Per release-lineage policy:
 
 ## GitHub Release Checklist
 
-- ✅ Commit `c1e576e44` (`chore(release): prepare vvv1.18.22`) pushed to `main`
-- ✅ Tag `vvv1.18.22` created and pushed (`2026-04-08`)
+- ✅ Commit `c1e576e44` (`chore(release): prepare vvvv1.18.24`) pushed to `main`
+- ✅ Tag `vvvv1.18.24` created and pushed (`2026-04-08`)
 - ✅ `Create GitHub Release on tag` workflow succeeded — Run `24142472615`, published `2026-04-08T15:03:11Z`
 - ✅ `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded — Run `24142499707`
 - ✅ Published installer filename is `SMS_Installer_1.18.17.exe`
 - ✅ GitHub release digest recorded and matched downloaded asset hash
 - ✅ Downloaded published installer verified with `Get-AuthenticodeSignature` -> `Valid`
+

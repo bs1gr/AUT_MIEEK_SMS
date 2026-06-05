@@ -2,10 +2,10 @@
 
 **Release Date**: March 10, 2026
 **Official Public Release Designation**: March 11, 2026
-**Tag**: vvv1.18.22
+**Tag**: vvvv1.18.24
 **Branch**: main
-**Previous Tag**: vvv1.18.22
-**Previous Archived Prerelease Reference**: vvv1.18.22
+**Previous Tag**: vvvv1.18.24
+**Previous Archived Prerelease Reference**: vvvv1.18.24
 
 ---
 
@@ -30,7 +30,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 | File | Expected Value |
 |------|---------------|
-| `VERSION` | `vvv1.18.22` |
+| `VERSION` | `vvvv1.18.24` |
 | `frontend/package.json` | `"version": "1.18.12"` |
 | `backend/main.py` | `Version: 1.18.12` |
 | `INSTALLER_BUILDER.ps1` | `Version: 1.18.12` |
@@ -41,15 +41,15 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ## 📋 Commit Range
 
-**Base Tag**: vvv1.18.22
+**Base Tag**: vvvv1.18.24
 **Head Commit**: `a2da597da` (`main`)
-**Official Release Context**: `vvv1.18.22` is now the live/latest first official public release.
+**Official Release Context**: `vvvv1.18.24` is now the live/latest first official public release.
 
 ### Commit Categories
 
 | Category | Count | Scope |
 |----------|-------|-------|
-| Corrective Release Prep | 1 | verified `vvv1.18.22` release packaging |
+| Corrective Release Prep | 1 | verified `vvvv1.18.24` release packaging |
 | Release Guardrails | 2 | installer tracked-input guardrails + release documentation |
 | Release State Recording | 1 | publication, archival cleanup, and official-release promotion |
 
@@ -59,7 +59,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Pre-Release Checks
 
-- [ ] `VERSION` file contains `vvv1.18.22`
+- [ ] `VERSION` file contains `vvvv1.18.24`
 - [ ] `frontend/package.json` version is `1.18.12`
 - [ ] `backend/main.py` version header is `1.18.12`
 - [ ] `INSTALLER_BUILDER.ps1` version header is `1.18.12`
@@ -71,7 +71,7 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 
 ### Post-Release Checks
 
-- [ ] GitHub Release page published at `/releases/tag/vvv1.18.22`
+- [ ] GitHub Release page published at `/releases/tag/vvvv1.18.24`
 - [ ] GitHub release marked latest/non-prerelease
 - [ ] `Create GitHub Release on tag` workflow succeeds
 - [ ] `Release - Build & Upload Installer with SHA256` workflow succeeds
@@ -80,3 +80,4 @@ GitHub release digest metadata is the authoritative SHA256 source for this relea
 - [ ] No non-allowlisted assets present on the release
 - [ ] GitHub digest metadata shown for the installer asset
 - [ ] Downloaded installer signature is valid (`AUT MIEEK` certificate)
+

@@ -2,7 +2,7 @@
 
 **Status**: ✅ Active
 **Required version format**: `v1.x.x`
-**Current repository example**: `vvv1.18.22`
+**Current repository example**: `vvvv1.18.24`
 **Last Updated**: 2026-03-10
 
 ---
@@ -17,9 +17,9 @@ This document explains the version-format policy and the enforcement layers that
 
 Only this format is valid:
 
-- `vvv1.18.22`
-- `vvv1.18.22`
-- `vvv1.18.22`
+- `vvvv1.18.24`
+- `vvvv1.18.24`
+- `vvvv1.18.24`
 
 Pattern:
 
@@ -32,9 +32,9 @@ Pattern:
 These are invalid and should be rejected:
 
 - `1.18.12` (missing `v` prefix)
-- `vvv1.18.22` (wrong major series)
+- `vvvv1.18.24` (wrong major series)
 - `$11.18.3` (corrupted legacy text)
-- `vvv1.18.22` (wrong major series)
+- `vvvv1.18.24` (wrong major series)
 - `v1.18` (incomplete)
 
 ---
@@ -76,3 +76,4 @@ When in doubt, trust:
 - `COMMIT_READY.ps1`
 - `scripts/validate_version_format.ps1`
 - the current CI pipeline behavior
+

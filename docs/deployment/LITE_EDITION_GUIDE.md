@@ -1,6 +1,6 @@
 # SMS Lite Edition - User & Administrator Guide
 
-**Version:** v1.18.24  
+**Version:** vv1.18.24  
 **Updated:** June 3, 2026  
 **Status:** Production Ready ✅
 
@@ -247,7 +247,7 @@ C:\Program Files (x86)\SMS-UT\backups\
 
 ## 🔧 Troubleshooting
 
-### Problem: SMS_Lite.exe shows version v1.18.23 instead of v1.18.24
+### Problem: SMS_Lite.exe shows version vv1.18.24 instead of vv1.18.24
 
 **Solution:**
 - Uninstall SMS_Lite completely
@@ -326,7 +326,7 @@ C:\Program Files (x86)\SMS-UT\backups\
 **Collect this information before contacting support:**
 
 1. **Version Number**
-   - In app: Settings → About (shows v1.18.24 or similar)
+   - In app: Settings → About (shows vv1.18.24 or similar)
 
 2. **Debug Log**
    - File: `C:\Users\{username}\AppData\Local\SMS_Native_Lite_Simple\debug.log`
@@ -388,13 +388,13 @@ C:\Program Files (x86)\SMS-UT\backups\
 
 ## 📝 Version History
 
-### v1.18.24 (June 3, 2026)
+### vv1.18.24 (June 3, 2026)
 - ✅ **Fixed:** Lite Edition QNAP Configuration page added
 - ✅ **New:** Users can enter QNAP credentials during installation
 - ✅ **Improved:** Proper version string in application
 - ✅ **Enhanced:** Diagnostic logging for troubleshooting
 
-### v1.18.23 (May 2026)
+### vv1.18.24 (May 2026)
 - Initial Lite Edition release
 - SQLite and QNAP support
 
@@ -413,4 +413,5 @@ C:\Program Files (x86)\SMS-UT\backups\
 **Maintained by:** ΜΙΕΕΚ Development Team  
 **Last Updated:** June 3, 2026  
 **License:** See [LICENSE](../../LICENSE) file
+
 

@@ -1,15 +1,15 @@
-# Release Notes vvv1.18.22
+# Release Notes vvvv1.18.24
 
 **Date:** February 23, 2026
-**Version:** vvv1.18.22
+**Version:** vvvv1.18.24
 **Type:** Patch / Stability & Security Hardening
 **Status:** Prepared (tag + publish pending)
 
 ## Overview
 
-vvv1.18.22 consolidates post-vvv1.18.22 stability and security fixes across backup, control API authorization, RBAC behavior, and release hardening. This release is focused on safe operations and predictable installer publication.
+vvvv1.18.24 consolidates post-vvvv1.18.24 stability and security fixes across backup, control API authorization, RBAC behavior, and release hardening. This release is focused on safe operations and predictable installer publication.
 
-## Included Changes (since vvv1.18.22)
+## Included Changes (since vvvv1.18.24)
 
 ### Security & Authorization
 
@@ -44,7 +44,7 @@ vvv1.18.22 consolidates post-vvv1.18.22 stability and security fixes across back
 
 ## Validation Summary
 
-- Commit history reviewed and curated from `vvv1.18.22..HEAD`.
+- Commit history reviewed and curated from `vvvv1.18.24..HEAD`.
 - Release workflows reviewed:
   - `.github/workflows/release-on-tag.yml`
   - `.github/workflows/release-installer-with-sha.yml`
@@ -63,7 +63,8 @@ vvv1.18.22 consolidates post-vvv1.18.22 stability and security fixes across back
 
 ## Publish Procedure
 
-1. Create and push tag `vvv1.18.22` from `main`.
+1. Create and push tag `vvvv1.18.24` from `main`.
 2. Let `release-on-tag.yml` create/update release body and dispatch installer workflow.
 3. Verify installer upload + SHA256 sidecar + final sanitizer allowlist gate.
 4. Confirm release assets and digest integrity on GitHub release page.
+

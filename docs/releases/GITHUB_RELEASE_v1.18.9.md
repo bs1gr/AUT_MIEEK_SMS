@@ -1,4 +1,4 @@
-## What's New in vvv1.18.22
+## What's New in vvvv1.18.24
 
 ### 🔐 Security + Deployment Hardening
 
@@ -35,3 +35,4 @@
 - **Windows**: Download `SMS_Installer_1.18.9.exe` from release assets.
 - **Docker (production)**: `./DOCKER.ps1 -Update`
 - **Native (development)**: `./NATIVE.ps1 -Start`
+

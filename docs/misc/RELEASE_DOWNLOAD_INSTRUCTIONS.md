@@ -1,8 +1,8 @@
-# SMS Native Lite Edition v1.18.24 - Download & Installation
+# SMS Native Lite Edition vv1.18.24 - Download & Installation
 
 **Status:** ✅ Production Ready  
 **Release Date:** 2026-06-01  
-**Version:** v1.18.24  
+**Version:** vv1.18.24  
 
 ---
 
@@ -17,8 +17,8 @@ git clone https://github.com/bs1gr/AUT_MIEEK_SMS.git
 # Navigate to the repository
 cd AUT_MIEEK_SMS
 
-# Checkout the v1.18.24 release
-git checkout v1.18.24
+# Checkout the vv1.18.24 release
+git checkout vv1.18.24
 
 # Access the distribution folder
 cd SMS_Native_Lite_Edition
@@ -196,7 +196,7 @@ For detailed security information, see `SECURITY_FIX_VERIFICATION.md` in the rep
 
 ## 🔄 Upgrade Instructions
 
-From earlier versions to v1.18.24:
+From earlier versions to vv1.18.24:
 
 1. **Backup (if applicable):**
    ```powershell
@@ -262,7 +262,7 @@ After downloading, verify you have all essential files:
 
 | Item | Value |
 |------|-------|
-| **Version** | v1.18.24 |
+| **Version** | vv1.18.24 |
 | **Release Date** | 2026-06-01 |
 | **Status** | Production Ready |
 | **Security Fixes** | 30 vulnerabilities fixed |
@@ -283,7 +283,7 @@ After downloading, verify you have all essential files:
 
 ## 📎 Related Resources
 
-- **GitHub Release:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.24
+- **GitHub Release:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.24
 - **Repository:** https://github.com/bs1gr/AUT_MIEEK_SMS
 - **Main Branch:** https://github.com/bs1gr/AUT_MIEEK_SMS/tree/main
 - **Distribution Folder:** https://github.com/bs1gr/AUT_MIEEK_SMS/tree/main/SMS_Native_Lite_Edition
@@ -296,4 +296,5 @@ After downloading, verify you have all essential files:
 
 *For the most up-to-date information, visit the GitHub repository.*
 
-**v1.18.24 - Released 2026-06-01**
+**vv1.18.24 - Released 2026-06-01**
+

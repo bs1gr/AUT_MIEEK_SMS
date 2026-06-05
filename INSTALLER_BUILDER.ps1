@@ -79,7 +79,7 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: vv1.18.22
+Version: vvv1.18.24
     Created: 2025-12-04
     Updated: 2026-03-09
 
@@ -867,3 +867,4 @@ Write-Result Info "=============================================================
 Write-Result Info ""
 
 exit $(if ($success) { 0 } else { 1 })
+

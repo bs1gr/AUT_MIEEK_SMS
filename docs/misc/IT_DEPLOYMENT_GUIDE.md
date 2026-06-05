@@ -1,4 +1,4 @@
-# IT Deployment Guide - SMS Native Lite v1.18.24
+# IT Deployment Guide - SMS Native Lite vv1.18.24
 
 **Target Audience:** System Administrators, IT Teams, Deployment Engineers  
 **Version:** 1.0  
@@ -741,7 +741,7 @@ if ($latest -gt $current) {
 **Installation:**
 ```powershell
 # Backup current version
-Copy-Item "SMS_Native_Lite_Simple.exe" "SMS_Native_Lite_Simple_v1.18.24.exe"
+Copy-Item "SMS_Native_Lite_Simple.exe" "SMS_Native_Lite_Simple_vv1.18.24.exe"
 
 # Download new version
 Invoke-WebRequest -Uri "https://company.com/SMS_Native_Lite_Simple.exe" `
@@ -811,4 +811,5 @@ chmod 755 /opt/sms-lite
 
 ---
 
-*SMS Native Lite v1.18.24 - IT Deployment Guide*
+*SMS Native Lite vv1.18.24 - IT Deployment Guide*
+

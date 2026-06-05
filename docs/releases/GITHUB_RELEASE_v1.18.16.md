@@ -1,4 +1,4 @@
-## vvv1.18.22 - Maintenance, Security, and Installer Alignment Patch
+## vvvv1.18.24 - Maintenance, Security, and Installer Alignment Patch
 
 **Release Date**: March 31, 2026
 **Type**: Maintenance patch
@@ -42,12 +42,13 @@ This maintenance release packages the QNAP/PostgreSQL installer defaults, fixes 
 | GitHub digest | `sha256:7eb8c32d1b6cf1a012e3b6d6c57210a9b29235f11c70b4783603e88ca0bb945d` |
 | Signature | Valid - `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY` |
 
-> **Upgrade**: Drop-in from vvv1.18.22. No migration steps required.
+> **Upgrade**: Drop-in from vvvv1.18.24. No migration steps required.
 
 ---
 
 ### Full Changelog
 
-See [RELEASE_NOTES_vvv1.18.22.md](RELEASE_NOTES_vvv1.18.22.md) for complete details.
+See [RELEASE_NOTES_vvvv1.18.24.md](RELEASE_NOTES_vvvv1.18.24.md) for complete details.
 
-**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvv1.18.22...vvv1.18.22
+**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvv1.18.24...vvvv1.18.24
+

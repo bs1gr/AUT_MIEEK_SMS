@@ -1,4 +1,4 @@
-## Student Management System vvv1.18.22
+## Student Management System vvvv1.18.24
 
 Patch release focused on backup reliability, control-operation authorization hardening, and release safety gates.
 
@@ -33,4 +33,5 @@ Installer assets are strictly allowlisted:
 
 - No breaking API changes are introduced in this patch.
 - Runtime/local artifacts were excluded from release scope.
-- Full change curation was performed from `vvv1.18.22..HEAD`.
+- Full change curation was performed from `vvvv1.18.24..HEAD`.
+

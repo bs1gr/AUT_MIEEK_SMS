@@ -1,8 +1,8 @@
-## What's New in vvv1.18.22
+## What's New in vvvv1.18.24
 
 ### 🔧 Corrective Release Cleanup
 
-- Publishes the next clean corrective patch after `vvv1.18.22` and `vvv1.18.22` were archived as prereleases.
+- Publishes the next clean corrective patch after `vvvv1.18.24` and `vvvv1.18.24` were archived as prereleases.
 - Restores generated Greek `.rtf` installer assets in the release pipeline.
 - Fixes installer validation to use the wizard image version cache and keeps generated installer inputs guarded.
 
@@ -23,3 +23,4 @@
 - **Windows**: Download `SMS_Installer_1.18.12.exe` from the release assets.
 - **Docker (production)**: `./DOCKER.ps1 -Update`
 - **Native (development)**: `./NATIVE.ps1 -Start`
+

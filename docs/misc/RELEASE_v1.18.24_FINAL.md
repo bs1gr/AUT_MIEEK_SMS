@@ -1,4 +1,4 @@
-# SMS v1.18.24 - Final Release Summary
+# SMS vv1.18.24 - Final Release Summary
 
 **Release Date:** June 3, 2026  
 **Status:** ✅ **PRODUCTION READY**  
@@ -6,7 +6,7 @@
 
 ---
 
-## 🎯 What's New in v1.18.24
+## 🎯 What's New in vv1.18.24
 
 ### Major Fixes
 1. **✅ QNAP Credentials Bug Fixed** - SMS_Lite.exe now properly reads credentials from AppData
@@ -52,7 +52,7 @@
 - **QNAP_FIX_STATUS.md** - Detailed fix documentation
 - **TEST_RESULTS_2026-06-03.md** - Comprehensive test results
 - **LITE_EDITION_GUIDE.md** - User guide for Lite Edition
-- **RELEASE_v1.18.24_FINAL.md** - This file
+- **RELEASE_vv1.18.24_FINAL.md** - This file
 
 ---
 
@@ -77,7 +77,7 @@ git clone https://github.com/bs1gr/AUT_MIEEK_SMS.git
 cd AUT_MIEEK_SMS
 
 # Check out the release
-git checkout v1.18.24
+git checkout vv1.18.24
 
 # Build SMS_Lite.exe locally
 cd backend
@@ -99,7 +99,7 @@ All identified issues have been fixed in this release.
 | Issue | Status | Fix |
 |-------|--------|-----|
 | QNAP credentials not loading | ✅ FIXED | Check AppData folder in lite_simple_entrypoint.py |
-| Version showing v1.18.23 | ✅ FIXED | Corrected PyInstaller spec file naming |
+| Version showing vv1.18.24 | ✅ FIXED | Corrected PyInstaller spec file naming |
 | Completion page shows Docker info | ✅ FIXED | Added Lite-specific RTF files |
 | No file selection for credentials | ✅ FIXED | Added Browse button & JSON/ENV parsing |
 | Multiple obsolete exe versions | ✅ FIXED | Archived to `archive/obsolete_lite_editions/` |
@@ -136,7 +136,7 @@ All identified issues have been fixed in this release.
 ## 📝 Commits in This Release
 
 ```
-52773938c chore(release): Add SMS_Lite.exe v1.18.24 executable
+52773938c chore(release): Add SMS_Lite.exe vv1.18.24 executable
 5126c084a chore(release): Add SMS_Installer_1.18.24.exe to repository
 2931be435 docs(qnap): Add comprehensive QNAP credentials fix documentation
 13adeb0e4 fix(lite): SMS_Lite.exe now reads QNAP credentials from AppData
@@ -209,7 +209,7 @@ e82b1dd3e fix(installer): ensure SMS_Lite.exe shortcut is created for Lite Editi
 
 ## 🎉 Release Summary
 
-SMS v1.18.24 is a **production-ready release** with all critical bugs fixed. The QNAP PostgreSQL integration is now fully functional, and the installer provides a seamless setup experience for both Docker and Lite Edition deployments.
+SMS vv1.18.24 is a **production-ready release** with all critical bugs fixed. The QNAP PostgreSQL integration is now fully functional, and the installer provides a seamless setup experience for both Docker and Lite Edition deployments.
 
 **Status:** ✅ Ready for production deployment  
 **Testing:** ✅ Comprehensive testing completed  
@@ -221,3 +221,4 @@ SMS v1.18.24 is a **production-ready release** with all critical bugs fixed. The
 **Released by:** Claude Code (Haiku 4.5)  
 **Date:** June 3, 2026  
 **Repository:** https://github.com/bs1gr/AUT_MIEEK_SMS
+

@@ -1,4 +1,4 @@
-# Phase 3: Final Release Preparation - v1.18.24 Installer
+# Phase 3: Final Release Preparation - vv1.18.24 Installer
 
 **Status:** Ready for Implementation  
 **Date:** 2026-06-02  
@@ -9,7 +9,7 @@
 
 ## Overview
 
-Phase 3 is the final step to release-ready v1.18.24 Windows Installer. 
+Phase 3 is the final step to release-ready vv1.18.24 Windows Installer. 
 
 **What's Complete:**
 - ✅ Phase 1: Installation type selection UI (SMS_Installer.iss)
@@ -132,12 +132,12 @@ The SMS system already has Greek throughout the codebase. Use consistent termino
 - ✅ Shortcuts point to SMS_Native_Lite.exe
 - ✅ Greek UI displays correctly (if translations added)
 
-### Test Scenario 3: Upgrade from v1.18.11
+### Test Scenario 3: Upgrade from vv1.18.24
 
 **Steps:**
-1. Have v1.18.11 installed from previous installer
+1. Have vv1.18.24 installed from previous installer
 2. Run new `SMS_Installer_1.18.24.exe`
-3. Installer detects v1.18.11
+3. Installer detects vv1.18.24
 4. User chooses to upgrade
 5. Select installation type (Docker or Lite)
 6. Proceed with upgrade
@@ -203,7 +203,7 @@ Output: SMS_Installer_1.18.24.exe
 1. **File Exists:** `dist/SMS_Installer_1.18.24.exe`
 2. **Reasonable Size:** 25-35 MB
 3. **Code Signed:** No security warnings
-4. **Version Info:** Shows v1.18.24
+4. **Version Info:** Shows vv1.18.24
 5. **Creation Time:** Recent (within seconds)
 
 ---
@@ -234,11 +234,11 @@ Get-AuthenticodeSignature .\dist\SMS_Installer_1.18.24.exe
 
 ## Task 5: Release to GitHub (10 minutes)
 
-### Upload Installer to v1.18.24 Release
+### Upload Installer to vv1.18.24 Release
 
 **Current Status:**
-- ✅ v1.18.24 tag created
-- ✅ v1.18.24 release page exists
+- ✅ vv1.18.24 tag created
+- ✅ vv1.18.24 release page exists
 - ⚠️ Needs SMS_Installer_1.18.24.exe asset
 
 ### Upload Steps
@@ -247,15 +247,15 @@ Get-AuthenticodeSignature .\dist\SMS_Installer_1.18.24.exe
 
 ```powershell
 # Upload signed installer to release
-gh release upload v1.18.24 .\dist\SMS_Installer_1.18.24.exe
+gh release upload vv1.18.24 .\dist\SMS_Installer_1.18.24.exe
 
 # Verify
-gh release view v1.18.24
+gh release view vv1.18.24
 ```
 
 **Option B: Using GitHub Web Interface**
 
-1. Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.24
+1. Go to: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.24
 2. Click "Edit Release"
 3. Drag-drop `SMS_Installer_1.18.24.exe` to assets area
 4. Click "Update Release"
@@ -278,7 +278,7 @@ gh release view v1.18.24
 - [ ] Phase 2 complete (INSTALLER_BUILDER.ps1)
 - [ ] Greek translations added to Greek.isl
 - [ ] All code changes committed to main
-- [ ] VERSION file shows v1.18.24
+- [ ] VERSION file shows vv1.18.24
 
 ### Build Verification
 
@@ -293,14 +293,14 @@ gh release view v1.18.24
 - [ ] Docker Edition installation works
 - [ ] Lite Edition installation works
 - [ ] Same installer works for both editions
-- [ ] Upgrade from v1.18.11 works
+- [ ] Upgrade from vv1.18.24 works
 - [ ] Uninstall works for both editions
 - [ ] Shortcuts created correctly
 - [ ] No errors or warnings
 
 ### Release Readiness
 
-- [ ] Installer uploaded to v1.18.24 release
+- [ ] Installer uploaded to vv1.18.24 release
 - [ ] Release notes include installation instructions
 - [ ] Release notes mention both editions
 - [ ] No blockers or known issues
@@ -336,7 +336,7 @@ gh release view v1.18.24
 ## Documentation to Update
 
 ### Release Notes (if not already complete)
-- [x] v1.18.24 release created
+- [x] vv1.18.24 release created
 - [ ] Update with installation instructions
 - [ ] Mention both editions available
 - [ ] Add known limitations
@@ -347,7 +347,7 @@ gh release view v1.18.24
 
 ### Installation Guide (Optional)
 - INSTALLATION_GUIDE.md could mention both options
-- But not critical for v1.18.24
+- But not critical for vv1.18.24
 
 ---
 
@@ -357,7 +357,7 @@ gh release view v1.18.24
 1. Greek translations added and installer shows them
 2. Both Docker and Lite editions install successfully
 3. Installer file is code-signed and ready
-4. File is uploaded to GitHub v1.18.24 release
+4. File is uploaded to GitHub vv1.18.24 release
 5. All tests pass without blockers
 
 ---
@@ -422,5 +422,6 @@ Next steps clear and documented.
 See Also:
 - [Phase 1 Completion Report](SESSION_PHASE1_COMPLETION.md)
 - [Phase 2 Completion Summary](PHASE_2_COMPLETION_SUMMARY.md)
-- [Windows Installer Review](INSTALLER_REVIEW_v1.18.24.md)
+- [Windows Installer Review](INSTALLER_REVIEW_vv1.18.24.md)
 - [Real Testing Report](INSTALLER_REAL_TESTING_REPORT.md)
+
