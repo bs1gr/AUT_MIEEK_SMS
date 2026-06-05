@@ -420,7 +420,18 @@ function Invoke-InstallerCompilation {
 
         Push-Location $InstallerDir
         Write-Result Info "Running Inno Setup compiler. This can take a few minutes..."
-        & $iscc "SMS_Installer.iss" 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+
+        # Check if SMS_Lite.exe exists for preprocessing
+        $smsLiteExe = Join-Path $InstallerDir "dist\SMS_Lite.exe"
+        $innoArgs = @("SMS_Installer.iss")
+        if (Test-Path $smsLiteExe) {
+            Write-Result Info "SMS_Lite.exe found - including in build"
+            $innoArgs += "/d", "SMS_LITE_AVAILABLE"
+        } else {
+            Write-Result Info "SMS_Lite.exe not found - Docker Edition only"
+        }
+
+        & $iscc $innoArgs 2>&1 | ForEach-Object { Write-Result Info "  $_" }
         Pop-Location
 
         # Cleanup staged file

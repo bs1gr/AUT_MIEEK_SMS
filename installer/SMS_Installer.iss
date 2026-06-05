@@ -188,7 +188,12 @@ Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion;
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
 ; Native Lite Edition (SMS_Lite.exe) - built via PyInstaller in GitHub Actions
+; Note: SMS_Lite.exe is optional and only included if available (built separately via PyInstaller)
+#ifdef SMS_LITE_AVAILABLE
 Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
+#else
+; SMS_Lite.exe not available - Docker Edition will be installed instead
+#endif
 Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
 Source: "SaveLiteEditionQnapCredentials.ps1"; DestDir: "{app}"; Flags: ignoreversion
