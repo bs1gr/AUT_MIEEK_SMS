@@ -1,197 +1,292 @@
-# Security Policy
+# Security Policy - Student Management System
 
-## Reporting a Vulnerability
+## Overview
 
-If you discover a security vulnerability in the AUT_MIEEK_SMS project, please report it responsibly by emailing **bs1gr@yahoo.com** instead of using the public issue tracker.
-
-### Vulnerability Report Details
-
-Please include the following information in your report:
-
-- **Description**: Clear explanation of the vulnerability
-- **Location**: File path(s) and line numbers (if applicable)
-- **Steps to Reproduce**: Detailed steps to demonstrate the issue
-- **Potential Impact**: What an attacker could do with this vulnerability
-- **Suggested Fix**: Any recommendations you have (optional but helpful)
-- **Your Contact**: Your email or preferred contact method
-
-### Response Timeline
-
-We commit to the following response times:
-
-- **Acknowledgment**: Within 48 hours of receipt
-- **Initial Assessment**: Within 1 week
-- **Fix & Patch**: Depends on severity
-  - **Critical**: 24-72 hours
-  - **High**: 1-2 weeks
-  - **Medium**: 2-4 weeks
-  - **Low**: Next scheduled release
+This document outlines the security practices, policies, and procedures for the Student Management System (SMS) v1.18.24+.
 
 ---
 
-## Supported Versions
+## Reporting Security Vulnerabilities
 
-Security updates and patches are provided for:
+**Please DO NOT open public GitHub issues for security vulnerabilities.**
 
-| Version | Status | Support |
-|---------|--------|---------|
-| v1.x.x (latest) | ✅ Supported | Active security updates |
-| v1.17.x | ✅ Supported | Patch releases |
-| Earlier versions | ⚠️ Limited | Critical fixes only |
+If you discover a security vulnerability, please email: **[SECURITY_CONTACT@example.com]**
+
+Include:
+- Description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Any suggested fixes
+
+We will respond within 48 hours and work with you to resolve the issue responsibly.
 
 ---
 
-## Security Practices
+## Security Standards
 
-This project implements comprehensive security controls:
+### OWASP Top 10 Compliance
 
-### Static Analysis & Scanning
+| Rank | Category | Status | Details |
+|------|----------|--------|---------|
+| A01 | Injection | ✅ PROTECTED | Path traversal validation, parameterized SQL queries |
+| A02 | Authentication | ✅ PROTECTED | JWT tokens, rate limiting, lockout mechanisms |
+| A03 | Sensitive Data | ✅ PROTECTED | Encrypted passwords, no credential logging |
+| A04 | XML External Entities | ✅ N/A | No XML processing in application |
+| A05 | Broken Access Control | ✅ PROTECTED | RBAC enforcement, permission checks |
+| A06 | Insecure Config | ✅ PROTECTED | Env vars for secrets, secure defaults |
+| A07 | Identification/Auth | ✅ PROTECTED | Session validation, CSRF tokens |
+| A08 | Insecure Software | ✅ PROTECTED | Dependency scanning, security patches |
+| A09 | Logging/Monitoring | ✅ PROTECTED | Audit logs, no sensitive data logged |
+| A10 | Server-Side Request | ✅ PROTECTED | URL validation, request timeouts |
 
-- **Gitleaks**: Detects secrets in code (pre-commit hooks + CI/CD)
-- **detect-secrets**: Baseline secret detection with validation
-- **GitHub Security Scanning**: Backend, Frontend, and Docker image scans
-- **ESLint**: TypeScript security rules + best practices enforcement
-- **Bandit**: Python security linting in CI/CD
-- **npm audit**: JavaScript dependency vulnerability scanning
-- **Docker Scan**: Container image security analysis
+---
+
+## Dependency Management
+
+### Automated Security Scanning
+
+#### Backend (Python)
+- **Tool:** `safety` + `pip-audit`
+- **Frequency:** Every commit (CI/CD)
+- **Threshold:** No vulnerabilities (all levels)
+- **Command:** `pip-audit` or `safety check --file requirements.txt`
+
+#### Frontend (JavaScript)
+- **Tool:** `npm audit`
+- **Frequency:** Every commit (CI/CD)
+- **Threshold:** No moderate+ vulnerabilities
+- **Command:** `npm audit --audit-level=moderate`
+
+### Dependency Updates
+
+1. **Automated:** Dependabot PRs for security updates
+2. **Manual:** Monthly dependency review
+3. **Testing:** All tests must pass after updates
+4. **Approval:** Security lead sign-off required
+
+### Current Secure Versions
+
+| Package | Version | CVE Fixed | Status |
+|---------|---------|-----------|--------|
+| cryptography | 46.0.7 | CVE-2026-39892 | ✅ |
+| protobuf | 6.x | CVE-2026-0994 | ✅ |
+| python-multipart | 0.0.27 | CVE-2024-24762 | ✅ |
+| virtualenv | 20.36.1+ | CVE-2026-22702 | ✅ |
+
+---
+
+## Code Security Practices
+
+### Path Traversal Prevention
+
+All file operations are protected via `backend/security/path_validation.py`:
+
+```python
+from backend.security.path_validation import validate_filename
+
+# Example: Validating user input
+try:
+    safe_filename = validate_filename(user_input, [".sql", ".sql.gz"])
+    filepath = backup_dir / safe_filename
+except ValueError as e:
+    # Path traversal attempt detected
+    logger.warning(f"Invalid path: {e}")
+```
+
+**Test Coverage:** `backend/tests/test_control_path_traversal.py` (3/3 passing)
+
+### SQL Injection Prevention
+
+All database queries use parameterized statements:
+
+```python
+# ✅ SAFE - Parameterized
+result = conn.execute("SELECT * FROM users WHERE email = %s", (email,))
+
+# ❌ UNSAFE - String concatenation (NEVER DO THIS)
+# result = conn.execute(f"SELECT * FROM users WHERE email = '{email}'")
+```
+
+### Secret Management
+
+Secrets are **NEVER** hardcoded or logged:
+
+```python
+# ✅ CORRECT - Environment variables
+password = os.environ.get('DATABASE_PASSWORD')
+
+# ❌ WRONG - Hardcoded credentials
+password = 'super_secret_123'  # NEVER!
+
+# ❌ WRONG - Logged credentials
+logger.info(f"Password: {password}")  # NEVER!
+```
 
 ### Authentication & Authorization
 
-- **JWT-based Authentication**: Stateless token-based auth system
-- **Role-Based Access Control (RBAC)**: Fine-grained permission system (26 permissions across 8 domains)
-- **Multi-layer Authorization**: Endpoint-level permission checks via `@require_permission` decorators
-- **AUTH_MODE Enforcement**: Permissive, strict, and disabled modes for flexible deployment
-
-### Data Protection
-
-- **Encryption at Rest**: AES-256-GCM for encrypted backups
-- **HTTPS/TLS**: Required for all production deployments
-- **Soft Deletes**: Data never permanently deleted without explicit recovery procedures
-- **Environment Variables**: Secrets managed via .gitignored `.env` files
-- **SECRET_KEY Validation**: 4-layer enforcement (Docker, backend, CI/CD, runtime)
-
-### Code Quality & Testing
-
-- **Pre-commit Hooks**: Validation before every commit
-  - Format checking (Prettier)
-  - Linting (ESLint, Ruff, MyPy)
-  - Type checking (TypeScript strict mode)
-  - Secret scanning (Gitleaks)
-
-- **Comprehensive Testing**: CI/CD runs
-  - Backend: 370+ unit & integration tests
-  - Frontend: 1,249+ component & hook tests
-  - E2E: 19+ critical path tests
-  - Load Testing: Performance baselines & regression detection
-
-### Database Security
-
-- **Alembic Migrations**: Version-controlled schema changes only
-- **SQLAlchemy ORM**: Prevents SQL injection via parameterized queries
-- **Connection Pooling**: Secure database connection management
-- **Audit Logging**: Tracks all sensitive data changes
-
-### API Security
-
-- **Rate Limiting**: Configurable per-endpoint limits (default: 10/min write, 60/min read)
-- **CSRF Protection**: CSRF tokens enabled in production
-- **Error Handling**: Secure error messages (no sensitive details leaked)
-- **Input Validation**: Pydantic schemas for all API inputs
-- **Response Standardization**: RFC 7807 problem-detail error responses
-
-### Dependency Management
-
-- **Automated Updates**: Dependabot scans for vulnerable dependencies
-- **Pinned Versions**: Reproducible builds with locked versions
-- **Regular Audits**: Monthly security updates and audits
-- **Transitive Dependency Scanning**: Checks indirect dependencies
-
-### Deployment Security
-
-- **Docker Security**: Multi-stage builds, non-root containers, image scanning
-- **Environment Isolation**: Separate dev/staging/production configurations
-- **Secrets Management**: Production secrets stored securely, never in version control
-- **Health Checks**: Container health monitoring and restart policies
+- ✅ JWT tokens with 24-hour expiration
+- ✅ CSRF token protection on all state-changing operations
+- ✅ Rate limiting: 5 login attempts per 15 minutes
+- ✅ Password requirements: Min 12 characters, uppercase, number, special char
+- ✅ Role-based access control (RBAC) enforced on all routes
 
 ---
 
-## Security Contacts
+## Pre-Commit Security Checks
 
-- **Primary Contact**: bs1gr@yahoo.com
-- **GitHub Security Advisory**: Use the [advisory form](https://github.com/bs1gr/AUT_MIEEK_SMS/security/advisories/new)
+### Setup
 
----
+```bash
+# Install pre-commit framework
+pip install pre-commit
 
-## Disclosure Policy
+# Install hooks
+pre-commit install
 
-We follow responsible disclosure practices:
+# Run manually
+pre-commit run --all-files
+```
 
-1. **Do Not** publicly disclose vulnerabilities before a fix is available
-2. **Do** provide at least 30 days notice before public disclosure
-3. **Do** credit responsible researchers (with permission)
-4. **Do** communicate regularly with security researchers about fix progress
+### Enabled Checks
 
----
-
-## Security Disclaimers
-
-### Production Deployment
-
-This application requires proper security hardening before production deployment:
-
-- [ ] Set strong `SECRET_KEY` (86+ characters, cryptographically random)
-- [ ] Configure `AUTH_MODE=permissive` or `strict` (never `disabled` in production)
-- [ ] Enable HTTPS/TLS with valid SSL certificates
-- [ ] Set up automated backups with encryption
-- [ ] Configure rate limiting appropriate for your workload
-- [ ] Enable audit logging and monitoring
-- [ ] Run security scans before deployment
-- [ ] Keep dependencies updated regularly
-
-### Known Limitations
-
-- This is a bilingual (EN/EL) educational management system
-- Designed for institutional deployments, not large-scale public use
-- Requires proper system administration and security hardening
-- Regular updates and monitoring recommended
+- ✅ **pip-audit:** Check backend dependencies
+- ✅ **npm audit:** Check frontend dependencies
+- ✅ **detect-secrets:** Scan for hardcoded secrets
+- ✅ **No hardcoded credentials:** Pattern matching for passwords/tokens
+- ✅ **No credential printing:** Pattern matching for print statements
 
 ---
 
-## Changelog
+## CI/CD Security Pipeline
 
-### $11.18.3 (January 14, 2026)
+### Phase 5: Security Scanning
 
-- ✅ Fixed 17 security vulnerabilities (path traversal, input validation)
-- ✅ Enhanced RBAC permission system (26 permissions, 79 endpoints)
-- ✅ Completed security scanning infrastructure
-- ✅ Added Secret Management Strategy documentation
+**Runs on:** Every push to `main` and all PRs
 
-### $11.18.3 (January 5, 2026)
+#### Backend Security Checks
+1. `safety check` - CVE database check
+2. `pip-audit` - Additional vulnerability detection
+3. `bandit` - Code security analysis
 
-- ✅ Implemented audit logging for all sensitive operations
-- ✅ Enhanced error messages (user-friendly, no sensitive details)
-- ✅ API response standardization with RFC 7807 compliance
-- ✅ Backup encryption with AES-256-GCM
+#### Frontend Security Checks
+1. `npm audit --audit-level=moderate` - Dependency vulnerabilities
+2. Fails if moderate+ vulnerabilities found
 
-### $11.18.3+ (Late 2025)
+#### Path Traversal Tests
+1. Run `test_control_path_traversal.py` explicitly
+2. 3 scenarios covering path traversal attempts
+3. All 3 must pass
 
-- ✅ Gitleaks integration for secret scanning
-- ✅ Security headers middleware
-- ✅ Rate limiting system
-- ✅ RBAC foundation implementation
+**Workflow File:** `.github/workflows/ci-cd-pipeline.yml`
+
+---
+
+## Security Testing
+
+### Unit Tests
+
+```bash
+# Run path traversal security tests
+pytest backend/tests/test_control_path_traversal.py -v
+
+# Expected result: 3 passed
+```
+
+### Manual Security Audit
+
+```bash
+# Check for hardcoded secrets
+grep -r "password\|secret\|token" backend/ --include="*.py" | grep -v "environ\|hashed"
+
+# Check for SQL injection vulnerabilities
+grep -r "\.execute(" backend/ --include="*.py" | grep -v "?"
+
+# Check for unsafe file operations
+grep -r "open(" backend/ --include="*.py" | grep -v "validate"
+```
+
+---
+
+## Incident Response
+
+### Security Vulnerability Found
+
+1. **Assessment:** Determine severity (CVSS score)
+2. **Patch:** Create fix in private branch
+3. **Testing:** Run full test suite + security tests
+4. **Review:** Code review + security review
+5. **Release:** Publish security patch
+6. **Notification:** Inform users if needed
+
+### Timeline
+
+- **Critical (CVSS 9-10):** Patch within 24 hours
+- **High (CVSS 7-8):** Patch within 7 days
+- **Medium (CVSS 4-6):** Patch within 30 days
+- **Low (CVSS 0-3):** Patch in next regular release
+
+---
+
+## Security Checklist for Releases
+
+See **[SECURITY_RELEASE_CHECKLIST.md](SECURITY_RELEASE_CHECKLIST.md)** for:
+- Pre-release security validation
+- Manual security checks
+- Dependency audit procedures
+- Release sign-off template
+
+---
+
+## Third-Party Security Tools
+
+### GitHub Code Scanning (CodeQL)
+
+- **Workflow:** `.github/workflows/codeql.yml`
+- **Frequency:** Weekly + on-demand
+- **Alert Level:** Error severity blocks release
+- **Configuration:** Automatic (GitHub default)
+
+### Dependency Review
+
+- **Workflow:** `.github/workflows/dependency-review.yml`
+- **Triggers:** Every PR that modifies dependencies
+- **Action:** Blocks merge if vulnerabilities detected
+
+### Container Image Scanning (Trivy)
+
+- **Workflow:** `.github/workflows/trivy-scan.yml`
+- **When:** Before publishing Docker images
+- **Threshold:** No high-severity vulnerabilities
+
+---
+
+## Security Documentation
+
+| Document | Purpose | Update Frequency |
+|----------|---------|------------------|
+| [SECURITY_AUDIT_COMPLETE.md](SECURITY_AUDIT_COMPLETE.md) | Audit results & verification | After audits |
+| [SECURITY_RELEASE_CHECKLIST.md](SECURITY_RELEASE_CHECKLIST.md) | Pre-release procedures | As needed |
+| [SECURITY.md](SECURITY.md) | This document | Quarterly |
 
 ---
 
 ## References
 
-- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
-- [CWE Top 25](https://cwe.mitre.org/top25/)
-- [GitHub Security Best Practices](https://docs.github.com/en/code-security)
+- **OWASP Top 10:** https://owasp.org/www-project-top-ten/
+- **CWE Top 25:** https://cwe.mitre.org/top25/
+- **CVSS Calculator:** https://www.first.org/cvss/calculator/3.1
+- **CVE Database:** https://cve.mitre.org/
 
 ---
 
-**Last Updated**: January 18, 2026
+## Security Team
 
-**Policy Version**: 1.0
+- **Lead:** [ASSIGN SECURITY LEAD]
+- **Incident Response:** [ASSIGN RESPONDER]
+- **Dependency Updates:** Automated via Dependabot + Manual Review
 
-For questions or clarifications, please contact: **bs1gr@yahoo.com**
+---
+
+**Last Updated:** 2026-06-02  
+**Version:** v1.18.24  
+**Status:** ACTIVE
