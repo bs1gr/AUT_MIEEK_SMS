@@ -415,7 +415,7 @@ Write-Host ""
 if ($results.Failed -gt 0) {
     Write-Error-Message "Verification failed with $($results.Failed) critical errors"
     exit 1
-} elseif ($results.Inconsistent -gt 0 -and -not $Update) {
+} elseif ($results.Inconsistent -gt 0 -and -not $Update -and -not $Report) {
     Write-Warning "Found $($results.Inconsistent) inconsistent version references"
     Write-Info "Run with -Update flag to fix: .\scripts\VERIFY_VERSION.ps1 -Version `"$VersionCore`" -Update"
     exit 2
