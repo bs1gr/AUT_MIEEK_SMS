@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-interface ExportDialogProps {
+export interface ExportDialogProps {
   isOpen: boolean;
   onClose: () => void;
   type?: 'students' | 'courses' | 'grades';

@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+export type HistoryTableProps = Record<string, unknown>;
+
 interface ImportExportRecord {
   id: string;
   operation_type: 'import' | 'export';

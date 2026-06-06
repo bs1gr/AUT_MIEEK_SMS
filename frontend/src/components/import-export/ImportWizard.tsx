@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
-interface ImportWizardProps {
+export interface ImportWizardProps {
   type: "students" | "courses" | "grades";
   onCancel: () => void;
   onComplete: () => void;
