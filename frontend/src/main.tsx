@@ -32,6 +32,7 @@ import {
   ReportTemplateBrowserPage,
   preloadCriticalRoutes,
 } from './routes';
+import AdminLayout from './pages/admin/AdminLayout';
 import { recoverFromChunkLoadError } from './utils/chunkLoadRecovery';
 
 // Initialize global error handlers without forcing the module into the main chunk
@@ -81,10 +82,12 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/operations/reports/builder" element={<ReportBuilderPage />} />
               <Route path="/operations/reports/builder/:id" element={<ReportBuilderPage />} />
               <Route path="/operations/reports/templates" element={<ReportTemplateBrowserPage />} />
-              {/* Admin: Permissions management */}
+              {/* Admin: Permissions management and Import/Export */}
               <Route element={<RequireAdmin />}>
-                <Route path="/admin/permissions" element={<AdminPermissionsPage />} />
-                <Route path="/admin/import-export" element={<ImportExportPage />} />
+                <Route element={<AdminLayout />}>
+                  <Route path="/admin/permissions" element={<AdminPermissionsPage />} />
+                  <Route path="/admin/import-export" element={<ImportExportPage />} />
+                </Route>
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />

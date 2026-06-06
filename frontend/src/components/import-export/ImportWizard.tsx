@@ -51,9 +51,10 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("entity_type", type);
 
-      const response = await fetch("/api/v1/import-export/upload", {
+      // Use correct endpoint based on type (students, courses, grades)
+      const endpoint = `/api/v1/import-export/imports/${type}`;
+      const response = await fetch(endpoint, {
         method: "POST",
         body: formData,
       });
@@ -63,7 +64,11 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
       }
 
       const result = await response.json();
-      const importId = result.import_id;
+      const jobId = result.data?.id;
+
+      if (!jobId) {
+        throw new Error("No job ID returned from server");
+      }
 
       // Poll for completion
       let completed = false;
@@ -74,18 +79,23 @@ export const ImportWizard: React.FC<ImportWizardProps> = ({
         await new Promise((resolve) => setTimeout(resolve, 5000));
         attempts++;
 
-        const statusResponse = await fetch(
-          `/api/v1/import-export/${importId}/status`
-        );
+        const statusResponse = await fetch(`/api/v1/import-export/imports/${jobId}`);
         if (!statusResponse.ok) continue;
 
-        const status = await statusResponse.json();
-        setProgress(status.progress || 0);
+        const statusData = await statusResponse.json();
+        const job = statusData.data;
 
-        if (status.status === "completed") {
-          completed = true;
-        } else if (status.status === "failed") {
-          throw new Error(status.error || t("importFailed", { ns: "export" }));
+        if (job) {
+          const progress = job.total_rows > 0
+            ? ((job.successful_rows + job.failed_rows) / job.total_rows) * 100
+            : 0;
+          setProgress(Math.min(progress, 100));
+
+          if (job.status === "completed" || job.status === "ready") {
+            completed = true;
+          } else if (job.status === "failed") {
+            throw new Error(job.error_message || t("importFailed", { ns: "export" }));
+          }
         }
       }
 

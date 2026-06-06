@@ -34,7 +34,8 @@ export const HistoryTable: React.FC = () => {
         throw new Error('Failed to fetch history');
       }
       const data = await response.json();
-      setHistory(Array.isArray(data) ? data : data.data || []);
+      const historyData = data.data?.history || data.history || [];
+      setHistory(Array.isArray(historyData) ? historyData : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
       setHistory([]);

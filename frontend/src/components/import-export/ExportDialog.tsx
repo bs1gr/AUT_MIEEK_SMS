@@ -22,14 +22,16 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('/api/v1/export', {
+      const response = await fetch('/api/v1/import-export/exports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          entity_type: type,
-          format,
-          include_headers: includeHeaders,
-          date_range: dateRange,
+          export_type: type,
+          file_format: format,
+          filters: {
+            include_headers: includeHeaders,
+            date_range: dateRange,
+          },
         }),
       });
 
@@ -37,15 +39,51 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
         throw new Error('Export failed');
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${type}-export.${format === 'excel' ? 'xlsx' : format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      const result = await response.json();
+      const jobId = result.data?.id;
+
+      if (!jobId) {
+        throw new Error('No job ID returned from server');
+      }
+
+      // Poll for completion
+      let completed = false;
+      let attempts = 0;
+      const maxAttempts = 120; // 10 minutes with 5-second intervals
+
+      while (!completed && attempts < maxAttempts) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        attempts++;
+
+        const statusResponse = await fetch(`/api/v1/import-export/exports/${jobId}`);
+        if (!statusResponse.ok) continue;
+
+        const statusData = await statusResponse.json();
+        const job = statusData.data;
+
+        if (job && job.status === 'completed' && job.file_path) {
+          // Download the file
+          const downloadResponse = await fetch(`/api/v1/import-export/exports/${jobId}/download`);
+          if (downloadResponse.ok) {
+            const blob = await downloadResponse.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${type}-export.${format === 'excel' ? 'xlsx' : format}`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            completed = true;
+          }
+        } else if (job && job.status === 'failed') {
+          throw new Error('Export job failed on server');
+        }
+      }
+
+      if (!completed) {
+        throw new Error('Export took too long to complete');
+      }
 
       onComplete?.();
       onClose();
