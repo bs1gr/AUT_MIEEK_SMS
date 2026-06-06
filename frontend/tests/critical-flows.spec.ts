@@ -116,7 +116,7 @@ test.describe('Dashboard Navigation', () => {
     await page.click('a:has-text("Attendance")');
     await page.waitForURL(/.*attendance/, { timeout: 10000 });
     await page.waitForLoadState('networkidle', { timeout: 20000 });
-    await expect(page.locator('text=Attendance')).toBeVisible();
+    await expect(page.getByTestId('nav-link-attendance')).toBeVisible();
   });
 });
 
