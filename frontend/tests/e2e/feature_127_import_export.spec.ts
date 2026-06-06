@@ -1,47 +1,14 @@
 import { test, expect } from '@playwright/test';
+import { loginViaAPI } from './helpers';
 
 const ADMIN_CREDENTIALS = {
   email: 'admin@example.com',
   password: 'YourSecurePassword123!',
 };
 
-// Helper to login via API and set up auth state
-async function loginViaAPI(page: any) {
-  const response = await page.request.post('/api/v1/auth/login', {
-    data: ADMIN_CREDENTIALS
-  });
-  expect(response.ok()).toBeTruthy();
-  const responseData = await response.json();
-  const access_token = responseData.access_token || responseData.data?.access_token;
-  expect(access_token).toBeTruthy();
-
-  // Set cookie for authentication
-  await page.context().addCookies([{
-    name: 'token',
-    value: access_token,
-    domain: 'localhost',
-    path: '/'
-  }]);
-
-  // Fetch user data for localStorage setup
-  const userResponse = await page.request.get('/api/v1/auth/me', {
-    headers: {
-      'Authorization': `Bearer ${access_token}`
-    }
-  });
-
-  const userData = (await userResponse.json())?.data || { email: ADMIN_CREDENTIALS.email, role: 'admin', id: 1 };
-
-  // Set localStorage at context level before any page navigation
-  // This ensures localStorage is available when React component mounts
-  await page.context().addInitScript((data: any) => {
-    localStorage.setItem('sms_user_v1', JSON.stringify(data));
-  }, { ...userData });
-}
-
 test.describe('Feature #127: Bulk Import/Export', () => {
   test.beforeEach(async ({ page }) => {
-    await loginViaAPI(page);
+    await loginViaAPI(page, ADMIN_CREDENTIALS.email, ADMIN_CREDENTIALS.password);
   });
 
   test('Admin can access Import/Export page', async ({ page }) => {
