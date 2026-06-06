@@ -101,21 +101,33 @@ jobs:
       - name: Install Playwright browsers
         working-directory: ./frontend
         env:
-          PLAYWRIGHT_DOWNLOAD_HOST: https://playwright.azureedge.net
+          # Use default Playwright mirror instead of Azure CDN due to 400 errors
+          PLAYWRIGHT_DOWNLOAD_HOST: https://api.github.com/repos/microsoft/playwright/releases/download
         run: |
           echo "Clearing any partial Playwright cache..."
           rm -rf ~/.cache/ms-playwright || true
 
-          echo "Installing Playwright browsers with system dependencies..."
-          npx playwright install --with-deps chromium
-
-          echo ""
-          echo "Checking downloaded files..."
-          find ~/.cache/ms-playwright -type f -name "chrome-headless-shell" 2>/dev/null | head -5
+          echo "Installing Playwright browsers..."
+          # Retry with exponential backoff in case of transient CDN issues
+          for attempt in {1..3}; do
+            echo "Attempt $attempt/3..."
+            if npx playwright install --with-deps chromium; then
+              echo "✅ Installation successful"
+              break
+            fi
+            if [ $attempt -lt 3 ]; then
+              wait_time=$((2 ** (attempt - 1)))
+              echo "⏳ Retrying in ${wait_time}s..."
+              sleep $wait_time
+            else
+              echo "❌ Failed after 3 attempts"
+              exit 1
+            fi
+          done
 
           echo ""
           echo "Verifying installation..."
-          npx playwright --version || exit 1
+          npx playwright --version
 
       - name: Build frontend
         working-directory: ./frontend
