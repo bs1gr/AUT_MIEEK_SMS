@@ -84,8 +84,42 @@ jobs:
         run: |
           echo "Installing Playwright browsers..."
           npx playwright install chromium --with-deps
+
           echo "Verifying Playwright installation..."
           npx playwright --version
+
+          # Verify browser executable exists - critical check
+          echo ""
+          echo "Verifying browser executable exists..."
+          if [ ! -d "$HOME/.cache/ms-playwright" ]; then
+            echo "⚠️  Playwright cache directory not found, trying alternative location..."
+            mkdir -p "$HOME/.cache/ms-playwright"
+          fi
+
+          # Check if chrome-headless-shell exists in cache
+          BROWSER_EXISTS=$(find "$HOME/.cache/ms-playwright" -type f -name "chrome-headless-shell" -executable 2>/dev/null | wc -l)
+          if [ "$BROWSER_EXISTS" -gt 0 ]; then
+            echo "✅ Browser executable found ($BROWSER_EXISTS files)"
+            find "$HOME/.cache/ms-playwright" -type f -name "chrome-headless-shell" -executable | head -1
+          else
+            echo "⚠️  Browser executable not found in cache, listing cache contents:"
+            ls -la "$HOME/.cache/ms-playwright/" 2>/dev/null || echo "Cache directory empty or missing"
+
+            echo ""
+            echo "🔄 Attempting fresh Playwright install..."
+            rm -rf "$HOME/.cache/ms-playwright" || true
+            npx playwright install chromium --with-deps
+
+            # Final check
+            if find "$HOME/.cache/ms-playwright" -type f -name "chrome-headless-shell" -executable 2>/dev/null | grep -q .; then
+              echo "✅ Fresh install successful"
+            else
+              echo "❌ Fresh install failed - chrome-headless-shell not found"
+              echo "Cache contents after fresh install:"
+              find "$HOME/.cache/ms-playwright" -type f 2>/dev/null | head -10
+              exit 1
+            fi
+          fi
 
       - name: Build frontend
         working-directory: ./frontend
