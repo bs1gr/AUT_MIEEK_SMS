@@ -105,11 +105,32 @@ jobs:
         working-directory: ./frontend
         run: |
           echo "Installing Playwright chromium browser..."
-          npx playwright install chromium
+          for i in {1..3}; do
+            echo "Attempt $i/3 to install Playwright..."
+            if npx playwright install chromium; then
+              echo "✅ Playwright installed successfully"
+              break
+            fi
+            if [ $i -lt 3 ]; then
+              echo "⚠️  Attempt $i failed, retrying..."
+              sleep 5
+            else
+              echo "❌ Failed to install Playwright after 3 attempts"
+              exit 1
+            fi
+          done
 
           echo ""
           echo "Verifying installation..."
           npx playwright --version
+
+          echo ""
+          echo "Checking for chromium executable..."
+          find ~/.cache/ms-playwright -name "chrome-headless-shell*" -o -name "chrome" 2>/dev/null | head -10 || echo "⚠️  Chrome not found, attempting to install dependencies..."
+
+          # Install system dependencies as fallback
+          echo "Installing system dependencies for Playwright..."
+          npx playwright install-deps chromium || echo "⚠️  Some dependencies may be missing (non-critical)"
 
       - name: Build frontend
         working-directory: ./frontend
