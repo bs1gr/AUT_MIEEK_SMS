@@ -11,6 +11,8 @@ on:
       - 'docs/**'
       - 'installer/**'
       - 'tools/**'
+  push:
+    branches: [main]
   workflow_dispatch:
 
 concurrency:
@@ -21,6 +23,15 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    # E2E tests are expensive - only run on main branch or when explicitly requested
+    # To request E2E on a PR, either:
+    #   1. Add [full-test] to PR title, or
+    #   2. Add 'requires:e2e' label to PR
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.title, '[full-test]') ||
+      contains(github.event.pull_request.labels.*.name, 'requires:e2e')
     # E2E tests must pass - they verify end-to-end functionality
     # If tests fail, the issue must be fixed before merge
     continue-on-error: false
