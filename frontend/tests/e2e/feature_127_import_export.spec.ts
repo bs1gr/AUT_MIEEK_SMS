@@ -27,7 +27,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
     await loginViaAPI(page);
   });
 
-  test.skip('Admin can access Import/Export page', async ({ page }) => {
+  test('Admin can access Import/Export page', async ({ page }) => {
     await page.goto('/admin/import-export');
     await page.waitForLoadState('networkidle');
 
@@ -65,7 +65,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
     await page.waitForTimeout(300);
   });
 
-  test.skip('Import wizard flow for Students', async ({ page }) => {
+  test('Import wizard flow for Students', async ({ page }) => {
     await page.goto('/admin/import-export');
     await page.waitForLoadState('networkidle');
 
@@ -87,7 +87,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
     await expect(page.locator('input[type="file"]')).toBeAttached({ timeout: 5000 });
   });
 
-  test.skip('History table loads data', async ({ page }) => {
+  test('History table loads data', async ({ page }) => {
     await page.goto('/admin/import-export');
     // Check for table headers
     await expect(page.locator('thead')).toContainText(/Status/i);
