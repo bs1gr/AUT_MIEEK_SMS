@@ -101,24 +101,19 @@ jobs:
         env:
           PLAYWRIGHT_DOWNLOAD_HOST: https://playwright.azureedge.net
         run: |
-          echo "Installing Playwright browsers with retries..."
-          for i in {1..3}; do
-            echo "Attempt $i..."
-            npx playwright install --with-deps chromium && break
-            if [ $i -lt 3 ]; then
-              echo "Attempt $i failed, retrying in 5s..."
-              sleep 5
-            fi
-          done
+          echo "Clearing any partial Playwright cache..."
+          rm -rf ~/.cache/ms-playwright || true
+
+          echo "Installing Playwright browsers with system dependencies..."
+          npx playwright install --with-deps chromium
+
+          echo ""
+          echo "Checking downloaded files..."
+          find ~/.cache/ms-playwright -type f -name "chrome-headless-shell" 2>/dev/null | head -5
 
           echo ""
           echo "Verifying installation..."
-          if npx playwright --version; then
-            echo "✅ Playwright installed successfully"
-          else
-            echo "❌ Playwright installation failed"
-            exit 1
-          fi
+          npx playwright --version || exit 1
 
       - name: Build frontend
         working-directory: ./frontend
