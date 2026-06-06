@@ -30,13 +30,11 @@ async function loginViaAPI(page: any) {
     }
   });
 
-  const userData = (await userResponse.json())?.data || { email: ADMIN_CREDENTIALS.email, role: 'admin' };
+  const userData = (await userResponse.json())?.data || { email: ADMIN_CREDENTIALS.email, role: 'admin', id: 1 };
 
-  // First navigate to app root to establish context for localStorage
-  await page.goto('/');
-
-  // Now set localStorage from within the page context (after page is loaded)
-  await page.evaluate((data: any) => {
+  // Set localStorage at context level before any page navigation
+  // This ensures localStorage is available when React component mounts
+  await page.context().addInitScript((data: any) => {
     localStorage.setItem('sms_user_v1', JSON.stringify(data));
   }, { ...userData });
 }
