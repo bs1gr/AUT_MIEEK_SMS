@@ -5,13 +5,15 @@ const ADMIN_CREDENTIALS = {
   password: 'YourSecurePassword123!',
 };
 
-// Helper to login via API (inlined to ensure self-containment)
+// Helper to login via API and set up auth state
 async function loginViaAPI(page: any) {
   const response = await page.request.post('/api/v1/auth/login', {
     data: ADMIN_CREDENTIALS
   });
   expect(response.ok()).toBeTruthy();
-  const { access_token } = await response.json();
+  const responseData = await response.json();
+  const access_token = responseData.access_token || responseData.data?.access_token;
+  expect(access_token).toBeTruthy();
 
   // Set cookie for authentication
   await page.context().addCookies([{
@@ -20,6 +22,22 @@ async function loginViaAPI(page: any) {
     domain: 'localhost',
     path: '/'
   }]);
+
+  // Fetch user data for localStorage setup
+  const userResponse = await page.request.get('/api/v1/auth/me', {
+    headers: {
+      'Authorization': `Bearer ${access_token}`
+    }
+  });
+
+  const userData = (await userResponse.json())?.data || { email: ADMIN_CREDENTIALS.email, role: 'admin' };
+
+  // Set up localStorage to initialize auth state in frontend
+  await page.evaluate((data: any) => {
+    localStorage.setItem('sms_user_v1', JSON.stringify(data));
+    // Also store token in localStorage for authService
+    sessionStorage.setItem('access_token', data.access_token || '');
+  }, { ...userData, access_token });
 }
 
 test.describe('Feature #127: Bulk Import/Export', () => {
