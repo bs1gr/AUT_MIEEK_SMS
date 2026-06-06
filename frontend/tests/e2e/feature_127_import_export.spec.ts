@@ -32,12 +32,13 @@ async function loginViaAPI(page: any) {
 
   const userData = (await userResponse.json())?.data || { email: ADMIN_CREDENTIALS.email, role: 'admin' };
 
-  // Set up localStorage to initialize auth state in frontend
+  // First navigate to app root to establish context for localStorage
+  await page.goto('/');
+
+  // Now set localStorage from within the page context (after page is loaded)
   await page.evaluate((data: any) => {
     localStorage.setItem('sms_user_v1', JSON.stringify(data));
-    // Also store token in localStorage for authService
-    sessionStorage.setItem('access_token', data.access_token || '');
-  }, { ...userData, access_token });
+  }, { ...userData });
 }
 
 test.describe('Feature #127: Bulk Import/Export', () => {
