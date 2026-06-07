@@ -680,7 +680,7 @@ jobs:
     needs: [determine-test-scope, smoke-tests]
     if: needs.determine-test-scope.outputs.run_e2e == 'true'
     timeout-minutes: 30
-    continue-on-error: true
+    continue-on-error: ${{ github.ref != 'refs/heads/main' && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -816,7 +816,7 @@ jobs:
     needs: [determine-test-scope, smoke-tests]
     if: needs.determine-test-scope.outputs.run_load == 'true'
     timeout-minutes: 30
-    continue-on-error: true
+    continue-on-error: ${{ github.ref != 'refs/heads/main' && github.event_name == 'pull_request' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -948,6 +948,7 @@ jobs:
           name: frontend-build-stats
           path: frontend/.vite/stats.json
           retention-days: 7
+          if-no-files-found: error
         if: always()
 
   build-docker-images:
@@ -996,11 +997,11 @@ jobs:
         with:
           context: .
           file: ./docker/Dockerfile.fullstack
-          # Push policy:
-          # - Always push on release tags (v1.*.*)
-          # - On branch pushes, push only if GHCR_TOKEN is configured
-          #   (prevents write_package failures when repository GITHUB_TOKEN cannot push packages)
-          push: ${{ github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v1.') || secrets.GHCR_TOKEN != '') }}
+          # Push policy (explicit rules to avoid accidental pushes):
+          # - On release tags (v1.*.*): Always push to GHCR
+          # - On main branch: Push only if GHCR_TOKEN explicitly configured
+          # - On PR: Never push (build only for validation)
+          push: ${{ github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v1.') || (github.ref == 'refs/heads/main' && secrets.GHCR_TOKEN != '')) }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
