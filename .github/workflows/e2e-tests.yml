@@ -144,8 +144,12 @@ jobs:
       - name: Initialize database
         working-directory: ./backend
         run: |
+          set -euo pipefail
           echo "Running Alembic migrations..."
-          python -c "from backend.run_migrations import run_migrations; run_migrations()" || echo "Migration warning (may already be up-to-date)"
+          python -c "from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || {
+            echo "❌ Database migration failed. This is a critical error that must be fixed."
+            exit 1
+          }
 
       - name: Seed test data
         run: |
@@ -184,9 +188,10 @@ jobs:
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "Health check attempt $ATTEMPT/$MAX_ATTEMPTS..."
+            HEALTH_CODE=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/health 2>&1)
             HEALTH=$(curl -s http://127.0.0.1:8000/health 2>&1 || echo "FAILED")
-            if echo "$HEALTH" | grep -q '"status"'; then
-              echo "✅ Backend is ready (attempt $ATTEMPT/$MAX_ATTEMPTS)"
+            if [ "$HEALTH_CODE" = "200" ] && echo "$HEALTH" | grep -q '"status"'; then
+              echo "✅ Backend is ready (attempt $ATTEMPT/$MAX_ATTEMPTS, HTTP $HEALTH_CODE)"
               echo "Health response: $HEALTH" | head -1
               break
             fi

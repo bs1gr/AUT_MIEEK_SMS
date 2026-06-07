@@ -38,6 +38,7 @@ concurrency:
 jobs:
   load-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}
     env:
       SMS_ENV: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}
@@ -60,12 +61,13 @@ jobs:
         cache: 'pip'
         cache-dependency-path: |
           load-testing/requirements.txt
-          archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt
           backend/requirements.txt
 
     - name: Resolve load testing paths
       id: loadtest
       run: |
+        set -euo pipefail
+
         if [ -f "load-testing/requirements.txt" ] && [ -f "load-testing/scripts/run_load_tests.py" ]; then
           echo "requirements=load-testing/requirements.txt" >> $GITHUB_OUTPUT
           echo "scripts=load-testing/scripts" >> $GITHUB_OUTPUT
@@ -74,15 +76,8 @@ jobs:
           echo "baseline=load-testing/baseline.json" >> $GITHUB_OUTPUT
           echo "pythonpath=load-testing" >> $GITHUB_OUTPUT
           echo "rootdir=load-testing" >> $GITHUB_OUTPUT
-        elif [ -f "archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" ] && [ -f "archive/cleanup-feb2026/legacy-load-testing/scripts/run_load_tests.py" ]; then
-          echo "requirements=archive/cleanup-feb2026/legacy-load-testing/root/requirements.txt" >> $GITHUB_OUTPUT
-          echo "scripts=archive/cleanup-feb2026/legacy-load-testing/scripts" >> $GITHUB_OUTPUT
-          echo "results=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
-          echo "reports=archive/cleanup-feb2026/legacy-load-testing/results" >> $GITHUB_OUTPUT
-          echo "baseline=archive/cleanup-feb2026/legacy-load-testing/root/baseline.json" >> $GITHUB_OUTPUT
-          echo "pythonpath=archive/cleanup-feb2026/legacy-load-testing/root:archive/cleanup-feb2026/legacy-load-testing/root/locust" >> $GITHUB_OUTPUT
-          echo "rootdir=archive/cleanup-feb2026/legacy-load-testing/root" >> $GITHUB_OUTPUT
         else
+          echo "❌ Load testing suite not found at load-testing/. Archive fallback removed per CI/CD audit."
           echo "missing=true" >> $GITHUB_OUTPUT
         fi
 
