@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { loginViaAPI } from './helpers';
+import { loginViaAPI } from './e2e/helpers';
 
 /**
  * E2E Tests for Analytics Dashboard (Feature #125)

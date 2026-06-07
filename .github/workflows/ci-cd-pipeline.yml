@@ -703,6 +703,18 @@ jobs:
       - name: Install Playwright browsers
         run: cd frontend && npx playwright install --with-deps
 
+      - name: Build frontend for E2E
+        run: cd frontend && npm run ci:build
+
+      - name: Start frontend preview server
+        run: |
+          cd frontend && npx vite preview --host 127.0.0.1 --port 5173 &
+          echo $! > frontend-preview.pid
+          for i in $(seq 1 20); do
+            curl -sf http://127.0.0.1:5173 > /dev/null 2>&1 && echo "✅ Frontend preview ready" && break
+            sleep 2
+          done
+
       - name: Setup Python for backend
         uses: actions/setup-python@v5
         with:
@@ -758,13 +770,13 @@ jobs:
       - name: Run E2E tests with Playwright
         working-directory: ./frontend
         env:
-          PLAYWRIGHT_BASE_URL: http://127.0.0.1:8000
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:5173
           DEBUG: pw:api
           VITE_API_URL: http://127.0.0.1:8000/api/v1
         timeout-minutes: 25
         run: |
           echo "🧪 Running E2E tests..."
-          npm run e2e -- --reporter=list --workers=1 --timeout=120000 --max-failures=3
+          npm run e2e -- --reporter=list --workers=1 --timeout=120000 --max-failures=20
 
       - name: Kill backend
         if: always()
@@ -773,6 +785,15 @@ jobs:
             echo "Stopping backend (PID: $(cat backend.pid))..."
             kill $(cat backend.pid) 2>/dev/null || echo "Backend already stopped"
             rm backend.pid
+          fi
+
+      - name: Kill frontend preview
+        if: always()
+        run: |
+          if [ -f frontend-preview.pid ]; then
+            echo "Stopping frontend preview (PID: $(cat frontend-preview.pid))..."
+            kill $(cat frontend-preview.pid) 2>/dev/null || echo "Preview already stopped"
+            rm -f frontend-preview.pid
           fi
 
       - name: Upload E2E test results
