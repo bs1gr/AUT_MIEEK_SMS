@@ -142,7 +142,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
 
           $workflowFiles = Get-ChildItem -Path '.github/workflows/*.y*ml' -File
-          $directReadPattern = '(?im)\b(Get-Content|cat)\s+(?:-Raw\s+)?["'']?(?:\./|\.\\)?VERSION["'']?\b'
+          $directReadPattern = '(?im)(?:\b(Get-Content|cat)\s+(?:-Raw\s+)?["'']?(?:\./|\.\\)?VERSION["'']?\b|<\s*["'']?(?:\./|\.\\)?VERSION["'']?)'
           $normalizePattern = '(?im)uses:\s*\.\/\.github\/actions\/normalize-version\b'
           $violations = @()
 
@@ -1071,31 +1071,44 @@ jobs:
           }
 
           # Convert vulnerabilities to SARIF results
-          for vuln in data.get('vulnerabilities', []):
-              result = {
-                  'ruleId': vuln.get('id', 'CVE-UNKNOWN'),
-                  'message': {
-                      'text': f"{vuln.get('description', 'Security vulnerability')} (fix available: {vuln.get('fix_available', False)})"
-                  },
-                  'level': 'warning' if vuln.get('fix_available') else 'error',
-                  'locations': [{
-                      'physicalLocation': {
-                          'artifactLocation': {
-                              'uri': 'backend/requirements.txt'
+          vulnerability_count = 0
+          for dependency in data.get('dependencies', []) or []:
+              dependency_name = dependency.get('name', 'unknown')
+              dependency_version = dependency.get('version', 'unknown')
+              for vuln in dependency.get('vulns', []) or []:
+                  vulnerability_count += 1
+                  fix_versions = vuln.get('fix_versions', []) or []
+                  message_text = (
+                      f"{dependency_name} {dependency_version}: "
+                      f"{vuln.get('description', 'Security vulnerability')}"
+                  )
+                  if fix_versions:
+                      message_text += f" (fix versions: {', '.join(fix_versions)})"
+
+                  result = {
+                      'ruleId': vuln.get('id', 'PIP-AUDIT'),
+                      'message': {
+                          'text': message_text
+                      },
+                      'level': 'warning' if fix_versions else 'error',
+                      'locations': [{
+                          'physicalLocation': {
+                              'artifactLocation': {
+                                  'uri': 'backend/requirements.txt'
+                              }
                           }
-                      }
-                  }]
-              }
-              sarif['runs'][0]['results'].append(result)
+                      }]
+                  }
+                  sarif['runs'][0]['results'].append(result)
 
           # Save SARIF
           with open('backend-audit.sarif', 'w') as f:
               json.dump(sarif, f, indent=2)
 
-          print(f"✅ Converted {len(data.get('vulnerabilities', []))} vulnerabilities to SARIF")
+          print(f"✅ Converted {vulnerability_count} vulnerabilities to SARIF")
           PY
 
-      - name: Check for critical vulnerabilities
+      - name: Summarize pip-audit results
         run: |
           python - <<'PY'
           import json
@@ -1104,22 +1117,30 @@ jobs:
           try:
               with open('backend-audit.json') as f:
                   data = json.load(f)
-                  vulns = data.get('vulnerabilities', [])
-
-                  # Count fixable critical/high severity
-                  critical = [v for v in vulns if v.get('fix_available')]
-                  if critical:
-                      print(f"⚠️  Found {len(critical)} fixable vulnerabilities")
-                      for v in critical[:5]:  # Show first 5
-                          print(f"  - {v.get('id', 'unknown')}: {v.get('description', 'no description')}")
-                      if len(critical) > 5:
-                          print(f"  ... and {len(critical) - 5} more")
-                      # Note: not failing on this - vulnerability management is separate
-                  else:
-                      print("✅ No fixable vulnerabilities found")
           except Exception as e:
               print(f"⚠️  Could not parse pip-audit report: {e}")
               sys.exit(0)  # Non-fatal
+
+          vulnerability_entries = []
+          for dependency in data.get('dependencies', []) or []:
+              for vuln in dependency.get('vulns', []) or []:
+                  vulnerability_entries.append((dependency, vuln))
+
+          if vulnerability_entries:
+              fixable_count = sum(1 for _, vuln in vulnerability_entries if vuln.get('fix_versions'))
+              print(f"⚠️  Found {len(vulnerability_entries)} vulnerability entries")
+              print(f"  Fixable: {fixable_count}")
+              for dependency, vuln in vulnerability_entries[:5]:
+                  fix_versions = vuln.get('fix_versions', []) or []
+                  fix_note = f" (fix versions: {', '.join(fix_versions)})" if fix_versions else ""
+                  print(
+                      f"  - {dependency.get('name', 'unknown')} {dependency.get('version', 'unknown')}: "
+                      f"{vuln.get('id', 'unknown')} {vuln.get('description', 'no description')}{fix_note}"
+                  )
+              if len(vulnerability_entries) > 5:
+                  print(f"  ... and {len(vulnerability_entries) - 5} more")
+          else:
+              print("✅ No vulnerabilities found")
           PY
 
       - name: Upload security reports
@@ -1154,14 +1175,14 @@ jobs:
           try:
               with open('backend-audit.json') as f:
                   data = json.load(f)
-                  vulns = data.get('vulnerabilities', [])
+                  vulns = [vuln for dependency in data.get('dependencies', []) or [] for vuln in dependency.get('vulns', []) or []]
 
               with open(summary_path, 'a') as f:
                   f.write("### Backend Security Scan\n")
                   f.write(f"- **Tool:** pip-audit (CVE detection)\n")
                   f.write(f"- **Total vulnerabilities:** {len(vulns)}\n")
                   if vulns:
-                      fixable = [v for v in vulns if v.get('fix_available')]
+                      fixable = [v for v in vulns if v.get('fix_versions')]
                       f.write(f"- **Fixable:** {len(fixable)}\n")
           except Exception as e:
               print(f"Error parsing report: {e}")
@@ -1201,6 +1222,7 @@ jobs:
           fi
 
       - name: Convert npm-audit to SARIF format
+        if: always()
         run: |
           cd frontend
           python - <<'PY'
@@ -1227,24 +1249,32 @@ jobs:
           }
 
           # Convert vulnerabilities to SARIF results
-          for vuln_key, vuln_data in data.get('vulnerabilities', {}).items():
-              for severity, count in vuln_data.items():
-                  if isinstance(count, int) and count > 0:
-                      result = {
-                          'ruleId': vuln_key,
-                          'message': {
-                              'text': f"NPM dependency vulnerability: {vuln_key} ({severity})"
-                          },
-                          'level': 'error' if severity in ['critical', 'high'] else 'warning',
-                          'locations': [{
-                              'physicalLocation': {
-                                  'artifactLocation': {
-                                      'uri': 'frontend/package.json'
-                                  }
-                              }
-                          }]
+          for package_name, vuln_data in (data.get('vulnerabilities', {}) or {}).items():
+              severity = str(vuln_data.get('severity', 'unknown')).lower()
+              fix_available = vuln_data.get('fixAvailable', False)
+              if isinstance(fix_available, dict):
+                  fix_available = True
+
+              range_text = vuln_data.get('range', 'unknown range')
+              message_text = f"NPM dependency vulnerability: {package_name} ({severity}, range: {range_text})"
+              if fix_available:
+                  message_text += " (fix available)"
+
+              result = {
+                  'ruleId': package_name,
+                  'message': {
+                      'text': message_text
+                  },
+                  'level': 'error' if severity in ['critical', 'high'] else 'warning',
+                  'locations': [{
+                      'physicalLocation': {
+                          'artifactLocation': {
+                              'uri': 'frontend/package-lock.json'
+                          }
                       }
-                      sarif['runs'][0]['results'].append(result)
+                  }]
+              }
+              sarif['runs'][0]['results'].append(result)
 
           # Save SARIF
           with open('frontend-audit.sarif', 'w') as f:
@@ -2054,6 +2084,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Normalize version from VERSION file
+        id: version_file
+        uses: ./.github/actions/normalize-version
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -2112,8 +2146,8 @@ jobs:
             exit 1
           fi
 
-          FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
-          FILE_VERSION_NORM="${FILE_VERSION#v}"
+          FILE_VERSION="${{ steps.version_file.outputs.version_tag }}"
+          FILE_VERSION_NORM="${{ steps.version_file.outputs.version_core }}"
           TAG_VERSION_NORM="${TAG#v}"
           echo "VERSION file: $FILE_VERSION"
 

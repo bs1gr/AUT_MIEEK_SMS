@@ -28,6 +28,10 @@ jobs:
   build:
     name: Build Installer
     runs-on: windows-latest
+    outputs:
+      version_tag: ${{ steps.version.outputs.version_tag }}
+      version_core: ${{ steps.version.outputs.version_core }}
+      version: ${{ steps.version.outputs.version }}
 
     steps:
       - name: Checkout code
@@ -151,9 +155,6 @@ jobs:
     needs: build
     if: ${{ github.event.inputs.output_mode == 'release' || github.event.inputs.output_mode == '' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-
       - name: Download Installer Artifact
         uses: actions/download-artifact@v4
         with:
@@ -161,7 +162,9 @@ jobs:
 
       - name: Create Release
         run: |
-          VERSION=$(cat VERSION)
+          set -euo pipefail
+
+          VERSION="${{ needs.build.outputs.version_tag }}"
           INSTALLER=$(ls SMS_Installer_*.exe 2>/dev/null | head -1)
 
           if [ -z "$INSTALLER" ]; then
@@ -170,7 +173,13 @@ jobs:
           fi
 
           echo "📦 Publishing installer: $INSTALLER"
-          gh release create "$VERSION" "$INSTALLER" --generate-notes || true
+          if ! gh release create "$VERSION" "$INSTALLER" --generate-notes; then
+            echo "Release already exists or create failed; updating notes instead..."
+            NOTES_FILE="$(mktemp)"
+            printf '%s\n' 'Installer artifact published via manual workflow.' > "$NOTES_FILE"
+            gh release edit "$VERSION" --notes-file "$NOTES_FILE"
+            rm -f "$NOTES_FILE"
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -193,8 +202,10 @@ jobs:
 
       - name: Commit and Push Installer
         run: |
+          set -euo pipefail
+
           INSTALLER=$(ls SMS_Installer_*.exe 2>/dev/null | head -1)
-          VERSION=$(cat VERSION)
+          VERSION="${{ needs.build.outputs.version_tag }}"
 
           if [ -z "$INSTALLER" ]; then
             echo "❌ No installer found"
@@ -206,15 +217,24 @@ jobs:
           git config user.name "GitHub Actions"
 
           git add "$INSTALLER"
-          git commit -m "chore: update installer $VERSION" || echo "No changes to commit"
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update installer $VERSION"
+          fi
 
           # Try direct push first (for non-protected branches)
-          git push origin ${{ github.event.inputs.target_branch || 'dist/installer' }} || {
+          if git push origin ${{ github.event.inputs.target_branch || 'dist/installer' }}; then
+            echo "✓ Installer artifact synced and pushed to ${{ github.event.inputs.target_branch || 'dist/installer' }}"
+          else
             echo "⚠️  Direct push failed (protected branch?), attempting PR fallback..."
+            FALLBACK_BRANCH="installer-update-$(date +%s)"
+            git push origin HEAD:"$FALLBACK_BRANCH"
             gh pr create --base ${{ github.event.inputs.target_branch || 'dist/installer' }} \
-              --head "installer-update-$(date +%s)" \
+              --head "$FALLBACK_BRANCH" \
               --title "chore: update installer $VERSION" \
-              --body "Automated installer update" || true
-          }
+              --body "Automated installer update"
+            echo "✓ Direct push blocked; opened PR from '$FALLBACK_BRANCH'."
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -25,14 +25,22 @@ jobs:
         run: npm audit --json > audit-report.json || true
 
       - name: Check for critical vulnerabilities
+        shell: bash
         working-directory: ./frontend
         run: |
-          if [[ $(jq '.metadata.vulnerabilities.critical' audit-report.json) -gt 0 ]]; then
+          set -euo pipefail
+
+          jq empty audit-report.json
+
+          CRITICAL_COUNT="$(jq '.metadata.vulnerabilities.critical // 0' audit-report.json)"
+          echo "Detected $CRITICAL_COUNT critical vulnerabilities"
+
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
             echo "❌ Critical vulnerabilities found!"
             exit 1
-          else
-            echo "✅ No critical vulnerabilities"
           fi
+
+          echo "✅ No critical vulnerabilities"
 
       - name: Upload artifact
         if: always()

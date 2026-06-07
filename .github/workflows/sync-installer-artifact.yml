@@ -8,7 +8,7 @@ on:
         required: true
         default: 'main'
       version:
-        description: 'Version to sync (e.g., 1.18.4). Leave empty to use VERSION file.'
+        description: 'Version to sync (e.g., 1.18.4 or v1.18.4). Leave empty to use VERSION file.'
         required: false
       skip_codesign:
         description: 'Skip code signing during build (true/false)'
@@ -69,12 +69,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
 
           $inputVersion = "${{ github.event.inputs.version }}".Trim()
-          if ([string]::IsNullOrWhiteSpace($inputVersion)) {
-            if (-not (Test-Path VERSION)) {
-              Write-Error 'VERSION file not found and no version input provided.'
-              exit 1
-            }
-            $inputVersion = (Get-Content VERSION -Raw).Trim()
+          if (-not [string]::IsNullOrWhiteSpace($inputVersion) -and $inputVersion -notmatch '^v') {
+            $inputVersion = "v$inputVersion"
           }
 
           "version=$inputVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8

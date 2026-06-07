@@ -29,14 +29,23 @@ jobs:
       - name: Run pip-audit
         run: pip-audit --desc --format json --output backend-audit.json || true
 
-      - name: Check for critical vulnerabilities
+      - name: Check for vulnerabilities
+        shell: bash
         run: |
-          if jq -e '.[] | .vulnerabilities[] | select(.severity == "CRITICAL")' backend-audit.json >/dev/null; then
-            echo "❌ Critical vulnerabilities found!"
+          set -euo pipefail
+
+          jq empty backend-audit.json
+
+          VULN_COUNT="$(jq '[.dependencies[]? | (.vulns // []) | length] | add // 0' backend-audit.json)"
+          echo "Detected $VULN_COUNT vulnerability entries"
+
+          if [ "$VULN_COUNT" -gt 0 ]; then
+            echo "❌ Vulnerabilities found!"
+            jq -r '.dependencies[]? | select((.vulns // []) | length > 0) | "\(.name) \(.version): \((.vulns // []) | length) vulnerability(ies)"' backend-audit.json | sed -n '1,20p'
             exit 1
-          else
-            echo "✅ No critical vulnerabilities"
           fi
+
+          echo "✅ No vulnerabilities found"
 
       - name: Upload artifact
         if: always()
