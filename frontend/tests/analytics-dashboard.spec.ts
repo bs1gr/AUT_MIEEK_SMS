@@ -1,5 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
-import { loginViaUI } from './helpers';
+import { loginViaAPI } from './helpers';
 
 /**
  * E2E Tests for Analytics Dashboard (Feature #125)
@@ -20,7 +20,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
     page = testPage;
     // Set viewport to desktop for initial tests
     await page.setViewportSize({ width: 1280, height: 720 });
-    await loginViaUI(page, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
+    await loginViaAPI(page, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
     await page.goto('/analytics');
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');

@@ -16,7 +16,7 @@
  */
 
 import { test, expect } from '@playwright/test';
-import { loginViaUI } from './helpers';
+import { loginViaAPI } from './helpers';
 
 // Keep tests fast and aligned with the current UI surface
 test.setTimeout(60_000);
@@ -27,7 +27,7 @@ const E2E_PASSWORD = process.env.E2E_PASSWORD || 'YourSecurePassword123!';
 
 test.describe('Advanced Search & Filtering - E2E (smoke)', () => {
   test.beforeEach(async ({ page }) => {
-    await loginViaUI(page, E2E_EMAIL, E2E_PASSWORD);
+    await loginViaAPI(page, E2E_EMAIL, E2E_PASSWORD);
     await page.goto(`${BASE_URL}/students`);
     await page.waitForLoadState('networkidle');
   });
