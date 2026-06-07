@@ -96,32 +96,59 @@ export const ExportDialog: React.FC<ExportDialogProps> = ({ isOpen, onClose, typ
 
   return (
     <>
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 z-40"
+        onClick={onClose}
+        role="presentation"
+      />
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-lg shadow-xl max-w-md w-full" role="dialog" aria-modal="true">
           <div className="border-b border-gray-200 px-6 py-4 flex items-center justify-between">
             <h2 className="text-lg font-medium text-gray-900">{t('exportData', { ns: 'export' })}</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600 focus:outline-none" aria-label="Close">✕</button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 focus:outline-none"
+              aria-label="Close dialog"
+              type="button"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           <div className="px-6 py-4 space-y-4">
             {error && (<div className="bg-red-50 border border-red-200 rounded-md p-3"><p className="text-red-800 text-sm">{error}</p></div>)}
 
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">{t('format', { ns: 'export' })}</label>
-              <select value={format} onChange={(e) => setFormat(e.target.value as any)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="csv">CSV</option>
-                <option value="excel">Excel (XLSX)</option>
-                <option value="pdf">PDF</option>
+              <label htmlFor="format-select" className="block text-sm font-medium text-gray-900 mb-2">
+                {t('format', { ns: 'export' })}
+              </label>
+              <select
+                id="format-select"
+                value={format}
+                onChange={(e) => setFormat(e.target.value as 'csv' | 'excel' | 'pdf')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="csv">{t('csv', { ns: 'export' }) || 'CSV'}</option>
+                <option value="excel">{t('excel', { ns: 'export' }) || 'Excel (XLSX)'}</option>
+                <option value="pdf">{t('pdf', { ns: 'export' }) || 'PDF'}</option>
               </select>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-900 mb-2">{t('dateRange', { ns: 'export' })}</label>
-              <select value={dateRange} onChange={(e) => setDateRange(e.target.value as any)} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                <option value="all">{t('allTime', { ns: 'export' })}</option>
-                <option value="thisMonth">{t('thisMonth', { ns: 'export' })}</option>
-                <option value="thisYear">{t('thisYear', { ns: 'export' })}</option>
+              <label htmlFor="date-range-select" className="block text-sm font-medium text-gray-900 mb-2">
+                {t('dateRange', { ns: 'export' })}
+              </label>
+              <select
+                id="date-range-select"
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value as 'all' | 'thisMonth' | 'thisYear')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">{t('allTime', { ns: 'export' }) || 'All Time'}</option>
+                <option value="thisMonth">{t('thisMonth', { ns: 'export' }) || 'This Month'}</option>
+                <option value="thisYear">{t('thisYear', { ns: 'export' }) || 'This Year'}</option>
               </select>
             </div>
 

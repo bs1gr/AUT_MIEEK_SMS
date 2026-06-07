@@ -14,7 +14,6 @@ export function useAnalyticsExport() {
         const endpoint = format === 'pdf' ? '/analytics/export/pdf' : '/analytics/export/excel';
         const dateTimeSettings = getStoredDateTimeSettings();
         const urlWithLanguage = `${endpoint}?language=${encodeURIComponent(language)}&timezone=${encodeURIComponent(dateTimeSettings.timeZone)}`;
-        console.log('[Analytics Export] Sending to URL with language:', language, 'timezone:', dateTimeSettings.timeZone);
 
         const response = await apiClient({
           method: 'POST',
@@ -24,7 +23,6 @@ export function useAnalyticsExport() {
             'Accept-Language': language === 'el' ? 'el-GR' : 'en-US',
           },
         });
-        console.log('[Analytics Export] Response received for', format);
 
         // Generate filename with timestamp
         const timestamp = new Date().toISOString().split('T')[0];

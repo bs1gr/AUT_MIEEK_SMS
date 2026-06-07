@@ -1,7 +1,7 @@
 declare module 'react-hook-form' {
   import type * as React from 'react'
 
-  export type FieldValues = Record<string, any>
+  export type FieldValues = Record<string, unknown>
   export type FieldPath<TFieldValues extends FieldValues = FieldValues> = Extract<keyof TFieldValues, string>
   export type FieldError = {
     type?: string
@@ -25,9 +25,9 @@ declare module 'react-hook-form' {
 
   export type RegisterReturn = {
     name: string
-    onChange: (...event: any[]) => void
+    onChange: (...event: unknown[]) => void
     onBlur: () => void
-    ref: (instance: any) => void
+    ref: (instance: unknown) => void
   }
 
   export type SubmitHandler<TFieldValues extends FieldValues = FieldValues> = (
