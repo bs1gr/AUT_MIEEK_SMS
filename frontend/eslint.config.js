@@ -137,6 +137,14 @@ export default [
       "testing-library/no-await-sync-queries": "warn",
     },
   },
+  // Type definition file overrides (external library augmentations require 'any')
+  {
+    files: ["**/*.d.ts"],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
   // Disable formatting-related rules via Prettier
   prettier,
 ];
