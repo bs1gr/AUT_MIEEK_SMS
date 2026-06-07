@@ -99,27 +99,32 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Verifying version consistency across codebase..." -ForegroundColor Cyan
-          if (Test-Path "scripts\VERIFY_VERSION.ps1") {
-            .\scripts\VERIFY_VERSION.ps1 -CIMode
-            if ($LASTEXITCODE -eq 1) {
-              Write-Error "❌ Critical version inconsistencies found"
-              exit 1
-            }
-          } else {
-            Write-Warning "VERIFY_VERSION.ps1 not found. Running basic check via COMMIT_READY.ps1..."
-            .\COMMIT_READY.ps1 -AuditVersion -SkipTests -SkipLint -SkipCleanup -Mode quick
+
+          $scriptPath = "scripts\VERIFY_VERSION.ps1"
+          if (-not (Test-Path $scriptPath)) {
+            Write-Error "❌ VERIFY_VERSION.ps1 not found at $scriptPath. This script is mandatory for version verification."
+            Write-Error "Ensure all required scripts are present in the repository."
+            exit 1
           }
+
+          .\scripts\VERIFY_VERSION.ps1 -CIMode
+          if ($LASTEXITCODE -eq 1) {
+            Write-Error "❌ Critical version inconsistencies found"
+            exit 1
+          }
+
           Write-Host "✅ All version references consistent" -ForegroundColor Green
 
       - name: Generate version report
         if: always()
         shell: pwsh
         run: |
-          if (Test-Path "scripts\VERIFY_VERSION.ps1") {
-            .\scripts\VERIFY_VERSION.ps1 -Report
-          } else {
-            Write-Warning "VERIFY_VERSION.ps1 not found. Skipping version report."
+          $scriptPath = "scripts\VERIFY_VERSION.ps1"
+          if (-not (Test-Path $scriptPath)) {
+            Write-Error "VERIFY_VERSION.ps1 not found. Cannot generate report."
+            exit 1
           }
+          .\scripts\VERIFY_VERSION.ps1 -Report
 
       - name: Upload version report
         if: always()
@@ -266,10 +271,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Install Gitleaks
+      - name: Install Gitleaks (with integrity verification)
         run: |
+          set -euo pipefail
           GITLEAKS_VERSION="8.18.4"
-          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          RELEASE_URL="https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}"
+
+          # Download the binary and checksums
+          curl -sSL "${RELEASE_URL}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          curl -sSL "${RELEASE_URL}/gitleaks_${GITLEAKS_VERSION}_checksums.txt" -o checksums.txt
+
+          # Verify integrity using SHA256
+          echo "Verifying SHA256 checksum..."
+          if ! sha256sum --quiet -c checksums.txt 2>/dev/null | grep -q "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"; then
+            echo "❌ Gitleaks checksum verification failed. Possible corrupted or tampered release."
+            exit 1
+          fi
+
+          echo "✅ Checksum verified"
           tar -xzf gitleaks.tar.gz gitleaks
           sudo mv gitleaks /usr/local/bin/gitleaks
           gitleaks version
@@ -1308,11 +1327,12 @@ jobs:
     needs: [build-docker-images]
     # CRITICAL: Must wait for Docker images to be built before scanning
     # Ensures images are built AND security-scanned before deployment gates evaluate them
-    if: github.event_name != 'pull_request'
+    # Runs on all events (including PRs) for early vulnerability detection
     permissions:
       security-events: write
       contents: read
-    continue-on-error: true
+    # Non-blocking on PRs (detection during review), blocking on main/releases
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
