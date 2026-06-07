@@ -46,20 +46,21 @@ export async function ensureTestUserExists() {
  */
 export async function loginViaAPI(page: Page, email: string, password: string) {
   // 1. Request the access token from the backend API.
-  // Adjust the endpoint '/api/v1/login/access-token' if your API differs.
-  const response = await page.request.post('/api/v1/login/access-token', {
-    form: {
-      username: email,
+  const response = await page.request.post('/api/v1/auth/login', {
+    data: {
+      email: email,
       password: password,
     },
   });
   expect(response.ok(), `Login via API failed for user ${email}`).toBeTruthy();
-  const { access_token } = await response.json();
+  const data = await response.json();
+  const access_token = data.access_token || (data.data && data.data.access_token);
+  expect(access_token, `No access token in login response for ${email}`).toBeTruthy();
 
   // 2. Inject a script to set the token in localStorage on all new pages.
   // This is more robust than navigating to a page just to set the token.
   await page.context().addInitScript((token) => {
-    window.localStorage.setItem('token', token);
+    window.localStorage.setItem('sms_access_token', token);
   }, access_token);
 }
 
