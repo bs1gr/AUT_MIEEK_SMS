@@ -2218,6 +2218,14 @@ jobs:
             echo "message=CI pipeline completed successfully (release/deploy gates may be intentionally skipped)" >> $GITHUB_OUTPUT
           fi
 
+      - name: Check Slack webhook configuration
+        if: ${{ env.SLACK_WEBHOOK_URL == '' }}
+        run: |
+          echo "⚠️  WARNING: SLACK_WEBHOOK_URL is not configured"
+          echo "Pipeline status notifications will NOT be sent to Slack"
+          echo "To enable: Set SLACK_WEBHOOK_URL secret in repository settings"
+          echo "Reference: Settings → Secrets and variables → Actions → New repository secret"
+
       - name: Send notification
         if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v2.0.0

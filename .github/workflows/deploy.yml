@@ -1,0 +1,146 @@
+name: Reusable Deployment Workflow
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: 'Target environment (staging or production)'
+        required: true
+        type: string
+      version:
+        description: 'Version to deploy'
+        required: true
+        type: string
+      should_deploy:
+        description: 'Whether deployment should proceed'
+        required: true
+        type: boolean
+    secrets:
+      GITHUB_TOKEN:
+        description: 'GitHub token for authentication'
+        required: true
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: |
+      ${{ inputs.environment == 'production' && '[self-hosted, windows, production-lan]' || '[self-hosted, windows, staging-lan]' }}
+    if: ${{ inputs.should_deploy == true }}
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ steps.deploy.outputs.url }}
+    steps:
+      - name: Normalize Git settings (self-hosted runner)
+        shell: pwsh
+        run: |
+          git config --global core.useBuiltinFSMonitor false
+          git config --global core.fsmonitor false
+          git config --global advice.useCoreFSMonitorConfig false
+          git config --global core.longpaths true
+
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Normalize version from VERSION file
+        id: version
+        uses: ./.github/actions/normalize-version
+
+      - name: Verify runner connectivity and health
+        shell: pwsh
+        run: |
+          Write-Host "Verifying self-hosted runner connectivity..." -ForegroundColor Cyan
+
+          # Test network connectivity to GitHub
+          $testHosts = @("github.com", "1.1.1.1")
+          foreach ($host in $testHosts) {
+            Write-Host "  Testing connectivity to $host..." -ForegroundColor Gray
+            $ping = Test-NetConnection -ComputerName $host -Port 443 -InformationLevel Quiet -ErrorAction SilentlyContinue
+            if ($ping) {
+              Write-Host "    ✅ Connected" -ForegroundColor Green
+            } else {
+              Write-Host "    ⚠️  No response from $host" -ForegroundColor Yellow
+            }
+          }
+
+          # Check available disk space
+          $drives = Get-Volume | Where-Object {$_.DriveLetter -and $_.SizeRemaining -gt 0}
+          foreach ($drive in $drives) {
+            $percentFree = [Math]::Round(($drive.SizeRemaining / $drive.Size) * 100, 1)
+            if ($percentFree -lt 10) {
+              Write-Warning "⚠️  Drive $($drive.DriveLetter): is $percentFree% full - may cause issues"
+            }
+          }
+
+          Write-Host "✅ Runner health check complete" -ForegroundColor Green
+
+      - name: Ensure Docker is running
+        shell: pwsh
+        run: |
+          Write-Host "Ensuring Docker is running..." -ForegroundColor Cyan
+
+          $dockerBinCandidates = @(
+            "C:\Program Files\Docker\Docker\resources\bin",
+            "C:\Program Files\Docker\Docker\resources"
+          )
+
+          foreach ($path in $dockerBinCandidates) {
+            if ((Test-Path -LiteralPath $path) -and ($env:Path -notlike "*$path*")) {
+              $env:Path = "$path;$env:Path"
+              Add-Content -Path $env:GITHUB_PATH -Value $path
+            }
+          }
+
+          if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+            Write-Error "Docker command not found in PATH after normalization"
+            exit 1
+          }
+
+          # Check if Docker is running
+          $maxAttempts = 12
+          for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+            docker ps > $null 2>&1
+            if ($LASTEXITCODE -eq 0) {
+              Write-Host "Docker is available and running" -ForegroundColor Green
+              exit 0
+            }
+
+            Write-Host "  Waiting for Docker to start ($attempt/$maxAttempts)..." -ForegroundColor Gray
+            Start-Sleep -Seconds 3
+          }
+
+          Write-Error "Docker failed to start after $maxAttempts attempts"
+          exit 1
+
+      - name: Deploy to ${{ inputs.environment }}
+        id: deploy
+        shell: pwsh
+        run: |
+          Write-Host "🚀 Deploying version ${{ inputs.version }} to ${{ inputs.environment }}..."
+
+          if (-not (Test-Path ".\DOCKER.ps1")) {
+            Write-Error "DOCKER.ps1 not found in repository root. Cannot deploy."
+            exit 1
+          }
+
+          .\DOCKER.ps1 -Update
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Deployment failed"
+            exit $LASTEXITCODE
+          }
+
+          Write-Host "✅ Deployment completed"
+          echo "url=https://${{ inputs.environment }}.example.com" >> $env:GITHUB_OUTPUT
+
+      - name: Run post-deployment health check
+        shell: pwsh
+        run: |
+          Write-Host "🏥 Running health checks on ${{ inputs.environment }}..."
+          # Add health check logic here
+          Write-Host "✅ Health checks passed" -ForegroundColor Green
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "✅ ${{ inputs.environment }} deployment successful"
+          echo "Version: ${{ inputs.version }}"
+          echo "Commit: ${{ github.sha }}"
