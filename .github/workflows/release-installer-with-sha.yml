@@ -202,9 +202,9 @@ jobs:
 
           Write-Host "Release verified for $tag (ID: $releaseId)"
 
-          echo "tag=$tag" >> $env:GITHUB_OUTPUT
-          echo "release_id=$releaseId" >> $env:GITHUB_OUTPUT
-          echo "version=$($tag -replace '^v', '')" >> $env:GITHUB_OUTPUT
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "release_id=$releaseId" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "version=$($tag -replace '^v', '')" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Checkout resolved tag commit (lineage lock)
         shell: pwsh
@@ -406,7 +406,7 @@ jobs:
           }
 
           Write-Host "✓ Found expected installer: $expectedPath"
-          echo "path=$expectedPath" >> $env:GITHUB_OUTPUT
+          "path=$expectedPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Verify installer signature (mandatory gate)
         id: verify_signature
@@ -414,7 +414,12 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $installer = "${{ steps.verify_installer.outputs.path }}"
-          $requiredThumbprint = '2693C1B15C8A8E5E45614308489DC6F4268B075D'
+          $requiredThumbprint = "${{ secrets.CODESIGN_CERT_THUMBPRINT }}"
+
+          if ([string]::IsNullOrWhiteSpace($requiredThumbprint)) {
+            Write-Error "CODESIGN_CERT_THUMBPRINT secret is not configured. Please set it in repository secrets."
+            exit 1
+          }
 
           if (-not (Test-Path $installer)) {
             Write-Error "Installer not found for signature verification: $installer"
@@ -433,9 +438,9 @@ jobs:
           $actualThumbprint = ($sig.SignerCertificate.Thumbprint -replace '\\s','').ToUpperInvariant()
           Write-Host "Signer: $subject"
           Write-Host "Signer thumbprint: $actualThumbprint"
-          echo "subject=$subject" >> $env:GITHUB_OUTPUT
-          echo "thumbprint=$actualThumbprint" >> $env:GITHUB_OUTPUT
-          echo "status=$($sig.Status)" >> $env:GITHUB_OUTPUT
+          "subject=$subject" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "thumbprint=$actualThumbprint" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "status=$($sig.Status)" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
           if ($actualThumbprint -ne $requiredThumbprint) {
             Write-Error "Signer thumbprint mismatch. Expected $requiredThumbprint, got $actualThumbprint"
@@ -490,9 +495,9 @@ jobs:
           $hash = (Get-FileHash $installer -Algorithm SHA256).Hash
           $fileSize = (Get-Item $installer).Length
           $fileSizeMB = [math]::Round($fileSize / 1MB, 2)
-          echo "sha256=$hash" >> $env:GITHUB_OUTPUT
-          echo "size=$fileSizeMB" >> $env:GITHUB_OUTPUT
-          echo "path=$installer" >> $env:GITHUB_OUTPUT
+          "sha256=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "size=$fileSizeMB" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
+          "path=$installer" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           Write-Host "File: $installer"
           Write-Host "Size: $fileSizeMB MB"
           Write-Host "SHA256: $hash"

@@ -2068,154 +2068,8 @@ jobs:
   # ============================================================================
   # PHASE 9: RELEASE MANAGEMENT
   # ============================================================================
-
-  create-release:
-    name: 📦 Create GitHub Release
-    runs-on: ubuntu-latest
-    # Release creation is centralized in release-on-tag.yml.
-    # Keep this job disabled to prevent duplicate release owners.
-    if: ${{ false }}
-    needs: [build-docker-images, release-asset-lock] # release-asset-lock enforces installer-only asset mutation
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
-
-      - name: Normalize version from VERSION file
-        id: version_file
-        uses: ./.github/actions/normalize-version
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: ./artifacts
-
-      - name: Validate release artifact hygiene
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          echo "Validating downloaded artifact hygiene..."
-          mapfile -t BAD_FILES < <(find ./artifacts -type f \
-            \( -name '*.html' -o -name '*.js' -o -name '*.css' -o -name '*.ico' \) || true)
-
-          if [ ${#BAD_FILES[@]} -gt 0 ]; then
-            echo "❌ Found web/static build files in generic release artifact set:"
-            printf '  - %s\n' "${BAD_FILES[@]}"
-            echo "These files must never be uploaded as GitHub release assets from CI pipeline."
-            exit 1
-          fi
-
-          if [ -f frontend/public/favicon.ico ]; then
-            ICON_BYTES=$(wc -c < frontend/public/favicon.ico)
-            ICON_TEXT=$(tr -d '\r\n' < frontend/public/favicon.ico | head -c 64 || true)
-            if [ "$ICON_BYTES" -lt 64 ] || [ "$ICON_TEXT" = "placeholder" ]; then
-              echo "❌ Invalid placeholder favicon detected (frontend/public/favicon.ico)"
-              echo "Size: ${ICON_BYTES} bytes; value: '${ICON_TEXT}'"
-              echo "Provide a real favicon.ico before creating a release."
-              exit 1
-            fi
-          fi
-
-          echo "✅ Release artifact hygiene checks passed"
-
-      - name: Validate release tag lineage
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          TAG="${GITHUB_REF#refs/tags/}"
-          echo "Resolved tag: $TAG"
-
-          if [[ ! "$TAG" =~ ^v1\.[0-9]+\.[0-9]+$ ]]; then
-            echo "❌ Invalid release tag format: '$TAG'"
-            echo "Required format: v1.MAJOR.MINOR (e.g., v1.18.1)"
-            exit 1
-          fi
-
-          if [[ "$TAG" != "${GITHUB_REF_NAME}" ]]; then
-            echo "❌ Ref mismatch: GITHUB_REF_NAME='${GITHUB_REF_NAME}' but resolved TAG='$TAG'"
-            exit 1
-          fi
-
-          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
-            echo "❌ Tag '$TAG' does not exist in repository refs"
-            exit 1
-          fi
-
-          FILE_VERSION="${{ steps.version_file.outputs.version_tag }}"
-          FILE_VERSION_NORM="${{ steps.version_file.outputs.version_core }}"
-          TAG_VERSION_NORM="${TAG#v}"
-          echo "VERSION file: $FILE_VERSION"
-
-          if [[ "$FILE_VERSION_NORM" != "$TAG_VERSION_NORM" ]]; then
-            echo "❌ VERSION/tag mismatch: VERSION='$FILE_VERSION' vs TAG='$TAG'"
-            exit 1
-          fi
-
-          echo "✅ Release tag lineage validation passed"
-
-      - name: Extract version
-        id: version
-        run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Generate release notes
-        id: release_notes
-        run: |
-          echo "Generating release notes for v${{ steps.version.outputs.version }}..."
-          if [ -f "release_notes_v${{ steps.version.outputs.version }}.md" ]; then
-            cat "release_notes_v${{ steps.version.outputs.version }}.md" > RELEASE_NOTES.md
-          else
-            echo "# Release v${{ steps.version.outputs.version }}" > RELEASE_NOTES.md
-            echo "" >> RELEASE_NOTES.md
-            echo "## Changes" >> RELEASE_NOTES.md
-            # Safely get previous tag, fallback to all history if none
-            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-            if [ -z "$PREV_TAG" ]; then
-              git log --pretty=format:"- %s" >> RELEASE_NOTES.md
-            else
-              git log --pretty=format:"- %s" ${PREV_TAG}..HEAD >> RELEASE_NOTES.md
-            fi
-          fi
-
-      - name: Check GitHub CLI availability
-        shell: bash
-        run: |
-          if ! command -v gh >/dev/null 2>&1; then
-            echo 'GitHub CLI (gh) is not installed or not available on PATH. This workflow requires gh for release creation and editing.'
-            exit 1
-          fi
-          gh --version
-
-      - name: Create GitHub Release
-        shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          VERSION="v${{ steps.version.outputs.version }}"
-          NOTES_FILE="RELEASE_NOTES.md"
-
-          # IMPORTANT:
-          # - Do NOT upload generic CI artifacts to GitHub releases from this pipeline.
-          # - Installer assets are managed by dedicated installer workflows with digest validation.
-          # - This avoids release pollution (frontend dist chunks, html reports, misc build outputs).
-
-          # Attempt to create release. If it already exists, update notes only.
-          if ! gh release create "$VERSION" \
-            --title "Release $VERSION" \
-            --notes-file "$NOTES_FILE" \
-            --generate-notes; then
-            echo "Release creation failed (likely already exists). Updating existing release..."
-            gh release edit "$VERSION" --notes-file "$NOTES_FILE"
-          else
-            echo "Release created successfully (notes only)."
-          fi
-
+  # NOTE: Release creation is centralized in release-on-tag.yml to prevent
+  # duplicate release owners. This job is removed to maintain single source of truth.
   # ============================================================================
   # PHASE 10: POST-DEPLOYMENT MONITORING
   # ============================================================================
@@ -2321,7 +2175,6 @@ jobs:
         release-asset-lock,
         staging-deploy-gate,
         production-deploy-gate,
-        create-release,
         deploy-staging,
         deploy-production,
         post-deployment-monitoring
@@ -2333,7 +2186,7 @@ jobs:
       - name: Determine pipeline status
         id: status
         run: |
-          RESULTS="${{ needs.version-verification.result }} ${{ needs.workflow-version-policy.result }} ${{ needs.lint-backend.result }} ${{ needs.lint-frontend.result }} ${{ needs.secret-scan.result }} ${{ needs.test-backend.result }} ${{ needs.test-frontend.result }} ${{ needs.smoke-tests.result }} ${{ needs.build-frontend.result }} ${{ needs.build-docker-images.result }} ${{ needs.security-scan-backend.result }} ${{ needs.security-scan-frontend.result }} ${{ needs.security-scan-docker.result }} ${{ needs.cleanup-and-docs.result }} ${{ needs.release-asset-lock.result }} ${{ needs.staging-deploy-gate.result }} ${{ needs.production-deploy-gate.result }} ${{ needs.create-release.result }} ${{ needs.deploy-staging.result }} ${{ needs.deploy-production.result }} ${{ needs.post-deployment-monitoring.result }}"
+          RESULTS="${{ needs.version-verification.result }} ${{ needs.workflow-version-policy.result }} ${{ needs.lint-backend.result }} ${{ needs.lint-frontend.result }} ${{ needs.secret-scan.result }} ${{ needs.test-backend.result }} ${{ needs.test-frontend.result }} ${{ needs.smoke-tests.result }} ${{ needs.build-frontend.result }} ${{ needs.build-docker-images.result }} ${{ needs.security-scan-backend.result }} ${{ needs.security-scan-frontend.result }} ${{ needs.security-scan-docker.result }} ${{ needs.cleanup-and-docs.result }} ${{ needs.release-asset-lock.result }} ${{ needs.staging-deploy-gate.result }} ${{ needs.production-deploy-gate.result }} ${{ needs.deploy-staging.result }} ${{ needs.deploy-production.result }} ${{ needs.post-deployment-monitoring.result }}"
           if echo "$RESULTS" | grep -Eq "failure|cancelled"; then
             echo "status=failure" >> $GITHUB_OUTPUT
             echo "emoji=❌" >> $GITHUB_OUTPUT
