@@ -255,8 +255,8 @@ test.describe('Search Feature E2E Tests', () => {
       await page.click('button:has-text("Save")');
 
       // Step 3: Navigate away and back
-      await page.goto('http://localhost:5173/dashboard');
-      await page.goto('http://localhost:5173/search');
+      await page.goto('/dashboard');
+      await page.goto('/search');
 
       // Step 4: Verify saved search still available
       const savedSearchButton = page.locator('button:has-text("Saved Search 1")');
