@@ -30,6 +30,7 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
+*.egg-info/
 .pytest_cache/
 .coverage
 coverage.xml
@@ -87,6 +88,28 @@ commit_ready_*.log
 code-scanning-sarif/
 # Root-level generated copy of docs/DOCUMENTATION_INDEX.md (canonical path is docs/)
 DOCUMENTATION_INDEX.md
+
+# Root-level generated test and execution outputs
+/backend_test_results.txt
+/ci_log.txt
+/e2e_test_results_local.txt
+/e2e_test_verification.txt
+/full_ci_log.txt
+/full_log.txt
+/frontend_e2e_full_results.txt
+/frontend_e2e_test_results.txt
+/pr_output.txt
+/run_output.txt
+/test_log_*.txt
+/logs.zip
+
+# Frontend-generated test artifacts
+/frontend/e2e-results.txt
+/frontend/e2e-test-output.txt
+/frontend/test-diagnostics/
+/frontend/test-output.log
+/frontend/test-results*.json
+/frontend/vitest-results.xml
 
 # Node / Frontend
 frontend/node_modules/
