@@ -626,16 +626,11 @@ jobs:
         run: mkdir -p ./data
 
       - name: Initialize test database
+        env:
+          DATABASE_URL: sqlite:///./data/test_smoke.db
         run: |
-          cd backend
-          python - <<'PY'
-          from sqlalchemy import create_engine, text
-
-          engine = create_engine('sqlite:///./data/test_smoke.db')
-          with engine.connect() as conn:
-              conn.execute(text('SELECT 1'))
-              conn.commit()
-          PY
+          echo "Running Alembic migrations for smoke tests..."
+          python -c "from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
 
       - name: Start backend server
         env:
@@ -839,18 +834,26 @@ jobs:
           pip install -r backend/requirements.txt
           pip install locust requests
 
+      - name: Create data directory
+        run: mkdir -p ./data
+
       - name: Initialize database
+        env:
+          DATABASE_URL: sqlite:///./data/load_test.db
         run: |
           echo "Running Alembic migrations..."
-          python -c "from backend.run_migrations import run_migrations; run_migrations()" || echo "Migration warning"
+          python -c "from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
 
       - name: Seed test data
+        env:
+          DATABASE_URL: sqlite:///./data/load_test.db
         run: |
           echo "Seeding load test data..."
           python backend/seed_e2e_data.py
 
       - name: Start backend server in background
         env:
+          DATABASE_URL: sqlite:///./data/load_test.db
           CSRF_ENABLED: '0'
           AUTH_MODE: disabled
           AUTH_ENABLED: 'false'
