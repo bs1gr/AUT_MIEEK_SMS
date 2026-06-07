@@ -1,7 +1,7 @@
 declare module 'react-hook-form' {
   import type * as React from 'react'
 
-  export type FieldValues = Record<string, unknown>
+  export type FieldValues = Record<string, any>
   export type FieldPath<TFieldValues extends FieldValues = FieldValues> = Extract<keyof TFieldValues, string>
   export type FieldError = {
     type?: string
