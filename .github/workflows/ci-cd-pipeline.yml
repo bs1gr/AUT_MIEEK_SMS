@@ -1584,6 +1584,34 @@ jobs:
             .\DOCKER.ps1 -Stop
           }
 
+      - name: Verify runner connectivity and health
+        shell: pwsh
+        run: |
+          Write-Host "Verifying self-hosted runner connectivity..." -ForegroundColor Cyan
+
+          # Test network connectivity to GitHub
+          $testHosts = @("github.com", "1.1.1.1")
+          foreach ($host in $testHosts) {
+            Write-Host "  Testing connectivity to $host..." -ForegroundColor Gray
+            $ping = Test-NetConnection -ComputerName $host -Port 443 -InformationLevel Quiet -ErrorAction SilentlyContinue
+            if ($ping) {
+              Write-Host "    ✅ Connected" -ForegroundColor Green
+            } else {
+              Write-Host "    ⚠️  No response from $host" -ForegroundColor Yellow
+            }
+          }
+
+          # Check available disk space
+          $drives = Get-Volume | Where-Object {$_.DriveLetter -and $_.SizeRemaining -gt 0}
+          foreach ($drive in $drives) {
+            $percentFree = [Math]::Round(($drive.SizeRemaining / $drive.Size) * 100, 1)
+            if ($percentFree -lt 10) {
+              Write-Warning "⚠️  Drive $($drive.DriveLetter): is $percentFree% full - may cause issues"
+            }
+          }
+
+          Write-Host "✅ Runner health check complete" -ForegroundColor Green
+
       - name: Free port 8080 if occupied
         shell: pwsh
         run: |
