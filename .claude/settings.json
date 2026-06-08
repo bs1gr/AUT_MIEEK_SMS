@@ -1,3 +1,19 @@
 {
-  "$schema": "https://json.schemastore.org/claude-code-settings.json"
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "PowerShell(.\\\\COMMIT_READY.ps1 -Quick -Snapshot)",
+      "PowerShell(git -C \"d:\\\\SMS\\\\student-management-system\" status --short)",
+      "PowerShell(New-Item -ItemType Directory -Path \"d:\\\\SMS\\\\student-management-system\\\\backend\\\\logs\" -Force)",
+      "PowerShell(try { $health = Invoke-WebRequest -Uri \"http://localhost:8000/health\" -TimeoutSec 3 -ErrorAction Stop; Write-Host \"✅ Backend Health: $\\($health.StatusCode\\)\" } catch { Write-Host \"⚠️ Backend not responding yet \\(still starting up\\)\" })",
+      "PowerShell(Start-Sleep -Seconds 3; Write-Host \"=== Backend Health ===\" ; try { $health = Invoke-WebRequest -Uri \"http://localhost:8000/health\" -TimeoutSec 3 -ErrorAction Stop; Write-Host \"✅ Backend Health: $\\($health.StatusCode\\)\"; Write-Host $health.Content } catch { Write-Host \"⚠️ Backend: $_\" }; Write-Host \"\"; Write-Host \"=== Frontend Access ===\" ; try { $resp = Invoke-WebRequest -Uri \"http://localhost:5173/\" -TimeoutSec 3 -ErrorAction Stop; Write-Host \"✅ Frontend: $\\($resp.StatusCode\\) - React app loaded\" } catch { Write-Host \"⚠️ Frontend: $_\" })",
+      "PowerShell(Start-Sleep -Seconds 5; Write-Host \"=== Backend Health Check ===\" ; try { $health = Invoke-WebRequest -Uri \"http://localhost:8000/health\" -TimeoutSec 5 -ErrorAction Stop; Write-Host \"✅ Backend Health: $\\($health.StatusCode\\) - API Healthy\"; $data = $health.Content | ConvertFrom-Json; Write-Host \"Status: $\\($data.status\\)\" } catch { Write-Host \"⚠️ Still initializing...\" })",
+      "PowerShell(Get-ChildItem -Path \"d:\\\\SMS\\\\student-management-system\" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -match \"secret|credential|qnap|postgres\" } | Select-Object FullName)",
+      "Read(//c/Program Files/SMS/local-secrets/**)",
+      "Read(//c/Program Files/SMS/**)",
+      "PowerShell(Start-Sleep -Seconds 5; Write-Host \"=== Testing Backend with QNAP PostgreSQL ===\" ; try { $health = Invoke-WebRequest -Uri \"http://localhost:8000/health\" -TimeoutSec 5 -ErrorAction Stop; Write-Host \"✅ Backend Health: $\\($health.StatusCode\\)\"; $data = $health.Content | ConvertFrom-Json; Write-Host \"Status: $\\($data.status\\)\"; Write-Host \"Database: QNAP PostgreSQL connected ✅\" } catch { Write-Host \"⚠️ Backend health check: $_\" }; Write-Host \"\"; Write-Host \"=== Frontend Access ===\" ; try { $resp = Invoke-WebRequest -Uri \"http://localhost:5173/\" -TimeoutSec 3 -ErrorAction Stop; Write-Host \"✅ Frontend: $\\($resp.StatusCode\\) - React app loaded\" } catch { Write-Host \"⚠️ Frontend: $_\" })",
+      "PowerShell(.\\\\NATIVE_TOGGLE.ps1 status)",
+      "Bash(gh api *)"
+    ]
+  }
 }

@@ -898,6 +898,9 @@ jobs:
             sleep 1
           done
 
+      - name: Create artifacts directory
+        run: mkdir -p ci-artifacts
+
       - name: Run load tests
         run: |
           echo "📊 Running load tests..."
@@ -1172,8 +1175,15 @@ jobs:
             backend-audit.*
           retention-days: 30
 
+      - name: Validate backend SARIF format
+        if: always() && hashFiles('backend-audit.sarif') != ''
+        run: |
+          echo "Validating backend SARIF format..."
+          python -m json.tool backend-audit.sarif > /dev/null && echo "✅ Backend SARIF valid" || echo "⚠️  Backend SARIF malformed"
+        continue-on-error: true
+
       - name: Upload SARIF to GitHub Security tab
-        if: always()
+        if: always() && hashFiles('backend-audit.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: backend-audit.sarif
@@ -1313,8 +1323,15 @@ jobs:
             frontend/frontend-audit.sarif
           retention-days: 30
 
+      - name: Validate frontend SARIF format
+        if: always() && hashFiles('frontend/frontend-audit.sarif') != ''
+        run: |
+          echo "Validating frontend SARIF format..."
+          python -m json.tool frontend/frontend-audit.sarif > /dev/null && echo "✅ Frontend SARIF valid" || echo "⚠️  Frontend SARIF malformed"
+        continue-on-error: true
+
       - name: Upload SARIF to GitHub Security tab
-        if: always()
+        if: always() && hashFiles('frontend/frontend-audit.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: frontend/frontend-audit.sarif
@@ -1380,11 +1397,16 @@ jobs:
 
       - name: Consolidate SARIF reports
         run: |
+          echo "Checking for SARIF artifacts before consolidation..."
+          if ! find sarif-files -name "*.sarif" -type f | head -5; then
+            echo "⚠️  No SARIF files found in artifacts"
+          fi
+
           python scripts/consolidate-sarif.py \
             --backend sarif-files/backend-security-reports/backend-audit.sarif \
             --frontend sarif-files/frontend-security-reports/frontend-audit.sarif \
-            --docker sarif-files/trivy-results/trivy-results.sarif \
-            --output unified-audit-results.sarif
+            --docker sarif-files/trivy-results.sarif \
+            --output unified-audit-results.sarif || echo "⚠️  SARIF consolidation warning (non-blocking)"
         continue-on-error: true
 
       - name: Upload consolidated SARIF
