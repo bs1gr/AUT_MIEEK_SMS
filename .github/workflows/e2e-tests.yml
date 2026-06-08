@@ -142,11 +142,10 @@ jobs:
 
       # FIX 4: Initialize database with migrations before seeding
       - name: Initialize database
-        working-directory: ./backend
         run: |
           set -euo pipefail
           echo "Running Alembic migrations..."
-          python -c "from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || {
+          cd ${{ github.workspace }} && python -c "import sys; sys.path.insert(0, '.'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || {
             echo "❌ Database migration failed. This is a critical error that must be fixed."
             exit 1
           }
