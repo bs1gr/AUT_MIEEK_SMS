@@ -43,7 +43,7 @@ concurrency:
 
 env:
   PYTHON_VERSION: '3.11'
-  NODE_VERSION: '24'
+  NODE_VERSION: '22'  # LTS version with broad compatibility
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}  # Use repository name for image
 
