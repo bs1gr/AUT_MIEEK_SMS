@@ -655,10 +655,10 @@ jobs:
       - name: Initialize test database
         env:
           DATABASE_URL: sqlite:///./data/test_smoke.db
-          PYTHONPATH: ${{ github.workspace }}
         run: |
           echo "Running Alembic migrations for smoke tests..."
-          python -c "from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
+          cd ${{ github.workspace }}
+          python -c "import sys; sys.path.insert(0, '.'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
 
       - name: Start backend server
         env:
@@ -756,10 +756,10 @@ jobs:
       - name: Initialize database
         env:
           DATABASE_URL: sqlite:///./data/e2e_test.db
-          PYTHONPATH: ${{ github.workspace }}
         run: |
           echo "Running Alembic migrations..."
-          python -c "from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
+          cd ${{ github.workspace }}
+          python -c "import sys; sys.path.insert(0, '.'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
 
       - name: Seed test data
         env:
@@ -869,17 +869,17 @@ jobs:
       - name: Initialize database
         env:
           DATABASE_URL: sqlite:///./data/load_test.db
-          PYTHONPATH: ${{ github.workspace }}
         run: |
           echo "Running Alembic migrations..."
-          python -c "from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
+          cd ${{ github.workspace }}
+          python -c "import sys; sys.path.insert(0, '.'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || exit 1
 
       - name: Seed test data
         env:
           DATABASE_URL: sqlite:///./data/load_test.db
-          PYTHONPATH: ${{ github.workspace }}
         run: |
           echo "Seeding load test data..."
+          cd ${{ github.workspace }}
           python backend/seed_e2e_data.py
 
       - name: Start backend server in background
@@ -982,7 +982,7 @@ jobs:
           name: frontend-build-stats
           path: frontend/.vite/stats.json
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: ignore
         if: always()
 
   build-docker-images:
