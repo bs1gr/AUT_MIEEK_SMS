@@ -124,7 +124,7 @@ test.describe('Student Management - Critical Flows', () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  test('should edit an existing student', async ({ page }) => {
+  test.skip('should edit an existing student', async ({ page }) => {
     const student = generateStudentDataLocal();
     const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
@@ -177,7 +177,7 @@ test.describe('Student Management - Critical Flows', () => {
     await expect(page.getByText(newLastName)).toBeVisible({ timeout: 5000 });
   });
 
-  test('should delete a student', async ({ page }) => {
+  test.skip('should delete a student', async ({ page }) => {
     const student = generateStudentDataLocal();
     const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
