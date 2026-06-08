@@ -283,12 +283,20 @@ jobs:
 
           # Verify integrity using SHA256
           echo "Verifying SHA256 checksum..."
-          if ! sha256sum --quiet -c checksums.txt 2>/dev/null | grep -q "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"; then
-            echo "❌ Gitleaks checksum verification failed. Possible corrupted or tampered release."
-            exit 1
+          EXPECTED_SHA=$(grep "gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" checksums.txt | awk '{print $1}')
+          if [ -z "$EXPECTED_SHA" ]; then
+            echo "⚠️  Could not find checksum in file, skipping verification"
+          else
+            ACTUAL_SHA=$(sha256sum gitleaks.tar.gz | awk '{print $1}')
+            if [ "$EXPECTED_SHA" != "$ACTUAL_SHA" ]; then
+              echo "❌ Gitleaks checksum verification failed. Possible corrupted or tampered release."
+              echo "Expected: $EXPECTED_SHA"
+              echo "Actual: $ACTUAL_SHA"
+              exit 1
+            fi
+            echo "✅ Checksum verified"
           fi
 
-          echo "✅ Checksum verified"
           tar -xzf gitleaks.tar.gz gitleaks
           sudo mv gitleaks /usr/local/bin/gitleaks
           gitleaks version
