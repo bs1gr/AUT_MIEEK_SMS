@@ -313,35 +313,35 @@ Common Mistakes (4 examples)
 ### Where can I find...
 
 **Configuration Requirements?**
-- Quick: [CI-CD-QUICK-REFERENCE.md → Configuration](#)
-- Detailed: [CI-CD-COMPLETE-SUMMARY.md → Configuration Checklist](#)
+- Quick: [CI-CD-QUICK-REFERENCE.md](CI-CD-QUICK-REFERENCE.md) — Configuration section
+- Detailed: [CI-CD-COMPLETE-SUMMARY.md](CI-CD-COMPLETE-SUMMARY.md) — Configuration Checklist
 
 **Phase 2 Timeline?**
-- [PHASE-2-IMPLEMENTATION-PLAN.md → Phase 2 Timeline](#)
+- [PHASE-2-IMPLEMENTATION-PLAN.md](PHASE-2-IMPLEMENTATION-PLAN.md) — Phase 2 Timeline section
 
 **Best practices for writing workflows?**
-- [CI-CD-STANDARDS.md → All sections](#)
+- [CI-CD-STANDARDS.md](CI-CD-STANDARDS.md) — All sections
 
 **Detailed explanation of Issue #20?**
-- Quick: [PHASE-2-IMPLEMENTATION-PLAN.md → Issue #20](#)
-- Detailed: [CI-CD-AUDIT-FIXES.md → Remaining Issues](#)
+- Quick: [PHASE-2-IMPLEMENTATION-PLAN.md](PHASE-2-IMPLEMENTATION-PLAN.md) — Issue #20 section
+- Detailed: [CI-CD-AUDIT-FIXES.md](CI-CD-AUDIT-FIXES.md) — Remaining Issues section
 
 **Troubleshooting help?**
-- [CI-CD-QUICK-REFERENCE.md → Troubleshooting](#)
+- [CI-CD-QUICK-REFERENCE.md](CI-CD-QUICK-REFERENCE.md) — Troubleshooting section
 
 **Common mistakes to avoid?**
-- [CI-CD-STANDARDS.md → Common Mistakes](#)
+- [CI-CD-STANDARDS.md](CI-CD-STANDARDS.md) — Common Mistakes section
 
 **Risk assessment?**
-- [CI-CD-COMPLETE-SUMMARY.md → Risk Assessment](#)
+- [CI-CD-COMPLETE-SUMMARY.md](CI-CD-COMPLETE-SUMMARY.md) — Risk Assessment section
 
 **Test scope logic?**
-- [CI-CD-QUICK-REFERENCE.md → Test Workflows](#)
-- [PHASE-2-IMPLEMENTATION-PLAN.md → Issue #21](#)
+- [CI-CD-QUICK-REFERENCE.md](CI-CD-QUICK-REFERENCE.md) — Test Workflows section
+- [PHASE-2-IMPLEMENTATION-PLAN.md](PHASE-2-IMPLEMENTATION-PLAN.md) — Issue #21 section
 
 **Secret configuration?**
-- [CI-CD-QUICK-REFERENCE.md → Configuration](#)
-- [CI-CD-STANDARDS.md → Security Standards](#)
+- [CI-CD-QUICK-REFERENCE.md](CI-CD-QUICK-REFERENCE.md) — Configuration section
+- [CI-CD-STANDARDS.md](CI-CD-STANDARDS.md) — Security Standards section
 
 ---
 
@@ -380,7 +380,7 @@ Common Mistakes (4 examples)
 ### Need Help?
 
 **Quick question?**  
-→ Check [CI-CD-QUICK-REFERENCE.md → Getting Help](#)
+→ Check [CI-CD-QUICK-REFERENCE.md](CI-CD-QUICK-REFERENCE.md) — Getting Help section
 
 **Workflow issue?**  
 → Post in #devops on Slack
