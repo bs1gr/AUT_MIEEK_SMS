@@ -10,6 +10,7 @@ import logging
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Request
+from sqlalchemy import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.dependencies import get_db
@@ -130,6 +131,14 @@ async def create_dashboard(
         return error_response(
             code="VALIDATION_ERROR",
             message=str(e),
+            request_id=request.state.request_id,
+        )
+    except IntegrityError as e:
+        logger.warning(f"Dashboard name already exists for user: {str(e)}")
+        db.rollback()
+        return error_response(
+            code="DUPLICATE_ERROR",
+            message="A dashboard with this name already exists",
             request_id=request.state.request_id,
         )
     except Exception as e:
