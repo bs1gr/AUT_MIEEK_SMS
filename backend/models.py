@@ -348,6 +348,11 @@ class User(Base):
         "UserPermission", foreign_keys="[UserPermission.user_id]", back_populates="user", cascade="all, delete-orphan"
     )
 
+    # Relationship for custom dashboards
+    custom_dashboards: ClassVar[Any] = relationship(
+        "CustomDashboard", foreign_keys="[CustomDashboard.user_id]", back_populates="user", cascade="all, delete-orphan"
+    )
+
     __table_args__ = (Index("idx_users_email_role", "email", "role"),)
 
     def __repr__(self):
@@ -1096,6 +1101,33 @@ def get_session(engine):
     """
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return SessionLocal()
+
+
+class CustomDashboard(Base):
+    """User-specific dashboard configurations for analytics page personalization."""
+
+    __tablename__ = "custom_dashboards"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    description = Column(String(500), nullable=True)
+    configuration = Column(JSON, nullable=False)
+    is_default = Column(Boolean, nullable=False, default=False, index=True)
+    created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+    updated_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
+
+    # Relationship to User
+    user = relationship("User", back_populates="custom_dashboards")
+
+    # Unique constraint: user cannot have multiple dashboards with the same name
+    __table_args__ = (
+        Index("uq_custom_dashboards_user_name", "user_id", "name", unique=True),
+    )
+
+
+# Update User relationship to include custom_dashboards
+# This will be handled by sqlalchemy after both models are defined
 
 
 if __name__ == "__main__":
