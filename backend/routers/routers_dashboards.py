@@ -14,6 +14,7 @@ from sqlalchemy import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.dependencies import get_db
+from backend.schemas.dashboards import CreateDashboardRequest, UpdateDashboardRequest, DashboardResponse
 from backend.schemas.response import APIResponse, error_response, success_response
 from backend.security.current_user import get_current_user
 from backend.services.dashboard_service import DashboardService
@@ -76,15 +77,15 @@ async def list_dashboards(
 
 @router.post(
     "",
-    response_model=APIResponse[Dict[str, Any]],
+    response_model=APIResponse[DashboardResponse],
     summary="Create dashboard",
 )
 async def create_dashboard(
     request: Request,
-    body: Dict[str, Any],
+    body: CreateDashboardRequest,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
-) -> APIResponse[Dict[str, Any]]:
+) -> APIResponse[DashboardResponse]:
     """Create a new dashboard for the current user.
 
     Request body:
@@ -93,27 +94,12 @@ async def create_dashboard(
     - configuration: Dashboard config with selected charts (required)
     """
     try:
-        # Validate required fields
-        if "name" not in body or not body["name"]:
-            return error_response(
-                code="VALIDATION_ERROR",
-                message="Dashboard name is required",
-                request_id=request.state.request_id,
-            )
-
-        if "configuration" not in body or not body["configuration"]:
-            return error_response(
-                code="VALIDATION_ERROR",
-                message="Configuration is required",
-                request_id=request.state.request_id,
-            )
-
         service = DashboardService(db)
         dashboard = service.create_dashboard(
             user_id=current_user.id,
-            name=body["name"],
-            description=body.get("description"),
-            configuration=body["configuration"],
+            name=body.name,
+            description=body.description,
+            configuration=body.configuration.model_dump(),
         )
 
         result = {
