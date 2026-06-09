@@ -19,12 +19,14 @@ import {
   TrendChart,
   StatsPieChart,
   ScatterPlot,
+  GradeHeatmap,
   type PerformanceDataPoint,
   type GradeDistributionData,
   type AttendanceData,
   type TrendData,
   type PieChartData,
   type ScatterDataPoint,
+  type HeatmapDataPoint,
 } from './AnalyticsCharts';
 import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
 import { Users, BookOpen, TrendingUp, Calendar, Download } from 'lucide-react';
@@ -86,6 +88,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [scatterData, setScatterData] = useState<ScatterDataPoint[]>([]);
+  const [heatmapData, setHeatmapData] = useState<HeatmapDataPoint[]>([]);
 
   const { dashboard, isLoading, refetch } = useDashboardData();
 
@@ -623,6 +626,69 @@ export const AnalyticsDashboard: React.FC = () => {
     return result;
   }, [selectedDivision, students, analyticsGrades, analyticsAttendance, matchesSelectedDivision]);
 
+  const divisionHeatmapData = useMemo<HeatmapDataPoint[]>(() => {
+    if (!selectedDivision) return [];
+    const divisionStudents = new Set(
+      students.filter((student) => matchesSelectedDivision(student)).map((student) => student.id)
+    );
+    if (divisionStudents.size === 0) return [];
+
+    const courseById = new Map<number, Course>();
+    courses.forEach((course) => courseById.set(course.id, course));
+
+    const weekBuckets = new Map<string, Map<number, { total: number; count: number }>>();
+
+    analyticsGrades.forEach((grade) => {
+      if (!divisionStudents.has(grade.student_id)) return;
+      if (!grade.max_grade || grade.max_grade <= 0) return;
+      if (!grade.date_assigned && !grade.date_submitted) return;
+
+      const dateValue = grade.date_assigned || grade.date_submitted;
+      if (!dateValue) return;
+
+      const date = new Date(dateValue);
+      const weekNum = Math.ceil((date.getDate() + new Date(date.getFullYear(), date.getMonth(), 1).getDay()) / 7);
+      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const weekKey = `W${weekNum}`;
+
+      const course = courseById.get(grade.course_id);
+      const courseLabel = course ? course.course_name : t('courses');
+
+      if (!weekBuckets.has(courseLabel)) {
+        weekBuckets.set(courseLabel, new Map());
+      }
+
+      const courseMap = weekBuckets.get(courseLabel)!;
+      const percentage = (grade.grade / grade.max_grade) * 100;
+
+      if (!courseMap.has(weekNum)) {
+        courseMap.set(weekNum, { total: 0, count: 0 });
+      }
+
+      const bucket = courseMap.get(weekNum)!;
+      bucket.total += percentage;
+      bucket.count += 1;
+    });
+
+    const result: HeatmapDataPoint[] = [];
+    weekBuckets.forEach((courseMap, course) => {
+      courseMap.forEach((bucket, week) => {
+        result.push({
+          week,
+          course,
+          averageGrade: bucket.count > 0 ? bucket.total / bucket.count : 0,
+        });
+      });
+    });
+
+    return result.sort((a, b) => {
+      if (a.course !== b.course) return a.course.localeCompare(b.course);
+      const aWeek = typeof a.week === 'number' ? a.week : parseInt(String(a.week), 10);
+      const bWeek = typeof b.week === 'number' ? b.week : parseInt(String(b.week), 10);
+      return aWeek - bWeek;
+    });
+  }, [selectedDivision, students, analyticsGrades, courses, matchesSelectedDivision, t]);
+
   const filteredClassAggregates = useMemo(() => {
     if (!selectedDivision) return classAggregates;
     const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
@@ -1020,6 +1086,14 @@ export const AnalyticsDashboard: React.FC = () => {
               xAxisLabel={t('analytics.attendance') || 'Attendance %'}
               yAxisLabel={t('analytics.grade') || 'Grade %'}
               height={350}
+            />
+          </div>
+
+          <div className="w-full">
+            <GradeHeatmap
+              data={divisionHeatmapData}
+              title={t('analytics.chartGradeHeatmap') || 'Grade Distribution by Week'}
+              height={300}
             />
           </div>
 

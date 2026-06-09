@@ -408,3 +408,115 @@ export const ScatterPlot: React.FC<ScatterChartProps> = ({
     </div>
   );
 };
+
+/**
+ * Heatmap - Shows grade distribution intensity by week/month
+ */
+export interface HeatmapDataPoint {
+  week: string | number;
+  course: string;
+  averageGrade: number;
+}
+
+interface HeatmapProps {
+  data: HeatmapDataPoint[];
+  title?: string;
+  height?: number;
+}
+
+export const GradeHeatmap: React.FC<HeatmapProps> = ({
+  data,
+  title,
+  height = 400,
+}) => {
+  const { language } = useLanguage();
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const uniqueCourses = Array.from(new Set(data.map((d) => d.course))).sort();
+  const uniqueWeeks = Array.from(new Set(data.map((d) => d.week))).sort((a, b) => {
+    const aNum = typeof a === 'number' ? a : parseInt(String(a), 10);
+    const bNum = typeof b === 'number' ? b : parseInt(String(b), 10);
+    return aNum - bNum;
+  });
+
+  const maxGrade = Math.max(...data.map((d) => d.averageGrade), 100);
+  const getColor = (value: number): string => {
+    const normalized = Math.min(value / maxGrade, 1);
+    if (normalized < 0.3) return '#fee5e5';
+    if (normalized < 0.5) return '#ffb3b3';
+    if (normalized < 0.7) return '#ff8080';
+    if (normalized < 0.85) return '#ff6666';
+    return '#ff3333';
+  };
+
+  const dataMap = new Map<string, Map<string | number, number>>();
+  uniqueCourses.forEach((course) => {
+    dataMap.set(course, new Map());
+  });
+
+  data.forEach((point) => {
+    const courseMap = dataMap.get(point.course);
+    if (courseMap) {
+      courseMap.set(point.week, point.averageGrade);
+    }
+  });
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+      <div className="overflow-x-auto">
+        <table className="w-full border-collapse text-sm">
+          <thead>
+            <tr>
+              <th className="border border-gray-200 bg-gray-50 px-3 py-2 text-left font-semibold text-gray-700">
+                {language === 'el' ? 'Μάθημα' : 'Course'}
+              </th>
+              {uniqueWeeks.map((week) => (
+                <th
+                  key={week}
+                  className="border border-gray-200 bg-gray-50 px-3 py-2 text-center font-semibold text-gray-700"
+                >
+                  {language === 'el' ? `Εβδ. ${week}` : `W${week}`}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {uniqueCourses.map((course) => (
+              <tr key={course}>
+                <td className="border border-gray-200 bg-gray-50 px-3 py-2 font-medium text-gray-900">
+                  {course}
+                </td>
+                {uniqueWeeks.map((week) => {
+                  const courseMap = dataMap.get(course);
+                  const value = courseMap?.get(week) ?? 0;
+                  const color = getColor(value);
+                  return (
+                    <td
+                      key={`${course}-${week}`}
+                      className="border border-gray-200 px-3 py-2 text-center"
+                      style={{ backgroundColor: color }}
+                      title={`${course} - ${language === 'el' ? `Εβδομάδα ${week}` : `Week ${week}`}: ${value.toFixed(1)}%`}
+                    >
+                      <span className="font-semibold text-gray-900">{value > 0 ? value.toFixed(0) : '-'}</span>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
