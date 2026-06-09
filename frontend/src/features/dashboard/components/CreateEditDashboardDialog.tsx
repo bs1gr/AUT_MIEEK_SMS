@@ -15,16 +15,16 @@ interface CreateEditDashboardDialogProps {
 }
 
 const AVAILABLE_CHARTS = [
-  { id: 'performance', label: 'Performance Chart' },
-  { id: 'gradeDistribution', label: 'Grade Distribution' },
-  { id: 'attendance', label: 'Attendance Chart' },
-  { id: 'trend', label: 'Trend Chart' },
-  { id: 'pieChart', label: 'Student Status' },
-  { id: 'scatter', label: 'Scatter Plot' },
-  { id: 'heatmap', label: 'Heatmap' },
-  { id: 'sankey', label: 'Sankey Diagram' },
-  { id: 'treemap', label: 'Treemap' },
-  { id: 'boxplot', label: 'Box Plot' },
+  { id: 'performance', labelKey: 'dashboard.chartPerformance' },
+  { id: 'gradeDistribution', labelKey: 'dashboard.chartGradeDistribution' },
+  { id: 'attendance', labelKey: 'dashboard.chartAttendance' },
+  { id: 'trend', labelKey: 'dashboard.chartTrend' },
+  { id: 'pieChart', labelKey: 'dashboard.chartStudentStatus' },
+  { id: 'scatter', labelKey: 'dashboard.chartScatterPlot' },
+  { id: 'heatmap', labelKey: 'dashboard.chartHeatmap' },
+  { id: 'sankey', labelKey: 'dashboard.chartSankey' },
+  { id: 'treemap', labelKey: 'dashboard.chartTreemap' },
+  { id: 'boxplot', labelKey: 'dashboard.chartBoxPlot' },
 ];
 
 /**
@@ -155,7 +155,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
                       onChange={() => handleToggleChart(chart.id)}
                       className="h-4 w-4 rounded border-slate-300 text-indigo-600 transition focus:ring-2 focus:ring-indigo-500"
                     />
-                    <span className="text-sm font-medium text-slate-700">{chart.label}</span>
+                    <span className="text-sm font-medium text-slate-700">{t(chart.labelKey)}</span>
                   </label>
                 ))}
               </div>

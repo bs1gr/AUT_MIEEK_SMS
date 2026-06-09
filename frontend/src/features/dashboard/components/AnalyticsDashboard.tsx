@@ -1261,14 +1261,14 @@ export const AnalyticsDashboard: React.FC = () => {
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {visibleCharts.has('performance') && (
                 <PerformanceChart
-                  data={selectedDivision ? divisionPerformanceData : performanceData}
+                  data={selectedDivision ? divisionPerformanceData : effectiveSelectedStudent ? performanceData : []}
                   title={t('analytics.chartStudentPerformance')}
                   height={350}
                 />
               )}
               {visibleCharts.has('gradeDistribution') && (
                 <GradeDistributionChart
-                  data={selectedDivision ? divisionGradeDistributionData : gradeDistributionData}
+                  data={selectedDivision ? divisionGradeDistributionData : effectiveSelectedCourse ? gradeDistributionData : []}
                   title={t('analytics.chartGradeDistribution')}
                   height={350}
                 />
@@ -1280,14 +1280,14 @@ export const AnalyticsDashboard: React.FC = () => {
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {visibleCharts.has('attendance') && (
                 <AttendanceChart
-                  data={selectedDivision ? divisionAttendanceData : attendanceData}
+                  data={selectedDivision ? divisionAttendanceData : effectiveSelectedStudent ? attendanceData : []}
                   title={t('analytics.chartAttendanceRate')}
                   height={350}
                 />
               )}
               {visibleCharts.has('trend') && (
                 <TrendChart
-                  data={selectedDivision ? divisionTrendData : trendData}
+                  data={selectedDivision ? divisionTrendData : effectiveSelectedStudent ? trendData : []}
                   title={t('analytics.chartPerformanceTrend')}
                   height={350}
                 />
