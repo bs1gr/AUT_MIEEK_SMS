@@ -95,6 +95,14 @@ async def create_dashboard(
     - configuration: Dashboard config with selected charts (required)
     """
     try:
+        if not current_user:
+            return error_response(
+                code="UNAUTHORIZED",
+                message="User not authenticated",
+                request_id=request.state.request_id,
+            )
+
+        logger.info(f"Creating dashboard for user {current_user.id}: {body.name}")
         service = DashboardService(db)
         dashboard = service.create_dashboard(
             user_id=current_user.id,
@@ -102,6 +110,7 @@ async def create_dashboard(
             description=body.description,
             configuration=body.configuration.model_dump(),
         )
+        logger.info(f"Dashboard created successfully: {dashboard.id}")
 
         result = {
             "id": dashboard.id,
