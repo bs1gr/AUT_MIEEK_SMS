@@ -267,11 +267,11 @@ export const AnalyticsDashboard: React.FC = () => {
             studentById.set(student.id, student);
           });
 
-          const classBuckets = new Map<string, { count: number; total: number }>();
+          const classBuckets = new Map<string, { studentCount: number; gradeCount: number; total: number }>();
           studentItems.forEach((student) => {
             const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
-            const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
-            classBuckets.set(label, { ...existing, count: existing.count + 1 });
+            const existing = classBuckets.get(label) ?? { studentCount: 0, gradeCount: 0, total: 0 };
+            classBuckets.set(label, { ...existing, studentCount: existing.studentCount + 1 });
           });
 
           gradeItems.forEach((grade) => {
@@ -279,19 +279,19 @@ export const AnalyticsDashboard: React.FC = () => {
             const student = studentById.get(grade.student_id);
             if (!student) return;
             const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
-            const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
+            const existing = classBuckets.get(label) ?? { studentCount: 0, gradeCount: 0, total: 0 };
             const percentage = (grade.grade / grade.max_grade) * 100;
-            classBuckets.set(label, { count: existing.count, total: existing.total + percentage });
+            classBuckets.set(label, { ...existing, gradeCount: existing.gradeCount + 1, total: existing.total + percentage });
           });
 
           setClassAggregates(
             Array.from(classBuckets.entries())
               .map(([label, stats]) => ({
                 label,
-                count: stats.count,
-                average: stats.count > 0 ? stats.total / stats.count : 0,
+                count: stats.studentCount,
+                average: stats.gradeCount > 0 ? stats.total / stats.gradeCount : 0,
               }))
-              .sort((a, b) => b.count - a.count)
+              .sort((a, b) => b.studentCount - a.studentCount)
           );
         }
 
@@ -337,11 +337,11 @@ export const AnalyticsDashboard: React.FC = () => {
             }))
           );
         } else {
-          const divisionBuckets = new Map<string, { count: number; total: number }>();
+          const divisionBuckets = new Map<string, { studentCount: number; gradeCount: number; total: number }>();
           studentItems.forEach((student) => {
             const label = normalizeDivisionLabel(student.class_division);
-            const existing = divisionBuckets.get(label) ?? { count: 0, total: 0 };
-            divisionBuckets.set(label, { ...existing, count: existing.count + 1 });
+            const existing = divisionBuckets.get(label) ?? { studentCount: 0, gradeCount: 0, total: 0 };
+            divisionBuckets.set(label, { ...existing, studentCount: existing.studentCount + 1 });
           });
 
           gradeItems.forEach((grade) => {
@@ -349,19 +349,19 @@ export const AnalyticsDashboard: React.FC = () => {
             const student = studentItems.find((s) => s.id === grade.student_id);
             if (!student) return;
             const label = normalizeDivisionLabel(student.class_division);
-            const existing = divisionBuckets.get(label) ?? { count: 0, total: 0 };
+            const existing = divisionBuckets.get(label) ?? { studentCount: 0, gradeCount: 0, total: 0 };
             const percentage = (grade.grade / grade.max_grade) * 100;
-            divisionBuckets.set(label, { count: existing.count, total: existing.total + percentage });
+            divisionBuckets.set(label, { ...existing, gradeCount: existing.gradeCount + 1, total: existing.total + percentage });
           });
 
           setDivisionAggregates(
             Array.from(divisionBuckets.entries())
               .map(([label, stats]) => ({
                 label,
-                count: stats.count,
-                average: stats.count > 0 ? stats.total / stats.count : 0,
+                count: stats.studentCount,
+                average: stats.gradeCount > 0 ? stats.total / stats.gradeCount : 0,
               }))
-              .sort((a, b) => b.count - a.count)
+              .sort((a, b) => b.studentCount - a.studentCount)
           );
         }
       } catch (err) {
@@ -862,11 +862,11 @@ export const AnalyticsDashboard: React.FC = () => {
     const studentIds = new Set(filteredStudents.map((student) => student.id));
     if (studentIds.size === 0) return [];
 
-    const classBuckets = new Map<string, { count: number; total: number }>();
+    const classBuckets = new Map<string, { studentCount: number; gradeCount: number; total: number }>();
     filteredStudents.forEach((student) => {
       const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
-      const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
-      classBuckets.set(label, { ...existing, count: existing.count + 1 });
+      const existing = classBuckets.get(label) ?? { studentCount: 0, gradeCount: 0, total: 0 };
+      classBuckets.set(label, { ...existing, studentCount: existing.studentCount + 1 });
     });
 
     analyticsGrades.forEach((grade) => {
@@ -875,18 +875,18 @@ export const AnalyticsDashboard: React.FC = () => {
       const student = filteredStudents.find((s) => s.id === grade.student_id);
       if (!student) return;
       const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
-      const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
+      const existing = classBuckets.get(label) ?? { studentCount: 0, gradeCount: 0, total: 0 };
       const percentage = (grade.grade / grade.max_grade) * 100;
-      classBuckets.set(label, { count: existing.count, total: existing.total + percentage });
+      classBuckets.set(label, { ...existing, gradeCount: existing.gradeCount + 1, total: existing.total + percentage });
     });
 
     return Array.from(classBuckets.entries())
       .map(([label, stats]) => ({
         label,
-        count: stats.count,
-        average: stats.count > 0 ? stats.total / stats.count : 0,
+        count: stats.studentCount,
+        average: stats.gradeCount > 0 ? stats.total / stats.gradeCount : 0,
       }))
-      .sort((a, b) => b.count - a.count);
+      .sort((a, b) => b.studentCount - a.studentCount);
   }, [selectedDivision, students, analyticsGrades, classAggregates, t, matchesSelectedDivision]);
 
   const quickReportStats = useMemo(() => {
