@@ -78,7 +78,6 @@ async def list_dashboards(
 
 @router.post(
     "",
-    response_model=APIResponse[DashboardResponse],
     summary="Create dashboard",
 )
 async def create_dashboard(
@@ -86,7 +85,7 @@ async def create_dashboard(
     body: CreateDashboardRequest,
     db: Session = Depends(get_db),
     current_user: Any = Depends(get_current_user),
-) -> APIResponse[DashboardResponse]:
+):
     """Create a new dashboard for the current user.
 
     Request body:
