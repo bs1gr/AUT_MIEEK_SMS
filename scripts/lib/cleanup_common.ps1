@@ -16,6 +16,13 @@
 # SHARED CLEANUP FUNCTIONS
 # ============================================================================
 
+# IMPORTANT: Archive Structure Changes (2026-06-09)
+# - External archive: D:\tmp\SMS-Memory-Archive\ (memory system files)
+# - Repository archive: archive/ (version-controlled historical records)
+# - These scripts do NOT delete either archive location
+# - All removal operations preserve: data/, backups/, archive/, dist/
+# - Safe to run without risk of archive deletion
+
 function Remove-SafeItem {
     <#
     .SYNOPSIS
@@ -170,3 +177,4 @@ function Test-GitKeepFile {
 
 # Functions are automatically available when dot-sourced
 # No Export-ModuleMember needed for dot-sourcing
+
