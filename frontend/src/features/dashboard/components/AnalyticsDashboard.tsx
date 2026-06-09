@@ -269,16 +269,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
           const classBuckets = new Map<string, { count: number; total: number }>();
           studentItems.forEach((student) => {
-            const yearValue = Number(student.study_year);
-            const label = student.academic_year
-              ? student.academic_year
-              : yearValue === 1
-                ? 'A'
-                : yearValue === 2
-                  ? 'B'
-                  : Number.isFinite(yearValue) && yearValue > 0
-                    ? `${t('analytics.classYearLabel')} ${yearValue}`
-                    : t('analytics.classUnknownLabel');
+            const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
             const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
             classBuckets.set(label, { ...existing, count: existing.count + 1 });
           });
@@ -287,16 +278,7 @@ export const AnalyticsDashboard: React.FC = () => {
             if (!grade.max_grade || grade.max_grade <= 0) return;
             const student = studentById.get(grade.student_id);
             if (!student) return;
-            const yearValue = Number(student.study_year);
-            const label = student.academic_year
-              ? student.academic_year
-              : yearValue === 1
-                ? 'A'
-                : yearValue === 2
-                  ? 'B'
-                  : Number.isFinite(yearValue) && yearValue > 0
-                    ? `${t('analytics.classYearLabel')} ${yearValue}`
-                    : t('analytics.classUnknownLabel');
+            const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
             const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
             const percentage = (grade.grade / grade.max_grade) * 100;
             classBuckets.set(label, { count: existing.count, total: existing.total + percentage });
@@ -882,16 +864,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
     const classBuckets = new Map<string, { count: number; total: number }>();
     filteredStudents.forEach((student) => {
-      const yearValue = Number(student.study_year);
-      const label = student.academic_year
-        ? student.academic_year
-        : yearValue === 1
-          ? 'A'
-          : yearValue === 2
-            ? 'B'
-            : Number.isFinite(yearValue) && yearValue > 0
-              ? `${t('analytics.classYearLabel')} ${yearValue}`
-              : t('analytics.classUnknownLabel');
+      const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
       const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
       classBuckets.set(label, { ...existing, count: existing.count + 1 });
     });
@@ -901,16 +874,7 @@ export const AnalyticsDashboard: React.FC = () => {
       if (!grade.max_grade || grade.max_grade <= 0) return;
       const student = filteredStudents.find((s) => s.id === grade.student_id);
       if (!student) return;
-      const yearValue = Number(student.study_year);
-      const label = student.academic_year
-        ? student.academic_year
-        : yearValue === 1
-          ? 'A'
-          : yearValue === 2
-            ? 'B'
-            : Number.isFinite(yearValue) && yearValue > 0
-              ? `${t('analytics.classYearLabel')} ${yearValue}`
-              : t('analytics.classUnknownLabel');
+      const label = student.academic_year || `${t('analytics.classYearLabel')} ${student.study_year || t('analytics.classUnknownLabel')}`;
       const existing = classBuckets.get(label) ?? { count: 0, total: 0 };
       const percentage = (grade.grade / grade.max_grade) * 100;
       classBuckets.set(label, { count: existing.count, total: existing.total + percentage });
