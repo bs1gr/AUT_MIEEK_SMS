@@ -680,9 +680,6 @@ export const AnalyticsDashboard: React.FC = () => {
       if (!dateValue) return;
 
       const date = new Date(dateValue);
-      const weekNum = Math.ceil((date.getDate() + new Date(date.getFullYear(), date.getMonth(), 1).getDay()) / 7);
-      const _monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const _weekKey = `W${weekNum}`;
 
       const course = courseById.get(grade.course_id);
       const courseLabel = course ? course.course_name : t('courses');

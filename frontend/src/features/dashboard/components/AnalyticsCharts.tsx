@@ -41,7 +41,7 @@ interface PerformanceChartProps {
 export const PerformanceChart: React.FC<PerformanceChartProps> = ({
   data,
   title,
-  height: _height = 400,
+  height = 400,
 }) => {
   const { language } = useLanguage();
 

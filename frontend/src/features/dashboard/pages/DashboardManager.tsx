@@ -116,7 +116,7 @@ const DashboardManager: React.FC = () => {
         </div>
       ) : (
         <div className="grid gap-4">
-          {dashboards.map((dashboard) => (
+          {dashboards.map((dashboard: Dashboard) => (
             <div
               key={dashboard.id}
               className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm transition hover:shadow-md"
