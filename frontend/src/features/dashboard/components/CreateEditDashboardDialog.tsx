@@ -12,6 +12,7 @@ interface CreateEditDashboardDialogProps {
   }) => void;
   onClose: () => void;
   isLoading?: boolean;
+  externalError?: string;
 }
 
 const AVAILABLE_CHARTS = [
@@ -35,6 +36,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
   onSave,
   onClose,
   isLoading = false,
+  externalError,
 }) => {
   const { t } = useLanguage();
   const [name, setName] = useState('');
@@ -165,9 +167,9 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
             </div>
 
             {/* Error Message */}
-            {error && (
+            {(error || externalError) && (
               <div className="rounded-lg bg-red-50 p-3 text-sm text-red-700">
-                {error}
+                {error || externalError}
               </div>
             )}
 

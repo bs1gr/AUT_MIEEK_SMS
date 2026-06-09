@@ -19,8 +19,10 @@ const DashboardManager: React.FC = () => {
     isLoadingDashboards,
     createDashboard,
     isCreating,
+    createError,
     updateDashboard,
     isUpdating,
+    updateError,
     deleteDashboard,
     isDeleting,
     setDefaultDashboard,
@@ -210,6 +212,7 @@ const DashboardManager: React.FC = () => {
             setEditingDashboard(null);
           }}
           isLoading={isCreating || isUpdating}
+          externalError={editingDashboard ? updateError : createError}
         />
       )}
     </div>
