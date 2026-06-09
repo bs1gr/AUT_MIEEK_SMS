@@ -13,7 +13,9 @@
       "Read(//c/Program Files/SMS/**)",
       "PowerShell(Start-Sleep -Seconds 5; Write-Host \"=== Testing Backend with QNAP PostgreSQL ===\" ; try { $health = Invoke-WebRequest -Uri \"http://localhost:8000/health\" -TimeoutSec 5 -ErrorAction Stop; Write-Host \"✅ Backend Health: $\\($health.StatusCode\\)\"; $data = $health.Content | ConvertFrom-Json; Write-Host \"Status: $\\($data.status\\)\"; Write-Host \"Database: QNAP PostgreSQL connected ✅\" } catch { Write-Host \"⚠️ Backend health check: $_\" }; Write-Host \"\"; Write-Host \"=== Frontend Access ===\" ; try { $resp = Invoke-WebRequest -Uri \"http://localhost:5173/\" -TimeoutSec 3 -ErrorAction Stop; Write-Host \"✅ Frontend: $\\($resp.StatusCode\\) - React app loaded\" } catch { Write-Host \"⚠️ Frontend: $_\" })",
       "PowerShell(.\\\\NATIVE_TOGGLE.ps1 status)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Skill(run)",
+      "Skill(run:*)"
     ]
   }
 }
