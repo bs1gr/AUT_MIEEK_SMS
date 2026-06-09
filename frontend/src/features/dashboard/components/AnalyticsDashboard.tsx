@@ -22,6 +22,7 @@ import {
   GradeHeatmap,
   StudentProgressionSankey,
   PerformanceTreemap,
+  GradeDistributionBoxPlot,
   type PerformanceDataPoint,
   type GradeDistributionData,
   type AttendanceData,
@@ -31,6 +32,7 @@ import {
   type HeatmapDataPoint,
   type SankeyDataPoint,
   type TreemapDataPoint,
+  type BoxPlotDataPoint,
 } from './AnalyticsCharts';
 import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
 import { Users, BookOpen, TrendingUp, Calendar, Download } from 'lucide-react';
@@ -95,6 +97,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [heatmapData, setHeatmapData] = useState<HeatmapDataPoint[]>([]);
   const [sankeyData, setSankeyData] = useState<SankeyDataPoint[]>([]);
   const [treemapData, setTreemapData] = useState<TreemapDataPoint[]>([]);
+  const [boxPlotData, setBoxPlotData] = useState<BoxPlotDataPoint[]>([]);
 
   const { dashboard, isLoading, refetch } = useDashboardData();
 
@@ -794,6 +797,61 @@ export const AnalyticsDashboard: React.FC = () => {
       : [];
   }, [selectedDivision, students, analyticsGrades, courses, matchesSelectedDivision, t]);
 
+  const divisionBoxPlotData = useMemo<BoxPlotDataPoint[]>(() => {
+    if (!selectedDivision) return [];
+    const divisionStudents = students.filter((student) => matchesSelectedDivision(student));
+    if (divisionStudents.length === 0) return [];
+
+    const courseById = new Map<number, Course>();
+    courses.forEach((course) => courseById.set(course.id, course));
+
+    const courseGrades = new Map<string, number[]>();
+
+    analyticsGrades.forEach((grade) => {
+      if (!divisionStudents.some((s) => s.id === grade.student_id)) return;
+      if (!grade.max_grade || grade.max_grade <= 0) return;
+
+      const course = courseById.get(grade.course_id);
+      const courseLabel = course ? course.course_name : t('courses');
+
+      if (!courseGrades.has(courseLabel)) {
+        courseGrades.set(courseLabel, []);
+      }
+
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      courseGrades.get(courseLabel)!.push(percentage);
+    });
+
+    const calculateQuartiles = (values: number[]): { q1: number; q2: number; q3: number; min: number; max: number; mean: number } => {
+      const sorted = [...values].sort((a, b) => a - b);
+      const n = sorted.length;
+      const q1Index = Math.floor(n * 0.25);
+      const q2Index = Math.floor(n * 0.5);
+      const q3Index = Math.floor(n * 0.75);
+
+      return {
+        min: sorted[0],
+        q1: sorted[q1Index],
+        q2: sorted[q2Index],
+        q3: sorted[q3Index],
+        max: sorted[n - 1],
+        mean: sorted.reduce((a, b) => a + b, 0) / n,
+      };
+    };
+
+    const boxPlotArray: BoxPlotDataPoint[] = Array.from(courseGrades.entries())
+      .map(([course, grades]) => {
+        const stats = calculateQuartiles(grades);
+        return {
+          name: course,
+          ...stats,
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return boxPlotArray;
+  }, [selectedDivision, students, analyticsGrades, courses, matchesSelectedDivision, t]);
+
   const filteredClassAggregates = useMemo(() => {
     if (!selectedDivision) return classAggregates;
     const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
@@ -1215,6 +1273,14 @@ export const AnalyticsDashboard: React.FC = () => {
               data={divisionTreemapData}
               title={t('analytics.chartPerformanceHierarchy') || 'Performance by Course'}
               height={350}
+            />
+          </div>
+
+          <div className="w-full">
+            <GradeDistributionBoxPlot
+              data={divisionBoxPlotData}
+              title={t('analytics.chartDistributionAnalysis') || 'Grade Distribution Analysis'}
+              height={400}
             />
           </div>
 

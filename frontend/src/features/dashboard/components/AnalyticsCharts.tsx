@@ -630,6 +630,162 @@ interface PerformanceTreemapProps {
 
 const COLORS = ['#6366f1', '#8b5cf6', '#d946ef', '#ec4899', '#f43f5e', '#f97316', '#eab308'];
 
+/**
+ * Box Plot - Shows distribution analysis (quartiles, median, outliers)
+ */
+export interface BoxPlotDataPoint {
+  name: string;
+  q1: number;
+  q2: number;
+  q3: number;
+  min: number;
+  max: number;
+  mean: number;
+}
+
+interface GradeDistributionBoxPlotProps {
+  data: BoxPlotDataPoint[];
+  title?: string;
+  height?: number;
+}
+
+export const GradeDistributionBoxPlot: React.FC<GradeDistributionBoxPlotProps> = ({
+  data,
+  title,
+  height = 400,
+}) => {
+  const { language } = useLanguage();
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const minValue = Math.min(...data.map((d) => d.min));
+  const maxValue = Math.max(...data.map((d) => d.max));
+  const range = maxValue - minValue;
+  const padding = range * 0.05;
+
+  const yMin = Math.max(0, minValue - padding);
+  const yMax = Math.min(100, maxValue + padding);
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+      <svg width="100%" height={height} viewBox={`0 0 ${Math.max(data.length * 80 + 100, 600)} ${height}`}>
+        <defs>
+          <style>{`
+            .box-plot-line { stroke: #6366f1; stroke-width: 2; }
+            .box-plot-box { fill: #c7d2fe; stroke: #6366f1; stroke-width: 2; }
+            .box-plot-median { stroke: #dc2626; stroke-width: 3; }
+            .box-plot-mean { stroke: #059669; stroke-width: 1.5; stroke-dasharray: 3,3; }
+            .box-plot-label { font-size: 12px; text-anchor: middle; }
+            .box-plot-tick-label { font-size: 10px; text-anchor: middle; }
+          `}</style>
+        </defs>
+
+        {/* Y-axis */}
+        <line x1="40" y1="20" x2="40" y2={height - 40} className="box-plot-line" />
+
+        {/* X-axis */}
+        <line x1="40" y1={height - 40} x2={Math.max(data.length * 80 + 50, 600)} y2={height - 40} className="box-plot-line" />
+
+        {/* Y-axis labels */}
+        {[0, 25, 50, 75, 100].map((value) => {
+          const y = height - 40 - ((value - yMin) / (yMax - yMin)) * (height - 60);
+          return (
+            <g key={`y-${value}`}>
+              <line x1="35" y1={y} x2="40" y2={y} className="box-plot-line" />
+              <text x="30" y={y + 4} className="box-plot-tick-label" textAnchor="end">
+                {value}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Box plots */}
+        {data.map((item, index) => {
+          const x = 80 + index * 80;
+          const boxWidth = 40;
+
+          const yScale = (val: number) => height - 40 - ((val - yMin) / (yMax - yMin)) * (height - 60);
+
+          const minY = yScale(item.min);
+          const q1Y = yScale(item.q1);
+          const q2Y = yScale(item.q2);
+          const q3Y = yScale(item.q3);
+          const maxY = yScale(item.max);
+          const meanY = yScale(item.mean);
+
+          return (
+            <g key={`box-${index}`}>
+              {/* Whiskers */}
+              <line x1={x} y1={minY} x2={x} y2={maxY} className="box-plot-line" strokeOpacity="0.5" />
+              <line x1={x - 5} y1={minY} x2={x + 5} y2={minY} className="box-plot-line" />
+              <line x1={x - 5} y1={maxY} x2={x + 5} y2={maxY} className="box-plot-line" />
+
+              {/* Box */}
+              <rect
+                x={x - boxWidth / 2}
+                y={Math.min(q1Y, q3Y)}
+                width={boxWidth}
+                height={Math.abs(q3Y - q1Y)}
+                className="box-plot-box"
+              />
+
+              {/* Median line */}
+              <line
+                x1={x - boxWidth / 2}
+                y1={q2Y}
+                x2={x + boxWidth / 2}
+                y2={q2Y}
+                className="box-plot-median"
+              />
+
+              {/* Mean line */}
+              <line
+                x1={x - boxWidth / 2}
+                y1={meanY}
+                x2={x + boxWidth / 2}
+                y2={meanY}
+                className="box-plot-mean"
+              />
+
+              {/* Label */}
+              <text x={x} y={height - 20} className="box-plot-label">
+                {item.name.substring(0, 10)}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Legend */}
+        <g transform={`translate(${Math.max(data.length * 80 + 50, 600) - 180}, 30)`}>
+          <rect x="0" y="0" width="180" height="80" fill="white" stroke="#d1d5db" strokeWidth="1" />
+          <line x1="10" y1="15" x2="30" y2="15" className="box-plot-median" />
+          <text x="40" y="20" className="box-plot-tick-label" textAnchor="start">
+            {language === 'el' ? 'Διάμεσος' : 'Median'}
+          </text>
+          <line x1="10" y1="35" x2="30" y2="35" className="box-plot-mean" />
+          <text x="40" y="40" className="box-plot-tick-label" textAnchor="start">
+            {language === 'el' ? 'Μέσος' : 'Mean'}
+          </text>
+          <rect x="10" y="50" width="20" height="20" className="box-plot-box" />
+          <text x="40" y="65" className="box-plot-tick-label" textAnchor="start">
+            {language === 'el' ? 'Q1-Q3' : 'Quartiles'}
+          </text>
+        </g>
+      </svg>
+    </div>
+  );
+};
+
 export const PerformanceTreemap: React.FC<PerformanceTreemapProps> = ({
   data,
   title,
