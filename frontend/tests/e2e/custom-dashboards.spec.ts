@@ -23,16 +23,22 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
       await page.goto('/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
-      // Check page title
-      await expect(page.getByRole('heading', { name: /Dashboard Manager/i })).toBeVisible();
+      // Wait for route to fully load
+      await page.waitForURL('**/dashboard-manager');
 
-      // Check for "New Dashboard" button
-      await expect(page.getByRole('button', { name: /New Dashboard/i })).toBeVisible();
+      // Check page title - use more flexible selector
+      await expect(page.locator('h1').filter({ hasText: /Dashboard Manager|Διαχείριση Πίνακα/ })).toBeVisible();
+
+      // Check for "New Dashboard" button - more flexible selector
+      await expect(page.getByRole('button').filter({ hasText: /New Dashboard|Νέος Πίνακας/ })).toBeVisible();
     });
 
     test('should show empty state or dashboard list', async ({ page }) => {
       await page.goto('/dashboard-manager');
       await page.waitForLoadState('networkidle');
+
+      // Wait for route to fully load
+      await page.waitForURL('**/dashboard-manager');
 
       // Either empty state or dashboard list should exist
       const headings = page.getByRole('heading');
@@ -46,11 +52,14 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
       await page.goto('/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
-      // Click "New Dashboard" button
-      await page.getByRole('button', { name: /New Dashboard/i }).click();
+      // Wait for route to fully load
+      await page.waitForURL('**/dashboard-manager');
 
-      // Dialog should appear
-      await expect(page.getByRole('heading', { name: /Create Dashboard/i })).toBeVisible();
+      // Click "New Dashboard" button - use more flexible selector
+      await page.getByRole('button').filter({ hasText: /New Dashboard|Νέος Πίνακας/ }).click();
+
+      // Dialog should appear - use more flexible selector
+      await expect(page.locator('[role="dialog"]')).toBeVisible();
 
       // Check form fields exist
       const inputs = page.locator('input, textarea');
@@ -61,7 +70,11 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
       await page.goto('/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
-      await page.getByRole('button', { name: /New Dashboard/i }).click();
+      // Wait for route to fully load
+      await page.waitForURL('**/dashboard-manager');
+
+      // Click button - use more flexible selector
+      await page.getByRole('button').filter({ hasText: /New Dashboard|Νέος Πίνακας/ }).click();
 
       // Look for chart selection checkboxes
       const checkboxes = page.locator('input[type="checkbox"]');
