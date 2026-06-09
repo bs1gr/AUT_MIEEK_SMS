@@ -18,9 +18,6 @@ import {
   ScatterChart,
   Scatter,
   Sankey,
-  Sink,
-  Source,
-  Link,
   Treemap,
 } from 'recharts';
 import { useLanguage } from '@/LanguageContext';
@@ -44,7 +41,7 @@ interface PerformanceChartProps {
 export const PerformanceChart: React.FC<PerformanceChartProps> = ({
   data,
   title,
-  height = 400,
+  height: _height = 400,
 }) => {
   const { language } = useLanguage();
 
@@ -578,8 +575,6 @@ export const StudentProgressionSankey: React.FC<StudentSankeyProps> = ({
     target: nodes.get(d.target) ?? 0,
     value: d.value,
   }));
-
-  const colors = ['#10b981', '#ef4444', '#f59e0b'];
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-6">

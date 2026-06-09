@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import apiClient from '@/api/api';
-import { useLanguage } from '@/LanguageContext';
 
 export interface Dashboard {
   id: number;
@@ -19,7 +18,6 @@ export interface Dashboard {
  * Hook for managing custom dashboards
  */
 export function useDashboards() {
-  const { t } = useLanguage();
   const queryClient = useQueryClient();
 
   // Fetch all dashboards for current user

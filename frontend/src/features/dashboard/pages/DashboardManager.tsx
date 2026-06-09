@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '@/LanguageContext';
 import { useDashboards, Dashboard } from '../hooks/useDashboards';
-import { Plus, Trash2, Star, Edit2 } from 'lucide-react';
+import { Plus, Trash2, Star, Edit } from 'lucide-react';
 import CreateEditDashboardDialog from '../components/CreateEditDashboardDialog';
 
 /**
@@ -162,7 +162,7 @@ const DashboardManager: React.FC = () => {
                     className="rounded-lg p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
                     title={t('dashboard.edit') || 'Edit'}
                   >
-                    <Edit2 size={18} />
+                    <Edit size={18} />
                   </button>
                   <button
                     onClick={() => setDeletingId(dashboard.id)}

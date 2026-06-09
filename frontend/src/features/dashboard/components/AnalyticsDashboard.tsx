@@ -95,11 +95,6 @@ export const AnalyticsDashboard: React.FC = () => {
   const [gradeDistributionData, setGradeDistributionData] = useState<GradeDistributionData[]>([]);
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
-  const [scatterData, setScatterData] = useState<ScatterDataPoint[]>([]);
-  const [heatmapData, setHeatmapData] = useState<HeatmapDataPoint[]>([]);
-  const [sankeyData, setSankeyData] = useState<SankeyDataPoint[]>([]);
-  const [treemapData, setTreemapData] = useState<TreemapDataPoint[]>([]);
-  const [boxPlotData, setBoxPlotData] = useState<BoxPlotDataPoint[]>([]);
 
   const { dashboard, isLoading, refetch } = useDashboardData();
   const { dashboards } = useDashboards();
@@ -107,7 +102,7 @@ export const AnalyticsDashboard: React.FC = () => {
 
   const activeDashboard = useMemo(() => {
     if (selectedDashboardId) {
-      return dashboards.find((d) => d.id === selectedDashboardId);
+      return dashboards.find((d: { id: number }) => d.id === selectedDashboardId);
     }
     return defaultDashboard;
   }, [selectedDashboardId, dashboards, defaultDashboard]);
@@ -686,8 +681,8 @@ export const AnalyticsDashboard: React.FC = () => {
 
       const date = new Date(dateValue);
       const weekNum = Math.ceil((date.getDate() + new Date(date.getFullYear(), date.getMonth(), 1).getDay()) / 7);
-      const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const weekKey = `W${weekNum}`;
+      const _monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const _weekKey = `W${weekNum}`;
 
       const course = courseById.get(grade.course_id);
       const courseLabel = course ? course.course_name : t('courses');
@@ -1242,7 +1237,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('dashboard.defaultDashboard') || 'Default Dashboard'}</option>
-            {dashboards.map((d) => (
+            {dashboards.map((d: any) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>
