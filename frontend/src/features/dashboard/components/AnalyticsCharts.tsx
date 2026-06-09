@@ -429,7 +429,7 @@ interface HeatmapProps {
 export const GradeHeatmap: React.FC<HeatmapProps> = ({
   data,
   title,
-  height = 400,
+  height: _height = 400,
 }) => {
   const { language } = useLanguage();
 
@@ -814,7 +814,7 @@ export const PerformanceTreemap: React.FC<PerformanceTreemapProps> = ({
       {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <Treemap
-          data={dataWithColors}
+          data={dataWithColors as any}
           dataKey="value"
           stroke="#fff"
           fill="#8884d8"
