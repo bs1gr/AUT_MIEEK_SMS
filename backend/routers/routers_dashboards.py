@@ -142,11 +142,11 @@ async def create_dashboard(
             request_id=request.state.request_id,
         )
     except Exception as e:
-        logger.error(f"Error creating dashboard: {str(e)}")
+        logger.error(f"Error creating dashboard: {type(e).__name__}: {str(e)}", exc_info=True)
         return error_response(
             code="CREATE_ERROR",
-            message="Failed to create dashboard",
-            details={"error": str(e)},
+            message=f"Failed to create dashboard: {str(e)}",
+            details={"error": str(e), "type": type(e).__name__},
             request_id=request.state.request_id,
         )
 
