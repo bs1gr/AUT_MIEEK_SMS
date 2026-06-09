@@ -66,7 +66,7 @@ class DashboardService:
         """Get the default dashboard for a user."""
         return (
             self.db.query(CustomDashboard)
-            .filter(and_(CustomDashboard.user_id == user_id, CustomDashboard.is_default is True))
+            .filter(and_(CustomDashboard.user_id == user_id, CustomDashboard.is_default == True))  # type: ignore
             .first()
         )
 
@@ -98,11 +98,11 @@ class DashboardService:
             return None
 
         if name is not None:
-            dashboard.name = name
+            dashboard.name = name  # type: ignore
         if description is not None:
-            dashboard.description = description
+            dashboard.description = description  # type: ignore
         if configuration is not None:
-            dashboard.configuration = configuration
+            dashboard.configuration = configuration  # type: ignore
 
         self.db.commit()
         self.db.refresh(dashboard)
@@ -151,11 +151,11 @@ class DashboardService:
 
         # Unset any existing default for this user
         self.db.query(CustomDashboard).filter(
-            and_(CustomDashboard.user_id == user_id, CustomDashboard.is_default is True)
+            and_(CustomDashboard.user_id == user_id, CustomDashboard.is_default == True)  # type: ignore
         ).update({CustomDashboard.is_default: False})
 
         # Set new default
-        dashboard.is_default = True
+        dashboard.is_default = True  # type: ignore
         self.db.commit()
         self.db.refresh(dashboard)
         return dashboard
