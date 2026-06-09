@@ -83,6 +83,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<string>('');
+  const [viewMode, setViewMode] = useState<'student' | 'class'>('student');
   const [students, setStudents] = useState<Student[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [classAggregates, setClassAggregates] = useState<Array<{ label: string; count: number; average: number }>>([]);
@@ -1122,73 +1123,99 @@ export const AnalyticsDashboard: React.FC = () => {
       <div className="flex flex-wrap items-end gap-4">
         <div>
           <label className="block text-sm font-medium text-slate-600">
-            {t('analytics.divisionLabel')}
+            {t('analytics.viewMode')}
           </label>
-          <select
-            value={selectedDivision}
-            onChange={(e) => setSelectedDivision(e.target.value)}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-          >
-            <option value="">{t('analytics.selectDivision')}</option>
-            {Array.from(new Set(students.map((s) => normalizeDivisionLabel(s.class_division)).filter(Boolean)))
-              .sort()
-              .map((division) => (
-                <option key={division as string} value={division as string}>
-                  {division as string}
-                </option>
-              ))}
-          </select>
+          <div className="mt-1 flex gap-2 rounded-xl border border-slate-200 bg-white p-1">
+            <button
+              onClick={() => {
+                setViewMode('student');
+                setSelectedDivision('');
+              }}
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                viewMode === 'student'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t('analytics.studentView')}
+            </button>
+            <button
+              onClick={() => {
+                setViewMode('class');
+                setSelectedStudent(null);
+              }}
+              className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition ${
+                viewMode === 'class'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              {t('analytics.classView')}
+            </button>
+          </div>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600">
-            {t('analytics.studentLabel')}
-          </label>
-          <select
-            value={effectiveSelectedStudent ?? ''}
-            onChange={(e) => setSelectedStudent(e.target.value ? Number(e.target.value) : null)}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-          >
-            <option value="">{t('analytics.selectStudent')}</option>
-            {activeStudents
-              .filter((student) => (selectedDivision ? matchesSelectedDivision(student) : true))
-              .map((student) => (
+
+        {viewMode === 'student' && (
+          <div>
+            <label className="block text-sm font-medium text-slate-600">
+              {t('analytics.studentLabel')}
+            </label>
+            <select
+              value={effectiveSelectedStudent ?? ''}
+              onChange={(e) => setSelectedStudent(e.target.value ? Number(e.target.value) : null)}
+              className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">{t('analytics.selectStudent')}</option>
+              {activeStudents.map((student) => (
                 <option key={student.id} value={student.id}>
                   {student.first_name} {student.last_name}
                 </option>
               ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600">
-            {t('analytics.courseLabel')}
-          </label>
-          <select
-            value={effectiveSelectedCourse ?? ''}
-            onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : null)}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-          >
-            <option value="">{t('analytics.selectCourse')}</option>
-            {selectableCourses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.course_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600">
-            {t('analytics.timePeriod')}
-          </label>
-          <select
-            value={dateRange}
-            onChange={(e) => setDateRange(e.target.value as 'week' | 'month' | 'semester')}
-            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-          >
-            <option value="week">{t('analytics.timePeriodWeek')}</option>
-            <option value="month">{t('analytics.timePeriodMonth')}</option>
-            <option value="semester">{t('analytics.timePeriodSemester')}</option>
-          </select>
-        </div>
+            </select>
+          </div>
+        )}
+
+        {viewMode === 'class' && (
+          <div>
+            <label className="block text-sm font-medium text-slate-600">
+              {t('analytics.divisionLabel')}
+            </label>
+            <select
+              value={selectedDivision}
+              onChange={(e) => setSelectedDivision(e.target.value)}
+              className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">{t('analytics.selectDivision')}</option>
+              {Array.from(new Set(students.map((s) => normalizeDivisionLabel(s.class_division)).filter(Boolean)))
+                .sort()
+                .map((division) => (
+                  <option key={division as string} value={division as string}>
+                    {division as string}
+                  </option>
+                ))}
+            </select>
+          </div>
+        )}
+        {viewMode === 'student' && effectiveSelectedStudent && (
+          <div>
+            <label className="block text-sm font-medium text-slate-600">
+              {t('analytics.courseLabel')}
+            </label>
+            <select
+              value={effectiveSelectedCourse ?? ''}
+              onChange={(e) => setSelectedCourse(e.target.value ? Number(e.target.value) : null)}
+              className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            >
+              <option value="">{t('analytics.selectCourse')}</option>
+              {selectableCourses.map((course) => (
+                <option key={course.id} value={course.id}>
+                  {course.course_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium text-slate-600">
             {t('dashboard.selectDashboard')}
@@ -1219,7 +1246,11 @@ export const AnalyticsDashboard: React.FC = () => {
         <div className="flex items-center justify-center py-12">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-slate-200 border-t-indigo-600" />
         </div>
-      ) : (
+      ) : viewMode === 'student' && !effectiveSelectedStudent ? (
+        <div className="rounded-lg border border-dashed border-slate-300 bg-slate-50 py-12 text-center">
+          <p className="text-slate-600">{t('analytics.selectStudentFirst')}</p>
+        </div>
+      ) : viewMode === 'class' ? (
         <div className="space-y-8">
           {(visibleCharts.has('performance') || visibleCharts.has('gradeDistribution')) && (
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
@@ -1421,6 +1452,80 @@ export const AnalyticsDashboard: React.FC = () => {
                   ))
                 )}
               </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {(visibleCharts.has('performance') || visibleCharts.has('gradeDistribution')) && (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {visibleCharts.has('performance') && (
+                <PerformanceChart
+                  data={performanceData}
+                  title={t('analytics.chartStudentPerformance')}
+                  height={350}
+                />
+              )}
+              {visibleCharts.has('gradeDistribution') && effectiveSelectedCourse && (
+                <GradeDistributionChart
+                  data={gradeDistributionData}
+                  title={t('analytics.chartGradeDistribution')}
+                  height={350}
+                />
+              )}
+            </div>
+          )}
+
+          {(visibleCharts.has('attendance') || visibleCharts.has('trend')) && (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {visibleCharts.has('attendance') && (
+                <AttendanceChart
+                  data={attendanceData}
+                  title={t('analytics.chartAttendanceRate')}
+                  height={350}
+                />
+              )}
+              {visibleCharts.has('trend') && (
+                <TrendChart
+                  data={trendData}
+                  title={t('analytics.chartPerformanceTrend')}
+                  height={350}
+                />
+              )}
+            </div>
+          )}
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
+            <h3 className="text-lg font-semibold text-slate-900">
+              {t('analytics.quickReportTitle')}
+            </h3>
+            <div className="mt-4 space-y-3 text-sm text-slate-600">
+              {effectiveSelectedStudent ? (
+                <>
+                  <p>
+                    <span className="font-medium text-slate-700">{t('analytics.quickReportAverageGrade')}</span>{' '}
+                    {performanceData.length > 0
+                      ? (performanceData.reduce((sum, item) => sum + item.grade, 0) / performanceData.length).toFixed(2)
+                      : '0.00'}
+                    %
+                  </p>
+                  <p>
+                    <span className="font-medium text-slate-700">
+                      {t('analytics.quickReportAverageAttendance')}
+                    </span>{' '}
+                    {attendanceData.length > 0
+                      ? (attendanceData.reduce((sum, item) => sum + item.rate, 0) / attendanceData.length).toFixed(2)
+                      : '0.00'}
+                    %
+                  </p>
+                  <p>
+                    <span className="font-medium text-slate-700">{t('analytics.quickReportTotalGrades')}</span>{' '}
+                    {performanceData.length}
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm text-slate-500">{t('analytics.selectStudentFirst')}</p>
+              )}
             </div>
           </div>
         </div>
