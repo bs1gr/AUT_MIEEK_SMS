@@ -30,7 +30,7 @@ export function useDashboards() {
     queryKey: ['dashboards'],
     queryFn: async () => {
       try {
-        const response = await apiClient.get('/api/v1/dashboards');
+        const response = await apiClient.get('/dashboards');
         return response.data?.data || [];
       } catch (error) {
         console.error('Failed to fetch dashboards:', error);
@@ -64,7 +64,7 @@ export function useDashboards() {
       configuration: { charts: string[] };
     }) => {
       try {
-        const response = await apiClient.post('/api/v1/dashboards', data);
+        const response = await apiClient.post('/dashboards', data);
         return response.data?.data;
       } catch (error: any) {
         const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to create dashboard';
@@ -91,7 +91,7 @@ export function useDashboards() {
       };
     }) => {
       try {
-        const response = await apiClient.put(`/api/v1/dashboards/${id}`, data);
+        const response = await apiClient.put(`/dashboards/${id}`, data);
         return response.data?.data;
       } catch (error: any) {
         const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to update dashboard';
@@ -108,7 +108,7 @@ export function useDashboards() {
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       try {
-        await apiClient.delete(`/api/v1/dashboards/${id}`);
+        await apiClient.delete(`/dashboards/${id}`);
         return { success: true };
       } catch (error: any) {
         const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to delete dashboard';
@@ -125,7 +125,7 @@ export function useDashboards() {
   const setDefaultMutation = useMutation({
     mutationFn: async (id: number) => {
       try {
-        const response = await apiClient.post(`/api/v1/dashboards/${id}/set-default`);
+        const response = await apiClient.post(`/dashboards/${id}/set-default`);
         return response.data?.data;
       } catch (error: any) {
         const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to set default dashboard';
