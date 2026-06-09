@@ -17,6 +17,10 @@ import {
   Area,
   ScatterChart,
   Scatter,
+  Sankey,
+  Sink,
+  Source,
+  Link,
 } from 'recharts';
 import { useLanguage } from '@/LanguageContext';
 
@@ -516,6 +520,92 @@ export const GradeHeatmap: React.FC<HeatmapProps> = ({
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Sankey Diagram - Shows student flow through outcomes (Pass/Fail/Incomplete)
+ */
+export interface SankeyDataPoint {
+  source: string;
+  target: string;
+  value: number;
+}
+
+interface StudentSankeyProps {
+  data: SankeyDataPoint[];
+  title?: string;
+  height?: number;
+}
+
+export const StudentProgressionSankey: React.FC<StudentSankeyProps> = ({
+  data,
+  title,
+  height = 400,
+}) => {
+  const { language } = useLanguage();
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const nodes = new Map<string, number>();
+  let nodeIndex = 0;
+
+  data.forEach((link) => {
+    if (!nodes.has(link.source)) {
+      nodes.set(link.source, nodeIndex++);
+    }
+    if (!nodes.has(link.target)) {
+      nodes.set(link.target, nodeIndex++);
+    }
+  });
+
+  const nodeArray = Array.from(nodes.entries()).sort((a, b) => a[1] - b[1]).map(([name]) => ({ name }));
+
+  const links = data.map((d) => ({
+    source: nodes.get(d.source) ?? 0,
+    target: nodes.get(d.target) ?? 0,
+    value: d.value,
+  }));
+
+  const colors = ['#10b981', '#ef4444', '#f59e0b'];
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+      <ResponsiveContainer width="100%" height={height}>
+        <Sankey data={{ nodes: nodeArray, links }} node={{ fill: '#8884d8' }} link={{ stroke: '#d1d5db' }} nodePadding={50}>
+          <Tooltip
+            contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc' }}
+            formatter={(value) => {
+              return typeof value === 'number' ? `${value} ${language === 'el' ? 'φοιτητές' : 'students'}` : String(value);
+            }}
+          />
+        </Sankey>
+      </ResponsiveContainer>
+      <div className="mt-4 flex justify-center gap-6 text-sm">
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-3 rounded-full bg-green-500" />
+          <span>{language === 'el' ? 'Επιτυχία' : 'Pass'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-3 rounded-full bg-red-500" />
+          <span>{language === 'el' ? 'Αποτυχία' : 'Fail'}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="h-3 w-3 rounded-full bg-amber-500" />
+          <span>{language === 'el' ? 'Ημιτελής' : 'Incomplete'}</span>
+        </div>
       </div>
     </div>
   );

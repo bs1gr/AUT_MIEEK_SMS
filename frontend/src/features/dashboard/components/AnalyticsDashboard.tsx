@@ -20,6 +20,7 @@ import {
   StatsPieChart,
   ScatterPlot,
   GradeHeatmap,
+  StudentProgressionSankey,
   type PerformanceDataPoint,
   type GradeDistributionData,
   type AttendanceData,
@@ -27,6 +28,7 @@ import {
   type PieChartData,
   type ScatterDataPoint,
   type HeatmapDataPoint,
+  type SankeyDataPoint,
 } from './AnalyticsCharts';
 import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
 import { Users, BookOpen, TrendingUp, Calendar, Download } from 'lucide-react';
@@ -89,6 +91,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [trendData, setTrendData] = useState<TrendData[]>([]);
   const [scatterData, setScatterData] = useState<ScatterDataPoint[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapDataPoint[]>([]);
+  const [sankeyData, setSankeyData] = useState<SankeyDataPoint[]>([]);
 
   const { dashboard, isLoading, refetch } = useDashboardData();
 
@@ -689,6 +692,60 @@ export const AnalyticsDashboard: React.FC = () => {
     });
   }, [selectedDivision, students, analyticsGrades, courses, matchesSelectedDivision, t]);
 
+  const divisionSankeyData = useMemo<SankeyDataPoint[]>(() => {
+    if (!selectedDivision) return [];
+    const divisionStudents = new Set(
+      students.filter((student) => matchesSelectedDivision(student)).map((student) => student.id)
+    );
+    if (divisionStudents.size === 0) return [];
+
+    const courseById = new Map<number, Course>();
+    courses.forEach((course) => courseById.set(course.id, course));
+
+    const courseOutcomes = new Map<string, { passed: number; failed: number; incomplete: number }>();
+
+    const enrollments = new Map<number, Set<number>>();
+    analyticsEnrollments.forEach((enrollment) => {
+      if (!divisionStudents.has(enrollment.student_id)) return;
+      if (!enrollments.has(enrollment.course_id)) {
+        enrollments.set(enrollment.course_id, new Set());
+      }
+      enrollments.get(enrollment.course_id)!.add(enrollment.student_id);
+    });
+
+    analyticsGrades.forEach((grade) => {
+      if (!divisionStudents.has(grade.student_id)) return;
+      if (!grade.max_grade || grade.max_grade <= 0) return;
+
+      const course = courseById.get(grade.course_id);
+      const courseLabel = course ? course.course_name : t('courses');
+
+      if (!courseOutcomes.has(courseLabel)) {
+        courseOutcomes.set(courseLabel, { passed: 0, failed: 0, incomplete: 0 });
+      }
+
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      const outcome = courseOutcomes.get(courseLabel)!;
+
+      if (percentage >= 50) {
+        outcome.passed += 1;
+      } else if (percentage > 0) {
+        outcome.failed += 1;
+      } else {
+        outcome.incomplete += 1;
+      }
+    });
+
+    const result: SankeyDataPoint[] = [];
+    courseOutcomes.forEach((outcomes, course) => {
+      if (outcomes.passed > 0) result.push({ source: course, target: 'Pass', value: outcomes.passed });
+      if (outcomes.failed > 0) result.push({ source: course, target: 'Fail', value: outcomes.failed });
+      if (outcomes.incomplete > 0) result.push({ source: course, target: 'Incomplete', value: outcomes.incomplete });
+    });
+
+    return result;
+  }, [selectedDivision, students, analyticsGrades, analyticsEnrollments, courses, matchesSelectedDivision, t]);
+
   const filteredClassAggregates = useMemo(() => {
     if (!selectedDivision) return classAggregates;
     const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
@@ -1094,6 +1151,14 @@ export const AnalyticsDashboard: React.FC = () => {
               data={divisionHeatmapData}
               title={t('analytics.chartGradeHeatmap') || 'Grade Distribution by Week'}
               height={300}
+            />
+          </div>
+
+          <div className="w-full">
+            <StudentProgressionSankey
+              data={divisionSankeyData}
+              title={t('analytics.chartStudentProgression') || 'Student Progression Flow'}
+              height={350}
             />
           </div>
 
