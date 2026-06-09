@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
 import { useDashboardData } from '@/api/hooks/useAnalytics';
 import { useAnalyticsExport } from '../hooks/useAnalyticsExport';
+import { useDashboards } from '../hooks/useDashboards';
 import apiClient, {
   extractAPIResponseData,
   enrollmentsAPI,
@@ -76,6 +77,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { formatDate } = useDateTimeFormatter();
   const { exportPDF, exportExcel, isExporting, exportError } = useAnalyticsExport();
+  const { defaultDashboard } = useDashboards();
   const MAX_ANALYTICS_PAGE_SIZE = 1000;
   const [dateRange, setDateRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
@@ -100,6 +102,33 @@ export const AnalyticsDashboard: React.FC = () => {
   const [boxPlotData, setBoxPlotData] = useState<BoxPlotDataPoint[]>([]);
 
   const { dashboard, isLoading, refetch } = useDashboardData();
+  const { dashboards } = useDashboards();
+  const [selectedDashboardId, setSelectedDashboardId] = useState<number | null>(null);
+
+  const activeDashboard = useMemo(() => {
+    if (selectedDashboardId) {
+      return dashboards.find((d) => d.id === selectedDashboardId);
+    }
+    return defaultDashboard;
+  }, [selectedDashboardId, dashboards, defaultDashboard]);
+
+  const visibleCharts = useMemo(() => {
+    if (!activeDashboard?.configuration?.charts) {
+      return new Set([
+        'performance',
+        'gradeDistribution',
+        'attendance',
+        'trend',
+        'pieChart',
+        'scatter',
+        'heatmap',
+        'sankey',
+        'treemap',
+        'boxplot',
+      ]);
+    }
+    return new Set(activeDashboard.configuration.charts);
+  }, [activeDashboard]);
 
   const activeStudents = useMemo(
     () => students.filter((student) => student.is_active !== false),
@@ -1203,6 +1232,30 @@ export const AnalyticsDashboard: React.FC = () => {
             <option value="semester">{t('analytics.timePeriodSemester')}</option>
           </select>
         </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-600">
+            {t('dashboard.selectDashboard') || 'Dashboard'}
+          </label>
+          <select
+            value={selectedDashboardId ?? ''}
+            onChange={(e) => setSelectedDashboardId(e.target.value ? Number(e.target.value) : null)}
+            className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+          >
+            <option value="">{t('dashboard.defaultDashboard') || 'Default Dashboard'}</option>
+            {dashboards.map((d) => (
+              <option key={d.id} value={d.id}>
+                {d.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          onClick={() => navigate('/dashboard-manager')}
+          className="self-end rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
+          title={t('dashboard.manageDashboards') || 'Manage Dashboards'}
+        >
+          {t('dashboard.manage') || 'Manage'}
+        </button>
       </div>
 
       {isLoading ? (
@@ -1211,78 +1264,104 @@ export const AnalyticsDashboard: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-8">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <PerformanceChart
-              data={divisionPerformanceData}
-              title={t('analytics.chartStudentPerformance')}
-              height={350}
-            />
-            <GradeDistributionChart
-              data={divisionGradeDistributionData}
-              title={t('analytics.chartGradeDistribution')}
-              height={350}
-            />
-          </div>
+          {(visibleCharts.has('performance') || visibleCharts.has('gradeDistribution')) && (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {visibleCharts.has('performance') && (
+                <PerformanceChart
+                  data={divisionPerformanceData}
+                  title={t('analytics.chartStudentPerformance')}
+                  height={350}
+                />
+              )}
+              {visibleCharts.has('gradeDistribution') && (
+                <GradeDistributionChart
+                  data={divisionGradeDistributionData}
+                  title={t('analytics.chartGradeDistribution')}
+                  height={350}
+                />
+              )}
+            </div>
+          )}
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <AttendanceChart
-              data={divisionAttendanceData}
-              title={t('analytics.chartAttendanceRate')}
-              height={350}
-            />
-            <TrendChart
-              data={divisionTrendData}
-              title={t('analytics.chartPerformanceTrend')}
-              height={350}
-            />
-          </div>
+          {(visibleCharts.has('attendance') || visibleCharts.has('trend')) && (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {visibleCharts.has('attendance') && (
+                <AttendanceChart
+                  data={divisionAttendanceData}
+                  title={t('analytics.chartAttendanceRate')}
+                  height={350}
+                />
+              )}
+              {visibleCharts.has('trend') && (
+                <TrendChart
+                  data={divisionTrendData}
+                  title={t('analytics.chartPerformanceTrend')}
+                  height={350}
+                />
+              )}
+            </div>
+          )}
 
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-            <StatsPieChart
-              data={pieChartData}
-              title={t('analytics.chartStudentStatus')}
-              height={350}
-            />
-            <ScatterPlot
-              data={divisionScatterData}
-              title={t('analytics.chartAttendanceGradeCorrelation') || 'Attendance vs Grade'}
-              xAxisLabel={t('analytics.attendance') || 'Attendance %'}
-              yAxisLabel={t('analytics.grade') || 'Grade %'}
-              height={350}
-            />
-          </div>
+          {(visibleCharts.has('pieChart') || visibleCharts.has('scatter')) && (
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+              {visibleCharts.has('pieChart') && (
+                <StatsPieChart
+                  data={pieChartData}
+                  title={t('analytics.chartStudentStatus')}
+                  height={350}
+                />
+              )}
+              {visibleCharts.has('scatter') && (
+                <ScatterPlot
+                  data={divisionScatterData}
+                  title={t('analytics.chartAttendanceGradeCorrelation') || 'Attendance vs Grade'}
+                  xAxisLabel={t('analytics.attendance') || 'Attendance %'}
+                  yAxisLabel={t('analytics.grade') || 'Grade %'}
+                  height={350}
+                />
+              )}
+            </div>
+          )}
 
-          <div className="w-full">
-            <GradeHeatmap
-              data={divisionHeatmapData}
-              title={t('analytics.chartGradeHeatmap') || 'Grade Distribution by Week'}
-              height={300}
-            />
-          </div>
+          {visibleCharts.has('heatmap') && (
+            <div className="w-full">
+              <GradeHeatmap
+                data={divisionHeatmapData}
+                title={t('analytics.chartGradeHeatmap') || 'Grade Distribution by Week'}
+                height={300}
+              />
+            </div>
+          )}
 
-          <div className="w-full">
-            <StudentProgressionSankey
-              data={divisionSankeyData}
-              title={t('analytics.chartStudentProgression') || 'Student Progression Flow'}
-              height={350}
-            />
-          </div>
+          {visibleCharts.has('sankey') && (
+            <div className="w-full">
+              <StudentProgressionSankey
+                data={divisionSankeyData}
+                title={t('analytics.chartStudentProgression') || 'Student Progression Flow'}
+                height={350}
+              />
+            </div>
+          )}
 
-          <div className="w-full">
-            <PerformanceTreemap
-              data={divisionTreemapData}
-              title={t('analytics.chartPerformanceHierarchy') || 'Performance by Course'}
-              height={350}
-            />
-          </div>
+          {visibleCharts.has('treemap') && (
+            <div className="w-full">
+              <PerformanceTreemap
+                data={divisionTreemapData}
+                title={t('analytics.chartPerformanceHierarchy') || 'Performance by Course'}
+                height={350}
+              />
+            </div>
+          )}
 
-          <div className="w-full">
-            <GradeDistributionBoxPlot
-              data={divisionBoxPlotData}
-              title={t('analytics.chartDistributionAnalysis') || 'Grade Distribution Analysis'}
-              height={400}
-            />
-          </div>
+          {visibleCharts.has('boxplot') && (
+            <div className="w-full">
+              <GradeDistributionBoxPlot
+                data={divisionBoxPlotData}
+                title={t('analytics.chartDistributionAnalysis') || 'Grade Distribution Analysis'}
+                height={400}
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">

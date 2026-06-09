@@ -26,6 +26,7 @@ import {
   AdminPermissionsPage,
   ImportExportPage,
   AnalyticsPage,
+  DashboardManagerPage,
   SearchPage,
   ReportBuilderPage,
   ReportListPage,
@@ -76,6 +77,7 @@ ReactDOM.createRoot(rootElement).render(
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/power" element={<PowerPage />} />
               <Route path="/analytics" element={<AnalyticsPage />} />
+              <Route path="/dashboard-manager" element={<DashboardManagerPage />} />
               {/* Operations: System utilities and custom report builder */}
               <Route element={<OperationsPage />} path="/operations" />
               <Route path="/operations/reports" element={<ReportListPage />} />

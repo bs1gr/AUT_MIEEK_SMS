@@ -79,6 +79,10 @@ export const AnalyticsPage = lazy(() =>
   import(/* webpackChunkName: "analytics" */ './pages/AnalyticsPage')
 );
 
+export const DashboardManagerPage = lazy(() =>
+  import(/* webpackChunkName: "dashboard-manager" */ './pages/DashboardManagerPage')
+);
+
 /**
  * Preload critical routes on browser idle
  * Called after initial app load to improve subsequent navigation
