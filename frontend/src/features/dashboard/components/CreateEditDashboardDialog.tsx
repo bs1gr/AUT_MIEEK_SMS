@@ -126,7 +126,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
             {/* Description Input */}
             <div>
               <label className="block text-sm font-medium text-slate-700">
-                {t('dashboard.description') || 'Description'} ({t('common.optional') || 'Optional'})
+                {t('dashboard.description')} ({t('common.optional')})
               </label>
               <textarea
                 value={description}

@@ -489,4 +489,10 @@ export default {
   page: 'Page',
   sortBy: 'Sort by',
   query: 'Query',
+  // Validation messages
+  validation: {
+    nameRequired: 'Name is required',
+    selectCharts: 'Please select at least one chart',
+  },
+  optional: 'Optional',
 };
