@@ -4,7 +4,7 @@ This directory contains all GitHub-specific configurations, workflows, and instr
 
 ## Directory Structure
 
-`
+```
 .github/
 ├── agents/                    # AI Agent definitions
 │   ├── debug.agent.md        # Debugging assistant
@@ -43,7 +43,7 @@ This directory contains all GitHub-specific configurations, workflows, and instr
 ├── WORKSPACE_STATE.md       # Workspace state documentation
 └── README.md                # This file
 
-`
+```
 
 ## Quick Navigation
 
@@ -130,7 +130,7 @@ See workflows/ directory for:
 6. Merge when approved
 
 ### Running Tests Locally
-`ash
+```bash
 # Backend tests
 pytest
 
@@ -139,7 +139,7 @@ npm test
 
 # E2E tests
 npx playwright test
-`
+```
 
 ### Debugging Issues
 See [agents/debug.agent.md](agents/debug.agent.md) for debugging assistant guidance.
