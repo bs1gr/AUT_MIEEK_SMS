@@ -67,7 +67,8 @@ export function useDashboards() {
         const response = await apiClient.post('/api/v1/dashboards', data);
         return response.data?.data;
       } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to create dashboard');
+        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to create dashboard';
+        throw new Error(message);
       }
     },
     onSuccess: () => {
@@ -93,7 +94,8 @@ export function useDashboards() {
         const response = await apiClient.put(`/api/v1/dashboards/${id}`, data);
         return response.data?.data;
       } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to update dashboard');
+        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to update dashboard';
+        throw new Error(message);
       }
     },
     onSuccess: () => {
@@ -109,7 +111,8 @@ export function useDashboards() {
         await apiClient.delete(`/api/v1/dashboards/${id}`);
         return { success: true };
       } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to delete dashboard');
+        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to delete dashboard';
+        throw new Error(message);
       }
     },
     onSuccess: () => {
@@ -125,7 +128,8 @@ export function useDashboards() {
         const response = await apiClient.post(`/api/v1/dashboards/${id}/set-default`);
         return response.data?.data;
       } catch (error: any) {
-        throw new Error(error.response?.data?.message || 'Failed to set default dashboard');
+        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to set default dashboard';
+        throw new Error(message);
       }
     },
     onSuccess: () => {

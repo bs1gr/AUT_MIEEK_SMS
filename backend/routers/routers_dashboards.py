@@ -10,6 +10,7 @@ import logging
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, Request
+from pydantic import ValidationError
 from sqlalchemy import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -117,6 +118,14 @@ async def create_dashboard(
         return error_response(
             code="VALIDATION_ERROR",
             message=str(e),
+            request_id=request.state.request_id,
+        )
+    except ValidationError as e:
+        logger.warning(f"Pydantic validation error creating dashboard: {str(e)}")
+        return error_response(
+            code="VALIDATION_ERROR",
+            message="Invalid request format",
+            details={"errors": [err["msg"] for err in e.errors()]},
             request_id=request.state.request_id,
         )
     except IntegrityError as e:
