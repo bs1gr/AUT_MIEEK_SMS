@@ -21,6 +21,7 @@ import {
   ScatterPlot,
   GradeHeatmap,
   StudentProgressionSankey,
+  PerformanceTreemap,
   type PerformanceDataPoint,
   type GradeDistributionData,
   type AttendanceData,
@@ -29,6 +30,7 @@ import {
   type ScatterDataPoint,
   type HeatmapDataPoint,
   type SankeyDataPoint,
+  type TreemapDataPoint,
 } from './AnalyticsCharts';
 import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
 import { Users, BookOpen, TrendingUp, Calendar, Download } from 'lucide-react';
@@ -92,6 +94,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [scatterData, setScatterData] = useState<ScatterDataPoint[]>([]);
   const [heatmapData, setHeatmapData] = useState<HeatmapDataPoint[]>([]);
   const [sankeyData, setSankeyData] = useState<SankeyDataPoint[]>([]);
+  const [treemapData, setTreemapData] = useState<TreemapDataPoint[]>([]);
 
   const { dashboard, isLoading, refetch } = useDashboardData();
 
@@ -746,6 +749,51 @@ export const AnalyticsDashboard: React.FC = () => {
     return result;
   }, [selectedDivision, students, analyticsGrades, analyticsEnrollments, courses, matchesSelectedDivision, t]);
 
+  const divisionTreemapData = useMemo<TreemapDataPoint[]>(() => {
+    if (!selectedDivision) return [];
+    const divisionStudents = students.filter((student) => matchesSelectedDivision(student));
+    if (divisionStudents.length === 0) return [];
+
+    const courseById = new Map<number, Course>();
+    courses.forEach((course) => courseById.set(course.id, course));
+
+    const courseData = new Map<string, { grades: number[]; count: number }>();
+
+    analyticsGrades.forEach((grade) => {
+      if (!divisionStudents.some((s) => s.id === grade.student_id)) return;
+      if (!grade.max_grade || grade.max_grade <= 0) return;
+
+      const course = courseById.get(grade.course_id);
+      const courseLabel = course ? course.course_name : t('courses');
+
+      if (!courseData.has(courseLabel)) {
+        courseData.set(courseLabel, { grades: [], count: 0 });
+      }
+
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      const data = courseData.get(courseLabel)!;
+      data.grades.push(percentage);
+      data.count += 1;
+    });
+
+    const treeData: TreemapDataPoint[] = Array.from(courseData.entries()).map(([course, data]) => {
+      const avgGrade = data.grades.length > 0 ? data.grades.reduce((a, b) => a + b, 0) / data.grades.length : 0;
+      return {
+        name: course,
+        value: avgGrade > 0 ? Math.max(avgGrade, 5) : 5,
+      };
+    });
+
+    return treeData.length > 0
+      ? [
+          {
+            name: selectedDivision,
+            children: treeData,
+          },
+        ]
+      : [];
+  }, [selectedDivision, students, analyticsGrades, courses, matchesSelectedDivision, t]);
+
   const filteredClassAggregates = useMemo(() => {
     if (!selectedDivision) return classAggregates;
     const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
@@ -1158,6 +1206,14 @@ export const AnalyticsDashboard: React.FC = () => {
             <StudentProgressionSankey
               data={divisionSankeyData}
               title={t('analytics.chartStudentProgression') || 'Student Progression Flow'}
+              height={350}
+            />
+          </div>
+
+          <div className="w-full">
+            <PerformanceTreemap
+              data={divisionTreemapData}
+              title={t('analytics.chartPerformanceHierarchy') || 'Performance by Course'}
               height={350}
             />
           </div>

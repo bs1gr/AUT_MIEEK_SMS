@@ -21,6 +21,7 @@ import {
   Sink,
   Source,
   Link,
+  Treemap,
 } from 'recharts';
 import { useLanguage } from '@/LanguageContext';
 
@@ -607,6 +608,80 @@ export const StudentProgressionSankey: React.FC<StudentSankeyProps> = ({
           <span>{language === 'el' ? 'Ημιτελής' : 'Incomplete'}</span>
         </div>
       </div>
+    </div>
+  );
+};
+
+/**
+ * Treemap - Shows hierarchical performance data (Division > Class > Metric)
+ */
+export interface TreemapDataPoint {
+  name: string;
+  value?: number;
+  fill?: string;
+  children?: TreemapDataPoint[];
+}
+
+interface PerformanceTreemapProps {
+  data: TreemapDataPoint[];
+  title?: string;
+  height?: number;
+}
+
+const COLORS = ['#6366f1', '#8b5cf6', '#d946ef', '#ec4899', '#f43f5e', '#f97316', '#eab308'];
+
+export const PerformanceTreemap: React.FC<PerformanceTreemapProps> = ({
+  data,
+  title,
+  height = 400,
+}) => {
+  const { language } = useLanguage();
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  const enrichWithColors = (node: TreemapDataPoint, colorIndex: number = 0): TreemapDataPoint => {
+    return {
+      ...node,
+      fill: COLORS[colorIndex % COLORS.length],
+      children: node.children?.map((child, idx) => enrichWithColors(child, colorIndex + idx)),
+    };
+  };
+
+  const dataWithColors = data.map((node, idx) => enrichWithColors(node, idx));
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+      <ResponsiveContainer width="100%" height={height}>
+        <Treemap
+          data={dataWithColors}
+          dataKey="value"
+          stroke="#fff"
+          fill="#8884d8"
+          isAnimationActive={true}
+        >
+          <Tooltip
+            contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc' }}
+            formatter={(value) => {
+              return typeof value === 'number' ? `${value.toFixed(1)}%` : String(value);
+            }}
+          />
+        </Treemap>
+      </ResponsiveContainer>
+      <p className="mt-3 text-xs text-slate-500">
+        {language === 'el'
+          ? 'Το μέγεθος εκπροσωπεί την απόδοση. Τα χρώματα διαφοροποιούν τις κατηγορίες.'
+          : 'Box size represents performance. Colors differentiate categories.'}
+      </p>
     </div>
   );
 };
