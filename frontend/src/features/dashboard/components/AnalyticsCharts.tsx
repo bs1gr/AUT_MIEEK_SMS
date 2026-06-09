@@ -15,6 +15,8 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
+  ScatterChart,
+  Scatter,
 } from 'recharts';
 import { useLanguage } from '@/LanguageContext';
 
@@ -340,6 +342,68 @@ export const StatsPieChart: React.FC<StatsPieChartProps> = ({
           </Pie>
           <Tooltip formatter={(value) => (typeof value === 'number' ? value : Number(value))} />
         </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+/**
+ * Scatter Chart - Shows correlation between two variables (e.g., attendance vs grade)
+ */
+export interface ScatterDataPoint {
+  x: number;
+  y: number;
+  name?: string;
+}
+
+interface ScatterChartProps {
+  data: ScatterDataPoint[];
+  title?: string;
+  xAxisLabel?: string;
+  yAxisLabel?: string;
+  height?: number;
+}
+
+export const ScatterPlot: React.FC<ScatterChartProps> = ({
+  data,
+  title,
+  xAxisLabel = 'X Axis',
+  yAxisLabel = 'Y Axis',
+  height = 400,
+}) => {
+  const { language } = useLanguage();
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-6">
+        {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+        <div className="flex items-center justify-center rounded-lg bg-gray-50 p-8">
+          <p className="text-gray-500">{language === 'el' ? 'Δεν υπάρχουν δεδομένα' : 'No data available'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-6">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+      <ResponsiveContainer width="100%" height={height}>
+        <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="x" name={xAxisLabel} unit="" />
+          <YAxis dataKey="y" name={yAxisLabel} />
+          <Tooltip
+            cursor={{ strokeDasharray: '3 3' }}
+            formatter={(value) => (typeof value === 'number' ? value.toFixed(1) : String(value))}
+          />
+          <Legend />
+          <Scatter
+            name={title || 'Data Points'}
+            data={data}
+            fill="#6366f1"
+            fillOpacity={0.6}
+          />
+        </ScatterChart>
       </ResponsiveContainer>
     </div>
   );

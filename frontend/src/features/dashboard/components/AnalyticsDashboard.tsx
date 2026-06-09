@@ -18,11 +18,13 @@ import {
   AttendanceChart,
   TrendChart,
   StatsPieChart,
+  ScatterPlot,
   type PerformanceDataPoint,
   type GradeDistributionData,
   type AttendanceData,
   type TrendData,
   type PieChartData,
+  type ScatterDataPoint,
 } from './AnalyticsCharts';
 import { normalizeDivisionLabelValue, matchesSelectedDivisionValue } from './divisionUtils';
 import { Users, BookOpen, TrendingUp, Calendar, Download } from 'lucide-react';
@@ -83,6 +85,7 @@ export const AnalyticsDashboard: React.FC = () => {
   const [gradeDistributionData, setGradeDistributionData] = useState<GradeDistributionData[]>([]);
   const [attendanceData, setAttendanceData] = useState<AttendanceData[]>([]);
   const [trendData, setTrendData] = useState<TrendData[]>([]);
+  const [scatterData, setScatterData] = useState<ScatterDataPoint[]>([]);
 
   const { dashboard, isLoading, refetch } = useDashboardData();
 
@@ -573,6 +576,53 @@ export const AnalyticsDashboard: React.FC = () => {
     });
   }, [selectedDivision, analyticsAttendance, students, courses, effectiveSelectedCourse, attendanceData, t, matchesSelectedDivision]);
 
+  const divisionScatterData = useMemo<ScatterDataPoint[]>(() => {
+    if (!selectedDivision) return [];
+    const divisionStudents = new Set(
+      students.filter((student) => matchesSelectedDivision(student)).map((student) => student.id)
+    );
+    if (divisionStudents.size === 0) return [];
+
+    const studentStats = new Map<number, { totalGrade: number; gradeCount: number; present: number; total: number }>();
+    divisionStudents.forEach((studentId) => {
+      studentStats.set(studentId, { totalGrade: 0, gradeCount: 0, present: 0, total: 0 });
+    });
+
+    analyticsGrades.forEach((grade) => {
+      if (!divisionStudents.has(grade.student_id)) return;
+      if (!grade.max_grade || grade.max_grade <= 0) return;
+      const stat = studentStats.get(grade.student_id);
+      if (!stat) return;
+      const percentage = (grade.grade / grade.max_grade) * 100;
+      stat.totalGrade += percentage;
+      stat.gradeCount += 1;
+    });
+
+    analyticsAttendance.forEach((record) => {
+      if (!divisionStudents.has(record.student_id)) return;
+      const stat = studentStats.get(record.student_id);
+      if (!stat) return;
+      stat.total += 1;
+      if (record.status === 'Present' || record.status === 'Excused') {
+        stat.present += 1;
+      }
+    });
+
+    const result: ScatterDataPoint[] = [];
+    studentStats.forEach((stat, studentId) => {
+      if (stat.gradeCount > 0 && stat.total > 0) {
+        const student = students.find((s) => s.id === studentId);
+        result.push({
+          x: (stat.present / stat.total) * 100,
+          y: stat.totalGrade / stat.gradeCount,
+          name: student ? `${student.first_name} ${student.last_name}` : `Student ${studentId}`,
+        });
+      }
+    });
+
+    return result;
+  }, [selectedDivision, students, analyticsGrades, analyticsAttendance, matchesSelectedDivision]);
+
   const filteredClassAggregates = useMemo(() => {
     if (!selectedDivision) return classAggregates;
     const filteredStudents = students.filter((student) => matchesSelectedDivision(student));
@@ -964,6 +1014,16 @@ export const AnalyticsDashboard: React.FC = () => {
               title={t('analytics.chartStudentStatus')}
               height={350}
             />
+            <ScatterPlot
+              data={divisionScatterData}
+              title={t('analytics.chartAttendanceGradeCorrelation') || 'Attendance vs Grade'}
+              xAxisLabel={t('analytics.attendance') || 'Attendance %'}
+              yAxisLabel={t('analytics.grade') || 'Grade %'}
+              height={350}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md">
               <h3 className="text-lg font-semibold text-slate-900">
                 {t('analytics.quickReportTitle')}
