@@ -1227,14 +1227,14 @@ export const AnalyticsDashboard: React.FC = () => {
         </div>
         <div>
           <label className="block text-sm font-medium text-slate-600">
-            {t('dashboard.selectDashboard') || 'Dashboard'}
+            {t('dashboard.selectDashboard')}
           </label>
           <select
             value={selectedDashboardId ?? ''}
             onChange={(e) => setSelectedDashboardId(e.target.value ? Number(e.target.value) : null)}
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >
-            <option value="">{t('dashboard.defaultDashboard') || 'Default Dashboard'}</option>
+            <option value="">{t('dashboard.defaultDashboard')}</option>
             {dashboards.map((d: any) => (
               <option key={d.id} value={d.id}>
                 {d.name}
@@ -1245,9 +1245,9 @@ export const AnalyticsDashboard: React.FC = () => {
         <button
           onClick={() => navigate('/dashboard-manager')}
           className="self-end rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm transition hover:border-slate-300 hover:text-slate-900"
-          title={t('dashboard.manageDashboards') || 'Manage Dashboards'}
+          title={t('dashboard.manageDashboards')}
         >
-          {t('dashboard.manage') || 'Manage'}
+          {t('dashboard.manage')}
         </button>
       </div>
 
@@ -1261,14 +1261,14 @@ export const AnalyticsDashboard: React.FC = () => {
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {visibleCharts.has('performance') && (
                 <PerformanceChart
-                  data={divisionPerformanceData}
+                  data={selectedDivision ? divisionPerformanceData : performanceData}
                   title={t('analytics.chartStudentPerformance')}
                   height={350}
                 />
               )}
               {visibleCharts.has('gradeDistribution') && (
                 <GradeDistributionChart
-                  data={divisionGradeDistributionData}
+                  data={selectedDivision ? divisionGradeDistributionData : gradeDistributionData}
                   title={t('analytics.chartGradeDistribution')}
                   height={350}
                 />
@@ -1280,14 +1280,14 @@ export const AnalyticsDashboard: React.FC = () => {
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
               {visibleCharts.has('attendance') && (
                 <AttendanceChart
-                  data={divisionAttendanceData}
+                  data={selectedDivision ? divisionAttendanceData : attendanceData}
                   title={t('analytics.chartAttendanceRate')}
                   height={350}
                 />
               )}
               {visibleCharts.has('trend') && (
                 <TrendChart
-                  data={divisionTrendData}
+                  data={selectedDivision ? divisionTrendData : trendData}
                   title={t('analytics.chartPerformanceTrend')}
                   height={350}
                 />
@@ -1306,10 +1306,10 @@ export const AnalyticsDashboard: React.FC = () => {
               )}
               {visibleCharts.has('scatter') && (
                 <ScatterPlot
-                  data={divisionScatterData}
-                  title={t('analytics.chartAttendanceGradeCorrelation') || 'Attendance vs Grade'}
-                  xAxisLabel={t('analytics.attendance') || 'Attendance %'}
-                  yAxisLabel={t('analytics.grade') || 'Grade %'}
+                  data={selectedDivision ? divisionScatterData : []}
+                  title={t('analytics.chartAttendanceGradeCorrelation')}
+                  xAxisLabel={t('analytics.attendance')}
+                  yAxisLabel={t('analytics.grade')}
                   height={350}
                 />
               )}
@@ -1319,8 +1319,8 @@ export const AnalyticsDashboard: React.FC = () => {
           {visibleCharts.has('heatmap') && (
             <div className="w-full">
               <GradeHeatmap
-                data={divisionHeatmapData}
-                title={t('analytics.chartGradeHeatmap') || 'Grade Distribution by Week'}
+                data={selectedDivision ? divisionHeatmapData : []}
+                title={t('analytics.chartGradeHeatmap')}
                 height={300}
               />
             </div>
@@ -1329,8 +1329,8 @@ export const AnalyticsDashboard: React.FC = () => {
           {visibleCharts.has('sankey') && (
             <div className="w-full">
               <StudentProgressionSankey
-                data={divisionSankeyData}
-                title={t('analytics.chartStudentProgression') || 'Student Progression Flow'}
+                data={selectedDivision ? divisionSankeyData : []}
+                title={t('analytics.chartStudentProgression')}
                 height={350}
               />
             </div>
@@ -1339,8 +1339,8 @@ export const AnalyticsDashboard: React.FC = () => {
           {visibleCharts.has('treemap') && (
             <div className="w-full">
               <PerformanceTreemap
-                data={divisionTreemapData}
-                title={t('analytics.chartPerformanceHierarchy') || 'Performance by Course'}
+                data={selectedDivision ? divisionTreemapData : []}
+                title={t('analytics.chartPerformanceHierarchy')}
                 height={350}
               />
             </div>
@@ -1349,8 +1349,8 @@ export const AnalyticsDashboard: React.FC = () => {
           {visibleCharts.has('boxplot') && (
             <div className="w-full">
               <GradeDistributionBoxPlot
-                data={divisionBoxPlotData}
-                title={t('analytics.chartDistributionAnalysis') || 'Grade Distribution Analysis'}
+                data={selectedDivision ? divisionBoxPlotData : []}
+                title={t('analytics.chartDistributionAnalysis')}
                 height={400}
               />
             </div>
@@ -1469,7 +1469,7 @@ export const AnalyticsDashboard: React.FC = () => {
           className="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Download size={18} />
-          {isExporting ? t('analytics.exporting') || 'Exporting...' : 'PDF'}
+          {isExporting ? t('analytics.exporting') : 'PDF'}
         </button>
         <button
           onClick={() => exportExcel()}
@@ -1477,7 +1477,7 @@ export const AnalyticsDashboard: React.FC = () => {
           className="rounded-xl bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           <Download size={18} />
-          {isExporting ? t('analytics.exporting') || 'Exporting...' : 'Excel'}
+          {isExporting ? t('analytics.exporting') : 'Excel'}
         </button>
         <button
           onClick={() => refetch()}
