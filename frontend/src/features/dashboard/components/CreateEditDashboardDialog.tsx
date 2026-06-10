@@ -153,6 +153,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
                   >
                     <input
                       type="checkbox"
+                      value={chart.id}
                       checked={selectedCharts.includes(chart.id)}
                       onChange={() => handleToggleChart(chart.id)}
                       className="h-4 w-4 rounded border-slate-300 text-indigo-600 transition focus:ring-2 focus:ring-indigo-500"

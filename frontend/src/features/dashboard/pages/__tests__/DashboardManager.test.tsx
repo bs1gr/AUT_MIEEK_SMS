@@ -276,7 +276,9 @@ describe('DashboardManager', () => {
       expect(screen.getByText(/Are you sure/i)).toBeInTheDocument();
     });
 
-    const confirmButton = screen.getByRole('button', { name: /Delete/i });
+    // Get all delete buttons and click the confirmation one (last one in the DOM)
+    const allDeleteButtons = screen.getAllByRole('button', { name: /Delete/i });
+    const confirmButton = allDeleteButtons[allDeleteButtons.length - 1];
     await user.click(confirmButton);
 
     expect(deleteMock).toHaveBeenCalledWith(1, expect.any(Object));

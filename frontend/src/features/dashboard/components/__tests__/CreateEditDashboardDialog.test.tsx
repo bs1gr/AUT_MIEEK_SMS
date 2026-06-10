@@ -331,12 +331,17 @@ describe('CreateEditDashboardDialog', () => {
       { wrapper: createWrapper() }
     );
 
-    expect(screen.getByText(/0 chart\(s\) selected/i)).toBeInTheDocument();
+    // Check initial count is 0
+    expect(screen.getByText((content) => content.includes('chart(s) selected'))).toBeInTheDocument();
+    const initialText = screen.getByText((content) => content.includes('chart(s) selected'));
+    expect(initialText.textContent).toMatch(/0 chart/);
 
     const checkboxes = container.querySelectorAll('input[type="checkbox"]');
     const firstCheckbox = checkboxes[0] as HTMLInputElement;
     await user.click(firstCheckbox);
 
-    expect(screen.getByText(/1 chart\(s\) selected/i)).toBeInTheDocument();
+    // Check count is now 1
+    const updatedText = screen.getByText((content) => content.includes('chart(s) selected'));
+    expect(updatedText.textContent).toMatch(/1 chart/);
   });
 });
