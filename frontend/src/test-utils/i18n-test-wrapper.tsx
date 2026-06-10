@@ -21,6 +21,8 @@ import gradesEn from '../locales/en/grades.js';
 import gradesEl from '../locales/el/grades.js';
 import rbacEn from '../locales/en/rbac.js';
 import rbacEl from '../locales/el/rbac.js';
+import dashboardEn from '../locales/en/dashboard.js';
+import dashboardEl from '../locales/el/dashboard.js';
 
 const asNamespace = (value: unknown) =>
   (value && typeof value === 'object' ? (value as Record<string, unknown>) : {});
@@ -37,6 +39,8 @@ const enGrades = asNamespace(gradesEn);
 const elGrades = asNamespace(gradesEl);
 const enRbac = asNamespace(rbacEn);
 const elRbac = asNamespace(rbacEl);
+const enDashboard = asNamespace(dashboardEn);
+const elDashboard = asNamespace(dashboardEl);
 
 // Create a test-specific i18n instance
 const testI18n = i18n.createInstance();
@@ -54,10 +58,12 @@ testI18n
             ...enCourses,
             ...enGrades,
             ...enCommon,
+            ...enDashboard,
           },
           common: enCommon,
           search: enSearch,
           rbac: enRbac,
+          dashboard: enDashboard,
         },
         el: {
           translation: {
@@ -65,10 +71,12 @@ testI18n
             ...elCourses,
             ...elGrades,
             ...elCommon,
+            ...elDashboard,
           },
           common: elCommon,
           search: elSearch,
           rbac: elRbac,
+          dashboard: elDashboard,
         }
     },
     interpolation: {
@@ -76,11 +84,19 @@ testI18n
     }
   });
 
+// Import LanguageProvider which wraps i18next
+import { LanguageProvider } from '../LanguageContext';
+
 /**
  * Wrapper component that provides i18n context to test components
+ * Uses I18nextProvider + LanguageProvider to support both react-i18next and custom LanguageContext
  */
 const I18nWrapper = ({ children }: { children: ReactNode }) => {
-  return <I18nextProvider i18n={testI18n}>{children}</I18nextProvider>;
+  return (
+    <I18nextProvider i18n={testI18n}>
+      <LanguageProvider>{children}</LanguageProvider>
+    </I18nextProvider>
+  );
 };
 
 /**

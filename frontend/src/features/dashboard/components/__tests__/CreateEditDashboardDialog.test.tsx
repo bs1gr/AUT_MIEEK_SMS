@@ -2,12 +2,16 @@ import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { I18nextProvider } from 'react-i18next';
+import testI18n from '@/test-utils/i18n-test-wrapper';
 import { LanguageProvider } from '@/LanguageContext';
 import CreateEditDashboardDialog from '../CreateEditDashboardDialog';
 
 function createWrapper() {
   return ({ children }: { children: React.ReactNode }) => (
-    <LanguageProvider>{children}</LanguageProvider>
+    <I18nextProvider i18n={testI18n}>
+      <LanguageProvider>{children}</LanguageProvider>
+    </I18nextProvider>
   );
 }
 
@@ -29,7 +33,7 @@ describe('CreateEditDashboardDialog', () => {
       { wrapper: createWrapper() }
     );
 
-    expect(screen.getByText(/Create Dashboard/i)).toBeInTheDocument();
+    expect(screen.getByText(/New Dashboard/i)).toBeInTheDocument();
   });
 
   it('renders edit dialog when dashboard provided', () => {

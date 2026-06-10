@@ -3,6 +3,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { I18nextProvider } from 'react-i18next';
+import testI18n from '@/test-utils/i18n-test-wrapper';
 import { LanguageProvider } from '@/LanguageContext';
 import DashboardManager from '../DashboardManager';
 import { useDashboards } from '../../hooks/useDashboards';
@@ -44,11 +46,15 @@ function createWrapper() {
   });
 
   return ({ children }: { children: React.ReactNode }) => (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>{children}</LanguageProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+    <I18nextProvider i18n={testI18n}>
+      <LanguageProvider>
+        <BrowserRouter>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        </BrowserRouter>
+      </LanguageProvider>
+    </I18nextProvider>
   );
 }
 
@@ -175,7 +181,7 @@ describe('DashboardManager', () => {
       isSettingDefault: false,
     });
 
-    const { container } = render(<DashboardManager />, { wrapper: createWrapper() });
+    const { container } = renderWithI18n(<DashboardManager />, { wrapper: createWrapper() });
 
     // Check for spinner
     const spinner = container.querySelector('.animate-spin');

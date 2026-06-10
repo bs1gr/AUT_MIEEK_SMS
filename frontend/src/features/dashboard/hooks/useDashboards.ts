@@ -45,10 +45,11 @@ export function useDashboards() {
     isLoading: isLoadingDefault,
   } = useQuery({
     queryKey: ['defaultDashboard'],
+    enabled: !isLoadingDashboards && dashboards.length > 0,
     queryFn: async () => {
       try {
-        const dashboards = await queryClient.getQueryData<Dashboard[]>(['dashboards']) || [];
-        return dashboards.find((d) => d.is_default) || null;
+        const dashboardsList = queryClient.getQueryData<Dashboard[]>(['dashboards']) || dashboards;
+        return dashboardsList.find((d) => d.is_default) || null;
       } catch (error) {
         console.error('Failed to fetch default dashboard:', error);
         return null;
