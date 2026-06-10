@@ -27,11 +27,7 @@ const E2E_PASSWORD = process.env.E2E_PASSWORD || 'YourSecurePassword123!';
 
 test.describe('Advanced Search & Filtering - E2E (smoke)', () => {
   test.beforeEach(async ({ page }) => {
-    try {
-      await loginViaAPI(page, E2E_EMAIL, E2E_PASSWORD);
-    } catch (error) {
-      test.skip();
-    }
+    await loginViaAPI(page, E2E_EMAIL, E2E_PASSWORD);
     await page.goto(`${BASE_URL}/students`);
     await page.waitForLoadState('networkidle');
   });

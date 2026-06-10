@@ -15,11 +15,7 @@ import { loginViaAPI } from './helpers';
 test.describe('Custom Dashboards - Phase A Feature 3', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    try {
-      await loginViaAPI(page, 'test@example.com', 'TestPassword123!');
-    } catch (error) {
-      test.skip();
-    }
+    await loginViaAPI(page, 'test@example.com', 'TestPassword123!');
   });
 
   test.describe('Dashboard Manager Page', () => {
