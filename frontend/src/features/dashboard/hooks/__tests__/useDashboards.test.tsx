@@ -77,7 +77,7 @@ describe('useDashboards hook', () => {
       await waitFor(() => expect(result.current.dashboards.length).toBe(3));
 
       expect(result.current.dashboards).toEqual(sampleDashboards);
-      expect(spy).toHaveBeenCalledWith('/api/v1/dashboards');
+      expect(spy).toHaveBeenCalledWith('/dashboards');
     });
 
     it('extracts default dashboard from dashboards list', async () => {
@@ -157,7 +157,7 @@ describe('useDashboards hook', () => {
 
       await waitFor(() => expect(result.current.isCreating).toBe(false));
 
-      expect(createSpy).toHaveBeenCalledWith('/api/v1/dashboards', {
+      expect(createSpy).toHaveBeenCalledWith('/dashboards', {
         name: 'New Dashboard',
         description: 'Test dashboard',
         configuration: { charts: ['performance'] },
@@ -223,7 +223,7 @@ describe('useDashboards hook', () => {
 
       await waitFor(() => expect(result.current.isUpdating).toBe(false));
 
-      expect(updateSpy).toHaveBeenCalledWith('/api/v1/dashboards/1', {
+      expect(updateSpy).toHaveBeenCalledWith('/dashboards/1', {
         name: 'Updated Name',
       });
     });
@@ -249,7 +249,7 @@ describe('useDashboards hook', () => {
 
       await waitFor(() => expect(result.current.isDeleting).toBe(false));
 
-      expect(deleteSpy).toHaveBeenCalledWith('/api/v1/dashboards/1');
+      expect(deleteSpy).toHaveBeenCalledWith('/dashboards/1');
     });
   });
 
@@ -276,7 +276,7 @@ describe('useDashboards hook', () => {
 
       await waitFor(() => expect(result.current.isSettingDefault).toBe(false));
 
-      expect(setDefaultSpy).toHaveBeenCalledWith('/api/v1/dashboards/2/set-default');
+      expect(setDefaultSpy).toHaveBeenCalledWith('/dashboards/2/set-default');
     });
   });
 
