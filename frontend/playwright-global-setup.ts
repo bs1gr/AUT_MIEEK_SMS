@@ -1,13 +1,9 @@
-import { chromium, FullConfig } from '@playwright/test';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { FullConfig } from '@playwright/test';
+import { spawn, exec } from 'child_process';
 import * as http from 'http';
-
-const execAsync = promisify(exec);
 
 const BACKEND_PORT = 8000;
 const BACKEND_HEALTH_CHECK_URL = `http://127.0.0.1:${BACKEND_PORT}/health`;
-const BACKEND_TIMEOUT = 30000; // 30 seconds
 const HEALTH_CHECK_TIMEOUT = 60000; // 60 seconds
 
 /**
@@ -55,13 +51,8 @@ async function startBackend(): Promise<void> {
     // Determine the correct Python command
     const pythonCmd = process.platform === 'win32' ? 'python' : 'python3';
 
-    // Start the backend with uvicorn in detached mode
-    // This runs in the background without blocking the test setup
-    const backendCommand = `${pythonCmd} -m uvicorn backend.main:app --host 127.0.0.1 --port ${BACKEND_PORT} --reload`;
-
     if (process.platform === 'win32') {
       // On Windows, use spawn to run in background
-      const { spawn } = require('child_process');
       spawn(pythonCmd, [
         '-m', 'uvicorn',
         'backend.main:app',
@@ -75,6 +66,7 @@ async function startBackend(): Promise<void> {
       }).unref();
     } else {
       // On Unix-like systems
+      const backendCommand = `${pythonCmd} -m uvicorn backend.main:app --host 127.0.0.1 --port ${BACKEND_PORT} --reload`;
       exec(`nohup ${backendCommand} > /tmp/backend.log 2>&1 &`, {
         cwd: process.cwd()
       });
@@ -87,11 +79,11 @@ async function startBackend(): Promise<void> {
       console.log('✅ Backend is running and healthy!');
     } else {
       console.warn('⚠️  Backend health check failed, but proceeding with tests.');
-      console.warn('   Tests will skip gracefully if backend is unavailable.');
+      console.warn('   Tests will fail loudly if backend is unavailable.');
     }
   } catch (error) {
     console.warn('⚠️  Failed to start backend:', error instanceof Error ? error.message : String(error));
-    console.warn('   Tests will skip gracefully if backend is unavailable.');
+    console.warn('   Tests will fail loudly if backend is unavailable.');
   }
 }
 

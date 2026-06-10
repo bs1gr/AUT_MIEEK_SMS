@@ -8,7 +8,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   forbidOnly: !!process.env.CI,
-  globalSetup: require.resolve('./playwright-global-setup.ts'),
+  globalSetup: './playwright-global-setup.ts',
   reporter: [
     ['list'],
     ['html', { outputFolder: 'playwright-report', open: 'never' }],
