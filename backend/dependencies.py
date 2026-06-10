@@ -11,6 +11,7 @@ import logging
 import logging.handlers
 from contextlib import contextmanager
 from functools import wraps
+from pathlib import Path
 from typing import Generator, Optional
 
 from fastapi import HTTPException
@@ -40,6 +41,10 @@ def setup_logging(log_file: str = "logs/sms.log") -> logging.Logger:
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
+
+    # Ensure log directory exists
+    log_path = Path(log_file)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
 
     # File handler with rotation
     file_handler = logging.handlers.RotatingFileHandler(
