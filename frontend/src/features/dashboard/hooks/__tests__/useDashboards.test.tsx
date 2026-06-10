@@ -63,6 +63,7 @@ const sampleDashboards: Dashboard[] = [
 describe('useDashboards hook', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   describe('Fetching dashboards', () => {
