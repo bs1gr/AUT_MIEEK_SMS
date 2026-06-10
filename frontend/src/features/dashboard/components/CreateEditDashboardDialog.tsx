@@ -89,10 +89,10 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
 
       {/* Dialog */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-2xl rounded-lg bg-white shadow-lg">
+        <div role="dialog" aria-labelledby="create-edit-dashboard-title" className="w-full max-w-2xl rounded-lg bg-white shadow-lg">
           {/* Header */}
           <div className="flex items-center justify-between border-b border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-900">
+            <h2 id="create-edit-dashboard-title" className="text-xl font-semibold text-slate-900">
               {dashboard
                 ? t('dashboard.editDashboard') || 'Edit Dashboard'
                 : t('dashboard.newDashboard') || 'Create Dashboard'}
