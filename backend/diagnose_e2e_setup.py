@@ -8,7 +8,6 @@ This script checks all aspects of E2E test prerequisites:
 5. Login endpoint is functional
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -28,7 +27,7 @@ def diagnose():
     try:
         from backend.config import settings
         db_url = settings.DATABASE_URL
-        print(f"✅ Settings loaded")
+        print("✅ Settings loaded")
         print(f"   DATABASE_URL: {db_url}")
 
         if db_url.startswith("sqlite"):
@@ -38,7 +37,7 @@ def diagnose():
             if db_file.exists():
                 print(f"   ✅ File exists (size: {db_file.stat().st_size} bytes)")
             else:
-                print(f"   ℹ️  File doesn't exist (will be created)")
+                print("   ℹ️  File doesn't exist (will be created)")
     except Exception as e:
         print(f"❌ Failed to load settings: {e}")
         return False
@@ -62,9 +61,9 @@ def diagnose():
         tables = inspector.get_table_names()
         print(f"   Tables: {len(tables)} total")
         if "user" in tables:
-            print(f"   ✅ 'user' table exists")
+            print("   ✅ 'user' table exists")
         else:
-            print(f"   ❌ 'user' table NOT FOUND")
+            print("   ❌ 'user' table NOT FOUND")
             return False
 
     except Exception as e:
@@ -87,7 +86,7 @@ def diagnose():
         admin_user = db.query(User).filter(User.email == "admin@example.com").first()
 
         if test_user:
-            print(f"✅ Test user exists:")
+            print("✅ Test user exists:")
             print(f"   Email: {test_user.email}")
             print(f"   Role: {test_user.role}")
             print(f"   Active: {test_user.is_active}")
@@ -95,16 +94,16 @@ def diagnose():
             if test_user.hashed_password:
                 print(f"   Hash starts with: {test_user.hashed_password[:30]}...")
         else:
-            print(f"❌ Test user NOT FOUND")
-            print(f"   Will be created in next step")
+            print("❌ Test user NOT FOUND")
+            print("   Will be created in next step")
 
         if admin_user:
-            print(f"✅ Admin user exists:")
+            print("✅ Admin user exists:")
             print(f"   Email: {admin_user.email}")
             print(f"   Role: {admin_user.role}")
             print(f"   Active: {admin_user.is_active}")
         else:
-            print(f"⚠️  Admin user NOT FOUND")
+            print("⚠️  Admin user NOT FOUND")
 
         db.close()
 
@@ -122,16 +121,16 @@ def diagnose():
 
         test_password = "Test@Pass123"
         hashed = get_password_hash(test_password)
-        print(f"✅ Password hashing works")
+        print("✅ Password hashing works")
         print(f"   Original: {test_password}")
         print(f"   Hashed: {hashed[:40]}...")
 
         # Test verification
         verified = verify_password(test_password, hashed)
         if verified:
-            print(f"   ✅ Verification works: password matches hash")
+            print("   ✅ Verification works: password matches hash")
         else:
-            print(f"   ❌ Verification FAILED: password doesn't match hash")
+            print("   ❌ Verification FAILED: password doesn't match hash")
             return False
 
     except Exception as e:
@@ -155,12 +154,12 @@ def diagnose():
             # Verify seed worked
             test_user = db.query(User).filter(User.email == "test@example.com").first()
             if test_user:
-                print(f"✅ Seeding successful!")
+                print("✅ Seeding successful!")
             else:
-                print(f"❌ Seeding failed - user still not found")
+                print("❌ Seeding failed - user still not found")
                 return False
         else:
-            print(f"✅ Test user already exists")
+            print("✅ Test user already exists")
 
         db.close()
 
@@ -185,12 +184,12 @@ def diagnose():
             # Verify password
             verified = verify_password("Test@Pass123", test_user.hashed_password)
             if verified:
-                print(f"✅ Test user password verification: PASS")
+                print("✅ Test user password verification: PASS")
             else:
-                print(f"❌ Test user password verification: FAIL")
+                print("❌ Test user password verification: FAIL")
                 return False
         else:
-            print(f"❌ Test user or password missing")
+            print("❌ Test user or password missing")
             return False
 
         db.close()

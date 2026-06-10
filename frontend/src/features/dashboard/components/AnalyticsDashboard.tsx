@@ -79,7 +79,6 @@ export const AnalyticsDashboard: React.FC = () => {
   const { exportPDF, exportExcel, isExporting, exportError } = useAnalyticsExport();
   const { defaultDashboard } = useDashboards();
   const MAX_ANALYTICS_PAGE_SIZE = 1000;
-  const [dateRange, setDateRange] = useState<'week' | 'month' | 'semester'>('semester');
   const [selectedCourse, setSelectedCourse] = useState<number | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<string>('');
@@ -292,7 +291,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 count: stats.studentCount,
                 average: stats.gradeCount > 0 ? stats.total / stats.gradeCount : 0,
               }))
-              .sort((a, b) => b.studentCount - a.studentCount)
+              .sort((a, b) => b.count - a.count)
           );
         }
 
@@ -362,7 +361,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 count: stats.studentCount,
                 average: stats.gradeCount > 0 ? stats.total / stats.gradeCount : 0,
               }))
-              .sort((a, b) => b.studentCount - a.studentCount)
+              .sort((a, b) => b.count - a.count)
           );
         }
       } catch (err) {
@@ -887,7 +886,7 @@ export const AnalyticsDashboard: React.FC = () => {
         count: stats.studentCount,
         average: stats.gradeCount > 0 ? stats.total / stats.gradeCount : 0,
       }))
-      .sort((a, b) => b.studentCount - a.studentCount);
+      .sort((a, b) => b.count - a.count);
   }, [selectedDivision, students, analyticsGrades, classAggregates, t, matchesSelectedDivision]);
 
   const quickReportStats = useMemo(() => {
