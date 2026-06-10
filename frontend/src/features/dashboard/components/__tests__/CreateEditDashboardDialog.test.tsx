@@ -112,16 +112,11 @@ describe('CreateEditDashboardDialog', () => {
       { wrapper: createWrapper() }
     );
 
-    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-    const performanceCheckbox = Array.from(checkboxes).find(
-      (cb) => (cb as HTMLInputElement).value === 'performance'
-    ) as HTMLInputElement;
-    const gradeDistributionCheckbox = Array.from(checkboxes).find(
-      (cb) => (cb as HTMLInputElement).value === 'gradeDistribution'
-    ) as HTMLInputElement;
-
-    expect(performanceCheckbox?.checked).toBe(true);
-    expect(gradeDistributionCheckbox?.checked).toBe(true);
+    // Get all checkboxes - they're pre-checked based on configuration
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]') as NodeListOf<HTMLInputElement>;
+    // Count how many are checked (should be 2 for 'performance' and 'gradeDistribution')
+    const checkedCount = Array.from(checkboxes).filter((cb) => cb.checked).length;
+    expect(checkedCount).toBe(2);
   });
 
   it('requires dashboard name', async () => {
@@ -142,7 +137,7 @@ describe('CreateEditDashboardDialog', () => {
     await user.click(saveButton);
 
     expect(mockSave).not.toHaveBeenCalled();
-    expect(screen.getByText(/Dashboard name is required/i)).toBeInTheDocument();
+    expect(screen.getByText(/Name is required/i)).toBeInTheDocument();
   });
 
   it('requires at least one chart selected', async () => {

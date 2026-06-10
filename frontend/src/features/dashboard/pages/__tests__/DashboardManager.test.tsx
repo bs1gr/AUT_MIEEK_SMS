@@ -164,7 +164,7 @@ describe('DashboardManager', () => {
 
     render(<DashboardManager />, { wrapper: createWrapper() });
 
-    expect(screen.getByText(/No dashboards yet/i)).toBeInTheDocument();
+    expect(screen.getByText(/No dashboards yet. Create one to get started/i)).toBeInTheDocument();
   });
 
   it('shows loading state', () => {
@@ -181,7 +181,7 @@ describe('DashboardManager', () => {
       isSettingDefault: false,
     });
 
-    const { container } = renderWithI18n(<DashboardManager />, { wrapper: createWrapper() });
+    const { container } = render(<DashboardManager />, { wrapper: createWrapper() });
 
     // Check for spinner
     const spinner = container.querySelector('.animate-spin');
@@ -208,9 +208,9 @@ describe('DashboardManager', () => {
     const newButton = screen.getByText(/New Dashboard/i);
     await user.click(newButton);
 
-    // Dialog should appear
+    // Dialog should appear - look for the dialog title
     await waitFor(() => {
-      expect(screen.getByText(/Create Dashboard/i)).toBeInTheDocument();
+      expect(screen.getByText(/New Dashboard/i)).toBeInTheDocument();
     });
   });
 

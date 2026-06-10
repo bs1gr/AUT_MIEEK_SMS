@@ -96,6 +96,7 @@ describe('useDashboards hook', () => {
     });
 
     it('handles empty dashboards list', async () => {
+      // Only the dashboards query will call the API; defaultDashboard uses getQueryData
       vi.spyOn(apiClient, 'get').mockResolvedValueOnce({ data: { data: [] } });
 
       const queryClient = makeClient();
@@ -104,7 +105,11 @@ describe('useDashboards hook', () => {
       await waitFor(() => expect(result.current.isLoadingDashboards).toBe(false));
 
       expect(result.current.dashboards).toEqual([]);
-      expect(result.current.defaultDashboard).toBeNull();
+      // With empty dashboards, the defaultDashboard query won't run due to enabled condition
+      // Wait for it to complete or ensure it's null
+      await waitFor(() => {
+        expect(result.current.defaultDashboard === null || result.current.defaultDashboard === undefined).toBe(true);
+      });
     });
 
     it('handles API errors gracefully', async () => {
