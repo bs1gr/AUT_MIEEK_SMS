@@ -163,7 +163,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
                 ))}
               </div>
               <p className="mt-2 text-xs text-slate-500">
-                {t('dashboard.chartsSelected') || `${selectedCharts.length} chart(s) selected`}
+                {t('dashboard.chartsSelected', { count: selectedCharts.length }) || `${selectedCharts.length} chart(s) selected`}
               </p>
             </div>
 
