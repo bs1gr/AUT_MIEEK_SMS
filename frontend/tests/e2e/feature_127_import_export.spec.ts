@@ -8,12 +8,7 @@ const ADMIN_CREDENTIALS = {
 
 test.describe('Feature #127: Bulk Import/Export', () => {
   test.beforeEach(async ({ page }) => {
-    try {
-      await loginViaAPI(page, ADMIN_CREDENTIALS.email, ADMIN_CREDENTIALS.password);
-    } catch (error) {
-      // Backend not running - skip this suite gracefully
-      test.skip();
-    }
+    await loginViaAPI(page, ADMIN_CREDENTIALS.email, ADMIN_CREDENTIALS.password);
   });
 
   test('Admin can access Import/Export page', async ({ page }) => {
