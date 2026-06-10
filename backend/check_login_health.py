@@ -26,7 +26,8 @@ def check_login_health(base_url: str = "http://127.0.0.1:8000", max_retries: int
         True if login succeeds, False otherwise
     """
 
-    print(f"Checking login health at {base_url}...")
+    print(f"\nChecking login health at {base_url}...")
+    print(f"Max retries: {max_retries}\n")
 
     login_url = f"{base_url}/api/v1/auth/login"
     # E2E test user seeded by backend/seed_e2e_data.py
@@ -36,6 +37,7 @@ def check_login_health(base_url: str = "http://127.0.0.1:8000", max_retries: int
     for attempt in range(1, max_retries + 1):
         try:
             print(f"Attempt {attempt}/{max_retries}: POST {login_url}")
+            print(f"Credentials: email={test_credentials['email']}, password={'*' * len(test_credentials['password'])}")
 
             # Try to login with test credentials
             response = requests.post(
@@ -49,23 +51,34 @@ def check_login_health(base_url: str = "http://127.0.0.1:8000", max_retries: int
             if response.status_code == 200:
                 try:
                     data = response.json()
-                    if "access_token" in data:
-                        print(f"✅ Login successful! Token type: {data.get('token_type')}")
-                        print(f"   Access token (first 20 chars): {data['access_token'][:20]}...")
+                    # Handle both direct token and wrapped response
+                    token = data.get("access_token") or (data.get("data", {}).get("access_token") if isinstance(data.get("data"), dict) else None)
+                    if token:
+                        print(f"✅ Login successful! Token type: {data.get('token_type', 'Bearer')}")
+                        print(f"   Access token (first 20 chars): {token[:20]}...")
                         return True
                     else:
                         print("⚠️  Login returned 200 but no access_token in response")
-                        print(f"   Response: {data}")
+                        print(f"   Response keys: {list(data.keys())}")
+                        print(f"   Full response: {data}")
                 except Exception as e:
                     print(f"⚠️  Could not parse JSON response: {e}")
-                    print(f"   Raw response: {response.text[:200]}")
+                    print(f"   Raw response: {response.text[:300]}")
             elif response.status_code == 401:
                 print("❌ Login failed: Invalid credentials (401)")
-                print(f"   Response: {response.text[:200]}")
+                try:
+                    error_data = response.json()
+                    print(f"   Error: {error_data}")
+                except Exception:
+                    print(f"   Response: {response.text[:200]}")
                 return False
             else:
                 print(f"⚠️  Unexpected status code: {response.status_code}")
-                print(f"   Response: {response.text[:200]}")
+                try:
+                    error_data = response.json()
+                    print(f"   Response: {error_data}")
+                except Exception:
+                    print(f"   Response text: {response.text[:200]}")
 
         except requests.exceptions.ConnectionError as e:
             print(f"⚠️  Connection error: {e}")

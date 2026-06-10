@@ -150,20 +150,32 @@ jobs:
             exit 1
           }
 
+      - name: Run E2E setup diagnostics
+        run: |
+          echo "Running E2E setup diagnostics..."
+          python backend/diagnose_e2e_setup.py || {
+            echo "❌ Diagnostics found issues, but continuing..."
+          }
+
       - name: Seed test data
         run: |
           echo "Seeding E2E test data..."
-          python backend/seed_e2e_data.py
-
-      - name: Force reseed with test user
-        run: |
-          echo "Force reseeding to ensure test user exists..."
-          python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+          set -euo pipefail
+          python backend/seed_e2e_data.py || {
+            echo "❌ Initial seed failed, retrying with force..."
+            python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+          }
 
       - name: Validate seed data
         run: |
           echo "Validating E2E test data..."
-          python backend/validate_e2e_data.py
+          set -euo pipefail
+          python backend/validate_e2e_data.py || {
+            echo "❌ Validation failed"
+            echo "Attempting force reseed and retry..."
+            python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+            python backend/validate_e2e_data.py
+          }
 
       # FIX 5: Add health check before starting tests
       - name: Start backend in background

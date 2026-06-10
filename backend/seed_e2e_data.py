@@ -41,19 +41,21 @@ def seed_e2e_data(force: bool = False):
 
     try:
         ensure_defaults_startup(SessionLocal)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[WARN] ensure_defaults_startup failed (non-critical): {e}")
 
     try:
         # Check if test users already exist
         existing_test_user = db.query(User).filter(User.email == "test@example.com").first()
         existing_admin_user = db.query(User).filter(User.email == "admin@example.com").first()
 
-        if existing_test_user and existing_admin_user:
+        if existing_test_user or existing_admin_user:
             if force:
                 print("[WARN] Deleting existing test users for recreation...")
-                db.delete(existing_test_user)
-                db.delete(existing_admin_user)
+                if existing_test_user:
+                    db.delete(existing_test_user)
+                if existing_admin_user:
+                    db.delete(existing_admin_user)
                 db.commit()
             else:
                 print("[OK] Test data already exists, skipping seed")
@@ -62,25 +64,32 @@ def seed_e2e_data(force: bool = False):
         print("Seeding E2E test data...")
 
         # Create test user (used by some tests)
+        test_password = "Test@Pass123"
+        test_password_hash = get_password_hash(test_password)
         test_user = User(
             email="test@example.com",
             full_name="Test User",
-            hashed_password=get_password_hash("Test@Pass123"),  # Meets password requirements
+            hashed_password=test_password_hash,
             role="admin",
             is_active=True,
         )
+        print(f"[DEBUG] Test user password hash created: {test_password_hash[:30]}...")
         db.add(test_user)
 
         # Create admin user (used by E2E tests: admin@example.com / YourSecurePassword123!)
+        admin_password = "YourSecurePassword123!"
+        admin_password_hash = get_password_hash(admin_password)
         admin_user = User(
             email="admin@example.com",
             full_name="Admin User",
-            hashed_password=get_password_hash("YourSecurePassword123!"),  # E2E test password
+            hashed_password=admin_password_hash,
             role="admin",
             is_active=True,
         )
+        print(f"[DEBUG] Admin user password hash created: {admin_password_hash[:30]}...")
         db.add(admin_user)
         db.flush()
+        print(f"[DEBUG] Users flushed to DB. Test user ID: {test_user.id if hasattr(test_user, 'id') else 'not set'}")
 
         admin_role = db.query(Role).filter(Role.name == "admin").first()
         if admin_role:
