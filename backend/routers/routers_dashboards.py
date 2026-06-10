@@ -15,7 +15,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.dependencies import get_db
-from backend.schemas.dashboards import CreateDashboardRequest, UpdateDashboardRequest, DashboardResponse
+from backend.schemas.dashboards import CreateDashboardRequest
 from backend.schemas.response import APIResponse, error_response, success_response
 from backend.security.current_user import get_current_user
 from backend.services.dashboard_service import DashboardService
