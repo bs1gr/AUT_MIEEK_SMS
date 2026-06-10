@@ -57,8 +57,8 @@ export const PerformanceChart: React.FC<PerformanceChartProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+    <div className="rounded-lg border border-gray-200 bg-white p-6" data-testid="chart-performance">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900" data-testid="chart-performance-title">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <LineChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -126,8 +126,8 @@ export const GradeDistributionChart: React.FC<GradeDistributionChartProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+    <div className="rounded-lg border border-gray-200 bg-white p-6" data-testid="chart-grade-distribution">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900" data-testid="chart-grade-distribution-title">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -184,8 +184,8 @@ export const AttendanceChart: React.FC<AttendanceChartProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+    <div className="rounded-lg border border-gray-200 bg-white p-6" data-testid="chart-attendance">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900" data-testid="chart-attendance-title">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <BarChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
           <CartesianGrid strokeDasharray="3 3" />
@@ -250,8 +250,8 @@ export const TrendChart: React.FC<TrendChartProps> = ({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+    <div className="rounded-lg border border-gray-200 bg-white p-6" data-testid="chart-trend">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900" data-testid="chart-trend-title">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <AreaChart data={data} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
           <defs>
@@ -320,8 +320,8 @@ export const StatsPieChart: React.FC<StatsPieChartProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+    <div className="rounded-lg border border-gray-200 bg-white p-6" data-testid="chart-student-status">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900" data-testid="chart-student-status-title">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <PieChart>
           <Pie
@@ -387,8 +387,8 @@ export const ScatterPlot: React.FC<ScatterChartProps> = ({
   }
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
-      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
+    <div className="rounded-lg border border-gray-200 bg-white p-6" data-testid="chart-scatter">
+      {title && <h3 className="mb-4 text-lg font-semibold text-gray-900" data-testid="chart-scatter-title">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
           <CartesianGrid strokeDasharray="3 3" />
