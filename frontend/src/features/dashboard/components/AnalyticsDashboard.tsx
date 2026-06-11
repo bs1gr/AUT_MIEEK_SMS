@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
 import { useDashboardData } from '@/api/hooks/useAnalytics';
 import { useAnalyticsExport } from '../hooks/useAnalyticsExport';
-import { useDashboards } from '../hooks/useDashboards';
+import { useDashboards, type Dashboard } from '../hooks/useDashboards';
 import apiClient, {
   extractAPIResponseData,
   enrollmentsAPI,
@@ -1225,7 +1225,7 @@ export const AnalyticsDashboard: React.FC = () => {
             className="mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100"
           >
             <option value="">{t('dashboard.defaultDashboard')}</option>
-            {dashboards.map((d: any) => (
+            {dashboards.map((d: Dashboard) => (
               <option key={d.id} value={d.id}>
                 {d.name}
               </option>

@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, waitFor, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useDashboards, type Dashboard } from '../useDashboards';
+import { useDashboards } from '../useDashboards';
 import apiClient from '@/api/api';
 
 function createWrapper(queryClient: QueryClient) {
@@ -145,7 +145,6 @@ describe('useDashboards hook', () => {
       const queryClient = makeClient();
       const { result } = renderHook(() => useDashboards(), { wrapper: createWrapper(queryClient) });
 
-      let mutationResult: any;
       await act(async () => {
         result.current.createDashboard(
           {
@@ -154,8 +153,8 @@ describe('useDashboards hook', () => {
             configuration: { charts: ['performance'] },
           },
           {
-            onSuccess: (data) => {
-              mutationResult = data;
+            onSuccess: () => {
+              // success callback handled
             },
           }
         );

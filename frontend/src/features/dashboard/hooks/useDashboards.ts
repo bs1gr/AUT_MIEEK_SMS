@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { AxiosError } from 'axios';
 import apiClient from '@/api/api';
 
 export interface Dashboard {
@@ -7,11 +8,17 @@ export interface Dashboard {
   description?: string;
   configuration: {
     charts: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   };
   is_default: boolean;
   created_at: string;
   updated_at: string;
+}
+
+interface ErrorResponse {
+  error?: { message: string };
+  message?: string;
 }
 
 /**
@@ -67,8 +74,9 @@ export function useDashboards() {
       try {
         const response = await apiClient.post('/dashboards', data);
         return response.data?.data;
-      } catch (error: any) {
-        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to create dashboard';
+      } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to create dashboard';
         throw new Error(message);
       }
     },
@@ -94,8 +102,9 @@ export function useDashboards() {
       try {
         const response = await apiClient.put(`/dashboards/${id}`, data);
         return response.data?.data;
-      } catch (error: any) {
-        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to update dashboard';
+      } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to update dashboard';
         throw new Error(message);
       }
     },
@@ -111,8 +120,9 @@ export function useDashboards() {
       try {
         await apiClient.delete(`/dashboards/${id}`);
         return { success: true };
-      } catch (error: any) {
-        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to delete dashboard';
+      } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to delete dashboard';
         throw new Error(message);
       }
     },
@@ -128,8 +138,9 @@ export function useDashboards() {
       try {
         const response = await apiClient.post(`/dashboards/${id}/set-default`);
         return response.data?.data;
-      } catch (error: any) {
-        const message = error.response?.data?.error?.message || error.response?.data?.message || 'Failed to set default dashboard';
+      } catch (error) {
+        const axiosError = error as AxiosError<ErrorResponse>;
+        const message = axiosError.response?.data?.error?.message || axiosError.response?.data?.message || 'Failed to set default dashboard';
         throw new Error(message);
       }
     },

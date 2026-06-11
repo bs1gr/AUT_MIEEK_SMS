@@ -814,7 +814,7 @@ export const PerformanceTreemap: React.FC<PerformanceTreemapProps> = ({
       {title && <h3 className="mb-4 text-lg font-semibold text-gray-900">{title}</h3>}
       <ResponsiveContainer width="100%" height={height}>
         <Treemap
-          data={dataWithColors as any}
+          data={dataWithColors}
           dataKey="value"
           stroke="#fff"
           fill="#8884d8"
