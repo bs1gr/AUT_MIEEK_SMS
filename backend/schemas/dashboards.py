@@ -2,7 +2,7 @@
 
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DashboardConfiguration(BaseModel):
@@ -26,6 +26,8 @@ class UpdateDashboardRequest(BaseModel):
 
 class DashboardResponse(BaseModel):
     """Schema for dashboard response."""
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     name: str
     description: Optional[str]
@@ -33,6 +35,3 @@ class DashboardResponse(BaseModel):
     is_default: bool
     created_at: str
     updated_at: str
-
-    class Config:
-        from_attributes = True
