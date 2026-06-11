@@ -7,12 +7,10 @@ import { I18nextProvider } from 'react-i18next';
 import testI18n from '@/test-utils/i18n-test-wrapper';
 import { LanguageProvider } from '@/LanguageContext';
 import DashboardManager from '../DashboardManager';
-import { useDashboards, type Dashboard } from '../../hooks/useDashboards';
+import { useDashboards } from '../../hooks/useDashboards';
 import { BrowserRouter } from 'react-router-dom';
 
 vi.mock('../../hooks/useDashboards');
-
-type UseDashboardsReturn = ReturnType<typeof useDashboards>;
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
