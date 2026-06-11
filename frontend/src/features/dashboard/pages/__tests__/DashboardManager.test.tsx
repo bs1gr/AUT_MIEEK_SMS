@@ -11,6 +11,8 @@ import { useDashboards } from '../../hooks/useDashboards';
 import { BrowserRouter } from 'react-router-dom';
 
 vi.mock('../../hooks/useDashboards');
+
+const mockUseDashboards = vi.mocked(useDashboards);
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
@@ -88,7 +90,7 @@ describe('DashboardManager', () => {
   });
 
   it('renders dashboard manager with title', () => {
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({
         dashboards: mockDashboards,
         defaultDashboard: mockDashboards[0],
@@ -101,7 +103,7 @@ describe('DashboardManager', () => {
   });
 
   it('displays list of dashboards', async () => {
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({
         dashboards: mockDashboards,
         defaultDashboard: mockDashboards[0],
@@ -117,7 +119,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows default dashboard badge', async () => {
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({
         dashboards: mockDashboards,
         defaultDashboard: mockDashboards[0],
@@ -133,7 +135,7 @@ describe('DashboardManager', () => {
   });
 
   it('displays chart count for each dashboard', async () => {
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({
         dashboards: mockDashboards,
         defaultDashboard: mockDashboards[0],
@@ -149,7 +151,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows empty state when no dashboards exist', () => {
-    vi.mocked(useDashboards).mockReturnValue(createDefaultMockValue());
+    mockUseDashboards.mockReturnValue(createDefaultMockValue());
 
     render(<DashboardManager />, { wrapper: createWrapper() });
 
@@ -157,7 +159,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows loading state', () => {
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({ isLoadingDashboards: true })
     );
 
@@ -169,7 +171,7 @@ describe('DashboardManager', () => {
   });
 
   it('opens create dialog on new dashboard button click', async () => {
-    vi.mocked(useDashboards).mockReturnValue(createDefaultMockValue());
+    mockUseDashboards.mockReturnValue(createDefaultMockValue());
 
     const user = userEvent.setup();
     render(<DashboardManager />, { wrapper: createWrapper() });
@@ -184,7 +186,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows delete confirmation when delete button clicked', async () => {
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({
         dashboards: mockDashboards,
         defaultDashboard: mockDashboards[0],
@@ -210,7 +212,7 @@ describe('DashboardManager', () => {
 
   it('calls deleteDashboard when delete confirmed', async () => {
     const deleteMock = vi.fn();
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({
         dashboards: mockDashboards,
         deleteDashboard: deleteMock,
@@ -243,7 +245,7 @@ describe('DashboardManager', () => {
 
   it('calls setDefaultDashboard when star button clicked', async () => {
     const setDefaultMock = vi.fn();
-    vi.mocked(useDashboards).mockReturnValue(
+    mockUseDashboards.mockReturnValue(
       createDefaultMockValue({
         dashboards: mockDashboards,
         setDefaultDashboard: setDefaultMock,
