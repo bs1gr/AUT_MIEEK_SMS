@@ -1,7 +1,7 @@
 # Documentation Index
 
-**Last Updated**: 2026-05-28
-**Project Version**: 1.18.22
+**Last Updated**: 2026-06-11
+**Project Version**: 1.18.25
 
 This is the main entry point for navigating all project documentation. For detailed documentation organization, see [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md).
 
