@@ -64,6 +64,9 @@ testI18n
           search: enSearch,
           rbac: enRbac,
           dashboard: enDashboard,
+          students: enStudents,
+          courses: enCourses,
+          grades: enGrades,
         },
         el: {
           translation: {
@@ -77,11 +80,17 @@ testI18n
           search: elSearch,
           rbac: elRbac,
           dashboard: elDashboard,
+          students: elStudents,
+          courses: elCourses,
+          grades: elGrades,
         }
     },
     interpolation: {
       escapeValue: false
-    }
+    },
+    // Ensure key fallback works properly
+    returnEmptyString: false,
+    returnNull: false
   });
 
 // Import LanguageProvider which wraps i18next

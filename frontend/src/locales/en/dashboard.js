@@ -103,7 +103,7 @@ export default {
   setAsDefault: 'Set as Default',
   noCharts: 'No charts selected',
   chartCount: '{count} charts',
-  noDashboards: 'No dashboards created yet',
+  noDashboards: 'No dashboards yet. Create one to get started.',
   confirmDelete: 'Are you sure you want to delete this dashboard?',
   deleteConfirmMessage: 'This action cannot be undone.',
   default: 'Default',

@@ -1,5 +1,0 @@
-
-> student-management-frontend@1.17.7 pretest
-> node ../tools/enforce-vitest-policy.cjs
-
-Frontend tests must be run via policy-compliant tasks. Use VS Code tasks or set SMS_TEST_RUNNER=batch (preferred) or SMS_ALLOW_DIRECT_VITEST=1 if you intentionally bypass. Refer to docs/plans/UNIFIED_WORK_PLAN.md and Copilot instructions.
