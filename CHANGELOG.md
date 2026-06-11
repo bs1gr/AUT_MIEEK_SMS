@@ -15,6 +15,28 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.25] - 2026-06-11
+
+### Bug Fixes
+- update version strings to 1.18.25 in source and documentation files
+- VERSION file format - add 'v' prefix for validation (v1.18.25)
+- correct package-lock.json version string for v1.18.25
+
+### Chores
+- apply COMMIT_READY.ps1 version sync and pre-commit fixes (v1.18.25)
+
+## [1.18.25] - 2026-06-11
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.22] - 2026-05-24
 
 ### Features
@@ -4429,5 +4451,6 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
