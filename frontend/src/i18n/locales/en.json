@@ -219,6 +219,7 @@
     "noDashboards": "No dashboards yet. Create one to get started.",
     "default": "Default",
     "chartsCount": "Charts",
+    "chartsSelected": "{{count}} chart(s) selected",
     "created": "Created",
     "setAsDefault": "Set as default",
     "edit": "Edit",
