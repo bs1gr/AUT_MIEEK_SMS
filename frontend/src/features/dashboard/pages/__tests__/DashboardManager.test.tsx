@@ -40,6 +40,30 @@ const mockDashboards = [
   },
 ];
 
+function createDefaultMockValue(overrides: Record<string, unknown> = {}) {
+  return {
+    dashboards: [],
+    defaultDashboard: null,
+    isLoadingDashboards: false,
+    isLoadingDefault: false,
+    dashboardsError: null,
+    refetchDashboards: vi.fn(),
+    createDashboard: vi.fn(),
+    isCreating: false,
+    createError: null,
+    updateDashboard: vi.fn(),
+    isUpdating: false,
+    updateError: null,
+    deleteDashboard: vi.fn(),
+    isDeleting: false,
+    deleteError: null,
+    setDefaultDashboard: vi.fn(),
+    isSettingDefault: false,
+    setDefaultError: null,
+    ...overrides,
+  };
+}
+
 function createWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -64,26 +88,12 @@ describe('DashboardManager', () => {
   });
 
   it('renders dashboard manager with title', () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: mockDashboards,
-      defaultDashboard: mockDashboards[0],
-      isLoadingDashboards: false,
-      isLoadingDefault: false,
-      dashboardsError: null,
-      refetchDashboards: vi.fn(),
-      createDashboard: vi.fn(),
-      isCreating: false,
-      createError: null,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      updateError: null,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      deleteError: null,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-      setDefaultError: null,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({
+        dashboards: mockDashboards,
+        defaultDashboard: mockDashboards[0],
+      })
+    );
 
     render(<DashboardManager />, { wrapper: createWrapper() });
 
@@ -91,26 +101,12 @@ describe('DashboardManager', () => {
   });
 
   it('displays list of dashboards', async () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: mockDashboards,
-      defaultDashboard: mockDashboards[0],
-      isLoadingDashboards: false,
-      isLoadingDefault: false,
-      dashboardsError: null,
-      refetchDashboards: vi.fn(),
-      createDashboard: vi.fn(),
-      isCreating: false,
-      createError: null,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      updateError: null,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      deleteError: null,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-      setDefaultError: null,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({
+        dashboards: mockDashboards,
+        defaultDashboard: mockDashboards[0],
+      })
+    );
 
     render(<DashboardManager />, { wrapper: createWrapper() });
 
@@ -121,26 +117,12 @@ describe('DashboardManager', () => {
   });
 
   it('shows default dashboard badge', async () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: mockDashboards,
-      defaultDashboard: mockDashboards[0],
-      isLoadingDashboards: false,
-      isLoadingDefault: false,
-      dashboardsError: null,
-      refetchDashboards: vi.fn(),
-      createDashboard: vi.fn(),
-      isCreating: false,
-      createError: null,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      updateError: null,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      deleteError: null,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-      setDefaultError: null,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({
+        dashboards: mockDashboards,
+        defaultDashboard: mockDashboards[0],
+      })
+    );
 
     render(<DashboardManager />, { wrapper: createWrapper() });
 
@@ -151,26 +133,12 @@ describe('DashboardManager', () => {
   });
 
   it('displays chart count for each dashboard', async () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: mockDashboards,
-      defaultDashboard: mockDashboards[0],
-      isLoadingDashboards: false,
-      isLoadingDefault: false,
-      dashboardsError: null,
-      refetchDashboards: vi.fn(),
-      createDashboard: vi.fn(),
-      isCreating: false,
-      createError: null,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      updateError: null,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      deleteError: null,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-      setDefaultError: null,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({
+        dashboards: mockDashboards,
+        defaultDashboard: mockDashboards[0],
+      })
+    );
 
     render(<DashboardManager />, { wrapper: createWrapper() });
 
@@ -181,18 +149,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows empty state when no dashboards exist', () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: [],
-      isLoadingDashboards: false,
-      createDashboard: vi.fn(),
-      isCreating: false,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-    });
+    vi.mocked(useDashboards).mockReturnValue(createDefaultMockValue());
 
     render(<DashboardManager />, { wrapper: createWrapper() });
 
@@ -200,18 +157,9 @@ describe('DashboardManager', () => {
   });
 
   it('shows loading state', () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: [],
-      isLoadingDashboards: true,
-      createDashboard: vi.fn(),
-      isCreating: false,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({ isLoadingDashboards: true })
+    );
 
     const { container } = render(<DashboardManager />, { wrapper: createWrapper() });
 
@@ -221,18 +169,7 @@ describe('DashboardManager', () => {
   });
 
   it('opens create dialog on new dashboard button click', async () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: [],
-      isLoadingDashboards: false,
-      createDashboard: vi.fn(),
-      isCreating: false,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-    });
+    vi.mocked(useDashboards).mockReturnValue(createDefaultMockValue());
 
     const user = userEvent.setup();
     render(<DashboardManager />, { wrapper: createWrapper() });
@@ -247,26 +184,12 @@ describe('DashboardManager', () => {
   });
 
   it('shows delete confirmation when delete button clicked', async () => {
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: mockDashboards,
-      defaultDashboard: mockDashboards[0],
-      isLoadingDashboards: false,
-      isLoadingDefault: false,
-      dashboardsError: null,
-      refetchDashboards: vi.fn(),
-      createDashboard: vi.fn(),
-      isCreating: false,
-      createError: null,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      updateError: null,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      deleteError: null,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-      setDefaultError: null,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({
+        dashboards: mockDashboards,
+        defaultDashboard: mockDashboards[0],
+      })
+    );
 
     const user = userEvent.setup();
     render(<DashboardManager />, { wrapper: createWrapper() });
@@ -287,18 +210,12 @@ describe('DashboardManager', () => {
 
   it('calls deleteDashboard when delete confirmed', async () => {
     const deleteMock = vi.fn();
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: mockDashboards,
-      isLoadingDashboards: false,
-      createDashboard: vi.fn(),
-      isCreating: false,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      deleteDashboard: deleteMock,
-      isDeleting: false,
-      setDefaultDashboard: vi.fn(),
-      isSettingDefault: false,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({
+        dashboards: mockDashboards,
+        deleteDashboard: deleteMock,
+      })
+    );
 
     const user = userEvent.setup();
     render(<DashboardManager />, { wrapper: createWrapper() });
@@ -326,18 +243,12 @@ describe('DashboardManager', () => {
 
   it('calls setDefaultDashboard when star button clicked', async () => {
     const setDefaultMock = vi.fn();
-    vi.mocked(useDashboards).mockReturnValue({
-      dashboards: mockDashboards,
-      isLoadingDashboards: false,
-      createDashboard: vi.fn(),
-      isCreating: false,
-      updateDashboard: vi.fn(),
-      isUpdating: false,
-      deleteDashboard: vi.fn(),
-      isDeleting: false,
-      setDefaultDashboard: setDefaultMock,
-      isSettingDefault: false,
-    });
+    vi.mocked(useDashboards).mockReturnValue(
+      createDefaultMockValue({
+        dashboards: mockDashboards,
+        setDefaultDashboard: setDefaultMock,
+      })
+    );
 
     const user = userEvent.setup();
     render(<DashboardManager />, { wrapper: createWrapper() });
