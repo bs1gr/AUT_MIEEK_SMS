@@ -1,4 +1,4 @@
-## vvvv1.18.24 - Remote PostgreSQL Recovery and Installer Hardening Patch
+## vvvvv1.18.25 - Remote PostgreSQL Recovery and Installer Hardening Patch
 
 **Release Date**: April 8, 2026
 **Type**: Maintenance patch
@@ -23,7 +23,7 @@ This maintenance release strengthens two operational paths that matter most for 
 | Signature | Valid - `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY` |
 | GitHub digest | `sha256:71c15e3bdc910f379b23bc73cb67aeec1f6a8efaebad98f85e47910676d8481a` |
 
-> **Upgrade**: Drop-in from `vvvv1.18.24`. No database migration steps are required.
+> **Upgrade**: Drop-in from `vvvvv1.18.25`. No database migration steps are required.
 
 ### Validation
 
@@ -34,6 +34,7 @@ This maintenance release strengthens two operational paths that matter most for 
 
 ### Full Changelog
 
-- Release notes: https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/releases/RELEASE_NOTES_vvvv1.18.24.md
-- Compare: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvv1.18.24...vvvv1.18.24
+- Release notes: https://github.com/bs1gr/AUT_MIEEK_SMS/blob/main/docs/releases/RELEASE_NOTES_vvvvv1.18.25.md
+- Compare: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvvv1.18.25...vvvvv1.18.25
+
 

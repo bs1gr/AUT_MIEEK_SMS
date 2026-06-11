@@ -1,7 +1,7 @@
 # Release Notes - Version 1.18.9
 
 **Release Date**: 2026-03-09
-**Previous Version**: vvvv1.18.24
+**Previous Version**: vvvvv1.18.25
 
 ## 🔐 Security & Database Profile Hardening
 
@@ -39,4 +39,5 @@
 - Targeted frontend lint for changed files: **passed**
 - Targeted backend endpoint tests for credential import/testing: **4/4 passed**
 - Runtime verification confirmed healthy remote PostgreSQL connection when remote profile is enabled.
+
 

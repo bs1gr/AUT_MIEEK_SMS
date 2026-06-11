@@ -1,4 +1,4 @@
-# SMS Native Lite vv1.18.24 - Frequently Asked Questions (FAQ)
+# SMS Native Lite vvv1.18.25 - Frequently Asked Questions (FAQ)
 
 **Version:** 1.0  
 **Date:** May 31, 2026  
@@ -1144,7 +1144,8 @@ Your feedback helps us improve!
 **Last Updated:** 2026-05-31  
 **Version:** 1.0
 
-*SMS Native Lite vv1.18.24 - FAQ*
+*SMS Native Lite vvv1.18.25 - FAQ*
 
 *Questions answered. Problems solved. Success assured.* ✅
+
 

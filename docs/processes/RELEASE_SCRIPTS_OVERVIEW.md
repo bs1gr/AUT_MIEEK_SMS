@@ -122,7 +122,7 @@ This script is no longer part of the active release surface.
 # Automated workflow (NEW - Jan 6, 2026)
 
 .\RELEASE_HELPER.ps1 -Action CreateRelease
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvv1.18.24
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvvv1.18.25
 
 ```text
 ---
@@ -169,7 +169,7 @@ This script is no longer part of the active release surface.
 ```powershell
 .\RELEASE_HELPER.ps1 -Action ValidateRelease
 .\RELEASE_HELPER.ps1 -Action OpenGitHub
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvv1.18.24
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvvv1.18.25
 
 ```text
 ---
@@ -201,7 +201,7 @@ This script is no longer part of the active release surface.
 
 **Generate release notes/docs only**: `.\GENERATE_RELEASE_DOCS.ps1 -Version "1.18.12"`
 
-**Create/update GitHub Release manually**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvv1.18.24`
+**Create/update GitHub Release manually**: `.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvvv1.18.25`
 
 **Create Phase 2 issues**: `.\RELEASE_HELPER.ps1 -Action CopyIssue`
 
@@ -220,7 +220,7 @@ This script is no longer part of the active release surface.
 # Optional fallback/helper actions
 
 .\RELEASE_HELPER.ps1 -Action ValidateRelease
-.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvv1.18.24
+.\RELEASE_HELPER.ps1 -Action CreateRelease -Tag vvvvv1.18.25
 
 # Done! 🎉
 
@@ -253,4 +253,5 @@ Agents must not invent new release scripts when these existing roles already cov
 - [Release Checklist Template](../releases/RELEASE_CHECKLIST_$11.18.3.md)
 - [GitHub Release Template](../releases/GITHUB_RELEASE_$11.18.3.md)
 - [Phase 2 Issues](../releases/GITHUB_ISSUES_PHASE2.md)
+
 

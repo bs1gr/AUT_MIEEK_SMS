@@ -1,6 +1,6 @@
 # SMS_Native_Lite_Simple.exe - Headless Version Guide
 
-**Version:** vv1.18.24  
+**Version:** vvv1.18.25  
 **Status:** ✅ Production Ready  
 **Created:** 2026-05-31  
 **Type:** Headless HTTP Server (No PyWebView)
@@ -367,7 +367,7 @@ For issues or questions:
 
 ## Version History
 
-### vv1.18.24 - Initial Release
+### vvv1.18.25 - Initial Release
 - ✅ Headless HTTP server version
 - ✅ QNAP PostgreSQL integration
 - ✅ SQLite fallback mode
@@ -379,6 +379,7 @@ For issues or questions:
 
 **Last Updated:** 2026-05-31  
 **Status:** ✅ Production Ready  
-**Branch:** feature/native-lite-headless-vv1.18.24  
+**Branch:** feature/native-lite-headless-vvv1.18.25  
 **PR:** #192
+
 

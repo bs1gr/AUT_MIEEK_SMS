@@ -1,4 +1,4 @@
-## vvvv1.18.24 — Maintenance & Hardening Patch
+## vvvvv1.18.25 — Maintenance & Hardening Patch
 
 **Release Date**: March 21, 2026
 **Type**: Maintenance patch
@@ -8,7 +8,7 @@
 
 ### What's Changed
 
-This maintenance release packages installer/QNAP hardening, RBAC guardrails, Trivy CI fixes, and validation tooling improvements accumulated since vvvv1.18.24.
+This maintenance release packages installer/QNAP hardening, RBAC guardrails, Trivy CI fixes, and validation tooling improvements accumulated since vvvvv1.18.25.
 
 #### Installer & QNAP Fixes
 
@@ -18,7 +18,7 @@ This maintenance release packages installer/QNAP hardening, RBAC guardrails, Tri
 
 #### CI / Security
 
-- **Trivy action pin** — updated `trivy-action` from `0.20.0` to `vvvv1.18.24` to resolve unresolvable-tag CI failures in security scanning
+- **Trivy action pin** — updated `trivy-action` from `0.20.0` to `vvvvv1.18.25` to resolve unresolvable-tag CI failures in security scanning
 
 #### RBAC
 
@@ -39,13 +39,14 @@ This maintenance release packages installer/QNAP hardening, RBAC guardrails, Tri
 | SHA256 | `E7428BC4CD1924FB912DE59E0056D9109673572667B13C7849C8E5455BEA80CE` (local build; see GitHub digest for post-upload authoritative hash) |
 | Signature | Valid — `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY` |
 
-> **Upgrade**: Drop-in from vvvv1.18.24. No migration steps required.
+> **Upgrade**: Drop-in from vvvvv1.18.25. No migration steps required.
 
 ---
 
 ### Full Changelog
 
-See [RELEASE_NOTES_vvvv1.18.24.md](../../docs/releases/RELEASE_NOTES_vvvv1.18.24.md) for complete details.
+See [RELEASE_NOTES_vvvvv1.18.25.md](../../docs/releases/RELEASE_NOTES_vvvvv1.18.25.md) for complete details.
 
-**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvv1.18.24...vvvv1.18.24
+**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvvv1.18.25...vvvvv1.18.25
+
 

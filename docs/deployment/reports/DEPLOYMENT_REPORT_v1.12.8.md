@@ -117,7 +117,7 @@ Frontend:     ⚠️  Degraded (SPA served by backend, not separate)
 Base URL:  http://localhost:8080
 Docs:      http://localhost:8080/docs
 Health:    http://localhost:8080/health
-Version: vvvv1.18.24
+Version: vvvvv1.18.25
 
 ```text
 ## 🔐 Authentication
@@ -311,4 +311,5 @@ Both use sqlite:/// prefix with correct slash count:
 **Deployed:** December 29, 2025 01:30 UTC
 **Version:** 1.12.8
 **Status:** ✅ HEALTHY
+
 

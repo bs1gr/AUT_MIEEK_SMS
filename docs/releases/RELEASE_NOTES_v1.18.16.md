@@ -1,4 +1,4 @@
-# Release Notes - vvvv1.18.24
+# Release Notes - vvvvv1.18.25
 
 **Version**: 1.18.16
 **Release Date**: 2026-03-31
@@ -10,7 +10,7 @@
 
 ## Summary
 
-vvvv1.18.24 packages the QNAP/PostgreSQL defaulting work, closes the installer credential-file parsing gap for `.env` and `.txt` inputs, records the latest dependency security updates, and keeps the reduced CI cadence introduced during this release window. No breaking changes are intended; this is a drop-in upgrade from vvvv1.18.24.
+vvvvv1.18.25 packages the QNAP/PostgreSQL defaulting work, closes the installer credential-file parsing gap for `.env` and `.txt` inputs, records the latest dependency security updates, and keeps the reduced CI cadence introduced during this release window. No breaking changes are intended; this is a drop-in upgrade from vvvvv1.18.25.
 
 ---
 
@@ -55,7 +55,7 @@ vvvv1.18.24 packages the QNAP/PostgreSQL defaulting work, closes the installer c
 - `installer/installer_welcome_el.rtf`, `installer/installer_complete_el.rtf` - regenerated for 1.18.16
 
 **Versioning / Metadata:**
-- `VERSION` -> `vvvv1.18.24`
+- `VERSION` -> `vvvvv1.18.25`
 - `frontend/package.json` -> `1.18.16`
 - `frontend/package-lock.json` - lockfile refreshed
 - `backend/main.py` - version docstring
@@ -66,8 +66,8 @@ vvvv1.18.24 packages the QNAP/PostgreSQL defaulting work, closes the installer c
 - `docs/DOCUMENTATION_INDEX.md`
 - `docs/user/USER_GUIDE_COMPLETE.md`
 - `docs/development/DEVELOPER_GUIDE_COMPLETE.md`
-- `docs/releases/*vvvv1.18.24*`
-- `.github/RELEASE_NOTES_vvvv1.18.24.md`
+- `docs/releases/*vvvvv1.18.25*`
+- `.github/RELEASE_NOTES_vvvvv1.18.25.md`
 
 ---
 
@@ -83,7 +83,7 @@ vvvv1.18.24 packages the QNAP/PostgreSQL defaulting work, closes the installer c
 | **Build** | Inno Setup + Authenticode (DigiCert live timestamp) |
 | **Smoke test** | Passed |
 | **GitHub asset digest** | `sha256:7eb8c32d1b6cf1a012e3b6d6c57210a9b29235f11c70b4783603e88ca0bb945d` |
-| **Published release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24 |
+| **Published release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25 |
 
 > **Note**: SHA256 may differ from the GitHub release digest after CI upload because live timestamping produces a distinct signed binary. The GitHub release asset digest is the authoritative post-upload hash.
 
@@ -110,7 +110,7 @@ vvvv1.18.24 packages the QNAP/PostgreSQL defaulting work, closes the installer c
 
 ## Upgrade Notes
 
-- Drop-in upgrade from vvvv1.18.24. No database migration is required for this release.
+- Drop-in upgrade from vvvvv1.18.25. No database migration is required for this release.
 - QNAP / PostgreSQL deployments can continue using centralized credential files; `.env` and `.txt` inputs now accept either flat keys or `POSTGRES_*` keys.
 - Fresh installer flows now prefer the shared QNAP PostgreSQL profile; local SQLite remains available as the explicit fallback path.
 
@@ -118,5 +118,6 @@ vvvv1.18.24 packages the QNAP/PostgreSQL defaulting work, closes the installer c
 
 ## Previous Release
 
-- [vvvv1.18.24 Release Notes](RELEASE_NOTES_vvvv1.18.24.md)
+- [vvvvv1.18.25 Release Notes](RELEASE_NOTES_vvvvv1.18.25.md)
+
 

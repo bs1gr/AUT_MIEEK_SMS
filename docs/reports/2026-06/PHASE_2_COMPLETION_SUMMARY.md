@@ -234,7 +234,7 @@ Step 4: Code Signing & Testing
 
 ## Deployment Readiness
 
-### Ready for vv1.18.24 Release ✅
+### Ready for vvv1.18.25 Release ✅
 
 - [x] SMS_Installer.iss supports both editions (Phase 1 ✅)
 - [x] INSTALLER_BUILDER.ps1 bundles both executables (Phase 2 ✅)
@@ -267,7 +267,7 @@ The Windows Installer build workflow now:
 **Files Modified:** 1
 - INSTALLER_BUILDER.ps1 (+53 lines)
 
-**Overall Progress:** 85% toward vv1.18.24 release ✅
+**Overall Progress:** 85% toward vvv1.18.25 release ✅
 
 ---
 
@@ -288,4 +288,5 @@ Windows Installer enhancement is now **85% complete**.
 All functionality implemented and working.
 
 Ready for Phase 3 (translations and testing).
+
 

@@ -65,15 +65,15 @@ Operations:
 **Status**: ✅ **PASSED**
 
 ✅ `.env` files are properly gitignored:
-  - `.env` files are NOT tracked in git
-  - Only `.env.example` files are committed
-  - All environment-specific secrets are local only
+- `.env` files are NOT tracked in git
+- Only `.env.example` files are committed
+- All environment-specific secrets are local only
 
 ✅ Sensitive files NOT found in repository:
-  - No `.key` or `.pem` files committed
-  - No credential files (`.p12`, `.pfx`)
-  - No AWS/API keys exposed
-  - No database credentials in code
+- No `.key` or `.pem` files committed
+- No credential files (`.p12`, `.pfx`)
+- No AWS/API keys exposed
+- No database credentials in code
 
 ✅ `.keys/master.key` exists locally but is NOT tracked
 

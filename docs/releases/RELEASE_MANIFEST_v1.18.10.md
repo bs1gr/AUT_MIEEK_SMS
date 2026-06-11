@@ -1,9 +1,9 @@
 # Release Manifest - Version 1.18.10
 
 **Release Date**: March 9, 2026
-**Tag**: vvvv1.18.24
+**Tag**: vvvvv1.18.25
 **Branch**: main
-**Previous Release**: vvvv1.18.24 (March 9, 2026)
+**Previous Release**: vvvvv1.18.25 (March 9, 2026)
 
 ---
 
@@ -30,7 +30,7 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 | File | Expected Value |
 |------|---------------|
-| `VERSION` | `vvvv1.18.24` |
+| `VERSION` | `vvvvv1.18.25` |
 | `frontend/package.json` | `"version": "1.18.10"` |
 | `backend/main.py` | `Version: 1.18.10` |
 | `INSTALLER_BUILDER.ps1` | `Version: 1.18.10` |
@@ -40,8 +40,8 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ## 📋 Commit Range
 
-**Base**: vvvv1.18.24 (`42230fe78`)
-**Head**: vvvv1.18.24 release prep (`main` HEAD at release cut)
+**Base**: vvvvv1.18.25 (`42230fe78`)
+**Head**: vvvvv1.18.25 release prep (`main` HEAD at release cut)
 **Total Commits**: 5 post-release commits + version/release prep
 
 ### Commit Categories
@@ -60,7 +60,7 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ### Pre-Release Checks
 
-- [ ] `VERSION` file contains `vvvv1.18.24`
+- [ ] `VERSION` file contains `vvvvv1.18.25`
 - [ ] `frontend/package.json` version is `1.18.10`
 - [ ] `backend/main.py` version header is `1.18.10`
 - [ ] `CHANGELOG.md` has `[1.18.10]` section
@@ -70,7 +70,7 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 ### Post-Release Checks
 
-- [ ] GitHub Release page published at `/releases/tag/vvvv1.18.24`
+- [ ] GitHub Release page published at `/releases/tag/vvvvv1.18.25`
 - [ ] Installer workflow completed successfully
 - [ ] Release-asset-sanitizer workflow passed
 - [ ] `SMS_Installer_1.18.10.exe` present in release assets
@@ -92,10 +92,11 @@ The release-asset-sanitizer workflow enforces this policy automatically.
 
 | Metric | Value |
 |--------|-------|
-| Files changed since `vvvv1.18.24` | 15+ |
+| Files changed since `vvvvv1.18.25` | 15+ |
 | Release-scope commits | 5 |
 | Runtime fixes | 2 |
 | New recovery scripts | 1 |
 | New release docs | 4 |
 | Breaking changes | 0 |
+
 

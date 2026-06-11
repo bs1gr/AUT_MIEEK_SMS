@@ -1,4 +1,4 @@
-# Security Release Checklist - SMS vv1.18.24+
+# Security Release Checklist - SMS vvv1.18.25+
 
 This checklist ensures every release meets security standards. **Must be completed before deploying to production.**
 
@@ -112,7 +112,7 @@ ls -la backend/config/
 ## Release Sign-Off Template
 
 ```markdown
-## Security Release Sign-Off - vv1.18.24
+## Security Release Sign-Off - vvv1.18.25
 
 **Release Date:** [DATE]  
 **Releaser:** [NAME]
@@ -220,6 +220,7 @@ To add a new security check to CI/CD:
 ---
 
 **Last Updated:** 2026-06-02  
-**Version:** vv1.18.24  
+**Version:** vvv1.18.25  
 **Status:** ACTIVE
+
 

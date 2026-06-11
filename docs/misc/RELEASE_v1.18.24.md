@@ -1,15 +1,15 @@
-# SMS Native Lite Edition vv1.18.24 - Production Release
+# SMS Native Lite Edition vvv1.18.25 - Production Release
 
 **Release Date:** 2026-06-01  
 **Status:** ✅ **PRODUCTION READY**  
-**Version:** vv1.18.24  
-**Tag:** `vv1.18.24` (pushed to GitHub)
+**Version:** vvv1.18.25  
+**Tag:** `vvv1.18.25` (pushed to GitHub)
 
 ---
 
 ## 🎉 Release Summary
 
-**SMS Native Lite Edition vv1.18.24** is a major production release featuring critical security fixes, a complete headless desktop application, and comprehensive documentation.
+**SMS Native Lite Edition vvv1.18.25** is a major production release featuring critical security fixes, a complete headless desktop application, and comprehensive documentation.
 
 ### Key Achievements
 
@@ -134,7 +134,7 @@ SMS_Native_Lite_Edition/
 
 ---
 
-## 📋 What's New in vv1.18.24
+## 📋 What's New in vvv1.18.25
 
 ### Bug Fixes
 - ✅ Fixed critical login failure (alembic.ini not bundled)
@@ -219,8 +219,8 @@ SMS_Native_Lite_Edition/
 ## 📦 Download & Distribution
 
 ### Official Release
-- GitHub Release: [vv1.18.24](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vv1.18.24)
-- Tag: `vv1.18.24`
+- GitHub Release: [vvv1.18.25](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvv1.18.25)
+- Tag: `vvv1.18.25`
 - Branch: `main` (merged)
 
 ### Distribution Package
@@ -321,7 +321,7 @@ No data loss expected. All migrations are backwards compatible.
 
 ## 🙏 Credits
 
-SMS Native Lite Edition vv1.18.24 represents the culmination of:
+SMS Native Lite Edition vvv1.18.25 represents the culmination of:
 
 - **Security Hardening:** Complete remediation of 30 critical vulnerabilities
 - **Feature Development:** SMS Lite Edition with full functionality
@@ -343,18 +343,19 @@ For detailed information about specific changes:
 
 ---
 
-**SMS Native Lite Edition vv1.18.24 is ready for immediate deployment to users.** 🎉
+**SMS Native Lite Edition vvv1.18.25 is ready for immediate deployment to users.** 🎉
 
 ---
 
 **Released:** 2026-06-01  
-**Version:** vv1.18.24  
+**Version:** vvv1.18.25  
 **Status:** ✅ PRODUCTION READY  
-**Tag:** `vv1.18.24`
+**Tag:** `vvv1.18.25`
 
 ---
 
 For questions about this release, refer to the comprehensive documentation included in the `SMS_Native_Lite_Edition/` folder or contact your IT administrator.
 
 **Ready to deploy. Ready to use. Ready for production.** ✅
+
 

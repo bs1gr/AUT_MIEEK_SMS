@@ -1,8 +1,8 @@
 # Version History
 
-**Current repository version**: `vvvv1.18.24`
-**Current status**: `vvvv1.18.24` is the live/latest first official public release
-**Archived prerelease lineage**: `vvvv1.18.24` through `vvvv1.18.24`
+**Current repository version**: `vvvvv1.18.25`
+**Current status**: `vvvvv1.18.25` is the live/latest first official public release
+**Archived prerelease lineage**: `vvvvv1.18.25` through `vvvvv1.18.25`
 **Last Updated**: 2026-03-12
 
 ---
@@ -25,10 +25,10 @@ Use these sources for the current truth:
 
 As of March 12, 2026:
 
-- the repository version is `vvvv1.18.24`
-- `vvvv1.18.24` is the live/latest first official public release
-- `vvvv1.18.24` through `vvvv1.18.24` remain archived as prereleases for historical reference
-- the official release was promoted from the exact verified `vvvv1.18.24` tag without changing tag or artifact lineage
+- the repository version is `vvvvv1.18.25`
+- `vvvvv1.18.25` is the live/latest first official public release
+- `vvvvv1.18.25` through `vvvvv1.18.25` remain archived as prereleases for historical reference
+- the official release was promoted from the exact verified `vvvvv1.18.25` tag without changing tag or artifact lineage
 
 For full details, see:
 
@@ -64,4 +64,5 @@ If historical comparison is needed, use:
 ## Summary
 
 For day-to-day work, treat this file as a helper index only. The current source of truth for version and release state lives in the active repo metadata and release/work-plan documentation.
+
 

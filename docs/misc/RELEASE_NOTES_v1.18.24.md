@@ -1,13 +1,13 @@
-# SMS Native Lite vv1.18.24 - Release Notes
+# SMS Native Lite vvv1.18.25 - Release Notes
 
 **Release Date:** May 31, 2026  
-**Version:** vv1.18.24  
+**Version:** vvv1.18.25  
 **Type:** Headless HTTP Server Edition  
 **Status:** ✅ Production Ready
 
 ---
 
-## 🎉 What's New in vv1.18.24
+## 🎉 What's New in vvv1.18.25
 
 ### ✨ Major Features
 
@@ -283,8 +283,8 @@ Create `local-secrets/qnap-credentials.json`:
 
 | Version | Date | Type | Status |
 |---------|------|------|--------|
-| vv1.18.24 | 2026-05-31 | Release | ✅ Current |
-| vv1.18.24 | 2026-05-30 | Development | Archived |
+| vvv1.18.25 | 2026-05-31 | Release | ✅ Current |
+| vvv1.18.25 | 2026-05-30 | Development | Archived |
 | v1.18.x | Earlier | Legacy | Archived |
 
 ---
@@ -344,7 +344,8 @@ This release represents months of development, testing, and refinement. Special 
 
 ---
 
-*SMS Native Lite vv1.18.24 - Professional Edition*  
+*SMS Native Lite vvv1.18.25 - Professional Edition*  
 *Created: 2026-05-31*  
 *Last Updated: 2026-05-31*
+
 

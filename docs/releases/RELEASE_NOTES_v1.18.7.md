@@ -8,7 +8,7 @@
 
 ## 🎉 Overview
 
-Version 1.18.7 delivers three major feature additions and significant infrastructure hardening since the vvvv1.18.24 analytics release. Key additions include an in-app auto-update system with SHA256 verification, offline queue support for attendance/grades/student edits, and enhanced health diagnostics with remote PostgreSQL evidence.
+Version 1.18.7 delivers three major feature additions and significant infrastructure hardening since the vvvvv1.18.25 analytics release. Key additions include an in-app auto-update system with SHA256 verification, offline queue support for attendance/grades/student edits, and enhanced health diagnostics with remote PostgreSQL evidence.
 
 **Key Highlights**:
 - ✅ **Auto-Updater System**: In-app update checking, download, verification, and installer launch
@@ -127,7 +127,7 @@ Version 1.18.7 delivers three major feature additions and significant infrastruc
 
 | Metric | Value |
 |--------|-------|
-| Commits since vvvv1.18.24 | 18 |
+| Commits since vvvvv1.18.25 | 18 |
 | Files changed | 80+ |
 | Lines added | 4,500+ |
 | New features | 4 (auto-updater, offline sync, health diagnostics, QNAP ARMv7) |
@@ -140,7 +140,7 @@ Version 1.18.7 delivers three major feature additions and significant infrastruc
 
 ## ⬆️ Upgrade Instructions
 
-### From vvvv1.18.24
+### From vvvvv1.18.25
 
 1. Pull latest code: `git pull origin main`
 2. Rebuild Docker: `.\DOCKER.ps1 -Update`
@@ -158,13 +158,13 @@ None. This is a backward-compatible feature release.
 ```
 714efc9ba style(control-panel): improve UpdatesPanel button contrast and release info fallback
 050e15fd9 fix(runtime): remove gh CLI subprocess, fix ErrorBoundary i18n, fix AttendanceView TDZ
-b43a085e8 docs: update CHANGELOG and work plan with post-vvvv1.18.24 development history
+b43a085e8 docs: update CHANGELOG and work plan with post-vvvvv1.18.25 development history
 5dd528648 feat(control-panel): add auto-updater, fix Windows subprocess crashes, notification bell
 5710829bb feat(offline): queue attendance, grades, and student updates for reconnect sync
 1bf53438f fix(health): surface remote DB evidence and correct postgres diagnostics
-4475b11fe docs(release): update vvvv1.18.24 release and deployment documentation
+4475b11fe docs(release): update vvvvv1.18.25 release and deployment documentation
 6fcfe5220 feat(qnap): add postgres-only ARMv7 deployment artifacts
-abe06e4ae docs(release): update vvvv1.18.24 post-release verification status
+abe06e4ae docs(release): update vvvvv1.18.25 post-release verification status
 eafea850b fix(release): inline version normalization in installer workflow
 9a9f087ab fix(tests): stabilize vitest execution and dashboard mocks
 1012e8817 fix(backend): resolve OpenAPI callable schema and version consistency tests
@@ -173,6 +173,7 @@ acd759c1a ci(version): enforce normalize-version policy gate
 69314a7e3 docs(work-plan): update status for type-fix and CI/CD hardening completion
 3dd667ba5 ci(workflows): harden release ownership and ci gating
 c32a38390 fix(types): resolve mypy mismatches in analytics, courses, path validation
-bb57c51c2 feat(release): add vvvv1.18.24 verification script and update work plan
+bb57c51c2 feat(release): add vvvvv1.18.25 verification script and update work plan
 ```
+
 

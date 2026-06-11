@@ -1,6 +1,6 @@
 # Phase A Release Notes - Advanced Analytics Enhancement
 
-**Version:** v1.18.25 (or v1.19.0)  
+**Version:** vv1.18.25 (or vv1.18.25)  
 **Release Date:** 2026-06-09  
 **Status:** Ready for Production  
 
@@ -227,7 +227,7 @@ POST   /api/v1/dashboards/{id}/set-default - Set as default
 ### For Docker Deployment
 ```powershell
 # Pull latest image
-docker pull [registry]/sms:v1.18.25
+docker pull [registry]/sms:vv1.18.25
 
 # Run migration
 docker exec sms-backend alembic upgrade head
@@ -326,6 +326,7 @@ npm run dev
 
 ---
 
-**Version:** v1.18.25  
+**Version:** vv1.18.25  
 **Release Date:** June 9, 2026  
 **Status:** ✅ PRODUCTION READY
+

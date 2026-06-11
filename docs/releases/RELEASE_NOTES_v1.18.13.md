@@ -2,8 +2,8 @@
 
 **Status**: Release preparation in progress
 **Release Date (target)**: 2026-03-17
-**Previous Version**: vvvv1.18.24
-**Scope Baseline**: `vvvv1.18.24..HEAD`
+**Previous Version**: vvvvv1.18.25
+**Scope Baseline**: `vvvvv1.18.25..HEAD`
 
 ---
 
@@ -45,9 +45,9 @@
 
 ## Verification Status (pre-release)
 
-- [x] Release scope reviewed against `vvvv1.18.24..HEAD`
-- [x] Version metadata aligned to `vvvv1.18.24` (`VERSION`, `frontend/package.json`, doc indexes, key script headers)
-- [x] Release-note artifacts generated for vvvv1.18.24
+- [x] Release scope reviewed against `vvvvv1.18.25..HEAD`
+- [x] Version metadata aligned to `vvvvv1.18.25` (`VERSION`, `frontend/package.json`, doc indexes, key script headers)
+- [x] Release-note artifacts generated for vvvvv1.18.25
 - [x] `scripts/VERIFY_VERSION.ps1 -CheckOnly` passed
 - [x] `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-03-17_095642.md`)
 - [x] Scope-appropriate validation completed (`RUN_TESTS_BATCH.ps1`: 21/21 batches passed; frontend quick Vitest pass in COMMIT_READY)
@@ -55,4 +55,5 @@
   - Signature: `Valid` (`CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`)
   - SHA256: `E1D41BC9C25E1D4B0DABC53B25F25D83381604BD8576660645DA1E71B148D872`
 - [ ] Tag creation and release workflow execution
+
 

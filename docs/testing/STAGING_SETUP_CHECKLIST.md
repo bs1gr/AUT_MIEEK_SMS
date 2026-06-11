@@ -63,17 +63,17 @@ psql -c "SELECT * FROM custom_dashboards LIMIT 0;"
 git checkout main  # Ensure on Phase A branch
 
 # Build backend image
-docker build -t sms:v1.18.25-staging -f Dockerfile.backend .
+docker build -t sms:vv1.18.25-staging -f Dockerfile.backend .
 
 # Build frontend image  
-docker build -t sms:v1.18.25-staging -f Dockerfile.frontend .
+docker build -t sms:vv1.18.25-staging -f Dockerfile.frontend .
 ```
 
 **Step 5: Deploy to Staging**
 ```bash
 # Use docker-compose for staging
 docker-compose -f docker-compose.staging.yml down
-docker-compose -f docker-compose.staging.yml pull sms:v1.18.25-staging
+docker-compose -f docker-compose.staging.yml pull sms:vv1.18.25-staging
 docker-compose -f docker-compose.staging.yml up -d
 ```
 
@@ -263,7 +263,7 @@ docker stats --no-stream
 ```bash
 # Backend health
 curl -s http://localhost:8000/health | jq '.'
-# Expected: {"status": "healthy", "version": "v1.18.25"}
+# Expected: {"status": "healthy", "version": "vv1.18.25"}
 
 # Frontend health  
 curl -s http://localhost/ | grep -q "SMS" && echo "OK" || echo "FAILED"
@@ -521,4 +521,5 @@ uvicorn backend.main:app --reload
 
 **Last Updated:** June 9, 2026  
 **Status:** Ready to Execute
+
 

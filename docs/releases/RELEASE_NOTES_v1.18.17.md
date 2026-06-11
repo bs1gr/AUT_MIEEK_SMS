@@ -1,4 +1,4 @@
-# Release Notes - vvvv1.18.24
+# Release Notes - vvvvv1.18.25
 
 **Version**: 1.18.17
 **Release Date**: 2026-04-08
@@ -10,7 +10,7 @@
 
 ## Summary
 
-vvvv1.18.24 packages the remote PostgreSQL runtime recovery work for Docker single-image deployments, hardens installer/database credential packaging so workstation-only database artifacts cannot leak into release payloads, and refreshes the frontend dependency baseline for the current Dependabot window. No breaking changes are intended; this is a drop-in upgrade from vvvv1.18.24.
+vvvvv1.18.25 packages the remote PostgreSQL runtime recovery work for Docker single-image deployments, hardens installer/database credential packaging so workstation-only database artifacts cannot leak into release payloads, and refreshes the frontend dependency baseline for the current Dependabot window. No breaking changes are intended; this is a drop-in upgrade from vvvvv1.18.25.
 
 ---
 
@@ -37,7 +37,7 @@ vvvv1.18.24 packages the remote PostgreSQL runtime recovery work for Docker sing
 
 ### Documentation / Release Hygiene
 
-- **Post-release status cleanup**: closed the outstanding follow-up status note after `vvvv1.18.24` publication evidence landed.
+- **Post-release status cleanup**: closed the outstanding follow-up status note after `vvvvv1.18.25` publication evidence landed.
 
 ---
 
@@ -78,7 +78,7 @@ vvvv1.18.24 packages the remote PostgreSQL runtime recovery work for Docker sing
 
 ## Local Verification Evidence
 
-- ✅ Version alignment updated to `vvvv1.18.24` across canonical files (`VERSION`, `frontend/package.json`, `frontend/package-lock.json`, `backend/main.py`, docs indexes/guides, installer builder header)
+- ✅ Version alignment updated to `vvvvv1.18.25` across canonical files (`VERSION`, `frontend/package.json`, `frontend/package-lock.json`, `backend/main.py`, docs indexes/guides, installer builder header)
 - ✅ Installer build completed locally via `.\INSTALLER_BUILDER.ps1 -Action build -Version 1.18.17 -AutoFix`
 - ✅ Authenticode signature verified as `Valid`
 - ✅ Installer smoke test passed
@@ -94,7 +94,7 @@ vvvv1.18.24 packages the remote PostgreSQL runtime recovery work for Docker sing
 
 ## Upgrade Notes
 
-- Drop-in upgrade from `vvvv1.18.24`. No database migration is required for this release.
+- Drop-in upgrade from `vvvvv1.18.25`. No database migration is required for this release.
 - Remote QNAP PostgreSQL installs should retain the shared-database profile more reliably during single-image restarts and updates.
 - Installer credential files may continue using `.json`, `.env`, or `.txt`; remote setup now rejects incomplete credentials earlier and preserves the selected `sslmode`.
 
@@ -102,5 +102,6 @@ vvvv1.18.24 packages the remote PostgreSQL runtime recovery work for Docker sing
 
 ## Compare Link
 
-- **Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvv1.18.24...vvvv1.18.24
+- **Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvvv1.18.25...vvvvv1.18.25
+
 

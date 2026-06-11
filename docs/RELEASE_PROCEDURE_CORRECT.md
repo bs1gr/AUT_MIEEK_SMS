@@ -1,7 +1,7 @@
 # CORRECT Release Procedure - What Instructions Say vs What Was Done
 
 **Date**: March 1, 2026
-**Incident**: vvvv1.18.24 Unverified Installer Upload
+**Incident**: vvvvv1.18.25 Unverified Installer Upload
 **Purpose**: Document the CORRECT procedure that exists in the codebase
 
 ---
@@ -164,7 +164,7 @@ Combines documentation generation with release workflow.
 
 ---
 
-## ❌ What Was Actually Done (vvvv1.18.24 Incident)
+## ❌ What Was Actually Done (vvvvv1.18.25 Incident)
 
 **Operations executed (out of order)**:
 
@@ -172,7 +172,7 @@ Combines documentation generation with release workflow.
 2. ✅ Fixed 3 linting errors
 3. ✅ Updated version to 1.18.5 manually
 4. ✅ Committed code (adabae67e)
-5. ✅ Created git tag vvvv1.18.24
+5. ✅ Created git tag vvvvv1.18.25
 6. ✅ Pushed to remote (829 commits ahead, 0 behind)
 7. ✅ Created GitHub release
 8. ✅ Generated release documentation manually (4 files, 1,119 lines)
@@ -278,7 +278,7 @@ $hash.Hash
 # - Verify application functions
 
 # 2.8 Run deployment checklist
-# Read docs/releases/DEPLOYMENT_CHECKLIST_vvvv1.18.24.md
+# Read docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md
 # Complete all 95+ verification checkpoints
 
 # Phase 3: GITHUB RELEASE
@@ -288,12 +288,12 @@ $hash.Hash
 
 # 3.2 Commit release changes
 git add .
-git commit -m "chore(release): prepare vvvv1.18.24 release"
+git commit -m "chore(release): prepare vvvvv1.18.25 release"
 git push origin main
 
 # 3.3 Create git tag
-git tag vvvv1.18.24
-git push origin vvvv1.18.24
+git tag vvvvv1.18.25
+git push origin vvvvv1.18.25
 
 # 3.4 Create GitHub release (triggers automation)
 # GitHub Actions will run
@@ -305,10 +305,10 @@ git push origin vvvv1.18.24
 # Check: https://github.com/bs1gr/AUT_MIEEK_SMS/actions
 
 # 4.2 Upload installer to GitHub Release
-gh release upload vvvv1.18.24 "installer\Output\SMS_Installer_1.18.5.exe"
+gh release upload vvvvv1.18.25 "installer\Output\SMS_Installer_1.18.5.exe"
 
 # 4.3 Verify release assets and GitHub digest metadata
-gh release view vvvv1.18.24
+gh release view vvvvv1.18.25
 
 # 4.4 Deploy to production
 .\DOCKER.ps1 -Update
@@ -427,7 +427,7 @@ gh release view vvvv1.18.24
 
 ## 📊 Impact Assessment
 
-### What Broke (vvvv1.18.24 Incident)
+### What Broke (vvvvv1.18.25 Incident)
 
 ❌ **Uploaded unverified installer to GitHub release**
 ❌ **Violated Policy 0.1** (DO NOT COMMIT unless verified)
@@ -456,7 +456,7 @@ gh release view vvvv1.18.24
 
 ## 🔄 Next Steps
 
-### Immediate (vvvv1.18.24 Completion)
+### Immediate (vvvvv1.18.25 Completion)
 
 1. **Run proper Phase 2**:
    ```powershell
@@ -469,7 +469,7 @@ gh release view vvvv1.18.24
 
 4. **Upload verified artifacts**:
    ```powershell
-   gh release upload vvvv1.18.24 SMS_Installer_1.18.5.exe
+   gh release upload vvvvv1.18.25 SMS_Installer_1.18.5.exe
    ```
 
 ### Long-term (Documentation Updates)
@@ -501,4 +501,5 @@ gh release view vvvv1.18.24
 **Solution**: Update instructions with explicit artifact verification procedure + ensure agents use RELEASE_READY.ps1
 
 **Key Lesson**: "Built" ≠ "Verified" ≠ "Deployed" - Each phase has mandatory gates.
+
 

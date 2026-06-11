@@ -316,7 +316,7 @@ When tests are running in background (`isBackground: true`), follow this STRICTL
 - Check work plan BEFORE starting any work
 - Update work plan AFTER completing tasks
 - Verify version directly from `VERSION` file
-- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., `vvvv1.18.24`)
+- **CRITICAL**: Use `v1.MINOR.PATCH` format ONLY (e.g., `vvvvv1.18.25`)
 - **STRICTLY FORBIDDEN**: NEVER use `v11.x.x`, `v1.x.x`, or any format other than `v1.x.x`
 
 **Why This Exists:**
@@ -707,7 +707,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 | **Format code** | `npm --prefix frontend run lint -- --fix` | Commit unformatted code |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new backlog docs |
 | **Check version** | Read `VERSION` file directly | Invent version numbers |
-| **Use version** | **ONLY `v1.x.x`** (example: `vvvv1.18.24`) | **NEVER `v11.x.x`, `$11.18.3`, `v2.x.x`** |
+| **Use version** | **ONLY `v1.x.x`** (example: `vvvvv1.18.25`) | **NEVER `v11.x.x`, `$11.18.3`, `v2.x.x`** |
 | **DB migration** | `alembic revision --autogenerate` | `Base.metadata.create_all()` |
 | **UI text** | `t('i18n.key')` | `"Hardcoded string"` |
 | **Before commit** | `.\COMMIT_READY.ps1 -Quick` | `git commit -m "..."` directly |
@@ -811,4 +811,5 @@ If you encounter:
 ---
 
 **Remember:** These policies exist to protect you, the system, and other agents. Following them takes 10 minutes and saves hours of rework.
+
 

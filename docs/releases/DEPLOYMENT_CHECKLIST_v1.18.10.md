@@ -1,15 +1,15 @@
 # Deployment Checklist - Version 1.18.10
 
 **Release Date**: March 9, 2026
-**Tag**: vvvv1.18.24
-**Previous Version**: vvvv1.18.24
+**Tag**: vvvvv1.18.25
+**Previous Version**: vvvvv1.18.25
 
 ---
 
 ## Phase 1: Pre-Release Validation
 
 ### 1.1 Version Consistency
-- [ ] `VERSION` file reads `vvvv1.18.24`
+- [ ] `VERSION` file reads `vvvvv1.18.25`
 - [ ] `frontend/package.json` version is `1.18.10`
 - [ ] `backend/main.py` version header is `1.18.10`
 - [ ] `INSTALLER_BUILDER.ps1` version reference is `1.18.10`
@@ -30,8 +30,8 @@
 
 ### 2.1 Create Tag
 ```powershell
-git tag -a vvvv1.18.24 -m "vvvv1.18.24: installer profile-drift fix and release alignment"
-git push origin vvvv1.18.24
+git tag -a vvvvv1.18.25 -m "vvvvv1.18.25: installer profile-drift fix and release alignment"
+git push origin vvvvv1.18.25
 ```
 
 ### 2.2 Monitor Workflows
@@ -40,8 +40,8 @@ git push origin vvvv1.18.24
 - [ ] `Release Asset Sanitizer` — SUCCESS
 
 ### 2.3 Verify Release Page
-- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24`
-- [ ] Release body populated from `GITHUB_RELEASE_vvvv1.18.24.md`
+- [ ] Release page exists at: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25`
+- [ ] Release body populated from `GITHUB_RELEASE_vvvvv1.18.25.md`
 - [ ] Not marked as draft
 
 ---
@@ -77,8 +77,8 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 - [ ] Login page accessible
 - [ ] Health endpoint responds 200
 
-### 4.2 Upgrade from vvvv1.18.24 (Manual)
-- [ ] Run installer over existing vvvv1.18.24 installation
+### 4.2 Upgrade from vvvvv1.18.25 (Manual)
+- [ ] Run installer over existing vvvvv1.18.25 installation
 - [ ] PostgreSQL profile preserved after upgrade
 - [ ] No silent fallback to local SQLite
 - [ ] Application starts without errors
@@ -106,7 +106,8 @@ if ($hash -eq $expected) { "✅ SHA256 MATCH" } else { "❌ MISMATCH" }
 
 ## Phase 6: Documentation
 
-- [ ] Work plan updated with vvvv1.18.24 release prep / publication state
+- [ ] Work plan updated with vvvvv1.18.25 release prep / publication state
 - [ ] CHANGELOG.md reflects released version
 - [ ] Release docs committed (`RELEASE_NOTES`, `GITHUB_RELEASE`, `RELEASE_MANIFEST`, `DEPLOYMENT_CHECKLIST`)
+
 

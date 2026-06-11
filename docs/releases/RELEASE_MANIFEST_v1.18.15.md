@@ -1,4 +1,4 @@
-# Release Manifest — vvvv1.18.24
+# Release Manifest — vvvvv1.18.25
 
 **Version**: 1.18.15
 **Release Date**: 2026-03-21
@@ -22,7 +22,7 @@
 | **GitHub asset size** | 26,198,224 bytes (CI build) |
 | **GitHub asset digest (authoritative)** | `sha256:acb9bec91fba8ed8e5a54e991df2fcf1b555b5078d862662b0eb8d795745d76b` |
 | **GitHub asset uploaded** | `2026-03-21T20:02:26Z` |
-| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvv1.18.24 |
+| **Release URL** | https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25 |
 
 > **SHA256 note**: DigiCert live timestamping means each build produces a distinct binary. The GitHub release asset digest is the authoritative post-publication hash; recorded above after CI upload confirmed at `2026-03-21T20:02:26Z`.
 
@@ -32,7 +32,7 @@
 
 | File | Version |
 |---|---|
-| `VERSION` | `vvvv1.18.24` |
+| `VERSION` | `vvvvv1.18.25` |
 | `frontend/package.json` | `1.18.15` |
 | `backend/main.py` | `1.18.15` |
 | `INSTALLER_BUILDER.ps1` | `1.18.15` |
@@ -49,7 +49,7 @@
 | Gate | Result |
 |---|---|
 | `scripts/VERIFY_VERSION.ps1 -CheckOnly` | ✅ 8/8 required checks passed |
-| Version format | ✅ `vvvv1.18.24` (valid) |
+| Version format | ✅ `vvvvv1.18.25` (valid) |
 | Installer release inputs | ✅ All tracked inputs validated |
 | Backend Ruff (linting) | ✅ Clean |
 | Backend MyPy (type checking) | ✅ Clean |
@@ -64,18 +64,18 @@
 
 ---
 
-## Commits Since vvvv1.18.24
+## Commits Since vvvvv1.18.25
 
 | Hash | Description |
 |---|---|
 | `1a5fe6cd4` | chore(gitignore): ignore root-level DOCUMENTATION_INDEX.md duplicate |
 | `370f23403` | fix(rbac): ensure user permissions table exists |
 | `ee748b7e8` | fix(validation): harden installer tooling and batch retests |
-| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to vvvv1.18.24 to resolve unresolvable tag |
+| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to vvvvv1.18.25 to resolve unresolvable tag |
 | `a42e0a2bb` | fix(installer): recover postgres auth drift during single-mode startup |
 | `b9151554b` | fix(installer): add missing forward declaration for db profile defaults |
 | `5ddd772f4` | fix(installer): add SQLite/QNAP DB selection and harden startup profile defaults |
-| `4688e4cc5` | chore(docs): record vvvv1.18.24 publication verification evidence |
+| `4688e4cc5` | chore(docs): record vvvvv1.18.25 publication verification evidence |
 
 ---
 
@@ -90,10 +90,11 @@ Per release-lineage policy:
 
 ## GitHub Release Checklist
 
-- ✅ Tag `vvvv1.18.24` created and pushed (`2026-03-21`)
+- ✅ Tag `vvvvv1.18.25` created and pushed (`2026-03-21`)
 - ✅ `Create GitHub Release on tag` workflow succeeded — Release ID `299795592`, published `2026-03-21T20:00:27Z`
 - ✅ `Release - Build & Upload Installer (GitHub Digest)` workflow succeeded — Asset ID `378710544`, uploaded `2026-03-21T20:02:26Z`
 - ✅ `Release Asset Sanitizer` workflow confirmed installer-only assets
 - ✅ Published installer filename: `SMS_Installer_1.18.15.exe`
 - ✅ Release marked as latest (non-prerelease, non-draft)
+
 

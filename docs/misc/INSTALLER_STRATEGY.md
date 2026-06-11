@@ -1,4 +1,4 @@
-# SMS Installer Strategy - vv1.18.24
+# SMS Installer Strategy - vvv1.18.25
 
 **Version:** 1.0  
 **Date:** May 31, 2026  
@@ -35,7 +35,7 @@ The SMS installer will support **TWO deployment types ONLY**:
 ### What Gets Bundled
 
 ```
-SMS_Installer_vv1.18.24/
+SMS_Installer_vvv1.18.25/
 ├── docker/
 │   ├── docker-compose.yml          (Production setup)
 │   ├── .env.example                (Environment template)
@@ -63,7 +63,7 @@ SMS_Installer_vv1.18.24/
 ### Step 1: Welcome Screen
 ```
 ╔════════════════════════════════════════════╗
-║   SMS Student Management System vv1.18.24   ║
+║   SMS Student Management System vvv1.18.25   ║
 ║              Installation Wizard           ║
 ╚════════════════════════════════════════════╝
 
@@ -122,8 +122,8 @@ Native Lite Installation Flow:
 
 ```bash
 # Step 1: Extract installer
-unzip SMS_Installer_vv1.18.24.zip
-cd SMS_Installer_vv1.18.24/docker
+unzip SMS_Installer_vvv1.18.25.zip
+cd SMS_Installer_vvv1.18.25/docker
 
 # Step 2: Configure environment
 cp .env.example .env
@@ -267,7 +267,7 @@ Before Native Lite Installation:
 
 ### Docker Package
 ```
-File: SMS_Docker_vv1.18.24.zip
+File: SMS_Docker_vvv1.18.25.zip
 Size: ~50 MB (compose files, docs, scripts)
 Contents: Docker configs, setup guides, documentation
 Download: https://github.com/bs1gr/AUT_MIEEK_SMS/releases
@@ -275,7 +275,7 @@ Download: https://github.com/bs1gr/AUT_MIEEK_SMS/releases
 
 ### Lite Package
 ```
-File: SMS_Native_Lite_vv1.18.24.zip
+File: SMS_Native_Lite_vvv1.18.25.zip
 Size: ~75 MB (executable + docs)
 Contents: SMS_Native_Lite_Simple.exe, guides, shortcuts
 Download: https://github.com/bs1gr/AUT_MIEEK_SMS/releases
@@ -283,7 +283,7 @@ Download: https://github.com/bs1gr/AUT_MIEEK_SMS/releases
 
 ### Combined Installer
 ```
-File: SMS_Installer_vv1.18.24.exe
+File: SMS_Installer_vvv1.18.25.exe
 Size: ~125 MB (both options bundled)
 Contents: Wizard, both packages, all documentation
 Download: https://github.com/bs1gr/AUT_MIEEK_SMS/releases
@@ -297,7 +297,7 @@ Download: https://github.com/bs1gr/AUT_MIEEK_SMS/releases
 
 ```
 User Experience:
-  1. Download SMS_Installer_vv1.18.24.exe
+  1. Download SMS_Installer_vvv1.18.25.exe
   2. Run installer
   3. Select deployment type
   4. Follow wizard
@@ -313,7 +313,7 @@ Best for:
 
 ```
 For IT teams who know Docker:
-  1. Download SMS_Docker_vv1.18.24.zip
+  1. Download SMS_Docker_vvv1.18.25.zip
   2. Extract files
   3. Run setup.sh
   4. Configure environment
@@ -329,7 +329,7 @@ Best for:
 
 ```
 For portable/standalone use:
-  1. Download SMS_Native_Lite_vv1.18.24.zip
+  1. Download SMS_Native_Lite_vvv1.18.25.zip
   2. Extract SMS_Native_Lite_Simple.exe
   3. Save to desired location
   4. Run executable
@@ -528,12 +528,12 @@ Uninstaller: Automatic cleanup
 
 | Component | Version | Status |
 |-----------|---------|--------|
-| SMS Backend | vv1.18.24 | Ready |
-| SMS Frontend | vv1.18.24 | Ready |
-| Docker Config | vv1.18.24 | Ready |
+| SMS Backend | vvv1.18.25 | Ready |
+| SMS Frontend | vvv1.18.25 | Ready |
+| Docker Config | vvv1.18.25 | Ready |
 | Native Lite Exe | 67.1 MB | Ready |
-| Installer Wizard | vv1.18.24 | Design |
-| Documentation | vv1.18.24 | Complete |
+| Installer Wizard | vvv1.18.25 | Design |
+| Documentation | vvv1.18.25 | Complete |
 
 ---
 
@@ -565,5 +565,6 @@ Uninstaller: Automatic cleanup
 
 ---
 
-*SMS Installer Strategy vv1.18.24 - Docker & Lite Only*
+*SMS Installer Strategy vvv1.18.25 - Docker & Lite Only*
+
 
