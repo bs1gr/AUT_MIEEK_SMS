@@ -1,16 +1,18 @@
 import React from 'react';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import testI18n from '@/test-utils/i18n-test-wrapper';
 import { LanguageProvider } from '@/LanguageContext';
 import DashboardManager from '../DashboardManager';
-import { useDashboards } from '../../hooks/useDashboards';
+import { useDashboards, type Dashboard } from '../../hooks/useDashboards';
 import { BrowserRouter } from 'react-router-dom';
 
 vi.mock('../../hooks/useDashboards');
+
+type UseDashboardsReturn = ReturnType<typeof useDashboards>;
 vi.mock('react-router-dom', async () => {
   const actual = await vi.importActual('react-router-dom');
   return {
@@ -64,7 +66,7 @@ describe('DashboardManager', () => {
   });
 
   it('renders dashboard manager with title', () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: mockDashboards,
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -83,7 +85,7 @@ describe('DashboardManager', () => {
   });
 
   it('displays list of dashboards', async () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: mockDashboards,
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -105,7 +107,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows default dashboard badge', async () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: mockDashboards,
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -127,7 +129,7 @@ describe('DashboardManager', () => {
   });
 
   it('displays chart count for each dashboard', async () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: mockDashboards,
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -149,7 +151,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows empty state when no dashboards exist', () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: [],
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -168,7 +170,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows loading state', () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: [],
       isLoadingDashboards: true,
       createDashboard: vi.fn(),
@@ -189,7 +191,7 @@ describe('DashboardManager', () => {
   });
 
   it('opens create dialog on new dashboard button click', async () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: [],
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -215,7 +217,7 @@ describe('DashboardManager', () => {
   });
 
   it('shows delete confirmation when delete button clicked', async () => {
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: mockDashboards,
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -247,7 +249,7 @@ describe('DashboardManager', () => {
 
   it('calls deleteDashboard when delete confirmed', async () => {
     const deleteMock = vi.fn();
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: mockDashboards,
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
@@ -286,7 +288,7 @@ describe('DashboardManager', () => {
 
   it('calls setDefaultDashboard when star button clicked', async () => {
     const setDefaultMock = vi.fn();
-    (useDashboards as any).mockReturnValue({
+    vi.mocked(useDashboards).mockReturnValue({
       dashboards: mockDashboards,
       isLoadingDashboards: false,
       createDashboard: vi.fn(),
