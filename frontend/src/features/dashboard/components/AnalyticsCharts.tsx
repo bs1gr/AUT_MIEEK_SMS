@@ -615,6 +615,8 @@ export interface TreemapDataPoint {
   value?: number;
   fill?: string;
   children?: TreemapDataPoint[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 interface PerformanceTreemapProps {

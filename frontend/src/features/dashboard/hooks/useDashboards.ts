@@ -56,7 +56,7 @@ export function useDashboards() {
     queryFn: async () => {
       try {
         const dashboardsList = queryClient.getQueryData<Dashboard[]>(['dashboards']) || dashboards;
-        return dashboardsList.find((d) => d.is_default) || null;
+        return dashboardsList.find((d: Dashboard) => d.is_default) || null;
       } catch (error) {
         console.error('Failed to fetch default dashboard:', error);
         return null;
