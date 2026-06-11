@@ -52,13 +52,13 @@ jobs:
 
           # Test network connectivity to GitHub
           $testHosts = @("github.com", "1.1.1.1")
-          foreach ($host in $testHosts) {
-            Write-Host "  Testing connectivity to $host..." -ForegroundColor Gray
-            $ping = Test-NetConnection -ComputerName $host -Port 443 -InformationLevel Quiet -ErrorAction SilentlyContinue
+          foreach ($testHost in $testHosts) {
+            Write-Host "  Testing connectivity to $testHost..." -ForegroundColor Gray
+            $ping = Test-NetConnection -ComputerName $testHost -Port 443 -InformationLevel Quiet -ErrorAction SilentlyContinue
             if ($ping) {
               Write-Host "    ✅ Connected" -ForegroundColor Green
             } else {
-              Write-Host "    ⚠️  No response from $host" -ForegroundColor Yellow
+              Write-Host "    ⚠️  No response from $testHost" -ForegroundColor Yellow
             }
           }
 
