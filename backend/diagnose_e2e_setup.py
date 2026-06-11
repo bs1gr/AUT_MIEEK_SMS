@@ -122,7 +122,7 @@ def diagnose():
         test_password = "Test@Pass123"
         hashed = get_password_hash(test_password)
         print("✅ Password hashing works")
-        print(f"   Original: [redacted]")
+        print("   Original: [redacted]")
         print(f"   Hashed: {hashed[:40]}...")
 
         # Test verification
