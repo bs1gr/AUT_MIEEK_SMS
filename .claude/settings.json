@@ -16,7 +16,8 @@
       "Bash(gh api *)",
       "Skill(run)",
       "Skill(run:*)",
-      "PowerShell(curl -s \"https://api.github.com/repos/bs1gr/AUT_MIEEK_SMS/actions/jobs/80645529726/logs\" -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token $env:GITHUB_TOKEN\" 2>&1 | head -200)"
+      "PowerShell(curl -s \"https://api.github.com/repos/bs1gr/AUT_MIEEK_SMS/actions/jobs/80645529726/logs\" -H \"Accept: application/vnd.github.v3+json\" -H \"Authorization: token $env:GITHUB_TOKEN\" 2>&1 | head -200)",
+      "Bash(git commit *)"
     ]
   }
 }

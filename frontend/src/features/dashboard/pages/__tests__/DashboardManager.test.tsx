@@ -87,6 +87,7 @@ function createWrapper() {
 describe('DashboardManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseDashboards.mockReset();
   });
 
   it('renders dashboard manager with title', () => {
