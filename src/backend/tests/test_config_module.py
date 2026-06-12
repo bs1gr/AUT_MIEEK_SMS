@@ -6,7 +6,7 @@ import pytest
 
 from backend.config import Settings
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "test_config.db"
 
 

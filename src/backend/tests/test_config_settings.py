@@ -125,7 +125,7 @@ def test_secret_key_short_allowed_when_not_enforced():
 
 
 def test_database_url_rejects_path_outside_project(monkeypatch: pytest.MonkeyPatch):
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     outside = project_root.parent / "outside" / "db.sqlite"
     db_url = f"sqlite:///{outside.as_posix()}"
     with pytest.raises(ValueError):
@@ -133,7 +133,7 @@ def test_database_url_rejects_path_outside_project(monkeypatch: pytest.MonkeyPat
 
 
 def test_database_url_accepts_path_inside_project():
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     db_path = project_root / "data" / "tests" / "db.sqlite"
     db_path.parent.mkdir(parents=True, exist_ok=True)
     db_url = f"sqlite:///{db_path.as_posix()}"
