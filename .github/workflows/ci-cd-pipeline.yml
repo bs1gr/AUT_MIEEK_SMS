@@ -200,7 +200,7 @@ jobs:
       - name: Run Ruff linter
         run: |
           cd src/backend
-          ruff check . --config=../../../config/ruff.toml --output-format=github
+          ruff check . --config=../../config/ruff.toml --output-format=github
 
       - name: Run MyPy type checker
         run: |
