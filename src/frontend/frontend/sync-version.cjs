@@ -2,7 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const versionFile = path.resolve(__dirname, '../VERSION');
+const versionFile = path.resolve(__dirname, '../../VERSION');
 const packageJsonFile = path.resolve(__dirname, './package.json');
 
 try {
