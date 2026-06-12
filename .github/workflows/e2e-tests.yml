@@ -145,7 +145,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "Running Alembic migrations..."
-          cd ${{ github.workspace }} && python -c "import sys; sys.path.insert(0, '.'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || {
+          cd ${{ github.workspace }} && python -c "import sys; sys.path.insert(0, 'src/backend'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || {
             echo "❌ Database migration failed. This is a critical error that must be fixed."
             exit 1
           }
@@ -163,7 +163,7 @@ jobs:
           set -euo pipefail
           python src/backend/backend/seed_e2e_data.py || {
             echo "❌ Initial seed failed, retrying with force..."
-            python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+            python -c "import sys; sys.path.insert(0, 'src/backend'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
           }
 
       - name: Validate seed data
@@ -173,7 +173,7 @@ jobs:
           python src/backend/backend/validate_e2e_data.py || {
             echo "❌ Validation failed"
             echo "Attempting force reseed and retry..."
-            python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+            python -c "import sys; sys.path.insert(0, 'src/backend'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
             python src/backend/backend/validate_e2e_data.py
           }
 
