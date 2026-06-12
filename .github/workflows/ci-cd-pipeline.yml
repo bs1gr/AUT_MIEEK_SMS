@@ -776,8 +776,8 @@ jobs:
           SERVE_FRONTEND: '0'
         run: |
           echo "Starting backend server..."
-          export PYTHONPATH="${{ github.workspace }}/src"
-          cd ${{ github.workspace }} && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          cd ${{ github.workspace }}
+          (export PYTHONPATH="${{ github.workspace }}/src" && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000) &
           echo $! > backend.pid
           sleep 3
 
@@ -890,8 +890,8 @@ jobs:
           RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
         run: |
           echo "Starting backend server for load tests..."
-          export PYTHONPATH="${{ github.workspace }}/src"
-          cd ${{ github.workspace }} && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          cd ${{ github.workspace }}
+          (export PYTHONPATH="${{ github.workspace }}/src" && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000) &
           echo $! > backend.pid
           sleep 3
 
