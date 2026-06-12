@@ -774,9 +774,9 @@ jobs:
           AUTH_LOGIN_THROTTLE_ENABLED: '0'
           AUTH_USER_LOCKOUT_ENABLED: '0'
           SERVE_FRONTEND: '0'
-          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           echo "Starting backend server..."
+          export PYTHONPATH="${{ github.workspace }}/src"
           cd ${{ github.workspace }} && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 3
@@ -888,9 +888,9 @@ jobs:
           RATE_LIMIT_AUTH_PER_MINUTE: '1000000'
           RATE_LIMIT_READ_PER_MINUTE: '1000000'
           RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
-          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           echo "Starting backend server for load tests..."
+          export PYTHONPATH="${{ github.workspace }}/src"
           cd ${{ github.workspace }} && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 3
