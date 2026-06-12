@@ -1063,7 +1063,8 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
                 .all()
             )
             analytics_csv_rows = _build_attendance_analytics_csv_rows(analytics_rows, lang, na_value)
-            zf.writestr("attendance_analytics.csv", _csv_content([], analytics_csv_rows))
+            analytics_headers = get_header_row("overview", lang)
+            zf.writestr("attendance_analytics.csv", _csv_content(analytics_headers, analytics_csv_rows))
 
             # Enrollments
             enrollments = db.query(CourseEnrollment).filter(CourseEnrollment.deleted_at.is_(None)).all()
@@ -2138,7 +2139,8 @@ async def export_attendance_analytics_csv(request: Request, db: Session = Depend
         flat_rows = _build_attendance_analytics_csv_rows(rows, lang, na_value)
 
         filename = f"attendance_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        headers: list[str] = []
+        # Extract main header from the overview section (second section after title)
+        headers = get_header_row("overview", lang)
         return _csv_response(headers, flat_rows, filename)
     except Exception as exc:
         logger.error("Export attendance analytics csv failed: %s", exc, exc_info=True)
