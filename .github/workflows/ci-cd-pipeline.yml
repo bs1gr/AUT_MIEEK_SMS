@@ -798,7 +798,7 @@ jobs:
           done
 
       - name: Run E2E tests with Playwright
-        working-directory: ./frontend
+        working-directory: ./src/frontend
         env:
           PLAYWRIGHT_BASE_URL: http://127.0.0.1:5173
           DEBUG: pw:api
@@ -1026,7 +1026,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./docker/Dockerfile.fullstack
+          file: ./infra/docker/Dockerfile.fullstack
           # Push policy (explicit rules to avoid accidental pushes):
           # - On release tags (v1.*.*): Always push to GHCR
           # - On main branch: Push only if GHCR_TOKEN explicitly configured
@@ -1328,21 +1328,21 @@ jobs:
           name: frontend-security-reports
           path: |
             frontend/npm-audit.json
-            frontend/frontend-audit.sarif
+            src/frontend/frontend-audit.sarif
           retention-days: 30
 
       - name: Validate frontend SARIF format
-        if: always() && hashFiles('frontend/frontend-audit.sarif') != ''
+        if: always() && hashFiles('src/frontend/frontend-audit.sarif') != ''
         run: |
           echo "Validating frontend SARIF format..."
-          python -m json.tool frontend/frontend-audit.sarif > /dev/null && echo "✅ Frontend SARIF valid" || echo "⚠️  Frontend SARIF malformed"
+          python -m json.tool src/frontend/frontend-audit.sarif > /dev/null && echo "✅ Frontend SARIF valid" || echo "⚠️  Frontend SARIF malformed"
         continue-on-error: true
 
       - name: Upload SARIF to GitHub Security tab
-        if: always() && hashFiles('frontend/frontend-audit.sarif') != ''
+        if: always() && hashFiles('src/frontend/frontend-audit.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: frontend/frontend-audit.sarif
+          sarif_file: src/frontend/frontend-audit.sarif
           category: 'frontend-security'
         continue-on-error: true
 
@@ -1366,7 +1366,7 @@ jobs:
         uses: aquasecurity/trivy-action@v0.35.0
         with:
           scan-type: 'fs'
-          scan-ref: './docker'
+          scan-ref: './infra/docker'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'

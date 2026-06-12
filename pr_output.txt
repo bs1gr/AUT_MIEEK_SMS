@@ -1,2 +1,0 @@
-Warning: 1 uncommitted change
-https://github.com/bs1gr/AUT_MIEEK_SMS/pull/196

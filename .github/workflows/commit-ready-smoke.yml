@@ -249,7 +249,7 @@ jobs:
           DATABASE_URL: "sqlite:///:memory:"
         run: |
           echo "🧹 Running extended cleanup verification on ${{ matrix.os }}..."
-          cd backend
+          cd src/backend
           python -m pytest tests/ -m "not slow" -q --tb=short || true
           cd ../frontend
           npx vitest run || true
@@ -271,7 +271,7 @@ jobs:
         with:
           name: cleanup-verification-${{ matrix.os }}
           path: |
-            backend/pytest-results.xml
-            frontend/vitest-results.xml
+            src/backend/pytest-results.xml
+            src/frontend/vitest-results.xml
           retention-days: 7
           if-no-files-found: warn
