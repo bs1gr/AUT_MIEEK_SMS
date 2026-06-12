@@ -153,7 +153,7 @@ jobs:
       - name: Run E2E setup diagnostics
         run: |
           echo "Running E2E setup diagnostics..."
-          python backend/diagnose_e2e_setup.py || {
+          python src/backend/diagnose_e2e_setup.py || {
             echo "❌ Diagnostics found issues, but continuing..."
           }
 
@@ -161,7 +161,7 @@ jobs:
         run: |
           echo "Seeding E2E test data..."
           set -euo pipefail
-          python backend/seed_e2e_data.py || {
+          python src/backend/seed_e2e_data.py || {
             echo "❌ Initial seed failed, retrying with force..."
             python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
           }
@@ -170,11 +170,11 @@ jobs:
         run: |
           echo "Validating E2E test data..."
           set -euo pipefail
-          python backend/validate_e2e_data.py || {
+          python src/backend/validate_e2e_data.py || {
             echo "❌ Validation failed"
             echo "Attempting force reseed and retry..."
             python -c "import sys; sys.path.insert(0, '.'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
-            python backend/validate_e2e_data.py
+            python src/backend/validate_e2e_data.py
           }
 
       # FIX 5: Add health check before starting tests
@@ -253,7 +253,7 @@ jobs:
 
           echo ""
           echo "2. Testing login endpoint with test credentials..."
-          python backend/check_login_health.py
+          python src/backend/check_login_health.py
 
           echo ""
           echo "=== Authentication validation complete ==="
@@ -473,3 +473,5 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "⚠️  **Failed tests detected** - check artifacts for screenshots and trace files" >> $GITHUB_STEP_SUMMARY
           fi
+
+
