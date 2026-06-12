@@ -5,7 +5,7 @@ Optimized with eager loading to prevent N+1 query problems.
 """
 
 import logging
-from typing import Any, Callable, Dict, List, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
