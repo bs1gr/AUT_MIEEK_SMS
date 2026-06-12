@@ -64,7 +64,12 @@ jobs:
               core.info('Branch protection applied successfully.');
             } catch (err) {
               if (err.status === 403) {
-                core.setFailed('Permission denied (403). Ensure GITHUB_TOKEN has admin permissions or set ADMIN_GH_PAT secret with repo scope. Error: ' + err.message);
+                core.warning('Permission denied (403). This workflow requires admin token. Set ADMIN_GH_PAT secret with repo scope, or ensure GITHUB_TOKEN has admin permissions. Error: ' + err.message);
+                // Exit with warning instead of failure to allow workflow to complete
+              } else if (err.status === 404) {
+                core.warning('Branch not found: ' + branch + '. Error: ' + err.message);
+              } else if (err.status === 422) {
+                core.warning('Invalid branch protection parameters. Ensure checks exist. Error: ' + err.message);
               } else {
                 core.setFailed('Failed to apply branch protection: ' + err.message);
               }

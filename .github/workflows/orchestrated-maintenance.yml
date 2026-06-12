@@ -102,8 +102,8 @@ jobs:
             exit 1
           fi
 
-          # Get current timestamp
-          CUTOFF_DATE=$(date -u -d "30 days ago" +%Y-%m-%dT%H:%M:%SZ)
+          # Calculate cutoff date (30 days ago) using date command compatible with both GNU and BSD
+          CUTOFF_DATE=$(date -u -v-30d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d "30 days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || python3 -c "from datetime import datetime, timedelta; print((datetime.utcnow() - timedelta(days=30)).strftime('%Y-%m-%dT%H:%M:%SZ'))")
           echo "Cutoff date: $CUTOFF_DATE"
 
           # List all workflow runs and delete old ones
@@ -144,7 +144,8 @@ jobs:
             exit 1
           fi
 
-          CUTOFF_DATE=$(date -u -d "14 days ago" +%Y-%m-%dT%H:%M:%SZ)
+          # Calculate cutoff date (14 days ago) using date command compatible with both GNU and BSD
+          CUTOFF_DATE=$(date -u -v-14d +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -u -d "14 days ago" +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || python3 -c "from datetime import datetime, timedelta; print((datetime.utcnow() - timedelta(days=14)).strftime('%Y-%m-%dT%H:%M:%SZ'))")
           echo "Cutoff date: $CUTOFF_DATE"
 
           RUN_DATA=$(gh run list --repo ${{ github.repository }} --json databaseId,createdAt)
