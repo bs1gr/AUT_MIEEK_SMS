@@ -20,10 +20,15 @@
       "Bash(git commit *)",
       "PowerShell(gh run list --repo bs1gr/AUT_MIEEK_SMS --branch main --limit 3 --json number,status,name,createdAt 2>&1 | ConvertFrom-Json | Select-Object number, status, @{N='name';E={$_.name.substring\\(0,40\\)}}, createdAt | Format-Table -AutoSize)",
       "PowerShell($outputFile = \"C:\\\\Users\\\\Vasilis\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--SMS-student-management-system\\\\0324ab05-9e15-45c6-b9ff-13d90b55f007\\\\tasks\\\\bvo3lmvwl.output\"; while \\($true\\) { $lines = \\(Get-Content $outputFile | Measure-Object -Line\\).Lines; Write-Host \"Lines: $lines\"; if \\(\\(Get-Content $outputFile -Tail 3 | Select-String \"Test Files|Failed|passed\"\\)\\) { break }; Start-Sleep -Milliseconds 500 })",
-      "PowerShell(cd d:\\\\SMS\\\\student-management-system\\\\frontend; $env:SMS_ALLOW_DIRECT_VITEST=1; npm test 2>&1 > test_output.log; Get-Content test_output.log | Select-String \"FAIL\" -A 25)",
-      "PowerShell(cd 'd:\\\\SMS\\\\student-management-system\\\\frontend'; $env:SMS_ALLOW_DIRECT_VITEST=1; npm test 2>&1 | Tee-Object -Variable testOutput; $testOutput | ConvertTo-Json -Compress | Out-File -Encoding UTF8 test_results.json; \\(Get-Content test_output.log | Measure-Object -Line\\).Lines; Get-Content test_output.log -Tail 500)",
-      "PowerShell(cd 'd:\\\\SMS\\\\student-management-system\\\\frontend'; $env:SMS_ALLOW_DIRECT_VITEST=1; npx vitest run src/features/dashboard/components/__tests__/CreateEditDashboardDialog.test.tsx -t \"displays chart count\" 2>&1)",
-      "PowerShell(cd 'd:\\\\SMS\\\\student-management-system\\\\frontend'; $env:SMS_ALLOW_DIRECT_VITEST=1; npm test 2>&1 | Select-String \"Test Files|passed|failed\")"
+      "PowerShell(cd d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend; $env:SMS_ALLOW_DIRECT_VITEST=1; npm test 2>&1 > test_output.log; Get-Content test_output.log | Select-String \"FAIL\" -A 25)",
+      "PowerShell(cd 'd:\\\\SMS\\\\student-management-system\\\\src\\\\frontend'; $env:SMS_ALLOW_DIRECT_VITEST=1; npm test 2>&1 | Tee-Object -Variable testOutput; $testOutput | ConvertTo-Json -Compress | Out-File -Encoding UTF8 test_results.json; \\(Get-Content test_output.log | Measure-Object -Line\\).Lines; Get-Content test_output.log -Tail 500)",
+      "PowerShell(cd 'd:\\\\SMS\\\\student-management-system\\\\src\\\\frontend'; $env:SMS_ALLOW_DIRECT_VITEST=1; npx vitest run src/features/dashboard/components/__tests__/CreateEditDashboardDialog.test.tsx -t \"displays chart count\" 2>&1)",
+      "PowerShell(cd 'd:\\\\SMS\\\\student-management-system\\\\src\\\\frontend'; $env:SMS_ALLOW_DIRECT_VITEST=1; npm test 2>&1 | Select-String \"Test Files|passed|failed\")",
+      "Read(//d/d/SMS/**)",
+      "Bash(grep -E \"\\\\.\\(py|sh\\)$\")",
+      "Read(//c/tmp/**)",
+      "PowerShell(git checkout -b fix/flatten-nested-structure)",
+      "PowerShell(git tag backup-double-nested-structure)"
     ]
   }
 }

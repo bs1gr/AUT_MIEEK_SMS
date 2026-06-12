@@ -319,11 +319,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "d:\\SMS\\student-management-system\\infra\\installer-old\\SMS_Manager\\SMS_Manager.csproj",
+      "projectUniqueName": "d:\\SMS\\student-management-system\\infra\\installer\\installer-old\\SMS_Manager\\SMS_Manager.csproj",
       "projectName": "SMS_Manager",
-      "projectPath": "d:\\SMS\\student-management-system\\infra\\installer-old\\SMS_Manager\\SMS_Manager.csproj",
+      "projectPath": "d:\\SMS\\student-management-system\\infra\\installer\\installer-old\\SMS_Manager\\SMS_Manager.csproj",
       "packagesPath": "C:\\Users\\Vasilis\\.nuget\\packages\\",
-      "outputPath": "d:\\SMS\\student-management-system\\infra\\installer-old\\SMS_Manager\\obj\\",
+      "outputPath": "d:\\SMS\\student-management-system\\infra\\installer\\installer-old\\SMS_Manager\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"

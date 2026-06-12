@@ -12,8 +12,8 @@ on:
       - 'infra/scripts/ops/COMMIT_READY.ps1'
       - '.github/workflows/**'
       - 'pyproject.toml'
-      - 'src/frontend/frontend/package.json'
-      - 'src/frontend/frontend/package-lock.json'
+      - 'src/frontend/package.json'
+      - 'src/frontend/package-lock.json'
       - 'src/backend/requirements*.txt'
       - 'infra/docker/**'
       - 'infra/installer/**'
@@ -66,3 +66,4 @@ jobs:
           fail-on-severity: high
           comment-summary-in-pr: always
           deny-licenses: GPL-3.0, AGPL-3.0
+

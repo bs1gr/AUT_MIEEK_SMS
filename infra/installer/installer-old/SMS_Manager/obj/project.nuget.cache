@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "J+oeBSLK4Os=",
+  "dgSpecHash": "dQ0h6ox3MqA=",
   "success": true,
-  "projectFilePath": "d:\\SMS\\student-management-system\\infra\\installer-old\\SMS_Manager\\SMS_Manager.csproj",
+  "projectFilePath": "D:\\SMS\\student-management-system\\infra\\installer\\installer-old\\SMS_Manager\\SMS_Manager.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Vasilis\\.nuget\\packages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
     "C:\\Users\\Vasilis\\.nuget\\packages\\microsoft.win32.registry\\5.0.0\\microsoft.win32.registry.5.0.0.nupkg.sha512",
