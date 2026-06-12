@@ -23,7 +23,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          .\NATIVE.ps1 -DeepClean -WhatIf
+          .\infra\scripts\dev\NATIVE.ps1 -DeepClean -WhatIf
 
       - name: Run native safety script (CI helper)
         shell: pwsh

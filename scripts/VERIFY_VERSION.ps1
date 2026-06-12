@@ -148,7 +148,7 @@ $versionChecks = @(
         ExactMatch = $true  # Special flag for VERSION file
     },
     @{
-        File = "src/backend/main.py"
+        File = "src/backend/backend/main.py"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $VersionCore"
         Description = "Backend main.py docstring"
@@ -192,14 +192,14 @@ $versionChecks = @(
         Critical = $false
     },
     @{
-        File = "COMMIT_READY.ps1"
+        File = "infra/scripts/ops/COMMIT_READY.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $VersionCore"
         Description = "COMMIT_READY.ps1 version"
         Critical = $false
     },
     @{
-        File = "INSTALLER_BUILDER.ps1"
+        File = "infra/scripts/release/INSTALLER_BUILDER.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $VersionCore"
         Description = "INSTALLER_BUILDER.ps1 version"
