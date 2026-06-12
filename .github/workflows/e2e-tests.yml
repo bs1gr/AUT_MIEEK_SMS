@@ -185,9 +185,10 @@ jobs:
           AUTH_LOGIN_THROTTLE_ENABLED: '0'
           AUTH_USER_LOCKOUT_ENABLED: '0'
           SERVE_FRONTEND: '1'
+          PYTHONPATH: 'src/backend'
         run: |
           echo "Starting backend server..."
-          echo "Frontend build exists: $(test -f frontend/dist/index.html && echo 'YES' || echo 'NO')"
+          echo "Frontend build exists: $(test -f src/frontend/frontend/dist/index.html && echo 'YES' || echo 'NO')"
           python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 5
