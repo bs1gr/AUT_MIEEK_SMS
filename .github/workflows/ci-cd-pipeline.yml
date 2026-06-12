@@ -188,24 +188,24 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: |
-            backend/requirements.txt
-            backend/requirements-dev.txt
+            src/backend/backend/requirements.txt
+            src/backend/backend/requirements-dev.txt
 
       - name: Install dependencies (with cache)
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-          if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; fi
+          pip install -r src/backend/backend/requirements.txt
+          if [ -f src/backend/backend/requirements-dev.txt ]; then pip install -r src/backend/backend/requirements-dev.txt; fi
 
       - name: Run Ruff linter
         run: |
-          cd backend
-          ruff check . --config=../config/ruff.toml --output-format=github
+          cd src/backend/backend
+          ruff check . --config=../../config/ruff.toml --output-format=github
 
       - name: Run MyPy type checker
         run: |
           # Run mypy from project root to avoid namespace conflicts
-          mypy --config-file=config/mypy.ini backend --namespace-packages
+          mypy --config-file=config/mypy.ini src/backend/backend --namespace-packages
 
   lint-frontend:
     name: 🔍 Frontend Linting (TypeScript/React)
@@ -220,13 +220,13 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: src/frontend/frontend/package-lock.json
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
+          key: ${{ runner.os }}-playwright-${{ hashFiles('src/frontend/frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
 
@@ -236,10 +236,10 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Install dependencies
-        run: cd frontend && npm ci --silent
+        run: cd src/frontend/frontend && npm ci --silent
 
       - name: Install Playwright browsers (with cache)
-        run: cd frontend && npx playwright install --with-deps
+        run: cd src/frontend/frontend && npx playwright install --with-deps
 
       - name: Prepare installer Greek text assets
         shell: pwsh
@@ -257,11 +257,11 @@ jobs:
         # Warnings allowed by ESLint config; errors must fail CI
         # Refactoring PR planned for next maintenance cycle
         run: |
-          cd frontend
+          cd src/frontend/frontend
           npm run lint
 
       - name: Check TypeScript compilation
-        run: cd frontend && npx tsc --noEmit
+        run: cd src/frontend/frontend && npx tsc --noEmit
 
   secret-scan:
     name: "🕵️ Secret Scanning (Gitleaks)"
@@ -392,14 +392,14 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: |
-            backend/requirements.txt
-            backend/requirements-dev.txt
+            src/backend/backend/requirements.txt
+            src/backend/backend/requirements-dev.txt
 
       - name: Install dependencies (with cache)
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-          if [ -f backend/requirements-dev.txt ]; then pip install -r backend/requirements-dev.txt; fi
+          pip install -r src/backend/backend/requirements.txt
+          if [ -f src/backend/backend/requirements-dev.txt ]; then pip install -r src/backend/backend/requirements-dev.txt; fi
 
       - name: Run backend tests with coverage
         env:
@@ -411,7 +411,7 @@ jobs:
           SMS_ALLOW_DIRECT_PYTEST: '1'
           SMS_TEST_RUNNER: 'batch'
         run: |
-          cd backend
+          cd src/backend
           pytest -v --cov=. --cov-report=html --cov-report=xml --cov-report=term-missing --html=pytest-report.html --self-contained-html --json-report --json-report-file=pytest-report.json
 
       - name: 🔒 Run path traversal security tests
@@ -421,7 +421,7 @@ jobs:
           AUTH_MODE: 'strict'
           SMS_ALLOW_DIRECT_PYTEST: '1'
         run: |
-          cd backend
+          cd src/backend
           echo "Running path traversal security tests..."
           pytest tests/test_control_path_traversal.py -v --tb=short
           if [ $? -eq 0 ]; then
@@ -440,7 +440,7 @@ jobs:
           from pathlib import Path
 
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
-          report_path = Path("backend/pytest-report.json")
+          report_path = Path("src/backend/backend/pytest-report.json")
 
           if not summary_path:
             raise SystemExit("GITHUB_STEP_SUMMARY not set")
@@ -511,9 +511,9 @@ jobs:
         with:
           name: backend-test-results
           path: |
-            backend/pytest-report.html
-            backend/pytest-report.json
-            backend/htmlcov/
+            src/backend/backend/pytest-report.html
+            src/backend/backend/pytest-report.json
+            src/backend/backend/htmlcov/
           retention-days: 30
 
       - name: Publish backend coverage summary
@@ -524,7 +524,7 @@ jobs:
           import sys
           import xml.etree.ElementTree as ET
 
-          path = "backend/coverage.xml"
+          path = "src/backend/backend/coverage.xml"
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
 
           if not summary_path:
@@ -558,18 +558,18 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: src/frontend/frontend/package-lock.json
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('frontend/package-lock.json') }}
+          key: ${{ runner.os }}-playwright-${{ hashFiles('src/frontend/frontend/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
 
       - name: Install dependencies (with cache)
-        run: cd frontend && npm ci --silent
+        run: cd src/frontend && npm ci --silent
 
       - name: Run frontend tests with coverage
         env:
@@ -578,7 +578,7 @@ jobs:
           CI: 'true'
           GITHUB_ACTIONS: 'true'
           NODE_OPTIONS: '--max-old-space-size=4096'
-        run: cd frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html --coverage.reporter=lcov --coverage.reporter=text-summary
+        run: cd src/frontend && npm run test -- --coverage --reporter=verbose --reporter=json --reporter=html --coverage.reporter=lcov --coverage.reporter=text-summary
 
       - name: Upload test results
         if: always()
@@ -586,8 +586,8 @@ jobs:
         with:
           name: frontend-test-results
           path: |
-            frontend/coverage/
-            frontend/test-results/
+            src/frontend/coverage/
+            src/frontend/test-results/
           retention-days: 30
 
       - name: Publish frontend coverage summary
@@ -597,7 +597,7 @@ jobs:
           import os
           import sys
 
-          path = "frontend/coverage/lcov.info"
+          path = "src/frontend/coverage/lcov.info"
           summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
 
           if not summary_path:
@@ -642,12 +642,12 @@ jobs:
         with:
           python-version: '3.11'
           cache: 'pip'
-          cache-dependency-path: backend/requirements*.txt
+          cache-dependency-path: src/backend/backend/requirements*.txt
 
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install -r src/backend/backend/requirements.txt
 
       - name: Create data directory
         run: mkdir -p ./data
@@ -666,7 +666,7 @@ jobs:
           AUTH_MODE: 'permissive'
           DATABASE_URL: sqlite:///./data/test_smoke.db
         run: |
-          python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          python -m uvicorn src.backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 3
 
@@ -717,20 +717,20 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: src/frontend/frontend/package-lock.json
 
       - name: Install frontend dependencies
-        run: cd frontend && npm ci --silent
+        run: cd src/frontend && npm ci --silent
 
       - name: Install Playwright browsers
-        run: cd frontend && npx playwright install --with-deps
+        run: cd src/frontend && npx playwright install --with-deps
 
       - name: Build frontend for E2E
-        run: cd frontend && npm run ci:build
+        run: cd src/frontend && npm run ci:build
 
       - name: Start frontend preview server
         run: |
-          cd frontend && npx vite preview --host 127.0.0.1 --port 5173 &
+          cd src/frontend && npx vite preview --host 127.0.0.1 --port 5173 &
           echo $! > frontend-preview.pid
           for i in $(seq 1 20); do
             curl -sf http://127.0.0.1:5173 > /dev/null 2>&1 && echo "✅ Frontend preview ready" && break
@@ -742,12 +742,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-          cache-dependency-path: backend/requirements.txt
+          cache-dependency-path: src/backend/backend/requirements.txt
 
       - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install -r src/backend/backend/requirements.txt
 
       - name: Create data directory
         run: mkdir -p ./data
@@ -764,7 +764,7 @@ jobs:
           DATABASE_URL: sqlite:///./data/e2e_test.db
         run: |
           echo "Seeding E2E test data..."
-          python backend/seed_e2e_data.py
+          python src/backend/backend/seed_e2e_data.py
 
       - name: Start backend server in background
         env:
@@ -776,7 +776,7 @@ jobs:
           SERVE_FRONTEND: '0'
         run: |
           echo "Starting backend server..."
-          python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          python -m uvicorn src.backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 3
 
@@ -832,8 +832,8 @@ jobs:
         with:
           name: e2e-test-results-${{ github.run_id }}
           path: |
-            frontend/playwright-report/
-            frontend/test-results/
+            src/frontend/playwright-report/
+            src/frontend/test-results/
           retention-days: 30
           if-no-files-found: ignore
 
@@ -853,12 +853,12 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
-          cache-dependency-path: backend/requirements.txt
+          cache-dependency-path: src/backend/backend/requirements.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install -r src/backend/backend/requirements.txt
           pip install locust requests
 
       - name: Create data directory
@@ -876,7 +876,7 @@ jobs:
           DATABASE_URL: sqlite:///./data/load_test.db
         run: |
           echo "Seeding load test data..."
-          cd ${{ github.workspace }} && python backend/seed_e2e_data.py
+          cd ${{ github.workspace }} && python src/backend/seed_e2e_data.py
 
       - name: Start backend server in background
         env:
@@ -889,7 +889,7 @@ jobs:
           RATE_LIMIT_WRITE_PER_MINUTE: '1000000'
         run: |
           echo "Starting backend server for load tests..."
-          python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 &
+          python -m uvicorn src.backend.main:app --host 127.0.0.1 --port 8000 &
           echo $! > backend.pid
           sleep 3
 
@@ -954,29 +954,29 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: src/frontend/frontend/package-lock.json
 
       - name: Install dependencies
-        run: cd frontend && npm ci --silent
+        run: cd src/frontend && npm ci --silent
 
       - name: Build production bundle
         env:
           VITE_API_URL: /api/v1
           NODE_ENV: production
-        run: cd frontend && npm run ci:build
+        run: cd src/frontend && npm run ci:build
 
       - name: Upload frontend build artifact
         uses: actions/upload-artifact@v4
         with:
           name: frontend-dist
-          path: frontend/dist
+          path: src/frontend/dist
           retention-days: 30
 
       - name: Upload build stats
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build-stats
-          path: frontend/.vite/stats.json
+          path: src/frontend/frontend/.vite/stats.json
           retention-days: 7
           if-no-files-found: ignore
         if: always()
@@ -1061,14 +1061,14 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: |
-            backend/requirements.txt
-            backend/requirements-dev.txt
+            src/backend/requirements.txt
+            src/backend/requirements-dev.txt
 
       - name: Install dependencies (with cache)
         run: |
           python -m pip install --upgrade pip
           pip install pip-audit
-          pip install -r backend/requirements.txt
+          pip install -r src/backend/backend/requirements.txt
 
       - name: Run pip-audit for CVE detection (primary security tool)
         run: |
@@ -1125,7 +1125,7 @@ jobs:
                       'locations': [{
                           'physicalLocation': {
                               'artifactLocation': {
-                                  'uri': 'backend/requirements.txt'
+                                  'uri': 'src/backend/backend/requirements.txt'
                               }
                           }
                       }]
@@ -1240,17 +1240,17 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: src/frontend/frontend/package-lock.json
 
       - name: Install dependencies
-        run: cd frontend && npm ci --silent
+        run: cd src/frontend && npm ci --silent
 
       - name: Run npm audit
-        run: cd frontend && npm audit --omit=dev --json > npm-audit.json || true
+        run: cd src/frontend && npm audit --omit=dev --json > npm-audit.json || true
 
       - name: Check npm audit results
         run: |
-          cd frontend
+          cd src/frontend
           if npm audit --omit=dev --audit-level=moderate > /dev/null 2>&1; then
             echo "✓ No moderate or higher security vulnerabilities found"
           else
@@ -1262,7 +1262,7 @@ jobs:
       - name: Convert npm-audit to SARIF format
         if: always()
         run: |
-          cd frontend
+          cd src/frontend
           python - <<'PY'
           import json
 
@@ -1307,7 +1307,7 @@ jobs:
                   'locations': [{
                       'physicalLocation': {
                           'artifactLocation': {
-                              'uri': 'frontend/package-lock.json'
+                              'uri': 'src/frontend/frontend/package-lock.json'
                           }
                       }
                   }]
@@ -1327,7 +1327,7 @@ jobs:
         with:
           name: frontend-security-reports
           path: |
-            frontend/npm-audit.json
+            src/frontend/frontend/npm-audit.json
             src/frontend/frontend-audit.sarif
           retention-days: 30
 
@@ -2327,3 +2327,6 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+
+
+

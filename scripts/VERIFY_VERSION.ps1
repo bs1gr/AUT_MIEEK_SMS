@@ -79,10 +79,10 @@ function Get-VersionTag {
 # ============================================================================
 if ($CIMode) {
     $VERSION_FILE = Join-Path $PROJECT_ROOT 'VERSION'
-    $FRONTEND_PKG = Join-Path $PROJECT_ROOT 'frontend\package.json'
+    $FRONTEND_PKG = Join-Path $PROJECT_ROOT 'src\frontend\frontend\package.json'
 
     if (-not (Test-Path $VERSION_FILE) -or -not (Test-Path $FRONTEND_PKG)) {
-        Write-Error-Message "Missing VERSION or frontend/package.json"
+        Write-Error-Message "Missing VERSION or src/frontend/frontend/package.json"
         exit 1
     }
 
@@ -148,14 +148,14 @@ $versionChecks = @(
         ExactMatch = $true  # Special flag for VERSION file
     },
     @{
-        File = "backend/main.py"
+        File = "src/backend/backend/main.py"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $VersionCore"
         Description = "Backend main.py docstring"
         Critical = $true
     },
     @{
-        File = "frontend/package.json"
+        File = "src/frontend/frontend/package.json"
         Pattern = '"version":\s*"v?\d+\.\d+\.\d+"'
         Replace = "`"version`": `"v$VersionCore`""
         Description = "Frontend package.json"
@@ -192,14 +192,14 @@ $versionChecks = @(
         Critical = $false
     },
     @{
-        File = "COMMIT_READY.ps1"
+        File = "infra/scripts/ops/COMMIT_READY.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $VersionCore"
         Description = "COMMIT_READY.ps1 version"
         Critical = $false
     },
     @{
-        File = "INSTALLER_BUILDER.ps1"
+        File = "infra/scripts/release/INSTALLER_BUILDER.ps1"
         Pattern = 'Version:\s*\d+\.\d+\.\d+'
         Replace = "Version: $VersionCore"
         Description = "INSTALLER_BUILDER.ps1 version"
@@ -304,7 +304,7 @@ foreach ($check in $versionChecks) {
 #   2. "packages" → "" → "version" (also project version)
 # All other "version" fields are dependency versions and must NOT be changed
 if ($Update) {
-    $packageLockPath = Join-Path $PROJECT_ROOT "frontend/package-lock.json"
+    $packageLockPath = Join-Path $PROJECT_ROOT "src/frontend/frontend/package-lock.json"
     if (Test-Path $packageLockPath) {
         try {
             $lockContent = Get-Content $packageLockPath -Raw

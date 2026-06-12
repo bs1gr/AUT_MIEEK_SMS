@@ -25,4 +25,4 @@ jobs:
       - name: Run native setup (smoke)
         shell: pwsh
         run: |
-          pwsh -NoProfile -Command "Set-Location ${{ github.workspace }}; .\NATIVE.ps1 -Setup"
+          pwsh -NoProfile -Command "Set-Location ${{ github.workspace }}; .\infra\scripts\dev\NATIVE.ps1 -Setup"

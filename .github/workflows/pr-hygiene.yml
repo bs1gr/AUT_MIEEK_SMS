@@ -4,20 +4,20 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'backend/**'
-      - 'frontend/**'
+      - 'src/backend/**'
+      - 'src/frontend/**'
       - 'scripts/**'
       - 'docs/**'
       - 'VERSION'
-      - 'COMMIT_READY.ps1'
+      - 'infra/scripts/ops/COMMIT_READY.ps1'
       - '.github/workflows/**'
       - 'pyproject.toml'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'requirements*.txt'
-      - 'docker/**'
-      - 'installer/**'
-      - 'tools/**'
+      - 'src/frontend/frontend/package.json'
+      - 'src/frontend/frontend/package-lock.json'
+      - 'src/backend/requirements*.txt'
+      - 'infra/docker/**'
+      - 'infra/installer/**'
+      - 'infra/scripts/**'
   workflow_dispatch:
 
 concurrency:
@@ -51,7 +51,7 @@ jobs:
           fetch-depth: 0
       - name: Run commit ready quick validation
         shell: pwsh
-        run: ./COMMIT_READY.ps1 -Quick -NonInteractive
+        run: ./infra/scripts/ops/COMMIT_READY.ps1 -Quick -NonInteractive
 
   dependency-review:
     name: Dependency Review
