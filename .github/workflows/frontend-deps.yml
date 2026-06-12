@@ -5,8 +5,8 @@ on:
     - cron: '0 0 * * 0'  # Weekly on Sunday
   pull_request:
     paths:
-      - 'frontend/package.json'
-      - 'frontend/package-lock.json'
+      - 'src/frontend/package.json'
+      - 'src/frontend/package-lock.json'
       - '.github/workflows/frontend-deps.yml'
 
 jobs:
@@ -21,12 +21,12 @@ jobs:
           node-version: '24'
 
       - name: Run npm audit
-        working-directory: ./frontend
+        working-directory: ./src/frontend
         run: npm audit --json > audit-report.json || true
 
       - name: Check for critical vulnerabilities
         shell: bash
-        working-directory: ./frontend
+        working-directory: ./src/frontend
         run: |
           set -euo pipefail
 
@@ -47,7 +47,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: frontend-audit-report
-          path: frontend/audit-report.json
+          path: src/frontend/audit-report.json
           retention-days: 30
 
   update-check:
@@ -61,7 +61,7 @@ jobs:
           node-version: '24'
 
       - name: Check for outdated packages
-        working-directory: ./frontend
+        working-directory: ./src/frontend
         run: |
           echo "📦 Outdated packages:"
           npm outdated || true
