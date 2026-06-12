@@ -417,7 +417,7 @@ function formatUptime(seconds: number): string {
       clearInterval(interval);
       if (uptimeTimerRef.current) clearInterval(uptimeTimerRef.current);
     };
-  }, [fetchStatus, fetchDiagnostics, fetchPorts, fetchEnvironment]);
+  }, [fetchStatus]);
 
   // Tab change effects
   useEffect(() => {

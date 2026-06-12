@@ -117,6 +117,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
       setAccessDenied(true);
       return;
     }
+    setAccessDenied(false);
     void loadUsers();
   }, [loadUsers, user, accessToken]);
 
