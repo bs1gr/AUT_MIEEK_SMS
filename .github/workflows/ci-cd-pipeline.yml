@@ -1590,21 +1590,28 @@ jobs:
             $stagingUrl = "https://$deployHost"
           }
 
+          Write-Host "🚦 Staging Deployment Gate Evaluation" -ForegroundColor Cyan
+          Write-Host "  Event: $env:EVENT_NAME"
+          Write-Host "  Deploy Env Input: $env:INPUT_DEPLOY_ENV"
+          Write-Host "  STAGING_DEPLOY_ENABLED: $env:STAGING_DEPLOY_ENABLED"
+          Write-Host "  AUTO_DEPLOY_ON_PUSH: $env:AUTO_DEPLOY_ON_PUSH"
+          Write-Host "  Staging URL: $stagingUrl"
+          Write-Host ""
+
+          # Only allow explicit workflow_dispatch or workflow_call
           if ($env:EVENT_NAME -eq 'workflow_dispatch' -and $env:INPUT_DEPLOY_ENV -eq 'staging') {
+            Write-Host "✅ Deployment triggered by manual workflow_dispatch" -ForegroundColor Green
             $shouldDeploy = $true
           }
           elseif ($env:EVENT_NAME -eq 'workflow_call' -and $env:INPUT_DEPLOY_ENV -eq 'staging') {
+            Write-Host "✅ Deployment triggered by workflow_call" -ForegroundColor Green
             $shouldDeploy = $true
           }
-          elseif (
-            $env:EVENT_NAME -eq 'push' -and
-            $env:REF_NAME -eq 'refs/heads/main' -and
-            $env:ACTOR -eq 'bs1gr' -and
-            $env:STAGING_DEPLOY_ENABLED -eq 'true' -and
-            $env:AUTO_DEPLOY_ON_PUSH -eq 'true' -and
-            -not [string]::IsNullOrWhiteSpace($stagingUrl)
-          ) {
-            $shouldDeploy = $true
+          else {
+            Write-Host "⏭️  Automatic staging deployment disabled. Use workflow_dispatch to deploy manually." -ForegroundColor Yellow
+            if ([string]::IsNullOrWhiteSpace($stagingUrl)) {
+              Write-Host "  Note: STAGING_URL not configured. Set it in repository variables to enable deployments." -ForegroundColor Gray
+            }
           }
 
           "should_deploy=$($shouldDeploy.ToString().ToLowerInvariant())" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
@@ -1675,6 +1682,21 @@ jobs:
     env:
       STAGING_URL: ${{ needs.staging-deploy-gate.outputs.staging_url }}
     steps:
+      - name: Check runner availability
+        id: runner_check
+        shell: pwsh
+        run: |
+          Write-Host "🔍 Verifying self-hosted runner is available..." -ForegroundColor Cyan
+          Write-Host "  Runner labels: self-hosted, windows, staging-lan"
+          Write-Host "  Runner OS: $env:RUNNER_OS"
+          Write-Host "  Runner name: $env:RUNNER_NAME"
+
+          if ([string]::IsNullOrWhiteSpace($env:RUNNER_NAME)) {
+            Write-Warning "⚠️  Runner information unavailable. Deployment may fail if runner not properly registered."
+          } else {
+            Write-Host "✅ Runner available: $env:RUNNER_NAME" -ForegroundColor Green
+          }
+
       - name: Normalize Git settings (self-hosted runner)
         shell: pwsh
         run: |

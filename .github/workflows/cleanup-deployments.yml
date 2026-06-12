@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to clean (e.g., production, staging)'
+        description: 'Environment to clean (e.g., production, staging, development)'
         required: true
-        default: 'production'
+        default: 'staging'
         type: choice
         options:
           - production
@@ -15,7 +15,7 @@ on:
       keep_count:
         description: 'Number of recent deployments to keep'
         required: false
-        default: 1
+        default: 3
         type: number
       dry_run:
         description: 'Dry run (log only, do not delete)'
@@ -23,7 +23,7 @@ on:
         default: true
         type: boolean
   schedule:
-    - cron: '0 0 1 * *' # Monthly cleanup (1st of month at 00:00 UTC)
+    - cron: '0 2 * * 1' # Weekly cleanup every Monday at 2 AM UTC
 
 jobs:
   cleanup:
@@ -52,46 +52,77 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
-          TARGET_ENV: ${{ inputs.environment || 'production' }}
-          KEEP_COUNT: ${{ inputs.keep_count || 1 }}
+          TARGET_ENV: ${{ inputs.environment || 'staging' }}
+          KEEP_COUNT: ${{ inputs.keep_count || 3 }}
           DRY_RUN: ${{ inputs.dry_run || false }}
         run: |
           set -euo pipefail
 
+          echo "🧹 Cleanup Deployments"
+          echo "======================"
           echo "Target environment: $TARGET_ENV"
-          echo "Keep count: $KEEP_COUNT"
+          echo "Keep count: $KEEP_COUNT most recent"
           echo "Dry run: $DRY_RUN"
+          echo ""
 
-          DEPLOY_IDS=$(gh api "repos/$GH_REPO/deployments?environment=$TARGET_ENV&per_page=100" --jq '.[].id')
+          # Fetch deployments with pagination
+          DEPLOY_DATA=$(gh api "repos/$GH_REPO/deployments?environment=$TARGET_ENV&per_page=100&sort=updated&direction=desc" --jq '.[] | {id: .id, created_at: .created_at, status: .state, ref: .ref}')
 
-          if [ -z "$DEPLOY_IDS" ]; then
+          if [ -z "$DEPLOY_DATA" ]; then
             echo "No deployments found for $TARGET_ENV"
             exit 0
           fi
 
-          TOTAL=$(echo "$DEPLOY_IDS" | wc -l)
+          # Count total deployments
+          TOTAL=$(echo "$DEPLOY_DATA" | jq -s 'length')
           echo "Found $TOTAL deployments for $TARGET_ENV"
+          echo ""
 
-          TO_DELETE=$(echo "$DEPLOY_IDS" | tail -n +$((KEEP_COUNT + 1)))
+          if [ "$TOTAL" -le "$KEEP_COUNT" ]; then
+            echo "✅ No cleanup needed (keeping $KEEP_COUNT, found $TOTAL)"
+            exit 0
+          fi
+
+          # List deployments that will be kept
+          echo "📌 Will KEEP (most recent $KEEP_COUNT):"
+          echo "$DEPLOY_DATA" | jq -s ".[:$KEEP_COUNT][] | \"  [\(.id)] \(.created_at) - \(.status)\"" -r
+
+          # Extract IDs of deployments to delete
+          TO_DELETE=$(echo "$DEPLOY_DATA" | jq -s ".[$KEEP_COUNT:][] | .id" -r)
 
           if [ -z "$TO_DELETE" ]; then
-            echo "Nothing to delete (keeping last $KEEP_COUNT deployments)."
+            echo "✅ Nothing to delete"
             exit 0
           fi
 
-          echo "Will delete deployment IDs:"
-          echo "$TO_DELETE"
+          echo ""
+          echo "🗑️  Will DELETE (old deployments):"
+          echo "$TO_DELETE" | while read -r id; do
+            echo "  [$id]"
+          done
 
           if [ "$DRY_RUN" = "true" ]; then
-            echo "Dry run enabled. No deletions performed."
+            echo ""
+            echo "✅ Dry run enabled. No deletions performed."
+            echo "   Re-run with dry_run=false to actually delete."
             exit 0
           fi
 
+          echo ""
+          echo "Executing deletions..."
+          DELETED=0
+          FAILED=0
           while IFS= read -r id; do
             if [ -n "$id" ]; then
-              echo "Deleting deployment $id..."
-              gh api -X DELETE "repos/$GH_REPO/deployments/$id" || echo "Warning: failed to delete $id"
+              if gh api -X DELETE "repos/$GH_REPO/deployments/$id" >/dev/null 2>&1; then
+                echo "  ✅ Deleted deployment $id"
+                ((DELETED++))
+              else
+                echo "  ⚠️  Failed to delete deployment $id (may already be gone)"
+                ((FAILED++))
+              fi
             fi
           done <<< "$TO_DELETE"
 
-          echo "Cleanup complete."
+          echo ""
+          echo "✅ Cleanup complete: $DELETED deleted, $FAILED failed/skipped"
