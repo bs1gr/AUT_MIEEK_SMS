@@ -6,7 +6,7 @@ Complements the existing routers_rbac.py with enhanced functionality.
 """
 
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, text
@@ -87,7 +87,7 @@ async def list_permissions_by_resource(
     )
 
     # Group by resource
-    grouped = {}
+    grouped: dict[Any, list[PermissionListItem]] = {}
     for perm in permissions:
         if perm.resource not in grouped:
             grouped[perm.resource] = []
@@ -439,7 +439,7 @@ async def revoke_role_permission(
         {"role_id": role.id, "perm_id": permission.id},
     )
 
-    if result.rowcount == 0:
+    if result.rowcount == 0:  # type: ignore[attr-defined]
         raise HTTPException(status_code=404, detail="Role permission assignment not found")
 
     db.commit()

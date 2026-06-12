@@ -53,8 +53,8 @@ def _hidden_window_kwargs() -> Dict[str, Any]:
     """
     if os.name != "nt":
         return {}
-    si = subprocess.STARTUPINFO()
-    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    si = subprocess.STARTUPINFO()  # type: ignore[attr-defined]
+    si.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore[attr-defined]
     si.wShowWindow = 0  # SW_HIDE
     return {"startupinfo": si}
 

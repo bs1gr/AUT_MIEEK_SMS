@@ -5,7 +5,7 @@ Optimized with eager loading to prevent N+1 query problems.
 """
 
 import logging
-from typing import Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
@@ -221,7 +221,7 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
                     "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
                 }
             )
-        class_averages.sort(key=lambda item: item["count"], reverse=True)
+        class_averages.sort(key=lambda item: item["count"], reverse=True)  # type: ignore[arg-type,return-value]
 
         division_averages = []
         for label, count in division_counts.items():
@@ -233,7 +233,7 @@ def get_analytics_lookups(request: Request, db: Session = Depends(get_db)):
                     "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
                 }
             )
-        division_averages.sort(key=lambda item: item["count"], reverse=True)
+        division_averages.sort(key=lambda item: item["count"], reverse=True)  # type: ignore[arg-type,return-value]
 
         course_averages = []
         for course_id, course in course_by_id.items():
@@ -332,7 +332,7 @@ def _build_dashboard_export_data(db: Session, language: str = "en") -> dict:
                 "average": (stats["total"] / stats["count"]) if stats["count"] else 0,
             }
         )
-    class_averages.sort(key=lambda item: item["count"], reverse=True)
+    class_averages.sort(key=lambda item: item["count"], reverse=True)  # type: ignore[arg-type,return-value]
 
     enrollment_query = db.query(CourseEnrollment.course_id, func.count(CourseEnrollment.id).label("count"))
     if hasattr(CourseEnrollment, "deleted_at"):

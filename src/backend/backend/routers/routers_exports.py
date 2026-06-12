@@ -2,7 +2,7 @@ import os
 import csv
 import zipfile
 import re
-from typing import Any
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Query
 
@@ -2138,7 +2138,7 @@ async def export_attendance_analytics_csv(request: Request, db: Session = Depend
         flat_rows = _build_attendance_analytics_csv_rows(rows, lang, na_value)
 
         filename = f"attendance_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        headers = []
+        headers: list[str] = []
         return _csv_response(headers, flat_rows, filename)
     except Exception as exc:
         logger.error("Export attendance analytics csv failed: %s", exc, exc_info=True)
@@ -3125,7 +3125,7 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
         # Grades by Course
         elements.append(Paragraph(t("grades_by_course", lang), subtitle_style))
         grades = db.query(Grade).filter(Grade.student_id == student_id, Grade.deleted_at.is_(None)).all()
-        course_grades = {}
+        course_grades: Dict[Any, List[Any]] = {}
         for g in grades:
             if g.course_id not in course_grades:
                 course_grades[g.course_id] = []

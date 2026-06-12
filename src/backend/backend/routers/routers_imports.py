@@ -14,7 +14,7 @@ import re
 import unicodedata
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile
 from sqlalchemy.orm import Session
@@ -349,7 +349,7 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
         has_known_headers = any(name in fieldnames for name in column_map.keys())
 
         # Helper to process and validate a student record
-        def _process(student: dict, row_no: int):
+        def _process(student: Dict[str, Any], row_no: int):
             fn = student.get("first_name")
             ln = student.get("last_name")
             email = student.get("email")
@@ -393,7 +393,7 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
             for row in dict_reader:
                 row_no += 1
                 try:
-                    student: dict = {}
+                    student: Dict[str, str] = {}
                     for csv_col, model_field in column_map.items():
                         val = str(row.get(csv_col, "")).strip()
                         if val:
@@ -408,26 +408,26 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
             # Headerless path: positional columns
             raw_reader = csv.reader(io.StringIO(text), delimiter=";")
             row_no = 0
-            for row in raw_reader:
+            for row_list in raw_reader:
                 row_no += 1
                 try:
-                    if not row or all(not (str(c or "").strip()) for c in row):
+                    if not row_list or all(not (str(c or "").strip()) for c in row_list):
                         continue
-                    if len(row) < 4:
+                    if len(row_list) < 4:
                         errors.append(f"{filename} row {row_no}: Too few columns")
                         continue
                     student = {
-                        "student_id": str(row[0]).strip(),
-                        "first_name": str(row[1]).strip(),
-                        "last_name": str(row[2]).strip(),
-                        "email": str(row[3]).strip(),
+                        "student_id": str(row_list[0]).strip(),
+                        "first_name": str(row_list[1]).strip(),
+                        "last_name": str(row_list[2]).strip(),
+                        "email": str(row_list[3]).strip(),
                     }
-                    if len(row) >= 5:
-                        student["study_year"] = str(row[4]).strip()
-                    if len(row) >= 6 and str(row[5]).strip():
-                        student["mobile_phone"] = str(row[5]).strip()
-                    if len(row) >= 7 and str(row[6]).strip():
-                        student["phone"] = str(row[6]).strip()
+                    if len(row_list) >= 5:
+                        student["study_year"] = str(row_list[4]).strip()
+                    if len(row_list) >= 6 and str(row_list[5]).strip():
+                        student["mobile_phone"] = str(row_list[5]).strip()
+                    if len(row_list) >= 7 and str(row_list[6]).strip():
+                        student["phone"] = str(row_list[6]).strip()
                     _process(student, row_no)
                 except Exception as exc:
                     errors.append(f"{filename} row {row_no}: {exc!s}")
