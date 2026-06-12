@@ -37,15 +37,15 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
           cache-dependency-path: |
-            src/backend/requirements.txt
-            src/backend/requirements-dev.txt
+            src/backend/backend/requirements.txt
+            src/backend/backend/requirements-dev.txt
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: src/frontend/package-lock.json
+          cache-dependency-path: src/frontend/frontend/package-lock.json
 
       - name: Install backend dependencies (fast)
         run: |
@@ -54,20 +54,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install ruff pytest mypy
           # Install full backend requirements to avoid missing optional deps
-          pip install -r src/backend/requirements.txt
+          pip install -r src/backend/backend/requirements.txt
 
       - name: Install backend dev dependencies
-        if: hashFiles('src/backend/requirements-dev.txt') != ''
+        if: hashFiles('src/backend/backend/requirements-dev.txt') != ''
         run: |
           set -euo pipefail
 
-          pip install -r src/backend/requirements-dev.txt
+          pip install -r src/backend/backend/requirements-dev.txt
 
       - name: Install frontend deps
         run: |
           set -euo pipefail
 
-          cd frontend
+          cd src/frontend/frontend
           npm ci --prefer-offline --no-audit
 
       - name: Run backend fast tests (pytest) and produce JUnit
@@ -78,7 +78,7 @@ jobs:
           set -euo pipefail
 
           echo "Running backend fast tests..."
-          cd backend
+          cd src/backend/backend
           python -m pytest tests/ -m "not slow" -q --tb=short --junitxml=pytest-results.xml
 
       - name: Run frontend fast tests (vitest) and produce JUnit
@@ -86,7 +86,7 @@ jobs:
           set -euo pipefail
 
           echo "Running frontend fast tests..."
-          cd frontend
+          cd src/frontend/frontend
           npx vitest run --reporter=junit --outputFile=vitest-results.xml
 
       - name: Run COMMIT_READY quick smoke (skip tests for speed)
@@ -106,8 +106,8 @@ jobs:
           name: commit-ready-smoke-logs-ubuntu
           path: |
             commit_ready_output_ubuntu.txt
-            backend/pytest-results.xml
-            frontend/vitest-results.xml
+            src/backend/backend/pytest-results.xml
+            src/frontend/frontend/vitest-results.xml
           retention-days: 7
 
   commit-ready-windows:
@@ -134,15 +134,15 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install ruff pytest mypy
-          pip install -r src/backend/requirements.txt
-          if (Test-Path "src/backend/requirements-dev.txt") {
-            pip install -r src/backend/requirements-dev.txt
+          pip install -r src/backend/backend/requirements.txt
+          if (Test-Path "src/backend/backend/requirements-dev.txt") {
+            pip install -r src/backend/backend/requirements-dev.txt
           }
 
       - name: Install frontend deps
         shell: pwsh
         run: |
-          cd frontend
+          cd src/frontend/frontend
           npm ci --prefer-offline --no-audit --legacy-peer-deps
 
       - name: Run backend fast tests (pytest)
@@ -152,7 +152,7 @@ jobs:
           DATABASE_URL: "sqlite:///:memory:"
         run: |
           Write-Host "Running backend fast tests..."
-          Push-Location backend
+          Push-Location src/backend/backend
           python -m pytest tests/ -m "not slow" -q --tb=short --junitxml=pytest-results.xml
           Pop-Location
 
@@ -160,7 +160,7 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "Running frontend fast tests..."
-          Push-Location frontend
+          Push-Location src/frontend/frontend
           npx vitest run --reporter=junit --outputFile=vitest-results.xml
           Pop-Location
 
@@ -192,8 +192,8 @@ jobs:
           name: commit-ready-smoke-logs-windows
           path: |
             commit_ready_output_windows.txt
-            backend/pytest-results.xml
-            frontend/vitest-results.xml
+            src/backend/backend/pytest-results.xml
+            src/frontend/frontend/vitest-results.xml
           retention-days: 7
 
   # ============================================================================
@@ -229,9 +229,9 @@ jobs:
         shell: bash
         run: |
           python -m pip install --upgrade pip
-          pip install -r src/backend/requirements.txt
-          [ -f "src/backend/requirements-dev.txt" ] && pip install -r src/backend/requirements-dev.txt || true
-          cd src/frontend && npm ci --prefer-offline --no-audit || true
+          pip install -r src/backend/backend/requirements.txt
+          [ -f "src/backend/backend/requirements-dev.txt" ] && pip install -r src/backend/backend/requirements-dev.txt || true
+          cd src/frontend/frontend && npm ci --prefer-offline --no-audit || true
 
       - name: Create cleanup test fixtures
         shell: bash
@@ -249,9 +249,9 @@ jobs:
           DATABASE_URL: "sqlite:///:memory:"
         run: |
           echo "🧹 Running extended cleanup verification on ${{ matrix.os }}..."
-          cd src/backend
+          cd src/backend/backend
           python -m pytest tests/ -m "not slow" -q --tb=short || true
-          cd ../frontend
+          cd ../../src/frontend/frontend
           npx vitest run || true
 
       - name: Verify cleanup fixtures were created
@@ -271,8 +271,8 @@ jobs:
         with:
           name: cleanup-verification-${{ matrix.os }}
           path: |
-            src/backend/pytest-results.xml
-            src/frontend/vitest-results.xml
+            src/backend/backend/pytest-results.xml
+            src/frontend/frontend/vitest-results.xml
           retention-days: 7
           if-no-files-found: warn
 
