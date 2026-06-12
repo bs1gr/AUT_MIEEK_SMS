@@ -53,7 +53,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$PROJECT_ROOT = Split-Path -Parent $SCRIPT_DIR
+$PROJECT_ROOT = Split-Path -Parent (Split-Path -Parent $SCRIPT_DIR)
 
 # Color output helpers
 function Write-Success { param($msg) Write-Host "[OK] $msg" -ForegroundColor Green }

@@ -25,7 +25,7 @@ pytestmark = pytest.mark.no_app_context
 @pytest.fixture
 def project_root() -> Path:
     """Get project root directory."""
-    return Path(__file__).resolve().parents[2]
+    return Path(__file__).resolve().parents[3]
 
 
 @pytest.fixture
@@ -66,8 +66,8 @@ def test_version_file_exists(project_root: Path):
 
 def test_frontend_package_json_version(project_root: Path, version_core: str):
     """Verify frontend/package.json version matches VERSION file."""
-    pkg_path = project_root / "frontend" / "package.json"
-    assert pkg_path.exists(), "frontend/package.json not found"
+    pkg_path = project_root / "src" / "frontend" / "package.json"
+    assert pkg_path.exists(), "src/frontend/package.json not found"
 
     pkg_data = json.loads(pkg_path.read_text(encoding="utf-8"))
     pkg_version = pkg_data.get("version")
@@ -77,8 +77,8 @@ def test_frontend_package_json_version(project_root: Path, version_core: str):
 
 def test_backend_main_docstring_version(project_root: Path, version_core: str):
     """Verify backend/main.py docstring version matches VERSION file."""
-    main_path = project_root / "backend" / "main.py"
-    assert main_path.exists(), "backend/main.py not found"
+    main_path = project_root / "src" / "backend" / "main.py"
+    assert main_path.exists(), "src/backend/main.py not found"
 
     content = main_path.read_text(encoding="utf-8")
     extracted_version = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
@@ -245,12 +245,12 @@ def test_all_versions_consistent(project_root: Path, version_file: str, version_
     }
 
     # Collect all versions
-    pkg_path = project_root / "frontend" / "package.json"
+    pkg_path = project_root / "src" / "frontend" / "package.json"
     if pkg_path.exists():
         pkg_data = json.loads(pkg_path.read_text(encoding="utf-8"))
         version_files["package.json"] = pkg_data.get("version")
 
-    main_path = project_root / "backend" / "main.py"
+    main_path = project_root / "src" / "backend" / "main.py"
     if main_path.exists():
         content = main_path.read_text(encoding="utf-8")
         version_files["main.py"] = extract_version(content, r"Version:\s*(\d+\.\d+\.\d+)")
@@ -299,8 +299,8 @@ def test_all_versions_consistent(project_root: Path, version_file: str, version_
 
 def test_verify_version_script_exists(project_root: Path):
     """Ensure VERIFY_VERSION.ps1 script exists for CI/CD."""
-    script_path = project_root / "scripts" / "VERIFY_VERSION.ps1"
-    assert script_path.exists(), "VERIFY_VERSION.ps1 script must exist for CI/CD version validation"
+    script_path = project_root / "src" / "scripts" / "VERIFY_VERSION.ps1"
+    assert script_path.exists(), "src/scripts/VERIFY_VERSION.ps1 script must exist for CI/CD version validation"
 
     # Verify script has proper execution permissions (on Windows, just check readability)
     content = script_path.read_text(encoding="utf-8")
