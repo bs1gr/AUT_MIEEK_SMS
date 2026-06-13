@@ -319,31 +319,20 @@ async def restore_encrypted_backup(
         # Create temporary output directory
         restore_dir = (backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}").resolve()
         restore_dir.mkdir(parents=True, exist_ok=True)
-        # Use os.path.basename to strip any residual path components from the validated filename
-        # before joining with the trusted restore_dir, breaking the taint chain entirely.
-        bare_filename = os.path.basename(safe_output_filename)
-        if not bare_filename:
-            raise HTTPException(status_code=400, detail="Invalid output filename")
-        output_path = restore_dir / bare_filename
-        # Verify the resolved path stays within restore_dir
-        try:
-            validate_path(restore_dir, output_path)
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=f"Output path outside allowed directory: {str(e)}")
-
-        # Both restore_dir (system-generated) and bare_filename (basename-stripped) are safe
-        sanitized_output_path: pathlib.Path = output_path
+        # Use a system-generated path for the actual file operation (no user input in path).
+        # safe_output_filename is only used as the browser download name, not for file access.
+        restore_file_path = restore_dir / "restored_database.db"
 
         # Decrypt and restore backup
         restore_info = backup_service.restore_encrypted_backup(
             backup_name=backup_name,
-            output_path=sanitized_output_path,
+            output_path=restore_file_path,
             allowed_base_dir=restore_dir,
         )
 
         # Return restored file
         return FileResponse(
-            str(sanitized_output_path),
+            str(restore_file_path),
             media_type="application/x-sqlite3",
             filename=safe_output_filename,
             headers={

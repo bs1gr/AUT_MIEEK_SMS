@@ -382,7 +382,7 @@ async def stop_monitoring_stack(request: Request):
                 "request_id": getattr(request.state, "request_id", None),
             },
         )
-        return {"success": True, "message": "Monitoring stack stopped successfully", "details": {"output": stdout}}
+        return {"success": True, "message": "Monitoring stack stopped successfully"}
     except HTTPException:
         raise
     except Exception as exc:

@@ -21,7 +21,6 @@ from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}})
 
-_WEIGHT_PATTERN = re.compile(r"^(?P<category>[^:,\-]+?)[\s:,-]+(?P<weight>\d+(?:[\.,]\d+)?)%?$")
 _YEAR_PATTERN = re.compile(r"(\d{4})")
 
 
@@ -43,11 +42,19 @@ def _coerce_weight(value: Any) -> Optional[float]:
 
 
 def _extract_weight_from_text(text: str) -> Optional[Tuple[str, float]]:
-    match = _WEIGHT_PATTERN.match(text.strip())
-    if not match:
+    text = text.strip()
+    # Use string operations to avoid ReDoS: [^:,\-] overlaps with [\s:,-] on whitespace.
+    # Find last separator character (:, -, ,) to split category from weight.
+    last_sep = -1
+    for i, ch in enumerate(text):
+        if ch in ":,-":
+            last_sep = i
+    if last_sep < 0:
         return None
-    category = match.group("category").strip()
-    weight_text = match.group("weight").replace(",", ".")
+    category = text[:last_sep].strip()
+    weight_text = text[last_sep + 1:].strip().rstrip("%").strip().replace(",", ".")
+    if not category or not weight_text:
+        return None
     try:
         weight = float(weight_text)
     except ValueError:

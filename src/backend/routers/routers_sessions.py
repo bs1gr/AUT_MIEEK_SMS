@@ -726,42 +726,27 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": backup_filename},
             )
-        # Use os.path.basename to strip all directory components from user input,
-        # then join with the trusted backup_dir. This breaks the taint chain entirely.
+        # Enumerate actual backup files from the filesystem to get untainted paths.
+        # Lookup by basename only — the path object comes from glob (not from user input),
+        # breaking the taint chain that CodeQL would otherwise track through basename/join.
+        all_backups: dict[str, Path] = {}
+        if backup_dir.exists():
+            for _ext in ("*.db", "*.enc", "*.backup"):
+                for _f in backup_dir.glob(_ext):
+                    all_backups[_f.name] = _f
         safe_filename = os.path.basename(backup_filename)
-        if not safe_filename:
-            raise http_error(
-                400,
-                ErrorCode.IMPORT_INVALID_REQUEST,
-                "Invalid backup filename",
-                request,
-                context={"filename": backup_filename},
-            )
-        backup_path = backup_dir / safe_filename
-        # Verify resolved path stays within backup_dir
-        try:
-            validate_path(backup_dir, backup_path)
-        except ValueError as e:
-            raise http_error(
-                400,
-                ErrorCode.IMPORT_INVALID_REQUEST,
-                f"Backup path outside allowed directory: {str(e)}",
-                request,
-                context={"filename": backup_filename},
-            )
-
-        # Path is safe: constructed from trusted backup_dir + basename-only filename
-        sanitized_backup_path: Path = backup_path
-
-        if not sanitized_backup_path.exists():
-            available_backups = [f.name for f in backup_dir.glob("*.db")] if backup_dir.exists() else []
+        if not safe_filename or safe_filename not in all_backups:
+            available_backups = list(all_backups.keys())[:10]
             raise http_error(
                 404,
                 ErrorCode.IMPORT_PROCESSING_FAILED,
                 f"Backup file not found: {backup_filename}",
                 request,
-                context={"filename": backup_filename, "available_backups": available_backups[:10]},
+                context={"filename": backup_filename, "available_backups": available_backups},
             )
+        # backup_path comes from the filesystem glob — not derived from user input
+        backup_path = all_backups[safe_filename]
+        sanitized_backup_path: Path = backup_path
 
         # Extract current database path from trusted configuration source
         db_url = settings.DATABASE_URL

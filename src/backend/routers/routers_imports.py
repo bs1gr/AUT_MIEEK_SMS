@@ -210,7 +210,14 @@ def _valid_email(s: str) -> bool:
     # Length-limit guard prevents polynomial backtracking on the nested quantifiers
     if len(s) > 254:
         return False
-    return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", s))
+    # Avoid polynomial ReDoS: the second [^@\s]+ group overlaps with \. on dot chars.
+    # Use string operations instead (O(n), no backtracking).
+    at_idx = s.find("@")
+    if at_idx <= 0 or s.count("@") != 1:
+        return False
+    domain = s[at_idx + 1:]
+    dot_idx = domain.rfind(".")
+    return 0 < dot_idx < len(domain) - 1 and " " not in s and "\t" not in s
 
 
 def _strip_accents(s: str) -> str:
@@ -243,9 +250,15 @@ def _clean_cat(s: str) -> str:
     """
     s = s.strip()
     s = s.rstrip(") \t\r\n")  # drop trailing )/spaces without regex backtracking
-    s = re.sub(r"\s*[·•:\-–—]\s*", " ", s)  # collapse separators
+    s = re.sub(r"[·•:\-–—]", " ", s)  # collapse separators (surrounding spaces handled by strip and next sub)
     s = re.sub(r" +", " ", s)  # collapse internal spaces (avoid \s+ backtracking on uncontrolled input)
     return s.strip()
+
+
+def _ends_with_num(s: str) -> bool:
+    """Return True if s ends with a digit (optionally preceded by %) ignoring trailing whitespace."""
+    tail = s.rstrip(" \t").rstrip("%")
+    return bool(tail) and tail[-1].isdigit()
 
 
 def _map_category(raw: str) -> str:
@@ -1079,7 +1092,7 @@ async def import_from_upload(
                                 # Length-limit guard to prevent polynomial backtracking on uncontrolled input
                                 if len(x_stripped) > 500:
                                     continue
-                                if current_entry and re.search(r"\d+%?[ \t]*$", x_stripped):
+                                if current_entry and _ends_with_num(x_stripped):
                                     current_entry += " " + x_stripped
                                     joined_entries.append(current_entry)
                                     current_entry = ""
@@ -1089,11 +1102,11 @@ async def import_from_upload(
                                     current_entry = x_stripped
                                 # If no current entry and this has a colon but no percentage, it's the start of a multi-line
                                 elif (
-                                    not current_entry and ":" in x_stripped and not re.search(r"\d+%?[ \t]*$", x_stripped)
+                                    not current_entry and ":" in x_stripped and not _ends_with_num(x_stripped)
                                 ):
                                     current_entry = x_stripped
                                 # If it has both colon and percentage, it's a complete entry
-                                elif ":" in x_stripped and re.search(r"\d+%?[ \t]*$", x_stripped):
+                                elif ":" in x_stripped and _ends_with_num(x_stripped):
                                     joined_entries.append(x_stripped)
                                 # Otherwise, it's a continuation of current entry
                                 elif current_entry:
@@ -1129,19 +1142,20 @@ async def import_from_upload(
                                         buf = []
                             if not rules:
                                 # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                # Avoid polynomial redos: separator class [,\-:] is disjoint from cat class preventing overlap (CWE-1333)
-                                pattern = re.compile(r"^(?P<cat>[^:,\-]+)[ \t]*[,\-:]+[ \t]*(?P<w>\d+(?:[\.,]\d+)?)%?$")
+                                # Use re.split on the separator class (no overlapping quantifiers) to avoid ReDoS.
                                 for x in er:
                                     if isinstance(x, str) and len(x) <= 500:
-                                        m = pattern.match(x.strip())
-                                        if m:
-                                            cat = m.group("cat").strip()
-                                            w_s = m.group("w").replace(",", ".")
-                                            try:
-                                                weight = float(w_s)
-                                            except Exception:
-                                                weight = 0.0
-                                            rules.append({"category": cat, "weight": weight})
+                                        x_s = x.strip()
+                                        parts = re.split(r"[,:\-]+", x_s, maxsplit=1)
+                                        if len(parts) == 2:
+                                            cat = parts[0].strip()
+                                            w_text = parts[1].strip().rstrip("%").strip()
+                                            if cat and w_text:
+                                                try:
+                                                    weight = float(w_text.replace(",", "."))
+                                                    rules.append({"category": cat, "weight": weight})
+                                                except ValueError:
+                                                    pass
                             # Only use parsed rules that have valid percentages, ignore metadata entries
                             obj["evaluation_rules"] = rules if rules else []
                     # Translate/localize categories if we have rules
