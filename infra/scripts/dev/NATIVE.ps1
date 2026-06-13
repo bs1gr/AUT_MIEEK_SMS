@@ -91,10 +91,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$BACKEND_DIR = Join-Path $SCRIPT_DIR "backend"
-$FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
-$BACKEND_PID_FILE = Join-Path $SCRIPT_DIR ".backend.pid"
-$FRONTEND_PID_FILE = Join-Path $SCRIPT_DIR ".frontend.pid"
+# Script lives at infra/scripts/dev/ — project root is three levels up
+$PROJECT_ROOT = (Resolve-Path (Join-Path $SCRIPT_DIR "..\..\..")).Path
+$BACKEND_DIR = Join-Path $PROJECT_ROOT "src\backend"
+$FRONTEND_DIR = Join-Path $PROJECT_ROOT "src\frontend"
+$BACKEND_PID_FILE = Join-Path $PROJECT_ROOT ".backend.pid"
+$FRONTEND_PID_FILE = Join-Path $PROJECT_ROOT ".frontend.pid"
 $BACKEND_PORT = 8000
 $BACKEND_FALLBACK_PORT = 8001
 $FRONTEND_PORT = 5173  # Use standard Vite port (do not override - vite.config.ts sets this)
@@ -1160,7 +1162,7 @@ function Start-Backend {
     if (Test-PortInUse -Port $targetBackendPort) {
         if (Test-HealthEndpointReachable -Port $targetBackendPort -TimeoutSec 3) {
             Write-Warning "Port $targetBackendPort is already serving a healthy backend; adopting existing runtime."
-            Set-Content -Path (Join-Path $SCRIPT_DIR ".backend.port") -Value "$targetBackendPort"
+            Set-Content -Path (Join-Path $PROJECT_ROOT ".backend.port") -Value "$targetBackendPort"
             return 0
         }
 
@@ -1206,8 +1208,8 @@ function Start-Backend {
         }
 
         # Set PYTHONPATH and SMS environment variables for the backend process
-        $env:PYTHONPATH = $SCRIPT_DIR
-        $env:SMS_PROJECT_ROOT = $SCRIPT_DIR
+        $env:PYTHONPATH = (Join-Path $PROJECT_ROOT "src")
+        $env:SMS_PROJECT_ROOT = $PROJECT_ROOT
         $env:SMS_EXECUTION_MODE = "native"
         $env:SMS_ENFORCE_BACKEND_ENV_DB = "1"
 
@@ -1260,7 +1262,7 @@ function Start-Backend {
         # This allows relative imports like "from .app_factory import create_app" in main.py to work correctly
         $pythonExe = Join-Path $venvPath "Scripts\python.exe"
         $uvicornArgs = @("-u", "-m", "uvicorn") + $args
-        $processInfo = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -WorkingDirectory $SCRIPT_DIR -WindowStyle Normal -PassThru
+        $processInfo = Start-Process -FilePath $pythonExe -ArgumentList $uvicornArgs -WorkingDirectory $PROJECT_ROOT -WindowStyle Normal -PassThru
 
         # Save PID
         Set-Content -Path $BACKEND_PID_FILE -Value $processInfo.Id
@@ -1290,7 +1292,7 @@ function Start-Backend {
         }
 
         # Persist active backend port for frontend/API targeting in this workspace
-        Set-Content -Path (Join-Path $SCRIPT_DIR ".backend.port") -Value "$targetBackendPort"
+        Set-Content -Path (Join-Path $PROJECT_ROOT ".backend.port") -Value "$targetBackendPort"
 
         return 0
     }
@@ -1397,7 +1399,7 @@ function Start-Frontend {
         # Resolve backend API target dynamically (single canonical backend port)
         $activeBackendPort = $BACKEND_PORT
         $backendPortFromFile = $false
-        $backendPortFile = Join-Path $SCRIPT_DIR ".backend.port"
+        $backendPortFile = Join-Path $PROJECT_ROOT ".backend.port"
         if (Test-Path $backendPortFile) {
             try {
                 $parsedPort = [int](Get-Content $backendPortFile -Raw).Trim()
@@ -1507,7 +1509,7 @@ function Stop-All {
 
     # Clean up any stray Python processes from the venv (uvicorn or other backend tasks)
     try {
-        $venvPython = Join-Path $SCRIPT_DIR ".venv\Scripts\python.exe"
+        $venvPython = Join-Path $BACKEND_DIR ".venv\Scripts\python.exe"
         if (Test-Path $venvPython) {
             $pythonProcs = Get-Process python -ErrorAction SilentlyContinue
             if ($pythonProcs) {
@@ -1544,7 +1546,7 @@ function Stop-All {
     }
 
     if ($backendStopped -and $frontendStopped) {
-        Remove-Item (Join-Path $SCRIPT_DIR ".backend.port") -Force -ErrorAction SilentlyContinue
+        Remove-Item (Join-Path $PROJECT_ROOT ".backend.port") -Force -ErrorAction SilentlyContinue
         Write-Host ""
         Write-Success "All processes stopped"
         return 0
@@ -1900,19 +1902,19 @@ if ($DeepClean) {
 
         # Build a local list of patterns to preview (keeps dry-run independent of later variables)
         $previewItems = @(
-            ".venv", ".venv_*", ".venv_backend_tests", ".venv_audit",
-            "frontend/node_modules", "node_modules", "frontend/dist", "dist",
+            "src/backend/.venv", "src/backend/.venv_*", "src/backend/.venv_backend_tests", "src/backend/.venv_audit",
+            "src/frontend/node_modules", "src/frontend/dist", "src/frontend/.vite",
             "build", ".next", "rewrite-preview-local",
-            ".mypy_cache", ".ruff_cache", ".pytest_cache",
-            "backend/__pycache__", "backend/.pytest_cache",
-            "tmp_test_migrations", "backend/tmp_test_migrations",
-            "*.log", "backend/*.log", "frontend/*.log",
+            "src/backend/.mypy_cache", "src/backend/.ruff_cache", "src/backend/.pytest_cache",
+            "src/backend/__pycache__",
+            "tmp_test_migrations", "src/backend/tmp_test_migrations",
+            "*.log", "src/backend/*.log", "src/frontend/*.log",
             "backend_dev_*.log", "frontend_dev_*.log",
             ".backend.pid", ".frontend.pid", "temp_export_*"
         )
 
         foreach ($pattern in $previewItems) {
-            $fullPattern = Join-Path $SCRIPT_DIR $pattern
+            $fullPattern = Join-Path $PROJECT_ROOT $pattern
             if ($pattern -like "*`*") {
                 $parent = Split-Path $fullPattern -Parent
                 $leaf = Split-Path $fullPattern -Leaf
@@ -1954,13 +1956,13 @@ if ($DeepClean) {
     Stop-ProcessFromPidFile -PidFile $FRONTEND_PID_FILE -Name "Frontend" | Out-Null
 
     $itemsToRemove = @(
-        ".venv", ".venv_*", ".venv_backend_tests", ".venv_audit",
-        "frontend/node_modules", "node_modules", "frontend/dist", "dist",
+        "src/backend/.venv", "src/backend/.venv_*", "src/backend/.venv_backend_tests", "src/backend/.venv_audit",
+        "src/frontend/node_modules", "src/frontend/dist", "src/frontend/.vite",
         "build", ".next", "rewrite-preview-local",
-        ".mypy_cache", ".ruff_cache", ".pytest_cache",
-        "backend/__pycache__", "backend/.pytest_cache",
-        "tmp_test_migrations", "backend/tmp_test_migrations",
-        "*.log", "backend/*.log", "frontend/*.log",
+        "src/backend/.mypy_cache", "src/backend/.ruff_cache", "src/backend/.pytest_cache",
+        "src/backend/__pycache__",
+        "tmp_test_migrations", "src/backend/tmp_test_migrations",
+        "*.log", "src/backend/*.log", "src/frontend/*.log",
         "backend_dev_*.log", "frontend_dev_*.log",
         ".backend.pid", ".frontend.pid", "temp_export_*"
     )
