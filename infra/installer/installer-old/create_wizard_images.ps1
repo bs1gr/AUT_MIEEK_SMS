@@ -29,7 +29,7 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Drawing
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-$projectRoot = Split-Path -Parent $scriptDir
+$projectRoot = (Resolve-Path (Join-Path $scriptDir "..\..\..\")).Path
 
 # Version management
 $VersionFile = Join-Path $projectRoot "VERSION"

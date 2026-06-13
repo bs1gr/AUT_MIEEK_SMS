@@ -37,16 +37,16 @@ $InstallerScriptPath = [System.IO.Path]::GetFullPath($InstallerScriptPath)
 $InstallerDir = Split-Path -Parent $InstallerScriptPath
 
 $generatedAllowlist = @(
-    'installer\installer_welcome_el.rtf',
-    'installer\installer_complete_el.rtf',
-    'installer\wizard_image.bmp',
-    'installer\wizard_small.bmp',
-    'installer\dist\SMS_Manager.exe'
+    'infra\installer\installer-old\installer_welcome_el.rtf',
+    'infra\installer\installer-old\installer_complete_el.rtf',
+    'infra\installer\installer-old\wizard_image.bmp',
+    'infra\installer\installer-old\wizard_small.bmp',
+    'infra\installer\installer-old\dist\SMS_Manager.exe'
 )
 
 # Optional generated artifacts (don't block build if missing)
 $optionalGeneratedAllowlist = @(
-    'installer\dist\SMS_Lite.exe'  # Built separately via PyInstaller, optional for Docker Edition
+    'infra\installer\installer-old\dist\SMS_Lite.exe'  # Built separately via PyInstaller, optional for Docker Edition
 )
 
 $dangerousPayloadPatterns = @(
@@ -184,6 +184,9 @@ $seen = @{}
 for ($i = 0; $i -lt $content.Count; $i++) {
     $line = $content[$i]
     $lineNo = $i + 1
+
+    # Skip Inno Setup comment lines and preprocessor #ifdef/#else/#endif blocks
+    if ($line -match '^\s*;' -or $line -match '^\s*#(ifdef|else|endif|define|expr)\b') { continue }
 
     foreach ($match in [regex]::Matches($line, '(?i)(MessagesFile|LicenseFile|InfoBeforeFile|InfoAfterFile):\s*"([^"]+)"')) {
         $key = "$($match.Groups[1].Value)|$($match.Groups[2].Value)"

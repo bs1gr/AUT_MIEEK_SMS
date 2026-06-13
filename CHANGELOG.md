@@ -16,15 +16,95 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.26] - 2026-06-14
+
+### Bug Fixes
+- correct PROJECT_ROOT in INSTALLER_BUILDER, WORKSPACE_CLEANUP, RELEASE_READY
+- batch runner path + markdownlintignore + gitignore session docs
+- repair script paths after directory flattening
+- update NATIVE.ps1 paths for flattened directory structure
+- remove duplicate router registrations from main.py
+- remove unused validate_path import from admin_routes.py (Ruff F401)
+- resolve remaining 21 CodeQL security alerts (ReDoS, path-injection, stack-trace)
+- force esbuild>=0.28.1 via overrides to resolve Dependabot CVEs (high+low)
+- resolve 29 CodeQL security alerts (path-injection, redos, stack-trace-exposure)
+- remove GITHUB_TOKEN from workflow_call secrets (auto-inherited, cannot be passed)
+- use block sequence for runs-on in deploy.yml reusable workflow
+- use YAML array syntax for dynamic runs-on in deploy.yml
+- correct runs-on syntax in deploy.yml reusable workflow
+- correct sys.path in Check login health step to use 'src' not 'src/backend'
+- set PYTHONPATH correctly in E2E tests workflow
+- make Docker security scan non-blocking to prevent pipeline failures
+- copy VERSION file before npm build in Dockerfile frontend stage
+- remove non-existent templates directory copy from Dockerfile
+- update Dockerfile.fullstack paths for flattened directory structure
+- export PYTHONPATH before backgrounding uvicorn process
+- wrap backend startup in subshell with explicit PYTHONPATH export
+- export PYTHONPATH in run block for proper env var evaluation
+- improve backend startup PYTHONPATH handling for E2E and Load tests
+- resolve backend startup ModuleNotFoundError in E2E and Load test jobs
+- correct PROJECT_ROOT parent index in database validation tests
+- correct Python path for database migrations in CI/CD workflow
+- correct VERSION file path in sync-version.cjs for flattened structure
+- correct gitleaks config path to config/.gitleaks.toml
+- correct ruff config path in CI/CD workflow for flattened structure
+- correct version consistency test paths for flattened structure
+- add missing headers to attendance analytics CSV export
+- flatten double-nested backend/backend and frontend/frontend structure
+- remove unused type imports flagged by Ruff
+- resolve all MyPy type annotation errors in backend routers
+- correct ruff.toml config path for nested backend structure
+- correct sys.path for check_login_health step in E2E workflow
+- add PYTHONPATH to E2E backend startup and correct frontend path
+- update Python import paths in E2E workflow for nested structure
+- correct VERSION file path to project root (3 levels up)
+- correct VERSION file path in sync-version.cjs
+- clean up React hook dependencies in ControlPanel and AdminUsersPanel
+- resolve 8 of 9 pre-existing CI/CD failures (#199)
+- disable automatic staging deployments and improve deployment cleanup
+- resolve failing CI/CD workflows - handle missing secrets and compatibility issues
+
+### Documentation
+- add final CI/CD validation report - pipeline #2797 SUCCESS
+- add final CI/CD status report - all issues resolved
+- add comprehensive CI/CD fixes summary for session 2026-06-13
+- comprehensive merge review and post-merge verification report
+- comprehensive analysis and fix plan for 9 pre-existing CI/CD failures
+- add comprehensive codebase reorganization plan
+- add comprehensive CI/CD and staging cleanup summary
+- complete staging cleanup execution - wipe all 30+ obsolete deployments
+- add staging cleanup execution report for 2026-06-12
+- add staging deployments cleanup and recovery guide
+
+### Tests
+- add smoke test report validating all critical systems
+
+### Chores
+- remove stale root-level session/CI docs from git tracking
+- fix .gitignore for flattened structure, remove tracked runtime artifacts
+- add .trivyignore for Docker security scanning
+
+## [1.18.26] - 2026-06-14
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.25] - 2026-06-11
 
 ### Bug Fixes
 - update version strings to 1.18.25 in source and documentation files
-- VERSION file format - add 'v' prefix for validation (v1.18.25)
-- correct package-lock.json version string for v1.18.25
+- VERSION file format - add 'v' prefix for validation (vvvvvv1.18.25)
+- correct package-lock.json version string for vvvvvv1.18.25
 
 ### Chores
-- apply COMMIT_READY.ps1 version sync and pre-commit fixes (v1.18.25)
+- apply COMMIT_READY.ps1 version sync and pre-commit fixes (vvvvvv1.18.25)
 
 ## [1.18.25] - 2026-06-11
 
@@ -56,7 +136,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - update GitHub Actions workflows for Node.js v24 compatibility and fix deprecations
 
 ### Chores
-- **release**: bump version to vvvv1.18.25 and update docs/scripts headers
+- **release**: bump version to vvvvvvvvv1.18.25 and update docs/scripts headers
 - **workflows**: add GitHub CLI availability guard for gh-dependent workflow steps
 
 ## [1.18.22] - 2026-05-24
@@ -73,8 +153,8 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ## [1.18.21] - 2026-04-29
 
 ### Documentation
-- add release documentation for vvvv1.18.25
-- update changelog for vvvv1.18.25 release
+- add release documentation for vvvvvvvvv1.18.25
+- update changelog for vvvvvvvvv1.18.25 release
 
 ## [1.18.21] - 2026-04-29
 
@@ -138,7 +218,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Chores
 - **deps**: fix dependabot security alerts
-- **release**: record vvvvv1.18.25 publication evidence
+- **release**: record vvvvvvvvvv1.18.25 publication evidence
 
 ## [1.18.18] - 2026-04-17
 
@@ -163,7 +243,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **status**: close post-release security alert follow-up
 
 ### Chores
-- **release**: record vvvvv1.18.25 publication evidence
+- **release**: record vvvvvvvvvv1.18.25 publication evidence
 
 ## [1.18.16] - 2026-03-31
 
@@ -201,11 +281,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **validation**: harden installer tooling and batch retest flows
 
 ### CI/CD
-- **ci**: update `aquasecurity/trivy-action` to `vvvvv1.18.25`
+- **ci**: update `aquasecurity/trivy-action` to `vvvvvvvvvv1.18.25`
 
 ### Chores
 - **gitignore**: ignore root-level generated `DOCUMENTATION_INDEX.md` duplicate
-- **docs**: record post-`vvvvv1.18.25` accumulation metadata for release preparation
+- **docs**: record post-`vvvvvvvvvv1.18.25` accumulation metadata for release preparation
 
 
 
@@ -259,10 +339,10 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **work-plan**: record qnap hardening follow-up
 - **phase5**: fix historical index links
 - **release**: rename publication draft references
-- **release**: record executed vvvvv1.18.25 checklist state
-- **release**: align remaining vvvvv1.18.25 state references
-- **release**: sync official vvvvv1.18.25 publication state
-- **release**: finalize vvvvv1.18.25 official publication path
+- **release**: record executed vvvvvvvvvv1.18.25 checklist state
+- **release**: align remaining vvvvvvvvvv1.18.25 state references
+- **release**: sync official vvvvvvvvvv1.18.25 publication state
+- **release**: finalize vvvvvvvvvv1.18.25 official publication path
 - **release**: prepare first official public release draft
 - **ci**: align release state and workflow guidance
 - historicize legacy coordination and rollout notes
@@ -282,11 +362,11 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Fixed
 - **security**: harden maintenance/update path handling and backup path validation against uncontrolled path input
 - **installer**: restore generated Greek RTF pipeline for Inno Setup builds and align builder validation with version cache
-- **release**: prepare corrective patch release after `vvvvv1.18.25` published without installer assets
+- **release**: prepare corrective patch release after `vvvvvvvvvv1.18.25` published without installer assets
 - **guardrails**: add tracked-input validation for installer assets in pre-commit checks, local installer builds, and release CI to block local-only file references before publication
 
 ### Verification
-- **installer**: fresh local `vvvvv1.18.25` installer build, signing, and smoke validation completed successfully
+- **installer**: fresh local `vvvvvvvvvv1.18.25` installer build, signing, and smoke validation completed successfully
 - **backend**: targeted maintenance/database security regression tests passing
 
 ## [1.18.10] - 2026-03-09
@@ -302,7 +382,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **installer**: rebuild Windows installer for the profile-drift fix lineage and refresh bundled installer metadata/docs
 
 ### Documentation
-- **release**: prepare `vvvvv1.18.25` release notes for the post-`vvvvv1.18.25` installer/profile-drift patch scope
+- **release**: prepare `vvvvvvvvvv1.18.25` release notes for the post-`vvvvvvvvvv1.18.25` installer/profile-drift patch scope
 
 ## [1.18.9] - 2026-03-09
 
@@ -327,7 +407,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Chores
 - **env**: update `.env.example` to local-first secure profile defaults with explicit remote opt-in
-- **installer**: Add build metadata tracking for vvvvv1.18.25
+- **installer**: Add build metadata tracking for vvvvvvvvvv1.18.25
 
 ## [1.18.8] - 2026-03-08
 
@@ -356,7 +436,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **database**: fix download auth, DRY instance lookup, fix param ordering
 
 ### Documentation
-- update work plan, changelog, and index to reflect vvvvv1.18.25 release status
+- update work plan, changelog, and index to reflect vvvvvvvvvv1.18.25 release status
 - **deployment**: add multi-PC deployment guide for hybrid QNAP architecture
 
 ### Tests
@@ -454,7 +534,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Documentation
 
-- **Release Docs**: Comprehensive vvvvv1.18.25 release documentation set
+- **Release Docs**: Comprehensive vvvvvvvvvv1.18.25 release documentation set
 - **QNAP Guide**: postgres-only ARMv7 deployment instructions
 - **Multi-PC Deployment**: Hybrid architecture guide
 
@@ -468,9 +548,9 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - Version references updated across codebase (VERSION, package.json, docs)
 - Visual Studio solution files added to .gitignore
 
-### Post-Release (vvvvv1.18.25+)
+### Post-Release (vvvvvvvvvv1.18.25+)
 
-**Quality & Type Safety** (18 commits after vvvvv1.18.25 tag):
+**Quality & Type Safety** (18 commits after vvvvvvvvvv1.18.25 tag):
 - **Analytics Type Safety**: Eliminated `any` types from hooks, components, utilities
 - **Dashboard TypeScript**: Resolved CI lint job typing failures
 - **Error Handling**: Recovered error handling flow and aligned search analytics hooks
@@ -538,7 +618,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ### Changed
 - Version references updated across codebase (VERSION, package.json, docs)
-- Documentation index updated to vvvvv1.18.25
+- Documentation index updated to vvvvvvvvvv1.18.25
 
 ### Summary
 **Total Impact**: 36 files changed, 5,587+ lines added
@@ -584,7 +664,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 - **release-assets**: keep installer-only allowlist policy (`SMS_Installer_<version>.exe` + `.sha256`) with digest verification gates.
 
 ### Documentation
-- **release-docs**: prepared complete vvvvv1.18.25 release package (notes, GitHub body, manifest, deployment checklist).
+- **release-docs**: prepared complete vvvvvvvvvv1.18.25 release package (notes, GitHub body, manifest, deployment checklist).
 - **pre-release**: recorded validation summary and synchronized release metadata across planning/index documents.
 
 
@@ -4451,6 +4531,12 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
+
+
+
+
+
 
 
 

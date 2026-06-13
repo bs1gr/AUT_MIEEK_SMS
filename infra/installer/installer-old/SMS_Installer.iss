@@ -27,7 +27,7 @@
 #define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
 
 ; Read version from VERSION file (may include "v" prefix per Policy 2)
-#define VersionFile FileOpen("..\VERSION")
+#define VersionFile FileOpen("..\..\..\VERSION")
 #define MyAppVersion Trim(FileRead(VersionFile))
 #expr FileClose(VersionFile)
 ; Strip "v" prefix for directives requiring numeric-only format (e.g. VersionInfoVersion)
@@ -50,7 +50,7 @@ AllowNoIcons=yes
 ; License and info files are language-specific (set in [Languages])
 OutputDir=..\dist
 OutputBaseFilename=SMS_Installer_{#MyAppVersionNumeric}
-SetupIconFile=..\favicon.ico
+SetupIconFile=..\..\..\favicon.ico
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
@@ -86,7 +86,7 @@ WizardImageFile=wizard_image.bmp
 WizardSmallImageFile=wizard_small.bmp
 
 [Languages]
-Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
+Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\..\..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
 Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.rtf"; InfoAfterFile: "installer_complete_el.rtf"
 
 ; Note: Greek messages use local Greek.isl (official Inno translation)
@@ -172,19 +172,19 @@ Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{c
 [Files]
 ; Core application files - backend/frontend ALWAYS needed for Docker build
 ; Exclude local runtime/test DB artifacts so workstation-only files cannot leak into installer builds.
-Source: "..\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
-Source: "..\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts"
-Source: "..\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
-Source: "..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\src\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
+Source: "..\..\..\src\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts"
+Source: "..\..\..\infra\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
+Source: "..\..\..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; DEPLOYMENT OPTIMIZATION: Scripts folder excluded - only backup-database.sh needed (99% size reduction)
-Source: "..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsProductionInstall
-Source: "..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsProductionInstall
+Source: "..\..\..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; Main scripts and executables - Docker-only or Lite Edition
-Source: "..\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "..\..\..\infra\scripts\dev\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
-Source: "..\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "..\..\..\infra\scripts\ops\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
 
 ; Native Lite Edition (SMS_Lite.exe) - built via PyInstaller in GitHub Actions
@@ -194,36 +194,37 @@ Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLi
 #else
 ; SMS_Lite.exe not available - Docker Edition will be installed instead
 #endif
-Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
-Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Flags: ignoreversion recursesubdirs createallsubdirs; Check: IsLiteInstall
+; SMS_Native_Lite_Edition directory was removed during directory restructuring
+; Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Check: IsLiteInstall
+; Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Check: IsLiteInstall
 Source: "SaveLiteEditionQnapCredentials.ps1"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Development scripts - only for dev environment
-Source: "..\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
-Source: "..\COMMIT_READY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\infra\scripts\dev\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\infra\scripts\ops\COMMIT_READY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
 
 ; Icon file
-Source: "..\favicon.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\favicon.ico"; DestDir: "{app}"; Flags: ignoreversion
 
 ; Documentation - keep only essential for all users
-Source: "..\README.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
-Source: "..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
 ; Production deployment docs referenced by installer README
-Source: "..\docs\deployment\QNAP_POSTGRES_SINGLE_SOURCE.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
-Source: "..\docs\deployment\QNAP_RECONCILE_RUNBOOK.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
+Source: "..\..\..\docs\deployment\QNAP_POSTGRES_SINGLE_SOURCE.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
+Source: "..\..\..\docs\deployment\QNAP_RECONCILE_RUNBOOK.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
 
 ; Environment file template - needed for DOCKER.ps1 to create .env on first run
-Source: "..\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
+Source: "..\..\..\config\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
 
 ; Dev documentation - only for dev environment
-Source: "..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
-Source: "..\docs\DOCUMENTATION_INDEX.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\docs\DOCUMENTATION_INDEX.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Check: IsDevInstall
 
 ; Example env files - only for dev environment
-Source: "..\backend\.env.example"; DestDir: "{app}\backend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
-Source: "..\frontend\.env.example"; DestDir: "{app}\frontend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\src\backend\.env.example"; DestDir: "{app}\backend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\src\frontend\.env.example"; DestDir: "{app}\frontend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
 
 ; Create data directory
 Source: "placeholder.txt"; DestDir: "{app}\data"; Flags: ignoreversion
