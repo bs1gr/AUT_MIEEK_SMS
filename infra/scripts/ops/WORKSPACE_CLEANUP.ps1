@@ -96,7 +96,8 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$rootDir = $PSScriptRoot
+# Script lives at infra/scripts/ops/ — project root is three levels up
+$rootDir = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
 
 # Import cleanup utilities if available
 $cleanupLib = Join-Path $rootDir "scripts\lib\cleanup_common.ps1"
@@ -738,7 +739,7 @@ if ($Mode -eq 'deep') {
 
     Write-Section "Frontend Build Cache"
 
-    Remove-Item-Safe -Path (Join-Path $rootDir "frontend\dist") -Description "Frontend build output"
+    Remove-Item-Safe -Path (Join-Path $rootDir "src\frontend\dist") -Description "Frontend build output"
 }
 
 # ============================================================================

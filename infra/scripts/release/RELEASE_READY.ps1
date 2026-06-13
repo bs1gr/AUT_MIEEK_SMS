@@ -256,9 +256,11 @@ function Update-VersionReferences {
     $greekFixScript = Join-Path $PROJECT_ROOT "infra\scripts\diagnostics\fix_greek_encoding_permanent.py"
     if (Test-Path $greekFixScript) { python $greekFixScript }
 
-    # Update installer wizard images
-    Write-Host "Updating installer wizard images..."
-    & (Join-Path $PROJECT_ROOT "infra\scripts\release\INSTALLER_BUILDER.ps1") -Action update-images -Version $NewVersion
+    # Update installer wizard images (skip if installer build is disabled)
+    if (-not $SkipInstaller) {
+        Write-Host "Updating installer wizard images..."
+        & (Join-Path $PROJECT_ROOT "infra\scripts\release\INSTALLER_BUILDER.ps1") -Action update-images -Version $NewVersion
+    }
 
     Write-Host "✓ All version references updated" -ForegroundColor Green
 }

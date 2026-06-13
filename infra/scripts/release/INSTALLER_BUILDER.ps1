@@ -115,9 +115,10 @@ Set-StrictMode -Version Latest
 # Configuration
 # ============================================================================
 
-$ProjectRoot = $PSScriptRoot
-$InstallerDir = Join-Path $ProjectRoot "installer"
-$DistDir = Join-Path $ProjectRoot "dist"
+# Script lives at infra/scripts/release/ — project root is three levels up
+$ProjectRoot = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
+$InstallerDir = Join-Path $ProjectRoot "infra\installer\installer-old"
+$DistDir = Join-Path $ProjectRoot "infra\installer\dist"
 $VersionFile = Join-Path $ProjectRoot "VERSION"
 
 # Read version from file if not provided (strip v prefix for numeric version)
@@ -373,7 +374,7 @@ function Invoke-GreekEncodingFix {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
 
     try {
-        $pythonScript = Join-Path $PSScriptRoot "fix_greek_encoding_permanent.py"
+        $pythonScript = Join-Path $ProjectRoot "infra\scripts\diagnostics\fix_greek_encoding_permanent.py"
         if (-not (Test-Path $pythonScript)) {
             Write-Result Warning "Greek RTF generator script not found, skipping Greek asset generation"
             return $true
