@@ -49,10 +49,13 @@ trivy-results.*
 # Generated test files (exports & reports from Phase 6)
 backend/exports/
 backend/reports/
+src/backend/exports/
+src/backend/reports/
 
 # Local test import fixtures
 data/imports/*.csv
 backend/data/imports/*.csv
+src/backend/data/imports/
 
 # Course PDFs and course data
 pdfs-courses/
@@ -88,6 +91,15 @@ commit_ready_*.log
 code-scanning-sarif/
 # Root-level generated copy of docs/DOCUMENTATION_INDEX.md (canonical path is docs/)
 DOCUMENTATION_INDEX.md
+
+# CI/session status docs generated at root by automation
+/CI_CD_*.md
+/FLATTEN_*.md
+/SMOKE_TEST_*.md
+/TEST_FAILURES_*.md
+/FINAL_SMOKE_TEST_*.md
+/run_*_log.txt
+/run_*_full_log.txt
 
 # Root-level generated test and execution outputs
 /backend_test_results.txt
@@ -148,6 +160,8 @@ installer/wizard_small.bmp
 installer/installer_welcome_el.txt
 installer/installer_complete_el.txt
 installer/SMS_Manager/*.lscache
+infra/installer/installer-old/SMS_Manager/obj/
+infra/installer/installer-old/SMS_Manager/bin/
 
 # Local installer diagnostics bundles
 installer_diag_*.zip
@@ -239,6 +253,8 @@ backend/data/imports/*.xls
 backend/data/exports/*.csv
 backend/data/exports/*.xlsx
 backend/data/exports/*.pdf
+src/backend/data/imports/
+src/backend/data/exports/
 
 # Temporary export/backup directories
 temp_export_*/
