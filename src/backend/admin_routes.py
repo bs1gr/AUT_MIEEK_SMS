@@ -319,17 +319,19 @@ async def restore_encrypted_backup(
         # Create temporary output directory
         restore_dir = (backup_root / f"restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}").resolve()
         restore_dir.mkdir(parents=True, exist_ok=True)
-        # CodeQL [python/path-injection]: Safe - safe_output_filename validated and restore_dir is system-generated
-        output_path = (restore_dir / safe_output_filename).resolve()
-
-        # CodeQL [python/path-injection]: Safe - validate_path() performs comprehensive validation
-        # Validate path is within allowed directory using centralized validation
+        # Use os.path.basename to strip any residual path components from the validated filename
+        # before joining with the trusted restore_dir, breaking the taint chain entirely.
+        bare_filename = os.path.basename(safe_output_filename)
+        if not bare_filename:
+            raise HTTPException(status_code=400, detail="Invalid output filename")
+        output_path = restore_dir / bare_filename
+        # Verify the resolved path stays within restore_dir
         try:
             validate_path(restore_dir, output_path)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Output path outside allowed directory: {str(e)}")
 
-        # Path validated by validate_path() which ensures path stays within restore_dir
+        # Both restore_dir (system-generated) and bare_filename (basename-stripped) are safe
         sanitized_output_path: pathlib.Path = output_path
 
         # Decrypt and restore backup
@@ -340,8 +342,6 @@ async def restore_encrypted_backup(
         )
 
         # Return restored file
-        # Use safe filename to prevent any issues
-        # CodeQL [python/path-injection]: Safe - sanitized_output_path validated via validate_path()
         return FileResponse(
             str(sanitized_output_path),
             media_type="application/x-sqlite3",

@@ -219,9 +219,9 @@ try {
             },
         }
     except Exception as e:
-        logger.error(f"Failed to create trigger script: {e}")
+        logger.error("Failed to create trigger script", extra={"error": str(e)})
         raise http_error(
-            500, ErrorCode.CONTROL_OPERATION_FAILED, f"Failed to create monitoring trigger: {str(e)}", request
+            500, ErrorCode.CONTROL_OPERATION_FAILED, "Failed to create monitoring trigger", request
         )
 
 
@@ -276,14 +276,11 @@ async def start_monitoring_stack(request: Request):
                 },
             }
         except Exception as e:
-            logger.error(f"Failed to create trigger file: {e}")
+            logger.error("Failed to create trigger file", extra={"error": str(e)})
             raise http_error(
                 500,
                 ErrorCode.CONTROL_OPERATION_FAILED,
-                (
-                    f"Cannot start monitoring from container. Use DOCKER.ps1 -WithMonitoring from host. "
-                    f"Trigger creation failed: {str(e)}"
-                ),
+                "Cannot start monitoring from container. Use DOCKER.ps1 -WithMonitoring from host.",
                 request,
             )
 
@@ -398,7 +395,7 @@ async def stop_monitoring_stack(request: Request):
             },
         )
         raise http_error(
-            500, ErrorCode.INTERNAL_SERVER_ERROR, f"Unexpected error stopping monitoring: {str(exc)}", request
+            500, ErrorCode.INTERNAL_SERVER_ERROR, "Unexpected error stopping monitoring stack", request
         ) from exc
 
 

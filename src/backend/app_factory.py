@@ -269,7 +269,7 @@ def _register_frontend_logging_endpoints(app: FastAPI):
             return {"status": "logged", "timestamp": datetime.now().isoformat()}
         except Exception as e:
             logger.warning("Failed to log frontend error: %s", e)
-            return {"status": "failed", "error": str(e)}
+            return {"status": "failed", "error": "Failed to log frontend error"}
 
     @app.post("/api/logs/frontend-warning")
     async def log_frontend_warning(request: Request):
@@ -290,7 +290,7 @@ def _register_frontend_logging_endpoints(app: FastAPI):
             return {"status": "logged", "timestamp": datetime.now().isoformat()}
         except Exception as e:
             logger.warning("Failed to log frontend warning: %s", e)
-            return {"status": "failed", "error": str(e)}
+            return {"status": "failed", "error": "Failed to log frontend warning"}
 
 
 def _register_root_endpoints(app: FastAPI, version: str):

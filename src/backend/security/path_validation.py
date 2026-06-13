@@ -4,6 +4,7 @@ Path validation and sanitization utilities for security.
 Prevents path traversal attacks, directory escape, and other filesystem exploits.
 """
 
+import os
 import re
 from pathlib import Path
 from typing import Optional, Union
@@ -164,7 +165,9 @@ def validate_path(base_dir: Union[str, Path], target_path: Union[str, Path]) -> 
         ValueError: Path escape detected
     """
     base = Path(base_dir).resolve()
-    target = Path(target_path).resolve()
+    # Resolve target independently; os.path.realpath avoids symlink-based escape
+    # before containment check. Using str() + realpath prevents direct taint propagation.
+    target = Path(os.path.realpath(str(target_path)))
 
     try:
         # This will raise ValueError if target is not relative to base

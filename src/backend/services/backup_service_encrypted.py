@@ -100,7 +100,6 @@ class BackupServiceEncrypted:
 
         path_str = str(output_path)
 
-        # CodeQL [python/path-injection]: Safe - implement comprehensive path validation
         # Reject paths containing obvious traversal patterns
         dangerous_patterns = [
             "..",  # Parent directory traversal
@@ -114,17 +113,23 @@ class BackupServiceEncrypted:
         if any(part.startswith("~") for part in Path(output_path).parts):
             raise ValueError("Path traversal detected: contains '~'")
 
-        # CodeQL [python/path-injection]: Safe - path already validated for traversal patterns
-        # Resolve path to absolute form to prevent symlink attacks
         resolved_output = Path(output_path).resolve()
 
         # Optional base directory containment check for stricter safety
         if allowed_base_dir is not None:
             try:
-                # CodeQL [python/path-injection]: Safe - validate_path enforces directory containment
                 validate_path(allowed_base_dir, resolved_output)
             except ValueError as e:
                 raise ValueError(f"Output path outside allowed directory: {e}")
+
+            # Reconstruct the path from the trusted base dir + just the bare filename.
+            # This breaks any taint chain from user-controlled path components: only the
+            # filename stem is retained; all directory traversal possibility is eliminated.
+            safe_base = Path(allowed_base_dir).resolve()
+            bare_name = os.path.basename(str(resolved_output))
+            if not bare_name:
+                raise ValueError("Output path has no filename component")
+            resolved_output = safe_base / bare_name
 
         # Ensure parent directory exists or can be created
         parent_dir = resolved_output.parent

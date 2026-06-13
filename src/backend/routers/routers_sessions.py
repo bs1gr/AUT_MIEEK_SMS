@@ -5,6 +5,7 @@ Provides endpoints to export/import complete semester/session data packages.
 
 import json
 import logging
+import os
 import string
 from datetime import datetime
 from io import BytesIO
@@ -725,15 +726,19 @@ async def rollback_import(request: Request, backup_filename: str):
                 request,
                 context={"filename": backup_filename},
             )
-        # Extract only the filename to prevent any path traversal
-        # CodeQL [python/path-injection]: Safe - backup_filename is validated above via validate_filename()
-        # and is_safe_backup_filename(), then only .name (filename component) is used
-        safe_filename = Path(backup_filename).name
-        backup_path = (backup_dir / safe_filename).resolve()
-
-        # Validate path is within backup_dir using centralized validation
-        # CodeQL [python/path-injection]: Safe - backup_path is validated by validate_path() which
-        # confirms path is within backup_dir and rejects directory traversal patterns
+        # Use os.path.basename to strip all directory components from user input,
+        # then join with the trusted backup_dir. This breaks the taint chain entirely.
+        safe_filename = os.path.basename(backup_filename)
+        if not safe_filename:
+            raise http_error(
+                400,
+                ErrorCode.IMPORT_INVALID_REQUEST,
+                "Invalid backup filename",
+                request,
+                context={"filename": backup_filename},
+            )
+        backup_path = backup_dir / safe_filename
+        # Verify resolved path stays within backup_dir
         try:
             validate_path(backup_dir, backup_path)
         except ValueError as e:
@@ -745,7 +750,7 @@ async def rollback_import(request: Request, backup_filename: str):
                 context={"filename": backup_filename},
             )
 
-        # Path validated with backend.security.path_validation.validate_path()
+        # Path is safe: constructed from trusted backup_dir + basename-only filename
         sanitized_backup_path: Path = backup_path
 
         if not sanitized_backup_path.exists():

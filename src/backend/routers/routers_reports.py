@@ -692,7 +692,7 @@ async def generate_bulk_student_reports(
                 extra=safe_log_context(student_id=student_id, error=str(e)),
                 exc_info=True,
             )
-            failed_students.append({"student_id": student_id, "error": str(e)})
+            failed_students.append({"student_id": student_id, "error": "Report generation failed"})
 
     # Return results based on format
     if bulk_request.format == ReportFormat.CSV:

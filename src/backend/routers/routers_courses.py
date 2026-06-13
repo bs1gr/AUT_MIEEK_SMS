@@ -21,7 +21,7 @@ from backend.schemas.courses import CourseCreate, CourseResponse, CourseUpdate
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/courses", tags=["Courses"], responses={404: {"description": "Not found"}})
 
-_WEIGHT_PATTERN = re.compile(r"^(?P<category>.+?)[\s:,-]+(?P<weight>\d+(?:[\.,]\d+)?)%?$")
+_WEIGHT_PATTERN = re.compile(r"^(?P<category>[^:,\-]+?)[\s:,-]+(?P<weight>\d+(?:[\.,]\d+)?)%?$")
 _YEAR_PATTERN = re.compile(r"(\d{4})")
 
 

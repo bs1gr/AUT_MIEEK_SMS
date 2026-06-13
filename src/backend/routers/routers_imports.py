@@ -207,6 +207,9 @@ def _valid_email(s: str) -> bool:
         return False
     s = s.strip()
     # Simple sanity check; detailed validation is handled elsewhere
+    # Length-limit guard prevents polynomial backtracking on the nested quantifiers
+    if len(s) > 254:
+        return False
     return bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", s))
 
 
@@ -239,9 +242,9 @@ def _clean_cat(s: str) -> str:
         Cleaned category string
     """
     s = s.strip()
-    s = re.sub(r"[\)\s]+$", "", s)  # drop trailing )/spaces
+    s = s.rstrip(") \t\r\n")  # drop trailing )/spaces without regex backtracking
     s = re.sub(r"\s*[·•:\-–—]\s*", " ", s)  # collapse separators
-    s = re.sub(r"\s+", " ", s)
+    s = re.sub(r" +", " ", s)  # collapse internal spaces (avoid \s+ backtracking on uncontrolled input)
     return s.strip()
 
 
@@ -1073,7 +1076,10 @@ async def import_from_upload(
                                 ]:
                                     continue
                                 # If we have a current entry and this line has a percentage, it's a continuation
-                                if current_entry and re.search(r"\d+%?\s*$", x_stripped):
+                                # Length-limit guard to prevent polynomial backtracking on uncontrolled input
+                                if len(x_stripped) > 500:
+                                    continue
+                                if current_entry and re.search(r"\d+%?[ \t]*$", x_stripped):
                                     current_entry += " " + x_stripped
                                     joined_entries.append(current_entry)
                                     current_entry = ""
@@ -1083,11 +1089,11 @@ async def import_from_upload(
                                     current_entry = x_stripped
                                 # If no current entry and this has a colon but no percentage, it's the start of a multi-line
                                 elif (
-                                    not current_entry and ":" in x_stripped and not re.search(r"\d+%?\s*$", x_stripped)
+                                    not current_entry and ":" in x_stripped and not re.search(r"\d+%?[ \t]*$", x_stripped)
                                 ):
                                     current_entry = x_stripped
                                 # If it has both colon and percentage, it's a complete entry
-                                elif ":" in x_stripped and re.search(r"\d+%?\s*$", x_stripped):
+                                elif ":" in x_stripped and re.search(r"\d+%?[ \t]*$", x_stripped):
                                     joined_entries.append(x_stripped)
                                 # Otherwise, it's a continuation of current entry
                                 elif current_entry:
@@ -1123,10 +1129,10 @@ async def import_from_upload(
                                         buf = []
                             if not rules:
                                 # Try parsing single-string entries like "Name: 10%" or "Name - 10%"
-                                # Avoid polynomial redos: use negated character class instead of .+? to prevent backtracking (CWE-1333)
-                                pattern = re.compile(r"^(?P<cat>[^:,\-]+)\s*[\s:,-]*\s*(?P<w>\d+(?:[\.,]\d+)?)%?$")
+                                # Avoid polynomial redos: separator class [,\-:] is disjoint from cat class preventing overlap (CWE-1333)
+                                pattern = re.compile(r"^(?P<cat>[^:,\-]+)[ \t]*[,\-:]+[ \t]*(?P<w>\d+(?:[\.,]\d+)?)%?$")
                                 for x in er:
-                                    if isinstance(x, str):
+                                    if isinstance(x, str) and len(x) <= 500:
                                         m = pattern.match(x.strip())
                                         if m:
                                             cat = m.group("cat").strip()

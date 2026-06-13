@@ -217,7 +217,8 @@ async def control_start():
             logger.error("Failed to start frontend process", extra={"error": str(exc)})
             return JSONResponse({"success": False, "message": "Failed to start frontend process"}, status_code=500)
     except Exception as e:
-        return JSONResponse({"success": False, "message": f"Unexpected error: {e!s}"}, status_code=500)
+        logger.error("Unexpected error in frontend control", extra={"error": str(e)})
+        return JSONResponse({"success": False, "message": "Unexpected error starting frontend"}, status_code=500)
 
 
 @router.post("/stop-all")
