@@ -54,6 +54,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Script lives at infra/scripts/release/ — project root is three levels up
+$PROJECT_ROOT = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
+
 # ============================================================================
 # VALIDATION FUNCTIONS
 # ============================================================================
@@ -87,7 +90,7 @@ function Invoke-PreReleaseValidation {
 
     # Avoid stale/generated root DOCUMENTATION_INDEX.md affecting version-consistency tests.
     # The canonical index is `docs/DOCUMENTATION_INDEX.md`; installer build will stage a root copy if needed.
-    $rootDocIndex = Join-Path $PSScriptRoot "DOCUMENTATION_INDEX.md"
+    $rootDocIndex = Join-Path $PROJECT_ROOT "DOCUMENTATION_INDEX.md"
     if (Test-Path $rootDocIndex) {
         try { Remove-Item $rootDocIndex -Force } catch { }
     }
@@ -113,12 +116,13 @@ function Invoke-PreReleaseValidation {
 
     # Step 4: Version verification
     Write-Step 4 6 "Verifying version consistency..."
-    if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
+    $verifyVersionScript = Join-Path $PROJECT_ROOT "scripts\VERIFY_VERSION.ps1"
+    if (Test-Path $verifyVersionScript) {
         try {
             if ($AutoFix) {
-                & ".\scripts\VERIFY_VERSION.ps1" -Version $ReleaseVersion -Update 2>&1 | Out-Null
+                & $verifyVersionScript -Version $ReleaseVersion -Update 2>&1 | Out-Null
             } else {
-                & ".\scripts\VERIFY_VERSION.ps1" -CheckOnly 2>&1 | Out-Null
+                & $verifyVersionScript -CheckOnly 2>&1 | Out-Null
             }
             Write-Host "✓ Version consistency verified" -ForegroundColor Green
         } catch {
@@ -133,7 +137,7 @@ function Invoke-PreReleaseValidation {
     # Step 5: Pre-commit checks
     Write-Step 5 6 "Running pre-commit checks..."
     try {
-        & ".\COMMIT_READY.ps1" -Quick | Out-Null
+        & (Join-Path $PROJECT_ROOT "infra\scripts\ops\COMMIT_READY.ps1") -Quick | Out-Null
         if ($LASTEXITCODE -ne 0) {
             Write-Host "❌ Pre-commit checks failed" -ForegroundColor Red
             return $false
@@ -152,7 +156,7 @@ function Invoke-PreReleaseValidation {
         Write-Host "ℹ️  Running full test suite..." -ForegroundColor Cyan
         Write-Host "   (This may take 5-10 minutes)" -ForegroundColor Gray
         try {
-            & ".\RUN_TESTS_BATCH.ps1" -Verbose:$false | Out-Null
+            & (Join-Path $PROJECT_ROOT "infra\scripts\testing\RUN_TESTS_BATCH.ps1") -Verbose:$false | Out-Null
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "✓ Tests passed" -ForegroundColor Green
             } else {
@@ -180,15 +184,15 @@ function Update-VersionReferences {
 
 
     # Update backend/main.py docstring
-    (Get-Content "backend/main.py") -replace 'Version: [0-9]+\.[0-9]+\.[0-9]+', "Version: $NewVersion" | Set-Content "backend/main.py"
+    (Get-Content "src/backend/main.py") -replace 'Version: [0-9]+\.[0-9]+\.[0-9]+', "Version: $NewVersion" | Set-Content "src/backend/main.py"
 
     # Update frontend/package.json
-    (Get-Content "frontend/package.json") -replace '"version":\s*"[0-9\.]+"', ('"version": "' + $NewVersion + '"') | Set-Content "frontend/package.json"
+    (Get-Content "src/frontend/package.json") -replace '"version":\s*"[0-9\.]+"', ('"version": "' + $NewVersion + '"') | Set-Content "src/frontend/package.json"
 
     # Regenerate frontend/package-lock.json
-    if (Test-Path "frontend/package-lock.json") {
+    if (Test-Path "src/frontend/package-lock.json") {
         Write-Host "Regenerating frontend/package-lock.json..."
-        Push-Location "frontend"
+        Push-Location "src/frontend"
         try {
             npm install --package-lock-only --ignore-scripts --no-audit | Out-Null
         } catch {
@@ -205,8 +209,14 @@ function Update-VersionReferences {
     # Root DOCUMENTATION_INDEX.md is a generated/staged artifact (ignored in git); keep canonical index under docs/.
 
     # Update scripts
-    (Get-Content "COMMIT_READY.ps1") -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content "COMMIT_READY.ps1"
-    (Get-Content "INSTALLER_BUILDER.ps1") -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content "INSTALLER_BUILDER.ps1"
+    $commitReadyScript = Join-Path $PROJECT_ROOT "infra\scripts\ops\COMMIT_READY.ps1"
+    if (Test-Path $commitReadyScript) {
+        (Get-Content $commitReadyScript) -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content $commitReadyScript
+    }
+    $installerBuilderScript = Join-Path $PROJECT_ROOT "infra\scripts\release\INSTALLER_BUILDER.ps1"
+    if (Test-Path $installerBuilderScript) {
+        (Get-Content $installerBuilderScript) -replace 'Version: [0-9\.]+', "Version: $NewVersion" | Set-Content $installerBuilderScript
+    }
 
     # Optionally update README.md (if version appears)
     # Avoid rewriting historical/version-example text in README; only bump the explicit current version field.
@@ -243,11 +253,12 @@ function Update-VersionReferences {
 
     # Update Greek installer text
     Write-Host "Updating Greek installer text..."
-    python fix_greek_encoding_permanent.py
+    $greekFixScript = Join-Path $PROJECT_ROOT "infra\scripts\diagnostics\fix_greek_encoding_permanent.py"
+    if (Test-Path $greekFixScript) { python $greekFixScript }
 
     # Update installer wizard images
     Write-Host "Updating installer wizard images..."
-    & .\INSTALLER_BUILDER.ps1 -Action update-images -Version $NewVersion
+    & (Join-Path $PROJECT_ROOT "infra\scripts\release\INSTALLER_BUILDER.ps1") -Action update-images -Version $NewVersion
 
     Write-Host "✓ All version references updated" -ForegroundColor Green
 }
@@ -261,7 +272,8 @@ function Invoke-InstallerBuild {
     Write-Host "╚════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
 
-    if (-not (Test-Path ".\INSTALLER_BUILDER.ps1")) {
+    $installerBuilderScript = Join-Path $PROJECT_ROOT "infra\scripts\release\INSTALLER_BUILDER.ps1"
+    if (-not (Test-Path $installerBuilderScript)) {
         Write-Host "❌ INSTALLER_BUILDER.ps1 not found" -ForegroundColor Red
         return $false
     }
@@ -272,7 +284,7 @@ function Invoke-InstallerBuild {
 
     try {
         # Full installer build with auto-fix and code signing
-        & .\INSTALLER_BUILDER.ps1 -Action build -Version $Version -AutoFix
+        & $installerBuilderScript -Action build -Version $Version -AutoFix
 
         if ($LASTEXITCODE -ne 0) {
             Write-Host "❌ Installer build failed" -ForegroundColor Red
@@ -308,6 +320,8 @@ function Invoke-InstallerBuild {
 if (-not $ReleaseVersion) {
     $ReleaseVersion = Read-Host "Enter new release version (e.g., 1.17.7)"
 }
+
+Push-Location $PROJECT_ROOT
 
 Write-Host ""
 Write-Host "╔════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
@@ -376,12 +390,12 @@ Write-Host "╚═════════════════════�
 Write-Host ""
 
 Write-Host "Running pre-commit validation on changes..."
-& .\COMMIT_READY.ps1 -Quick
+& (Join-Path $PROJECT_ROOT "infra\scripts\ops\COMMIT_READY.ps1") -Quick
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Pre-commit validation failed, but attempting to stage auto-fixes and retry..."
     git add .
     Write-Host "Re-running pre-commit validation on staged changes..."
-    & .\COMMIT_READY.ps1 -Quick
+    & (Join-Path $PROJECT_ROOT "infra\scripts\ops\COMMIT_READY.ps1") -Quick
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Pre-commit validation failed after retry. Aborting release."
         exit 1
@@ -401,7 +415,7 @@ Write-Host ""
 Write-Host "Organizing documentation before generating release artifacts..."
 try {
     # Consolidate and de-duplicate docs to reflect current state before generating release notes
-    & .\WORKSPACE_CLEANUP.ps1 -Mode standard -SkipTests
+    & (Join-Path $PROJECT_ROOT "infra\scripts\ops\WORKSPACE_CLEANUP.ps1") -Mode standard -SkipTests
     if ($LASTEXITCODE -ne 0) {
         Write-Warning "Workspace documentation organization reported issues. Proceeding, but review changes."
     } else {
@@ -422,7 +436,7 @@ Write-Host "╚═════════════════════�
 Write-Host ""
 
 Write-Host "Generating release documentation..."
-& .\GENERATE_RELEASE_DOCS.ps1 -Version "$ReleaseVersion"
+& (Join-Path $PROJECT_ROOT "infra\scripts\release\GENERATE_RELEASE_DOCS.ps1") -Version "$ReleaseVersion"
 if ($LASTEXITCODE -ne 0) {
     Write-Warning "Release documentation generation reported issues. Continuing, but release notes may be incomplete."
 } else {
@@ -431,14 +445,15 @@ if ($LASTEXITCODE -ne 0) {
 
 # Enforce version consistency after docs generation (generator may rewrite versioned files)
 Write-Host "Re-syncing and re-verifying version references after documentation generation..."
-if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
-    & .\scripts\VERIFY_VERSION.ps1 -Version "$ReleaseVersion" -Update | Out-Null
+$verifyVersionScript2 = Join-Path $PROJECT_ROOT "scripts\VERIFY_VERSION.ps1"
+if (Test-Path $verifyVersionScript2) {
+    & $verifyVersionScript2 -Version "$ReleaseVersion" -Update | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Version re-sync failed after documentation generation. Aborting release."
         exit 1
     }
 
-    & .\scripts\VERIFY_VERSION.ps1 -Version "$ReleaseVersion" -CheckOnly | Out-Null
+    & $verifyVersionScript2 -Version "$ReleaseVersion" -CheckOnly | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Version verification failed after re-sync. Aborting release."
         exit 1
@@ -447,7 +462,7 @@ if (Test-Path ".\scripts\VERIFY_VERSION.ps1") {
 
 # Final gate after docs/version rewrites.
 Write-Host "Running final pre-commit validation after documentation generation..."
-& .\COMMIT_READY.ps1 -Quick
+& (Join-Path $PROJECT_ROOT "infra\scripts\ops\COMMIT_READY.ps1") -Quick
 if ($LASTEXITCODE -ne 0) {
     Write-Error "Pre-commit validation failed after documentation generation. Aborting release."
     exit 1

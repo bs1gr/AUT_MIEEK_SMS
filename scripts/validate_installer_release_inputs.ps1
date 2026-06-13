@@ -25,7 +25,7 @@ Set-StrictMode -Version Latest
 
 $RepoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 if (-not $InstallerScriptPath) {
-    $InstallerScriptPath = Join-Path $RepoRoot 'installer\SMS_Installer.iss'
+    $InstallerScriptPath = Join-Path $RepoRoot 'infra\installer\installer-old\SMS_Installer.iss'
 }
 
 if (-not (Test-Path $InstallerScriptPath)) {

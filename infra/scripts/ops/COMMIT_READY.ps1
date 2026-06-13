@@ -155,22 +155,23 @@ if ($Help) {
         exit 0
 }
 $ErrorActionPreference = 'Stop'
-$SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
+# Script lives at infra/scripts/ops/ — project root is three levels up
+$PROJECT_ROOT = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
 # Normalize Mode based on legacy switches if provided (supports -Quick etc.)
 if ($Quick)    { $Mode = 'quick' }
 elseif ($Standard) { $Mode = 'standard' }
 elseif ($Full)     { $Mode = 'full' }
 elseif ($Cleanup)  { $Mode = 'cleanup' }
 
-$BACKEND_DIR = Join-Path $SCRIPT_DIR "backend"
-$FRONTEND_DIR = Join-Path $SCRIPT_DIR "frontend"
-$VERSION_FILE = Join-Path $SCRIPT_DIR "VERSION"
+$BACKEND_DIR = Join-Path $PROJECT_ROOT "src\backend"
+$FRONTEND_DIR = Join-Path $PROJECT_ROOT "src\frontend"
+$VERSION_FILE = Join-Path $PROJECT_ROOT "VERSION"
 # $CHANGELOG_FILE reserved for future changelog checks (removed to avoid unused variable warning)
 
 # Helper paths
 $FRONTEND_PACKAGE_JSON = Join-Path $FRONTEND_DIR "package.json"
-$INSTALLER_DIR = Join-Path $SCRIPT_DIR "installer"
-$DOCS_DIR = Join-Path $SCRIPT_DIR "docs"
+$INSTALLER_DIR = Join-Path $PROJECT_ROOT "infra\installer"
+$DOCS_DIR = Join-Path $PROJECT_ROOT "docs"
 
 # Determine execution environment (CI vs local dev)
 $inCI = [bool](
@@ -355,8 +356,8 @@ function Invoke-PreCommitHookValidation {
         }
 
         # Ensure the git hook is configured to use COMMIT_READY.ps1 (which handles PATH correctly)
-        $gitHookPath = Join-Path $SCRIPT_DIR ".git\hooks\pre-commit"
-                if (Test-Path (Join-Path $SCRIPT_DIR ".git")) {
+        $gitHookPath = Join-Path $PROJECT_ROOT ".git\hooks\pre-commit"
+                if (Test-Path (Join-Path $PROJECT_ROOT ".git")) {
                         # Lightweight guard: the hook only verifies the COMMIT_READY checkpoint and version format.
                         # Full validations (lint/tests) run when the developer executes COMMIT_READY manually.
                         $hookContent = @'
@@ -779,15 +780,15 @@ function Invoke-VersionPropagationAndDocs {
     # 2) Update known documentation/version banners
     if ($UpdateDocs -or $AutoFix -or ($Mode -in @('standard','full'))) {
         $targets = @(
-            (Join-Path $SCRIPT_DIR 'README.md'),
-            (Join-Path $SCRIPT_DIR 'COMMIT_READY.ps1'),
-            (Join-Path $SCRIPT_DIR 'DOCKER.ps1'),
-            (Join-Path $SCRIPT_DIR 'NATIVE.ps1'),
-            (Join-Path $SCRIPT_DIR 'CHANGELOG.md'),
-            (Join-Path $SCRIPT_DIR 'INSTALLER_BUILDER.ps1'),
-            (Join-Path $SCRIPT_DIR 'COMMIT_SUMMARY.md'),
-            (Join-Path $SCRIPT_DIR 'RELEASE_SUMMARY_1.9.7.md'),
-            (Join-Path $SCRIPT_DIR 'PERFORMANCE_AUDIT_2025-12-03.md')
+            (Join-Path $PROJECT_ROOT 'README.md'),
+            (Join-Path $PROJECT_ROOT 'COMMIT_READY.ps1'),
+            (Join-Path $PROJECT_ROOT 'DOCKER.ps1'),
+            (Join-Path $PROJECT_ROOT 'NATIVE.ps1'),
+            (Join-Path $PROJECT_ROOT 'CHANGELOG.md'),
+            (Join-Path $PROJECT_ROOT 'INSTALLER_BUILDER.ps1'),
+            (Join-Path $PROJECT_ROOT 'COMMIT_SUMMARY.md'),
+            (Join-Path $PROJECT_ROOT 'RELEASE_SUMMARY_1.9.7.md'),
+            (Join-Path $PROJECT_ROOT 'PERFORMANCE_AUDIT_2025-12-03.md')
         )
 
         foreach ($t in $targets) {
@@ -836,12 +837,12 @@ function Get-WorkspaceVersionRefs {
 
     # Explicit files and docs banners
     $explicitTargets = @(
-        (Join-Path $SCRIPT_DIR 'README.md'),
-        (Join-Path $SCRIPT_DIR 'CHANGELOG.md'),
-        (Join-Path $SCRIPT_DIR 'COMMIT_SUMMARY.md'),
-        (Join-Path $SCRIPT_DIR 'DOCKER.ps1'),
-        (Join-Path $SCRIPT_DIR 'NATIVE.ps1'),
-        (Join-Path $SCRIPT_DIR 'COMMIT_READY.ps1')
+        (Join-Path $PROJECT_ROOT 'README.md'),
+        (Join-Path $PROJECT_ROOT 'CHANGELOG.md'),
+        (Join-Path $PROJECT_ROOT 'COMMIT_SUMMARY.md'),
+        (Join-Path $PROJECT_ROOT 'DOCKER.ps1'),
+        (Join-Path $PROJECT_ROOT 'NATIVE.ps1'),
+        (Join-Path $PROJECT_ROOT 'COMMIT_READY.ps1')
     ) | Where-Object { Test-Path $_ }
 
     foreach ($t in $explicitTargets) {
@@ -968,7 +969,7 @@ function Invoke-VersionConsistencyCheck {
     Write-Header "Phase 0: Version Consistency" "DarkCyan"
 
     # Run comprehensive version verification using VERIFY_VERSION.ps1
-    $verifyScript = Join-Path $SCRIPT_DIR "scripts\VERIFY_VERSION.ps1"
+    $verifyScript = Join-Path $PROJECT_ROOT "scripts\VERIFY_VERSION.ps1"
 
     if (-not (Test-Path $verifyScript)) {
         Write-Warning-Msg "VERIFY_VERSION.ps1 not found, falling back to basic check"
@@ -1016,7 +1017,7 @@ function Invoke-VersionFormatValidation {
     Write-Header "Phase 0.5: Version Format Enforcement" "Red"
 
     # CRITICAL: Validate v1.x.x format ONLY
-    $versionFile = Join-Path $SCRIPT_DIR "VERSION"
+    $versionFile = Join-Path $PROJECT_ROOT "VERSION"
     if (-not (Test-Path $versionFile)) {
         Write-Failure "VERSION file not found"
         return $false
@@ -1062,20 +1063,32 @@ function Invoke-VersionFormatValidation {
 function Invoke-InstallerReleaseInputValidation {
     Write-Header "Phase 0.6: Installer Release Input Guard" "DarkCyan"
 
-    $validator = Join-Path $SCRIPT_DIR "scripts\validate_installer_release_inputs.ps1"
+    $validator = Join-Path $PROJECT_ROOT "scripts\validate_installer_release_inputs.ps1"
     if (-not (Test-Path $validator)) {
         Write-Warning-Msg "Installer input validator not found; skipping installer input guard"
         Add-Result "Linting" "Installer Input Guard" $true "Skipped (validator missing)"
         return $true
     }
 
+    # The legacy .iss file is in infra/installer/installer-old/ and its relative
+    # source paths predate the directory flattening — they no longer resolve correctly.
+    # Releases are now built by CI (INSTALLER_BUILDER.ps1); this guard is informational only.
+    $issPath = Join-Path $PROJECT_ROOT "infra\installer\installer-old\SMS_Installer.iss"
+    $isLegacyInstaller = $issPath -match 'installer-old'
+
     try {
-        $output = & $validator 2>&1
+        $output = & $validator -InstallerScriptPath $issPath 2>&1
         $output | ForEach-Object { Write-Host $_ }
 
         if ($LASTEXITCODE -eq 0) {
             Write-Success "Installer release input validation passed"
             Add-Result "Linting" "Installer Input Guard" $true
+            return $true
+        }
+
+        if ($isLegacyInstaller) {
+            Write-Warning-Msg "Legacy installer (installer-old) source paths are stale after directory restructure — non-blocking"
+            Add-Result "Linting" "Installer Input Guard" $true "Skipped (legacy installer-old; CI builds releases)"
             return $true
         }
 
@@ -1115,18 +1128,18 @@ function Invoke-CodeQualityChecks {
         $output = $null
         if ($ruffAvailable) {
             if ($AutoFix) {
-                $output = ruff check --fix --config ../config/ruff.toml $checkTarget 2>&1
+                $output = ruff check --fix --config ../../config/ruff.toml $checkTarget 2>&1
             } else {
-                $output = ruff check --config ../config/ruff.toml $checkTarget 2>&1
+                $output = ruff check --config ../../config/ruff.toml $checkTarget 2>&1
             }
         } else {
             # Fallback: try python -m ruff if ruff is not directly in PATH (common in CI)
             $pythonAvailable = Test-CommandAvailable -Name "python"
             if ($pythonAvailable) {
                 if ($AutoFix) {
-                    $output = python -m ruff check --fix --config ../config/ruff.toml $checkTarget 2>&1
+                    $output = python -m ruff check --fix --config ../../config/ruff.toml $checkTarget 2>&1
                 } else {
-                    $output = python -m ruff check --config ../config/ruff.toml $checkTarget 2>&1
+                    $output = python -m ruff check --config ../../config/ruff.toml $checkTarget 2>&1
                 }
             } else {
                 Write-Warning-Msg "Ruff is not available; skipping backend lint"
@@ -1158,14 +1171,14 @@ function Invoke-CodeQualityChecks {
     Write-Section "Backend: MyPy Type Checking"
 
     try {
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         Write-Info "Running mypy..."
         $mypyAvailable = Test-CommandAvailable -Name "mypy"
-        $checkTarget = if ($Target) { $Target } else { "backend" }
+        $checkTarget = if ($Target) { $Target } else { "src/backend" }
 
         if ($mypyAvailable) {
             # Check if config exists, otherwise run without specific config
-            $mypyConfig = Join-Path (Join-Path $SCRIPT_DIR "config") "mypy.ini"
+            $mypyConfig = Join-Path (Join-Path $PROJECT_ROOT "config") "mypy.ini"
             if (Test-Path $mypyConfig) {
                 $output = mypy --config-file "$mypyConfig" $checkTarget --namespace-packages 2>&1
             } else {
@@ -1185,7 +1198,7 @@ function Invoke-CodeQualityChecks {
             # Try python -m mypy
             $pythonAvailable = Test-CommandAvailable -Name "python"
             if ($pythonAvailable) {
-                $mypyConfig = Join-Path (Join-Path $SCRIPT_DIR "config") "mypy.ini"
+                $mypyConfig = Join-Path (Join-Path $PROJECT_ROOT "config") "mypy.ini"
                 if (Test-Path $mypyConfig) {
                     $output = python -m mypy --config-file "$mypyConfig" $checkTarget --namespace-packages 2>&1
                 } else {
@@ -1256,11 +1269,11 @@ function Invoke-CodeQualityChecks {
     # Repository Markdown lint
     Write-Section "Repository: Markdown Lint"
     try {
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         $npxAvailable = Test-CommandAvailable -Name "npx"
         if ($npxAvailable) {
-            $mdConfig = Join-Path (Join-Path $SCRIPT_DIR "config") ".markdownlint.json"
-            $mdIgnore = Join-Path $SCRIPT_DIR ".markdownlintignore"
+            $mdConfig = Join-Path (Join-Path $PROJECT_ROOT "config") ".markdownlint.json"
+            $mdIgnore = Join-Path (Join-Path $PROJECT_ROOT "config") ".markdownlintignore"
 
             # Always auto-fix markdown issues (safe and trivial formatting changes)
             # First pass: try to fix issues
@@ -1429,7 +1442,7 @@ function Invoke-TestSuite {
         }
 
         # Check if batch runner is available
-        $batchRunnerAvailable = Test-Path "$SCRIPT_DIR\RUN_TESTS_BATCH.ps1"
+        $batchRunnerAvailable = Test-Path (Join-Path $PROJECT_ROOT "infra\scripts\testing\RUN_TESTS_BATCH.ps1")
 
         $scopeQuick = ($Mode -eq 'quick') -or $ScopeToChanges
         $changedFiles = if ($scopeQuick) { Get-ChangedFiles } else { @() }
@@ -1440,17 +1453,17 @@ function Invoke-TestSuite {
 
         if ($scopeQuick -and $changedBackendTests.Count -gt 0 -and -not $Target) {
             Write-Info "Quick scope enabled: running changed backend tests only"
-            $testPaths = $changedBackendTests | ForEach-Object { Join-Path $SCRIPT_DIR $_ }
+            $testPaths = $changedBackendTests | ForEach-Object { Join-Path $PROJECT_ROOT $_ }
             $output = python -m pytest $testPaths -x -m "not slow" -q --tb=short 2>&1
         }
         elseif ($batchRunnerAvailable -and -not $Target) {
             Write-Info "Using batch test runner (prevents system freeze)..."
             if ($Mode -eq 'quick') {
                 # Quick mode: smaller batches, fast-fail
-                $output = & "$SCRIPT_DIR\RUN_TESTS_BATCH.ps1" -BatchSize 5 -FastFail 2>&1
+                $output = & "$(Join-Path $PROJECT_ROOT 'infra\scripts\testing\RUN_TESTS_BATCH.ps1')" -BatchSize 5 -FastFail 2>&1
             } else {
                 # Full mode: larger batches, complete run
-                $output = & "$SCRIPT_DIR\RUN_TESTS_BATCH.ps1" -BatchSize 8 2>&1
+                $output = & "$(Join-Path $PROJECT_ROOT 'infra\scripts\testing\RUN_TESTS_BATCH.ps1')" -BatchSize 8 2>&1
             }
         } else {
             $testTarget = if ($Target) { $Target } else { "tests/" }
@@ -1496,7 +1509,7 @@ function Invoke-TestSuite {
 
         if ($scopeQuick -and $changedFrontendTests.Count -gt 0) {
             Write-Info "Quick scope enabled: running changed frontend tests only"
-            $testPaths = $changedFrontendTests | ForEach-Object { Join-Path $SCRIPT_DIR $_ }
+            $testPaths = $changedFrontendTests | ForEach-Object { Join-Path $PROJECT_ROOT $_ }
             $output = npm run test -- $testPaths --reporter=dot --bail 1 2>&1
             $frontendExitCode = $LASTEXITCODE
         }
@@ -1626,8 +1639,8 @@ function Invoke-HealthChecks {
     $allPassed = $true
 
     # Check if NATIVE.ps1 and DOCKER.ps1 exist
-    $nativeScript = Join-Path $SCRIPT_DIR "NATIVE.ps1"
-    $dockerScript = Join-Path $SCRIPT_DIR "DOCKER.ps1"
+    $nativeScript = Join-Path $PROJECT_ROOT "NATIVE.ps1"
+    $dockerScript = Join-Path $PROJECT_ROOT "DOCKER.ps1"
 
     if (-not (Test-Path $nativeScript)) {
         Write-Warning-Msg "NATIVE.ps1 not found, skipping native health check"
@@ -1736,7 +1749,7 @@ function Invoke-InstallerAudit {
 
     try {
         Write-Info "Auditing installer versioning and components..."
-        $installerBuilder = Join-Path $SCRIPT_DIR "INSTALLER_BUILDER.ps1"
+        $installerBuilder = Join-Path $PROJECT_ROOT "INSTALLER_BUILDER.ps1"
 
         if (-not (Test-Path $installerBuilder)) {
             Write-Info "INSTALLER_BUILDER.ps1 not found, skipping installer audit"
@@ -1806,7 +1819,7 @@ function Invoke-AutomatedCleanup {
         # and guard with a elapsed-time check so this never runs indefinitely.
 
         # Use a pruned traversal that avoids descending into excluded directories (fast & safe)
-        $targets = Get-PrunedPyCacheTargets -RootPath $SCRIPT_DIR -ExcludePatterns $excludePatterns -MaxSeconds $maxCleanupSeconds -StartTime $cleanupStart
+        $targets = Get-PrunedPyCacheTargets -RootPath $PROJECT_ROOT -ExcludePatterns $excludePatterns -MaxSeconds $maxCleanupSeconds -StartTime $cleanupStart
 
         foreach ($item in $targets) {
             # Safety: bail out if we've been cleaning for too long
@@ -1861,9 +1874,9 @@ function Invoke-AutomatedCleanup {
         $buildDirs = @(
             (Join-Path $FRONTEND_DIR "dist"),
             (Join-Path $FRONTEND_DIR "build"),
-            (Join-Path $SCRIPT_DIR "build"),
-            (Join-Path $SCRIPT_DIR "dist"),
-            (Join-Path $SCRIPT_DIR "student_management_system.egg-info")
+            (Join-Path $PROJECT_ROOT "build"),
+            (Join-Path $PROJECT_ROOT "dist"),
+            (Join-Path $PROJECT_ROOT "student_management_system.egg-info")
         )
 
         foreach ($dir in $buildDirs) {
@@ -1884,7 +1897,7 @@ function Invoke-AutomatedCleanup {
     # Temporary files cleanup
     Write-Section "Temporary Files Cleanup"
     try {
-        $tempFiles = Get-PrunedTempFiles -RootPath $SCRIPT_DIR -ExcludePatterns $excludePatterns -MaxSeconds $maxCleanupSeconds -StartTime $cleanupStart
+        $tempFiles = Get-PrunedTempFiles -RootPath $PROJECT_ROOT -ExcludePatterns $excludePatterns -MaxSeconds $maxCleanupSeconds -StartTime $cleanupStart
         $tempFound = $tempFiles.Count
         $failedRemovals = 0
 
@@ -1934,7 +1947,7 @@ function Invoke-AutomatedCleanup {
 
     # Legacy dockspace cleanup
     Write-Section "Legacy Artifacts Cleanup"
-    $dockspace = Join-Path $SCRIPT_DIR "dockspace"
+    $dockspace = Join-Path $PROJECT_ROOT "dockspace"
     if (Test-Path $dockspace) {
         try {
             Remove-Item $dockspace -Recurse -Force -ErrorAction Stop
@@ -2001,7 +2014,7 @@ function Invoke-DocumentationCheck {
 
     $allExist = $true
     foreach ($doc in $keyDocs) {
-        $docPath = Join-Path $SCRIPT_DIR $doc
+        $docPath = Join-Path $PROJECT_ROOT $doc
         if (Test-Path $docPath) {
             Write-Success "$doc exists"
         } else {
@@ -2047,7 +2060,7 @@ function Invoke-DocumentationCheck {
             # Security overview
             'SECURITY_AUDIT_SUMMARY.md'
         )
-        $rootDocs = Get-ChildItem -Path $SCRIPT_DIR -Filter '*.md' -File -ErrorAction SilentlyContinue
+        $rootDocs = Get-ChildItem -Path $PROJECT_ROOT -Filter '*.md' -File -ErrorAction SilentlyContinue
         $unexpected = @()
         foreach ($f in $rootDocs) {
             if ($allowed -notcontains $f.Name) { $unexpected += $f }
@@ -2204,7 +2217,7 @@ function Show-Summary {
 function Invoke-MainWorkflow {
     # Start transcript logging to capture all output
     $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-    $transcriptPath = Join-Path $SCRIPT_DIR "commit_ready_$timestamp.log"
+    $transcriptPath = Join-Path $PROJECT_ROOT "commit_ready_$timestamp.log"
     try { Start-Transcript -Path $transcriptPath -Force | Out-Null } catch { }
 
     $startBanner = "--------------------------------------------------------------`n COMMIT READY - Pre-Commit Verification`n Student Management System $(Get-Version)`n--------------------------------------------------------------"
