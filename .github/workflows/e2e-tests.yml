@@ -142,10 +142,13 @@ jobs:
 
       # FIX 4: Initialize database with migrations before seeding
       - name: Initialize database
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           set -euo pipefail
           echo "Running Alembic migrations..."
-          cd ${{ github.workspace }} && python -c "import sys; sys.path.insert(0, 'src/backend'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || {
+          echo "PYTHONPATH: $PYTHONPATH"
+          cd ${{ github.workspace }} && python -c "import sys; sys.path.insert(0, 'src'); from backend.run_migrations import run_migrations; result = run_migrations(); exit(0 if result else 1)" || {
             echo "❌ Database migration failed. This is a critical error that must be fixed."
             exit 1
           }
@@ -158,22 +161,26 @@ jobs:
           }
 
       - name: Seed test data
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           echo "Seeding E2E test data..."
           set -euo pipefail
           python src/backend/seed_e2e_data.py || {
             echo "❌ Initial seed failed, retrying with force..."
-            python -c "import sys; sys.path.insert(0, 'src/backend'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+            python -c "import sys; sys.path.insert(0, 'src'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
           }
 
       - name: Validate seed data
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           echo "Validating E2E test data..."
           set -euo pipefail
           python src/backend/validate_e2e_data.py || {
             echo "❌ Validation failed"
             echo "Attempting force reseed and retry..."
-            python -c "import sys; sys.path.insert(0, 'src/backend'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
+            python -c "import sys; sys.path.insert(0, 'src'); from backend.seed_e2e_data import seed_e2e_data; seed_e2e_data(force=True)"
             python src/backend/validate_e2e_data.py
           }
 
@@ -185,7 +192,7 @@ jobs:
           AUTH_LOGIN_THROTTLE_ENABLED: '0'
           AUTH_USER_LOCKOUT_ENABLED: '0'
           SERVE_FRONTEND: '1'
-          PYTHONPATH: 'src/backend'
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           echo "Starting backend server..."
           echo "Frontend build exists: $(test -f src/frontend/dist/index.html && echo 'YES' || echo 'NO')"
