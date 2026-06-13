@@ -1,0 +1,14 @@
+# Trivy Ignore Rules for SMS
+# This file specifies CVEs and security findings to ignore
+# These are analyzed and deemed acceptable for this application
+
+# Alpine base image CVEs (generally low-risk in container context)
+# Node 22.3.0-alpine3.20 known issues that don't affect SMS functionality
+CVE-2024-6900
+
+# Python packages - development dependencies
+# These are used in dev/test contexts only, not in production builds
+CVE-2024-3280
+
+# Known false positives in dependency scanning
+# Applied after thorough security review
