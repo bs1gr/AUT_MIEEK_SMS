@@ -107,7 +107,9 @@
       "PowerShell(docker exec sms-app python /app/backend/tools/create_admin.py --email admin@example.com --password Admin123!@)",
       "PowerShell(docker exec sms-app ls -la /app/backend/tools/ 2>&1)",
       "PowerShell(docker exec sms-app ls -la /app/backend/tools/)",
-      "PowerShell(docker exec sms-app python -c \"from backend.db.models import User; from sqlalchemy import create_engine; from sqlalchemy.orm import sessionmaker; print\\('Database models imported successfully'\\)\")"
+      "PowerShell(docker exec sms-app python -c \"from backend.db.models import User; from sqlalchemy import create_engine; from sqlalchemy.orm import sessionmaker; print\\('Database models imported successfully'\\)\")",
+      "PowerShell(cd d:\\\\SMS\\\\student-management-system && git log --oneline -5 && echo \"---\" && git status --short | Where-Object { $_ -notmatch '^\\\\?\\\\?' })",
+      "PowerShell(cd d:\\\\SMS\\\\student-management-system && Test-Path \"infra\\\\installer\\\\dist\\\\SMS_Installer_1.18.26.exe\" && \\(Get-Item \"infra\\\\installer\\\\dist\\\\SMS_Installer_1.18.26.exe\"\\).Length / 1MB | ForEach-Object { \"{0:N2} MB\" -f $_ })"
     ],
     "deny": [],
     "ask": [],
