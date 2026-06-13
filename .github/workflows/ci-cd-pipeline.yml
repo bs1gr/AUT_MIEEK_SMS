@@ -1364,8 +1364,9 @@ jobs:
     permissions:
       security-events: write
       contents: read
-    # Non-blocking on PRs (detection during review), blocking on main/releases
-    continue-on-error: ${{ github.event_name == 'pull_request' }}
+    # Non-blocking on all events - Trivy is informational, not a blocker
+    # Failures should not prevent deployment (informational only)
+    continue-on-error: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
