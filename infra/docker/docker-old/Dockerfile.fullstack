@@ -5,9 +5,9 @@
 # will automatically invalidate the cache and trigger rebuild
 FROM node:22.3.0-alpine3.20 AS fe
 WORKDIR /app/frontend
-COPY frontend/package*.json ./
+COPY src/frontend/package*.json ./
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi && npm cache clean --force;
-COPY frontend/ .
+COPY src/frontend/ .
 COPY VERSION /app/VERSION
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}
@@ -33,18 +33,18 @@ RUN apt-get update -y && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Backend deps
-COPY backend/requirements.txt /app/backend/requirements.txt
+COPY src/backend/requirements.txt /app/backend/requirements.txt
 RUN python -m pip install --upgrade pip && \
     pip install --no-cache-dir -r /app/backend/requirements.txt && \
     rm -rf /root/.cache/pip
 
 # Copy app code and built frontend
-COPY backend /app/backend
+COPY src/backend /app/backend
 COPY --from=fe /app/frontend/dist /app/frontend/dist
 COPY VERSION /app/VERSION
 # Include templates (courses/students JSON) inside the image so imports work
 # in deployments where templates are not mounted from the host.
-COPY templates /app/templates
+COPY src/infra/config/templates /app/templates
 RUN find /app -type d -name __pycache__ -exec rm -rf {} +
 
 RUN useradd -m appuser \
