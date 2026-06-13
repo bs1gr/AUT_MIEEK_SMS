@@ -133,20 +133,14 @@ if (-not $ShowOutput) {
     Write-Info "Batch output is log-only to reduce terminal load. Use -ShowOutput to print batch output."
 }
 
-# Verify we're in the right directory or find it
-$projectRoot = $PSScriptRoot
-if (-not (Test-Path "$projectRoot/backend/tests")) {
-    # Maybe we're being called from a different directory, try to find it
-    if (Test-Path "$projectRoot/../backend/tests") {
-        $projectRoot = Split-Path -Parent $projectRoot
-    } elseif (Test-Path "backend/tests") {
-        $projectRoot = Get-Location
-    } else {
-        Write-Error "backend/tests directory not found!"
-        Write-Host "Please run from project root directory or ensure backend folder exists." -ForegroundColor Red
-        Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
-        exit 1
-    }
+# Script lives at infra/scripts/testing/ — project root is three levels up
+$projectRoot = (Resolve-Path (Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "..\..\..")).Path
+$backendTestsDir = "$projectRoot/src/backend/tests"
+if (-not (Test-Path $backendTestsDir)) {
+    Write-Error "backend/tests directory not found!"
+    Write-Host "Please run from project root directory or ensure backend folder exists." -ForegroundColor Red
+    Restore-TestEnv -prevAllow $previousAllow -prevRunner $previousRunner
+    exit 1
 }
 
 $failureFilePath = if ([System.IO.Path]::IsPathRooted($FailureFile)) {
@@ -165,7 +159,7 @@ if (-not [System.IO.Path]::IsPathRooted($FailureFile)) {
 
 # Get all test files
 Write-Info "Scanning for test files..."
-$testFiles = @(Get-ChildItem -Path "$projectRoot/backend/tests" -Filter "test_*.py" -File |
+$testFiles = @(Get-ChildItem -Path $backendTestsDir -Filter "test_*.py" -File |
     Where-Object { $_.Name -ne "test_main.py" } |  # Exclude if needed
     Sort-Object Name)
 
@@ -251,7 +245,7 @@ foreach ($batch in $batches) {
     $batchStart = Get-Date
 
     # Run pytest from the backend directory
-    $backendDir = "$projectRoot/backend"
+    $backendDir = "$projectRoot/src/backend"
     Push-Location $backendDir -ErrorAction Stop | Out-Null
 
     try {

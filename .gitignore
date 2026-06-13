@@ -95,9 +95,17 @@ DOCUMENTATION_INDEX.md
 # CI/session status docs generated at root by automation
 /CI_CD_*.md
 /FLATTEN_*.md
-/SMOKE_TEST_*.md
+/SMOKE_TEST*.md
 /TEST_FAILURES_*.md
-/FINAL_SMOKE_TEST_*.md
+/FINAL_*.md
+/SESSION_2026_*.md
+/CODE_REVIEW_*.md
+/CODEBASE_REORGANIZATION*.md
+/INVESTIGATE_*.md
+/MERGE_REVIEW*.md
+/PHASE3_*.md
+/PHASE4_*.md
+/PHASE5_*.md
 /run_*_log.txt
 /run_*_full_log.txt
 
