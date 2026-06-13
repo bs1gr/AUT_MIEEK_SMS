@@ -23,8 +23,7 @@ on:
 jobs:
   deploy:
     name: Deploy to ${{ inputs.environment }}
-    runs-on: |
-      ${{ inputs.environment == 'production' && '[self-hosted, windows, production-lan]' || '[self-hosted, windows, staging-lan]' }}
+    runs-on: ${{ fromJson(inputs.environment == 'production' && '["self-hosted","windows","production-lan"]' || '["self-hosted","windows","staging-lan"]') }}
     if: ${{ inputs.should_deploy == true }}
     environment:
       name: ${{ inputs.environment }}
