@@ -777,7 +777,8 @@ jobs:
         run: |
           echo "Starting backend server..."
           cd ${{ github.workspace }}
-          (export PYTHONPATH="${{ github.workspace }}/src" && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000) &
+          export PYTHONPATH="${{ github.workspace }}/src"
+          python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
           echo $! > backend.pid
           sleep 3
 
@@ -793,6 +794,8 @@ jobs:
             fi
             if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
               echo "❌ Backend failed to start within 30 seconds"
+              echo "Backend startup failed. Last 50 lines of backend.log:"
+              tail -50 backend.log
               exit 1
             fi
             sleep 1
@@ -891,7 +894,8 @@ jobs:
         run: |
           echo "Starting backend server for load tests..."
           cd ${{ github.workspace }}
-          (export PYTHONPATH="${{ github.workspace }}/src" && python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000) &
+          export PYTHONPATH="${{ github.workspace }}/src"
+          python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 > backend.log 2>&1 &
           echo $! > backend.pid
           sleep 3
 
@@ -903,6 +907,8 @@ jobs:
             fi
             if [ $i -eq 30 ]; then
               echo "❌ Backend failed to start"
+              echo "Backend startup failed. Last 50 lines of backend.log:"
+              tail -50 backend.log
               exit 1
             fi
             sleep 1
