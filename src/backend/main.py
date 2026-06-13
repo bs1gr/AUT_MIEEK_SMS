@@ -23,7 +23,6 @@ from pathlib import Path
 from fastapi import FastAPI
 
 from .app_factory import create_app
-from .routers import routers_import_export, routers_dashboards
 
 """
 Student Management System — FastAPI backend
@@ -37,12 +36,7 @@ if __name__ == "__main__":
 app: FastAPI = create_app()
 # NOTE: `app` is created above. Do NOT recreate it here to avoid multiple
 # FastAPI instances which break test dependency overrides.
-
-# Register Import/Export Router (Feature #127)
-app.include_router(routers_import_export.router, prefix="/api/v1/import-export", tags=["import-export"])
-
-# Register Dashboards Router (Feature #Phase A, Feature 3)
-app.include_router(routers_dashboards.router, prefix="/api/v1/dashboards", tags=["dashboards"])
+# All routers are registered by router_registry.py inside create_app().
 
 
 # Backward compatibility stubs for tests that monkeypatch main module
