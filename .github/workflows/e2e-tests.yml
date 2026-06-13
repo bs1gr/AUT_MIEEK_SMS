@@ -232,13 +232,15 @@ jobs:
 
       # FIX: Validate login endpoint works before running E2E tests
       - name: Check login health
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
         run: |
           echo "=== Verifying Authentication Setup ==="
           echo ""
           echo "1. Checking if test user exists in database..."
           python -c "
           import sys
-          sys.path.insert(0, 'src/backend')
+          sys.path.insert(0, 'src')
           from sqlalchemy import create_engine
           from sqlalchemy.orm import sessionmaker
           from backend.models import User
