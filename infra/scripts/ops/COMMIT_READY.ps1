@@ -1448,7 +1448,7 @@ function Invoke-TestSuite {
         $changedFiles = if ($scopeQuick) { Get-ChangedFiles } else { @() }
         $changedBackendTests = @()
         if ($scopeQuick -and $changedFiles.Count -gt 0) {
-            $changedBackendTests = $changedFiles | Where-Object { $_ -match '^backend/tests/.+test_.*\.py$' -or $_ -match '^backend/tests/.+/test_.*\.py$' }
+            $changedBackendTests = $changedFiles | Where-Object { $_ -match '^src/backend/tests/.+test_.*\.py$' -or $_ -match '^src/backend/tests/.+/test_.*\.py$' }
         }
 
         if ($scopeQuick -and $changedBackendTests.Count -gt 0 -and -not $Target) {

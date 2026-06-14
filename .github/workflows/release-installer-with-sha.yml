@@ -103,10 +103,10 @@ jobs:
       - name: Build frontend if dist missing
         shell: pwsh
         run: |
-          Write-Host "Checking for frontend/dist directory..."
-          if (-not (Test-Path "frontend/dist")) {
-            Write-Host "frontend/dist not found, building frontend..."
-            cd frontend
+          Write-Host "Checking for src/frontend/dist directory..."
+          if (-not (Test-Path "src/frontend/dist")) {
+            Write-Host "src/frontend/dist not found, building frontend..."
+            cd src/frontend
             Write-Host "Installing npm dependencies..."
             npm install --legacy-peer-deps --no-audit --no-fund
             if ($LASTEXITCODE -ne 0) {
@@ -119,22 +119,22 @@ jobs:
               Write-Error "npm build failed"
               exit 1
             }
-            cd ..
+            cd ../..
             Write-Host "✓ Frontend build completed"
           } else {
-            Write-Host "✓ frontend/dist already exists, skipping build"
+            Write-Host "✓ src/frontend/dist already exists, skipping build"
           }
 
       - name: Verify frontend dist exists
         shell: pwsh
         run: |
-          Write-Host "Checking for frontend/dist directory..."
-          if (-not (Test-Path "frontend/dist")) {
-            Write-Error "frontend/dist directory not found. Run: cd frontend && npm ci && npm run build"
+          Write-Host "Checking for src/frontend/dist directory..."
+          if (-not (Test-Path "src/frontend/dist")) {
+            Write-Error "src/frontend/dist directory not found. Run: cd src/frontend && npm ci && npm run build"
             exit 1
           }
           Write-Host "✓ Frontend dist directory exists"
-          Get-ChildItem "frontend/dist" -Recurse -File | Measure-Object | Select-Object -ExpandProperty Count | ForEach-Object { Write-Host "  Total files: $_" }
+          Get-ChildItem "src/frontend/dist" -Recurse -File | Measure-Object | Select-Object -ExpandProperty Count | ForEach-Object { Write-Host "  Total files: $_" }
 
       - name: Resolve release tag
         id: resolve_tag

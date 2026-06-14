@@ -51,7 +51,7 @@ POSIX (macOS / Linux)
 ```powershell
 # activate backend venv (see above) then from repository root
 
-. .\backend\.venv\Scripts\Activate.ps1
+. .\.venv\Scripts\Activate.ps1
 pytest -q
 
 ```text
@@ -59,6 +59,6 @@ pytest -q
 
 - CI is configured to run `pre-commit` early in the backend job and will fail if hooks find issues.
 - If your editor applies different line endings, run the pre-commit hooks and commit again to normalize line endings.
-- For macOS/Linux, replace the Windows activate commands with `source backend/.venv/bin/activate`.
+- For macOS/Linux, replace the Windows activate commands with `source .venv/bin/activate`.
 
 If you'd like, I can also add a small PowerShell script under `scripts/` to automate the above steps for Windows developers.

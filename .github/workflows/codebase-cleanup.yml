@@ -148,11 +148,11 @@ jobs:
           echo "🏗️ Verifying backend structure..."
 
           REQUIRED_DIRS=(
-            "backend"
-            "backend/routers"
-            "backend/services"
-            "backend/models"
-            "backend/tests"
+            "src/backend"
+            "src/backend/routers"
+            "src/backend/services"
+            "src/backend/models"
+            "src/backend/tests"
           )
 
           for dir in "${REQUIRED_DIRS[@]}"; do

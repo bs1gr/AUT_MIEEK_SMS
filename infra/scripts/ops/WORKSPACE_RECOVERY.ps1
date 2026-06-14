@@ -116,9 +116,9 @@ if (-not $SkipBackup -and -not $DryRun) {
             ".vscode\settings.json",
             "COMMIT_READY.ps1",
             "INSTALLER_BUILDER.ps1",
-            "backend\routers\routers_import_export.py",
-            "backend\schemas\import_export.py",
-            "backend\tests\test_import_export.py"
+            "src\backend\routers\routers_import_export.py",
+            "src\backend\schemas\import_export.py",
+            "src\backend\tests\test_import_export.py"
         )
 
         foreach ($file in $backupFiles) {
@@ -212,9 +212,9 @@ foreach ($fix in $filesToFix) {
 Write-Step "PHASE 4: Restoring Backend Files to Git State"
 
 $backendFiles = @(
-    "backend\routers\routers_import_export.py",
-    "backend\schemas\import_export.py",
-    "backend\tests\test_import_export.py"
+    "src\backend\routers\routers_import_export.py",
+    "src\backend\schemas\import_export.py",
+    "src\backend\tests\test_import_export.py"
 )
 
 foreach ($file in $backendFiles) {

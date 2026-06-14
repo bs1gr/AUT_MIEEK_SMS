@@ -238,7 +238,7 @@ scrape_configs:
 2. **Start backend with logging:**
 
    ```powershell
-   backend\.venv\Scripts\python -m uvicorn backend.main:app --reload --log-level debug
+   .venv\Scripts\python -m uvicorn src.backend.main:app --reload --log-level debug
    ```
 
 3. **View logs in real-time:**
