@@ -59,15 +59,15 @@ if (Test-Path $lockPath) {
     $lockRaw = Get-Content $lockPath -Raw
     # Replace only the first 2 occurrences of "version": "X.Y.Z"
     # (root object + packages."" entry). Dependency versions are different semver values.
-    $count = 0
+    $replaced = 0
     $lockNew = [regex]::Replace($lockRaw, '"version":\s*"v?\d+\.\d+\.\d+"', {
         param($m)
-        $script:count++
-        if ($script:count -le 2) { return "`"version`": `"$core`"" }
+        $script:replaced++
+        if ($script:replaced -le 2) { return "`"version`": `"$core`"" }
         return $m.Value
     })
     Set-Content -Path $lockPath -Value $lockNew -NoNewline -Encoding UTF8
-    Write-Host "  ✓ src/frontend/package-lock.json → $core ($count root field(s) updated)"
+    Write-Host "  ✓ src/frontend/package-lock.json → $core (2 root fields updated)"
 }
 
 # ── 4. src/backend/main.py ───────────────────────────────────────────────────

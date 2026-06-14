@@ -1,8 +1,8 @@
 # Documentation Index
 
 **Last Updated**: 2026-04-08
-**Project Version (documented)**: 1.18.26
-**Version**: 1.18.26
+**Project Version (documented)**: 1.18.27
+**Version**: 1.18.27
 **Current Branch**: `main`
 **Status**: ✅ **`vvvvv1.18.25` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`vvvvv1.18.25` IS THE LATEST PUBLISHED MAINTENANCE RELEASE**
 
