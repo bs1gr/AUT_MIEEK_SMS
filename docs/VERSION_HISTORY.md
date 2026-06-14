@@ -1,9 +1,8 @@
 # Version History
 
-**Current repository version**: `vvvvv1.18.25`
-**Current status**: `vvvvv1.18.25` is the live/latest first official public release
-**Archived prerelease lineage**: `vvvvv1.18.25` through `vvvvv1.18.25`
-**Last Updated**: 2026-03-12
+**Current repository version**: `v1.18.27`
+**Current status**: `v1.18.27` is the latest release — installer published 2026-06-14
+**Last Updated**: 2026-06-14
 
 ---
 

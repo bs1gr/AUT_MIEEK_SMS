@@ -1,10 +1,10 @@
 # Documentation Index
 
-**Last Updated**: 2026-04-08
+**Last Updated**: 2026-06-14
 **Project Version (documented)**: 1.18.27
 **Version**: 1.18.27
 **Current Branch**: `main`
-**Status**: ✅ **`vvvvv1.18.25` IS THE FIRST OFFICIAL PUBLIC RELEASE** | ✅ **`vvvvv1.18.25` IS THE LATEST PUBLISHED MAINTENANCE RELEASE**
+**Status**: ✅ **`v1.18.27` IS THE LATEST PUBLISHED RELEASE** (installer: SMS_Installer_1.18.27.exe, 24.97 MB)
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
