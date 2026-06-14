@@ -105,19 +105,19 @@ try {
     Remove-SafePath -Path "$rootDir\.pytest_cache" -Description "Pytest cache"
     Remove-SafePath -Path "$rootDir\.mypy_cache" -Description "Mypy cache"
     Remove-SafePath -Path "$rootDir\.ruff_cache" -Description "Ruff cache"
-    Remove-SafePath -Path "$rootDir\backend\.pytest_cache" -Description "Backend pytest cache"
-    Remove-SafePath -Path "$rootDir\backend\.mypy_cache" -Description "Backend mypy cache"
-    Remove-SafePath -Path "$rootDir\backend\.ruff_cache" -Description "Backend ruff cache"
+    Remove-SafePath -Path "$rootDir\src\backend\.pytest_cache" -Description "Backend pytest cache"
+    Remove-SafePath -Path "$rootDir\src\backend\.mypy_cache" -Description "Backend mypy cache"
+    Remove-SafePath -Path "$rootDir\src\backend\.ruff_cache" -Description "Backend ruff cache"
 
     # 2. NODE/FRONTEND CACHE CLEANUP
     Write-Section "Node & Frontend Cache"
 
     Remove-SafePath -Path "$rootDir\.cache" -Description "Cache directory"
-    Remove-SafePath -Path "$rootDir\frontend\node_modules\.cache" -Description "Node modules cache"
+    Remove-SafePath -Path "$rootDir\src\frontend\node_modules\.cache" -Description "Node modules cache"
 
     # Keep node_modules, but report size
-    if (Test-Path "$rootDir\frontend\node_modules") {
-        $nodeSize = (Get-ChildItem -Path "$rootDir\frontend\node_modules" -Recurse -Force -ErrorAction SilentlyContinue |
+    if (Test-Path "$rootDir\src\frontend\node_modules") {
+        $nodeSize = (Get-ChildItem -Path "$rootDir\src\frontend\node_modules" -Recurse -Force -ErrorAction SilentlyContinue |
                      Measure-Object -Property Length -Sum -ErrorAction SilentlyContinue).Sum
         Write-Host "  ℹ️  Keeping node_modules ($(Format-FileSize $nodeSize))" -ForegroundColor Cyan
     }
@@ -126,7 +126,7 @@ try {
     Write-Section "Temporary Test Files"
 
     Remove-SafePath -Path "$rootDir\tmp_test_migrations" -Description "Temporary test migrations"
-    Remove-SafePath -Path "$rootDir\backend\tests\__pycache__" -Description "Test cache"
+    Remove-SafePath -Path "$rootDir\src\backend\tests\__pycache__" -Description "Test cache"
 
     # CI/Test artifacts
     Get-ChildItem -Path $rootDir -Filter "tmp_artifacts*" -Directory -ErrorAction SilentlyContinue |
@@ -142,7 +142,7 @@ try {
     # 4. BUILD ARTIFACTS
     Write-Section "Build Artifacts"
 
-    Remove-SafePath -Path "$rootDir\frontend\dist" -Description "Frontend build output"
+    Remove-SafePath -Path "$rootDir\src\frontend\dist" -Description "Frontend build output"
 
     # Keep installer but report
     if (Test-Path "$rootDir\dist") {
@@ -154,8 +154,8 @@ try {
     # 5. LOG FILES (keep directory structure)
     Write-Section "Log Files"
 
-    if (Test-Path "$rootDir\backend\logs") {
-        Get-ChildItem -Path "$rootDir\backend\logs" -Filter "*.log" -File -ErrorAction SilentlyContinue |
+    if (Test-Path "$rootDir\src\backend\logs") {
+        Get-ChildItem -Path "$rootDir\src\backend\logs" -Filter "*.log" -File -ErrorAction SilentlyContinue |
             ForEach-Object {
                 Remove-SafePath -Path $_.FullName -Description "Backend log file"
             }
@@ -266,7 +266,7 @@ try {
     Write-Host "  • archive/ (historical documentation)" -ForegroundColor Gray
     Write-Host "  • dist/ (installers)" -ForegroundColor Gray
     Write-Host "  • frontend/node_modules/ (dependencies)" -ForegroundColor Gray
-    Write-Host "  • backend/.venv/ (Python environment)" -ForegroundColor Gray
+    Write-Host "  • .venv/ (Python environment)" -ForegroundColor Gray
 
 }
 catch {

@@ -12,7 +12,8 @@
 
 $ErrorActionPreference = 'Stop'
 
-$backendDir = Join-Path $PSScriptRoot "backend"
+$projectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+$backendDir = Join-Path $projectRoot "src\backend"
 
 Write-Host "Clearing Python cache..." -ForegroundColor Cyan
 

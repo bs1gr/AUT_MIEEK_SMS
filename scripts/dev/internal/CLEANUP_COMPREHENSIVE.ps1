@@ -178,12 +178,12 @@ foreach ($dir in $pycacheDirs) {
 # 9. Remove .pytest_cache
 Write-Host "`n[9/14] Removing pytest cache..." -ForegroundColor Cyan
 Remove-SafeItem ".pytest_cache" "Pytest cache directory"
-Remove-SafeItem "backend\.pytest_cache" "Backend pytest cache"
+Remove-SafeItem "src\backend\.pytest_cache" "Backend pytest cache"
 
 # 10. Remove node_modules/.cache if exists
 Write-Host "`n[10/14] Checking for build caches..." -ForegroundColor Cyan
-Remove-SafeItem "frontend\node_modules\.cache" "Vite cache"
-Remove-SafeItem "frontend\.vite" "Vite temp directory"
+Remove-SafeItem "src\frontend\node_modules\.cache" "Vite cache"
+Remove-SafeItem "src\frontend\.vite" "Vite temp directory"
 
 # 11. Docker: Remove QNAP-specific docker-compose (unless on QNAP)
 Write-Host "`n[11/14] Checking Docker configuration files..." -ForegroundColor Cyan

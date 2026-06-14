@@ -391,7 +391,7 @@ async def run_diagnostics(response: Response):
                 DiagnosticResult(
                     category="Backend",
                     status="warning",
-                    message="Virtual environment not found at backend/.venv",
+                    message="Virtual environment not found at .venv",
                     details={},
                 )
             )

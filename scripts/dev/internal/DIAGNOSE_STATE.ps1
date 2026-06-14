@@ -188,17 +188,17 @@ if (Test-Path "frontend/package.json") {
 }
 
 # Check for venv
-if (Test-Path "backend/venv") {
-    Write-Success "Python virtual environment found (backend/venv)"
+if (Test-Path ".venv") {
+    Write-Success "Python virtual environment found (.venv)"
 } else {
-    Write-Info "No Python virtual environment found (backend/venv)"
+    Write-Info "No Python virtual environment found (.venv)"
 }
 
 # Check for node_modules
-if (Test-Path "frontend/node_modules") {
-    Write-Success "Node modules installed (frontend/node_modules)"
+if (Test-Path "src/frontend/node_modules") {
+    Write-Success "Node modules installed (src/frontend/node_modules)"
 } else {
-    Write-Info "Node modules not installed (frontend/node_modules)"
+    Write-Info "Node modules not installed (src/frontend/node_modules)"
 }
 
 # ============================================

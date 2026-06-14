@@ -12,7 +12,7 @@ Write-Host "============================================================" -Foreg
 Write-Host ""
 
 # Change to project root
-$projectRoot = Split-Path -Parent $PSScriptRoot
+$projectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
 Set-Location $projectRoot
 
 Write-Host "[1/7] Checking Node.js installation..." -ForegroundColor Yellow
@@ -86,8 +86,8 @@ if (Test-Path "frontend\package.json") {
 
 Write-Host ""
 Write-Host "[5/7] Checking node_modules..." -ForegroundColor Yellow
-if (Test-Path "frontend\node_modules") {
-    $moduleCount = (Get-ChildItem "frontend\node_modules" -Directory -ErrorAction SilentlyContinue).Count
+if (Test-Path "src\frontend\node_modules") {
+    $moduleCount = (Get-ChildItem "src\frontend\node_modules" -Directory -ErrorAction SilentlyContinue).Count
     if ($moduleCount -gt 0) {
         Write-Host "  OK node_modules exists with $moduleCount packages" -ForegroundColor Green
     } else {
@@ -95,7 +95,7 @@ if (Test-Path "frontend\node_modules") {
     }
 } else {
     Write-Host "  X node_modules NOT found!" -ForegroundColor Red
-    Write-Host "  >> Run: cd frontend && npm install" -ForegroundColor Yellow
+    Write-Host "  >> Run: cd src/frontend && npm install" -ForegroundColor Yellow
 }
 
 Write-Host ""
@@ -104,7 +104,7 @@ $criticalDeps = @("vite", "react", "react-dom")
 $missingDeps = @()
 
 foreach ($dep in $criticalDeps) {
-    if (Test-Path "frontend\node_modules\$dep") {
+    if (Test-Path "src\frontend\node_modules\$dep") {
         Write-Host "  OK $dep installed" -ForegroundColor Green
     } else {
         Write-Host "  X $dep NOT installed" -ForegroundColor Red
