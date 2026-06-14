@@ -9,14 +9,15 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $scriptDir))
 $nativeScript = Join-Path $scriptDir 'NATIVE.ps1'
 $backendProcessFile = Join-Path $scriptDir '.backend.pid'
 $frontendProcessFile = Join-Path $scriptDir '.frontend.pid'
-$backendVenvPath = Join-Path $scriptDir 'backend\.venv'
-$frontendNodeModulesPath = Join-Path $scriptDir 'frontend\node_modules'
+$backendVenvPath = Join-Path $projectRoot '.venv'
+$frontendNodeModulesPath = Join-Path $projectRoot 'src\frontend\node_modules'
 $desktopShortcutPath = Join-Path ([Environment]::GetFolderPath('Desktop')) 'SMS Native Toggle.lnk'
-$backendRootPath = Join-Path $scriptDir 'backend'
-$frontendRootPath = Join-Path $scriptDir 'frontend'
+$backendRootPath = Join-Path $projectRoot 'src\backend'
+$frontendRootPath = Join-Path $projectRoot 'src\frontend'
 
 function Get-ProcessCommandLine {
     param([int]$TargetProcessNumber)

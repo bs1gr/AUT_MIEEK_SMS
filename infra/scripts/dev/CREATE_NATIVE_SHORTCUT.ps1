@@ -9,11 +9,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $scriptDir))
 $targetPath = Join-Path $scriptDir 'NATIVE_TOGGLE.cmd'
-$defaultNativeIconPath = Join-Path $scriptDir 'SMS_Native_Toggle.ico'
-$fallbackIconPath = Join-Path $scriptDir 'favicon.ico'
-$backendVenvPath = Join-Path $scriptDir 'backend\.venv'
-$frontendNodeModulesPath = Join-Path $scriptDir 'frontend\node_modules'
+$defaultNativeIconPath = Join-Path $projectRoot 'SMS_Native_Toggle.ico'
+$fallbackIconPath = Join-Path $projectRoot 'favicon.ico'
+$backendVenvPath = Join-Path $projectRoot '.venv'
+$frontendNodeModulesPath = Join-Path $projectRoot 'src\frontend\node_modules'
 $desktopPath = [Environment]::GetFolderPath('Desktop')
 $shortcutPath = Join-Path $desktopPath $ShortcutName
 
