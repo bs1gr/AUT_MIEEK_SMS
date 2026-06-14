@@ -103,7 +103,7 @@ jobs:
           Write-Host "Installing PyInstaller..."
           pip install -q pyinstaller
           Write-Host "Installing backend Python dependencies for bundling..."
-          pip install -q -r backend/requirements.txt
+          pip install -q -r src/backend/requirements.txt
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Failed to install backend dependencies"
             exit 1
