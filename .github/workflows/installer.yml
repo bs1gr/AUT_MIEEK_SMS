@@ -90,7 +90,7 @@ jobs:
             Get-ChildItem dist -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
           }
           New-Item -ItemType Directory -Path dist -Force | Out-Null
-          ./INSTALLER_BUILDER.ps1 -Action build -SkipCodeSign -Verbose -AutoFix
+          ./infra/scripts/release/INSTALLER_BUILDER.ps1 -Action build -SkipCodeSign -Verbose -AutoFix
         env:
           CI: 'true'
 

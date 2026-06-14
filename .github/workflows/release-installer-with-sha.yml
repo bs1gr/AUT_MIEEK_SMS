@@ -336,9 +336,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          Write-Host "Building SMS_Lite.exe from backend\lite_entrypoint.spec..."
+          Write-Host "Building SMS_Lite.exe from src\backend\lite_entrypoint.spec..."
 
-          $specPath = "backend\lite_entrypoint.spec"
+          $specPath = "src\backend\lite_entrypoint.spec"
           if (-not (Test-Path $specPath)) {
             Write-Error "PyInstaller spec file not found: $specPath"
             exit 1
@@ -384,7 +384,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           Write-Host "Building installer for version ${{ steps.resolve_tag.outputs.version }}..."
-          & ".\INSTALLER_BUILDER.ps1" -AutoFix -Verbose
+          & ".\infra\scripts\release\INSTALLER_BUILDER.ps1" -AutoFix -Verbose
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Installer build failed"
             exit 1
