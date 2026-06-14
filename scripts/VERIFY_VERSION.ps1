@@ -157,7 +157,7 @@ $versionChecks = @(
     @{
         File = "src/frontend/package.json"
         Pattern = '"version":\s*"v?\d+\.\d+\.\d+"'
-        Replace = "`"version`": `"v$VersionCore`""
+        Replace = "`"version`": `"$VersionCore`""
         Description = "Frontend package.json"
         Critical = $true
     },
@@ -343,8 +343,8 @@ Write-Host "Failed:             $($results.Failed)" -ForegroundColor $(if($resul
 
 if ($results.Errors.Count -gt 0) {
     Write-Host "`nErrors encountered:" -ForegroundColor Red
-    foreach ($error in $results.Errors) {
-        Write-Host "  • $error" -ForegroundColor Red
+    foreach ($errMsg in $results.Errors) {
+        Write-Host "  • $errMsg" -ForegroundColor Red
     }
 }
 
@@ -389,8 +389,8 @@ if ($Report) {
 
     if ($results.Errors.Count -gt 0) {
         $reportContent += "`n`n---`n`n## Errors Encountered`n"
-        foreach ($error in $results.Errors) {
-            $reportContent += "`n- ❌ $error"
+        foreach ($errMsg in $results.Errors) {
+            $reportContent += "`n- ❌ $errMsg"
         }
     }
 

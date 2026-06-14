@@ -45,6 +45,21 @@ jobs:
           fetch-depth: 0
           ref: ${{ github.ref }}
 
+      - name: Fail-fast version consistency gate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path '.\scripts\VERIFY_VERSION.ps1')) {
+            Write-Error "scripts\VERIFY_VERSION.ps1 not found — cannot gate installer build"
+            exit 1
+          }
+          & '.\scripts\VERIFY_VERSION.ps1' -CIMode
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Blocking installer build: version files are inconsistent at this commit."
+            Write-Error "Fix: run '.\scripts\bump-version.ps1 -Version <X.Y.Z>', commit, then re-tag."
+            exit 1
+          }
+
       - name: Check GitHub CLI availability
         shell: pwsh
         run: |

@@ -29,6 +29,20 @@ jobs:
         id: version
         uses: ./.github/actions/normalize-version
 
+      - name: Verify version consistency (fail-fast gate)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path '.\scripts\VERIFY_VERSION.ps1')) {
+            Write-Error "scripts\VERIFY_VERSION.ps1 not found — cannot gate release"
+            exit 1
+          }
+          & '.\scripts\VERIFY_VERSION.ps1' -CIMode
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Version inconsistency detected at this commit. Run '.\scripts\bump-version.ps1 -Version <X.Y.Z>' to sync all files before tagging."
+            exit 1
+          }
+
       - name: Get tag name
         id: get_tag
         run: |
