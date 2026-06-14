@@ -589,7 +589,7 @@ Enrollment Checks:
 ```bash
 # 1. Enable query profiling
 
-cd backend
+cd src/backend
 PROFILING=1 python -m uvicorn main:app --reload
 
 # 2. Run test queries

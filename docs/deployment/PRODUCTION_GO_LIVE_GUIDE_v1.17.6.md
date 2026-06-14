@@ -368,7 +368,7 @@ $date = Get-Date -Format "yyyyMMdd_HHmmss"
 Copy-Item -Path "data/student_management.db" -Destination "backups/student_management.$date.bak"
 
 # Step 2: Run migrations
-cd backend
+cd src/backend
 alembic upgrade head
 
 # Step 3: Seed training data (optional)
@@ -515,7 +515,7 @@ To upgrade to **$11.18.3** (includes Analytics Dashboard):
 # Or for native:
 git pull origin main
 npm --prefix frontend install
-cd backend && alembic upgrade head
+cd src/backend && alembic upgrade head
 ```
 
 ---

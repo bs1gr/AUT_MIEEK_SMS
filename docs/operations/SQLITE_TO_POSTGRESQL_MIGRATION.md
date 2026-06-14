@@ -228,14 +228,14 @@ pg_conn.close()
 Run migration script:
 
 ```powershell
-cd backend
+cd src/backend
 python scripts/migrate_sqlite_to_postgres.py
 
 ```text
 ### Step 5: Run Alembic Migrations
 
 ```powershell
-cd backend
+cd src/backend
 
 # Check current migration status
 
@@ -259,7 +259,7 @@ alembic current
 
 # In another terminal, run verification
 
-cd backend
+cd src/backend
 python -c "
 from backend.db import init_db, get_session
 from backend.models import Student, Course, Grade, Attendance

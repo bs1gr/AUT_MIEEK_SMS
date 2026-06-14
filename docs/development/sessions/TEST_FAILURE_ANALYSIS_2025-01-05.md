@@ -118,7 +118,7 @@ Created utility functions in `backend/tests/conftest.py`:
 Run full test suite and verify:
 
 ```bash
-cd backend && python -m pytest -q
+cd src/backend && python -m pytest -q
 
 ```text
 ---

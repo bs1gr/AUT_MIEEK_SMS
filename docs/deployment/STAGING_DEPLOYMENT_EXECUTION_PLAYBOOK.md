@@ -352,7 +352,7 @@ If any failed:
 ### Step 3.1: Prepare Test Environment
 
 ```powershell
-cd frontend
+cd src/frontend
 npx playwright test --config=playwright.config.ts
 
 ```text

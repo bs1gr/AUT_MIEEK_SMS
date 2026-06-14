@@ -244,7 +244,7 @@ Uncommitted Changes:
 
 ```powershell
 # Verify versions and dependencies
-cd frontend
+cd src/frontend
 npm --version              # Should be 10.x+
 node --version             # Should be 20.x+
 

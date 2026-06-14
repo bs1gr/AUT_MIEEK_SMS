@@ -387,7 +387,7 @@ scripts\dev\SMOKE_TEST.ps1
 
 # Full test suite
 
-cd backend
+cd src/backend
 python -m pytest
 
 ```text

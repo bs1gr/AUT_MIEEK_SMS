@@ -179,7 +179,7 @@ docker-compose up -d
 
 ## Linux/Mac
 
-cd backend && python -m venv venv && source venv/bin/activate
+cd src/backend && python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cd ../frontend && npm install
 npm run dev
@@ -244,7 +244,7 @@ For special cases (QNAP unreachable, data recovery):
 ```powershell
 ## Run manual migration script
 
-cd backend
+cd src/backend
 python scripts/migrate_sqlite_to_postgres.py
 
 ```

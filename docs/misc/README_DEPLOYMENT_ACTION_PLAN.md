@@ -60,7 +60,7 @@ Documentation: See PHASE5_LOAD_TEST_SIMULATION_REPORT.md
 
 #### 2. Execute E2E Tests (June 8) - 30 MINUTES
 ```
-Command: cd frontend && npm run e2e
+Command: cd src/frontend && npm run e2e
 
 Success Criteria:
   ✅ All 81 test scenarios pass

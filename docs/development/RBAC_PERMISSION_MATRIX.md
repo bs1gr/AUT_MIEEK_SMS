@@ -516,7 +516,7 @@ class UserPermissionResponse(BaseModel):
 ### Step 1: Database Migration
 
 ```bash
-cd backend
+cd src/backend
 alembic revision --autogenerate -m "Add RBAC permission tables"
 alembic upgrade head
 

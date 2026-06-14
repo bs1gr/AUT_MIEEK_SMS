@@ -12,7 +12,7 @@ How to run locally
 2. Install dev dependencies in the `frontend/` folder (Playwright will be installed as a dev dependency):
 
 ```pwsh
-cd frontend
+cd src/frontend
 npm install
 npx playwright install --with-deps
 
@@ -20,7 +20,7 @@ npx playwright install --with-deps
 3. Run the E2E tests:
 
 ```pwsh
-cd frontend
+cd src/frontend
 npm run e2e
 
 ```text

@@ -269,7 +269,7 @@ This ensures that first-time installations initialize properly without requiring
 - **Usage**:
 
   ```powershell
-  cd backend
+  cd src/backend
   ..\.venv\Scripts\python.exe tools\validate_first_run.py
   ```
 
@@ -460,7 +460,7 @@ exec python -m uvicorn backend.main:app --host 0.0.0.0 --port 8000
 2. **Run migrations immediately**:
 
 ```powershell
-cd backend
+cd src/backend
 alembic revision --autogenerate -m "description"
 alembic upgrade head
 

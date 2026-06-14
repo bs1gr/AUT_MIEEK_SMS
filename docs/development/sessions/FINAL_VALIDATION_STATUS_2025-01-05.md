@@ -263,7 +263,7 @@ git show 344a32774    # Test improvements
 ```bash
 # Quick validation
 
-cd frontend && npx eslint tests/e2e/student-management.spec.ts
+cd src/frontend && npx eslint tests/e2e/student-management.spec.ts
 npm run build
 cd ../backend && python -m py_compile seed_e2e_data.py
 

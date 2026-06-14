@@ -57,8 +57,8 @@ cd student-management-system
 ### First Tasks Checklist
 
 - [ ] Set up development environment
-- [ ] Run backend tests: `cd backend && pytest -v`
-- [ ] Run frontend dev server: `cd frontend && npm run dev`
+- [ ] Run backend tests: `cd src/backend && pytest -v`
+- [ ] Run frontend dev server: `cd src/frontend && npm run dev`
 - [ ] Review [ARCHITECTURE.md](../ARCHITECTURE.md)
 - [ ] Read [CODE_STRUCTURE.md](CODE_STRUCTURE.md)
 - [ ] Check [UNIFIED_WORK_PLAN.md](../plans/UNIFIED_WORK_PLAN.md) for tasks
@@ -120,7 +120,7 @@ See: [ARCHITECTURE.md](../ARCHITECTURE.md) for detailed architecture
 ### Backend Setup (Python)
 
 ```bash
-cd backend
+cd src/backend
 
 # Create virtual environment
 
@@ -155,7 +155,7 @@ uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 ### Frontend Setup (React + Vite)
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Install dependencies
 
@@ -583,7 +583,7 @@ export const useExamples = () => {
 ### Creating Migrations
 
 ```bash
-cd backend
+cd src/backend
 
 # Create new migration (auto-detects model changes)
 
@@ -839,7 +839,7 @@ See: [API_EXAMPLES.md](API_EXAMPLES.md) for common API patterns
 ### Backend Testing (Pytest)
 
 ```bash
-cd backend
+cd src/backend
 
 # Run all tests
 
@@ -898,7 +898,7 @@ def test_get_example_not_found():
 ### Frontend Testing (Playwright E2E)
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Install Playwright browsers (first time only)
 
@@ -1057,10 +1057,10 @@ See: [Performance Optimizations Guide](../../PERFORMANCE_OPTIMIZATIONS_2025-01-1
 
     ```bash
     # Backend
-    cd backend && pytest
+    cd src/backend && pytest
 
     # Frontend
-    cd frontend && npm run test:e2e
+    cd src/frontend && npm run test:e2e
     ```
 
 5. **Push and create Pull Request**

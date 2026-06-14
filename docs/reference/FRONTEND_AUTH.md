@@ -32,7 +32,7 @@ How to run locally (dev)
 1. Start backend API (default port 8000):
 
 ```powershell
-cd backend
+cd src/backend
 # ensure virtualenv and deps installed
 
 python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
@@ -41,7 +41,7 @@ python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 2. Start frontend dev server:
 
 ```powershell
-cd frontend
+cd src/frontend
 npm install
 npm run dev
 

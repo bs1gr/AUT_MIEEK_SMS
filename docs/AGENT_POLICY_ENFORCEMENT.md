@@ -245,8 +245,8 @@ npm --prefix frontend run test -- ComponentName.test --run  # Run tests
 ```powershell
 # These commands WILL crash VS Code - DO NOT USE
 
-cd backend && pytest -q
-cd backend && pytest tests/
+cd src/backend && pytest -q
+cd src/backend && pytest tests/
 python -m pytest
 
 ```text
@@ -269,7 +269,7 @@ python -m pytest
 **Exception:** Single test files are OK for development:
 
 ```powershell
-cd backend && pytest tests/test_specific_file.py -v  # OK
+cd src/backend && pytest tests/test_specific_file.py -v  # OK
 
 ```text
 **🚫 CRITICAL: When Running Tests in Background - DO NOT INTERRUPT**
@@ -344,7 +344,7 @@ db.execute("ALTER TABLE ...")
 **✅ REQUIRED:**
 
 ```bash
-cd backend
+cd src/backend
 alembic revision --autogenerate -m "description"
 alembic upgrade head
 
@@ -702,7 +702,7 @@ pwsh -NoProfile -ExecutionPolicy Bypass -File .\scripts\VERIFY_AND_RECORD_STATE.
 
 | Task | Correct Command | Forbidden |
 |------|----------------|-----------|
-| **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd backend && pytest -q` |
+| **Run backend tests** | `.\RUN_TESTS_BATCH.ps1` | `cd src/backend && pytest -q` |
 | **Fix linting** | `python -m ruff check --fix` | Commit with linting errors |
 | **Format code** | `npm --prefix frontend run lint -- --fix` | Commit unformatted code |
 | **Update plan** | Edit `UNIFIED_WORK_PLAN.md` | Create new backlog docs |

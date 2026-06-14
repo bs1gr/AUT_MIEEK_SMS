@@ -111,7 +111,7 @@ project_root = Path(__file__).resolve().parents[3]
 **File:** `backend/tests/test_control_path_traversal.py`
 
 ```bash
-cd backend && python -m pytest tests/test_control_path_traversal.py -v
+cd src/backend && python -m pytest tests/test_control_path_traversal.py -v
 
 # Results:
 

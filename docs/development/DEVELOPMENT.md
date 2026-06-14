@@ -38,14 +38,14 @@ python -m pip install -r backend/requirements-dev.txt
 ### Backend tests
 
 ```pwsh
-cd backend
+cd src/backend
 python -m pytest -q
 
 ```text
 ### Frontend tests
 
 ```pwsh
-cd frontend
+cd src/frontend
 npm run test          # Watch mode (interactive)
 npm run test -- --run # One-time run (CI mode)
 

@@ -45,7 +45,7 @@ This guide covers operational procedures for managing RBAC permissions in the St
 After deploying $11.18.3+, run the permission seeding script:
 
 ```bash
-cd backend
+cd src/backend
 python ops/seed_rbac_data.py
 
 ```text

@@ -208,7 +208,7 @@ Expected to add **1-2 hours** to resolve if root cause is a simple import/regist
 
 4. **Run Single Test with Debug**
    ```bash
-   cd backend
+   cd src/backend
    pytest tests/test_search_api_endpoints.py::TestStudentSearchEndpoint::test_search_students_by_name -xvs --tb=short
    ```
    - Capture detailed error output

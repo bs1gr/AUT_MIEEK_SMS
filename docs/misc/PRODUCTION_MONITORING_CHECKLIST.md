@@ -120,8 +120,8 @@ Select-String -Path backend\logs\app.log -Pattern "500|401|403|timeout" -Context
 ### Week 1: Jan 12, 2026
 
 - [ ] Run COMMIT_READY.ps1 -Quick (3 min)
-- [ ] Run backend tests: `cd backend && pytest -q` (2 min)
-- [ ] Run frontend tests: `cd frontend && npm run test -- --run` (3 min)
+- [ ] Run backend tests: `cd src/backend && pytest -q` (2 min)
+- [ ] Run frontend tests: `cd src/frontend && npm run test -- --run` (3 min)
 - [ ] Run E2E tests: `.\RUN_E2E_TESTS.ps1` (10 min)
 - [ ] Check version consistency: `.\scripts\VERIFY_VERSION.ps1` (1 min)
 - [ ] Review logs for patterns: Check for recurring warnings (5 min)
@@ -316,8 +316,8 @@ docker logs sms-app --tail 100
 # Testing
 
 .\COMMIT_READY.ps1 -Quick
-cd backend && pytest -q
-cd frontend && npm run test -- --run
+cd src/backend && pytest -q
+cd src/frontend && npm run test -- --run
 .\RUN_E2E_TESTS.ps1
 
 # Restart

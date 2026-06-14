@@ -105,7 +105,7 @@
 ```bash
 # 1. Verify the fix (check localStorage keys)
 
-cd frontend
+cd src/frontend
 npm run test -- --debug  # Run single test with browser open
 
 # 2. Check code quality

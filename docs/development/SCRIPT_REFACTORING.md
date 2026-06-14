@@ -204,7 +204,7 @@ subprocess.Popen(["python", "-u", "-m", "backend.scripts.import_.courses", ...])
 All existing tests continue to pass with the refactoring:
 
 ```bash
-cd backend && pytest -q
+cd src/backend && pytest -q
 # Result: 378 passed, 1 skipped ✅
 
 ```text

@@ -364,7 +364,7 @@ validate_filename("backup.exe")  # ❌ BLOCKED
 
 ```powershell
 # Run path traversal security tests specifically
-cd backend
+cd src/backend
 pytest tests/test_path_traversal_security.py -v
 
 # Or use batch runner

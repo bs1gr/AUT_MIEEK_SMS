@@ -101,7 +101,7 @@ git show 344a32774
 
 # Check code quality
 
-cd frontend && npx eslint tests/e2e/student-management.spec.ts
+cd src/frontend && npx eslint tests/e2e/student-management.spec.ts
 
 # Build frontend
 

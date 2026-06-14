@@ -110,7 +110,7 @@ Phase 3 workspace consolidation is now complete. All three major tasks have been
 ### Backend Tests
 
 ```text
-Command: cd backend && python -m pytest -q
+Command: cd src/backend && python -m pytest -q
 Results: 378 passed, 1 skipped
 Duration: 23.76s
 Status: ✅ PASSED
@@ -121,7 +121,7 @@ Status: ✅ PASSED
 ### Frontend Tests
 
 ```text
-Command: cd frontend && npm run test -- --run
+Command: cd src/frontend && npm run test -- --run
 Results: 1033 passed (47 test files)
 Duration: 22.67s
 Status: ✅ PASSED

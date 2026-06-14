@@ -401,14 +401,14 @@ ENABLE_METRICS=1
 **Step 3: Start backend**
 
 ```powershell
-cd backend
+cd src/backend
 .\.venv\Scripts\python -m uvicorn backend.main:app --reload --host 0.0.0.0
 
 ```text
 **Step 4: Start frontend** (separate terminal)
 
 ```powershell
-cd frontend
+cd src/frontend
 npm run dev
 
 ```text

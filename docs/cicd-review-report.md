@@ -129,7 +129,7 @@ jobs:
 ```yaml
 # One-liner npm audit check
 - name: Security audit
-  run: cd frontend && npm audit --omit=dev --audit-level=moderate
+  run: cd src/frontend && npm audit --omit=dev --audit-level=moderate
 ```
 
 **Consolidate container scanning:**

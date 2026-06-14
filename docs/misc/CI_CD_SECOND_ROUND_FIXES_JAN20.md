@@ -131,7 +131,7 @@ threshold=8400
 ### TypeScript Compilation
 
 ```bash
-cd frontend && npx tsc --noEmit
+cd src/frontend && npx tsc --noEmit
 
 ```text
 **Result**: ✅ **0 errors** (was 2 errors)
@@ -139,7 +139,7 @@ cd frontend && npx tsc --noEmit
 ### ESLint
 
 ```bash
-cd frontend && npm run lint
+cd src/frontend && npm run lint
 
 ```text
 **Result**: ✅ **0 errors** (no regressions)

@@ -55,7 +55,7 @@ filepath = _find_existing_backup_path(safe_filename)  # Validates before use
 
 **Verification Command:**
 ```bash
-cd frontend && npm audit
+cd src/frontend && npm audit
 # Result: found 0 vulnerabilities
 ```
 

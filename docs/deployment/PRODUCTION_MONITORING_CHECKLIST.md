@@ -144,10 +144,10 @@
 - [ ] **Security Update Check**
   ```powershell
   # Backend dependencies
-  cd backend && pip list --outdated
+  cd src/backend && pip list --outdated
 
   # Frontend dependencies
-  cd frontend && npm outdated
+  cd src/frontend && npm outdated
   ```
   - CVE check: pip-audit, npm audit
   - Plan security updates if needed

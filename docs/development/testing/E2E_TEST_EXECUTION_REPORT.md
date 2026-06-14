@@ -134,7 +134,7 @@ E2E test infrastructure has been **fully validated and verified**. This report d
 
 **Command:**
 ```bash
-cd frontend
+cd src/frontend
 npm run e2e
 ```
 
@@ -160,7 +160,7 @@ Total duration: 15-25 minutes
 
 **Command:**
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test tests/e2e/analytics-dashboard.spec.ts
 ```
 
@@ -186,7 +186,7 @@ Duration: 3-5 minutes
 
 **Command:**
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test --headed
 ```
 
@@ -203,7 +203,7 @@ npx playwright test --headed
 
 **Command:**
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test --debug
 ```
 
@@ -220,7 +220,7 @@ npx playwright test --debug
 
 **Command:**
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test -g "should login successfully"
 ```
 
@@ -307,7 +307,7 @@ Performance Metrics:
 **Pre-Execution Checklist (5 minutes):**
 ```bash
 # 1. Navigate to frontend directory
-cd frontend
+cd src/frontend
 
 # 2. Verify dependencies installed
 npm list @playwright/test
@@ -483,11 +483,11 @@ npx playwright show-report
 killall node vite
 
 # Start frontend dev server manually:
-cd frontend
+cd src/frontend
 npm run dev
 
 # In another terminal:
-cd frontend
+cd src/frontend
 npx playwright test
 ```
 
@@ -630,7 +630,7 @@ npx playwright show-report
 
 When you choose to run E2E tests, use:
 ```bash
-cd frontend
+cd src/frontend
 npm run e2e
 ```
 
@@ -661,7 +661,7 @@ All E2E tests are prepared, configured, and ready to execute. The Playwright fra
 
 **To execute:**
 ```bash
-cd frontend
+cd src/frontend
 npm run e2e
 ```
 

@@ -701,7 +701,7 @@ npm run build        # Creates frontend/dist/
 ### 9.1 Development Mode
 
 ```bash
-cd frontend
+cd src/frontend
 npm install
 npm run dev              # HMR on localhost:5173
                          # Proxy to backend:8000/api

@@ -31,17 +31,17 @@ Ensure you have:
 ```powershell
 # Terminal 1: Start Backend
 
-cd backend
+cd src/backend
 python -m uvicorn backend.main:app --reload
 
 # Terminal 2: Start Frontend + E2E Tests
 
-cd frontend
+cd src/frontend
 npm run dev  # Starts Vite on port 5173
 
 # Terminal 3: Run Tests
 
-cd frontend
+cd src/frontend
 npm run e2e
 
 ```text
@@ -68,7 +68,7 @@ Duration: ~3-5 minutes
 ### Step 1: Install Playwright
 
 ```bash
-cd frontend
+cd src/frontend
 npm ci  # Install dependencies
 npx playwright install  # Install browser binaries
 
@@ -76,7 +76,7 @@ npx playwright install  # Install browser binaries
 ### Step 2: Verify Backend
 
 ```bash
-cd backend
+cd src/backend
 
 # Option A: Native (fastest for testing)
 
@@ -97,7 +97,7 @@ curl http://localhost:8000/health/ready
 ### Step 3: Run Tests
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Run all tests (includes UI server startup)
 
@@ -246,7 +246,7 @@ The E2E tests run in the CI pipeline with special configuration:
 ```yaml
 - name: Run E2E Tests
 
-  run: cd frontend && npm run e2e
+  run: cd src/frontend && npm run e2e
   env:
     CI: 'true'  # Enables retries and single worker mode
     PLAYWRIGHT_BASE_URL: http://localhost:5173
@@ -300,7 +300,7 @@ lsof -i :8000                   # macOS/Linux
 
 # Start backend if not running
 
-cd backend && python -m uvicorn backend.main:app --reload
+cd src/backend && python -m uvicorn backend.main:app --reload
 
 # Or with Docker
 
@@ -332,7 +332,7 @@ Command timed out after 120 seconds
 ```bash
 # Clean install
 
-cd frontend
+cd src/frontend
 rm -rf node_modules package-lock.json
 npm ci
 

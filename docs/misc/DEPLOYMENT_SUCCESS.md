@@ -169,7 +169,7 @@ WS_PING_TIMEOUT=10
 Run on server:
 
 ```bash
-cd backend
+cd src/backend
 alembic upgrade head
 
 ```text
@@ -282,7 +282,7 @@ If issues arise:
 
 2. **Database Rollback:**
    ```bash
-   cd backend
+   cd src/backend
    alembic downgrade -1
    ```
 

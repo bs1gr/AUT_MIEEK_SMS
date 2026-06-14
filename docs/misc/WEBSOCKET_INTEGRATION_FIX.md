@@ -243,7 +243,7 @@ Start-Sleep -Seconds 10
 
 # Run E2E tests
 
-cd frontend && npx playwright test tests/e2e/notifications.spec.ts
+cd src/frontend && npx playwright test tests/e2e/notifications.spec.ts
 
 ```text
 ### 2. Expected E2E Results

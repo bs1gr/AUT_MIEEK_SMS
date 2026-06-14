@@ -14,7 +14,7 @@ This document provides ready-to-use code for implementing the top recommended en
 - name: Run Safety check
   run: |
     pip install safety
-    cd backend
+    cd src/backend
     safety check --file requirements.txt --json
 
 - name: Run pip-audit
@@ -23,7 +23,7 @@ This document provides ready-to-use code for implementing the top recommended en
 - name: Run Bandit
   run: |
     pip install bandit
-    cd backend
+    cd src/backend
     bandit -r . -f csv -o bandit-report.csv
 ```
 

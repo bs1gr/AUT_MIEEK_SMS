@@ -177,17 +177,17 @@ If failures are concerning or flaky:
 ```bash
 # Terminal 1: Backend
 
-cd backend
+cd src/backend
 python -m uvicorn backend.main:app --reload
 
 # Terminal 2: Frontend + E2E
 
-cd frontend
+cd src/frontend
 npm run dev
 
 # Terminal 3: Run specific test
 
-cd frontend
+cd src/frontend
 npm run e2e -- --grep "test-name"  # Run single test
 
 ```text
@@ -196,7 +196,7 @@ npm run e2e -- --grep "test-name"  # Run single test
 ```bash
 # Run with Playwright debugger open
 
-cd frontend
+cd src/frontend
 PWDEBUG=1 npm run e2e
 
 # Or use headed mode to see browser

@@ -105,7 +105,7 @@ if __name__ == "__main__":
 Run:
 
 ```bash
-cd backend
+cd src/backend
 python create_admin.py
 
 ```text
@@ -417,7 +417,7 @@ if (response.status === 401) {
 ### Run Auth Tests
 
 ```bash
-cd backend
+cd src/backend
 pytest tests/test_auth_router.py -v
 pytest tests/test_rbac_enforcement.py -v
 

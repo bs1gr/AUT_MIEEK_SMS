@@ -73,6 +73,6 @@ If file size is < 2KB and only shows headers, tests didn't run properly.
 
 Per **Policy 1** in `docs/AGENT_POLICY_ENFORCEMENT.md`:
 - ✅ ALWAYS use `.\RUN_TESTS_BATCH.ps1` for backend tests
-- ❌ NEVER use `cd backend && pytest -q` (crashes VS Code)
+- ❌ NEVER use `cd src/backend && pytest -q` (crashes VS Code)
 - ✅ Run in foreground or use native PowerShell jobs
 - ❌ Don't use `run_in_terminal` with `isBackground: true`

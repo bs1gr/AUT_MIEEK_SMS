@@ -220,7 +220,7 @@ Test 8: Language Toggle
 ```powershell
 # Run automated E2E tests:
 
-cd frontend
+cd src/frontend
 npx playwright test --project=chromium
 
 # Expected: 19/19 tests passing ✅

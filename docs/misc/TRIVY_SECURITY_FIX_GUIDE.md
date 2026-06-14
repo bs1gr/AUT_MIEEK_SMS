@@ -266,7 +266,7 @@ FROM python:3.11.8-slim-bookworm
 
 #### 2.2 Update Python Dependencies
 ```bash
-cd backend
+cd src/backend
 
 # Install latest pip-audit
 pip install --upgrade pip-audit
@@ -283,7 +283,7 @@ pip freeze > requirements.txt
 
 #### 2.3 Update Node Dependencies
 ```bash
-cd frontend
+cd src/frontend
 
 # Audit dependencies
 npm audit

@@ -414,7 +414,7 @@ Students in database: 150
 ```powershell
 # Verify via Alembic (database is at latest version)
 
-cd backend
+cd src/backend
 alembic current
 cd ..
 
@@ -428,7 +428,7 @@ cd ..
 **If Not at Head**:
 - ⚠️ Migrations not applied
   - Action: Run migrations
-  - Command: `cd backend && alembic upgrade head && cd ..`
+  - Command: `cd src/backend && alembic upgrade head && cd ..`
   - Decision: Cannot deploy with unapplied migrations
   - Effort: 5 minutes
 

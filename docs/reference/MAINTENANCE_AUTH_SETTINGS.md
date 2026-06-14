@@ -265,7 +265,7 @@ The Maintenance Tab in the Control Panel (`/control`) should be updated to inclu
 Run maintenance endpoint tests:
 
 ```bash
-cd backend
+cd src/backend
 python -m pytest tests/test_control_maintenance.py -v
 
 ```text

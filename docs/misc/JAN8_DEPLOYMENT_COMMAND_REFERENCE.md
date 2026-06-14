@@ -385,7 +385,7 @@ docker logs -f sms-fullstack
 | Port already in use | `netstat -ano \| findstr ":8080"` then `taskkill /PID <pid>` |
 | API not responding | `curl http://localhost:8080/health` (or wait 10 seconds) |
 | Database errors | Check `data/student_management.db` exists and is readable |
-| Tests failing | Check frontend is built: `cd frontend && npm run build` |
+| Tests failing | Check frontend is built: `cd src/frontend && npm run build` |
 | Need rollback | Stop container and restore backup database |
 
 ---

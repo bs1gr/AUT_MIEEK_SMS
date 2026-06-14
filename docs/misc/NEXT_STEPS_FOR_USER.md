@@ -37,7 +37,7 @@ cd "d:\SMS\student-management-system"
 # If you want just frontend tests with environment override:
 
 $env:SMS_ALLOW_DIRECT_VITEST = "1"
-cd frontend
+cd src/frontend
 npm run test -- --run
 
 ```text

@@ -273,14 +273,14 @@ No performance impact on normal operation.
 
 ### Test Case 2: Missing python.exe
 ```powershell
-Remove-Item backend\.venv\Scripts\python.exe
+Remove-Item .venv\Scripts\python.exe
 .\NATIVE.ps1 -Setup        # Should detect corruption and recreate
 # Should complete successfully (detects + removes + creates)
 ```
 
 ### Test Case 3: Missing pyvenv.cfg
 ```powershell
-Remove-Item backend\.venv\pyvenv.cfg
+Remove-Item .venv\pyvenv.cfg
 .\NATIVE.ps1 -Setup        # Should detect corruption and recreate
 ```
 

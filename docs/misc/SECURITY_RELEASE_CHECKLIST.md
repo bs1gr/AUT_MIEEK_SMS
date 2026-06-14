@@ -18,7 +18,7 @@ This checklist ensures every release meets security standards. **Must be complet
 - [ ] **Command:** `npm audit --omit=dev --audit-level=moderate`
 - [ ] **Frequency:** Every push to main and PR
 - [ ] **Action:** Fails pipeline if moderate+ vulnerabilities detected
-- [ ] **Run Locally:** `cd frontend && npm audit --omit=dev`
+- [ ] **Run Locally:** `cd src/frontend && npm audit --omit=dev`
 
 ### ✅ Path Traversal Security Tests
 - [ ] **Location:** `backend/tests/test_control_path_traversal.py`
@@ -44,7 +44,7 @@ This checklist ensures every release meets security standards. **Must be complet
 pip-audit  # Install: pip install pip-audit
 
 # Frontend dependencies
-cd frontend
+cd src/frontend
 npm audit --production
 ```
 

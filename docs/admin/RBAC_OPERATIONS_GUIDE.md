@@ -45,7 +45,7 @@ This guide covers day-to-day operational procedures for the RBAC system in produ
 ```bash
 # Test permission seeding
 
-cd backend
+cd src/backend
 python ops/seed_rbac_data.py --verify
 
 ```text

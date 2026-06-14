@@ -76,7 +76,7 @@ git pull origin main
 
 # 4. Run backend tests
 
-cd backend
+cd src/backend
 python -m pytest -q
 # Expected: All tests pass
 

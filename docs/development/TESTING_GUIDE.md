@@ -220,15 +220,15 @@ k6 run scripts/main_scenario.js --vus 100 --duration 5m  # Load test
 ```powershell
 # Single test file
 
-cd backend && pytest tests/test_students.py -v
+cd src/backend && pytest tests/test_students.py -v
 
 # Single test
 
-cd backend && pytest tests/test_students.py::test_create_student -v
+cd src/backend && pytest tests/test_students.py::test_create_student -v
 
 # With coverage
 
-cd backend && pytest --cov=. --cov-report=html
+cd src/backend && pytest --cov=. --cov-report=html
 
 # Batch runner (REQUIRED for all tests)
 
@@ -262,11 +262,11 @@ cd backend && pytest --cov=. --cov-report=html
 ```bash
 # All tests
 
-cd frontend && npm test
+cd src/frontend && npm test
 
 # Watch mode (development)
 
-cd frontend && npm test -- --watch
+cd src/frontend && npm test -- --watch
 
 # Single file
 
@@ -566,7 +566,7 @@ python load-testing/scripts/check_regression.py results.json
 **❌ NEVER do this** (crashes VS Code):
 
 ```powershell
-cd backend && pytest -q
+cd src/backend && pytest -q
 
 ```text
 **✅ ALWAYS do this**:
@@ -633,7 +633,7 @@ coverage:
 **Backend**:
 
 ```bash
-cd backend
+cd src/backend
 pytest --cov=. --cov-report=html
 open htmlcov/index.html
 
@@ -641,7 +641,7 @@ open htmlcov/index.html
 **Frontend**:
 
 ```bash
-cd frontend
+cd src/frontend
 npm test -- --coverage
 open coverage/index.html
 
@@ -777,7 +777,7 @@ def test_create_student_permission(role, allowed, db, client):
 ```powershell
 # ❌ WRONG
 
-cd backend && pytest -q
+cd src/backend && pytest -q
 
 # ✅ CORRECT
 

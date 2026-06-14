@@ -8,7 +8,7 @@ grep PyJWT backend/requirements.txt
 # Expected: PyJWT==2.13.0
 
 # Test (897 tests can verify)
-cd backend
+cd src/backend
 pip install PyJWT==2.13.0
 pytest tests/test_auth*.py -v
 
@@ -206,7 +206,7 @@ gh run list --limit 5
 ### Local Testing (Before Deployment)
 ```bash
 # Test backend
-cd backend
+cd src/backend
 pip install --upgrade PyJWT==2.13.0
 pytest tests/test_auth*.py -v
 

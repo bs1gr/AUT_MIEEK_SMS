@@ -234,7 +234,7 @@ e44b40d48 feat: add force flag to seed script for test user recreation
 ```bash
 # Run E2E test suite
 
-cd frontend && npm run e2e
+cd src/frontend && npm run e2e
 
 # Expected: All tests pass with test@example.com / Test@Pass123
 

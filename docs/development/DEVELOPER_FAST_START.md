@@ -9,7 +9,7 @@
 1. Set up Python environment (Windows PowerShell)
 
 ```powershell
-cd backend
+cd src/backend
 python -m venv .venv
 . .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip

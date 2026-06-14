@@ -178,7 +178,7 @@ git push
 
 **Fix:**
 ```bash
-cd backend
+cd src/backend
 ruff check . --fix  # Auto-fix what's possible
 
 # For remaining issues, manually break lines
@@ -197,7 +197,7 @@ def my_function_with_long_name(
 
 **Fix:**
 ```bash
-cd frontend
+cd src/frontend
 npm run lint -- --fix  # Auto-fix what's possible
 
 # For remaining:
@@ -233,7 +233,7 @@ pytest tests/test_user.py::test_create_user -v --pdb
 
 **Debug:**
 ```bash
-cd frontend
+cd src/frontend
 npm run test -- --run test/MyComponent.test.ts  # Run one test
 npm run test -- --reporter=verbose  # Detailed output
 npm run test -- --reporter=html  # HTML report
@@ -296,7 +296,7 @@ echo "CVE-2024-12345" >> .trivyignore
 **Debug:**
 ```bash
 # 1. Check backend startup
-cd backend
+cd src/backend
 python -m uvicorn main:app --host 127.0.0.1 --port 8000
 
 # 2. Monitor in another terminal

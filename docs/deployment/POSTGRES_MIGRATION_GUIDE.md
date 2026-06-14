@@ -52,7 +52,7 @@ POSTGRES_OPTIONS=connect_timeout=10&application_name=sms
 Preview the migration without touching PostgreSQL:
 
 ```powershell
-cd backend
+cd src/backend
 python -m backend.scripts.migrate_sqlite_to_postgres `
     --sqlite-path ../data/student_management.db `
     --postgres-url postgresql+psycopg://user:pass@host:5432/dbname `
@@ -67,7 +67,7 @@ model while skipping PostgreSQL writes.
 Run the migration for real (stop the app first):
 
 ```powershell
-cd backend
+cd src/backend
 python -m backend.scripts.migrate_sqlite_to_postgres `
     --sqlite-path ../data/student_management.db `
     --postgres-url postgresql+psycopg://user:pass@host:5432/dbname

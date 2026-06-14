@@ -107,7 +107,7 @@ trivy image sms-fe:test --severity HIGH,CRITICAL
 
 ### Step 1: Generate Dependency Tree
 ```bash
-cd backend
+cd src/backend
 pip install pipdeptree pip-audit
 
 # View full dependency tree
@@ -168,7 +168,7 @@ pytest backend/ -v
 
 ### Step 1: Audit Current Dependencies
 ```bash
-cd frontend
+cd src/frontend
 
 # Run npm audit
 npm audit
@@ -210,7 +210,7 @@ python -m uvicorn backend.main:app --reload
 ```yaml
 - name: Audit Node dependencies
   run: |
-    cd frontend
+    cd src/frontend
     npm audit --audit-level=moderate || true
     npm audit --json > audit-report.json
 ```
@@ -366,7 +366,7 @@ echo "================================="
 echo ""
 
 echo "1️⃣  Checking Python dependencies..."
-cd backend
+cd src/backend
 pip install pip-audit
 pip-audit --desc
 

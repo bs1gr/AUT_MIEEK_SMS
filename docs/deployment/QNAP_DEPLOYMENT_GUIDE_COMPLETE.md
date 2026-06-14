@@ -157,7 +157,7 @@ docker compose -f docker/docker-compose.qnap.postgres-only.yml --env-file .env.q
 - **Reset admin password:**
 
   ```bash
-  cd backend
+  cd src/backend
   python -m backend.tools.create_admin --reset-password admin@example.com
   ```
 

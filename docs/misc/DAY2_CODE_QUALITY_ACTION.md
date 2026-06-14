@@ -102,7 +102,7 @@ npx tsc --noEmit --listFiles
 Or simpler:
 
 ```bash
-cd frontend && npx tsc --noEmit
+cd src/frontend && npx tsc --noEmit
 
 ```text
 ### Phase 3: Fix & Test

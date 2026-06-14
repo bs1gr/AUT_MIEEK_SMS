@@ -80,7 +80,7 @@ cd AUT_MIEEK_SMS
 git checkout vvv1.18.25
 
 # Build SMS_Lite.exe locally
-cd backend
+cd src/backend
 python -m PyInstaller lite_simple_entrypoint.spec --noconfirm
 
 # Build installer

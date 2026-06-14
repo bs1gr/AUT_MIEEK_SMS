@@ -356,11 +356,11 @@ git push
 
 # 2. Test backend standalone
 
-cd backend && python -m pytest -q
+cd src/backend && python -m pytest -q
 
 # 3. Test frontend standalone
 
-cd frontend && npm run test
+cd src/frontend && npm run test
 
 # 4. Test E2E locally (if Docker available)
 
@@ -472,7 +472,7 @@ After all fixes applied:
 ```bash
 # Check Playwright version compatibility
 
-cd frontend
+cd src/frontend
 npm list @playwright/test
 
 # Manual Playwright install test

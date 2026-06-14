@@ -23,7 +23,7 @@
 
 # Install development dependencies
 
-cd backend
+cd src/backend
 pip install -r requirements-dev.txt
 
 # Verify it works
@@ -88,7 +88,7 @@ Your backend has **4 requirements files**:
 ### Fresh Development Setup
 
 ```powershell
-cd backend
+cd src/backend
 
 # Create virtual environment (recommended)
 
@@ -141,7 +141,7 @@ python: No module named pytest
 **Fix**:
 
 ```powershell
-cd backend
+cd src/backend
 pip install -r requirements-dev.txt
 
 ```text
@@ -163,7 +163,7 @@ pytest's capture.py at line 571: self.tmpfile.seek(0)
 #### Option A: Upgrade pytest (Recommended)
 
 ```powershell
-cd backend
+cd src/backend
 pip install --upgrade pytest>=8.0.0 pytest-cov>=4.1.0
 
 ```text
@@ -174,7 +174,7 @@ The project's `requirements-dev.txt` already specifies pytest 8.3.3, so a fresh 
 Download Python 3.12 from python.org and recreate virtual environment:
 
 ```powershell
-cd backend
+cd src/backend
 rm -rf .venv
 python3.12 -m venv .venv
 .venv\Scripts\Activate.ps1
@@ -185,7 +185,7 @@ pip install -r requirements-dev.txt
 #### Option C: Disable pytest Capture (Temporary Workaround)
 
 ```powershell
-cd backend
+cd src/backend
 python -m pytest -s  # -s disables capture
 
 ```text
@@ -430,7 +430,7 @@ After setup is complete:
 1. **Verify Testing Works**:
 
    ```powershell
-   cd backend
+   cd src/backend
    python -m pytest tests/ -v
 
    ```
@@ -491,7 +491,7 @@ After setup is complete:
 **A**:
 
 ```powershell
-cd backend
+cd src/backend
 python -m pytest -v
 
 ```text
@@ -500,7 +500,7 @@ python -m pytest -v
 **A**:
 
 ```powershell
-cd frontend
+cd src/frontend
 npm test
 
 ```text

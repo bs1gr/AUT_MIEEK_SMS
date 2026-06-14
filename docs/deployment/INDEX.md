@@ -151,7 +151,7 @@ docker compose -f docker/docker-compose.yml up -d
 ### Database Migrations
 
 ```bash
-cd backend
+cd src/backend
 
 # Check current version
 

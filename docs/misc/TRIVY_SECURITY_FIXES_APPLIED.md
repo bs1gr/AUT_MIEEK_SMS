@@ -129,7 +129,7 @@ trivy image sms:security-test --severity CRITICAL,HIGH
 ### Step 3: Run Dependency Audits
 ```bash
 # Backend dependencies
-cd backend
+cd src/backend
 pip install pip-audit
 pip-audit --desc
 # Expected: No known security vulnerabilities found
@@ -240,7 +240,7 @@ security-scan-docker:
 
 **Recommended Verification:**
 ```bash
-cd frontend
+cd src/frontend
 npm audit --audit-level=moderate
 # Expected: No vulnerabilities found
 ```

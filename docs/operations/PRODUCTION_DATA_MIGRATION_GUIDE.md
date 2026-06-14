@@ -181,7 +181,7 @@ john.doe@school.edu,ENG201,2026-09-01
 **Via CSV Import Script**:
 ```powershell
 # Use existing import functionality
-cd backend
+cd src/backend
 python -m scripts.import_users --file ../data/users.csv --validate
 python -m scripts.import_users --file ../data/users.csv --execute
 ```
@@ -204,7 +204,7 @@ curl -s -X POST "http://localhost:8080/api/v1/users/" -H "Authorization: Bearer 
 
 ```powershell
 # CSV import
-cd backend
+cd src/backend
 python -m scripts.import_courses --file ../data/courses.csv --validate
 python -m scripts.import_courses --file ../data/courses.csv --execute
 ```
@@ -213,7 +213,7 @@ python -m scripts.import_courses --file ../data/courses.csv --execute
 
 ```powershell
 # CSV import
-cd backend
+cd src/backend
 python -m scripts.import_enrollments --file ../data/enrollments.csv --validate
 python -m scripts.import_enrollments --file ../data/enrollments.csv --execute
 ```
@@ -222,13 +222,13 @@ python -m scripts.import_enrollments --file ../data/enrollments.csv --execute
 
 **Grades**:
 ```powershell
-cd backend
+cd src/backend
 python -m scripts.import_grades --file ../data/grades.csv --execute
 ```
 
 **Attendance**:
 ```powershell
-cd backend
+cd src/backend
 python -m scripts.import_attendance --file ../data/attendance.csv --execute
 ```
 

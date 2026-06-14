@@ -149,12 +149,12 @@ https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/e2e-tests.yml
 ```bash
 # Reproduce locally
 
-cd backend
+cd src/backend
 python -m uvicorn backend.main:app --reload
 
 # In another terminal, run failing test
 
-cd frontend
+cd src/frontend
 PWDEBUG=1 npm run e2e -- --grep "test-name" --headed
 
 # Debug with Playwright Inspector
@@ -446,7 +446,7 @@ Is critical test failing?
 **09:30 - Reproduce Locally**
 
 ```text
-1. Start backend: cd backend && python -m uvicorn backend.main:app --reload
+1. Start backend: cd src/backend && python -m uvicorn backend.main:app --reload
 2. Start E2E with debugger: PWDEBUG=1 npm run e2e -- --grep "should create" --headed
 3. Inspect: Backend throwing exception in logs
 

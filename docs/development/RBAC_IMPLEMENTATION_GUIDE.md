@@ -549,7 +549,7 @@ All RBAC functionality is covered by 102+ tests in `backend/tests/test_rbac.py` 
 ```bash
 # Run all RBAC tests
 
-cd backend
+cd src/backend
 pytest tests/test_rbac.py tests/test_permissions_api.py -v
 
 # Run specific test

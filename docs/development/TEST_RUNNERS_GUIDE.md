@@ -229,7 +229,7 @@ These pairs could be merged with low risk:
 .\RUN_TESTS_BATCH.ps1 -RetestFailed -Verbose
 
 # Frontend: Check specific test
-cd frontend
+cd src/frontend
 npm run test -- ComponentName.test --run
 
 # E2E: Run specific spec

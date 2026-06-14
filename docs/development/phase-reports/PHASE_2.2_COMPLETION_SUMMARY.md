@@ -311,7 +311,7 @@ async def create_student(
 **Check Migration Status:**
 
 ```bash
-cd backend
+cd src/backend
 alembic current
 # Should show: 36c455e672ec (head)
 

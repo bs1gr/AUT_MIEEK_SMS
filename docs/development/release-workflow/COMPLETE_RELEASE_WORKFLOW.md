@@ -437,7 +437,7 @@ git push origin main
 Recovery:
 # Fix the code
 
-cd backend
+cd src/backend
 python -m pytest -q -x  # Stop on first failure
 # Fix the issue, then:
 

@@ -211,7 +211,7 @@ grep -E "^[A-Z_]+=.+$" docker/.env | head -10
 ```bash
 # Verification:
 
-cd backend && python -m py_compile *.py routers/*.py services/*.py
+cd src/backend && python -m py_compile *.py routers/*.py services/*.py
 cd ../frontend && npm audit --audit-level=moderate
 
 ```text
@@ -223,7 +223,7 @@ cd ../frontend && npm audit --audit-level=moderate
 ```bash
 # Run tests:
 
-cd backend && pytest tests/test_smoke_*.py -v  # Just smoke tests
+cd src/backend && pytest tests/test_smoke_*.py -v  # Just smoke tests
 cd ../frontend && npm run test -- --run --reporter=verbose --bail
 
 ```text

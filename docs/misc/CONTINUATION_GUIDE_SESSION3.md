@@ -31,7 +31,7 @@ ecaaaa49f fix: Add missing useEffect dependencies (Batch 4)
 ### Step 2: Check ESLint Baseline
 
 ```powershell
-cd frontend
+cd src/frontend
 npm run lint 2>&1 | tail -1
 
 ```text
@@ -181,7 +181,7 @@ return <p>{t('search.noResultsFound')}</p>;
 **Find all hardcoded strings in a file**:
 
 ```bash
-cd frontend
+cd src/frontend
 grep -n '"[A-Z]' src/features/search/SavedSearches.tsx
 grep -n "'[A-Z]" src/features/search/SavedSearches.tsx
 

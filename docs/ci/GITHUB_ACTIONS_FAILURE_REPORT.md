@@ -228,7 +228,7 @@ These are likely cascading failures from the backend startup issues that also af
 
 1. **Start the backend manually:**
    ```bash
-   cd backend
+   cd src/backend
    python -m uvicorn backend.main:app --reload --port 8000
    ```
 
@@ -243,7 +243,7 @@ These are likely cascading failures from the backend startup issues that also af
 
 4. **Run E2E tests locally:**
    ```bash
-   cd frontend
+   cd src/frontend
    npm run test:e2e
    ```
 

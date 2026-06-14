@@ -170,7 +170,7 @@ grep PyJWT backend/requirements.txt
 
 ### Step 2: Install Updated Dependencies
 ```bash
-cd backend
+cd src/backend
 pip install --upgrade PyJWT==2.13.0
 pip freeze | grep PyJWT
 # Expected: PyJWT==2.13.0

@@ -517,10 +517,10 @@ custom-e2e-tests:
     - uses: actions/checkout@v4
     - name: Install Playwright
 
-      run: cd frontend && npx playwright install
+      run: cd src/frontend && npx playwright install
     - name: Run E2E tests
 
-      run: cd frontend && npm run test:e2e
+      run: cd src/frontend && npm run test:e2e
 
 ```text
 ### Adding Notification Integrations

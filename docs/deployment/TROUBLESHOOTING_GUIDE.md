@@ -267,7 +267,7 @@ docker exec sms-backend printenv | grep AUTH_MODE
 1. **If users not in database**:
    ```bash
    # Reseed test data
-   cd backend
+   cd src/backend
    python seed_database.py --config ../seeds/test_data_config.yml
    ```
 

@@ -30,7 +30,7 @@
    - name: Initialize database
 
      run: |
-       cd backend
+       cd src/backend
        alembic upgrade head
    ```
 

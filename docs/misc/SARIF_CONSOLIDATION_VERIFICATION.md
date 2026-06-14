@@ -142,7 +142,7 @@ npm audit --format json > security-report-frontend.json
 **Execution Command:**
 
 ```bash
-cd frontend
+cd src/frontend
 npm audit
 ```
 
@@ -210,7 +210,7 @@ cd d:\SMS\student-management-system
 pip-audit --format sarif --output security-report-backend.sarif
 
 # Frontend (npm-audit + conversion)
-cd frontend
+cd src/frontend
 npm audit --json > npm-audit.json
 # Convert to SARIF using converter
 
@@ -409,7 +409,7 @@ jobs:
       # Frontend scanning
       - name: npm-audit
         run: |
-          cd frontend
+          cd src/frontend
           npm audit --json > npm.json
           npm audit --format sarif --output frontend.sarif 2>/dev/null || true
         

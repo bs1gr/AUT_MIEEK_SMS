@@ -40,7 +40,7 @@ The error means frontend dependencies weren't installed. Fix it:
 
 # Install frontend dependencies (if using native mode)
 
-cd frontend
+cd src/frontend
 npm install
 cd ..
 
@@ -154,7 +154,7 @@ npm cache clean --force
 
 # Delete node_modules and try again
 
-cd frontend
+cd src/frontend
 Remove-Item -Recurse -Force node_modules -ErrorAction SilentlyContinue
 Remove-Item package-lock.json -ErrorAction SilentlyContinue
 
@@ -359,6 +359,6 @@ netstat -ano | findstr ":8080"
 
 1. Check if Docker is running: `docker ps`
 2. If you see containers → Use **<http://localhost:8080>** (not 5173)
-3. If no containers → Run `cd frontend && npm install` then restart
+3. If no containers → Run `cd src/frontend && npm install` then restart
 
 **That fixes 90% of fresh deployment issues.**

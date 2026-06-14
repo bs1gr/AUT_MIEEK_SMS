@@ -49,7 +49,7 @@ python -m backend.db_utils check-connection
 ```bash
 # Navigate to backend
 
-cd backend
+cd src/backend
 
 # Check migration status (show pending migrations)
 
@@ -94,7 +94,7 @@ SELECT * FROM pg_indexes WHERE tablename = 'grades';
 If issues occur, rollback the migration:
 
 ```bash
-cd backend
+cd src/backend
 
 # Rollback 1 migration
 
@@ -210,7 +210,7 @@ if __name__ == '__main__':
 Run verification:
 
 ```bash
-cd backend
+cd src/backend
 python verify_search_deployment.py
 
 ```text
@@ -223,7 +223,7 @@ python verify_search_deployment.py
 ```bash
 # Navigate to frontend
 
-cd frontend
+cd src/frontend
 
 # Install dependencies (if not already done)
 
@@ -451,7 +451,7 @@ docker-compose -f docker-compose.prod.yml down
 
 # Rollback database migration
 
-cd backend
+cd src/backend
 alembic downgrade -1
 
 # Restore from backup
@@ -487,12 +487,12 @@ Run comprehensive test suite:
 ```bash
 # Backend tests
 
-cd backend
+cd src/backend
 pytest tests/test_search_*.py -v
 
 # Frontend tests
 
-cd frontend
+cd src/frontend
 npm run test -- --run
 
 # E2E tests
@@ -596,7 +596,7 @@ tail -f logs/application.log | grep -i search
 **Solution**:
 
 ```bash
-cd backend
+cd src/backend
 alembic upgrade head
 # Verify indexes
 

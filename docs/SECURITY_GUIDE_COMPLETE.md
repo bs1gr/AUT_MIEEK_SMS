@@ -154,7 +154,7 @@ Use dedicated scripts for credential management:
 ```powershell
 # See backend/tools/CREATE_ADMIN.md for detailed instructions
 
-cd backend
+cd src/backend
 python -m backend.tools.create_admin
 
 ```text
@@ -517,7 +517,7 @@ Copy-Item backend/logs/app.log "incident_$(Get-Date -Format 'yyyyMMdd_HHmmss').l
 3. **Reset credentials:**
 
 ```bash
-cd backend
+cd src/backend
 python -m backend.tools.create_admin --force-reset
 
 ```text
@@ -540,7 +540,7 @@ SELECT * FROM audit_log WHERE timestamp > NOW() - INTERVAL '24 hours';
 #### Option 1: Use Recovery Script
 
 ```bash
-cd backend
+cd src/backend
 python -m backend.tools.create_admin --reset-password admin@example.com
 
 ```text
@@ -584,12 +584,12 @@ See: `docs/operations/OPERATOR_EMERGENCY_GUIDE.md`
 ```bash
 # Backend security tests
 
-cd backend
+cd src/backend
 pytest tests/test_auth*.py tests/test_security*.py -v
 
 # Frontend authentication tests
 
-cd frontend
+cd src/frontend
 npm run test -- src/**/*auth*.test.*
 
 ```text

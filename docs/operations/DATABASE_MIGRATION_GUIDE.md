@@ -44,7 +44,7 @@ This guide provides step-by-step instructions for migrating the Student Manageme
 ```bash
 # Create backup of SQLite database
 
-cd backend
+cd src/backend
 cp data/student_management.db backups/student_management.db.pre-postgres-migration.$(date +%s).bak
 
 # Verify backup
@@ -197,7 +197,7 @@ export DATABASE_URL="postgresql://sms_user:sms_password@localhost:5432/sms_db" #
 
 # Run migrations on empty PostgreSQL DB
 
-cd backend
+cd src/backend
 alembic upgrade head
 
 # Verify tables created
@@ -387,7 +387,7 @@ psql -U sms_user -d sms_db -c "SELECT * FROM students WHERE email IS NULL OR fir
 ```bash
 # Run backend smoke tests with new database
 
-cd backend
+cd src/backend
 pytest tests/test_students_router.py -v
 pytest tests/test_courses_router.py -v
 pytest tests/test_grades_router.py -v

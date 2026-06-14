@@ -128,7 +128,7 @@ Before merging to main:
 
 # In another terminal
 
-cd frontend
+cd src/frontend
 npm run e2e -- notifications  # Run E2E tests
 
 # Or with debugging

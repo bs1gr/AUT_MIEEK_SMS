@@ -67,7 +67,7 @@ Three new custom pre-commit hooks have been added to the SMS repository to enhan
 **Fix**: Run migration command if needed:
 
 ```bash
-cd backend
+cd src/backend
 alembic revision --autogenerate -m "description"
 alembic upgrade head
 

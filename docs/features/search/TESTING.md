@@ -39,7 +39,7 @@ Complete testing guide for Feature #128, covering all test types, execution proc
 ### Quick Test (Backend Only)
 
 ```bash
-cd backend
+cd src/backend
 pytest tests/test_search_service.py -v
 
 ```text
@@ -56,7 +56,7 @@ tests/test_search_service.py::test_search_students_with_filters PASSED
 ### Quick Test (Frontend Only)
 
 ```bash
-cd frontend
+cd src/frontend
 npm run test -- --run src/hooks/__tests__/useSearch.test.ts
 
 ```text
@@ -72,7 +72,7 @@ Test Files  1 passed (1)
 ### Complete Backend Test Suite
 
 ```bash
-cd backend
+cd src/backend
 
 # Run all search tests
 
@@ -93,7 +93,7 @@ pytest tests/test_search_*.py -v --tb=short
 ### Complete Frontend Test Suite
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Run all component tests
 
@@ -114,7 +114,7 @@ npm run test
 ### Complete E2E Test Suite
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Run E2E tests (Playwright)
 
@@ -137,17 +137,17 @@ npx playwright test tests/e2e/advanced_search.spec.ts --headed
 ```bash
 # Terminal 1: Backend tests
 
-cd backend
+cd src/backend
 pytest tests/test_search_*.py -v --tb=short
 
 # Terminal 2: Frontend tests
 
-cd frontend
+cd src/frontend
 npm run test -- --run
 
 # Terminal 3: E2E tests
 
-cd frontend
+cd src/frontend
 npm run e2e
 
 # Or use batch runner
@@ -165,7 +165,7 @@ npm run e2e
 ### Backend Coverage
 
 ```bash
-cd backend
+cd src/backend
 
 # Generate coverage report
 
@@ -189,7 +189,7 @@ start htmlcov/index.html  # Windows
 ### Frontend Coverage
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Generate coverage report
 
@@ -342,7 +342,7 @@ frontend/src/
 ```bash
 # Run single failing test with verbose output
 
-cd backend
+cd src/backend
 pytest tests/test_search_service.py::TestSearch::test_search_students -vv
 
 # Run with detailed output and print statements
@@ -361,7 +361,7 @@ pytest tests/test_search_service.py::test_search_students --cov --cov-report=ter
 ### Frontend Test Failure
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Run single component test
 
@@ -383,7 +383,7 @@ npm run test -- --coverage
 ### E2E Test Failure
 
 ```bash
-cd frontend
+cd src/frontend
 
 # Run single E2E test with headed browser
 
@@ -493,7 +493,7 @@ jobs:
           python-version: '3.11'
       - run: |
 
-          cd backend
+          cd src/backend
           pip install -r requirements.txt
           pytest tests/test_search_*.py -v --cov
 
@@ -507,7 +507,7 @@ jobs:
           node-version: '20'
       - run: |
 
-          cd frontend
+          cd src/frontend
           npm install
           npm run test -- --run
 
@@ -518,7 +518,7 @@ jobs:
       - uses: actions/setup-node@v3
       - run: |
 
-          cd frontend
+          cd src/frontend
           npm install
           npx playwright install
           npm run e2e

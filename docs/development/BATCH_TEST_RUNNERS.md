@@ -115,7 +115,7 @@ For direct testing without COMMIT_READY:
 
 # From backend directory (not recommended, use from root)
 
-cd backend
+cd src/backend
 python -m pytest tests/ -q  # Standard way if you must
 
 ```text

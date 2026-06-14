@@ -24,7 +24,7 @@
 ```bash
 # 1. Ensure backend is running
 
-cd backend
+cd src/backend
 python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
 
 # 2. Seed test data
@@ -33,7 +33,7 @@ python seed_e2e_data.py
 
 # 3. In another terminal, run frontend tests
 
-cd frontend
+cd src/frontend
 npm run test -- --run  # Single run
 npm run test           # Watch mode (rerun on file changes)
 
@@ -43,7 +43,7 @@ npm run test           # Watch mode (rerun on file changes)
 ```bash
 # Clean install (if first time)
 
-cd frontend
+cd src/frontend
 npm ci  # Clean install from package-lock.json
 npx playwright install  # Install browser binaries
 
@@ -67,7 +67,7 @@ npx playwright test --reporter=json > test-results.json
 ### All Tests (Default)
 
 ```bash
-cd frontend
+cd src/frontend
 npm run test -- --run  # Run all tests once
 
 ```text
@@ -86,28 +86,28 @@ npm run test -- --run  # Run all tests once
 ### Specific Test File
 
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test tests/e2e/student-management.spec.ts --run
 
 ```text
 ### Specific Test Case
 
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test --grep "should create a new student" --run
 
 ```text
 ### Watch Mode (Auto-rerun on changes)
 
 ```bash
-cd frontend
+cd src/frontend
 npm run test  # Watches for file changes
 
 ```text
 ### Debug Mode (Interactive with UI)
 
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test --ui  # Opens Playwright Inspector
 npx playwright test --debug  # Opens Inspector with execution paused
 
@@ -115,7 +115,7 @@ npx playwright test --debug  # Opens Inspector with execution paused
 ### With Specific Browser
 
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test --project=chromium --run
 npx playwright test --project=firefox --run
 npx playwright test --project=webkit --run
@@ -124,7 +124,7 @@ npx playwright test --project=webkit --run
 ### With Extended Timeouts (for slow machines)
 
 ```bash
-cd frontend
+cd src/frontend
 PLAYWRIGHT_TEST_TIMEOUT=60000 npx playwright test --run
 
 ```text
@@ -135,7 +135,7 @@ PLAYWRIGHT_TEST_TIMEOUT=60000 npx playwright test --run
 ### 1. **Visual Inspection with Playwright Inspector**
 
 ```bash
-cd frontend
+cd src/frontend
 npx playwright test --ui
 
 ```text
@@ -161,7 +161,7 @@ use: {
 **View Results:**
 
 ```bash
-cd frontend
+cd src/frontend
 npx playwright show-trace trace.zip  # View full trace
 
 ```text
@@ -195,7 +195,7 @@ npx playwright test --reporter=list  # Shows all console.log output
 ### 4. **Increase Timeouts for Debugging**
 
 ```bash
-cd frontend
+cd src/frontend
 PLAYWRIGHT_TEST_TIMEOUT=120000 npx playwright test --debug --grep "failing test"
 
 ```text
@@ -263,7 +263,7 @@ console.log('[API] Response:', responseData);
 
 1. **Verify test user exists:**
    ```bash
-   cd backend
+   cd src/backend
    python seed_e2e_data.py
    # Output: [OK] Test data already exists, skipping seed
    ```
@@ -287,7 +287,7 @@ console.log('[API] Response:', responseData);
 
 4. **Check loginAsTestUser in helpers.ts:**
    ```bash
-   cd frontend/tests/e2e
+   cd src/frontend/tests/e2e
    grep -n "test@example.com" helpers.ts
    # Email must match seed script
    ```
