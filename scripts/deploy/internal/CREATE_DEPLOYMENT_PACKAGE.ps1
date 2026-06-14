@@ -309,7 +309,7 @@ If you encounter issues:
 
 4. **View logs**:
    - Docker: `docker logs sms-fullstack`
-   - Native: Check `backend\logs\` directory
+   - Native: Check `logs\` directory
 
 ## Support
 

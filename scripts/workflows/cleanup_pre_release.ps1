@@ -265,7 +265,7 @@ try {
     Write-Host "  • backups/ (database backups)" -ForegroundColor Gray
     Write-Host "  • archive/ (historical documentation)" -ForegroundColor Gray
     Write-Host "  • dist/ (installers)" -ForegroundColor Gray
-    Write-Host "  • frontend/node_modules/ (dependencies)" -ForegroundColor Gray
+    Write-Host "  • src/frontend/node_modules/ (dependencies)" -ForegroundColor Gray
     Write-Host "  • .venv/ (Python environment)" -ForegroundColor Gray
 
 }

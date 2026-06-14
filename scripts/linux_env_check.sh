@@ -8,8 +8,8 @@
 # - Docker engine availability and permissions (for Docker mode)
 # - Python >= 3.11 (for native dev)
 # - Node.js >= 18 (for native dev)
-# - Existence of backend/.env and frontend/.env (copies from .env.example with --fix)
-# - Writable directories: backend/logs and data/
+# - Existence of src/backend/.env and src/frontend/.env (copies from .env.example with --fix)
+# - Writable directories: logs and data/
 #
 # Exit code:
 # 0 = OK (meets requirements for chosen or auto mode)
@@ -158,38 +158,38 @@ fi
 # .env files
 backend_env_ok=true
 frontend_env_ok=true
-if [[ ! -f "${REPO_ROOT}/backend/.env" ]]; then
-  if [[ -f "${REPO_ROOT}/backend/.env.example" ]]; then
+if [[ ! -f "${REPO_ROOT}/src/backend/.env" ]]; then
+  if [[ -f "${REPO_ROOT}/src/backend/.env.example" ]]; then
     if $apply_fixes; then
-      cp "${REPO_ROOT}/backend/.env.example" "${REPO_ROOT}/backend/.env"
-      ok "Created backend/.env from .env.example"
+      cp "${REPO_ROOT}/src/backend/.env.example" "${REPO_ROOT}/src/backend/.env"
+      ok "Created src/backend/.env from .env.example"
     else
-      warn "backend/.env missing (will create from .env.example with --fix)"
+      warn "src/backend/.env missing (will create from .env.example with --fix)"
       backend_env_ok=false
     fi
   else
-    err "backend/.env missing and no .env.example found"
+    err "src/backend/.env missing and no .env.example found"
     backend_env_ok=false; issues=$((issues+1))
   fi
 else
-  ok "backend/.env present"
+  ok "src/backend/.env present"
 fi
 
-if [[ ! -f "${REPO_ROOT}/frontend/.env" ]]; then
-  if [[ -f "${REPO_ROOT}/frontend/.env.example" ]]; then
+if [[ ! -f "${REPO_ROOT}/src/frontend/.env" ]]; then
+  if [[ -f "${REPO_ROOT}/src/frontend/.env.example" ]]; then
     if $apply_fixes; then
-      cp "${REPO_ROOT}/frontend/.env.example" "${REPO_ROOT}/frontend/.env"
-      ok "Created frontend/.env from .env.example"
+      cp "${REPO_ROOT}/src/frontend/.env.example" "${REPO_ROOT}/src/frontend/.env"
+      ok "Created src/frontend/.env from .env.example"
     else
-      warn "frontend/.env missing (will create from .env.example with --fix)"
+      warn "src/frontend/.env missing (will create from .env.example with --fix)"
       frontend_env_ok=false
     fi
   else
-    warn "frontend/.env missing and .env.example not found (may be optional)"
+    warn "src/frontend/.env missing and .env.example not found (may be optional)"
     frontend_env_ok=false
   fi
 else
-  ok "frontend/.env present"
+  ok "src/frontend/.env present"
 fi
 
 # Writable directories
@@ -206,7 +206,7 @@ ensure_dir() {
   fi
 }
 
-ensure_dir "${REPO_ROOT}/backend/logs"
+ensure_dir "${REPO_ROOT}/logs"
 ensure_dir "${REPO_ROOT}/data"
 
 # Determine overall readiness depending on preferred mode

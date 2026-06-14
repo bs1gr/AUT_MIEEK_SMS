@@ -134,7 +134,7 @@ if ($Stage -in 'unit', 'all') {
         Write-Debug "pytest version: $pytestVersion"
 
         # Run unit tests
-        $unitTestOutput = & python -m pytest backend/tests/ -v --tb=short 2>&1
+        $unitTestOutput = & python -m pytest src/backend/tests/ -v --tb=short 2>&1
         $unitTestResult = $LASTEXITCODE
 
         if ($unitTestResult -eq 0) {
