@@ -207,9 +207,9 @@ jobs:
           echo "⚛️ Verifying frontend structure..."
 
           REQUIRED_DIRS=(
-            "frontend/src"
-            "frontend/public"
-            "frontend/tests"
+            "src/frontend/src"
+            "src/frontend/public"
+            "src/frontend/tests"
           )
 
           for dir in "${REQUIRED_DIRS[@]}"; do

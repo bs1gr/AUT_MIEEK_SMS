@@ -27,8 +27,8 @@ on:
   #   - cron: '0 2 * * 0'
   pull_request:
     paths:
-      - 'backend/**'
-      - 'frontend/**'
+      - 'src/backend/**'
+      - 'src/frontend/**'
       - 'load-testing/**'
 
 concurrency:

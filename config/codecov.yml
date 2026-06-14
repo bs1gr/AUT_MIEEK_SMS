@@ -36,7 +36,7 @@ component_management:
   individual_components:
     - name: backend
       path_patterns:
-        - "backend/**"
+        - "src/backend/**"
     - name: frontend
       path_patterns:
-        - "frontend/**"
+        - "src/frontend/**"

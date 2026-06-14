@@ -4,12 +4,12 @@
 # Backend changes
 backend:
   - changed-files:
-      - any-glob-to-any-file: 'backend/**/*'
+      - any-glob-to-any-file: 'src/backend/**/*'
 
 # Frontend changes
 frontend:
   - changed-files:
-      - any-glob-to-any-file: 'frontend/**/*'
+      - any-glob-to-any-file: 'src/frontend/**/*'
 
 # Documentation changes
 documentation:
@@ -42,17 +42,17 @@ config:
 database:
   - changed-files:
       - any-glob-to-any-file:
-          - 'backend/alembic/**/*'
-          - 'backend/models.py'
-          - 'backend/db*.py'
+          - 'src/backend/alembic/**/*'
+          - 'src/backend/models.py'
+          - 'src/backend/db*.py'
 
 # Tests
 tests:
   - changed-files:
       - any-glob-to-any-file:
-          - 'backend/tests/**/*'
-          - 'frontend/**/*.test.*'
-          - 'frontend/**/*.spec.*'
+          - 'src/backend/tests/**/*'
+          - 'src/frontend/**/*.test.*'
+          - 'src/frontend/**/*.spec.*'
 
 # Scripts
 scripts:
@@ -68,5 +68,5 @@ security:
       - any-glob-to-any-file:
           - '**/auth*.py'
           - '**/security*.py'
-          - 'backend/control_auth.py'
-          - 'backend/admin_*.py'
+          - 'src/backend/control_auth.py'
+          - 'src/backend/admin_*.py'

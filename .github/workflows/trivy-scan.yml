@@ -7,7 +7,7 @@ on:
       - '**/*.md'
       - 'docs/**'
       - '.github/**'
-      - 'frontend/**'
+      - 'src/frontend/**'
       - 'installer/**'
       - 'tools/**'
   schedule:
