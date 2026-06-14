@@ -397,8 +397,9 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $version = "${{ steps.resolve_tag.outputs.version }}"
-          $expectedPath = "dist\SMS_Installer_${version}.exe"
-          $legacyTaggedPath = "dist\SMS_Installer_v${version}.exe"
+          # INSTALLER_BUILDER.ps1 outputs to infra\installer\dist\ (not root dist\)
+          $expectedPath = "infra\installer\dist\SMS_Installer_${version}.exe"
+          $legacyTaggedPath = "infra\installer\dist\SMS_Installer_v${version}.exe"
 
           Write-Host "=== Installer Verification (strict) ==="
           Write-Host "Version: $version"
@@ -406,14 +407,14 @@ jobs:
           Write-Host "Expected installer path: $expectedPath"
           Write-Host ""
 
-          # Show what actually exists in dist/
-          Write-Host "Contents of dist/ directory:"
-          if (Test-Path "dist") {
-            Get-ChildItem "dist" -Filter "*.exe" | ForEach-Object {
+          # Show what actually exists in infra\installer\dist\
+          Write-Host "Contents of infra\installer\dist\ directory:"
+          if (Test-Path "infra\installer\dist") {
+            Get-ChildItem "infra\installer\dist" -Filter "*.exe" | ForEach-Object {
               Write-Host "  - $($_.Name) ($([math]::Round($_.Length/1MB, 2)) MB)"
             }
           } else {
-            Write-Host "  dist/ directory does not exist!"
+            Write-Host "  infra\installer\dist\ directory does not exist!"
           }
           Write-Host ""
 
