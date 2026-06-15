@@ -1967,19 +1967,28 @@ function ShouldSkipPage(PageID: Integer): Boolean;
 begin
   Result := False;
 
-  // Skip Docker page if Lite Edition is selected
+  // During silent install (e.g. Smart Updater upgrade), skip all custom interactive pages.
+  // The existing .env is preserved automatically (.env is in [Files] Excludes list).
+  if WizardSilent then
+  begin
+    if (PageID = InstallTypeSelectionPage.ID) or
+       (PageID = DockerPage.ID) or
+       (PageID = DockerBuildPage.ID) or
+       (PageID = LiteQnapPage.ID) or
+       (PageID = PostgresPage.ID) then
+      Result := True;
+    Exit;
+  end;
+
+  // Interactive mode: skip pages based on selected edition
   if PageID = DockerPage.ID then
     Result := IsLiteInstall
-  // Skip Docker build/setup page if Lite Edition is selected
   else if PageID = DockerBuildPage.ID then
     Result := IsLiteInstall
-  // Show Lite QNAP page ONLY for Lite Edition
   else if PageID = LiteQnapPage.ID then
-    Result := not IsLiteInstall  // Show only for Lite, skip for Docker
-  // Skip database config page for Lite Edition (uses local SQLite by default)
-  // Docker Edition requires QNAP PostgreSQL configuration
+    Result := not IsLiteInstall
   else if PageID = PostgresPage.ID then
-    Result := IsLiteInstall;  // Skip for Lite - it uses SQLite by default
+    Result := IsLiteInstall;
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;

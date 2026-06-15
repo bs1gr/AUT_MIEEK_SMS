@@ -1030,10 +1030,10 @@ def get_auto_install_update_status(job_id: str, _request: Request, _auth=Depends
 
 def _get_version() -> str:
     """Read version from VERSION file or default."""
-    version_file = Path(__file__).resolve().parents[3] / "VERSION"
+    version_file = Path(__file__).resolve().parents[4] / "VERSION"
     if version_file.exists():
         return version_file.read_text(encoding="utf-8").strip()
-    return "1.0.0"
+    return "unknown"
 
 
 def _download_text(url: str) -> Optional[str]:
