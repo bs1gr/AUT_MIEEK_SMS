@@ -113,6 +113,10 @@ export const EmailConfigPanel: React.FC<EmailConfigPanelProps> = ({ config, onSa
   const [isSaving, setIsSaving] = React.useState(false);
   const [isTesting, setIsTesting] = React.useState(false);
 
+  React.useEffect(() => {
+    setFormData(config);
+  }, [config]);
+
   const handleSave = async () => {
     setIsSaving(true);
     try {
@@ -132,10 +136,22 @@ export const EmailConfigPanel: React.FC<EmailConfigPanelProps> = ({ config, onSa
     }
   };
 
+  const isConfigured = config.is_configured ?? false;
+
   return (
     <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm">
       <CardHeader className="border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 pb-4">
-        <CardTitle className="text-lg text-slate-900 dark:text-white">{t('email.title')}</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-lg text-slate-900 dark:text-white">{t('email.title')}</CardTitle>
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${
+            isConfigured
+              ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+              : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400'
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isConfigured ? 'bg-green-500' : 'bg-slate-400'}`} />
+            {isConfigured ? t('email.statusActive') : t('email.statusNotConfigured')}
+          </span>
+        </div>
         <CardDescription className="text-slate-600 dark:text-slate-400">{t('email.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6 pt-6">

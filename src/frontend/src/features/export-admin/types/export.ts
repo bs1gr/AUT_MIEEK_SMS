@@ -112,6 +112,7 @@ export interface EmailConfig {
   notify_on_completion: boolean;
   notify_on_failure: boolean;
   notify_on_schedule_failure: boolean;
+  is_configured?: boolean;
 }
 
 // Filter Types

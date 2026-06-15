@@ -162,6 +162,9 @@ export const exportAdminEN = {
     passwordPlaceholder: '••••••••',
     fromEmailPlaceholder: 'noreply@example.com',
     adminEmailsPlaceholder: 'admin@example.com\nadmin2@example.com',
+    statusActive: 'Active',
+    statusNotConfigured: 'Not configured',
+    adminEmailsHint: 'One email address per line',
   },
 
   // Settings
@@ -380,6 +383,9 @@ export const exportAdminEL = {
     passwordPlaceholder: '••••••••',
     fromEmailPlaceholder: 'noreply@example.com',
     adminEmailsPlaceholder: 'admin@example.com\nadmin2@example.com',
+    statusActive: 'Ενεργό',
+    statusNotConfigured: 'Μη ρυθμισμένο',
+    adminEmailsHint: 'Μία διεύθυνση email ανά γραμμή',
   },
 
   // Settings
