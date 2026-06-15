@@ -4,8 +4,31 @@
 **Last Updated**: June 15, 2026
 **Status**: ✅ **v1.18.28 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.28.exe, 26.18 MB)
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Maintenance | v1.18.28 Published
+**Current Phase**: Active Development | Post-v1.18.28
 **Current Branch**: `main`
+
+---
+
+## 🔧 Post-v1.18.28 Improvements (June 15, 2026)
+
+**Status**: 🔄 IN PROGRESS | 5 commits since `v1.18.28` tag
+
+| Hash | Description |
+|------|-------------|
+| `566e6eeb8` | feat: wire email report delivery and report scheduling UI |
+| `ff180e896` | feat: expand chart type selector from 4 to 8 types with EN/EL i18n |
+| `25c31626f` | fix: persist SMTP override across server restarts |
+| `0e3d406e2` | feat: show email config status badge and sync form on prop change |
+| `5eaa9675a` | test: add 16 tests for SMTP override service and email settings endpoints |
+
+### Changes Summary
+- **Email delivery**: SMTP settings now persist across server restarts (extracted to `services/smtp_override.py`, applied at startup via `lifespan.py`). Fixed missing `request_id` arg that caused 500 errors on all 3 email endpoints.
+- **Chart types**: Custom report builder now supports 8 chart types (scatter, heatmap, treemap, boxplot) with full EN/EL translations. Fixed lucide-react TypeScript export shim.
+- **UI polish**: EmailConfigPanel shows `Active` / `Not configured` status badge; form state now syncs correctly after save.
+- **Tests**: 16 new tests covering smtp_override service and email endpoint edge cases.
+
+### Next Steps
+- Candidates: v1.18.29 release prep once test suite confirms clean pass
 
 ---
 
