@@ -372,18 +372,23 @@ class EmailNotificationService:
                     except Exception as exc:
                         logger.warning("Failed to attach file %s: %s", path, exc)
 
-            # Send via SMTP
+            # Send via SMTP — port 465 uses implicit SSL, all others use STARTTLS
             smtp_port = getattr(settings, "SMTP_PORT", 587)
             use_tls = getattr(settings, "SMTP_USE_TLS", True)
+            use_ssl = smtp_port == 465
 
-            with smtplib.SMTP(settings.SMTP_HOST, smtp_port) as server:
-                if use_tls:
-                    server.starttls()
-
-                # Authenticate with credentials
-                server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
-
-                server.send_message(msg)
+            if use_ssl:
+                with smtplib.SMTP_SSL(settings.SMTP_HOST, smtp_port, timeout=30) as server:
+                    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                    server.send_message(msg)
+            else:
+                with smtplib.SMTP(settings.SMTP_HOST, smtp_port, timeout=30) as server:
+                    if use_tls:
+                        server.ehlo()
+                        server.starttls()
+                        server.ehlo()
+                    server.login(settings.SMTP_USER, settings.SMTP_PASSWORD)
+                    server.send_message(msg)
 
             logger.info(f"Email sent successfully to {to_email}")
             return True

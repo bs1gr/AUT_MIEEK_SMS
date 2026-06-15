@@ -1,7 +1,8 @@
 """Tests for the email/SMTP settings endpoints and smtp_override service."""
 import json
+import smtplib
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, call
 
 import pytest
 from fastapi.testclient import TestClient
@@ -215,3 +216,52 @@ class TestEmailSettingsEndpoints:
             )
         assert response.status_code == 200
         assert response.json()["data"]["success"] is True
+
+
+# ---------------------------------------------------------------------------
+# EmailNotificationService.send_email transport tests
+# ---------------------------------------------------------------------------
+
+
+class TestEmailTransport:
+    """Unit tests for the SMTP transport logic (STARTTLS vs SSL branch)."""
+
+    def _make_settings(self, monkeypatch, port: int = 587):
+        from backend.config import settings
+
+        monkeypatch.setattr(settings, "SMTP_HOST", "smtp.example.com", raising=False)
+        monkeypatch.setattr(settings, "SMTP_PORT", port, raising=False)
+        monkeypatch.setattr(settings, "SMTP_USER", "user@example.com", raising=False)
+        monkeypatch.setattr(settings, "SMTP_PASSWORD", "secret", raising=False)
+        monkeypatch.setattr(settings, "SMTP_FROM", "noreply@example.com", raising=False)
+
+    def test_port_587_uses_starttls(self, monkeypatch):
+        self._make_settings(monkeypatch, port=587)
+        from backend.services.email_notification_service import EmailNotificationService
+
+        mock_server = MagicMock()
+        with patch("smtplib.SMTP", return_value=mock_server) as mock_smtp:
+            mock_smtp.return_value.__enter__ = lambda s: mock_server
+            mock_smtp.return_value.__exit__ = MagicMock(return_value=False)
+            EmailNotificationService.send_email("to@example.com", "Subj", "<p>body</p>")
+
+        mock_smtp.assert_called_once_with("smtp.example.com", 587, timeout=30)
+        mock_server.ehlo.assert_called()
+        mock_server.starttls.assert_called_once()
+        mock_server.login.assert_called_once_with("user@example.com", "secret")
+
+    def test_port_465_uses_smtp_ssl(self, monkeypatch):
+        self._make_settings(monkeypatch, port=465)
+        from backend.services.email_notification_service import EmailNotificationService
+
+        mock_server = MagicMock()
+        with patch("smtplib.SMTP_SSL", return_value=mock_server) as mock_ssl:
+            mock_ssl.return_value.__enter__ = lambda s: mock_server
+            mock_ssl.return_value.__exit__ = MagicMock(return_value=False)
+            with patch("smtplib.SMTP") as mock_plain:
+                EmailNotificationService.send_email("to@example.com", "Subj", "<p>body</p>")
+                mock_plain.assert_not_called()
+
+        mock_ssl.assert_called_once_with("smtp.example.com", 465, timeout=30)
+        mock_server.starttls.assert_not_called()
+        mock_server.login.assert_called_once_with("user@example.com", "secret")

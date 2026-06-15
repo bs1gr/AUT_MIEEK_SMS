@@ -189,7 +189,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     attemptAutoLogin();
 
     return () => {
-      console.warn('[Auth] Cleanup - mounted = false');
       mounted = false;
       if (timeoutId !== undefined) {
         window.clearTimeout(timeoutId);
