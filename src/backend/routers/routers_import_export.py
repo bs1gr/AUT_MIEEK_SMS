@@ -622,6 +622,7 @@ from backend.services import smtp_override as _smtp  # noqa: E402
 
 @router.get("/settings/email")
 async def get_email_settings(
+    request: Request,
     current_user: Any = Depends(optional_require_role(["admin"])),
 ) -> APIResponse[dict]:
     """Return current SMTP configuration (password masked)."""
@@ -638,11 +639,12 @@ async def get_email_settings(
         "notify_on_failure": override.get("notify_on_failure", True),
         "notify_on_schedule_failure": override.get("notify_on_schedule_failure", True),
         "is_configured": EmailNotificationService.is_enabled(),
-    })
+    }, request_id=request.state.request_id)
 
 
 @router.put("/settings/email")
 async def update_email_settings(
+    request: Request,
     payload: dict,
     current_user: Any = Depends(optional_require_role(["admin"])),
 ) -> APIResponse[dict]:
@@ -661,11 +663,12 @@ async def update_email_settings(
     return success_response({
         "saved": True,
         "is_configured": EmailNotificationService.is_enabled(),
-    })
+    }, request_id=request.state.request_id)
 
 
 @router.post("/settings/email/test")
 async def test_email_settings(
+    request: Request,
     payload: dict,
     current_user: Any = Depends(optional_require_role(["admin"])),
 ) -> APIResponse[dict]:
@@ -683,4 +686,4 @@ async def test_email_settings(
         "<p>SMTP configuration is working correctly.</p>"
     )
     success = EmailNotificationService.send_email(recipient, "SMS — Test Email", html)
-    return success_response({"success": success})
+    return success_response({"success": success}, request_id=request.state.request_id)
