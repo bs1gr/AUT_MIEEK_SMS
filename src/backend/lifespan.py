@@ -83,6 +83,13 @@ def get_lifespan():
                 except Exception:
                     pass
 
+        # Apply persisted SMTP override so email works without env-var restart
+        try:
+            from backend.services.smtp_override import load_and_apply as _apply_smtp
+            _apply_smtp()
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"⚠️  SMTP override load skipped: {e}")
+
         # Initialize export/report schedulers and maintenance tasks
         try:
             from backend.services.maintenance_scheduler import get_maintenance_scheduler

@@ -8,9 +8,7 @@ Endpoints for:
 - Email/SMTP settings management
 """
 
-import json
 import logging
-from pathlib import Path
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, UploadFile, File, BackgroundTasks
@@ -619,47 +617,7 @@ async def get_import_export_history(
 
 # ========== EMAIL / SMTP SETTINGS ENDPOINTS ==========
 
-_SMTP_OVERRIDE_PATH = Path(__file__).resolve().parents[2] / "data" / "smtp_override.json"
-
-
-def _load_smtp_override() -> dict[str, Any]:
-    if _SMTP_OVERRIDE_PATH.exists():
-        try:
-            return json.loads(_SMTP_OVERRIDE_PATH.read_text(encoding="utf-8"))
-        except Exception:
-            pass
-    return {}
-
-
-def _save_smtp_override(data: dict[str, Any]) -> None:
-    _SMTP_OVERRIDE_PATH.parent.mkdir(parents=True, exist_ok=True)
-    _SMTP_OVERRIDE_PATH.write_text(json.dumps(data, indent=2), encoding="utf-8")
-
-
-def _apply_smtp_override(override: dict[str, Any]) -> None:
-    """Write override values into the in-memory settings singleton."""
-    mapping = {
-        "smtp_host": "SMTP_HOST",
-        "smtp_port": "SMTP_PORT",
-        "smtp_username": "SMTP_USER",
-        "smtp_password": "SMTP_PASSWORD",
-        "from_email": "SMTP_FROM",
-    }
-    for json_key, attr in mapping.items():
-        if json_key not in override:
-            continue
-        value = override[json_key]
-        if json_key == "smtp_port":
-            try:
-                value = int(value)
-            except (TypeError, ValueError):
-                value = 587
-        else:
-            value = value or None
-        try:
-            object.__setattr__(settings, attr, value)
-        except Exception:
-            pass
+from backend.services import smtp_override as _smtp  # noqa: E402
 
 
 @router.get("/settings/email")
@@ -667,7 +625,7 @@ async def get_email_settings(
     current_user: Any = Depends(optional_require_role(["admin"])),
 ) -> APIResponse[dict]:
     """Return current SMTP configuration (password masked)."""
-    override = _load_smtp_override()
+    override = _smtp.load()
     has_password = bool(override.get("smtp_password") or settings.SMTP_PASSWORD)
     return success_response({
         "smtp_host": override.get("smtp_host", settings.SMTP_HOST or ""),
@@ -689,7 +647,7 @@ async def update_email_settings(
     current_user: Any = Depends(optional_require_role(["admin"])),
 ) -> APIResponse[dict]:
     """Persist SMTP settings and apply them to the running process."""
-    override = _load_smtp_override()
+    override = _smtp.load()
     fields = ["smtp_host", "smtp_port", "from_email", "smtp_username", "admin_emails",
               "notify_on_completion", "notify_on_failure", "notify_on_schedule_failure"]
     for field in fields:
@@ -698,8 +656,8 @@ async def update_email_settings(
     # Only overwrite stored password when a real value is provided
     if payload.get("smtp_password") and payload["smtp_password"] != "••••••••":
         override["smtp_password"] = payload["smtp_password"]
-    _save_smtp_override(override)
-    _apply_smtp_override(override)
+    _smtp.save(override)
+    _smtp.apply(override)
     return success_response({
         "saved": True,
         "is_configured": EmailNotificationService.is_enabled(),
