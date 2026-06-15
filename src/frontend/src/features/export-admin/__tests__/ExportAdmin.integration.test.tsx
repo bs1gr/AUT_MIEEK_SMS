@@ -89,6 +89,12 @@ vi.mock('../hooks/useExportAdmin', () => ({
   useCreateSchedule: vi.fn(() => ({ mutateAsync: mockCreateSchedule, isPending: false })),
   useDeleteSchedule: vi.fn(() => ({ mutateAsync: mockDeleteSchedule, isPending: false })),
   useToggleSchedule: vi.fn(() => ({ mutateAsync: mockToggleSchedule, isPending: false })),
+  useEmailConfig: vi.fn(() => ({
+    data: { data: { smtp_host: '', smtp_port: 587, is_configured: false } },
+    isLoading: false,
+  })),
+  useUpdateEmailConfig: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
+  useTestEmailConfig: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
 }));
 
 // Initialize i18n for tests

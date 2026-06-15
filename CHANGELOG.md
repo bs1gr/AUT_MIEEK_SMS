@@ -17,6 +17,39 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.29] - 2026-06-15
+
+### Features
+- show email config status badge and sync form on prop change
+- expand chart type selector from 4 to 8 types with EN/EL i18n
+- wire email report delivery and report scheduling UI
+
+### Bug Fixes
+- convert AuthContext default export to named export for HMR compat
+- email SSL/TLS support + TS any cleanup
+- persist SMTP override across server restarts
+
+### Documentation
+- update work plan with all 8 post-v1.18.28 commits
+- record post-v1.18.28 improvements in work plan
+- update UNIFIED_WORK_PLAN to v1.18.28
+- update user/developer guide version to v1.18.28
+
+### Tests
+- add 16 tests for SMTP override service and email settings endpoints
+
+## [1.18.29] - 2026-06-15
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.28] - 2026-06-15
 
 **Release Type**: Maintenance Release
@@ -4542,6 +4575,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 

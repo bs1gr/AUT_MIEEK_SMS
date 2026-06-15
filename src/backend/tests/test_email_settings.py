@@ -1,10 +1,7 @@
 """Tests for the email/SMTP settings endpoints and smtp_override service."""
 import json
-import smtplib
-from pathlib import Path
-from unittest.mock import MagicMock, patch, call
+from unittest.mock import MagicMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
 
 

@@ -99,6 +99,12 @@ vi.mock('../hooks/useExportAdmin', () => ({
     data: { data: [{ id: '1', is_active: true }, { id: '2', is_active: false }] },
     isLoading: false,
   })),
+  useEmailConfig: vi.fn(() => ({
+    data: { data: { smtp_host: '', smtp_port: 587, is_configured: false } },
+    isLoading: false,
+  })),
+  useUpdateEmailConfig: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
+  useTestEmailConfig: vi.fn(() => ({ mutateAsync: vi.fn(), isPending: false })),
   useRefreshExports: vi.fn(() => vi.fn()),
 }));
 
