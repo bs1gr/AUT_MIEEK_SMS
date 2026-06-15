@@ -296,6 +296,7 @@ function Invoke-InstallerBuild {
 
         # Verify installer was created
         $installerCandidates = @(
+            (Join-Path $PROJECT_ROOT "infra\installer\dist\SMS_Installer_$Version.exe"),
             "installer\Output\SMS_Installer_$Version.exe",
             "dist\SMS_Installer_$Version.exe"
         )
