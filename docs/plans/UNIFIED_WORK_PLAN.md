@@ -11,7 +11,7 @@
 
 ## 🔧 Post-v1.18.28 Improvements (June 15, 2026)
 
-**Status**: 🔄 IN PROGRESS | 5 commits since `v1.18.28` tag
+**Status**: 🔄 IN PROGRESS | 8 commits since `v1.18.28` tag
 
 | Hash | Description |
 |------|-------------|
@@ -20,12 +20,18 @@
 | `25c31626f` | fix: persist SMTP override across server restarts |
 | `0e3d406e2` | feat: show email config status badge and sync form on prop change |
 | `5eaa9675a` | test: add 16 tests for SMTP override service and email settings endpoints |
+| `72574564a` | docs: record post-v1.18.28 improvements in work plan |
+| `f7fddbbf4` | fix: email SSL/TLS support + TS any cleanup |
+| `7b291ce95` | fix: convert AuthContext default export to named export for HMR compat |
 
 ### Changes Summary
-- **Email delivery**: SMTP settings now persist across server restarts (extracted to `services/smtp_override.py`, applied at startup via `lifespan.py`). Fixed missing `request_id` arg that caused 500 errors on all 3 email endpoints.
-- **Chart types**: Custom report builder now supports 8 chart types (scatter, heatmap, treemap, boxplot) with full EN/EL translations. Fixed lucide-react TypeScript export shim.
-- **UI polish**: EmailConfigPanel shows `Active` / `Not configured` status badge; form state now syncs correctly after save.
-- **Tests**: 16 new tests covering smtp_override service and email endpoint edge cases.
+- **Email delivery**: SMTP settings persist across server restarts (`services/smtp_override.py`, applied at startup via `lifespan.py`). Fixed missing `request_id` arg that caused 500 errors on all 3 email endpoints.
+- **Email SSL/TLS**: `send_email()` now uses `smtplib.SMTP_SSL` for port 465 (implicit SSL) and `STARTTLS` with explicit `ehlo()` handshake for port 587. 30s timeout on both paths.
+- **Chart types**: Custom report builder supports 8 chart types (scatter, heatmap, treemap, boxplot) with full EN/EL translations. Fixed lucide-react TypeScript export shim.
+- **UI polish**: EmailConfigPanel shows `Active` / `Not configured` status badge; form state syncs correctly after save.
+- **TypeScript health**: Replaced `[key: string]: any` with `unknown` in `AnalyticsCharts.tsx` and `useDashboards.ts`. Removed stale `eslint-disable` comments.
+- **HMR fix**: `AuthContext` default export converted to named export — eliminates Vite Fast Refresh incompatibility warning.
+- **Tests**: 18 new tests covering smtp_override service, email endpoint edge cases, and SMTP transport branches (port 587 STARTTLS / port 465 SSL).
 
 ### Next Steps
 - Candidates: v1.18.29 release prep once test suite confirms clean pass
