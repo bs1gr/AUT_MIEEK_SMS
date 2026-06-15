@@ -1,6 +1,6 @@
-# Script Refactoring Documentation ($11.18.3+)
+# Script Refactoring Documentation (v1.18.3+)
 
-> **⚠️ DEPRECATED ($11.18.3):** This document references `backend.auto_import_courses` which was removed in $11.18.3. See [Migration Guide](../../guides/MIGRATION_$11.18.3.md) for updated import paths.
+> **⚠️ DEPRECATED (v1.18.3):** This document references `backend.auto_import_courses` which was removed in v1.18.3. See [Migration Guide](../../guides/MIGRATION_v1.18.3.md) for updated import paths.
 
 ## Overview
 

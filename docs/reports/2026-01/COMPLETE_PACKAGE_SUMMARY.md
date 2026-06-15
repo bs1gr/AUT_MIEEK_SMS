@@ -178,7 +178,7 @@ docker rm sms-fullstack
 
 # Step 3: Restore database from backup
 
-Copy-Item "backups/pre_$11.18.3_*.db" -Destination "data/student_management.db" -Force
+Copy-Item "backups/pre_v1.18.3_*.db" -Destination "data/student_management.db" -Force
 
 # System reverted to pre-deployment state
 
@@ -297,7 +297,7 @@ Everything needed is documented:
 
 **Tonight**: Read 30 minutes, sleep 8 hours
 **Tomorrow**: Follow checklist, done by 11:00 UTC
-**Result**: $11.18.3 deployed to staging ✅
+**Result**: v1.18.3 deployed to staging ✅
 
 ---
 

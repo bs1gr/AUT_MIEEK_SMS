@@ -114,7 +114,7 @@ from backend.db.cli.admin import create_admin_user
 
 python -m backend.auto_import_courses
 
-# New ($11.18.3+)
+# New (v1.18.3+)
 
 python -m backend.scripts.import_.courses
 
@@ -234,11 +234,11 @@ Execute Phase 5 manually after 1.14.0 release to avoid interfering with release 
 ### Files Needing Updates:
 
 1. **CHANGELOG.md** ✅ (in progress)
-   - Add breaking changes section for $11.18.3
+   - Add breaking changes section for v1.18.3
    - Document removed modules with migration paths
 
 2. **Migration Guide** 📝
-   - Create `docs/guides/MIGRATION_$11.18.3.md`
+   - Create `docs/guides/MIGRATION_v1.18.3.md`
    - Detail all import changes with examples
 
 3. **README.md** 📝
@@ -327,7 +327,7 @@ python -c "from backend.db.cli.admin import create_admin_user; print('✓')"
 **Mitigation:**
 - Clear migration guide in CHANGELOG
 - Detailed examples in release notes
-- Semantic versioning signals breaking change ($11.18.3)
+- Semantic versioning signals breaking change (v1.18.3)
 
 ### Risk 2: Documentation Lag
 
@@ -355,19 +355,19 @@ python -c "from backend.db.cli.admin import create_admin_user; print('✓')"
 
 1. **Restore Deprecated Modules:**
    ```bash
-   git checkout $11.18.3 -- backend/auto_import_courses.py
-   git checkout $11.18.3 -- backend/tools/
+   git checkout v1.18.3 -- backend/auto_import_courses.py
+   git checkout v1.18.3 -- backend/tools/
    ```
 
 2. **Re-add Workflows:**
    ```bash
-   git checkout $11.18.3 -- .github/workflows/cache-*.yml
-   git checkout $11.18.3 -- scripts/monitor_ci_cache.py
+   git checkout v1.18.3 -- .github/workflows/cache-*.yml
+   git checkout v1.18.3 -- scripts/monitor_ci_cache.py
    ```
 
 3. **Revert Release:**
-   - Tag and release $11.18.3 with restored code
-   - Mark $11.18.3 as deprecated/yanked
+   - Tag and release v1.18.3 with restored code
+   - Mark v1.18.3 as deprecated/yanked
 
 **Likelihood of Rollback:** Very Low (validated no active usage)
 
@@ -379,16 +379,16 @@ python -c "from backend.db.cli.admin import create_admin_user; print('✓')"
 
 1. ✅ **Phase 1-4 Complete:** Cleanup executed successfully
 2. 📝 **Update Documentation:** References to deprecated modules
-3. 📝 **Update CHANGELOG:** Breaking changes for $11.18.3
+3. 📝 **Update CHANGELOG:** Breaking changes for v1.18.3
 4. 🧪 **Run Full Test Suite:** Validate no broken imports
 
 ### Before Release:
 
-1. 📝 Create `docs/guides/MIGRATION_$11.18.3.md`
+1. 📝 Create `docs/guides/MIGRATION_v1.18.3.md`
 2. 📝 Update all documentation files with new import paths
 3. 📝 Update `.github/copilot-instructions.md`
 4. 🏷️ Version bump: `VERSION` file 1.12.9 → 1.13.0
-5. 📝 Create comprehensive $11.18.3 release notes
+5. 📝 Create comprehensive v1.18.3 release notes
 
 ### Post-Release:
 
@@ -402,7 +402,7 @@ python -c "from backend.db.cli.admin import create_admin_user; print('✓')"
 
 **Cleanup Status:** ✅ **SUCCESS** (Phases 1-4 Complete)
 
-The aggressive cleanup strategy successfully removed all deprecated code, obsolete workflows, and optimized repository structure. The repository is now cleaner, more maintainable, and ready for $11.18.3 release.
+The aggressive cleanup strategy successfully removed all deprecated code, obsolete workflows, and optimized repository structure. The repository is now cleaner, more maintainable, and ready for v1.18.3 release.
 
 **Key Achievements:**
 - 🗑️ **12 deprecated modules removed** - No backward compatibility cruft
@@ -411,9 +411,9 @@ The aggressive cleanup strategy successfully removed all deprecated code, obsole
 - ✅ **Zero active usage** - Safe removal validated
 - 🎯 **Focused codebase** - Single source of truth for tooling
 
-**Breaking Changes:** Properly scoped as MAJOR version ($11.18.3) per semantic versioning.
+**Breaking Changes:** Properly scoped as MAJOR version (v1.18.3) per semantic versioning.
 
-**Recommendation:** Proceed with documentation updates and version bump to finalize $11.18.3 release.
+**Recommendation:** Proceed with documentation updates and version bump to finalize v1.18.3 release.
 
 ---
 

@@ -4,8 +4,8 @@
 **Date**: January 17, 2026
 **Status**: ⚠️ Historical planning snapshot — use `docs/plans/UNIFIED_WORK_PLAN.md` for current status
 **Timeline**: Q1 2026+ (after Phase 3 complete)
-**Previous Release**: $11.18.3 (Production stable, Jan 12, 2026)
-**Target Release**: $11.18.3+ (Phase 4 features)
+**Previous Release**: v1.18.3 (Production stable, Jan 12, 2026)
+**Target Release**: v1.18.3+ (Phase 4 features)
 
 > **Current authority note**
 > - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
@@ -19,7 +19,7 @@
 Phase 4 represents the next evolution of the Student Management System, focusing on **advanced features**, **user experience enhancements**, and **operational efficiency**. This document consolidates historical planning inputs, technical assessments, and strategic recommendations into a prioritized roadmap snapshot for Phase 4 and beyond.
 
 **Current State**:
-- ✅ $11.18.3 production-ready and stable
+- ✅ v1.18.3 production-ready and stable
 - ✅ Phase 2 RBAC system complete (65 endpoints secured, 26 permissions)
 - ✅ Phase 3 features implemented (Analytics, Notifications, Bulk Import/Export)
 - ✅ All 370 backend + 1,249 frontend + 19 E2E tests passing
@@ -198,7 +198,7 @@ Phase 4 represents the next evolution of the Student Management System, focusing
 - ✅ PWA: Offline functionality, 50%+ cache hit rate
 - ✅ Calendar: Sync with Google/Outlook, 0 sync errors
 - ✅ All tests passing (maintain 370+ backend, 1,249+ frontend)
-- ✅ Performance: No regression vs $11.18.3
+- ✅ Performance: No regression vs v1.18.3
 - ✅ Documentation: User + admin guides for all features
 
 ---

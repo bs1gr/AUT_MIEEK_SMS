@@ -1,5 +1,5 @@
 # Production Go-Live Checklist
-## SMS $11.18.3 - Phase 5 Production Launch
+## SMS v1.18.3 - Phase 5 Production Launch
 
 > **Historical document (Jan 2026):** This checklist captures a planned production go-live process from early 2026.
 > The staffing, approval, and launch readiness items below are historical operating assumptions and should not be treated as the current project authority model.

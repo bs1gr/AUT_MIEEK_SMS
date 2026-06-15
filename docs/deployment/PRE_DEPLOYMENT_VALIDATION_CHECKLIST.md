@@ -1,4 +1,4 @@
-# Pre-Deployment Validation Checklist - $11.18.3
+# Pre-Deployment Validation Checklist - v1.18.3
 
 > **Historical document (Jan 2026):** This checklist records a January 2026 pre-deployment validation workflow.
 > The version targets, escalation labels, and go/no-go process below are historical and should not be treated as current release instructions.
@@ -18,7 +18,7 @@
 - [ ] Main branch has latest code
 - [ ] Git status clean (no uncommitted changes)
 - [ ] Latest commit: `3b9d44fd5`
-- [ ] Commit message mentions "$11.18.3"
+- [ ] Commit message mentions "v1.18.3"
 
 ```bash
 # Verification commands:
@@ -31,8 +31,8 @@ cat VERSION  # Should show 1.17.2
 ### File Integrity
 
 - [ ] VERSION file: 1.15.1
-- [ ] CHANGELOG.md: $11.18.3 entry present
-- [ ] RELEASE_NOTES_$11.18.3.md: Complete (650+ lines)
+- [ ] CHANGELOG.md: v1.18.3 entry present
+- [ ] RELEASE_NOTES_v1.18.3.md: Complete (650+ lines)
 - [ ] docker-compose.yml: Present and valid
 - [ ] .env.example: Present and correct
 - [ ] All required scripts executable
@@ -40,7 +40,7 @@ cat VERSION  # Should show 1.17.2
 ```bash
 # Verification:
 
-ls -la VERSION CHANGELOG.md RELEASE_NOTES_$11.18.3.md
+ls -la VERSION CHANGELOG.md RELEASE_NOTES_v1.18.3.md
 grep "## \[1.15.1\]" CHANGELOG.md  # Should find entry
 
 ```text
@@ -101,7 +101,7 @@ mkdir -p /backups && touch /backups/test.txt && rm /backups/test.txt
 
 ### Current Database
 
-- [ ] $11.18.3 database backed up
+- [ ] v1.18.3 database backed up
 - [ ] Backup file size >100KB
 - [ ] Backup file verified (not corrupted)
 - [ ] Backup path documented
@@ -110,15 +110,15 @@ mkdir -p /backups && touch /backups/test.txt && rm /backups/test.txt
 # Backup procedures:
 
 docker exec sms-fullstack sqlite3 /data/student_management.db \
-  ".backup '/backups/pre-1.15.1/student_management_$11.18.3.db'"
-ls -lh /backups/pre-1.15.1/student_management_$11.18.3.db
+  ".backup '/backups/pre-1.15.1/student_management_v1.18.3.db'"
+ls -lh /backups/pre-1.15.1/student_management_v1.18.3.db
 
 ```text
 ### Data Expectations
 
 - [ ] Test data exists (at least 10 students, 5 courses)
 - [ ] Sample users created (test@example.com)
-- [ ] Audit log sample data present (from $11.18.3)
+- [ ] Audit log sample data present (from v1.18.3)
 - [ ] No critical data inconsistencies
 
 ```bash
@@ -135,8 +135,8 @@ sqlite3 /data/student_management.db "SELECT COUNT(*) FROM audit_logs;"
 
 ### Release Documentation
 
-- [ ] RELEASE_NOTES_$11.18.3.md: Complete and accurate
-- [ ] CHANGELOG.md: Updated with $11.18.3
+- [ ] RELEASE_NOTES_v1.18.3.md: Complete and accurate
+- [ ] CHANGELOG.md: Updated with v1.18.3
 - [ ] Migration guide: Included and clear
 - [ ] Deployment instructions: Verified
 - [ ] Known issues: Documented (notification tests)
@@ -144,8 +144,8 @@ sqlite3 /data/student_management.db "SELECT COUNT(*) FROM audit_logs;"
 ```bash
 # Verification:
 
-wc -l RELEASE_NOTES_$11.18.3.md  # Should be 600+
-grep -A 5 "## Known Issues" RELEASE_NOTES_$11.18.3.md
+wc -l RELEASE_NOTES_v1.18.3.md  # Should be 600+
+grep -A 5 "## Known Issues" RELEASE_NOTES_v1.18.3.md
 
 ```text
 ### Monitoring Documentation
@@ -307,7 +307,7 @@ cd ../frontend && npm run test -- --run --reporter=verbose --bail
 
 ### If All Items Checked ✅
 
-→ Proceed to STAGING_DEPLOYMENT_PLAN_$11.18.3.md
+→ Proceed to STAGING_DEPLOYMENT_PLAN_v1.18.3.md
 → Execute deployment steps
 → Run validation tests
 

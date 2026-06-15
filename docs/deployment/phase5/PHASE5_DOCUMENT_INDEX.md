@@ -5,7 +5,7 @@
 > For current deployment/operations guidance, start with `docs/deployment/INDEX.md`, `docs/deployment/RUNBOOK.md`, and the root `DEPLOYMENT_GUIDE.md` / `DEPLOYMENT_CHECKLIST.md` instead of following this archived rollout packet as a live procedure.
 
 **Date**: January 31, 2026
-**Version**: $11.18.3
+**Version**: v1.18.3
 **Status**: ⚠️ HISTORICAL PHASE 5 DOCUMENT INDEX
 
 ---
@@ -20,13 +20,13 @@
 
 ### I'm an Operations Lead
 1. Start: [GOLIVE_QUICK_REFERENCE.md](./GOLIVE_QUICK_REFERENCE.md) (1 page, print & post)
-2. Read: [PRODUCTION_GO_LIVE_GUIDE_vvvvv1.18.25.md](../PRODUCTION_GO_LIVE_GUIDE_vvvvv1.18.25.md) (step-by-step)
+2. Read: [PRODUCTION_GO_LIVE_GUIDE_v1.18.25.md](../PRODUCTION_GO_LIVE_GUIDE_v1.18.25.md) (step-by-step)
 3. Reference: [RUNBOOK.md](../RUNBOOK.md) (operational reference)
 4. Use: [DAILY_OPERATIONS_CHECKLIST.md](../../operations/DAILY_OPERATIONS_CHECKLIST.md) (daily procedures)
 
 ### I'm a System Administrator
 1. Read: [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) (comprehensive overview)
-2. Review: [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvvv1.18.25.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvvv1.18.25.md)
+2. Review: [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.18.25.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.18.25.md)
 3. Use: [INCIDENT_RESPONSE_RUNBOOK.md](../../operations/INCIDENT_RESPONSE_RUNBOOK.md) (emergency procedures)
 4. Monitor: [MONITORING_SETUP.md](../../operations/MONITORING_SETUP.md)
 
@@ -55,8 +55,8 @@
 
 **Comprehensive Guides** (30+ minutes)
 - [PHASE5_COMPLETION_OVERVIEW.md](./PHASE5_COMPLETION_OVERVIEW.md) - Full technical summary
-- [PRODUCTION_GO_LIVE_GUIDE_vvvvv1.18.25.md](../PRODUCTION_GO_LIVE_GUIDE_vvvvv1.18.25.md) - 1,500+ lines of procedures
-- [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvvv1.18.25.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_vvvvv1.18.25.md) - Detailed pre/post checks
+- [PRODUCTION_GO_LIVE_GUIDE_v1.18.25.md](../PRODUCTION_GO_LIVE_GUIDE_v1.18.25.md) - 1,500+ lines of procedures
+- [PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.18.25.md](../PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.18.25.md) - Detailed pre/post checks
 
 ---
 
@@ -199,7 +199,7 @@ All documentation organized by audience:
 
 ## 🎉 Status
 
-**System Version**: $11.18.3 ✅
+**System Version**: v1.18.3 ✅
 **Deployment Status**: HISTORICAL ✅
 **Go-Live**: APPROVED ✅
 **User Training**: READY ✅

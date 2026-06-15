@@ -1,4 +1,4 @@
-# Deployment Checklist - vvvvv1.18.25
+# Deployment Checklist - v1.18.25
 
 **Release Version**: 1.18.6
 **Release Date**: March 2, 2026
@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-This checklist ensures complete verification of the vvvvv1.18.25 release deployment. Follow all steps sequentially for production-ready validation.
+This checklist ensures complete verification of the v1.18.25 release deployment. Follow all steps sequentially for production-ready validation.
 
 **Estimated Time**: 30-45 minutes
 **Prerequisites**: Access to GitHub, Docker environment, test system
@@ -21,7 +21,7 @@ This checklist ensures complete verification of the vvvvv1.18.25 release deploym
 - [x] **Version file updated**: VERSION contains "1.18.6"
 - [x] **Package version updated**: frontend/package.json → 1.18.6
 - [x] **Documentation updated**: All version references point to 1.18.6
-- [x] **Git tag created**: vvvvv1.18.25 with comprehensive message
+- [x] **Git tag created**: v1.18.25 with comprehensive message
 - [x] **Tag pushed**: Tag exists on origin/main
 
 ### 1.2 Code Quality
@@ -32,11 +32,11 @@ This checklist ensures complete verification of the vvvvv1.18.25 release deploym
 - [x] **Backend imports**: All services importable
 
 ### 1.3 Documentation
-- [x] **CHANGELOG updated**: vvvvv1.18.25 entry with analytics features
-- [x] **Release notes created**: RELEASE_NOTES_vvvvv1.18.25.md
-- [x] **GitHub release body**: GITHUB_RELEASE_vvvvv1.18.25.md
-- [x] **Release manifest**: RELEASE_MANIFEST_vvvvv1.18.25.md
-- [x] **This checklist**: DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md
+- [x] **CHANGELOG updated**: v1.18.25 entry with analytics features
+- [x] **Release notes created**: RELEASE_NOTES_v1.18.25.md
+- [x] **GitHub release body**: GITHUB_RELEASE_v1.18.25.md
+- [x] **Release manifest**: RELEASE_MANIFEST_v1.18.25.md
+- [x] **This checklist**: DEPLOYMENT_CHECKLIST_v1.18.25.md
 
 ---
 
@@ -49,9 +49,9 @@ This checklist ensures complete verification of the vvvvv1.18.25 release deploym
 #### Workflow 1: Create GitHub Release on tag
 - [ ] **Workflow triggered**: Check Actions tab
 - [ ] **Workflow status**: ✅ Succeeded
-- [ ] **Release page created**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+- [ ] **Release page created**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 - [ ] **Release is "Latest"**: Latest badge visible
-- [ ] **Release body correct**: Matches GITHUB_RELEASE_vvvvv1.18.25.md
+- [ ] **Release body correct**: Matches GITHUB_RELEASE_v1.18.25.md
 
 **Expected Duration**: ~2 minutes
 **Troubleshooting**: Check workflow logs if failed
@@ -90,7 +90,7 @@ Total expected time: **~10-12 minutes** from tag push
 
 ### 3.1 Download Artifacts
 
-**From**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+**From**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 
 - [ ] **Download installer**: SMS_Installer_1.18.6.exe
 - [ ] **Download checksum**: SMS_Installer_1.18.6.exe.sha256
@@ -174,13 +174,13 @@ SHA256: _________________________________________________
 4. **Feature validation**:
    - [ ] Can create admin account
    - [ ] Dashboard loads successfully
-   - [ ] **Analytics dashboard visible** (NEW in vvvvv1.18.25)
+   - [ ] **Analytics dashboard visible** (NEW in v1.18.25)
    - [ ] Can access all main features
    - [ ] No console errors in browser
 
 ### 4.3 Analytics Features Test
 
-**Test new vvvvv1.18.25 analytics features**:
+**Test new v1.18.25 analytics features**:
 
 1. **Analytics Dashboard**:
    - [ ] Navigate to Analytics section
@@ -227,7 +227,7 @@ SHA256: _________________________________________________
 
 ### 5.1 Upgrade Scenario
 
-**Start with**: vvvvv1.18.25 installation
+**Start with**: v1.18.25 installation
 
 **Steps**:
 1. **Backup existing data**:
@@ -271,7 +271,7 @@ SHA256: _________________________________________________
    - Select backup from step 5.1.1
 
 3. **Verify rollback**:
-   - [ ] Application starts on vvvvv1.18.25
+   - [ ] Application starts on v1.18.25
    - [ ] Data restored correctly
    - [ ] System functional
 
@@ -289,7 +289,7 @@ SHA256: _________________________________________________
 
 - [ ] **Update initiated**: Command runs without errors
 - [ ] **Backup created**: Automatic pre-update backup
-- [ ] **Images pulled**: New vvvvv1.18.25 images downloaded
+- [ ] **Images pulled**: New v1.18.25 images downloaded
 - [ ] **Containers updated**: Containers recreated
 - [ ] **Health check**: http://localhost:8080/health → 200 OK
 - [ ] **UI accessible**: http://localhost:8080 loads
@@ -351,10 +351,10 @@ pip install -r backend/requirements.txt
 ### 8.1 Documentation Accessibility
 
 **Verify all documentation is accessible**:
-- [ ] README.md mentions vvvvv1.18.25
-- [ ] CHANGELOG.md has vvvvv1.18.25 entry with analytics details
-- [ ] docs/DOCUMENTATION_INDEX.md references vvvvv1.18.25
-- [ ] Release notes accessible: docs/releases/RELEASE_NOTES_vvvvv1.18.25.md
+- [ ] README.md mentions v1.18.25
+- [ ] CHANGELOG.md has v1.18.25 entry with analytics details
+- [ ] docs/DOCUMENTATION_INDEX.md references v1.18.25
+- [ ] Release notes accessible: docs/releases/RELEASE_NOTES_v1.18.25.md
 - [ ] GitHub release body complete
 - [ ] Analytics documentation exists: docs/analytics/
 
@@ -373,7 +373,7 @@ pip install -r backend/requirements.txt
 
 ### 9.1 GitHub Release Page
 
-**Verify release page**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+**Verify release page**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 
 - [ ] Release is public and accessible
 - [ ] Marked as "Latest Release"
@@ -383,8 +383,8 @@ pip install -r backend/requirements.txt
 
 ### 9.2 Repository Status
 
-- [ ] **Main branch updated**: Includes vvvvv1.18.25 commits
-- [ ] **Tag visible**: vvvvv1.18.25 in tags list
+- [ ] **Main branch updated**: Includes v1.18.25 commits
+- [ ] **Tag visible**: v1.18.25 in tags list
 - [ ] **No open P0 issues**: Critical bugs addressed
 - [ ] **CI/CD status**: All checks passing
 - [ ] **Security alerts**: None (Dependabot)
@@ -393,7 +393,7 @@ pip install -r backend/requirements.txt
 
 **Monitor for issues**:
 - [ ] Download activity for installer
-- [ ] GitHub issues for vvvvv1.18.25 bugs
+- [ ] GitHub issues for v1.18.25 bugs
 - [ ] No crash reports
 - [ ] No data loss reports
 - [ ] Analytics features used successfully
@@ -406,7 +406,7 @@ pip install -r backend/requirements.txt
 
 **Update work plan** (`docs/plans/UNIFIED_WORK_PLAN.md`):
 
-- [ ] Add vvvvv1.18.25 release section
+- [ ] Add v1.18.25 release section
 - [ ] Document analytics feature completion
 - [ ] Record release timestamp and workflows
 - [ ] Update "Current Version" header
@@ -424,17 +424,17 @@ pip install -r backend/requirements.txt
 
 **Commit release documentation**:
 ```powershell
-git add docs/releases/RELEASE_NOTES_vvvvv1.18.25.md
-git add docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md
-git add docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md
-git add docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md
+git add docs/releases/RELEASE_NOTES_v1.18.25.md
+git add docs/releases/GITHUB_RELEASE_v1.18.25.md
+git add docs/releases/RELEASE_MANIFEST_v1.18.25.md
+git add docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md
 git add docs/plans/UNIFIED_WORK_PLAN.md
-git commit -m "docs(release): finalize vvvvv1.18.25 release documentation and work plan update"
+git commit -m "docs(release): finalize v1.18.25 release documentation and work plan update"
 git push origin main
 ```
 
 - [ ] **Documentation committed**: All release docs in git
-- [ ] **Work plan updated**: UNIFIED_WORK_PLAN reflects vvvvv1.18.25
+- [ ] **Work plan updated**: UNIFIED_WORK_PLAN reflects v1.18.25
 - [ ] **Changes pushed**: Remote synchronized
 
 ---
@@ -449,7 +449,7 @@ git push origin main
 3. ✅ Code signature valid (AUT MIEEK certificate)
 4. ✅ SHA256 checksum verified and matching
 5. ✅ Fresh installation test passed
-6. ✅ Upgrade test passed (vvvvv1.18.25 → vvvvv1.18.25)
+6. ✅ Upgrade test passed (v1.18.25 → v1.18.25)
 7. ✅ Analytics features functional and tested
 8. ✅ No critical bugs reported
 9. ✅ Documentation complete and accessible
@@ -505,20 +505,20 @@ git push origin main
    - Look for similar problems
 
 3. **Create GitHub issue**:
-   - Title: "[vvvvv1.18.25] Brief description"
+   - Title: "[v1.18.25] Brief description"
    - Label: `bug`, `release-blocker` (if critical)
    - Include reproduction steps
 
 4. **Rollback if critical**:
    - Stop application: `.\DOCKER.ps1 -Stop`
    - Restore from backup
-   - Revert to vvvvv1.18.25 if needed
+   - Revert to v1.18.25 if needed
 
 ---
 
 ## 🔗 Reference Links
 
-- **Release Page**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+- **Release Page**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 - **GitHub Actions**: https://github.com/bs1gr/AUT_MIEEK_SMS/actions
 - **Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS
 - **Issues**: https://github.com/bs1gr/AUT_MIEEK_SMS/issues

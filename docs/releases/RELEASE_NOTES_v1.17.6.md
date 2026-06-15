@@ -1,4 +1,4 @@
-# Release Notes - $11.18.3
+# Release Notes - v1.18.3
 
 **Release Date**: January 29, 2026
 **Version**: 1.17.6
@@ -8,7 +8,7 @@
 
 ## 🎯 Overview
 
-**$11.18.3** is a maintenance release focused on version format compliance and documentation corrections. This release also includes all post-$11.18.3 bug fixes and improvements accumulated from the development branch.
+**v1.18.3** is a maintenance release focused on version format compliance and documentation corrections. This release also includes all post-v1.18.3 bug fixes and improvements accumulated from the development branch.
 
 ---
 
@@ -16,7 +16,7 @@
 
 ### Version & Compliance ✅
 
-- **Fixed malformed version references** in documentation (vvvv$11.18.3 → 1.17.6)
+- **Fixed malformed version references** in documentation (vvvvv1.18.3 → 1.17.6)
 - **Ensured v1.x.x format compliance** across all version references
 - **Propagated version** to 8 core files (backend, frontend, docs, scripts)
 
@@ -95,14 +95,14 @@
 ## 📋 Known Limitations
 
 - None new in this release
-- All reported issues from $11.18.3 addressed
+- All reported issues from v1.18.3 addressed
 
 ---
 
 ## 🙏 Contributors
 
 - AI Assistant (version corrections, documentation fixes)
-- Development team (accumulated fixes from $11.18.3 branch)
+- Development team (accumulated fixes from v1.18.3 branch)
 
 ---
 
@@ -117,10 +117,10 @@ For issues or questions:
 
 ## 🔗 Related Documentation
 
-- [Release Preparation](RELEASE_PREPARATION_$11.18.3.md) - Detailed release prep checklist
+- [Release Preparation](RELEASE_PREPARATION_v1.18.3.md) - Detailed release prep checklist
 - [Version Management](../development/VERSION_MANAGEMENT_GUIDE.md) - Version policy
 - [Work Plan](../plans/UNIFIED_WORK_PLAN.md) - Current project status
-- [Previous Release: $11.18.3](RELEASE_NOTES_$11.18.3.md)
+- [Previous Release: v1.18.3](RELEASE_NOTES_v1.18.3.md)
 
 ---
 

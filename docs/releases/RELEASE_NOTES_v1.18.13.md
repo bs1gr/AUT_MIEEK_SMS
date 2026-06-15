@@ -2,8 +2,8 @@
 
 **Status**: Release preparation in progress
 **Release Date (target)**: 2026-03-17
-**Previous Version**: vvvvv1.18.25
-**Scope Baseline**: `vvvvv1.18.25..HEAD`
+**Previous Version**: v1.18.25
+**Scope Baseline**: `v1.18.25..HEAD`
 
 ---
 
@@ -45,9 +45,9 @@
 
 ## Verification Status (pre-release)
 
-- [x] Release scope reviewed against `vvvvv1.18.25..HEAD`
-- [x] Version metadata aligned to `vvvvv1.18.25` (`VERSION`, `frontend/package.json`, doc indexes, key script headers)
-- [x] Release-note artifacts generated for vvvvv1.18.25
+- [x] Release scope reviewed against `v1.18.25..HEAD`
+- [x] Version metadata aligned to `v1.18.25` (`VERSION`, `frontend/package.json`, doc indexes, key script headers)
+- [x] Release-note artifacts generated for v1.18.25
 - [x] `scripts/VERIFY_VERSION.ps1 -CheckOnly` passed
 - [x] `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-03-17_095642.md`)
 - [x] Scope-appropriate validation completed (`RUN_TESTS_BATCH.ps1`: 21/21 batches passed; frontend quick Vitest pass in COMMIT_READY)

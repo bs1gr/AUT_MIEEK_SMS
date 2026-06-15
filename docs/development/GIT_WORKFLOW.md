@@ -293,7 +293,7 @@ git push origin main
 To prevent version drift in workflows, use this contract everywhere:
 
 - `VERSION` file is the source of truth and **must** be `v1.x.x`
-- `version_tag` means release/tag format (example: `vvvvv1.18.25`)
+- `version_tag` means release/tag format (example: `v1.18.25`)
 - `version_core` means semver core (example: `1.18.6`)
 - Use `version_tag` for tag checks/release references
 - Use `version_core` for package metadata, build args, and installer file names
@@ -336,7 +336,7 @@ git commit -m "chore(release): bump version to 1.17.1"
 ```powershell
 # Create annotated tag
 
-git tag -a $11.18.3 -m "Release $11.18.3: Description
+git tag -a v1.18.3 -m "Release v1.18.3: Description
 
 - Feature 1
 - Feature 2
@@ -344,7 +344,7 @@ git tag -a $11.18.3 -m "Release $11.18.3: Description
 
 # Push tag
 
-git push origin $11.18.3
+git push origin v1.18.3
 
 ```text
 ### 3. Create GitHub Release
@@ -352,7 +352,7 @@ git push origin $11.18.3
 ```powershell
 # Use GitHub CLI (if available)
 
-gh release create $11.18.3 --notes-file docs/releases/$11.18.3.md
+gh release create v1.18.3 --notes-file docs/releases/v1.18.3.md
 
 # Or create manually on GitHub
 

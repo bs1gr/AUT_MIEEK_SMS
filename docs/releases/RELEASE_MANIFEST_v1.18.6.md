@@ -1,9 +1,9 @@
-# Release Manifest - vvvvv1.18.25
+# Release Manifest - v1.18.25
 
 **Release Version**: 1.18.6
 **Release Date**: March 2, 2026
 **Release Type**: Feature Release
-**Git Tag**: vvvvv1.18.25
+**Git Tag**: v1.18.25
 
 ---
 
@@ -16,7 +16,7 @@
 | `SMS_Installer_1.18.6.exe` | TBD | Windows installer | ⏳ Building |
 | `SMS_Installer_1.18.6.exe.sha256` | ~90 bytes | SHA256 checksum | ⏳ Building |
 
-**Artifact Location**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+**Artifact Location**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 
 ### Code Signing
 
@@ -78,7 +78,7 @@ SHA256: <pending build>
 
 1. **Create GitHub Release on tag** (`.github/workflows/release-on-tag.yml`)
    - Status: ⏳ Triggered by tag push
-   - Input: Git tag `vvvvv1.18.25`
+   - Input: Git tag `v1.18.25`
    - Output: GitHub release page created
    - Expected Duration: ~2 minutes
 
@@ -99,9 +99,9 @@ SHA256: <pending build>
 
 ### Manual Verification Points
 
-- [ ] GitHub release page exists at vvvvv1.18.25 URL
+- [ ] GitHub release page exists at v1.18.25 URL
 - [ ] Release is marked as "Latest"
-- [ ] Release body matches GITHUB_RELEASE_vvvvv1.18.25.md
+- [ ] Release body matches GITHUB_RELEASE_v1.18.25.md
 - [ ] Installer asset uploaded successfully
 - [ ] SHA256 checksum file uploaded
 - [ ] No unapproved assets present (sanitizer enforced)
@@ -116,8 +116,8 @@ SHA256: <pending build>
 
 - [x] **Version Bump**: VERSION file updated to 1.18.6
 - [x] **Package Version**: frontend/package.json updated to 1.18.6
-- [x] **CHANGELOG**: vvvvv1.18.25 entry complete with analytics features
-- [x] **Git Tag**: vvvvv1.18.25 created with comprehensive message
+- [x] **CHANGELOG**: v1.18.25 entry complete with analytics features
+- [x] **Git Tag**: v1.18.25 created with comprehensive message
 - [x] **Tag Push**: Pushed to origin (triggers workflows)
 - [x] **Test Coverage**: 23/23 analytics tests passing (100%)
 - [x] **Linting**: All code quality checks passed
@@ -132,7 +132,7 @@ SHA256: <pending build>
 - [ ] **Asset Policy**: Only installer+checksum present
 - [ ] **Release Page**: Published and marked "Latest"
 - [ ] **Fresh Install**: Tested on clean Windows system
-- [ ] **Upgrade Test**: Tested upgrade from vvvvv1.18.25
+- [ ] **Upgrade Test**: Tested upgrade from v1.18.25
 
 ---
 
@@ -195,9 +195,9 @@ SHA256: <pending build>
 
 ## 🔗 Related Documentation
 
-- [RELEASE_NOTES_vvvvv1.18.25.md](RELEASE_NOTES_vvvvv1.18.25.md) - Complete release notes
-- [GITHUB_RELEASE_vvvvv1.18.25.md](GITHUB_RELEASE_vvvvv1.18.25.md) - GitHub release body
-- [DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md](DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md) - Post-release verification
+- [RELEASE_NOTES_v1.18.25.md](RELEASE_NOTES_v1.18.25.md) - Complete release notes
+- [GITHUB_RELEASE_v1.18.25.md](GITHUB_RELEASE_v1.18.25.md) - GitHub release body
+- [DEPLOYMENT_CHECKLIST_v1.18.25.md](DEPLOYMENT_CHECKLIST_v1.18.25.md) - Post-release verification
 - [CHANGELOG.md](../../CHANGELOG.md) - Version history
 - [docs/analytics/](../analytics/) - Analytics feature documentation
 
@@ -239,7 +239,7 @@ SHA256: <pending build>
 | 2026-03-02 ~11:00 UTC | Analytics code committed | ✅ Complete |
 | 2026-03-02 ~11:30 UTC | Branch merged to main | ✅ Complete |
 | 2026-03-02 ~11:45 UTC | Version bumped to 1.18.6 | ✅ Complete |
-| 2026-03-02 ~12:00 UTC | Tag vvvvv1.18.25 created | ✅ Complete |
+| 2026-03-02 ~12:00 UTC | Tag v1.18.25 created | ✅ Complete |
 | 2026-03-02 ~12:05 UTC | Tag pushed to origin | ✅ Complete |
 | 2026-03-02 ~12:10 UTC | CHANGELOG enhanced | ✅ Complete |
 | 2026-03-02 ~12:15 UTC | Release docs created | ⏳ In Progress |
@@ -259,7 +259,7 @@ Release is considered **complete and verified** when:
 4. ✅ SHA256 checksum file present and accurate
 5. ✅ No unapproved assets (sanitizer enforced)
 6. ✅ Fresh installation tested successfully
-7. ✅ Upgrade from vvvvv1.18.25 tested successfully
+7. ✅ Upgrade from v1.18.25 tested successfully
 8. ✅ Analytics features functional in both Docker and Native
 9. ✅ Documentation complete and accessible
 10. ✅ UNIFIED_WORK_PLAN.md updated with release status

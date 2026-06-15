@@ -20,7 +20,7 @@ Example `.pre-commit-config.yaml` snippet:
 repos:
   - repo: https://github.com/trufflesecurity/trufflehog
 
-    rev: $11.18.3  # Use latest stable
+    rev: v1.18.3  # Use latest stable
     hooks:
       - id: trufflehog
 

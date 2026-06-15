@@ -1,8 +1,8 @@
-# $11.18.3 - Installer Runtime Hotfix
+# v1.18.3 - Installer Runtime Hotfix
 
 ## 🛠️ What’s fixed
 
-This patch release resolves the installer runtime failure reported in the 1.18.1 line by publishing a corrected installer from a new release lineage (`$11.18.3`).
+This patch release resolves the installer runtime failure reported in the 1.18.1 line by publishing a corrected installer from a new release lineage (`v1.18.3`).
 
 ## ✅ Release integrity
 
@@ -21,15 +21,15 @@ This patch release resolves the installer runtime failure reported in the 1.18.1
 
 ## 🔄 Upgrade
 
-This is a direct patch upgrade from `$11.18.3`.
+This is a direct patch upgrade from `v1.18.3`.
 
 - Production: use `DOCKER.ps1`
 - Development/testing: use `NATIVE.ps1`
 
 ## 📚 Notes
 
-See full details in: `docs/releases/RELEASE_NOTES_$11.18.3.md`
+See full details in: `docs/releases/RELEASE_NOTES_v1.18.3.md`
 
 ---
 
-**Full Changelog:** https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
+**Full Changelog:** https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.18.3...v1.18.3

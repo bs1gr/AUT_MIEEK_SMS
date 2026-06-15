@@ -1,17 +1,17 @@
-# $11.18.3 - Test Fixes & Documentation Updates
+# v1.18.3 - Test Fixes & Documentation Updates
 
 ## 🐛 Bug Fixes
 
-This patch release addresses test failures and documentation gaps from the $11.18.3 auto-activation enhancement:
+This patch release addresses test failures and documentation gaps from the v1.18.3 auto-activation enhancement:
 
 - **5 test failures fixed** in course modal components (`AddCourseModal.test.tsx`, `EditCourseModal.test.tsx`)
 - **Test suite restoration**: Frontend tests now 100% passing (1854/1854)
-- **Documentation updates**: $11.18.3 release notes enhanced with auto-activation details
+- **Documentation updates**: v1.18.3 release notes enhanced with auto-activation details
 
 ## 🔧 What Was Fixed
 
 ### Course Modal Test Failures
-The $11.18.3 auto-activation enhancement changed the UI structure for semester year inputs, causing test selector mismatches:
+The v1.18.3 auto-activation enhancement changed the UI structure for semester year inputs, causing test selector mismatches:
 
 **Before**: Tests used `input[name="year"]` selectors expecting `type="number"` inputs
 **After**: Tests now use `[data-testid="semester-year-input"]` expecting `type="text"` inputs
@@ -33,7 +33,7 @@ All 5 failing tests across both course modal components are now passing.
 
 ## 📦 Installation
 
-No changes to deployment or installation procedures. This is a drop-in replacement for $11.18.3.
+No changes to deployment or installation procedures. This is a drop-in replacement for v1.18.3.
 
 ## 🪟 Windows Installer Verification
 
@@ -45,8 +45,8 @@ No changes to deployment or installation procedures. This is a drop-in replaceme
 
 ## 🔄 Upgrade Instructions
 
-### From $11.18.3
-No special steps required - $11.18.3 is fully compatible:
+### From v1.18.3
+No special steps required - v1.18.3 is fully compatible:
 
 ```powershell
 # Docker mode (production)
@@ -62,9 +62,9 @@ git pull origin main
 
 ## 🔗 Related
 
-- **Parent release**: [$11.18.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3)
-- **Auto-activation feature**: Implemented in $11.18.3 with 4 commits
+- **Parent release**: [v1.18.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3)
+- **Auto-activation feature**: Implemented in v1.18.3 with 4 commits
 
 ---
 
-**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
+**Full Changelog**: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.18.3...v1.18.3

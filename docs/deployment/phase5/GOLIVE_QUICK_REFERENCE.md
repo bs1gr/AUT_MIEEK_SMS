@@ -3,7 +3,7 @@
 > **Historical document (Jan 2026):** This quick reference captures a past go-live procedure and is preserved for archive/reference only.
 > For current deployment operations, use the active deployment scripts and `docs/plans/UNIFIED_WORK_PLAN.md`.
 
-**Version**: $11.18.3
+**Version**: v1.18.3
 **Date**: January 31, 2026
 **Status**: ⚠️ HISTORICAL GO-LIVE QUICK REFERENCE
 
@@ -254,5 +254,5 @@ docker stats
 ---
 
 **Quick Reference Card**
-$11.18.3 - January 31, 2026
+v1.18.3 - January 31, 2026
 See full documentation at: docs/deployment/

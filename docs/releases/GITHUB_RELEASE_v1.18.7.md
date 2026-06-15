@@ -1,4 +1,4 @@
-## 🚀 Control Panel Auto-Updater, Offline Sync & Infrastructure Hardening - vvvvv1.18.25
+## 🚀 Control Panel Auto-Updater, Offline Sync & Infrastructure Hardening - v1.18.25
 
 **Release Date**: March 5, 2026
 
@@ -84,6 +84,6 @@ No breaking changes.
 
 ---
 
-**Full Changelog**: [vvvvv1.18.25...vvvvv1.18.25](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/vvvvv1.18.25...vvvvv1.18.25)
+**Full Changelog**: [v1.18.25...v1.18.25](https://github.com/bs1gr/AUT_MIEEK_SMS/compare/v1.18.25...v1.18.25)
 
 

@@ -1,4 +1,4 @@
-# SMS $11.18.3 Release Notes
+# SMS v1.18.3 Release Notes
 
 **Release Date**: December 11, 2025
 **Status**: Production Ready ✅
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-$11.18.3 is a maintenance and optimization release focused on CI/CD performance improvements and code quality assurance. All systems validated through comprehensive testing, linting, and deployment health checks.
+v1.18.3 is a maintenance and optimization release focused on CI/CD performance improvements and code quality assurance. All systems validated through comprehensive testing, linting, and deployment health checks.
 
 **Highlights**:
 - ✅ Dynamic Playwright cache keys for improved CI reliability
@@ -62,7 +62,7 @@ $11.18.3 is a maintenance and optimization release focused on CI/CD performance 
 
 ### Documentation & Transparency
 
-#### CI Cache Optimization Guide ($11.18.3 Update)
+#### CI Cache Optimization Guide (v1.18.3 Update)
 
 - **Location**: `docs/operations/CI_CACHE_OPTIMIZATION.md`
 - **Content**:
@@ -152,7 +152,7 @@ Cleanup & Documentation:
 
 ## Breaking Changes
 
-**None.** $11.18.3 is fully backward compatible with $11.18.3.
+**None.** v1.18.3 is fully backward compatible with v1.18.3.
 
 ---
 
@@ -178,10 +178,10 @@ Cleanup & Documentation:
 
 ### For Operators
 
-**No migration steps required.** Upgrade from $11.18.3 → $11.18.3 is a drop-in replacement.
+**No migration steps required.** Upgrade from v1.18.3 → v1.18.3 is a drop-in replacement.
 
 **Recommended**:
-- Update to $11.18.3 via `DOCKER.ps1 -Update` or `NATIVE.ps1 -Setup`
+- Update to v1.18.3 via `DOCKER.ps1 -Update` or `NATIVE.ps1 -Setup`
 - Monitor cache performance via weekly monitoring workflow artifacts
 - Review CI optimization guide if optimizing your own GitHub Actions workflows
 
@@ -218,16 +218,16 @@ Cleanup & Documentation:
 
 ---
 
-## Commits in $11.18.3
+## Commits in v1.18.3
 
-1. **b9ee6737** - ci: Use dynamic Playwright version for cache key ($11.18.3)
+1. **b9ee6737** - ci: Use dynamic Playwright version for cache key (v1.18.3)
 2. **3cc41cab** - ci: Fix e2e workflow syntax
-3. **3f03e090** - docs: Update CI cache optimization guide ($11.18.3)
+3. **3f03e090** - docs: Update CI cache optimization guide (v1.18.3)
 4. **3054efdf** - ci: Automate cache monitoring and add run summaries
-5. **6c7be540** - docs: Record initial post-change cache metrics ($11.18.3)
+5. **6c7be540** - docs: Record initial post-change cache metrics (v1.18.3)
 6. **8ad908a8** - fix(frontend): TypeScript type-check pass for commit-ready
 7. **11f4a568** - chore(tsconfig): Exclude spec and e2e test files from tsc pre-commit type check
-8. **34687641** - chore: pre-commit validation complete ($11.18.3)
+8. **34687641** - chore: pre-commit validation complete (v1.18.3)
 
 ---
 

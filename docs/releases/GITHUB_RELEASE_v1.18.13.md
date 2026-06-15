@@ -1,4 +1,4 @@
-## What's New in vvvvv1.18.25
+## What's New in v1.18.25
 
 ### Highlights
 
@@ -10,7 +10,7 @@
 
 ### Scope
 
-- Baseline: `vvvvv1.18.25..HEAD`
+- Baseline: `v1.18.25..HEAD`
 - 34 commits reviewed
 - 192 files changed
 
@@ -25,8 +25,8 @@ Native development path: `./NATIVE.ps1 -Start`
 ### Documentation
 
 - `CHANGELOG.md`
-- `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`
-- `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`
-- `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
+- `docs/releases/RELEASE_NOTES_v1.18.25.md`
+- `docs/releases/RELEASE_MANIFEST_v1.18.25.md`
+- `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
 
 

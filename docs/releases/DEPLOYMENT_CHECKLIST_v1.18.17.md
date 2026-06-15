@@ -1,4 +1,4 @@
-# Deployment Checklist - vvvvv1.18.25
+# Deployment Checklist - v1.18.25
 
 **Version**: 1.18.17
 **Release Date**: 2026-04-08
@@ -15,7 +15,7 @@
 - [ ] Confirm GitHub digest for the published installer (authoritative post-upload SHA256)
 - [ ] Verify Authenticode signature: `Get-AuthenticodeSignature` -> Status must be `Valid`
 - [ ] Signer must be: `CN=AUT MIEEK, O=AUT MIEEK, L=Limassol, C=CY`
-- [ ] Confirm `VERSION` file reads `vvvvv1.18.25`
+- [ ] Confirm `VERSION` file reads `v1.18.25`
 
 ### 2. Backup
 
@@ -27,11 +27,11 @@
 
 ## Standard Windows Deployment (Installer)
 
-### 3. Upgrade from vvvvv1.18.25
+### 3. Upgrade from v1.18.25
 
 - [ ] Stop Docker if running: `.\DOCKER.ps1 -Stop`
 - [ ] Run installer: `SMS_Installer_1.18.17.exe`
-- [ ] Upgrade path: `vvvvv1.18.25 -> vvvvv1.18.25` (no database migration required)
+- [ ] Upgrade path: `v1.18.25 -> v1.18.25` (no database migration required)
 - [ ] Accept UAC prompt
 - [ ] Complete installer wizard
 - [ ] Installer retains remote PostgreSQL `sslmode` in generated environment settings
@@ -70,7 +70,7 @@
 ### 7. Native Update
 
 - [ ] `git pull origin main`
-- [ ] `git checkout vvvvv1.18.25` (or keep `main`)
+- [ ] `git checkout v1.18.25` (or keep `main`)
 - [ ] `pip install -r backend/requirements.txt` (if dependencies changed)
 - [ ] `npm install --prefix frontend` (if dependencies changed)
 - [ ] `.\NATIVE.ps1 -Start`

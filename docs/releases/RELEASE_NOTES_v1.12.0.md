@@ -1,9 +1,9 @@
-# SMS $11.18.3 Release Notes
+# SMS v1.18.3 Release Notes
 
 **Release Version**: 1.12.0
 **Release Date**: December 19, 2025
 **Status**: ✅ Production Ready
-**Previous**: $11.18.3 (December 11, 2025)
+**Previous**: v1.18.3 (December 11, 2025)
 
 ---
 
@@ -367,8 +367,8 @@ DELETE /api/v1/admin/rbac/users/{user_id}/roles/{role_id}       # Revoke role
 
 ### Updated Documentation
 
-- `CHANGELOG.md` - $11.18.3 section
-- `ROADMAP_$11.18.3.md` - Phase completion
+- `CHANGELOG.md` - v1.18.3 section
+- `ROADMAP_v1.18.3.md` - Phase completion
 - README.md - Updated features
 - copilot-instructions.md - Updated patterns
 
@@ -396,7 +396,7 @@ DELETE /api/v1/admin/rbac/users/{user_id}/roles/{role_id}       # Revoke role
 
 - Automatic migrations on startup
 - No manual steps required
-- Backward compatible with $11.18.3
+- Backward compatible with v1.18.3
 
 ---
 
@@ -430,13 +430,13 @@ DELETE /api/v1/admin/rbac/users/{user_id}/roles/{role_id}       # Revoke role
 ### For Questions
 
 1. Check [docs/DOCUMENTATION_INDEX.md](docs/DOCUMENTATION_INDEX.md)
-2. Review [ROADMAP_$11.18.3.md](ROADMAP_$11.18.3.md)
+2. Review [ROADMAP_v1.18.3.md](ROADMAP_v1.18.3.md)
 3. Read [copilot-instructions.md](.github/copilot-instructions.md)
 
 ### For Issues
 
 1. Check existing GitHub issues
-2. File with version tag `$11.18.3`
+2. File with version tag `v1.18.3`
 3. Include reproduction steps
 4. Reference relevant phase
 
@@ -444,7 +444,7 @@ DELETE /api/v1/admin/rbac/users/{user_id}/roles/{role_id}       # Revoke role
 
 ## 🎉 Summary
 
-$11.18.3 represents a major milestone with complete Phase 1, 2.1, 2.2, and 2.3 deliverables. The system is now production-ready with advanced analytics, async job processing, comprehensive audit logging, and foundational RBAC infrastructure.
+v1.18.3 represents a major milestone with complete Phase 1, 2.1, 2.2, and 2.3 deliverables. The system is now production-ready with advanced analytics, async job processing, comprehensive audit logging, and foundational RBAC infrastructure.
 
 **Status**: ✅ Production Ready
 **Quality**: 1,461+ tests (100% passing)

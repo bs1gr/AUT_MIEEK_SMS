@@ -1,4 +1,4 @@
-# Release Manifest $11.18.3
+# Release Manifest v1.18.3
 
 **Version:** 1.17.3
 **Date:** January 22, 2026

@@ -51,7 +51,7 @@
 |----------|----------|---------|-----------|-------|
 | **STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md** | `docs/deployment/` | Main deployment runbook with all commands | 20 min | Historical deployment operator |
 | **PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md** | `docs/deployment/` | 7-phase validation checklist (30 items) | 15 min | Historical rollout owner |
-| **STAGING_DEPLOYMENT_PLAN_$11.18.3.md** | `docs/deployment/` | Governance & official timeline | 10 min | Historical rollout coordinator |
+| **STAGING_DEPLOYMENT_PLAN_v1.18.3.md** | `docs/deployment/` | Governance & official timeline | 10 min | Historical rollout coordinator |
 | **PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md** | `docs/deployment/` | Quick validation checklist (2 page) | 5 min | DevOps |
 
 #### Planning & Risk Management
@@ -105,7 +105,7 @@ docs/deployment/ (Phase 2 Core):
 ├── QUICK_REFERENCE_PHASE2.md                      ← Navigation (2 min)
 ├── PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md        ← Validation
 ├── STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md       ← Main runbook
-├── STAGING_DEPLOYMENT_PLAN_$11.18.3.md             ← Governance
+├── STAGING_DEPLOYMENT_PLAN_v1.18.3.md             ← Governance
 ├── PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md         ← Quick check
 ├── PHASE2_KICKOFF_TRANSITION_DOCUMENT.md          ← Team prep
 ├── PHASE2_RISK_REGISTER.md                        ← Risk mgmt
@@ -134,7 +134,7 @@ docs/plans/:
 ### System Ready
 
 - [ ] Git repository clean (no uncommitted changes)
-- [ ] Docker installed and responsive ($11.18.3)
+- [ ] Docker installed and responsive (v1.18.3)
 - [ ] Backend entry point verified (backend/main.py)
 - [ ] Frontend entry point verified (frontend/src/App.tsx)
 - [ ] Ports available (8080, 8000, 5173)
@@ -178,7 +178,7 @@ Jan 9:
 12:05       Final sign-off                   -         Historical rollout owner
 
 ```text
-**Expected Outcome**: ✅ $11.18.3 successfully deployed to staging with all tests passing
+**Expected Outcome**: ✅ v1.18.3 successfully deployed to staging with all tests passing
 
 ---
 
@@ -263,7 +263,7 @@ FINAL_READINESS_REPORT_JAN8.md
     ├── Points to: PHASE2_RISK_REGISTER.md
     └── Points to: PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md
          ├── Detailed by: STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md
-         └── Referenced by: STAGING_DEPLOYMENT_PLAN_$11.18.3.md
+         └── Referenced by: STAGING_DEPLOYMENT_PLAN_v1.18.3.md
 
 QUICK_REFERENCE_PHASE2.md
     ├── Links to: EXECUTIVE_SUMMARY_PHASE2_READY.md
@@ -370,7 +370,7 @@ DOCUMENTATION_INDEX.md (Hub)
 
 **Jan 8, 08:00 UTC**: Execute staging deployment using [JAN8_DEPLOYMENT_COMMAND_REFERENCE.md](JAN8_DEPLOYMENT_COMMAND_REFERENCE.md)
 
-**Expected Result**: $11.18.3 successfully deployed to staging with all tests passing and 24-hour monitoring begun.
+**Expected Result**: v1.18.3 successfully deployed to staging with all tests passing and 24-hour monitoring begun.
 
 ---
 

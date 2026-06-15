@@ -637,7 +637,7 @@ WHERE rp.permission_id IS NULL AND up.permission_id IS NULL;
 ```text
 ---
 
-## Migration Guide ($11.18.3 → $11.18.3)
+## Migration Guide (v1.18.3 → v1.18.3)
 
 ### What Changed
 

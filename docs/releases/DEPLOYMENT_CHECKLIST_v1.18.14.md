@@ -1,25 +1,25 @@
 # Deployment Checklist - Version 1.18.14
 
 **Release Date (target)**: March 19, 2026
-**Tag**: vvvvv1.18.25
-**Previous Tag**: vvvvv1.18.25
+**Tag**: v1.18.25
+**Previous Tag**: v1.18.25
 
 ---
 
 ## Phase 1: Pre-Release Validation
 
 ### 1.1 Version Consistency
-- [x] `VERSION` file reads `vvvvv1.18.25`
+- [x] `VERSION` file reads `v1.18.25`
 - [x] `frontend/package.json` version is `1.18.14`
 - [x] `backend/main.py` version header is `1.18.14`
 - [x] `INSTALLER_BUILDER.ps1` version reference is `1.18.14`
 - [x] `docs/DOCUMENTATION_INDEX.md` references documented version `1.18.14`
 
 ### 1.2 Release Documentation
-- [x] `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md` prepared
-- [x] `docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md` prepared
-- [x] `.github/RELEASE_NOTES_vvvvv1.18.25.md` prepared
-- [x] `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md` prepared
+- [x] `docs/releases/RELEASE_NOTES_v1.18.25.md` prepared
+- [x] `docs/releases/GITHUB_RELEASE_v1.18.25.md` prepared
+- [x] `.github/RELEASE_NOTES_v1.18.25.md` prepared
+- [x] `docs/releases/RELEASE_MANIFEST_v1.18.25.md` prepared
 - [x] This checklist prepared
 
 ### 1.3 Quality Gates
@@ -47,7 +47,7 @@
 ## Phase 2: Tag & Release
 
 ### 2.1 Create Tag
-- [x] Create tag `vvvvv1.18.25`
+- [x] Create tag `v1.18.25`
 - [x] Push tag to `origin`
 
 ### 2.2 Monitor Workflows
@@ -56,7 +56,7 @@
 - [x] `Release Asset Sanitizer` — latest observed success (`run 23313293736`)
 
 ### 2.3 Verify Release Page
-- [x] Release page exists at `/releases/tag/vvvvv1.18.25`
+- [x] Release page exists at `/releases/tag/v1.18.25`
 - [x] Release is non-draft and intended publication state is correct
 
 ---

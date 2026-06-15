@@ -37,8 +37,8 @@ docs/
 │   ├── SECURITY_GUIDE_COMPLETE.md
 │   └── session-import-safety.md
 ├── releases/                # Release notes & audits
-│   ├── RELEASE_NOTES_$11.18.3.md
-│   └── RELEASE_MANIFEST_$11.18.3.md
+│   ├── RELEASE_NOTES_v1.18.3.md
+│   └── RELEASE_MANIFEST_v1.18.3.md
 └── archive/                 # Archived materials
     ├── documentation/
     └── pr-updates/

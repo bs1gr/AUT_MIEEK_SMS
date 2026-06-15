@@ -120,7 +120,7 @@ All 10 must be true for successful deployment:
 ```powershell
 docker stop sms-fullstack
 docker rm sms-fullstack
-Copy-Item "backups/pre_$11.18.3_*.db" -Destination "data/student_management.db" -Force
+Copy-Item "backups/pre_v1.18.3_*.db" -Destination "data/student_management.db" -Force
 
 ```text
 **Reverts to pre-deployment state instantly**
@@ -197,7 +197,7 @@ Copy-Item "backups/pre_$11.18.3_*.db" -Destination "data/student_management.db" 
 
 ### Result
 
-- ✅ $11.18.3 deployed to staging
+- ✅ v1.18.3 deployed to staging
 - ✅ All tests passing
 - ✅ Monitoring active
 - ✅ You're done!
@@ -230,7 +230,7 @@ You have:
 - ⏱️ Realistic timeline (2 hours)
 - 📖 Full support (troubleshooting guide)
 - 💪 Full knowledge (you built the system)
-- 🎯 Clear objectives (deploy $11.18.3)
+- 🎯 Clear objectives (deploy v1.18.3)
 
 **Everything is ready.**
 **Nothing is left to chance.**

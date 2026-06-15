@@ -1,8 +1,8 @@
-# Production Deployment Plan – $11.18.3 (SMS)
+# Production Deployment Plan – v1.18.3 (SMS)
 
 **Audience**: Ops / Release Manager
 **Duration**: ~45-60 minutes (excluding post-deploy monitoring)
-**Target**: Production Docker deployment of SMS $11.18.3
+**Target**: Production Docker deployment of SMS v1.18.3
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Status**: Draft
 **Last Updated**: 2026-05-28
-**Applies To**: $11.18.3+
+**Applies To**: v1.18.3+
 
 Guidelines for executing and interpreting backend load tests.
 

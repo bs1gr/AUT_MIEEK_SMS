@@ -1,4 +1,4 @@
-# Feature #125 Deployment Checklist - Historical $11.18.3 Snapshot
+# Feature #125 Deployment Checklist - Historical v1.18.3 Snapshot
 
 > **Historical document (Jan 2026):** This checklist records the archived Feature #125 rollout path and is preserved for reference only.
 > For current feature planning and release state, use `docs/plans/UNIFIED_WORK_PLAN.md` and `docs/DOCUMENTATION_INDEX.md`.
@@ -78,7 +78,7 @@ git log --oneline origin/feature/analytics-dashboard -3
 
 **Step 2**: Update CHANGELOG.md
 ```markdown
-## [$11.18.3] - 2026-01-16
+## [v1.18.3] - 2026-01-16
 
 ### Added
 - **Feature #125: Analytics Dashboard**
@@ -118,7 +118,7 @@ git log --oneline origin/feature/analytics-dashboard -3
 ### Migration Notes
 - No database migrations required
 - No breaking API changes
-- Backward compatible with $11.18.3
+- Backward compatible with v1.18.3
 - Recharts dependency added (npm install executed)
 ```
 
@@ -126,7 +126,7 @@ git log --oneline origin/feature/analytics-dashboard -3
 
 Add to "Quick Navigation" section under "For Phase 2 RBAC & Administration":
 ```markdown
-### For Feature #125: Analytics Dashboard (NEW - $11.18.3!)
+### For Feature #125: Analytics Dashboard (NEW - v1.18.3!)
 
 - **Dashboard Guide?** → `docs/analytics/ANALYTICS_DASHBOARD_GUIDE.md` (setup + usage)
 - **E2E Tests?** → `frontend/tests/ANALYTICS_E2E_GUIDE.md` (testing procedures)
@@ -222,7 +222,7 @@ git checkout main
 git pull origin main
 
 # Merge feature branch
-git merge --no-ff feature/analytics-dashboard -m "Merge Feature #125: Analytics Dashboard ($11.18.3)"
+git merge --no-ff feature/analytics-dashboard -m "Merge Feature #125: Analytics Dashboard (v1.18.3)"
 
 # Push to origin
 git push origin main
@@ -231,7 +231,7 @@ git push origin main
 **Step 6**: Tag release
 ```powershell
 # Create annotated tag with release notes
-git tag -a $11.18.3 -m "Release $11.18.3: Feature #125 Analytics Dashboard
+git tag -a v1.18.3 -m "Release v1.18.3: Feature #125 Analytics Dashboard
 
 Feature #125 - Analytics Dashboard
 - React-based dashboard with Recharts visualization
@@ -252,10 +252,10 @@ Commits:
 - a19ee3855: E2E tests and documentation"
 
 # Push tag
-git push origin $11.18.3
+git push origin v1.18.3
 
 # Verify tag
-git tag -l $11.18.3 -n
+git tag -l v1.18.3 -n
 ```
 
 **Step 7**: Create GitHub Release (optional)
@@ -342,11 +342,11 @@ git revert --no-edit <commit-hash>
 git push origin main
 
 # Step 4: Remove tag
-git tag -d $11.18.3
-git push origin --delete $11.18.3
+git tag -d v1.18.3
+git push origin --delete v1.18.3
 
 # Step 5: Deploy previous version
-git checkout $11.18.3
+git checkout v1.18.3
 .\DOCKER.ps1 -Start
 
 # Step 6: Notify owner/external recipients with incident report
@@ -361,7 +361,7 @@ git checkout $11.18.3
 - [x] Documentation complete
 - [ ] PR created and approved
 - [ ] Code merged to main
-- [ ] Tag $11.18.3 created
+- [ ] Tag v1.18.3 created
 - [ ] E2E tests passing on production
 - [ ] Analytics dashboard accessible at `/analytics`
 - [ ] No performance degradation (still <1s page load)

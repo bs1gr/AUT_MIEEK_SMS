@@ -2,7 +2,7 @@
 
 **Version**: 1.0
 **Date**: March 6, 2026
-**Applies To**: SMS vvvvv1.18.25+
+**Applies To**: SMS v1.18.25+
 **Architecture**: Option B — Central QNAP PostgreSQL + Frontend Offline Queues
 
 ---
@@ -443,7 +443,7 @@ Configuration:
 - gcTime: 24 hours                → Garbage collected after 24h
 - Persistence: localStorage       → Survives browser refresh
 - maxAge: 7 days                  → Cache drops after 7 days
-- buster: 'vvvvv1.18.25'               → Manual invalidation on version bump
+- buster: 'v1.18.25'               → Manual invalidation on version bump
 ```
 
 ---

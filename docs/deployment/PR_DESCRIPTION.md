@@ -188,7 +188,7 @@ Coverage: Full coverage of RBAC module
 ✅ **Fully backward compatible** - No breaking changes:
 - All existing API contracts preserved
 - Response format unchanged (APIResponse wrapper)
-- Database schema already in place (migrations from $11.18.3+)
+- Database schema already in place (migrations from v1.18.3+)
 - Frontend compatibility maintained
 
 ---
@@ -214,7 +214,7 @@ Coverage: Full coverage of RBAC module
 ### Database Migration
 
 **No Migration Required**:
-- Database schema already exists from $11.18.3+
+- Database schema already exists from v1.18.3+
 - Permission seeding is a one-time operation
 - Seeding script is idempotent (safe to re-run)
 
@@ -356,7 +356,7 @@ All criteria **MET** ✅:
 
 - [ ] Close Phase 2 RBAC issues (#116-#121)
 - [ ] Update project board
-- [ ] Tag release ($11.18.3 or $11.18.3)
+- [ ] Tag release (v1.18.3 or v1.18.3)
 
 ---
 

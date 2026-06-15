@@ -10,7 +10,7 @@
 
 This guide will help you install and run the Student Management System on your computer. The entire process takes about **10-15 minutes** for first-time setup.
 
-### What's New in $11.18.3
+### What's New in v1.18.3
 
 - ✅ **Critical Rate Limiting Fix**: 21 GET endpoints now properly protected (prevents 429 errors)
 - ✅ **Infinite Loop Fixes**: Eliminated cascade requests in AttendanceView and StudentProfile
@@ -196,9 +196,9 @@ Use this if you encounter build issues:
 
 **Your data is always safe** in the `backups/` directory.
 
-### $11.18.3 Specific Updates
+### v1.18.3 Specific Updates
 
-If upgrading from $11.18.3 or earlier, you'll benefit from:
+If upgrading from v1.18.3 or earlier, you'll benefit from:
 
 - Fixed rate limiting (no more 429 errors)
 - Faster AttendanceView (eliminated duplicate requests)
@@ -403,7 +403,7 @@ To verify everything is working correctly after installation:
 
 ## 📊 Performance Expectations
 
-### $11.18.3 Baseline (After Installation)
+### v1.18.3 Baseline (After Installation)
 
 | Metric | Target | Status |
 |--------|--------|--------|
@@ -418,9 +418,9 @@ If your performance is significantly worse, see troubleshooting section above.
 
 ---
 
-## 🎯 Known Issues & Fixes ($11.18.3)
+## 🎯 Known Issues & Fixes (v1.18.3)
 
-All critical issues from $11.18.3 and earlier are **FIXED**:
+All critical issues from v1.18.3 and earlier are **FIXED**:
 
 - ✅ **429 Rate Limit Errors** - FIXED (21 GET endpoints now protected)
 - ✅ **AttendanceView Duplicates** - FIXED (infinite loop eliminated)
@@ -529,7 +529,7 @@ pwsh ./DOCKER.ps1 -Start
 docker compose up -d --build
 
 ```text
-> **Note:** Only `DOCKER.ps1` (Docker) and `NATIVE.ps1` (native development) are supported entry points in $11.18.3+. All legacy scripts were consolidated.
+> **Note:** Only `DOCKER.ps1` (Docker) and `NATIVE.ps1` (native development) are supported entry points in v1.18.3+. All legacy scripts were consolidated.
 
 ---
 

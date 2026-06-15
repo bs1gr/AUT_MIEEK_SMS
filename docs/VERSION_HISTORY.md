@@ -24,10 +24,10 @@ Use these sources for the current truth:
 
 As of March 12, 2026:
 
-- the repository version is `vvvvv1.18.25`
-- `vvvvv1.18.25` is the live/latest first official public release
-- `vvvvv1.18.25` through `vvvvv1.18.25` remain archived as prereleases for historical reference
-- the official release was promoted from the exact verified `vvvvv1.18.25` tag without changing tag or artifact lineage
+- the repository version is `v1.18.25`
+- `v1.18.25` is the live/latest first official public release
+- `v1.18.25` through `v1.18.25` remain archived as prereleases for historical reference
+- the official release was promoted from the exact verified `v1.18.25` tag without changing tag or artifact lineage
 
 For full details, see:
 

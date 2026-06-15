@@ -1,9 +1,9 @@
-## What's New in vvvvv1.18.25
+## What's New in v1.18.25
 
 ### 🔧 Corrective Release Build Fix
 
 - Fixed the GitHub release installer workflow to use tracked Greek `.rtf` installer info files.
-- Eliminated the CI compile failure that left `vvvvv1.18.25` without uploaded installer assets.
+- Eliminated the CI compile failure that left `v1.18.25` without uploaded installer assets.
 - Preserved the installer/runtime behavior introduced in the prior profile-drift patch scope.
 
 ### ✅ Validation

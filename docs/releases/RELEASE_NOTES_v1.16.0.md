@@ -1,4 +1,4 @@
-# Release Notes - $11.18.3: Analytics Dashboard
+# Release Notes - v1.18.3: Analytics Dashboard
 
 **Release Date**: January 12, 2026
 **Version**: 1.16.0
@@ -7,7 +7,7 @@
 
 ---
 
-## 🎉 What's New in $11.18.3
+## 🎉 What's New in v1.18.3
 
 ### Feature #125: Analytics Dashboard
 
@@ -148,13 +148,13 @@ All endpoints include:
 
 ---
 
-## 📋 Migration Guide (from $11.18.3)
+## 📋 Migration Guide (from v1.18.3)
 
 No database migrations required. Feature #125 is fully backward compatible.
 
 ### For Administrators
 
-1. Update to $11.18.3
+1. Update to v1.18.3
 2. No configuration changes needed
 3. Analytics dashboard automatically available
 4. No downtime required
@@ -170,7 +170,7 @@ No database migrations required. Feature #125 is fully backward compatible.
 
 ## 🐛 Bug Fixes & Improvements
 
-### New in $11.18.3
+### New in v1.18.3
 
 - ✅ Added comprehensive analytics dashboard
 - ✅ Implemented 5 interactive React components
@@ -226,10 +226,10 @@ No database migrations required. Feature #125 is fully backward compatible.
 ### Installation
 
 ```bash
-# Update to $11.18.3
+# Update to v1.18.3
 
 git pull origin main
-git checkout $11.18.3
+git checkout v1.18.3
 
 # Backend dependencies already installed
 
@@ -243,7 +243,7 @@ npm --prefix frontend run build
 ### Docker Deployment
 
 ```bash
-docker pull bs1gr/sms:$11.18.3
+docker pull bs1gr/sms:v1.18.3
 docker-compose up -d
 
 ```text
@@ -295,7 +295,7 @@ None identified. Feature is production-ready.
 
 ---
 
-## 📈 Future Enhancements (Planned for $11.18.3+)
+## 📈 Future Enhancements (Planned for v1.18.3+)
 
 - **Feature #126**: Real-Time Notifications (40-50 hours, planned)
 - **Feature #127**: Bulk Import/Export (50-60 hours, planned)

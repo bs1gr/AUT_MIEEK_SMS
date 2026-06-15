@@ -60,10 +60,10 @@ Get-Content VERSION
 
 ### Step 1.3: CHANGELOG Verification
 
-**Checklist Item**: "CHANGELOG.md contains $11.18.3 entry"
+**Checklist Item**: "CHANGELOG.md contains v1.18.3 entry"
 
 ```powershell
-# Check for $11.18.3 in CHANGELOG
+# Check for v1.18.3 in CHANGELOG
 
 Select-String "## \[1.15.1\]" CHANGELOG.md | Select-Object -First 1
 
@@ -75,9 +75,9 @@ Select-String "## \[1.15.1\]" CHANGELOG.md | Select-Object -First 1
 
 ```text
 **If Output Differs**:
-- ⚠️ $11.18.3 entry missing
+- ⚠️ v1.18.3 entry missing
   - Action: Verify release notes were created
-  - Decision: Proceed with caution, document issue for $11.18.3
+  - Decision: Proceed with caution, document issue for v1.18.3
 
 ### Step 1.4: Key Files Presence Check
 
@@ -87,8 +87,8 @@ Select-String "## \[1.15.1\]" CHANGELOG.md | Select-Object -First 1
 # Check release documentation exists
 
 $requiredFiles = @(
-  "docs/releases/RELEASE_NOTES_$11.18.3.md",
-  "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.18.3.md",
+  "docs/releases/RELEASE_NOTES_v1.18.3.md",
+  "docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.18.3.md",
   "docs/deployment/PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md"
 )
 
@@ -104,8 +104,8 @@ foreach ($file in $requiredFiles) {
 **Expected Output**:
 
 ```text
-✅ docs/releases/RELEASE_NOTES_$11.18.3.md exists
-✅ docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.18.3.md exists
+✅ docs/releases/RELEASE_NOTES_v1.18.3.md exists
+✅ docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.18.3.md exists
 ✅ docs/deployment/PRE_DEPLOYMENT_VALIDATION_CHECKLIST.md exists
 
 ```text
@@ -132,7 +132,7 @@ ae8c37b67 docs: Complete Phase 2 planning with swimlanes and dependencies
 4d78ddfa4 docs: Create Phase 2 swimlanes, dependencies, and critical path analysis
 cda3d264c docs: Create comprehensive project status summary (Jan 7, 2026)
 8aea7bcf8 docs: Update UNIFIED_WORK_PLAN.md with Phase 2 detailed task breakdown
-3b9d44fd5 docs: Prepare $11.18.3 release package
+3b9d44fd5 docs: Prepare v1.18.3 release package
 
 ```text
 **If Output Differs**:
@@ -443,7 +443,7 @@ cd ..
 ```powershell
 # Check release notes length and content
 
-$notes = Get-Content "docs/releases/RELEASE_NOTES_$11.18.3.md"
+$notes = Get-Content "docs/releases/RELEASE_NOTES_v1.18.3.md"
 $lineCount = @($notes).Count
 Write-Host "Release notes: $lineCount lines"
 
@@ -476,7 +476,7 @@ Release notes: 650 lines
 ```powershell
 # Verify deployment plan structure
 
-$plan = Get-Content "docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.18.3.md"
+$plan = Get-Content "docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.18.3.md"
 Write-Host "Deployment plan: $(@($plan).Count) lines"
 
 # Check phases
@@ -497,10 +497,10 @@ Deployment plan: 400 lines
 ```text
 ### Step 4.3: API Documentation Current
 
-**Checklist Item**: "API documentation updated for $11.18.3"
+**Checklist Item**: "API documentation updated for v1.18.3"
 
 ```powershell
-# Check if CONTROL_API.md mentions $11.18.3 or recent changes
+# Check if CONTROL_API.md mentions v1.18.3 or recent changes
 
 Select-String "1.15" "backend/CONTROL_API.md" -ErrorAction SilentlyContinue | Select-Object -First 1
 
@@ -736,7 +736,7 @@ if (Test-Path "frontend/package-lock.json") {
 |----------|------|--------|---------|
 | **Repository** | Git clean | ✅ PASS | No uncommitted changes |
 | | Version 1.15.1 | ✅ PASS | Correct version |
-| | CHANGELOG entry | ✅ PASS | $11.18.3 documented |
+| | CHANGELOG entry | ✅ PASS | v1.18.3 documented |
 | **Infrastructure** | Docker installed | ✅ PASS | Running |
 | | Ports available | ✅ PASS | 8080, 5432 free |
 | | Disk space | ✅ PASS | 250GB free |
@@ -777,7 +777,7 @@ if (Test-Path "frontend/package-lock.json") {
 
 **Next Steps**:
 1. Confirm GO decision with the owner
-2. Proceed to Phase 1 of [STAGING_DEPLOYMENT_PLAN_$11.18.3.md](STAGING_DEPLOYMENT_PLAN_$11.18.3.md)
+2. Proceed to Phase 1 of [STAGING_DEPLOYMENT_PLAN_v1.18.3.md](STAGING_DEPLOYMENT_PLAN_v1.18.3.md)
 3. Execute `DOCKER.ps1 -Stop` (if containers running)
 4. Execute `DOCKER.ps1 -Start` to begin deployment
 5. Monitor health checks (expected: 5-10 minutes)

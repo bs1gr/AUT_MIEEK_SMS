@@ -219,7 +219,7 @@ Create a deployment record to document the successful deployment:
 
 ```yaml
 Deployment_Timestamp: 2026-01-30T15:45:00Z
-Version: vvvvv1.18.25
+Version: v1.18.25
 Environment: Production
 Host: localhost
 Docker_Desktop_Version: "$(docker --version)"

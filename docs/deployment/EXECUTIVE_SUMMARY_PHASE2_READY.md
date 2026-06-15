@@ -15,7 +15,7 @@
 
 ### Phase 1 (Complete ✅)
 
-- $11.18.3 released with 8 major improvements
+- v1.18.3 released with 8 major improvements
 - 370/370 backend tests passing
 - 1,249/1,249 frontend tests passing
 - 19/24 E2E tests passing (100% critical path)
@@ -62,9 +62,9 @@
    Output: Go/No-Go decision
    ```
 
-2. **Deploy $11.18.3** (45 minutes)
+2. **Deploy v1.18.3** (45 minutes)
    ```
-   Document: docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.18.3.md
+   Document: docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.18.3.md
    Execute: Database backup → Deploy → Health check
    Output: Running container at http://localhost:8080
    ```
@@ -143,13 +143,13 @@
 
 **Immediate actions**:
 1. Read `PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md` (30 min)
-2. Read `STAGING_DEPLOYMENT_PLAN_$11.18.3.md` (30 min)
+2. Read `STAGING_DEPLOYMENT_PLAN_v1.18.3.md` (30 min)
 3. Schedule Jan 8-9 deployment window
 4. Prepare infrastructure (backup storage, monitoring)
 
 **Key documents**:
 - `docs/deployment/PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md`
-- `docs/deployment/STAGING_DEPLOYMENT_PLAN_$11.18.3.md`
+- `docs/deployment/STAGING_DEPLOYMENT_PLAN_v1.18.3.md`
 - `docs/deployment/STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md`
 
 ### Backend contributors
@@ -206,7 +206,7 @@ DOCUMENTATION
 
 STAGING DEPLOYMENT READY
 ☐ PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md reviewed
-☐ STAGING_DEPLOYMENT_PLAN_$11.18.3.md reviewed
+☐ STAGING_DEPLOYMENT_PLAN_v1.18.3.md reviewed
 ☐ STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md reviewed
 ☐ Jan 8-9 deployment window scheduled
 ☐ Infrastructure prepared (backups, monitoring)
@@ -309,14 +309,14 @@ PHASE 2 EXECUTION READY
 ✅ Quality: 95%+ test coverage maintained
 ✅ Security: Zero permission bypass vulnerabilities
 ✅ Performance: Baselines maintained or improved
-✅ Release: $11.18.3 deployed by March 7
+✅ Release: v1.18.3 deployed by March 7
 
 ---
 
 ## 🚀 Final Status
 
 **What's Ready**:
-- ✅ Phase 1 complete ($11.18.3 released)
+- ✅ Phase 1 complete (v1.18.3 released)
 - ✅ All documentation created (6 major files)
 - ✅ Staging deployment documented (Jan 8-9)
 - ✅ Phase 2 planning complete (Jan 27 - Mar 7)

@@ -4,7 +4,7 @@
 > For current deployment status and project priorities, use `docs/plans/UNIFIED_WORK_PLAN.md`, `docs/DOCUMENTATION_INDEX.md`, and the active deployment scripts.
 
 **Date**: January 31, 2026
-**Version**: $11.18.3
+**Version**: v1.18.3
 **Status**: ⚠️ HISTORICAL GO-LIVE CHECKLIST
 
 ---
@@ -302,8 +302,8 @@ curl http://localhost:8080/health
 
 **Key Documents**:
 - PHASE5_GOLIVE_SUMMARY_JAN31.md
-- PRODUCTION_GO_LIVE_GUIDE_$11.18.3.md
-- PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_$11.18.3.md
+- PRODUCTION_GO_LIVE_GUIDE_v1.18.3.md
+- PRODUCTION_DEPLOYMENT_VERIFICATION_CHECKLIST_v1.18.3.md
 - PHASE6_FEATURE_SELECTION.md
 
 **System**: Historically prepared. Operations: Historically prepared. Users: Historically prepared. **Archived go-live packet preserved for reference.** 🚀

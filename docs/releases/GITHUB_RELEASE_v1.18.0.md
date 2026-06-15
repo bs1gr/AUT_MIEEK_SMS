@@ -1,4 +1,4 @@
-# GitHub Release Draft - $11.18.3
+# GitHub Release Draft - v1.18.3
 
 **Use this content to create the GitHub Release at:** https://github.com/bs1gr/AUT_MIEEK_SMS/releases/new
 
@@ -6,15 +6,15 @@
 
 ## Tag Information
 
-- **Tag version**: `$11.18.3`
+- **Tag version**: `v1.18.3`
 - **Target**: `main`
-- **Release title**: `$11.18.3`
+- **Release title**: `v1.18.3`
 
 ---
 
 ## Release Body (GitHub)
 
-# 🚀 $11.18.3
+# 🚀 v1.18.3
 
 ### What’s new- **NEW: Course Auto-Activation System**
 - **Scheduled job**: Daily bulk update at 3:00 AM UTC for semester-based course activation
@@ -48,5 +48,5 @@
 - `cacc2a130` fix(i18n): sync en/el dashboard and student locale keys
 - `cfed5a334` feat(students): cascade primary students list by active status
 - `fb4c13925` docs(plan): record postgres standardization and installer refresh
-- `3b27f7c0c` fix(db+release): harden postgres migration and refresh $11.18.3 installer
+- `3b27f7c0c` fix(db+release): harden postgres migration and refresh v1.18.3 installer
 - `03e19c848` fix(ci): prevent installer release auto-overwrite and block undersized assets

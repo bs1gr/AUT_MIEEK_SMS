@@ -1,7 +1,7 @@
 # Release Notes - Version 1.18.18
 
 **Release Date**: 2026-04-17
-**Previous Version**: vvvvv1.18.25
+**Previous Version**: v1.18.25
 
 ## 🐛 Bug Fixes
 
@@ -10,7 +10,7 @@
 ## 🧹 Chores
 
 - **deps**: fix dependabot security alerts [2948829]
-- **release**: record vvvvv1.18.25 publication evidence [fd4e411]
+- **release**: record v1.18.25 publication evidence [fd4e411]
 
 ---
 

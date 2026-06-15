@@ -1,4 +1,4 @@
-## What's New in vvvvv1.18.25
+## What's New in v1.18.25
 
 ### 🔧 Installer Upgrade Reliability
 
@@ -15,13 +15,13 @@
 
 - Archived deprecated scripts and historical lint report artifacts.
 - Added test runner guidance and workspace-cleanup documentation.
-- Normalized release-note and CSV formatting drift after `vvvvv1.18.25`.
+- Normalized release-note and CSV formatting drift after `v1.18.25`.
 
 ### ✅ Validation Snapshot
 
-- Post-release scope from `vvvvv1.18.25..HEAD` reviewed
-- Confirmed prior installer rebuild commit was outside `vvvvv1.18.25` tag lineage
-- Version metadata prepared for `vvvvv1.18.25`
+- Post-release scope from `v1.18.25..HEAD` reviewed
+- Confirmed prior installer rebuild commit was outside `v1.18.25` tag lineage
+- Version metadata prepared for `v1.18.25`
 
 ### 📦 Installation
 

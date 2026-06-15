@@ -1,15 +1,15 @@
-# Release Notes - $11.18.3
+# Release Notes - v1.18.3
 
 **Release Date**: February 3, 2026
 **Version**: 1.17.7
 **Status**: ✅ READY FOR DEPLOYMENT
-**Previous Release**: $11.18.3 (January 29, 2026)
+**Previous Release**: v1.18.3 (January 29, 2026)
 
 ---
 
 ## 🎯 Overview
 
-**$11.18.3** is a maintenance and enhancement release focused on internationalization improvements, Docker deployment reliability, and historical data editing capabilities. This release builds upon the stable $11.18.3 foundation with critical fixes for Greek locale support, deployment reliability, and feature enhancements for educators.
+**v1.18.3** is a maintenance and enhancement release focused on internationalization improvements, Docker deployment reliability, and historical data editing capabilities. This release builds upon the stable v1.18.3 foundation with critical fixes for Greek locale support, deployment reliability, and feature enhancements for educators.
 
 ---
 
@@ -113,7 +113,7 @@
 
 | Metric | Value |
 |--------|-------|
-| **Total Commits** | 15+ commits since $11.18.3 |
+| **Total Commits** | 15+ commits since v1.18.3 |
 | **Files Changed** | 12+ files modified |
 | **Bug Fixes** | 5+ fixes implemented |
 | **New Features** | 3 enhancements |
@@ -190,7 +190,7 @@
 
 - **No security vulnerabilities introduced**
 - All existing security measures maintained
-  - Path traversal protections verified (from $11.18.3)
+  - Path traversal protections verified (from v1.18.3)
 - CORS security improvements in Docker deployment
 - Pre-commit security validation passed
 
@@ -217,7 +217,7 @@
 
 ### Phase 6: Reporting Enhancements ✅ COMPLETE
 - All reporting features deployed and production-ready
-- $11.18.3 initial release + historical editing enhancements in $11.18.3
+- v1.18.3 initial release + historical editing enhancements in v1.18.3
 
 ### Historical Data Editing ✅ ENHANCED
 - Recall buttons now available in StudentPerformanceReport
@@ -233,13 +233,13 @@
 ## 📋 Known Limitations
 
 - None new in this release
-- All known issues from $11.18.3 continue to be tracked
+- All known issues from v1.18.3 continue to be tracked
 
 ---
 
 ## 🔄 Migration Guide
 
-### From $11.18.3 to $11.18.3
+### From v1.18.3 to v1.18.3
 
 **No database migrations required** - This is a backward-compatible release.
 

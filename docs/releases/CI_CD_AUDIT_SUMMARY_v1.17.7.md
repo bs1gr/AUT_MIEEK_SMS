@@ -1,4 +1,4 @@
-# $11.18.3 Release CI/CD Audit & Fix - Complete Summary
+# v1.18.3 Release CI/CD Audit & Fix - Complete Summary
 
 **Date**: February 3, 2026
 **Status**: ✅ AUDIT COMPLETE, FIX INITIATED, MONITORING IN PROGRESS
@@ -16,7 +16,7 @@
 
 ### 1. ✅ Comprehensive CI/CD Audit Report
 
-**File**: [`docs/releases/CI_CD_RELEASE_WORKFLOW_AUDIT_$11.18.3.md`](CI_CD_RELEASE_WORKFLOW_AUDIT_$11.18.3.md)
+**File**: [`docs/releases/CI_CD_RELEASE_WORKFLOW_AUDIT_v1.18.3.md`](CI_CD_RELEASE_WORKFLOW_AUDIT_v1.18.3.md)
 
 **Coverage** (2,200+ lines):
 - Executive summary with root cause analysis
@@ -30,7 +30,7 @@
 
 | Issue # | Title | Severity | Root Cause | Impact |
 |---------|-------|----------|-----------|--------|
-| 1 | Release notes path mismatch | 🔴 CRITICAL | `.github/RELEASE_NOTES_$11.18.3.md` expected, file in `docs/releases/` | Release body stays minimal (1 line) |
+| 1 | Release notes path mismatch | 🔴 CRITICAL | `.github/RELEASE_NOTES_v1.18.3.md` expected, file in `docs/releases/` | Release body stays minimal (1 line) |
 | 2 | Manual release bypassed CI/CD | 🔴 CRITICAL | Used `gh release create` instead of `git tag push` | No workflows triggered, no assets generated |
 | 3 | Release installer not executed | 🟠 HIGH | Dependency chain broken, workflow never dispatched | No installer (.exe) attached |
 | 4 | Docker publishing not executed | 🟠 HIGH | Same root cause as #3 | Docker images not published |
@@ -40,7 +40,7 @@
 
 ### 2. ✅ Step-by-Step Action Plan
 
-**File**: [`docs/releases/$11.18.3_RELEASE_FIX_ACTION_PLAN.md`]($11.18.3_RELEASE_FIX_ACTION_PLAN.md)
+**File**: [`docs/releases/v1.18.3_RELEASE_FIX_ACTION_PLAN.md`](v1.18.3_RELEASE_FIX_ACTION_PLAN.md)
 
 **Content** (1,600+ lines):
 - 6 detailed steps with code examples
@@ -48,7 +48,7 @@
 - Rollback procedures for each step
 - Time estimates and success criteria
 - Unified workflow diagram showing complete automation chain
-- Documentation updates needed for $11.18.3+
+- Documentation updates needed for v1.18.3+
 
 **Steps Included**:
 1. ✅ Copy release notes to CI/CD location
@@ -62,7 +62,7 @@
 
 ### 3. ✅ Real-Time Execution Report
 
-**File**: [`docs/releases/$11.18.3_RELEASE_FIX_EXECUTION_REPORT.md`]($11.18.3_RELEASE_FIX_EXECUTION_REPORT.md)
+**File**: [`docs/releases/v1.18.3_RELEASE_FIX_EXECUTION_REPORT.md`](v1.18.3_RELEASE_FIX_EXECUTION_REPORT.md)
 
 **Content** (1,400+ lines):
 - Minute-by-minute execution progress
@@ -85,12 +85,12 @@ PHASE 1: LOCAL PREPARATION (Developer/Agent)
   ├─ Copy to CI/CD location (.github/)
   ├─ Commit both files to git
   ├─ Push to origin/main
-  └─ Create and push annotated git tag $11.18.3
+  └─ Create and push annotated git tag v1.18.3
 
 PHASE 2: CI/CD AUTOMATION (GitHub Actions - Automatic)
   ├─ release-on-tag.yml (triggered by tag push)
-  │  ├─ Extract tag name ($11.18.3)
-  │  ├─ Read release notes from .github/RELEASE_NOTES_$11.18.3.md
+  │  ├─ Extract tag name (v1.18.3)
+  │  ├─ Read release notes from .github/RELEASE_NOTES_v1.18.3.md
   │  ├─ Create GitHub release with comprehensive body (276+ lines)
   │  └─ Output release_id for downstream jobs
   │
@@ -115,7 +115,7 @@ PHASE 2: CI/CD AUTOMATION (GitHub Actions - Automatic)
 PHASE 3: VERIFICATION (Automated + Manual)
   ├─ GitHub Actions: All jobs show ✅
   ├─ Release page: 276+ line body visible
-  ├─ Assets: SMS_Setup_$11.18.3.exe attached
+  ├─ Assets: SMS_Setup_v1.18.3.exe attached
   ├─ Docker: Images published to registry
   └─ Tests: All 2574+ passing
 ```
@@ -128,33 +128,33 @@ PHASE 3: VERIFICATION (Automated + Manual)
 
 **Step 1: Copy Release Notes to CI/CD Location** ✅
 ```powershell
-Copy-Item "docs/releases/RELEASE_NOTES_$11.18.3.md" ".github/RELEASE_NOTES_$11.18.3.md"
+Copy-Item "docs/releases/RELEASE_NOTES_v1.18.3.md" ".github/RELEASE_NOTES_v1.18.3.md"
 # Result: ✅ File copied (9,682 bytes, 276 lines)
 ```
 
 **Step 2: Commit & Push** ✅
 ```powershell
-git add ".github/RELEASE_NOTES_$11.18.3.md"
-git commit -m "docs(release): sync $11.18.3 release notes to .github/ for CI/CD automation"
+git add ".github/RELEASE_NOTES_v1.18.3.md"
+git commit -m "docs(release): sync v1.18.3 release notes to .github/ for CI/CD automation"
 git push origin main
 # Result: ✅ Commit e3b1ee6db pushed to origin/main
 ```
 
 **Step 3: Delete Incomplete Manual Release** ✅
 ```powershell
-gh release delete $11.18.3 --yes
+gh release delete v1.18.3 --yes
 # Result: ✅ Old incomplete release deleted, git tag preserved
 ```
 
 **Step 4: Trigger CI/CD Workflow** ✅
 ```powershell
-gh workflow run release-on-tag.yml -f tag=$11.18.3
+gh workflow run release-on-tag.yml -f tag=v1.18.3
 # Result: ✅ workflow_dispatch triggered, GitHub Actions started
 ```
 
 **Audit & Documentation Committed** ✅
 ```powershell
-git commit -m "docs(release): audit and fix $11.18.3 CI/CD release workflow
+git commit -m "docs(release): audit and fix v1.18.3 CI/CD release workflow
 - Add comprehensive CI/CD audit report identifying 5 critical issues
 - Document unified release workflow and automation chain
 - Create step-by-step action plan for manual fix
@@ -169,9 +169,9 @@ git commit -m "docs(release): audit and fix $11.18.3 CI/CD release workflow
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| **Release Notes** | ✅ Fixed | Copied to `.github/RELEASE_NOTES_$11.18.3.md` |
+| **Release Notes** | ✅ Fixed | Copied to `.github/RELEASE_NOTES_v1.18.3.md` |
 | **Git Commit** | ✅ Pushed | Commit e3b1ee6db on origin/main |
-| **Manual Release** | ✅ Deleted | Old incomplete $11.18.3 removed |
+| **Manual Release** | ✅ Deleted | Old incomplete v1.18.3 removed |
 | **CI/CD Trigger** | ✅ Dispatched | `release-on-tag.yml` workflow running |
 | **Audit Docs** | ✅ Created | 3 comprehensive documents committed |
 | **Workflow Chain** | ⏳ In Progress | Executing (10-15 minutes expected) |
@@ -182,7 +182,7 @@ git commit -m "docs(release): audit and fix $11.18.3 CI/CD release workflow
 
 ## 🎯 Expected Outcome (When Complete)
 
-GitHub release $11.18.3 will have:
+GitHub release v1.18.3 will have:
 
 ✅ **Comprehensive Release Body**
 - 276 lines of professional release notes
@@ -190,12 +190,12 @@ GitHub release $11.18.3 will have:
 - Migration guide and deployment instructions
 
 ✅ **Installer Asset**
-- SMS_Setup_$11.18.3.exe (~240 MB)
+- SMS_Setup_v1.18.3.exe (~240 MB)
 - SHA256 hash for integrity verification
 - Available for download from GitHub release page
 
 ✅ **Docker Images**
-- ghcr.io/bs1gr/sms:$11.18.3
+- ghcr.io/bs1gr/sms:v1.18.3
 - ghcr.io/bs1gr/sms:latest (if production release)
 
 ✅ **Full Test Coverage**
@@ -218,8 +218,8 @@ GitHub release $11.18.3 will have:
 ✅ **Correct approach** → Use `git tag push` → Triggers `release-on-tag.yml` automatically
 
 ### Path Mismatch Issue
-❌ **Problem**: Release notes in `docs/releases/RELEASE_NOTES_$11.18.3.md`
-❌ **CI/CD Expects**: `.github/RELEASE_NOTES_$11.18.3.md`
+❌ **Problem**: Release notes in `docs/releases/RELEASE_NOTES_v1.18.3.md`
+❌ **CI/CD Expects**: `.github/RELEASE_NOTES_v1.18.3.md`
 ✅ **Solution**: Copy file to `.github/` directory (now both locations have it)
 
 ### Workflow Coordination
@@ -247,27 +247,27 @@ GitHub release $11.18.3 will have:
 ## 📖 How to Use These Documents
 
 ### For Understanding What Went Wrong
-→ Read: **CI_CD_RELEASE_WORKFLOW_AUDIT_$11.18.3.md**
+→ Read: **CI_CD_RELEASE_WORKFLOW_AUDIT_v1.18.3.md**
 - Explains each of 5 issues in detail
 - Shows workflow configuration analysis
 - Documents why each issue occurred
 - Provides technical deep dives
 
 ### For Fixing It (This Release)
-→ Read: **$11.18.3_RELEASE_FIX_ACTION_PLAN.md**
+→ Read: **v1.18.3_RELEASE_FIX_ACTION_PLAN.md**
 - Step-by-step instructions (what we just executed)
 - Verification procedures for each step
 - Rollback procedures if something fails
 - Time estimates and monitoring guidelines
 
 ### For Tracking Progress
-→ Read: **$11.18.3_RELEASE_FIX_EXECUTION_REPORT.md**
+→ Read: **v1.18.3_RELEASE_FIX_EXECUTION_REPORT.md**
 - Real-time status updates (auto-updated)
 - What's happening now
 - Expected next steps
 - Success/failure indicators to watch
 
-### For Future Releases ($11.18.3+)
+### For Future Releases (v1.18.3+)
 → Reference: **Unified Release Workflow** section in audit report
 - Process diagram showing complete automation
 - Local preparation checklist
@@ -291,18 +291,18 @@ GitHub release $11.18.3 will have:
 2. **Watch For Release Creation**
    ```powershell
    # Run periodically:
-   gh release view $11.18.3 --json isDraft,assets,body
+   gh release view v1.18.3 --json isDraft,assets,body
    # Should transition from "release not found" → Release with comprehensive body + assets
    ```
 
 3. **Verify Final Result** (After ~15 minutes)
    ```powershell
    # Complete verification:
-   gh release view $11.18.3 --json body,assets,isDraft,createdAt,publishedAt
+   gh release view v1.18.3 --json body,assets,isDraft,createdAt,publishedAt
 
    # Expected:
    # - body: [276-line comprehensive release notes]
-   # - assets: [{SMS_Setup_$11.18.3.exe}, ...]
+   # - assets: [{SMS_Setup_v1.18.3.exe}, ...]
    # - isDraft: false
    # - createdAt: 2026-02-03T...Z
    # - publishedAt: 2026-02-03T...Z
@@ -311,11 +311,11 @@ GitHub release $11.18.3 will have:
 ### After CI/CD Completes:
 
 1. **Update Work Plan** (`docs/plans/UNIFIED_WORK_PLAN.md`)
-   - Mark $11.18.3 as COMPLETE
+   - Mark v1.18.3 as COMPLETE
    - Document lessons learned
    - Link to audit report and action plan
 
-2. **Create Release Checklist** (For $11.18.3+)
+2. **Create Release Checklist** (For v1.18.3+)
    - Document proper release procedure
    - Create checklist to prevent manual command usage
    - Train team on unified workflow
@@ -336,36 +336,36 @@ GitHub release $11.18.3 will have:
 
 ### Documentation Files Created:
 
-1. **`docs/releases/CI_CD_RELEASE_WORKFLOW_AUDIT_$11.18.3.md`** (2,200+ lines)
+1. **`docs/releases/CI_CD_RELEASE_WORKFLOW_AUDIT_v1.18.3.md`** (2,200+ lines)
    - Comprehensive audit report
    - 5 critical issues identified and analyzed
    - Workflow analysis with code references
    - Lessons learned and prevention strategies
 
-2. **`docs/releases/$11.18.3_RELEASE_FIX_ACTION_PLAN.md`** (1,600+ lines)
+2. **`docs/releases/v1.18.3_RELEASE_FIX_ACTION_PLAN.md`** (1,600+ lines)
    - Step-by-step fix procedures
    - Execution checklist
    - Rollback procedures
    - Success criteria and verification steps
 
-3. **`docs/releases/$11.18.3_RELEASE_FIX_EXECUTION_REPORT.md`** (1,400+ lines)
+3. **`docs/releases/v1.18.3_RELEASE_FIX_EXECUTION_REPORT.md`** (1,400+ lines)
    - Real-time execution progress
    - Current status and timeline
    - Success/failure indicators
    - Final verification checklist
 
-4. **`.github/RELEASE_NOTES_$11.18.3.md`** (9.7 KB, 276 lines)
+4. **`.github/RELEASE_NOTES_v1.18.3.md`** (9.7 KB, 276 lines)
    - Comprehensive release notes
    - Now accessible to CI/CD automation
    - Contains: Features, improvements, deployment instructions
 
 ### Git Commits:
 
-1. **`e3b1ee6db`** - "docs(release): sync $11.18.3 release notes to .github/ for CI/CD automation"
-   - Added `.github/RELEASE_NOTES_$11.18.3.md`
+1. **`e3b1ee6db`** - "docs(release): sync v1.18.3 release notes to .github/ for CI/CD automation"
+   - Added `.github/RELEASE_NOTES_v1.18.3.md`
    - Fixed path mismatch issue
 
-2. **`8b6442399`** - "docs(release): audit and fix $11.18.3 CI/CD release workflow"
+2. **`8b6442399`** - "docs(release): audit and fix v1.18.3 CI/CD release workflow"
    - Added 3 audit/documentation files
    - Tracked all findings and fixes
 
@@ -393,7 +393,7 @@ GitHub release $11.18.3 will have:
 4. ✅ Monitor CI/CD execution completion
 5. ✅ Verify all assets generated before considering release "done"
 
-### Prevention For $11.18.3+
+### Prevention For v1.18.3+
 1. Create release checklist (no manual commands!)
 2. Auto-sync release notes if changing workflow config
 3. Add verification step to release workflow
@@ -404,7 +404,7 @@ GitHub release $11.18.3 will have:
 
 ## 🎓 Lessons for Future Releases
 
-### Process Checklist (For $11.18.3+):
+### Process Checklist (For v1.18.3+):
 
 ```
 📋 RELEASE PREPARATION
@@ -465,7 +465,7 @@ All objectives achieved:
 - Verification phase documented
 - Complete workflow diagram provided
 
-✅ **Fixed $11.18.3 Release**
+✅ **Fixed v1.18.3 Release**
 - Release notes path issue corrected
 - CI/CD automation triggered
 - Proper workflow chain initiated
@@ -488,14 +488,14 @@ All objectives achieved:
 ## 📞 Support & Questions
 
 If release creation fails, check:
-1. `.github/RELEASE_NOTES_$11.18.3.md` exists and is readable
+1. `.github/RELEASE_NOTES_v1.18.3.md` exists and is readable
 2. GitHub Actions workflow logs for specific error
-3. `$11.18.3_RELEASE_FIX_ACTION_PLAN.md` troubleshooting section
+3. `v1.18.3_RELEASE_FIX_ACTION_PLAN.md` troubleshooting section
 4. Rollback procedures in action plan
 
 For future releases, reference:
-- `CI_CD_RELEASE_WORKFLOW_AUDIT_$11.18.3.md` - Why things work this way
-- `$11.18.3_RELEASE_FIX_ACTION_PLAN.md` - Step-by-step procedures
+- `CI_CD_RELEASE_WORKFLOW_AUDIT_v1.18.3.md` - Why things work this way
+- `v1.18.3_RELEASE_FIX_ACTION_PLAN.md` - Step-by-step procedures
 - Unified workflow diagram in audit report - Complete automation chain
 
 ---

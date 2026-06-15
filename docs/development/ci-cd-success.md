@@ -1,7 +1,7 @@
 # CI/CD Pipeline Success Summary
 
 **Date:** November 24, 2025
-**Version:** $11.18.3
+**Version:** v1.18.3
 **Status:** ✅ **OPERATIONAL**
 
 ---
@@ -168,8 +168,8 @@ These warnings don't prevent pipeline success but should be addressed for code q
 3. **Test Production Deployment**
 
    ```bash
-   git tag -a $11.18.3 -m "Test production pipeline"
-   git push origin $11.18.3
+   git tag -a v1.18.3 -m "Test production pipeline"
+   git push origin v1.18.3
    ```
 
 ### Future Enhancements

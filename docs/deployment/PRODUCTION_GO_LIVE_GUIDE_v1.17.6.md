@@ -1,4 +1,4 @@
-# Production Go-Live Guide - Student Management System $11.18.3
+# Production Go-Live Guide - Student Management System v1.18.3
 
 > **Historical document (Jan 2026):** This guide describes a planned early-2026 production go-live procedure for a training-ready build.
 > The deployment readiness, stakeholder/training rollout language, and environment assumptions below are preserved as historical context and are not current operating instructions.
@@ -6,14 +6,14 @@
 
 **Version**: 1.0
 **Release Date**: January 31, 2026
-**System Version**: $11.18.3 (Training Environment Ready)
+**System Version**: v1.18.3 (Training Environment Ready)
 **Status**: ⚠️ Historical go-live guide
 
 ---
 
 ## 📋 Executive Summary
 
-This guide provides step-by-step procedures to deploy the Student Management System $11.18.3 to production with the pre-configured training environment. The system has been verified with:
+This guide provides step-by-step procedures to deploy the Student Management System v1.18.3 to production with the pre-configured training environment. The system has been verified with:
 
 - ✅ 18 training accounts (3 admins, 5 teachers, 10 students)
 - ✅ 54 courses (4 new training courses + 50 existing)
@@ -21,7 +21,7 @@ This guide provides step-by-step procedures to deploy the Student Management Sys
 - ✅ API endpoints verified
 - ✅ Frontend application tested
 
-**Key Features in $11.18.3:**
+**Key Features in v1.18.3:**
 - Student management (create, update, view, archive)
 - Course management (create, view, enrollments)
 - Grade tracking (enter, view by student/course)
@@ -238,7 +238,7 @@ services:
 #### 3. Enable Rate Limiting
 
 ```powershell
-# Already enabled in $11.18.3, verify configuration:
+# Already enabled in v1.18.3, verify configuration:
 # Environment variables in .env:
 # RATE_LIMIT_ENABLED=true
 # RATE_LIMIT_READ=60/minute
@@ -480,7 +480,7 @@ Get-Volume -DriveLetter D | Select-Object SizeRemaining, Size
 
 ## 📈 Performance Expectations
 
-**Expected Performance Metrics ($11.18.3):**
+**Expected Performance Metrics (v1.18.3):**
 
 | Operation | Response Time | Success Rate |
 |-----------|---------------|--------------|
@@ -508,7 +508,7 @@ Get-Volume -DriveLetter D | Select-Object SizeRemaining, Size
 
 ### Future Upgrades
 
-To upgrade to **$11.18.3** (includes Analytics Dashboard):
+To upgrade to **v1.18.3** (includes Analytics Dashboard):
 ```powershell
 .\DOCKER.ps1 -Update
 
@@ -535,7 +535,7 @@ cd src/backend && alembic upgrade head
 ## 📝 Deployment Sign-Off
 
 ```
-System Version:           $11.18.3
+System Version:           v1.18.3
 Deployment Date:          [YYYY-MM-DD]
 Deployment By:            [NAME]
 Environment:              [staging/production]

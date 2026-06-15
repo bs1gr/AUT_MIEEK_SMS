@@ -149,7 +149,7 @@ curl -X POST "http://localhost:8080/api/v1/custom-reports/generate" \
 
 ---
 
-## 🔍 What's New in $11.18.3
+## 🔍 What's New in v1.18.3
 
 ### Phase 6: Reporting Enhancements (Complete)
 

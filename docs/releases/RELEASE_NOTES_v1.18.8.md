@@ -1,7 +1,7 @@
 # Release Notes - Version 1.18.8
 
 **Release Date**: 2026-03-08
-**Previous Version**: vvvvv1.18.25
+**Previous Version**: v1.18.25
 
 ## ✨ Features
 
@@ -32,7 +32,7 @@
 
 ## 📝 Documentation
 
-- update work plan, changelog, and index to reflect vvvvv1.18.25 release status [695301b]
+- update work plan, changelog, and index to reflect v1.18.25 release status [695301b]
 - **deployment**: add multi-PC deployment guide for hybrid QNAP architecture [8e0ee52]
 
 ## ✅ Tests

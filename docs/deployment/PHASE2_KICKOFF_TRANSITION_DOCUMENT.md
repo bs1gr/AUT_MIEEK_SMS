@@ -15,7 +15,7 @@
 
 ### Phase 1 Completion Status: ✅ 100%
 
-- **$11.18.3 Released**: January 7, 2026 ✅
+- **v1.18.3 Released**: January 7, 2026 ✅
 - **All 8 improvements shipped**: Query optimization, soft-delete filtering, metrics, backup encryption, error messages, API standardization, audit logging, E2E tests
 - **Backend tests**: 370/370 passing ✅
 - **Frontend tests**: 1,249/1,249 passing ✅
@@ -43,7 +43,7 @@
 
 - ✅ [PHASE2_CONSOLIDATED_PLAN.md](../docs/plans/PHASE2_CONSOLIDATED_PLAN.md) - 6-week detailed plan
 - ✅ [PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md](PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md) - 7-phase validation
-- ✅ [STAGING_DEPLOYMENT_PLAN_$11.18.3.md](STAGING_DEPLOYMENT_PLAN_$11.18.3.md) - 45-min deployment guide
+- ✅ [STAGING_DEPLOYMENT_PLAN_v1.18.3.md](STAGING_DEPLOYMENT_PLAN_v1.18.3.md) - 45-min deployment guide
 - ✅ [STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md](STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md) - Complete runbook
 - ✅ [PHASE2_RISK_REGISTER.md](PHASE2_RISK_REGISTER.md) - 10 risks with mitigation
 - ✅ [PHASE2_PR_GUIDE.md](../../.github/pull_request_template/PHASE2_PR_GUIDE.md) - PR template for Phase 2
@@ -112,7 +112,7 @@ All docs indexed in [docs/DOCUMENTATION_INDEX.md](../docs/DOCUMENTATION_INDEX.md
 - [ ] Ask questions on design/timeline
 
 **Backend Developers**:
-- [ ] Set up local environment ($11.18.3 from staging)
+- [ ] Set up local environment (v1.18.3 from staging)
 - [ ] Review RBAC design document
 - [ ] Familiarize with rate_limiting.py, router patterns
 - [ ] Study existing permission checks in codebase
@@ -143,7 +143,7 @@ FEB 10-14  Week 3: Permission API & UI (40 hours)
 FEB 17-21  Week 4: CI/CD Integration (40 hours)
 FEB 24-28  Week 5: Documentation & Testing (40 hours)
 MAR 3-7    Week 6: Final Testing & Release (40 hours)
-MAR 10+    ✅ $11.18.3 Released
+MAR 10+    ✅ v1.18.3 Released
 
 ```text
 ---
@@ -235,7 +235,7 @@ MAR 10+    ✅ $11.18.3 Released
 | Document | Purpose | Location |
 |----------|---------|----------|
 | PRE_DEPLOYMENT_EXECUTION_WALKTHROUGH.md | Pre-deployment validation (7 phases) | docs/deployment/ |
-| STAGING_DEPLOYMENT_PLAN_$11.18.3.md | Staging deployment plan | docs/deployment/ |
+| STAGING_DEPLOYMENT_PLAN_v1.18.3.md | Staging deployment plan | docs/deployment/ |
 | STAGING_DEPLOYMENT_EXECUTION_PLAYBOOK.md | Runbook for staging deploy | docs/deployment/ |
 
 ### Architecture & Design
@@ -377,7 +377,7 @@ MAR 10+    ✅ $11.18.3 Released
 ☐ PHASE2_CONSOLIDATED_PLAN.md reviewed and approved
 ☐ Historical contributor composition confirmed (2-3 backend, 1 frontend, 1 QA, 1 deployment operator)
 ☐ Budget approved for external security audit (if needed)
-☐ Owner expectations set (6 weeks, $11.18.3 March 7)
+☐ Owner expectations set (6 weeks, v1.18.3 March 7)
 ☐ Risk mitigation strategies approved
 ☐ Escalation path defined
 ☐ Weekly review meetings scheduled
@@ -391,7 +391,7 @@ MAR 10+    ✅ $11.18.3 Released
 ☐ Scope locked (15+ permissions, 30+ endpoints, CI/CD)
 ☐ Success criteria defined (tests, coverage, performance)
 ☐ Historical communication plan in place
-☐ Release plan for $11.18.3 on March 10
+☐ Release plan for v1.18.3 on March 10
 
 ```text
 **Team Sign-Off**:
@@ -463,7 +463,7 @@ MAR 10+    ✅ $11.18.3 Released
 - ✅ Release on March 7, 2026 (or earlier)
 - ✅ Zero critical bugs at release
 - ✅ Staging validation complete
-- ✅ $11.18.3 in production by March 10
+- ✅ v1.18.3 in production by March 10
 
 ---
 

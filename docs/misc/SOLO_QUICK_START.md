@@ -1,7 +1,7 @@
 # 🎯 Solo Developer - Jan 8 Deployment Quick Start
 
 **You: Solo Developer**
-**Mission: Deploy $11.18.3 to staging on Jan 8**
+**Mission: Deploy v1.18.3 to staging on Jan 8**
 **Duration: ~2 hours (08:00-11:00 UTC)**
 **Status: READY** ✅
 
@@ -328,7 +328,7 @@ docker stop sms-fullstack
 docker rm sms-fullstack
 # Restore backup:
 
-Copy-Item "backups/pre_$11.18.3_*.db" `
+Copy-Item "backups/pre_v1.18.3_*.db" `
   -Destination "data/student_management.db" -Force
 # System back to before deployment ✅
 
@@ -398,7 +398,7 @@ Copy-Item "backups/pre_$11.18.3_*.db" `
 ## ✅ When You're Done (Jan 8, 11:00 UTC)
 
 ```text
-🎉 YOU DEPLOYED $11.18.3 TO STAGING
+🎉 YOU DEPLOYED v1.18.3 TO STAGING
 ✅ All tests passed
 ✅ Monitoring active
 ✅ Everything working

@@ -1,9 +1,9 @@
-# $11.18.3 Release Summary
+# v1.18.3 Release Summary
 
 **Release Date**: January 29, 2026
 **Status**: ✅ **PRODUCTION READY & RELEASED**
 **Repository**: https://github.com/bs1gr/AUT_MIEEK_SMS
-**Tag**: $11.18.3
+**Tag**: v1.18.3
 
 ---
 
@@ -40,15 +40,15 @@ Version 1.17.5 has been successfully prepared and released with MIEEK Dark theme
 ### 📁 Release Artifacts
 
 **Documentation Created**:
-- ✅ `docs/releases/RELEASE_NOTES_$11.18.3.md` - Comprehensive release notes
-- ✅ `docs/releases/GITHUB_RELEASE_$11.18.3.md` - GitHub release description
-- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md` - Deployment verification guide
-- ✅ `CHANGELOG.md` - Updated with $11.18.3 entry
-- ✅ Git tag: `$11.18.3` - Released and pushed to remote
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.3.md` - Comprehensive release notes
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.3.md` - GitHub release description
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md` - Deployment verification guide
+- ✅ `CHANGELOG.md` - Updated with v1.18.3 entry
+- ✅ Git tag: `v1.18.3` - Released and pushed to remote
 
 **Code Changes**:
 - ✅ Commit: 91df1c694 "style: refine mieek-dark theme inputs" (23 files)
-- ✅ Commit: 783053d6f "docs: add release documentation for $11.18.3" (4 files)
+- ✅ Commit: 783053d6f "docs: add release documentation for v1.18.3" (4 files)
 
 ### 🚀 How to Deploy
 
@@ -67,7 +67,7 @@ Version 1.17.5 has been successfully prepared and released with MIEEK Dark theme
 
 **Option 3: Manual Version Checkout**
 ```bash
-git checkout $11.18.3
+git checkout v1.18.3
 git pull origin main
 ```
 
@@ -111,14 +111,14 @@ git pull origin main
 | VERSION | 1.17.5 | ✅ Verified |
 | frontend/package.json | 1.17.5 | ✅ Verified |
 | backend/pyproject.toml | 1.17.5 | ✅ Verified |
-| Git tag | $11.18.3 | ✅ Created & Pushed |
+| Git tag | v1.18.3 | ✅ Created & Pushed |
 
 ### 📞 Support Resources
 
-- **Release Notes**: [RELEASE_NOTES_$11.18.3.md](docs/releases/RELEASE_NOTES_$11.18.3.md)
-- **Deployment Guide**: [DEPLOYMENT_CHECKLIST_$11.18.3.md](docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md)
+- **Release Notes**: [RELEASE_NOTES_v1.18.3.md](docs/releases/RELEASE_NOTES_v1.18.3.md)
+- **Deployment Guide**: [DEPLOYMENT_CHECKLIST_v1.18.3.md](docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md)
 - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
-- **GitHub Release**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+- **GitHub Release**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3
 - **Issues**: https://github.com/bs1gr/AUT_MIEEK_SMS/issues
 
 ### ⚠️ Known Limitations

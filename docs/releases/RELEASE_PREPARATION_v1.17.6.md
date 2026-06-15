@@ -1,26 +1,26 @@
-# Release Preparation - $11.18.3
+# Release Preparation - v1.18.3
 
 **Date**: January 29, 2026
 **Version**: 1.17.6
 **Status**: ✅ PREPARED FOR RELEASE
 **Branch**: main
-**Git Tag**: $11.18.3
+**Git Tag**: v1.18.3
 
 ---
 
 ## 📋 Release Overview
 
-**$11.18.3** is a maintenance release focused on fixing version format compliance and documentation corrections discovered post-$11.18.3.
+**v1.18.3** is a maintenance release focused on fixing version format compliance and documentation corrections discovered post-v1.18.3.
 
 ### Key Changes
 
 1. **Version Format Correction** ✅
    - Fixed malformed version references in 4 documentation files
-   - Corrected `vvvv$11.18.3` → `1.17.6` (proper format enforcement)
+   - Corrected `vvvvv1.18.3` → `1.17.6` (proper format enforcement)
    - Ensures compliance with versioning policy
 
 2. **Version Propagation** ✅
-   - Updated 8 core files to reference $11.18.3
+   - Updated 8 core files to reference v1.18.3
    - Backend: main.py docstring
    - Frontend: package.json
    - Documentation: User guide, Developer guide, Documentation index
@@ -29,7 +29,7 @@
 
 ---
 
-## 📊 Commits Since $11.18.3
+## 📊 Commits Since v1.18.3
 
 **Total Commits**: 30 commits
 **Key Categories**:
@@ -93,9 +93,9 @@
 ### Git Status
 - [x] Working tree: CLEAN
 - [x] All changes: COMMITTED
-- [x] Commit message: ✅ "chore(release): Prepare $11.18.3 - Update version references"
-- [x] Git tag created: $11.18.3
-- [x] Tag message: "Release $11.18.3 - Version correction and documentation fixes"
+- [x] Commit message: ✅ "chore(release): Prepare v1.18.3 - Update version references"
+- [x] Git tag created: v1.18.3
+- [x] Tag message: "Release v1.18.3 - Version correction and documentation fixes"
 
 **Status**: ✅ Git repository ready
 
@@ -112,7 +112,7 @@
 | Component | Status | Details |
 |-----------|--------|---------|
 | Version Consistency | ✅ PASS | All 8 files synchronized to 1.17.6 |
-| Format Compliance | ✅ PASS | $11.18.3 format verified (v1.x.x pattern) |
+| Format Compliance | ✅ PASS | v1.18.3 format verified (v1.x.x pattern) |
 | Pre-commit Validation | ✅ PASS | All checks green, validation checkpoint valid |
 | Git Repository | ✅ CLEAN | No uncommitted changes, tag created |
 | Documentation | ✅ UPDATED | 4 files corrected, version references fixed |
@@ -124,14 +124,14 @@
 
 ## 📝 Release Notes Summary
 
-### What's New in $11.18.3
+### What's New in v1.18.3
 
 **Maintenance & Corrections**:
 - Version format compliance fixes (documentation corrections)
 - Version reference propagation across 8 files
 - Ensures consistent v1.x.x versioning format
 
-**Includes Fixes From $11.18.3 Branch** (Post-release fixes):
+**Includes Fixes From v1.18.3 Branch** (Post-release fixes):
 - Search & filtering endpoint corrections
 - Greek localization parity restoration
 - Performance optimization (Issue #149) - production approved
@@ -142,7 +142,7 @@
 
 ## 🔗 Related Documentation
 
-- [Release Notes Template](RELEASE_NOTES_$11.18.3.md) - For publication
+- [Release Notes Template](RELEASE_NOTES_v1.18.3.md) - For publication
 - [Work Plan](../plans/UNIFIED_WORK_PLAN.md) - Current priorities
 - [Git Workflow](../development/GIT_WORKFLOW.md) - Release procedures
 - [Version Management](../development/VERSION_MANAGEMENT_GUIDE.md) - Version policy
@@ -159,7 +159,7 @@
 
 **Next Steps for Deployment**:
 1. Review release notes (if creating GitHub Release)
-2. Create GitHub Release from $11.18.3 tag
+2. Create GitHub Release from v1.18.3 tag
 3. Generate release artifacts (installer, docker image)
 4. Perform final smoke tests in staging
 5. Deploy to production via DOCKER.ps1

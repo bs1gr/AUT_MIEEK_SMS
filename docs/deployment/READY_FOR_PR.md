@@ -139,7 +139,7 @@ All items verified ✅:
    - Delete feature branch (optional)
 
 3. **Post-Merge**
-   - Tag release ($11.18.3 or $11.18.3)
+   - Tag release (v1.18.3 or v1.18.3)
    - Deploy to staging/production
    - Run seeding script
    - Monitor metrics

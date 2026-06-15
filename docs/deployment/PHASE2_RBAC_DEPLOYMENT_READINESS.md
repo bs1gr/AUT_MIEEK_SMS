@@ -6,7 +6,7 @@
 **Date**: January 8, 2026
 **Branch**: `feature/phase2-rbac-endpoint-refactor`
 **Status**: ⚠️ **HISTORICAL DEPLOYMENT-READINESS SNAPSHOT**
-**Version**: $11.18.3 (with Phase 2 RBAC backend)
+**Version**: v1.18.3 (with Phase 2 RBAC backend)
 
 ---
 
@@ -68,7 +68,7 @@
 
 ### ✅ Database
 
-- [x] Database schema already in place (migrations from $11.18.3+)
+- [x] Database schema already in place (migrations from v1.18.3+)
 - [x] Permission seeding script ready
 - [x] Rollback procedures documented
 - [x] Backup procedures documented

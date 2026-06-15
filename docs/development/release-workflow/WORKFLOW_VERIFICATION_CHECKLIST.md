@@ -103,7 +103,7 @@ Get-Content .github/workflows/release-installer-with-sha.yml
 
 ```text
 GitHub Actions → release-on-tag.yml → Run workflow
-Inputs: tag = $11.18.3-test
+Inputs: tag = v1.18.3-test
 
 ```text
 - [ ] Workflow accepts manual dispatch
@@ -117,7 +117,7 @@ Inputs: tag = $11.18.3-test
 Check GitHub Releases page after workflow runs
 
 ```text
-- [ ] Release $11.18.3-test created
+- [ ] Release v1.18.3-test created
 - [ ] Release body populated correctly
 - [ ] Release is NOT in draft status
 
@@ -139,7 +139,7 @@ Watch release-installer-with-sha.yml run
 
 ```text
 - [ ] Workflow receives tag from dispatcher
-- [ ] Resolves tag correctly (should be $11.18.3-test)
+- [ ] Resolves tag correctly (should be v1.18.3-test)
 - [ ] Build step executes
 - [ ] Installer is located and verified
 - [ ] SHA256 is calculated
@@ -152,14 +152,14 @@ Check release page
 
 ```text
 - [ ] Release assets section shows installer file
-- [ ] Installer name format: SMS_Installer_$11.18.3-test.exe
+- [ ] Installer name format: SMS_Installer_v1.18.3-test.exe
 - [ ] SHA256 visible in release notes/summary
 
 ### Test 2.6: Manual Tag Dispatch
 
 ```text
-git tag -a $11.18.3-test -m "test"
-git push origin $11.18.3-test
+git tag -a v1.18.3-test -m "test"
+git push origin v1.18.3-test
 
 ```text
 - [ ] release-on-tag.yml triggers on tag push
@@ -179,10 +179,10 @@ GitHub Actions → release-installer-with-sha.yml → Run workflow
 **With tag input**:
 
 ```text
-Inputs: tag = $11.18.3
+Inputs: tag = v1.18.3
 
 ```text
-- [ ] Workflow resolves to $11.18.3
+- [ ] Workflow resolves to v1.18.3
 - [ ] Correctly identifies tag
 - [ ] Builds installer for that version
 
@@ -223,7 +223,7 @@ Run: .\RELEASE_READY.ps1 -ReleaseVersion 1.13.1 -TagRelease
 ### Test 3.4: Force Tag Recreation (Hotfix)
 
 ```text
-After releasing $11.18.3:
+After releasing v1.18.3:
 .\RELEASE_READY.ps1 -ReleaseVersion 1.13.0 -TagRelease
 
 ```text
@@ -242,7 +242,7 @@ After releasing $11.18.3:
 
 ```text
 Manually trigger release-installer-with-sha.yml with non-existent tag
-Inputs: tag = $11.18.3-nonexistent
+Inputs: tag = v1.18.3-nonexistent
 
 ```text
 - [ ] resolve_tag step errors appropriately
@@ -312,9 +312,9 @@ Run: .\RELEASE_READY.ps1 -ReleaseVersion 1.13.2 -TagRelease
 ### Test 5.2: Multiple Releases in Sequence
 
 ```text
-1. Release $11.18.3
+1. Release v1.18.3
 2. Wait for completion
-3. Release $11.18.3
+3. Release v1.18.3
 4. Wait for completion
 
 ```text
@@ -326,10 +326,10 @@ Run: .\RELEASE_READY.ps1 -ReleaseVersion 1.13.2 -TagRelease
 ### Test 5.3: Re-release Same Version
 
 ```text
-1. Release $11.18.3
+1. Release v1.18.3
 2. Wait for completion
 3. Make a fix to installer
-4. Release $11.18.3 again (force)
+4. Release v1.18.3 again (force)
 5. Verify new installer uploaded
 
 ```text
@@ -433,7 +433,7 @@ Ask them to trace workflow flow
 ### Next Steps
 
 1. Commit changes to main branch
-2. Tag with $11.18.3 to trigger workflows
+2. Tag with v1.18.3 to trigger workflows
 3. Monitor first automated release
 4. Verify installer quality
 5. Announce release to users

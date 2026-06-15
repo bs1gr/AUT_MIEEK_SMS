@@ -2,7 +2,7 @@
 
 **Status**: ✅ Active
 **Required version format**: `v1.x.x`
-**Current repository example**: `vvvvv1.18.25`
+**Current repository example**: `v1.18.25`
 **Last Updated**: 2026-03-10
 
 ---
@@ -17,9 +17,9 @@ This document explains the version-format policy and the enforcement layers that
 
 Only this format is valid:
 
-- `vvvvv1.18.25`
-- `vvvvv1.18.25`
-- `vvvvv1.18.25`
+- `v1.18.25`
+- `v1.18.25`
+- `v1.18.25`
 
 Pattern:
 
@@ -32,9 +32,9 @@ Pattern:
 These are invalid and should be rejected:
 
 - `1.18.12` (missing `v` prefix)
-- `vvvvv1.18.25` (wrong major series)
-- `$11.18.3` (corrupted legacy text)
-- `vvvvv1.18.25` (wrong major series)
+- `v1.18.25` (wrong major series)
+- `v1.18.3` (corrupted legacy text)
+- `v1.18.25` (wrong major series)
 - `v1.18` (incomplete)
 
 ---
@@ -68,7 +68,7 @@ Before release or commit preparation:
 
 ## Notes
 
-Older revisions of this document contained corrupted examples based on legacy `$11.18.3` text. Those examples were misleading and are no longer authoritative.
+Older revisions of this document contained corrupted examples based on legacy `v1.18.3` text. Those examples were misleading and are no longer authoritative.
 
 When in doubt, trust:
 

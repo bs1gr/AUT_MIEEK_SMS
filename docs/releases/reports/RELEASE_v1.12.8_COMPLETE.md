@@ -1,4 +1,4 @@
-# Student Management System - Release $11.18.3 Complete ✅
+# Student Management System - Release v1.18.3 Complete ✅
 
 **Release Date:** December 29, 2025
 **Status:** ✅ RELEASED AND READY FOR PRODUCTION
@@ -15,10 +15,10 @@
 
 **Final Deliverables:**
 - 📦 Windows Installer: `SMS_Installer_1.12.8.exe` (6.1 MB)
-- 📄 Release Notes: `docs/releases/RELEASE_NOTES_$11.18.3.md`
-- 📋 GitHub Release: `docs/releases/GITHUB_RELEASE_$11.18.3.md`
-- 🏷️ Git Tag: `$11.18.3` (signed and pushed)
-- 📚 Complete Documentation: All updated for $11.18.3
+- 📄 Release Notes: `docs/releases/RELEASE_NOTES_v1.18.3.md`
+- 📋 GitHub Release: `docs/releases/GITHUB_RELEASE_v1.18.3.md`
+- 🏷️ Git Tag: `v1.18.3` (signed and pushed)
+- 📚 Complete Documentation: All updated for v1.18.3
 
 ---
 
@@ -106,10 +106,10 @@ Status: ✅ DOCUMENTED AND TAGGED
 
 ```text
 **Outputs Generated:**
-- 📄 `docs/releases/RELEASE_NOTES_$11.18.3.md` - Complete release notes
-- 📄 `docs/releases/GITHUB_RELEASE_$11.18.3.md` - GitHub release description
+- 📄 `docs/releases/RELEASE_NOTES_v1.18.3.md` - Complete release notes
+- 📄 `docs/releases/GITHUB_RELEASE_v1.18.3.md` - GitHub release description
 - 📝 `CHANGELOG.md` - Updated with release info
-- 🏷️ Git tag `$11.18.3` created and pushed
+- 🏷️ Git tag `v1.18.3` created and pushed
 
 **Commit:**
 
@@ -138,7 +138,7 @@ Status: ✅ BUILD SUCCESSFUL
 ```text
 File: SMS_Installer_1.12.8.exe
 Size: 6.1 MB
-Version: vvvvv1.18.25
+Version: v1.18.25
 Created: 2025-12-29 01:40:49
 Modified: 2025-12-29 01:41:18
 Status: ✅ Valid & Tested
@@ -153,7 +153,7 @@ Status: ✅ Valid & Tested
 ```text
 Total commits: 10 new commits this session
 Including: 2 critical bug fixes + 1 documentation update
-Tag: $11.18.3 (signed, pushed to origin)
+Tag: v1.18.3 (signed, pushed to origin)
 Branch: main (up to date with origin)
 Status: Clean working tree
 
@@ -188,7 +188,7 @@ Language support: English + Greek (2/2)
 - [x] Documentation generated
 - [x] Installer built and verified
 - [x] Git commits signed and pushed
-- [x] Release tag created ($11.18.3)
+- [x] Release tag created (v1.18.3)
 - [x] GitHub remote synchronized
 - [x] Working tree clean
 - [x] All scripts completed successfully
@@ -207,7 +207,7 @@ Language support: English + Greek (2/2)
 ### For Developers:
 
 1. Clone repository: `git clone <repo>`
-2. Checkout release: `git checkout $11.18.3`
+2. Checkout release: `git checkout v1.18.3`
 3. Use DOCKER.ps1 or NATIVE.ps1 to start
 4. Documentation in `docs/` directory
 
@@ -217,14 +217,14 @@ Language support: English + Greek (2/2)
 
 ### Documentation
 
-- **Release Notes**: `docs/releases/RELEASE_NOTES_$11.18.3.md`
-- **GitHub Release**: `docs/releases/GITHUB_RELEASE_$11.18.3.md`
-- **Deployment Guide**: `DEPLOYMENT_REPORT_$11.18.3.md`
+- **Release Notes**: `docs/releases/RELEASE_NOTES_v1.18.3.md`
+- **GitHub Release**: `docs/releases/GITHUB_RELEASE_v1.18.3.md`
+- **Deployment Guide**: `DEPLOYMENT_REPORT_v1.18.3.md`
 - **API Documentation**: `http://localhost:8080/docs` (when running)
 
 ### Repository Links
 
-- **GitHub Tag**: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3`
+- **GitHub Tag**: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
 - **Git Commit**: `https://github.com/bs1gr/AUT_MIEEK_SMS/commit/29f819479`
 - **Actions**: `https://github.com/bs1gr/AUT_MIEEK_SMS/actions`
 
@@ -232,11 +232,11 @@ Language support: English + Greek (2/2)
 
 - **Installer**: `dist/SMS_Installer_1.12.8.exe` (6.1 MB)
 - **Docker Image**: `sms-fullstack:1.12.8`
-- **Source Code**: `$11.18.3` tag
+- **Source Code**: `v1.18.3` tag
 
 ---
 
-## ✨ What's New in $11.18.3
+## ✨ What's New in v1.18.3
 
 ### Critical Bug Fixes
 
@@ -271,8 +271,8 @@ Language support: English + Greek (2/2)
    - Wait for any automated workflows to complete
 
 2. **Verify Release on GitHub**
-   - Visit: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3`
-   - Add release notes from `GITHUB_RELEASE_$11.18.3.md` if not auto-populated
+   - Visit: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
+   - Add release notes from `GITHUB_RELEASE_v1.18.3.md` if not auto-populated
 
 3. **Test Installation**
    - Download installer from releases
@@ -320,13 +320,13 @@ If the installer doesn't work:
 
 All quality gates passed. All scripts executed successfully. All deliverables ready.
 
-The Student Management System $11.18.3 is production-ready and available for deployment.
+The Student Management System v1.18.3 is production-ready and available for deployment.
 
 ---
 
 **Released**: December 29, 2025
 **Build Status**: ✅ Successful
-**Git Tag**: $11.18.3
+**Git Tag**: v1.18.3
 **Installer**: SMS_Installer_1.12.8.exe (6.1 MB)
 
 

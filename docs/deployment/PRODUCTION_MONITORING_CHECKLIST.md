@@ -6,7 +6,7 @@
 
 **Version**: 1.0
 **Created**: January 31, 2026
-**For**: Historical `$11.18.3` production deployment context
+**For**: Historical `v1.18.3` production deployment context
 
 ---
 
