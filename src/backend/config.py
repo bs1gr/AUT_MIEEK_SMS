@@ -93,8 +93,8 @@ def _get_project_root() -> Path:
     except Exception:
         pass
 
-    # Fallback to parent of backend directory
-    return Path(__file__).resolve().parents[1]
+    # Fallback to grandparent of src/backend/ directory (project root)
+    return Path(__file__).resolve().parents[2]
 
 
 _PROJECT_ROOT = _get_project_root()

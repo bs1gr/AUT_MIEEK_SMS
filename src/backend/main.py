@@ -81,7 +81,7 @@ def _spawn_restart_thread(_command, _delay_seconds=0.75):
 def get_version() -> str:
     """Read version from VERSION file."""
     try:
-        version_file = Path(__file__).resolve().parent.parent / "VERSION"
+        version_file = Path(__file__).resolve().parent.parent.parent / "VERSION"
         if version_file.exists():
             return version_file.read_text().strip()
     except Exception:

@@ -76,7 +76,7 @@ def _build_database_target_evidence() -> dict:
 def get_version() -> str:
     """Read version from VERSION file in project root."""
     try:
-        version_file = Path(__file__).resolve().parent.parent / "VERSION"
+        version_file = Path(__file__).resolve().parent.parent.parent / "VERSION"
         if version_file.exists():
             return version_file.read_text().strip()
     except Exception:
