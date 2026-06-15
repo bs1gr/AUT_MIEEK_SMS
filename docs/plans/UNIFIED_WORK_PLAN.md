@@ -9,12 +9,12 @@
 
 ---
 
-## 🚀 vvvvv1.18.25 Release Publication (April 8, 2026)
+## 🚀 v1.18.25 Release Publication (April 8, 2026)
 
-**Status**: ✅ **PUBLISHED + VERIFIED** | baseline `vvvvv1.18.25..HEAD`
+**Status**: ✅ **PUBLISHED + VERIFIED** | baseline `v1.18.25..HEAD`
 
-- ✅ Reviewed the 6 commits accumulated since `vvvvv1.18.25` on `main`
-- ✅ Version alignment completed for `vvvvv1.18.25` across canonical files and release metadata
+- ✅ Reviewed the 6 commits accumulated since `v1.18.25` on `main`
+- ✅ Version alignment completed for `v1.18.25` across canonical files and release metadata
 - ✅ Local installer-first verification completed before tag/publish:
   - `SMS_Installer_1.18.17.exe` built locally
   - local SHA256: `D181AD51D75CD7618E0B4CDD7C38EBB59C773C00B6182F8EBCA5A4D9E3E59E68`
@@ -29,26 +29,26 @@
   - backend batch suite passed during commit gate (`21/21` batches; `backend/test-results/backend_batch_run_20260408_175209.txt`)
   - frontend Vitest passed during commit gate
 - ✅ Release docs prepared:
-  - `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`
-  - `docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md`
-  - `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`
-  - `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
-  - `.github/RELEASE_NOTES_vvvvv1.18.25.md`
+  - `docs/releases/RELEASE_NOTES_v1.18.25.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.25.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.25.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
+  - `.github/RELEASE_NOTES_v1.18.25.md`
 - ✅ Publication evidence:
   - release-prep commit `c1e576e44` pushed to `main`
-  - tag `vvvvv1.18.25` pushed to origin
-  - GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+  - tag `v1.18.25` pushed to origin
+  - GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
   - release workflow succeeded (`24142472615`)
   - installer upload workflow succeeded (`24142499707`)
   - published asset: `SMS_Installer_1.18.17.exe` (26,206,640 bytes)
   - authoritative GitHub digest: `sha256:71c15e3bdc910f379b23bc73cb67aeec1f6a8efaebad98f85e47910676d8481a`
   - downloaded published installer hash matched the GitHub digest and `Get-AuthenticodeSignature` returned `Valid`
 
-## 🚀 vvvvv1.18.25 Release Publication (March 31, 2026)
+## 🚀 v1.18.25 Release Publication (March 31, 2026)
 
-**Status**: ✅ **PUBLISHED + VERIFIED** | baseline `vvvvv1.18.25..HEAD`
+**Status**: ✅ **PUBLISHED + VERIFIED** | baseline `v1.18.25..HEAD`
 
-- ✅ Reviewed the 7 commits accumulated since `vvvvv1.18.25` on `main`
+- ✅ Reviewed the 7 commits accumulated since `v1.18.25` on `main`
 - ✅ Retained the current CI cadence adjustments for this release:
   - `release-asset-sanitizer` daily schedule
   - production health checks manual-only
@@ -71,15 +71,15 @@
   - docker production smoke returned healthy container state and HTTP 200 `/health`
   - installer build/signature/smoke all passed for `SMS_Installer_1.18.16.exe`
 - ✅ Release docs prepared:
-  - `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`
-  - `docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md`
-  - `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`
-  - `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
-  - `.github/RELEASE_NOTES_vvvvv1.18.25.md`
+  - `docs/releases/RELEASE_NOTES_v1.18.25.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.25.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.25.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
+  - `.github/RELEASE_NOTES_v1.18.25.md`
 - ✅ Publication evidence:
   - release-prep commit `fcb2570f6` pushed to `main`
-  - tag `vvvvv1.18.25` pushed to origin
-  - GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+  - tag `v1.18.25` pushed to origin
+  - GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
   - release workflow succeeded (`23796230467`)
   - installer upload workflow succeeded (`23796249268`)
   - release sanitizer succeeded (`23796614869`)
@@ -115,32 +115,32 @@
 
 ---
 
-## 🚀 vvvvv1.18.25 Release Publication (March 21, 2026)
+## 🚀 v1.18.25 Release Publication (March 21, 2026)
 
 **Status**: ✅ **PUBLISHED + VERIFIED**
 
 ### Publication Evidence
 
-- ✅ Release-prep commit: `c2493b1a7` — "chore(release): prepare vvvvv1.18.25 — version bump, installer RTF refresh, release docs" (16 files, 506 insertions)
-- ✅ Tag `vvvvv1.18.25` created and pushed to origin
+- ✅ Release-prep commit: `c2493b1a7` — "chore(release): prepare v1.18.25 — version bump, installer RTF refresh, release docs" (16 files, 506 insertions)
+- ✅ Tag `v1.18.25` created and pushed to origin
 - ✅ `main` pushed: `4688e4cc5..c2493b1a7`
 - ✅ GitHub release created (non-draft, non-prerelease, published `2026-03-21T20:00:27Z`)
 - ✅ Installer asset uploaded by CI: `SMS_Installer_1.18.15.exe` (26,198,224 bytes)
 - ✅ GitHub asset digest: `sha256:acb9bec91fba8ed8e5a54e991df2fcf1b555b5078d862662b0eb8d795745d76b`
-- ✅ Release page: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+- ✅ Release page: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 
-### Release Scope (from vvvvv1.18.25)
+### Release Scope (from v1.18.25)
 
 | Hash | Description |
 |------|-------------|
 | `1a5fe6cd4` | chore(gitignore): ignore root-level DOCUMENTATION_INDEX.md duplicate |
 | `370f23403` | fix(rbac): ensure user permissions table exists |
 | `ee748b7e8` | fix(validation): harden installer tooling and batch retests |
-| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to vvvvv1.18.25 to resolve unresolvable tag |
+| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to v1.18.25 to resolve unresolvable tag |
 | `a42e0a2bb` | fix(installer): recover postgres auth drift during single-mode startup |
 | `b9151554b` | fix(installer): add missing forward declaration for db profile defaults |
 | `5ddd772f4` | fix(installer): add SQLite/QNAP DB selection and harden startup profile defaults |
-| `c2493b1a7` | chore(release): prepare vvvvv1.18.25 — version bump, installer RTF refresh, release docs |
+| `c2493b1a7` | chore(release): prepare v1.18.25 — version bump, installer RTF refresh, release docs |
 
 ### Validation Evidence
 
@@ -157,26 +157,26 @@
 
 ### Release Docs Created
 
-- ✅ `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`
-- ✅ `docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md`
-- ✅ `.github/RELEASE_NOTES_vvvvv1.18.25.md`
-- ✅ `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`
-- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.25.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.25.md`
+- ✅ `.github/RELEASE_NOTES_v1.18.25.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.25.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
 
 ---
 
-## 📋 Post-vvvvv1.18.25 Accumulation (March 21, 2026)
+## 📋 Post-v1.18.25 Accumulation (March 21, 2026)
 
-**Status**: ✅ **PACKAGED AS vvvvv1.18.25** — 7 commits accumulated and released
+**Status**: ✅ **PACKAGED AS v1.18.25** — 7 commits accumulated and released
 
-### Commits Since `vvvvv1.18.25`
+### Commits Since `v1.18.25`
 
 | Hash | Description |
 |------|-------------|
 | `1a5fe6cd4` | chore(gitignore): ignore root-level DOCUMENTATION_INDEX.md duplicate |
 | `370f23403` | fix(rbac): ensure user permissions table exists |
 | `ee748b7e8` | fix(validation): harden installer tooling and batch retests |
-| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to vvvvv1.18.25 to resolve unresolvable tag |
+| `5e5241a9c` | fix(ci): update trivy-action 0.20.0 to v1.18.25 to resolve unresolvable tag |
 | `a42e0a2bb` | fix(installer): recover postgres auth drift during single-mode startup |
 | `b9151554b` | fix(installer): add missing forward declaration for db profile defaults |
 | `5ddd772f4` | fix(installer): add SQLite/QNAP DB selection and harden startup profile defaults |
@@ -190,22 +190,22 @@
 
 ---
 
-## 🚀 vvvvv1.18.25 Release Publication Snapshot (March 19, 2026)
+## 🚀 v1.18.25 Release Publication Snapshot (March 19, 2026)
 
 **Status**: ✅ **PUBLISHED + VERIFIED**
 
-- ✅ Post-tag follow-up commits recorded on `main` after `vvvvv1.18.25` tag:
+- ✅ Post-tag follow-up commits recorded on `main` after `v1.18.25` tag:
   - `c13ceec5e` — publication verification evidence
   - `8d076ed61` — security refresh closure docs
-  - `f91bf7ad4` — report-formatting and `vvvvv1.18.25` note cleanup
+  - `f91bf7ad4` — report-formatting and `v1.18.25` note cleanup
 
-- ✅ Version metadata aligned to `vvvvv1.18.25` (`VERSION`, `frontend/package.json`, key docs/script references)
+- ✅ Version metadata aligned to `v1.18.25` (`VERSION`, `frontend/package.json`, key docs/script references)
 - ✅ Release docs prepared:
-  - `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`
-  - `docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md`
-  - `.github/RELEASE_NOTES_vvvvv1.18.25.md`
-  - `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`
-  - `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
+  - `docs/releases/RELEASE_NOTES_v1.18.25.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.25.md`
+  - `.github/RELEASE_NOTES_v1.18.25.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.25.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
 - ✅ Security/dependency verification completed:
   - backend targeted security tests (`25 passed`)
   - backend batch-run (`34/34` batches)
@@ -216,10 +216,10 @@
   - SHA256: `78B10CA0D5A4F9E8C2A46C29ADBC4210BF66C275165E0678DC44CA55C898E9D6`
 - ✅ Snapshot evidence recorded: `artifacts/state/STATE_2026-03-19_204251.md`
 - ✅ Release-prep commit created and pushed: `a69644838`
-- ✅ Tag `vvvvv1.18.25` created/pushed and release workflow chain executed:
+- ✅ Tag `v1.18.25` created/pushed and release workflow chain executed:
   - `Create GitHub Release on tag` run `23313536112` (success)
   - `Release - Build & Upload Installer (GitHub Digest)` run `23313558162` (success)
-- ✅ Published release: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25`
+- ✅ Published release: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25`
 - ✅ Published installer asset verified post-publish:
   - `SMS_Installer_1.18.14.exe`
   - digest metadata `sha256:63dfccbe64f8a9cecc3089780e004bdac9139234a333805c3c84e2b81c88816a`
@@ -276,17 +276,17 @@
 
 ---
 
-## 🚀 vvvvv1.18.25 Release Preparation Snapshot (March 17, 2026)
+## 🚀 v1.18.25 Release Preparation Snapshot (March 17, 2026)
 
 **Status**: ✅ **PREP + VALIDATION COMPLETE | TAG/PUBLISH PENDING**
 
-- ✅ Version metadata aligned to `vvvvv1.18.25` (`VERSION`, `frontend/package.json`, key docs/script references)
+- ✅ Version metadata aligned to `v1.18.25` (`VERSION`, `frontend/package.json`, key docs/script references)
 - ✅ Release docs prepared:
-  - `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`
-  - `docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md`
-  - `.github/RELEASE_NOTES_vvvvv1.18.25.md`
-  - `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`
-  - `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
+  - `docs/releases/RELEASE_NOTES_v1.18.25.md`
+  - `docs/releases/GITHUB_RELEASE_v1.18.25.md`
+  - `.github/RELEASE_NOTES_v1.18.25.md`
+  - `docs/releases/RELEASE_MANIFEST_v1.18.25.md`
+  - `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
 - ✅ `scripts/VERIFY_VERSION.ps1 -CheckOnly` passed
 - ✅ `COMMIT_READY.ps1 -Quick -Snapshot` passed (`artifacts/state/STATE_2026-03-17_095642.md`)
 - ✅ Scope-appropriate test confirmation completed (`RUN_TESTS_BATCH.ps1`: 21/21 batches passed; frontend quick Vitest pass)
@@ -299,18 +299,18 @@
 
 ---
 
-## 🧾 Post-vvvvv1.18.25 Code Review Snapshot (March 17, 2026)
+## 🧾 Post-v1.18.25 Code Review Snapshot (March 17, 2026)
 
-**Status**: ✅ **REVIEWED & DOCUMENTED (baseline: `vvvvv1.18.25..HEAD`)**
+**Status**: ✅ **REVIEWED & DOCUMENTED (baseline: `v1.18.25..HEAD`)**
 
 ### Scope Evidence
 
-- ✅ Reviewed git range: `vvvvv1.18.25..HEAD`
+- ✅ Reviewed git range: `v1.18.25..HEAD`
 - ✅ Commit count: `34`
 - ✅ Diff footprint: `192 files changed, 6057 insertions, 5620 deletions`
 - ✅ Code-heavy areas touched: backend (`15 files`), frontend (`17 files`), scripts/workflows/docs (remaining scope)
 
-### Updated Code Summary (since `vvvvv1.18.25`)
+### Updated Code Summary (since `v1.18.25`)
 
 - ✅ **Custom Reports pipeline hardening (backend/frontend)**
   - Added and stabilized grouped reporting support (including GPA-related grouping fields/labels)
@@ -337,23 +337,23 @@
 
 ### Documentation Alignment Completed in This Update
 
-- ✅ Added consolidated **Unreleased** summary in `CHANGELOG.md` for post-`vvvvv1.18.25` code changes
+- ✅ Added consolidated **Unreleased** summary in `CHANGELOG.md` for post-`v1.18.25` code changes
 - ✅ Updated this work-plan header and recorded reviewed change scope for traceability
 
 ---
 
-## 🚀 vvvvv1.18.25 Publication & Follow-Up (March 10-11, 2026)
+## 🚀 v1.18.25 Publication & Follow-Up (March 10-11, 2026)
 
 **Status**: ✅ **OFFICIAL PUBLIC RELEASE PUBLISHED | INVENTORY CLEANUP COMPLETE**
 
 ### Exact-Tag Release Cleanup
 
-- ✅ Archived `vvvvv1.18.25` as a prerelease with an `ARCHIVED – Legacy release` banner
-- ✅ Archived `vvvvv1.18.25` as a prerelease with an `ARCHIVED – Legacy release` banner
-- ✅ Published `vvvvv1.18.25` on corrected lineage with installer-only assets and verified digest metadata
-- ✅ Archived `vvvvv1.18.25` through `vvvvv1.18.25` releases as prereleases ahead of the official public release designation
+- ✅ Archived `v1.18.25` as a prerelease with an `ARCHIVED – Legacy release` banner
+- ✅ Archived `v1.18.25` as a prerelease with an `ARCHIVED – Legacy release` banner
+- ✅ Published `v1.18.25` on corrected lineage with installer-only assets and verified digest metadata
+- ✅ Archived `v1.18.25` through `v1.18.25` releases as prereleases ahead of the official public release designation
 - ✅ Standardized all prerelease GitHub release bodies with an explicit `ARCHIVED` banner for visual consistency
-- ✅ Promoted the existing `vvvvv1.18.25` release from prerelease to latest official public release
+- ✅ Promoted the existing `v1.18.25` release from prerelease to latest official public release
 
 ### Verified Release Scope (staged before promotion)
 
@@ -379,19 +379,19 @@
   - `backend/tests/test_database_manager_security.py`
 - ✅ `COMMIT_READY.ps1 -Quick -Snapshot` completed successfully
 - ✅ Fresh state snapshot recorded: `artifacts/state/STATE_2026-03-10_101933.md`
-- ✅ Fresh local installer verification passed for `vvvvv1.18.25`
+- ✅ Fresh local installer verification passed for `v1.18.25`
   - Local build produced `dist/SMS_Installer_1.18.12.exe`
   - Authenticode signing succeeded (`AUT MIEEK`)
   - Installer smoke validation passed
-- ✅ `vvvvv1.18.25` was published successfully, temporarily reclassified as a prerelease during inventory cleanup, and then restored as the official public release
+- ✅ `v1.18.25` was published successfully, temporarily reclassified as a prerelease during inventory cleanup, and then restored as the official public release
 - ✅ Published asset uses installer-only policy for current lineage
   - `SMS_Installer_1.18.12.exe`
   - GitHub release digest metadata: `sha256:5a6e9a5ec5380ed5884ec6e455ba09156d2382282918c8ba10801e8b4d2b1fb1`
 
 ### Follow-Up Path
 
-- ✅ Selected `vvvvv1.18.25` as the first official public release path (reuse exact verified tag rather than minting a new version)
-- ✅ Executed the final publication-state flip for `vvvvv1.18.25` (archival banner removed, release body updated, latest/non-prerelease restored)
+- ✅ Selected `v1.18.25` as the first official public release path (reuse exact verified tag rather than minting a new version)
+- ✅ Executed the final publication-state flip for `v1.18.25` (archival banner removed, release body updated, latest/non-prerelease restored)
 - ✅ Hardened the QNAP PostgreSQL-only deployment path after publication (`77fcdb4eb`)
   - Added installer preflight validation for bind IP, port sanity, writable paths, Docker reachability, and live PostgreSQL health checks
   - Hardened NAS backup operations with gzip validation, `.sha256` checksum output, and retention pruning via `QNAP_POSTGRES_BACKUP_KEEP`
@@ -405,13 +405,13 @@
 ### First Official Public Release Execution Record
 
 - ✅ Prepared reusable draft metadata/body template: `docs/releases/GITHUB_RELEASE_FIRST_OFFICIAL_PUBLIC_DRAFT.md`
-- ✅ Finalized the draft around `vvvvv1.18.25` as the chosen first official public release path
-- ✅ Recorded official-release posture: all earlier `v1.18.x` tags remain archived prereleases while `vvvvv1.18.25` is the official/latest release
+- ✅ Finalized the draft around `v1.18.25` as the chosen first official public release path
+- ✅ Recorded official-release posture: all earlier `v1.18.x` tags remain archived prereleases while `v1.18.25` is the official/latest release
 - ✅ Executed the publication flip without changing the tag or artifact lineage
 
 ---
 
-## 🚀 vvvvv1.18.25 Corrective Release Preparation (March 9, 2026)
+## 🚀 v1.18.25 Corrective Release Preparation (March 9, 2026)
 
 **Status**: ✅ **COMPLETE - CORRECTIVE RELEASE PUBLISHED WITH INSTALLER ASSETS**
 
@@ -419,11 +419,11 @@
 
 - Replace CI-broken Greek installer info file references with tracked assets already present in the repository.
 - Publish a clean patch release whose GitHub installer workflow can compile, sign, and upload the release assets successfully.
-- Align version metadata, release notes, manifest, and deployment checklist for `vvvvv1.18.25`.
+- Align version metadata, release notes, manifest, and deployment checklist for `v1.18.25`.
 
 ### Root Cause Verified
 
-- ✅ `vvvvv1.18.25` GitHub Release page was created successfully.
+- ✅ `v1.18.25` GitHub Release page was created successfully.
 - ✅ `Build & Upload Installer with SHA256` failed in CI before asset upload.
 - ✅ Failure isolated to `installer/SMS_Installer.iss` referencing ignored local files:
   - `installer_welcome_el.txt`
@@ -434,12 +434,12 @@
 
 - ✅ Patched `installer/SMS_Installer.iss` to use tracked Greek `.rtf` assets
 - ✅ Local installer build/sign/smoke succeeded after the patch
-- ✅ Version metadata bumped to `vvvvv1.18.25`
+- ✅ Version metadata bumped to `v1.18.25`
 - ✅ Corrective release docs prepared (`RELEASE_NOTES`, `GITHUB_RELEASE`, `RELEASE_MANIFEST`, `DEPLOYMENT_CHECKLIST`)
 - ✅ Version verification passed (`scripts/VERIFY_VERSION.ps1 -CheckOnly`)
 - ✅ COMMIT_READY quick snapshot passed
 - ✅ Corrective release commit pushed (`3964c45b4`)
-- ✅ Tag `vvvvv1.18.25` created and pushed
+- ✅ Tag `v1.18.25` created and pushed
 - ✅ GitHub release page published with installer assets
 
 ### Publication Evidence
@@ -460,32 +460,32 @@
 
 ---
 
-## 🚀 vvvvv1.18.25 Release Preparation (March 9, 2026)
+## 🚀 v1.18.25 Release Preparation (March 9, 2026)
 
 **Status**: ⚠️ **TAGGED / RELEASE PAGE CREATED - INSTALLER ASSET BUILD FAILED IN CI**
 
 ### Scope
 
-- Package the post-`vvvvv1.18.25` installer/profile-drift fixes into a clean release lineage.
+- Package the post-`v1.18.25` installer/profile-drift fixes into a clean release lineage.
 - Publish a release whose installer artifact actually matches the upgraded PostgreSQL profile-preservation behavior.
-- Align version metadata, release notes, manifest, and deployment checklist for `vvvvv1.18.25`.
+- Align version metadata, release notes, manifest, and deployment checklist for `v1.18.25`.
 
-### Included Changes Since `vvvvv1.18.25`
+### Included Changes Since `v1.18.25`
 
 - ✅ `fix(installer): preserve postgres profile on upgrade and add env repair helper`
-- ✅ `build(installer): rebuild vvvvv1.18.25 installer with profile-drift fix and updated docs`
+- ✅ `build(installer): rebuild v1.18.25 installer with profile-drift fix and updated docs`
 - ✅ release note and CSV formatting normalization
 - ✅ archive cleanup for deprecated scripts and lint artifacts
 - ✅ test runners guide + workspace cleanup session documentation
 
 ### Release Prep Progress
 
-- ✅ Version metadata bumped to `vvvvv1.18.25`
-- ✅ Release notes prepared (`docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`)
-- ✅ GitHub release body prepared (`docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md`)
-- ✅ Workflow release body prepared (`.github/RELEASE_NOTES_vvvvv1.18.25.md`)
-- ✅ Release manifest prepared (`docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`)
-- ✅ Deployment checklist prepared (`docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`)
+- ✅ Version metadata bumped to `v1.18.25`
+- ✅ Release notes prepared (`docs/releases/RELEASE_NOTES_v1.18.25.md`)
+- ✅ GitHub release body prepared (`docs/releases/GITHUB_RELEASE_v1.18.25.md`)
+- ✅ Workflow release body prepared (`.github/RELEASE_NOTES_v1.18.25.md`)
+- ✅ Release manifest prepared (`docs/releases/RELEASE_MANIFEST_v1.18.25.md`)
+- ✅ Deployment checklist prepared (`docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`)
 - ✅ Version consistency verification passed (`scripts/VERIFY_VERSION.ps1 -CheckOnly`)
 - ⏳ Pending: COMMIT_READY validation
 - ⏳ Pending: installer build/sign/verification
@@ -493,7 +493,7 @@
 
 ---
 
-## 🎉 vvvvv1.18.25 Release - Control Panel & Infrastructure Hardening (March 5-8, 2026)
+## 🎉 v1.18.25 Release - Control Panel & Infrastructure Hardening (March 5-8, 2026)
 
 **Status**: ✅ **RELEASED - INFRASTRUCTURE & STABILITY COMPLETE**
 
@@ -501,10 +501,10 @@
 
 **Release Type**: Feature Release (Control Panel & Infrastructure)
 **Release Date**: March 5, 2026 (initial tag) - March 8, 2026 (post-release fixes)
-**Tag**: vvvvv1.18.25 (commit: b4a52ce4c)
+**Tag**: v1.18.25 (commit: b4a52ce4c)
 **Current HEAD**: 57ed221c0 (18 commits post-release with fixes and improvements)
 
-### What's in vvvvv1.18.25
+### What's in v1.18.25
 
 **Control Panel Features**:
 - ✅ **Auto-Updater System**: Threaded download with SHA256 verification, installer launch
@@ -534,9 +534,9 @@
 - ✅ **OpenAPI**: Resolved callable schema issues
 - ✅ **Version Format**: Enforced v1.x.x format compliance (Policy 2)
 
-### Post-Release Development (vvvvv1.18.25+)
+### Post-Release Development (v1.18.25+)
 
-**18 commits after vvvvv1.18.25 tag focused on quality & stability**:
+**18 commits after v1.18.25 tag focused on quality & stability**:
 
 1. **Analytics Type Safety** (4 commits):
    - Eliminated `any` types from hooks, components, utilities
@@ -567,7 +567,7 @@
 
 ---
 
-## 🎉 vvvvv1.18.25 Release - Analytics Revival (March 2, 2026)
+## 🎉 v1.18.25 Release - Analytics Revival (March 2, 2026)
 
 **Status**: ✅ **RELEASED - ANALYTICS FEATURE COMPLETE**
 
@@ -575,11 +575,11 @@
 
 **Release Type**: Feature Release (Analytics Revival)
 **Release Date**: March 2, 2026
-**Tag**: vvvvv1.18.25
+**Tag**: v1.18.25
 **Installer**: SMS_Installer_1.18.6.exe (⏳ Building)
 **Documentation**: Complete (4 files, 1,672 lines)
 
-**What's in vvvvv1.18.25**:
+**What's in v1.18.25**:
 - ✅ **Analytics Dashboard**: Comprehensive multi-chart visualization system
 - ✅ **Custom Report Builder**: 5-step wizard for report creation
 - ✅ **Predictive Analytics**: ML-based student performance prediction & risk assessment
@@ -605,20 +605,20 @@
 - **Tests**: 471 lines (23 comprehensive tests)
 
 **Git Timeline**:
-1. ✅ Feature branch: `feature/analytics-revival-vvvvv1.18.25` (renamed from vvvvv1.18.25)
+1. ✅ Feature branch: `feature/analytics-revival-v1.18.25` (renamed from v1.18.25)
 2. ✅ Analytics commit: 034b30e57 (36 files, 5,587 insertions)
 3. ✅ Version bump: e1d83fe2a (VERSION + package.json → 1.18.6)
 4. ✅ Version refs: 678851d7f (main.py, COMMIT_READY.ps1, DOCUMENTATION_INDEX.md)
 5. ✅ Merge to main: Fast-forward merge (36 files)
 6. ✅ CHANGELOG: 8ebf11e6f (enhanced with comprehensive analytics details)
 7. ✅ Release docs: 2ac0bf711 (4 comprehensive documentation files)
-8. ✅ Release tag: vvvvv1.18.25 (annotated with feature list, pushed to origin)
+8. ✅ Release tag: v1.18.25 (annotated with feature list, pushed to origin)
 
 **Release Documentation Created** (Policy 9 Phase 2):
-- ✅ `RELEASE_NOTES_vvvvv1.18.25.md` (489 lines) - Comprehensive internal release notes
-- ✅ `GITHUB_RELEASE_vvvvv1.18.25.md` (383 lines) - Public-facing release body
-- ✅ `RELEASE_MANIFEST_vvvvv1.18.25.md` (445 lines) - Artifact tracking & verification
-- ✅ `DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md` (355 lines) - 10-phase validation procedures
+- ✅ `RELEASE_NOTES_v1.18.25.md` (489 lines) - Comprehensive internal release notes
+- ✅ `GITHUB_RELEASE_v1.18.25.md` (383 lines) - Public-facing release body
+- ✅ `RELEASE_MANIFEST_v1.18.25.md` (445 lines) - Artifact tracking & verification
+- ✅ `DEPLOYMENT_CHECKLIST_v1.18.25.md` (355 lines) - 10-phase validation procedures
 
 **CHANGELOG Entry**: Enhanced [1.18.6] section with:
 - Complete feature breakdown (Dashboard, Builder, Predictive, Export, Reports)
@@ -629,13 +629,13 @@
 
 ### GitHub Actions Workflows (Policy 9 Phase 3)
 
-**Triggered by**: `git push origin vvvvv1.18.25` tag
+**Triggered by**: `git push origin v1.18.25` tag
 
 **Expected Workflows** (⏳ In Progress):
 1. **Create GitHub Release on tag** (`release-on-tag.yml`)
    - Duration: ~2 minutes
-   - Creates release page at /releases/tag/vvvvv1.18.25
-   - Populates body from GITHUB_RELEASE_vvvvv1.18.25.md
+   - Creates release page at /releases/tag/v1.18.25
+   - Populates body from GITHUB_RELEASE_v1.18.25.md
 
 2. **Build & Upload Installer with SHA256** (`release-installer-with-sha.yml`)
    - Duration: ~5-8 minutes
@@ -650,11 +650,11 @@
    - Removes: Non-approved assets
 
 **Historical verification helper used during the release audit**:
-- Archived helper: `archive/deprecated-scripts/VERIFY_RELEASE_vvvvv1.18.25.ps1`
-- It was used at the time to check workflows, signing, and release assets for the `vvvvv1.18.25` publication window.
+- Archived helper: `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.25.ps1`
+- It was used at the time to check workflows, signing, and release assets for the `v1.18.25` publication window.
 
 **Manual Verification Links**:
-- Release Page: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+- Release Page: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 - GitHub Actions: https://github.com/bs1gr/AUT_MIEEK_SMS/actions
 - Workflows Tab: Check for 3 successful workflows (all ✅ green)
 
@@ -722,7 +722,7 @@
 ### Deployment Status
 
 **Phase 1: Tag Creation** ✅ COMPLETE
-- Release tag vvvvv1.18.25 created with comprehensive annotation
+- Release tag v1.18.25 created with comprehensive annotation
 - Tag pushed to origin/main
 - GitHub Actions triggered
 
@@ -733,7 +733,7 @@
 
 **Phase 3: Monitoring & Verification** ⏳ IN PROGRESS
 - Workflows building installer and creating release
-- Historical verification helper was prepared for this release window (now archived at `archive/deprecated-scripts/VERIFY_RELEASE_vvvvv1.18.25.ps1`)
+- Historical verification helper was prepared for this release window (now archived at `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.25.ps1`)
 - Expected completion: ~10-15 minutes from tag push
 
 **Post-Release Validation** ⏳ PENDING
@@ -743,7 +743,7 @@
 - [x] Verify code signature (AUT MIEEK)
 - [x] Confirm SHA256 checksum matches
 - [ ] Test fresh installation scenario (manual VM/clean-host validation pending)
-- [ ] Test upgrade from vvvvv1.18.25 (manual upgrade-path validation pending)
+- [ ] Test upgrade from v1.18.25 (manual upgrade-path validation pending)
 - [x] Validate analytics features functional
 
 **Verification Evidence (Mar 3, 2026):**
@@ -804,10 +804,10 @@
 
 1. **Monitor GitHub Actions** (~10-15 minutes):
    - Visit: https://github.com/bs1gr/AUT_MIEEK_SMS/actions
-   - Confirm 3 workflows succeed for vvvvv1.18.25 (Create Release, Build Installer, Sanitizer)
+   - Confirm 3 workflows succeed for v1.18.25 (Create Release, Build Installer, Sanitizer)
 
 2. **Run Verification Script**:
-   - Historical note: this release used a version-pinned verification helper, now archived at `archive/deprecated-scripts/VERIFY_RELEASE_vvvvv1.18.25.ps1`
+   - Historical note: this release used a version-pinned verification helper, now archived at `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.25.ps1`
 
 3. **Download and Test Installer**:
    - Download: SMS_Installer_1.18.6.exe + .sha256
@@ -816,7 +816,7 @@
    - Validate: Analytics features functional
 
 4. **Complete Deployment Checklist**:
-   - Follow: `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
+   - Follow: `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
    - 10 phases of validation procedures
    - Document results in checklist
 
@@ -827,13 +827,13 @@
 
 ### Success Criteria
 
-**vvvvv1.18.25 Release is COMPLETE when**:
+**v1.18.25 Release is COMPLETE when**:
 - ✅ All GitHub Actions workflows succeeded (3/3)
 - ✅ Installer and SHA256 published to release assets
 - ✅ Code signature valid (AUT MIEEK certificate)
 - ✅ SHA256 checksum verified and matching
 - ✅ Fresh installation test passed
-- ✅ Upgrade test passed (vvvvv1.18.25 → vvvvv1.18.25)
+- ✅ Upgrade test passed (v1.18.25 → v1.18.25)
 - ✅ Analytics features functional in production
 - ✅ No critical bugs reported
 - ✅ Documentation complete and accessible
@@ -841,7 +841,7 @@
 
 ---
 
-## 📋 vvvvv1.18.25 Release Decision (March 1, 2026)
+## 📋 v1.18.25 Release Decision (March 1, 2026)
 
 **Status**: ✅ **CLEAN RELEASE - SECURITY & STABILITY PATCH**
 
@@ -853,7 +853,7 @@
 - Last successful CI: commit `0395929bf` (test(e2e): harden report-workflows spec)
 
 **Options Evaluated**:
-1. **Option A (SELECTED)**: Revert analytics, release clean vvvvv1.18.25 with security fixes only
+1. **Option A (SELECTED)**: Revert analytics, release clean v1.18.25 with security fixes only
 2. Option B: Fix analytics failures, delay release
 3. Option C: Partial analytics (remove failing components only)
 
@@ -864,7 +864,7 @@
 - **Analytics Scope**: 27+ files, requires comprehensive testing before release
 - **Timeline**: Clean security release now, analytics to be tested comprehensively later
 
-### What's in vvvvv1.18.25
+### What's in v1.18.25
 
 **Security Fixes** (Priority: CRITICAL):
 - ✅ minimatch upgraded to 10.2.4 (CVE-2026-27903 ReDoS vulnerability)
@@ -876,7 +876,7 @@
 - ✅ Version consistency enforcement
 - ✅ Documentation consolidation
 
-**Not Included in vvvvv1.18.25** (deferred due to CI failures):
+**Not Included in v1.18.25** (deferred due to CI failures):
 - 📊 Analytics Dashboard (comprehensive multi-chart visualization)
 - 📈 Predictive Analytics Service (ML-based risk assessment)
 - 📋 Custom Report Builder (5-step wizard)
@@ -888,7 +888,7 @@
 **Git Strategy**: Forward-moving revert (protected branch compliance)
 ```bash
 git revert adabae67e --no-commit  # Revert analytics feature
-git reset HEAD VERSION frontend/package.json  # Preserve vvvvv1.18.25
+git reset HEAD VERSION frontend/package.json  # Preserve v1.18.25
 git checkout -- VERSION frontend/package.json  # Restore versions
 ```
 
@@ -910,7 +910,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 1. ✅ Commit revert with comprehensive message (9ad372086)
 2. ✅ Push to main (forward history, not force-push)
-3. ✅ Create vvvvv1.18.25 tag
+3. ✅ Create v1.18.25 tag
 4. ✅ Monitor CI/CD pipeline - ALL GREEN
 5. ✅ Publish GitHub release - PUBLISHED
 6. ✅ Monitor release workflows - ALL SUCCESS
@@ -918,7 +918,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 **Release Verification Results:**
 
-- **GitHub Release**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25
+- **GitHub Release**: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25
 - **Published**: March 1, 2026 at 18:30:01 UTC
 - **Release Assets**:
   - ✅ SMS_Installer_1.18.5.exe (26,124,624 bytes)
@@ -942,13 +942,13 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 ---
 
-## 📋 Latest Commits (Post vvvvv1.18.25 + Release):
+## 📋 Latest Commits (Post v1.18.25 + Release):
 - **5dd528648 - feat(control-panel): add auto-updater, fix Windows subprocess crashes, add notification bell integration (March 5, 2026)**
 - 5710829bb - feat(offline): queue attendance, grades, and student updates for reconnect sync
 - 1bf53438f - fix(health): surface remote DB evidence and correct postgres diagnostics
-- 4475b11fe - docs(release): update vvvvv1.18.25 release and deployment documentation
+- 4475b11fe - docs(release): update v1.18.25 release and deployment documentation
 - 6fcfe5220 - feat(qnap): add postgres-only ARMv7 deployment artifacts
-- abe06e4ae - docs(release): update vvvvv1.18.25 post-release verification status
+- abe06e4ae - docs(release): update v1.18.25 post-release verification status
 - eafea850b - fix(release): inline version normalization in installer workflow
 - 9a9f087ab - fix(tests): stabilize vitest execution and dashboard mocks
 - 1012e8817 - fix(backend): resolve OpenAPI callable schema and version consistency tests
@@ -959,12 +959,12 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 ---
 
-## 🚀 vvvvv1.18.25 Release Closure (February 23, 2026)
+## 🚀 v1.18.25 Release Closure (February 23, 2026)
 
 **Status**: ✅ RELEASE COMPLETED
 
-**Scope verification performed (since `vvvvv1.18.25`):**
-- ✅ Reviewed commit history and changed-file scope from `vvvvv1.18.25..HEAD`.
+**Scope verification performed (since `v1.18.25`):**
+- ✅ Reviewed commit history and changed-file scope from `v1.18.25..HEAD`.
 - ✅ Curated release-impacting changes (backup integrity, control-api auth hardening, RBAC behavior, DevTools UX/security).
 - ✅ Excluded runtime/local noise from release scope (untracked artifacts, CSV newline-only drift).
 
@@ -974,12 +974,12 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - ✅ `release-asset-sanitizer.yml` enforces installer-only release asset allowlist and cleans non-allowlisted assets.
 - ✅ Workflow chain verified: release creation → installer build/upload → sanitizer/final gate.
 
-**Release docs prepared for vvvvv1.18.25:**
-- ✅ `docs/releases/RELEASE_NOTES_vvvvv1.18.25.md`
-- ✅ `docs/releases/GITHUB_RELEASE_vvvvv1.18.25.md`
-- ✅ `docs/releases/RELEASE_MANIFEST_vvvvv1.18.25.md`
-- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_vvvvv1.18.25.md`
-- ✅ `.github/RELEASE_NOTES_vvvvv1.18.25.md`
+**Release docs prepared for v1.18.25:**
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.25.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.25.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.25.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.25.md`
+- ✅ `.github/RELEASE_NOTES_v1.18.25.md`
 
 **Release metadata synced:**
 - ✅ `VERSION` → `1.18.4`
@@ -987,12 +987,12 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - ✅ `CHANGELOG.md` includes finalized `[1.18.4]` entry
 
 **Publication and workflow verification completed:**
-- ✅ Tag `vvvvv1.18.25` created and pushed from `main`.
+- ✅ Tag `v1.18.25` created and pushed from `main`.
 - ✅ Release workflow chain completed successfully:
   - `Create GitHub Release on tag` run `22315391846` — success
   - `Release - Build & Upload Installer with SHA256` run `22315419856` — success
   - `Release Asset Sanitizer` run `22315551253` — success
-- ✅ Release published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/vvvvv1.18.25`
+- ✅ Release published: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.25`
 - ✅ Final assets verified (installer-only allowlist):
   - `SMS_Installer_1.18.4.exe`
   - `SMS_Installer_1.18.4.exe.sha256`
@@ -1003,7 +1003,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 ---
 
-## 🚀 $11.18.3 Patch Release (February 20, 2026)
+## 🚀 v1.18.3 Patch Release (February 20, 2026)
 
 **Status**: ✅ RELEASE COMPLETED
 
@@ -1014,23 +1014,23 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - ✅ `SMS_Installer_1.18.3.exe` (`119,232,344` bytes)
 - ✅ `SMS_Installer_1.18.3.exe.sha256`
 - ✅ Installer digest: `86fb67cdf39bc25c7e68a939c3194e01d35c9bdf86c8d719d0adba0c309c13c4`
-- ✅ Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3`
+- ✅ Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
 
-**Documentation Pack ($11.18.3):**
-- ✅ `docs/releases/RELEASE_NOTES_$11.18.3.md`
-- ✅ `docs/releases/GITHUB_RELEASE_$11.18.3.md`
-- ✅ `docs/releases/RELEASE_MANIFEST_$11.18.3.md`
-- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md`
+**Documentation Pack (v1.18.3):**
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.3.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.3.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.3.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md`
 
 **Publication actions completed:**
 - ✅ Stage scoped release files and commit
-- ✅ Create and push tag `$11.18.3`
+- ✅ Create and push tag `v1.18.3`
 - ✅ Publish GitHub release with installer + hash sidecar
 - ✅ Re-verify release asset allowlist and published digest
 
 ---
 
-## 🚀 $11.18.3 Hotfix Release (February 20, 2026)
+## 🚀 v1.18.3 Hotfix Release (February 20, 2026)
 
 **Status**: ✅ RELEASE COMPLETED
 
@@ -1041,17 +1041,17 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - ✅ `SMS_Installer_1.18.2.exe` (`26,115,744` bytes)
 - ✅ `SMS_Installer_1.18.2.exe.sha256`
 - ✅ Installer digest: `1e98607670029b8ebed1b3337794dc79755cf810af2624bfcb53d99e47f6ebc0`
-- ✅ Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3`
+- ✅ Release URL: `https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3`
 
-**Documentation Pack ($11.18.3):**
-- ✅ `docs/releases/RELEASE_NOTES_$11.18.3.md`
-- ✅ `docs/releases/GITHUB_RELEASE_$11.18.3.md`
-- ✅ `docs/releases/RELEASE_MANIFEST_$11.18.3.md`
-- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md`
+**Documentation Pack (v1.18.3):**
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.3.md`
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.3.md`
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.3.md`
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md`
 
 ---
 
-## � $11.18.3 Patch Release (February 17, 2026)
+## � v1.18.3 Patch Release (February 17, 2026)
 
 **Status**: ✅ RELEASE COMPLETED
 
@@ -1066,17 +1066,17 @@ git checkout -- VERSION frontend/package.json  # Restore versions
    - Updated type expectations from `number` to `text`
    - Frontend test suite restored to 100% (1854/1854 passing)
 
-2. ✅ **Documentation Updates**: Enhanced $11.18.3 release documentation
+2. ✅ **Documentation Updates**: Enhanced v1.18.3 release documentation
    - Added comprehensive auto-activation feature coverage
    - Documented scheduled job (3:00 AM UTC daily)
    - Documented UI indicators (green/amber/blue badges)
    - Added monitoring and audit logging details
 
 **Release Documentation Created**:
-- ✅ `docs/releases/RELEASE_NOTES_$11.18.3.md` - Full release notes
-- ✅ `docs/releases/GITHUB_RELEASE_$11.18.3.md` - GitHub release body
-- ✅ `docs/releases/RELEASE_MANIFEST_$11.18.3.md` - Release artifact manifest
-- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md` - Deployment procedures
+- ✅ `docs/releases/RELEASE_NOTES_v1.18.3.md` - Full release notes
+- ✅ `docs/releases/GITHUB_RELEASE_v1.18.3.md` - GitHub release body
+- ✅ `docs/releases/RELEASE_MANIFEST_v1.18.3.md` - Release artifact manifest
+- ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md` - Deployment procedures
 - ✅ `CHANGELOG.md` - Added [1.18.1] section
 - ✅ `VERSION` file - Updated to 1.18.1
 - ✅ `frontend/package.json` - Updated to 1.18.1
@@ -1084,12 +1084,12 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 **Release Completion Verification (Feb 18, 2026):**
 - [x] Run `\.\COMMIT_READY.ps1 -Quick` for final validation
 - [x] Commit all release preparation changes
-- [x] Create git tag: `$11.18.3`
+- [x] Create git tag: `v1.18.3`
 - [x] Push to remote with tags
 - [x] Create GitHub release
 - [x] Verify CI/CD pipeline passes
-- [x] Verify remote tag exists (`refs/tags/$11.18.3`)
-- [x] Verify published GitHub release exists (`releases/tags/$11.18.3`, non-draft)
+- [x] Verify remote tag exists (`refs/tags/v1.18.3`)
+- [x] Verify published GitHub release exists (`releases/tags/v1.18.3`, non-draft)
 
 **Test Status**:
 - Backend: 742/742 passing (33 batches) ✅
@@ -1098,12 +1098,12 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 ---
 
-## �📘 Documentation Preparation Since Last Release ($11.18.3)
+## �📘 Documentation Preparation Since Last Release (v1.18.3)
 
 **Status**: ✅ COMPLETE (Feb 15, 2026)
 
 **Completed Documentation Actions**:
-1. ✅ Reviewed commit history since `$11.18.3` and categorized changes.
+1. ✅ Reviewed commit history since `v1.18.3` and categorized changes.
 2. ✅ Added post-release **Unreleased** summary in `CHANGELOG.md` for changes after the tag.
 3. ✅ Updated this work plan header metadata (version, status, latest commits).
 4. ✅ Corrected release workflow record: duplicate 1.17.9 release rerun was reverted to preserve tag integrity.
@@ -1114,16 +1114,16 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 ---
 
-## 📦 Next Major Release Preparation ($11.18.3)
+## 📦 Next Major Release Preparation (v1.18.3)
 
 **Status**: ✅ Documentation pack prepared (Feb 15, 2026)
 
 **Prepared / Updated**:
-1. ✅ `CHANGELOG.md` unreleased section aligned to **Target $11.18.3**.
-2. ✅ `docs/releases/RELEASE_NOTES_$11.18.3.md` rewritten for current maintenance + UX consolidation scope.
-3. ✅ `docs/releases/GITHUB_RELEASE_$11.18.3.md` updated with publish-ready release body.
-4. ✅ `docs/releases/RELEASE_MANIFEST_$11.18.3.md` updated with artifact and validation gates.
-5. ✅ `docs/releases/DEPLOYMENT_CHECKLIST_$11.18.3.md` updated with policy-aligned release/deploy checks.
+1. ✅ `CHANGELOG.md` unreleased section aligned to **Target v1.18.3**.
+2. ✅ `docs/releases/RELEASE_NOTES_v1.18.3.md` rewritten for current maintenance + UX consolidation scope.
+3. ✅ `docs/releases/GITHUB_RELEASE_v1.18.3.md` updated with publish-ready release body.
+4. ✅ `docs/releases/RELEASE_MANIFEST_v1.18.3.md` updated with artifact and validation gates.
+5. ✅ `docs/releases/DEPLOYMENT_CHECKLIST_v1.18.3.md` updated with policy-aligned release/deploy checks.
 6. ✅ `docs/DOCUMENTATION_INDEX.md` metadata/status synchronized with release-preparation context.
 
 **Result**:
@@ -1194,7 +1194,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 47. ✅ **COMPLETE**: Maintenance cleanup - consolidated cleanup entrypoint added to WORKSPACE_CLEANUP.ps1 (external helper switches)
 48. ✅ **COMPLETE**: Maintenance cleanup - ran consolidated cleanup entrypoint (deep + external helpers; legacy backup archives pruned)
 49. ✅ **COMPLETE**: PostgreSQL runtime standardization + persistence stabilization (explicit engine selection; removed implicit sqlite/postgres mode flips; verified stop/start durability)
-50. ✅ **COMPLETE**: SQLite→PostgreSQL migration hardening and $11.18.3 installer refresh (migration helper resilience for encoded URLs/missing tables; signed installer rebuilt and validated)
+50. ✅ **COMPLETE**: SQLite→PostgreSQL migration hardening and v1.18.3 installer refresh (migration helper resilience for encoded URLs/missing tables; signed installer rebuilt and validated)
 51. ✅ **COMPLETE** (Feb 17, 2026): **Course auto-activation enhancements** - semester-based activation system
     - **Scheduled Job**: Daily bulk update at 3:00 AM UTC (CourseActivationScheduler service, 178 lines)
     - **UI Enhancement**: Real-time visual indicators in AddCourseModal and EditCourseModal (green/amber/blue badges)
@@ -1209,7 +1209,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - Authenticode signature verified (AUT MIEEK certificate)
 - SHA256 recorded for release docs: `92A826E2DD76DB12617B66DA890810AF59E7993AC537C4A7E29961FF6A1E54DD`
 53. ✅ **COMPLETE** (Feb 19, 2026): **Release lineage hardening (legacy tag immutability)**
-- Identified repollution root cause: legacy `$11.18.3` tag contains old `ci-cd-pipeline.yml` with `gh release upload`.
+- Identified repollution root cause: legacy `v1.18.3` tag contains old `ci-cd-pipeline.yml` with `gh release upload`.
 - Added/updated automated guardrails so old tag workflows are treated as immutable legacy and cannot be manually re-released from workflow dispatch.
 - Enforced corrected-lineage manual release policy in `.github/workflows/release-on-tag.yml` (dispatch allowed only for current `VERSION` tag).
 - Strengthened `.github/workflows/release-asset-sanitizer.yml` to react to legacy release-triggered CI runs (`workflow_run`) and keep installer-only assets.
@@ -1343,7 +1343,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 1. **Lowest-risk first: archive version-specific emergency cleanup script**
     - **Primary candidate**: `EMERGENCY_FIX_400_ERROR.ps1`
-    - **Why first**: Version-pinned to `vvvvv1.18.25`, references legacy Docker image tags (`1.12.3`, `1.17.6`), and appears to be a one-off incident utility rather than a current workflow.
+    - **Why first**: Version-pinned to `v1.18.25`, references legacy Docker image tags (`1.12.3`, `1.17.6`), and appears to be a one-off incident utility rather than a current workflow.
     - ✅ **Completed file edits**:
        - Moved `EMERGENCY_FIX_400_ERROR.ps1` → `archive/deprecated-scripts/EMERGENCY_FIX_400_ERROR.ps1`
        - Updated `installer/INSTALLER_CRITICAL_FIX_400_ERROR.md`
@@ -1400,8 +1400,8 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 **Archive now - safest next two candidates:**
 
 1. **Empty version-pinned deploy stub**
-    - **Candidate**: `scripts/deploy_vvvvv1.18.25.ps1`
-    - **Exact move**: `scripts/deploy_vvvvv1.18.25.ps1` → `archive/deprecated-scripts/deploy_vvvvv1.18.25.ps1`
+    - **Candidate**: `scripts/deploy_v1.18.25.ps1`
+    - **Exact move**: `scripts/deploy_v1.18.25.ps1` → `archive/deprecated-scripts/deploy_v1.18.25.ps1`
     - **Why this ranks first**:
        - File is empty
        - No active references were found in docs, workflows, tasks, or code
@@ -1419,11 +1419,11 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 ### Archive-Now Execution Progress (March 12, 2026)
 
-- ✅ Moved `scripts/deploy_vvvvv1.18.25.ps1` → `archive/deprecated-scripts/deploy_vvvvv1.18.25.ps1`
+- ✅ Moved `scripts/deploy_v1.18.25.ps1` → `archive/deprecated-scripts/deploy_v1.18.25.ps1`
 - ✅ Moved `scripts/merge_pr_132.ps1` → `archive/deprecated-scripts/merge_pr_132.ps1`
 - ✅ Verification evidence:
   - Final pre-move reference sweep found only this work plan plus archived analysis references for the two candidates
-  - No active docs, tasks, workflows, or code paths referenced `scripts/deploy_vvvvv1.18.25.ps1`
+  - No active docs, tasks, workflows, or code paths referenced `scripts/deploy_v1.18.25.ps1`
   - No active docs, tasks, workflows, or operator guides referenced `scripts/merge_pr_132.ps1`
 
 **Review later - likely obsolete, but hold for one more confirmation pass:**
@@ -1465,7 +1465,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
   - `RUN_FRONTEND_TESTS_SIMPLE.ps1`
   - `RUN_FRONTEND_TESTS_SUMMARY.ps1`
   - `CI_CD_SETUP_HELPER.ps1`
-  - `scripts/deploy_vvvvv1.18.25.ps1`
+  - `scripts/deploy_v1.18.25.ps1`
   - `scripts/merge_pr_132.ps1`
   - `scripts/fix_test_imports.ps1`
   - `scripts/fix_unused_vars.ps1`
@@ -1478,8 +1478,8 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 **Historical but not part of the immediate archive-now wave:**
 
-- `archive/deprecated-scripts/VERIFY_RELEASE_vvvvv1.18.25.ps1`
-  - ✅ Archived from `scripts/VERIFY_RELEASE_vvvvv1.18.25.ps1` after confirming it had no live workflow or documentation-index usage and was referenced only by historical `vvvvv1.18.25` work-plan sections
+- `archive/deprecated-scripts/VERIFY_RELEASE_v1.18.25.ps1`
+  - ✅ Archived from `scripts/VERIFY_RELEASE_v1.18.25.ps1` after confirming it had no live workflow or documentation-index usage and was referenced only by historical `v1.18.25` work-plan sections
 
 ### Release-Doc Alignment Follow-Up (March 12, 2026)
 
@@ -1492,7 +1492,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - ✅ Identified the remaining `RELEASE_PREPARATION.ps1` references as living mainly in the unindexed legacy bundle under `docs/development/release-workflow/`
 - ✅ Added explicit historical/current-path notices to the most likely landing docs in that bundle instead of rewriting the entire legacy set during active-surface cleanup
 - ✅ Marked `docs/releases/MAJOR_RELEASE_PREPARATION_PLAN.md` as a historical version-specific planning artifact so it no longer reads like current release guidance
-- ✅ Archived `scripts/VERIFY_RELEASE_vvvvv1.18.25.ps1` and converted its remaining mentions into explicit release-history evidence rather than active guidance
+- ✅ Archived `scripts/VERIFY_RELEASE_v1.18.25.ps1` and converted its remaining mentions into explicit release-history evidence rather than active guidance
 
 **Deferred / Keep for now:**
 - `RUN_TESTS_CATEGORY.ps1` - keep until `RUN_TESTS_BATCH.ps1` gains category parity
@@ -1558,7 +1558,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 - 🗺️ **Feature Roadmap Framework**: 5 candidate features with effort/value analysis, decision matrix, implementation approaches
 
 **Quick Start**:
-- Download installer from [GitHub Release $11.18.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3)
+- Download installer from [GitHub Release v1.18.3](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3)
 - Follow testing guide: [installer/INSTALLER_TESTING_GUIDE.md](../../installer/INSTALLER_TESTING_GUIDE.md)
 - Track results: [INSTALLER_TESTING_TRACKER.md](../../INSTALLER_TESTING_TRACKER.md) (now with detailed templates)
 - Start with **Scenario 1: Fresh Install** (10-15 min)
@@ -1567,7 +1567,7 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 ### Installer Testing Progress (Feb 5, 2026)
 - **Scenario 1 (Fresh Install)**: ⚠ Partial — original Issue #3 (language stuck to Greek) now has a code fix by forcing `ShowLanguageDialog=yes`; re-test is deferred under the archived installer-testing scope.
-- **Scenario 2 (Repair $11.18.3)**: ⚠ Partial — the reinstall flow repairs the installation successfully, so Issue #4 (missing maintenance choices / limited backup contents) is accepted for now unless future testing shows data loss.
+- **Scenario 2 (Repair v1.18.3)**: ⚠ Partial — the reinstall flow repairs the installation successfully, so Issue #4 (missing maintenance choices / limited backup contents) is accepted for now unless future testing shows data loss.
 - **Post-install smoke**: **Issue #5** (duplicate browser tab) is resolved—option 1 now opens a single tab after the smoke test confirmed the updated `docker_manager.bat` behavior.
 - **Status Update (Feb 6, 2026)**: Installer testing is **archived/deferred** by owner request; no further scenarios required at this time.
 - **Archived Follow-ups**: Language selector defaulting to OS locale, Inno maintenance page configuration, backup routine audit (db/`.env` during repair). Scenarios (3-8) deferred.
@@ -1582,15 +1582,15 @@ git checkout -- VERSION frontend/package.json  # Restore versions
 
 **Assessment Complete**:
 - ✅ Testing guide reviewed: 8 comprehensive scenarios (438 lines)
-- ✅ Installer artifact verified: $11.18.3 (6.46 MB on GitHub Release)
+- ✅ Installer artifact verified: v1.18.3 (6.46 MB on GitHub Release)
 - ✅ Test procedures documented with step-by-step instructions
 - ✅ Automated validation script available
 - ✅ Test results template provided
 
 **8 Test Scenarios Ready**:
 1. Fresh Install (No existing version)
-2. Upgrade Same Version ($11.18.3 → $11.18.3 Repair)
-3. Upgrade from $11.18.3 → $11.18.3
+2. Upgrade Same Version (v1.18.3 → v1.18.3 Repair)
+3. Upgrade from v1.18.3 → v1.18.3
 4. Docker Running During Upgrade
 5. Docker Stopped During Upgrade
 6. Uninstall with Data Preservation
@@ -1739,17 +1739,17 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 - a172c24da - docs(installer): force add critical upgrade fix documentation
 
 **Status (Feb 5, 2026 - Systematic Assessment Complete)**:
-1. ✅ Build new installer ($11.18.3) - **COMPLETE** (6.46 MB, Feb 3 21:59 UTC, on GitHub Release)
+1. ✅ Build new installer (v1.18.3) - **COMPLETE** (6.46 MB, Feb 3 21:59 UTC, on GitHub Release)
 2. ✅ Testing framework prepared - **COMPLETE** (comprehensive guide in `installer/INSTALLER_TESTING_GUIDE.md`)
 3. ✅ Testing scenarios documented - **ASSESSED** (8 scenarios ready for manual execution)
-4. ✅ Release to GitHub - **COMPLETE** ($11.18.3 GitHub release published with installer)
+4. ✅ Release to GitHub - **COMPLETE** (v1.18.3 GitHub release published with installer)
 5. ✅ Deployment documentation updated - **COMPLETE**
 6. 📦 Owner manual testing - **DEFERRED** (confirmed Feb 26, 2026 for current maintenance window)
 
 **Installer Testing Ready** (Owner can execute these scenarios):
 - Scenario 1: Fresh install (no existing version)
-- Scenario 2: Upgrade same version ($11.18.3 → $11.18.3 repair)
-- Scenario 3: Upgrade from $11.18.3 → $11.18.3
+- Scenario 2: Upgrade same version (v1.18.3 → v1.18.3 repair)
+- Scenario 3: Upgrade from v1.18.3 → v1.18.3
 - Scenario 4: Docker running during upgrade
 - Scenario 5: Docker stopped during upgrade
 - Scenario 6: Uninstall with data preservation
@@ -1771,7 +1771,7 @@ This is a **SOLO DEVELOPER** project with **ZERO external stakeholders**. The ow
 | **Total Tests** | ✅ 100% | 2579+ passing (all test suites) |
 | **E2E Tests** | ✅ 100% | 19+ critical tests |
 | **Version** | ✅ OK | 1.17.7 released on GitHub |
-| **Production** | ✅ LIVE | System operational, $11.18.3 in use |
+| **Production** | ✅ LIVE | System operational, v1.18.3 in use |
 | **Installer Testing** | ✅ DOCUMENTED | 8 scenarios ready for manual execution |
 | **Code Health** | ✅ VERIFIED | ESLint warnings resolved; analytics types tightened |
 | **APScheduler** | ✅ READY | OPTIONAL-001 production-ready |
@@ -1935,19 +1935,19 @@ CodeQL cannot fully analyze custom validation functions (`validate_path()`, `val
 
 ---
 
-## ✅ $11.18.3 Release Publication (Feb 3, 2026) - COMPLETE & VERIFIED
+## ✅ v1.18.3 Release Publication (Feb 3, 2026) - COMPLETE & VERIFIED
 
 **Status**: ✅ **GITHUB RELEASE PUBLISHED & VERIFIED** - Production Ready with Installer
 
 **Release Created Successfully** (Feb 3, 2026 - 12:03-13:25 UTC):
-- ✅ Release now exists at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+- ✅ Release now exists at: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.3
 - ✅ Tagged as "Latest" release (not draft)
 - ✅ Full release notes body (274 lines comprehensive documentation)
 - ✅ All content properly rendered (Greek characters, code blocks, tables)
 - ✅ **Installer artifact attached**: `SMS_Installer_1.17.7.exe` (6.46 MB)
 
 **CI/CD Workflow Fixes Applied** (Required 4 iterations):
-1. ✅ **Fixed invalid version format** (8 instances of `$11.18.3` → `$11.18.3`/`$11.18.3`)
+1. ✅ **Fixed invalid version format** (8 instances of `v1.18.3` → `v1.18.3`/`v1.18.3`)
    - Commit: 7d8a12bf5 - Initial version format fixes
    - Commit: 48bbec569 - Remaining version format instances
 
@@ -1986,7 +1986,7 @@ CodeQL cannot fully analyze custom validation functions (`validate_path()`, `val
 - ✅ Total: 2,574+ tests all passing (100% success rate)
 
 **Release Statistics**:
-- Commits since $11.18.3: 15+ main feature commits + 4 CI/CD fix commits
+- Commits since v1.18.3: 15+ main feature commits + 4 CI/CD fix commits
 - Files modified: 12+ application files + workflow fix
 - Bug fixes: 5+ (WebSocket, APScheduler, migrations, CORS)
 - New features: 3 (Greek localization enhancements, historical editing, CI/CD improvements)
@@ -1995,10 +1995,10 @@ CodeQL cannot fully analyze custom validation functions (`validate_path()`, `val
 **GitHub Release Verification**:
 - Published: February 3, 2026 at 12:03 UTC
 - Status: Latest (not draft)
-- Title: $11.18.3
+- Title: v1.18.3
 - Body: 274 lines of comprehensive release notes
 - Content: All sections properly rendered with Greek characters and formatting
-- Commits included: All 15+ commits since $11.18.3
+- Commits included: All 15+ commits since v1.18.3
 - Author: bs1gr (via GitHub Actions automation)
 
 ---
@@ -2210,7 +2210,7 @@ Fixes three startup warnings and enables scheduler features.
 > **Next Phase**: Implement Phase 2 permission enforcement features (not blocking this test suite)
 
 ### Phase 4: Advanced Search & Filtering ✅ COMPLETE
-**Status**: Released in $11.18.3 (Jan 22, 2026)
+**Status**: Released in v1.18.3 (Jan 22, 2026)
 - Full-text search across students, courses, grades
 - Advanced filters with 8 operator types
 - Saved searches with favorites
@@ -2599,13 +2599,13 @@ Fixes three startup warnings and enables scheduler features.
 
 ### Testing
 
-❌ **NEVER**: `cd backend && pytest -q` (crashes VS Code)
-✅ **ALWAYS**: `.\RUN_TESTS_BATCH.ps1`
+❌ **NEVER**: `cd src/backend && pytest -q` (crashes VS Code)
+✅ **ALWAYS**: `.\infra\scripts\testing\RUN_TESTS_BATCH.ps1`
 
 ### Deployment
 
 ❌ **NEVER**: Custom deployment procedures
-✅ **ALWAYS**: `.\NATIVE.ps1 -Start` (testing) or `.\DOCKER.ps1 -Start` (production)
+✅ **ALWAYS**: `.\infra\scripts\dev\NATIVE.ps1 -Start` (dev) or `.\infra\scripts\dev\DOCKER.ps1 -Start` (prod)
 
 ### Planning
 
@@ -2615,7 +2615,7 @@ Fixes three startup warnings and enables scheduler features.
 ### Pre-Commit
 
 ❌ **NEVER**: Commit without validation
-✅ **ALWAYS**: Run `.\COMMIT_READY.ps1 -Quick` first
+✅ **ALWAYS**: Run `.\infra\scripts\ops\COMMIT_READY.ps1 -Quick` first
 
 ### Work Verification
 
@@ -2635,7 +2635,7 @@ Fixes three startup warnings and enables scheduler features.
 
 ### Before Commit
 
-1. Run `.\COMMIT_READY.ps1 -Quick`
+1. Run `.\infra\scripts\ops\COMMIT_READY.ps1 -Quick`
 2. Verify all tests passing
 3. Update this document with completed items
 4. Commit with clear semantic message
@@ -2659,12 +2659,12 @@ Fixes three startup warnings and enables scheduler features.
 **Repository:**
 - GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS
 - Branch: `main`
-- Main Branch: `main` (production stable - $11.18.3)
+- Main Branch: `main` (production stable - v1.18.27)
 
 ---
 
-**Last Updated**: February 18, 2026
-**Status**: ✅ Production Live ($11.18.3) - release state reconciled and verified
+**Last Updated**: June 15, 2026
+**Status**: ✅ Production Live (v1.18.27) - installer published, smoke tests passing, 0 ESLint warnings
 **Next Milestone**: Maintenance & stability continuation (owner-directed priorities)
 
 
