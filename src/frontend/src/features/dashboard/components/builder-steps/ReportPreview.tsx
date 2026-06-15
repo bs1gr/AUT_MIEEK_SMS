@@ -41,10 +41,14 @@ export const ReportPreview: React.FC<ReportPreviewProps> = ({
 
   const getChartTypeLabel = (type: string) => {
     const types: Record<string, string> = {
-      line: 'Line Chart',
-      bar: 'Bar Chart',
-      area: 'Area Chart',
-      pie: 'Pie Chart',
+      line: t('analytics.charttype.line', 'Line Chart'),
+      bar: t('analytics.charttype.bar', 'Bar Chart'),
+      area: t('analytics.charttype.area', 'Area Chart'),
+      pie: t('analytics.charttype.pie', 'Pie Chart'),
+      scatter: t('analytics.charttype.scatter', 'Scatter Plot'),
+      heatmap: t('analytics.charttype.heatmap', 'Heatmap'),
+      treemap: t('analytics.charttype.treemap', 'Treemap'),
+      boxplot: t('analytics.charttype.boxplot', 'Box Plot'),
     };
     return types[type] || type;
   };

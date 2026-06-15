@@ -134,6 +134,7 @@ export default {
     ui: {
       checkmark: '✓',
       isRequired: ' is required',
+      recommended: 'Recommended',
     },
     step: {
       template: 'Report Template',
@@ -201,5 +202,23 @@ export default {
     error: {
       noName: 'Please enter a report name',
     },
+  },
+  charttype: {
+    line: 'Line Chart',
+    line_desc: 'Best for showing trends over time',
+    bar: 'Bar Chart',
+    bar_desc: 'Best for comparing values across categories',
+    area: 'Area Chart',
+    area_desc: 'Best for showing cumulative trends',
+    pie: 'Pie Chart',
+    pie_desc: 'Best for showing percentages and proportions',
+    scatter: 'Scatter Plot',
+    scatter_desc: 'Best for showing correlations between two variables',
+    heatmap: 'Heatmap',
+    heatmap_desc: 'Best for showing intensity across two dimensions',
+    treemap: 'Treemap',
+    treemap_desc: 'Best for hierarchical data proportions',
+    boxplot: 'Box Plot',
+    boxplot_desc: 'Best for showing statistical distribution and outliers',
   },
 };

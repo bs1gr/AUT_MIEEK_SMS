@@ -98,5 +98,8 @@ declare module 'lucide-react' {
     LucideTerminal as Terminal,
     LucideUserCheck as UserCheck,
     LucideVideo as Video,
+    LucideCrosshair as Crosshair,
+    LucideLayoutGrid as LayoutGrid,
+    LucideLayers as Layers,
   } from 'lucide-react';
 }
