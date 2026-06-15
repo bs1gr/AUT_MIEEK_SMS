@@ -75,6 +75,9 @@ interface ReportConfig {
   is_copy?: boolean;
   email_enabled: boolean;
   email_recipients: string;
+  schedule_enabled: boolean;
+  schedule_frequency: string; // '' | 'daily' | 'weekly' | 'monthly' | 'custom'
+  schedule_cron: string;
 }
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -382,6 +385,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         email_enabled: false,
         email_recipients: '',
         group_by: '',
+        schedule_enabled: false,
+        schedule_frequency: '',
+        schedule_cron: '',
       };
       return normalized;
     }
@@ -461,6 +467,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       email_recipients: Array.isArray(reportRecord.email_recipients)
         ? reportRecord.email_recipients.join(', ')
         : '',
+      schedule_enabled: Boolean(reportRecord.schedule_enabled),
+      schedule_frequency: (reportRecord.schedule_frequency as string) || '',
+      schedule_cron: (reportRecord.schedule_cron as string) || '',
       group_by: (() => {
         if (reportFields && typeof reportFields === 'object' && !Array.isArray(reportFields)) {
           const rf = reportFields as Record<string, unknown>;
@@ -579,6 +588,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         email_enabled: false,
         email_recipients: '',
         group_by: '',
+        schedule_enabled: false,
+        schedule_frequency: '',
+        schedule_cron: '',
       };
       if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
         console.warn('[ReportBuilder] Template config normalized, checking equality...');
@@ -842,9 +854,9 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         sort_by: sortByDict || undefined,
         export_format: config.output_format,
         include_charts: true,
-        schedule_enabled: false,
-        schedule_frequency: undefined,
-        schedule_cron: undefined,
+        schedule_enabled: config.schedule_enabled,
+        schedule_frequency: config.schedule_enabled ? (config.schedule_frequency || undefined) : undefined,
+        schedule_cron: config.schedule_enabled && config.schedule_frequency === 'custom' ? (config.schedule_cron || undefined) : undefined,
         email_recipients: config.email_enabled ? emailRecipients : undefined,
         email_enabled: config.email_enabled,
       };
@@ -999,6 +1011,60 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
                   <p className="mt-1 text-sm text-red-500">
                     {t(errors.email_recipients, { ns: 'customReports' })}
                   </p>
+                )}
+              </div>
+            )}
+
+            {/* Scheduling */}
+            <div>
+              <label className="flex items-center gap-3 text-sm font-medium text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={config.schedule_enabled}
+                  onChange={(e) => handleConfigChange('schedule_enabled', e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                />
+                {t('scheduleReport', { ns: 'customReports' })}
+              </label>
+              <p className="mt-1 text-sm text-gray-500">
+                {t('helpSchedule', { ns: 'customReports' })}
+              </p>
+            </div>
+
+            {config.schedule_enabled && (
+              <div className="space-y-4 pl-7">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {t('schedule', { ns: 'customReports' })}
+                  </label>
+                  <select
+                    value={config.schedule_frequency}
+                    onChange={(e) => handleConfigChange('schedule_frequency', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">{t('runOnce', { ns: 'customReports' })}</option>
+                    <option value="daily">{t('runDaily', { ns: 'customReports' })}</option>
+                    <option value="weekly">{t('runWeekly', { ns: 'customReports' })}</option>
+                    <option value="monthly">{t('runMonthly', { ns: 'customReports' })}</option>
+                    <option value="custom">{t('runCustom', { ns: 'customReports' })}</option>
+                  </select>
+                </div>
+                {config.schedule_frequency === 'custom' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {t('cronExpression', { ns: 'customReports' })}
+                    </label>
+                    <input
+                      type="text"
+                      value={config.schedule_cron}
+                      onChange={(e) => handleConfigChange('schedule_cron', e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                      placeholder="0 8 * * 1  (Mon at 08:00)"
+                    />
+                    <p className="mt-1 text-xs text-gray-400">
+                      {t('cronHelp', { ns: 'customReports' })}
+                    </p>
+                  </div>
                 )}
               </div>
             )}

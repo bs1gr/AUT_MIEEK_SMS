@@ -182,7 +182,7 @@ export interface ExportMetricsChartProps {
 export interface EmailConfigPanelProps {
   config: EmailConfig;
   onSave?: (config: EmailConfig) => Promise<void>;
-  onTest?: () => Promise<void>;
+  onTest?: (recipientEmail: string) => Promise<void>;
 }
 
 export interface ExportSettingsPanelProps {

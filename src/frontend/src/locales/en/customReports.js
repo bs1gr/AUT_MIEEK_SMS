@@ -327,6 +327,8 @@ export default {
   scheduleTime: 'Run Time',
   scheduleDay: 'Day of Week',
   scheduleDayOfMonth: 'Day of Month',
+  cronExpression: 'Cron Expression',
+  cronHelp: 'minute hour day-of-month month day-of-week',
 
   // Report list
   lastRun: 'Last Run',

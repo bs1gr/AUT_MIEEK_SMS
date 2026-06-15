@@ -326,6 +326,8 @@ export default {
   scheduleTime: 'Ώρα Εκτέλεσης',
   scheduleDay: 'Ημέρα της Εβδομάδας',
   scheduleDayOfMonth: 'Ημέρα του Μήνα',
+  cronExpression: 'Έκφραση Cron',
+  cronHelp: 'λεπτό ώρα ημέρα-μήνα μήνας ημέρα-εβδομάδας',
 
   // Report list
   lastRun: 'Τελευταία Εκτέλεση',

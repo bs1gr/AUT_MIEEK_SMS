@@ -125,7 +125,8 @@ export const EmailConfigPanel: React.FC<EmailConfigPanelProps> = ({ config, onSa
   const handleTest = async () => {
     setIsTesting(true);
     try {
-      await onTest?.();
+      const recipient = formData.from_email || formData.smtp_username || '';
+      await onTest?.(recipient);
     } finally {
       setIsTesting(false);
     }

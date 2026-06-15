@@ -29,6 +29,9 @@ import {
   useExportMetrics,
   useRefreshExports,
   useExportSchedules,
+  useEmailConfig,
+  useUpdateEmailConfig,
+  useTestEmailConfig,
 } from '../hooks/useExportAdmin';
 import { ExportDashboardProps } from '../types/export';
 
@@ -51,6 +54,9 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
   const { data: selectedJobData } = useExportJob(selectedJobId);
   const { data: schedulesData } = useExportSchedules();
   const { data: metricsData } = useExportMetrics(7);
+  const { data: emailConfigData } = useEmailConfig();
+  const updateEmailConfig = useUpdateEmailConfig();
+  const testEmailConfig = useTestEmailConfig();
 
   const refreshExports = useRefreshExports();
 
@@ -292,7 +298,7 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
             </p>
           </div>
           <EmailConfigPanel
-            config={{
+            config={emailConfigData?.data ?? {
               smtp_host: '',
               smtp_port: 587,
               smtp_username: '',
@@ -303,10 +309,13 @@ const ExportDashboard: React.FC<ExportDashboardProps> = ({ onRefresh }) => {
               notify_on_failure: true,
               notify_on_schedule_failure: true,
             }}
-            onSave={async () => {
+            onSave={async (config) => {
+              await updateEmailConfig.mutateAsync(config);
               handleRefresh();
             }}
-            onTest={async () => {}}
+            onTest={async (recipientEmail) => {
+              await testEmailConfig.mutateAsync(recipientEmail || '');
+            }}
           />
         </TabsContent>
 
