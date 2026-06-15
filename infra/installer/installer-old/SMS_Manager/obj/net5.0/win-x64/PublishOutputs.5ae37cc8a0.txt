@@ -1,1 +1,0 @@
-D:\SMS\student-management-system\dist\net5.0\win-x64\publish\SMS_Manager.exe
