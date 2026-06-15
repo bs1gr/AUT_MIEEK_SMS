@@ -112,6 +112,7 @@ export default {
   selectSemester: 'Επιλογή Εξαμήνου',
   chooseSemester: 'Επιλέξτε εξάμηνο για εξαγωγή...',
   exportSession: 'Εξαγωγή Περιόδου',
+  importFileHint: 'Υποστηριζόμενες μορφές: CSV, Excel | Μέγ. μέγεθος: 50MB',
   selectFile: 'Επιλογή Αρχείου',
   chooseSessionFile: 'Επιλέξτε αρχείο JSON περιόδου...',
   mergeStrategy: 'Στρατηγική Συγχώνευσης',

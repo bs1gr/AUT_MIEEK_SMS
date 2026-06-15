@@ -1,9 +1,14 @@
 # Copilot Instructions for Student Management System
 
-**Version**: v1.18.22 | **Status**: ✅ ACTIVE
-**Development Mode**: 🧑‍💻 **SOLO DEVELOPER** (Single developer + AI assistant only)
+**Version**: v1.18.27 | **Status**: ACTIVE
+**Development Mode**: SOLO DEVELOPER (Single developer + AI assistant only)
 
-## ⚡ Quick Onboarding
+> **Note (June 2026):** The canonical AI agent guide is now [CLAUDE.md](../CLAUDE.md) at the repo root.
+> Script paths changed after the v1.18.26 flatten: `.\NATIVE.ps1` → `.\infra\scripts\dev\NATIVE.ps1`,
+> `.\DOCKER.ps1` → `.\infra\scripts\dev\DOCKER.ps1`, `.\COMMIT_READY.ps1` → `.\infra\scripts\ops\COMMIT_READY.ps1`,
+> `.\RUN_TESTS_BATCH.ps1` → `.\infra\scripts\testing\RUN_TESTS_BATCH.ps1`.
+
+## Quick Onboarding
 
 **What you're working with**: Bilingual (EN/EL) student management system with dual deployment modes (Docker production + Native development). Built for ΜΙΕΕΚ Cyprus technical college.
 

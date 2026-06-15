@@ -112,6 +112,7 @@ export default {
   selectSemester: 'Select Semester',
   chooseSemester: 'Choose semester to export...',
   exportSession: 'Export Session',
+  importFileHint: 'Supported formats: CSV, Excel | Max size: 50MB',
   selectFile: 'Select File',
   chooseSessionFile: 'Choose session JSON file...',
   mergeStrategy: 'Merge Strategy',

@@ -85,6 +85,7 @@ const CreateEditDashboardDialog: React.FC<CreateEditDashboardDialogProps> = ({
       <div
         className="fixed inset-0 z-40 bg-black bg-opacity-50 transition"
         onClick={onClose}
+        aria-hidden="true"
       />
 
       {/* Dialog */}

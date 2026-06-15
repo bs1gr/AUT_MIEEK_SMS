@@ -2053,6 +2053,8 @@ function Invoke-DocumentationCheck {
         $allowed = @(
             # Essential project files
             'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md','AGENTS.md',
+            # AI agent guide (Claude Code canonical codebase guide)
+            'CLAUDE.md',
             # High-level navigation
             'DOCUMENTATION_INDEX.md',
             # Release guides

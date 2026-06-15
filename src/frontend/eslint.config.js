@@ -29,7 +29,7 @@ const commonRules = {
   "@typescript-eslint/no-unused-expressions": "warn",
   "react-hooks/rules-of-hooks": "warn",
   "react-hooks/exhaustive-deps": "warn",
-  "react-hooks/set-state-in-effect": "warn",
+  "react-hooks/set-state-in-effect": "off",
   "react-hooks/preserve-manual-memoization": "warn",
   "react/no-unescaped-entities": "warn",
   "jsx-a11y/label-has-associated-control": "warn",

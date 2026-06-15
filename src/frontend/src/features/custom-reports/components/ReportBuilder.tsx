@@ -493,7 +493,6 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
         if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
           console.warn('[ReportBuilder] ✅ Applying report data (signature changed)');
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setConfig((prev) => {
           const nextConfig = normalizeReportData(reportData);
           const isEqual = areConfigsEqual(prev, nextConfig);
@@ -617,7 +616,6 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
     }
 
     prefillAppliedRef.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConfig((prev) => {
       const mergedFilters = mergeFilters(prev.filters, normalizedPrefillFilters);
       const isIdentical = mergedFilters === prev.filters;
@@ -671,7 +669,6 @@ export const ReportBuilder: React.FC<ReportBuilderProps> = ({
       if (import.meta.env.VITE_DEBUG_REPORTS === '1') {
         console.warn('[ReportBuilder] ⚠️ Re-localizing template text (language changed)');
       }
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setConfig((prev) => {
         // Ensure we only update name/description, preserving other config
         if (prev.name === templateText.name && prev.description === localizedDescription) {

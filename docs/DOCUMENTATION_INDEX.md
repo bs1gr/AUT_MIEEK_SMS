@@ -8,28 +8,12 @@
 
 This document serves as the single source of truth for all project documentation, eliminating confusion from duplicate or outdated files.
 
-> **Current Status (Apr 8, 2026)**: ✅ **`vvvvv1.18.25` remains the first official public release and `vvvvv1.18.25` is now the latest published maintenance release**
-> - `vvvvv1.18.25` through `vvvvv1.18.25` remain archived as prereleases for historical reference
-> - `vvvvv1.18.25` was promoted from the exact verified release tag to the official public release without changing tag or artifact lineage
-> - `vvvvv1.18.25` release publication, installer verification, GitHub digest verification, and post-release evidence were completed successfully
-> - `vvvvv1.18.25` packages QNAP PostgreSQL defaulting, dependency/security refreshes, installer credential-file parsing parity, manual-only CI cadence updates, and deployment runbooks
-> - GitHub code scanning and Dependabot now both report zero open alerts after the `main`-branch dependency refresh
-> - `vvvvv1.18.25` restores generated Greek `.rtf` installer assets in the build pipeline
-> - `vvvvv1.18.25` hardens backup/update path handling and uses installer-only current-lineage assets with GitHub digest metadata
-> - Fresh local installer build, signing, and smoke verification completed successfully for `vvvvv1.18.25` before official publication
-> - All archived prerelease bodies now carry an explicit `ARCHIVED` banner for visual consistency in the GitHub Releases UI
-> - The scheduled production checkpoint workflow exists but is currently manually disabled; rely on recorded monitoring evidence and manual/on-demand verification until re-enabled
-> - vvvvv1.18.25: Control Panel auto-updater, Windows subprocess fixes, offline support, QNAP deployment
-> - vvvvv1.18.25: Analytics revival (comprehensive dashboard, predictive analytics, custom reports)
-> - Post-release development: Type safety improvements, testing stability, ESLint cleanup
-> - Post-`vvvvv1.18.25` code review snapshot added (34 commits, 192 files changed) with consolidated Unreleased summary in `CHANGELOG.md`
-> - Changelog/work plan/index are aligned with the live `vvvvv1.18.25` publication state
-> - All recent core CI validations reviewed during the audit were passing
-> - See plans/UNIFIED_WORK_PLAN.md for details
-> **Current authority note**:
+> **Current Status (June 15, 2026)**: v1.18.27 is the latest published release (installer: SMS_Installer_1.18.27.exe, 24.97 MB)
+> - Source structure flattened to `src/backend`, `src/frontend`, `infra/` (see CHANGELOG for v1.18.26 details)
+> - 929 backend tests passing, ~1,939 frontend tests passing, 82 E2E tests passing
 > - Active planning/status source of truth: `docs/plans/UNIFIED_WORK_PLAN.md`
-> - Documentation navigation source of truth: `docs/DOCUMENTATION_INDEX.md`
-> - `docs/ACTIVE_WORK_STATUS.md` is retained as a historical stub only
+> - Documentation navigation source of truth: this file (`docs/DOCUMENTATION_INDEX.md`)
+> - `docs/ACTIVE_WORK_STATUS.md` is a historical stub only; do not use for active planning
 
 ---
 

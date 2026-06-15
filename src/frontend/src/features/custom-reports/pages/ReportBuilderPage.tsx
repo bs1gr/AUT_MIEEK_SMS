@@ -49,7 +49,6 @@ export const ReportBuilderPage: React.FC = () => {
       (value || '').toString().trim().toLowerCase().replace(/\s+/g, ' ');
 
     if (templateData) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setResolvedTemplate(templateData);
       return undefined;
     }
