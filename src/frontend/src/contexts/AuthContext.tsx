@@ -291,4 +291,4 @@ export const useAuth = () => {
   return ctx;
 };
 
-export default AuthContext;
+export { AuthContext };
