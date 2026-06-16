@@ -8,8 +8,21 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+## [Unreleased] - Post-v1.18.29 (2026-06-16)
 
+### Bug Fixes
+- Fix bash arithmetic `((VAR++))` crash under `set -euo pipefail` in 3 maintenance/cleanup workflow files
+- Upgrade starlette 1.0.1 → 1.3.1 (high/medium CVEs; alerts #183-184, #189-190, #192-193, #198-199)
+- Upgrade cryptography 46.0.7 → 49.0.0 (high CVE in OpenSSL wheels; #182, #191)
+- Upgrade python-multipart 0.0.27 → 0.0.32 (low/high CVEs; #185-188, #194-197)
+- Align PyJWT to 2.13.0 in pyproject.toml (#176-181)
+- Pin js-yaml >=4.2.0 in npm overrides (#175)
+- Suppress `StarletteDeprecationWarning` in pytest.ini (starlette 1.3.1 httpx2 migration non-breaking)
 
+### Maintenance
+- Repo declutter: 234 stale files removed
+
+---
 
 
 
@@ -39,17 +52,6 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ### Tests
 - add 16 tests for SMTP override service and email settings endpoints
 
-## [1.18.29] - 2026-06-15
-
-**Release Type**: Maintenance Release
-**Focus**: Automated release-ready workflow, version bump, and validation
-
-### Changed
-
-- Version references updated
-- Automated release workflow improvements
-
----
 ## [1.18.28] - 2026-06-15
 
 **Release Type**: Maintenance Release
