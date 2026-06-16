@@ -116,10 +116,10 @@ jobs:
             if [ -n "$id" ]; then
               if gh api -X DELETE "repos/$GH_REPO/deployments/$id" >/dev/null 2>&1; then
                 echo "  ✅ Deleted deployment $id"
-                ((DELETED++))
+                DELETED=$((DELETED + 1))
               else
                 echo "  ⚠️  Failed to delete deployment $id (may already be gone)"
-                ((FAILED++))
+                FAILED=$((FAILED + 1))
               fi
             fi
           done <<< "$TO_DELETE"

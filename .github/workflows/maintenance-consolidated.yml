@@ -178,9 +178,9 @@ jobs:
               FAILED=0
               while IFS= read -r run_id; do
                 if gh run delete "$run_id" --repo "$REPO" 2>/dev/null; then
-                  ((DELETED++))
+                  DELETED=$((DELETED + 1))
                 else
-                  ((FAILED++))
+                  FAILED=$((FAILED + 1))
                 fi
               done <<< "$RUN_IDS"
 

@@ -1,17 +1,17 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.28
-**Last Updated**: June 15, 2026
-**Status**: ✅ **v1.18.28 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.28.exe, 26.18 MB)
+**Current Version**: 1.18.29
+**Last Updated**: June 16, 2026
+**Status**: ✅ **v1.18.29 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.29.exe)**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.28
+**Current Phase**: Active Development | Post-v1.18.29
 **Current Branch**: `main`
 
 ---
 
-## 🔧 Post-v1.18.28 Improvements (June 15, 2026)
+## 🔧 Post-v1.18.28 Improvements → Released as v1.18.29 (June 15, 2026)
 
-**Status**: 🔄 IN PROGRESS | 8 commits since `v1.18.28` tag
+**Status**: ✅ RELEASED as v1.18.29 | 8 commits since `v1.18.28` tag, plus version bump + repo declutter
 
 | Hash | Description |
 |------|-------------|
@@ -33,8 +33,12 @@
 - **HMR fix**: `AuthContext` default export converted to named export — eliminates Vite Fast Refresh incompatibility warning.
 - **Tests**: 18 new tests covering smtp_override service, email endpoint edge cases, and SMTP transport branches (port 587 STARTTLS / port 465 SSL).
 
-### Next Steps
-- Candidates: v1.18.29 release prep once test suite confirms clean pass
+### Release Evidence
+- ✅ Tag `v1.18.29` created and published June 15, 2026
+- ✅ GitHub release: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.29
+- ✅ Installer asset: `SMS_Installer_1.18.29.exe` uploaded
+- ✅ Post-release: repo declutter (234 stale files removed, commit `dc21014fe`)
+- ✅ CI fix: `((VAR++))` bash arithmetic bug under `set -euo pipefail` fixed in 3 workflow files (commit follows)
 
 ---
 

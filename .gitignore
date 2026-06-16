@@ -92,6 +92,12 @@ code-scanning-sarif/
 # Root-level generated copy of docs/DOCUMENTATION_INDEX.md (canonical path is docs/)
 DOCUMENTATION_INDEX.md
 
+# Installer old artifacts (removed permanently - prevent readdition)
+infra/installer/installer-old/
+
+# docs/reports/ (session state/status reports — policy violation per CLAUDE.md)
+docs/reports/
+
 # CI/session status docs generated at root by automation
 /CI_CD_*.md
 /FLATTEN_*.md
