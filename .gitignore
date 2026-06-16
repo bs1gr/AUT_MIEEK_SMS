@@ -96,6 +96,8 @@ DOCUMENTATION_INDEX.md
 infra/installer/installer-old/builds/
 infra/installer/installer-old/archive-certificate-backups/
 infra/installer/installer-old/archive-v1.9.4-artifacts/
+infra/installer/installer-old/.version_cache
+infra/installer/installer-old/*.sha256
 
 # docs/reports/ (session state/status reports — policy violation per CLAUDE.md)
 docs/reports/
