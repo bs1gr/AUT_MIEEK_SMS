@@ -1,4 +1,7 @@
 [tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated"
+]
 markers = [
     "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
     "auth_required: marks tests that require authentication",
@@ -23,14 +26,14 @@ authors = [
 ]
 dependencies = [
     "fastapi==0.136.3",
-    "starlette==1.0.1",
+    "starlette==1.3.1",
     "uvicorn[standard]==0.38.0",
     "sqlalchemy==2.0.44",
     "psycopg[binary]==3.2.12",
-    "cryptography==46.0.7",  # CVE-2026-39892 fixed in 46.0.7
+    "cryptography==49.0.0",  # CVE-2026-39892 + Dependabot #182/191 fixed in >=48.0.1
     "pydantic==2.12.3",
     "email-validator==2.3.0",
-    "python-multipart==0.0.27",  # CVE-2024-24762 fixed in >=0.0.23
+    "python-multipart==0.0.32",  # Dependabot #185-197 fixed in >=0.0.31
     "openpyxl==3.1.5",
     "reportlab==4.4.4",
     "pdfplumber>=0.11.4",
@@ -42,7 +45,7 @@ dependencies = [
     "slowapi==0.1.9",
     "fastapi-csrf-protect==1.0.7",
     "passlib[bcrypt]==1.7.4",
-    "PyJWT==2.12.0",
+    "PyJWT==2.13.0",  # Dependabot #176-181 fixed in >=2.13.0
     "docker==7.1.0",
     "prometheus-client==0.21.0",
     "opentelemetry-api==1.27.0",
@@ -72,7 +75,7 @@ dev = [
     "mypy>=1.0.0",
     "aiosqlite==0.20.0",
     "httpx>=0.27.0",
-    "python-multipart==0.0.27",  # CVE-2024-24762 fixed in >=0.0.23
+    "python-multipart==0.0.32",  # Dependabot #185-197 fixed in >=0.0.31
     "types-requests>=2.32.0.20241016",
 ]
 
