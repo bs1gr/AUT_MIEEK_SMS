@@ -8,19 +8,25 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
+
 ## [1.18.30] - 2026-06-16
 
 ### Bug Fixes
-- Fix bash arithmetic `((VAR++))` crash under `set -euo pipefail` in 3 maintenance/cleanup workflow files
-- Upgrade starlette 1.0.1 → 1.3.1 (high/medium CVEs; alerts #183-184, #189-190, #192-193, #198-199)
-- Upgrade cryptography 46.0.7 → 49.0.0 (high CVE in OpenSSL wheels; #182, #191)
-- Upgrade python-multipart 0.0.27 → 0.0.32 (low/high CVEs; #185-188, #194-197)
-- Align PyJWT to 2.13.0 in pyproject.toml (#176-181)
-- Pin js-yaml >=4.2.0 in npm overrides (#175)
-- Suppress `StarletteDeprecationWarning` in pytest.ini (starlette 1.3.1 httpx2 migration non-breaking)
+- **installer**: restore installer source files erroneously removed in declutter
+- **security**: upgrade starlette 1.0.1 → 1.3.1 (CVEs; alerts #183-184, #189-190, #192-193, #198-199)
+- **security**: upgrade cryptography 46.0.7 → 49.0.0 (high CVE in OpenSSL wheels; #182, #191)
+- **security**: upgrade python-multipart 0.0.27 → 0.0.32 (low/high CVEs; #185-188, #194-197)
+- **security**: align PyJWT to 2.13.0 in pyproject.toml (#176-181)
+- **security**: pin js-yaml >=4.2.0 in npm overrides (#175)
+- **ci**: fix bash arithmetic `((VAR++))` crash under `set -euo pipefail` in 3 workflow files
+- Suppress `StarletteDeprecationWarning` in pytest.ini (starlette 1.3.1 httpx2 migration)
 
-### Maintenance
-- Repo declutter: 234 stale files removed
+### Documentation
+- **release**: add comprehensive v1.18.30 checkpoint release notes (full feature inventory)
+
+### Chores
+- **release**: bump version to v1.18.30 across all files
+- declutter repo -- remove 234 stale files across 4 areas
 
 ---
 
@@ -4577,6 +4583,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
