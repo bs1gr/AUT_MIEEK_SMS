@@ -60,7 +60,7 @@ jobs:
           done
 
       - name: Upload SARIF artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: code-scanning-sarif
           path: sarif/*.sarif

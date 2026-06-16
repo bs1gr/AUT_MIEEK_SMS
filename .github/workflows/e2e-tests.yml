@@ -45,14 +45,14 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: 'npm'
           cache-dependency-path: src/frontend/package-lock.json
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -76,7 +76,7 @@ jobs:
       # NOTE: Disabling cache for now due to unreliable restoration in CI
       # The browser download (~150MB) is faster than debugging cache issues
       # - name: Cache Playwright browsers
-      #   uses: actions/cache@v4
+      #   uses: actions/cache@v5
       #   with:
       #     path: ~/.cache/ms-playwright
       #     key: playwright-${{ runner.os }}-${{ steps.pwver.outputs.version }}
@@ -315,7 +315,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-test-results
           path: |
@@ -402,7 +402,7 @@ jobs:
 
       - name: Upload backend logs (if failed)
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-backend-logs
           path: backend/logs/
@@ -449,7 +449,7 @@ jobs:
 
       - name: Archive metrics and patterns (NEW)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: e2e-metrics-and-patterns
           path: ci-artifacts/

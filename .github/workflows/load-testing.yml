@@ -58,7 +58,7 @@ jobs:
       uses: actions/checkout@v5
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
         cache: 'pip'
@@ -161,7 +161,7 @@ jobs:
         python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/analyze_results.py --results-dir ${{ github.workspace }}/${{ steps.loadtest.outputs.results }}
 
     - name: Upload test results
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always() && steps.loadtest.outputs.missing != 'true'
       with:
         name: load-test-results-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}-${{ github.run_number }}
@@ -197,7 +197,7 @@ jobs:
       uses: actions/checkout@v5
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v6
       with:
         python-version: '3.11'
 
@@ -225,7 +225,7 @@ jobs:
 
     - name: Download test results
       if: steps.loadtest.outputs.missing != 'true'
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: load-test-results-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}-${{ github.run_number }}
         path: load-test-results
@@ -245,7 +245,7 @@ jobs:
         python ${{ github.workspace }}/${{ steps.loadtest.outputs.scripts }}/generate_report.py --input "$RESULTS_DIR" --output ${{ github.workspace }}/performance-report.html
 
     - name: Upload performance report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: steps.loadtest.outputs.missing != 'true'
       with:
         name: performance-report-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'staging' }}-${{ github.run_number }}

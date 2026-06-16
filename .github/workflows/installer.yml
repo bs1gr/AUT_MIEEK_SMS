@@ -58,7 +58,7 @@ jobs:
           }
 
       - name: Cache Inno Setup
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: C:\ProgramData\chocolatey\lib\innosetup
           key: ${{ runner.os }}-innosetup-1
@@ -157,7 +157,7 @@ jobs:
           "path=$expectedCore" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
       - name: Upload Installer Artifact (For Access by Downstream Jobs)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: SMS_Installer
           path: ${{ steps.resolve_installer.outputs.path }}
@@ -174,7 +174,7 @@ jobs:
     if: ${{ github.event.inputs.output_mode == 'release' || github.event.inputs.output_mode == '' }}
     steps:
       - name: Download Installer Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: SMS_Installer
 
@@ -214,7 +214,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download Installer Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: SMS_Installer
 
