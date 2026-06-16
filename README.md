@@ -6,7 +6,7 @@
 
 **Built for:** [ΜΙΕΕΚ - Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης](https://www.mieek.ac.cy/index.php/el/)
 **Location:** Limassol, Cyprus
-**Version:** v1.18.27 (Production Ready)
+**Version:** v1.18.30 (Production Ready)
 
 Bilingual (EN/EL) student management system with dual deployment modes: Docker production stack and native development mode. Features RBAC, analytics dashboards, bulk import/export, attendance tracking, and a Windows installer.
 
@@ -17,7 +17,7 @@ Bilingual (EN/EL) student management system with dual deployment modes: Docker p
 - Backend tests: 929 passing
 - Frontend tests: 1,939 passing
 - E2E tests: 82 passing
-- Installer: `SMS_Installer_1.18.27.exe` (24.97 MB), signed
+- Installer: `SMS_Installer_1.18.30.exe` (25.08 MB), signed
 
 See [CHANGELOG.md](CHANGELOG.md) for full version history.
 
@@ -33,7 +33,7 @@ Read [CLAUDE.md](CLAUDE.md) before working on this project. It contains all mand
 
 ### End Users — Windows Installer
 
-1. Download `SMS_Installer_1.18.27.exe` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
+1. Download `SMS_Installer_1.18.30.exe` from [GitHub Releases](https://github.com/bs1gr/AUT_MIEEK_SMS/releases/latest)
 2. Right-click → **Run as Administrator**
 3. Follow the installation wizard
 4. Choose your edition:
