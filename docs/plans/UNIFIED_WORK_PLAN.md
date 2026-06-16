@@ -9,6 +9,27 @@
 
 ---
 
+## 🚀 v1.18.30 — Checkpoint Release (June 16, 2026)
+
+**Status**: ✅ RELEASED | GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.30
+
+### What was released
+- **31 prior releases archived** (v1.18.0–v1.18.29) → all converted to Pre-release on GitHub with ARCHIVED banners
+- **Comprehensive release notes** → `docs/releases/GITHUB_RELEASE_v1.18.30.md` (full feature inventory, tech stack, milestone table)
+- **Installer**: `SMS_Installer_1.18.30.exe` (25.08 MB), Authenticode-signed, smoke test passed
+- **Security**: starlette 1.3.1, cryptography 49.0.0, python-multipart 0.0.32, PyJWT 2.13.0, js-yaml >=4.2.0 (25 Dependabot alerts resolved)
+- **CI fix**: `((VAR++))` bash arithmetic crash under `set -euo pipefail` in 3 workflow files
+- **Installer source restore**: `dc21014fe` declutter had erroneously removed `installer-old/` build inputs; restored and re-tracked 15 essential files
+
+### Release Evidence
+- ✅ Tag `v1.18.30` created and pushed June 16, 2026
+- ✅ GitHub release published: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.30
+- ✅ Installer asset: `SMS_Installer_1.18.30.exe` uploaded
+- ✅ Version consistency tests: 8 passed, 4 skipped
+- ✅ CI/CD Pipeline: passing on main
+
+---
+
 ## 🔧 Post-v1.18.28 Improvements → Released as v1.18.29 (June 15, 2026)
 
 **Status**: ✅ RELEASED as v1.18.29 | 8 commits since `v1.18.28` tag, plus version bump + repo declutter
