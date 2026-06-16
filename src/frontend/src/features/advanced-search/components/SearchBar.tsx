@@ -218,7 +218,7 @@ export const SearchBar: React.FC<SearchBarProps> = ({
 
   return (
     <div className={`search-bar ${className}`} data-testid="search-bar">
-      <div className="flex gap-2 items-end">
+      <div className="flex flex-wrap gap-2 items-end">
         {/* Search Input */}
         <div className="flex-1 relative">
           <label

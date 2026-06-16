@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ListSkeleton, StudentCardSkeleton, VirtualList } from '@/components/ui';
+import { ListSkeleton, StudentCardSkeleton } from '@/components/ui';
 import { attendanceAPI, gradesAPI, coursesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { usePerformanceMonitor } from '@/hooks';
@@ -280,34 +280,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            {students.length >= 50 ? (
-              <VirtualList
-                items={students}
-                estimateSize={150}
-                renderItem={(student) => (
-                  <StudentCard
-                    key={student.id}
-                    student={student}
-                    stats={statsById[student.id]}
-                    isExpanded={expandedId === student.id}
-                    noteValue={notesById[student.id] || ''}
-                    onNoteChange={(value) => updateNote(student.id, value)}
-                    onToggleExpand={toggleExpand}
-                    onEdit={onEdit}
-                    onDelete={onDelete}
-                    coursesMap={coursesMap}
-                    onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
-                    onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
-                    onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
-                    onViewProfile={onViewProfile}
-                    data-testid={`student-card-${student.id}`}
-                  />
-                )}
-                emptyMessage={t('noStudentsFound')}
-                className="space-y-2"
-              />
-            ) : (
-              <ul className="space-y-2">
+            <ul className="space-y-2">
                 {students.map((student) => (
                   <StudentCard
                     key={student.id}
@@ -327,7 +300,6 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   />
                 ))}
               </ul>
-            )}
           </motion.div>
         )}
       </div>
@@ -336,23 +308,24 @@ const StudentsView: React.FC<StudentsViewProps> = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex items-center gap-2 mb-4">
         <input
           type="text"
           value={resolvedSearch}
           onChange={(e) => setResolvedSearch(e.target.value)}
           placeholder={t('searchStudents')}
-          className="border px-4 py-2 rounded w-full max-w-md"
+          className="border px-4 py-2 rounded flex-1 min-w-0"
           aria-label={t('searchStudents')}
           data-testid="student-search-input"
         />
         <button
           onClick={() => setShowAddModal(true)}
-          className="ml-4 bg-indigo-600 text-white px-4 py-2 rounded"
+          className="flex-shrink-0 bg-indigo-600 text-white px-3 py-2 sm:px-4 rounded flex items-center gap-1"
           aria-label={t('addStudent')}
           data-testid="add-student-btn"
         >
-          {t('addStudent')}
+          <span className="text-lg leading-none">+</span>
+          <span className="hidden sm:inline">{t('addStudent')}</span>
         </button>
       </div>
 

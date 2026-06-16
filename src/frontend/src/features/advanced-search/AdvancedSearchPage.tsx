@@ -77,11 +77,11 @@ export const AdvancedSearchPage: React.FC = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-8">
           {/* Sidebar */}
-          <div className="col-span-1">
+          <div className="lg:col-span-1 order-2 lg:order-1">
             <FacetedNavigation
-              className="mb-6"
+              className="mb-4 lg:mb-6"
               facets={results?.facets || {}}
               selected={state.selectedFacets || {}}
               onToggle={toggleFacet}
@@ -89,13 +89,13 @@ export const AdvancedSearchPage: React.FC = () => {
             />
 
             <SearchHistorySidebar
-              className="mb-6"
+              className="mb-4 lg:mb-6"
               onSelect={(q) => setQuery(q)}
             />
           </div>
 
           {/* Main Content */}
-          <div className="col-span-3">
+          <div className="lg:col-span-3 order-1 lg:order-2">
             {/* Search Bar */}
               <div className="bg-white rounded-lg shadow p-6 mb-6">
                 <SearchBar

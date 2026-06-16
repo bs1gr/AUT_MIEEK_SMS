@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import App from './App';
 import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
@@ -59,7 +59,7 @@ const rootElement = document.getElementById('root');
 if (!rootElement) throw new Error('Failed to find the root element');
 
 ReactDOM.createRoot(rootElement).render(
-  <BrowserRouter>
+  <HashRouter>
     <DateTimeSettingsProvider>
       <AuthProvider>
         <App>
@@ -98,5 +98,5 @@ ReactDOM.createRoot(rootElement).render(
         </App>
       </AuthProvider>
     </DateTimeSettingsProvider>
-  </BrowserRouter>
+  </HashRouter>
 );

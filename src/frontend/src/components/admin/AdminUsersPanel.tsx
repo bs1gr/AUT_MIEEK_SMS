@@ -446,11 +446,11 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-800 text-sm">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userName')}</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userEmail')}</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userRole')}</th>
-                <th className="px-4 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userStatus')}</th>
-                <th className="px-4 py-3 text-right font-medium text-gray-600 dark:text-gray-300">{t('userActions')}</th>
+                <th className="px-3 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userName')}</th>
+                <th className="hidden sm:table-cell px-3 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userEmail')}</th>
+                <th className="px-3 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userRole')}</th>
+                <th className="hidden sm:table-cell px-3 py-3 text-left font-medium text-gray-600 dark:text-gray-300">{t('userStatus')}</th>
+                <th className="px-3 py-3 text-right font-medium text-gray-600 dark:text-gray-300">{t('userActions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-800 bg-white dark:bg-gray-900">
@@ -463,7 +463,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
               )}
               {sortedUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50/70 dark:hover:bg-gray-800/50">
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     {editingId === user.id ? (
                       <input
                         type="text"
@@ -479,10 +479,10 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <p className="font-mono text-sm text-gray-800 dark:text-gray-100">{user.email}</p>
+                  <td className="hidden sm:table-cell px-3 py-3">
+                    <p className="font-mono text-sm text-gray-800 dark:text-gray-100 truncate max-w-[160px]">{user.email}</p>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     {editingId === user.id ? (
                       <select
                         className="w-full rounded-md border border-gray-300 px-2 py-1 text-sm dark:bg-gray-800"
@@ -504,7 +504,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="hidden sm:table-cell px-3 py-3">
                     {editingId === user.id ? (
                       <label className="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
                         <input
@@ -520,7 +520,7 @@ const AdminUsersPanel: React.FC<AdminUsersPanelProps> = ({ onToast }) => {
                       statusBadge(user.is_active)
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-3 text-right">
                     {editingId === user.id ? (
                       <div className="flex justify-end gap-2">
                         <button

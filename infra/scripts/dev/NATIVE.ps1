@@ -1202,9 +1202,16 @@ function Start-Backend {
 
         # Always use backend.main:app since WorkingDirectory is $SCRIPT_DIR (project root)
         $module = 'backend.main:app'
-        $args = @($module, "--host", "127.0.0.1", "--port", $targetBackendPort)
+        # Read API_HOST from backend .env; default 0.0.0.0 so mobile devices on the same network can reach the backend
+        $backendEnvFile = Join-Path $PROJECT_ROOT "src\backend\.env"
+        $backendHost = "0.0.0.0"
+        if (Test-Path $backendEnvFile) {
+            $hostLine = Select-String -Path $backendEnvFile -Pattern "^API_HOST\s*=" | Select-Object -Last 1
+            if ($hostLine) { $backendHost = ($hostLine.Line -split "=", 2)[1].Trim() }
+        }
+        $args = @($module, "--host", $backendHost, "--port", $targetBackendPort)
         if (-not $NoReload) {
-            $args = @($module, "--reload", "--host", "127.0.0.1", "--port", $targetBackendPort)
+            $args = @($module, "--reload", "--host", $backendHost, "--port", $targetBackendPort)
         }
 
         # Set PYTHONPATH and SMS environment variables for the backend process

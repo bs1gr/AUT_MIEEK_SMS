@@ -430,7 +430,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
               <div key={inst.name}>
                 {/* Instance row */}
                 <div
-                  className="flex items-center gap-4 px-6 py-4 cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 md:gap-4 px-3 md:px-6 py-3 md:py-4 cursor-pointer hover:bg-gray-50 transition-colors"
                   role="button"
                   tabIndex={0}
                   onClick={() => toggleExpand(inst.name)}
@@ -452,7 +452,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-gray-500 mt-0.5 truncate">
                       {inst.host}:{inst.port} / {inst.dbname}
                     </p>
                   </div>

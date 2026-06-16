@@ -62,15 +62,19 @@ export function VirtualList<T>({
       className={`overflow-auto virtual-list-container ${className}`}
     >
       <div
-        className="virtual-list-outer"
-        data-virtual-list-outer-size={virtualizer.getTotalSize()}
+        style={{ position: 'relative', width: '100%', height: `${virtualizer.getTotalSize()}px` }}
       >
         {virtualizer.getVirtualItems().map((virtualItem) => (
           <div
             key={virtualItem.key}
-            className={`virtual-list-item ${itemClassName}`}
-            data-virtual-list-item-size={virtualItem.size}
-            data-virtual-list-item-start={virtualItem.start}
+            className={itemClassName}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '100%',
+              transform: `translateY(${virtualItem.start}px)`,
+            }}
           >
             {renderItem(items[virtualItem.index], virtualItem.index)}
           </div>

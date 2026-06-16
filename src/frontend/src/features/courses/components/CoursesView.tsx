@@ -527,17 +527,17 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-3 rounded-xl">
-            <Settings className="text-white" size={28} />
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center space-x-3 min-w-0">
+          <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-2 md:p-3 rounded-xl flex-shrink-0">
+            <Settings className="text-white" size={22} />
           </div>
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800">{t('courseManagementTitle')}</h2>
-            <p className="text-gray-600">{t('configureCourseSettings')}</p>
+          <div className="min-w-0">
+            <h2 className="text-xl md:text-3xl font-bold text-gray-800 leading-tight">{t('courseManagementTitle')}</h2>
+            <p className="text-sm text-gray-600">{t('configureCourseSettings')}</p>
           </div>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => onAddCourse && onAddCourse()}
             className="inline-flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:shadow transition-colors"
@@ -599,36 +599,36 @@ const CourseManagement = ({ courses: externalCourses, loading: externalLoading =
             <div className="flex border-b border-gray-200">
               <button
                 onClick={() => setActiveTab('evaluation')}
-                className={`flex-1 px-6 py-4 font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                className={`flex-1 px-2 py-3 md:px-6 md:py-4 text-sm md:text-base font-semibold transition-colors flex items-center justify-center gap-1 md:gap-2 ${
                   activeTab === 'evaluation'
                     ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <Calculator size={20} />
-                <span>{t('evaluationRules')}</span>
+                <Calculator size={20} className="flex-shrink-0" />
+                <span className="hidden sm:inline">{t('evaluationRules')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('schedule')}
-                className={`flex-1 px-6 py-4 font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                className={`flex-1 px-2 py-3 md:px-6 md:py-4 text-sm md:text-base font-semibold transition-colors flex items-center justify-center gap-1 md:gap-2 ${
                   activeTab === 'schedule'
                     ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <CalendarIcon size={20} />
-                <span>{t('teachingSchedule')}</span>
+                <CalendarIcon size={20} className="flex-shrink-0" />
+                <span className="hidden sm:inline">{t('teachingSchedule')}</span>
               </button>
               <button
                 onClick={() => setActiveTab('enrollment')}
-                className={`flex-1 px-6 py-4 font-semibold transition-colors flex items-center justify-center space-x-2 ${
+                className={`flex-1 px-2 py-3 md:px-6 md:py-4 text-sm md:text-base font-semibold transition-colors flex items-center justify-center gap-1 md:gap-2 ${
                   activeTab === 'enrollment'
                     ? 'bg-indigo-50 text-indigo-600 border-b-2 border-indigo-600'
                     : 'text-gray-600 hover:bg-gray-50'
                 }`}
               >
-                <BookOpen size={20} />
-                <span>{t('enrollment') || 'Enrollment'}</span>
+                <BookOpen size={20} className="flex-shrink-0" />
+                <span className="hidden sm:inline">{t('enrollment') || 'Enrollment'}</span>
               </button>
             </div>
 

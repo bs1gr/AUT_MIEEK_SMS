@@ -614,7 +614,7 @@ const ServerControl: React.FC<ServerControlProps> = ({ onStatusSummary }) => {
             <div className="flex items-center justify-between">
               <div>
                 <div className="mb-2 text-sm font-semibold text-indigo-900">{t('uptime')}</div>
-                <div className="text-4xl font-bold text-indigo-600">
+                <div className="text-2xl md:text-4xl font-bold text-indigo-600 whitespace-nowrap">
                   {t('controlPanel.uptimeFormatShort', {
                     h: Math.floor(currentUptime / 3600),
                     m: Math.floor((currentUptime % 3600) / 60),

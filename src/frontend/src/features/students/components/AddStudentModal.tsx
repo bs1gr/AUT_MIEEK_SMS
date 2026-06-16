@@ -75,7 +75,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
         onClick={onClose}
       >
         <motion.div
-          className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+          className="bg-white rounded-2xl shadow-2xl p-4 md:p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto"
           variants={modalVariants}
           initial="hidden"
           animate="visible"
@@ -291,7 +291,7 @@ const AddStudentModal: React.FC<AddStudentModalProps> = ({ onClose, onAdd }) => 
               )}
             />
 
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex flex-wrap justify-end gap-3 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>
                 {t('cancel')}
               </Button>

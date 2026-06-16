@@ -1622,11 +1622,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
           <h4 className="font-semibold">{t('quickActions') || 'Quick Actions'}</h4>
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
-          <button onClick={() => selectAllAttendance('Present')} className="w-full sm:w-auto px-3 py-2 rounded bg-green-500 text-white flex items-center justify-center sm:justify-start gap-2"><CheckCircle size={16} /> {t('present') || 'Present'}</button>
-          <button onClick={() => selectAllAttendance('Absent')} className="w-full sm:w-auto px-3 py-2 rounded bg-red-500 text-white flex items-center justify-center sm:justify-start gap-2"><XCircle size={16} /> {t('absent') || 'Absent'}</button>
-          <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-3 py-2 rounded bg-yellow-500 text-white flex items-center justify-center sm:justify-start gap-2"><Clock size={16} /> {t('late') || 'Late'}</button>
-          <button onClick={() => selectAllAttendance('Excused')} className="w-full sm:w-auto px-3 py-2 rounded bg-blue-500 text-white flex items-center justify-center sm:justify-start gap-2"><AlertCircle size={16} /> {t('excused') || 'Excused'}</button>
-          <button onClick={clearAllAttendance} className="w-full sm:w-auto px-3 py-2 rounded bg-gray-700 text-white flex items-center justify-center sm:justify-start gap-2 hover:bg-gray-800">{t('clear') || 'Clear'}</button>
+          <button onClick={() => selectAllAttendance('Present')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-green-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><CheckCircle size={14} className="flex-shrink-0" /> {t('present') || 'Present'}</button>
+          <button onClick={() => selectAllAttendance('Absent')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-red-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><XCircle size={14} className="flex-shrink-0" /> {t('absent') || 'Absent'}</button>
+          <button onClick={() => selectAllAttendance('Late')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-yellow-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><Clock size={14} className="flex-shrink-0" /> {t('late') || 'Late'}</button>
+          <button onClick={() => selectAllAttendance('Excused')} className="w-full sm:w-auto px-2 py-1.5 text-xs sm:text-sm rounded bg-blue-500 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2"><AlertCircle size={14} className="flex-shrink-0" /> {t('excused') || 'Excused'}</button>
+          <button onClick={clearAllAttendance} className="w-full sm:w-auto col-span-2 sm:col-span-1 px-2 py-1.5 text-xs sm:text-sm rounded bg-gray-700 text-white flex items-center justify-center sm:justify-start gap-1 sm:gap-2 hover:bg-gray-800">{t('clear') || 'Clear'}</button>
         </div>
       </div>
 
@@ -1832,10 +1832,10 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       {/* Performance Modal */}
       {showPerformanceModal && selectedStudentForPerformance && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="text-xl font-bold">{t('dailyPerformance') || 'Daily Performance'} — {selectedStudentForPerformance.first_name} {selectedStudentForPerformance.last_name}</h4>
-              <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
+          <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto overflow-x-hidden">
+            <div className="flex items-center gap-2 justify-between mb-4">
+              <h4 className="text-base sm:text-xl font-bold min-w-0 flex-1 truncate">{t('dailyPerformance') || 'Daily Performance'} — {selectedStudentForPerformance.first_name} {selectedStudentForPerformance.last_name}</h4>
+              <button onClick={() => setShowPerformanceModal(false)} aria-label={t('close') || 'Close'} title={t('close') || 'Close'} className="flex-shrink-0 p-2 hover:bg-gray-100 rounded"><XCircle size={20} /></button>
             </div>
             <p className="text-sm text-gray-600 mb-3">{t('rateStudentPerformanceFor') || 'Rate for'} {selectedDate ? `${formatWeekday(selectedDate, localeOverride)} ${formatDate(selectedDate)}` : ''}</p>
 
@@ -1891,9 +1891,9 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
                               <span>
                                 {isChecked
                                   ? (isCustomSpecialScore
-                                    ? `Applied (${displayScore}/10, custom)`
-                                    : `Applied (${specialScoreWhenChecked}/10)`)
-                                  : 'Not applied (10/10)'}
+                                    ? `${t('applied') || 'Applied'} (${displayScore}/10, custom)`
+                                    : `${t('applied') || 'Applied'} (${specialScoreWhenChecked}/10)`)
+                                  : `${t('notApplied') || 'Not applied'} (10/10)`}
                               </span>
                             </label>
                           ) : (

@@ -112,7 +112,7 @@ function AppLayout({ children }: AppLayoutProps) {
   // Show loading state while initializing auth
   if (isInitializing) {
     return (
-      <div className="app-shell max-w-7xl mx-auto px-4 py-6 min-h-screen flex flex-col items-center justify-center">
+      <div className="app-shell max-w-7xl mx-auto px-3 md:px-4 py-4 min-h-screen flex flex-col items-center justify-center overflow-x-hidden">
         <div className="text-center space-y-4">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900">
             <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400 animate-spin" fill="none" viewBox="0 0 24 24">
@@ -146,7 +146,7 @@ function AppLayout({ children }: AppLayoutProps) {
   };
 
   return (
-    <div className="app-shell max-w-7xl mx-auto px-4 py-6 space-y-6 min-h-screen flex flex-col relative z-10">
+    <div className="app-shell max-w-7xl mx-auto px-3 md:px-4 py-4 md:py-6 space-y-4 md:space-y-6 min-h-screen flex flex-col relative z-10 overflow-x-hidden">
       {/* Backend Status Banner - appears at top when backend is unavailable */}
       <BackendStatusBanner />
 
@@ -161,17 +161,19 @@ function AppLayout({ children }: AppLayoutProps) {
         onOpenPasswordForm={handleOpenPasswordForm}
       />
 
-      {/* Header with Title and Language Toggle */}
-      <div className="flex flex-col gap-4 pb-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="space-y-1 pointer-events-none z-0">
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 pointer-events-none z-0">{t('systemTitle')}</h1>
+      {/* Header */}
+      <div className="flex items-center justify-between gap-2 pb-2 md:pb-4">
+        <div className="pointer-events-none z-0 min-w-0">
+          <h1 className="text-xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 truncate">
+            {t('systemTitle')}
+          </h1>
           {!isAuthenticated && (
-            <p className="max-w-xl text-sm text-gray-600 dark:text-gray-300">
+            <p className="hidden md:block max-w-xl text-sm text-gray-600 dark:text-gray-300 mt-1">
               {t('auth.loginDescription')}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-shrink-0">
           {isAuthenticated && <NotificationBell />}
           <LanguageSwitcher />
         </div>
@@ -179,12 +181,13 @@ function AppLayout({ children }: AppLayoutProps) {
 
       {/* Top Navigation */}
       {isAuthenticated && (
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center gap-2 relative">
           <Navigation
             activeView={getActiveView()}
             tabs={navigationTabs}
+            className="flex-1"
           />
-          <div className="flex items-center gap-3 self-end lg:self-auto">
+          <div className="flex-shrink-0">
             <LogoutButton />
           </div>
         </div>
@@ -193,8 +196,8 @@ function AppLayout({ children }: AppLayoutProps) {
       {/* Page Content */}
       <div className="flex-1 w-full relative">{children}</div>
 
-      {/* Feedback Button fixed at bottom right */}
-      <div className="fixed bottom-6 left-6 z-50">
+      {/* Feedback Button — desktop only, hidden on mobile to avoid content overlap */}
+      <div className="hidden md:block fixed bottom-6 right-4 z-50">
         <button
           className="px-4 py-2 rounded-full bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 text-sm"
           onClick={() => setShowFeedback(true)}

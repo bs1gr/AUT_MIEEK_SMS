@@ -14,7 +14,11 @@ try {
 
 const devProxyTarget = process.env.VITE_DEV_PROXY_TARGET || 'http://127.0.0.1:8000';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+  // Capacitor serves from file:// — relative base required for Android builds
+  const isAndroid = mode === 'android';
+  return {
+  base: isAndroid ? './' : '/',
   plugins: [
     react(),
     VitePWA({
@@ -216,4 +220,5 @@ export default defineConfig({
       polyfill: true,
     },
   },
+  }; // end return
 })

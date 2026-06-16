@@ -377,30 +377,30 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
   ];
 
   return (
-    <div data-testid="student-profile" className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8">
+    <div data-testid="student-profile" className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-3 sm:p-8">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <button
           type="button"
           onClick={onBack}
-          className="mb-6 flex items-center space-x-2 text-indigo-700 hover:text-indigo-600 transition-colors font-semibold drop-shadow-sm"
+          className="mb-4 flex items-center space-x-2 text-indigo-700 hover:text-indigo-600 transition-colors font-semibold drop-shadow-sm"
         >
           <ArrowLeft size={20} />
           <span>{t('backToStudents', { ns: 'students' })}</span>
         </button>
 
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-lg mb-6">
-          <div className="px-8 py-8">
-            <div className="flex items-center space-x-6">
-              <div className="w-32 h-32 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-2xl shadow-xl flex items-center justify-center text-white text-4xl font-bold border-4 border-white">
+        <div className="bg-white rounded-2xl shadow-lg mb-4 sm:mb-6">
+          <div className="px-4 py-5 sm:px-8 sm:py-8">
+            <div className="flex items-center space-x-3 sm:space-x-6">
+              <div className="w-16 h-16 sm:w-32 sm:h-32 flex-shrink-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl sm:rounded-2xl shadow-xl flex items-center justify-center text-white text-2xl sm:text-4xl font-bold border-2 sm:border-4 border-white">
                 {student.first_name[0]}{student.last_name[0]}
               </div>
-              <div>
-                <h1 className="text-3xl font-bold text-indigo-800 drop-shadow-sm">
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-3xl font-bold text-indigo-800 drop-shadow-sm truncate">
                   {student.first_name} {student.last_name}
                 </h1>
-                <p className="text-indigo-700 mt-1 font-semibold drop-shadow-sm">{t('studentID', { ns: 'students' })} {student.student_id}</p>
+                <p className="text-sm sm:text-base text-indigo-700 mt-1 font-semibold drop-shadow-sm truncate">{t('studentID', { ns: 'students' })} {student.student_id}</p>
               </div>
             </div>
 
@@ -417,9 +417,9 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
                 <button
                   type="button"
                   onClick={() => setShowPerformanceReport(true)}
-                  className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-6 py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl"
+                  className="w-full md:w-auto bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-2.5 sm:px-6 sm:py-3 rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl text-sm sm:text-base"
                 >
-                  <FileText size={20} />
+                  <FileText size={18} className="flex-shrink-0" />
                   <span>{t('studentPerformanceReport', { ns: 'reports' })}</span>
                 </button>
               </div>

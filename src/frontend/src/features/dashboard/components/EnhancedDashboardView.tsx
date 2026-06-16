@@ -765,20 +765,20 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
 
   return (
     <div className="space-y-6 pb-10">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 min-w-0">
           <img
             src="/logo.png"
             alt="MIEEK Logo"
-            className="h-10 w-auto object-contain"
+            className="h-8 w-auto object-contain flex-shrink-0"
           />
-          <h2 className="text-3xl font-semibold text-slate-900">{t('dashboardTitle')}</h2>
+          <h2 className="text-xl md:text-3xl font-semibold text-slate-900 dark:text-slate-100 truncate">{t('dashboardTitle')}</h2>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center rounded-xl border border-slate-200 bg-white p-1">
+        <div className="flex items-center gap-3 flex-shrink-0">
+          <div className="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-1">
             <button
               type="button"
-              className="rounded-lg bg-indigo-600 px-3 py-1.5 text-sm font-semibold text-white"
+              className="rounded-lg bg-indigo-600 px-3 py-2 text-sm font-semibold text-white min-h-[40px]"
               aria-current="page"
             >
               {t('dashboardOverviewTab')}
@@ -786,7 +786,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
             <button
               type="button"
               onClick={() => navigate('/analytics')}
-              className="rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:text-slate-900"
+              className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-slate-900 min-h-[40px]"
             >
               {t('dashboardAnalyticsTab')}
             </button>
@@ -877,10 +877,10 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
               </div>
 
               {/* Ranking Type Tabs */}
-              <div className="mb-4 flex gap-2 border-b border-slate-200">
+              <div className="mb-4 flex gap-1 overflow-x-auto border-b border-slate-200">
                 <button
                   onClick={() => setRankingType('gpa')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'gpa'
                       ? 'border-b-2 border-indigo-500 text-indigo-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -890,7 +890,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </button>
                 <button
                   onClick={() => setRankingType('attendance')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'attendance'
                       ? 'border-b-2 border-emerald-500 text-emerald-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -900,7 +900,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </button>
                 <button
                   onClick={() => setRankingType('exams')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'exams'
                       ? 'border-b-2 border-violet-500 text-violet-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -910,7 +910,7 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                 </button>
                 <button
                   onClick={() => setRankingType('overall')}
-                  className={`px-4 py-2 text-sm font-medium transition-colors ${
+                  className={`flex-shrink-0 px-3 py-2 text-xs sm:px-4 sm:text-sm font-medium transition-colors whitespace-nowrap ${
                     rankingType === 'overall'
                       ? 'border-b-2 border-amber-500 text-amber-600'
                       : 'text-slate-600 hover:text-slate-900'
@@ -1003,15 +1003,15 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
                               {secondaryInfo}
                             </p>
                           </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <div className="text-right">
-                              <p className="text-2xl font-semibold text-indigo-600">
+                              <p className="text-base sm:text-2xl font-semibold text-indigo-600 whitespace-nowrap">
                                 {primaryValue}
                               </p>
-                              <p className="text-xs text-slate-500">{primaryLabel}</p>
+                              <p className="text-[10px] text-slate-500 leading-tight max-w-[72px] truncate">{primaryLabel}</p>
                             </div>
                             {rankingType === 'gpa' && (
-                              <div className="rounded-lg border border-indigo-200 bg-white px-5 py-3 text-center">
+                              <div className="hidden sm:block rounded-lg border border-indigo-200 bg-white px-4 py-3 text-center">
                                 <p className="text-lg font-semibold text-indigo-700">
                                   {Math.round(continuousPercent)}
                                 </p>

@@ -108,21 +108,23 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
 
   return (
     <motion.li className="border p-4 rounded shadow-sm" variants={listItemVariants} role="listitem">
-      <div className="flex justify-between items-center">
-        <div>
-          <strong>{student.first_name} {student.last_name}</strong><br />
-          <span>{t('studentId')}: {student.student_id}</span>
-          {classLabel && (
-            <span className="ml-3 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
-              {classLabel}
-            </span>
-          )}
+      <div className="flex flex-col gap-2">
+        <div className="min-w-0">
+          <strong className="block truncate">{student.first_name} {student.last_name}</strong>
+          <div className="flex flex-wrap items-center gap-2 mt-1">
+            <span className="text-sm text-gray-600">{t('studentId')}: {student.student_id}</span>
+            {classLabel && (
+              <span className="text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded">
+                {classLabel}
+              </span>
+            )}
+          </div>
         </div>
-        <div className="space-x-2">
+        <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-100">
           {onViewProfile && (
             <button
               onClick={() => onViewProfile(student.id)}
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 hover:underline text-sm min-h-[36px]"
               aria-label={t('viewProfile') || t('fullProfile') || 'View Profile'}
               data-testid={`student-view-profile-btn-${student.id}`}
             >
@@ -131,7 +133,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           )}
           <button
             onClick={() => onToggleExpand(student.id)}
-            className="text-indigo-600 hover:underline font-medium"
+            className="text-indigo-600 hover:underline font-medium text-sm min-h-[36px]"
             aria-label={isExpanded ? t('close') : t('viewPerformance') || t('view')}
             data-testid={`student-expand-btn-${student.id}`}
           >
@@ -139,7 +141,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           </button>
           <button
             onClick={() => onEdit(student)}
-            className="text-green-600 hover:underline"
+            className="text-green-600 hover:underline text-sm min-h-[36px]"
             aria-label={t('edit')}
             data-testid={`student-edit-btn-${student.id}`}
           >
@@ -147,7 +149,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           </button>
           <button
             onClick={() => onDelete(student.id)}
-            className="text-red-600 hover:underline"
+            className="text-red-600 hover:underline text-sm min-h-[36px]"
             aria-label={t('delete')}
             data-testid={`student-delete-btn-${student.id}`}
           >
@@ -158,14 +160,14 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
 
       {isExpanded && (
         <div className="mt-4 space-y-6" role="region" aria-labelledby={`student-details-${student.id}`}>
-          <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-xl p-6 text-slate-900 shadow-lg border border-slate-200" id={`student-details-${student.id}`}>
-            <div className="flex items-center space-x-4">
-              <div className="w-20 h-20 bg-white rounded-xl flex items-center justify-center text-3xl font-bold border-2 border-slate-200 text-slate-900" aria-hidden="true">
+          <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-xl p-4 sm:p-6 text-slate-900 shadow-lg border border-slate-200" id={`student-details-${student.id}`}>
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-white rounded-xl flex items-center justify-center text-2xl sm:text-3xl font-bold border-2 border-slate-200 text-slate-900" aria-hidden="true">
                 {initials}
               </div>
-              <div>
-                <h3 className="text-2xl font-bold">{student.first_name} {student.last_name}</h3>
-                <p className="text-slate-600">{t('studentID')}: {student.student_id}</p>
+              <div className="min-w-0">
+                <h3 className="text-lg sm:text-2xl font-bold truncate">{student.first_name} {student.last_name}</h3>
+                <p className="text-sm text-slate-600">{t('studentID')}: {student.student_id}</p>
                 <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
                   {student.email && <span>📧 {student.email}</span>}
                   {classLabel && <span>🏫 {classLabel}</span>}

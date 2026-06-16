@@ -154,9 +154,13 @@
 /* Responsive */
 @media (max-width: 768px) {
   .notification-dropdown {
-    width: calc(100vw - 32px);
-    max-width: 380px;
-    right: -16px;
+    position: fixed;
+    top: 110px;
+    left: 8px;
+    right: 8px;
+    width: auto;
+    max-width: none;
+    max-height: calc(100dvh - 120px);
   }
 }
 
