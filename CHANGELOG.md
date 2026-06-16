@@ -8,7 +8,7 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 ---
 
-## [Unreleased] - Post-v1.18.29 (2026-06-16)
+## [1.18.30] - 2026-06-16
 
 ### Bug Fixes
 - Fix bash arithmetic `((VAR++))` crash under `set -euo pipefail` in 3 maintenance/cleanup workflow files
