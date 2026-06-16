@@ -29,6 +29,9 @@ concurrency:
   group: maintenance-${{ github.ref }}
   cancel-in-progress: false
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   # Determine which tasks to run
   determine-tasks:

@@ -8,6 +8,9 @@ on:
       - 'src/backend/requirements*.txt'
       - '.github/workflows/backend-deps.yml'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   audit:
     runs-on: ubuntu-latest

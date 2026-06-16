@@ -35,6 +35,9 @@ concurrency:
   group: load-testing-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
+
 jobs:
   load-test:
     runs-on: ubuntu-latest
