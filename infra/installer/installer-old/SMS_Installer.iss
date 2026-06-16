@@ -1,0 +1,2726 @@
+; ============================================================================
+; Student Management System - Inno Setup Installer Script
+; Version: 1.18.11 - Bilingual (English / Greek)
+; Requires Inno Setup 6.x (https://jrsoftware.org/isinfo.php)
+;
+; LATEST CHANGES (v1.18.11):
+; - Restore build-time generation of Greek RTF installer info files
+; - Installer upgrade profile-drift prevention (preserves existing PostgreSQL config)
+; - Local-first secure profile defaults for fresh installs
+; - Control Panel auto-updater with SHA256 verification
+; - Database management panel (backup, diagnostics, user admin)
+; - Offline support with centralized network status and reconnect sync
+; - Remote database credential upload UI
+; - SQL backup support (encrypted/unencrypted modes)
+;
+; NOTE: Inno Setup 6.x does not support UninstallExeName directive.
+; Workaround: Uninstaller is renamed from unins000.exe to unins{version}.exe
+; after installation using Pascal script in CurStepChanged(ssPostInstall).
+; ============================================================================
+
+#define MyAppName "Student Management System"
+#define MyAppShortName "SMS"
+#define MyAppPublisher "AUT MIEEK"
+#define MyAppURL "https://www.mieek.ac.cy/index.php/el/"
+#define MyAppGitHubURL "https://github.com/bs1gr/AUT_MIEEK_SMS"
+#define MyAppExeName "SMS_Manager.exe"
+#define MyAppId "{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}"
+
+; Read version from VERSION file (may include "v" prefix per Policy 2)
+#define VersionFile FileOpen("..\..\..\VERSION")
+#define MyAppVersion Trim(FileRead(VersionFile))
+#expr FileClose(VersionFile)
+; Strip "v" prefix for directives requiring numeric-only format (e.g. VersionInfoVersion)
+#define MyAppVersionNumeric StringChange(MyAppVersion, "v", "")
+
+[Setup]
+; Unique application ID - DO NOT CHANGE
+AppId={{B5A1E2F3-C4D5-6789-ABCD-EF0123456789}}
+AppName={#MyAppName}
+AppVersion={#MyAppVersion}
+AppVerName={#MyAppName} {#MyAppVersion}
+AppPublisher={#MyAppPublisher}
+AppPublisherURL={#MyAppURL}
+AppSupportURL={#MyAppGitHubURL}/issues
+AppUpdatesURL={#MyAppGitHubURL}/releases
+DefaultDirName={autopf}\{#MyAppShortName}
+DisableDirPage=yes
+DefaultGroupName={#MyAppName}
+AllowNoIcons=yes
+; License and info files are language-specific (set in [Languages])
+OutputDir=..\dist
+OutputBaseFilename=SMS_Installer_{#MyAppVersionNumeric}
+SetupIconFile=..\..\..\favicon.ico
+Compression=lzma2/ultra64
+SolidCompression=yes
+WizardStyle=modern
+WizardSizePercent=120
+PrivilegesRequired=admin
+ArchitecturesInstallIn64BitMode=x64
+MinVersion=10.0
+UninstallDisplayIcon={app}\favicon.ico
+UninstallFilesDir={app}
+UninstallDisplayName={#MyAppName} {#MyAppVersion}
+ShowLanguageDialog=yes
+DisableWelcomePage=no
+; Version info for Windows (shows in Properties and UAC dialogs)
+VersionInfoVersion={#MyAppVersionNumeric}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} Installer
+VersionInfoTextVersion={#MyAppVersion}
+VersionInfoCopyright=Copyright (C) 2024-2025 {#MyAppPublisher}
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#MyAppVersionNumeric}
+VersionInfoProductTextVersion={#MyAppVersion}
+; Upgrade/Update behavior
+UsePreviousAppDir=yes
+UsePreviousGroup=yes
+UsePreviousTasks=yes
+UsePreviousSetupType=yes
+CloseApplications=yes
+RestartApplications=yes
+AppMutex=StudentManagementSystemMutex
+
+; Modern look
+WizardImageFile=wizard_image.bmp
+WizardSmallImageFile=wizard_small.bmp
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"; LicenseFile: "..\..\..\LICENSE"; InfoBeforeFile: "installer_welcome.rtf"; InfoAfterFile: "installer_complete.rtf"
+Name: "greek"; MessagesFile: "Greek.isl"; LicenseFile: "LICENSE_EL.txt"; InfoBeforeFile: "installer_welcome_el.rtf"; InfoAfterFile: "installer_complete_el.rtf"
+
+; Note: Greek messages use local Greek.isl (official Inno translation)
+; Note: Greek info pages are regenerated during the installer build pipeline
+; English messages serve as fallback
+
+[CustomMessages]
+; English custom messages (Greek in Greek.isl)
+english.DockerRequired=Docker Desktop Required
+english.DockerNotFound=Docker Desktop was not detected.%n%nWould you like to open the Docker Desktop download page?
+english.LaunchApp=Launch SMS after installation
+english.CreateShortcut=Create desktop shortcut
+english.BuildContainer=Build Docker container (first run, ~5-10 min)
+english.Prerequisites=Prerequisites:
+english.OpenDockerPage=Open Docker Desktop download page
+english.DockerInstalled=Docker Desktop is installed and ready
+english.DockerNotInstalled=Docker Desktop is NOT installed
+english.DockerRunning=Docker Desktop is running
+english.DockerNotRunning=Docker Desktop is not running - please start it
+english.BuildingContainer=Building SMS Docker container...
+english.FirstRunNote=First run will build the container (takes 5-10 minutes)
+english.ExistingInstallDetected=Existing Installation Detected
+english.ExistingVersionFound=Version %1 is already installed at:%n%2%n%nWhat would you like to do?
+english.SameVersionFound=Version %1 is already installed at:%n%2%n%nWhat would you like to do?
+english.UpgradeOption=Update/Overwrite (keep data and settings)
+english.CleanInstallOption=Fresh Install (remove previous installation first)
+english.CancelOption=Cancel installation
+english.UpgradingFrom=Upgrading from version %1 to %2
+english.BackupCreated=Backup created at: %1
+english.KeepUserData=Keep user data (database, backups, settings)
+english.RemoveOldVersion=Remove previous version before installing
+english.UpgradePrompt=Click YES to update/overwrite, NO for fresh install, or CANCEL to abort.
+english.KeepDataPrompt=Do you want to keep your data (database, backups, settings)?%n%nClick YES to keep data for future reinstall.%nClick NO to remove everything.
+english.ViewReadme=View README documentation
+english.DockerStatusTitle=Docker Desktop Check
+english.DockerRefreshButton=Refresh
+; Installation Type Selection (Phase 1 - Native Lite Edition Support)
+english.InstallationType=Installation Type
+english.InstallTypeDesc=Choose which version of SMS to install
+english.InstallTypeIntro=Select the edition of Student Management System (SMS) you want to install:
+english.InstallDockerEdition=Docker Production Edition (Recommended)
+english.InstallDockerEditionDesc=Full-featured production deployment with Docker containers. Includes all features, automatic updates, and containerized environment. Requires Docker Desktop.
+english.InstallDockerOnly=Docker Production Only (Recommended)
+english.InstallDockerOnlyDesc=Minimal installation with Docker container (fastest, cleanest)
+english.InstallDevEnvironment=Include Development Environment
+english.InstallDevEnvironmentDesc=Add Node.js, Python, and native development files for local development
+english.InstallLiteEdition=Native Lite Edition (Lightweight Standalone)
+english.InstallLiteEditionDesc=Lightweight standalone executable (68 MB). Runs natively on Windows without Docker. Supports local SQLite and optional QNAP PostgreSQL integration. Perfect for individual PCs.
+english.DbConfigPageTitle=Database Configuration
+english.DbConfigPageSubtitle=Connect to your shared QNAP PostgreSQL database (recommended) or use local SQLite as fallback.
+english.DbConfigIntro=Choose how to connect to your student data. The shared QNAP database is recommended for most installations.
+english.DbLocalOption=Local SQLite (fallback when QNAP unreachable)
+english.DbLocalHint=Use only when your QNAP PostgreSQL server is not available. Data will be stored locally and can be migrated later.
+english.DbRemoteOption=QNAP PostgreSQL (shared NAS database - recommended)
+english.DbRemoteHint=Connect to the shared PostgreSQL database on your QNAP NAS. This is the primary database for all installations.
+english.DbCredentialsSection=QNAP PostgreSQL credentials file
+english.DbCredentialsFile=Credentials file (.json, .env, or .txt)
+english.DbBrowse=Browse...
+english.DbCredentialsHint=Use the same credentials file accepted in the Database Management panel.
+english.DbNoFileSelected=No credentials file selected.
+english.DbLoadedCredentials=Loaded credentials: %1:%2 / %3 (%4)
+english.DbLoadedExistingCredentials=Using existing saved remote credentials: %1:%2 / %3 (%4)
+english.DbLocalSummary=Database profile: Local SQLite (embedded file database)
+english.DbRemoteSummary=Database profile: QNAP PostgreSQL (%1:%2/%3)
+english.DbFileRequired=Please select a database credentials file (.json, .env, or .txt).
+english.DbFileMissing=Selected credentials file was not found.
+english.DbFileUnsupported=Unsupported file format. Use a .json, .env, or .txt credentials file.
+english.DbFileLoadFailed=Failed to read the credentials file.
+english.DbMissingRequired=Missing required credentials. The credentials file must define host, port, dbname, user, and password.
+english.DbAuthValidationFailed=Could not verify authentication to the QNAP PostgreSQL database using the loaded host, port, dbname, user, password, and SSL mode. This usually means the credentials file points to the wrong database, username, password, or SSL mode.%n%nContinue anyway?
+english.DbTcpValidationFailed=Could not verify TCP connectivity to the QNAP PostgreSQL host now. Continue anyway?
+english.DbFileDialogTitle=Select database credentials file
+english.DbFileBrowseFilter=Credentials files|*.json;*.env;*.txt|JSON files|*.json|ENV files|*.env;*.txt|All files|*.*
+
+; Greek translations for these keys are defined in installer\Greek.isl [CustomMessages]
+
+[Tasks]
+Name: "keepdata"; Description: "{cm:KeepUserData}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: checkedonce
+Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
+Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{cm:Prerequisites}"; Check: not IsDockerInstalled
+
+
+[Files]
+; Core application files - backend/frontend ALWAYS needed for Docker build
+; Exclude local runtime/test DB artifacts so workstation-only files cannot leak into installer builds.
+Source: "..\..\..\src\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
+Source: "..\..\..\src\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts"
+Source: "..\..\..\infra\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
+Source: "..\..\..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\..\..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
+; DEPLOYMENT OPTIMIZATION: Scripts folder excluded - only backup-database.sh needed (99% size reduction)
+Source: "..\..\..\scripts\backup-database.sh"; DestDir: "{app}\scripts"; Flags: ignoreversion; Check: IsProductionInstall
+Source: "..\..\..\templates\*"; DestDir: "{app}\templates"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+; Main scripts and executables - Docker-only or Lite Edition
+Source: "..\..\..\infra\scripts\dev\DOCKER.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "dist\SMS_Manager.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "..\..\..\infra\scripts\ops\UNINSTALL_SMS_MANUALLY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+Source: "run_docker_install.cmd"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDockerInstall
+
+; Native Lite Edition (SMS_Lite.exe) - built via PyInstaller in GitHub Actions
+; Note: SMS_Lite.exe is optional and only included if available (built separately via PyInstaller)
+#ifdef SMS_LITE_AVAILABLE
+Source: "dist\SMS_Lite.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: IsLiteInstall
+#else
+; SMS_Lite.exe not available - Docker Edition will be installed instead
+#endif
+; SMS_Native_Lite_Edition directory was removed during directory restructuring
+; Source: "..\SMS_Native_Lite_Edition\setup\*"; DestDir: "{app}\setup"; Check: IsLiteInstall
+; Source: "..\SMS_Native_Lite_Edition\docs\*"; DestDir: "{app}\docs"; Check: IsLiteInstall
+Source: "SaveLiteEditionQnapCredentials.ps1"; DestDir: "{app}"; Flags: ignoreversion
+
+; Development scripts - only for dev environment
+Source: "..\..\..\infra\scripts\dev\NATIVE.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\infra\scripts\ops\COMMIT_READY.ps1"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+
+; Icon file
+Source: "..\..\..\favicon.ico"; DestDir: "{app}"; Flags: ignoreversion
+
+; Documentation - keep only essential for all users
+Source: "..\..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\..\VERSION"; DestDir: "{app}"; Flags: ignoreversion
+; Production deployment docs referenced by installer README
+Source: "..\..\..\docs\deployment\QNAP_POSTGRES_SINGLE_SOURCE.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
+Source: "..\..\..\docs\deployment\QNAP_RECONCILE_RUNBOOK.md"; DestDir: "{app}\docs\deployment"; Flags: ignoreversion
+
+; Environment file template - needed for DOCKER.ps1 to create .env on first run
+Source: "..\..\..\config\.env.example"; DestDir: "{app}"; DestName: ".env.example"; Flags: ignoreversion
+
+; Dev documentation - only for dev environment
+Source: "..\..\..\CONTRIBUTING.md"; DestDir: "{app}"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\docs\DOCUMENTATION_INDEX.md"; DestDir: "{app}\docs"; Flags: ignoreversion; Check: IsDevInstall
+
+; Example env files - only for dev environment
+Source: "..\..\..\src\backend\.env.example"; DestDir: "{app}\backend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
+Source: "..\..\..\src\frontend\.env.example"; DestDir: "{app}\frontend"; DestName: ".env.example"; Flags: ignoreversion; Check: IsDevInstall
+
+; Create data directory
+Source: "placeholder.txt"; DestDir: "{app}\data"; Flags: ignoreversion
+
+[Dirs]
+Name: "{app}\data"; Permissions: users-modify
+Name: "{app}\logs"; Permissions: users-modify
+Name: "{app}\backups"; Permissions: users-modify
+
+[UninstallDelete]
+; Clean up runtime-generated files and directories
+; These are created during Docker builds or application runtime
+Type: filesandordirs; Name: "{app}\backend\__pycache__"
+Type: filesandordirs; Name: "{app}\backend\.pytest_cache"
+Type: filesandordirs; Name: "{app}\backend\logs"
+Type: filesandordirs; Name: "{app}\backend\.venv"
+Type: filesandordirs; Name: "{app}\frontend\node_modules"
+Type: filesandordirs; Name: "{app}\frontend\dist"
+Type: files; Name: "{app}\backend\.env"
+Type: files; Name: "{app}\frontend\.env"
+Type: files; Name: "{app}\.env"
+Type: files; Name: "{app}\config\lang.txt"
+; Legacy launcher cleanup
+Type: files; Name: "{app}\docker_manager.bat"
+Type: files; Name: "{app}\docker_manager.cmd"
+; Note: data/, backups/, logs/ folders are handled by InitializeUninstall
+; to give user choice whether to keep or delete them
+
+[Icons]
+; Start Menu shortcut - Docker Edition or Lite Edition (only one will be created based on installation type)
+; Docker Edition - Start Menu
+Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Check: IsDockerInstall
+; Lite Edition - Start Menu (overrides Docker shortcut for Lite installs)
+Name: "{group}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Lite Edition"; Check: IsLiteInstall
+
+; Documentation shortcut (both editions)
+Name: "{group}\SMS Documentation"; Filename: "{app}\README.md"; IconFilename: "{app}\favicon.ico"
+
+; Docker Edition - Manual Uninstaller
+Name: "{group}\Manual Uninstaller (for broken installations)"; Filename: "pwsh.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\UNINSTALL_SMS_MANUALLY.ps1"""; WorkingDir: "{app}"; IconFilename: "{sys}\shell32.dll"; IconIndex: 31; Comment: "Remove SMS if standard uninstall fails"; Check: IsDockerInstall
+
+; Uninstall shortcut (both editions)
+Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
+
+; Desktop shortcut (optional) - Docker Edition
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Start/Stop/Manage SMS Docker container"; Tasks: desktopicon; Check: IsDockerInstall
+; Desktop shortcut (optional) - Lite Edition
+Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\SMS_Lite.exe"; WorkingDir: "{app}"; IconFilename: "{app}\favicon.ico"; Comment: "Launch SMS Lite Edition"; Tasks: desktopicon; Check: IsLiteInstall
+
+
+[Run]
+; Open Docker download page if requested (Docker Edition only)
+Filename: "cmd"; Parameters: "/c start https://www.docker.com/products/docker-desktop/"; Flags: postinstall shellexec nowait; Tasks: installdocker; Check: IsDockerInstall
+
+; Option to launch Docker app after install
+Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsDockerInstall
+
+; Option to launch Lite Edition app after install
+Filename: "{app}\SMS_Lite.exe"; Description: "{cm:LaunchApp}"; Flags: postinstall nowait skipifsilent runascurrentuser; WorkingDir: "{app}"; Check: IsLiteInstall
+
+; Open README
+Filename: "{app}\README.md"; Description: "{cm:ViewReadme}"; Flags: postinstall shellexec skipifsilent unchecked
+
+[Code]
+var
+  DockerPage: TWizardPage;
+  DockerStatusLabel: TLabel;
+  DockerInfoLabel: TLabel;
+  RefreshButton: TButton;
+  InstallTypeSelectionPage: TWizardPage;
+  DockerEditionRadio: TRadioButton;
+  LiteEditionRadio: TRadioButton;
+  LiteQnapPage: TWizardPage;
+  LiteQnapLabel: TLabel;
+  LiteQnapYesRadio: TRadioButton;
+  LiteQnapNoRadio: TRadioButton;
+  LiteQnapFileLabel: TLabel;
+  LiteQnapFileEdit: TEdit;
+  LiteQnapFileBrowseButton: TButton;
+  LiteQnapOrLabel: TLabel;
+  LiteQnapManualLabel: TLabel;
+  LiteQnapHostLabel: TLabel;
+  LiteQnapHostEdit: TEdit;
+  LiteQnapPortLabel: TLabel;
+  LiteQnapPortEdit: TEdit;
+  LiteQnapDbLabel: TLabel;
+  LiteQnapDbEdit: TEdit;
+  LiteQnapUserLabel: TLabel;
+  LiteQnapUserEdit: TEdit;
+  LiteQnapPassLabel: TLabel;
+  LiteQnapPassEdit: TEdit;
+  PostgresPage: TWizardPage;
+  DbProfileInfoLabel: TLabel;
+  LocalSQLiteRadio: TRadioButton;
+  LocalSQLiteHintLabel: TLabel;
+  QnapPostgresRadio: TRadioButton;
+  QnapPostgresHintLabel: TLabel;
+  QnapConfigLabel: TLabel;
+  CredentialsFileLabel: TLabel;
+  CredentialsFileEdit: TEdit;
+  CredentialsBrowseButton: TButton;
+  CredentialsHintLabel: TLabel;
+  CredentialsStatusLabel: TLabel;
+  PgHostLabel: TLabel;
+  PgPortLabel: TLabel;
+  PgDbLabel: TLabel;
+  PgUserLabel: TLabel;
+  PgPassLabel: TLabel;
+  PgHostEdit: TEdit;
+  PgPortEdit: TEdit;
+  PgDbEdit: TEdit;
+  PgUserEdit: TEdit;
+  PgPassEdit: TEdit;
+  PgSslLabel: TLabel;
+  PgSslEdit: TComboBox;
+  DockerBuildPage: TWizardPage;
+  DockerBuildStatusLabel: TLabel;
+  PreviousVersion: String;
+  PreviousInstallPath: String;
+  IsUpgrade: Boolean;
+  UpgradeBackupPath: String;
+  PgHost: String;
+  PgPort: String;
+  PgDb: String;
+  PgUser: String;
+  PgPass: String;
+  PgSsl: String;
+  SelectedDatabaseProfile: String;
+  SelectedInstallationType: String;
+
+// Forward declarations
+function UrlEncode(const S: String): String; forward;
+function StringReplaceAll(const Source, OldPattern, NewPattern: AnsiString): AnsiString; forward;
+function ExtractJsonValue(const JsonContent: String; const Key: String): String; forward;
+function TestPostgresTcpConnection(Host: String; Port: String): Boolean; forward;
+function TestDockerReady: Boolean; forward;
+function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean; forward;
+procedure UpdateLiteQnapUI(Sender: TObject); forward;
+procedure BrowseLiteQnapCredentialsFile(Sender: TObject); forward;
+procedure LoadLiteQnapCredentialsFromFile(FileName: String); forward;
+procedure UpdateDatabaseProfileUI(Sender: TObject); forward;
+procedure LoadPostgresDefaults; forward;
+procedure BrowseCredentialsFile(Sender: TObject); forward;
+function LoadCredentialsFromSelectedFile(ShowErrors: Boolean): Boolean; forward;
+procedure UpdateCredentialsStatus; forward;
+function GetPowerShellExe: String; forward;
+function HasRequiredRemoteCredentials: Boolean; forward;
+
+// Function to check if this is a Lite Edition install
+function IsLiteInstall: Boolean;
+begin
+  Result := (SelectedInstallationType = 'lite');
+end;
+
+// Function to check if this is a Docker Edition install
+function IsDockerInstall: Boolean;
+begin
+  Result := (SelectedInstallationType = 'docker');
+end;
+
+// Function to check if this is a dev environment install
+function IsDevInstall: Boolean;
+begin
+  Result := False; // Production installer does not support dev environment
+end;
+
+// Function to check if this is a production install (always true)
+function IsProductionInstall: Boolean;
+begin
+  Result := True; // Production installer - always include production files
+end;
+
+// Function to check if this is an upgrade (for Tasks Check)
+function IsUpgradeInstall: Boolean;
+begin
+  Result := IsUpgrade;
+end;
+
+function GetInstallDirSafe: String;
+begin
+  Result := WizardDirValue;
+  if Result = '' then
+    Result := PreviousInstallPath;
+  if Result = '' then
+    Result := ExpandConstant('{autopf}\{#MyAppShortName}');
+end;
+
+function IsDockerInstalled: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('cmd', '/c docker --version', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function IsDockerRunning: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('cmd', '/c docker info', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function ContainerExists: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('cmd', '/c docker inspect sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function ExtractJsonValue(const JsonContent: String; const Key: String): String;
+var
+  SearchStr: String;
+  StartPos: Integer;
+  EndPos: Integer;
+  ValueStr: String;
+  i: Integer;
+  InQuotes: Boolean;
+begin
+  Result := '';
+  SearchStr := '"' + Key + '":';
+  StartPos := Pos(SearchStr, JsonContent);
+
+  if StartPos = 0 then
+    Exit;
+
+  // Move past the key and colon
+  StartPos := StartPos + Length(SearchStr);
+
+  // Skip whitespace
+  while (StartPos <= Length(JsonContent)) and (JsonContent[StartPos] in [' ', #9]) do
+    Inc(StartPos);
+
+  // Check if value is quoted
+  if (StartPos <= Length(JsonContent)) and (JsonContent[StartPos] = '"') then
+  begin
+    // Skip opening quote
+    Inc(StartPos);
+    EndPos := StartPos;
+    InQuotes := True;
+
+    // Find closing quote
+    while (EndPos <= Length(JsonContent)) and InQuotes do
+    begin
+      if JsonContent[EndPos] = '"' then
+        InQuotes := False
+      else if JsonContent[EndPos] = '\' then
+        Inc(EndPos); // Skip escaped character
+      if InQuotes then
+        Inc(EndPos);
+    end;
+
+    if EndPos > StartPos then
+      Result := Copy(JsonContent, StartPos, EndPos - StartPos);
+  end
+  else if (StartPos <= Length(JsonContent)) and (JsonContent[StartPos] <> '{') then
+  begin
+    // Unquoted value (number, null, etc.)
+    EndPos := StartPos;
+    while (EndPos <= Length(JsonContent)) and not (JsonContent[EndPos] in [',', '}', ']', #13, #10]) do
+      Inc(EndPos);
+
+    Result := Trim(Copy(JsonContent, StartPos, EndPos - StartPos));
+  end;
+end;
+
+function GetUninstallString: String;
+var
+  UninstallStr: String;
+begin
+  Result := '';
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+     'UninstallString', UninstallStr) then
+    Result := UninstallStr
+  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+     'UninstallString', UninstallStr) then
+    Result := UninstallStr;
+end;
+
+function UninstallPreviousVersion: Boolean;
+var
+  UninstallStr: String;
+  UninstallPath: String;
+  ResultCode: Integer;
+begin
+  Result := True;
+  UninstallStr := GetUninstallString;
+  if UninstallStr <> '' then
+  begin
+    // Remove quotes from the uninstall string
+    UninstallPath := RemoveQuotes(UninstallStr);
+    Log('Attempting to run uninstaller: ' + UninstallPath);
+
+    if FileExists(UninstallPath) then
+    begin
+      // Run uninstaller silently - use SW_SHOWNORMAL so we can see it working
+      if Exec(UninstallPath, '/VERYSILENT /NORESTART /SUPPRESSMSGBOXES', '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
+      begin
+        Log('Uninstaller returned code: ' + IntToStr(ResultCode));
+        Result := (ResultCode = 0);
+      end
+      else
+      begin
+        Log('Failed to execute uninstaller');
+        Result := False;
+      end;
+    end
+    else
+    begin
+      Log('Uninstaller not found at: ' + UninstallPath);
+      Result := False;
+    end;
+  end
+  else
+  begin
+    Log('No uninstall string found in registry');
+  end;
+end;
+
+function GetPreviousVersion: String;
+var
+  Version: String;
+begin
+  Result := '';
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+     'DisplayVersion', Version) then
+    Result := Version
+  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+     'DisplayVersion', Version) then
+    Result := Version;
+end;
+
+function GetPreviousInstallPath: String;
+var
+  Path: String;
+begin
+  Result := '';
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+     'InstallLocation', Path) then
+    Result := Path
+  else if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+     'InstallLocation', Path) then
+    Result := Path;
+end;
+
+function AppExistsOnDisk(Path: String): Boolean;
+var
+  Indicators: array of String;
+  i: Integer;
+begin
+  Result := False;
+
+  if (Path = '') or not DirExists(Path) then
+    Exit;
+
+  SetArrayLength(Indicators, 8);
+  Indicators[0] := Path + '\VERSION';
+  Indicators[1] := Path + '\SMS_Manager.exe';
+  Indicators[2] := Path + '\docker_manager.cmd';
+  Indicators[3] := Path + '\SMS Toggle.bat';
+  Indicators[4] := Path + '\SMS Toggle.cmd';
+  Indicators[5] := Path + '\DOCKER.ps1';
+  Indicators[6] := Path + '\UNINSTALL_SMS_MANUALLY.ps1';
+  Indicators[7] := Path + '\docker\docker-compose.yml';
+
+  for i := 0 to GetArrayLength(Indicators) - 1 do
+  begin
+    if FileExists(Indicators[i]) then
+    begin
+      Result := True;
+      Exit;
+    end;
+  end;
+end;
+
+function ReadVersionFromDirectory(BasePath: String): String;
+var
+  VersionData: AnsiString;
+begin
+  Result := '';
+
+  if FileExists(BasePath + '\VERSION') then
+  begin
+    if LoadStringFromFile(BasePath + '\VERSION', VersionData) then
+    begin
+      Result := Trim(String(VersionData));
+      if Result = '' then
+        Result := 'Unknown';
+    end;
+  end;
+end;
+
+function PreserveDirName(DirName: String): Boolean;
+begin
+  Result := (DirName = 'data') or (DirName = 'backups') or (DirName = 'logs') or (DirName = 'config');
+end;
+
+function PreserveFileName(FileName: String): Boolean;
+begin
+  Result := (FileName = '.env');
+end;
+
+procedure CleanupLegacyShortcuts;
+begin
+  Log('Cleaning legacy and stale shortcuts for upgrade...');
+
+  { Legacy desktop shortcuts }
+  DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
+
+  { Current desktop shortcut (forces recreation with new target) }
+  DeleteFile(ExpandConstant('{userdesktop}\{#MyAppName}.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\{#MyAppName}.lnk'));
+
+  { Start menu shortcuts (legacy + current) }
+  DeleteFile(ExpandConstant('{userprograms}\{#MyAppName}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{commonprograms}\{#MyAppName}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{userprograms}\{#MyAppName}\{#MyAppName}.lnk'));
+  DeleteFile(ExpandConstant('{commonprograms}\{#MyAppName}\{#MyAppName}.lnk'));
+
+  Log('Shortcut cleanup complete');
+end;
+
+procedure RemoveOldInstanceFiles(BasePath: String);
+var
+  FindRec: TFindRec;
+  ItemPath: String;
+begin
+  if BasePath = '' then
+    Exit;
+
+  if FindFirst(BasePath + '\*', FindRec) then
+  begin
+    try
+      repeat
+        if (FindRec.Name <> '.') and (FindRec.Name <> '..') then
+        begin
+          ItemPath := BasePath + '\' + FindRec.Name;
+          if FindRec.Attributes and FILE_ATTRIBUTE_DIRECTORY <> 0 then
+          begin
+            if not PreserveDirName(FindRec.Name) then
+            begin
+              Log('Removing old directory: ' + ItemPath);
+              DelTree(ItemPath, True, True, True);
+            end
+            else
+              Log('Preserving directory: ' + ItemPath);
+          end
+          else
+          begin
+            if not PreserveFileName(FindRec.Name) then
+            begin
+              Log('Removing old file: ' + ItemPath);
+              DeleteFile(ItemPath);
+            end
+            else
+              Log('Preserving file: ' + ItemPath);
+          end;
+        end;
+      until not FindNext(FindRec);
+    finally
+      FindClose(FindRec);
+    end;
+  end;
+end;
+
+procedure LogAndRenameUninstallerSidecar(const OldPath, NewPath, LabelName: String);
+begin
+  if FileExists(OldPath) then
+  begin
+    Log('  Attempting to rename ' + LabelName + ': ' + OldPath + ' -> ' + NewPath);
+    if FileExists(NewPath) then
+    begin
+      Log('    Removing previous ' + LabelName + ' at new path');
+      if not DeleteFile(NewPath) then
+        Log('    [WARN] Could not remove existing ' + LabelName + ' at new path');
+    end;
+
+    if RenameFile(OldPath, NewPath) then
+      Log('    [OK] ' + LabelName + ' renamed successfully')
+    else
+      Log('    [WARN] Could not rename ' + LabelName + ' (likely locked by system)');
+  end
+  else
+    Log('  ' + LabelName + ' not found at expected path: ' + OldPath);
+end;
+
+procedure CleanOldUninstallers(BasePath: String);
+var
+  FilePath: String;
+  Patterns: array of String;
+  i: Integer;
+  Deleted: Integer;
+begin
+  Log('Cleaning old uninstaller files from: ' + BasePath);
+
+  SetArrayLength(Patterns, 8);
+  Patterns[0] := BasePath + '\unins000.exe';
+  Patterns[1] := BasePath + '\unins000.dat';
+  Patterns[2] := BasePath + '\unins000.msg';
+  Patterns[3] := BasePath + '\unins1.12.3.exe';
+  Patterns[4] := BasePath + '\unins1.12.3.dat';
+  Patterns[5] := BasePath + '\unins1.17.6.exe';
+  Patterns[6] := BasePath + '\unins1.17.6.dat';
+  Patterns[7] := BasePath + '\unins1.17.7.exe';
+
+  Deleted := 0;
+  for i := 0 to GetArrayLength(Patterns) - 1 do
+  begin
+    FilePath := Patterns[i];
+    if FileExists(FilePath) then
+    begin
+      if DeleteFile(FilePath) then
+      begin
+        Log('  [OK] Deleted: ' + FilePath);
+        Deleted := Deleted + 1;
+      end
+      else
+      begin
+        Log('  [WARN] Could not delete (locked): ' + FilePath);
+      end;
+    end;
+  end;
+
+  Log('Uninstaller cleanup complete: ' + IntToStr(Deleted) + ' files deleted');
+end;
+
+procedure CleanOldDockerImages;
+var
+  ResultCode: Integer;
+begin
+  Log('Cleaning old Docker images...');
+  // Remove old sms-fullstack images (keep only latest)
+  Exec('cmd', '/c docker rmi sms-fullstack:1.12.3 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rmi sms-fullstack:1.17.6 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Log('Old Docker images removed');
+end;
+
+function DetectExistingInstallation(var OutPath: String; var OutVersion: String): Boolean;
+var
+  RegPath, RegistryVersion: String;
+  DefaultPath: String;
+begin
+  Result := False;
+  DefaultPath := ExpandConstant('{autopf}\{#MyAppShortName}');
+  OutVersion := '';
+  OutPath := '';
+
+  // Check 1: Registry HKLM
+  if RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'InstallLocation', RegPath) then
+  begin
+    if AppExistsOnDisk(RegPath) then
+    begin
+      OutPath := RegPath;
+      RegQueryStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
+      OutVersion := RegistryVersion;
+      if OutVersion = '' then
+        OutVersion := ReadVersionFromDirectory(OutPath);
+      Log(Format('Found installation via HKLM registry: %s (version: %s)', [OutPath, OutVersion]));
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  // Check 2: Registry HKCU
+  if RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'InstallLocation', RegPath) then
+  begin
+    if AppExistsOnDisk(RegPath) then
+    begin
+      OutPath := RegPath;
+      RegQueryStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1', 'DisplayVersion', RegistryVersion);
+      OutVersion := RegistryVersion;
+      if OutVersion = '' then
+        OutVersion := ReadVersionFromDirectory(OutPath);
+      Log(Format('Found installation via HKCU registry: %s (version: %s)', [OutPath, OutVersion]));
+      Result := True;
+      Exit;
+    end;
+  end;
+
+  // Check 3: Default installation path
+  if AppExistsOnDisk(DefaultPath) then
+  begin
+    OutPath := DefaultPath;
+    OutVersion := ReadVersionFromDirectory(DefaultPath);
+    if OutVersion = '' then
+      OutVersion := 'Unknown';
+    Log(Format('Found installation at default path: %s (version: %s)', [DefaultPath, OutVersion]));
+    Result := True;
+    Exit;
+  end;
+
+  Log('No existing SMS installation detected');
+end;
+
+function InitializeSetup: Boolean;
+var
+  Choice: Integer;
+  Msg: String;
+  ExistingVersion: String;
+  ExistingPath: String;
+  AppExists: Boolean;
+  IsSameVersion: Boolean;
+begin
+  Result := True;
+  IsUpgrade := False;
+
+  // Clean up old shortcuts from previous installations
+  DeleteFile(ExpandConstant('{userdesktop}\SMS Toggle.lnk'));
+  DeleteFile(ExpandConstant('{commondesktop}\SMS Toggle.lnk'));
+
+  // Use robust detection function
+  AppExists := DetectExistingInstallation(PreviousInstallPath, PreviousVersion);
+
+  if not AppExists then
+  begin
+    // No existing installation - proceed with fresh install
+    IsUpgrade := False;
+    Log('InitializeSetup: Fresh installation, no existing SMS found');
+    Result := True;
+    Exit;
+  end;
+
+  // Installation exists - validate version
+  Log('InitializeSetup: Existing installation found at: ' + PreviousInstallPath);
+  Log('InitializeSetup: Existing version: ' + PreviousVersion + ', New version: {#MyAppVersion}');
+
+  IsSameVersion := (PreviousVersion = '{#MyAppVersion}');
+
+  // Build message based on version comparison
+  if IsSameVersion then
+  begin
+    Msg := 'Version {#MyAppVersion} is already installed at:' + #13#10 +
+           PreviousInstallPath + #13#10#13#10 +
+           'Click YES to reinstall/repair, or NO to cancel installation.';
+  end
+  else
+  begin
+    Msg := 'Version ' + PreviousVersion + ' is already installed at:' + #13#10 +
+           PreviousInstallPath + #13#10#13#10 +
+           'Your data and settings will be preserved.' + #13#10#13#10 +
+           'Click YES to upgrade to version {#MyAppVersion}, or NO to cancel.';
+  end;
+
+  // Show upgrade confirmation dialog
+  Choice := MsgBox(Msg, mbInformation, MB_YESNO);
+
+  case Choice of
+    IDYES:
+      begin
+        // ALWAYS upgrade in-place (never fresh install if app exists)
+        IsUpgrade := True;
+        // CRITICAL: Ensure installation path is ALWAYS the same
+        // DisableDirPage ensures no user selection, so {app} will be the existing path
+        Log('InitializeSetup: Proceeding with upgrade');
+        Result := True;
+      end;
+    IDNO:
+      begin
+        // User cancelled
+        Log('InitializeSetup: User cancelled installation');
+        Result := False;
+      end;
+  end;
+end;
+
+procedure UpdateDockerStatus(Sender: TObject);
+var
+  StatusText, InfoText: String;
+begin
+  if IsDockerInstalled then
+  begin
+    StatusText := '✓ ' + CustomMessage('DockerInstalled');
+    DockerStatusLabel.Font.Color := clGreen;
+
+    if IsDockerRunning then
+      InfoText := '✓ ' + CustomMessage('DockerRunning')
+    else
+      InfoText := '⚠ ' + CustomMessage('DockerNotRunning');
+  end
+  else
+  begin
+    StatusText := '✗ ' + CustomMessage('DockerNotInstalled');
+    InfoText := CustomMessage('DockerNotFound');
+    DockerStatusLabel.Font.Color := $000080FF; // Orange
+  end;
+
+  InfoText := InfoText + #13#10#13#10 + CustomMessage('FirstRunNote');
+
+  DockerStatusLabel.Caption := StatusText;
+  DockerInfoLabel.Caption := InfoText;
+end;
+
+procedure InitializeWizard;
+var
+  DockerOnlyDesc: TLabel;
+  DevEnvDesc: TLabel;
+  InstallTypeDesc: TLabel;
+begin
+  // Initialize default installation type
+  SelectedInstallationType := 'docker';
+
+  // Create custom Installation Type selection page (early in wizard)
+  InstallTypeSelectionPage := CreateCustomPage(wpLicense, CustomMessage('InstallationType'),
+    CustomMessage('InstallTypeDesc'));
+
+  InstallTypeDesc := TLabel.Create(InstallTypeSelectionPage);
+  InstallTypeDesc.Parent := InstallTypeSelectionPage.Surface;
+  InstallTypeDesc.AutoSize := False;
+  InstallTypeDesc.Left := 0;
+  InstallTypeDesc.Top := 10;
+  InstallTypeDesc.Width := InstallTypeSelectionPage.SurfaceWidth;
+  InstallTypeDesc.Height := 32;
+  InstallTypeDesc.WordWrap := True;
+  InstallTypeDesc.Caption := CustomMessage('InstallTypeIntro');
+
+  DockerEditionRadio := TRadioButton.Create(InstallTypeSelectionPage);
+  DockerEditionRadio.Parent := InstallTypeSelectionPage.Surface;
+  DockerEditionRadio.Left := 0;
+  DockerEditionRadio.Top := 52;
+  DockerEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
+  DockerEditionRadio.Caption := CustomMessage('InstallDockerEdition');
+  DockerEditionRadio.Checked := True;
+
+  DockerOnlyDesc := TLabel.Create(InstallTypeSelectionPage);
+  DockerOnlyDesc.Parent := InstallTypeSelectionPage.Surface;
+  DockerOnlyDesc.AutoSize := False;
+  DockerOnlyDesc.Left := 20;
+  DockerOnlyDesc.Top := 76;
+  DockerOnlyDesc.Width := InstallTypeSelectionPage.SurfaceWidth - 20;
+  DockerOnlyDesc.Height := 48;
+  DockerOnlyDesc.WordWrap := True;
+  DockerOnlyDesc.Caption := CustomMessage('InstallDockerEditionDesc');
+
+  LiteEditionRadio := TRadioButton.Create(InstallTypeSelectionPage);
+  LiteEditionRadio.Parent := InstallTypeSelectionPage.Surface;
+  LiteEditionRadio.Left := 0;
+  LiteEditionRadio.Top := 136;
+  LiteEditionRadio.Width := InstallTypeSelectionPage.SurfaceWidth;
+  LiteEditionRadio.Caption := CustomMessage('InstallLiteEdition');
+  LiteEditionRadio.Checked := False;
+  LiteEditionRadio.Enabled := True;  // Lite Edition now built in GitHub Actions via PyInstaller
+
+  DevEnvDesc := TLabel.Create(InstallTypeSelectionPage);
+  DevEnvDesc.Parent := InstallTypeSelectionPage.Surface;
+  DevEnvDesc.AutoSize := False;
+  DevEnvDesc.Left := 20;
+  DevEnvDesc.Top := 160;
+  DevEnvDesc.Width := InstallTypeSelectionPage.SurfaceWidth - 20;
+  DevEnvDesc.Height := 48;
+  DevEnvDesc.WordWrap := True;
+  DevEnvDesc.Caption := CustomMessage('InstallLiteEditionDesc');
+
+  // Create custom Docker Prerequisites page (after installation type selection)
+  DockerPage := CreateCustomPage(InstallTypeSelectionPage.ID, 'Prerequisites Check',
+    'Verifying Docker Desktop installation and status');
+
+  DockerStatusLabel := TLabel.Create(DockerPage);
+  DockerStatusLabel.Parent := DockerPage.Surface;
+  DockerStatusLabel.Left := 0;
+  DockerStatusLabel.Top := 10;
+  DockerStatusLabel.Width := DockerPage.SurfaceWidth;
+  DockerStatusLabel.Height := 30;
+  DockerStatusLabel.Font.Size := 14;
+  DockerStatusLabel.Font.Style := [fsBold];
+
+  DockerInfoLabel := TLabel.Create(DockerPage);
+  DockerInfoLabel.Parent := DockerPage.Surface;
+  DockerInfoLabel.Left := 0;
+  DockerInfoLabel.Top := 50;
+  DockerInfoLabel.Width := DockerPage.SurfaceWidth;
+  DockerInfoLabel.Height := 150;
+  DockerInfoLabel.WordWrap := True;
+  DockerInfoLabel.Font.Size := 10;
+
+  RefreshButton := TButton.Create(DockerPage);
+  RefreshButton.Parent := DockerPage.Surface;
+  RefreshButton.Left := 0;
+  RefreshButton.Top := 210;
+  RefreshButton.Width := 150;
+  RefreshButton.Height := 30;
+  RefreshButton.Caption := CustomMessage('DockerRefreshButton');
+  RefreshButton.OnClick := @UpdateDockerStatus;
+
+  UpdateDockerStatus(nil);
+
+  // Lite Edition QNAP Configuration page (for Lite Edition users who want QNAP PostgreSQL)
+  LiteQnapPage := CreateCustomPage(DockerPage.ID,
+    'QNAP Database Configuration (Optional)',
+    'Configure connection to QNAP PostgreSQL database');
+
+  LiteQnapLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapLabel.AutoSize := False;
+  LiteQnapLabel.Left := 0;
+  LiteQnapLabel.Top := 0;
+  LiteQnapLabel.Width := LiteQnapPage.SurfaceWidth;
+  LiteQnapLabel.Height := 48;
+  LiteQnapLabel.WordWrap := True;
+  LiteQnapLabel.Caption := 'SMS Lite Edition uses a local SQLite database by default. If you have a QNAP NAS with PostgreSQL, you can optionally configure it here.';
+
+  LiteQnapYesRadio := TRadioButton.Create(LiteQnapPage);
+  LiteQnapYesRadio.Parent := LiteQnapPage.Surface;
+  LiteQnapYesRadio.Left := 0;
+  LiteQnapYesRadio.Top := 60;
+  LiteQnapYesRadio.Width := LiteQnapPage.SurfaceWidth;
+  LiteQnapYesRadio.Caption := 'Yes, I want to use QNAP PostgreSQL';
+  LiteQnapYesRadio.Checked := False;
+  LiteQnapYesRadio.OnClick := @UpdateLiteQnapUI;
+
+  LiteQnapNoRadio := TRadioButton.Create(LiteQnapPage);
+  LiteQnapNoRadio.Parent := LiteQnapPage.Surface;
+  LiteQnapNoRadio.Left := 0;
+  LiteQnapNoRadio.Top := 85;
+  LiteQnapNoRadio.Width := LiteQnapPage.SurfaceWidth;
+  LiteQnapNoRadio.Caption := 'No, use local SQLite database';
+  LiteQnapNoRadio.Checked := True;
+  LiteQnapNoRadio.OnClick := @UpdateLiteQnapUI;
+
+  // File selection section
+  LiteQnapFileLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapFileLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapFileLabel.Left := 0;
+  LiteQnapFileLabel.Top := 120;
+  LiteQnapFileLabel.Width := 280;
+  LiteQnapFileLabel.Caption := 'Select credentials file (.json or .env):';
+
+  LiteQnapFileEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapFileEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapFileEdit.Left := 0;
+  LiteQnapFileEdit.Top := 138;
+  LiteQnapFileEdit.Width := 280;
+  LiteQnapFileEdit.ReadOnly := True;
+
+  LiteQnapFileBrowseButton := TButton.Create(LiteQnapPage);
+  LiteQnapFileBrowseButton.Parent := LiteQnapPage.Surface;
+  LiteQnapFileBrowseButton.Left := 292;
+  LiteQnapFileBrowseButton.Top := 138;
+  LiteQnapFileBrowseButton.Width := 80;
+  LiteQnapFileBrowseButton.Height := 23;
+  LiteQnapFileBrowseButton.Caption := 'Browse...';
+  LiteQnapFileBrowseButton.OnClick := @BrowseLiteQnapCredentialsFile;
+
+  // OR separator
+  LiteQnapOrLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapOrLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapOrLabel.Left := 0;
+  LiteQnapOrLabel.Top := 170;
+  LiteQnapOrLabel.Caption := '— OR —';
+
+  // Manual entry section
+  LiteQnapManualLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapManualLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapManualLabel.Left := 0;
+  LiteQnapManualLabel.Top := 190;
+  LiteQnapManualLabel.Caption := 'Or enter credentials manually:';
+
+  LiteQnapHostLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapHostLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapHostLabel.Left := 0;
+  LiteQnapHostLabel.Top := 215;
+  LiteQnapHostLabel.Width := 200;
+  LiteQnapHostLabel.Caption := 'QNAP IP or DNS name:';
+
+  LiteQnapHostEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapHostEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapHostEdit.Left := 0;
+  LiteQnapHostEdit.Top := 233;
+  LiteQnapHostEdit.Width := 280;
+  LiteQnapHostEdit.Text := 'qnap.local';
+
+  LiteQnapPortLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapPortLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapPortLabel.Left := 292;
+  LiteQnapPortLabel.Top := 215;
+  LiteQnapPortLabel.Width := 80;
+  LiteQnapPortLabel.Caption := 'Port:';
+
+  LiteQnapPortEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapPortEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapPortEdit.Left := 292;
+  LiteQnapPortEdit.Top := 233;
+  LiteQnapPortEdit.Width := 80;
+  LiteQnapPortEdit.Text := '5432';
+
+  LiteQnapDbLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapDbLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapDbLabel.Left := 0;
+  LiteQnapDbLabel.Top := 265;
+  LiteQnapDbLabel.Width := 200;
+  LiteQnapDbLabel.Caption := 'Database name:';
+
+  LiteQnapDbEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapDbEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapDbEdit.Left := 0;
+  LiteQnapDbEdit.Top := 283;
+  LiteQnapDbEdit.Width := 280;
+  LiteQnapDbEdit.Text := 'student_management';
+
+  LiteQnapUserLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapUserLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapUserLabel.Left := 0;
+  LiteQnapUserLabel.Top := 315;
+  LiteQnapUserLabel.Width := 200;
+  LiteQnapUserLabel.Caption := 'Username:';
+
+  LiteQnapUserEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapUserEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapUserEdit.Left := 0;
+  LiteQnapUserEdit.Top := 333;
+  LiteQnapUserEdit.Width := 280;
+
+  LiteQnapPassLabel := TLabel.Create(LiteQnapPage);
+  LiteQnapPassLabel.Parent := LiteQnapPage.Surface;
+  LiteQnapPassLabel.Left := 292;
+  LiteQnapPassLabel.Top := 315;
+  LiteQnapPassLabel.Width := 200;
+  LiteQnapPassLabel.Caption := 'Password:';
+
+  LiteQnapPassEdit := TEdit.Create(LiteQnapPage);
+  LiteQnapPassEdit.Parent := LiteQnapPage.Surface;
+  LiteQnapPassEdit.Left := 292;
+  LiteQnapPassEdit.Top := 238;
+  LiteQnapPassEdit.Width := 200;
+  LiteQnapPassEdit.PasswordChar := '*';
+
+  UpdateLiteQnapUI(nil);
+
+  // Database profile page (Local SQLite vs QNAP PostgreSQL) - FOR DOCKER EDITION
+  PostgresPage := CreateCustomPage(DockerPage.ID,
+    CustomMessage('DbConfigPageTitle'),
+    CustomMessage('DbConfigPageSubtitle'));
+
+  DbProfileInfoLabel := TLabel.Create(PostgresPage);
+  DbProfileInfoLabel.Parent := PostgresPage.Surface;
+  DbProfileInfoLabel.AutoSize := False;
+  DbProfileInfoLabel.Left := 0;
+  DbProfileInfoLabel.Top := 10;
+  DbProfileInfoLabel.Width := PostgresPage.SurfaceWidth;
+  DbProfileInfoLabel.Height := 32;
+  DbProfileInfoLabel.WordWrap := True;
+  DbProfileInfoLabel.Caption := CustomMessage('DbConfigIntro');
+
+  LocalSQLiteRadio := TRadioButton.Create(PostgresPage);
+  LocalSQLiteRadio.Parent := PostgresPage.Surface;
+  LocalSQLiteRadio.Left := 0;
+  LocalSQLiteRadio.Top := 52;
+  LocalSQLiteRadio.Width := PostgresPage.SurfaceWidth;
+  LocalSQLiteRadio.Caption := CustomMessage('DbLocalOption');
+  LocalSQLiteRadio.OnClick := @UpdateDatabaseProfileUI;
+
+  LocalSQLiteHintLabel := TLabel.Create(PostgresPage);
+  LocalSQLiteHintLabel.Parent := PostgresPage.Surface;
+  LocalSQLiteHintLabel.AutoSize := False;
+  LocalSQLiteHintLabel.Left := 20;
+  LocalSQLiteHintLabel.Top := 76;
+  LocalSQLiteHintLabel.Width := PostgresPage.SurfaceWidth - 20;
+  LocalSQLiteHintLabel.Height := 18;
+  LocalSQLiteHintLabel.Caption := CustomMessage('DbLocalHint');
+
+  QnapPostgresRadio := TRadioButton.Create(PostgresPage);
+  QnapPostgresRadio.Parent := PostgresPage.Surface;
+  QnapPostgresRadio.Left := 0;
+  QnapPostgresRadio.Top := 104;
+  QnapPostgresRadio.Width := PostgresPage.SurfaceWidth;
+  QnapPostgresRadio.Caption := CustomMessage('DbRemoteOption');
+  QnapPostgresRadio.Checked := True;
+  QnapPostgresRadio.OnClick := @UpdateDatabaseProfileUI;
+
+  QnapPostgresHintLabel := TLabel.Create(PostgresPage);
+  QnapPostgresHintLabel.Parent := PostgresPage.Surface;
+  QnapPostgresHintLabel.AutoSize := False;
+  QnapPostgresHintLabel.Left := 20;
+  QnapPostgresHintLabel.Top := 128;
+  QnapPostgresHintLabel.Width := PostgresPage.SurfaceWidth - 20;
+  QnapPostgresHintLabel.Height := 32;
+  QnapPostgresHintLabel.WordWrap := True;
+  QnapPostgresHintLabel.Caption := CustomMessage('DbRemoteHint');
+
+  QnapConfigLabel := TLabel.Create(PostgresPage);
+  QnapConfigLabel.Parent := PostgresPage.Surface;
+  QnapConfigLabel.Left := 0;
+  QnapConfigLabel.AutoSize := False;
+  QnapConfigLabel.Top := 172;
+  QnapConfigLabel.Width := PostgresPage.SurfaceWidth;
+  QnapConfigLabel.Height := 18;
+  QnapConfigLabel.Caption := CustomMessage('DbCredentialsSection');
+  QnapConfigLabel.Font.Style := [fsBold];
+
+  CredentialsFileLabel := TLabel.Create(PostgresPage);
+  CredentialsFileLabel.Parent := PostgresPage.Surface;
+  CredentialsFileLabel.Left := 0;
+  CredentialsFileLabel.Top := 196;
+  CredentialsFileLabel.Width := PostgresPage.SurfaceWidth;
+  CredentialsFileLabel.Caption := CustomMessage('DbCredentialsFile');
+
+  CredentialsFileEdit := TEdit.Create(PostgresPage);
+  CredentialsFileEdit.Parent := PostgresPage.Surface;
+  CredentialsFileEdit.Left := 0;
+  CredentialsFileEdit.Top := 214;
+  CredentialsFileEdit.Width := 290;
+  CredentialsFileEdit.ReadOnly := True;
+
+  CredentialsBrowseButton := TButton.Create(PostgresPage);
+  CredentialsBrowseButton.Parent := PostgresPage.Surface;
+  CredentialsBrowseButton.Left := 300;
+  CredentialsBrowseButton.Top := 212;
+  CredentialsBrowseButton.Width := 92;
+  CredentialsBrowseButton.Height := 24;
+  CredentialsBrowseButton.Caption := CustomMessage('DbBrowse');
+  CredentialsBrowseButton.OnClick := @BrowseCredentialsFile;
+
+  CredentialsHintLabel := TLabel.Create(PostgresPage);
+  CredentialsHintLabel.Parent := PostgresPage.Surface;
+  CredentialsHintLabel.AutoSize := False;
+  CredentialsHintLabel.Left := 0;
+  CredentialsHintLabel.Top := 244;
+  CredentialsHintLabel.Width := PostgresPage.SurfaceWidth;
+  CredentialsHintLabel.Height := 32;
+  CredentialsHintLabel.WordWrap := True;
+  CredentialsHintLabel.Caption := CustomMessage('DbCredentialsHint');
+
+  CredentialsStatusLabel := TLabel.Create(PostgresPage);
+  CredentialsStatusLabel.Parent := PostgresPage.Surface;
+  CredentialsStatusLabel.AutoSize := False;
+  CredentialsStatusLabel.Left := 0;
+  CredentialsStatusLabel.Top := 280;
+  CredentialsStatusLabel.Width := PostgresPage.SurfaceWidth;
+  CredentialsStatusLabel.Height := 48;
+  CredentialsStatusLabel.WordWrap := True;
+  CredentialsStatusLabel.Caption := CustomMessage('DbNoFileSelected');
+
+  PgHostLabel := TLabel.Create(PostgresPage);
+  PgHostLabel.Parent := PostgresPage.Surface;
+  PgHostLabel.Left := 0;
+  PgHostLabel.Top := 196;
+  PgHostLabel.Width := 280;
+  PgHostLabel.Caption := 'Host (NAS IP or DNS name)';
+
+  PgPortLabel := TLabel.Create(PostgresPage);
+  PgPortLabel.Parent := PostgresPage.Surface;
+  PgPortLabel.Left := 292;
+  PgPortLabel.Top := 196;
+  PgPortLabel.Width := 100;
+  PgPortLabel.Caption := 'Port';
+
+  PgHostEdit := TEdit.Create(PostgresPage);
+  PgHostEdit.Parent := PostgresPage.Surface;
+  PgHostEdit.Left := 0;
+  PgHostEdit.Top := 212;
+  PgHostEdit.Width := 280;
+  PgHostEdit.Text := 'qnap.local';
+
+  PgPortEdit := TEdit.Create(PostgresPage);
+  PgPortEdit.Parent := PostgresPage.Surface;
+  PgPortEdit.Left := 292;
+  PgPortEdit.Top := 212;
+  PgPortEdit.Width := 100;
+  PgPortEdit.Text := '5432';
+
+  PgDbLabel := TLabel.Create(PostgresPage);
+  PgDbLabel.Parent := PostgresPage.Surface;
+  PgDbLabel.Left := 0;
+  PgDbLabel.Top := 244;
+  PgDbLabel.Width := 180;
+  PgDbLabel.Caption := 'Database name';
+
+  PgUserLabel := TLabel.Create(PostgresPage);
+  PgUserLabel.Parent := PostgresPage.Surface;
+  PgUserLabel.Left := 202;
+  PgUserLabel.Top := 244;
+  PgUserLabel.Width := 190;
+  PgUserLabel.Caption := 'Username';
+
+  PgDbEdit := TEdit.Create(PostgresPage);
+  PgDbEdit.Parent := PostgresPage.Surface;
+  PgDbEdit.Left := 0;
+  PgDbEdit.Top := 260;
+  PgDbEdit.Width := 190;
+  PgDbEdit.Text := 'student_management';
+
+  PgUserEdit := TEdit.Create(PostgresPage);
+  PgUserEdit.Parent := PostgresPage.Surface;
+  PgUserEdit.Left := 202;
+  PgUserEdit.Top := 260;
+  PgUserEdit.Width := 190;
+  PgUserEdit.Text := 'sms_user';
+
+  PgPassLabel := TLabel.Create(PostgresPage);
+  PgPassLabel.Parent := PostgresPage.Surface;
+  PgPassLabel.Left := 0;
+  PgPassLabel.Top := 292;
+  PgPassLabel.Width := 180;
+  PgPassLabel.Caption := 'Password';
+
+  PgPassEdit := TEdit.Create(PostgresPage);
+  PgPassEdit.Parent := PostgresPage.Surface;
+  PgPassEdit.Left := 0;
+  PgPassEdit.Top := 308;
+  PgPassEdit.Width := 280;
+  PgPassEdit.PasswordChar := '*';
+
+  PgSslLabel := TLabel.Create(PostgresPage);
+  PgSslLabel.Parent := PostgresPage.Surface;
+  PgSslLabel.Left := 292;
+  PgSslLabel.Top := 292;
+  PgSslLabel.Width := 100;
+  PgSslLabel.Caption := 'SSL mode';
+
+  PgSslEdit := TComboBox.Create(PostgresPage);
+  PgSslEdit.Parent := PostgresPage.Surface;
+  PgSslEdit.Left := 292;
+  PgSslEdit.Top := 308;
+  PgSslEdit.Width := 100;
+  PgSslEdit.Style := csDropDownList;
+  PgSslEdit.Items.Add('disable');
+  PgSslEdit.Items.Add('prefer');
+  PgSslEdit.Items.Add('require');
+  PgSslEdit.ItemIndex := 1;
+
+  PgHostLabel.Visible := False;
+  PgPortLabel.Visible := False;
+  PgDbLabel.Visible := False;
+  PgUserLabel.Visible := False;
+  PgPassLabel.Visible := False;
+  PgHostEdit.Visible := False;
+  PgPortEdit.Visible := False;
+  PgDbEdit.Visible := False;
+  PgUserEdit.Visible := False;
+  PgPassEdit.Visible := False;
+  PgSslLabel.Visible := False;
+  PgSslEdit.Visible := False;
+
+  LoadPostgresDefaults;
+  UpdateDatabaseProfileUI(nil);
+
+  // Create Docker build progress page (AFTER file copy, before finish)
+  DockerBuildPage := CreateCustomPage(wpInstalling + 1, 'Completing Installation', 'Building SMS Docker container. This may take several minutes on first install.');
+  DockerBuildStatusLabel := TLabel.Create(DockerBuildPage);
+  DockerBuildStatusLabel.Parent := DockerBuildPage.Surface;
+  DockerBuildStatusLabel.Left := 0;
+  DockerBuildStatusLabel.Top := 10;
+  DockerBuildStatusLabel.Width := DockerBuildPage.SurfaceWidth;
+  DockerBuildStatusLabel.Height := 100;
+  DockerBuildStatusLabel.WordWrap := True;
+  DockerBuildStatusLabel.Font.Size := 10;
+  DockerBuildStatusLabel.Caption := 'Preparing Docker container build...';
+end;
+
+function ReadEnvValue(FilePath, Key: String): String;
+var
+  Data: AnsiString;
+  Lines: TStringList;
+  i: Integer;
+  Line: String;
+begin
+  Result := '';
+  if not FileExists(FilePath) then
+    Exit;
+  if not LoadStringFromFile(FilePath, Data) then
+    Exit;
+  Lines := TStringList.Create;
+  try
+    Lines.Text := String(Data);
+    for i := 0 to Lines.Count - 1 do
+    begin
+      Line := Trim(Lines[i]);
+      if (Line = '') or (Line[1] = '#') then
+        Continue;
+      if Pos(Key + '=', Line) = 1 then
+      begin
+        Result := Trim(Copy(Line, Length(Key) + 2, 999));
+        Exit;
+      end;
+    end;
+  finally
+    Lines.Free;
+  end;
+end;
+
+function UpsertEnvValue(const Content, Key, Value: String): String;
+var
+  Lines: TStringList;
+  i: Integer;
+  Prefix: String;
+  Trimmed: String;
+  Found: Boolean;
+begin
+  Lines := TStringList.Create;
+  try
+    Lines.Text := Content;
+    Prefix := Key + '=';
+    Found := False;
+
+    for i := 0 to Lines.Count - 1 do
+    begin
+      Trimmed := Trim(Lines[i]);
+      if Pos(Prefix, Trimmed) = 1 then
+      begin
+        Lines[i] := Prefix + Value;
+        Found := True;
+        Break;
+      end;
+    end;
+
+    if not Found then
+      Lines.Add(Prefix + Value);
+
+    Result := Lines.Text;
+  finally
+    Lines.Free;
+  end;
+end;
+
+procedure UpdateLiteQnapUI(Sender: TObject);
+var
+  UseQnap: Boolean;
+begin
+  UseQnap := LiteQnapYesRadio.Checked;
+
+  // Show/hide file selection and manual entry sections
+  LiteQnapFileLabel.Visible := UseQnap;
+  LiteQnapFileEdit.Visible := UseQnap;
+  LiteQnapFileBrowseButton.Visible := UseQnap;
+  LiteQnapOrLabel.Visible := UseQnap;
+  LiteQnapManualLabel.Visible := UseQnap;
+
+  // Show/hide QNAP credential fields based on selection
+  LiteQnapHostLabel.Visible := UseQnap;
+  LiteQnapHostEdit.Visible := UseQnap;
+  LiteQnapPortLabel.Visible := UseQnap;
+  LiteQnapPortEdit.Visible := UseQnap;
+  LiteQnapDbLabel.Visible := UseQnap;
+  LiteQnapDbEdit.Visible := UseQnap;
+  LiteQnapUserLabel.Visible := UseQnap;
+  LiteQnapUserEdit.Visible := UseQnap;
+  LiteQnapPassLabel.Visible := UseQnap;
+  LiteQnapPassEdit.Visible := UseQnap;
+end;
+
+procedure UpdateDatabaseProfileUI(Sender: TObject);
+var
+  IsQnapMode: Boolean;
+begin
+  IsQnapMode := QnapPostgresRadio.Checked;
+
+  QnapConfigLabel.Visible := IsQnapMode;
+  LocalSQLiteHintLabel.Visible := True;
+  QnapPostgresHintLabel.Visible := True;
+  CredentialsFileLabel.Visible := IsQnapMode;
+  CredentialsFileEdit.Visible := IsQnapMode;
+  CredentialsBrowseButton.Visible := IsQnapMode;
+  CredentialsHintLabel.Visible := IsQnapMode;
+  CredentialsStatusLabel.Visible := IsQnapMode;
+  PgHostLabel.Visible := False;
+  PgPortLabel.Visible := False;
+  PgDbLabel.Visible := False;
+  PgUserLabel.Visible := False;
+  PgPassLabel.Visible := False;
+  PgHostEdit.Visible := False;
+  PgPortEdit.Visible := False;
+  PgDbEdit.Visible := False;
+  PgUserEdit.Visible := False;
+  PgPassEdit.Visible := False;
+  PgSslLabel.Visible := False;
+  PgSslEdit.Visible := False;
+
+  if IsQnapMode then
+    SelectedDatabaseProfile := 'remote'
+  else
+    SelectedDatabaseProfile := 'local';
+end;
+
+function GetSelectedDatabaseProfileSummary: String;
+begin
+  if SelectedDatabaseProfile = 'remote' then
+    Result := FmtMessage(CustomMessage('DbRemoteSummary'), [PgHost, PgPort, PgDb])
+  else
+    Result := CustomMessage('DbLocalSummary');
+end;
+
+function HasRequiredRemoteCredentials: Boolean;
+begin
+  Result :=
+    (Trim(PgHost) <> '') and
+    (Trim(PgPort) <> '') and
+    (Trim(PgDb) <> '') and
+    (Trim(PgUser) <> '') and
+    (Trim(PgPass) <> '');
+end;
+
+procedure LoadPostgresDefaults;
+var
+  EnvPath: String;
+  InstallDir: String;
+  ExistingProfile: String;
+  ExistingEngine: String;
+begin
+  // Check if we're in an upgrade scenario with existing installation
+  InstallDir := WizardDirValue;
+  if InstallDir = '' then
+    Exit;  // Installation directory not yet set
+
+  EnvPath := AddBackslash(InstallDir) + '.env';
+  if not FileExists(EnvPath) then
+  begin
+    SelectedDatabaseProfile := 'local';
+    CredentialsFileEdit.Text := '';
+    Exit;  // No existing .env file to load from
+  end;
+
+  ExistingProfile := Lowercase(ReadEnvValue(EnvPath, 'SMS_DATABASE_PROFILE'));
+  ExistingEngine := Lowercase(ReadEnvValue(EnvPath, 'DATABASE_ENGINE'));
+
+  if (ExistingProfile = 'remote') or (ExistingEngine = 'postgresql') then
+  begin
+    QnapPostgresRadio.Checked := True;
+    SelectedDatabaseProfile := 'remote';
+  end
+  else
+  begin
+    LocalSQLiteRadio.Checked := True;
+    SelectedDatabaseProfile := 'local';
+  end;
+
+  PgHost := ReadEnvValue(EnvPath, 'POSTGRES_HOST');
+  PgPort := ReadEnvValue(EnvPath, 'POSTGRES_PORT');
+  PgDb := ReadEnvValue(EnvPath, 'POSTGRES_DB');
+  PgUser := ReadEnvValue(EnvPath, 'POSTGRES_USER');
+  PgPass := ReadEnvValue(EnvPath, 'POSTGRES_PASSWORD');
+  PgSsl := ReadEnvValue(EnvPath, 'POSTGRES_SSLMODE');
+
+  if PgHost <> '' then PgHostEdit.Text := PgHost;
+  if PgPort <> '' then PgPortEdit.Text := PgPort;
+  if PgDb <> '' then PgDbEdit.Text := PgDb;
+  if PgUser <> '' then PgUserEdit.Text := PgUser;
+  if PgPass <> '' then PgPassEdit.Text := PgPass;
+  if PgSsl <> '' then
+  begin
+    if PgSslEdit.Items.IndexOf(PgSsl) >= 0 then
+      PgSslEdit.ItemIndex := PgSslEdit.Items.IndexOf(PgSsl);
+  end;
+
+  if SelectedDatabaseProfile = 'remote' then
+  begin
+    CredentialsFileEdit.Text := '';
+    UpdateCredentialsStatus;
+  end;
+end;
+
+procedure UpdateCredentialsStatus;
+begin
+  if SelectedDatabaseProfile <> 'remote' then
+    Exit;
+
+  if Trim(CredentialsFileEdit.Text) <> '' then
+    CredentialsStatusLabel.Caption := FmtMessage(CustomMessage('DbLoadedCredentials'), [PgHost, PgPort, PgDb, PgUser])
+  else if HasRequiredRemoteCredentials then
+    CredentialsStatusLabel.Caption := FmtMessage(CustomMessage('DbLoadedExistingCredentials'), [PgHost, PgPort, PgDb, PgUser])
+  else if (Trim(PgHost) <> '') or (Trim(PgPort) <> '') or (Trim(PgDb) <> '') or (Trim(PgUser) <> '') or (Trim(PgPass) <> '') then
+    CredentialsStatusLabel.Caption := CustomMessage('DbMissingRequired')
+  else
+    CredentialsStatusLabel.Caption := CustomMessage('DbNoFileSelected');
+end;
+
+procedure BrowseLiteQnapCredentialsFile(Sender: TObject);
+var
+  SelectedFile: String;
+begin
+  SelectedFile := LiteQnapFileEdit.Text;
+  if GetOpenFileName('Select QNAP Credentials File', SelectedFile, '', 'JSON Files (*.json)|*.json|ENV Files (*.env)|*.env|All Files (*.*)|*.*', '') then
+  begin
+    LiteQnapFileEdit.Text := SelectedFile;
+    LoadLiteQnapCredentialsFromFile(SelectedFile);
+  end;
+end;
+
+procedure LoadLiteQnapCredentialsFromFile(FileName: String);
+var
+  FileContent: String;
+  JsonValue: String;
+  EnvValue: String;
+  Lines: TStringList;
+  i: Integer;
+  Line: String;
+  Key: String;
+  Value: String;
+  EqPos: Integer;
+begin
+  if not FileExists(FileName) then
+  begin
+    MsgBox('File not found: ' + FileName, mbError, MB_OK);
+    Exit;
+  end;
+
+  FileContent := '';
+  Lines := TStringList.Create;
+  try
+    Lines.LoadFromFile(FileName);
+    FileContent := Lines.Text;
+
+    // Try JSON format first (look for "host" key)
+    if Pos('"host"', FileContent) > 0 then
+    begin
+      // JSON format - extract values using simple pattern matching
+      // "host": "value"
+      JsonValue := ExtractJsonValue(FileContent, 'host');
+      if JsonValue <> '' then
+        LiteQnapHostEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'port');
+      if JsonValue <> '' then
+        LiteQnapPortEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'dbname');
+      if JsonValue <> '' then
+        LiteQnapDbEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'user');
+      if JsonValue <> '' then
+        LiteQnapUserEdit.Text := JsonValue;
+
+      JsonValue := ExtractJsonValue(FileContent, 'password');
+      if JsonValue <> '' then
+        LiteQnapPassEdit.Text := JsonValue;
+    end
+    else
+    begin
+      // ENV format - KEY=VALUE
+      for i := 0 to Lines.Count - 1 do
+      begin
+        Line := Trim(Lines[i]);
+        if (Line = '') or (Line[1] = '#') then
+          Continue;
+
+        EqPos := Pos('=', Line);
+        if EqPos > 0 then
+        begin
+          Key := LowerCase(Trim(Copy(Line, 1, EqPos - 1)));
+          Value := Trim(Copy(Line, EqPos + 1, 999));
+
+          // Remove quotes if present
+          if (Length(Value) >= 2) and ((Value[1] = '"') or (Value[1] = '''')) then
+            Value := Copy(Value, 2, Length(Value) - 2);
+
+          if Key = 'postgres_host' then
+            LiteQnapHostEdit.Text := Value
+          else if Key = 'postgres_port' then
+            LiteQnapPortEdit.Text := Value
+          else if Key = 'postgres_db' then
+            LiteQnapDbEdit.Text := Value
+          else if Key = 'postgres_user' then
+            LiteQnapUserEdit.Text := Value
+          else if Key = 'postgres_password' then
+            LiteQnapPassEdit.Text := Value;
+        end;
+      end;
+    end;
+  finally
+    Lines.Free;
+  end;
+
+  MsgBox('Credentials loaded from file.' + #13 + 'Please verify the values before continuing.', mbInformation, MB_OK);
+end;
+
+procedure BrowseCredentialsFile(Sender: TObject);
+var
+  SelectedFile: String;
+begin
+  SelectedFile := CredentialsFileEdit.Text;
+  if GetOpenFileName(CustomMessage('DbFileDialogTitle'), SelectedFile, '', CustomMessage('DbFileBrowseFilter'), '') then
+  begin
+    CredentialsFileEdit.Text := SelectedFile;
+    LoadCredentialsFromSelectedFile(True);
+  end;
+end;
+
+function LoadCredentialsFromSelectedFile(ShowErrors: Boolean): Boolean;
+var
+  FilePath: String;
+  LowerPath: String;
+  ResultCode: Integer;
+  PowerShellExe: String;
+  ScriptPath: String;
+  OutputPath: String;
+  ScriptContent: String;
+  Command: String;
+begin
+  Result := False;
+  FilePath := Trim(CredentialsFileEdit.Text);
+
+  if FilePath = '' then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileRequired'), mbError, MB_OK);
+    Exit;
+  end;
+
+  if not FileExists(FilePath) then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileMissing'), mbError, MB_OK);
+    Exit;
+  end;
+
+  LowerPath := Lowercase(FilePath);
+  if (Pos('.json', LowerPath) = 0) and (Pos('.env', LowerPath) = 0) and (Pos('.txt', LowerPath) = 0) then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileUnsupported'), mbError, MB_OK);
+    Exit;
+  end;
+
+  PowerShellExe := GetPowerShellExe;
+  if PowerShellExe = '' then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileLoadFailed'), mbError, MB_OK);
+    Exit;
+  end;
+
+  ScriptPath := ExpandConstant('{tmp}\sms_parse_db_credentials.ps1');
+  OutputPath := ExpandConstant('{tmp}\sms_parsed_db_credentials.env');
+  if FileExists(OutputPath) then
+    DeleteFile(OutputPath);
+
+  ScriptContent :=
+    'param([string]$InputPath,[string]$OutputPath)' + #13#10 +
+    '$ext = [System.IO.Path]::GetExtension($InputPath).ToLowerInvariant()' + #13#10 +
+    '$raw = Get-Content -LiteralPath $InputPath -Raw -Encoding UTF8' + #13#10 +
+    'function Get-JsonValue($obj, [string[]]$names, $default) {' + #13#10 +
+    '  foreach ($name in $names) {' + #13#10 +
+    '    if ($obj.PSObject.Properties.Name -contains $name) {' + #13#10 +
+    '      $value = $obj.$name' + #13#10 +
+    '      if ($null -ne $value -and ("$value") -ne "") { return "$value" }' + #13#10 +
+    '    }' + #13#10 +
+    '  }' + #13#10 +
+    '  return $default' + #13#10 +
+    '}' + #13#10 +
+    'function Get-MapValue($map, [string[]]$names, $default) {' + #13#10 +
+    '  foreach ($name in $names) {' + #13#10 +
+    '    if ($map.ContainsKey($name)) {' + #13#10 +
+    '      $value = $map[$name]' + #13#10 +
+    '      if ($null -ne $value -and ("$value") -ne "") { return "$value" }' + #13#10 +
+    '    }' + #13#10 +
+    '  }' + #13#10 +
+    '  return $default' + #13#10 +
+    '}' + #13#10 +
+    'if ($ext -eq ''.json'') {' + #13#10 +
+    '  $data = $raw | ConvertFrom-Json' + #13#10 +
+    '  $dbHost = Get-JsonValue $data @(''host'',''hostname'',''server'',''POSTGRES_HOST'') $null' + #13#10 +
+    '  $dbPort = Get-JsonValue $data @(''port'',''POSTGRES_PORT'') $null' + #13#10 +
+    '  $dbName = Get-JsonValue $data @(''dbname'',''database'',''db'',''POSTGRES_DB'') $null' + #13#10 +
+    '  $dbUser = Get-JsonValue $data @(''user'',''username'',''POSTGRES_USER'') $null' + #13#10 +
+    '  $dbPassword = Get-JsonValue $data @(''password'',''pass'',''POSTGRES_PASSWORD'') $null' + #13#10 +
+    '  $dbSslMode = Get-JsonValue $data @(''sslmode'',''ssl_mode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
+    '} else {' + #13#10 +
+    '  $map = @{}' + #13#10 +
+    '  foreach ($line in ($raw -split "`r?`n")) {' + #13#10 +
+    '    $trimmed = $line.Trim()' + #13#10 +
+    '    if ($trimmed -and -not $trimmed.StartsWith(''#'') -and $trimmed.Contains(''='')) {' + #13#10 +
+    '      $parts = $trimmed.Split(''='',2)' + #13#10 +
+    '      $map[$parts[0].Trim()] = $parts[1].Trim().Trim(''"'').Trim("''")' + #13#10 +
+    '    }' + #13#10 +
+    '  }' + #13#10 +
+    '  $dbHost = Get-MapValue $map @(''host'',''hostname'',''server'',''POSTGRES_HOST'') $null' + #13#10 +
+    '  $dbPort = Get-MapValue $map @(''port'',''POSTGRES_PORT'') $null' + #13#10 +
+    '  $dbName = Get-MapValue $map @(''dbname'',''database'',''db'',''POSTGRES_DB'') $null' + #13#10 +
+    '  $dbUser = Get-MapValue $map @(''user'',''username'',''POSTGRES_USER'') $null' + #13#10 +
+    '  $dbPassword = Get-MapValue $map @(''password'',''pass'',''POSTGRES_PASSWORD'') $null' + #13#10 +
+    '  $dbSslMode = Get-MapValue $map @(''sslmode'',''ssl_mode'',''POSTGRES_SSLMODE'') ''prefer''' + #13#10 +
+    '}' + #13#10 +
+    'if ([string]::IsNullOrWhiteSpace($dbHost) -or [string]::IsNullOrWhiteSpace($dbPort) -or [string]::IsNullOrWhiteSpace($dbName) -or [string]::IsNullOrWhiteSpace($dbUser) -or [string]::IsNullOrWhiteSpace($dbPassword)) { throw ''Missing required credentials. The credentials file must define host, port, dbname, user, and password.'' }' + #13#10 +
+    '@(' + #13#10 +
+    '  "POSTGRES_HOST=$dbHost"' + #13#10 +
+    '  "POSTGRES_PORT=$dbPort"' + #13#10 +
+    '  "POSTGRES_DB=$dbName"' + #13#10 +
+    '  "POSTGRES_USER=$dbUser"' + #13#10 +
+    '  "POSTGRES_PASSWORD=$dbPassword"' + #13#10 +
+    '  "POSTGRES_SSLMODE=$dbSslMode"' + #13#10 +
+    ') | Set-Content -LiteralPath $OutputPath -Encoding UTF8';
+
+  SaveStringToFile(ScriptPath, ScriptContent, False);
+
+  Command := '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" -InputPath "' + FilePath + '" -OutputPath "' + OutputPath + '"';
+  if not Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) or (ResultCode <> 0) then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbFileLoadFailed'), mbError, MB_OK);
+    Exit;
+  end;
+
+  PgHost := ReadEnvValue(OutputPath, 'POSTGRES_HOST');
+  PgPort := ReadEnvValue(OutputPath, 'POSTGRES_PORT');
+  PgDb := ReadEnvValue(OutputPath, 'POSTGRES_DB');
+  PgUser := ReadEnvValue(OutputPath, 'POSTGRES_USER');
+  PgPass := ReadEnvValue(OutputPath, 'POSTGRES_PASSWORD');
+  PgSsl := ReadEnvValue(OutputPath, 'POSTGRES_SSLMODE');
+
+  if (PgHost = '') or (PgPort = '') or (PgDb = '') or (PgUser = '') or (PgPass = '') then
+  begin
+    if ShowErrors then
+      MsgBox(CustomMessage('DbMissingRequired'), mbError, MB_OK);
+    Exit;
+  end;
+
+  if PgSsl = '' then
+    PgSsl := 'prefer';
+
+  Result := True;
+  UpdateCredentialsStatus;
+end;
+
+procedure WritePostgresEnv;
+var
+  InstallDir: String;
+  EnvPath: String;
+  ExamplePath: String;
+  Content: AnsiString;
+  DbUrl: String;
+  EncUser: String;
+  EncPass: String;
+  EncDb: String;
+begin
+  InstallDir := GetInstallDirSafe;
+  EnvPath := AddBackslash(InstallDir) + '.env';
+  ExamplePath := AddBackslash(InstallDir) + '.env.example';
+
+  if FileExists(EnvPath) then
+    LoadStringFromFile(EnvPath, Content)
+  else if FileExists(ExamplePath) then
+    LoadStringFromFile(ExamplePath, Content)
+  else
+    Content := '';
+
+  Content := UpsertEnvValue(Content, 'SMS_DEPLOYMENT_MODE', 'single');
+
+  if LocalSQLiteRadio.Checked then
+  begin
+    Content := UpsertEnvValue(Content, 'SMS_DATABASE_PROFILE', 'local');
+    Content := UpsertEnvValue(Content, 'DATABASE_ENGINE', 'sqlite');
+    Content := UpsertEnvValue(Content, 'DATABASE_URL', 'sqlite:////data/student_management.db');
+  end
+  else
+  begin
+    if PgPort = '' then PgPort := '5432';
+    if PgSsl = '' then PgSsl := 'prefer';
+
+    EncUser := UrlEncode(PgUser);
+    EncPass := UrlEncode(PgPass);
+    EncDb := UrlEncode(PgDb);
+    DbUrl := 'postgresql://' + EncUser + ':' + EncPass + '@' + PgHost + ':' + PgPort + '/' + EncDb + '?sslmode=' + UrlEncode(PgSsl);
+
+    Content := UpsertEnvValue(Content, 'SMS_DATABASE_PROFILE', 'remote');
+    Content := UpsertEnvValue(Content, 'DATABASE_ENGINE', 'postgresql');
+    Content := UpsertEnvValue(Content, 'POSTGRES_HOST', PgHost);
+    Content := UpsertEnvValue(Content, 'POSTGRES_PORT', PgPort);
+    Content := UpsertEnvValue(Content, 'POSTGRES_DB', PgDb);
+    Content := UpsertEnvValue(Content, 'POSTGRES_USER', PgUser);
+    Content := UpsertEnvValue(Content, 'POSTGRES_PASSWORD', PgPass);
+    Content := UpsertEnvValue(Content, 'POSTGRES_SSLMODE', PgSsl);
+    Content := UpsertEnvValue(Content, 'DATABASE_URL', DbUrl);
+  end;
+
+  SaveStringToFile(EnvPath, Content, False);
+end;
+
+procedure CurPageChanged(CurPageID: Integer);
+var
+  ResultCode: Integer;
+  Cmd: String;
+  InstallDir: String;
+  SummaryLine: String;
+begin
+  // Update Docker status only for Docker Edition
+  if (CurPageID = DockerPage.ID) and IsDockerInstall then
+    UpdateDockerStatus(nil);
+
+  // Handle Docker build page (Docker Edition only)
+  if (CurPageID = DockerBuildPage.ID) and IsDockerInstall then
+  begin
+    WritePostgresEnv;
+    WizardForm.NextButton.Enabled := False;
+    DockerBuildStatusLabel.Caption := 'Building SMS Docker container...';
+    try
+      InstallDir := GetInstallDirSafe;
+      Cmd := AddBackslash(InstallDir) + 'run_docker_install.cmd';
+      if FileExists(Cmd) then
+      begin
+        DockerBuildStatusLabel.Caption := 'Running Docker container setup...';
+        WizardForm.StatusLabel.Caption := 'Setting up SMS Docker container (this may take several minutes)...';
+        if Exec(Cmd, '', InstallDir, SW_SHOW, ewWaitUntilTerminated, ResultCode) then
+        begin
+          if ResultCode = 0 then
+            DockerBuildStatusLabel.Caption := 'SMS Docker container setup completed successfully.'
+          else
+            DockerBuildStatusLabel.Caption := 'Docker container setup encountered an issue. Please check Docker Desktop and try again.';
+        end
+        else
+          DockerBuildStatusLabel.Caption := 'Failed to start Docker setup script.';
+      end
+      else
+        DockerBuildStatusLabel.Caption := 'Docker setup script not found.';
+    except
+      DockerBuildStatusLabel.Caption := 'Error occurred during Docker container setup.';
+    end;
+    WizardForm.NextButton.Enabled := True;
+  end;
+
+  if CurPageID = wpFinished then
+  begin
+    // For Lite Edition: Update completion message for Lite-specific content
+    if IsLiteInstall then
+    begin
+      // Replace Docker-focused message with Lite Edition message
+      WizardForm.FinishedLabel.Caption :=
+        'Files Installed Successfully' + chr(10) + chr(10) +
+        'SMS Lite Edition has been installed on your computer.' + chr(10) + chr(10) +
+        'Next Step: Launch SMS' + chr(10) +
+        'Click the desktop shortcut to start the application.' + chr(10) + chr(10) +
+        'First-time setup:' + chr(10) +
+        '- Log in with admin account (see documentation)' + chr(10) +
+        '- Change password immediately' + chr(10) +
+        '- Configure QNAP PostgreSQL if enabled (optional)' + chr(10) + chr(10) +
+        'Features:' + chr(10) +
+        '- Local SQLite database (default, works offline)' + chr(10) +
+        '- Optional QNAP PostgreSQL for data sharing' + chr(10) +
+        '- No Docker required - fully standalone application' + chr(10) +
+        '- Works without internet connection';
+    end
+    else
+    begin
+      // For Docker Edition: Add database profile summary
+      SummaryLine := GetSelectedDatabaseProfileSummary;
+      if Pos(SummaryLine, WizardForm.FinishedLabel.Caption) = 0 then
+        WizardForm.FinishedLabel.Caption := WizardForm.FinishedLabel.Caption + #13#10#13#10 + SummaryLine;
+    end;
+  end;
+end;
+
+function ShouldSkipPage(PageID: Integer): Boolean;
+begin
+  Result := False;
+
+  // During silent install (e.g. Smart Updater upgrade), skip all custom interactive pages.
+  // The existing .env is preserved automatically (.env is in [Files] Excludes list).
+  if WizardSilent then
+  begin
+    if (PageID = InstallTypeSelectionPage.ID) or
+       (PageID = DockerPage.ID) or
+       (PageID = DockerBuildPage.ID) or
+       (PageID = LiteQnapPage.ID) or
+       (PageID = PostgresPage.ID) then
+      Result := True;
+    Exit;
+  end;
+
+  // Interactive mode: skip pages based on selected edition
+  if PageID = DockerPage.ID then
+    Result := IsLiteInstall
+  else if PageID = DockerBuildPage.ID then
+    Result := IsLiteInstall
+  else if PageID = LiteQnapPage.ID then
+    Result := not IsLiteInstall
+  else if PageID = PostgresPage.ID then
+    Result := IsLiteInstall;
+end;
+
+function NextButtonClick(CurPageID: Integer): Boolean;
+var
+  ErrorCode: Integer;
+begin
+  Result := True;
+
+  // Capture installation type selection
+  if CurPageID = InstallTypeSelectionPage.ID then
+  begin
+    if DockerEditionRadio.Checked then
+      SelectedInstallationType := 'docker'
+    else if LiteEditionRadio.Checked then
+      SelectedInstallationType := 'lite'
+    else
+      SelectedInstallationType := 'docker'; // Default to Docker
+    Log('User selected installation type: ' + SelectedInstallationType);
+  end;
+
+  if CurPageID = DockerPage.ID then
+  begin
+    if not IsDockerInstalled then
+    begin
+      if MsgBox(CustomMessage('DockerNotFound'), mbConfirmation, MB_YESNO) = IDYES then
+      begin
+        ShellExec('open', 'https://www.docker.com/products/docker-desktop/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+      end;
+      // Allow continue - user can install Docker later
+    end;
+  end;
+
+  if CurPageID = PostgresPage.ID then
+  begin
+    if QnapPostgresRadio.Checked then
+    begin
+      if (Trim(CredentialsFileEdit.Text) <> '') or (PgHost = '') or (PgPass = '') then
+      begin
+        if not LoadCredentialsFromSelectedFile(True) then
+        begin
+          Result := False;
+          Exit;
+        end;
+      end;
+
+      if not HasRequiredRemoteCredentials then
+      begin
+        MsgBox(CustomMessage('DbMissingRequired'), mbError, MB_OK);
+        Result := False;
+        Exit;
+      end;
+
+      if PgSsl = '' then
+        PgSsl := 'prefer';
+
+      if Lowercase(Trim(PgHost)) <> 'postgres' then
+      begin
+        if TestDockerReady then
+        begin
+          if not TestPostgresAuthConnection(PgHost, PgPort, PgDb, PgUser, PgPass, PgSsl) then
+          begin
+            if TestPostgresTcpConnection(PgHost, PgPort) then
+            begin
+              if MsgBox(CustomMessage('DbAuthValidationFailed'), mbConfirmation, MB_YESNO) = IDNO then
+              begin
+                Result := False;
+                Exit;
+              end;
+            end
+            else
+            begin
+              if MsgBox(CustomMessage('DbTcpValidationFailed'), mbConfirmation, MB_YESNO) = IDNO then
+              begin
+                Result := False;
+                Exit;
+              end;
+            end;
+          end;
+        end
+        else
+        begin
+          Log('Docker not ready during PostgreSQL validation; falling back to TCP pre-check.');
+          if not TestPostgresTcpConnection(PgHost, PgPort) then
+          begin
+            if MsgBox(CustomMessage('DbTcpValidationFailed'), mbConfirmation, MB_YESNO) = IDNO then
+            begin
+              Result := False;
+              Exit;
+            end;
+          end;
+        end;
+      end
+      else
+      begin
+        Log('Skipping TCP pre-check for docker-internal host alias "postgres".');
+      end;
+    end;
+  end;
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+  BackupPath: String;
+  BackupTimestamp: String;
+  InstallDir: String;
+  MetadataFile: String;
+  MetadataContent: String;
+begin
+  Result := '';
+  NeedsRestart := False;
+
+  Log('PrepareToInstall: IsUpgrade = ' + Format('%d', [Integer(IsUpgrade)]));
+  Log('PrepareToInstall: PreviousInstallPath = ' + PreviousInstallPath);
+  Log('PrepareToInstall: PreviousVersion = ' + PreviousVersion);
+
+  // ALWAYS stop Docker container first
+  if ContainerExists then
+  begin
+    Log('Stopping Docker container sms-app...');
+    Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    Log('Removing Docker container sms-app...');
+    Exec('cmd', '/c docker rm sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+
+  // UPGRADE: Backup all data before any changes
+  if IsUpgrade and (PreviousInstallPath <> '') then
+  begin
+    Log('Upgrade detected - backing up existing data...');
+    BackupTimestamp := GetDateTimeString('yyyy-mm-dd_hhmmss', '-', ':');
+    BackupPath := PreviousInstallPath + '\backups\pre_upgrade_' + BackupTimestamp;
+    UpgradeBackupPath := BackupPath;
+
+    Log('Backup destination: ' + BackupPath);
+
+    // Create backup directory
+    if not DirExists(BackupPath) then
+      ForceDirectories(BackupPath);
+
+    // Backup data directory
+    if DirExists(PreviousInstallPath + '\data') then
+    begin
+      Log('Backing up data directory...');
+      Exec('cmd', '/c xcopy /E /I /Y "' + PreviousInstallPath + '\data" "' + BackupPath + '\data" 2>nul',
+           '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      if ResultCode <> 0 then
+        Log('Warning: Data backup may have encountered issues (code: ' + IntToStr(ResultCode) + ')');
+    end;
+
+    // Backup environment files
+    if FileExists(PreviousInstallPath + '\backend\.env') then
+    begin
+      Log('Backing up backend .env...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\backend\.env', BackupPath + '\config\backend.env', False);
+    end;
+
+    if FileExists(PreviousInstallPath + '\frontend\.env') then
+    begin
+      Log('Backing up frontend .env...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\frontend\.env', BackupPath + '\config\frontend.env', False);
+    end;
+
+    if FileExists(PreviousInstallPath + '\.env') then
+    begin
+      Log('Backing up root .env...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\.env', BackupPath + '\config\.env', False);
+    end;
+
+    // Backup config/lang.txt if exists
+    if FileExists(PreviousInstallPath + '\config\lang.txt') then
+    begin
+      Log('Backing up language config...');
+      if not DirExists(BackupPath + '\config') then
+        ForceDirectories(BackupPath + '\config');
+      FileCopy(PreviousInstallPath + '\config\lang.txt', BackupPath + '\config\lang.txt', False);
+    end;
+
+    Log('Backup completed at: ' + BackupPath);
+
+    // CRITICAL: Remove old instance files BEFORE restoring from backup
+    Log('Removing old instance files (backend/frontend/docker/scripts)...');
+    RemoveOldInstanceFiles(PreviousInstallPath);
+
+    // Clean old uninstaller files
+    CleanOldUninstallers(PreviousInstallPath);
+
+    // Clean old Docker images to prevent conflicts
+    CleanOldDockerImages;
+
+    Log('Old instance cleanup complete - ready for fresh install of new version');
+  end;
+
+  InstallDir := GetInstallDirSafe;
+
+  // Create/update installation metadata file
+  if PreviousInstallPath <> '' then
+  begin
+    MetadataFile := PreviousInstallPath + '\install_metadata.txt';
+  end
+  else
+  begin
+    MetadataFile := AddBackslash(InstallDir) + 'install_metadata.txt';
+  end;
+
+  MetadataContent := 'INSTALLATION_VERSION=' + '{#MyAppVersion}' + #13#10 +
+                     'INSTALLATION_DATE=' + GetDateTimeString('yyyy-mm-dd hh:mm:ss', '-', ':') + #13#10 +
+                     'UPGRADE_FROM=' + PreviousVersion + #13#10 +
+                     'INSTALLATION_PATH=' + InstallDir + #13#10;
+
+  Log('Creating installation metadata...');
+  SaveStringToFile(MetadataFile, MetadataContent, False);
+end;
+
+
+function GetPowerShellExe: String;
+begin
+  // Try pwsh.exe (PowerShell 7+) in PATH
+  if FileExists(ExpandConstant('{cmd}\pwsh.exe')) then
+    Result := 'pwsh.exe'
+  // Try powershell.exe (Windows PowerShell) in PATH
+  else if FileExists(ExpandConstant('{cmd}\powershell.exe')) then
+    Result := 'powershell.exe'
+  // Try default install locations for PowerShell 7
+  else if FileExists('C:\\Program Files\\PowerShell\\7\\pwsh.exe') then
+    Result := 'C:\\Program Files\\PowerShell\\7\\pwsh.exe'
+  else if FileExists('C:\\Program Files (x86)\\PowerShell\\7\\pwsh.exe') then
+    Result := 'C:\\Program Files (x86)\\PowerShell\\7\\pwsh.exe'
+  // Try default install location for Windows PowerShell
+  else if FileExists('C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe') then
+    Result := 'C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+  else
+    Result := '';
+end;
+
+function TestPostgresTcpConnection(Host: String; Port: String): Boolean;
+var
+  ResultCode: Integer;
+  PowerShellExe: String;
+  Command: String;
+begin
+  Result := False;
+  PowerShellExe := GetPowerShellExe;
+  if PowerShellExe = '' then
+    Exit;
+
+  Command := '-NoProfile -ExecutionPolicy Bypass -Command "' +
+    'if ((Test-NetConnection -ComputerName \"' + Host + '\" -Port ' + Port + ').TcpTestSucceeded) { exit 0 } else { exit 1 }"';
+
+  if Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    Result := (ResultCode = 0);
+end;
+
+function TestDockerReady: Boolean;
+var
+  ResultCode: Integer;
+begin
+  Result := Exec('cmd', '/c docker info', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) and (ResultCode = 0);
+end;
+
+function UrlEncode(const S: String): String;
+var
+  i: Integer;
+  c: Char;
+  HexVal: Integer;
+  HexStr: String;
+begin
+  Result := '';
+  for i := 1 to Length(S) do
+  begin
+    c := S[i];
+    if (c >= 'A') and (c <= 'Z') or
+       (c >= 'a') and (c <= 'z') or
+       (c >= '0') and (c <= '9') or
+       (c = '-') or (c = '_') or (c = '.') or (c = '~') then
+      Result := Result + c
+    else begin
+      HexVal := Ord(c);
+      HexStr := Format('%02x', [HexVal]);
+      Result := Result + '%' + HexStr;
+    end;
+  end;
+end;
+
+function StringReplaceAll(const Source, OldPattern, NewPattern: AnsiString): AnsiString;
+var
+  PosIndex: Integer;
+  Temp: AnsiString;
+begin
+  Temp := Source;
+  PosIndex := Pos(OldPattern, Temp);
+  while PosIndex > 0 do
+  begin
+    Delete(Temp, PosIndex, Length(OldPattern));
+    Insert(NewPattern, Temp, PosIndex);
+    PosIndex := Pos(OldPattern, Temp);
+  end;
+  Result := Temp;
+end;
+
+function TestPostgresAuthConnection(Host, Port, DbName, UserName, Password, SslMode: String): Boolean;
+var
+  ResultCode: Integer;
+  TempEnv: String;
+  EnvContent: String;
+  Command: String;
+begin
+  Result := False;
+
+  TempEnv := ExpandConstant('{tmp}\sms_pg_auth_test.env');
+  EnvContent := 'PGHOST=' + Host + #13#10 +
+    'PGPORT=' + Port + #13#10 +
+    'PGDATABASE=' + DbName + #13#10 +
+    'PGUSER=' + UserName + #13#10 +
+    'PGPASSWORD=' + Password + #13#10 +
+    'PGSSLMODE=' + SslMode + #13#10;
+
+  SaveStringToFile(TempEnv, EnvContent, False);
+
+  Command := '/c docker run --rm --env-file "' + TempEnv + '" postgres:16-alpine psql -c "select 1"';
+  if Exec('cmd', Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+    Result := (ResultCode = 0);
+
+  if FileExists(TempEnv) then
+    DeleteFile(TempEnv);
+end;
+
+procedure SaveLiteEditionQnapCredentials(InstallPath, PgHost, PgPort, PgDb, PgUser, PgPass, PgSsl: String);
+var
+  PowerShellExe: String;
+  ScriptPath: String;
+  Command: String;
+  ResultCode: Integer;
+begin
+  // Get PowerShell executable path
+  PowerShellExe := GetPowerShellExe;
+  if PowerShellExe = '' then
+  begin
+    Log('[WARN] PowerShell not found - QNAP credentials not saved');
+    Exit;
+  end;
+
+  // Build command to call SaveLiteEditionQnapCredentials.ps1
+  ScriptPath := InstallPath + '\SaveLiteEditionQnapCredentials.ps1';
+
+  if not FileExists(ScriptPath) then
+  begin
+    Log('[WARN] SaveLiteEditionQnapCredentials.ps1 not found at ' + ScriptPath);
+    Exit;
+  end;
+
+  // Escape credentials for PowerShell
+  // Note: Using single quotes to prevent variable expansion
+  Command := '-NoProfile -ExecutionPolicy Bypass -File "' + ScriptPath + '" ' +
+    '-InstallPath "' + InstallPath + '" ' +
+    '-PgHost "' + PgHost + '" ' +
+    '-PgPort "' + PgPort + '" ' +
+    '-PgDb "' + PgDb + '" ' +
+    '-PgUser "' + PgUser + '" ' +
+    '-PgPass "' + PgPass + '" ' +
+    '-PgSSLMode "' + PgSsl + '"';
+
+  Log('Executing: ' + PowerShellExe + ' ' + Command);
+
+  if Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    if ResultCode = 0 then
+      Log('[OK] QNAP credentials saved successfully')
+    else
+      Log('[WARN] SaveLiteEditionQnapCredentials.ps1 exited with code ' + IntToStr(ResultCode));
+  end
+  else
+  begin
+    Log('[ERROR] Failed to execute SaveLiteEditionQnapCredentials.ps1');
+  end;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  EnvContent: String;
+  BackupPath: String;
+  NewShortcut, CommonShortcut, UserShortcut: String;
+  ResultCode: Integer;
+  PowerShellExe: String;
+  OldUninstaller, NewUninstaller: String;
+  OldUninstallerDat, NewUninstallerDat: String;
+  OldUninstallerMsg, NewUninstallerMsg: String;
+begin
+  if CurStep = ssInstall then
+  begin
+    if IsUpgrade then
+      CleanupLegacyShortcuts;
+
+    // Before installing, backup user data if upgrading and keepdata task is selected
+    if IsUpgrade and WizardIsTaskSelected('keepdata') then
+    begin
+      BackupPath := ExpandConstant('{app}\backups\pre_upgrade_' + '{#MyAppVersion}');
+
+      // Backup data directory if it exists
+      if DirExists(ExpandConstant('{app}\data')) then
+      begin
+        ForceDirectories(BackupPath);
+        Exec('cmd', '/c xcopy /E /I /Y "' + ExpandConstant('{app}\data') + '" "' + BackupPath + '\data"',
+             '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+      end;
+
+      // Backup .env files if they exist
+      if FileExists(ExpandConstant('{app}\backend\.env')) then
+      begin
+        ForceDirectories(BackupPath + '\config');
+        FileCopy(ExpandConstant('{app}\backend\.env'), BackupPath + '\config\backend.env', False);
+      end;
+      if FileExists(ExpandConstant('{app}\frontend\.env')) then
+      begin
+        FileCopy(ExpandConstant('{app}\frontend\.env'), BackupPath + '\config\frontend.env', False);
+      end;
+    end;
+
+    // Stop Docker container before updating files
+    if ContainerExists then
+    begin
+      Exec('cmd', '/c docker stop sms-app', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+    end;
+
+    // Remove legacy batch launchers if they exist
+    if FileExists(ExpandConstant('{app}\docker_manager.bat')) then
+    begin
+      Log('Removing legacy launcher: docker_manager.bat');
+      DeleteFile(ExpandConstant('{app}\docker_manager.bat'));
+    end;
+    if FileExists(ExpandConstant('{app}\docker_manager.cmd')) then
+    begin
+      Log('Removing legacy launcher: docker_manager.cmd');
+      DeleteFile(ExpandConstant('{app}\docker_manager.cmd'));
+    end;
+  end
+  else if CurStep = ssPostInstall then
+  begin
+    if IsUpgrade and (UpgradeBackupPath <> '') then
+    begin
+      Log('Post-install upgrade handling - preserving user data only');
+
+      // CRITICAL FIX: DO NOT restore .env files from old backup!
+      // The new installation includes fresh .env files with correct configuration.
+      // Restoring old .env files causes 400 Bad Request errors due to stale credentials.
+
+      Log('[SKIPPED] .env restoration - using fresh .env files from new installation');
+      Log('  Reason: Old .env files contain stale credentials that cause login failures');
+      Log('  Action: New .env files from current installation will be used');
+
+      // Only restore user data (not configuration files)
+
+      if FileExists(UpgradeBackupPath + '\config\lang.txt') then
+      begin
+        Log('Restoring language config from backup...');
+        ForceDirectories(ExpandConstant('{app}\config'));
+        FileCopy(UpgradeBackupPath + '\config\lang.txt', ExpandConstant('{app}\config\lang.txt'), False);
+      end;
+    end;
+
+    // Rename the uninstaller to include version number
+    OldUninstaller := ExpandConstant('{app}\unins000.exe');
+    NewUninstaller := ExpandConstant('{app}\unins{#MyAppVersion}.exe');
+    OldUninstallerDat := ExpandConstant('{app}\unins000.dat');
+    NewUninstallerDat := ExpandConstant('{app}\unins{#MyAppVersion}.dat');
+    OldUninstallerMsg := ExpandConstant('{app}\unins000.msg');
+    NewUninstallerMsg := ExpandConstant('{app}\unins{#MyAppVersion}.msg');
+
+    Log('Uninstaller post-install: Old=' + OldUninstaller + ', New=' + NewUninstaller);
+
+    if FileExists(OldUninstaller) then
+    begin
+      Log('  Old uninstaller found, attempting rename...');
+
+      // First try to delete any existing new uninstaller (from previous runs)
+      if FileExists(NewUninstaller) then
+      begin
+        Log('  Removing previous new uninstaller: ' + NewUninstaller);
+        if not DeleteFile(NewUninstaller) then
+          Log('  [WARN] Could not remove old new uninstaller');
+      end;
+
+      // Now try to rename
+      if RenameFile(OldUninstaller, NewUninstaller) then
+      begin
+        Log('  [OK] Uninstaller renamed successfully');
+        // Keep companion files (.dat/.msg) aligned with the executable name
+        LogAndRenameUninstallerSidecar(OldUninstallerDat, NewUninstallerDat, 'Uninstaller DAT');
+        LogAndRenameUninstallerSidecar(OldUninstallerMsg, NewUninstallerMsg, 'Uninstaller MSG');
+        // Update the uninstall registry entry to point to the renamed file
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'UninstallString', '"' + NewUninstaller + '"');
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
+        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'UninstallString', '"' + NewUninstaller + '"');
+        RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'QuietUninstallString', '"' + NewUninstaller + '" /SILENT');
+        Log('  Registry entries updated successfully');
+      end
+      else
+      begin
+        Log('  [WARN] Could not rename uninstaller (may be locked by system)');
+        // Fallback: Update registry to point to unins000.exe
+        Log('  Fallback: Using unins000.exe for uninstaller registry entries');
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'UninstallString', '"' + OldUninstaller + '"');
+        RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+          'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
+      end;
+    end
+    else
+    begin
+      Log('  Old uninstaller not found at: ' + OldUninstaller);
+      Log('  [WARN] Inno Setup may not have created the uninstaller executable');
+      Log('  Attempting to ensure uninstaller registry entries are set...');
+      // Ensure registry entries point to unins000.exe even if file doesn''t exist (will be created later)
+      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        'UninstallString', '"' + OldUninstaller + '"');
+      RegWriteStringValue(HKLM, 'Software\Microsoft\Windows\CurrentVersion\Uninstall\{#MyAppId}_is1',
+        'QuietUninstallString', '"' + OldUninstaller + '" /SILENT');
+    end;
+
+    // Post-install validation: ensure correct executable exists based on edition
+    if IsDockerInstall then
+    begin
+      if not FileExists(ExpandConstant('{app}\SMS_Manager.exe')) then
+      begin
+        Log('[ERROR] SMS_Manager.exe missing after Docker installation');
+        MsgBox('Installation completed but SMS_Manager.exe is missing.' + #13#10 +
+               'Please re-run the installer (Repair) or download the latest installer.',
+               mbError, MB_OK);
+      end;
+    end
+    else if IsLiteInstall then
+    begin
+      if not FileExists(ExpandConstant('{app}\SMS_Lite.exe')) then
+      begin
+        Log('[ERROR] SMS_Lite.exe missing after Lite installation');
+        MsgBox('Installation completed but SMS_Lite.exe is missing.' + #13#10 +
+               'Please re-run the installer (Repair) or download the latest installer.',
+               mbError, MB_OK);
+      end;
+
+      // Save QNAP PostgreSQL credentials for Lite Edition if user selected QNAP option on the Lite QNAP page
+      Log('Lite Edition Post-Install: LiteQnapYesRadio.Checked=' + Format('%d', [Integer(LiteQnapYesRadio.Checked)]));
+      Log('Lite Edition Post-Install: LiteQnapHost="' + LiteQnapHostEdit.Text + '"');
+      Log('Lite Edition Post-Install: LiteQnapPort="' + LiteQnapPortEdit.Text + '"');
+      Log('Lite Edition Post-Install: LiteQnapDb="' + LiteQnapDbEdit.Text + '"');
+      Log('Lite Edition Post-Install: LiteQnapUser="' + LiteQnapUserEdit.Text + '"');
+
+      if LiteQnapYesRadio.Checked and (Trim(LiteQnapHostEdit.Text) <> '') and (Trim(LiteQnapPortEdit.Text) <> '') and (Trim(LiteQnapDbEdit.Text) <> '') and (Trim(LiteQnapUserEdit.Text) <> '') and (Trim(LiteQnapPassEdit.Text) <> '') then
+      begin
+        Log('Lite Edition: Saving QNAP PostgreSQL credentials for runtime use...');
+        SaveLiteEditionQnapCredentials(
+          ExpandConstant('{app}'),
+          LiteQnapHostEdit.Text,
+          LiteQnapPortEdit.Text,
+          LiteQnapDbEdit.Text,
+          LiteQnapUserEdit.Text,
+          LiteQnapPassEdit.Text,
+          'prefer'
+        );
+      end
+      else
+      begin
+        Log('Lite Edition: Using local SQLite (QNAP not selected or credentials incomplete)');
+        Log('  LiteQnapYesRadio.Checked=' + Format('%d', [Integer(LiteQnapYesRadio.Checked)]));
+        Log('  LiteQnapHost empty=' + Format('%d', [Integer(Trim(LiteQnapHostEdit.Text) = '')]));
+        Log('  LiteQnapPort empty=' + Format('%d', [Integer(Trim(LiteQnapPortEdit.Text) = '')]));
+        Log('  LiteQnapDb empty=' + Format('%d', [Integer(Trim(LiteQnapDbEdit.Text) = '')]));
+        Log('  LiteQnapUser empty=' + Format('%d', [Integer(Trim(LiteQnapUserEdit.Text) = '')]));
+        Log('  LiteQnapPass empty=' + Format('%d', [Integer(Trim(LiteQnapPassEdit.Text) = '')]));
+      end;
+    end;
+  end;
+end;
+
+procedure RemoveProductionDockerImages;
+var
+  ResultCode: Integer;
+begin
+  Log('Removing production Docker images (sms-fullstack + postgres variants)...');
+
+  { SMS app image variants }
+  Exec('cmd', '/c docker image rm -f sms-fullstack 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f sms-fullstack:latest 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f sms-fullstack:{#MyAppVersion} 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { PostgreSQL image variants used by production profile }
+  Exec('cmd', '/c docker image rm -f postgres 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f postgres:latest 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f postgres:16 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker image rm -f postgres:16-alpine 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { Safety pass: remove any remaining tags for target repositories }
+  Exec('cmd', '/c for /f %i in (''docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i "^sms-fullstack:"'') do docker image rm -f %i 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c for /f %i in (''docker images --format "{{.Repository}}:{{.Tag}}" 2^>nul ^| findstr /i "^postgres:"'') do docker image rm -f %i 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  Log('Production Docker image removal commands executed');
+end;
+
+procedure StopAndRemoveProductionContainers;
+var
+  ResultCode: Integer;
+  InstallDir: String;
+  ComposeBase: String;
+  ComposeProd: String;
+  RootEnv: String;
+  ComposeDownCmd: String;
+begin
+  InstallDir := ExpandConstant('{app}');
+  ComposeBase := InstallDir + '\docker\docker-compose.yml';
+  ComposeProd := InstallDir + '\docker\docker-compose.prod.yml';
+  RootEnv := InstallDir + '\.env';
+
+  Log('Stopping/removing production containers (compose + single-image fallbacks)...');
+
+  { Best-effort compose teardown first (covers prefixed service containers) }
+  if FileExists(ComposeBase) and FileExists(ComposeProd) then
+  begin
+    if FileExists(RootEnv) then
+      ComposeDownCmd := '/c docker compose --env-file "' + RootEnv + '" -f "' + ComposeBase + '" -f "' + ComposeProd + '" down --remove-orphans 2>nul'
+    else
+      ComposeDownCmd := '/c docker compose -f "' + ComposeBase + '" -f "' + ComposeProd + '" down --remove-orphans 2>nul';
+
+    Exec('cmd', ComposeDownCmd, '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  end;
+
+  { Single-image mode containers }
+  Exec('cmd', '/c docker stop sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-app 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { Managed PostgreSQL + helper containers that may keep postgres image in use }
+  Exec('cmd', '/c docker stop sms-postgres 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-postgres 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-db-backup 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Exec('cmd', '/c docker rm -f sms-redis 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  { Safety pass: remove any remaining sms-* containers from legacy/custom runs }
+  Exec('cmd', '/c for /f %i in (''docker ps -aq --filter "name=^sms-" 2^>nul'') do docker rm -f %i 2>nul', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+
+  Log('Production container teardown commands executed');
+end;
+
+function InitializeUninstall: Boolean;
+var
+  DeleteUserData: Integer;
+  DeleteDockerImage: Integer;
+  DockerImagesRemoved: Boolean;
+begin
+  Result := True;
+  DockerImagesRemoved := False;
+
+  // Stop/remove running production containers before any image decision
+  StopAndRemoveProductionContainers;
+
+  // Ask user if they want to delete production Docker images
+  DeleteDockerImage := MsgBox(
+    'Do you want to remove Docker images?' + #13#10 + #13#10 +
+    'This removes production images used by SMS:' + #13#10 +
+    '  • sms-fullstack' + #13#10 +
+    '  • postgres (runtime DB image)' + #13#10 + #13#10 +
+    'Click YES to remove images and free disk space.' + #13#10 +
+    'Click NO to keep images for faster reinstallation.',
+    mbConfirmation, MB_YESNO);
+
+  if DeleteDockerImage = IDYES then
+  begin
+    Log('User chose to delete Docker images');
+    RemoveProductionDockerImages;
+    DockerImagesRemoved := True;
+  end
+  else
+  begin
+    Log('User chose to keep Docker images');
+  end;
+
+  // Ask user if they want to delete user data
+  DeleteUserData := MsgBox(
+    'Do you want to delete all user data?' + #13#10 + #13#10 +
+    'This includes:' + #13#10 +
+    '  • Database (data folder)' + #13#10 +
+    '  • Backups (backups folder)' + #13#10 +
+    '  • Logs (logs folder)' + #13#10 +
+    '  • Configuration files (.env)' + #13#10 + #13#10 +
+    'Click YES to delete everything.' + #13#10 +
+    'Click NO to keep your data for reinstallation.',
+    mbConfirmation, MB_YESNO);
+
+  if DeleteUserData = IDYES then
+  begin
+    Log('User chose to delete all user data');
+
+    { Full uninstall: always remove production images as well }
+    if not DockerImagesRemoved then
+    begin
+      Log('Full uninstall selected - forcing production Docker image removal');
+      RemoveProductionDockerImages;
+      DockerImagesRemoved := True;
+    end;
+
+    DelTree(ExpandConstant('{app}\data'), True, True, True);
+    DelTree(ExpandConstant('{app}\backups'), True, True, True);
+    DelTree(ExpandConstant('{app}\logs'), True, True, True);
+    DelTree(ExpandConstant('{app}\config'), True, True, True);
+    DeleteFile(ExpandConstant('{app}\.env'));
+    DeleteFile(ExpandConstant('{app}\backend\.env'));
+    DeleteFile(ExpandConstant('{app}\frontend\.env'));
+  end
+  else
+  begin
+    Log('User chose to keep user data');
+  end;
+end;
+
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+begin
+  if CurUninstallStep = usPostUninstall then
+  begin
+    // Clean up empty directories left behind
+    RemoveDir(ExpandConstant('{app}\backend'));
+    RemoveDir(ExpandConstant('{app}\frontend'));
+    RemoveDir(ExpandConstant('{app}\docker'));
+    RemoveDir(ExpandConstant('{app}\scripts'));
+    RemoveDir(ExpandConstant('{app}\config'));
+    RemoveDir(ExpandConstant('{app}\templates'));
+    RemoveDir(ExpandConstant('{app}'));
+  end;
+end;

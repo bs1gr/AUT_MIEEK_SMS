@@ -92,8 +92,10 @@ code-scanning-sarif/
 # Root-level generated copy of docs/DOCUMENTATION_INDEX.md (canonical path is docs/)
 DOCUMENTATION_INDEX.md
 
-# Installer old artifacts (removed permanently - prevent readdition)
-infra/installer/installer-old/
+# Installer build artifacts (generated, not source) — block only compiled outputs
+infra/installer/installer-old/builds/
+infra/installer/installer-old/archive-certificate-backups/
+infra/installer/installer-old/archive-v1.9.4-artifacts/
 
 # docs/reports/ (session state/status reports — policy violation per CLAUDE.md)
 docs/reports/
