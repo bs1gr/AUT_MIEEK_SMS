@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
+import { useLanguage } from '@/LanguageContext';
 
 // 'system' replaces 'power' - module moved to features/operations in v1.17.5+
 export type NavigationView =
@@ -31,6 +32,7 @@ export interface NavigationProps {
 
 export default function Navigation({ activeView, tabs, className, onViewChange }: NavigationProps) {
   const location = useLocation();
+  const { t } = useLanguage();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Close dropdown on route change
@@ -79,7 +81,7 @@ export default function Navigation({ activeView, tabs, className, onViewChange }
           type="button"
         >
           {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-          <span className="font-medium text-base">{activeTab?.label ?? 'Menu'}</span>
+          <span className="font-medium text-base">{activeTab?.label ?? t('menu')}</span>
         </button>
 
         {/* Full-width dropdown */}

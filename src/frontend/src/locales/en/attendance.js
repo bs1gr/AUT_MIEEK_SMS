@@ -90,4 +90,6 @@ export default {
   offlineQueued: 'Offline: changes queued and will sync when connection returns.',
   queuedSyncCount: '{{count}} queued for sync',
   syncedQueued: '{{count}} queued change set(s) synced.',
+  applied: 'Applied',
+  notApplied: 'Not applied',
 };

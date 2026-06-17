@@ -120,4 +120,5 @@ export default {
   autoActivationActiveHint: 'This course will be auto-activated (current date within semester range)',
   autoActivationInactiveHint: 'This course will be auto-deactivated (current date outside semester range)',
   autoActivationNotApplicableHint: 'Auto-activation does not apply to this semester format. You can manually set activation status.',
+  enrollment: 'Enrollment',
 };

@@ -1206,8 +1206,15 @@ function Start-Backend {
         $backendEnvFile = Join-Path $PROJECT_ROOT "src\backend\.env"
         $backendHost = "0.0.0.0"
         if (Test-Path $backendEnvFile) {
-            $hostLine = Select-String -Path $backendEnvFile -Pattern "^API_HOST\s*=" | Select-Object -Last 1
-            if ($hostLine) { $backendHost = ($hostLine.Line -split "=", 2)[1].Trim() }
+            $hostLine = Get-Content $backendEnvFile -ErrorAction SilentlyContinue |
+                Where-Object { $_ -match '^\s*API_HOST\s*=' } |
+                Select-Object -Last 1
+            if ($hostLine) {
+                $hostVal = ($hostLine -split '=', 2)[1].Trim()
+                if ($hostVal.StartsWith('"') -and $hostVal.EndsWith('"')) { $hostVal = $hostVal.Trim('"') }
+                elseif ($hostVal.StartsWith("'") -and $hostVal.EndsWith("'")) { $hostVal = $hostVal.Trim("'") }
+                if (-not [string]::IsNullOrWhiteSpace($hostVal)) { $backendHost = $hostVal }
+            }
         }
         $args = @($module, "--host", $backendHost, "--port", $targetBackendPort)
         if (-not $NoReload) {
@@ -1977,7 +1984,7 @@ if ($DeepClean) {
     $removedCount = 0
 
     foreach ($pattern in $itemsToRemove) {
-        $fullPattern = Join-Path $SCRIPT_DIR $pattern
+        $fullPattern = Join-Path $PROJECT_ROOT $pattern
 
         if ($pattern -like "*`*") {
             # Wildcard pattern

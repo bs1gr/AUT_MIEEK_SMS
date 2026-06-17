@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ListSkeleton, StudentCardSkeleton } from '@/components/ui';
+import { ListSkeleton, StudentCardSkeleton, VirtualList } from '@/components/ui';
 import { attendanceAPI, gradesAPI, coursesAPI } from '@/api/api';
 import { useLanguage } from '@/LanguageContext';
 import { usePerformanceMonitor } from '@/hooks';
@@ -145,7 +145,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     );
   }, [students, resolvedSearch]);
 
-  const loadStats = async (studentId: number): Promise<void> => {
+  const loadStats = useCallback(async (studentId: number): Promise<void> => {
     try {
       const [attendance, grades, finalGradeSummary] = await Promise.all([
         attendanceAPI.getByStudent(studentId),
@@ -196,20 +196,20 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     } catch {
       setStatsById((prev) => ({ ...prev, [studentId]: { error: true } as StudentStats }));
     }
-  };
+  }, []);
 
-  const toggleExpand = (id: number): void => {
+  const toggleExpand = useCallback((id: number): void => {
     const next = expandedId === id ? null : id;
     setExpandedId(next);
     if (next && !statsById[next]) loadStats(next);
-  };
+  }, [expandedId, statsById, loadStats]);
 
-  const updateNote = (id: number, value: string): void => {
+  const updateNote = useCallback((id: number, value: string): void => {
     setNotesOverrides((prev) => ({ ...prev, [id]: value }));
     try {
       localStorage.setItem(`student_notes_${id}`, value);
     } catch {}
-  };
+  }, []);
 
   const handleCourseNavigate = useCallback((studentId: number, courseId: number) => {
     if (typeof window !== 'undefined') {
@@ -280,7 +280,33 @@ const StudentsView: React.FC<StudentsViewProps> = ({
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <ul className="space-y-2">
+            {students.length >= 50 ? (
+              <VirtualList
+                items={students}
+                estimateSize={150}
+                renderItem={(student) => (
+                  <StudentCard
+                    key={student.id}
+                    student={student}
+                    stats={statsById[student.id]}
+                    isExpanded={expandedId === student.id}
+                    noteValue={notesById[student.id] || ''}
+                    onNoteChange={(value) => updateNote(student.id, value)}
+                    onToggleExpand={toggleExpand}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                    coursesMap={coursesMap}
+                    onNavigateToCourse={(courseId) => handleCourseNavigate(student.id, courseId)}
+                    onRecallGrade={(gradeId, courseId) => handleRecallGrade(student.id, courseId, gradeId)}
+                    onRecallAttendance={(courseId, date) => handleRecallAttendance(courseId, date)}
+                    onViewProfile={onViewProfile}
+                  />
+                )}
+                emptyMessage={t('noStudentsFound')}
+                className="space-y-2"
+              />
+            ) : (
+              <ul className="space-y-2">
                 {students.map((student) => (
                   <StudentCard
                     key={student.id}
@@ -300,6 +326,7 @@ const StudentsView: React.FC<StudentsViewProps> = ({
                   />
                 ))}
               </ul>
+            )}
           </motion.div>
         )}
       </div>

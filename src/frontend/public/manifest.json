@@ -59,7 +59,7 @@
       "name": "Dashboard",
       "short_name": "Dashboard",
       "description": "View system dashboard",
-      "url": "/dashboard",
+      "url": "/#/dashboard",
       "icons": [
         {
           "src": "/pwa-192x192.png",
@@ -71,7 +71,7 @@
       "name": "Attendance",
       "short_name": "Attendance",
       "description": "Manage attendance records",
-      "url": "/attendance",
+      "url": "/#/attendance",
       "icons": [
         {
           "src": "/pwa-192x192.png",
@@ -83,7 +83,7 @@
       "name": "Grades",
       "short_name": "Grades",
       "description": "Manage student grades",
-      "url": "/grading",
+      "url": "/#/grading",
       "icons": [
         {
           "src": "/pwa-192x192.png",

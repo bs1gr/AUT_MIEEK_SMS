@@ -495,4 +495,5 @@ export default {
     selectCharts: 'Please select at least one chart',
   },
   optional: 'Optional',
+  menu: 'Menu',
 };

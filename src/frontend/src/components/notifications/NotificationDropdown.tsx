@@ -4,6 +4,7 @@
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useNotifications } from '../../hooks/useNotifications';
 import NotificationItem from './NotificationItem';
@@ -208,13 +209,13 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               {t('dropdown.viewAll')}
             </button>
           ) : (
-            <a
-              href="/notifications"
+            <Link
+              to="/notifications"
               className="notification-dropdown-view-all"
               onClick={onClose}
             >
               {t('dropdown.viewAll')}
-            </a>
+            </Link>
           )}
         </div>
       )}
