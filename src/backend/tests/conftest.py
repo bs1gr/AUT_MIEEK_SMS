@@ -155,11 +155,10 @@ def get_error_detail(response_data: dict) -> dict | None:
 # This object is detected by COMMIT_READY.ps1 static analysis to verify safe test config.
 # Actual runtime enforcement is handled via monkeypatch in the 'client' fixture.
 class MockSettings:
-    pass
+    AUTH_ENABLED = False
 
 
 settings = MockSettings()
-settings.AUTH_ENABLED = False
 
 
 @pytest.fixture(scope="session", autouse=True)

@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom/client';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import App from './App';
+import { needsServerSetup } from '@/utils/serverUrl';
 import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
 // import './pwa-register'; // DISABLED for development - causes MIME type errors
@@ -13,6 +14,7 @@ import RequireAdmin from '@/components/auth/RequireAdmin';
 import { Suspense } from 'react';
 import SkeletonLoader from './components/common/SkeletonLoader';
 import {
+  ServerSetupPage,
   AuthPage,
   DashboardPage,
   StudentsPage,
@@ -35,6 +37,11 @@ import {
 } from './routes';
 import AdminLayout from './pages/admin/AdminLayout';
 import { recoverFromChunkLoadError } from './utils/chunkLoadRecovery';
+
+// Redirect to /server-setup when running on Android with no server URL configured.
+function ServerGuard() {
+  return needsServerSetup() ? <Navigate to="/server-setup" replace /> : <Outlet />;
+}
 
 // Initialize global error handlers without forcing the module into the main chunk
 void import('./utils/errorReporting')
@@ -65,6 +72,8 @@ ReactDOM.createRoot(rootElement).render(
         <App>
         <Suspense fallback={<div className="p-6"><SkeletonLoader rows={6} /></div>}>
           <Routes>
+            <Route path="/server-setup" element={<ServerSetupPage />} />
+            <Route element={<ServerGuard />}>
             <Route path="/" element={<AuthPage />} />
             <Route element={<RequireAuth />}>
               <Route path="/dashboard" element={<DashboardPage />} />
@@ -93,6 +102,7 @@ ReactDOM.createRoot(rootElement).render(
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
+            </Route>
           </Routes>
         </Suspense>
         </App>

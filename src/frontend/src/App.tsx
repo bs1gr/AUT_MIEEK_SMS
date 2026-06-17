@@ -19,6 +19,7 @@ import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptM
 import BackendStatusBanner from './components/common/BackendStatusBanner';
 import OfflineBanner from './components/common/OfflineBanner';
 import UserFeedbackModal from './components/UserFeedbackModal';
+import { getApiBaseUrl } from '@/utils/serverUrl';
 
 interface NavigationTabConfig {
   key: NavigationView;
@@ -128,7 +129,7 @@ function AppLayout({ children }: AppLayoutProps) {
 
   const handleSubmitFeedback = async (feedback: string) => {
     try {
-      const response = await fetch('/api/v1/feedback/', {
+      const response = await fetch(`${getApiBaseUrl()}/feedback/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ feedback }),

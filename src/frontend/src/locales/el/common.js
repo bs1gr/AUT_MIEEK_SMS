@@ -495,4 +495,17 @@ export default {
   },
   optional: 'Προαιρετικό',
   menu: 'Μενού',
+  serverSetup: {
+    title: 'Σύνδεση σε Διακομιστή',
+    subtitle: 'Εισάγετε τη διεύθυνση URL του διακομιστή SMS για να ξεκινήσετε',
+    urlLabel: 'Διεύθυνση Διακομιστή',
+    urlPlaceholder: 'https://your-server.com/api/v1',
+    hint: 'Παράδειγμα: http://192.168.1.100:8080/api/v1 ή https://sms.school.cy/api/v1',
+    connect: 'Σύνδεση',
+    connecting: 'Σύνδεση…',
+    errorInvalidUrl: 'Εισάγετε έγκυρη διεύθυνση που αρχίζει με http:// ή https://',
+    errorUnreachable: 'Δεν είναι δυνατή η πρόσβαση στον διακομιστή. Ελέγξτε τη διεύθυνση και δοκιμάστε ξανά.',
+    changeServer: 'Αλλαγή Διακομιστή',
+    currentServer: 'Διακομιστής: {{url}}',
+  },
 };

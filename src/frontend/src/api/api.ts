@@ -125,6 +125,8 @@ export interface JobDetail {
 }
 
 // Base API URL
+import { getStoredServerUrl } from '@/utils/serverUrl';
+
 const RAW_API_BASE_URL = import.meta.env.VITE_API_URL;
 const IS_DEV = import.meta.env.DEV;
 const API_DEBUG = IS_DEV && String(import.meta.env.VITE_API_DEBUG || '').toLowerCase() === 'true';
@@ -180,6 +182,13 @@ const apiClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 seconds timeout
+});
+
+// Override baseURL at request time from localStorage (Android runtime config).
+apiClient.interceptors.request.use((config) => {
+  const stored = getStoredServerUrl();
+  if (stored) config.baseURL = stored;
+  return config;
 });
 
 function getHttpStatusFromAxiosLikeError(error: unknown): number | undefined {
@@ -244,6 +253,16 @@ export const controlApiClient: AxiosInstance = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000,
+});
+
+// Override control baseURL at request time from localStorage (Android runtime config).
+controlApiClient.interceptors.request.use((config) => {
+  const stored = getStoredServerUrl();
+  if (stored) {
+    const root = stored.replace(/\/?api\/?v1\/?$/i, '').replace(/\/$/, '');
+    config.baseURL = `${root}/control/api`;
+  }
+  return config;
 });
 
 // Attach the same authentication interceptor to controlApiClient

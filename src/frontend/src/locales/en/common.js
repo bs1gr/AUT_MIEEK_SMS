@@ -496,4 +496,17 @@ export default {
   },
   optional: 'Optional',
   menu: 'Menu',
+  serverSetup: {
+    title: 'Connect to Server',
+    subtitle: 'Enter the URL of your SMS server to get started',
+    urlLabel: 'Server URL',
+    urlPlaceholder: 'https://your-server.com/api/v1',
+    hint: 'Example: http://192.168.1.100:8080/api/v1 or https://sms.school.cy/api/v1',
+    connect: 'Connect',
+    connecting: 'Connecting…',
+    errorInvalidUrl: 'Please enter a valid URL starting with http:// or https://',
+    errorUnreachable: 'Cannot reach the server. Check the URL and try again.',
+    changeServer: 'Change Server',
+    currentServer: 'Server: {{url}}',
+  },
 };

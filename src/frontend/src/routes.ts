@@ -7,6 +7,9 @@ import { lazy } from 'react';
  * Critical routes (dashboard, students) can be preloaded on idle for faster navigation.
  */
 
+// Server setup (loaded immediately — shown before auth on Android when no URL is configured)
+export const ServerSetupPage = lazy(() => import('./pages/ServerSetupPage'));
+
 // Authentication (loaded immediately)
 export const AuthPage = lazy(() => import('./pages/AuthPage'));
 

@@ -369,9 +369,9 @@ def test_delete_notification_success(client, admin_token, db: Session, test_user
 
     # Note: Notifications are soft-deleted (marked is_active=False)
     # so they still exist in DB but marked as deleted
-    notification = db.query(Notification).filter_by(id=notification_id).first()
+    fetched: Notification | None = db.query(Notification).filter_by(id=notification_id).first()
     # Should still exist but be soft-deleted
-    assert notification is not None  # Still in DB (soft delete)
+    assert fetched is not None  # Still in DB (soft delete)
 
 
 def test_delete_notification_not_found(client, admin_token):
@@ -642,7 +642,7 @@ def test_broadcast_notification_by_role_filter(client, admin_token, db: Session)
 
 def test_broadcast_notification_requires_admin(client, db: Session):
     """Test broadcast endpoint requires admin role."""
-    headers = {}  # No token or regular user token
+    headers: dict[str, str] = {}  # No token or regular user token
     broadcast_data = {
         "notification_type": "system_message",
         "title": "Announcement",

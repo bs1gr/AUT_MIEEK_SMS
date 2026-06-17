@@ -11,10 +11,7 @@ import { gpaToGreekScale, gpaToPercentage, getLetterGrade } from '@/utils/gradeU
 import StudentCard from './StudentCard';
 import type { StudentStats } from './studentTypes';
 import { eventBus, EVENTS } from '@/utils/events';
-
-const API_BASE_URL: string = (
-  (import.meta as unknown as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1'
-);
+import { getApiBaseUrl } from '@/utils/serverUrl';
 
 interface StudentsViewProps {
   students: Student[];
@@ -92,65 +89,12 @@ const StudentsView: React.FC<StudentsViewProps> = ({
     fetchCourses();
   }, []);
 
-  // Listen for data changes and invalidate affected student's stats
-  useEffect(() => {
-    const invalidateStudentStats = (payload: unknown) => {
-      const { studentId } = (payload as { studentId?: number }) || {};
-      // Invalidate the stats for this student so it will be reloaded on next expand
-      if (typeof studentId === 'number' && statsById[studentId]) {
-        setStatsById((prev) => {
-          const updated = { ...prev };
-          delete updated[studentId];
-          return updated;
-        });
-        // If this student is currently expanded, reload their stats immediately
-        if (typeof studentId === 'number' && expandedId === studentId) {
-          loadStats(studentId);
-        }
-      }
-    };
-
-    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, invalidateStudentStats);
-    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, invalidateStudentStats);
-    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, invalidateStudentStats);
-    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, invalidateStudentStats);
-    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, invalidateStudentStats);
-    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, invalidateStudentStats);
-    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, invalidateStudentStats);
-    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, invalidateStudentStats);
-    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, invalidateStudentStats);
-
-    return () => {
-      unsubscribeGradeAdded();
-      unsubscribeGradeUpdated();
-      unsubscribeGradeDeleted();
-      unsubscribeGradesBulk();
-      unsubscribeAttendanceAdded();
-      unsubscribeAttendanceBulk();
-      unsubscribeAttendanceUpdated();
-      unsubscribeAttendanceDeleted();
-      unsubscribeDailyPerformance();
-    };
-  }, [statsById, expandedId]);
-
-  // notesById is derived via useMemo; no effect needed
-
-  const filtered = useMemo(() => {
-    const q = (resolvedSearch || '').toLowerCase();
-    if (!q) return students || [];
-    return (students || []).filter((s) =>
-      `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) ||
-      String(s.student_id || '').toLowerCase().includes(q) ||
-      String(s.email || '').toLowerCase().includes(q)
-    );
-  }, [students, resolvedSearch]);
-
   const loadStats = useCallback(async (studentId: number): Promise<void> => {
     try {
       const [attendance, grades, finalGradeSummary] = await Promise.all([
         attendanceAPI.getByStudent(studentId),
         gradesAPI.getByStudent(studentId),
-        fetch(`${API_BASE_URL}/analytics/student/${studentId}/all-courses-summary`)
+        fetch(`${getApiBaseUrl()}/analytics/student/${studentId}/all-courses-summary`)
           .then(res => res.ok ? res.json() : null)
           .catch(() => null),
       ]);
@@ -167,7 +111,6 @@ const StudentsView: React.FC<StudentsViewProps> = ({
         avg = percentages.reduce((sum: number, p: number) => sum + p, 0) / percentages.length;
       }
 
-      // Process final grade summary if available
       let finalGrade = undefined;
       let courseSummary = undefined;
       if (finalGradeSummary && finalGradeSummary.overall_gpa) {
@@ -197,6 +140,57 @@ const StudentsView: React.FC<StudentsViewProps> = ({
       setStatsById((prev) => ({ ...prev, [studentId]: { error: true } as StudentStats }));
     }
   }, []);
+
+  // Listen for data changes and invalidate affected student's stats
+  useEffect(() => {
+    const invalidateStudentStats = (payload: unknown) => {
+      const { studentId } = (payload as { studentId?: number }) || {};
+      if (typeof studentId === 'number' && statsById[studentId]) {
+        setStatsById((prev) => {
+          const updated = { ...prev };
+          delete updated[studentId];
+          return updated;
+        });
+        if (expandedId === studentId) {
+          loadStats(studentId);
+        }
+      }
+    };
+
+    const unsubscribeGradeAdded = eventBus.on(EVENTS.GRADE_ADDED, invalidateStudentStats);
+    const unsubscribeGradeUpdated = eventBus.on(EVENTS.GRADE_UPDATED, invalidateStudentStats);
+    const unsubscribeGradeDeleted = eventBus.on(EVENTS.GRADE_DELETED, invalidateStudentStats);
+    const unsubscribeGradesBulk = eventBus.on(EVENTS.GRADES_BULK_ADDED, invalidateStudentStats);
+    const unsubscribeAttendanceAdded = eventBus.on(EVENTS.ATTENDANCE_ADDED, invalidateStudentStats);
+    const unsubscribeAttendanceBulk = eventBus.on(EVENTS.ATTENDANCE_BULK_ADDED, invalidateStudentStats);
+    const unsubscribeAttendanceUpdated = eventBus.on(EVENTS.ATTENDANCE_UPDATED, invalidateStudentStats);
+    const unsubscribeAttendanceDeleted = eventBus.on(EVENTS.ATTENDANCE_DELETED, invalidateStudentStats);
+    const unsubscribeDailyPerformance = eventBus.on(EVENTS.DAILY_PERFORMANCE_ADDED, invalidateStudentStats);
+
+    return () => {
+      unsubscribeGradeAdded();
+      unsubscribeGradeUpdated();
+      unsubscribeGradeDeleted();
+      unsubscribeGradesBulk();
+      unsubscribeAttendanceAdded();
+      unsubscribeAttendanceBulk();
+      unsubscribeAttendanceUpdated();
+      unsubscribeAttendanceDeleted();
+      unsubscribeDailyPerformance();
+    };
+  }, [statsById, expandedId, loadStats]);
+
+  // notesById is derived via useMemo; no effect needed
+
+  const filtered = useMemo(() => {
+    const q = (resolvedSearch || '').toLowerCase();
+    if (!q) return students || [];
+    return (students || []).filter((s) =>
+      `${s.first_name} ${s.last_name}`.toLowerCase().includes(q) ||
+      String(s.student_id || '').toLowerCase().includes(q) ||
+      String(s.email || '').toLowerCase().includes(q)
+    );
+  }, [students, resolvedSearch]);
 
   const toggleExpand = useCallback((id: number): void => {
     const next = expandedId === id ? null : id;
