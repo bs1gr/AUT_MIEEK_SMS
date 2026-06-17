@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import LoginWidget from '@/components/auth/LoginWidget';
 import RegisterWidget from '@/components/auth/RegisterWidget';
 import { useAuth } from '@/contexts/AuthContext';
+import { isCapacitorApp, clearServerUrl, clearServerType } from '@/utils/serverUrl';
 
 interface LocationState {
   from?: {
@@ -33,6 +34,12 @@ const AuthPage = () => {
     navigate(redirectPath, { replace: true });
   };
 
+  const handleChangeServer = () => {
+    clearServerUrl();
+    clearServerType();
+    navigate('/server-setup', { replace: true });
+  };
+
   if (user) {
     return null;
   }
@@ -55,6 +62,17 @@ const AuthPage = () => {
       <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-900">
         <RegisterWidget variant="inline" onRegisterSuccess={handleAuthSuccess} collapsedByDefault />
       </div>
+
+      {isCapacitorApp() && (
+        <div className="text-center">
+          <button
+            onClick={handleChangeServer}
+            className="text-sm text-muted-foreground underline underline-offset-4 hover:text-primary"
+          >
+            {t('serverSetup.changeServer', { ns: 'common' })}
+          </button>
+        </div>
+      )}
     </div>
   );
 };

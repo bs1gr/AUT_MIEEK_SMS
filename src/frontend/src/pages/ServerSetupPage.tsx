@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
 import { setServerUrl, setServerType, type ServerType } from '@/utils/serverUrl';
@@ -56,7 +56,7 @@ function Spinner() {
 
 interface CardOption {
   type: ServerType;
-  icon: JSX.Element;
+  icon: React.ReactElement;
   color: string;
   bgColor: string;
 }

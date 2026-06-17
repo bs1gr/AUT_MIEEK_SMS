@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/LanguageContext';
 import {
@@ -31,6 +31,11 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Refs to read actual DOM values on submit — handles Android autofill
+  // which fills the input visually without triggering React onChange.
+  const emailRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (variant === 'dialog' && !open) {
       setEmail('');
@@ -44,8 +49,26 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Read from DOM to catch Android autofill that bypasses onChange
+    const actualEmail = (emailRef.current?.value ?? email).trim();
+    const actualPassword = passwordRef.current?.value ?? password;
+
+    console.log('[Login] email:', JSON.stringify(actualEmail), 'len:', actualEmail.length);
+
+    if (!actualEmail) {
+      setError('Παρακαλώ εισάγετε τη διεύθυνση email σας. / Please enter your email.');
+      setLoading(false);
+      return;
+    }
+    if (!actualPassword) {
+      setError('Παρακαλώ εισάγετε τον κωδικό πρόσβασης. / Please enter your password.');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await login(email, password);
+      await login(actualEmail, actualPassword);
       if (variant === 'dialog') {
         setOpen(false);
       }
@@ -53,8 +76,22 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
         onLoginSuccess();
       }
     } catch (err: unknown) {
-      // Error can be many shapes (axios, Error, string) — use helper to extract a message
-      setError(getErrorMessage(err, t('auth.loginError')));
+      const errObj = err as { response?: { status?: number; data?: { error?: { details?: { errors?: Array<{ loc?: unknown[]; msg?: string }> } } } } };
+      if (errObj?.response?.status === 422) {
+        const validationErrors = errObj.response?.data?.error?.details?.errors;
+        if (validationErrors && validationErrors.length > 0) {
+          const firstErr = validationErrors[0];
+          const field = Array.isArray(firstErr.loc) ? firstErr.loc.join('.') : '';
+          const msg = firstErr.msg || 'validation error';
+          setError(`Validation failed: ${field} — ${msg}`);
+        } else {
+          setError(getErrorMessage(err, t('auth.loginError')));
+        }
+        console.error('[Login 422]', JSON.stringify(errObj.response?.data));
+      } else {
+        setError(getErrorMessage(err, t('auth.loginError')));
+      }
+      console.error('[Login error]', err);
     } finally {
       setLoading(false);
     }
@@ -65,20 +102,26 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
       <div className="space-y-2">
         <Label htmlFor="auth-login-email">{t('common.email')}</Label>
         <Input
+          ref={emailRef}
           id="auth-login-email"
           name="email"
           data-testid="auth-login-email"
           type="email"
           autoComplete="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          inputMode="email"
           aria-label="email"
           value={email}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setEmail(event.target.value)}
-          required
+          onInput={(event: React.FormEvent<HTMLInputElement>) => setEmail((event.target as HTMLInputElement).value)}
         />
       </div>
       <div className="space-y-2">
         <Label htmlFor="auth-login-password">{t('common.password')}</Label>
         <Input
+          ref={passwordRef}
           id="auth-login-password"
           name="password"
           data-testid="auth-login-password"
@@ -87,7 +130,7 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
           aria-label="password"
           value={password}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPassword(event.target.value)}
-          required
+          onInput={(event: React.FormEvent<HTMLInputElement>) => setPassword((event.target as HTMLInputElement).value)}
         />
       </div>
       {error && (

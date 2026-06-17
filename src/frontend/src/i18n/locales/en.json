@@ -47,6 +47,8 @@
     "registerTitle": "Create teacher account",
     "registerDescription": "Provide your details to request teacher access.",
     "loginError": "Unable to sign in. Check your email and password.",
+    "emailRequired": "Please enter your email address.",
+    "passwordRequired": "Please enter your password.",
     "registerSuccess": "Registration completed and you are now signed in.",
     "registerPartial": "Registration completed. Please sign in using your new credentials.",
     "registerError": "Registration failed. Try again later.",

@@ -35,6 +35,15 @@ Documentation for deploying and operating the Student Management System in produ
 
 - **[QNAP_DEPLOYMENT_GUIDE_COMPLETE.md](QNAP_DEPLOYMENT_GUIDE_COMPLETE.md)** - Consolidated QNAP Container Station guide (standard, ARM/TS-431P3, virtual host)
 
+### Mobile (Android) Deployment
+
+- **[ANDROID_TAILSCALE_GUIDE.md](ANDROID_TAILSCALE_GUIDE.md)** - Android APK + Tailscale remote access
+  - Tailscale VPN setup (why not DDNS/QNAP proxy)
+  - Server URL configuration on the phone
+  - Capacitor WebView quirks: autofill, HTML5 validation, CORS origin
+  - Admin password reset procedure
+  - Chrome DevTools remote debugging
+
 ### Multi-PC Deployment
 
 - **[MULTI_PC_DEPLOYMENT_GUIDE.md](MULTI_PC_DEPLOYMENT_GUIDE.md)** - Multi-PC architecture & offline operation
