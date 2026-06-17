@@ -498,9 +498,36 @@ export default {
   serverSetup: {
     title: 'Σύνδεση σε Διακομιστή',
     subtitle: 'Εισάγετε τη διεύθυνση URL του διακομιστή SMS για να ξεκινήσετε',
-    urlLabel: 'Διεύθυνση Διακομιστή',
+    selectTitle: 'Επιλογή Τύπου Σύνδεσης',
+    selectSubtitle: 'Πώς θέλετε να συνδεθείτε στον διακομιστή SMS;',
+    // QNAP
+    qnapTitle: 'QNAP NAS',
+    qnapSubtitle: 'QNAP NAS με SMS μέσω Docker',
+    qnapLabel: 'IP Διεύθυνση NAS',
+    qnapPlaceholder: '192.168.1.100',
+    qnapHint: 'Η θύρα 8080 προστίθεται αυτόματα (προεπιλογή Docker)',
+    // Τοπικό δίκτυο
+    localTitle: 'Τοπικό Δίκτυο',
+    localSubtitle: 'Υπολογιστής ή διακομιστής στο Wi-Fi σας',
+    localLabel: 'IP Διεύθυνση Υπολογιστή',
+    localPlaceholder: '192.168.1.50',
+    localPortLabel: 'Θύρα',
+    localPortPlaceholder: '8000',
+    localHint: 'Προεπιλεγμένη θύρα για native mode είναι 8000',
+    // Cloud
+    cloudTitle: 'Cloud / VPS',
+    cloudSubtitle: 'Απομακρυσμένος διακομιστής, VPS ή hosted υπηρεσία',
+    cloudLabel: 'Τομέας Διακομιστή',
+    cloudPlaceholder: 'sms.school.cy',
+    cloudHint: 'Το HTTPS χρησιμοποιείται αυτόματα',
+    // Custom
+    customTitle: 'Προσαρμοσμένο URL',
+    customSubtitle: 'Εισάγετε χειροκίνητα την πλήρη διεύθυνση API',
+    // Κοινά
+    urlLabel: 'Πλήρης Διεύθυνση API',
     urlPlaceholder: 'https://your-server.com/api/v1',
     hint: 'Παράδειγμα: http://192.168.1.100:8080/api/v1 ή https://sms.school.cy/api/v1',
+    back: 'Πίσω',
     connect: 'Σύνδεση',
     connecting: 'Σύνδεση…',
     errorInvalidUrl: 'Εισάγετε έγκυρη διεύθυνση που αρχίζει με http:// ή https://',

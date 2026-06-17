@@ -499,9 +499,36 @@ export default {
   serverSetup: {
     title: 'Connect to Server',
     subtitle: 'Enter the URL of your SMS server to get started',
-    urlLabel: 'Server URL',
+    selectTitle: 'Choose Connection Type',
+    selectSubtitle: 'How do you want to connect to the SMS server?',
+    // QNAP
+    qnapTitle: 'QNAP NAS',
+    qnapSubtitle: 'QNAP NAS running SMS via Docker',
+    qnapLabel: 'NAS IP Address',
+    qnapPlaceholder: '192.168.1.100',
+    qnapHint: 'Port 8080 is added automatically (Docker default)',
+    // Local
+    localTitle: 'Local Network',
+    localSubtitle: 'PC or server on your Wi-Fi',
+    localLabel: 'PC IP Address',
+    localPlaceholder: '192.168.1.50',
+    localPortLabel: 'Port',
+    localPortPlaceholder: '8000',
+    localHint: 'Default port for native mode is 8000',
+    // Cloud
+    cloudTitle: 'Cloud / VPS',
+    cloudSubtitle: 'Remote server, VPS, or hosted service',
+    cloudLabel: 'Server Domain',
+    cloudPlaceholder: 'sms.school.cy',
+    cloudHint: 'HTTPS is used automatically',
+    // Custom
+    customTitle: 'Custom URL',
+    customSubtitle: 'Enter the full API address manually',
+    // Shared
+    urlLabel: 'Full API URL',
     urlPlaceholder: 'https://your-server.com/api/v1',
     hint: 'Example: http://192.168.1.100:8080/api/v1 or https://sms.school.cy/api/v1',
+    back: 'Back',
     connect: 'Connect',
     connecting: 'Connecting…',
     errorInvalidUrl: 'Please enter a valid URL starting with http:// or https://',

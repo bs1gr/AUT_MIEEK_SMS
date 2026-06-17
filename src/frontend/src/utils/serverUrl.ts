@@ -1,4 +1,31 @@
 const SERVER_URL_KEY = 'sms_server_url';
+const SERVER_TYPE_KEY = 'sms_server_type';
+
+export type ServerType = 'qnap' | 'local' | 'cloud' | 'custom';
+
+export function getServerType(): ServerType | null {
+  try {
+    return (localStorage.getItem(SERVER_TYPE_KEY) as ServerType) || null;
+  } catch {
+    return null;
+  }
+}
+
+export function setServerType(type: ServerType): void {
+  try {
+    localStorage.setItem(SERVER_TYPE_KEY, type);
+  } catch {
+    // noop
+  }
+}
+
+export function clearServerType(): void {
+  try {
+    localStorage.removeItem(SERVER_TYPE_KEY);
+  } catch {
+    // noop
+  }
+}
 
 export function isCapacitorApp(): boolean {
   return typeof (window as Window & { Capacitor?: unknown }).Capacitor !== 'undefined';
@@ -24,6 +51,7 @@ export function setServerUrl(url: string): void {
 export function clearServerUrl(): void {
   try {
     localStorage.removeItem(SERVER_URL_KEY);
+    localStorage.removeItem(SERVER_TYPE_KEY);
   } catch {
     // noop
   }
