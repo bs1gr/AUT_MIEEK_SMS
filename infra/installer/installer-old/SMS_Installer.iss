@@ -174,7 +174,8 @@ Name: "installdocker"; Description: "{cm:OpenDockerPage}"; GroupDescription: "{c
 ; Exclude local runtime/test DB artifacts so workstation-only files cannot leak into installer builds.
 Source: "..\..\..\src\backend\*"; DestDir: "{app}\backend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "__pycache__,*.pyc,*.pyo,.pytest_cache,logs\*,.env,tests,tools,*.isl,.venv,venv,backups\*,tmp_test_migrations\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
 Source: "..\..\..\src\frontend\*"; DestDir: "{app}\frontend"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "node_modules,dist,.env,tests,.pytest_cache,test-results,test-diagnostics,playwright-report,playwright.config.ts"
-Source: "..\..\..\infra\docker\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
+Source: "..\..\..\infra\docker\docker-old\*"; DestDir: "{app}\docker"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "backups\*,*.db,*.db-shm,*.db-wal,*.sqlite,*.sqlite3"
+Source: "..\..\..\infra\docker\.dockerignore"; DestDir: "{app}"; DestName: ".dockerignore"; Flags: ignoreversion; Check: IsDockerInstall
 Source: "..\..\..\config\*"; DestDir: "{app}\config"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\..\..\.github\scripts\*"; DestDir: "{app}\.github\scripts"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; DEPLOYMENT OPTIMIZATION: Scripts folder excluded - only backup-database.sh needed (99% size reduction)
