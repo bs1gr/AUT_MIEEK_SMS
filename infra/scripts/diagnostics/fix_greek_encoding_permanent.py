@@ -17,8 +17,10 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).parent
-INSTALLER_DIR = ROOT / "installer"
-VERSION_FILE = ROOT / "VERSION"
+# Project root is 3 levels up from infra/scripts/diagnostics/
+PROJECT_ROOT = ROOT.parent.parent.parent
+INSTALLER_DIR = PROJECT_ROOT / "infra" / "installer" / "installer-old"
+VERSION_FILE = PROJECT_ROOT / "VERSION"
 
 
 def read_version() -> str:
