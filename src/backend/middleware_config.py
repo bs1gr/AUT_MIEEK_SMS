@@ -91,6 +91,23 @@ def register_middlewares(app):
 
         return response
 
+    # Reject paths that contain characters invalid on Windows filesystems (e.g. ":").
+    # StaticFiles.lookup_path() passes the raw URL path to os.stat(), which throws
+    # WinError 123 for paths like "/assets/app.js:1:42)" (stack-trace coordinates
+    # appended by browsers/DevTools).  Returning 404 here prevents the unhandled
+    # OSError from reaching uvicorn and polluting the logs.
+    @app.middleware("http")
+    async def reject_invalid_path_chars(request, call_next):
+        from starlette.responses import Response as StarletteResponse
+        path = request.url.path
+        # Colons are valid in the first two characters for Windows drive letters
+        # (e.g. "C:"), but they never appear there in HTTP paths.  Any ":" in the
+        # path after the leading "/" means the URL is malformed or a stack-trace
+        # fragment — return 404 immediately before StaticFiles sees it.
+        if ":" in path:
+            return StarletteResponse(status_code=404)
+        return await call_next(request)
+
     # GZip compression
     if getattr(settings, "ENABLE_GZIP", True):
         app.add_middleware(GZipMiddleware, minimum_size=settings.GZIP_MINIMUM_SIZE)

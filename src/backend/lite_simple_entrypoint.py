@@ -214,8 +214,10 @@ def main() -> None:
     # Serve index.html for all non-API routes (SPA routing)
     @app.get("/{path:path}")
     async def serve_frontend(path: str):
-        if path.startswith("api/"):
-            # API routes already handled by routers, return 404
+        if path.startswith("api/") or path.startswith("control/"):
+            # API and control routes are handled by routers — return 404 so the
+            # actual route handler (or the error handler) produces the real response
+            # instead of silently serving index.html (which breaks JSON callers).
             from fastapi.responses import JSONResponse
             return JSONResponse({"detail": "Not found"}, status_code=404)
         # Serve index.html for SPA

@@ -129,7 +129,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
   const fetchInstances = useCallback(async () => {
     try {
       const res = await controlApiClient.get<InstanceInfo[]>('/database/instances');
-      setInstances(res.data);
+      setInstances(Array.isArray(res.data) ? res.data : []);
       setError(null);
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to load instances';
@@ -140,7 +140,7 @@ const DatabasePanel: React.FC<DatabasePanelProps> = () => {
   const fetchBackups = useCallback(async () => {
     try {
       const res = await controlApiClient.get<BackupInfo[]>('/database/backups');
-      setBackups(res.data);
+      setBackups(Array.isArray(res.data) ? res.data : []);
     } catch {
       /* non-critical */
     }
