@@ -101,6 +101,19 @@ _last_api_request: float = time.time()  # updated by middleware on every /api/* 
 INACTIVITY_TIMEOUT_SECS = 30 * 60  # 30 minutes of zero API traffic → exit
 
 
+def _cleanup_and_exit() -> None:
+    """Delete the current PyInstaller _MEIPASS bundle then hard-exit.
+    Prevents the ~120 MB temp dir from being left behind on clean shutdowns."""
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        import shutil as _shutil
+        try:
+            _shutil.rmtree(sys._MEIPASS, ignore_errors=True)
+            _debug_log('[lite_simple_entrypoint] Cleaned current _MEIPASS on exit.')
+        except Exception:
+            pass
+    os._exit(0)
+
+
 def _monitor_shutdown() -> None:
     """Background thread: exits the process when the shutdown deadline passes
     OR when the app has been completely idle for INACTIVITY_TIMEOUT_SECS."""
@@ -112,10 +125,10 @@ def _monitor_shutdown() -> None:
             idle = now - _last_api_request
         if deadline is not None and now >= deadline:
             _debug_log('[lite_simple_entrypoint] Auto-shutdown: logout grace period expired.')
-            os._exit(0)
+            _cleanup_and_exit()
         if idle >= INACTIVITY_TIMEOUT_SECS:
             _debug_log(f'[lite_simple_entrypoint] Auto-shutdown: {INACTIVITY_TIMEOUT_SECS//60} min inactivity.')
-            os._exit(0)
+            _cleanup_and_exit()
 
 
 def _debug_log(msg: str) -> None:
