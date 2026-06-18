@@ -427,7 +427,7 @@ function Invoke-InstallerCompilation {
         $innoArgs = @("SMS_Installer.iss")
         if (Test-Path $smsLiteExe) {
             Write-Result Info "SMS_Lite.exe found - including in build"
-            $innoArgs += "/d", "SMS_LITE_AVAILABLE"
+            $innoArgs += "/dSMS_LITE_AVAILABLE"
         } else {
             Write-Result Info "SMS_Lite.exe not found - Docker Edition only"
         }
