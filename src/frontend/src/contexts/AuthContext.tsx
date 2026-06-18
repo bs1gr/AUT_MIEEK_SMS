@@ -215,7 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Cancel any pending Lite auto-shutdown (new login resets the timer)
     if (_isLiteMode()) {
-      apiClient.post('/api/v1/lite/cancel-shutdown').catch(() => {});
+      fetch('/api/v1/lite/cancel-shutdown', { method: 'POST' }).catch(() => {});
     }
 
     let userPayload = data.user;
@@ -264,9 +264,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
     // In Lite mode: schedule process termination after 30-second grace period.
-    // If the user logs back in within 30 s the timer is cancelled.
+    // Use fetch (not apiClient) — token is already cleared so apiClient interceptors
+    // would silently drop the request before it sends.
     if (_isLiteMode()) {
-      apiClient.post('/api/v1/lite/schedule-shutdown').catch(() => {});
+      fetch('/api/v1/lite/schedule-shutdown', { method: 'POST' }).catch(() => {});
     }
   };
 
