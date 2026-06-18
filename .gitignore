@@ -181,6 +181,10 @@ installer/SMS_Manager/*.lscache
 infra/installer/installer-old/SMS_Manager/obj/
 infra/installer/installer-old/SMS_Manager/bin/
 
+# PyInstaller build artifacts (intermediate work — not source, not release)
+src/backend/build/
+src/backend/dist/
+
 # Local installer diagnostics bundles
 installer_diag_*.zip
 
