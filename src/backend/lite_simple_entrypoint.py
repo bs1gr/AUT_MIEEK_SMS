@@ -91,6 +91,33 @@ os.environ.setdefault('DEFAULT_ADMIN_PASSWORD', 'AdminPassword123!')
 os.environ.setdefault('DEFAULT_ADMIN_FULL_NAME', 'System Administrator')
 
 
+# ---------------------------------------------------------------------------
+# Lite-mode auto-shutdown state
+# ---------------------------------------------------------------------------
+_shutdown_lock = threading.Lock()
+_shutdown_after: float | None = None   # epoch time when to terminate; None = no timer
+_last_api_request: float = time.time()  # updated by middleware on every /api/* hit
+
+INACTIVITY_TIMEOUT_SECS = 30 * 60  # 30 minutes of zero API traffic → exit
+
+
+def _monitor_shutdown() -> None:
+    """Background thread: exits the process when the shutdown deadline passes
+    OR when the app has been completely idle for INACTIVITY_TIMEOUT_SECS."""
+    while True:
+        time.sleep(2)
+        now = time.time()
+        with _shutdown_lock:
+            deadline = _shutdown_after
+            idle = now - _last_api_request
+        if deadline is not None and now >= deadline:
+            _debug_log('[lite_simple_entrypoint] Auto-shutdown: logout grace period expired.')
+            os._exit(0)
+        if idle >= INACTIVITY_TIMEOUT_SECS:
+            _debug_log(f'[lite_simple_entrypoint] Auto-shutdown: {INACTIVITY_TIMEOUT_SECS//60} min inactivity.')
+            os._exit(0)
+
+
 def _debug_log(msg: str) -> None:
     """Write debug log to file instead of stderr (which may not exist in GUI mode)."""
     if getattr(sys, 'frozen', False):
@@ -218,6 +245,44 @@ def main() -> None:
         _debug_log(_tb.format_exc()[:1000])
         sys.exit(1)
 
+    # -----------------------------------------------------------------------
+    # Lite-mode: auto-shutdown endpoints + activity middleware
+    # -----------------------------------------------------------------------
+    global _shutdown_after, _last_api_request
+
+    from fastapi import Request as _Request
+    from fastapi.responses import JSONResponse as _JSONResponse
+
+    @app.post('/api/v1/lite/schedule-shutdown', include_in_schema=False)
+    async def _lite_schedule_shutdown():
+        global _shutdown_after
+        with _shutdown_lock:
+            _shutdown_after = time.time() + 30
+        _debug_log('[lite_simple_entrypoint] Shutdown scheduled in 30 s (logout).')
+        return _JSONResponse({'scheduled_in': 30})
+
+    @app.post('/api/v1/lite/cancel-shutdown', include_in_schema=False)
+    async def _lite_cancel_shutdown():
+        global _shutdown_after, _last_api_request
+        with _shutdown_lock:
+            _shutdown_after = None
+            _last_api_request = time.time()
+        _debug_log('[lite_simple_entrypoint] Shutdown cancelled (new login).')
+        return _JSONResponse({'cancelled': True})
+
+    @app.middleware('http')
+    async def _track_activity(request: _Request, call_next):
+        global _last_api_request
+        if request.url.path.startswith('/api/'):
+            with _shutdown_lock:
+                _last_api_request = time.time()
+        return await call_next(request)
+
+    # Start background shutdown monitor
+    _mon = threading.Thread(target=_monitor_shutdown, daemon=True, name='lite-shutdown-monitor')
+    _mon.start()
+    _debug_log('[lite_simple_entrypoint] Shutdown monitor started.')
+
     # Determine frontend path (bundled mode uses _MEIPASS)
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         # Running from PyInstaller bundle
@@ -297,7 +362,7 @@ def main() -> None:
         _debug_log('[lite_simple_entrypoint] uvicorn.run() returned (should not happen)')
     except KeyboardInterrupt:
         _debug_log('[lite_simple_entrypoint] Keyboard interrupt - shutting down')
-    except Exception as e:
+    except BaseException as e:
         import traceback as _tb
         _debug_log(f'[lite_simple_entrypoint] Server error: {type(e).__name__}: {str(e)[:500]}')
         _debug_log(_tb.format_exc()[:1000])

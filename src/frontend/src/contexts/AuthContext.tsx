@@ -196,6 +196,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []); // Empty dependency - run only once on mount
 
+  const _isLiteMode = () =>
+    typeof window !== 'undefined' &&
+    window.location.hostname === '127.0.0.1' &&
+    window.location.port === '8000';
+
   const login = async (email: string, password: string) => {
     const url = '/auth/login';
     const resp = await apiClient.post(url, { email, password }, { withCredentials: true });
@@ -207,6 +212,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     setAccessTokenState(data.access_token);
     authService.setAccessToken(data.access_token);
+
+    // Cancel any pending Lite auto-shutdown (new login resets the timer)
+    if (_isLiteMode()) {
+      apiClient.post('/api/v1/lite/cancel-shutdown').catch(() => {});
+    }
 
     let userPayload = data.user;
     if (!userPayload) {
@@ -253,6 +263,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAccessTokenState(null);
     setUser(null);
     try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
+    // In Lite mode: schedule process termination after 30-second grace period.
+    // If the user logs back in within 30 s the timer is cancelled.
+    if (_isLiteMode()) {
+      apiClient.post('/api/v1/lite/schedule-shutdown').catch(() => {});
+    }
   };
 
   const refresh = async (): Promise<boolean> => {
