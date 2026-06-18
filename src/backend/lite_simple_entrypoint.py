@@ -179,6 +179,23 @@ def main() -> None:
         from backend.app_factory import create_app
         app = create_app()
         _debug_log(f'[lite_simple_entrypoint] App created. Routes: {len(app.routes)}')
+        # Verify control router is registered; if not, attempt explicit registration
+        # and log the actual error so it appears in debug.log (not just uvicorn's logger).
+        _control_paths = {getattr(r, 'path', '') for r in app.routes}
+        if '/control/api/status' not in _control_paths:
+            _debug_log('[lite_simple_entrypoint] Control router NOT in app — attempting explicit registration...')
+            try:
+                import importlib as _il
+                import traceback as _tb2
+                _ctrl = _il.import_module('backend.routers.routers_control')
+                app.include_router(getattr(_ctrl, 'router'), tags=['Control'])
+                _debug_log(f'[lite_simple_entrypoint] Control router explicitly registered OK. Routes now: {len(app.routes)}')
+            except Exception as _ce:
+                import traceback as _tb2
+                _debug_log(f'[lite_simple_entrypoint] Control router FAILED: {type(_ce).__name__}: {str(_ce)[:500]}')
+                _debug_log(_tb2.format_exc()[:3000])
+        else:
+            _debug_log('[lite_simple_entrypoint] Control router already registered via app_factory.')
     except Exception as e:
         import traceback as _tb
         _debug_log(f'[lite_simple_entrypoint] ERROR creating app: {type(e).__name__}: {str(e)[:300]}')
