@@ -27,6 +27,10 @@
 .PARAMETER SkipInstaller
     Skip installer build step
 
+.PARAMETER SkipLiteBuild
+    Skip building SMS_Lite.exe via PyInstaller (use pre-built exe in infra/installer/dist/).
+    Without this flag the build auto-triggers the full PyInstaller pipeline (~15-20 min extra).
+
 .PARAMETER AutoFix
     Automatically fix version inconsistencies
 
@@ -49,6 +53,7 @@ param(
     [switch]$SkipValidation,
     [switch]$SkipTests,
     [switch]$SkipInstaller,
+    [switch]$SkipLiteBuild,
     [switch]$AutoFix
 )
 
@@ -281,8 +286,29 @@ function Invoke-InstallerBuild {
     }
 
     Write-Host "Building installer for version $Version..." -ForegroundColor Cyan
-    Write-Host "This may take 2-5 minutes..." -ForegroundColor Gray
+    if ($SkipLiteBuild) {
+        Write-Host "Note: -SkipLiteBuild set — using pre-built SMS_Lite.exe (if present)" -ForegroundColor Gray
+        Write-Host "Expected build time: ~5-8 min (SMS_Manager + Inno Setup only)" -ForegroundColor Gray
+    } else {
+        Write-Host "Note: SMS_Lite.exe will be built via PyInstaller if not already present" -ForegroundColor Gray
+        Write-Host "Expected build time: ~20-30 min first run, ~5-8 min if pre-built" -ForegroundColor Gray
+    }
     Write-Host ""
+
+    # Pre-build SMS_Lite.exe when not skipped and not already staged
+    if (-not $SkipLiteBuild) {
+        $liteExePath = Join-Path $PROJECT_ROOT "infra\installer\dist\SMS_Lite.exe"
+        if (-not (Test-Path $liteExePath)) {
+            Write-Host "SMS_Lite.exe not found — invoking Invoke-NativeLiteBuild via INSTALLER_BUILDER..." -ForegroundColor Cyan
+            & $installerBuilderScript -Action build -Version $Version -AutoFix
+            # INSTALLER_BUILDER's build action includes Invoke-NativeLiteBuild automatically
+            if ($LASTEXITCODE -ne 0) {
+                Write-Host "❌ Installer build failed" -ForegroundColor Red
+                return $false
+            }
+            return $true
+        }
+    }
 
     try {
         # Full installer build with auto-fix and code signing
@@ -332,7 +358,8 @@ Write-Host "║   Release Workflow - Student Management System            ║" -
 Write-Host "╚════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Target Version: $ReleaseVersion" -ForegroundColor Yellow
-Write-Host "Tag Release: $(if ($TagRelease) { 'Yes' } else { 'No' })" -ForegroundColor Yellow
+Write-Host "Tag Release:    $(if ($TagRelease) { 'Yes' } else { 'No' })" -ForegroundColor Yellow
+Write-Host "Skip Lite Build:$(if ($SkipLiteBuild) { ' Yes (use pre-built SMS_Lite.exe)' } else { ' No (auto-build via PyInstaller)' })" -ForegroundColor Yellow
 Write-Host ""
 
 # ============================================================================
@@ -563,7 +590,7 @@ Write-Host "What was done:" -ForegroundColor Cyan
 Write-Host "  ✓ Pre-release validation" -ForegroundColor Green
 Write-Host "  ✓ Version references updated" -ForegroundColor Green
 if (-not $SkipInstaller) {
-    Write-Host "  ✓ Installer built and signed" -ForegroundColor Green
+    Write-Host "  ✓ Installer built and signed (Docker + Lite editions)" -ForegroundColor Green
 }
 Write-Host "  ✓ Documentation generated" -ForegroundColor Green
 Write-Host "  ✓ Changes committed and pushed" -ForegroundColor Green

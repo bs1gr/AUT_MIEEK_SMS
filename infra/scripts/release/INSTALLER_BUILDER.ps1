@@ -79,9 +79,9 @@
     # Quick validation without modifying anything
 
 .NOTES
-Version: vvvv1.18.25
+Version: 1.18.30
     Created: 2025-12-04
-    Updated: 2026-03-09
+    Updated: 2026-06-18
 
     Integration Points:
     - Reads version from: VERSION file (single source of truth)
@@ -466,6 +466,97 @@ function Invoke-InstallerCompilation {
     }
 }
 
+function Invoke-NativeLiteBuild {
+    <#
+    .SYNOPSIS
+        Builds SMS_Lite.exe via PyInstaller (frontend build + bundled Python server).
+    .NOTES
+        Requires PyInstaller in the active venv. Frontend dist is built automatically
+        if missing. Output is placed at infra/installer/dist/SMS_Lite.exe so the
+        subsequent Copy-NativeLiteExecutable step can pick it up.
+    #>
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+    Write-Result Info "NATIVE LITE EDITION BUILD (PyInstaller)"
+    Write-Result Info "═══════════════════════════════════════════════════════════════"
+
+    $FrontendDir    = Join-Path $ProjectRoot "src\frontend"
+    $BackendDir     = Join-Path $ProjectRoot "src\backend"
+    $FrontendIndex  = Join-Path $FrontendDir "dist\index.html"
+    $LiteSpec       = Join-Path $BackendDir "lite_simple_entrypoint.spec"
+    $PyInstallerOut = Join-Path $BackendDir "dist\SMS_Lite.exe"
+
+    # Step 1: Ensure PyInstaller is available
+    Write-Result Info "Checking PyInstaller..."
+    $pyVer = python -m PyInstaller --version 2>&1
+    if ($LASTEXITCODE -ne 0) {
+        Write-Result Info "PyInstaller not installed — installing via pip..."
+        pip install pyinstaller 2>&1 | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            Write-Result Error "Failed to install PyInstaller"
+            return $false
+        }
+        Write-Result Success "PyInstaller installed ✓"
+    } else {
+        Write-Result Info "PyInstaller: $pyVer"
+    }
+
+    # Step 2: Build frontend dist if missing
+    if (-not (Test-Path $FrontendIndex)) {
+        Write-Result Info "Frontend dist not found — building (npm run build)..."
+        Push-Location $FrontendDir
+        try {
+            npm run build 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+            if ($LASTEXITCODE -ne 0) {
+                Write-Result Error "Frontend build failed"
+                return $false
+            }
+            Write-Result Success "Frontend build complete ✓"
+        } catch {
+            Write-Result Error "Frontend build error: $_"
+            return $false
+        } finally {
+            Pop-Location
+        }
+    } else {
+        Write-Result Success "Frontend dist already present ✓"
+    }
+
+    # Step 3: Run PyInstaller (~10-20 min)
+    Write-Result Info "Running PyInstaller — this takes 10-20 minutes..."
+    if (-not (Test-FileExists $LiteSpec)) {
+        Write-Result Error "PyInstaller spec not found: $LiteSpec"
+        return $false
+    }
+    Push-Location $BackendDir
+    try {
+        python -m PyInstaller $LiteSpec --noconfirm 2>&1 | ForEach-Object { Write-Result Info "  $_" }
+        if ($LASTEXITCODE -ne 0) {
+            Write-Result Error "PyInstaller build failed"
+            return $false
+        }
+    } catch {
+        Write-Result Error "PyInstaller error: $_"
+        return $false
+    } finally {
+        Pop-Location
+    }
+
+    if (-not (Test-Path $PyInstallerOut)) {
+        Write-Result Error "SMS_Lite.exe not produced at: $PyInstallerOut"
+        return $false
+    }
+
+    # Step 4: Stage to infra/installer/dist/ for subsequent copy step
+    if (-not (Test-Path $DistDir)) {
+        New-Item -ItemType Directory -Path $DistDir -Force | Out-Null
+    }
+    $staged = Join-Path $DistDir "SMS_Lite.exe"
+    Copy-Item $PyInstallerOut $staged -Force
+    $sizeMB = [Math]::Round((Get-Item $staged).Length / 1MB, 1)
+    Write-Result Success "SMS_Lite.exe built and staged ($sizeMB MB) ✓"
+    return $true
+}
+
 function Copy-NativeLiteExecutable {
     Write-Result Info "═══════════════════════════════════════════════════════════════"
     Write-Result Info "NATIVE LITE EDITION SETUP"
@@ -475,12 +566,17 @@ function Copy-NativeLiteExecutable {
     $InstallerDistDir = Join-Path $InstallerDir "dist"
     $LiteDestPath = Join-Path $InstallerDistDir "SMS_Lite.exe"
 
-    # Verify Lite executable exists
+    # Auto-build if missing — runs the full PyInstaller pipeline
     if (-not (Test-Path $LiteSourcePath)) {
-        Write-Result Error "SMS_Lite.exe not found: $LiteSourcePath"
-        Write-Result Info "Build Native Lite Edition first:"
-        Write-Result Info "  python -m PyInstaller lite_simple_entrypoint.spec"
-        return $false
+        Write-Result Warning "SMS_Lite.exe not found — triggering auto-build..."
+        if (-not (Invoke-NativeLiteBuild)) {
+            Write-Result Warning "Auto-build failed. Lite Edition will not be included."
+            Write-Result Info "To build manually:"
+            Write-Result Info "  1. npm --prefix src/frontend run build"
+            Write-Result Info "  2. cd src/backend && python -m PyInstaller lite_simple_entrypoint.spec"
+            Write-Result Info "  3. Copy src/backend/dist/SMS_Lite.exe to infra/installer/dist/"
+            return $false
+        }
     }
 
     $liteSize = (Get-Item $LiteSourcePath).Length / 1MB
