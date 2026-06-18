@@ -60,21 +60,16 @@ def register_routers(app: FastAPI) -> None:
     def _try_add(import_path: str, tag: str):
         nonlocal registered, errors
         try:
-            # Prefer backend-prefixed module when available
-            backend_path = import_path
-            plain_path = import_path.replace("backend.", "")
-            chosen = None
-            if importlib.util.find_spec(backend_path) is not None:
-                chosen = backend_path
-            elif importlib.util.find_spec(plain_path) is not None:
-                chosen = plain_path
-            else:
-                chosen = None
-
-            if chosen is None:
-                raise ModuleNotFoundError(f"Module not found: {import_path}")
-
-            module = importlib.import_module(chosen)
+            # importlib.util.find_spec() is unreliable in PyInstaller frozen bundles
+            # (returns None for valid bundled modules, then the plain-path fallback
+            # raises ModuleNotFoundError for the top-level 'routers' package which
+            # doesn't exist without the 'backend.' prefix).  Skip find_spec entirely
+            # and attempt the import directly; let the except handle genuine failures.
+            try:
+                module = importlib.import_module(import_path)
+            except ImportError:
+                plain_path = import_path.replace("backend.", "", 1)
+                module = importlib.import_module(plain_path)
             app.include_router(getattr(module, "router"), prefix="/api/v1", tags=[tag])
             registered.append(tag)
         except Exception as ex:
@@ -114,7 +109,10 @@ def register_routers(app: FastAPI) -> None:
     # nesting /api/v1/control/api). Include separately so other routers still
     # live under /api/v1.
     try:
-        control_mod = importlib.import_module("backend.routers.routers_control")
+        try:
+            control_mod = importlib.import_module("backend.routers.routers_control")
+        except ImportError:
+            control_mod = importlib.import_module("routers.routers_control")
         app.include_router(getattr(control_mod, "router"), tags=["Control"])  # no extra prefix
         registered.append("Control")
     except Exception as e:
