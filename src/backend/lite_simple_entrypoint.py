@@ -12,11 +12,27 @@ import webbrowser
 import threading
 from pathlib import Path
 
+# With console=False PyInstaller builds stdout/stderr are None.
+# Uvicorn's default log formatter calls sys.stdout.isatty() and raises
+# AttributeError when the stream is None, preventing the server from starting.
+# Redirect to devnull first so logging is silent but the process doesn't crash.
+if getattr(sys, 'frozen', False):
+    if sys.stdout is None:
+        sys.stdout = open(os.devnull, 'w')  # noqa: WPS515
+    if sys.stderr is None:
+        sys.stderr = open(os.devnull, 'w')  # noqa: WPS515
+
 # Force UTF-8 encoding to avoid Unicode errors in Greek locale
 if sys.stdout and not hasattr(sys.stdout, 'reconfigure'):
-    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    try:
+        sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    except AttributeError:
+        pass  # devnull stream has no .buffer; leave as-is
 if sys.stderr and not hasattr(sys.stderr, 'reconfigure'):
-    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    try:
+        sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+    except AttributeError:
+        pass
 
 # CRITICAL: Set env vars BEFORE any backend import (db engine creation is at import time)
 # Check if QNAP PostgreSQL credentials exist
