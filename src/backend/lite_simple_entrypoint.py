@@ -324,6 +324,51 @@ def main() -> None:
             return FileResponse(index_path)
         return JSONResponse({"detail": "Frontend not found"}, status_code=404)
 
+    # -----------------------------------------------------------------------
+    # Self-healing port check: if port 8000 is already occupied (stale
+    # instance), try to stop it gracefully then wait for the port to clear.
+    # -----------------------------------------------------------------------
+    import socket as _socket
+    import urllib.request as _urllib_req
+
+    def _port_in_use(port: int) -> bool:
+        with _socket.socket(_socket.AF_INET, _socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            return s.connect_ex(('127.0.0.1', port)) == 0
+
+    if _port_in_use(8000):
+        _debug_log('[lite_simple_entrypoint] Port 8000 already in use — signalling old instance to stop...')
+        try:
+            req = _urllib_req.Request(
+                'http://127.0.0.1:8000/api/v1/lite/schedule-shutdown',
+                data=b'',
+                method='POST',
+            )
+            _urllib_req.urlopen(req, timeout=2)
+            _debug_log('[lite_simple_entrypoint] Sent schedule-shutdown to old instance.')
+        except Exception as _pe:
+            _debug_log(f'[lite_simple_entrypoint] Could not signal old instance: {_pe}')
+            # Fallback: try to kill via psutil if available
+            try:
+                import psutil as _psutil
+                for _proc in _psutil.process_iter(['pid', 'name', 'connections']):
+                    for _conn in _proc.info.get('connections') or []:
+                        if getattr(_conn, 'laddr', None) and _conn.laddr.port == 8000:
+                            _debug_log(f'[lite_simple_entrypoint] Killing PID {_proc.pid} ({_proc.info["name"]})')
+                            _proc.kill()
+                            break
+            except Exception:
+                pass
+
+        # Wait up to 8 seconds for the port to free
+        for _i in range(16):
+            time.sleep(0.5)
+            if not _port_in_use(8000):
+                _debug_log('[lite_simple_entrypoint] Port 8000 now free.')
+                break
+        else:
+            _debug_log('[lite_simple_entrypoint] WARNING: port 8000 still occupied after 8 s — launching anyway.')
+
     # Start FastAPI server
     _debug_log('[lite_simple_entrypoint] Starting FastAPI server on port 8000...')
 
