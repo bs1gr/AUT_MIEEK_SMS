@@ -150,6 +150,22 @@ def main() -> None:
         data_dir = Path('./data')
 
     data_dir.mkdir(parents=True, exist_ok=True)
+
+    # Clean up stale PyInstaller temp dirs from previous runs that were killed
+    # without a clean exit. Skip the current bundle dir (_MEIPASS).
+    if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+        import tempfile as _tempfile
+        import shutil as _shutil
+        _current_mei = Path(sys._MEIPASS)
+        _tmp = Path(_tempfile.gettempdir())
+        for _mei in _tmp.glob('_MEI*'):
+            if _mei != _current_mei and _mei.is_dir():
+                try:
+                    _shutil.rmtree(_mei, ignore_errors=True)
+                    _debug_log(f'[lite_simple_entrypoint] Cleaned stale temp: {_mei.name}')
+                except Exception:
+                    pass
+
     _debug_log(f'[lite_simple_entrypoint] Data dir: {data_dir}')
     _debug_log(f'[lite_simple_entrypoint] Data dir exists: {data_dir.exists()}')
 
