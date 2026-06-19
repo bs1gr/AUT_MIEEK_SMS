@@ -73,7 +73,7 @@ jobs:
         run: |
           echo "Running frontend fast tests..."
           cd frontend
-          npx vitest run --reporter=junit --outputFile=vitest-results.xml
+          npx vitest run --reporter=junit --outputFile.junit=vitest-results.xml
 
       - name: Run COMMIT_READY quick smoke (skip tests for speed)
         env:
@@ -146,7 +146,7 @@ jobs:
         run: |
           Write-Host "Running frontend fast tests..."
           Push-Location frontend
-          npx vitest run --reporter=junit --outputFile=vitest-results.xml
+          npx vitest run --reporter=junit --outputFile.junit=vitest-results.xml
           Pop-Location
 
       - name: Prepare installer Greek text assets
