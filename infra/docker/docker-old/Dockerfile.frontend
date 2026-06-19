@@ -1,6 +1,6 @@
 # Frontend Dockerfile (multi-stage)
 # 1) Build static assets with Node 22 LTS (more secure)
-FROM node:22-alpine AS build
+FROM node:22-slim AS build
 
 # Build arguments for versioning
 ARG VERSION=latest
@@ -9,14 +9,15 @@ ARG VCS_REF
 
 WORKDIR /app/frontend
 
-# Dependencies
-COPY frontend/package*.json ./
-RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# Dependencies — copy only package.json (not the Windows-created lockfile) so npm
+# resolves platform-specific binaries correctly for Linux.
+COPY src/frontend/package.json ./
+RUN npm install
 
 # Build
-COPY frontend/ .
-# Copy VERSION file so sync-version.cjs can find it
-COPY VERSION ../VERSION
+COPY src/frontend/ .
+# sync-version.cjs resolves ../../VERSION from /app/frontend/ = /VERSION
+COPY VERSION /VERSION
 # Allow overriding API URL at build-time (default to relative /api/v1)
 ARG VITE_API_URL=/api/v1
 ENV VITE_API_URL=${VITE_API_URL}
@@ -41,7 +42,7 @@ LABEL org.opencontainers.image.title="Student Management System - Frontend" \
 COPY --from=build /app/frontend/dist /usr/share/nginx/html
 
 # Nginx configuration
-COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
+COPY infra/docker/docker-old/nginx.conf /etc/nginx/conf.d/default.conf
 
 # Ensure nginx cache/run dirs are writable
 RUN mkdir -p /var/cache/nginx/client_temp /var/run \

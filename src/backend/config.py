@@ -102,8 +102,8 @@ _PROJECT_ROOT = _get_project_root()
 # Database path (container uses /data volume)
 if _IS_DOCKER_MODE:
     _DEFAULT_DB_PATH = "/data/student_management.db"
-    # For absolute paths, sqlite:// already has /// so we don't add another /
-    _DEFAULT_SQLITE_URL = f"sqlite://{_DEFAULT_DB_PATH}"
+    # SQLite absolute path requires 4 slashes: sqlite:/// (scheme) + /path (absolute)
+    _DEFAULT_SQLITE_URL = f"sqlite:////{_DEFAULT_DB_PATH.lstrip('/')}"
 else:
     _DEFAULT_DB_PATH = (_PROJECT_ROOT / "data" / "student_management.db").as_posix()
     # For relative/Windows paths, we need the full sqlite:///

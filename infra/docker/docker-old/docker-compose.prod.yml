@@ -54,8 +54,8 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ../backups:/backups
-      - ../scripts/backup-database.sh:/usr/local/bin/backup-database.sh:ro
+      - ../../../backups:/backups
+      - ../../../scripts/backup-database.sh:/usr/local/bin/backup-database.sh:ro
     entrypoint: |
       sh -c '
       # Run backup immediately on startup, then on schedule
