@@ -1,11 +1,37 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.30
-**Last Updated**: June 16, 2026
-**Status**: ✅ **v1.18.30 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.30.exe) — Checkpoint release**
+**Current Version**: 1.18.31
+**Last Updated**: June 19, 2026
+**Status**: ✅ **v1.18.31 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.31.exe — 97 MB)**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.30
+**Current Phase**: Active Development | Post-v1.18.31
 **Current Branch**: `main`
+
+---
+
+## 🚀 v1.18.31 — Docker + esbuild + Android Release (June 19, 2026)
+
+**Status**: ✅ RELEASED | Commit `cfc643531` | Tag `v1.18.31` | GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.31
+
+### Changes
+| # | Area | Fix |
+|---|------|-----|
+| 1 | Docker compose | `context: ../../..` (project root) — was `..` resolving to `infra/docker/` |
+| 2 | Dockerfile.frontend | `node:22-slim` (was `node:22.3.0-alpine3.20`); copy only `package.json`, run `npm install` fresh |
+| 3 | esbuild override | `"esbuild": "^0.27.0"` in `package.json` overrides — matches vite 7.3.5 peer dep, eliminates host/binary mismatch |
+| 4 | SQLite Docker | `sqlite:////data/...` (4-slash absolute path) in `config.py` — was 3-slash, resolved relative to CWD `/app` |
+| 5 | DOCKER.ps1 | `config\.env` path after June 12 reorganization |
+| 6 | Inno Setup | Added `build,.ruff_cache,dist` to backend Excludes — prevented 267 MB bloat |
+| 7 | Android signing | Release keystore configured; `app-release.apk` 5.13 MB (versionCode 118031, versionName 1.18.31) |
+
+### Evidence
+- ✅ Docker smoke test: `/health` 200, `status: healthy` on port 8080
+- ✅ Installer: `SMS_Installer_1.18.31.exe` — 97.24 MB — Authenticode Valid
+- ✅ Android: `app-release.apk` signed with `CN=SMS App, OU=MIEEK, O=AUT, L=Nicosia` — 5.13 MB
+- ✅ Backend: 914 tests passing | Frontend: 1939 tests passing
+
+### Keystore (local only — never committed)
+- File: `C:\Users\Vasilis\.android\sms-release.jks` | Alias: `sms-release` | Password: `SmsRelease2024!`
 
 ---
 
@@ -25,11 +51,6 @@ Full honest audit of all four deployment modes (native, lite, docker, mobile) fo
 | 6 | `src/frontend/src/components/notifications/__tests__/NotificationDropdown.test.tsx` | Added `MemoryRouter` wrapper via local `render` override — fixed 17 failing tests (react-router `<Link>` without Router context) |
 
 **Validation**: COMMIT_READY -Quick passed (ruff ✅, mypy ✅, eslint ✅, ts ✅, translations ✅). Backend: 914/914 tests. Frontend: 1939/1939 tests.
-
-**Remaining known gaps (not blocking)**:
-- Docker mode: paths fixed but not smoke-tested end-to-end (requires Docker Desktop running)
-- Android: debug-only APK (`app-debug.apk`), no signed/release build
-- `vitest-results.xml` output path flag: requires `--outputFile.junit=` not `--outputFile=` with vitest v4
 
 ---
 
