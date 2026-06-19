@@ -127,7 +127,7 @@ export async function logout(page: Page) {
   const logoutButton = page.locator('[data-testid="logout-button"]');
   await logoutButton.waitFor({ state: 'visible', timeout: 5000 });
   await logoutButton.click();
-  await page.waitForURL(/^https?:\/\/[^/]+\/?(\?.*)?$/, { timeout: 10000 });
+  await page.waitForURL(/^https?:\/\/[^/]+\/?#?\/?(\?.*)?$/, { timeout: 10000 });
 }
 
 // --- Navigation & Interaction Helpers ---
