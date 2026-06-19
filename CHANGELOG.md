@@ -9,6 +9,41 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+## [1.18.31] - 2026-06-19
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
+## [1.18.31] - 2026-06-19
+
+### Bug Fixes
+- **docker**: restore full Docker Compose stack broken since June 12 directory reorganization
+  - `docker-compose.yml`: build context `../../..` (project root), corrected dockerfile + volume paths
+  - `docker-compose.prod.yml`: fixed backups and backup-database.sh volume paths
+  - `Dockerfile.backend`: corrected `src/backend/` COPY paths
+  - `Dockerfile.frontend`: `src/frontend/` paths, `node:22-slim` base, no-lockfile `npm install`
+  - `Dockerfile.fullstack`: `node:22-slim` base, no-lockfile `npm install`
+  - `docker-publish.yml`: correct `Dockerfile.fullstack` path
+  - `DOCKER.ps1`: `config\.env` and `config\.env.example` paths (moved in June 12 reorg)
+  - `config.py`: SQLite absolute path fix — `sqlite:////data/...` (4 slashes) was `sqlite:///data/...` (relative from `/app`)
+- **npm**: fix esbuild host/binary version mismatch in Docker builds — override changed from `>=0.28.1` to `^0.27.0` to align with vite 7.3.5 peer dependency requirement
+- **ci**: release workflow now uses `lite_simple_entrypoint.spec` (outputs `SMS_Lite.exe` directly; removes stale rename step)
+- **lite**: document intentional `Base.metadata.create_all()` fallback in frozen EXE context (`# noqa: SMS-lite-frozen-exe-fallback`)
+- **android**: set `androidScheme: 'https'` in Capacitor config for secure WebView context
+- **tests**: fix `NotificationDropdown` test suite — wrap in `MemoryRouter` to satisfy react-router-dom v7 `<Link>` requirement (17 tests restored)
+- **tests**: fix RUN_TESTS_BATCH.ps1 test count — count progress dots instead of parsing non-TTY summary line
+
+### Chores
+- **release**: bump version to v1.18.31 across all files
+
+---
+
 ## [1.18.30] - 2026-06-16
 
 ### Bug Fixes
