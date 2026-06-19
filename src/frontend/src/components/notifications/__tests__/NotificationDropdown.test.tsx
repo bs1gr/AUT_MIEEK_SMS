@@ -4,7 +4,8 @@
  */
 
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render as renderBase, screen, waitFor, type RenderOptions } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
 import userEvent from '@testing-library/user-event';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import NotificationDropdown from '../NotificationDropdown';
@@ -31,6 +32,13 @@ vi.mock('../NotificationItem', () => ({
     </div>
   ),
 }));
+
+const RouterWrapper = ({ children }: { children: React.ReactNode }) => (
+  <MemoryRouter>{children}</MemoryRouter>
+);
+
+const render = (ui: React.ReactElement, options: Omit<RenderOptions, 'wrapper'> = {}) =>
+  renderBase(ui, { wrapper: RouterWrapper, ...options });
 
 describe('NotificationDropdown Component', () => {
   const mockUseNotifications = vi.fn();

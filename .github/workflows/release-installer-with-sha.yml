@@ -336,9 +336,9 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          Write-Host "Building SMS_Lite.exe from src\backend\lite_entrypoint.spec..."
+          Write-Host "Building SMS_Lite.exe from src\backend\lite_simple_entrypoint.spec..."
 
-          $specPath = "src\backend\lite_entrypoint.spec"
+          $specPath = "src\backend\lite_simple_entrypoint.spec"
           if (-not (Test-Path $specPath)) {
             Write-Error "PyInstaller spec file not found: $specPath"
             exit 1
@@ -350,17 +350,14 @@ jobs:
             exit 1
           }
 
-          # PyInstaller creates SMS_Native_Lite_Simple.exe from spec file
-          $actualExe = "dist\SMS_Native_Lite_Simple.exe"
-          if (-not (Test-Path $actualExe)) {
-            Write-Error "SMS_Native_Lite_Simple.exe was not created by PyInstaller"
+          # lite_simple_entrypoint.spec outputs SMS_Lite.exe directly (no rename needed)
+          $builtExe = "dist\SMS_Lite.exe"
+          if (-not (Test-Path $builtExe)) {
+            Write-Error "SMS_Lite.exe was not created by PyInstaller"
             Write-Host "Contents of dist directory:"
             Get-ChildItem dist -File | ForEach-Object { Write-Host "  - $($_.Name)" }
             exit 1
           }
-
-          # Rename to SMS_Lite.exe for consistency in installer
-          Rename-Item -Path $actualExe -NewName "SMS_Lite.exe" -Force
 
           $size = [math]::Round((Get-Item "dist\SMS_Lite.exe").Length / 1MB, 2)
           Write-Host "✓ SMS_Lite.exe built successfully ($size MB)"

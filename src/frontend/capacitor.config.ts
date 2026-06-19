@@ -5,10 +5,10 @@ const config: CapacitorConfig = {
   appName: 'SMS — ΜΙΕΕΚ',
   webDir: 'dist',
   server: {
-    // In production APK, set androidScheme to https for security.
+    // https is required for production/Play Store builds.
     // The API URL is controlled via VITE_API_URL at build time.
-    androidScheme: 'http',
-    // Allow cleartext traffic to local network IPs during development.
+    androidScheme: 'https',
+    // Allow cleartext traffic to local network IPs (Tailscale) during development.
     cleartext: true,
   },
   android: {

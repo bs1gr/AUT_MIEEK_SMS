@@ -209,13 +209,16 @@ def main() -> None:
         _debug_log(f'[lite_simple_entrypoint] Migration error: {type(e).__name__}: {str(e)[:500]}')
         _debug_log(f'[lite_simple_entrypoint] Traceback: {_tb.format_exc()[:1000]}')
 
-    # Fallback: if migrations failed, try to create schema directly using SQLAlchemy
+    # Fallback: if Alembic migrations failed in the frozen EXE context (e.g. alembic.ini
+    # path resolution fails inside _MEIPASS), create the schema directly so the app can
+    # still start. This intentionally bypasses the Alembic-only rule because the
+    # alternative is a hard crash with no recovery path for the end user.
     if not migrations_ok:
         _debug_log('[lite_simple_entrypoint] Attempting fallback: direct schema creation with SQLAlchemy...')
         try:
             from backend.db import engine
             from backend.models import Base
-            Base.metadata.create_all(engine)
+            Base.metadata.create_all(engine)  # noqa: SMS-lite-frozen-exe-fallback
             _debug_log('[lite_simple_entrypoint] ✅ Schema created via SQLAlchemy fallback')
             migrations_ok = True
         except Exception as fallback_err:

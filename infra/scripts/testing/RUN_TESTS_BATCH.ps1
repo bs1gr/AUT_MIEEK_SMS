@@ -270,19 +270,23 @@ foreach ($batch in $batches) {
     # Parse output
     $outputStr = $output -join "`n"
 
-    # Extract test counts from pytest output
+    # Count test results from pytest dot-notation progress lines.
+    # The final "N passed in Xs" summary line is NOT emitted to captured stdout on Windows
+    # when pytest is not attached to a TTY, so we count result markers directly:
+    #   . = pass   F = fail   s = skip   x = xfail   E = error
+    $passed = 0
     $skipped = 0
-    if ($outputStr -match "(\d+) passed") {
-        $passed = [int]$matches[1]
-        $passedCount += $passed
+    $failedDots = 0
+    foreach ($line in ($output | Where-Object { $_ -is [string] })) {
+        # Progress lines contain only dots/markers, spaces, brackets, digits, %
+        if ($line -match '^[.FsxEw \[\]\d%]+$') {
+            $passed += ([regex]::Matches($line, '\.')).Count
+            $failedDots += ([regex]::Matches($line, 'F')).Count
+            $skipped += ([regex]::Matches($line, 's')).Count
+        }
     }
-    if ($outputStr -match "(\d+) failed") {
-        $failed = [int]$matches[1]
-        $failedCount += $failed
-    }
-    if ($outputStr -match "(\d+) skipped") {
-        $skipped = [int]$matches[1]
-    }
+    $passedCount += $passed
+    $failedCount += $failedDots
 
     # Display output (Write-Log handles both console and file)
     $logOnlyOutput = -not $ShowOutput

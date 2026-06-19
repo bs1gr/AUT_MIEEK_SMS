@@ -135,8 +135,10 @@ if ($Silent) {
 
 $ErrorActionPreference = 'Stop'
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$VERSION_FILE = Join-Path $SCRIPT_DIR "VERSION"
-$BACKUPS_DIR = Join-Path $SCRIPT_DIR "backups\database"
+# Script lives at infra/scripts/dev/ — project root is three levels up
+$PROJECT_ROOT = (Resolve-Path (Join-Path $SCRIPT_DIR "..\..\..")).Path
+$VERSION_FILE = Join-Path $PROJECT_ROOT "VERSION"
+$BACKUPS_DIR = Join-Path $PROJECT_ROOT "backups\database"
 $MAX_BACKUPS = 10
 $MIN_DOCKER_VERSION = [version]"20.10.0"
 $MIN_POWERSHELL_VERSION = [version]"5.1"
@@ -154,15 +156,15 @@ $CONTAINER_NAME = "sms-app"
 $PORT = 8080
 $INTERNAL_PORT = 8000
 $VOLUME_NAME = "sms_data"
-$MONITORING_COMPOSE_FILE = Join-Path $SCRIPT_DIR "docker\docker-compose.monitoring.yml"
+$MONITORING_COMPOSE_FILE = Join-Path $PROJECT_ROOT "infra\docker\docker-old\docker-compose.monitoring.yml"
 $DEFAULT_GRAFANA_PORT = 3000
 $DEFAULT_PROMETHEUS_PORT = 9090
-$ROOT_ENV = Join-Path $SCRIPT_DIR ".env"
-$ROOT_ENV_EXAMPLE = Join-Path $SCRIPT_DIR ".env.example"
-$BACKEND_ENV = Join-Path $SCRIPT_DIR "backend\.env"
-$BACKEND_ENV_EXAMPLE = Join-Path $SCRIPT_DIR "backend\.env.example"
-$COMPOSE_BASE = Join-Path $SCRIPT_DIR "docker\docker-compose.yml"
-$COMPOSE_PROD = Join-Path $SCRIPT_DIR "docker\docker-compose.prod.yml"
+$ROOT_ENV = Join-Path $PROJECT_ROOT ".env"
+$ROOT_ENV_EXAMPLE = Join-Path $PROJECT_ROOT ".env.example"
+$BACKEND_ENV = Join-Path $PROJECT_ROOT "src\backend\.env"
+$BACKEND_ENV_EXAMPLE = Join-Path $PROJECT_ROOT "src\backend\.env.example"
+$COMPOSE_BASE = Join-Path $PROJECT_ROOT "infra\docker\docker-old\docker-compose.yml"
+$COMPOSE_PROD = Join-Path $PROJECT_ROOT "infra\docker\docker-old\docker-compose.prod.yml"
 
 # ============================================================================
 # UTILITY FUNCTIONS
@@ -1179,7 +1181,7 @@ function Invoke-SqliteToPostgresMigration {
     }
     $sqliteVolumeSize = if ($volumeSqliteCandidate) { [long]$volumeSqliteCandidate.Size } else { 0L }
 
-    $sqlitePath = Join-Path $SCRIPT_DIR "data\student_management.db"
+    $sqlitePath = Join-Path $PROJECT_ROOT "data\student_management.db"
     $useHostSqlite = Test-Path $sqlitePath
     $useVolumeSqlite = $false
 
@@ -1207,7 +1209,7 @@ function Invoke-SqliteToPostgresMigration {
         $sourceFingerprint = "volume:$sqliteVolumeName|$sqliteVolumePath|$sqliteVolumeSize"
     }
 
-    $triggerDir = Join-Path $SCRIPT_DIR "data\.triggers"
+    $triggerDir = Join-Path $PROJECT_ROOT "data\.triggers"
     $markerFile = Join-Path $triggerDir "sqlite_to_postgres.auto.migrated"
 
     if (Test-Path $markerFile) {
@@ -1232,9 +1234,9 @@ function Invoke-SqliteToPostgresMigration {
     $imageExists = docker images -q $IMAGE_TAG 2>$null
     if (-not $imageExists) {
         Write-Info "Migration requires app image. Building..."
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
-            docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | Out-Null
+            docker build -t $IMAGE_TAG -f infra/docker/docker-old/Dockerfile.fullstack . 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 Write-Error-Message "Failed to build image for migration"
                 return $false
@@ -1256,7 +1258,7 @@ function Invoke-SqliteToPostgresMigration {
     }
 
     if ($useHostSqlite) {
-        $migrateCmd += @("-v", "${SCRIPT_DIR}\data:/data")
+        $migrateCmd += @("-v", "${PROJECT_ROOT}\data:/data")
     } else {
         $migrateCmd += @("-v", "${sqliteVolumeName}:/sqlite_data:ro")
     }
@@ -1299,7 +1301,7 @@ function Invoke-SqliteToPostgresMigration {
 
         if ($isSourceAccessIssue) {
             if ($useVolumeSqlite) {
-                $stagingDir = Join-Path $SCRIPT_DIR "data\migration_staging"
+                $stagingDir = Join-Path $PROJECT_ROOT "data\migration_staging"
                 $stagedFilename = "legacy_sqlite_retry.db"
                 $stagedHostPath = Join-Path $stagingDir $stagedFilename
 
@@ -2385,7 +2387,7 @@ function Start-MonitoringStack {
         Write-Info "Using alternative port for Grafana: $actualGrafanaPort"
     }
 
-    Push-Location $SCRIPT_DIR
+    Push-Location $PROJECT_ROOT
     try {
         $env:GRAFANA_PORT = $actualGrafanaPort
         docker compose -f $MONITORING_COMPOSE_FILE up -d 2>&1 | Out-Null
@@ -2411,7 +2413,7 @@ function Start-MonitoringStack {
 function Stop-MonitoringStack {
     Write-Info "Stopping monitoring stack..."
 
-    Push-Location $SCRIPT_DIR
+    Push-Location $PROJECT_ROOT
     try {
         docker compose -f $MONITORING_COMPOSE_FILE down 2>$null | Out-Null
         if ($LASTEXITCODE -eq 0) {
@@ -2550,8 +2552,8 @@ function New-DesktopShortcut {
 
     $desktopPath = [Environment]::GetFolderPath("Desktop")
     # Use SMS_Manager.exe as the primary user-facing launcher (start/stop/status)
-    $managerExe = Join-Path $SCRIPT_DIR "SMS_Manager.exe"
-    $iconPath = Join-Path $SCRIPT_DIR "SMS_Toggle.ico"
+    $managerExe = Join-Path $PROJECT_ROOT "SMS_Manager.exe"
+    $iconPath = Join-Path $PROJECT_ROOT "SMS_Toggle.ico"
     $shortcutPath = Join-Path $desktopPath "SMS Toggle.lnk"
 
     # Check if manager executable exists
@@ -2572,7 +2574,7 @@ function New-DesktopShortcut {
         $shortcut = $WshShell.CreateShortcut($shortcutPath)
         $shortcut.TargetPath = $managerExe
         $shortcut.Arguments = ""
-        $shortcut.WorkingDirectory = $SCRIPT_DIR
+        $shortcut.WorkingDirectory = $PROJECT_ROOT
         $shortcut.Description = "Manage SMS Docker Application (Start/Stop)"
 
         # Use custom icon if available
@@ -2640,16 +2642,16 @@ function Start-Installation {
     Write-Host ""
     Write-Info "Creating application directories..."
     $directories = @(
-        (Join-Path $SCRIPT_DIR "data"),
-        (Join-Path $SCRIPT_DIR "data\.triggers"),
-        (Join-Path $SCRIPT_DIR "backups"),
-        (Join-Path $SCRIPT_DIR "logs")
+        (Join-Path $PROJECT_ROOT "data"),
+        (Join-Path $PROJECT_ROOT "data\.triggers"),
+        (Join-Path $PROJECT_ROOT "backups"),
+        (Join-Path $PROJECT_ROOT "logs")
     )
 
     foreach ($dir in $directories) {
         if (-not (Test-Path $dir)) {
             New-Item -ItemType Directory -Path $dir -Force | Out-Null
-            Write-Success "Created: $($dir.Replace($SCRIPT_DIR, '.'))"
+            Write-Success "Created: $($dir.Replace($PROJECT_ROOT, '.'))"
         }
     }
 
@@ -2687,7 +2689,7 @@ function Start-Installation {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
         }
 
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
             docker compose @composeArgs build backend frontend 2>&1 | Out-Null
 
@@ -2705,9 +2707,9 @@ function Start-Installation {
         Write-Info "Building Docker image (this may take 5-10 minutes)..."
         Write-Info "Image tag: $IMAGE_TAG"
 
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
-            docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | ForEach-Object {
+            docker build -t $IMAGE_TAG -f infra/docker/docker-old/Dockerfile.fullstack . 2>&1 | ForEach-Object {
                 if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged)') {
                     Write-Host $_ -ForegroundColor DarkGray
                 }
@@ -2814,9 +2816,9 @@ function Start-Application {
         Write-Info "Image not found, building..."
         Write-Info "This may take 5-10 minutes on first run..."
 
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
-            docker build -t $IMAGE_TAG -f docker/Dockerfile.fullstack . 2>&1 | Out-Null
+            docker build -t $IMAGE_TAG -f infra/docker/docker-old/Dockerfile.fullstack . 2>&1 | Out-Null
 
             if ($LASTEXITCODE -ne 0) {
                 Write-Error-Message "Build failed"
@@ -2894,7 +2896,7 @@ function Start-Application {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
         }
 
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
             if (-not (Invoke-SqliteToPostgresMigration)) {
                 return 1
@@ -2981,7 +2983,7 @@ function Start-Application {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
         }
 
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
             docker compose @composeArgs down --remove-orphans 2>$null | Out-Null
         } finally {
@@ -3002,12 +3004,12 @@ function Start-Application {
         $runArgs += @("--network", $script:SingleModeNetworkName)
     }
 
-    $backupsPath = Join-Path $SCRIPT_DIR "backups"
+    $backupsPath = Join-Path $PROJECT_ROOT "backups"
     if (Test-Path $backupsPath) {
         $runArgs += @("-v", "${backupsPath}:/app/backups")
     }
 
-    $templatesPath = Join-Path $SCRIPT_DIR "templates"
+    $templatesPath = Join-Path $PROJECT_ROOT "templates"
     if (Test-Path $templatesPath) {
         $runArgs += @("-v", "${templatesPath}:/app/templates:ro")
     }
@@ -3079,7 +3081,7 @@ function Stop-Application {
                 $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
             }
 
-            Push-Location $SCRIPT_DIR
+            Push-Location $PROJECT_ROOT
             try {
                 $downOutput = docker compose @composeArgs down --remove-orphans 2>&1
                 if ($LASTEXITCODE -eq 0) {
@@ -3183,7 +3185,7 @@ function Show-Status {
             Write-Host $script:LastMigrationSummary -ForegroundColor Yellow
         }
 
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
             docker compose @composeArgs ps
             return $LASTEXITCODE
@@ -3262,7 +3264,7 @@ function Show-Logs {
             $composeArgs = @("--env-file", $ROOT_ENV) + $composeArgs
         }
 
-        Push-Location $SCRIPT_DIR
+        Push-Location $PROJECT_ROOT
         try {
             docker compose @composeArgs logs -f --tail 100 backend
             return $LASTEXITCODE
@@ -3321,7 +3323,7 @@ function Update-Application {
         $buildArgs = @("build", "-t", $IMAGE_TAG, "-f", "docker/Dockerfile.fullstack", ".")
     }
 
-    Push-Location $SCRIPT_DIR
+    Push-Location $PROJECT_ROOT
     try {
         & docker @buildArgs 2>&1 | Out-Null
 
