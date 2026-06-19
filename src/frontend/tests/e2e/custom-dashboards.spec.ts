@@ -20,7 +20,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
 
   test.describe('Dashboard Manager Page', () => {
     test('should navigate to dashboard manager', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       // Wait for route to fully load
@@ -34,7 +34,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should show empty state or dashboard list', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       // Wait for route to fully load
@@ -49,7 +49,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
 
   test.describe('Creating Dashboard', () => {
     test('should open create dashboard dialog', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       // Wait for route to fully load
@@ -67,7 +67,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should display chart selection checkboxes', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       // Wait for route to fully load
@@ -85,7 +85,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should validate required fields', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       await page.getByRole('button', { name: /New Dashboard/i }).click();
@@ -101,7 +101,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should create dashboard successfully', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       await page.getByRole('button', { name: /New Dashboard/i }).click();
@@ -129,7 +129,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
 
   test.describe('Dashboard Selection in Analytics', () => {
     test('should load analytics page with default dashboard', async ({ page }) => {
-      await page.goto('/analytics', { waitUntil: 'domcontentloaded' });
+      await page.goto('/#/analytics', { waitUntil: 'domcontentloaded' });
 
       // Wait for page to be interactive, with a timeout
       try {
@@ -157,7 +157,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should show dashboard selector', async ({ page }) => {
-      await page.goto('/analytics');
+      await page.goto('/#/analytics');
       await page.waitForLoadState('networkidle');
 
       // Look for dashboard selector
@@ -166,7 +166,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should navigate to dashboard manager', async ({ page }) => {
-      await page.goto('/analytics');
+      await page.goto('/#/analytics');
       await page.waitForLoadState('networkidle');
 
       // Look for manage dashboards button
@@ -184,7 +184,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
 
   test.describe('Dashboard Management', () => {
     test('should list all dashboards', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       // Should show dashboard list
@@ -196,7 +196,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should display dashboard details', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       // Find first dashboard card
@@ -216,7 +216,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should be able to delete dashboard', async ({ page }) => {
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       // Find delete button in first dashboard card
@@ -245,7 +245,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
 
   test.describe('Chart Rendering', () => {
     test('should render charts on analytics page', async ({ page }) => {
-      await page.goto('/analytics');
+      await page.goto('/#/analytics');
       await page.waitForLoadState('networkidle');
 
       // Look for SVG elements (charts)
@@ -254,7 +254,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     });
 
     test('should handle empty data gracefully', async ({ page }) => {
-      await page.goto('/analytics');
+      await page.goto('/#/analytics');
       await page.waitForLoadState('networkidle');
 
       // Page should not have console errors
@@ -282,7 +282,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     test('should work on tablet viewport', async ({ page }) => {
       // Already logged in from beforeEach
       await page.setViewportSize({ width: 768, height: 1024 });
-      await page.goto('/analytics', { waitUntil: 'domcontentloaded' });
+      await page.goto('/#/analytics', { waitUntil: 'domcontentloaded' });
 
       // Wait for main content to load
       const main = page.locator('main');
@@ -297,7 +297,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     test('should work on mobile viewport', async ({ page }) => {
       // Already logged in from beforeEach
       await page.setViewportSize({ width: 375, height: 667 });
-      await page.goto('/analytics', { waitUntil: 'domcontentloaded' });
+      await page.goto('/#/analytics', { waitUntil: 'domcontentloaded' });
 
       // Page should be visible and responsive
       const main = page.locator('main');
@@ -314,7 +314,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     test('analytics page should load within acceptable time', async ({ page }) => {
       const startTime = Date.now();
 
-      await page.goto('/analytics');
+      await page.goto('/#/analytics');
       await page.waitForLoadState('networkidle');
 
       const loadTime = Date.now() - startTime;
@@ -326,7 +326,7 @@ test.describe('Custom Dashboards - Phase A Feature 3', () => {
     test('dashboard manager should load quickly', async ({ page }) => {
       const startTime = Date.now();
 
-      await page.goto('/dashboard-manager');
+      await page.goto('/#/dashboard-manager');
       await page.waitForLoadState('networkidle');
 
       const loadTime = Date.now() - startTime;

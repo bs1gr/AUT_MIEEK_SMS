@@ -21,7 +21,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
     // Set viewport to desktop for initial tests
     await page.setViewportSize({ width: 1280, height: 720 });
     await loginViaAPI(page, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
-    await page.goto('/analytics');
+    await page.goto('/#/analytics');
     // Wait for page to fully load
     await page.waitForLoadState('networkidle');
   });
