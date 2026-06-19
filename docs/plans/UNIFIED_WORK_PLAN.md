@@ -9,6 +9,30 @@
 
 ---
 
+## 🔧 Post-v1.18.30 Audit Fixes (June 19, 2026)
+
+**Status**: ✅ COMMITTED | Commit `d7f4ab762` on `main`
+
+Full honest audit of all four deployment modes (native, lite, docker, mobile) found 6 gaps. All fixed in one commit.
+
+| # | File | Fix |
+|---|------|-----|
+| 1 | `infra/scripts/dev/DOCKER.ps1` | Added `$PROJECT_ROOT` (3 levels up) + repointed all 20+ path vars broken by June 12 restructure |
+| 2 | `.github/workflows/release-installer-with-sha.yml` | Switched PyInstaller spec from `lite_entrypoint.spec` → `lite_simple_entrypoint.spec`; updated expected output from `SMS_Native_Lite_Simple.exe` → `SMS_Lite.exe` |
+| 3 | `infra/scripts/testing/RUN_TESTS_BATCH.ps1` | Fixed `Tests: Total: 0` bug — count `.`/`F`/`s` markers from progress lines (pytest summary line is not emitted to captured stdout on Windows non-TTY) |
+| 4 | `src/backend/lite_simple_entrypoint.py:218` | Documented intentional `Base.metadata.create_all()` fallback with `# noqa` comment explaining frozen EXE constraint |
+| 5 | `src/frontend/capacitor.config.ts` | Changed `androidScheme` from `'http'` → `'https'` for production APK |
+| 6 | `src/frontend/src/components/notifications/__tests__/NotificationDropdown.test.tsx` | Added `MemoryRouter` wrapper via local `render` override — fixed 17 failing tests (react-router `<Link>` without Router context) |
+
+**Validation**: COMMIT_READY -Quick passed (ruff ✅, mypy ✅, eslint ✅, ts ✅, translations ✅). Backend: 914/914 tests. Frontend: 1939/1939 tests.
+
+**Remaining known gaps (not blocking)**:
+- Docker mode: paths fixed but not smoke-tested end-to-end (requires Docker Desktop running)
+- Android: debug-only APK (`app-debug.apk`), no signed/release build
+- `vitest-results.xml` output path flag: requires `--outputFile.junit=` not `--outputFile=` with vitest v4
+
+---
+
 ## 🚀 v1.18.30 — Checkpoint Release (June 16, 2026)
 
 **Status**: ✅ RELEASED | GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.30
