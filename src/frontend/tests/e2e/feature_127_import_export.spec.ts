@@ -12,7 +12,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
   });
 
   test('Admin can access Import/Export page', async ({ page }) => {
-    await page.goto('/admin/import-export');
+    await page.goto('/#/admin/import-export');
     await page.waitForLoadState('networkidle');
 
     // Verify page loaded - check for URL and basic structure
@@ -30,7 +30,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
   });
 
   test('Export dialog opens and closes correctly', async ({ page }) => {
-    await page.goto('/admin/import-export');
+    await page.goto('/#/admin/import-export');
     await page.waitForLoadState('networkidle');
 
     // Verify page URL is correct
@@ -45,7 +45,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
   });
 
   test('Import wizard flow for Students', async ({ page }) => {
-    await page.goto('/admin/import-export');
+    await page.goto('/#/admin/import-export');
     await page.waitForLoadState('networkidle');
 
     // Verify page URL is correct
@@ -60,7 +60,7 @@ test.describe('Feature #127: Bulk Import/Export', () => {
   });
 
   test('History table loads data', async ({ page }) => {
-    await page.goto('/admin/import-export');
+    await page.goto('/#/admin/import-export');
     await page.waitForLoadState('networkidle');
 
     // Verify page URL is correct

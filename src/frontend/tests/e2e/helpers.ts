@@ -271,7 +271,7 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
 
   // Navigate to dashboard after token is set
   console.log(`🔐 [E2E API LOGIN] Navigating to /dashboard...`);
-  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
+  await page.goto('/#/dashboard', { waitUntil: 'domcontentloaded' });
 
   console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
 

@@ -416,7 +416,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
     test('should load initial page within 3 seconds', async ({ context }) => {
       const newPage = await context.newPage();
       const authenticatedStartTime = Date.now();
-      await newPage.goto('/analytics');
+      await newPage.goto('/#/analytics');
       await newPage.waitForLoadState('networkidle');
 
       const loadTime = Date.now() - authenticatedStartTime;

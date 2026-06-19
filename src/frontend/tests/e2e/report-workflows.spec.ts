@@ -95,7 +95,7 @@ test.describe('Custom Reports Workflows', () => {
   test('can create a custom report from builder and see it in reports list', async ({ page }) => {
     const reportName = `E2E Report ${generateRandomString('rw-')}`;
 
-    await page.goto('/operations/reports');
+    await page.goto('/#/operations/reports');
     await expect(page).toHaveURL(/\/operations\/reports/);
     await expect(page.locator('[data-testid="report-list-title"]')).toBeVisible({ timeout: 15000 });
 
@@ -140,7 +140,7 @@ test.describe('Custom Reports Workflows', () => {
 
     await expect(page).toHaveURL(/\/operations\?tab=reports/, { timeout: 15000 });
 
-    await page.goto('/operations/reports');
+    await page.goto('/#/operations/reports');
     await expect(page).toHaveURL(/\/operations\/reports/);
     await page.waitForResponse(
       (response) =>
@@ -179,7 +179,7 @@ test.describe('Custom Reports Workflows', () => {
   });
 
   test('can open templates and use one to prefill report builder', async ({ page }) => {
-    await page.goto('/operations/reports/templates');
+    await page.goto('/#/operations/reports/templates');
     await expect(page).toHaveURL(/\/operations\/reports\/templates/);
 
     const uiReady = await page

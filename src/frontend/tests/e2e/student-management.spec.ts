@@ -68,7 +68,7 @@ test.describe('Student Management - Critical Flows', () => {
     const student = generateStudentDataLocal();
 
     // Navigate to students page
-    await page.goto('/students');
+    await page.goto('/#/students');
 
     // Wait for page to load
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -147,7 +147,7 @@ test.describe('Student Management - Critical Flows', () => {
     const studentId = createdStudent.id;
 
     // Navigate to students page
-    await page.goto('/students');
+    await page.goto('/#/students');
 
     // Wait for page to load
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -200,7 +200,7 @@ test.describe('Student Management - Critical Flows', () => {
     const studentId = createdStudent.id;
 
     // Navigate to students page
-    await page.goto('/students');
+    await page.goto('/#/students');
 
     // Wait for page to load
     await page.waitForLoadState('networkidle').catch(() => {});
@@ -245,7 +245,7 @@ test.describe('Course Management', () => {
 
     const course = generateCourseData();
 
-    await page.goto('/courses');
+    await page.goto('/#/courses');
     await page.waitForLoadState('networkidle').catch(() => {});
     await page.click('[data-testid="add-course-btn"]', { force: true });
 
@@ -364,7 +364,7 @@ test.describe('Grade Assignment Flow', () => {
     }).catch(() => {});
 
     // Navigate to grades page
-    await page.goto('/grades');
+    await page.goto('/#/grades');
     await page.waitForLoadState('networkidle', { timeout: 15000 }).catch(() => {});
 
     // Check if grades page exists by looking for grading elements
@@ -474,7 +474,7 @@ test.describe('Attendance Tracking', () => {
     }).catch(() => {});
 
     // Navigate to attendance page and wait for it to load
-    await page.goto('/attendance');
+    await page.goto('/#/attendance');
     await page.waitForLoadState('networkidle').catch(() => {});
 
     // Wait for course selector and try to select the course
