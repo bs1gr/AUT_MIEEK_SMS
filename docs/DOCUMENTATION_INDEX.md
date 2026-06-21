@@ -73,6 +73,13 @@ This map complements the top-level structure and ensures stray Markdown files ar
   - Business metrics calculation
   - Test patterns and utilities
 
+### Academic & Technical Presentation
+
+- **[ACADEMIC_PRESENTATION.md](ACADEMIC_PRESENTATION.md)** ⭐ — Comprehensive English-language technical monograph presenting the full SMS codebase to the CS academic community. Covers architecture, grading engine, predictive analytics (OLS), RBAC, CI/CD, test evidence (2,935 tests), and all four deployment modes.
+- **[ACADEMIC_PRESENTATION_EL.md](ACADEMIC_PRESENTATION_EL.md)** ⭐ — Full Greek translation (Ελληνική έκδοση) of the above monograph, using correct vocational-education terminology (Σπουδαστής). Same 15-section structure with Greek chart-type names and bilingual code annotations.
+
+---
+
 ### Phase 1 (1.15.0) - COMPLETE ✅
 
 - **[PHASE1_COMPLETION_SUMMARY.md](PHASE1_COMPLETION_SUMMARY.md)** - Phase 1 final status (NEW - Jan 5, 2026)
@@ -412,6 +419,8 @@ This map complements the top-level structure and ensures stray Markdown files ar
 **Architecture & Design**:
 
 - **[ARCHITECTURE.md](ARCHITECTURE.md)** - System architecture overview
+- **[ACADEMIC_PRESENTATION.md](ACADEMIC_PRESENTATION.md)** — Full technical monograph (EN) for academic/CS audiences — architecture, grading, analytics, RBAC, CI/CD, test evidence
+- **[ACADEMIC_PRESENTATION_EL.md](ACADEMIC_PRESENTATION_EL.md)** — Πλήρης τεχνική μονογραφία (ΕΛ) — αρχιτεκτονική, βαθμολόγηση, αναλυτικά, RBAC, CI/CD
 - **[development/ARCHITECTURE_DIAGRAMS.md](development/ARCHITECTURE_DIAGRAMS.md)** - Visual system workflows
 - **[development/AUTHENTICATION.md](development/AUTHENTICATION.md)** - Auth implementation guide
 - **[development/RBAC_IMPLEMENTATION_GUIDE.md](development/RBAC_IMPLEMENTATION_GUIDE.md)** - RBAC permission system (NEW - 1.13.0) ✅
