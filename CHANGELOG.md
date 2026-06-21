@@ -9,6 +9,37 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 ---
 
 
+
+## [1.18.32] - 2026-06-21
+
+### Features
+- **android**: configure release signing + version 1.18.31
+
+### Bug Fixes
+- **dev**: pin ruff to exact version to prevent WinError 5 on upgrade
+- **ci**: 8 workflow correctness bugs from deep multi-angle review
+- **ci**: repair 8 workflow bugs found in post-v1.18.31 audit
+- **e2e**: revert loginViaAPI final goto to /dashboard (forces full reload)
+- **e2e**: fix all remaining page.goto paths for HashRouter across 5 spec files
+- **e2e**: repair logout waitForURL regex and advanced_search goto for HashRouter
+- **e2e**: use hash routes for HashRouter navigation in analytics E2E tests
+- **i18n**: add 43 missing analytics keys that caused E2E failures
+- vitest-results.xml flag + bump vitest to 4.1.9
+
+### Documentation
+- update work plan to v1.18.31
+
+## [1.18.32] - 2026-06-21
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.31] - 2026-06-19
 
 **Release Type**: Maintenance Release
@@ -4618,6 +4649,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 

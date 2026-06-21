@@ -110,7 +110,17 @@
       "PowerShell(docker exec sms-app python -c \"from backend.db.models import User; from sqlalchemy import create_engine; from sqlalchemy.orm import sessionmaker; print\\('Database models imported successfully'\\)\")",
       "PowerShell(cd d:\\\\SMS\\\\student-management-system && git log --oneline -5 && echo \"---\" && git status --short | Where-Object { $_ -notmatch '^\\\\?\\\\?' })",
       "PowerShell(cd d:\\\\SMS\\\\student-management-system && Test-Path \"infra\\\\installer\\\\dist\\\\SMS_Installer_1.18.26.exe\" && \\(Get-Item \"infra\\\\installer\\\\dist\\\\SMS_Installer_1.18.26.exe\"\\).Length / 1MB | ForEach-Object { \"{0:N2} MB\" -f $_ })",
-      "PowerShell(& \"D:\\\\SMS\\\\student-management-system\\\\infra\\\\scripts\\\\dev\\\\CREATE_NATIVE_SHORTCUT.ps1\")"
+      "PowerShell(& \"D:\\\\SMS\\\\student-management-system\\\\infra\\\\scripts\\\\dev\\\\CREATE_NATIVE_SHORTCUT.ps1\")",
+      "PowerShell(Select-String -Path \"d:\\\\SMS\\\\student-management-system\\\\infra\\\\scripts\\\\dev\\\\DOCKER.ps1\" -Pattern '\\\\$SCRIPT_DIR' | ForEach-Object { \"$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)\" })",
+      "PowerShell(Select-String -Path \"d:\\\\SMS\\\\student-management-system\\\\infra\\\\scripts\\\\dev\\\\DOCKER.ps1\" -Pattern 'Join-Path \\\\$SCRIPT_DIR|\"\\\\$\\\\{SCRIPT_DIR\\\\}|SCRIPT_DIR \"\\\\.' | ForEach-Object { \"$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)\" })",
+      "PowerShell(Select-String -Path \"d:\\\\SMS\\\\student-management-system\\\\.github\\\\workflows\\\\release-installer-with-sha.yml\" -Pattern \"lite_entrypoint|lite_simple|specPath|SMS_Lite|SMS_Native\" | ForEach-Object { \"$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)\" })",
+      "PowerShell($env:SMS_ALLOW_DIRECT_VITEST = \"1\"; Set-Location \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\" && npm run test -- --run src/components/notifications/__tests__/NotificationDropdown.test.tsx 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:SMS_ALLOW_DIRECT_VITEST = \"1\"; Set-Location \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\" && npm run test -- --reporter=junit --outputFile=vitest-results.xml --run 2>&1 | Select-Object -Last 10)",
+      "PowerShell(\\(Get-Item \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\\\\vitest-results.xml\"\\).LastWriteTime; \\(Get-Item \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\\\\vitest-results.xml\"\\).Length)",
+      "PowerShell(Select-String -Path \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\\\\vitest.config.ts\" -Pattern \"outputFile|junit|reporter\" | ForEach-Object { \"$\\($_.LineNumber\\): $\\($_.Line.Trim\\(\\)\\)\" })",
+      "Read(//d/SMS/student-management-system/src/frontend/**)",
+      "PowerShell(\\(Get-Item \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\\\\vitest-results.xml\"\\).LastWriteTime)",
+      "PowerShell($env:SMS_ALLOW_DIRECT_VITEST = \"1\"; Set-Location \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\" && npm run test -- --reporter=junit --outputFile=vitest-results.xml --run 2>&1 | Select-Object -Last 5; \\(Get-Item \"d:\\\\SMS\\\\student-management-system\\\\src\\\\frontend\\\\vitest-results.xml\"\\).LastWriteTime)"
     ],
     "deny": [],
     "ask": [],
