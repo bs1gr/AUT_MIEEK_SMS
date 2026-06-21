@@ -161,15 +161,27 @@ $CONTAINER_NAME = "sms-app"
 $PORT = 8080
 $INTERNAL_PORT = 8000
 $VOLUME_NAME = "sms_data"
-$MONITORING_COMPOSE_FILE = Join-Path $PROJECT_ROOT "infra\docker\docker-old\docker-compose.monitoring.yml"
 $DEFAULT_GRAFANA_PORT = 3000
 $DEFAULT_PROMETHEUS_PORT = 9090
 $ROOT_ENV = Join-Path $PROJECT_ROOT "config\.env"
 $ROOT_ENV_EXAMPLE = Join-Path $PROJECT_ROOT "config\.env.example"
-$BACKEND_ENV = Join-Path $PROJECT_ROOT "src\backend\.env"
-$BACKEND_ENV_EXAMPLE = Join-Path $PROJECT_ROOT "src\backend\.env.example"
-$COMPOSE_BASE = Join-Path $PROJECT_ROOT "infra\docker\docker-old\docker-compose.yml"
-$COMPOSE_PROD = Join-Path $PROJECT_ROOT "infra\docker\docker-old\docker-compose.prod.yml"
+
+# Installer places docker files at {app}\docker\ and backend at {app}\backend\.
+# Dev repo has them at infra\docker\docker-old\ and src\backend\.
+$_isInstalledLayout = Test-Path (Join-Path $PROJECT_ROOT "docker\docker-compose.yml")
+if ($_isInstalledLayout) {
+    $DOCKER_DIR  = Join-Path $PROJECT_ROOT "docker"
+    $BACKEND_DIR = Join-Path $PROJECT_ROOT "backend"
+} else {
+    $DOCKER_DIR  = Join-Path $PROJECT_ROOT "infra\docker\docker-old"
+    $BACKEND_DIR = Join-Path $PROJECT_ROOT "src\backend"
+}
+$MONITORING_COMPOSE_FILE = Join-Path $DOCKER_DIR "docker-compose.monitoring.yml"
+$BACKEND_ENV             = Join-Path $BACKEND_DIR ".env"
+$BACKEND_ENV_EXAMPLE     = Join-Path $BACKEND_DIR ".env.example"
+$COMPOSE_BASE            = Join-Path $DOCKER_DIR "docker-compose.yml"
+$COMPOSE_PROD            = Join-Path $DOCKER_DIR "docker-compose.prod.yml"
+$DOCKERFILE_FULLSTACK    = Join-Path $DOCKER_DIR "Dockerfile.fullstack"
 
 # ============================================================================
 # UTILITY FUNCTIONS
@@ -1241,7 +1253,7 @@ function Invoke-SqliteToPostgresMigration {
         Write-Info "Migration requires app image. Building..."
         Push-Location $PROJECT_ROOT
         try {
-            docker build -t $IMAGE_TAG -f infra/docker/docker-old/Dockerfile.fullstack . 2>&1 | Out-Null
+            docker build -t $IMAGE_TAG -f $DOCKERFILE_FULLSTACK . 2>&1 | Out-Null
             if ($LASTEXITCODE -ne 0) {
                 Write-Error-Message "Failed to build image for migration"
                 return $false
@@ -2714,14 +2726,19 @@ function Start-Installation {
 
         Push-Location $PROJECT_ROOT
         try {
-            docker build -t $IMAGE_TAG -f infra/docker/docker-old/Dockerfile.fullstack . 2>&1 | ForEach-Object {
-                if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged)') {
+            # Capture output line-by-line; save exit code immediately after because
+            # PS 7.5+ with $ErrorActionPreference=Stop can reset $LASTEXITCODE via pipeline.
+            $buildOutput = docker build -t $IMAGE_TAG -f $DOCKERFILE_FULLSTACK . 2>&1
+            $buildExitCode = $LASTEXITCODE
+            $buildOutput | ForEach-Object {
+                if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged|#\d+)') {
                     Write-Host $_ -ForegroundColor DarkGray
                 }
+                if ($Silent) { Write-InstallerLog $_ }
             }
 
-            if ($LASTEXITCODE -ne 0) {
-                Write-Error-Message "Build failed"
+            if ($buildExitCode -ne 0) {
+                Write-Error-Message "Build failed (exit $buildExitCode)"
                 return 1
             }
 
@@ -2823,7 +2840,7 @@ function Start-Application {
 
         Push-Location $PROJECT_ROOT
         try {
-            docker build -t $IMAGE_TAG -f infra/docker/docker-old/Dockerfile.fullstack . 2>&1 | Out-Null
+            docker build -t $IMAGE_TAG -f $DOCKERFILE_FULLSTACK . 2>&1 | Out-Null
 
             if ($LASTEXITCODE -ne 0) {
                 Write-Error-Message "Build failed"
