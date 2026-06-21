@@ -1,7 +1,7 @@
 # Student Management System — Technical Monograph
 ## A Bilingual, Production-Grade Academic Administration Platform
 
-**Institution**: ΜΙΕΕΚ — Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης, Limassol, Cyprus
+**Target Users**: Educators working at ΜΙΕΕΚ (Μεταλυκειακά Ινστιτούτα Επαγγελματικής Εκπαίδευσης και Κατάρτισης), Limassol, Cyprus — an independent tool, not an official institutional product
 **Current Version**: v1.18.32 (June 2026)
 **Repository**: [github.com/bs1gr/AUT_MIEEK_SMS](https://github.com/bs1gr/AUT_MIEEK_SMS)
 **Build Status**: [![CI/CD](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml/badge.svg)](https://github.com/bs1gr/AUT_MIEEK_SMS/actions/workflows/ci-cd-pipeline.yml)
@@ -11,7 +11,7 @@
 
 ## Abstract
 
-This document presents a comprehensive technical overview of the Student Management System (SMS), a fully operational, bilingual (English/Greek) academic administration platform built for the post-secondary technical education sector. The system integrates a FastAPI Python backend with a React/TypeScript frontend, ships as a self-contained Windows installer, and supports four distinct deployment profiles. It features a weighted multi-component grading engine, predictive analytics with linear regression trend modelling, customisable dashboard reporting, fine-grained role-based access control, and a CI/CD pipeline spanning 38 GitHub Actions workflows. This document is intended for an audience of computer science academics and practitioners and provides architectural diagrams, algorithmic descriptions, and reproducible test evidence for all major subsystems.
+This document presents a comprehensive technical overview of the Student Management System (SMS), a fully operational, bilingual (English/Greek) academic administration platform built for the post-secondary technical education sector (EQF 5). The system integrates a FastAPI Python backend with a React/TypeScript frontend, ships as a self-contained Windows installer, and supports four distinct deployment profiles. It features a weighted multi-component grading engine, predictive analytics with linear regression trend modelling, customisable dashboard reporting, fine-grained role-based access control, and a CI/CD pipeline spanning 38 GitHub Actions workflows. This document is intended for an audience of computer science academics and practitioners and provides architectural diagrams, algorithmic descriptions, and reproducible test evidence for all major subsystems.
 
 ---
 
@@ -37,13 +37,13 @@ This document presents a comprehensive technical overview of the Student Managem
 
 ## 1. Project Context and Motivation
 
-ΜΙΕΕΚ (Post-secondary Institutes of Vocational Education and Training) institutions in Cyprus operate under a legislative framework that mandates structured grading, regular attendance monitoring, and transparent academic reporting. Before SMS, faculty at the Limassol campus managed student records across isolated spreadsheets and paper-based registers. This created audit-trail gaps, prevented cross-course aggregate analysis, and produced inconsistent grade transcripts.
+Educators at ΜΙΕΕΚ (Post-secondary Institutes of Vocational Education and Training) in Cyprus operate under a legislative framework that mandates structured grading, regular attendance monitoring, and transparent academic reporting. Before SMS, these educators managed student records across isolated spreadsheets and paper-based registers. This created audit-trail gaps, prevented cross-course aggregate analysis, and produced inconsistent grade transcripts.
 
-SMS was designed from first principles to address these pain points. Three design constraints shaped all architectural decisions:
+SMS is an independent software project built by a developer to assist educators who work at ΜΙΕΕΚ. It is not affiliated with, owned by, or endorsed by any institution. Three design constraints shaped all architectural decisions:
 
-1. **No shared infrastructure dependency** — The college lacks an always-on server. The system must run on a teacher's Windows laptop without Docker if needed.
+1. **No shared infrastructure dependency** — Target users typically lack access to an always-on server. The system must run on a teacher's Windows laptop without Docker if needed.
 2. **Full bilingualism** — All text, error messages, PDF exports, and UI labels must be available in both English and Modern Greek simultaneously.
-3. **Institutional grading contract** — The system must implement Cyprus's standard grading scale (0–20 points, passing threshold 10, with GPA mapping) faithfully and traceably.
+3. **Cyprus grading alignment** — The system must implement Cyprus's standard vocational grading scale (0–20 points, passing threshold 10, with GPA mapping) faithfully and traceably.
 
 ---
 
@@ -1008,7 +1008,7 @@ Unlike systems that store a single numeric grade per assignment, SMS implements 
 
 ### 15.2 Bilingual-by-Design
 
-English/Greek support is not a translation layer applied after the fact — it is enforced at every tier: schema validation, PDF/Excel export, all UI text, and even error messages. The pre-commit and CI translation parity tests prevent any regression. This is essential for an institution operating under Cyprus's bilingual educational administration.
+English/Greek support is not a translation layer applied after the fact — it is enforced at every tier: schema validation, PDF/Excel export, all UI text, and even error messages. The pre-commit and CI translation parity tests prevent any regression, reflecting the bilingual reality of professional education in Cyprus.
 
 ### 15.3 Zero-Infrastructure Deployment (Lite Edition)
 
@@ -1020,7 +1020,7 @@ The grade trend and attendance pattern predictions are implemented in pure Pytho
 
 ### 15.5 Audit-Complete Operations
 
-Every write operation (grade creation, attendance marking, student update, role change) generates an `AuditLog` record with `old_values` and `new_values` JSON snapshots. This satisfies Cyprus's educational institution audit requirements and supports grade dispute resolution.
+Every write operation (grade creation, attendance marking, student update, role change) generates an `AuditLog` record with `old_values` and `new_values` JSON snapshots. This satisfies Cyprus's educational audit requirements and supports grade dispute resolution.
 
 ### 15.6 Offline-First for Classrooms
 

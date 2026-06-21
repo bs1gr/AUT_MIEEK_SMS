@@ -60,13 +60,13 @@ if not defined PWSH_EXE goto :found_pwsh
 if defined PWSH_EXE (
     echo Using PowerShell 7+: %PWSH_EXE%
     echo Using PowerShell 7+: %PWSH_EXE% >> "%WRAP_LOG%"
-    "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "& { & '%SCRIPT_DIR%DOCKER.ps1' -Install -Silent -NoShortcut; exit $LASTEXITCODE }" 1>>"%WRAP_LOG%" 2>&1
+    "%PWSH_EXE%" -NoProfile -ExecutionPolicy Bypass -Command "& { & '%SCRIPT_DIR%DOCKER.ps1' -Install -Silent -NoShortcut; exit $LASTEXITCODE }" 2>>"%WRAP_LOG%"
     set "EXITCODE=%ERRORLEVEL%"
 ) else (
     echo PowerShell 7 not found, using Windows PowerShell...
     echo PowerShell 7 not found, using Windows PowerShell... >> "%WRAP_LOG%"
     echo Note: Some features may require PowerShell 7+ >> "%WRAP_LOG%"
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "& { & '%SCRIPT_DIR%DOCKER.ps1' -Install -Silent -NoShortcut; exit $LASTEXITCODE }" 1>>"%WRAP_LOG%" 2>&1
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "& { & '%SCRIPT_DIR%DOCKER.ps1' -Install -Silent -NoShortcut; exit $LASTEXITCODE }" 2>>"%WRAP_LOG%"
     set "EXITCODE=%ERRORLEVEL%"
 )
 

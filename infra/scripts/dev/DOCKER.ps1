@@ -230,6 +230,46 @@ function Write-Warning {
     if ($Silent) { Write-InstallerLog "WARNING: $Message" }
 }
 
+function Invoke-DockerBuildWithProgress {
+    param(
+        [string]$Tag,
+        [string]$Dockerfile,
+        [string]$BuildContext
+    )
+
+    $job = Start-Job -ScriptBlock {
+        param($tag, $df, $ctx)
+        $out = & docker build -t $tag -f $df $ctx 2>&1
+        [PSCustomObject]@{ Output = $out; ExitCode = $LASTEXITCODE }
+    } -ArgumentList $Tag, $Dockerfile, $BuildContext
+
+    $spinChars = @('|', '/', '-', '\')
+    $spinIdx   = 0
+    $startTime = Get-Date
+
+    while ($job.State -eq 'Running') {
+        $elapsed  = (Get-Date) - $startTime
+        $spin     = $spinChars[$spinIdx % 4]
+        $line     = "  $spin  Building Docker image... $($elapsed.ToString('mm\:ss')) elapsed    "
+        # \r overwrites the same console line in both CMD and PowerShell windows
+        Write-Host "`r$line" -NoNewline
+        Write-Progress -Activity "Building Docker image" -Status $line -PercentComplete -1
+        $spinIdx++
+        Start-Sleep -Milliseconds 400
+    }
+
+    Write-Host ""  # end spinner line
+    Write-Progress -Activity "Building Docker image" -Completed
+
+    $result = Receive-Job -Job $job -Wait
+    Remove-Job -Job $job -Force -ErrorAction SilentlyContinue
+
+    if ($Silent -and $result -and $result.Output) {
+        $result.Output | ForEach-Object { Write-InstallerLog $_ }
+    }
+
+    return $(if ($result) { [int]$result.ExitCode } else { 1 })
+}
 
 function Test-Administrator {
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -2735,28 +2775,14 @@ function Start-Installation {
         Write-Info "Building Docker image (this may take 5-10 minutes)..."
         Write-Info "Image tag: $IMAGE_TAG"
 
-        Push-Location $PROJECT_ROOT
-        try {
-            # Capture output line-by-line; save exit code immediately after because
-            # PS 7.5+ with $ErrorActionPreference=Stop can reset $LASTEXITCODE via pipeline.
-            $buildOutput = docker build -t $IMAGE_TAG -f $DOCKERFILE_FULLSTACK . 2>&1
-            $buildExitCode = $LASTEXITCODE
-            $buildOutput | ForEach-Object {
-                if ($_ -match '(Step \d+/\d+|Successfully built|Successfully tagged|#\d+)') {
-                    Write-Host $_ -ForegroundColor DarkGray
-                }
-                if ($Silent) { Write-InstallerLog $_ }
-            }
+        $buildExitCode = Invoke-DockerBuildWithProgress -Tag $IMAGE_TAG -Dockerfile $DOCKERFILE_FULLSTACK -BuildContext $PROJECT_ROOT
 
-            if ($buildExitCode -ne 0) {
-                Write-Error-Message "Build failed (exit $buildExitCode)"
-                return 1
-            }
-
-            Write-Success "Build completed: $IMAGE_TAG"
-        } finally {
-            Pop-Location
+        if ($buildExitCode -ne 0) {
+            Write-Error-Message "Build failed (exit $buildExitCode)"
+            return 1
         }
+
+        Write-Success "Build completed: $IMAGE_TAG"
     }
 
     # Installation complete
@@ -2849,19 +2875,14 @@ function Start-Application {
         Write-Info "Image not found, building..."
         Write-Info "This may take 5-10 minutes on first run..."
 
-        Push-Location $PROJECT_ROOT
-        try {
-            docker build -t $IMAGE_TAG -f $DOCKERFILE_FULLSTACK . 2>&1 | Out-Null
+        $buildExitCode = Invoke-DockerBuildWithProgress -Tag $IMAGE_TAG -Dockerfile $DOCKERFILE_FULLSTACK -BuildContext $PROJECT_ROOT
 
-            if ($LASTEXITCODE -ne 0) {
-                Write-Error-Message "Build failed"
-                return 1
-            }
-
-            Write-Success "Build completed"
-        } finally {
-            Pop-Location
+        if ($buildExitCode -ne 0) {
+            Write-Error-Message "Build failed"
+            return 1
         }
+
+        Write-Success "Build completed"
     }
 
     # Remove stopped container if exists
