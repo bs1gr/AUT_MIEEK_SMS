@@ -91,8 +91,13 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-# Script lives at infra/scripts/dev/ — project root is three levels up
-$PROJECT_ROOT = (Resolve-Path (Join-Path $SCRIPT_DIR "..\..\..")).Path
+# Script lives at infra/scripts/dev/ in the repo (3 levels up = project root),
+# but is copied to the install root by the installer. Detect by VERSION file presence.
+if (Test-Path (Join-Path $SCRIPT_DIR "VERSION")) {
+    $PROJECT_ROOT = $SCRIPT_DIR
+} else {
+    $PROJECT_ROOT = (Resolve-Path (Join-Path $SCRIPT_DIR "..\..\..")).Path
+}
 $BACKEND_DIR = Join-Path $PROJECT_ROOT "src\backend"
 $FRONTEND_DIR = Join-Path $PROJECT_ROOT "src\frontend"
 $BACKEND_PID_FILE = Join-Path $PROJECT_ROOT ".backend.pid"
