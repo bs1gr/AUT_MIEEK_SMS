@@ -224,7 +224,7 @@ jobs:
       - name: Check frontend dependencies
         run: |
           echo "📊 Checking frontend dependencies..."
-          cd frontend
+          cd src/frontend
           npm outdated || echo "No outdated dependencies found"
 
       - name: Setup Python

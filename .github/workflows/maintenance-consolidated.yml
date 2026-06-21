@@ -144,7 +144,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ needs.determine-tasks.outputs.dry_run }}
-          KEEP_COUNT: 5
+          KEEP_COUNT: 50
           GH_REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
@@ -152,7 +152,7 @@ jobs:
           echo "🧹 Cleaning up old workflow runs..."
           CURRENT_ID="${{ github.run_id }}"
           REPO="${{ github.repository }}"
-          KEEP_COUNT=5
+          KEEP_COUNT=50
 
           # Fetch all workflow runs
           echo "Fetching workflow runs (keeping last $KEEP_COUNT)..."

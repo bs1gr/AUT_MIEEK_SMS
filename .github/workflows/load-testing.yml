@@ -64,7 +64,7 @@ jobs:
         cache: 'pip'
         cache-dependency-path: |
           load-testing/requirements.txt
-          backend/requirements.txt
+          src/backend/requirements.txt
 
     - name: Resolve load testing paths
       id: loadtest
@@ -93,13 +93,13 @@ jobs:
       if: steps.loadtest.outputs.missing != 'true'
       run: |
         pip install -r ${{ steps.loadtest.outputs.requirements }}
-        pip install -r backend/requirements.txt
+        pip install -r src/backend/requirements.txt
 
     - name: Initialize database
       if: steps.loadtest.outputs.missing != 'true'
       run: |
         # Run migrations to initialize database before backend starts
-        export PYTHONPATH="${{ github.workspace }}"
+        export PYTHONPATH="${{ github.workspace }}/src"
         python -c "from backend.scripts.migrate.runner import run_migrations; run_migrations(verbose=True)"
         echo "Database initialized successfully"
 
@@ -107,7 +107,7 @@ jobs:
       if: steps.loadtest.outputs.missing != 'true'
       run: |
         # Start uvicorn in background so load tests can target localhost:8080
-        nohup python -m uvicorn backend.main:app --host 0.0.0.0 --port 8080 &>/dev/null &
+        nohup python -m uvicorn src.backend.main:app --host 0.0.0.0 --port 8080 &>/dev/null &
         # Wait for backend to be ready
         for i in {1..30};
         do

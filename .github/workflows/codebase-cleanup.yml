@@ -34,7 +34,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "🔍 Running backend linting..."
-          cd backend
+          cd src/backend
           ruff check . --output-format=github
           echo "✅ Linting complete"
 
@@ -42,7 +42,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "🔍 Checking for code smells..."
-          cd backend
+          cd src/backend
 
           # Check for long functions
           echo "## Long Functions (>50 lines)"
@@ -72,7 +72,7 @@ jobs:
         continue-on-error: true
         run: |
           echo "💀 Scanning for dead code..."
-          cd backend
+          cd src/backend
           vulture . --min-confidence 80 > /tmp/dead_code.txt || true
 
           if [ -s /tmp/dead_code.txt ]; then
@@ -170,7 +170,7 @@ jobs:
         run: |
           echo "📦 Verifying module imports..."
 
-          cd backend
+          cd src/backend
 
           # Check for circular imports
           python -c "
@@ -227,7 +227,7 @@ jobs:
         run: |
           echo "📦 Verifying frontend dependencies..."
 
-          cd frontend
+          cd src/frontend
           npm ls > /tmp/npm_deps.txt 2>&1 || true
 
           if grep -q "UNMET DEPENDENCY" /tmp/npm_deps.txt; then
