@@ -3,7 +3,7 @@ name: Native DeepClean Safety
 on:
   pull_request:
     paths:
-      - 'NATIVE.ps1'
+      - 'infra/scripts/dev/NATIVE.ps1'
       - '.github/workflows/**'
 
 jobs:

@@ -152,7 +152,6 @@ jobs:
           echo "🧹 Cleaning up old workflow runs..."
           CURRENT_ID="${{ github.run_id }}"
           REPO="${{ github.repository }}"
-          KEEP_COUNT=50
 
           # Fetch all workflow runs
           echo "Fetching workflow runs (keeping last $KEEP_COUNT)..."

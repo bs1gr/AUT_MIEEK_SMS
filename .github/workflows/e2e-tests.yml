@@ -319,8 +319,8 @@ jobs:
         with:
           name: e2e-test-results
           path: |
-            frontend/playwright-report/
-            frontend/test-results/
+            src/frontend/playwright-report/
+            src/frontend/test-results/
           retention-days: 30
           if-no-files-found: ignore
 
@@ -331,17 +331,17 @@ jobs:
           set -euo pipefail
 
           echo "Extracting test results..."
-          if [ -f frontend/playwright-report/index.html ]; then
+          if [ -f src/frontend/playwright-report/index.html ]; then
             # Extract test counts from JSON summary if available, fall back to HTML parsing
-            if [ -f frontend/test-results/summary.json ]; then
-              PASSED=$(jq -r '.stats.expected // 0' frontend/test-results/summary.json 2>/dev/null || echo "0")
-              FAILED=$(jq -r '.stats.unexpected // 0' frontend/test-results/summary.json 2>/dev/null || echo "0")
-              SKIPPED=$(jq -r '.stats.skipped // 0' frontend/test-results/summary.json 2>/dev/null || echo "0")
+            if [ -f src/frontend/test-results/summary.json ]; then
+              PASSED=$(jq -r '.stats.expected // 0' src/frontend/test-results/summary.json 2>/dev/null || echo "0")
+              FAILED=$(jq -r '.stats.unexpected // 0' src/frontend/test-results/summary.json 2>/dev/null || echo "0")
+              SKIPPED=$(jq -r '.stats.skipped // 0' src/frontend/test-results/summary.json 2>/dev/null || echo "0")
             else
               # Fallback to HTML parsing (fragile but better than silent failure)
-              PASSED=$(grep -o 'passed">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
-              FAILED=$(grep -o 'failed">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
-              SKIPPED=$(grep -o 'skipped">[0-9]*' frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
+              PASSED=$(grep -o 'passed">[0-9]*' src/frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
+              FAILED=$(grep -o 'failed">[0-9]*' src/frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
+              SKIPPED=$(grep -o 'skipped">[0-9]*' src/frontend/playwright-report/index.html 2>/dev/null | grep -o '[0-9]*' | head -1 || echo "0")
             fi
 
             TOTAL=$(( ${PASSED:-0} + ${FAILED:-0} + ${SKIPPED:-0} ))
@@ -405,7 +405,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: e2e-backend-logs
-          path: backend/logs/
+          path: src/backend/logs/
           retention-days: 7
           if-no-files-found: ignore
 
@@ -417,7 +417,7 @@ jobs:
           mkdir -p ci-artifacts
 
           python scripts/e2e_metrics_collector.py \
-            --report frontend/test-results/report.json \
+            --report src/frontend/test-results/report.json \
             --run-id "${{ github.run_id }}" \
             --branch "${{ github.ref_name }}" \
             --commit "${{ github.sha }}" \
@@ -438,7 +438,7 @@ jobs:
           mkdir -p ci-artifacts
 
           python scripts/e2e_failure_detector.py \
-            --report frontend/test-results/report.json \
+            --report src/frontend/test-results/report.json \
             --output ci-artifacts/failure-patterns.json \
             || echo "⚠️  Failure detection encountered an issue (non-blocking)"
 

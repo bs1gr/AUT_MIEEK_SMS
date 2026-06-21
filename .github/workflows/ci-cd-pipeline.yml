@@ -357,7 +357,8 @@ jobs:
           fi
 
           # Check for "[full-test]" in PR title
-          if echo "${{ github.event.pull_request.title }}" | grep -q "\[full-test\]"; then
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          if echo "$PR_TITLE" | grep -q "\[full-test\]"; then
             RUN_FULL="true"
             RUN_E2E="true"
             echo "🟡 PR title contains '[full-test]': Enabling all advanced tests"
