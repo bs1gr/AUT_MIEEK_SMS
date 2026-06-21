@@ -183,6 +183,17 @@ $COMPOSE_BASE            = Join-Path $DOCKER_DIR "docker-compose.yml"
 $COMPOSE_PROD            = Join-Path $DOCKER_DIR "docker-compose.prod.yml"
 $DOCKERFILE_FULLSTACK    = Join-Path $DOCKER_DIR "Dockerfile.fullstack"
 
+# The Dockerfile was copied from the dev repo and references src/backend and src/frontend
+# COPY paths that don't exist in the installed layout (which has backend/ and frontend/ directly).
+# Patch it in-place on first run so every subsequent docker build finds the correct paths.
+if ($_isInstalledLayout -and (Test-Path $DOCKERFILE_FULLSTACK)) {
+    $df = Get-Content $DOCKERFILE_FULLSTACK -Raw
+    if ($df -match 'COPY src/frontend|COPY src/backend') {
+        ($df -replace 'COPY src/frontend/', 'COPY frontend/' -replace 'COPY src/backend', 'COPY backend') |
+            Set-Content $DOCKERFILE_FULLSTACK -Encoding UTF8
+    }
+}
+
 # ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================
