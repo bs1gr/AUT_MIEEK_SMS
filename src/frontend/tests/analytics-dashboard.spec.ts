@@ -22,8 +22,9 @@ test.describe('Analytics Dashboard - Feature #125', () => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await loginViaAPI(page, 'test@example.com', 'Test@Pass123'); // pragma: allowlist secret
     await page.goto('/#/analytics');
-    // Wait for page to fully load
-    await page.waitForLoadState('networkidle');
+    // Use 'load' not 'networkidle' — the analytics page continuously polls data
+    // and never reaches networkidle, causing a 30s timeout on every test.
+    await page.waitForLoadState('load');
   });
 
   test.describe('Page Load & Basic Rendering', () => {
@@ -193,7 +194,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
           const text = await btn.textContent();
           if (text && (text.includes('Month') || text.includes('Semester'))) {
             await btn.click();
-            await page.waitForLoadState('networkidle');
+            await page.waitForLoadState('load');
             break;
           }
         }
@@ -382,7 +383,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       });
 
       // Simulate some actions - wait for any network activity to complete
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
 
       // Should not have critical errors
       const criticalErrors = consoleErrors.filter(err =>
@@ -407,7 +408,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
 
       // Loading state might appear during data fetch
       // Page should always transition to loaded state
-      await page.waitForLoadState('networkidle');
+      await page.waitForLoadState('load');
       await expect(page.locator('svg').first()).toBeVisible();
     });
   });
@@ -417,7 +418,7 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       const newPage = await context.newPage();
       const authenticatedStartTime = Date.now();
       await newPage.goto('/#/analytics');
-      await newPage.waitForLoadState('networkidle');
+      await newPage.waitForLoadState('load');
 
       const loadTime = Date.now() - authenticatedStartTime;
       expect(loadTime).toBeLessThan(3000);

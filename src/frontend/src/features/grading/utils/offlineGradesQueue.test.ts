@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import type { Grade } from '@/types';
 import {
   enqueueGradeMutation,
@@ -5,6 +6,15 @@ import {
   getQueuedGradeMutations,
   removeQueuedGradeMutation,
 } from './offlineGradesQueue';
+
+// appStorage has a module-level cache that persists across tests.
+// Mock it to use localStorage directly so localStorage.clear() fully resets state.
+vi.mock('@/utils/appStorage', () => ({
+  getItem: (key: string) => localStorage.getItem(key),
+  setItem: (key: string, value: string) => localStorage.setItem(key, value),
+  removeItem: (key: string) => localStorage.removeItem(key),
+  init: () => Promise.resolve(),
+}));
 
 const makePayload = (overrides?: Partial<Omit<Grade, 'id'>>): Omit<Grade, 'id'> => ({
   student_id: 1,

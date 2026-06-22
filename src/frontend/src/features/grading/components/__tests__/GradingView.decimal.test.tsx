@@ -172,28 +172,43 @@ describe('GradingView - Decimal Input', () => {
   });
 
   it('adds a grade and shows it in grade history after refresh', async () => {
-    // Sequence: initial GETs (student selection, course selection) return empty; refresh after submit returns one grade
+    // GradingView makes these GET calls in order:
+    //  1. loadGrades() after studentId set → /grades/
+    //  2. loadFinal() after courseId set   → /analytics/.../final-grade  (returns {} — no items key)
+    //  3. loadGrades() after courseId set  → /grades/
+    //  4. loadFinal() after save           → /analytics/.../final-grade
+    //  5. loadGrades() refresh after save  → /grades/ — must return the new grade
+    // Use url-based dispatch so order changes don't matter.
     const getMock = vi.mocked(apiModule.default.get);
-    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown> }); // after student select
-    getMock.mockResolvedValueOnce({ data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown> }); // after course select
-    getMock.mockResolvedValueOnce({
-      data: [
-        {
-          id: 10,
-          student_id: 1,
-          course_id: 1,
-          assignment_name: 'Quiz 1',
-          category: 'Quiz',
-          grade: 95,
-          max_grade: 100,
-          weight: 1,
-          date_submitted: '2025-09-02',
-        },
-      ],
-      status: 200,
-      statusText: 'OK',
-      headers: {},
-      config: {} as unknown as Record<string, unknown>,
+    let gradesCallCount = 0;
+    getMock.mockImplementation(async (url: string) => {
+      if (url.includes('/final-grade')) {
+        return { data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown> };
+      }
+      if (url.includes('/grades/')) {
+        gradesCallCount++;
+        if (gradesCallCount >= 3) {
+          // Third grades call = refresh after save → return the new grade
+          return {
+            data: [
+              {
+                id: 10,
+                student_id: 1,
+                course_id: 1,
+                assignment_name: 'Quiz 1',
+                category: 'Quiz',
+                grade: 95,
+                max_grade: 100,
+                weight: 1,
+                date_submitted: '2025-09-02',
+              },
+            ],
+            status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown>,
+          };
+        }
+        return { data: { items: [] }, status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown> };
+      }
+      return { data: {}, status: 200, statusText: 'OK', headers: {}, config: {} as unknown as Record<string, unknown> };
     });
 
     renderGradingView();

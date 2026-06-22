@@ -88,6 +88,19 @@ describe('AttendanceView - Special Participation Labels', () => {
           ],
         };
       }
+      // AttendanceView uses apiClient (not fetch) after the Android migration.
+      if (url.includes('/enrollments/course/') && url.includes('/students')) {
+        return { data: mockStudents };
+      }
+      if (/\/courses\/\d+$/.test(url)) {
+        return { data: mockCourses[0] };
+      }
+      if (url.includes('/courses')) {
+        return { data: { items: mockCourses } };
+      }
+      if (url.includes('/attendance/')) {
+        return { data: [] };
+      }
       return { data: [] };
     });
 

@@ -1,9 +1,19 @@
+import { vi } from 'vitest';
 import {
   enqueueStudentUpdate,
   getQueuedStudentUpdateCount,
   getQueuedStudentUpdates,
   removeQueuedStudentUpdate,
 } from './offlineStudentUpdateQueue';
+
+// appStorage has a module-level cache that persists across tests.
+// Mock it to use localStorage directly so localStorage.clear() fully resets state.
+vi.mock('@/utils/appStorage', () => ({
+  getItem: (key: string) => localStorage.getItem(key),
+  setItem: (key: string, value: string) => localStorage.setItem(key, value),
+  removeItem: (key: string) => localStorage.removeItem(key),
+  init: () => Promise.resolve(),
+}));
 
 describe('offlineStudentUpdateQueue', () => {
   beforeEach(() => {

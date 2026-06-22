@@ -1,11 +1,52 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.31
-**Last Updated**: June 19, 2026
-**Status**: ✅ **v1.18.31 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.31.exe — 97 MB)**
+**Current Version**: 1.18.32
+**Last Updated**: June 22, 2026
+**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 8 post-release commits on main**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.31
+**Current Phase**: Active Development | Post-v1.18.32
 **Current Branch**: `main`
+
+---
+
+## 📋 Post-v1.18.32 Accumulation (June 21–22, 2026)
+
+**Status**: 🔄 UNRELEASED | 8 commits on `main` since tag `v1.18.32`
+
+| Hash | Area | Description |
+|------|------|-------------|
+| `cdff5f586` | Android | Standalone local mode + fix mobile API calls |
+| `e46c130db` | Docs | Register academic monographs in DOCUMENTATION_INDEX |
+| `9471125d4` | Docs | Refine bilingual academic monograph (EN/EL final merge) |
+| `ccf4a1217` | Docs | Add bilingual EN/EL academic monograph for CS community presentation |
+| `f4be40ba3` | Installer | Patch Dockerfile src/ paths for installed layout |
+| `9ddf25805` | Installer | Fix docker path mismatch and exit-code bug in DOCKER.ps1 |
+| `9c03580e0` | Installer | Resolve PROJECT_ROOT to install dir when run from installer root |
+| `0047e0308` | Project | Restore CLAUDE.md to project root |
+
+**Notable**: The installer Docker path fixes and Android standalone mode are significant enough that a v1.18.33 release may be warranted when ready.
+
+---
+
+## 🚀 v1.18.32 — Android Standalone + Installer Path Fixes (June 21, 2026)
+
+**Status**: ✅ RELEASED | Commit `d35fc8a3d` | Tag `v1.18.32` | GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.32
+**Installer**: `SMS_Installer_1.18.32.exe` — built and published by CI on 2026-06-21
+
+### Changes Since v1.18.31
+
+| Hash | Area | Description |
+|------|------|-------------|
+| `d35fc8a3d` | Release | Bump version to 1.18.32 and update docs |
+| `799e5a486` | Dev | Pin ruff to exact version to prevent WinError 5 on upgrade |
+| `fa53d9aaf` | CI | 8 workflow correctness bugs from deep multi-angle review |
+| `51e0575ab` | CI | Repair 8 workflow bugs found in post-v1.18.31 audit |
+| `6ececf02e` | E2E | Revert loginViaAPI final goto to /dashboard (forces full reload) |
+| `e10c1d3a0` | E2E | Fix all remaining page.goto paths for HashRouter across 5 spec files |
+| `57852240a` | E2E | Repair logout waitForURL regex and advanced_search goto for HashRouter |
+| `10917c347` | E2E | Use hash routes for HashRouter navigation in analytics E2E tests |
+| `48f55fba2` | i18n | Add 43 missing analytics keys that caused E2E failures |
+| `fd7f84aa8` | Build | vitest-results.xml flag + bump vitest to 4.1.9 |
 
 ---
 
