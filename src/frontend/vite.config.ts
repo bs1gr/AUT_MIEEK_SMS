@@ -115,10 +115,20 @@ export default defineConfig(({ mode }) => {
       '@/stores': path.resolve(__dirname, './src/stores'),
     },
   },
+  optimizeDeps: {
+    // Restrict the dep scanner to the actual source tree. Without this Vite
+    // scans the entire project, including android/app/build/ artifacts, and
+    // chokes on bundled chunks that reference peer deps not in node_modules.
+    entries: ['./src/main.tsx'],
+  },
   server: {
     host: '127.0.0.1',
     port: 5173, // Standard Vite dev port for local development
     strictPort: true, // Fail if port is in use (prevents silent port changes)
+    watch: {
+      // Ignore Android Gradle build output and dist to prevent spurious FS events
+      ignored: ['**/android/**', '**/dist/**'],
+    },
     proxy: {
       '/api': {
         target: devProxyTarget,

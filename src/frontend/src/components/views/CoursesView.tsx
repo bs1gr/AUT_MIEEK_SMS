@@ -7,8 +7,7 @@ import { Settings, Plus, Trash2, Save, AlertCircle, BookOpen, Calculator, Clock,
 import { useLanguage } from '../../LanguageContext';
 import { generateCourseScheduleICS, downloadICS } from '../../utils/calendarUtils';
 import { getLocalizedCategory, getCanonicalCategory } from '../../utils/categoryLabels';
-
-const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
+import apiClient from '@/api/api';
 
 // ---- Types ----
 type Rule = { category: string; weight: string | number; description?: string };
@@ -104,8 +103,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
 
   const loadAllStudents = useCallback(async () => {
     try {
-      const resp = await fetch(`${API_BASE_URL}/students/`);
-      const data = await resp.json();
+      const resp = await apiClient.get('/students/');
+      const data = resp.data;
       // Normalize PaginatedResponse to array
       const studentsArray: StudentLite[] = (data && (data as PaginatedResponse<StudentLite>).items)
         ? (data as PaginatedResponse<StudentLite>).items
@@ -119,8 +118,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   const loadEnrolledStudents = useCallback(async () => {
     if (!selectedCourse) return;
     try {
-      const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
-      const data = await resp.json();
+      const resp = await apiClient.get(`/enrollments/course/${selectedCourse}/students`);
+      const data = resp.data;
       setEnrolledStudents(Array.isArray(data) ? data : []);
     } catch {
       setEnrolledStudents([]);
@@ -130,11 +129,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   const enrollSelected = async () => {
     if (!selectedCourse || selectedToEnroll.length === 0) return;
     try {
-      const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_ids: selectedToEnroll })
-      });
-      if (!resp.ok) throw new Error('fail');
+      await apiClient.post(`/enrollments/course/${selectedCourse}`, { student_ids: selectedToEnroll });
       showToast(t('studentsEnrolled') || 'Students enrolled', 'success');
       setSelectedToEnroll([]);
       loadEnrolledStudents();
@@ -146,8 +141,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
   const unenroll = async (studentId: number) => {
     if (!selectedCourse) return;
     try {
-      const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/student/${studentId}`, { method: 'DELETE' });
-      if (!resp.ok) throw new Error('fail');
+      await apiClient.delete(`/enrollments/course/${selectedCourse}/student/${studentId}`);
       showToast(t('studentUnenrolled') || 'Student unenrolled', 'success');
       loadEnrolledStudents();
     } catch {
@@ -157,8 +151,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
 
   const loadCourses = useCallback(async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/courses/`);
-      const data = await response.json();
+      const response = await apiClient.get('/courses/');
+      const data = response.data;
       // Backend returns PaginatedResponse { items, total, skip, limit }
       // Normalize to array for UI
       const coursesArray = data?.items ? data.items : (Array.isArray(data) ? data : []);
@@ -309,8 +303,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       if (!currentCourse) return [];
 
       // Get enrolled students for this course
-      const enrolledResponse = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
-      const enrolled: StudentLite[] = await enrolledResponse.json();
+      const enrolledResponse = await apiClient.get(`/enrollments/course/${selectedCourse}/students`);
+      const enrolled: StudentLite[] = enrolledResponse.data;
 
       if (!Array.isArray(enrolled) || enrolled.length === 0) {
         setScheduleConflicts([]);
@@ -333,8 +327,8 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
       for (const studentsInYear of Object.values(studentsByYear)) {
         for (const student of studentsInYear) {
           // Get student's other courses via enrollments
-          const studentEnrollmentsResponse = await fetch(`${API_BASE_URL}/enrollments/student/${student.id}`);
-          const studentEnrollments: EnrollmentLite[] = await studentEnrollmentsResponse.json();
+          const studentEnrollmentsResponse = await apiClient.get(`/enrollments/student/${student.id}`);
+          const studentEnrollments: EnrollmentLite[] = studentEnrollmentsResponse.data;
 
           if (!Array.isArray(studentEnrollments)) continue;
 
@@ -455,11 +449,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
         hours_per_week: Number.isFinite(calculatedHours) ? calculatedHours : 0,
       };
 
-      await fetch(`${API_BASE_URL}/courses/${selectedCourse}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
+      await apiClient.put(`/courses/${selectedCourse}`, payload);
 
       showToast(t('courseDataSaved'), 'success');
       loadCourses();
@@ -1094,11 +1084,7 @@ const CourseManagement = ({ onAddCourse, onEdit, onDelete }: { onAddCourse?: () 
                         hours_per_week: 0,
                       };
 
-                      await fetch(`${API_BASE_URL}/courses/${selectedCourse}`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                      });
+                      await apiClient.put(`/courses/${selectedCourse}`, payload);
 
                       showToast(t('scheduleCleared') || 'Schedule cleared successfully', 'success');
                       loadCourses();

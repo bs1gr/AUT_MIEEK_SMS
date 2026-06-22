@@ -535,5 +535,10 @@ export default {
     errorUnreachable: 'Cannot reach the server. Check the URL and try again.',
     changeServer: 'Change Server',
     currentServer: 'Server: {{url}}',
+    // Offline / local mode
+    offlineSeparator: 'or use without a server',
+    offlineTitle: 'Local (offline)',
+    offlineSubtitle: 'All data stored on this device — no server needed',
+    offlineError: 'Could not enable offline mode. Service workers may be blocked.',
   },
 };

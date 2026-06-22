@@ -25,7 +25,8 @@ import {
   removeAttendanceSyncSnapshot,
 } from '@/features/attendance/utils/offlineAttendanceQueue';
 
-const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
+// Removed hardcoded API_BASE_URL — all fetch calls now use apiClient which resolves
+// the correct server URL dynamically and injects the Authorization header.
 
 // Version marker to verify code reload (quiet unless debug)
 const DEBUG_ATTENDANCE_LOGS = import.meta.env.DEV && false;
@@ -155,9 +156,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/students?limit=1000`);
-        if (!response.ok) throw new Error(`Failed to fetch students: ${response.status}`);
-        const payload = await response.json();
+        const response = await apiClient.get('/students?limit=1000');
+        const payload = response.data;
         const items: Student[] = Array.isArray(payload)
           ? payload
           : Array.isArray(payload?.items)
@@ -819,14 +819,12 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
 
       const fetchCourses = async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/courses?limit=999`);
-          if (response.ok) {
-            const data = await response.json();
-            const courseList = Array.isArray(data) ? data : data.items || [];
-            if (courseList.length > 0) {
-              debugAttendance('Fetched courses from API:', courseList);
-              setLocalCourses(courseList);
-            }
+          const response = await apiClient.get('/courses?limit=999');
+          const data = response.data;
+          const courseList = Array.isArray(data) ? data : data.items || [];
+          if (courseList.length > 0) {
+            debugAttendance('Fetched courses from API:', courseList);
+            setLocalCourses(courseList);
           }
         } catch (err) {
           console.error('[AttendanceView] Error fetching courses from API:', err);
@@ -875,16 +873,11 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
               const timeoutId = setTimeout(() => controller.abort(), 5000);
 
               try {
-                const r = await fetch(`${API_BASE_URL}/enrollments/course/${c.id}/students`, {
-                  signal: controller.signal
+                const r = await apiClient.get(`/enrollments/course/${c.id}/students`, {
+                  signal: controller.signal,
                 });
                 clearTimeout(timeoutId);
-
-                if (!r.ok) {
-                  debugAttendance(`Fetch failed for course ${c.id}`);
-                  return { id: c.id, count: 0 };
-                }
-                const arr = await r.json();
+                const arr = r.data;
                 debugAttendance(`Enrollments for course ${c.id}:`, arr);
                 // Accept both array and object-with-items
                 if (Array.isArray(arr)) {
@@ -967,9 +960,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
       if (courseDetailsFetchedRef.current.has(courseId)) return;
 
       try {
-        const resp = await fetch(`${API_BASE_URL}/courses/${courseId}`);
-        if (!resp.ok) throw new Error(`Failed to fetch course: ${resp.status} ${resp.statusText}`);
-        const detail = await resp.json();
+        const resp = await apiClient.get(`/courses/${courseId}`);
+        const detail = resp.data;
         setLocalCourses((prev) => {
           const idx = prev.findIndex((c) => c.id === courseId);
           if (idx === -1) return prev;
@@ -988,9 +980,8 @@ const AttendanceView: React.FC<Props> = ({ courses, students }) => {
     const loadEnrolled = async () => {
       if (!selectedCourse) { setEnrolledStudents([]); return; }
       try {
-        const resp = await fetch(`${API_BASE_URL}/enrollments/course/${selectedCourse}/students`);
-        if (!resp.ok) throw new Error(`Failed to fetch enrollments: ${resp.status} ${resp.statusText}`);
-        const data = await resp.json();
+        const resp = await apiClient.get(`/enrollments/course/${selectedCourse}/students`);
+        const data = resp.data;
         const enrolled = Array.isArray(data) ? data : [];
         const activeEnrolled = activeStudentIds.size > 0
           ? enrolled.filter((student: Student) => activeStudentIds.has(student.id))

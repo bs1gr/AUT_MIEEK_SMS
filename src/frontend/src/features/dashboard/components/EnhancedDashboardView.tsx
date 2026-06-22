@@ -21,8 +21,7 @@ import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import './EnhancedDashboardView.css';
 import type { OperationsLocationState } from '@/features/operations/types';
 import { Student, Course } from '@/types';
-
-const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api/v1';
+import apiClient from '@/api/api';
 
 type DailyPerformanceRecord = {
   course_id?: number;
@@ -384,9 +383,8 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
       return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/enrollments/?limit=500`);
-      if (!response.ok) throw new Error(`Failed to fetch enrollments: ${response.status} ${response.statusText}`);
-      const data = await response.json();
+      const response = await apiClient.get('/enrollments/', { params: { limit: 500 } });
+      const data = response.data;
       const enrollments: { course_id?: number; student_id?: number; status?: string }[] =
         data?.items || data?.data?.items || data?.data || [];
       const activeCourseIds = new Set(
@@ -477,18 +475,18 @@ const EnhancedDashboardView = ({ students, courses, stats }: EnhancedDashboardPr
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
         const [analyticsResponse, attendanceResponse, gradesResponse, performanceResponse] = await Promise.all([
-          fetch(`${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`, { signal: controller.signal }),
-          fetch(`${API_BASE_URL}/attendance?student_id=${student.id}&limit=500`, { signal: controller.signal }),
-          fetch(`${API_BASE_URL}/grades?student_id=${student.id}&limit=500`, { signal: controller.signal }),
-          fetch(`${API_BASE_URL}/daily-performance/student/${student.id}`, { signal: controller.signal }),
+          apiClient.get(`/analytics/student/${student.id}/all-courses-summary`, { signal: controller.signal }).catch(() => null),
+          apiClient.get('/attendance', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
+          apiClient.get('/grades', { params: { student_id: student.id, limit: 500 }, signal: controller.signal }).catch(() => null),
+          apiClient.get(`/daily-performance/student/${student.id}`, { signal: controller.signal }).catch(() => null),
         ]);
 
         clearTimeout(timeoutId);
 
-        const analyticsData = analyticsResponse.ok ? await analyticsResponse.json() : null;
-        const attendanceData = attendanceResponse.ok ? await attendanceResponse.json() : null;
-        const gradesData = gradesResponse.ok ? await gradesResponse.json() : null;
-        const performanceData = performanceResponse.ok ? await performanceResponse.json() : null;
+        const analyticsData = analyticsResponse ? analyticsResponse.data : null;
+        const attendanceData = attendanceResponse ? attendanceResponse.data : null;
+        const gradesData = gradesResponse ? gradesResponse.data : null;
+        const performanceData = performanceResponse ? performanceResponse.data : null;
 
         const failedCourses = (analyticsData?.courses || []).filter(
           (course: { letter_grade?: string; gpa?: string | number }) =>

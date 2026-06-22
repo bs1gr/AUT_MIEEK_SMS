@@ -2,6 +2,8 @@ import ReactDOM from 'react-dom/client';
 import { HashRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import App from './App';
 import { needsServerSetup } from '@/utils/serverUrl';
+import { init as initStorage } from '@/utils/appStorage';
+import { restoreLocalModeIfNeeded } from '@/utils/localMode';
 import './index.css';
 import './i18n/config'; // Initialize i18n before rendering
 // import './pwa-register'; // DISABLED for development - causes MIME type errors
@@ -62,10 +64,16 @@ window.addEventListener('unhandledrejection', (event) => {
 // Preload critical routes after initial render
 setTimeout(preloadCriticalRoutes, 100);
 
-const rootElement = document.getElementById('root');
-if (!rootElement) throw new Error('Failed to find the root element');
+// Wrap render in async IIFE so we can await storage hydration from Capacitor
+// Preferences before React reads any stored values. On web this is instant.
+void (async () => {
+  await initStorage();
+  await restoreLocalModeIfNeeded();
 
-ReactDOM.createRoot(rootElement).render(
+  const rootElement = document.getElementById('root');
+  if (!rootElement) throw new Error('Failed to find the root element');
+
+  ReactDOM.createRoot(rootElement).render(
   <HashRouter>
     <DateTimeSettingsProvider>
       <AuthProvider>
@@ -109,4 +117,5 @@ ReactDOM.createRoot(rootElement).render(
       </AuthProvider>
     </DateTimeSettingsProvider>
   </HashRouter>
-);
+  );
+})();

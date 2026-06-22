@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from '@/LanguageContext';
 import { setServerUrl, setServerType, type ServerType } from '@/utils/serverUrl';
+import { enableLocalMode } from '@/utils/localMode';
 
 type Step = 'select' | 'configure';
 
@@ -41,6 +42,14 @@ function IconEdit() {
   );
 }
 
+function IconOffline() {
+  return (
+    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 8.25h3m-3 3h3m-3 3h3" />
+    </svg>
+  );
+}
+
 // ── Spinner ─────────────────────────────────────────────────────────────────
 
 function Spinner() {
@@ -62,10 +71,11 @@ interface CardOption {
 }
 
 const CARD_OPTIONS: CardOption[] = [
-  { type: 'qnap',   icon: <IconQnap />,  color: 'text-green-600 dark:text-green-400',  bgColor: 'bg-green-50 dark:bg-green-900/30' },
-  { type: 'local',  icon: <IconWifi />,  color: 'text-blue-600 dark:text-blue-400',    bgColor: 'bg-blue-50 dark:bg-blue-900/30' },
-  { type: 'cloud',  icon: <IconCloud />, color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/30' },
-  { type: 'custom', icon: <IconEdit />,  color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30' },
+  { type: 'qnap',    icon: <IconQnap />,    color: 'text-green-600 dark:text-green-400',  bgColor: 'bg-green-50 dark:bg-green-900/30' },
+  { type: 'local',   icon: <IconWifi />,    color: 'text-blue-600 dark:text-blue-400',    bgColor: 'bg-blue-50 dark:bg-blue-900/30' },
+  { type: 'cloud',   icon: <IconCloud />,   color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/30' },
+  { type: 'custom',  icon: <IconEdit />,    color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30' },
+  { type: 'offline', icon: <IconOffline />, color: 'text-gray-600 dark:text-gray-400',    bgColor: 'bg-gray-100 dark:bg-gray-700/50' },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -89,6 +99,20 @@ export default function ServerSetupPage() {
   const resetStatus = () => { setStatus('idle'); setErrorMsg(''); };
 
   const selectCard = (type: ServerType) => {
+    if (type === 'offline') {
+      // Enable local mode directly — no URL to configure
+      setSelectedType('offline');
+      setStatus('testing');
+      enableLocalMode().then((ok) => {
+        if (ok) {
+          navigate('/', { replace: true });
+        } else {
+          setStatus('error');
+          setErrorMsg(t('common.serverSetup.offlineError'));
+        }
+      });
+      return;
+    }
     setSelectedType(type);
     if (type === 'local') setPort('8000');
     resetStatus();
@@ -168,11 +192,12 @@ export default function ServerSetupPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {CARD_OPTIONS.map(({ type, icon, color, bgColor }) => (
+            {CARD_OPTIONS.filter(c => c.type !== 'offline').map(({ type, icon, color, bgColor }) => (
               <button
                 key={type}
                 onClick={() => selectCard(type)}
-                className="flex flex-col items-center gap-3 p-5 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 active:scale-95 transition-all shadow-sm"
+                disabled={status === 'testing'}
+                className="flex flex-col items-center gap-3 p-5 bg-white dark:bg-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 hover:border-indigo-400 dark:hover:border-indigo-500 active:scale-95 transition-all shadow-sm disabled:opacity-50"
                 type="button"
               >
                 <div className={`p-3 rounded-xl ${bgColor} ${color}`}>
@@ -189,6 +214,47 @@ export default function ServerSetupPage() {
               </button>
             ))}
           </div>
+
+          {/* Offline / Local mode — full-width separator card */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center" aria-hidden>
+              <div className="w-full border-t border-gray-200 dark:border-gray-700" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase tracking-wide">
+              <span className="bg-gray-50 dark:bg-gray-900 px-2 text-gray-400">
+                {t('common.serverSetup.offlineSeparator')}
+              </span>
+            </div>
+          </div>
+          {CARD_OPTIONS.filter(c => c.type === 'offline').map(({ type, icon, color, bgColor }) => (
+            <button
+              key={type}
+              onClick={() => selectCard(type)}
+              disabled={status === 'testing'}
+              className="flex items-center gap-4 w-full p-4 bg-white dark:bg-gray-800 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-500 dark:hover:border-gray-400 active:scale-[0.99] transition-all shadow-sm disabled:opacity-50"
+              type="button"
+            >
+              <div className={`p-2.5 rounded-xl flex-shrink-0 ${bgColor} ${color}`}>
+                {icon}
+              </div>
+              <div className="text-left">
+                <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                  {t(`common.serverSetup.${type}Title`)}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-tight">
+                  {t(`common.serverSetup.${type}Subtitle`)}
+                </p>
+              </div>
+              {status === 'testing' && selectedType === 'offline' && (
+                <div className="ml-auto"><Spinner /></div>
+              )}
+            </button>
+          ))}
+          {status === 'error' && selectedType === 'offline' && errorMsg && (
+            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 rounded-xl px-3 py-2">
+              {errorMsg}
+            </p>
+          )}
         </div>
       </div>
     );

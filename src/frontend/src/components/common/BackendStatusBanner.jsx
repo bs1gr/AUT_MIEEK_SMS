@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { preflightAPI } from '../../api/api';
+import { isLocalMode } from '../../utils/serverUrl';
 
 /**
  * BackendStatusBanner - Lightweight connectivity monitor
@@ -60,7 +61,8 @@ const BackendStatusBanner = () => {
     setDismissed(true);
   };
 
-  if (!visible) {
+  // In local mode the SW acts as the backend and is always available — no banner needed
+  if (isLocalMode() || !visible) {
     return null;
   }
 

@@ -1,3 +1,5 @@
+import { getItem, setItem } from '@/utils/appStorage';
+
 export interface AttendanceSyncSnapshot {
   id: string;
   courseId: number;
@@ -11,8 +13,6 @@ export interface AttendanceSyncSnapshot {
 type EnqueueAttendanceSyncSnapshotInput = Omit<AttendanceSyncSnapshot, 'id' | 'enqueuedAt'>;
 
 const STORAGE_KEY = 'sms_attendance_offline_queue_v1';
-
-const hasStorage = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
 
 const parseQueue = (raw: string | null): AttendanceSyncSnapshot[] => {
   if (!raw) return [];
@@ -36,22 +36,15 @@ const parseQueue = (raw: string | null): AttendanceSyncSnapshot[] => {
 };
 
 const writeQueue = (queue: AttendanceSyncSnapshot[]) => {
-  if (!hasStorage()) return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+    setItem(STORAGE_KEY, JSON.stringify(queue));
   } catch {
-    // Ignore localStorage write failures; app continues online-only.
+    // Ignore; app continues online-only.
   }
 };
 
-export const getAttendanceSyncQueue = (): AttendanceSyncSnapshot[] => {
-  if (!hasStorage()) return [];
-  try {
-    return parseQueue(window.localStorage.getItem(STORAGE_KEY));
-  } catch {
-    return [];
-  }
-};
+export const getAttendanceSyncQueue = (): AttendanceSyncSnapshot[] =>
+  parseQueue(getItem(STORAGE_KEY));
 
 export const getPendingAttendanceSyncCount = (): number => getAttendanceSyncQueue().length;
 
@@ -69,7 +62,9 @@ export const enqueueAttendanceSyncSnapshot = (
     enqueuedAt: new Date().toISOString(),
   };
 
-  const duplicateIndex = queue.findIndex((item) => item.courseId === snapshot.courseId && item.date === snapshot.date);
+  const duplicateIndex = queue.findIndex(
+    (item) => item.courseId === snapshot.courseId && item.date === snapshot.date,
+  );
   if (duplicateIndex >= 0) {
     queue[duplicateIndex] = snapshot;
   } else {
@@ -81,9 +76,7 @@ export const enqueueAttendanceSyncSnapshot = (
 };
 
 export const removeAttendanceSyncSnapshot = (snapshotId: string): void => {
-  const queue = getAttendanceSyncQueue();
-  const next = queue.filter((item) => item.id !== snapshotId);
-  writeQueue(next);
+  writeQueue(getAttendanceSyncQueue().filter((item) => item.id !== snapshotId));
 };
 
 export const clearAttendanceSyncQueue = (): void => {

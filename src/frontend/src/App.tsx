@@ -19,7 +19,8 @@ import ChangePasswordPromptModal from './components/modals/ChangePasswordPromptM
 import BackendStatusBanner from './components/common/BackendStatusBanner';
 import OfflineBanner from './components/common/OfflineBanner';
 import UserFeedbackModal from './components/UserFeedbackModal';
-import { getApiBaseUrl } from '@/utils/serverUrl';
+import { getApiBaseUrl, isLocalMode } from '@/utils/serverUrl';
+import { useAndroidBackButton } from '@/hooks/useAndroidBackButton';
 
 interface NavigationTabConfig {
   key: NavigationView;
@@ -58,6 +59,9 @@ interface AppLayoutProps {
 function AppLayout({ children }: AppLayoutProps) {
   const { t } = useLanguage();
   const location = useLocation();
+
+  // Handle Android hardware back button (no-op on web)
+  useAndroidBackButton();
   const navigate = useNavigate();
   const { user, accessToken, isInitializing } = useAuth();
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -165,9 +169,20 @@ function AppLayout({ children }: AppLayoutProps) {
       {/* Header */}
       <div className="flex items-center justify-between gap-2 pb-2 md:pb-4">
         <div className="pointer-events-none z-0 min-w-0">
-          <h1 className="text-xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 truncate">
-            {t('systemTitle')}
-          </h1>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-xl md:text-3xl font-bold text-gray-800 dark:text-gray-100 truncate">
+              {t('systemTitle')}
+            </h1>
+            {isLocalMode() && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 dark:bg-gray-700 px-2 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-300 shrink-0">
+                <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                {t('localModeLabel', { defaultValue: 'Local' })}
+              </span>
+            )}
+          </div>
           {!isAuthenticated && (
             <p className="hidden md:block max-w-xl text-sm text-gray-600 dark:text-gray-300 mt-1">
               {t('auth.loginDescription')}

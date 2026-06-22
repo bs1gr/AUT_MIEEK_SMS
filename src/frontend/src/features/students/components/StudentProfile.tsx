@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 /* eslint-disable testing-library/no-await-sync-queries */
 import { ArrowLeft, BookOpen, TrendingUp, Calendar, Star, CheckCircle, XCircle, Mail, Award, FileText, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
+import apiClient, { gradesAPI, attendanceAPI, highlightsAPI, studentsAPI } from '@/api/api';
 import { GradeBreakdownModal } from '@/features/grading';
 import StudentPerformanceReport from '@/components/StudentPerformanceReport';
 import type { Student, Grade, Attendance, Highlight, HighlightCreatePayload, Course, CourseEnrollment } from '@/types';
@@ -11,7 +11,6 @@ import { eventBus, EVENTS } from '@/utils/events';
 import { useDateTimeFormatter } from '@/contexts/DateTimeSettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 
-const API_BASE_URL: string = import.meta.env.VITE_API_URL || '/api/v1';
 
 interface StudentProfileProps {
   studentId: number;
@@ -90,8 +89,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
 
       // Load enrollments and course details
       try {
-        const enrRes = await fetch(`${API_BASE_URL}/enrollments/student/${studentId}`);
-        const enr = await enrRes.json();
+        const enrRes = await apiClient.get(`/enrollments/student/${studentId}`);
+        const enr = enrRes.data;
         const enrolls: CourseEnrollment[] = Array.isArray(enr) ? enr : [];
         setEnrollments(enrolls);
         // Fetch unique courses
@@ -99,11 +98,8 @@ const StudentProfile = ({ studentId, onBack }: StudentProfileProps) => {
         const dict: Record<number, Course> = {};
         await Promise.all(ids.map(async (cid) => {
           try {
-            const cRes = await fetch(`${API_BASE_URL}/courses/${cid}`);
-            if (cRes.ok) {
-              const c = await cRes.json();
-              dict[cid] = c;
-            }
+            const cRes = await apiClient.get(`/courses/${cid}`);
+            dict[cid] = cRes.data;
           } catch {}
         }));
         setCoursesById(dict);

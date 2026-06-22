@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import authService from '@/services/authService';
 import apiClient, { controlApiClient } from '@/api/api';
+import { getItem, setItem, removeItem } from '@/utils/appStorage';
 
 // Environment-driven flags (resolved at build time via Vite)
 const env = (import.meta as { env?: Record<string, string | undefined> }).env || {};
@@ -35,7 +36,7 @@ const LOCAL_USER_KEY = 'sms_user_v1';
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
     try {
-      const raw = localStorage.getItem(LOCAL_USER_KEY);
+      const raw = getItem(LOCAL_USER_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
@@ -93,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       authService.clearAccessToken();
       setAccessTokenState(null);
       setUser(null);
-      try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
+      try { removeItem(LOCAL_USER_KEY); } catch {}
     };
     window.addEventListener('sms-auth-expired', handleAuthExpired);
     return () => {
@@ -111,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // If user exists but no token, reset to logged-out state to avoid 401s.
     if (initialUserRef.current && !initialAccessTokenRef.current) {
       setUser(null);
-      try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
+      try { removeItem(LOCAL_USER_KEY); } catch {}
       setIsInitializing(false);
       return;
     } else if (initialUserRef.current && initialAccessTokenRef.current) {
@@ -169,7 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
           if (userPayload) {
             setUser(userPayload);
-            try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
+            try { setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
           }
         }
       } catch {
@@ -230,7 +231,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (userPayload) {
       setUser(userPayload);
-      try { localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
+      try { setItem(LOCAL_USER_KEY, JSON.stringify(userPayload)); } catch {}
     }
   };
 
@@ -262,7 +263,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     authService.clearAccessToken();
     setAccessTokenState(null);
     setUser(null);
-    try { localStorage.removeItem(LOCAL_USER_KEY); } catch {}
+    try { removeItem(LOCAL_USER_KEY); } catch {}
     // In Lite mode: schedule process termination after 30-second grace period.
     // Use fetch (not apiClient) — token is already cleared so apiClient interceptors
     // would silently drop the request before it sends.
@@ -284,7 +285,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
     try {
-      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(updatedUser));
+      setItem(LOCAL_USER_KEY, JSON.stringify(updatedUser));
     } catch {}
   };
 

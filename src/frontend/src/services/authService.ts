@@ -1,73 +1,40 @@
 import axios from 'axios';
+import { getItem, setItem, removeItem } from '@/utils/appStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 const ACCESS_TOKEN_KEY = 'sms_access_token';
 const LEGACY_ACCESS_TOKEN_KEY = 'access_token';
 
-// Initialize from localStorage if available
-let accessToken: string | null = null;
-try {
-  accessToken = localStorage.getItem(ACCESS_TOKEN_KEY);
-  if (!accessToken) {
-    accessToken = localStorage.getItem(LEGACY_ACCESS_TOKEN_KEY);
-  }
-} catch (e) {
-  console.warn('[AuthService] Could not read from localStorage:', e);
-}
+export const getAccessToken = (): string | null =>
+  getItem(ACCESS_TOKEN_KEY) ?? getItem(LEGACY_ACCESS_TOKEN_KEY);
 
-export const getAccessToken = () => accessToken;
 export const setAccessToken = (token: string | null) => {
-  accessToken = token;
-  try {
-    if (token) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, token);
-      localStorage.setItem(LEGACY_ACCESS_TOKEN_KEY, token);
-    } else {
-      localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
-    }
-  } catch (e) {
-    console.warn('[AuthService] Could not write to localStorage:', e);
+  if (token) {
+    setItem(ACCESS_TOKEN_KEY, token);
+    setItem(LEGACY_ACCESS_TOKEN_KEY, token);
+  } else {
+    removeItem(ACCESS_TOKEN_KEY);
+    removeItem(LEGACY_ACCESS_TOKEN_KEY);
   }
 };
 
-export const clearAccessToken = () => {
-  accessToken = null;
-  try {
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(LEGACY_ACCESS_TOKEN_KEY);
-  } catch (e) {
-    console.warn('[AuthService] Could not clear from localStorage:', e);
-  }
-};
+export const clearAccessToken = () => setAccessToken(null);
 
-// Refresh token storage: handled exclusively via HttpOnly cookies by the backend.
+// Refresh tokens are stored as HttpOnly cookies by the backend.
+// We do NOT persist refresh tokens in client storage.
 
-// Refresh tokens are stored as HttpOnly cookies by the backend for security.
-// We do NOT persist refresh tokens in localStorage. The backend will read the
-// cookie when /auth/refresh is called with credentials.
-
-/**
- * Attempt to refresh the access token.
- * This will call the backend refresh endpoint. The backend may accept a cookie (HttpOnly)
- * or a refresh_token in the request body. If a refresh token exists in localStorage we send it
- * as a fallback.
- */
 export const refreshAccessToken = async (): Promise<string | null> => {
   try {
-    // Do not send refresh_token in the body. The backend will read the HttpOnly
-    // cookie set at login. withCredentials must be true to include cookies.
-    const url = (API_BASE_URL.endsWith('/')) ? `${API_BASE_URL}auth/refresh` : `${API_BASE_URL}/auth/refresh`;
+    const url = API_BASE_URL.endsWith('/')
+      ? `${API_BASE_URL}auth/refresh`
+      : `${API_BASE_URL}/auth/refresh`;
     const resp = await axios.post(url, {}, { withCredentials: true });
     if (resp?.data?.access_token) {
       setAccessToken(resp.data.access_token);
-      // backend may rotate refresh tokens and set a new HttpOnly cookie; no
-      // client-side storage is required.
       return resp.data.access_token;
     }
     return null;
   } catch {
-    // refresh failed
     clearAccessToken();
     return null;
   }

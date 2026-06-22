@@ -27,7 +27,6 @@ type CourseWithEvaluationRules = Course & { evaluation_rules?: EvaluationRule[] 
 
 interface CategoryOption { value: string; label: string }
 
-const API_BASE_URL = import.meta.env?.VITE_API_URL || '/api/v1';
 const SPECIAL_PARTICIPATION_CATEGORIES = [
   'No participation',
   'Minor participation',
@@ -337,12 +336,8 @@ const GradingView: React.FC<GradingViewProps> = ({ students, courses }) => {
     setError(null);
     if (!studentId || !courseId) return;
     try {
-      const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
-      if (!res.ok) {
-        const txt = await res.text().catch(() => '');
-        throw new Error(txt || 'Failed to load final grade');
-      }
-      const data: FinalGrade = await res.json();
+      const res = await apiClient.get(`/analytics/student/${studentId}/course/${courseId}/final-grade`);
+      const data: FinalGrade = res.data;
       setFinalSummary(data);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Failed to load final grade');

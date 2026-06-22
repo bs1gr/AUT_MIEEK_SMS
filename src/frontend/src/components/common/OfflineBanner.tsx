@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { isLocalMode } from '@/utils/serverUrl';
 
 /**
  * OfflineBanner – shows an amber banner while offline and a brief green
@@ -9,6 +10,9 @@ import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 const OfflineBanner = () => {
   const { t } = useTranslation('offline');
   const { isOnline, pendingSyncCount, pendingByFeature, wasOffline } = useNetworkStatus();
+
+  // In local mode the SW is the backend — device network connectivity doesn't matter
+  if (isLocalMode()) return null;
 
   // Nothing to show when fully online with no pending changes and no recent reconnect
   if (isOnline && !wasOffline && pendingSyncCount === 0) return null;

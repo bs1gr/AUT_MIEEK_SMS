@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { XCircle, PieChart, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
 import { FinalGrade } from '@/types';
-
-const API_BASE_URL: string = import.meta.env?.VITE_API_URL || '/api/v1';
+import apiClient from '@/api/api';
 
 interface Props {
   studentId: number;
@@ -52,9 +51,8 @@ const GradeBreakdownModal: React.FC<Props> = ({ studentId, courseId, courseName,
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE_URL}/analytics/student/${studentId}/course/${courseId}/final-grade`);
-        if (!res.ok) throw new Error('Failed to load breakdown');
-        const json: FinalGrade = await res.json();
+        const res = await apiClient.get(`/analytics/student/${studentId}/course/${courseId}/final-grade`);
+        const json: FinalGrade = res.data;
         setData(json);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : 'Failed to load breakdown');

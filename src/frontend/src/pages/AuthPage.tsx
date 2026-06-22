@@ -5,7 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import LoginWidget from '@/components/auth/LoginWidget';
 import RegisterWidget from '@/components/auth/RegisterWidget';
 import { useAuth } from '@/contexts/AuthContext';
-import { isCapacitorApp, clearServerUrl, clearServerType } from '@/utils/serverUrl';
+import { isCapacitorApp, isLocalMode } from '@/utils/serverUrl';
+import { disableLocalMode } from '@/utils/localMode';
 
 interface LocationState {
   from?: {
@@ -34,9 +35,10 @@ const AuthPage = () => {
     navigate(redirectPath, { replace: true });
   };
 
-  const handleChangeServer = () => {
-    clearServerUrl();
-    clearServerType();
+  const handleChangeServer = async () => {
+    if (isLocalMode()) {
+      await disableLocalMode();
+    }
     navigate('/server-setup', { replace: true });
   };
 
@@ -66,7 +68,7 @@ const AuthPage = () => {
       {isCapacitorApp() && (
         <div className="text-center">
           <button
-            onClick={handleChangeServer}
+            onClick={() => { void handleChangeServer(); }}
             className="text-sm text-muted-foreground underline underline-offset-4 hover:text-primary"
           >
             {t('serverSetup.changeServer', { ns: 'common' })}

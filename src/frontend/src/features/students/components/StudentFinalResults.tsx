@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import type { Student, Course } from '@/types';
 import { Users, BookOpen, TrendingUp, CheckCircle, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/LanguageContext';
+import apiClient from '@/api/api';
 // gradeUtils helpers are not required in this lightweight dashboard view
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 type StatCardProps = {
   title: string;
@@ -60,9 +59,8 @@ const EnhancedDashboardView = ({ students, stats }: Omit<EnhancedDashboardViewPr
     try {
       const studentPromises = students.slice(0, 10).map(async (student) => {
         try {
-          const response = await fetch(`${API_BASE_URL}/analytics/student/${student.id}/all-courses-summary`);
-          if (!response.ok) throw new Error(`Failed to fetch student summary: ${response.status}`);
-          const data = await response.json();
+          const response = await apiClient.get(`/analytics/student/${student.id}/all-courses-summary`);
+          const data = response.data;
           return {
             ...student,
             overallGPA: data.overall_gpa || 0,

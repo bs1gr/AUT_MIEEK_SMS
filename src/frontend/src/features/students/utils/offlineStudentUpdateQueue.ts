@@ -1,4 +1,5 @@
 import type { StudentFormData } from '@/types';
+import { getItem, setItem } from '@/utils/appStorage';
 
 export interface QueuedStudentUpdate {
   id: string;
@@ -9,12 +10,9 @@ export interface QueuedStudentUpdate {
 
 const STORAGE_KEY = 'sms_students_offline_update_queue_v1';
 
-const hasStorage = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-
 const readQueue = (): QueuedStudentUpdate[] => {
-  if (!hasStorage()) return [];
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -33,11 +31,10 @@ const readQueue = (): QueuedStudentUpdate[] => {
 };
 
 const writeQueue = (queue: QueuedStudentUpdate[]) => {
-  if (!hasStorage()) return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+    setItem(STORAGE_KEY, JSON.stringify(queue));
   } catch {
-    // ignore storage write failures
+    // ignore
   }
 };
 
@@ -47,7 +44,7 @@ export const getQueuedStudentUpdateCount = (): number => getQueuedStudentUpdates
 
 export const enqueueStudentUpdate = (
   studentId: number,
-  data: Partial<StudentFormData> & { re_enroll_previous?: boolean }
+  data: Partial<StudentFormData> & { re_enroll_previous?: boolean },
 ): QueuedStudentUpdate => {
   const queue = readQueue();
   const item: QueuedStudentUpdate = {
@@ -69,6 +66,5 @@ export const enqueueStudentUpdate = (
 };
 
 export const removeQueuedStudentUpdate = (id: string): void => {
-  const queue = readQueue();
-  writeQueue(queue.filter((item) => item.id !== id));
+  writeQueue(readQueue().filter((item) => item.id !== id));
 };

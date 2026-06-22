@@ -1,4 +1,5 @@
 import type { Grade } from '@/types';
+import { getItem, setItem } from '@/utils/appStorage';
 
 export interface QueuedGradeMutation {
   id: string;
@@ -10,12 +11,9 @@ export interface QueuedGradeMutation {
 
 const STORAGE_KEY = 'sms_grades_offline_queue_v1';
 
-const hasStorage = () => typeof window !== 'undefined' && typeof window.localStorage !== 'undefined';
-
 const readQueue = (): QueuedGradeMutation[] => {
-  if (!hasStorage()) return [];
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -34,11 +32,10 @@ const readQueue = (): QueuedGradeMutation[] => {
 };
 
 const writeQueue = (queue: QueuedGradeMutation[]) => {
-  if (!hasStorage()) return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+    setItem(STORAGE_KEY, JSON.stringify(queue));
   } catch {
-    // ignore storage write errors; app can still behave online-only
+    // ignore; app continues online-only
   }
 };
 
@@ -71,6 +68,5 @@ export const enqueueGradeMutation = (input: Omit<QueuedGradeMutation, 'id' | 'en
 };
 
 export const removeQueuedGradeMutation = (id: string): void => {
-  const queue = readQueue();
-  writeQueue(queue.filter((item) => item.id !== id));
+  writeQueue(readQueue().filter((item) => item.id !== id));
 };

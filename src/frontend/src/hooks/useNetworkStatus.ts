@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { getQueuedStudentUpdateCount } from '@/features/students/utils/offlineStudentUpdateQueue';
 import { getPendingAttendanceSyncCount } from '@/features/attendance/utils/offlineAttendanceQueue';
 import { getQueuedGradeMutationCount } from '@/features/grading/utils/offlineGradesQueue';
+import { isCapacitorApp } from '@/utils/serverUrl';
 
 export interface NetworkStatus {
-  /** True when the browser reports an active network connection. */
+  /** True when the browser / device reports an active network connection. */
   isOnline: boolean;
   /** Total number of queued mutations across students, attendance, and grades. */
   pendingSyncCount: number;
@@ -23,9 +24,11 @@ export interface NetworkStatus {
 /**
  * Centralised hook for network status and offline-queue counts.
  *
- * Replaces scattered `navigator.onLine` checks across the codebase with a
- * single reactive source of truth.  Aggregates pending-sync counts from
- * all three localStorage-backed offline queues (students, attendance, grades).
+ * On Android (Capacitor) uses the native Network plugin for reliable
+ * connectivity detection.  On web falls back to browser online/offline events.
+ *
+ * Fires a `sms-reconnected` CustomEvent on window when transitioning from
+ * offline → online so feature components can drain their offline queues.
  */
 export function useNetworkStatus(): NetworkStatus {
   const [isOnline, setIsOnline] = useState(() =>
@@ -49,26 +52,46 @@ export function useNetworkStatus(): NetworkStatus {
     });
   }, []);
 
-  // Listen for online/offline browser events
+  // Network event listeners — native (Capacitor) or browser fallback
   useEffect(() => {
+    if (isCapacitorApp()) {
+      // Use Android ConnectivityManager via @capacitor/network for reliable detection
+      let removeListener: (() => void) | null = null;
+
+      void import('@capacitor/network').then(({ Network }) => {
+        // Hydrate initial state
+        void Network.getStatus().then((status) => {
+          setIsOnline(status.connected);
+        });
+
+        // Subscribe to changes
+        void Network.addListener('networkStatusChange', (status) => {
+          setIsOnline(status.connected);
+        }).then((handle) => {
+          removeListener = () => { void handle.remove(); };
+        });
+      });
+
+      return () => { removeListener?.(); };
+    }
+
+    // Web: standard browser events
     const goOnline = () => setIsOnline(true);
     const goOffline = () => setIsOnline(false);
-
     window.addEventListener('online', goOnline);
     window.addEventListener('offline', goOffline);
-
     return () => {
       window.removeEventListener('online', goOnline);
       window.removeEventListener('offline', goOffline);
     };
   }, []);
 
-  // Track transition from offline → online to show "back online" banner
+  // Track offline → online transition; fire sms-reconnected event
   useEffect(() => {
     if (prevOnline.current === false && isOnline === true) {
-      // Defer setState to avoid calling it synchronously in effect
       const timeoutId = setTimeout(() => {
         setWasOffline(true);
+        window.dispatchEvent(new CustomEvent('sms-reconnected'));
         wasOfflineTimer.current = setTimeout(() => setWasOffline(false), 5000);
       }, 0);
       return () => clearTimeout(timeoutId);
@@ -80,9 +103,8 @@ export function useNetworkStatus(): NetworkStatus {
     };
   }, [isOnline]);
 
-  // Poll pending counts periodically (every 5s) and on network change
+  // Poll pending counts (every 5 s) and on every network state change
   useEffect(() => {
-    // Schedule pending count refresh in next tick to avoid synchronous setState in effect
     const timeoutId = setTimeout(refreshPendingCounts, 0);
     const timer = setInterval(refreshPendingCounts, 5000);
     return () => {

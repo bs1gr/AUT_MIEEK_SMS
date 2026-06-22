@@ -8,9 +8,7 @@ import { Settings, Plus, Trash2, AlertCircle, BookOpen, Calculator, CloudUpload 
 import { useLanguage } from '@/LanguageContext';
 import { getCanonicalCategory } from '@/utils/categoryLabels';
 import { useAutosave } from '@/hooks';
-import { coursesAPI } from '@/api/api';
-
-const API_BASE_URL = (import.meta as { env?: { VITE_API_URL?: string } }).env?.VITE_API_URL || '/api/v1';
+import apiClient, { coursesAPI } from '@/api/api';
 
 const CourseEvaluationRules = () => {
   const { t } = useLanguage();
@@ -142,19 +140,10 @@ const CourseEvaluationRules = () => {
       ...r,
       category: getCanonicalCategory(String(r.category || ''), t),
     }));
-    const response = await fetch(`${API_BASE_URL}/courses/${selectedCourse}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        evaluation_rules: normalized,
-        absence_penalty: absencePenalty
-      })
+    await apiClient.put(`/courses/${selectedCourse}`, {
+      evaluation_rules: normalized,
+      absence_penalty: absencePenalty
     });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ detail: `Failed to save rules: ${response.status} ${response.statusText}` }));
-      throw new Error(errorData.detail || 'Failed to save rules');
-    }
     showToast(t('evaluationRulesSaved'), 'success');
     await loadCourses();
   }, [evaluationRules, absencePenalty, selectedCourse, t, validateRules, loadCourses, showToast]);

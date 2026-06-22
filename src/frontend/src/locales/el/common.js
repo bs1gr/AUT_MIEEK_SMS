@@ -534,5 +534,10 @@ export default {
     errorUnreachable: 'Δεν είναι δυνατή η πρόσβαση στον διακομιστή. Ελέγξτε τη διεύθυνση και δοκιμάστε ξανά.',
     changeServer: 'Αλλαγή Διακομιστή',
     currentServer: 'Διακομιστής: {{url}}',
+    // Offline / local mode
+    offlineSeparator: 'ή χρήση χωρίς διακομιστή',
+    offlineTitle: 'Τοπική λειτουργία (offline)',
+    offlineSubtitle: 'Όλα τα δεδομένα αποθηκεύονται στη συσκευή — δεν χρειάζεται διακομιστής',
+    offlineError: 'Δεν ήταν δυνατή η ενεργοποίηση της offline λειτουργίας. Οι service workers ενδέχεται να είναι αποκλεισμένοι.',
   },
 };

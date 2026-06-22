@@ -3,11 +3,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { Download, FileText, Users, Calendar, Book, TrendingUp, Briefcase, Database, Upload, ChevronDown, ChevronUp, type LucideProps } from 'lucide-react';
 import { useLanguage } from '../../LanguageContext';
-import { coursesAPI, sessionAPI } from '../../api/api';
+import apiClient, { coursesAPI, sessionAPI } from '../../api/api';
 import type { OperationsLocationState } from '@/features/operations/types';
 import type { Course as CourseType } from '@/types';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
 interface ExportCenterProps {
   variant?: 'standalone' | 'embedded';
@@ -551,17 +549,14 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
     setLoading(prev => ({ ...prev, [exportType]: true }));
 
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await apiClient.get(endpoint, {
+        responseType: 'blob',
         headers: {
           'Accept-Language': language || 'en',
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Export failed');
-      }
-
-      const blob = await response.blob();
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
