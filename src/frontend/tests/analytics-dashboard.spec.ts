@@ -51,14 +51,13 @@ test.describe('Analytics Dashboard - Feature #125', () => {
       // Wait a bit for data to load
       await page.waitForTimeout(1000);
 
-      // Performance Chart
+      // Performance Chart (optional — only visible when a student is selected)
       const performanceChart = page.locator('[data-testid="chart-performance"]');
       if (await performanceChart.isVisible()) {
         await expect(performanceChart).toBeVisible();
       } else {
-        // If chart not visible, at least verify the container or alt content exists
-        const container = page.locator('[class*="space-y-8"]').first();
-        await expect(container).toBeVisible();
+        // If no chart yet, at least verify the summary cards are visible
+        await expect(page.locator('[data-testid="summary-card"]').first()).toBeVisible();
       }
 
       // Grade Distribution Chart

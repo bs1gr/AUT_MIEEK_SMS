@@ -90,17 +90,18 @@ export async function loginAsAdmin(page: Page) {
  */
 export async function loginViaUI(page: Page, email: string, password: string) {
   console.warn('🔐 [E2E] Starting login for', email);
-  await page.goto('/');
+  // Navigate with explicit hash so HashRouter starts at the auth route
+  await page.goto('/#/');
 
-  // Wait for login form - increase timeout for slow CI environments
+  // Wait for the auth page component to be attached (hidden div signals AuthPage mounted)
   try {
-    await page.waitForLoadState('networkidle', { timeout: 20_000 });
+    await page.waitForSelector('[data-testid="auth-page-loaded"]', { state: 'attached', timeout: 20_000 });
   } catch {
-    console.warn('⚠️  [E2E] Network idle timeout (continuing anyway)');
+    console.warn('⚠️  [E2E] Auth page marker not found (continuing anyway)');
   }
 
-  const emailInput = page.locator('[data-testid="auth-login-email"], #auth-login-email, input[name="email"]');
-  const passwordInput = page.locator('[data-testid="auth-login-password"], #auth-login-password, input[name="password"]');
+  const emailInput = page.locator('[data-testid="auth-login-email"], #auth-login-email, input[name="email"], input[type="email"]');
+  const passwordInput = page.locator('[data-testid="auth-login-password"], #auth-login-password, input[name="password"], input[type="password"]');
 
   await emailInput.waitFor({ state: 'visible', timeout: 25_000 });
   await passwordInput.waitFor({ state: 'visible', timeout: 25_000 });

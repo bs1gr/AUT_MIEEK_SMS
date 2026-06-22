@@ -1074,50 +1074,42 @@ export const AnalyticsDashboard: React.FC = () => {
         </div>
       </div>
 
-      {(
-        dashboard ||
-        students.length > 0 ||
-        courses.length > 0 ||
-        performanceData.length > 0 ||
-        attendanceData.length > 0
-      ) && (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-          <SummaryCard
-            icon={Users}
-            label={t('analytics.summaryTotalStudents')}
-            value={dashboard?.total_students ?? students.length}
-          />
-          <SummaryCard
-            icon={BookOpen}
-            label={t('analytics.summaryTotalCourses')}
-            value={dashboard?.total_courses ?? courses.length}
-          />
-          <SummaryCard
-            icon={TrendingUp}
-            label={t('analytics.summaryAverageGrade')}
-            value={(
-              dashboard?.average_grade && dashboard.average_grade > 0
-                ? dashboard.average_grade
-                : performanceData.length > 0
-                  ? performanceData.reduce((sum, item) => sum + item.grade, 0) / performanceData.length
-                  : 0
-            ).toFixed(2)}
-            unit="%"
-          />
-          <SummaryCard
-            icon={Calendar}
-            label={t('analytics.summaryAverageAttendance')}
-            value={(
-              dashboard?.average_attendance && dashboard.average_attendance > 0
-                ? dashboard.average_attendance
-                : attendanceData.length > 0
-                  ? attendanceData.reduce((sum, item) => sum + item.rate, 0) / attendanceData.length
-                  : 0
-            ).toFixed(2)}
-            unit="%"
-          />
-        </div>
-      )}
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <SummaryCard
+          icon={Users}
+          label={t('analytics.summaryTotalStudents')}
+          value={dashboard?.total_students ?? students.length}
+        />
+        <SummaryCard
+          icon={BookOpen}
+          label={t('analytics.summaryTotalCourses')}
+          value={dashboard?.total_courses ?? courses.length}
+        />
+        <SummaryCard
+          icon={TrendingUp}
+          label={t('analytics.summaryAverageGrade')}
+          value={(
+            dashboard?.average_grade && dashboard.average_grade > 0
+              ? dashboard.average_grade
+              : performanceData.length > 0
+                ? performanceData.reduce((sum, item) => sum + item.grade, 0) / performanceData.length
+                : 0
+          ).toFixed(2)}
+          unit="%"
+        />
+        <SummaryCard
+          icon={Calendar}
+          label={t('analytics.summaryAverageAttendance')}
+          value={(
+            dashboard?.average_attendance && dashboard.average_attendance > 0
+              ? dashboard.average_attendance
+              : attendanceData.length > 0
+                ? attendanceData.reduce((sum, item) => sum + item.rate, 0) / attendanceData.length
+                : 0
+          ).toFixed(2)}
+          unit="%"
+        />
+      </div>
 
       <div className="flex flex-wrap items-end gap-4">
         <div>
