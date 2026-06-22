@@ -11,10 +11,11 @@
 
 ## 📋 Post-v1.18.32 Accumulation (June 21–22, 2026)
 
-**Status**: 🔄 UNRELEASED | 10 commits on `main` since tag `v1.18.32`
+**Status**: 🔄 UNRELEASED | 11 commits on `main` since tag `v1.18.32`
 
 | Hash | Area | Description |
 |------|------|-------------|
+| `4f11d6d7c` | E2E | Fix ServerGuard redirect: inject sms_server_url in loginViaAPI + loginViaUI |
 | `27751eac4` | E2E | Always render analytics summary cards; fix loginViaUI HashRouter nav |
 | `01a4b6796` | Tests | Fix 7 Vitest test failures from Android commit (apiClient + appStorage) |
 | `cdff5f586` | Android | Standalone local mode + fix mobile API calls |
