@@ -11,10 +11,12 @@
 
 ## 📋 Post-v1.18.32 Accumulation (June 21–22, 2026)
 
-**Status**: 🔄 UNRELEASED | 8 commits on `main` since tag `v1.18.32`
+**Status**: 🔄 UNRELEASED | 10 commits on `main` since tag `v1.18.32`
 
 | Hash | Area | Description |
 |------|------|-------------|
+| `27751eac4` | E2E | Always render analytics summary cards; fix loginViaUI HashRouter nav |
+| `01a4b6796` | Tests | Fix 7 Vitest test failures from Android commit (apiClient + appStorage) |
 | `cdff5f586` | Android | Standalone local mode + fix mobile API calls |
 | `e46c130db` | Docs | Register academic monographs in DOCUMENTATION_INDEX |
 | `9471125d4` | Docs | Refine bilingual academic monograph (EN/EL final merge) |

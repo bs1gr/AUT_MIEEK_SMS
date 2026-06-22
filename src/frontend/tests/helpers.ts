@@ -90,6 +90,11 @@ export async function loginAsAdmin(page: Page) {
  */
 export async function loginViaUI(page: Page, email: string, password: string) {
   console.warn('🔐 [E2E] Starting login for', email);
+  // Set sms_server_url before navigation so ServerGuard's needsServerSetup() returns false.
+  // Capacitor runtime defines window.Capacitor in the web bundle which triggers the guard.
+  await page.addInitScript(() => {
+    window.localStorage.setItem('sms_server_url', 'http://127.0.0.1:8000');
+  });
   // Navigate with explicit hash so HashRouter starts at the auth route
   await page.goto('/#/');
 
