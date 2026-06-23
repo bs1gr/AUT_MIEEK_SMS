@@ -13,6 +13,8 @@
  * Non-Capacitor (web/tests): init() is a no-op; reads/writes use localStorage only.
  */
 
+import { Capacitor } from '@capacitor/core';
+
 const KNOWN_KEYS = [
   'sms_server_url',
   'sms_server_type',
@@ -29,7 +31,9 @@ const cache: Record<string, string> = {};
 let _prefsReady = false;
 
 function _isCapacitor(): boolean {
-  return typeof (window as Window & { Capacitor?: unknown }).Capacitor !== 'undefined';
+  // Use isNativePlatform() so web/CI builds (where @capacitor/core still sets
+  // window.Capacitor) don't trigger the 3-second Preferences init timeout.
+  return Capacitor.isNativePlatform();
 }
 
 async function _getPrefs() {

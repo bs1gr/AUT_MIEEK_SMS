@@ -1,3 +1,4 @@
+import { Capacitor } from '@capacitor/core';
 import { getItem, setItem, removeItem } from './appStorage';
 
 const SERVER_URL_KEY = 'sms_server_url';
@@ -31,7 +32,9 @@ export function clearServerType(): void {
 }
 
 export function isCapacitorApp(): boolean {
-  return typeof (window as Window & { Capacitor?: unknown }).Capacitor !== 'undefined';
+  // isNativePlatform() is true only on Android/iOS, not in web/CI where
+  // @capacitor/core still sets window.Capacitor in the web bundle.
+  return Capacitor.isNativePlatform();
 }
 
 export function isLocalMode(): boolean {
