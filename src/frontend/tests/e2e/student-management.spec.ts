@@ -124,7 +124,7 @@ test.describe('Student Management - Critical Flows', () => {
     ).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip('should edit an existing student', async ({ page }) => {
+  test('should edit an existing student', async ({ page }) => {
     const student = generateStudentDataLocal();
     const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
@@ -149,8 +149,8 @@ test.describe('Student Management - Critical Flows', () => {
     // Navigate to students page
     await page.goto('/#/students');
 
-    // Wait for page to load
-    await page.waitForLoadState('networkidle').catch(() => {});
+    // Wait for page to load ('load' not 'networkidle' — students page polls for enrollment counts)
+    await page.waitForLoadState('load').catch(() => {});
 
     // Ensure search filter is cleared so the created student is visible
     await page.fill('[data-testid="student-search-input"]', '').catch(() => {});
@@ -177,7 +177,7 @@ test.describe('Student Management - Critical Flows', () => {
     await expect(page.getByText(newLastName)).toBeVisible({ timeout: 5000 });
   });
 
-  test.skip('should delete a student', async ({ page }) => {
+  test('should delete a student', async ({ page }) => {
     const student = generateStudentDataLocal();
     const apiBase = process.env.PLAYWRIGHT_BASE_URL || 'http://localhost:8000';
 
@@ -203,23 +203,20 @@ test.describe('Student Management - Critical Flows', () => {
     await page.goto('/#/students');
 
     // Wait for page to load
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForLoadState('load').catch(() => {});
 
     // Ensure search filter is cleared so the created student is visible
     await page.fill('[data-testid="student-search-input"]', '').catch(() => {});
+
+    // Accept the window.confirm dialog that appears when delete is clicked.
+    // Without this the browser auto-dismisses it (returns false) and the
+    // delete is cancelled before the API call is made.
+    page.once('dialog', (dialog) => dialog.accept());
 
     // Find and click delete button via stable data-testid
     const deleteButton = page.locator(`[data-testid="student-delete-btn-${studentId}"]`).first();
     await deleteButton.waitFor({ state: 'visible', timeout: 15000 });
     await deleteButton.click();
-
-    // Confirm deletion in dialog - look for confirm button
-    const confirmButton = page
-      .locator('button:has-text("Confirm"), button:has-text("Delete"):visible')
-      .first();
-
-    await confirmButton.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
-    await confirmButton.click().catch(() => {});
 
     // Wait for API response (DELETE request)
     await page.waitForResponse(
@@ -228,7 +225,7 @@ test.describe('Student Management - Critical Flows', () => {
     ).catch(() => {});
 
     // Wait for page to refresh
-    await page.waitForLoadState('networkidle').catch(() => {});
+    await page.waitForLoadState('load').catch(() => {});
 
     // Verify student controls disappear (ensures deletion processed)
     await expect(page.locator(`[data-testid="student-delete-btn-${studentId}"]`)).not.toBeVisible({ timeout: 10000 });
