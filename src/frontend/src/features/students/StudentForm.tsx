@@ -61,6 +61,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, onSubmit, onCanc
           <input
             type="text"
             required
+            data-testid="last-name-input"
             value={formData.last_name}
             onChange={e => setFormData((prev) => ({ ...prev, last_name: e.target.value }))}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -92,6 +93,7 @@ const StudentForm: React.FC<StudentFormProps> = ({ initialData, onSubmit, onCanc
         </button>
         <button
           type="submit"
+          data-testid="submit-student"
           disabled={isSubmitting || isRateLimited}
           className={`px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2`}
         >

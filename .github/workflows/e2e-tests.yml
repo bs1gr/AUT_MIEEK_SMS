@@ -210,7 +210,7 @@ jobs:
           while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
             ATTEMPT=$((ATTEMPT + 1))
             echo "Health check attempt $ATTEMPT/$MAX_ATTEMPTS..."
-            HEALTH_CODE=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/health 2>&1)
+            HEALTH_CODE=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8000/health 2>&1 || echo "000")
             HEALTH=$(curl -s http://127.0.0.1:8000/health 2>&1 || echo "FAILED")
             if [ "$HEALTH_CODE" = "200" ] && echo "$HEALTH" | grep -q '"status"'; then
               echo "✅ Backend is ready (attempt $ATTEMPT/$MAX_ATTEMPTS, HTTP $HEALTH_CODE)"
