@@ -347,7 +347,7 @@ const EditStudentModal: React.FC<EditStudentModalProps> = ({ student, onClose, o
               <Button type="button" variant="outline" onClick={onClose}>
                 {t('cancel')}
               </Button>
-              <Button type="submit" disabled={form.formState.isSubmitting}>
+              <Button type="submit" data-testid="submit-student" disabled={form.formState.isSubmitting}>
                 {form.formState.isSubmitting ? t('saving') : t('saveChanges')}
               </Button>
             </div>
