@@ -681,7 +681,7 @@ jobs:
 
           Write-Host "✓ Uploaded installer digest matches local hash"
 
-      - name: Enforce installer-only release assets (cleanup)
+      - name: Enforce expected release assets (cleanup)
         if: steps.hash.outputs.path != ''
         shell: pwsh
         env:
@@ -710,7 +710,8 @@ jobs:
           $repo = "${{ github.repository }}"
 
           $allowed = @(
-            "SMS_Installer_${version}.exe"
+            "SMS_Installer_${version}.exe",
+            "SMS_Android_${version}.apk"
           )
 
           $release = (Invoke-GhJsonChecked @("release", "view", $tag, "--repo", $repo, "--json", "assets")) | ConvertFrom-Json
@@ -738,7 +739,7 @@ jobs:
             Write-Host "✓ Release assets already comply with installer-only allowlist"
           }
 
-      - name: Verify installer-only release assets (final gate)
+      - name: Verify expected release assets (final gate)
         if: steps.hash.outputs.path != ''
         shell: pwsh
         env:
@@ -759,7 +760,8 @@ jobs:
           $repo = "${{ github.repository }}"
 
           $allowed = @(
-            "SMS_Installer_${version}.exe"
+            "SMS_Installer_${version}.exe",
+            "SMS_Android_${version}.apk"
           )
 
           $release = (Invoke-GhJsonChecked @("release", "view", $tag, "--repo", $repo, "--json", "assets")) | ConvertFrom-Json

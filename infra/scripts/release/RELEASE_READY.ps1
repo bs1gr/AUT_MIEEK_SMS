@@ -601,14 +601,17 @@ if ($TagRelease) {
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
 if ($TagRelease) {
-    Write-Host "  1. Monitor GitHub Actions workflow:" -ForegroundColor Cyan
+    Write-Host "  1. Monitor GitHub Actions workflows (installer + Android run in parallel):" -ForegroundColor Cyan
     Write-Host "     https://github.com/bs1gr/AUT_MIEEK_SMS/actions" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "  2. Verify release was created:" -ForegroundColor Cyan
+    Write-Host "  2. Verify release assets were uploaded (installer + APK):" -ForegroundColor Cyan
     Write-Host "     https://github.com/bs1gr/AUT_MIEEK_SMS/releases" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  3. Test the installer:" -ForegroundColor Cyan
-    Write-Host "     Download from GitHub releases and test installation" -ForegroundColor Gray
+    Write-Host "     Download SMS_Installer_$ReleaseVersion.exe from GitHub releases" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  4. Install the Android APK (sideload):" -ForegroundColor Cyan
+    Write-Host "     Download SMS_Android_$ReleaseVersion.apk — enable 'Install unknown apps' on device" -ForegroundColor Gray
 } else {
     Write-Host "  1. Create and push tag to trigger release:" -ForegroundColor Cyan
     Write-Host "     .\RELEASE_READY.ps1 -ReleaseVersion $ReleaseVersion -TagRelease" -ForegroundColor Gray

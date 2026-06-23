@@ -89,7 +89,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "skip=false" >> "$GITHUB_OUTPUT"
 
-      - name: Sanitize release assets (installer-only allowlist)
+      - name: Sanitize release assets (expected assets allowlist)
         if: steps.resolve.outputs.skip == 'false'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -100,9 +100,10 @@ jobs:
           set -euo pipefail
 
           ALLOWED_EXE="SMS_Installer_${VERSION}.exe"
+          ALLOWED_APK="SMS_Android_${VERSION}.apk"
 
           echo "Sanitizing release '$TAG' in $REPO"
-          echo "Allowed asset: $ALLOWED_EXE"
+          echo "Allowed assets: $ALLOWED_EXE, $ALLOWED_APK"
 
           ASSETS_JSON=$(gh release view "$TAG" --repo "$REPO" --json assets 2>/dev/null || echo '{"assets":[]}')
           mapfile -t ASSETS < <(echo "$ASSETS_JSON" | jq -r '.assets[].name // empty')
@@ -114,7 +115,7 @@ jobs:
 
           REMOVED=0
           for ASSET in "${ASSETS[@]}"; do
-            if [ -n "$ASSET" ] && [ "$ASSET" != "$ALLOWED_EXE" ]; then
+            if [ -n "$ASSET" ] && [ "$ASSET" != "$ALLOWED_EXE" ] && [ "$ASSET" != "$ALLOWED_APK" ]; then
               echo "Deleting non-allowlisted asset: $ASSET"
               gh release delete-asset "$TAG" "$ASSET" --repo "$REPO" --yes || echo "Warning: Failed to delete asset $ASSET, continuing..."
               REMOVED=$((REMOVED + 1))
@@ -134,6 +135,7 @@ jobs:
           set -euo pipefail
 
           ALLOWED_EXE="SMS_Installer_${VERSION}.exe"
+          ALLOWED_APK="SMS_Android_${VERSION}.apk"
 
           FINAL_ASSETS_JSON=$(gh release view "$TAG" --repo "$REPO" --json assets 2>/dev/null || echo '{"assets":[]}')
           mapfile -t FINAL_ASSETS < <(echo "$FINAL_ASSETS_JSON" | jq -r '.assets[].name // empty')
@@ -143,14 +145,12 @@ jobs:
             echo "  (no assets)"
           else
             for A in "${FINAL_ASSETS[@]}"; do
-              if [ -n "$A" ]; then
-                echo " - $A"
-              fi
+              [ -n "$A" ] && echo " - $A"
             done
           fi
 
           for A in "${FINAL_ASSETS[@]}"; do
-            if [ -n "$A" ] && [ "$A" != "$ALLOWED_EXE" ]; then
+            if [ -n "$A" ] && [ "$A" != "$ALLOWED_EXE" ] && [ "$A" != "$ALLOWED_APK" ]; then
               echo "❌ Unexpected asset remains: $A"
               exit 1
             fi

@@ -213,6 +213,35 @@ jobs:
               throw error;
             }
 
+  # Trigger the Android APK build workflow (runs in parallel with installer)
+  trigger-android-build:
+    runs-on: ubuntu-latest
+    needs: create-release
+    steps:
+      - name: Trigger Android APK Workflow
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const tag = '${{ needs.create-release.outputs.tag }}';
+            console.log(`Triggering Android APK build workflow for tag: ${tag}`);
+
+            try {
+              await github.rest.actions.createWorkflowDispatch({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'release-android-apk.yml',
+                ref: tag,
+                inputs: {
+                  tag: tag
+                }
+              });
+              console.log(`✓ Android APK workflow dispatched for ${tag}`);
+            } catch (error) {
+              core.setFailed(`Failed to dispatch Android APK workflow: ${error.message}`);
+              throw error;
+            }
+
   # NOTE:
   # CI/CD pipeline dispatch was intentionally removed from this workflow.
   # Rationale: dispatching ci-cd-pipeline.yml on tag refs can execute stale

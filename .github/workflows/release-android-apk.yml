@@ -1,0 +1,231 @@
+name: Release - Build & Upload Android APK
+
+# Dispatched by release-on-tag.yml after the GitHub release is created.
+# Requires GitHub Secrets:
+#   ANDROID_KEYSTORE_BASE64   - base64-encoded PKCS12 keystore (sms-release.jks)
+#   ANDROID_KEYSTORE_PASSWORD - store password (= key password for PKCS12)
+#   ANDROID_KEY_ALIAS         - key alias (sms-release)
+# Without these secrets the APK is still built but left unsigned (unsigned APK
+# cannot be installed on Android; the upload step is skipped in that case).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., v1.18.33)'
+        required: true
+        type: string
+      payload_min_bytes:
+        description: 'Minimum APK size in bytes (guardrail, default 3000000)'
+        required: false
+        default: '3000000'
+
+concurrency:
+  group: release-android-${{ github.event.inputs.tag }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  release-android:
+    runs-on: ubuntu-latest
+    name: Build & Upload Android APK
+
+    steps:
+      - name: Checkout code at tag
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.inputs.tag }}
+
+      - name: Fail-fast version consistency gate
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path '.\scripts\VERIFY_VERSION.ps1')) {
+            Write-Error "scripts\VERIFY_VERSION.ps1 not found — cannot gate APK build"
+            exit 1
+          }
+          & '.\scripts\VERIFY_VERSION.ps1' -CIMode
+          if ($LASTEXITCODE -ne 0) {
+            Write-Error "Version inconsistency detected. Fix and re-tag before releasing."
+            exit 1
+          }
+
+      - name: Resolve version from tag
+        id: version
+        run: |
+          set -euo pipefail
+          TAG="${{ github.event.inputs.tag }}"
+          VERSION="${TAG#v}"
+          APK_NAME="SMS_Android_${VERSION}.apk"
+          echo "tag=$TAG"       >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "apk_name=$APK_NAME" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION  APK: $APK_NAME"
+
+      - name: Verify release exists for this tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          gh release view "$TAG" --repo "${{ github.repository }}" --json tagName \
+            || { echo "❌ Release $TAG does not exist — create it first"; exit 1; }
+          echo "✓ Release $TAG verified"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+
+      - name: Install frontend dependencies
+        run: |
+          cd src/frontend
+          npm install --legacy-peer-deps --no-audit --no-fund
+
+      - name: Build React frontend
+        env:
+          VITE_API_URL: ""
+        run: |
+          cd src/frontend
+          npm run build
+          echo "✓ Frontend build complete ($(find dist -type f | wc -l) files)"
+
+      - name: Sync web assets to Android project
+        run: |
+          cd src/frontend
+          npx cap sync android
+          echo "✓ Capacitor sync complete"
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Configure Android SDK path
+        run: |
+          # GitHub ubuntu-latest has Android SDK at $ANDROID_HOME; write local.properties
+          echo "sdk.dir=$ANDROID_HOME" > src/frontend/android/local.properties
+          echo "✓ local.properties written: sdk.dir=$ANDROID_HOME"
+
+      - name: Accept Android SDK licenses
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses 2>/dev/null || true
+
+      - name: Decode signing keystore
+        id: keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            echo "⚠️  ANDROID_KEYSTORE_BASE64 not configured — APK will be unsigned and cannot be uploaded"
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            echo "keystore_path="  >> "$GITHUB_OUTPUT"
+          else
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > /tmp/sms-release.jks
+            echo "signed=true"                  >> "$GITHUB_OUTPUT"
+            echo "keystore_path=/tmp/sms-release.jks" >> "$GITHUB_OUTPUT"
+            echo "✓ Keystore decoded"
+          fi
+
+      - name: Build signed release APK
+        env:
+          KEYSTORE_PATH:     ${{ steps.keystore.outputs.keystore_path }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS:         ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD:      ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          cd src/frontend/android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --quiet
+          echo "✓ Gradle assembleRelease complete"
+
+      - name: Locate and stage APK
+        id: apk
+        run: |
+          set -euo pipefail
+          APK_SRC=$(find src/frontend/android/app/build/outputs/apk/release -name "*.apk" | head -1)
+          if [ -z "$APK_SRC" ]; then
+            echo "❌ No APK found in build output"
+            find src/frontend/android/app/build/outputs -type f 2>/dev/null || true
+            exit 1
+          fi
+          APK_NAME="${{ steps.version.outputs.apk_name }}"
+          cp "$APK_SRC" "/tmp/$APK_NAME"
+          SIZE_BYTES=$(stat -c%s "/tmp/$APK_NAME")
+          SIZE_MB=$(awk "BEGIN {printf \"%.2f\", $SIZE_BYTES / 1048576}")
+          echo "path=/tmp/$APK_NAME"  >> "$GITHUB_OUTPUT"
+          echo "name=$APK_NAME"       >> "$GITHUB_OUTPUT"
+          echo "size_bytes=$SIZE_BYTES" >> "$GITHUB_OUTPUT"
+          echo "size_mb=$SIZE_MB"     >> "$GITHUB_OUTPUT"
+          echo "APK staged: $APK_NAME ($SIZE_MB MB)"
+
+      - name: Validate APK payload size (guardrail)
+        run: |
+          set -euo pipefail
+          SIZE_BYTES="${{ steps.apk.outputs.size_bytes }}"
+          MIN_BYTES="${{ github.event.inputs.payload_min_bytes }}"
+          MIN_BYTES="${MIN_BYTES:-3000000}"
+          echo "APK size:   $SIZE_BYTES bytes"
+          echo "Minimum:    $MIN_BYTES bytes"
+          if [ "$SIZE_BYTES" -lt "$MIN_BYTES" ]; then
+            echo "❌ APK is unexpectedly small ($SIZE_BYTES bytes). Blocking upload to prevent publishing a broken APK."
+            exit 1
+          fi
+          echo "✓ APK payload size check passed"
+
+      - name: Upload APK to release
+        if: steps.keystore.outputs.signed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="${{ steps.version.outputs.tag }}"
+          APK_PATH="${{ steps.apk.outputs.path }}"
+          APK_NAME="${{ steps.apk.outputs.name }}"
+          REPO="${{ github.repository }}"
+
+          LOCAL_DIGEST="sha256:$(sha256sum "$APK_PATH" | awk '{print $1}')"
+          echo "Local digest: $LOCAL_DIGEST"
+
+          EXISTING_DIGEST=$(gh release view "$TAG" --repo "$REPO" --json assets \
+            | jq -r --arg name "$APK_NAME" '.assets[] | select(.name == $name) | .digest // ""')
+
+          if [ -n "$EXISTING_DIGEST" ] && [ "$EXISTING_DIGEST" = "$LOCAL_DIGEST" ]; then
+            echo "✓ APK already up-to-date on release; skipping upload"
+            exit 0
+          fi
+
+          if [ -n "$EXISTING_DIGEST" ]; then
+            echo "Replacing existing APK (digest differs)..."
+            gh release delete-asset "$TAG" "$APK_NAME" --repo "$REPO" --yes
+          fi
+
+          gh release upload "$TAG" "$APK_PATH#$APK_NAME" --repo "$REPO"
+          echo "✓ Uploaded $APK_NAME to release $TAG"
+
+      - name: Skip upload notice (unsigned)
+        if: steps.keystore.outputs.signed != 'true'
+        run: |
+          echo "⚠️  APK build succeeded but upload was skipped (unsigned APK)."
+          echo "Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, and ANDROID_KEY_ALIAS secrets."
+
+      - name: Create step summary
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+          APK_NAME="${{ steps.apk.outputs.name }}"
+          SIZE="${{ steps.apk.outputs.size_mb }}"
+          SIGNED="${{ steps.keystore.outputs.signed }}"
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## Release $TAG — Android APK
+
+          | Field | Value |
+          |-------|-------|
+          | APK | \`$APK_NAME\` |
+          | Size | $SIZE MB |
+          | Signed | $SIGNED |
+          | Uploaded | $SIGNED |
+          EOF
