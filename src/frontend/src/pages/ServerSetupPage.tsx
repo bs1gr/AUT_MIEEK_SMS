@@ -320,7 +320,7 @@ export default function ServerSetupPage() {
               {ip.trim() && (
                 <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
-                    → http://{ip.trim()}:8080/api/v1
+                    {`→ http://${ip.trim()}:8080/api/v1`}
                   </p>
                 </div>
               )}
@@ -367,7 +367,7 @@ export default function ServerSetupPage() {
               {ip.trim() && (
                 <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
-                    → http://{ip.trim()}:{port.trim() || '8000'}/api/v1
+                    {`→ http://${ip.trim()}:${port.trim() || '8000'}/api/v1`}
                   </p>
                 </div>
               )}
@@ -399,7 +399,7 @@ export default function ServerSetupPage() {
               {domain.trim() && (
                 <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
-                    → https://{domain.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '')}/api/v1
+                    {`→ https://${domain.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '')}/api/v1`}
                   </p>
                 </div>
               )}

@@ -54,7 +54,6 @@ const LoginWidget: React.FC<LoginWidgetProps> = ({ variant = 'dialog', onLoginSu
     const actualEmail = (emailRef.current?.value ?? email).trim();
     const actualPassword = passwordRef.current?.value ?? password;
 
-    console.log('[Login] email:', JSON.stringify(actualEmail), 'len:', actualEmail.length);
 
     if (!actualEmail) {
       setError('Παρακαλώ εισάγετε τη διεύθυνση email σας. / Please enter your email.');
