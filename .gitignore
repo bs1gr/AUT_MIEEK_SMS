@@ -10,6 +10,11 @@ TODO.md
 .commit-ready-validated
 .test-failures
 
+# Runtime PID and server log files (generated at runtime, not source)
+.uvicorn_pid
+rebuild.log
+rebuild*.log
+
 # Temporary scripts
 tmp_*.ps1
 tmp_*.sh
@@ -133,13 +138,20 @@ docs/reports/
 /test_log_*.txt
 /logs.zip
 
-# Frontend-generated test artifacts
+# Frontend-generated test artifacts (old path pre-June-2026 reorganization)
 /frontend/e2e-results.txt
 /frontend/e2e-test-output.txt
 /frontend/test-diagnostics/
 /frontend/test-output.log
 /frontend/test-results*.json
 /frontend/vitest-results.xml
+# Frontend-generated test artifacts (current path post-reorganization)
+src/frontend/test-results*.json
+src/frontend/test-results-*.json
+src/frontend/vitest-results.xml
+src/frontend/test-diagnostics/
+src/frontend/test-output.log
+src/frontend/e2e-results.txt
 
 # Node / Frontend
 frontend/node_modules/
