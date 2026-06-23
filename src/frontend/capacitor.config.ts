@@ -5,14 +5,13 @@ const config: CapacitorConfig = {
   appName: 'SMS — ΜΙΕΕΚ',
   webDir: 'dist',
   server: {
-    // https is required for production/Play Store builds.
-    // The API URL is controlled via VITE_API_URL at build time.
+    // HTTPS required for production. HTTP exceptions are handled per-domain
+    // in android/app/src/main/res/xml/network_security_config.xml.
     androidScheme: 'https',
-    // Allow cleartext traffic to local network IPs (Tailscale) during development.
-    cleartext: true,
+    cleartext: false,
   },
   android: {
-    allowMixedContent: true,
+    allowMixedContent: false,
     captureInput: true,
     webContentsDebuggingEnabled: false,
   },
