@@ -123,7 +123,8 @@ export async function loginViaUI(page: Page, email: string, password: string) {
     throw e;
   }
 
-  await page.waitForLoadState('networkidle', { timeout: 15_000 });
+  // Use 'load' not 'networkidle' — dashboard polls API data and never reaches networkidle.
+  await page.waitForLoadState('load', { timeout: 15_000 });
 }
 
 // Alias for backward compatibility with older tests
