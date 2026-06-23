@@ -45,7 +45,7 @@ jobs:
           $issues = @()
 
           try {
-            $statusText = (& .\DOCKER.ps1 -Status | Out-String).Trim()
+            $statusText = (& .\infra\scripts\dev\DOCKER.ps1 -Status | Out-String).Trim()
           }
           catch {
             $issues += "DOCKER status command failed: $($_.Exception.Message)"

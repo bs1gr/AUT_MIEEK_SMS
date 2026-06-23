@@ -1338,21 +1338,21 @@ jobs:
           name: frontend-security-reports
           path: |
             src/frontend/npm-audit.json
-            src/frontend-audit.sarif
+            src/frontend/frontend-audit.sarif
           retention-days: 30
 
       - name: Validate frontend SARIF format
-        if: always() && hashFiles('src/frontend-audit.sarif') != ''
+        if: always() && hashFiles('src/frontend/frontend-audit.sarif') != ''
         run: |
           echo "Validating frontend SARIF format..."
-          python -m json.tool src/frontend-audit.sarif > /dev/null && echo "✅ Frontend SARIF valid" || echo "⚠️  Frontend SARIF malformed"
+          python -m json.tool src/frontend/frontend-audit.sarif > /dev/null && echo "✅ Frontend SARIF valid" || echo "⚠️  Frontend SARIF malformed"
         continue-on-error: true
 
       - name: Upload SARIF to GitHub Security tab
-        if: always() && hashFiles('src/frontend-audit.sarif') != ''
+        if: always() && hashFiles('src/frontend/frontend-audit.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: src/frontend-audit.sarif
+          sarif_file: src/frontend/frontend-audit.sarif
           category: 'frontend-security'
         continue-on-error: true
 
@@ -1537,8 +1537,8 @@ jobs:
           printf '  %s\n' "${UPLOAD_HITS[@]}"
 
           for hit in "${UPLOAD_HITS[@]}"; do
-            if [[ "$hit" != *".github/workflows/release-installer-with-sha.yml"* ]]; then
-              echo "❌ Policy violation: non-installer workflow uploads release assets"
+            if [[ "$hit" != *".github/workflows/release-installer-with-sha.yml"* && "$hit" != *".github/workflows/release-android-apk.yml"* ]]; then
+              echo "❌ Policy violation: unauthorized workflow uploads release assets"
               echo "Offending entry: $hit"
               exit 1
             fi
@@ -1554,7 +1554,7 @@ jobs:
             printf '  %s\n' "${DELETE_HITS[@]}"
 
             for hit in "${DELETE_HITS[@]}"; do
-              if [[ "$hit" != *".github/workflows/release-installer-with-sha.yml"* && "$hit" != *".github/workflows/release-asset-sanitizer.yml"* ]]; then
+              if [[ "$hit" != *".github/workflows/release-installer-with-sha.yml"* && "$hit" != *".github/workflows/release-asset-sanitizer.yml"* && "$hit" != *".github/workflows/release-android-apk.yml"* ]]; then
                 echo "❌ Policy violation: unauthorized workflow deletes release assets"
                 echo "Offending entry: $hit"
                 exit 1
@@ -1562,7 +1562,7 @@ jobs:
             done
           fi
 
-          echo "✅ Release asset mutation policy passed (upload: installer only, delete: installer/sanitizer only)"
+          echo "✅ Release asset mutation policy passed (upload: installer/android, delete: installer/android/sanitizer)"
 
   # Gate job pattern (reuse for future deploy/release gates):
   # 1. Keep policy evaluation in a small ubuntu-latest job.
@@ -1726,8 +1726,8 @@ jobs:
       - name: Stop existing staging stack (safe)
         shell: pwsh
         run: |
-          if (Test-Path ".\DOCKER.ps1") {
-            .\DOCKER.ps1 -Stop
+          if (Test-Path ".\infra\scripts\dev\DOCKER.ps1") {
+            .\infra\scripts\dev\DOCKER.ps1 -Stop
           }
 
       - name: Verify runner connectivity and health
@@ -1879,12 +1879,12 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "🚀 Deploying version ${{ steps.version.outputs.version }} to staging..."
-          if (-not (Test-Path ".\DOCKER.ps1")) {
-            Write-Error "DOCKER.ps1 not found in repository root. Cannot deploy staging."
+          if (-not (Test-Path ".\infra\scripts\dev\DOCKER.ps1")) {
+            Write-Error "infra\scripts\dev\DOCKER.ps1 not found. Cannot deploy staging."
             exit 1
           }
 
-          .\DOCKER.ps1 -Update
+          .\infra\scripts\dev\DOCKER.ps1 -Update
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Staging deployment failed (DOCKER.ps1 -Update)"
             exit $LASTEXITCODE
@@ -2009,8 +2009,8 @@ jobs:
       - name: Stop existing production stack (safe)
         shell: pwsh
         run: |
-          if (Test-Path ".\DOCKER.ps1") {
-            .\DOCKER.ps1 -Stop
+          if (Test-Path ".\infra\scripts\dev\DOCKER.ps1") {
+            .\infra\scripts\dev\DOCKER.ps1 -Stop
           }
 
       - name: Ensure Docker is running (runner health check)
@@ -2095,12 +2095,12 @@ jobs:
         shell: pwsh
         run: |
           Write-Host "🚀 Deploying version ${{ steps.version.outputs.version }} to production..."
-          if (-not (Test-Path ".\DOCKER.ps1")) {
-            Write-Error "DOCKER.ps1 not found in repository root. Cannot deploy production."
+          if (-not (Test-Path ".\infra\scripts\dev\DOCKER.ps1")) {
+            Write-Error "infra\scripts\dev\DOCKER.ps1 not found. Cannot deploy production."
             exit 1
           }
 
-          .\DOCKER.ps1 -Update
+          .\infra\scripts\dev\DOCKER.ps1 -Update
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Production deployment failed (DOCKER.ps1 -Update)"
             exit $LASTEXITCODE
@@ -2293,6 +2293,8 @@ jobs:
         if: ${{ env.SLACK_WEBHOOK_URL != '' }}
         uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ env.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": "${{ steps.status.outputs.emoji }} ${{ steps.status.outputs.message }}",
@@ -2335,9 +2337,6 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ env.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
 
 

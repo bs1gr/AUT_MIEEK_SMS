@@ -114,12 +114,12 @@ jobs:
         run: |
           Write-Host "🚀 Deploying version ${{ inputs.version }} to ${{ inputs.environment }}..."
 
-          if (-not (Test-Path ".\DOCKER.ps1")) {
-            Write-Error "DOCKER.ps1 not found in repository root. Cannot deploy."
+          if (-not (Test-Path ".\infra\scripts\dev\DOCKER.ps1")) {
+            Write-Error "infra\scripts\dev\DOCKER.ps1 not found. Cannot deploy."
             exit 1
           }
 
-          .\DOCKER.ps1 -Update
+          .\infra\scripts\dev\DOCKER.ps1 -Update
           if ($LASTEXITCODE -ne 0) {
             Write-Error "Deployment failed"
             exit $LASTEXITCODE

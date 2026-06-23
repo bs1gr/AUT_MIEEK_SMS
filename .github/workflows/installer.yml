@@ -74,8 +74,14 @@ jobs:
       - name: Build SMS Manager launcher
         shell: pwsh
         run: |
-          dotnet restore .\installer\SMS_Manager\SMS_Manager.csproj
-          dotnet publish .\installer\SMS_Manager\SMS_Manager.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true
+          $csproj = '.\installer\SMS_Manager\SMS_Manager.csproj'
+          if (-not (Test-Path $csproj)) {
+            Write-Warning "SMS_Manager.csproj not found — skipping launcher build (INSTALLER_BUILDER.ps1 embeds a pre-built launcher if present)"
+            exit 0
+          }
+
+          dotnet restore $csproj
+          dotnet publish $csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -p:IncludeNativeLibrariesForSelfExtract=true
 
           $managerExe = '.\installer\dist\SMS_Manager.exe'
           if (-not (Test-Path $managerExe)) {

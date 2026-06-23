@@ -132,6 +132,7 @@ jobs:
           fi
 
       - name: Build signed release APK
+        if: steps.keystore.outputs.signed == 'true'
         env:
           KEYSTORE_PATH:     ${{ steps.keystore.outputs.keystore_path }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -144,6 +145,7 @@ jobs:
           echo "✓ Gradle assembleRelease complete"
 
       - name: Locate and stage APK
+        if: steps.keystore.outputs.signed == 'true'
         id: apk
         run: |
           set -euo pipefail
@@ -164,6 +166,7 @@ jobs:
           echo "APK staged: $APK_NAME ($SIZE_MB MB)"
 
       - name: Validate APK payload size (guardrail)
+        if: steps.keystore.outputs.signed == 'true'
         run: |
           set -euo pipefail
           SIZE_BYTES="${{ steps.apk.outputs.size_bytes }}"
@@ -207,18 +210,18 @@ jobs:
           gh release upload "$TAG" "$APK_PATH#$APK_NAME" --repo "$REPO"
           echo "✓ Uploaded $APK_NAME to release $TAG"
 
-      - name: Skip upload notice (unsigned)
+      - name: Skip build notice (keystore not configured)
         if: steps.keystore.outputs.signed != 'true'
         run: |
-          echo "⚠️  APK build succeeded but upload was skipped (unsigned APK)."
-          echo "Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, and ANDROID_KEY_ALIAS secrets."
+          echo "⚠️  APK build skipped — keystore secrets not configured."
+          echo "Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD, and ANDROID_KEY_ALIAS secrets to enable signed APK uploads."
 
       - name: Create step summary
         run: |
           TAG="${{ steps.version.outputs.tag }}"
-          APK_NAME="${{ steps.apk.outputs.name }}"
-          SIZE="${{ steps.apk.outputs.size_mb }}"
           SIGNED="${{ steps.keystore.outputs.signed }}"
+          APK_NAME="${{ steps.apk.outputs.name || 'skipped' }}"
+          SIZE="${{ steps.apk.outputs.size_mb || 'N/A' }}"
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ## Release $TAG — Android APK
 

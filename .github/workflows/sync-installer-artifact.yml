@@ -154,7 +154,7 @@ jobs:
           }
 
           Write-Host "Running INSTALLER_BUILDER.ps1 with named parameters..."
-          & .\INSTALLER_BUILDER.ps1 @buildArgs
+          & .\infra\scripts\release\INSTALLER_BUILDER.ps1 @buildArgs
 
           if ($LASTEXITCODE -ne 0) {
             Write-Error 'Installer build failed.'

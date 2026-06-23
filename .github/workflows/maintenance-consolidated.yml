@@ -237,7 +237,7 @@ jobs:
           # Get Docker status
           try {
             Write-Host "Checking Docker status..."
-            $statusOutput = & .\DOCKER.ps1 -Status 2>&1 | Out-String
+            $statusOutput = & .\infra\scripts\dev\DOCKER.ps1 -Status 2>&1 | Out-String
             $health.status = $statusOutput.Trim()
             Write-Host "✅ Docker status retrieved"
           } catch {
