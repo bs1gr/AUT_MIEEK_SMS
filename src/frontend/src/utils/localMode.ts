@@ -25,15 +25,22 @@ async function registerLocalSW(): Promise<boolean> {
   if (!('serviceWorker' in navigator)) return false;
   try {
     const reg = await navigator.serviceWorker.register(SW_PATH, { scope: '/' });
-    // Wait for the SW to be active (handles the skipWaiting + claim lifecycle)
-    await new Promise<void>((resolve) => {
-      if (reg.active) { resolve(); return; }
-      const sw = reg.installing ?? reg.waiting;
-      if (!sw) { resolve(); return; }
-      sw.addEventListener('statechange', function handler() {
-        if (this.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
-      });
-    });
+    // Wait for the SW to be active (handles the skipWaiting + claim lifecycle).
+    // A 10-second timeout guards against the SW getting stuck in 'installing'
+    // (e.g. install event that never resolves, or stale-file fetch hang).
+    await Promise.race([
+      new Promise<void>((resolve) => {
+        if (reg.active) { resolve(); return; }
+        const sw = reg.installing ?? reg.waiting;
+        if (!sw) { resolve(); return; }
+        sw.addEventListener('statechange', function handler() {
+          if (this.state === 'activated') { sw.removeEventListener('statechange', handler); resolve(); }
+        });
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('[localMode] SW activation timed out')), 10_000),
+      ),
+    ]);
     return true;
   } catch (err) {
     console.error('[localMode] SW registration failed:', err);
@@ -80,9 +87,17 @@ export async function disableLocalMode(): Promise<void> {
 /**
  * If the app starts with local mode already stored, re-register the SW.
  * Call from main.tsx after initStorage() and before React renders.
+ *
+ * If registration fails (SW file missing, bridge broken, timeout), local mode
+ * is cleared so ServerGuard redirects the user to /server-setup rather than
+ * leaving them with /api/v1 requests that nothing intercepts.
  */
 export async function restoreLocalModeIfNeeded(): Promise<void> {
   if (isLocalModeEnabled()) {
-    await registerLocalSW();
+    const ok = await registerLocalSW();
+    if (!ok) {
+      removeItem(LOCAL_MODE_KEY);
+      clearServerUrl();
+    }
   }
 }
