@@ -1,22 +1,26 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.32
-**Last Updated**: June 22, 2026
-**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 8 post-release commits on main**
+**Last Updated**: June 23, 2026
+**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 17 post-release commits on main | CI GREEN**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development | Post-v1.18.32
 **Current Branch**: `main`
 
 ---
 
-## 📋 Post-v1.18.32 Accumulation (June 21–22, 2026)
+## 📋 Post-v1.18.32 Accumulation (June 21–23, 2026)
 
-**Status**: 🔄 UNRELEASED | 13 commits on `main` since tag `v1.18.32`
+**Status**: 🔄 UNRELEASED | 17 commits on `main` since tag `v1.18.32` | ✅ CI GREEN (E2E pass on `84bc253e6`)
 
 | Hash | Area | Description |
 |------|------|-------------|
-| `953aaca9f` | Fix | Use Capacitor.isNativePlatform() — eliminate 3s init delay in CI + fix 3 E2E tests |
-| `81325b549` | Docs | Track post-v1.18.32 commits in work plan |
+| `84bc253e6` | Lint | Remove debug console.log from LoginWidget; fix 6 i18n warnings in ServerSetupPage |
+| `e741358b4` | E2E | Replace networkidle→load in loginViaUI + all critical-flows tests |
+| `e0cfad4dd` | E2E | Remove sms_server_url injection (broke getApiBaseUrl() in loginViaUI) |
+| `2b9f097f7` | Docs | Track 953aaca9f in work plan |
+| `953aaca9f` | Fix | Use Capacitor.isNativePlatform() — eliminate 3s init delay in CI + fix analytics E2E |
+| `81325b549` | Docs | Track 4f11d6d7c in work plan |
 | `4f11d6d7c` | E2E | Fix ServerGuard redirect: inject sms_server_url in loginViaAPI + loginViaUI |
 | `27751eac4` | E2E | Always render analytics summary cards; fix loginViaUI HashRouter nav |
 | `01a4b6796` | Tests | Fix 7 Vitest test failures from Android commit (apiClient + appStorage) |
@@ -29,7 +33,7 @@
 | `9c03580e0` | Installer | Resolve PROJECT_ROOT to install dir when run from installer root |
 | `0047e0308` | Project | Restore CLAUDE.md to project root |
 
-**Notable**: The installer Docker path fixes and Android standalone mode are significant enough that a v1.18.33 release may be warranted when ready.
+**Notable**: Installer Docker path fixes, Android standalone mode, and full E2E suite stability make this a strong v1.18.33 candidate when ready.
 
 ---
 
