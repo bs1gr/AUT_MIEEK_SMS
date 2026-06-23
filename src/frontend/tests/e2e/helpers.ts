@@ -255,23 +255,22 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   console.log(`🔐 [E2E API LOGIN] Navigating to / to set token and user...`);
   await page.goto('/');
 
-  // Then inject both token and user into localStorage.
-  // Also set sms_server_url so ServerGuard's needsServerSetup() short-circuits to false.
-  // Without this, Capacitor runtime sets window.Capacitor in the web bundle, causing
-  // needsServerSetup() to redirect to /server-setup when sms_server_url is empty.
-  console.log(`🔐 [E2E API LOGIN] Injecting token, user, and server URL into localStorage...`);
-  await page.evaluate(({ token: t, user, serverUrl }) => {
+  // Inject token and user into localStorage.
+  // No sms_server_url needed: Capacitor.isNativePlatform() returns false in web/CI,
+  // so needsServerSetup() never fires. Setting sms_server_url caused getApiBaseUrl()
+  // to return a server-only URL without /api/v1, breaking subsequent API calls.
+  console.log(`🔐 [E2E API LOGIN] Injecting token and user into localStorage...`);
+  await page.evaluate(({ token: t, user }) => {
     try {
       window.localStorage.setItem('sms_access_token', t);
       window.localStorage.setItem('sms_user_v1', JSON.stringify(user));
-      window.localStorage.setItem('sms_server_url', serverUrl);
-      console.log('[E2E] Token, user, and server URL set in localStorage');
+      console.log('[E2E] Token and user set in localStorage');
       console.log('[E2E] User:', JSON.stringify(user));
     } catch (e) {
-      console.error('[E2E] Failed to set token/user/serverUrl:', e);
+      console.error('[E2E] Failed to set token/user:', e);
       throw e;
     }
-  }, { token, user: userData, serverUrl: apiBase });
+  }, { token, user: userData });
 
   // Navigate to dashboard after token is set
   console.log(`🔐 [E2E API LOGIN] Navigating to /dashboard...`);

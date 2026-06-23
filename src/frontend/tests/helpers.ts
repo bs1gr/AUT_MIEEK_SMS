@@ -90,11 +90,11 @@ export async function loginAsAdmin(page: Page) {
  */
 export async function loginViaUI(page: Page, email: string, password: string) {
   console.warn('🔐 [E2E] Starting login for', email);
-  // Set sms_server_url before navigation so ServerGuard's needsServerSetup() returns false.
-  // Capacitor runtime defines window.Capacitor in the web bundle which triggers the guard.
-  await page.addInitScript(() => {
-    window.localStorage.setItem('sms_server_url', 'http://127.0.0.1:8000');
-  });
+  // No sms_server_url injection needed: Capacitor.isNativePlatform() now returns false
+  // in web/CI, so needsServerSetup() never redirects and getApiBaseUrl() correctly
+  // falls back to VITE_API_URL (http://localhost:8000/api/v1).
+  // Setting sms_server_url here caused getApiBaseUrl() to return a URL without /api/v1,
+  // breaking the login API call.
   // Navigate with explicit hash so HashRouter starts at the auth route
   await page.goto('/#/');
 
