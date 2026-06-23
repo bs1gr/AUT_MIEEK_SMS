@@ -214,7 +214,7 @@ Every executable (including shared libraries like libc.so.6) has memory alignmen
 - ✅ **MariaDB 10** (1.2.1.31) - Port 3307
   - Database: `student_management`
   - User: `sms_user`
-  - Password: `SMS_Secure_P@ssw0rd_2024_TS431P3`
+  - Password: `[redacted — rotate this credential; it was exposed in git history]`
   - Character set: utf8mb4
   - Fully functional
 

@@ -2,7 +2,7 @@
 
 **Current Version**: 1.18.32
 **Last Updated**: June 23, 2026
-**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 17 post-release commits on main | CI GREEN**
+**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 20 post-release commits on main | CI GREEN**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
 **Current Phase**: Active Development | Post-v1.18.32
 **Current Branch**: `main`
@@ -11,16 +11,20 @@
 
 ## 📋 Post-v1.18.32 Accumulation (June 21–23, 2026)
 
-**Status**: 🔄 UNRELEASED | 17 commits on `main` since tag `v1.18.32` | ✅ CI GREEN (E2E pass on `84bc253e6`)
+**Status**: 🔄 UNRELEASED | 20 commits on `main` since tag `v1.18.32` | ✅ CI GREEN
 
 | Hash | Area | Description |
 |------|------|-------------|
+| `2629a2b91` | Fix | local-mode: clear broken state on SW restore failure + 10s activation timeout |
+| `31cbd1808` | Android | Security hardening: cleartext scoped, allowBackup=false, allowMixedContent=false, minification on, version 1.18.32, ProGuard rules |
+| `bceacc657` | Chore | Untrack 6 runtime/stale test files; fix gitignore for post-reorganization paths; delete 48 commit_ready logs |
+| `20ec8e44f` | E2E | Add data-testid="submit-student" to EditStudentModal (fixes "should edit an existing student") |
+| `89a37c311` | E2E | Add data-testids to StudentForm + fix curl exit code 7 in e2e-tests.yml |
+| `b16445a86` | E2E | Unskip student edit + delete tests; fix window.confirm handler |
 | `84bc253e6` | Lint | Remove debug console.log from LoginWidget; fix 6 i18n warnings in ServerSetupPage |
 | `e741358b4` | E2E | Replace networkidle→load in loginViaUI + all critical-flows tests |
 | `e0cfad4dd` | E2E | Remove sms_server_url injection (broke getApiBaseUrl() in loginViaUI) |
-| `2b9f097f7` | Docs | Track 953aaca9f in work plan |
 | `953aaca9f` | Fix | Use Capacitor.isNativePlatform() — eliminate 3s init delay in CI + fix analytics E2E |
-| `81325b549` | Docs | Track 4f11d6d7c in work plan |
 | `4f11d6d7c` | E2E | Fix ServerGuard redirect: inject sms_server_url in loginViaAPI + loginViaUI |
 | `27751eac4` | E2E | Always render analytics summary cards; fix loginViaUI HashRouter nav |
 | `01a4b6796` | Tests | Fix 7 Vitest test failures from Android commit (apiClient + appStorage) |
@@ -33,7 +37,9 @@
 | `9c03580e0` | Installer | Resolve PROJECT_ROOT to install dir when run from installer root |
 | `0047e0308` | Project | Restore CLAUDE.md to project root |
 
-**Notable**: Installer Docker path fixes, Android standalone mode, and full E2E suite stability make this a strong v1.18.33 candidate when ready.
+**Notable**: Installer Docker path fixes, Android standalone mode, full E2E suite stability, Android security hardening, and local-mode SW reliability make this a strong v1.18.33 candidate when ready.
+
+**Security action required**: Keystore password `SmsRelease2024!` was committed in a prior version of this file and remains in git history. Rotate the Android signing keystore before the next public release.
 
 ---
 
@@ -80,8 +86,9 @@
 - ✅ Android: `app-release.apk` signed with `CN=SMS App, OU=MIEEK, O=AUT, L=Nicosia` — 5.13 MB
 - ✅ Backend: 914 tests passing | Frontend: 1939 tests passing
 
-### Keystore (local only — never committed)
-- File: `C:\Users\Vasilis\.android\sms-release.jks` | Alias: `sms-release` | Password: `SmsRelease2024!`
+### Keystore (local only — never committed via keystore.properties)
+- File: `C:\Users\Vasilis\.android\sms-release.jks` | Alias: `sms-release`
+- **Rotate password**: credentials were exposed in this file in a prior commit — generate a new keystore or change the key password.
 
 ---
 
