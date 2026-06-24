@@ -108,6 +108,11 @@ def get_lifespan():
                     "Browser-based CSRF attacks are not mitigated. "
                     "Enable CSRF_ENABLED=True in production if using browser clients."
                 )
+        if str(getattr(settings, "POSTGRES_SSLMODE", "prefer")).lower() == "disable":
+            _log.warning(
+                "⚠️  Security: POSTGRES_SSLMODE=disable — database connections are unencrypted. "
+                "Use 'require' or 'verify-full' in production."
+            )
 
         # Apply persisted SMTP override so email works without env-var restart
         try:

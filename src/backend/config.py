@@ -222,8 +222,8 @@ class Settings(BaseSettings):
     AUTH_LOGIN_MAX_ATTEMPTS: int = 5
     AUTH_LOGIN_LOCKOUT_SECONDS: int = 300
     AUTH_LOGIN_TRACKING_WINDOW_SECONDS: int = 300
-    AUTH_LOGIN_EXEMPT_EMAILS: str = "test@example.com,admin@example.com"
-    AUTH_LOGIN_EXEMPT_DOMAINS: str = "test.edu"
+    AUTH_LOGIN_EXEMPT_EMAILS: str = ""
+    AUTH_LOGIN_EXEMPT_DOMAINS: str = ""
 
     # NOTE: DEV_EASE is intentionally not handled here. DEV_EASE is reserved for
     # pre-commit convenience in COMMIT_READY.ps1 only and must not alter runtime

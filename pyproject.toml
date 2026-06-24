@@ -22,7 +22,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 license = "MIT"
 authors = [
-  { name = "Your Name", email = "your@email.com" }
+  { name = "ΜΙΕΕΚ Cyprus", email = "faltsasam@gmail.com" }
 ]
 dependencies = [
     "fastapi==0.136.3",
@@ -36,7 +36,6 @@ dependencies = [
     "python-multipart==0.0.32",  # Dependabot #185-197 fixed in >=0.0.31
     "openpyxl==3.1.5",
     "reportlab==4.4.4",
-    "pdfplumber>=0.11.4",
     "pydantic-settings==2.11.0",
     "alembic==1.17.0",
     "psutil==7.1.1",
@@ -44,22 +43,22 @@ dependencies = [
     "requests==2.33.0",
     "slowapi==0.1.9",
     "fastapi-csrf-protect==1.0.7",
-    "passlib[bcrypt]==1.7.4",
-    "PyJWT==2.13.0",  # Dependabot #176-181 fixed in >=2.13.0
+    "passlib[bcrypt]==1.7.4",  # legacy-only: verifies PBKDF2-SHA256 hashes; remove after all rows migrate to bcrypt
+    "PyJWT==2.13.0",  # CVE-2024-33663/33664/33665/33666
     "docker==7.1.0",
     "prometheus-client==0.21.0",
-    "opentelemetry-api==1.27.0",
-    "opentelemetry-sdk==1.27.0",
-    "opentelemetry-exporter-otlp==1.27.0",
-    "opentelemetry-instrumentation-fastapi==0.48b0",
+    "opentelemetry-api==1.39.1",
+    "opentelemetry-sdk==1.39.1",
+    "opentelemetry-exporter-otlp==1.39.1",
+    "opentelemetry-instrumentation-fastapi==0.60b1",
+    "opentelemetry-semantic-conventions==0.60b1",
     "redis==5.0.1",
-    "psycopg2-binary>=2.9.10",
-    "aioredis==2.0.1",
+    "psycopg2-binary==2.9.12",
     "python-socketio==5.14.0",
     "python-engineio==4.13.0",
-    "apscheduler>=3.11.0",
-    "pandas>=2.0.0",
-    "protobuf>=6.0.0",  # CVE-2026-0994 fixed in 6.x, protobuf 6.33.5+
+    "apscheduler==3.11.2",
+    "pandas==3.0.3",
+    "protobuf==6.33.6",  # CVE-2026-0994 fixed in 6.x; opentelemetry-proto requires <7.0
 ]
 
 [project.optional-dependencies]
