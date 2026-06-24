@@ -9,12 +9,12 @@ from backend.config import Settings
 
 
 def test_cors_origins_list_parses_json_like_string():
-    settings = Settings(CORS_ORIGINS='["http://a.test", " http://b.test "]')
+    settings = Settings(CORS_ORIGINS='["http://a.test", " http://b.test "]', AUTH_ENABLED=False)
     assert settings.CORS_ORIGINS_LIST == ["http://a.test", "http://b.test"]
 
 
 def test_cors_origins_list_parses_comma_list():
-    settings = Settings(CORS_ORIGINS="http://a.test, http://b.test ,")
+    settings = Settings(CORS_ORIGINS="http://a.test, http://b.test ,", AUTH_ENABLED=False)
     assert settings.CORS_ORIGINS_LIST == ["http://a.test", "http://b.test"]
 
 
@@ -137,7 +137,7 @@ def test_database_url_accepts_path_inside_project():
     db_path = project_root / "data" / "tests" / "db.sqlite"
     db_path.parent.mkdir(parents=True, exist_ok=True)
     db_url = f"sqlite:///{db_path.as_posix()}"
-    settings = Settings(DATABASE_URL=db_url)
+    settings = Settings(DATABASE_URL=db_url, AUTH_ENABLED=False)
     assert settings.DATABASE_URL == db_url
 
 

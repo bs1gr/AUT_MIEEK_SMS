@@ -37,6 +37,7 @@ describe('AuthContext', () => {
     localStorage.clear();
     vi.clearAllMocks();
     mockAuthService.getAccessToken.mockReturnValue(null);
+    mockAuthService.refreshAccessToken.mockResolvedValue(null);
   });
 
   afterEach(() => {

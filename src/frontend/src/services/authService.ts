@@ -33,9 +33,11 @@ export const refreshAccessToken = async (): Promise<string | null> => {
       ? `${API_BASE_URL}auth/refresh`
       : `${API_BASE_URL}/auth/refresh`;
     const resp = await axios.post(url, {}, { withCredentials: true });
-    if (resp?.data?.access_token) {
-      setAccessToken(resp.data.access_token);
-      return resp.data.access_token;
+    // Handle both direct format {access_token} and standardized APIResponse {data: {access_token}}
+    const token = resp?.data?.access_token || resp?.data?.data?.access_token;
+    if (token) {
+      setAccessToken(token);
+      return token;
     }
     return null;
   } catch {

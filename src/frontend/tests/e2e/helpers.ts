@@ -255,22 +255,24 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   console.log(`🔐 [E2E API LOGIN] Navigating to / to set token and user...`);
   await page.goto('/');
 
-  // Inject token and user into localStorage.
+  // Inject user into localStorage so AuthContext finds it on mount.
+  // The access token is NOT written to localStorage — authService now uses in-memory
+  // storage only. clearLegacyTokens() (called at module init) would remove it anyway.
+  // AuthContext will call refreshAccessToken() via the HttpOnly refresh cookie to
+  // obtain a fresh in-memory token.
   // No sms_server_url needed: Capacitor.isNativePlatform() returns false in web/CI,
-  // so needsServerSetup() never fires. Setting sms_server_url caused getApiBaseUrl()
-  // to return a server-only URL without /api/v1, breaking subsequent API calls.
-  console.log(`🔐 [E2E API LOGIN] Injecting token and user into localStorage...`);
-  await page.evaluate(({ token: t, user }) => {
+  // so needsServerSetup() never fires.
+  console.log(`🔐 [E2E API LOGIN] Injecting user into localStorage...`);
+  await page.evaluate(({ user }) => {
     try {
-      window.localStorage.setItem('sms_access_token', t);
       window.localStorage.setItem('sms_user_v1', JSON.stringify(user));
-      console.log('[E2E] Token and user set in localStorage');
+      console.log('[E2E] User set in localStorage');
       console.log('[E2E] User:', JSON.stringify(user));
     } catch (e) {
-      console.error('[E2E] Failed to set token/user:', e);
+      console.error('[E2E] Failed to set user:', e);
       throw e;
     }
-  }, { token, user: userData });
+  }, { user: userData });
 
   // Navigate to dashboard after token is set
   console.log(`🔐 [E2E API LOGIN] Navigating to /dashboard...`);
