@@ -1,6 +1,6 @@
 # Main dependencies for Student Management System
 # Generated from pyproject.toml [project.dependencies]
-# Last updated: 2026-06-16 (Security fixes: starlette, cryptography, python-multipart)
+# Last updated: 2026-06-24 (Security fixes: bcrypt migration, deps pinned, aioredis removed)
 
 fastapi==0.136.3
 starlette==1.3.1
@@ -20,7 +20,7 @@ httpx==0.27.2
 requests==2.33.0
 slowapi==0.1.9
 fastapi-csrf-protect==1.0.7
-passlib[bcrypt]==1.7.4
+passlib[bcrypt]==1.7.4  # legacy-only: verifies PBKDF2-SHA256 hashes; remove after all rows migrate to bcrypt
 PyJWT==2.13.0  # Security fix: CVE-2024-33663, CVE-2024-33664, CVE-2024-33665, CVE-2024-33666
 docker==7.1.0
 prometheus-client==0.21.0
@@ -30,16 +30,15 @@ opentelemetry-exporter-otlp==1.39.1
 opentelemetry-instrumentation-fastapi==0.60b1
 opentelemetry-semantic-conventions==0.60b1
 redis==5.0.1
-psycopg2-binary>=2.9.10
-aioredis==2.0.1
+psycopg2-binary==2.9.12
 python-socketio==5.14.0
 python-engineio==4.13.0
-pandas>=2.0.0
-protobuf>=6.0.0  # CVE-2026-0994 fixed in 6.x
-apscheduler>=3.10.4
+pandas==3.0.3
+protobuf==7.35.1  # CVE-2026-0994 fixed in 6.x
+apscheduler==3.11.2
 
 # Security constraints for transitive dependencies
-filelock>=3.20.3
-virtualenv>=20.36.1  # CVE-2026-22702
-wheel>=0.46.2
-werkzeug>=3.1.6
+filelock==3.29.4
+virtualenv==21.5.1  # CVE-2026-22702
+wheel==0.47.0
+werkzeug==3.1.8

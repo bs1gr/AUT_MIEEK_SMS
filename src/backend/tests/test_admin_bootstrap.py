@@ -3,13 +3,16 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from backend.models import RefreshToken, User
 from backend.scripts.admin.bootstrap import ensure_default_admin_account
+from backend.security.password_hash import verify_password
 
-_pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
+def _pbkdf2_hash(password: str) -> str:
+    """Create a legacy PBKDF2-SHA256 fixture hash without importing passlib in tests."""
+    from passlib.context import CryptContext  # noqa: PLC0415 — lazily imported for legacy fixtures only
+    return CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto").hash(password)
 
 
 def _make_settings(**overrides):
@@ -51,13 +54,13 @@ def test_bootstrap_creates_admin_user(db: Session):
     assert user.role == "admin"
     assert user.is_active is True
     assert user.full_name == "System Administrator"
-    assert _pwd_context.verify("ChangeMe123!", user.hashed_password)
+    assert verify_password("ChangeMe123!", user.hashed_password)
 
 
 def test_bootstrap_updates_existing_user_with_force_reset(db: Session):
     user = User(
         email="admin@example.com",
-        hashed_password=_pwd_context.hash("OldPass123!"),
+        hashed_password=_pbkdf2_hash("OldPass123!"),
         full_name="Legacy User",
         role="teacher",
         is_active=False,
@@ -82,14 +85,14 @@ def test_bootstrap_updates_existing_user_with_force_reset(db: Session):
     assert user.role == "admin"
     assert user.is_active is True
     assert user.full_name == "System Administrator"
-    assert _pwd_context.verify("NewPass456!", user.hashed_password)
+    assert verify_password("NewPass456!", user.hashed_password)
 
     db.refresh(token)
     assert token.revoked is True
 
 
 def test_bootstrap_updates_existing_user_without_force_reset(db: Session):
-    original_hash = _pwd_context.hash("StablePass789!")
+    original_hash = _pbkdf2_hash("StablePass789!")
     user = User(
         email="admin@example.com",
         hashed_password=original_hash,
@@ -138,7 +141,7 @@ def test_bootstrap_auto_resets_when_enabled(db: Session):
     # Existing admin with different password should be auto-reset when enabled
     user = User(
         email="auto-reset@example.com",
-        hashed_password=_pwd_context.hash("OldSecret!"),
+        hashed_password=_pbkdf2_hash("OldSecret!"),
         full_name="Legacy Admin",
         role="teacher",
         is_active=False,
@@ -167,7 +170,7 @@ def test_bootstrap_auto_resets_when_enabled(db: Session):
     assert user.role == "admin"
     assert user.is_active is True
     assert user.full_name == "System Administrator"
-    assert _pwd_context.verify("NewAuto987!", user.hashed_password)
+    assert verify_password("NewAuto987!", user.hashed_password)
 
     db.refresh(token)
     assert token.revoked is True
@@ -175,7 +178,7 @@ def test_bootstrap_auto_resets_when_enabled(db: Session):
 
 def test_bootstrap_auto_does_not_reset_if_password_matches(db: Session):
     # When the stored password already matches the configured one, AUTO_RESET should not revoke tokens
-    original_hash = _pwd_context.hash("MatchMe123!")
+    original_hash = _pbkdf2_hash("MatchMe123!")
     user = User(
         email="auto-match@example.com",
         hashed_password=original_hash,
@@ -246,7 +249,7 @@ def test_bootstrap_auto_resets_on_verification_error(db: Session):
 
     db.refresh(user)
     # Password should be reset to the configured value
-    assert _pwd_context.verify("Recover123!", user.hashed_password)
+    assert verify_password("Recover123!", user.hashed_password)
 
     db.refresh(token)
     assert token.revoked is True

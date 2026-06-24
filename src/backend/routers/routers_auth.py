@@ -32,7 +32,7 @@ from backend.security.csrf import clear_csrf_cookie, issue_csrf_cookie
 from backend.security.current_user import decode_token, get_current_user
 from backend.security.password_hash import (
     get_password_hash,
-    pwd_context,
+    needs_rehash,
     verify_password,
 )
 
@@ -584,9 +584,9 @@ async def login(
         _reset_throttle_entries(throttle_keys)
         logger.info("Login successful", extra={"user_id": user.id})
 
-        # Auto-rehash password if using deprecated scheme (bcrypt -> pbkdf2_sha256)
+        # Auto-rehash password if using legacy PBKDF2-SHA256 scheme
         try:
-            if pwd_context.needs_update(hashed_pw):
+            if needs_rehash(hashed_pw):
                 user.hashed_password = get_password_hash(payload.password)
                 db.add(user)
                 db.commit()

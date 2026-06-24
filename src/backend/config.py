@@ -210,10 +210,9 @@ class Settings(BaseSettings):
     CSRF_ENFORCE_IN_TESTS: bool = False
 
     # Feature flags
-    # Toggle authentication/authorization enforcement without code changes.
-    # Default disabled to preserve backward compatibility and keep tests passing.
-    AUTH_ENABLED: bool = False
-    AUTH_MODE: Literal["disabled", "permissive", "strict"] = "disabled"
+    # Tests always override these via conftest.py safe_patch; see tests/conftest.py.
+    AUTH_ENABLED: bool = True
+    AUTH_MODE: Literal["disabled", "permissive", "strict"] = "permissive"
     # disabled: No auth checks (legacy mode, same as AUTH_ENABLED=False)
     # permissive: Auth required but authenticated users can access all endpoints regardless of role
     # strict: Full role-based access control enforcement

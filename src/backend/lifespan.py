@@ -83,6 +83,21 @@ def get_lifespan():
                 except Exception:
                     logging.getLogger(__name__).debug("Could not check user count at startup", exc_info=True)
 
+        # Warn about insecure defaults when auth is active
+        _log = logging.getLogger(__name__)
+        if getattr(settings, "AUTH_ENABLED", False):
+            if not getattr(settings, "COOKIE_SECURE", True):
+                _log.warning(
+                    "⚠️  Security: COOKIE_SECURE=False while AUTH_ENABLED=True. "
+                    "Refresh token cookies are sent over HTTP. Set COOKIE_SECURE=True when using HTTPS."
+                )
+            if not getattr(settings, "CSRF_ENABLED", False):
+                _log.warning(
+                    "⚠️  Security: CSRF_ENABLED=False while AUTH_ENABLED=True. "
+                    "Browser-based CSRF attacks are not mitigated. "
+                    "Enable CSRF_ENABLED=True in production if using browser clients."
+                )
+
         # Apply persisted SMTP override so email works without env-var restart
         try:
             from backend.services.smtp_override import load_and_apply as _apply_smtp

@@ -6,14 +6,10 @@ import importlib
 import logging
 from typing import Any, Callable
 
-from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-_pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
-
-
-def _hash_password(password: str) -> str:
-    return _pwd_context.hash(password)
+from backend.security.password_hash import get_password_hash as _hash_password
+from backend.security.password_hash import verify_password as _verify_password
 
 
 def _parse_bool(value: Any) -> bool:
@@ -84,8 +80,7 @@ def ensure_default_admin_account(
         elif auto_reset:
             # If the stored hash doesn't match the desired password, prepare a reset
             try:
-                # Use same hashing context to verify
-                if not _pwd_context.verify(password, getattr(user, "hashed_password", "")):
+                if not _verify_password(password, getattr(user, "hashed_password", "")):
                     hashed_password = _hash_password(password)
             except Exception:
                 # If verification raises (e.g., corrupted/unsupported hash), be slightly
