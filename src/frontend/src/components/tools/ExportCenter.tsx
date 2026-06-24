@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback, type ComponentType }
 import { Link, useLocation } from 'react-router-dom';
 import { useReactToPrint } from 'react-to-print';
 import { Download, FileText, Users, Calendar, Book, TrendingUp, Briefcase, Database, Upload, ChevronDown, ChevronUp, type LucideProps } from 'lucide-react';
+import { Trans } from 'react-i18next';
 import { useLanguage } from '../../LanguageContext';
 import apiClient, { coursesAPI, sessionAPI } from '../../api/api';
 import type { OperationsLocationState } from '@/features/operations/types';
@@ -1074,15 +1075,15 @@ const ExportCenter = ({ variant = 'standalone' }: ExportCenterProps) => {
           <ul className="space-y-2 text-gray-700">
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>
-              <span dangerouslySetInnerHTML={{ __html: t('exportTipExcel') }} />
+              <span><Trans i18nKey="exportTipExcel" components={{ b: <b /> }} /></span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>
-              <span dangerouslySetInnerHTML={{ __html: t('exportTipPDF') }} />
+              <span><Trans i18nKey="exportTipPDF" components={{ b: <b /> }} /></span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>
-              <span dangerouslySetInnerHTML={{ __html: t('exportTipStudentReports') }} />
+              <span><Trans i18nKey="exportTipStudentReports" components={{ b: <b /> }} /></span>
             </li>
             <li className="flex items-start space-x-2">
               <span className="text-indigo-600 font-bold">{t('bullet')}</span>
