@@ -108,6 +108,8 @@ jobs:
 
       - name: Build frontend
         working-directory: ./src/frontend
+        env:
+          VITE_API_URL: http://127.0.0.1:8000/api/v1
         run: npm run build
 
       # FIX 3: Add database initialization

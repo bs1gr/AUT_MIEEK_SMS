@@ -251,40 +251,44 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   const userData = (meJson && (meJson as any).success === false) ? null : ((meJson && (meJson as any).data) || meJson);
   console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
 
-  // Navigate to home first
-  console.log(`🔐 [E2E API LOGIN] Navigating to / to set token and user...`);
+  // Navigate to / before setting the user so AuthContext doesn't trigger a refresh
+  // on this load (no user in localStorage yet → no refresh → cookie stays intact).
+  console.log(`🔐 [E2E API LOGIN] Navigating to / to prepare session...`);
   await page.goto('/');
 
-  // Inject user into localStorage so AuthContext finds it on mount.
-  // The access token is NOT written to localStorage — authService now uses in-memory
-  // storage only. clearLegacyTokens() (called at module init) would remove it anyway.
-  // AuthContext will call refreshAccessToken() via the HttpOnly refresh cookie to
-  // obtain a fresh in-memory token.
-  // No sms_server_url needed: Capacitor.isNativePlatform() returns false in web/CI,
-  // so needsServerSetup() never fires.
+  // Inject user into localStorage so AuthContext finds it on the next page load.
+  // The access token is NOT written here — authService uses in-memory storage only.
+  // The reload below triggers AuthContext to call refreshAccessToken() via the
+  // HttpOnly cookie issued by the login endpoint above.
   console.log(`🔐 [E2E API LOGIN] Injecting user into localStorage...`);
   await page.evaluate(({ user }) => {
     try {
       window.localStorage.setItem('sms_user_v1', JSON.stringify(user));
       console.log('[E2E] User set in localStorage');
-      console.log('[E2E] User:', JSON.stringify(user));
     } catch (e) {
       console.error('[E2E] Failed to set user:', e);
       throw e;
     }
   }, { user: userData });
 
-  // Navigate to dashboard after token is set
-  console.log(`🔐 [E2E API LOGIN] Navigating to /dashboard...`);
-  await page.goto('/dashboard', { waitUntil: 'domcontentloaded' });
-
-  console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
-
-  // Wait for content to load
-  await page.waitForSelector('body', { timeout: 10000 }).catch(() => {
-    console.warn('⚠️  [E2E API LOGIN] Body selector timeout (continuing anyway)');
+  // Set up the response listener BEFORE reloading so we don't miss the refresh response.
+  // After reload, AuthContext mounts with the user, calls refreshAccessToken(), and the
+  // in-memory token is set. We wait here until that exchange completes so the test's
+  // subsequent page.goto('/#/route') is a same-path hash navigation that inherits the
+  // already-authenticated state — no second refresh needed, no race condition.
+  console.log(`🔐 [E2E API LOGIN] Reloading to complete auth initialization...`);
+  const refreshDone = page.waitForResponse(
+    r => r.url().includes('/auth/refresh') && r.ok(),
+    { timeout: 8000 }
+  ).catch(() => {
+    console.warn('⚠️  [E2E API LOGIN] No auth/refresh response captured (non-fatal)');
+    return null;
   });
 
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await refreshDone;
+
+  console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
   console.log(`✅ [E2E API LOGIN] Login complete!`);
 }
 

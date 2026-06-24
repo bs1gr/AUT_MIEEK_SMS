@@ -728,6 +728,8 @@ jobs:
         run: cd src/frontend && npx playwright install --with-deps
 
       - name: Build frontend for E2E
+        env:
+          VITE_API_URL: http://127.0.0.1:8000/api/v1
         run: cd src/frontend && npm run ci:build
 
       - name: Start frontend preview server
