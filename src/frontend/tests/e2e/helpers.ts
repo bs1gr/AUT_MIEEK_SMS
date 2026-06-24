@@ -277,9 +277,12 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   // subsequent page.goto('/#/route') is a same-path hash navigation that inherits the
   // already-authenticated state — no second refresh needed, no race condition.
   console.log(`🔐 [E2E API LOGIN] Reloading to complete auth initialization...`);
+  // Use a 30s window: CI re-downloads the JS bundle on every reload (Cache-Control:
+  // no-store) which can take 7+ seconds before React mounts and calls refreshAccessToken().
+  // Without r.ok() filter so a 401 triggers fast failure rather than a 30s timeout wait.
   const refreshDone = page.waitForResponse(
-    r => r.url().includes('/auth/refresh') && r.ok(),
-    { timeout: 8000 }
+    r => r.url().includes('/auth/refresh'),
+    { timeout: 30000 }
   ).catch(() => {
     console.warn('⚠️  [E2E API LOGIN] No auth/refresh response captured (non-fatal)');
     return null;
