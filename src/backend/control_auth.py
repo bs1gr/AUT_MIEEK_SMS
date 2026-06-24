@@ -177,7 +177,11 @@ async def require_control_admin(request: Request) -> None:
         return
     # Debug: help tests diagnose header presence (DEBUG level to avoid noisy CI logs)
     logger.debug("control_auth: header keys=%s", list(request.headers.keys()))
-    logger.debug("control_auth: header_token=%r env_token=%r", header_token, env_token)
+    logger.debug(
+        "control_auth: header_token=%s env_token=%s",
+        "***" if header_token else "<none>",
+        "***" if env_token else "<none>",
+    )
 
     # If a token is configured, require it for all clients.
     if env_token:
