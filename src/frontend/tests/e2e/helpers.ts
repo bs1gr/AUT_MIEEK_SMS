@@ -251,45 +251,28 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   const userData = (meJson && (meJson as any).success === false) ? null : ((meJson && (meJson as any).data) || meJson);
   console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
 
-  // Navigate to / before setting the user so AuthContext doesn't trigger a refresh
-  // on this load (no user in localStorage yet → no refresh → cookie stays intact).
-  console.log(`🔐 [E2E API LOGIN] Navigating to / to prepare session...`);
+  // Register an init script that runs before React on the NEXT page load.
+  // It sets both the user profile in localStorage AND the access token in a
+  // well-known window global (__sms_initial_token) that authService reads once
+  // on module initialization. This gives AuthContext a fully-authenticated
+  // initial state, so it calls setIsInitializing(false) immediately without
+  // needing to call refreshAccessToken() at all.
+  //
+  // This sidesteps the cookie-based refresh flow which is unreliable in CI:
+  // Cache-Control: no-store forces the full JS bundle to re-download on every
+  // reload, and the /auth/refresh call either times out or never completes
+  // within a bounded window regardless of how long we wait.
+  console.log(`🔐 [E2E API LOGIN] Registering init script to inject auth state...`);
+  await page.addInitScript(
+    ({ user, token }: { user: unknown; token: string }) => {
+      try { window.localStorage.setItem('sms_user_v1', JSON.stringify(user)); } catch { /* ignore */ }
+      (window as unknown as Record<string, unknown>).__sms_initial_token = token;
+    },
+    { user: userData, token },
+  );
+
+  console.log(`🔐 [E2E API LOGIN] Navigating to / (init script fires on load)...`);
   await page.goto('/');
-
-  // Inject user into localStorage so AuthContext finds it on the next page load.
-  // The access token is NOT written here — authService uses in-memory storage only.
-  // The reload below triggers AuthContext to call refreshAccessToken() via the
-  // HttpOnly cookie issued by the login endpoint above.
-  console.log(`🔐 [E2E API LOGIN] Injecting user into localStorage...`);
-  await page.evaluate(({ user }) => {
-    try {
-      window.localStorage.setItem('sms_user_v1', JSON.stringify(user));
-      console.log('[E2E] User set in localStorage');
-    } catch (e) {
-      console.error('[E2E] Failed to set user:', e);
-      throw e;
-    }
-  }, { user: userData });
-
-  // Set up the response listener BEFORE reloading so we don't miss the refresh response.
-  // After reload, AuthContext mounts with the user, calls refreshAccessToken(), and the
-  // in-memory token is set. We wait here until that exchange completes so the test's
-  // subsequent page.goto('/#/route') is a same-path hash navigation that inherits the
-  // already-authenticated state — no second refresh needed, no race condition.
-  console.log(`🔐 [E2E API LOGIN] Reloading to complete auth initialization...`);
-  // Use a 30s window: CI re-downloads the JS bundle on every reload (Cache-Control:
-  // no-store) which can take 7+ seconds before React mounts and calls refreshAccessToken().
-  // Without r.ok() filter so a 401 triggers fast failure rather than a 30s timeout wait.
-  const refreshDone = page.waitForResponse(
-    r => r.url().includes('/auth/refresh'),
-    { timeout: 30000 }
-  ).catch(() => {
-    console.warn('⚠️  [E2E API LOGIN] No auth/refresh response captured (non-fatal)');
-    return null;
-  });
-
-  await page.reload({ waitUntil: 'domcontentloaded' });
-  await refreshDone;
 
   console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
   console.log(`✅ [E2E API LOGIN] Login complete!`);
