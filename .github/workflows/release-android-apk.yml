@@ -99,6 +99,22 @@ jobs:
           npx cap sync android
           echo "✓ Capacitor sync complete"
 
+      - name: Verify capacitor.config.json security settings
+        run: |
+          CONFIG="src/frontend/android/app/src/main/assets/capacitor.config.json"
+          if [ ! -f "$CONFIG" ]; then
+            echo "❌ capacitor.config.json not found after cap sync"
+            exit 1
+          fi
+          CLEARTEXT=$(python3 -c "import json,sys; c=json.load(open('$CONFIG')); print(c.get('server',{}).get('cleartext', False))")
+          MIXED=$(python3 -c "import json,sys; c=json.load(open('$CONFIG')); print(c.get('android',{}).get('allowMixedContent', False))")
+          echo "cleartext=$CLEARTEXT  allowMixedContent=$MIXED"
+          if [ "$CLEARTEXT" = "True" ] || [ "$MIXED" = "True" ]; then
+            echo "❌ SECURITY: capacitor.config.json has insecure settings — cleartext or allowMixedContent is enabled"
+            exit 1
+          fi
+          echo "✓ capacitor.config.json security verified"
+
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:

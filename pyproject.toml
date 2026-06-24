@@ -19,7 +19,7 @@ name = "student-management-system"
 version = "0.1.0"
 description = "A comprehensive student management system"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = "MIT"
 authors = [
   { name = "Your Name", email = "your@email.com" }

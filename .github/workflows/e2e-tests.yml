@@ -73,16 +73,14 @@ jobs:
           echo "minor=$MINOR" >> $GITHUB_OUTPUT
           echo "Playwright version: $VERSION"
 
-      # NOTE: Disabling cache for now due to unreliable restoration in CI
-      # The browser download (~150MB) is faster than debugging cache issues
-      # - name: Cache Playwright browsers
-      #   uses: actions/cache@v5
-      #   with:
-      #     path: ~/.cache/ms-playwright
-      #     key: playwright-${{ runner.os }}-${{ steps.pwver.outputs.version }}
-      #     restore-keys: |
-      #       playwright-${{ runner.os }}-${{ steps.pwver.outputs.minor }}
-      #       playwright-${{ runner.os }}-
+      - name: Cache Playwright browsers
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pwver.outputs.version }}
+          restore-keys: |
+            playwright-${{ runner.os }}-${{ steps.pwver.outputs.minor }}
+            playwright-${{ runner.os }}-
 
       - name: Install backend dependencies
         working-directory: ./src/backend
@@ -92,10 +90,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: ./src/frontend
-        run: |
-          # Clear old Playwright cache to force fresh download with new version
-          rm -rf ~/.cache/ms-playwright node_modules/.cache || true
-          npm ci
+        run: npm ci
 
       - name: Install system dependencies for Playwright
         run: |
@@ -107,33 +102,9 @@ jobs:
       - name: Install Playwright browsers
         working-directory: ./src/frontend
         run: |
-          echo "Installing Playwright chromium browser..."
-          for i in {1..3}; do
-            echo "Attempt $i/3 to install Playwright..."
-            if npx playwright install chromium; then
-              echo "✅ Playwright installed successfully"
-              break
-            fi
-            if [ $i -lt 3 ]; then
-              echo "⚠️  Attempt $i failed, retrying..."
-              sleep 5
-            else
-              echo "❌ Failed to install Playwright after 3 attempts"
-              exit 1
-            fi
-          done
-
-          echo ""
-          echo "Verifying installation..."
+          npx playwright install chromium
+          npx playwright install-deps chromium || echo "⚠️  Some system dependencies may be missing (non-critical)"
           npx playwright --version
-
-          echo ""
-          echo "Checking for chromium executable..."
-          find ~/.cache/ms-playwright -name "chrome-headless-shell*" -o -name "chrome" 2>/dev/null | head -10 || echo "⚠️  Chrome not found, attempting to install dependencies..."
-
-          # Install system dependencies as fallback
-          echo "Installing system dependencies for Playwright..."
-          npx playwright install-deps chromium || echo "⚠️  Some dependencies may be missing (non-critical)"
 
       - name: Build frontend
         working-directory: ./src/frontend

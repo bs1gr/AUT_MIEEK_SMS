@@ -85,6 +85,17 @@ def get_lifespan():
 
         # Warn about insecure defaults when auth is active
         _log = logging.getLogger(__name__)
+        _KNOWN_WEAK_PASSWORDS = {
+            "adminpassword123!", "yoursecurepassword123!", "changeme123!",
+            "password", "admin", "123456", "password123", "password123!",
+            "admin123!", "changeme", "test", "testpassword", "secret",
+        }
+        _admin_pw = str(getattr(settings, "DEFAULT_ADMIN_PASSWORD", "") or "").lower()
+        if _admin_pw and _admin_pw in _KNOWN_WEAK_PASSWORDS:
+            _log.warning(
+                "⚠️  Security: DEFAULT_ADMIN_PASSWORD is a well-known weak value. "
+                "Change it immediately after first login!"
+            )
         if getattr(settings, "AUTH_ENABLED", False):
             if not getattr(settings, "COOKIE_SECURE", True):
                 _log.warning(
