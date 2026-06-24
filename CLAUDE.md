@@ -1,6 +1,6 @@
 # CLAUDE.md — Student Management System
 
-**Version**: v1.18.30 (always verify from `VERSION` file)
+**Version**: v1.18.32 (always verify from `VERSION` file)
 **Date**: June 2026
 **Project**: Bilingual (EN/EL) student management system for ΜΙΕΕΚ Cyprus technical college
 **Mode**: Solo developer + AI assistant (no external stakeholders — owner decides all)

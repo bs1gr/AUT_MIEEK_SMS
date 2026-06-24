@@ -81,7 +81,7 @@ def get_lifespan():
                     finally:
                         session.close()
                 except Exception:
-                    pass
+                    logging.getLogger(__name__).debug("Could not check user count at startup", exc_info=True)
 
         # Apply persisted SMTP override so email works without env-var restart
         try:

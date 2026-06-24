@@ -54,7 +54,7 @@ def _build_database_target_evidence() -> dict:
                 db_name = parsed.path.lstrip("/") or db_name
                 details["driver"] = parsed.scheme
             except Exception:
-                pass
+                logging.getLogger(__name__).debug("Could not parse DATABASE_URL for db info", exc_info=True)
 
         details["host"] = host
         details["port"] = port
@@ -341,7 +341,7 @@ def _register_root_endpoints(app: FastAPI, version: str):
                 response.headers["Expires"] = "0"
                 return response
         except Exception:
-            pass
+            logging.getLogger(__name__).debug("Could not serve frontend index.html, falling back to API metadata", exc_info=True)
         return _api_metadata()
 
     @app.get("/api")

@@ -3,6 +3,9 @@ import authService from '@/services/authService';
 import apiClient, { controlApiClient } from '@/api/api';
 import { getItem, setItem, removeItem } from '@/utils/appStorage';
 
+// Clean up legacy localStorage token keys from older versions.
+authService.clearLegacyTokens?.();
+
 // Environment-driven flags (resolved at build time via Vite)
 const env = (import.meta as { env?: Record<string, string | undefined> }).env || {};
 const AUTO_LOGIN_ENABLED = (() => {
@@ -109,14 +112,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     autoLoginAttemptedRef.current = true;
 
-    // If user exists but no token, reset to logged-out state to avoid 401s.
+    // If user is in localStorage but no in-memory token, attempt a silent
+    // refresh via the HttpOnly cookie. On success the user stays logged in;
+    // on failure (expired/revoked cookie) we clear the stale user profile.
     if (initialUserRef.current && !initialAccessTokenRef.current) {
-      setUser(null);
-      try { removeItem(LOCAL_USER_KEY); } catch {}
-      setIsInitializing(false);
+      authService.refreshAccessToken().then((token) => {
+        if (!token) {
+          setUser(null);
+          try { removeItem(LOCAL_USER_KEY); } catch {}
+        } else {
+          setAccessTokenState(token);
+        }
+      }).catch(() => {
+        setUser(null);
+        try { removeItem(LOCAL_USER_KEY); } catch {}
+      }).finally(() => {
+        setIsInitializing(false);
+      });
       return;
     } else if (initialUserRef.current && initialAccessTokenRef.current) {
-      // User and token exist - finish init
+      // In-memory token already set (e.g. same-tab navigation) — finish init.
       setIsInitializing(false);
       return;
     }

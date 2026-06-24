@@ -43,7 +43,7 @@ concurrency:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: 'true'
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.13'
   NODE_VERSION: '22'  # LTS version with broad compatibility
   DOCKER_REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}  # Use repository name for image
@@ -642,7 +642,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.13'
           cache: 'pip'
           cache-dependency-path: src/backend/requirements*.txt
 
