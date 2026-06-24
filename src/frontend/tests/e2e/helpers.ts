@@ -252,21 +252,17 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
 
   // Register an init script that runs before React on the NEXT page load.
-  // It sets both the user profile in localStorage AND the access token in a
-  // well-known window global (__sms_initial_token) that authService reads once
-  // on module initialization. This gives AuthContext a fully-authenticated
-  // initial state, so it calls setIsInitializing(false) immediately without
-  // needing to call refreshAccessToken() at all.
-  //
-  // This sidesteps the cookie-based refresh flow which is unreliable in CI:
-  // Cache-Control: no-store forces the full JS bundle to re-download on every
-  // reload, and the /auth/refresh call either times out or never completes
-  // within a bounded window regardless of how long we wait.
+  // It sets the user profile in localStorage (sms_user_v1) AND the access
+  // token in a special localStorage key (_sms_e2e_token) that authService
+  // reads once on module initialization and immediately deletes.  This gives
+  // AuthContext a fully-authenticated initial state so setIsInitializing(false)
+  // is called without triggering the cookie-based refreshAccessToken() flow,
+  // which is unreliable in CI.
   console.log(`🔐 [E2E API LOGIN] Registering init script to inject auth state...`);
   await page.addInitScript(
     ({ user, token }: { user: unknown; token: string }) => {
       try { window.localStorage.setItem('sms_user_v1', JSON.stringify(user)); } catch { /* ignore */ }
-      (window as unknown as Record<string, unknown>).__sms_initial_token = token;
+      try { window.localStorage.setItem('_sms_e2e_token', token); } catch { /* ignore */ }
     },
     { user: userData, token },
   );
