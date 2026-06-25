@@ -520,7 +520,9 @@ if (-not $SkipDocs) {
         'README.md','CHANGELOG.md','LICENSE','CONTRIBUTING.md','CODE_OF_CONDUCT.md',
         'DOCUMENTATION_INDEX.md',
         'QUICK_RELEASE_GUIDE.md',
-        'SECURITY_AUDIT_SUMMARY.md'
+        'SECURITY_AUDIT_SUMMARY.md',
+        'CLAUDE.md',   # Claude Code project instructions — must stay at repo root
+        'AGENTS.md'    # Agent instructions — must stay at repo root
     )
 
     # Pattern-based movers from root → docs/
