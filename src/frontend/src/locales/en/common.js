@@ -501,12 +501,12 @@ export default {
     subtitle: 'Enter the URL of your SMS server to get started',
     selectTitle: 'Choose Connection Type',
     selectSubtitle: 'How do you want to connect to the SMS server?',
-    // QNAP
-    qnapTitle: 'QNAP NAS',
-    qnapSubtitle: 'QNAP NAS running SMS via Docker',
-    qnapLabel: 'NAS IP Address',
-    qnapPlaceholder: '192.168.1.100',
-    qnapHint: 'Port 8080 is added automatically (Docker default)',
+    // Tailscale
+    tailscaleTitle: 'Tailscale VPN',
+    tailscaleSubtitle: 'Remote access via Tailscale mesh VPN',
+    tailscaleLabel: 'Tailscale IP Address',
+    tailscalePlaceholder: '100.x.x.x',
+    tailscaleHint: 'Find the Tailscale IP of the SMS server in the Tailscale app (100.x.x.x range)',
     // Local
     localTitle: 'Local Network',
     localSubtitle: 'PC or server on your Wi-Fi',

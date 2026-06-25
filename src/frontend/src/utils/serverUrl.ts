@@ -5,7 +5,7 @@ const SERVER_URL_KEY = 'sms_server_url';
 const SERVER_TYPE_KEY = 'sms_server_type';
 const LOCAL_MODE_KEY = 'sms_local_mode';
 
-export type ServerType = 'qnap' | 'local' | 'cloud' | 'custom' | 'offline';
+export type ServerType = 'tailscale' | 'local' | 'cloud' | 'custom' | 'offline';
 
 export function getServerType(): ServerType | null {
   try {

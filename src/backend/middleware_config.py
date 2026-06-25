@@ -37,8 +37,13 @@ def register_middlewares(app):
     except Exception as e:
         logging.warning(f"ResponseStandardizationMiddleware registration failed: {e}")
     # CORS middleware
+    # capacitor://localhost is the WebView origin for Capacitor Android apps.
+    # It must be present in all modes so the Android APK can reach any backend.
+    cors_origins = settings.CORS_ORIGINS_LIST
+    if "capacitor://localhost" not in cors_origins:
+        cors_origins = cors_origins + ["capacitor://localhost"]
     cors_kwargs = {
-        "allow_origins": settings.CORS_ORIGINS_LIST,
+        "allow_origins": cors_origins,
         "allow_credentials": True,
         "allow_methods": ["*"],
         "allow_headers": ["*"],

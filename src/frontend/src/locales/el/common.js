@@ -500,12 +500,12 @@ export default {
     subtitle: 'Εισάγετε τη διεύθυνση URL του διακομιστή SMS για να ξεκινήσετε',
     selectTitle: 'Επιλογή Τύπου Σύνδεσης',
     selectSubtitle: 'Πώς θέλετε να συνδεθείτε στον διακομιστή SMS;',
-    // QNAP
-    qnapTitle: 'QNAP NAS',
-    qnapSubtitle: 'QNAP NAS με SMS μέσω Docker',
-    qnapLabel: 'IP Διεύθυνση NAS',
-    qnapPlaceholder: '192.168.1.100',
-    qnapHint: 'Η θύρα 8080 προστίθεται αυτόματα (προεπιλογή Docker)',
+    // Tailscale
+    tailscaleTitle: 'Tailscale VPN',
+    tailscaleSubtitle: 'Απομακρυσμένη πρόσβαση μέσω Tailscale VPN',
+    tailscaleLabel: 'IP Διεύθυνση Tailscale',
+    tailscalePlaceholder: '100.x.x.x',
+    tailscaleHint: 'Βρείτε την IP Tailscale του διακομιστή SMS στην εφαρμογή Tailscale (σειρά 100.x.x.x)',
     // Τοπικό δίκτυο
     localTitle: 'Τοπικό Δίκτυο',
     localSubtitle: 'Υπολογιστής ή διακομιστής στο Wi-Fi σας',

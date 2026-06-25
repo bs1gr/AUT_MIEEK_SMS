@@ -8,12 +8,15 @@ type Step = 'select' | 'configure';
 
 // ── SVG icons ──────────────────────────────────────────────────────────────
 
-function IconQnap() {
+function IconTailscale() {
   return (
     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-      <rect x="2" y="3" width="20" height="14" rx="2" strokeLinejoin="round" />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h2M6 11h2M10 7h2M10 11h2M16 7v4M18 9h-4" />
-      <path strokeLinecap="round" d="M8 17v4M16 17v4M5 21h14" />
+      <circle cx="12" cy="12" r="3" />
+      <circle cx="4"  cy="4"  r="1.5" />
+      <circle cx="20" cy="4"  r="1.5" />
+      <circle cx="4"  cy="20" r="1.5" />
+      <circle cx="20" cy="20" r="1.5" />
+      <path strokeLinecap="round" d="M5.06 5.06L9.88 9.88M14.12 14.12L18.94 18.94M18.94 5.06L14.12 9.88M9.88 14.12L5.06 18.94" />
     </svg>
   );
 }
@@ -71,11 +74,11 @@ interface CardOption {
 }
 
 const CARD_OPTIONS: CardOption[] = [
-  { type: 'qnap',    icon: <IconQnap />,    color: 'text-green-600 dark:text-green-400',  bgColor: 'bg-green-50 dark:bg-green-900/30' },
-  { type: 'local',   icon: <IconWifi />,    color: 'text-blue-600 dark:text-blue-400',    bgColor: 'bg-blue-50 dark:bg-blue-900/30' },
-  { type: 'cloud',   icon: <IconCloud />,   color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/30' },
-  { type: 'custom',  icon: <IconEdit />,    color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30' },
-  { type: 'offline', icon: <IconOffline />, color: 'text-gray-600 dark:text-gray-400',    bgColor: 'bg-gray-100 dark:bg-gray-700/50' },
+  { type: 'tailscale', icon: <IconTailscale />, color: 'text-green-600 dark:text-green-400',  bgColor: 'bg-green-50 dark:bg-green-900/30' },
+  { type: 'local',     icon: <IconWifi />,      color: 'text-blue-600 dark:text-blue-400',    bgColor: 'bg-blue-50 dark:bg-blue-900/30' },
+  { type: 'cloud',     icon: <IconCloud />,     color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/30' },
+  { type: 'custom',    icon: <IconEdit />,      color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30' },
+  { type: 'offline',   icon: <IconOffline />,   color: 'text-gray-600 dark:text-gray-400',    bgColor: 'bg-gray-100 dark:bg-gray-700/50' },
 ];
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -114,7 +117,7 @@ export default function ServerSetupPage() {
       return;
     }
     setSelectedType(type);
-    if (type === 'local') setPort('8000');
+    if (type === 'local' || type === 'tailscale') setPort('8000');
     resetStatus();
     setStep('configure');
   };
@@ -122,8 +125,7 @@ export default function ServerSetupPage() {
   const buildUrl = (): string => {
     const trimIp = ip.trim();
     switch (selectedType) {
-      case 'qnap':
-        return `http://${trimIp}:8080/api/v1`;
+      case 'tailscale':
       case 'local':
         return `http://${trimIp}:${port.trim() || '8000'}/api/v1`;
       case 'cloud': {
@@ -139,7 +141,7 @@ export default function ServerSetupPage() {
 
   const isInputReady = (): boolean => {
     switch (selectedType) {
-      case 'qnap':
+      case 'tailscale':
       case 'local':
         return ip.trim().length > 0;
       case 'cloud':
@@ -295,12 +297,12 @@ export default function ServerSetupPage() {
         {/* Form card */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
 
-          {/* QNAP */}
-          {selectedType === 'qnap' && (
+          {/* Tailscale */}
+          {selectedType === 'tailscale' && (
             <div className="space-y-3">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  {t('common.serverSetup.qnapLabel')}
+                  {t('common.serverSetup.tailscaleLabel')}
                 </label>
                 <input
                   type="text"
@@ -308,19 +310,34 @@ export default function ServerSetupPage() {
                   value={ip}
                   onChange={e => { setIp(e.target.value); resetStatus(); }}
                   onKeyDown={e => e.key === 'Enter' && void handleConnect()}
-                  placeholder={t('common.serverSetup.qnapPlaceholder')}
+                  placeholder={t('common.serverSetup.tailscalePlaceholder')}
                   className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
                   autoCapitalize="off" autoCorrect="off" spellCheck={false}
                   disabled={status === 'testing'}
                 />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  {t('common.serverSetup.localPortLabel')}
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={port}
+                  onChange={e => { setPort(e.target.value); resetStatus(); }}
+                  onKeyDown={e => e.key === 'Enter' && void handleConnect()}
+                  placeholder="8000"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm font-mono"
+                  disabled={status === 'testing'}
+                />
                 <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
-                  {t('common.serverSetup.qnapHint')}
+                  {t('common.serverSetup.tailscaleHint')}
                 </p>
               </div>
               {ip.trim() && (
                 <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                   <p className="text-xs text-gray-500 dark:text-gray-400 font-mono break-all">
-                    {`→ http://${ip.trim()}:8080/api/v1`}
+                    {`→ http://${ip.trim()}:${port.trim() || '8000'}/api/v1`}
                   </p>
                 </div>
               )}
