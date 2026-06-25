@@ -161,14 +161,12 @@ export default defineConfig(({ mode }) => {
       output: {
         // Optimize chunk splitting for better caching
         manualChunks(id) {
+          // App code is NOT manually chunked — routes.ts uses lazy() dynamic imports
+          // which create natural split boundaries without circular dependencies.
+          // Per-feature named chunks caused circular chunk deps (dashboard ↔ students
+          // ↔ attendance ↔ grading), making Rollup emit a TDZ that prevented React
+          // from mounting ("Cannot access 'l' before initialization").
           if (!id.includes('node_modules')) {
-            // Split application code by feature
-            if (id.includes('/features/students/')) return 'features-students';
-            if (id.includes('/features/courses/')) return 'features-courses';
-            if (id.includes('/features/grading/')) return 'features-grading';
-            if (id.includes('/features/attendance/')) return 'features-attendance';
-            if (id.includes('/features/dashboard/')) return 'features-dashboard';
-            if (id.includes('/features/calendar/')) return 'features-calendar';
             return undefined;
           }
 
