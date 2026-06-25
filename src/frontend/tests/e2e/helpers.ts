@@ -251,46 +251,45 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   const userData = (meJson && (meJson as any).success === false) ? null : ((meJson && (meJson as any).data) || meJson);
   console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
 
-  // Navigate to the app to establish the origin so localStorage is accessible.
-  console.log(`🔐 [E2E API LOGIN] Navigating to / to establish origin...`);
-  await page.goto('/');
-  console.log(`🔐 [E2E API LOGIN] Current URL after goto: ${page.url()}`);
-
-  // Inject auth state into localStorage NOW (after page scripts have executed,
-  // so there is no race with authService's IIFE). authService reads
-  // _sms_e2e_token once at module-init time and immediately deletes it,
-  // so the key must be present when the module first loads — i.e. on the
-  // NEXT full navigation (the reload below).
-  console.log(`🔐 [E2E API LOGIN] Injecting auth state into localStorage...`);
-  await page.evaluate(
+  // addInitScript fires at document_start — before ANY page script runs, including
+  // the authService module IIFE. This guarantees _sms_e2e_token is in localStorage
+  // when authService.ts initialises and reads it.
+  console.log(`🔐 [E2E API LOGIN] Registering init script...`);
+  await page.addInitScript(
     ({ user, token: t }: { user: unknown; token: string }) => {
       try { window.localStorage.setItem('sms_user_v1', JSON.stringify(user)); } catch { /* ignore */ }
       try { window.localStorage.setItem('_sms_e2e_token', t); } catch { /* ignore */ }
     },
     { user: userData, token },
   );
-  console.log(`🔐 [E2E API LOGIN] localStorage injected — reloading so authService reads the token...`);
 
-  // Reload the page. localStorage persists across reloads (same origin).
-  // authService's IIFE now finds _sms_e2e_token → sets _token → deletes the key.
-  // AuthContext sees user (from sms_user_v1) AND an in-memory token, so it
-  // takes the fast path: setIsInitializing(false) without calling refreshAccessToken().
-  await page.reload({ waitUntil: 'load' });
+  // Navigate to the app. The init script fires at document_start, before the
+  // JS bundle executes. authService's IIFE reads _sms_e2e_token, sets _token,
+  // and deletes the key. AuthContext sees both user AND token → fast path:
+  // setIsInitializing(false) without calling refreshAccessToken().
+  // AuthPage (route "/") then redirects to "/#/dashboard".
+  console.log(`🔐 [E2E API LOGIN] Navigating to /...`);
+  await page.goto('/');
+  console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
 
-  console.log(`🔐 [E2E API LOGIN] Page reloaded. Current URL: ${page.url()}`);
-
-  // Diagnostic: check whether the IIFE consumed the token and whether React mounted.
-  const diagAfterReload = await page.evaluate(() => ({
+  // Diagnostic: confirm the IIFE consumed the token and React is mounted.
+  const diag = await page.evaluate(() => ({
     e2eTokenConsumed: !window.localStorage.getItem('_sms_e2e_token'),
     userInStorage: !!window.localStorage.getItem('sms_user_v1'),
     bodyBg: window.getComputedStyle(document.body).backgroundColor,
     rootChildCount: document.getElementById('root')?.childElementCount ?? -1,
-    rootHTML: (document.getElementById('root')?.innerHTML ?? '').substring(0, 300),
   }));
-  console.log(`🔐 [E2E API LOGIN] DIAG e2eToken consumed: ${diagAfterReload.e2eTokenConsumed}, user in storage: ${diagAfterReload.userInStorage}`);
-  console.log(`🔐 [E2E API LOGIN] DIAG body bg: ${diagAfterReload.bodyBg}, root children: ${diagAfterReload.rootChildCount}`);
-  console.log(`🔐 [E2E API LOGIN] DIAG root HTML: ${diagAfterReload.rootHTML}`);
+  console.log(`🔐 [E2E API LOGIN] DIAG token consumed=${diag.e2eTokenConsumed}, user=${diag.userInStorage}, bg=${diag.bodyBg}, rootChildren=${diag.rootChildCount}`);
 
+  // Wait for auth to fully resolve: AuthPage redirects to /dashboard once the
+  // user+token are both present and isInitializing becomes false.
+  // If the redirect happens we know auth is complete; otherwise 8s is generous.
+  console.log(`🔐 [E2E API LOGIN] Waiting for auth redirect to /#/dashboard...`);
+  await page.waitForURL(/\/dashboard/, { timeout: 8000 }).catch(() => {
+    console.warn(`⚠️  [E2E API LOGIN] No dashboard redirect after 8s — URL: ${page.url()}`);
+  });
+
+  console.log(`🔐 [E2E API LOGIN] Final URL: ${page.url()}`);
   console.log(`✅ [E2E API LOGIN] Login complete!`);
 }
 
