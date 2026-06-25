@@ -1,34 +1,65 @@
 # Unified Work Plan - Student Management System
 
 **Current Version**: 1.18.32
-**Last Updated**: June 23, 2026
-**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 20 post-release commits on main | CI GREEN**
+**Last Updated**: June 25, 2026
+**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 49 post-release commits on main | CI GREEN (84 passed, 43 skipped, 0 failed)**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.32
+**Current Phase**: Active Development | Post-v1.18.32 → v1.18.33 candidate
 **Current Branch**: `main`
 
 ---
 
-## 📋 Post-v1.18.32 Accumulation (June 21–23, 2026)
+## 📋 Post-v1.18.32 Accumulation (June 21–25, 2026)
 
-**Status**: 🔄 UNRELEASED | 20 commits on `main` since tag `v1.18.32` | ✅ CI GREEN
+**Status**: 🔄 UNRELEASED | 49 commits on `main` since tag `v1.18.32` | ✅ CI GREEN
+
+### June 25 — E2E + Build fixes (this session)
 
 | Hash | Area | Description |
 |------|------|-------------|
-| `2629a2b91` | Fix | local-mode: clear broken state on SW restore failure + 10s activation timeout |
-| `31cbd1808` | Android | Security hardening: cleartext scoped, allowBackup=false, allowMixedContent=false, minification on, version 1.18.32, ProGuard rules |
-| `bceacc657` | Chore | Untrack 6 runtime/stale test files; fix gitignore for post-reorganization paths; delete 48 commit_ready logs |
-| `20ec8e44f` | E2E | Add data-testid="submit-student" to EditStudentModal (fixes "should edit an existing student") |
-| `89a37c311` | E2E | Add data-testids to StudentForm + fix curl exit code 7 in e2e-tests.yml |
+| `c38bd964c` | E2E/Security | Remove `sms-e2e-login` production backdoor; use `addInitScript`+cookie auth |
+| `86d02f30d` | Build | Remove per-feature `manualChunks` — eliminated circular-chunk Rollup TDZ |
+| `dba81dc44` | E2E | Add `pageerror`/DOM diagnostics to `loginViaAPI` for CI debugging |
+| `d706b462b` | Fix | Revert IIFE from `authService._token` (was causing Rollup TDZ) |
+| `94a7ac472` | E2E | (Superseded by c38bd964c) sms-e2e-login event approach |
+
+### June 24 — Security audit follow-up
+
+| Hash | Area | Description |
+|------|------|-------------|
+| `a3a9cfa14` | CI | Resolve 3 CI failures from security-audit auth defaults change |
+| `68a4ffbc6` | Security | Replace dangerouslySetInnerHTML with Trans in ExportCenter |
+| `439a1777d` | Security | Add CSP + HSTS headers, mask admin token in debug log |
+| `71a2ad750` | Security | Sync pyproject.toml deps, clear exempt-email defaults, SSLMODE warning |
+| `c030ed0eb` | CI+Security | Playwright cache restored, capacitor gate, weak-pw warn, py3.13 floor |
+| `5d8088211` | Security | bcrypt migration, secure auth defaults, deps pinned, aioredis removed |
+| `e7252c050` | Security | CI Python version, token storage in-memory only, exception logging |
+
+### June 23 — CI/CD audit + Android security
+
+| Hash | Area | Description |
+|------|------|-------------|
+| `abf994389` | CI | Resolve CI/CD audit BLOCKERs, HIGH, and MEDIUM findings |
+| `7636e895f` | Release | Add Android APK to release pipeline |
+| `2629a2b91` | Fix | local-mode: clear broken state on SW restore failure + activation timeout |
+| `31cbd1808` | Android | Security hardening: cleartext scoped, allowBackup=false, minification on |
+| `bceacc657` | Chore | Untrack runtime files + stale test artifacts; fix gitignore |
+| `20ec8e44f` | E2E | Add data-testid="submit-student" to EditStudentModal |
+| `89a37c311` | E2E | Add missing data-testids to StudentForm + fix curl exit code |
 | `b16445a86` | E2E | Unskip student edit + delete tests; fix window.confirm handler |
-| `84bc253e6` | Lint | Remove debug console.log from LoginWidget; fix 6 i18n warnings in ServerSetupPage |
-| `e741358b4` | E2E | Replace networkidle→load in loginViaUI + all critical-flows tests |
-| `e0cfad4dd` | E2E | Remove sms_server_url injection (broke getApiBaseUrl() in loginViaUI) |
-| `953aaca9f` | Fix | Use Capacitor.isNativePlatform() — eliminate 3s init delay in CI + fix analytics E2E |
-| `4f11d6d7c` | E2E | Fix ServerGuard redirect: inject sms_server_url in loginViaAPI + loginViaUI |
-| `27751eac4` | E2E | Always render analytics summary cards; fix loginViaUI HashRouter nav |
-| `01a4b6796` | Tests | Fix 7 Vitest test failures from Android commit (apiClient + appStorage) |
+| `84bc253e6` | Lint | Remove debug console.log + fix i18n warnings in ServerSetupPage |
+| `e741358b4` | E2E | Replace networkidle with load in loginViaUI and critical-flows |
+| `e0cfad4dd` | E2E | Remove sms_server_url injection from loginViaUI and loginViaAPI |
+| `953aaca9f` | Fix | Use Capacitor.isNativePlatform() to eliminate 3s init delay in CI |
+| `4f11d6d7c` | E2E | Fix ServerGuard redirect: set sms_server_url in localStorage |
+| `27751eac4` | E2E | Always render analytics summary cards; fix loginViaUI nav |
+| `01a4b6796` | Tests | Fix 7 CI failures caused by Android standalone commit |
 | `cdff5f586` | Android | Standalone local mode + fix mobile API calls |
+
+### June 21 — Docs + Installer fixes
+
+| Hash | Area | Description |
+|------|------|-------------|
 | `e46c130db` | Docs | Register academic monographs in DOCUMENTATION_INDEX |
 | `9471125d4` | Docs | Refine bilingual academic monograph (EN/EL final merge) |
 | `ccf4a1217` | Docs | Add bilingual EN/EL academic monograph for CS community presentation |
@@ -37,9 +68,9 @@
 | `9c03580e0` | Installer | Resolve PROJECT_ROOT to install dir when run from installer root |
 | `0047e0308` | Project | Restore CLAUDE.md to project root |
 
-**Notable**: Installer Docker path fixes, Android standalone mode, full E2E suite stability, Android security hardening, and local-mode SW reliability make this a strong v1.18.33 candidate when ready.
+**Notable**: Deep security audit (20+ findings), Android standalone mode, installer Docker path fixes, E2E auth TDZ fix, and full E2E suite stability (84 passing) make this a strong v1.18.33 candidate.
 
-**Security action required**: Keystore password `SmsRelease2024!` was committed in a prior version of this file and remains in git history. Rotate the Android signing keystore before the next public release.
+**Security action required before release**: Android signing keystore password `SmsRelease2024!` appeared in git history. Rotate the keystore before the next public release — generate a new keystore and update the CI secret `ANDROID_KEYSTORE_BASE64`.
 
 ---
 
