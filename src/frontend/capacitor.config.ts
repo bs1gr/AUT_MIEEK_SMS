@@ -5,13 +5,13 @@ const config: CapacitorConfig = {
   appName: 'SMS — ΜΙΕΕΚ',
   webDir: 'dist',
   server: {
-    // HTTPS required for production. HTTP exceptions are handled per-domain
-    // in android/app/src/main/res/xml/network_security_config.xml.
+    // App is served from https://localhost but backend connections use plain HTTP
+    // (Tailscale and LAN). Mixed content and cleartext must be allowed here.
     androidScheme: 'https',
-    cleartext: false,
+    cleartext: true,
   },
   android: {
-    allowMixedContent: false,
+    allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: false,
   },

@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
-    <!-- Block cleartext HTTP by default (Android 9+ already does this, but explicit is better) -->
-    <base-config cleartextTrafficPermitted="false">
+    <!-- Allow cleartext HTTP globally: this app connects to private networks (Tailscale VPN,
+         LAN) where HTTP is acceptable — Tailscale encrypts the tunnel at the OS level. -->
+    <base-config cleartextTrafficPermitted="true">
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>
     </base-config>
 
-    <!-- Allow cleartext HTTP only for known local/development destinations -->
+    <!-- Allow cleartext HTTP for all private/VPN destinations.
+         Tailscale (100.x.x.x), LAN (192.168.x.x), and localhost all use HTTP.
+         Tailscale itself encrypts the tunnel, so cleartext at the app layer is safe. -->
     <domain-config cleartextTrafficPermitted="true">
         <!-- Android emulator host -->
         <domain includeSubdomains="false">10.0.2.2</domain>
