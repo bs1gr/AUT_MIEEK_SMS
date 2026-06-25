@@ -251,26 +251,33 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   const userData = (meJson && (meJson as any).success === false) ? null : ((meJson && (meJson as any).data) || meJson);
   console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
 
-  // Register an init script that runs before React on the NEXT page load.
-  // It sets the user profile in localStorage (sms_user_v1) AND the access
-  // token in a special localStorage key (_sms_e2e_token) that authService
-  // reads once on module initialization and immediately deletes.  This gives
-  // AuthContext a fully-authenticated initial state so setIsInitializing(false)
-  // is called without triggering the cookie-based refreshAccessToken() flow,
-  // which is unreliable in CI.
-  console.log(`🔐 [E2E API LOGIN] Registering init script to inject auth state...`);
-  await page.addInitScript(
-    ({ user, token }: { user: unknown; token: string }) => {
+  // Navigate to the app to establish the origin so localStorage is accessible.
+  console.log(`🔐 [E2E API LOGIN] Navigating to / to establish origin...`);
+  await page.goto('/');
+  console.log(`🔐 [E2E API LOGIN] Current URL after goto: ${page.url()}`);
+
+  // Inject auth state into localStorage NOW (after page scripts have executed,
+  // so there is no race with authService's IIFE). authService reads
+  // _sms_e2e_token once at module-init time and immediately deletes it,
+  // so the key must be present when the module first loads — i.e. on the
+  // NEXT full navigation (the reload below).
+  console.log(`🔐 [E2E API LOGIN] Injecting auth state into localStorage...`);
+  await page.evaluate(
+    ({ user, token: t }: { user: unknown; token: string }) => {
       try { window.localStorage.setItem('sms_user_v1', JSON.stringify(user)); } catch { /* ignore */ }
-      try { window.localStorage.setItem('_sms_e2e_token', token); } catch { /* ignore */ }
+      try { window.localStorage.setItem('_sms_e2e_token', t); } catch { /* ignore */ }
     },
     { user: userData, token },
   );
+  console.log(`🔐 [E2E API LOGIN] localStorage injected — reloading so authService reads the token...`);
 
-  console.log(`🔐 [E2E API LOGIN] Navigating to / (init script fires on load)...`);
-  await page.goto('/');
+  // Reload the page. localStorage persists across reloads (same origin).
+  // authService's IIFE now finds _sms_e2e_token → sets _token → deletes the key.
+  // AuthContext sees user (from sms_user_v1) AND an in-memory token, so it
+  // takes the fast path: setIsInitializing(false) without calling refreshAccessToken().
+  await page.reload({ waitUntil: 'load' });
 
-  console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
+  console.log(`🔐 [E2E API LOGIN] Page reloaded. Current URL: ${page.url()}`);
   console.log(`✅ [E2E API LOGIN] Login complete!`);
 }
 
