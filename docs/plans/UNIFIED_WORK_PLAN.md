@@ -70,7 +70,7 @@
 
 **Notable**: Deep security audit (20+ findings), Android standalone mode, installer Docker path fixes, E2E auth TDZ fix, and full E2E suite stability (84 passing) make this a strong v1.18.33 candidate.
 
-**Security action required before release**: Android signing keystore password `SmsRelease2024!` appeared in git history. Rotate the keystore before the next public release — generate a new keystore and update the CI secret `ANDROID_KEYSTORE_BASE64`.
+**Security action COMPLETED (2026-06-25)**: Android signing keystore rotated. New PKCS12 keystore generated (RSA-2048, 10 000-day validity, alias `sms-release`). GitHub secrets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, and `ANDROID_KEY_ALIAS` all updated. Old `SmsRelease2024!` password is now dead. ⚠️ First APK release after this rotation requires reinstall on existing devices (different signing certificate).
 
 ---
 
