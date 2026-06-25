@@ -254,70 +254,32 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   // addInitScript fires at document_start — before ANY page script runs, including
   // the authService module IIFE. This guarantees _sms_e2e_token is in localStorage
   // when authService.ts initialises and reads it.
-  console.log(`🔐 [E2E API LOGIN] Registering init script...`);
-  await page.addInitScript(
-    ({ user, token: t }: { user: unknown; token: string }) => {
-      try { window.localStorage.setItem('sms_user_v1', JSON.stringify(user)); } catch { /* ignore */ }
-      try { window.localStorage.setItem('_sms_e2e_token', t); } catch { /* ignore */ }
-      try { (window as any).__sms_init_fired = Date.now(); } catch { /* ignore */ }
+  // Navigate to the app WITHOUT addInitScript. Setting sms_user_v1 in localStorage
+  // before the JS bundle executes triggers a TDZ bug in the production Rollup bundle
+  // ("Cannot access 'l' before initialization") that prevents React from mounting.
+  // Instead, let the page load cleanly, then inject auth state via a custom event.
+  // AuthContext listens for 'sms-e2e-login' and updates user + token state directly.
+  console.log(`🔐 [E2E API LOGIN] Navigating to / (no init script)...`);
+  await page.goto('/', { waitUntil: 'domcontentloaded' });
+  console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
+
+  // Wait for React to mount (app-shell or root child means React rendered).
+  console.log(`🔐 [E2E API LOGIN] Waiting for React to mount...`);
+  await page.waitForSelector('#root > *', { timeout: 10000 });
+  console.log(`🔐 [E2E API LOGIN] React mounted ✓`);
+
+  // Inject auth state via custom event. AuthContext's 'sms-e2e-login' handler
+  // calls setUser, setAccessTokenState, and setIsInitializing(false).
+  console.log(`🔐 [E2E API LOGIN] Dispatching sms-e2e-login event...`);
+  await page.evaluate(
+    ({ user: u, token: t }: { user: unknown; token: string }) => {
+      window.dispatchEvent(new CustomEvent('sms-e2e-login', { detail: { user: u, token: t } }));
     },
     { user: userData, token },
   );
 
-  // Capture page errors (JS runtime errors) and CSP violations.
-  const pageErrors: string[] = [];
-  const cspViolations: string[] = [];
-  const pageErrorHandler = (err: Error) => pageErrors.push(err.message.substring(0, 300));
-  const consoleHandler = (msg: import('@playwright/test').ConsoleMessage) => {
-    const t = msg.text();
-    if (t.toLowerCase().includes('content security policy') || t.toLowerCase().includes('csp') || t.toLowerCase().includes('refused to')) {
-      cspViolations.push(t.substring(0, 300));
-    }
-  };
-  page.on('pageerror', pageErrorHandler);
-  page.on('console', consoleHandler);
-
-  // Intercept asset responses and the main document's CSP header.
-  const assetLog: string[] = [];
-  let mainDocCsp = 'unknown';
-  const responseHandler = (response: import('@playwright/test').Response) => {
-    const url = response.url();
-    if (url === `${getApiBase()}/` || url === 'http://127.0.0.1:8000/') {
-      mainDocCsp = response.headers()['content-security-policy'] || 'none';
-    }
-    if (url.includes('/assets/') || (url.includes('.js') && !url.includes('/api/'))) {
-      const ct = (response.headers()['content-type'] || '?').split(';')[0];
-      assetLog.push(`${response.status()} ${ct} ${url.split('/').pop()}`);
-    }
-  };
-  page.on('response', responseHandler);
-
-  // Navigate to the app.
-  console.log(`🔐 [E2E API LOGIN] Navigating to /...`);
-  await page.goto('/');
-  page.off('response', responseHandler);
-  page.off('pageerror', pageErrorHandler);
-  page.off('console', consoleHandler);
-  console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
-  console.log(`🔐 [E2E API LOGIN] DIAG CSP: ${mainDocCsp}`);
-  if (pageErrors.length > 0) console.log(`🔐 [E2E API LOGIN] DIAG JS ERRORS: ${JSON.stringify(pageErrors)}`);
-  if (cspViolations.length > 0) console.log(`🔐 [E2E API LOGIN] DIAG CSP VIOLATIONS: ${JSON.stringify(cspViolations)}`);
-
-  // Diagnostic: confirm the IIFE consumed the token and React is mounted.
-  const diag = await page.evaluate(() => ({
-    e2eTokenConsumed: !window.localStorage.getItem('_sms_e2e_token'),
-    userInStorage: !!window.localStorage.getItem('sms_user_v1'),
-    rootChildCount: document.getElementById('root')?.childElementCount ?? -1,
-    initScriptFired: !!(window as any).__sms_init_fired,
-  }));
-  // Mark init script fired for this diagnostic
-  await page.evaluate(() => { (window as any).__sms_init_fired = true; });
-  console.log(`🔐 [E2E API LOGIN] DIAG token consumed=${diag.e2eTokenConsumed}, user=${diag.userInStorage}, rootChildren=${diag.rootChildCount}`);
-
-  // Wait for auth to fully resolve: AuthPage redirects to /dashboard once the
-  // user+token are both present and isInitializing becomes false.
-  // If the redirect happens we know auth is complete; otherwise 8s is generous.
-  console.log(`🔐 [E2E API LOGIN] Waiting for auth redirect to /#/dashboard...`);
+  // AuthPage sees user is now truthy → calls navigate('/dashboard', { replace: true }).
+  console.log(`🔐 [E2E API LOGIN] Waiting for AuthPage redirect to /#/dashboard...`);
   await page.waitForURL(/\/dashboard/, { timeout: 8000 }).catch(() => {
     console.warn(`⚠️  [E2E API LOGIN] No dashboard redirect after 8s — URL: ${page.url()}`);
   });

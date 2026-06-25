@@ -105,6 +105,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  // E2E test hook: dispatching 'sms-e2e-login' injects auth state into the
+  // running React app without a page reload (avoids the TDZ bug in the
+  // production bundle that fires when sms_user_v1 is set before JS executes).
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const handleE2ELogin = (e: Event) => {
+      const { user: u, token: t } = (e as CustomEvent<{ user: User; token: string }>).detail;
+      try { setItem(LOCAL_USER_KEY, JSON.stringify(u)); } catch {}
+      authService.setAccessToken(t);
+      setUser(u);
+      setAccessTokenState(t);
+      setIsInitializing(false);
+    };
+    window.addEventListener('sms-e2e-login', handleE2ELogin);
+    return () => window.removeEventListener('sms-e2e-login', handleE2ELogin);
+  }, []);
+
   // Optional auto-login on mount (disabled by default). Intentionally run once on mount.
   useEffect(() => {
     if (autoLoginAttemptedRef.current) {
