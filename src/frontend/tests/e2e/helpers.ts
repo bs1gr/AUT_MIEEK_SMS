@@ -263,6 +263,17 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
     { user: userData, token },
   );
 
+  // Intercept asset responses to diagnose whether the JS bundle loads correctly.
+  const assetLog: string[] = [];
+  const responseHandler = (response: import('@playwright/test').Response) => {
+    const url = response.url();
+    if (url.includes('/assets/') || (url.includes('.js') && !url.includes('/api/'))) {
+      const ct = (response.headers()['content-type'] || '?').split(';')[0];
+      assetLog.push(`${response.status()} ${ct} ${url.split('/').pop()}`);
+    }
+  };
+  page.on('response', responseHandler);
+
   // Navigate to the app. The init script fires at document_start, before the
   // JS bundle executes. authService's IIFE reads _sms_e2e_token, sets _token,
   // and deletes the key. AuthContext sees both user AND token → fast path:
@@ -270,7 +281,9 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   // AuthPage (route "/") then redirects to "/#/dashboard".
   console.log(`🔐 [E2E API LOGIN] Navigating to /...`);
   await page.goto('/');
+  page.off('response', responseHandler);
   console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
+  console.log(`🔐 [E2E API LOGIN] DIAG assets: ${JSON.stringify(assetLog)}`);
 
   // Diagnostic: confirm the IIFE consumed the token and React is mounted.
   const diag = await page.evaluate(() => ({
@@ -278,8 +291,11 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
     userInStorage: !!window.localStorage.getItem('sms_user_v1'),
     bodyBg: window.getComputedStyle(document.body).backgroundColor,
     rootChildCount: document.getElementById('root')?.childElementCount ?? -1,
+    docTitle: document.title,
+    scriptTags: Array.from(document.querySelectorAll('script[src]')).map((s: Element) => (s as HTMLScriptElement).src).slice(0, 3),
   }));
   console.log(`🔐 [E2E API LOGIN] DIAG token consumed=${diag.e2eTokenConsumed}, user=${diag.userInStorage}, bg=${diag.bodyBg}, rootChildren=${diag.rootChildCount}`);
+  console.log(`🔐 [E2E API LOGIN] DIAG title="${diag.docTitle}", scripts=${JSON.stringify(diag.scriptTags)}`);
 
   // Wait for auth to fully resolve: AuthPage redirects to /dashboard once the
   // user+token are both present and isInitializing becomes false.
