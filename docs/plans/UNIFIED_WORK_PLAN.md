@@ -1,17 +1,53 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.32
+**Current Version**: 1.18.33
 **Last Updated**: June 25, 2026
-**Status**: ✅ **v1.18.32 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.32.exe) | 49 post-release commits on main | CI GREEN (84 passed, 43 skipped, 0 failed)**
+**Status**: ✅ **v1.18.33 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.33.exe) | CI GREEN | Android APK build in progress**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.32 → v1.18.33 candidate
+**Current Phase**: Active Development | Post-v1.18.33 maintenance
 **Current Branch**: `main`
 
 ---
 
-## 📋 Post-v1.18.32 Accumulation (June 21–25, 2026)
+## 🚀 v1.18.33 — E2E TDZ Fix + Security Hardening (June 25, 2026)
 
-**Status**: 🔄 UNRELEASED | 49 commits on `main` since tag `v1.18.32` | ✅ CI GREEN
+**Status**: ✅ RELEASED | Tag `v1.18.33` | GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.33
+**Installer**: `SMS_Installer_1.18.33.exe` — built and published by CI on 2026-06-25
+
+### Changes Since v1.18.32
+
+| Hash | Area | Description |
+|------|------|-------------|
+| `c38bd964c` | E2E/Security | Remove `sms-e2e-login` production backdoor; use `addInitScript`+cookie auth |
+| `86d02f30d` | Build | Remove per-feature `manualChunks` — eliminated circular-chunk Rollup TDZ |
+| `dba81dc44` | E2E | Add `pageerror`/DOM diagnostics to `loginViaAPI` for CI debugging |
+| `317500645` | Chore | Gitignore e2e-metrics-and-patterns, e2e-test-results, tsconfig.node.tsbuildinfo |
+| `bd15d9c97` | Release | Bump version to 1.18.33 and update docs |
+| `f7eb3901a` | Fix | Restore CLAUDE.md to repo root (accidentally moved by release pipeline) |
+| `eea640f92` | Fix | Protect CLAUDE.md and AGENTS.md from WORKSPACE_CLEANUP.ps1 relocation |
+| `a8f06989e` | CI | Upgrade Android build to Java 21 (capacitor-android requires VERSION_21) |
+
+### Security (June 24–25)
+
+| Hash | Area | Description |
+|------|------|-------------|
+| `a3a9cfa14` | CI | Resolve 3 CI failures from security-audit auth defaults change |
+| `68a4ffbc6` | Security | Replace dangerouslySetInnerHTML with Trans in ExportCenter |
+| `439a1777d` | Security | Add CSP + HSTS headers, mask admin token in debug log |
+| `71a2ad750` | Security | Sync pyproject.toml deps, clear exempt-email defaults, SSLMODE warning |
+| `c030ed0eb` | CI+Security | Playwright cache restored, capacitor gate, weak-pw warn, py3.13 floor |
+| `5d8088211` | Security | bcrypt migration, secure auth defaults, deps pinned, aioredis removed |
+| `e7252c050` | Security | CI Python version, token storage in-memory only, exception logging |
+
+**Security action COMPLETED (2026-06-25)**: Android signing keystore rotated. New PKCS12 keystore generated (RSA-2048, 10 000-day validity, alias `sms-release`). GitHub secrets updated. ⚠️ First APK release after this rotation requires reinstall on existing devices.
+
+**E2E**: 84/84 tests passing. Analytics dashboard tests fixed (Rollup TDZ root cause resolved).
+
+---
+
+## 📋 Post-v1.18.32 Accumulation (June 21–25, 2026) — RELEASED AS v1.18.33
+
+**Status**: ✅ RELEASED in v1.18.33
 
 ### June 25 — E2E + Build fixes (this session)
 
