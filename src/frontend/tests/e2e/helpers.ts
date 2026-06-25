@@ -278,6 +278,19 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   await page.reload({ waitUntil: 'load' });
 
   console.log(`🔐 [E2E API LOGIN] Page reloaded. Current URL: ${page.url()}`);
+
+  // Diagnostic: check whether the IIFE consumed the token and whether React mounted.
+  const diagAfterReload = await page.evaluate(() => ({
+    e2eTokenConsumed: !window.localStorage.getItem('_sms_e2e_token'),
+    userInStorage: !!window.localStorage.getItem('sms_user_v1'),
+    bodyBg: window.getComputedStyle(document.body).backgroundColor,
+    rootChildCount: document.getElementById('root')?.childElementCount ?? -1,
+    rootHTML: (document.getElementById('root')?.innerHTML ?? '').substring(0, 300),
+  }));
+  console.log(`🔐 [E2E API LOGIN] DIAG e2eToken consumed: ${diagAfterReload.e2eTokenConsumed}, user in storage: ${diagAfterReload.userInStorage}`);
+  console.log(`🔐 [E2E API LOGIN] DIAG body bg: ${diagAfterReload.bodyBg}, root children: ${diagAfterReload.rootChildCount}`);
+  console.log(`🔐 [E2E API LOGIN] DIAG root HTML: ${diagAfterReload.rootHTML}`);
+
   console.log(`✅ [E2E API LOGIN] Login complete!`);
 }
 
