@@ -259,14 +259,32 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
     ({ user, token: t }: { user: unknown; token: string }) => {
       try { window.localStorage.setItem('sms_user_v1', JSON.stringify(user)); } catch { /* ignore */ }
       try { window.localStorage.setItem('_sms_e2e_token', t); } catch { /* ignore */ }
+      try { (window as any).__sms_init_fired = Date.now(); } catch { /* ignore */ }
     },
     { user: userData, token },
   );
 
-  // Intercept asset responses to diagnose whether the JS bundle loads correctly.
+  // Capture page errors (JS runtime errors) and CSP violations.
+  const pageErrors: string[] = [];
+  const cspViolations: string[] = [];
+  const pageErrorHandler = (err: Error) => pageErrors.push(err.message.substring(0, 300));
+  const consoleHandler = (msg: import('@playwright/test').ConsoleMessage) => {
+    const t = msg.text();
+    if (t.toLowerCase().includes('content security policy') || t.toLowerCase().includes('csp') || t.toLowerCase().includes('refused to')) {
+      cspViolations.push(t.substring(0, 300));
+    }
+  };
+  page.on('pageerror', pageErrorHandler);
+  page.on('console', consoleHandler);
+
+  // Intercept asset responses and the main document's CSP header.
   const assetLog: string[] = [];
+  let mainDocCsp = 'unknown';
   const responseHandler = (response: import('@playwright/test').Response) => {
     const url = response.url();
+    if (url === `${getApiBase()}/` || url === 'http://127.0.0.1:8000/') {
+      mainDocCsp = response.headers()['content-security-policy'] || 'none';
+    }
     if (url.includes('/assets/') || (url.includes('.js') && !url.includes('/api/'))) {
       const ct = (response.headers()['content-type'] || '?').split(';')[0];
       assetLog.push(`${response.status()} ${ct} ${url.split('/').pop()}`);
@@ -274,28 +292,27 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   };
   page.on('response', responseHandler);
 
-  // Navigate to the app. The init script fires at document_start, before the
-  // JS bundle executes. authService's IIFE reads _sms_e2e_token, sets _token,
-  // and deletes the key. AuthContext sees both user AND token → fast path:
-  // setIsInitializing(false) without calling refreshAccessToken().
-  // AuthPage (route "/") then redirects to "/#/dashboard".
+  // Navigate to the app.
   console.log(`🔐 [E2E API LOGIN] Navigating to /...`);
   await page.goto('/');
   page.off('response', responseHandler);
+  page.off('pageerror', pageErrorHandler);
+  page.off('console', consoleHandler);
   console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
-  console.log(`🔐 [E2E API LOGIN] DIAG assets: ${JSON.stringify(assetLog)}`);
+  console.log(`🔐 [E2E API LOGIN] DIAG CSP: ${mainDocCsp}`);
+  if (pageErrors.length > 0) console.log(`🔐 [E2E API LOGIN] DIAG JS ERRORS: ${JSON.stringify(pageErrors)}`);
+  if (cspViolations.length > 0) console.log(`🔐 [E2E API LOGIN] DIAG CSP VIOLATIONS: ${JSON.stringify(cspViolations)}`);
 
   // Diagnostic: confirm the IIFE consumed the token and React is mounted.
   const diag = await page.evaluate(() => ({
     e2eTokenConsumed: !window.localStorage.getItem('_sms_e2e_token'),
     userInStorage: !!window.localStorage.getItem('sms_user_v1'),
-    bodyBg: window.getComputedStyle(document.body).backgroundColor,
     rootChildCount: document.getElementById('root')?.childElementCount ?? -1,
-    docTitle: document.title,
-    scriptTags: Array.from(document.querySelectorAll('script[src]')).map((s: Element) => (s as HTMLScriptElement).src).slice(0, 3),
+    initScriptFired: !!(window as any).__sms_init_fired,
   }));
-  console.log(`🔐 [E2E API LOGIN] DIAG token consumed=${diag.e2eTokenConsumed}, user=${diag.userInStorage}, bg=${diag.bodyBg}, rootChildren=${diag.rootChildCount}`);
-  console.log(`🔐 [E2E API LOGIN] DIAG title="${diag.docTitle}", scripts=${JSON.stringify(diag.scriptTags)}`);
+  // Mark init script fired for this diagnostic
+  await page.evaluate(() => { (window as any).__sms_init_fired = true; });
+  console.log(`🔐 [E2E API LOGIN] DIAG token consumed=${diag.e2eTokenConsumed}, user=${diag.userInStorage}, rootChildren=${diag.rootChildCount}`);
 
   // Wait for auth to fully resolve: AuthPage redirects to /dashboard once the
   // user+token are both present and isInitializing becomes false.
