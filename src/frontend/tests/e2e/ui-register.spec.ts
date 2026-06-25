@@ -67,8 +67,9 @@ test.describe('Registration UI flow (smoke)', () => {
   expect(refreshCookie).toBeDefined();
   expect(refreshCookie?.httpOnly).toBe(true);
 
-    // Validate auto-login by checking access token in localStorage (UI text is localized)
-    const token = await page.evaluate(() => localStorage.getItem('sms_access_token'));
-    expect(token).toBeTruthy();
+    // Access tokens are kept in-memory only (not localStorage) since the security
+    // audit — sms_access_token is no longer written.  Verify login success by
+    // confirming the app redirected to the dashboard instead.
+    await expect(page).toHaveURL(/\/#\/dashboard/, { timeout: 10000 });
   });
 });

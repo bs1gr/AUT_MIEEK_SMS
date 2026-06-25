@@ -196,123 +196,45 @@ export async function loginViaUI(page: Page, email: string, password: string) {
 }
 
 export async function loginViaAPI(page: Page, email: string, password: string) {
-  console.log(`🔐 [E2E API LOGIN] Starting API login for: ${email}`);
   const apiBase = getApiBase();
 
-  console.log(`🔐 [E2E API LOGIN] API Base: ${apiBase}`);
-  console.log(`🔐 [E2E API LOGIN] Attempting POST to ${apiBase}/api/v1/auth/login`);
-
-  // Get JWT token from login endpoint
+  // 1. POST /auth/login via page.request — page.request shares the BrowserContext
+  //    cookie jar, so the HttpOnly refresh_token cookie set by the backend is
+  //    stored in the browser and sent on subsequent same-origin requests.
   const response = await page.request.post(`${apiBase}/api/v1/auth/login`, {
     data: { email, password },
   });
-
-  console.log(`🔐 [E2E API LOGIN] Response status: ${response.status()}`);
-
   if (!response.ok()) {
-    const text = await response.text().catch(() => 'Unable to read response');
-    console.error(`❌ [E2E API LOGIN] Login failed!`);
-    console.error(`Status: ${response.status()}`);
-    console.error(`Response: ${text}`);
-    throw new Error(`Login failed: ${response.status()} - ${text}`);
+    const text = await response.text().catch(() => 'N/A');
+    throw new Error(`API login failed: ${response.status()} — ${text}`);
   }
-
   const data = await response.json();
-  console.log(`🔐 [E2E API LOGIN] Login response keys: ${Object.keys(data).join(', ')}`);
+  const token: string = data.access_token ?? data.data?.access_token;
+  if (!token) throw new Error('No access_token in login response');
 
-  // Handle both legacy and standardized APIResponse formats
-  const token = (data && (data as any).access_token) || (data && (data as any).data && (data as any).data.access_token);
-
-  if (!token) {
-    console.error(`❌ [E2E API LOGIN] No access token in response!`);
-    console.error(`Response data: ${JSON.stringify(data)}`);
-    throw new Error('No access token in login response');
-  }
-
-  console.log(`✅ [E2E API LOGIN] Token received (length: ${token.length})`);
-
-  // Fetch user profile with the token to get user object
-  console.log(`🔐 [E2E API LOGIN] Fetching user profile from /auth/me...`);
-  const meResponse = await page.request.get(`${apiBase}/api/v1/auth/me`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
+  // 2. Fetch user profile using the access token.
+  const meResp = await page.request.get(`${apiBase}/api/v1/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
   });
+  if (!meResp.ok()) throw new Error(`/auth/me failed: ${meResp.status()}`);
+  const meJson = await meResp.json();
+  const userData: unknown = meJson.data ?? meJson;
 
-  if (!meResponse.ok()) {
-    const text = await meResponse.text().catch(() => 'Unable to read response');
-    console.error(`❌ [E2E API LOGIN] Failed to fetch user profile!`);
-    console.error(`Status: ${meResponse.status()}`);
-    console.error(`Response: ${text}`);
-    throw new Error(`Failed to fetch user: ${meResponse.status()} - ${text}`);
-  }
+  // 3. Inject sms_user_v1 into localStorage before React initialises.
+  //    addInitScript fires at document_start — before any module code runs.
+  //    AuthContext reads sms_user_v1 in its useState() initialiser.  Combined
+  //    with the HttpOnly cookie from step 1, the autoLogin effect will call
+  //    refreshAccessToken() → succeed → user is authenticated without any
+  //    backdoor in production code.
+  await page.addInitScript((u: unknown) => {
+    try { localStorage.setItem('sms_user_v1', JSON.stringify(u)); } catch {}
+  }, userData);
 
-  const meJson = await meResponse.json();
-  const userData = (meJson && (meJson as any).success === false) ? null : ((meJson && (meJson as any).data) || meJson);
-  console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
-
-  // Capture JS errors before navigating so nothing is missed.
-  const pageErrors: string[] = [];
-  const consoleErrors: string[] = [];
-  page.on('pageerror', (e) => { pageErrors.push(e.message); });
-  page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
-
-  // Navigate to root. Default waitUntil is 'load', which fires after all
-  // synchronous module scripts execute. main.tsx uses an async IIFE so React
-  // mounts asynchronously (one microtask after 'load'). We poll below.
-  console.log(`🔐 [E2E API LOGIN] Navigating to /...`);
+  // 4. Navigate.  React mounts, AuthContext sees user+no in-memory token →
+  //    calls refreshAccessToken() which uses the HttpOnly cookie → succeeds →
+  //    isInitializing=false → AuthPage redirects to /dashboard.
   await page.goto('/');
-  console.log(`🔐 [E2E API LOGIN] goto returned, URL: ${page.url()}`);
-
-  // Immediate DOM diagnostics (before waiting for React)
-  const preMountDiag = await page.evaluate(() => ({
-    rootExists: !!document.getElementById('root'),
-    rootChildren: document.getElementById('root')?.childElementCount ?? 0,
-    title: document.title,
-  }));
-  console.log(`🔐 [E2E API LOGIN] Pre-mount: ${JSON.stringify(preMountDiag)}`);
-  if (pageErrors.length) console.error(`❌ [E2E API LOGIN] JS errors after goto: ${pageErrors.join('; ')}`);
-
-  // Poll until React mounts (#root gets at least one child).
-  console.log(`🔐 [E2E API LOGIN] Waiting for React to mount...`);
-  const mounted = await page.waitForFunction(
-    () => (document.getElementById('root')?.childElementCount ?? 0) > 0,
-    { timeout: 15000 },
-  ).catch(async () => {
-    const diag = await page.evaluate(() => ({
-      rootChildren: document.getElementById('root')?.childElementCount ?? 0,
-      bodySnippet: (document.body?.innerHTML ?? '').substring(0, 300),
-    }));
-    console.error(`❌ [E2E API LOGIN] React did NOT mount after 15s`);
-    console.error(`❌ DOM: ${JSON.stringify(diag)}`);
-    console.error(`❌ JS errors: ${JSON.stringify(pageErrors)}`);
-    console.error(`❌ Console errors: ${JSON.stringify(consoleErrors)}`);
-    return null;
-  });
-
-  if (!mounted) {
-    throw new Error('React failed to mount within 15s — see console errors above');
-  }
-  console.log(`🔐 [E2E API LOGIN] React mounted ✓`);
-
-  // Inject auth state via custom event. AuthContext's 'sms-e2e-login' listener
-  // calls setUser / setAccessTokenState / setIsInitializing(false).
-  console.log(`🔐 [E2E API LOGIN] Dispatching sms-e2e-login event...`);
-  await page.evaluate(
-    ({ user: u, token: t }: { user: unknown; token: string }) => {
-      window.dispatchEvent(new CustomEvent('sms-e2e-login', { detail: { user: u, token: t } }));
-    },
-    { user: userData, token },
-  );
-
-  // AuthPage sees user → navigate('/dashboard'). Hash navigation: no reload, auth preserved.
-  console.log(`🔐 [E2E API LOGIN] Waiting for AuthPage redirect to /#/dashboard...`);
-  await page.waitForURL(/\/dashboard/, { timeout: 8000 }).catch(() => {
-    console.warn(`⚠️  [E2E API LOGIN] No dashboard redirect after 8s — URL: ${page.url()}`);
-  });
-
-  console.log(`🔐 [E2E API LOGIN] Final URL: ${page.url()}`);
-  console.log(`✅ [E2E API LOGIN] Login complete!`);
+  await page.waitForURL(/\/dashboard/, { timeout: 15000 });
 }
 
 export async function loginAsTeacher(page: Page): Promise<TestUser> {
