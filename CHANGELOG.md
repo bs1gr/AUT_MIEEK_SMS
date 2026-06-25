@@ -10,6 +10,84 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.33] - 2026-06-25
+
+### ⚠️ BREAKING CHANGES
+- docs: redact exposed credentials + track 3 June 23 commits in work plan
+
+### Features
+- **release**: add Android APK to release pipeline alongside installer
+- **android**: standalone local mode + fix mobile API calls
+
+### Bug Fixes
+- **e2e**: use addInitScript+cookie auth — remove sms-e2e-login production backdoor
+- **build**: remove per-feature manualChunks to eliminate circular-chunk TDZ
+- **e2e**: add full diagnostics to loginViaAPI to identify React mount failure
+- **auth**: remove IIFE from authService._token — was causing Rollup TDZ bug
+- **e2e**: bypass TDZ bundle bug via sms-e2e-login custom event
+- **e2e**: add CSP header + pageerror + console diagnostic for JS block
+- **e2e**: add asset network diagnostic to pinpoint JS bundle load failure
+- **e2e**: addInitScript + waitForURL(/dashboard/) for reliable auth in CI
+- **e2e**: add post-reload diagnostics to diagnose token injection failure
+- **e2e**: use evaluate+reload to inject auth token reliably in CI
+- **e2e**: use localStorage instead of window global for token injection
+- **e2e**: inject access token via initScript to bypass unreliable cookie-refresh in CI
+- **e2e**: increase waitForResponse timeout from 8s to 30s for CI reliability
+- **e2e**: resolve analytics CI auth race condition and VITE_API_URL bake-time
+- **ci**: resolve 3 CI failures from security-audit auth defaults change
+- **security**: replace dangerouslySetInnerHTML with Trans component in ExportCenter
+- **security**: add CSP + HSTS headers, mask admin token in debug log
+- **security**: sync pyproject.toml deps, clear exempt-email defaults, SSLMODE warning
+- **ci+security**: Playwright cache restored, capacitor gate, weak-pw warn, py3.13 floor
+- **security**: bcrypt migration, secure auth defaults, deps pinned, aioredis removed
+- **security**: apply audit findings — CI Python version, token storage, exception logging
+- **ci**: resolve CI/CD audit findings — BLOCKERs, HIGH, and MEDIUM
+- **local-mode**: clear broken state on SW restore failure + activation timeout
+- **android**: security hardening + version sync + minification
+- **e2e**: add data-testid="submit-student" to EditStudentModal submit button
+- **e2e**: add missing data-testids to StudentForm + fix curl exit code in e2e workflow
+- **lint**: remove debug console.log + fix i18n warnings in ServerSetupPage
+- **e2e**: replace networkidle with load in loginViaUI and critical-flows tests
+- **e2e**: remove sms_server_url injection from loginViaUI and loginViaAPI
+- **e2e**: use Capacitor.isNativePlatform() to eliminate 3s init delay in CI
+- **e2e**: set sms_server_url in localStorage to prevent ServerGuard redirect
+- **e2e**: always render analytics summary cards + fix loginViaUI nav
+- **tests**: repair 7 CI failures caused by Android standalone commit
+- **installer**: patch Dockerfile src/ paths for installed layout
+- **installer**: fix docker path mismatch and exit-code bug in DOCKER.ps1
+- **installer**: resolve PROJECT_ROOT to install dir when run from installer root
+- restore CLAUDE.md to project root (workspace cleanup moved it incorrectly)
+
+### Documentation
+- update work plan — 49 post-v1.18.32 commits, CI green 84/84
+- redact exposed credentials + track 3 June 23 commits in work plan
+- track 17 post-v1.18.32 commits; CI green on 84bc253e6
+- track 953aaca9f in post-v1.18.32 accumulation table
+- track 4f11d6d7c in post-v1.18.32 accumulation table
+- register academic monographs in DOCUMENTATION_INDEX
+- refine bilingual academic monograph (EN/EL final merge)
+- add bilingual EN/EL academic monograph for CS community presentation
+
+### Tests
+- **e2e**: unskip student edit + delete tests; fix window.confirm handler
+
+### Chores
+- gitignore e2e-metrics-and-patterns, e2e-test-results, tsconfig.node.tsbuildinfo
+- **security**: rotate Android signing keystore — old password was in git history
+- untrack runtime files + stale test artifacts; fix gitignore paths
+
+## [1.18.33] - 2026-06-25
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.32] - 2026-06-21
 
 ### Features
@@ -4649,6 +4727,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
