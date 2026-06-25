@@ -105,9 +105,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // E2E test hook: dispatching 'sms-e2e-login' injects auth state into the
-  // running React app without a page reload (avoids the TDZ bug in the
-  // production bundle that fires when sms_user_v1 is set before JS executes).
+  // E2E test hook: dispatching 'sms-e2e-login' injects auth state without a
+  // page reload. AuthContext's handler sets user + token + isInitializing=false.
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
     const handleE2ELogin = (e: Event) => {

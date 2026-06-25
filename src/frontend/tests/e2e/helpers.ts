@@ -251,25 +251,52 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
   const userData = (meJson && (meJson as any).success === false) ? null : ((meJson && (meJson as any).data) || meJson);
   console.log(`✅ [E2E API LOGIN] User profile fetched: ${userData?.email || userData?.data?.email}`);
 
-  // addInitScript fires at document_start — before ANY page script runs, including
-  // the authService module IIFE. This guarantees _sms_e2e_token is in localStorage
-  // when authService.ts initialises and reads it.
-  // Navigate to the app WITHOUT addInitScript. Setting sms_user_v1 in localStorage
-  // before the JS bundle executes triggers a TDZ bug in the production Rollup bundle
-  // ("Cannot access 'l' before initialization") that prevents React from mounting.
-  // Instead, let the page load cleanly, then inject auth state via a custom event.
-  // AuthContext listens for 'sms-e2e-login' and updates user + token state directly.
-  console.log(`🔐 [E2E API LOGIN] Navigating to / (no init script)...`);
-  await page.goto('/', { waitUntil: 'domcontentloaded' });
-  console.log(`🔐 [E2E API LOGIN] Current URL: ${page.url()}`);
+  // Capture JS errors before navigating so nothing is missed.
+  const pageErrors: string[] = [];
+  const consoleErrors: string[] = [];
+  page.on('pageerror', (e) => { pageErrors.push(e.message); });
+  page.on('console', (m) => { if (m.type() === 'error') consoleErrors.push(m.text()); });
 
-  // Wait for React to mount (app-shell or root child means React rendered).
+  // Navigate to root. Default waitUntil is 'load', which fires after all
+  // synchronous module scripts execute. main.tsx uses an async IIFE so React
+  // mounts asynchronously (one microtask after 'load'). We poll below.
+  console.log(`🔐 [E2E API LOGIN] Navigating to /...`);
+  await page.goto('/');
+  console.log(`🔐 [E2E API LOGIN] goto returned, URL: ${page.url()}`);
+
+  // Immediate DOM diagnostics (before waiting for React)
+  const preMountDiag = await page.evaluate(() => ({
+    rootExists: !!document.getElementById('root'),
+    rootChildren: document.getElementById('root')?.childElementCount ?? 0,
+    title: document.title,
+  }));
+  console.log(`🔐 [E2E API LOGIN] Pre-mount: ${JSON.stringify(preMountDiag)}`);
+  if (pageErrors.length) console.error(`❌ [E2E API LOGIN] JS errors after goto: ${pageErrors.join('; ')}`);
+
+  // Poll until React mounts (#root gets at least one child).
   console.log(`🔐 [E2E API LOGIN] Waiting for React to mount...`);
-  await page.waitForSelector('#root > *', { timeout: 10000 });
+  const mounted = await page.waitForFunction(
+    () => (document.getElementById('root')?.childElementCount ?? 0) > 0,
+    { timeout: 15000 },
+  ).catch(async () => {
+    const diag = await page.evaluate(() => ({
+      rootChildren: document.getElementById('root')?.childElementCount ?? 0,
+      bodySnippet: (document.body?.innerHTML ?? '').substring(0, 300),
+    }));
+    console.error(`❌ [E2E API LOGIN] React did NOT mount after 15s`);
+    console.error(`❌ DOM: ${JSON.stringify(diag)}`);
+    console.error(`❌ JS errors: ${JSON.stringify(pageErrors)}`);
+    console.error(`❌ Console errors: ${JSON.stringify(consoleErrors)}`);
+    return null;
+  });
+
+  if (!mounted) {
+    throw new Error('React failed to mount within 15s — see console errors above');
+  }
   console.log(`🔐 [E2E API LOGIN] React mounted ✓`);
 
-  // Inject auth state via custom event. AuthContext's 'sms-e2e-login' handler
-  // calls setUser, setAccessTokenState, and setIsInitializing(false).
+  // Inject auth state via custom event. AuthContext's 'sms-e2e-login' listener
+  // calls setUser / setAccessTokenState / setIsInitializing(false).
   console.log(`🔐 [E2E API LOGIN] Dispatching sms-e2e-login event...`);
   await page.evaluate(
     ({ user: u, token: t }: { user: unknown; token: string }) => {
@@ -278,7 +305,7 @@ export async function loginViaAPI(page: Page, email: string, password: string) {
     { user: userData, token },
   );
 
-  // AuthPage sees user is now truthy → calls navigate('/dashboard', { replace: true }).
+  // AuthPage sees user → navigate('/dashboard'). Hash navigation: no reload, auth preserved.
   console.log(`🔐 [E2E API LOGIN] Waiting for AuthPage redirect to /#/dashboard...`);
   await page.waitForURL(/\/dashboard/, { timeout: 8000 }).catch(() => {
     console.warn(`⚠️  [E2E API LOGIN] No dashboard redirect after 8s — URL: ${page.url()}`);
