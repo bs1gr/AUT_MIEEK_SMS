@@ -6,21 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 // Refresh tokens live in an HttpOnly cookie managed by the backend.
 // On page reload, AuthContext calls refreshAccessToken() to silently
 // re-issue the access token using the HttpOnly cookie.
-//
-// E2E / headless test environments can pre-seed the token by writing
-// localStorage['_sms_e2e_token'] before the module loads (e.g. via
-// Playwright's page.addInitScript). The key is consumed once and deleted,
-// so it has no effect on normal production usage.
-let _token: string | null = (() => {
-  try {
-    const injected = typeof localStorage !== 'undefined' && localStorage.getItem('_sms_e2e_token');
-    if (injected && typeof injected === 'string') {
-      localStorage.removeItem('_sms_e2e_token');
-      return injected;
-    }
-  } catch { /* ignore */ }
-  return null;
-})();
+let _token: string | null = null;
 
 export const getAccessToken = (): string | null => _token;
 
