@@ -120,11 +120,11 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
             )}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2 pt-1 border-t border-gray-100">
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1 pt-2 border-t border-gray-100">
           {onViewProfile && (
             <button
               onClick={() => onViewProfile(student.id)}
-              className="text-blue-600 hover:underline text-sm min-h-[36px]"
+              className="text-blue-600 hover:underline text-sm py-2 text-left leading-tight"
               aria-label={t('viewProfile') || t('fullProfile') || 'View Profile'}
               data-testid={`student-view-profile-btn-${student.id}`}
             >
@@ -133,7 +133,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           )}
           <button
             onClick={() => onToggleExpand(student.id)}
-            className="text-indigo-600 hover:underline font-medium text-sm min-h-[36px]"
+            className="text-indigo-600 hover:underline font-medium text-sm py-2 text-left leading-tight"
             aria-label={isExpanded ? t('close') : t('viewPerformance') || t('view')}
             data-testid={`student-expand-btn-${student.id}`}
           >
@@ -141,7 +141,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           </button>
           <button
             onClick={() => onEdit(student)}
-            className="text-green-600 hover:underline text-sm min-h-[36px]"
+            className="text-green-600 hover:underline text-sm py-2 text-left leading-tight"
             aria-label={t('edit')}
             data-testid={`student-edit-btn-${student.id}`}
           >
@@ -149,7 +149,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           </button>
           <button
             onClick={() => onDelete(student.id)}
-            className="text-red-600 hover:underline text-sm min-h-[36px]"
+            className="text-red-600 hover:underline text-sm py-2 text-left leading-tight"
             aria-label={t('delete')}
             data-testid={`student-delete-btn-${student.id}`}
           >
@@ -159,16 +159,16 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
       </div>
 
       {isExpanded && (
-        <div className="mt-4 space-y-6" role="region" aria-labelledby={`student-details-${student.id}`}>
-          <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-xl p-4 sm:p-6 text-slate-900 shadow-lg border border-slate-200" id={`student-details-${student.id}`}>
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              <div className="w-14 h-14 sm:w-20 sm:h-20 flex-shrink-0 bg-white rounded-xl flex items-center justify-center text-2xl sm:text-3xl font-bold border-2 border-slate-200 text-slate-900" aria-hidden="true">
+        <div className="mt-4 space-y-4" role="region" aria-labelledby={`student-details-${student.id}`}>
+          <div className="bg-gradient-to-br from-white via-indigo-50 to-purple-50 rounded-xl p-3 text-slate-900 shadow-lg border border-slate-200" id={`student-details-${student.id}`}>
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 flex-shrink-0 bg-white rounded-xl flex items-center justify-center text-xl font-bold border-2 border-slate-200 text-slate-900" aria-hidden="true">
                 {initials}
               </div>
               <div className="min-w-0">
-                <h3 className="text-lg sm:text-2xl font-bold truncate">{student.first_name} {student.last_name}</h3>
-                <p className="text-sm text-slate-600">{t('studentID')}: {student.student_id}</p>
-                <div className="flex items-center space-x-4 mt-2 text-sm text-slate-600">
+                <h3 className="text-base font-bold truncate">{student.first_name} {student.last_name}</h3>
+                <p className="text-xs text-slate-600">{t('studentID')}: {student.student_id}</p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1 text-xs text-slate-600">
                   {student.email && <span>📧 {student.email}</span>}
                   {classLabel && <span>🏫 {classLabel}</span>}
                   <span className={student.is_active ? 'text-emerald-600' : 'text-red-600'}>
@@ -180,7 +180,7 @@ const StudentCard: React.FC<StudentCardProps> = memo(({
           </div>
 
           {stats && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg p-4 text-white shadow-md">
                 <div className="text-xs opacity-75 mb-1">{t('averageGrade') || 'Average'}</div>
                 <div className="text-2xl font-bold">{stats.grades.average}%</div>
