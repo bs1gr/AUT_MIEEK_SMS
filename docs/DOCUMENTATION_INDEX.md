@@ -1,8 +1,8 @@
 # Documentation Index
 
 **Last Updated**: 2026-06-14
-**Project Version (documented)**: 1.18.33
-**Version**: 1.18.33
+**Project Version (documented)**: 1.18.34
+**Version**: 1.18.34
 **Current Branch**: `main`
 **Status**: ✅ **`v1.18.27` IS THE LATEST PUBLISHED RELEASE** (installer: SMS_Installer_1.18.27.exe, 24.97 MB)
 

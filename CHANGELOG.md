@@ -11,6 +11,36 @@ This project adheres to Keep a Changelog principles and uses semantic versioning
 
 
 
+
+## [1.18.34] - 2026-06-26
+
+### Features
+- **android**: replace QNAP card with Tailscale; fix CORS for Capacitor WebView
+
+### Bug Fixes
+- **android**: fix student card layout and view performance overlap on mobile
+- **android**: allow cleartext HTTP for Tailscale/LAN backend connections
+- **ci**: upgrade Android build to Java 21 (capacitor-android requires VERSION_21)
+- **release**: protect CLAUDE.md and AGENTS.md from workspace cleanup relocation
+- restore CLAUDE.md to repo root (accidentally moved by release pipeline)
+
+### Documentation
+- update work plan — v1.18.33 released, Java 21 fix noted
+
+### Chores
+- add .backend.port to .gitignore (native server runtime file)
+
+## [1.18.34] - 2026-06-26
+
+**Release Type**: Maintenance Release
+**Focus**: Automated release-ready workflow, version bump, and validation
+
+### Changed
+
+- Version references updated
+- Automated release workflow improvements
+
+---
 ## [1.18.33] - 2026-06-25
 
 ### ⚠️ BREAKING CHANGES
@@ -4727,6 +4757,7 @@ For detailed changelog entries from versions prior to 1.9.7, see:
 [1.9.2]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.1]: https://github.com/bs1gr/AUT_MIEEK_SMS/compare/$11.18.3...$11.18.3
 [1.9.0]: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/$11.18.3
+
 
 
 
