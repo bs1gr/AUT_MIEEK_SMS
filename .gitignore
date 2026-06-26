@@ -366,3 +366,6 @@ pre-commit-output.txt
 ci_failure_log.txt
 
 backend_start.log
+
+# Runtime port tracking file
+.backend.port
