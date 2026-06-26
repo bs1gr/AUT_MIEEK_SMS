@@ -1,11 +1,35 @@
 # Unified Work Plan - Student Management System
 
-**Current Version**: 1.18.33
-**Last Updated**: June 25, 2026
-**Status**: ✅ **v1.18.33 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.33.exe) | CI GREEN | Android APK build in progress**
+**Current Version**: 1.18.34
+**Last Updated**: June 26, 2026
+**Status**: ✅ **v1.18.34 IS THE LATEST PUBLISHED RELEASE (installer: SMS_Installer_1.18.34.exe, ~97MB) | CI GREEN | Wiki updated**
 **Development Mode**: SOLO DEVELOPER + AI Assistant (NO STAKEHOLDERS - Owner decides all)
-**Current Phase**: Active Development | Post-v1.18.33 maintenance
+**Current Phase**: Active Development | Post-v1.18.34 maintenance
 **Current Branch**: `main`
+
+---
+
+## 🚀 v1.18.34 — Android Student Card Layout Fix + Tailscale CORS (June 26, 2026)
+
+**Status**: ✅ RELEASED | Tag `v1.18.34` | GitHub: https://github.com/bs1gr/AUT_MIEEK_SMS/releases/tag/v1.18.34
+**Installer**: `SMS_Installer_1.18.34.exe` (~97 MB) — built locally and uploaded 2026-06-26
+**Wiki**: Updated to v1.18.34 — Home, Release History, Sidebar, Footer
+
+### Changes
+
+| Hash | Area | Description |
+|------|------|-------------|
+| `aaa0505ad` | Android/UI | Fix student card layout and View Performance overlap on mobile |
+| `d375c9e62` | Chore | Add `.backend.port` to `.gitignore` (native server runtime file) |
+| `e7f4359af` | Android | Allow cleartext HTTP for Tailscale/LAN backend connections |
+| `895d0f9d7` | Android | Replace QNAP card with Tailscale; fix CORS for Capacitor WebView |
+| `a857cc09b` | Release | Bump version to 1.18.34 and update docs |
+
+### Root Cause: VirtualList + Expandable Cards
+
+`VirtualList` (TanStack Virtual) used absolute positioning with `estimateSize={150}px` inside a fixed `600px` container. With 67+ active students the threshold triggered. When a card expanded, the virtualizer didn't re-measure — subsequent cards overlapped the expanded content.
+
+**Fix**: Removed `VirtualList` from `StudentsView.tsx` entirely; always use plain `<ul>`. Action buttons switched from `flex flex-wrap` to `grid grid-cols-2` so long Greek labels ("Προβολή Επίδοσης", "Επεξεργασία") fit cleanly in 2×2 layout.
 
 ---
 
