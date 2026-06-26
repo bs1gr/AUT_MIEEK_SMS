@@ -1,6 +1,6 @@
 # CLAUDE.md — Student Management System
 
-**Version**: v1.18.32 (always verify from `VERSION` file)
+**Version**: v1.18.34 (always verify from `VERSION` file)
 **Date**: June 2026
 **Project**: Bilingual (EN/EL) student management system for ΜΙΕΕΚ Cyprus technical college
 **Mode**: Solo developer + AI assistant (no external stakeholders — owner decides all)
@@ -42,7 +42,7 @@ docs/
 
 ## Session Start Checklist
 
-1. Read `VERSION` — current version is `v1.18.30`
+1. Read `VERSION` — current version is `v1.18.34`
 2. Run `git status` — verify no uncommitted changes
 3. Read `docs/plans/UNIFIED_WORK_PLAN.md` — active work state
 4. Check `docs/DOCUMENTATION_INDEX.md` — navigate to relevant docs
@@ -134,8 +134,8 @@ Add new keys to both `src/frontend/src/i18n/locales/en/` and `el/` translation f
 ### Version format — v1.x.x ONLY
 
 ```
-✅  v1.18.30
-❌  v11.18.30   $11.18.30   v2.18.30
+✅  v1.18.34
+❌  v11.18.34   $11.18.34   v2.18.34
 ```
 
 Violations are blocked by pre-commit hooks, COMMIT_READY, and CI/CD.
