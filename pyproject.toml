@@ -54,8 +54,8 @@ dependencies = [
     "opentelemetry-semantic-conventions==0.60b1",
     "redis==5.0.1",
     "psycopg2-binary==2.9.12",
-    "python-socketio==5.14.0",
-    "python-engineio==4.13.0",
+    "python-socketio==5.16.3",  # CVE-2026-48804: binary attachment accumulation DoS fixed in >=5.16.2
+    "python-engineio==4.13.3",  # CVE-2026-48802/48809: thread + payload DoS fixed in >=4.13.2
     "apscheduler==3.11.2",
     "pandas==3.0.3",
     "protobuf==6.33.6",  # CVE-2026-0994 fixed in 6.x; opentelemetry-proto requires <7.0
