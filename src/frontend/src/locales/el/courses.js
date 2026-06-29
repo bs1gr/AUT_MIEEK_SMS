@@ -120,4 +120,6 @@ export default {
   autoActivationInactiveHint: 'Αυτό το μάθημα θα απενεργοποιηθεί αυτόματα (η τρέχουσα ημερομηνία είναι εκτός εξαμήνου)',
   autoActivationNotApplicableHint: 'Η αυτόματη ενεργοποίηση δεν ισχύει για αυτή τη μορφή εξαμήνου. Μπορείτε να ορίσετε χειροκίνητα την κατάσταση ενεργοποίησης.',
   enrollment: 'Εγγραφές',
+  enrollmentManagement: 'Διαχείριση Εγγραφών',
+  assignStudentsToCourse: 'Ανάθεση φοιτητών στο μάθημα',
 };
