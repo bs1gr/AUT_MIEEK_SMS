@@ -2241,8 +2241,12 @@ begin
   if PowerShellExe = '' then
     Exit;
 
+  // TcpClient with 5-second timeout — avoids Test-NetConnection's unbounded OS wait
   Command := '-NoProfile -ExecutionPolicy Bypass -Command "' +
-    'if ((Test-NetConnection -ComputerName \"' + Host + '\" -Port ' + Port + ').TcpTestSucceeded) { exit 0 } else { exit 1 }"';
+    'try { $c = New-Object Net.Sockets.TcpClient; ' +
+    '$r = $c.BeginConnect(\"' + Host + '\",' + Port + ',$null,$null); ' +
+    'if ($r.AsyncWaitHandle.WaitOne(5000)) { $c.EndConnect($r); $c.Close(); exit 0 } ' +
+    'else { $c.Close(); exit 1 } } catch { exit 1 }"';
 
   if Exec(PowerShellExe, Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     Result := (ResultCode = 0);
@@ -2310,11 +2314,14 @@ begin
     'PGDATABASE=' + DbName + #13#10 +
     'PGUSER=' + UserName + #13#10 +
     'PGPASSWORD=' + Password + #13#10 +
-    'PGSSLMODE=' + SslMode + #13#10;
+    'PGSSLMODE=' + SslMode + #13#10 +
+    'PGCONNECT_TIMEOUT=5' + #13#10;
 
   SaveStringToFile(TempEnv, EnvContent, False);
 
-  Command := '/c docker run --rm --env-file "' + TempEnv + '" postgres:16-alpine psql -c "select 1"';
+  // --pull=never: fail immediately if image not cached (avoids hanging on docker pull)
+  // PGCONNECT_TIMEOUT=5: psql gives up after 5 seconds if PostgreSQL unreachable
+  Command := '/c docker run --rm --pull=never --env-file "' + TempEnv + '" postgres:16-alpine psql -c "select 1"';
   if Exec('cmd', Command, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
     Result := (ResultCode = 0);
 
