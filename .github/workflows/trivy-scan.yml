@@ -1,18 +1,13 @@
 name: Trivy Security Scan
 
 on:
-  pull_request:
-    branches: [ main ]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
-      - '.github/**'
-      - 'src/frontend/**'
-      - 'installer/**'
-      - 'tools/**'
   schedule:
     - cron: '0 3 * * 1'
   workflow_dispatch:
+
+# NOTE: The main CI/CD pipeline already runs a Trivy Docker filesystem scan
+# for PRs and pushes, so this workflow is scheduled/manual only to avoid
+# duplicate GitHub Security SARIF uploads in the same repository.
 
 concurrency:
   group: trivy-${{ github.ref }}
@@ -38,7 +33,9 @@ jobs:
           severity: HIGH,CRITICAL
           vuln-type: os,library
 
-      - name: Upload SARIF to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
+      - name: Upload Trivy scan artifact for drift review
+        uses: actions/upload-artifact@v7
         with:
-          sarif_file: trivy-results.sarif
+          name: trivy-scan-report
+          path: trivy-results.sarif
+          retention-days: 30
