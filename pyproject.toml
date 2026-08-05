@@ -30,7 +30,7 @@ dependencies = [
     "uvicorn[standard]==0.38.0",
     "sqlalchemy==2.0.44",
     "psycopg[binary]==3.2.12",
-    "cryptography==49.0.0",  # CVE-2026-39892 + Dependabot #182/191 fixed in >=48.0.1
+    "cryptography==50.0.0",  # CVE-2026-39892 + Dependabot #182/191 fixed in >=48.0.1
     "pydantic==2.12.3",
     "email-validator==2.3.0",
     "python-multipart==0.0.32",  # Dependabot #185-197 fixed in >=0.0.31
