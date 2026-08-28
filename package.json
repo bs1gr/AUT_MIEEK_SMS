@@ -4,7 +4,9 @@
   "description": "Meta package file. Frontend dependencies live under frontend/package.json.",
   "overrides": {
     "minimatch": "10.2.4",
-    "markdown-it": "14.1.1"
+    "markdown-it": "^15.0.1",
+    "linkify-it": "^5.0.2",
+    "js-yaml": "^4.3.1"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
