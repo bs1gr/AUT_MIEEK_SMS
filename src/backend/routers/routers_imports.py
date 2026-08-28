@@ -128,7 +128,7 @@ async def validate_uploaded_file(request: Request, file: UploadFile) -> bytes:
                 ErrorCode.IMPORT_INVALID_JSON,
                 "Invalid JSON format",
                 request,
-                context={"error": str(exc)},
+                context={"error_type": type(exc).__name__},
             )
         except UnicodeDecodeError:
             raise http_error(
@@ -790,7 +790,7 @@ def import_courses(
         except Exception as exc:
             db.rollback()
             logger.error("Commit failed during course import: %s", exc, exc_info=True)
-            errors.append(f"commit: {exc}")
+            errors.append("commit failed")
             # Log failed import
             audit.log_from_request(
                 request=request,
@@ -828,7 +828,7 @@ def import_courses(
             ErrorCode.IMPORT_PROCESSING_FAILED,
             "Error importing courses",
             request,
-            context={"error": str(exc)},
+            context={"error_type": type(exc).__name__},
         )
 
 
@@ -971,7 +971,7 @@ async def import_from_upload(
                     ErrorCode.IMPORT_INVALID_JSON,
                     "Invalid JSON format in 'json' field",
                     request,
-                    context={"error": str(exc)},
+                    context={"error_type": type(exc).__name__},
                 )
             except HTTPException as http_exc:
                 audit.log_from_request(
@@ -1276,7 +1276,7 @@ async def import_from_upload(
                 ErrorCode.IMPORT_PROCESSING_FAILED,
                 "Upload import failed during commit",
                 request,
-                context={"errors": errors},
+                context={"error_count": len(errors)},
             )
         return {"type": norm, "created": created, "updated": updated, "errors": errors}
     except HTTPException:
@@ -1293,13 +1293,7 @@ async def import_from_upload(
             success=False,
             error_message=str(exc),
         )
-        raise http_error(
-            500,
-            ErrorCode.IMPORT_PROCESSING_FAILED,
-            "Upload import failed",
-            request,
-            context={"error": str(exc)},
-        )
+        raise http_error(500, ErrorCode.IMPORT_PROCESSING_FAILED, "Upload import failed", request)
 
 
 @router.post("/preview")
@@ -1397,7 +1391,7 @@ async def import_preview(
                     ErrorCode.IMPORT_INVALID_JSON,
                     "Invalid JSON format in 'json' field",
                     request,
-                    context={"error": str(exc)},
+                    context={"error_type": type(exc).__name__},
                 )
             except HTTPException:
                 raise
@@ -1586,7 +1580,7 @@ async def import_preview(
             audit.log_from_request(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
-                resource=AuditResource.OTHER,
+                resource=AuditResource.SYSTEM,
                 details={"preview": True, "type": import_type},
                 success=False,
                 error_message=str(exc),
@@ -1598,7 +1592,7 @@ async def import_preview(
             ErrorCode.IMPORT_PROCESSING_FAILED,
             "Import preview failed",
             request,
-            context={"error": str(exc)},
+            context={"error_type": type(exc).__name__},
         )
 
 
@@ -1716,7 +1710,6 @@ def import_students(
                 ErrorCode.IMPORT_PROCESSING_FAILED,
                 "Student import failed during commit",
                 request,
-                context={"error": str(exc)},
             )
         return {"created": created, "updated": updated, "errors": errors}
     except HTTPException:
@@ -1738,7 +1731,7 @@ def import_students(
             ErrorCode.IMPORT_PROCESSING_FAILED,
             "Error importing students",
             request,
-            context={"error": str(exc)},
+            context={"error_type": type(exc).__name__},
         )
 
 
@@ -1825,7 +1818,7 @@ async def import_execute(
                     ErrorCode.IMPORT_INVALID_JSON,
                     "Invalid JSON format",
                     request,
-                    context={"error": str(exc)},
+                    context={"error_type": type(exc).__name__},
                 )
             except HTTPException:
                 raise
@@ -1889,7 +1882,7 @@ async def import_execute(
             audit.log_from_request(
                 request=request,
                 action=AuditAction.BULK_IMPORT,
-                resource=AuditResource.OTHER,
+                resource=AuditResource.SYSTEM,
                 details={"import_type": import_type},
                 success=False,
                 error_message=str(exc),
@@ -1901,5 +1894,4 @@ async def import_execute(
             ErrorCode.IMPORT_PROCESSING_FAILED,
             "Import job creation failed",
             request,
-            context={"error": str(exc)},
         )

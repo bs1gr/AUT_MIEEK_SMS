@@ -244,7 +244,7 @@ async def docker_update_volume(request: Request, _auth=Depends(require_control_a
         )
     except Exception as exc:
         raise http_error(
-            500, ErrorCode.INTERNAL_SERVER_ERROR, "Failed to create Docker volume", request, context={"error": str(exc)}
+            500, ErrorCode.INTERNAL_SERVER_ERROR, "Failed to create Docker volume", request
         ) from exc
 
 
@@ -582,7 +582,6 @@ async def create_database_backup(
             ErrorCode.INTERNAL_SERVER_ERROR,
             "Failed to create database backup",
             request,
-            context={"error": str(exc)},
         ) from exc
 
 
@@ -965,7 +964,11 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                     allowed_base_dir=backup_dir,
                 )
 
-                actual_backup_path = decrypted_temp_path
+                # The encrypted backup service reconstructs the destination from
+                # the trusted base directory, so use the returned safe path for
+                # the remaining validation, migration, and cleanup steps.
+                actual_backup_path = Path(restore_info["restored_to"])
+                decrypted_temp_path = actual_backup_path
                 logger.info(
                     "Decryption successful",
                     extra={"decrypted_path": str(decrypted_temp_path), "size": restore_info["restored_size"]},
@@ -1136,7 +1139,6 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                 ErrorCode.CONTROL_RESTORE_FAILED,
                 "Failed to reinitialize database engine after restore",
                 request,
-                context={"error": str(e)},
             ) from e
 
         # Clean up decrypted temp file if we created one
@@ -1177,5 +1179,5 @@ async def restore_database(request: Request, backup_filename: str, _auth=Depends
                 pass
         logger.error("Restore failed", extra={"error": str(exc)}, exc_info=True)
         raise http_error(
-            500, ErrorCode.CONTROL_RESTORE_FAILED, "Database restore failed", request, context={"error": str(exc)}
+            500, ErrorCode.CONTROL_RESTORE_FAILED, "Database restore failed", request
         ) from exc

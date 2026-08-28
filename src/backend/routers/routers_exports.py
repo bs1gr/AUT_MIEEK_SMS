@@ -1180,7 +1180,7 @@ async def export_all_zip(request: Request, db: Session = Depends(get_db)):
             details={"error": str(exc), "format": "zip"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/students/excel")
@@ -1373,7 +1373,6 @@ async def export_student_grades_excel(student_id: int, request: Request, db: Ses
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -1431,7 +1430,6 @@ async def export_student_attendance_excel(student_id: int, request: Request, db:
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -1500,7 +1498,6 @@ async def export_student_performance_excel(student_id: int, request: Request, db
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -1559,7 +1556,6 @@ async def export_student_highlights_excel(student_id: int, request: Request, db:
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -1621,7 +1617,6 @@ async def export_student_enrollments_excel(student_id: int, request: Request, db
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -1692,7 +1687,6 @@ async def export_students_pdf(request: Request, db: Session = Depends(get_db)):
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -1755,7 +1749,6 @@ async def export_attendance_excel(request: Request, db: Session = Depends(get_db
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -1798,7 +1791,7 @@ async def export_attendance_csv(request: Request, db: Session = Depends(get_db))
             details={"error": str(exc), "format": "csv"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/attendance/pdf")
@@ -1840,7 +1833,7 @@ async def export_attendance_pdf(request: Request, db: Session = Depends(get_db))
             details={"error": str(exc), "format": "pdf"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/attendance/analytics/excel")
@@ -2104,7 +2097,6 @@ async def export_attendance_analytics_excel(request: Request, db: Session = Depe
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -2144,7 +2136,7 @@ async def export_attendance_analytics_csv(request: Request, db: Session = Depend
         return _csv_response(headers, flat_rows, filename)
     except Exception as exc:
         logger.error("Export attendance analytics csv failed: %s", exc, exc_info=True)
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/attendance/analytics/pdf")
@@ -2219,7 +2211,7 @@ async def export_attendance_analytics_pdf(request: Request, db: Session = Depend
         return _pdf_table_response(t("title_attendance_export", lang), headers, rows_data, filename)
     except Exception as exc:
         logger.error("Export attendance analytics pdf failed: %s", exc, exc_info=True)
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/courses/excel")
@@ -2288,7 +2280,6 @@ async def export_courses_excel(request: Request, db: Session = Depends(get_db)):
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -2332,7 +2323,7 @@ async def export_courses_csv(request: Request, db: Session = Depends(get_db)):
             details={"error": str(exc), "format": "csv"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/enrollments/excel")
@@ -2404,7 +2395,6 @@ async def export_enrollments_excel(request: Request, db: Session = Depends(get_d
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -2451,7 +2441,7 @@ async def export_enrollments_csv(request: Request, db: Session = Depends(get_db)
             details={"error": str(exc), "format": "csv"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/enrollments/pdf")
@@ -2497,7 +2487,7 @@ async def export_enrollments_pdf(request: Request, db: Session = Depends(get_db)
             details={"error": str(exc), "format": "pdf"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/grades/excel")
@@ -2579,7 +2569,6 @@ async def export_all_grades_excel(request: Request, db: Session = Depends(get_db
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -2632,7 +2621,7 @@ async def export_all_grades_csv(request: Request, db: Session = Depends(get_db))
             details={"error": str(exc), "format": "csv"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/grades/pdf")
@@ -2684,7 +2673,7 @@ async def export_all_grades_pdf(request: Request, db: Session = Depends(get_db))
             details={"error": str(exc), "format": "pdf"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/performance/excel")
@@ -2760,7 +2749,6 @@ async def export_daily_performance_excel(request: Request, db: Session = Depends
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -2811,7 +2799,7 @@ async def export_daily_performance_csv(request: Request, db: Session = Depends(g
             details={"error": str(exc), "format": "csv"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/performance/pdf")
@@ -2861,7 +2849,7 @@ async def export_daily_performance_pdf(request: Request, db: Session = Depends(g
             details={"error": str(exc), "format": "pdf"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/highlights/excel")
@@ -2934,7 +2922,6 @@ async def export_highlights_excel(request: Request, db: Session = Depends(get_db
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -2982,7 +2969,7 @@ async def export_highlights_csv(request: Request, db: Session = Depends(get_db))
             details={"error": str(exc), "format": "csv"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/highlights/pdf")
@@ -3029,7 +3016,7 @@ async def export_highlights_pdf(request: Request, db: Session = Depends(get_db))
             details={"error": str(exc), "format": "pdf"},
             success=False,
         )
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Export failed", request)
 
 
 @router.get("/student-report/pdf/{student_id}")
@@ -3229,7 +3216,6 @@ async def export_student_report_pdf(student_id: int, request: Request, db: Sessi
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -3269,7 +3255,6 @@ async def export_courses_pdf(request: Request, db: Session = Depends(get_db)):
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )
 
 
@@ -3442,5 +3427,4 @@ async def export_course_analytics_pdf(course_id: int, request: Request, db: Sess
             ErrorCode.EXPORT_FAILED,
             "Export failed",
             request,
-            context={"error": str(exc)},
         )

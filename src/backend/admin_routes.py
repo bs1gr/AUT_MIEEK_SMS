@@ -14,6 +14,7 @@ Notes:
 
 import importlib
 import importlib.util
+import logging
 import os
 import pathlib
 import shutil
@@ -50,6 +51,8 @@ except Exception as e:
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import FileResponse, JSONResponse
 from sqlalchemy.orm import Session
+
+logger = logging.getLogger(__name__)
 
 # Control API dependency to protect admin-only endpoints
 try:
@@ -134,8 +137,9 @@ async def health_check(db: Session = Depends(get_db)):
             "courses_count": courses_count,
             "uptime": uptime,
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Health check failed: {e!s}")
+    except Exception:
+        logger.exception("Health check failed")
+        raise HTTPException(status_code=500, detail="Health check failed")
 
 
 @router.post("/reset-database")
@@ -152,8 +156,9 @@ async def reset_database(_auth=Depends(require_control_admin)):
         Base.metadata.create_all(bind=engine)
 
         return {"message": "Database reset successfully"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to reset database: {e!s}")
+    except Exception:
+        logger.exception("Failed to reset database")
+        raise HTTPException(status_code=500, detail="Failed to reset database")
 
 
 @router.post("/backup-database")
@@ -232,8 +237,9 @@ async def backup_database(encrypt: bool = True, _auth=Depends(require_control_ad
             )
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to backup database: {e!s}")
+    except Exception:
+        logger.exception("Failed to backup database")
+        raise HTTPException(status_code=500, detail="Failed to backup database")
 
 
 @router.get("/performance")
@@ -288,8 +294,9 @@ async def get_performance(limit: int = 50, _auth=Depends(require_control_admin))
         }
     except HTTPException:
         raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve performance data: {e!s}")
+    except Exception:
+        logger.exception("Failed to retrieve performance data")
+        raise HTTPException(status_code=500, detail="Failed to retrieve performance data")
 
 
 @router.post("/restore-encrypted-backup")
@@ -341,8 +348,9 @@ async def restore_encrypted_backup(
         )
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to restore backup: {e!s}")
+    except Exception:
+        logger.exception("Failed to restore backup")
+        raise HTTPException(status_code=500, detail="Failed to restore backup")
 
 
 @router.get("/list-encrypted-backups")
@@ -361,8 +369,9 @@ async def list_encrypted_backups(_auth=Depends(require_control_admin)):
         backups = backup_service.list_encrypted_backups()
 
         return {"success": True, "count": len(backups), "backups": backups}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list backups: {e!s}")
+    except Exception:
+        logger.exception("Failed to list backups")
+        raise HTTPException(status_code=500, detail="Failed to list backups")
 
 
 @router.post("/sample-data")
@@ -470,9 +479,10 @@ async def add_sample_data(db: Session = Depends(get_db), _auth=Depends(require_c
             "students": len(students),
             "courses": len(courses),
         }
-    except Exception as e:
+    except Exception:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to add sample data: {e!s}")
+        logger.exception("Failed to add sample data")
+        raise HTTPException(status_code=500, detail="Failed to add sample data")
 
 
 @router.get("/debug-processes")
@@ -566,8 +576,9 @@ async def debug_processes(_auth=Depends(require_control_admin)):
             "parent_name": parent.name() if parent else None,
         }
 
-    except Exception as e:
-        processes_info["error"] = str(e)
+    except Exception:
+        logger.exception("Failed to collect process diagnostics")
+        processes_info["error"] = "Process diagnostics unavailable"
 
     return processes_info
 
@@ -612,10 +623,10 @@ def _detect_environment():
             content = f.read()
             if "docker" in content or "containerd" in content:
                 return "docker"
-    except Exception as e:
+    except Exception:
         import logging
 
-        logging.getLogger(__name__).debug(f"Could not read /proc/1/cgroup: {e}")
+        logging.getLogger(__name__).debug("Could not read /proc/1/cgroup")
         pass
     # Check for DOCKER_CONTAINER env var (can be set in Dockerfile)
     if os.getenv("DOCKER_CONTAINER") == "true":

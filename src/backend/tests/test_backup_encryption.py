@@ -221,6 +221,26 @@ class TestBackupServiceEncrypted:
 
         assert original == restored
 
+    def test_restore_with_allowed_base_uses_system_generated_filename(self, backup_service, sample_file, tmp_path):
+        """A caller-supplied filename must not control a constrained restore destination."""
+        backup_service.create_encrypted_backup(
+            source_path=sample_file,
+            backup_name="test_backup",
+        )
+
+        restore_dir = tmp_path / "restore"
+        requested_path = restore_dir / "caller_selected.db"
+        result = backup_service.restore_encrypted_backup(
+            backup_name="test_backup",
+            output_path=requested_path,
+            allowed_base_dir=restore_dir,
+        )
+
+        expected_path = restore_dir / "restored_database.db"
+        assert Path(result["restored_to"]) == expected_path
+        assert expected_path.read_bytes() == sample_file.read_bytes()
+        assert not requested_path.exists()
+
     def test_list_encrypted_backups(self, backup_service, sample_file):
         """Test listing encrypted backups."""
         # Create multiple backups

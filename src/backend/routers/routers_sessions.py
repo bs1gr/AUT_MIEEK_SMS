@@ -211,7 +211,7 @@ async def list_semesters(request: Request, db: Session = Depends(get_db)):
         return {"semesters": semester_list, "count": len(semester_list)}
     except Exception as exc:
         logger.error("Failed to list semesters: %s", exc, exc_info=True)
-        raise http_error(500, ErrorCode.EXPORT_FAILED, "Failed to list semesters", request, context={"error": str(exc)})
+        raise http_error(500, ErrorCode.EXPORT_FAILED, "Failed to list semesters", request)
 
 
 @router.get("/export")
@@ -365,7 +365,7 @@ async def export_session(
             ErrorCode.EXPORT_FAILED,
             "Session export failed",
             request,
-            context={"error": str(exc), "semester": semester},
+            context={"semester": semester},
         )
 
 
@@ -412,9 +412,9 @@ async def import_session(
         content = await file.read()
         try:
             import_data = json.loads(content.decode("utf-8"))
-        except json.JSONDecodeError as exc:
+        except json.JSONDecodeError:
             raise http_error(
-                400, ErrorCode.IMPORT_INVALID_JSON, "Invalid JSON format", request, context={"error": str(exc)}
+                400, ErrorCode.IMPORT_INVALID_JSON, "Invalid JSON format", request
             )
 
         # PRE-VALIDATION: Check entire import package before touching database
@@ -655,7 +655,7 @@ async def import_session(
             results["success"] = True
             results["rollback_available"] = backup_path is not None
 
-        except Exception as exc:
+        except Exception:
             db.rollback()
             logger.exception("Database commit failed")
             raise http_error(
@@ -664,7 +664,6 @@ async def import_session(
                 "Database commit failed, all changes rolled back",
                 request,
                 context={
-                    "error": str(exc),
                     "rollback_performed": True,
                     "backup_available": backup_path is not None,
                     "backup_path": str(backup_path) if backup_path else None,
@@ -678,9 +677,7 @@ async def import_session(
     except Exception as exc:
         db.rollback()
         logger.error("Session import failed: %s", exc, exc_info=True)
-        raise http_error(
-            500, ErrorCode.IMPORT_PROCESSING_FAILED, "Session import failed", request, context={"error": str(exc)}
-        )
+        raise http_error(500, ErrorCode.IMPORT_PROCESSING_FAILED, "Session import failed", request)
 
 
 @router.post("/rollback")
@@ -825,10 +822,10 @@ async def rollback_import(request: Request, backup_filename: str):
 
     except HTTPException:
         raise
-    except Exception as exc:
+    except Exception:
         logger.exception("Rollback failed")
         raise http_error(
-            500, ErrorCode.IMPORT_PROCESSING_FAILED, "Rollback operation failed", request, context={"error": str(exc)}
+            500, ErrorCode.IMPORT_PROCESSING_FAILED, "Rollback operation failed", request
         )
 
 
@@ -865,7 +862,7 @@ async def list_backups(request: Request):
     except Exception as exc:
         logger.error(f"Failed to list backups: {exc}", exc_info=True)
         raise http_error(
-            500, ErrorCode.EXPORT_FAILED, "Failed to list backup files", request, context={"error": str(exc)}
+            500, ErrorCode.EXPORT_FAILED, "Failed to list backup files", request
         )
 
 

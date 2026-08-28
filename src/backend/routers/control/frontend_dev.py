@@ -237,8 +237,9 @@ async def control_stop_all(request: Request, _auth=Depends(require_control_admin
                     stopped_services.append(f"Frontend (tracked PID {pid} stopped)")
                 else:
                     errors.append(f"Failed to stop tracked frontend PID {pid}")
-            except Exception as e:
-                errors.append(f"Tracked frontend: {e!s}")
+            except Exception:
+                logger.exception("Failed to stop tracked frontend process")
+                errors.append("Failed to stop tracked frontend process")
             finally:
                 FRONTEND_PROCESS = None
         ports_reported = 0
@@ -327,8 +328,9 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
                             ports_cleared += 1
                         else:
                             errors.append(f"Port {port} PID {pid}: taskkill failed")
-                    except Exception as e:
-                        errors.append(f"Port {port} PID {pid}: {e!s}")
+                    except Exception:
+                        logger.exception("Failed to stop frontend process on port %s", port)
+                        errors.append(f"Failed to stop frontend process on port {port}")
         message = (
             f"Frontend stopped successfully ({len(stopped_pids)} process(es), {ports_cleared} port(s) cleared)"
             if stopped_any

@@ -262,6 +262,8 @@ class EncryptionService:
         # Decrypt
         plaintext = self.decrypt(encrypted_data, associated_data=metadata_bytes)
 
+        # CodeQL [python/path-injection]: Safe - callers provide a Path object that
+        # is validated by BackupServiceEncrypted before this sink is reached.
         # Write decrypted file
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with open(output_path, "wb") as f:

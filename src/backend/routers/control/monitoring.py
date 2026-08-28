@@ -418,7 +418,7 @@ async def prometheus_query(request: Request, query: str, time: Optional[float] =
             return data
     except HTTPError as e:
         raise http_error(
-            502, ErrorCode.CONTROL_DEPENDENCY_ERROR, "Failed to query Prometheus", request, context={"error": str(e)}
+            502, ErrorCode.CONTROL_DEPENDENCY_ERROR, "Failed to query Prometheus", request
         ) from e
     except Exception as exc:
         raise http_error(
@@ -426,7 +426,6 @@ async def prometheus_query(request: Request, query: str, time: Optional[float] =
             ErrorCode.INTERNAL_SERVER_ERROR,
             "Unexpected error querying Prometheus",
             request,
-            context={"error": str(exc)},
         ) from exc
 
 
@@ -451,7 +450,6 @@ async def prometheus_query_range(request: Request, query: str, start: float, end
             ErrorCode.CONTROL_DEPENDENCY_ERROR,
             "Failed to query Prometheus (range)",
             request,
-            context={"error": str(e)},
         ) from e
     except Exception as exc:
         raise http_error(
@@ -459,5 +457,4 @@ async def prometheus_query_range(request: Request, query: str, start: float, end
             ErrorCode.INTERNAL_SERVER_ERROR,
             "Unexpected error querying Prometheus (range)",
             request,
-            context={"error": str(exc)},
         ) from exc

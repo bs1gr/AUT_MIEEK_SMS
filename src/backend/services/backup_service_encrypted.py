@@ -249,14 +249,22 @@ class BackupServiceEncrypted:
         # _validate_output_path uses backend.security.path_validation.validate_path()
         resolved_output = self._validate_output_path(output_path, allowed_base_dir=allowed_base_dir)
 
+        if allowed_base_dir is not None:
+            # The restore endpoint uses a system-generated directory. Keep the
+            # actual write target independent of the caller-supplied filename.
+            resolved_output = Path(allowed_base_dir).resolve() / "restored_database.db"
+            validate_path(Path(allowed_base_dir), resolved_output)
+
         # Ensure parent directories exist so restore can succeed within backup dir
         resolved_output.parent.mkdir(parents=True, exist_ok=True)
 
-        # CodeQL [python/path-injection]: Safe - resolved_output is from _validate_output_path()
-        # which performs comprehensive validation including traversal pattern detection
+        # CodeQL [python/path-injection]: Safe - resolved_output is reconstructed
+        # from the trusted allowed base directory and a constant filename.
         sanitized_output: Path = resolved_output
 
         # Decrypt and restore using validated paths
+        # CodeQL [python/path-injection]: Safe - sanitized_output is reconstructed
+        # from the trusted allowed base directory and a constant filename.
         metadata = self.encryption_service.decrypt_file(
             input_path=backup_path,
             output_path=sanitized_output,
