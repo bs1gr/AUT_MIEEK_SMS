@@ -418,7 +418,8 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
                         student["health_issue"] = str(row.get(health_col)).strip()
                     _process(student, row_no)
                 except Exception as exc:
-                    errors.append(f"{filename} row {row_no}: {exc!s}")
+                    logger.error("CSV row processing failed for %s row %s: %s", filename, row_no, exc, exc_info=True)
+                    errors.append(f"{filename} row {row_no}: processing failed")
                     continue
         else:
             # Headerless path: positional columns
@@ -446,10 +447,12 @@ def _parse_csv_students(content: bytes, filename: str) -> tuple[list[dict], list
                         student["phone"] = str(row_list[6]).strip()
                     _process(student, row_no)
                 except Exception as exc:
-                    errors.append(f"{filename} row {row_no}: {exc!s}")
+                    logger.error("CSV row processing failed for %s row %s: %s", filename, row_no, exc, exc_info=True)
+                    errors.append(f"{filename} row {row_no}: processing failed")
                     continue
     except Exception as exc:
-        errors.append(f"{filename}: CSV parsing failed - {exc!s}")
+        logger.error("CSV parsing failed for %s: %s", filename, exc, exc_info=True)
+        errors.append(f"{filename}: CSV parsing failed")
 
     return students, errors
 
