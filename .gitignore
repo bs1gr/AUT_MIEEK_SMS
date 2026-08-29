@@ -311,7 +311,7 @@ AUT_MIEEK_CodeSign.pfx
 # Test artifacts & reporting
 test-results/
 frontend/test-results/
-frontend/playwright-report/
+playwright-report/
 .last-run.json
 
 # Load-testing results (generated locally)
