@@ -926,7 +926,8 @@ async def import_from_upload(
                 )
                 raise
             except Exception as exc:
-                errors.append(f"{up.filename}: {exc}")
+                logger.error("Upload file processing failed for %s: %s", up.filename, exc, exc_info=True)
+                errors.append(f"{up.filename}: processing failed")
                 # Log the failed import attempt with request context
                 audit.log_from_request(
                     request=request,
@@ -984,7 +985,8 @@ async def import_from_upload(
                 )
                 raise
             except Exception as exc:
-                errors.append(f"json: {exc}")
+                logger.error("Raw JSON text processing failed: %s", exc, exc_info=True)
+                errors.append("json: processing failed")
                 audit.log_from_request(
                     request=request,
                     action=AuditAction.BULK_IMPORT,
@@ -1261,7 +1263,8 @@ async def import_from_upload(
             )
         except Exception as exc:
             db.rollback()
-            errors.append(f"commit: {exc}")
+            logger.error("Upload import commit failed: %s", exc, exc_info=True)
+            errors.append("commit: failed")
             # Log failed upload import
             audit.log_from_request(
                 request=request,

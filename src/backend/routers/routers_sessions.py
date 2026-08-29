@@ -556,10 +556,11 @@ async def import_session(
                     results["summary"]["courses"]["updated"] += 1
                     logger.debug("Updated course", extra={"course_code": course_code})
             except Exception as e:
-                error_msg = f"Course {course_data.get('course_code', 'unknown')}: {str(e)}"
+                course_code = course_data.get("course_code", "unknown")
+                logger.error("Course import failed for %s: %s", course_code, e, exc_info=True)
+                error_msg = f"Course {course_code}: import failed"
                 results["summary"]["courses"]["errors"].append(error_msg)
                 critical_errors.append(error_msg)
-                logger.error(error_msg, exc_info=True)
 
         # Import students
         logger.info("Importing students", extra={"student_count": len(import_data.get("students", []))})
@@ -598,10 +599,11 @@ async def import_session(
                     results["summary"]["students"]["updated"] += 1
                     logger.debug("Updated student", extra={"student_id": student_id})
             except Exception as e:
-                error_msg = f"Student {student_data.get('student_id', 'unknown')}: {str(e)}"
+                student_id = student_data.get("student_id", "unknown")
+                logger.error("Student import failed for %s: %s", student_id, e, exc_info=True)
+                error_msg = f"Student {student_id}: import failed"
                 results["summary"]["students"]["errors"].append(error_msg)
                 critical_errors.append(error_msg)
-                logger.error(error_msg, exc_info=True)
 
         # IMPORTANT: Flush session so newly added Course and Student rows obtain primary keys.
         # Without this flush, subsequent queries for Students/Courses inside the relational
@@ -1016,7 +1018,8 @@ def _import_enrollments(db: Session, enrollments: List[Dict], merge_strategy: st
                 results["summary"]["enrollments"]["created"] += 1
 
         except Exception as e:
-            results["summary"]["enrollments"]["errors"].append(str(e))
+            logger.error("Enrollment import failed: %s", e, exc_info=True)
+            results["summary"]["enrollments"]["errors"].append("Enrollment import failed")
 
 
 def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results: Dict):
@@ -1089,7 +1092,8 @@ def _import_grades(db: Session, grades: List[Dict], merge_strategy: str, results
                 results["summary"]["grades"]["created"] += 1
 
         except Exception as e:
-            results["summary"]["grades"]["errors"].append(str(e))
+            logger.error("Grade import failed: %s", e, exc_info=True)
+            results["summary"]["grades"]["errors"].append("Grade import failed")
 
 
 def _import_attendance(db: Session, attendance_records: List[Dict], merge_strategy: str, results: Dict):
@@ -1150,7 +1154,8 @@ def _import_attendance(db: Session, attendance_records: List[Dict], merge_strate
                 results["summary"]["attendance"]["created"] += 1
 
         except Exception as e:
-            results["summary"]["attendance"]["errors"].append(str(e))
+            logger.error("Attendance import failed: %s", e, exc_info=True)
+            results["summary"]["attendance"]["errors"].append("Attendance import failed")
 
 
 def _import_daily_performance(db: Session, performance_records: List[Dict], merge_strategy: str, results: Dict):
@@ -1215,7 +1220,8 @@ def _import_daily_performance(db: Session, performance_records: List[Dict], merg
                 results["summary"]["daily_performance"]["created"] += 1
 
         except Exception as e:
-            results["summary"]["daily_performance"]["errors"].append(str(e))
+            logger.error("Daily performance import failed: %s", e, exc_info=True)
+            results["summary"]["daily_performance"]["errors"].append("Daily performance import failed")
 
 
 def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str, results: Dict):
@@ -1271,4 +1277,5 @@ def _import_highlights(db: Session, highlights: List[Dict], merge_strategy: str,
                 results["summary"]["highlights"]["created"] += 1
 
         except Exception as e:
-            results["summary"]["highlights"]["errors"].append(str(e))
+            logger.error("Highlight import failed: %s", e, exc_info=True)
+            results["summary"]["highlights"]["errors"].append("Highlight import failed")

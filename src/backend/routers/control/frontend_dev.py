@@ -312,7 +312,8 @@ async def control_stop(request: Request, _auth=Depends(require_control_admin)):
                 else:
                     errors.append(f"PID {pid}: taskkill failed")
             except Exception as e:
-                errors.append(f"Tracked process: {e!s}")
+                logger.error("Failed to stop tracked frontend process", extra={"pid": pid, "error": str(e)})
+                errors.append(f"PID {pid}: failed to stop tracked process")
             finally:
                 FRONTEND_PROCESS = None
         ports_cleared = 0
