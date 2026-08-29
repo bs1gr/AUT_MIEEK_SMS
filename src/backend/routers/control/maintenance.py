@@ -552,7 +552,7 @@ def _resolve_env_file() -> tuple[Path, str]:
 
 
 @router.get("/maintenance/auth-settings", response_model=AuthSettingsResponse)
-def get_auth_settings(_request: Request):
+def get_auth_settings(_request: Request, _auth=Depends(require_control_admin)):
     """Get current authentication and authorization settings.
 
     Returns the effective configuration including AUTH_ENABLED and AUTH_MODE.
@@ -590,7 +590,7 @@ def get_auth_settings(_request: Request):
 
 
 @router.post("/maintenance/auth-settings", response_model=OperationResult)
-def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
+def update_auth_settings(payload: AuthSettingsUpdate, _request: Request, _auth=Depends(require_control_admin)):
     """Update authentication settings by modifying .env file.
 
     ⚠️ Requires application restart to take effect.
@@ -716,7 +716,7 @@ def update_auth_settings(payload: AuthSettingsUpdate, _request: Request):
 
 
 @router.get("/maintenance/auth-policy-guide")
-def get_auth_policy_guide():
+def get_auth_policy_guide(_auth=Depends(require_control_admin)):
     """Get detailed guide on authentication policies."""
     return {
         "policies": {
@@ -789,7 +789,9 @@ def get_auth_policy_guide():
 
 
 @router.get("/maintenance/updates/check", response_model=UpdateCheckResponse)
-def check_for_updates(_request: Request, channel: Literal["stable", "preview"] = "stable"):
+def check_for_updates(
+    _request: Request, channel: Literal["stable", "preview"] = "stable", _auth=Depends(require_control_admin)
+):
     """Check for available updates from GitHub releases."""
     from backend.environment import get_runtime_context
 

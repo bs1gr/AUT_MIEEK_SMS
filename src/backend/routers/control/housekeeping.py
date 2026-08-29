@@ -5,11 +5,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from backend.control_auth import control_api_enabled
+from backend.control_auth import control_api_enabled, require_control_admin
 from backend.errors import ErrorCode, http_error
 
 from .common import (
@@ -76,7 +76,7 @@ def _build_restart_diagnostics(_: Optional[Request] = None) -> RestartDiagnostic
 
 
 @router.post("/operations/exit-all", response_model=OperationResult)
-async def exit_all(down: bool = False):
+async def exit_all(down: bool = False, _auth=Depends(require_control_admin)):
     details: Dict[str, Any] = {}
     docker_performed = False
     if not in_docker_container() and check_docker_running():
@@ -107,6 +107,9 @@ async def exit_all(down: bool = False):
 
 @router.get("/restart", response_model=RestartDiagnostics)
 async def restart_diagnostics(request: Request):
+    # Intentionally unauthenticated: this diagnostic endpoint must remain reachable
+    # even when ENABLE_CONTROL_API=0 so operators can see *why* restart is unavailable.
+    # It only echoes non-sensitive environment/config flags (see RestartDiagnostics).
     return _build_restart_diagnostics(request)
 
 
@@ -114,8 +117,13 @@ async def restart_diagnostics(request: Request):
 async def restart_backend(request: Request):
     diagnostics = _build_restart_diagnostics(request)
     if not diagnostics.restart_supported:
+        # Preserve the self-diagnostic response shape (explains *why* restart is
+        # unavailable) instead of require_control_admin's generic 404/403 body.
         status_code = 404 if not diagnostics.control_api_enabled else 400
         return JSONResponse(status_code=status_code, content=diagnostics.model_dump())
+    # Control API is enabled and restart is supported here — enforce loopback/token
+    # access control before actually restarting the backend.
+    await require_control_admin(request)
     # Backward-compat: use legacy helpers in backend.main if present for tests
     try:
         from importlib import import_module

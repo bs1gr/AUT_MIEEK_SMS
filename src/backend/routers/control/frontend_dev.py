@@ -65,7 +65,7 @@ def _is_port_open_via_legacy(port: int) -> bool:
 
 
 @router.post("/start")
-async def control_start():
+async def control_start(_auth=Depends(require_control_admin)):
     global FRONTEND_PROCESS
     try:
         if _is_port_open_via_legacy(FRONTEND_PORT_PREFERRED):

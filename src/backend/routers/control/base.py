@@ -11,11 +11,12 @@ from pathlib import Path
 from threading import Lock
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.engine import make_url
 
+from backend.control_auth import require_control_admin
 from backend.db import engine  # Use existing engine instead of creating new ones
 
 from .common import (
@@ -103,7 +104,7 @@ class EnvironmentInfo(BaseModel):
 
 
 @router.get("/status", response_model=SystemStatus)
-async def get_system_status(request: Request, response: Response):
+async def get_system_status(request: Request, response: Response, _auth=Depends(require_control_admin)):
     from .common import get_frontend_port
 
     cached = _cache_get("status", ttl_seconds=5)
@@ -151,7 +152,7 @@ async def get_system_status(request: Request, response: Response):
 
 
 @router.get("/diagnostics", response_model=List[DiagnosticResult])
-async def run_diagnostics(response: Response):
+async def run_diagnostics(response: Response, _auth=Depends(require_control_admin)):
     cached = _cache_get("diagnostics", ttl_seconds=30)
     if cached:
         return cached
@@ -402,7 +403,7 @@ async def run_diagnostics(response: Response):
 
 
 @router.get("/ports", response_model=List[PortInfo])
-async def check_ports(response: Response):
+async def check_ports(response: Response, _auth=Depends(require_control_admin)):
     cached = _cache_get("ports", ttl_seconds=10)
     if cached:
         return cached
@@ -426,7 +427,9 @@ async def check_ports(response: Response):
 
 
 @router.get("/environment", response_model=EnvironmentInfo)
-async def get_environment_info(response: Response, include_packages: bool = False):
+async def get_environment_info(
+    response: Response, include_packages: bool = False, _auth=Depends(require_control_admin)
+):
     cache_key = "environment:packages" if include_packages else "environment"
     cached = _cache_get(cache_key, ttl_seconds=60 if include_packages else 20)
     if cached:
@@ -537,7 +540,7 @@ async def get_environment_info(response: Response, include_packages: bool = Fals
 
 
 @router.get("/troubleshoot", response_model=List[DiagnosticResult])
-async def run_troubleshooter():
+async def run_troubleshooter(_auth=Depends(require_control_admin)):
     results: List[DiagnosticResult] = []
 
     for port in COMMON_DEV_PORTS:

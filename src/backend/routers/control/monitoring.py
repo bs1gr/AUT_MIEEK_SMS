@@ -6,10 +6,11 @@ from pathlib import Path
 from typing import Any, Dict, Optional
 from urllib.parse import urljoin
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from httpx import HTTPError
 
 from backend.config import get_settings
+from backend.control_auth import require_control_admin
 from backend.errors import ErrorCode, http_error
 from backend.import_resolver import import_names
 
@@ -27,7 +28,7 @@ router = APIRouter()
 
 
 @router.get("/monitoring/environment")
-async def get_monitoring_environment(request: Request):
+async def get_monitoring_environment(request: Request, _auth=Depends(require_control_admin)):
     in_container = in_docker_container()
     docker_running = check_docker_running()
     return {
@@ -45,7 +46,7 @@ async def get_monitoring_environment(request: Request):
 
 
 @router.get("/monitoring/status")
-async def get_monitoring_status(request: Request):
+async def get_monitoring_status(request: Request, _auth=Depends(require_control_admin)):
     import logging
 
     logger = logging.getLogger(__name__)
@@ -159,7 +160,7 @@ async def get_monitoring_status(request: Request):
 
 @router.post("/monitoring/trigger")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def trigger_monitoring_from_container(request: Request):
+async def trigger_monitoring_from_container(request: Request, _auth=Depends(require_control_admin)):
     import logging
 
     logger = logging.getLogger(__name__)
@@ -227,7 +228,7 @@ try {
 
 @router.post("/monitoring/start")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def start_monitoring_stack(request: Request):
+async def start_monitoring_stack(request: Request, _auth=Depends(require_control_admin)):
     import logging
 
     logger = logging.getLogger(__name__)
@@ -345,7 +346,7 @@ async def start_monitoring_stack(request: Request):
 
 @router.post("/monitoring/stop")
 @limiter.limit(RATE_LIMIT_HEAVY)
-async def stop_monitoring_stack(request: Request):
+async def stop_monitoring_stack(request: Request, _auth=Depends(require_control_admin)):
     import logging
 
     logger = logging.getLogger(__name__)
@@ -401,7 +402,9 @@ async def stop_monitoring_stack(request: Request):
 
 @router.get("/monitoring/prometheus/query")
 @limiter.limit(RATE_LIMIT_READ)
-async def prometheus_query(request: Request, query: str, time: Optional[float] = None):
+async def prometheus_query(
+    request: Request, query: str, time: Optional[float] = None, _auth=Depends(require_control_admin)
+):
     try:
         import httpx
 
@@ -431,7 +434,14 @@ async def prometheus_query(request: Request, query: str, time: Optional[float] =
 
 @router.get("/monitoring/prometheus/range")
 @limiter.limit(RATE_LIMIT_READ)
-async def prometheus_query_range(request: Request, query: str, start: float, end: float, step: str = "30s"):
+async def prometheus_query_range(
+    request: Request,
+    query: str,
+    start: float,
+    end: float,
+    step: str = "30s",
+    _auth=Depends(require_control_admin),
+):
     try:
         import httpx
 
