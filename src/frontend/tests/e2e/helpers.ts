@@ -63,12 +63,18 @@ const getApiBase = () => {
       if (parsed.port === '8080' || parsed.port === '80' || parsed.port === '443') {
         return `${parsed.protocol}//${parsed.host}`;
       }
+      // Native mode: derive the backend origin from the same hostname as the
+      // page. Cookies (e.g. the HttpOnly refresh_token set by loginViaAPI) are
+      // scoped per-origin, so hardcoding a different hostname here than the
+      // one PLAYWRIGHT_BASE_URL points the browser at silently breaks any
+      // flow relying on that cookie reaching the page's own requests.
+      return `${parsed.protocol}//${parsed.hostname}:8000`;
     } catch {
       // Fall through to native default.
     }
   }
 
-  // Native mode default: backend API on 8000, frontend on 5173.
+  // Native mode default: backend API on 8000, frontend on 5173, same host.
   return 'http://127.0.0.1:8000';
 };
 
